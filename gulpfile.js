@@ -57,9 +57,7 @@ function checkMinVersion() {
 }
 
 
-/**
- * Gulp tasks.
- */
+// Gulp tasks.
 gulp.task('check', 'Run through all checks',
     gulpSequence('lint', 'check-types', 'check-rules'));
 gulp.task('presubmit', 'Run through all checks and tests',
