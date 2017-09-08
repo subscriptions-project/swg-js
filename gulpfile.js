@@ -14,22 +14,32 @@
  * limitations under the License.
  */
 
-checkMinVersion();
+const $$ = require('gulp-load-plugins')();
+const fs = require('fs-extra');
+const gulp = $$.help(require('gulp'));
+const gulpSequence = require('gulp-sequence')
+const lazypipe = require('lazypipe');
+const minimatch = require('minimatch');
+const minimist = require('minimist');
+const source = require('vinyl-source-stream');
+const touch = require('touch');
+const watchify = require('watchify');
 
-var $$ = require('gulp-load-plugins')();
-var fs = require('fs-extra');
-var gulp = $$.help(require('gulp'));
-var gulpSequence = require('gulp-sequence')
-var lazypipe = require('lazypipe');
-var minimatch = require('minimatch');
-var minimist = require('minimist');
-var source = require('vinyl-source-stream');
-var touch = require('touch');
-var watchify = require('watchify');
+/**
+ * @const {!Object}
+ */
+const argv =
+    minimist(process.argv.slice(2), {boolean: ['strictBabelTransform']});
 
-var argv = minimist(process.argv.slice(2), {boolean: ['strictBabelTransform']});
+/** @const {number} */
+const NODE_MIN_VERSION = 4;
 
 require('./build-system/tasks');
+
+/**
+ * Checks if installed local Node.js version is > NODE_MIN_VERSION.
+ */
+checkMinVersion();
 
 /**
  * Exits the process if gulp is running with a node version lower than
@@ -37,21 +47,22 @@ require('./build-system/tasks');
  * errors from modules that e.g. use let.
  */
 function checkMinVersion() {
-  var majorVersion = Number(process.version.replace(/v/, '').split('.')[0]);
-  if (majorVersion < 4) {
-    $$.util.log('Please run __PROJECT__ with node.js version 4 or newer.');
+  const majorVersion = Number(process.version.replace(/v/, '').split('.')[0]);
+  if (majorVersion < NODE_MIN_VERSION) {
+      $$.util.log(argv);
+    $$.util.log('Please run __PROJECT__ with node.js version ' +
+        `${NODE_MIN_VERSION} or newer.`);
     $$.util.log('Your version is', process.version);
     process.exit(1);
   }
 }
 
 
-//
-// Gulp tasks
-//
+/**
+ * Gulp tasks.
+ */
 gulp.task('check', 'Run through all checks',
     gulpSequence('lint', 'check-types', 'check-rules'));
 gulp.task('presubmit', 'Run through all checks and tests',
     gulpSequence('check-rules', 'test'));
-gulp.task('default', 'Same as "watch"',
-    ['watch', 'serve']);
+gulp.task('default', 'Same as "watch"', ['watch', 'serve']);
