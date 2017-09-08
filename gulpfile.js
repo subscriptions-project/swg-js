@@ -49,7 +49,6 @@ checkMinVersion();
 function checkMinVersion() {
   const majorVersion = Number(process.version.replace(/v/, '').split('.')[0]);
   if (majorVersion < NODE_MIN_VERSION) {
-      $$.util.log(argv);
     $$.util.log('Please run __PROJECT__ with node.js version ' +
         `${NODE_MIN_VERSION} or newer.`);
     $$.util.log('Your version is', process.version);
