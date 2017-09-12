@@ -16,3 +16,4 @@ typings
 typings.json
 build-system/runner/TESTS-TestSuites.xml
 test/coverage
+yarn.lock
