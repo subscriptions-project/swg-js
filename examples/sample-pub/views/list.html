@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Pub Times</title>
+    <link rel="canonical" href="index.html" >
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+    <link rel="stylesheet" href="./styles.css" type="text/css">
+    <link rel="stylesheet" href="./material.css" type="text/css">
+  </head>
+  <body>
+    <div class="main-body">
+      <header>
+        <div class="brand-logo">
+          Pub Times
+        </div>
+      </header>
+      <main role="main">
+        <h4><% title %></h4>
+        <ul>
+          <%#articles%>
+            <li>
+              <a href="<% id %>"><% title %></a>
+            </li>
+          <%/articles%>
+        </ul>
+      </main>
+    </div>
+  </body>
+</html>

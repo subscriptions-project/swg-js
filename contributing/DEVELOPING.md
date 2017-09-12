@@ -26,6 +26,15 @@ Before you start developing in __PROJECT__, check out these resources:
 
 TODO: Node.js, Yarn, Gulp
 
+## DNS Aliases
+
+For some local testing we refer to fake local URLs in order to simulate referencing third party URLs.  This requires extra setup so your browser will know that these URLs actually point to your local server.
+
+   You can do this by adding this line to your hosts file (`/etc/hosts` on Mac or Linux, `%SystemRoot%\System32\drivers\etc\hosts` on Windows):
+
+    ```127.0.0.1               pub.localhost```
+
+
 ## Build & Test
 
 Use the following Gulp commands:

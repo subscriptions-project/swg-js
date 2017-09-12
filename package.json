@@ -69,6 +69,7 @@
     "gulp-watch": "4.3.5",
     "gulp-webserver": "0.9.1",
     "gulp-wrap": "0.11.0",
+    "hogan-express": "0.5.2",
     "is-running": "^2.1.0",
     "jison": "0.4.15",
     "jsdom": "9.2.1",

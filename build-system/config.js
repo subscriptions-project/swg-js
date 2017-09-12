@@ -89,6 +89,7 @@ module.exports = {
     '!build-system/server/*.js',
     '!build/polyfills.js',
     '!build/polyfills/*.js',
+    '!examples/sample-pub/material.css',
     '!gulpfile.js',
     '!third_party/**/*.*',
     '!test/coverage/**/*.*',

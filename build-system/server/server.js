@@ -19,6 +19,7 @@
  * @fileoverview Creates an http server to handle static
  * files and list directories for use with the gulp live server
  */
+const app = require(require.resolve('./server-app'));
 const isRunning = require('is-running');
 const gulp = require('gulp-help')(require('gulp'));
 const morgan = require('morgan');
@@ -59,4 +60,5 @@ gulp.src(process.cwd())
     host,
     directoryListing: true,
     https: useHttps,
+    middleware: quiet ? [] : [app]
   }));
