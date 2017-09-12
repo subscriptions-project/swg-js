@@ -38,7 +38,6 @@ header {
 }
 
 .navigation {
-  width: 100%;
   background: #3F51B5;
   list-style-type: none;
   overflow: hidden;
@@ -48,7 +47,7 @@ header {
 
 .navigation .prev {
   float: left;
-  background-image: url(/img/chevron-left.png);
+  background-image: url(img/chevron-left.png);
   background-position: left center;
   background-repeat: no-repeat;
   padding-left: 24px;
@@ -56,7 +55,7 @@ header {
 
 .navigation .next {
   float: right;
-  background-image: url(/img/chevron-right.png);
+  background-image: url(img/chevron-right.png);
   background-position: right center;
   background-repeat: no-repeat;
   padding-right: 24px;
