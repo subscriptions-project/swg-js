@@ -61,5 +61,5 @@ function checkMinVersion() {
 gulp.task('check', 'Run through all checks',
     gulpSequence('lint', 'check-types', 'check-rules'));
 gulp.task('presubmit', 'Run through all checks and tests',
-    gulpSequence('check-rules', 'test'));
+    gulpSequence('check', 'test'));
 gulp.task('default', 'Same as "watch"', ['watch', 'serve']);
