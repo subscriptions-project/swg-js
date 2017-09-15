@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+import {launchBuyFlow} from '../experimental/buy-flow';
+
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
+
 
 /**
  * @interface
@@ -76,6 +79,13 @@ export class Runtime {
   whenReady() {
     return this.ready_;
   }
+
+  /**
+   */
+  startBuyFlow() {
+    // See go/subs-pay-blob.
+    launchBuyFlow('');
+  }
 }
 
 
@@ -83,6 +93,8 @@ export class Runtime {
  * @param {!Runtime} unusedRuntime
  * @return {!PublicRuntimeDef}
  */
-function createPublicRuntime(unusedRuntime) {
-  return /** @type {!PublicRuntimeDef} */ ({});
+function createPublicRuntime(runtime) {
+  return /** @type {!PublicRuntimeDef} */ ({
+    startBuyFlow: runtime.startBuyFlow.bind(runtime),
+  });
 }
