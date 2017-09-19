@@ -32,7 +32,7 @@ For some local testing we refer to fake local URLs in order to simulate referenc
 
    You can do this by adding this line to your hosts file (`/etc/hosts` on Mac or Linux, `%SystemRoot%\System32\drivers\etc\hosts` on Windows):
 
-    ```127.0.0.1               pub.localhost```
+    ```127.0.0.1               pub.localhost sp.localhost```
 
 
 ## Build & Test
