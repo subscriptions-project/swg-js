@@ -1,8 +1,18 @@
 <html>
 <head>
   <script async src="/dist/subscriptions.max.js"></script>
+  <script>
+    function startPaymentsFlow() {
+      (window.SUBSCRIPTIONS = window.SUBSCRIPTIONS || []).push(function(sub) {
+        sub.startPaymentsFlow();
+      });
+    }
+  </script>
 </head>
 <body>
   WORKS!
+
+
+  <button onclick="startPaymentsFlow()">Subscribe with Google</button>
 </body>
 </html>

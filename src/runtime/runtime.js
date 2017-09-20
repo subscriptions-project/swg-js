@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+import {launchPaymentsFlow} from '../experimental/payments-flow';
+
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
+
 
 /**
  * @interface
@@ -76,6 +79,13 @@ export class Runtime {
   whenReady() {
     return this.ready_;
   }
+
+  /**
+   */
+  startPaymentsFlow() {
+    // See go/subs-pay-blob.
+    launchPaymentsFlow('');
+  }
 }
 
 
@@ -83,6 +93,8 @@ export class Runtime {
  * @param {!Runtime} unusedRuntime
  * @return {!PublicRuntimeDef}
  */
-function createPublicRuntime(unusedRuntime) {
-  return /** @type {!PublicRuntimeDef} */ ({});
+function createPublicRuntime(runtime) {
+  return /** @type {!PublicRuntimeDef} */ ({
+    startPaymentsFlow: runtime.startPaymentsFlow.bind(runtime),
+  });
 }
