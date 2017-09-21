@@ -15,21 +15,15 @@
  */
 'use strict';
 
-const app = require('express')();
+const app = module.exports = require('express').Router();
 
-const bodyParser = require('body-parser');
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-app.set('view engine', 'html');
-app.enable('view cache');
-app.engine('html', require('hogan-express'));
-app.locals.delimiters = '<% %>';
-
-app.use('/examples/sample-pub',
-    require('../../examples/sample-pub/sample-pub-app'));
-
-app.use('/examples/sample-sp',
-    require('../../examples/sample-sp/sample-sp-app'));
-
-module.exports = app;
+/**
+ * An Article. ?url=(([^&]+)&access-type=([^&]+).*
+ */
+app.get(/\/api/, (req, res) => {
+  var options = {
+    root: __dirname ,
+    dotfiles: 'deny',
+  };
+  res.sendFile('views/' + req.query['access-type'] + '.json', options);
+});
