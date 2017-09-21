@@ -13,22 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
-
-const app = module.exports = require('express').Router();
 
 /**
- * An Article. ?url=(([^&]+)&access-type=([^&]+).*
+ * @param  {...*} var_args [description]
  */
-app.get(/\/api/, (req, res) => {
-  var options = {
-    root: __dirname ,
-    dotfiles: 'deny',
-  };
-  let accessType = req.query['access-type'] || 'offer';
-  let origin = req.get('origin') || '*';
-  res.set('Access-Control-Allow-Origin', origin);
-  res.set('Access-Control-Allow-Credentials', 'true');
-
-  res.sendFile(`views/${accessType}.json`, options);
-});
+ export function log(var_args) {
+   console.log.apply(console, arguments);
+ }
