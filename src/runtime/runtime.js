@@ -81,10 +81,11 @@ export class Runtime {
   }
 
   /**
+   * @param {string} blob
    */
-  startPaymentsFlow() {
+  startPaymentsFlow(blob) {
     // See go/subs-pay-blob.
-    launchPaymentsFlow('');
+    launchPaymentsFlow(blob);
   }
 }
 
