@@ -91,7 +91,7 @@ export class Runtime {
 
 
 /**
- * @param {!Runtime} unusedRuntime
+ * @param {!Runtime} runtime
  * @return {!PublicRuntimeDef}
  */
 function createPublicRuntime(runtime) {

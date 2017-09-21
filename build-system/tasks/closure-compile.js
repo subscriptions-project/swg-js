@@ -152,6 +152,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     });
 
     var externs = [
+      'build-system/extern.js',
     ];
     if (options.externs) {
       externs = externs.concat(options.externs);
@@ -197,6 +198,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
         define: [],
         hide_warnings_for: [
           'node_modules/',
+          'src/experimental/',
         ],
         jscomp_error: [],
       }
