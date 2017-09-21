@@ -1,11 +1,10 @@
-
 {
   "access": true,
 
   "metering": {
     "quotaLeft": 3,
     "quotaPeriod": "month",
-    "display": true,
+    "display": true
   },
 
   "offers": {
@@ -14,7 +13,7 @@
     "confidence": 0.1,
     "value": "something",
     "offerUrl": "https://subs.google.com/offers/353648",
-    "offerIframeUrl": "https://subs.google.com/offers.iframe/353648",
-  },
+    "offerIframeUrl": "https://subs.google.com/offers.iframe/353648"
+  }
 }
 
