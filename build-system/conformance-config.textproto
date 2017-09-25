@@ -159,9 +159,9 @@ requirement: {
 
 requirement: {
   type: BANNED_NAME
-  error_message: 'Use jsonParse instead.'
+  error_message: 'Use parseJson instead.'
   value: 'JSON.parse'
-  whitelist: 'src/json.js' # Where jsonParse itself is implemented.
+  whitelist: 'src/utils/json.js' # Where parseJson itself is implemented.
 }
 
 requirement: {
