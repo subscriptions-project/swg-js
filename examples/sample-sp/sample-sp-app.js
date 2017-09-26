@@ -25,7 +25,7 @@ app.get(/\/api/, (req, res) => {
     root: __dirname ,
     dotfiles: 'deny',
   };
-  let accessType = req.query['access-type'] || 'offer';
+  let accessType = req.query['access-type'] || 'premium';
   let origin = req.get('origin') || '*';
   res.set('Access-Control-Allow-Origin', origin);
   res.set('Access-Control-Allow-Credentials', 'true');

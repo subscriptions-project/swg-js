@@ -19,64 +19,103 @@ import {tryParseJson} from '../utils/json';
 import {isObject} from '../utils/types';
 
 
-/**
- * @return {!Promise<string>} Returns a string that ids what the customer chose
- * to purchase.
- */
-export function startAuth() {
-  return new Auth().start();
+function showToast_(message) {
+  let banner = '='.repeat(10);
+  console.log(`${banner}\n${message}\n${banner}`);
 }
 
 
+/**
+ * Performs authorization to check if a user has access to a given article.
+ */
 export class Auth {
 
-  constructor() {
-    this.accessType_ = this.getAccessType_();
+  /**
+   * Creates a new Auth object.
+   * @param  {!Window} win
+   * @param  {!SubscriptionMarkup} markup
+   */
+  constructor(win, markup) {
+
+    /** @const */
+    this.win = win;
+
+    /** @const */
+    this.markup_ = markup;
+
+    /** @const {string} The type of access required for this page. */
+    this.accessType_ = this.markup_.getAccessType();
+
+    /**
+     *  The subscription configuration associated with the page.
+     * @type {JsonObject}
+     */
     this.config_ = null;
+
+    /**
+     * [authResponse_ description]
+     * @type {[type]}
+     */
     this.authResponse_ = null;
   }
 
-  /**
-   * To generate blob, see go/subs-pay-blob.
-   * @return {!Promise}
-   */
   start() {
     // TODO: Add a timeout so this doesn't wait forever to show offers.
     return this.getPaywallConfig_()
       .then(config => this.sendAuthRequests_(config))
       .then(authResponse => {
-        this.authResponse_ = authResponse;
+        this.authResponse_ = authResponse[0];
+        log('Got auth responses.');
+        if (this.authResponse_['access']) {
+          // TODO Navigate to the full article.
+        } else if (this.authResponse_['offers']) {
+          return this.authResponse_['offers']['value'];
+        }
       });
 
   }
 
+  /**
+   * Retrieves the subscription config from the page or server and returns it.
+   *
+   * @private
+   * @return {!Promise<JsonObject>}
+   */
   getPaywallConfig_() {
+    showToast_('Initiating subscriptions with Google.')
     log('Reading paywall config');
     if (this.config_) {
       return Promise.resolve(this.config_);
     }
-    // TODO: Look at the page for now. Eventually also support
-    // http://domain/paywall.config.
-    const elements = document.getElementsByName('paywall');
-    for (let i = 0; i < elements.length; i++) {
-      const el = elements[i];
-      if (el.nodeName == 'SCRIPT' &&
-          el.getAttribute('type') == 'application/json') {
-        return Promise.resolve(tryParseJson(el.innerText));
-      }
+    const el = this.win.document.getElementById('subscriptionsConfig');
+    if (el.nodeName == 'SCRIPT' &&
+        el.getAttribute('type') == 'application/json') {
+      this.config_ = tryParseJson(el.innerText)
+      return Promise.resolve(this.config_);
     }
 
     // TODO: Config not found. Handle error.
     return Promise.resolve();
   }
 
+  /**
+   * Sends the auth requests to all subscription servers and returns a promise
+   * which resolves to data from all the servers.
+   *
+   * @private
+   * @param  {JsonObject} config Configuration that contains details about
+   *                             servers to contact.
+   * @return {!Promise<JsonObject>}
+   */
   sendAuthRequests_(config) {
     log('Sending auth requests.');
     if (!isObject(config) || Object.keys(config).length === 0) {
+      log('Invalid config.')
       return Promise.resolve();
     }
     const profiles = config['profiles'];
     if (!this.accessType_ || !profiles || !profiles[this.accessType_]) {
+      log('Can\'t find the profile');
       return Promise.resolve();
     }
 
@@ -90,28 +129,16 @@ export class Auth {
         headers: { 'Accept': 'application/json' },
         credentials: 'include',
       };
-      let url = service['authorizationUrl'] + '?';
-      // TODO: Add polyfill for fetch.
+      let url = service['authorizationUrl'] +
+          `?access-type=${this.accessType_}`;
       authPromises.push(window.fetch(url, init)
         .then(response => response.text())
         .then(responseText => {
-          log("Got auth response: " + responseText);
+          showToast_(responseText);
           // TODO: Start the offers flow.
-          return responseText;
+          return tryParseJson(responseText);
         }));
     }
     return Promise.all(authPromises);
-  }
-
-  getAccessType_() {
-    log('Checking access type.');
-    const elements = document.getElementsByTagName('meta');
-    for (let i = 0; i < elements.length; i++) {
-      const el = elements[i];
-      if (el.name == 'access-type') {
-        return el.getAttribute('content');
-      }
-    }
-    return null;
   }
 }

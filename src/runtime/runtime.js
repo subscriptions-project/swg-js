@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import {startAuth} from '../experimental/auth';
+import {Auth} from '../experimental/auth';
 import {launchPaymentsFlow} from '../experimental/payments-flow';
 import {log} from '../utils/log';
+import {SubscriptionMarkup} from './subscription-markup';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
 
@@ -75,6 +76,10 @@ export class Runtime {
 
     /** @private @const {!Promise} */
     this.ready_ = Promise.resolve();
+
+    this.markup_ = new SubscriptionMarkup(this.win);
+
+    this.auth_ = new Auth(this.win, this.markup_);
   }
 
   /**
@@ -94,10 +99,12 @@ export class Runtime {
 
   /**
    */
-  initialize() {
-    log('Starting Auth');
-    startAuth().then(() => {
-      launchPaymentsFlow('');
+  start() {
+    log('Starting subscriptions processing');
+    this.auth_.start().then(blob => {
+      if (blob) {
+        launchPaymentsFlow(blob);
+      }
     });
 
   }
@@ -110,6 +117,6 @@ export class Runtime {
 function createPublicRuntime(runtime) {
   return /** @type {!PublicRuntimeDef} */ ({
     startPaymentsFlow: runtime.startPaymentsFlow.bind(runtime),
-    initialize: runtime.initialize.bind(runtime),
+    start: runtime.start.bind(runtime),
   });
 }

@@ -1,7 +1,8 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
-  <meta name="access-type" content="premium">
+  <meta name="access-type" content="offer">
+  <meta name="access-control" content="manual">
   <script async src="/dist/subscriptions.max.js"></script>
   <script>
     function startPaymentsFlow() {
@@ -9,23 +10,23 @@
         sub.startPaymentsFlow('AFNo2jPy88x94upfE4y47vQFag752pyP3LW0iCm5tK3FLOd20urCfWNzcoVEnXY4T+lmr64dLe8V2zn33xeiZh8skQPjhyfIpYnP0c9UnA2S8xi9nDOvvhRl6K6jqdN8XWplzJpwEYOYz8i7HlZQ5mkziwwlLeMC8sJBK2vBOo8QgMqM/mtaBCcB0K9+c+/t+neQrakwG7afbx0wNaB1DrOMscN9rt3EY0H9TNAO1o+H61B8W9ZJcbiMyaNU5xlX1vb3n5VgM7PDp/JpNj/BXvosNJ7SsPN943OOt9UyZssJzAP9G24pDgDYvqeTL9MNj+kHhU9CTGgQbK++Tycyg0fw+9oQZF+S5EPstlE+nwHFsI2n3UBaKivMY/9A0LMYwUXama6ELaYDkXFP2PUY002LhgrFfTntsMcEkybKkZV/gVSd1XlHkXWfrxMaUTxXltmSo6ztfZ68oE0KmeYG/U9+qoPm+4P7B+P+BeK5V1U+Rwg1l0Dw+0wH/QdOp0j24Jd834WK/oEzzZUUnz1h8Cx3yLbSTu1auQ==');
       });
     }
-
-    function initialize() {
-      (window.SUBSCRIPTIONS = window.SUBSCRIPTIONS || []).push(function(sub) {
-        sub.initialize();
-      });
-    }
   </script>
-  <script type="application/json" name="paywall">
+  <script type="application/json" id="subscriptionsConfig">
   {
     "profiles": {
       "premium": {
         "services": [
           {
             "id": "publisher.com",
-            "authorizationUrl": "http://sp.localhost:8000/examples/sample-sp/api",
-            "productId": "d18feba8-7c68-11e7",
-            "publicKey": "https://publisher.com/pk"
+            "authorizationUrl": "http://sp.localhost:8000/examples/sample-sp/api"
+          }
+        ]
+      },
+      "offer": {
+        "services": [
+          {
+            "id": "publisher.com",
+            "authorizationUrl": "http://sp.localhost:8000/examples/sample-sp/api"
           }
         ]
       }
@@ -33,11 +34,11 @@
   }
   </script>
 </head>
-<body onload="initialize()">
+<body>
   WORKS!
 
 
   <button onclick="startPaymentsFlow()">Payments Flow</button>
-  <button onclick="initialize()">Subscribe with Google</button>
+  <button onclick="window.SUBSCRIPTIONS.push(sub => sub.start())">Subscribe with Google</button>
 </body>
 </html>
