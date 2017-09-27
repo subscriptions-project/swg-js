@@ -1,75 +1,85 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Pub Times</title>
-    <link rel="canonical" href="<% id %>" >
-    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
-    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
-    <link rel="stylesheet" href="./styles.css" type="text/css">
-    <link rel="stylesheet" href="./material.css" type="text/css">
-  </head>
-  <body>
-    <div class="main-body">
-      <header>
-        <div class="brand-logo" data-z-depth="2"><a href="/">Pub Times</a></div>
-        <div class="navigation" data-z-depth="2">
-          <%#prev%>
-            <div class="prev">
-              <a href="<% prev %>">Previous</a>
-            </div>
+
+<head>
+  <meta charset="utf-8">
+  <title>Pub Times</title>
+  <link rel="canonical" href="<% id %>">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+  <script src="/dist/subscriptions.max.js"></script>
+  <script>
+    // TODO(dparikh): Move event listener to subscriptions code.
+    self.addEventListener('DOMContentLoaded', (event) => {
+      (window.SUBSCRIPTIONS = window.SUBSCRIPTIONS || [])
+        .push((sub) => sub.startOffersContainer());
+    });
+  </script>
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+  <link rel="stylesheet" href="./styles.css" type="text/css">
+  <link rel="stylesheet" href="./material.css" type="text/css">
+</head>
+
+<body>
+  <div class="main-body">
+    <header>
+      <div class="brand-logo" data-z-depth="2"><a href="/examples/sample-pub">Pub Times</a></div>
+      <div class="navigation" data-z-depth="2">
+        <%#prev%>
+          <div class="prev">
+            <a href="<% prev %>">Previous</a>
+          </div>
           <%/prev%>
-          <%#next%>
-            <div class="next">
-              <a href="<% next %>">Next</a>
-            </div>
-          <%/next%>
-        </div>
-      </header>
+            <%#next%>
+              <div class="next">
+                <a href="<% next %>">Next</a>
+              </div>
+              <%/next%>
+      </div>
+    </header>
 
-      <main role="main">
-        <article>
+    <main role="main">
+      <article>
 
-          <!--
+        <!--
             This section is visible to all users.
           -->
-          <section>
-            <h3><% title %></h3>
-            <img
-                src="./img/hero@1x.jpg"
-                srcset="./img/hero@1x.jpg 1x, ./img/hero@2x.jpg 2x"
-                width="360"
-                height="216">
-            <p>
-              This text is part of the article preview and visible to all users.
-              This text is part of the article preview and visible to all users.
-              This text is part of the article preview and visible to all users.
-              This text is part of the article preview and visible to all users.
-              This text is part of the article preview and visible to all users.
-              This text is part of the article preview and visible to all users.
-            </p>
-          </section>
+        <section>
+          <h3><% title %></h3>
+          <img
+          src="./img/hero@1x.jpg"
+          srcset="./img/hero@1x.jpg 1x, ./img/hero@2x.jpg 2x"
+          width="360"
+          height="216">
+      <p>
+        This text is part of the article preview and visible to all users.
+        This text is part of the article preview and visible to all users.
+        This text is part of the article preview and visible to all users.
+        This text is part of the article preview and visible to all users.
+        This text is part of the article preview and visible to all users.
+        This text is part of the article preview and visible to all users.
+      </p>
+        </section>
 
-          <div>
+        <div>
             <figure>
-              <img class="full-bleed"
-                       src="./img/sea@1x.jpg"
-                       srcset="./img/sea@1x.jpg 1x, ./img/sea@2x.jpg 2x"
-                       width="360" height="216">
-            </figure>
-            <p>
-              This text is part of the article that is only visible to users with access to the entire page contents.
-              This text is part of the article that is only visible to users with access to the entire page contents.
-              This text is part of the article that is only visible to users with access to the entire page contents.
-              This text is part of the article that is only visible to users with access to the entire page contents.
-              This text is part of the article that is only visible to users with access to the entire page contents.
-              This text is part of the article that is only visible to users with access to the entire page contents.
-              This text is part of the article that is only visible to users with access to the entire page contents.
-              This text is part of the article that is only visible to users with access to the entire page contents.
-            </p>
-          </div>
-        </article>
-      </main>
-    </div>
-  </body>
+                <img class="full-bleed"
+                         src="./img/sea@1x.jpg"
+                         srcset="./img/sea@1x.jpg 1x, ./img/sea@2x.jpg 2x"
+                         width="360" height="216">
+              </figure>
+              <p>
+                This text is part of the article that is only visible to users with access to the entire page contents.
+                This text is part of the article that is only visible to users with access to the entire page contents.
+                This text is part of the article that is only visible to users with access to the entire page contents.
+                This text is part of the article that is only visible to users with access to the entire page contents.
+                This text is part of the article that is only visible to users with access to the entire page contents.
+                This text is part of the article that is only visible to users with access to the entire page contents.
+                This text is part of the article that is only visible to users with access to the entire page contents.
+                This text is part of the article that is only visible to users with access to the entire page contents.
+              </p>
+        </div>
+      </article>
+    </main>
+  </div>
+</body>
 </html>

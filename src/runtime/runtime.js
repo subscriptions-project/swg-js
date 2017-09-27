@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import {launchPaymentsFlow} from '../experimental/payments-flow';
+import { buildOffersContainer } from '../experimental/offers-flow';
+import { launchPaymentsFlow } from '../experimental/payments-flow';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
 
@@ -81,6 +82,13 @@ export class Runtime {
   }
 
   /**
+   * Starts the offers flow.
+   */
+  startOffersContainer() {
+    buildOffersContainer();
+  }
+
+  /**
    * @param {string} blob
    */
   startPaymentsFlow(blob) {
@@ -96,6 +104,7 @@ export class Runtime {
  */
 function createPublicRuntime(runtime) {
   return /** @type {!PublicRuntimeDef} */ ({
-    startPaymentsFlow: runtime.startPaymentsFlow.bind(runtime),
+    startOffersContainer: runtime.startOffersContainer.bind(runtime),
+    startPaymentsFlow: runtime.startPaymentsFlow.bind(runtime)
   });
 }
