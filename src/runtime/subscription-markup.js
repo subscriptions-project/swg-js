@@ -15,8 +15,14 @@
  */
 
 
+/**
+ * Class to expose document level settings relevant to subscription platform.
+ */
 export class SubscriptionMarkup {
-
+  /**
+   * Creates a subscription markup class.
+   * @param  {!Window} win
+   */
   constructor(win) {
     this.win = win;
 
@@ -25,6 +31,9 @@ export class SubscriptionMarkup {
     this.accessControl_ = null;
   }
 
+  /**
+   * @return {string} Returns the access type setting for a given page.
+   */
   getAccessType() {
     if (this.accessType_ == null) {
       this.accessType_ = this.getMetaTag_('access-type');
@@ -32,6 +41,9 @@ export class SubscriptionMarkup {
     return this.accessType_;
   }
 
+  /**
+   * @return {string} Returns the access content setting for a given page.
+   */
   getAccessContent() {
     if (this.accessContent_ == null) {
       this.accessContent_ = this.getMetaTag_('access-content');
@@ -39,6 +51,9 @@ export class SubscriptionMarkup {
     return this.accessContent_;
   }
 
+  /**
+   * @return {string} Returns the access control setting for a given page.
+   */
   getAccessControl() {
     if (this.accessControl_ == null) {
       this.accessControl_ = this.getMetaTag_('access-control');
@@ -46,10 +61,19 @@ export class SubscriptionMarkup {
     return this.accessControl_;
   }
 
+  /**
+   * Returns the value from content attribute of a meta tag with given name.
+   *
+   * If multiple tags are found, the first value is returned.
+   *
+   * @private
+   * @param  {string} tagName The tag name to look for.
+   * @return {string} attribute value or empty string.
+   */
   getMetaTag_(tagName) {
     const el = this.win.document.querySelector(`meta[name="${tagName}"]`);
     if (el) {
-      return el.getAttribute('content');
+      return el.getAttribute('content') || '';
     }
     return '';
   }
