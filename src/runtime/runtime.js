@@ -15,6 +15,7 @@
  */
 
 import {Auth} from '../experimental/auth';
+import {isArray} from '../utils/types';
 import {launchPaymentsFlow} from '../experimental/payments-flow';
 import {log} from '../utils/log';
 import {SubscriptionMarkup} from './subscription-markup';
@@ -30,9 +31,12 @@ class PublicRuntimeDef {
 
 /**
  * @param {!Window} win
- * @return {!Runtime}
  */
 export function installRuntime(win) {
+  if (!isArray(win[RUNTIME_PROP])) {
+    return;
+  }
+
   const runtime = new Runtime(win);
 
   const waitingArray = win[RUNTIME_PROP];
@@ -40,7 +44,7 @@ export function installRuntime(win) {
   // Public runtime.
   const publicRuntime = createPublicRuntime(runtime);
 
-  const dependencyInstaller = {};
+  const api = {'_' : runtime};
 
   /**
    * @param {function(!PublicRuntimeDef)} callback
@@ -50,16 +54,14 @@ export function installRuntime(win) {
       callback(publicRuntime);
     });
   }
-  Object.defineProperty(dependencyInstaller, 'push', {
+  Object.defineProperty(api, 'push', {
     get: () => pushDependency,
     configurable: false,
   });
-  win[RUNTIME_PROP] = dependencyInstaller;
+  win[RUNTIME_PROP] = api;
   if (waitingArray) {
     waitingArray.forEach(pushDependency);
   }
-
-  return runtime;
 }
 
 
