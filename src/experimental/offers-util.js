@@ -19,7 +19,7 @@
  * attribute (friendly iframe)
  * @return {string}
  */
-export function getAbbriviatedOffers(height) {
+export function getAbbriviatedOffers() {
   const offers =
     `
       <html>
@@ -157,9 +157,13 @@ function getFooter_() {
   return footer;
 }
 
-
-export function setCSSAttributes(element, height, important = 'important') {
-  //element.setAttribute('referrerpolicy', 'unsafe-url');
+/**
+ * Sets the CSS attributes for the element.
+ * @param {!Element} element The new element.
+ * @param {number} height The height of the element.
+ * @param {string=} important Whether to add important.
+ */
+export function setCssAttributes(element, height, important = 'important') {
   const elementStyle = element.style;
   elementStyle.setProperty('position', 'fixed', important);
   elementStyle.setProperty('top', `calc(100vh - ${height}px)`, important);
@@ -172,5 +176,5 @@ export function setCSSAttributes(element, height, important = 'important') {
   elementStyle.setProperty('background-color', '#fff', important);
   elementStyle.setProperty('box-sizing', 'border-box', important);
   elementStyle.setProperty('display', 'inline-block', important);
-  elementStyle.setProperty('height', `${height}px`, important);
+  elementStyle.setProperty('min-height', `${height}px`, important);
 }
