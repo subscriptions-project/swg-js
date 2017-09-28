@@ -1,5 +1,8 @@
 <html>
 <head>
+  <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+  <meta name="access-type" content="offer">
+  <meta name="access-control" content="manual">
   <script async src="/dist/subscriptions.max.js"></script>
   <script>
     function startPaymentsFlow() {
@@ -8,11 +11,34 @@
       });
     }
   </script>
+  <script type="application/json" id="subscriptionsConfig">
+  {
+    "profiles": {
+      "premium": {
+        "services": [
+          {
+            "id": "publisher.com",
+            "authorizationUrl": "http://sp.localhost:8000/examples/sample-sp/api"
+          }
+        ]
+      },
+      "offer": {
+        "services": [
+          {
+            "id": "publisher.com",
+            "authorizationUrl": "http://sp.localhost:8000/examples/sample-sp/api"
+          }
+        ]
+      }
+    }
+  }
+  </script>
 </head>
 <body>
   WORKS!
 
 
-  <button onclick="startPaymentsFlow()">Subscribe with Google</button>
+  <button onclick="startPaymentsFlow()">Payments Flow</button>
+  <button onclick="window.SUBSCRIPTIONS.push(sub => sub.start())">Subscribe with Google</button>
 </body>
 </html>
