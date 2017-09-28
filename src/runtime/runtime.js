@@ -22,6 +22,14 @@ import {SubscriptionMarkup} from './subscription-markup';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
 
+
+/**
+ * @visibleForTesting
+ * @type {Runtime}
+ */
+export let runtimeInstance;
+
+
 /**
  * @interface
  */
@@ -33,7 +41,7 @@ class PublicRuntimeDef {
  * @param {!Window} win
  */
 export function installRuntime(win) {
-  if (!isArray(win[RUNTIME_PROP])) {
+  if (win[RUNTIME_PROP] && !isArray(win[RUNTIME_PROP])) {
     return;
   }
 
@@ -44,7 +52,7 @@ export function installRuntime(win) {
   // Public runtime.
   const publicRuntime = createPublicRuntime(runtime);
 
-  const api = {'_' : runtime};
+  const api = {};
 
   /**
    * @param {function(!PublicRuntimeDef)} callback
@@ -62,6 +70,7 @@ export function installRuntime(win) {
   if (waitingArray) {
     waitingArray.forEach(pushDependency);
   }
+  runtimeInstance = runtime;
 }
 
 
