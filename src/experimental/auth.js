@@ -19,6 +19,10 @@ import {tryParseJson} from '../utils/json';
 import {isObject} from '../utils/types';
 
 
+/**
+ * Temporary method to shopw tosts in console till UI is in place.
+ * @param  {string} message
+ */
 function showToast_(message) {
   let banner = '='.repeat(10);
   console.log(`${banner}\n${message}\n${banner}`);
@@ -59,6 +63,16 @@ export class Auth {
     this.authResponse_ = null;
   }
 
+  /**
+   * Starts the auth and offers flow.
+   *
+   * This starts the process of gathering all the data from the page, sending
+   * requests to subscription platforms and getting the response. From the
+   * response, it then either navigates to an authorized page or returns a
+   * string that can be passed to payments flow for purchase.
+   *
+   * @return {!Promise<string>}
+   */
   start() {
     // TODO: Add a timeout so this doesn't wait forever to show offers.
     return this.getPaywallConfig_()

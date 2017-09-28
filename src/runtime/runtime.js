@@ -71,9 +71,6 @@ export class Runtime {
     /** @const */
     this.win = win;
 
-    /** @const {!Document} */
-    this.doc = win.document;
-
     /** @private @const {!Promise} */
     this.ready_ = Promise.resolve();
 
@@ -98,6 +95,7 @@ export class Runtime {
   }
 
   /**
+   * Starts subscription flow.
    */
   start() {
     log('Starting subscriptions processing');
