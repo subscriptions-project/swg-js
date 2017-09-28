@@ -22,13 +22,11 @@ import {SubscriptionMarkup} from './subscription-markup';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
 
-
 /**
  * @visibleForTesting
  * @type {Runtime}
  */
 export let runtimeInstance;
-
 
 /**
  * @interface
