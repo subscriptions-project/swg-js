@@ -34,7 +34,7 @@ export function buildOffersContainer() {
 
   // Check if user is a subscriber.
   isSubscriber().then((response) => {
-    offersFlow.access_ = !!response.acess;
+    offersFlow.access_ = !!response.access;
     offersFlow.subscriber_ = response.subscriber || {};
     return Promise.resolve(response);
   })
