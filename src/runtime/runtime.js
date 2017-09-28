@@ -15,11 +15,28 @@
  */
 
 import {Auth} from '../experimental/auth';
+import {isArray} from '../utils/types';
 import {launchPaymentsFlow} from '../experimental/payments-flow';
 import {log} from '../utils/log';
 import {SubscriptionMarkup} from './subscription-markup';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
+
+/** @private {Runtime} */
+let runtimeInstance_;
+
+/**
+ * Returns runtime for testing if available. Throws if the runtime is not
+ * initialized yet.
+ * @visibleForTesting
+ * @return {!Runtime}
+ */
+export function getRuntime() {
+  if (!runtimeInstance_) {
+    throw new Error('not initialized yet');
+  }
+  return runtimeInstance_;
+}
 
 /**
  * @interface
@@ -30,9 +47,12 @@ class PublicRuntimeDef {
 
 /**
  * @param {!Window} win
- * @return {!Runtime}
  */
 export function installRuntime(win) {
+  if (win[RUNTIME_PROP] && !isArray(win[RUNTIME_PROP])) {
+    return;
+  }
+
   const runtime = new Runtime(win);
 
   const waitingArray = win[RUNTIME_PROP];
@@ -58,8 +78,7 @@ export function installRuntime(win) {
   if (waitingArray) {
     waitingArray.forEach(pushDependency);
   }
-
-  return runtime;
+  runtimeInstance_ = runtime;
 }
 
 
