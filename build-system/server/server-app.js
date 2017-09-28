@@ -26,6 +26,21 @@ app.enable('view cache');
 app.engine('html', require('hogan-express'));
 app.locals.delimiters = '<% %>';
 
+// X-Frame-Options and CSP
+app.use((req, res, next) => {
+  if (req.query['--X-Frame-Options']) {
+    res.set({
+      'X-Frame-Options': req.query['--X-Frame-Options'],
+    });
+  }
+  if (req.query['--CSP']) {
+    res.set({
+      'Content-Security-Policy': req.query['--CSP'],
+    });
+  }
+  next();
+});
+
 app.use('/examples/sample-pub',
     require('../../examples/sample-pub/sample-pub-app'));
 
