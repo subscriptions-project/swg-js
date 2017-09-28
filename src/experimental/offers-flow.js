@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-import { getAbbriviatedOffers, setCSSAttributes } from './offers-util';
-import { isSubscriber, getOffers } from './offers-service';
+import {getAbbriviatedOffers, setCssAttributes} from './offers-util';
+import {isSubscriber, getOffers} from './offers-service';
+
+
+/**
+ * The pop-up element name to be used.
+ * @const {string}
+ */
+const POPUP_TAG = 'swg-popup';
+
 
 /**
  * Builds offers container, including headers and footer. It builds an
@@ -33,18 +41,19 @@ export function buildOffersContainer() {
   const offersFlow = new OffersFlow();
 
   // Check if user is a subscriber.
-  isSubscriber().then((response) => {
+  isSubscriber().then(response => {
     offersFlow.access_ = !!response.access;
     offersFlow.subscriber_ = response.subscriber || {};
-    return Promise.resolve(response);
+    return response;
   })
     .then(getOffers)  // Get the offers to show to the user.
-    .then((response) => offersFlow.createContainerElement_())
+    .then(response => offersFlow.createContainerElement_())
     .then(() => offersFlow.addAbbriviatedOfferFrame_())
-    .catch((error) => {
+    .catch(error => {
       this.error_ = error;
     });
 }
+
 
 /**
  * The class for SwG offers flow.
@@ -57,9 +66,6 @@ export class OffersFlow {
 
     /** @private @const {boolean} */
     this.isAbbriviatedOffer_ = false;
-
-    /** @private @const {string} */
-    this.containerNodeName_ = 'swg-payflow';
 
     /** @private @const {number} */
     this.containerHeight_ = 200;
@@ -95,13 +101,12 @@ export class OffersFlow {
    */
   createContainerElement_() {
     if (this.isElementexists_()) {
-      console.log(`Error: Element <${this.containerNodeName_}> exists!!`);
+      console.log(`Error: Element <${POPUP_TAG}> exists!!`);
       return;
     }
-    this.offerContainer_ = /** @type {!Element} */
-      (document.createElement(this.containerNodeName_));
+    this.offerContainer_ = (document.createElement(POPUP_TAG));
     if (this.isValidElement_(this.offerContainer_)) {
-      setCSSAttributes(this.offerContainer_, this.containerHeight_);
+      setCssAttributes(this.offerContainer_, this.containerHeight_);
       document.body.appendChild(this.offerContainer_);
       this.isContainerBuilt_ = true;
       return Promise.resolve();
@@ -115,19 +120,19 @@ export class OffersFlow {
    * @private
    */
   isElementexists_() {
-    return (document.getElementsByTagName(this.containerNodeName_) == null);
+    return (document.getElementsByTagName(POPUP_TAG) == null);
   }
 
   /**
    * Checks that the custom element to hold the offers, exists and is of type
    * element.
    * @param {Element} element
-   * return {boolean}
+   * @return {boolean}
    */
   isValidElement_(element) {
     return element != null && element.nodeName &&
-      element.nodeName == this.containerNodeName_.toUpperCase() &&
-      element.nodeType == 1;
+        element.nodeName == POPUP_TAG.toUpperCase() &&
+        element.nodeType == 1;
   }
 
   /**
@@ -136,14 +141,14 @@ export class OffersFlow {
    */
   addAbbriviatedOfferFrame_() {
     if (!this.offerContainer_) {
-      console.log('Error: element <${this.containerNodeName_}> not found!');
+      console.log('Error: element <${POPUP_TAG}> not found!');
       return;
     }
 
     const iFrame = document.createElement('iframe');
     // TODO(dparikh): Polyfill 'srcdoc'.
     // Ref.: https://github.com/ampproject/amphtml/blob/master/src/friendly-iframe-embed.js#L148-L163
-    iFrame.srcdoc = getAbbriviatedOffers(this.containerHeight_);
+    iFrame.srcdoc = getAbbriviatedOffers();
     iFrame.id = 'offer-frame';
     iFrame.name = 'offer-frame';
     iFrame.style.position = 'fixed';

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+
 import {Auth} from '../experimental/auth';
+import {buildOffersContainer} from '../experimental/offers-flow';
 import {isArray} from '../utils/types';
 import {launchPaymentsFlow} from '../experimental/payments-flow';
 import {log} from '../utils/log';
@@ -140,6 +142,7 @@ export class Runtime {
  */
 function createPublicRuntime(runtime) {
   return /** @type {!PublicRuntimeDef} */ ({
+    startOffersContainer: runtime.startOffersContainer.bind(runtime),
     startPaymentsFlow: runtime.startPaymentsFlow.bind(runtime),
     start: runtime.start.bind(runtime),
   });
