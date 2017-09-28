@@ -16,7 +16,7 @@
 
 
 import {Auth} from '../experimental/auth';
-import {buildOffersContainer} from '../experimental/offers-flow';
+import {buildSubscriptionsUi} from '../experimental/subscriptions-ui-flow';
 import {isArray} from '../utils/types';
 import {launchPaymentsFlow} from '../experimental/payments-flow';
 import {log} from '../utils/log';
@@ -108,10 +108,11 @@ export class Runtime {
   }
 
   /**
-   * Starts the offers flow.
+   * Starts the Subscriptions flow.
+   * @param {!Window} win The window object.
    */
-  startOffersContainer() {
-    buildOffersContainer();
+  startSubscriptionsUi(win) {
+    buildSubscriptionsUi(win);
   }
 
   /**
@@ -142,7 +143,7 @@ export class Runtime {
  */
 function createPublicRuntime(runtime) {
   return /** @type {!PublicRuntimeDef} */ ({
-    startOffersContainer: runtime.startOffersContainer.bind(runtime),
+    startSubscriptionsUi: runtime.startSubscriptionsUi.bind(runtime),
     startPaymentsFlow: runtime.startPaymentsFlow.bind(runtime),
     start: runtime.start.bind(runtime),
   });
