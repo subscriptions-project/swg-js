@@ -22,11 +22,21 @@ import {SubscriptionMarkup} from './subscription-markup';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
 
+/** @private {Runtime} */
+let runtimeInstance_;
+
 /**
+ * Returns runtime for testing if available. Throws if the runtime is not
+ * initialized yet.
  * @visibleForTesting
- * @type {Runtime}
+ * @return {!Runtime}
  */
-export let runtimeInstance;
+export function getRuntime() {
+  if (!runtimeInstance_) {
+    throw new Error('not initialized yet');
+  }
+  return runtimeInstance_;
+}
 
 /**
  * @interface
@@ -68,7 +78,7 @@ export function installRuntime(win) {
   if (waitingArray) {
     waitingArray.forEach(pushDependency);
   }
-  runtimeInstance = runtime;
+  runtimeInstance_ = runtime;
 }
 
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {installRuntime, runtimeInstance} from './runtime';
+import {installRuntime, getRuntime} from './runtime';
 
 
 describes.realWin('installRuntime', {}, env => {
@@ -49,7 +49,7 @@ describes.realWin('installRuntime', {}, env => {
     });
 
     // Wait for ready signal.
-    yield runtimeInstance.whenReady();
+    yield getRuntime().whenReady();
     expect(progress).to.equal('1234');
 
     // Few more.
@@ -59,15 +59,15 @@ describes.realWin('installRuntime', {}, env => {
     dep(function() {
       progress += '6';
     });
-    yield runtimeInstance.whenReady();
+    yield getRuntime().whenReady();
     expect(progress).to.equal('123456');
   });
 
   it('should reuse the same runtime on multiple runs', () => {
     installRuntime(win);
-    const runtime1 = runtimeInstance;
+    const runtime1 = getRuntime();
     installRuntime(win);
-    expect(runtimeInstance).to.equal(runtime1);
+    expect(getRuntime()).to.equal(runtime1);
   });
 
   it('handles recursive calls after installation', function* () {
@@ -82,9 +82,9 @@ describes.realWin('installRuntime', {}, env => {
         });
       });
     });
-    yield runtimeInstance.whenReady();
-    yield runtimeInstance.whenReady();
-    yield runtimeInstance.whenReady();
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
 
@@ -100,9 +100,9 @@ describes.realWin('installRuntime', {}, env => {
       });
     });
     installRuntime(win);
-    yield runtimeInstance.whenReady();
-    yield runtimeInstance.whenReady();
-    yield runtimeInstance.whenReady();
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
 });
