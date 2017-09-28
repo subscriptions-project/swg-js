@@ -52,7 +52,7 @@ export function installRuntime(win) {
   // Public runtime.
   const publicRuntime = createPublicRuntime(runtime);
 
-  const api = {};
+  const dependencyInstaller = {};
 
   /**
    * @param {function(!PublicRuntimeDef)} callback
@@ -62,11 +62,11 @@ export function installRuntime(win) {
       callback(publicRuntime);
     });
   }
-  Object.defineProperty(api, 'push', {
+  Object.defineProperty(dependencyInstaller, 'push', {
     get: () => pushDependency,
     configurable: false,
   });
-  win[RUNTIME_PROP] = api;
+  win[RUNTIME_PROP] = dependencyInstaller;
   if (waitingArray) {
     waitingArray.forEach(pushDependency);
   }
