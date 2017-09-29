@@ -57,7 +57,7 @@ export function buildSubscriptionsUi(win) {
   assertNoPopups(win.document, POPUP_TAG);
 
   // Gets subscription details and build the pop-up.
-  getSubscriptionDetails().then(response => response)
+  getSubscriptionDetails()
       .then(response => {
         const subscriptionsUiFlow = new SubscriptionsUiFlow(win, response);
         subscriptionsUiFlow.show_();
@@ -82,9 +82,9 @@ export class SubscriptionsUiFlow {
     this.subscription_ = response;
 
     // Build the pop-up element and add the offers.
-    /** @private const {!Element} */
+    /** @private @const {!Element} */
     this.offerContainer_ = this.document_.createElement(POPUP_TAG);
-    addCloseButton(this.offerContainer_, this.closeCallback_.bind(this.offerContainer_));
+    addCloseButton(this.offerContainer_, this.closeCallback_.bind(this));
     setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
     this.document_.body.appendChild(this.offerContainer_);
 
@@ -97,7 +97,7 @@ export class SubscriptionsUiFlow {
    * @private
    */
   closeCallback_() {
-    this.parentNode.removeChild(this);
+    this.offerContainer_.parentNode.removeChild(this.offerContainer_);
   }
 
   /**
@@ -115,11 +115,6 @@ export class SubscriptionsUiFlow {
    * @return {?string}
    */
   addAbbriviatedOfferFrame_() {
-    const offerContainer = this.offerContainer_;
-    if (!offerContainer) {
-      throw new Error('Error: element <${POPUP_TAG}> not found!');
-    }
-
     const iframe = this.document_.createElement('iframe');
     // TODO(dparikh): Polyfill 'srcdoc'.
     // Ref.: https://github.com/ampproject/amphtml/blob/master/src/friendly-iframe-embed.js#L148-L163
@@ -132,7 +127,7 @@ export class SubscriptionsUiFlow {
     iframe.style.display = 'flex';
     iframe.style.left = 0;
     iframe.style.right = 0;
-    iframe.style.opacity = .97;
+    iframe.style.opacity = 1;
     iframe.style.border = 'none';
     iframe.style.width = '100%';
     iframe.style.border = 'none';
@@ -140,6 +135,6 @@ export class SubscriptionsUiFlow {
     // TODO(dparikh): Vendor prefix for 'box-sizing'.
     iframe.style.boxSizing = 'border-box';
     iframe.style.minHeight = `${CONTAINER_HEIGHT}px`;
-    offerContainer.appendChild(iframe);
+    this.offerContainer_.appendChild(iframe);
   }
 }

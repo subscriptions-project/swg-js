@@ -31,21 +31,19 @@ export function assertNoPopups(doc, elementTagName) {
  /**
   * Builds and renders the close pop-up dialog button.
   * @param {!Element} container The container element <swg-popup>.
-  * @param {number} height The height of the container to postion the button.
   * TODO(dparikh): Use the setImportantStyles() as discussed.
   */
-export function addCloseButton(container, height) {
+export function addCloseButton(container) {
   const closeButton = document.createElement('button');
   closeButton.classList.add('swg-close-action');
   container.appendChild(closeButton);
   closeButton.innerText = 'X';
   const closeButtonStyle = closeButton.style;
   closeButtonStyle.setProperty('z-index', '2147483647', 'important');
-  closeButtonStyle.setProperty('position', 'fixed', 'important');
+  closeButtonStyle.setProperty('position', 'absolute', 'important');
   closeButtonStyle.setProperty('width', '28px', 'important');
   closeButtonStyle.setProperty('height', '28px', 'important');
-  closeButtonStyle
-      .setProperty('top', `calc(100vh - ${height - 8}px`, 'important');
+  closeButtonStyle.setProperty('top', '8px', 'important');
   closeButtonStyle.setProperty('right', '10px', 'important');
   closeButtonStyle.setProperty('color', '#757575', 'important');
   closeButtonStyle.setProperty('font-size', '14px', 'important');
@@ -201,7 +199,7 @@ function getFooter_() {
 export function setCssAttributes(element, height, important = 'important') {
   const elementStyle = element.style;
   elementStyle.setProperty('position', 'fixed', important);
-  elementStyle.setProperty('top', `calc(100vh - ${height}px)`, important);
+  elementStyle.setProperty('bottom', '0', important);
   elementStyle.setProperty('left', '0', important);
   elementStyle.setProperty('right', '0', important);
   elementStyle.setProperty('z-index', '2147483647', important);
