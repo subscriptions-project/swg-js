@@ -1,9 +1,4 @@
-/**
- * User is not signed-in to Google.
- * Show available metering quota for the publisher and available offers.
- * UI renders the action button to "sign-in".
- */
- {
+{
   "access": true,
   "metering": {
     "quotaLeft": 3,

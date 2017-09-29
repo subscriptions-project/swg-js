@@ -1,15 +1,11 @@
-/**
- * Existing subscriber with valid payment details for the publisher.
- * No offers and metering details are returned.
- * The UI will notify the user about the current subscription with an option to
- * view the subscription details.
- */
 {
   "access": true,
   "subscriber": {
     "entitlementId": "f604b2e2-7c73",
     "url": "https://subscriptions.google.com/f604b2e2-7c73",
-    "types": ["allowed"],
+    "types": [
+      "allowed"
+    ],
     "healthy": true,
     "source": "subscriptions.google.com"
   }

@@ -1,7 +1,3 @@
-/**
- * Non-subscriber with metering quota full for the publisher.
- * Returned with available offers.
- */
 {
   "access": false,
   "metering": {
