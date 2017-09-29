@@ -24,7 +24,7 @@ const SUBSCRIPTION_HOST = 'http://pub.localhost:8000';
 /**
  * @const {string}
  */
-const SUBSCRIPTION_PATH = '/examples/sample-sp/api?access-type=allowed';
+const SUBSCRIPTION_PATH = '/examples/sample-sp/api';
 
 
 /**
