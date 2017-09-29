@@ -19,13 +19,13 @@
   * Checks if the subscription element is already available in Dom.
   * @param {!Window} win The window object.
   * @param {string} elementTagName The name of the element.
+  * @return {?string}
   */
 export function assertNoPopups(doc, elementTagName) {
   const existingPopup = doc.querySelector(elementTagName);
   if (existingPopup) {
     throw new Error('Only one instance is allowed!');
   }
-  return !existingPopup;
 }
 
  /**
