@@ -1,0 +1,14 @@
+/**
+ * Subscriber with payment issues.
+ *
+ */
+ {
+  "access": false,
+  "subscriber": {
+    "entitlementId": "d604b2e2-7c73",
+    "url": "https://subscriptions.google.com/d604b2e2-7c73",
+    "types": ["allowed", "premium"],
+    "healthy": false,
+    "source": "subscriptions.google.com"
+  }
+}

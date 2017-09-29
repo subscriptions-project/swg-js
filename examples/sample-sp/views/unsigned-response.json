@@ -1,0 +1,24 @@
+/**
+ * User is not signed-in to Google.
+ * Show available metering quota for the publisher and available offers.
+ * UI renders the action button to "sign-in".
+ */
+ {
+  "access": true,
+  "metering": {
+    "quotaLeft": 3,
+    "quotaMax": 10,
+    "quotaPeriod": "month",
+    "display": true
+  },
+  "offers": [
+    {
+      "name": "14 days free, $8/mo after",
+      "desc": "14 days free to try. $7/month for next 12 months"
+    },
+    {
+      "name": "$80/year",
+      "desc": "$80/year for first year, $70/year after"
+    }
+  ]
+}
