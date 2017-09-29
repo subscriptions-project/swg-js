@@ -112,12 +112,12 @@ export class SubscriptionsUiFlow {
   /**
    * Adds the abbriviated offers as a friendly iframe in the element.
    * @private
+   * @return {?string}
    */
   addAbbriviatedOfferFrame_() {
     const offerContainer = this.offerContainer_;
     if (!offerContainer) {
       throw new Error('Error: element <${POPUP_TAG}> not found!');
-      return;
     }
 
     const iframe = this.document_.createElement('iframe');
