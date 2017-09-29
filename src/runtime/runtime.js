@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+
 import {Auth} from '../experimental/auth';
+import {buildSubscriptionsUi} from '../experimental/subscriptions-ui-flow';
 import {isArray} from '../utils/types';
 import {launchPaymentsFlow} from '../experimental/payments-flow';
 import {log} from '../utils/log';
@@ -106,6 +108,14 @@ export class Runtime {
   }
 
   /**
+   * Starts the Subscriptions flow.
+   * @param {!Window} win The window object.
+   */
+  startSubscriptionsUi(win) {
+    buildSubscriptionsUi(win);
+  }
+
+  /**
    * @param {string} blob
    */
   startPaymentsFlow(blob) {
@@ -133,6 +143,7 @@ export class Runtime {
  */
 function createPublicRuntime(runtime) {
   return /** @type {!PublicRuntimeDef} */ ({
+    startSubscriptionsUi: runtime.startSubscriptionsUi.bind(runtime),
     startPaymentsFlow: runtime.startPaymentsFlow.bind(runtime),
     start: runtime.start.bind(runtime),
   });
