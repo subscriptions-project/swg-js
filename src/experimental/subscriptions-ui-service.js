@@ -15,16 +15,10 @@
  */
 
 
-// TODO(dparikh): Resolve x-origin issue.
 /**
  * @const {string}
  */
-const SUBSCRIPTION_HOST = 'http://pub.localhost:8000';
-
-/**
- * @const {string}
- */
-const SUBSCRIPTION_PATH = '/examples/sample-sp/api';
+const OFFERS_API_URL = 'http://sp.localhost:8000/examples/sample-sp/api';
 
 
 /**
@@ -32,7 +26,7 @@ const SUBSCRIPTION_PATH = '/examples/sample-sp/api';
  * @return {!Promise}
  */
 export function getSubscriptionDetails() {
-  return fetch(`${SUBSCRIPTION_HOST}${SUBSCRIPTION_PATH}`).then(response => {
+  return fetch(OFFERS_API_URL).then(response => {
     if (!response.ok) {
       throw new Error(response);
     }
