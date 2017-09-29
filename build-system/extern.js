@@ -71,4 +71,4 @@ var SubscriptionStatus;
  *    offers: (!Array<!Object>|undefined)
  *  }}
  */
-var SubscriptionOffersResponse;
+var SubscriptionResponse;

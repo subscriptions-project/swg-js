@@ -16,45 +16,28 @@
 
 
 // TODO(dparikh): Resolve x-origin issue.
-const allowedJsonUrl = 'http://pub.localhost:8000/examples/sample-sp/api?access-type=allowed';
-const offerJsonUrl = 'http://pub.localhost:8000/examples/sample-sp/api?access-type=offer';
+/**
+ * @const {string}
+ */
+const SUBSCRIPTION_HOST = 'http://pub.localhost:8000';
+
+/**
+ * @const {string}
+ */
+const SUBSCRIPTION_PATH = '/examples/sample-sp/api?access-type=allowed';
 
 
 /**
  * Gets the details of the current user, such as if user is a subscriber.
- * TODO(dparikh): Combine these two API calls.
  * @return {!Promise}
  */
-export function isSubscriber() {
-  return fetch(allowedJsonUrl).then((response) => {
+export function getSubscriptionDetails() {
+  return fetch(`${SUBSCRIPTION_HOST}${SUBSCRIPTION_PATH}`).then(response => {
     if (!response.ok) {
-      console.log('Unable to get the subscriber details. Status Code: ' +
-        response.status);
-      return Promise.reject(`Error: ${response.status}`);
+      throw new Error(response);
     }
 
     return response.json();
   });
 }
 
-
-/**
- * Gets the available offers for the current user.
- * @return {!Promise}
- */
-export function getOffers(offerAccess) {
-  // TODO(dparikh): Test purpose. Remove "!" on next line.
-  if (!offerAccess.access && offerAccess.subscriber.healthy) {
-    // TODO(dparikh): User is a subscriber, show notification toast.
-    return Promise.reject();
-  }
-  return fetch(offerJsonUrl).then((response) => {
-    if (!response.ok) {
-      console.log(`Unable to get the offers. Code: ${response.status}`);
-      return Promise.reject(`Error: ${response.status}`);
-    }
-    return response.json().then(function (data) {
-      return data;
-    });
-  }).catch((err) => err);
-}
