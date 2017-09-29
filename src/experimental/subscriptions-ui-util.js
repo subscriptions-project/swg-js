@@ -31,7 +31,7 @@ export function assertNoPopups(doc, elementTagName) {
  /**
   * Builds and renders the close pop-up dialog button.
   * @param {!Element} container The container element <swg-popup>.
-  * @param {!function} closeCallback The function to call on close action.
+  * @param {function} closeCallback The function to call on close action.
   * TODO(dparikh): Use the setImportantStyles() as discussed.
   */
 export function addCloseButton(container, closeCallback) {
@@ -55,7 +55,7 @@ export function addCloseButton(container, closeCallback) {
   closeButtonStyle.setProperty('background-repeat', 'no-repeat', 'important');
   closeButtonStyle.setProperty('border', 'none', 'important');
 
-  closeButton.addEventListener('click', () => closeCallback());
+  closeButton.addEventListener('click', closeCallback);
 }
 
 /**
