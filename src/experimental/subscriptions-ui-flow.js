@@ -54,9 +54,7 @@ const CONTAINER_HEIGHT = 200;
 export function buildSubscriptionsUi(win) {
 
   // Ensure that the element is not already built by external resource.
-  if (!assertNoPopups(win.document, POPUP_TAG)) {
-    return;
-  }
+  assertNoPopups(win.document, POPUP_TAG);
 
   // Gets subscription details and build the pop-up.
   getSubscriptionDetails().then(response => response)
@@ -86,7 +84,7 @@ export class SubscriptionsUiFlow {
     // Build the pop-up element and add the offers.
     /** @private const {!Element} */
     this.offerContainer_ = this.document_.createElement(POPUP_TAG);
-    addCloseButton(this.offerContainer_, CONTAINER_HEIGHT);
+    addCloseButton(this.offerContainer_, this.closeCallback_.bind(this.offerContainer_));
     setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
     this.document_.body.appendChild(this.offerContainer_);
 
@@ -95,12 +93,20 @@ export class SubscriptionsUiFlow {
   }
 
   /**
+   * Removes the pop-up from the Dom.
+   * @private
+   */
+  closeCallback_() {
+    this.parentNode.removeChild(this);
+  }
+
+  /**
    * Displays the element in the UI. Element is hidden when created,
    * and should now be displayed when element is attached to the DOM.
    * @private
    */
   show_() {
-    this.offerContainer_.style.setProperty('display', 'inline-block');
+    this.offerContainer_.style.removeProperty('display');
   }
 
   /**
