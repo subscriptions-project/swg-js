@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {installRuntime} from './runtime';
+import {installRuntime, getRuntime} from './runtime';
 
 
 describes.realWin('installRuntime', {}, env => {
@@ -40,7 +40,7 @@ describes.realWin('installRuntime', {}, env => {
     expect(progress).to.equal('');
 
     // Install runtime and schedule few more dependencies.
-    const runtime = installRuntime(win);
+    installRuntime(win);
     dep(function() {
       progress += '3';
     });
@@ -49,7 +49,7 @@ describes.realWin('installRuntime', {}, env => {
     });
 
     // Wait for ready signal.
-    yield runtime.whenReady();
+    yield getRuntime().whenReady();
     expect(progress).to.equal('1234');
 
     // Few more.
@@ -59,7 +59,50 @@ describes.realWin('installRuntime', {}, env => {
     dep(function() {
       progress += '6';
     });
-    yield runtime.whenReady();
+    yield getRuntime().whenReady();
     expect(progress).to.equal('123456');
+  });
+
+  it('should reuse the same runtime on multiple runs', () => {
+    installRuntime(win);
+    const runtime1 = getRuntime();
+    installRuntime(win);
+    expect(getRuntime()).to.equal(runtime1);
+  });
+
+  it('handles recursive calls after installation', function* () {
+    installRuntime(win);
+    let progress = '';
+    dep(() => {
+      progress += '1';
+      dep(() => {
+        progress += '2';
+        dep(() => {
+          progress += '3';
+        });
+      });
+    });
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
+    expect(progress).to.equal('123');
+  });
+
+  it('handles recursive calls before installation', function* () {
+    let progress = '';
+    dep(() => {
+      progress += '1';
+      dep(() => {
+        progress += '2';
+        dep(() => {
+          progress += '3';
+        });
+      });
+    });
+    installRuntime(win);
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
+    expect(progress).to.equal('123');
   });
 });
