@@ -15,19 +15,54 @@
  */
 
 
-/**
- * Subscriptions pop-up settings.
- * @const {!Object<string, string|number>}
- */
-export const PROPS = {
-  'POPUP_TAG': 'swg-popup',
-  'POPUP_MIN_HEIGHT': 200,
-};
+ /**
+  * Checks if the subscription element is already available in Dom.
+  * @param {!Window} win The window object.
+  * @param {string} elementTagName The name of the element.
+  */
+export function assertNoPopups(doc, elementTagName) {
+  const existingPopup = doc.querySelector(elementTagName);
+  if (existingPopup) {
+    throw new Error('Only one instance is allowed!');
+  }
+  return !existingPopup;
+}
 
+ /**
+  * Builds and renders the close pop-up dialog button.
+  * @param {!Element} container The container element <swg-popup>.
+  * @param {number} height The height of the container to postion the button.
+  * TODO(dparikh): Use the setImportantStyles() as discussed.
+  */
+export function addCloseButton(container, height) {
+  const closeButton = document.createElement('button');
+  closeButton.classList.add('swg-close-action');
+  container.appendChild(closeButton);
+  closeButton.innerText = 'X';
+  const closeButtonStyle = closeButton.style;
+  closeButtonStyle.setProperty('z-index', '2147483647', 'important');
+  closeButtonStyle.setProperty('position', 'fixed', 'important');
+  closeButtonStyle.setProperty('width', '28px', 'important');
+  closeButtonStyle.setProperty('height', '28px', 'important');
+  closeButtonStyle
+      .setProperty('top', `calc(100vh - ${height - 8}px`, 'important');
+  closeButtonStyle.setProperty('right', '10px', 'important');
+  closeButtonStyle.setProperty('color', '#757575', 'important');
+  closeButtonStyle.setProperty('font-size', '14px', 'important');
+  closeButtonStyle.setProperty('background-size', '13px 13px', 'important');
+  closeButtonStyle
+      .setProperty('background-position', '9px center', 'important');
+  closeButtonStyle.setProperty('background-color', '#ececec', 'important');
+  closeButtonStyle.setProperty('background-repeat', 'no-repeat', 'important');
+  closeButtonStyle.setProperty('border', 'none', 'important');
+
+  closeButton.addEventListener('click', () =>
+      container.style.setProperty('display', 'none', 'important'));
+}
 
 /**
  * Returns embedded HTML for abbriviated offers to use with iframe's srcdoc
- * attribute (friendly iframe)
+ * attribute (friendly iframe).
  * @return {string}
  */
 export function getAbbriviatedOffers() {
@@ -46,7 +81,6 @@ export function getAbbriviatedOffers() {
                   articles for free this month!
               </div>
               <span style="flex: 1;"></span>
-              <button class="swg-close-action">X</button>
             </div>
             <!--The content area-->
             ${getContent_()}
@@ -59,6 +93,12 @@ export function getAbbriviatedOffers() {
   return offers;
 }
 
+/**
+ * Sets the CSS style for the component.
+ * TODO(dparikh): Create a CSS file with build rules to compile this CSS and
+ * injected in JavaScript code as a string.
+ * @private
+ */
 function getStyle_() {
   const style =
     `
@@ -66,22 +106,6 @@ function getStyle_() {
         body {
           padding: 0;
           margin: 0;
-        }
-
-        .swg-close-action {
-          position: absolute;
-          width: 28px;
-          height: 28px;
-          top: 8px;
-          right: 4px;
-          color: #757575;
-          font-size: 14px;
-          background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='13' height='13' viewBox='341….19-5.19 5.19 5.19 1.31-1.31-5.19-5.19z' fill-rule='evenodd'/%3E%3C/svg%3E");
-          background-size: 13px 13px;
-          background-position: 9px center;
-          background-color: inherit;
-          background-repeat: no-repeat;
-          border: none;
         }
 
         .swg-header,
@@ -133,8 +157,8 @@ function getStyle_() {
  * TODO(dparikh): Add offers within the content.
  * @private
  */
-function getContent_(offers) {
-  return `<div class="swg-content"></div>`;
+function getContent_() {
+  return '<div class="swg-content"></div>';
 }
 
 /**
@@ -147,7 +171,7 @@ function getFooter_() {
     <div class="swg-footer">
       <div style="flex: 1;"></div>
       <span style="margin-right: 16px; padding-top: 8px;">Sign in</span>
-      <button class="swg-subscribe-button" onclick="startPaymentsFlow()">
+      <button class="swg-subscribe-button" id="swg-subscribe-button">
         <div style="width: 18px; height: 18px;">
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" viewBox="0 0 48 48" class="abcRioButtonSvg">
               <g>
@@ -181,11 +205,11 @@ export function setCssAttributes(element, height, important = 'important') {
   elementStyle.setProperty('left', '0', important);
   elementStyle.setProperty('right', '0', important);
   elementStyle.setProperty('z-index', '2147483647', important);
-  elementStyle.setProperty('opacity', '.97', important);
   elementStyle.setProperty('border', 'none', important);
-  elementStyle.setProperty('box-shadow', '3px 3px gray, 0 0 1.4em gray', important);
+  elementStyle
+      .setProperty('box-shadow', '3px 3px gray, 0 0 1.4em gray', important);
   elementStyle.setProperty('background-color', '#fff', important);
   elementStyle.setProperty('box-sizing', 'border-box', important);
-  elementStyle.setProperty('display', 'inline-block', important);
+  elementStyle.setProperty('display', 'none', important);
   elementStyle.setProperty('min-height', `${height}px`, important);
 }

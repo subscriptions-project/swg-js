@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-import {getAbbriviatedOffers, setCssAttributes, assertNoPopup, PROPS} from './subscriptions-ui-util';
-import {isSubscriber, getOffers} from './subscriptions-ui-service';
+
+import {
+  addCloseButton,
+  assertNoPopups,
+  getAbbriviatedOffers,
+  setCssAttributes,
+} from './subscriptions-ui-util';
+import {getSubscriptionDetails} from './subscriptions-ui-service';
 
 
 /**
@@ -24,6 +30,11 @@ import {isSubscriber, getOffers} from './subscriptions-ui-service';
  */
 const POPUP_TAG = 'swg-popup';
 
+
+/**
+ * The default height of the pop-up.
+ * @const {number}
+ */
 const CONTAINER_HEIGHT = 200;
 
 
@@ -41,18 +52,18 @@ const CONTAINER_HEIGHT = 200;
  * @return {!Promise}
  */
 export function buildSubscriptionsUi(win) {
-  const subscriptionsUiFlow = new SubscriptionsUiFlow(win);
 
-  // Check if user is a subscriber.
-  isSubscriber().then(response => {
-    subscriptionsUiFlow.access_ = !!response.access;
-    subscriptionsUiFlow.subscriber_ = response.subscriber || {};
-    return Promise.resolve(response);
-  })
-    .then(getOffers)  // Get the offers to show to the user.
-    .catch(error => {
-      return Promise.reject(error);
-    });
+  // Ensure that the element is not already built by external resource.
+  if (!assertNoPopups(win.document, POPUP_TAG)) {
+    return;
+  }
+
+  // Gets subscription details and build the pop-up.
+  getSubscriptionDetails().then(response => response)
+      .then(response => {
+        const subscriptionsUiFlow = new SubscriptionsUiFlow(win, response);
+        subscriptionsUiFlow.show_();
+      });
 }
 
 
@@ -61,7 +72,7 @@ export function buildSubscriptionsUi(win) {
  */
 export class SubscriptionsUiFlow {
 
-  constructor(win) {
+  constructor(win, response) {
 
     /** @private @const {!Window} */
     this.win_ = win;
@@ -69,30 +80,27 @@ export class SubscriptionsUiFlow {
     /** @private @const {!Element} */
     this.document_ = win.document;
 
-    /** @private {Element} */
-    this.offerContainer_;
+    /** @private @const {!SubscriptionResponse} */
+    this.subscription_ = response;
 
     // Build the pop-up element and add the offers.
     /** @private const {!Element} */
-    this.offerContainer_ = document.createElement(PROPS.POPUP_TAG);
-    if (this.isValidElement_(this.offerContainer_)) {
-      setCssAttributes(this.offerContainer_, PROPS.POPUP_MIN_HEIGHT);
-      this.document_.body.appendChild(this.offerContainer_);
-      // Add the abbriviated offers.
-      this.addAbbriviatedOfferFrame_();
-    }
+    this.offerContainer_ = this.document_.createElement(POPUP_TAG);
+    addCloseButton(this.offerContainer_, CONTAINER_HEIGHT);
+    setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
+    this.document_.body.appendChild(this.offerContainer_);
+
+    // Add the abbriviated offers.
+    this.addAbbriviatedOfferFrame_();
   }
 
   /**
-   * Checks that the custom element to hold the offers, exists and is of type
-   * element.
-   * @param {Element} element
-   * @return {boolean}
+   * Displays the element in the UI. Element is hidden when created,
+   * and should now be displayed when element is attached to the DOM.
+   * @private
    */
-  isValidElement_(element) {
-    return element != null && element.nodeName &&
-      element.nodeName == PROPS.POPUP_TAG.toUpperCase() &&
-      element.nodeType == 1;
+  show_() {
+    this.offerContainer_.style.setProperty('display', 'inline-block');
   }
 
   /**
@@ -100,8 +108,9 @@ export class SubscriptionsUiFlow {
    * @private
    */
   addAbbriviatedOfferFrame_() {
-    if (!this.offerContainer_) {
-      throw new Error('Error: element <${PROPS.POPUP_TAG}> not found!');
+    const offerContainer = this.offerContainer_;
+    if (!offerContainer) {
+      throw new Error('Error: element <${POPUP_TAG}> not found!');
       return;
     }
 
@@ -111,6 +120,8 @@ export class SubscriptionsUiFlow {
     iframe.srcdoc = getAbbriviatedOffers();
     iframe.id = 'offer-frame';
     iframe.name = 'offer-frame';
+    iframe.setAttribute('frameborder', 0);
+    iframe.setAttribute('scrolling', 'no');
     iframe.style.position = 'fixed';
     iframe.style.display = 'flex';
     iframe.style.left = 0;
@@ -122,7 +133,7 @@ export class SubscriptionsUiFlow {
     iframe.style.backgroundColor = '#fff';
     // TODO(dparikh): Vendor prefix for 'box-sizing'.
     iframe.style.boxSizing = 'border-box';
-    iframe.style.height = `${PROPS.POPUP_MIN_HEIGHT}px`;
-    this.offerContainer_.appendChild(iframe);
+    iframe.style.minHeight = `${CONTAINER_HEIGHT}px`;
+    offerContainer.appendChild(iframe);
   }
 }
