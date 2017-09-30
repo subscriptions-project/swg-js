@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import {CSS as OFFERS_CSS} from
+    '../../build/css/experimental/swg-popup-offer.css';
+
 
  /**
   * Checks if the subscription element is already available in Dom.
@@ -98,55 +101,7 @@ export function getAbbriviatedOffers() {
  * @private
  */
 function getStyle_() {
-  const style =
-    `
-        <style>
-        body {
-          padding: 0;
-          margin: 0;
-        }
-
-        .swg-header,
-        .swg-footer {
-          flex: 1;
-          background-color: #ececec;
-          height: 28px;
-          padding: 6px;
-        }
-
-        .swg-footer {
-          display: flex;
-          height: 32px;
-        }
-
-        .swg-content {
-          height: 116px;
-          overflow-y: auto;
-        }
-
-        .swg-subscribe-button {
-          order: 2;
-          background-color: #fff;
-          color: #757575;
-          border-radius: 1px;
-          box-shadow: 0 2px 4px 0 rgba(0,0,0,.25);
-          border: none;
-          background-image: none;
-          white-space: nowrap;
-          display: -webkit-box;
-          display: -webkit-flex;
-          display: -ms-flexbox;
-          display: flex;
-          -webkit-box-orient: horizontal;
-          -webkit-box-direction: normal;
-          -webkit-flex-direction: row;
-          -ms-flex-direction: row;
-          flex-direction: row;
-          padding: 8px;
-          margin-right: 8px;
-        }
-      </style>
-    `;
+  const style =`<style>${OFFERS_CSS}</style>`;
   return style;
 }
 

@@ -21,10 +21,13 @@ var browserify = require('browserify');
 var buffer = require('vinyl-buffer');
 var closureCompile = require('./closure-compile').closureCompile;
 var fs = require('fs-extra');
+var glob = require('glob');
 var gulp = $$.help(require('gulp'));
+var jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
 var lazypipe = require('lazypipe');
 var minimatch = require('minimatch');
 var minimist = require('minimist');
+var pathLib = require('path');
 var source = require('vinyl-source-stream');
 var touch = require('touch');
 var watchify = require('watchify');
@@ -39,7 +42,11 @@ exports.compile = function(opts) {
   mkdirSync('build/cc');
   mkdirSync('build/fake-module');
   mkdirSync('build/fake-module/src');
+  mkdirSync('build/css');
   var promises = [
+    // Compile CSS
+    compileCss('./src/', './build/css', Object.assign({}, opts || {})),
+
     // For compilation with babel we start with the main-babel entry point,
     // but then rename to the subscriptions.js which we've been using all along.
     compileJs('./src/', 'main', './dist', Object.assign({
@@ -158,6 +165,46 @@ function compileJs(srcDir, srcFilename, destDir, options) {
     // `gulp build` / `gulp dist` cases where options.watch is undefined.
     return rebundle();
   }
+}
+
+
+/**
+ * Compile all the css and drop in the build folder.
+ *
+ * @param {string} srcDir Path to the src directory.
+ * @param {string} outputDir Destination folder for output files.
+ * @param {?Object} options
+ * @return {!Promise}
+ */
+function compileCss(srcDir, outputDir, options) {
+  options = options || {};
+
+  if (options.watch) {
+    $$.watch(srcDir + '**/*.css', function() {
+      compileCss(srcDir, outputDir,
+          Object.assign({}, options, {watch: false}));
+    });
+  }
+
+  const startTime = Date.now();
+  return new Promise(resolve => {
+    glob('**/*.css', {cwd: srcDir}, function(er, files) {
+      resolve(files);
+    });
+  }).then(files => {
+    const promises = files.map(file => {
+      const srcFile = srcDir + file;
+      return jsifyCssAsync(srcFile).then(css => {
+        const targetFile = outputDir + '/' + file + '.js';
+        mkdirSync(pathLib.dirname(targetFile));
+        fs.writeFileSync(targetFile,
+            'export const CSS = ' + JSON.stringify(css) + ';');
+      });
+    });
+    return Promise.all(promises);
+  }).then(() => {
+    endBuildStep('Recompiled CSS', '', startTime);
+  });
 }
 
 
