@@ -1,0 +1,157 @@
+/**
+ * Copyright 2015 The AMP HTML Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+// Note: loaded by 3p system. Cannot rely on babel polyfills.
+import {map} from './object';
+import {startsWith} from './string';
+
+
+/** @type {Object<string, string>} */
+let propertyNameCache;
+
+/** @const {!Array<string>} */
+const vendorPrefixes = ['Webkit', 'webkit', 'Moz', 'moz', 'ms', 'O', 'o'];
+
+
+/**
+ * @export
+ * @param {string} camelCase camel cased string
+ * @return {string} title cased string
+ */
+export function camelCaseToTitleCase(camelCase) {
+  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
+}
+
+
+/**
+ * Returns the possibly prefixed JavaScript property name of a style property
+ * (ex. WebkitTransitionDuration) given a camelCase'd version of the property
+ * (ex. transitionDuration).
+ * @export
+ * @param {!Object} style
+ * @param {string} camelCase the camel cased version of a css property name
+ * @param {boolean=} opt_bypassCache bypass the memoized cache of property
+ *   mapping
+ * @return {string}
+ */
+export function getVendorJsPropertyName(style, camelCase, opt_bypassCache) {
+  if (startsWith(camelCase, '--')) {
+    // CSS vars are returned as is.
+    return camelCase;
+  }
+  if (!propertyNameCache) {
+    propertyNameCache = map();
+  }
+  let propertyName = propertyNameCache[camelCase];
+  if (!propertyName || opt_bypassCache) {
+    propertyName = camelCase;
+    if (style[camelCase] === undefined) {
+      const titleCase = camelCaseToTitleCase(camelCase);
+      const prefixedPropertyName = getVendorJsPropertyName_(style, titleCase);
+
+      if (style[prefixedPropertyName] !== undefined) {
+        propertyName = prefixedPropertyName;
+      }
+    }
+    if (!opt_bypassCache) {
+      propertyNameCache[camelCase] = propertyName;
+    }
+  }
+  return propertyName;
+}
+
+
+/**
+ * Sets the CSS styles of the specified element with !important. The styles
+ * are specified as a map from CSS property names to their values.
+ * @param {!Element} element
+ * @param {!Object<string, *>} styles
+ */
+export function setImportantStyles(element, styles) {
+  for (const k in styles) {
+    element.style.setProperty(
+        getVendorJsPropertyName(styles, k), styles[k].toString(), 'important');
+  }
+}
+
+
+/**
+ * Sets the CSS style of the specified element with optional units, e.g. "px".
+ * @param {Element} element
+ * @param {string} property
+ * @param {*} value
+ * @param {string=} opt_units
+ * @param {boolean=} opt_bypassCache
+ */
+export function setStyle(element, property, value, opt_units, opt_bypassCache) {
+  const propertyName = getVendorJsPropertyName(element.style, property,
+      opt_bypassCache);
+  if (propertyName) {
+    element.style[propertyName] =
+        /** @type {string} */ (opt_units ? value + opt_units : value);
+  }
+}
+
+
+/**
+ * Returns the value of the CSS style of the specified element.
+ * @param {!Element} element
+ * @param {string} property
+ * @param {boolean=} opt_bypassCache
+ * @return {*}
+ */
+export function getStyle(element, property, opt_bypassCache) {
+  const propertyName = getVendorJsPropertyName(element.style, property,
+      opt_bypassCache);
+  if (!propertyName) {
+    return undefined;
+  }
+  return element.style[propertyName];
+}
+
+
+/**
+ * Shows or hides the specified element.
+ * @param {!Element} element
+ * @param {boolean=} opt_display
+ */
+export function toggle(element, opt_display) {
+  if (opt_display === undefined) {
+    opt_display = getStyle(element, 'display') == 'none';
+  }
+  setStyle(element, 'display', opt_display ? '' : 'none');
+}
+
+
+/**
+ * Checks the style if a prefixed version of a property exists and returns
+ * it or returns an empty string.
+ * @private
+ * @param {!Object} style
+ * @param {string} titleCase the title case version of a css property name
+ * @return {string} the prefixed property name or null.
+ */
+function getVendorJsPropertyName_(style, titleCase) {
+  for (let i = 0; i < vendorPrefixes.length; i++) {
+    const propertyName = vendorPrefixes[i] + titleCase;
+    console.log(propertyName, style, titleCase);
+    if (style[propertyName] !== undefined) {
+      return propertyName;
+    }
+  }
+  return '';
+}
