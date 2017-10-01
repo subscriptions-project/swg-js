@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-
 // Note: loaded by 3p system. Cannot rely on babel polyfills.
-import {map} from './object';
+import {map} from './object.js';
 import {startsWith} from './string';
 
 
@@ -36,6 +35,23 @@ export function camelCaseToTitleCase(camelCase) {
   return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
 }
 
+/**
+ * Checks the style if a prefixed version of a property exists and returns
+ * it or returns an empty string.
+ * @private
+ * @param {!Object} style
+ * @param {string} titleCase the title case version of a css property name
+ * @return {string} the prefixed property name or null.
+ */
+function getVendorJsPropertyName_(style, titleCase) {
+  for (let i = 0; i < vendorPrefixes.length; i++) {
+    const propertyName = vendorPrefixes[i] + titleCase;
+    if (style[propertyName] !== undefined) {
+      return propertyName;
+    }
+  }
+  return '';
+}
 
 /**
  * Returns the possibly prefixed JavaScript property name of a style property
@@ -125,6 +141,19 @@ export function getStyle(element, property, opt_bypassCache) {
 
 
 /**
+ * Sets the CSS styles of the specified element. The styles
+ * a specified as a map from CSS property names to their values.
+ * @param {!Element} element
+ * @param {!Object<string, *>} styles
+ */
+export function setStyles(element, styles) {
+  for (const k in styles) {
+    setStyle(element, k, styles[k]);
+  }
+}
+
+
+/**
  * Shows or hides the specified element.
  * @param {!Element} element
  * @param {boolean=} opt_display
@@ -138,20 +167,92 @@ export function toggle(element, opt_display) {
 
 
 /**
- * Checks the style if a prefixed version of a property exists and returns
- * it or returns an empty string.
- * @private
- * @param {!Object} style
- * @param {string} titleCase the title case version of a css property name
- * @return {string} the prefixed property name or null.
+ * Returns a pixel value.
+ * @param {number} value
+ * @return {string}
  */
-function getVendorJsPropertyName_(style, titleCase) {
-  for (let i = 0; i < vendorPrefixes.length; i++) {
-    const propertyName = vendorPrefixes[i] + titleCase;
-    console.log(propertyName, style, titleCase);
-    if (style[propertyName] !== undefined) {
-      return propertyName;
-    }
+export function px(value) {
+  return value + 'px';
+}
+
+
+/**
+ * Returns a "translateX" for CSS "transform" property.
+ * @param {number|string} value
+ * @return {string}
+ */
+export function translateX(value) {
+  if (typeof value == 'string') {
+    return `translateX(${value})`;
   }
-  return '';
+  return `translateX(${px(value)})`;
+}
+
+
+/**
+ * Returns a "translateX" for CSS "transform" property.
+ * @param {number|string} x
+ * @param {(number|string)=} opt_y
+ * @return {string}
+ */
+export function translate(x, opt_y) {
+  if (typeof x == 'number') {
+    x = px(x);
+  }
+  if (opt_y === undefined) {
+    return `translate(${x})`;
+  }
+  if (typeof opt_y == 'number') {
+    opt_y = px(opt_y);
+  }
+  return `translate(${x}, ${opt_y})`;
+}
+
+
+/**
+ * Returns a "scale" for CSS "transform" property.
+ * @param {number|string} value
+ * @return {string}
+ */
+export function scale(value) {
+  return `scale(${value})`;
+}
+
+/**
+ * Remove alpha value from a rgba color value.
+ * Return the new color property with alpha equals if has the alpha value.
+ * Caller needs to make sure the input color value is a valid rgba/rgb value
+ * @param {string} rgbaColor
+ * @return {string}
+ */
+export function removeAlphaFromColor(rgbaColor) {
+  return rgbaColor.replace(
+      /\(([^,]+),([^,]+),([^,)]+),[^)]+\)/g, '($1,$2,$3, 1)');
+}
+
+/**
+ * Gets the computed style of the element. The helper is necessary to enforce
+ * the possible `null` value returned by a buggy Firefox.
+ *
+ * @param {!Window} win
+ * @param {!Element} el
+ * @return {!Object<string, string>}
+ */
+export function computedStyle(win, el) {
+  const style = /** @type {?CSSStyleDeclaration} */(win.getComputedStyle(el));
+  return /** @type {!Object<string, string>} */(style) || map();
+}
+
+
+/**
+ * Resets styles that were set dynamically (i.e. inline)
+ * @param {!Element} element
+ * @param {!Array<string>} properties
+ */
+export function resetStyles(element, properties) {
+  const styleObj = {};
+  properties.forEach(prop => {
+    styleObj[prop] = null;
+  });
+  setStyles(element, styleObj);
 }
