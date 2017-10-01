@@ -23,6 +23,13 @@ import {CSS as OFFERS_CSS} from
  */
 export const MAX_Z_INDEX = '2147483647';
 
+const SUBSCRIPTIONS = {
+  offers: [
+    {name: 'First 14 days free, $8/mo, after'},
+    {name: '$85$/year'},
+  ],
+};
+
  /**
   * Checks if the subscription element is already available in Dom.
   * @param {!Window} win The window object.
@@ -39,9 +46,10 @@ export function assertNoPopups(doc, elementTagName) {
 /**
  * Returns embedded HTML for abbriviated offers to use with iframe's srcdoc
  * attribute (friendly iframe).
+ * @param {!SubscriptionResponse} subscriptions The user subscription details.
  * @return {string}
  */
-export function getAbbriviatedOffers() {
+export function getAbbriviatedOffers(subscriptions) {
   const offers =
     `
       <html>
@@ -59,7 +67,7 @@ export function getAbbriviatedOffers() {
               <span style="flex: 1;"></span>
             </div>
             <!--The content area-->
-            ${getContent_()}
+            ${getContent_(subscriptions)}
             <!--The footer-->
             ${getFooter_()}
           </div>
@@ -76,17 +84,23 @@ export function getAbbriviatedOffers() {
  * @private
  */
 function getStyle_() {
-  const style =`<style>${OFFERS_CSS}</style>`;
+  const style = ` <style>${OFFERS_CSS}</style> `;
   return style;
 }
 
 /**
  * Builds and returns the content HTML for the offer dialog.
  * TODO(dparikh): Add offers within the content.
+ * @param {!SubscriptionResponse} subscriptions The user subscription details.
  * @private
  */
-function getContent_() {
-  return '<div class="swg-content"></div>';
+function getContent_(subscriptions) {
+  const offers = subscriptions.offers || SUBSCRIPTIONS.offers;
+  return `
+      <div class="swg-content" id="swg-content">
+        <div>${offers[0].name}</div>
+        <div>${offers[1].name}</div>
+      </div>`;
 }
 
 /**
@@ -140,4 +154,5 @@ export function setCssAttributes(element, height, important = 'important') {
   elementStyle.setProperty('box-sizing', 'border-box', important);
   elementStyle.setProperty('display', 'none', important);
   elementStyle.setProperty('min-height', `${height}px`, important);
+  elementStyle.setProperty('-webkit-animation', 'swg-expand 2s', important);
 }

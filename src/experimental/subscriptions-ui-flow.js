@@ -17,11 +17,12 @@
 
 import {
   assertNoPopups,
-  getAbbriviatedOffers,
   setCssAttributes,
   MAX_Z_INDEX,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
+import {AbbriviatedOffersUi} from './abbriviated-offers-ui';
+import {LoadingUi} from './loading-ui';
 
 
 /**
@@ -51,6 +52,8 @@ const CONTAINER_HEIGHT = 200;
  * @param {!Window} win The main containing window object.
  * @return {!Promise}
  */
+
+
 export function buildSubscriptionsUi(win) {
 
   // Ensure that the element is not already built by external resource.
@@ -59,7 +62,9 @@ export function buildSubscriptionsUi(win) {
   // Gets subscription details and build the pop-up.
   getSubscriptionDetails()
       .then(response => {
-        const subscriptionsUiFlow = new SubscriptionsUiFlow(win, response);
+        const subscriptionsUiFlow =
+            new SubscriptionsUiFlow(win, response);
+        subscriptionsUiFlow.start();
         subscriptionsUiFlow.show_();
       });
 }
@@ -81,8 +86,30 @@ export class SubscriptionsUiFlow {
     /** @private @const {!SubscriptionResponse} */
     this.subscription_ = response;
 
-    // Build the pop-up element and add the offers.
-    /** @private @const {!Element} */
+    /** @private {Element} */
+    this.offerContainer_;
+
+    /** @private {Element} */
+    this.loadingUi;
+
+    /** @private {Element} */
+    this.abbriviatedOffersUi_;
+
+    /**
+     * State.
+     * @private @const {!Object<string, string>}
+     * TODO(dparikh): Implement.
+     */
+    this.state_ = {
+      loading: true,
+      view: '',
+    };
+  }
+
+  /*
+   * Starts the subscriptions flow.
+   */
+  start() {
     this.offerContainer_ = this.document_.createElement(POPUP_TAG);
 
     // Add close button with action.
@@ -91,8 +118,28 @@ export class SubscriptionsUiFlow {
     setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
     this.document_.body.appendChild(this.offerContainer_);
 
-    // Add the abbriviated offers.
-    this.addAbbriviatedOfferFrame_();
+    // Build the loading indicator.
+    this.loadingUi =
+        new LoadingUi(this.win_, this.document_, this.offerContainer_);
+
+    // Render the loading indicator.
+    this.loadingUi.init();
+
+    // Build the abbriviated offers element.
+    this.abbriviatedOffersUi_ =
+        new AbbriviatedOffersUi(
+            this.win_,
+            this.document_,
+            this.offerContainer_,
+            this.subscription_);
+
+    // Render the abbriviated offers and hide the loading indicator.
+    this.abbriviatedOffersUi_.init().then(() => {
+      // TODO(dparikh): Remove delay after demo.
+      this.win_.setTimeout(() => {
+        this.loadingUi.hide();
+      }, 3000);
+    });
   }
 
   /**
@@ -129,34 +176,5 @@ export class SubscriptionsUiFlow {
    */
   show_() {
     this.offerContainer_.style.removeProperty('display');
-  }
-
-  /**
-   * Adds the abbriviated offers as a friendly iframe in the element.
-   * @private
-   * @return {?string}
-   */
-  addAbbriviatedOfferFrame_() {
-    const iframe = this.document_.createElement('iframe');
-    // TODO(dparikh): Polyfill 'srcdoc'.
-    // Ref.: https://github.com/ampproject/amphtml/blob/master/src/friendly-iframe-embed.js#L148-L163
-    iframe.srcdoc = getAbbriviatedOffers();
-    iframe.id = 'offer-frame';
-    iframe.name = 'offer-frame';
-    iframe.setAttribute('frameborder', 0);
-    iframe.setAttribute('scrolling', 'no');
-    iframe.style.position = 'fixed';
-    iframe.style.display = 'flex';
-    iframe.style.left = 0;
-    iframe.style.right = 0;
-    iframe.style.opacity = 1;
-    iframe.style.border = 'none';
-    iframe.style.width = '100%';
-    iframe.style.border = 'none';
-    iframe.style.backgroundColor = '#fff';
-    // TODO(dparikh): Vendor prefix for 'box-sizing'.
-    iframe.style.boxSizing = 'border-box';
-    iframe.style.minHeight = `${CONTAINER_HEIGHT}px`;
-    this.offerContainer_.appendChild(iframe);
   }
 }
