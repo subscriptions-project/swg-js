@@ -19,6 +19,7 @@ import {
   assertNoPopups,
   getAbbriviatedOffers,
   setCssAttributes,
+  MAX_Z_INDEX,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
 
@@ -83,7 +84,10 @@ export class SubscriptionsUiFlow {
     // Build the pop-up element and add the offers.
     /** @private @const {!Element} */
     this.offerContainer_ = this.document_.createElement(POPUP_TAG);
-    this.addCloseButton();
+
+    // Add close button with action.
+    this.addCloseButton_();
+
     setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
     this.document_.body.appendChild(this.offerContainer_);
 
@@ -94,21 +98,19 @@ export class SubscriptionsUiFlow {
   /**
    * Builds and renders the close pop-up dialog button.
    * TODO(dparikh): Use the setImportantStyles() as discussed.
+   * @private
    */
-  addCloseButton() {
+  addCloseButton_() {
     const closeButton = this.document_.createElement('button');
     closeButton.classList.add('swg-close-action');
     this.offerContainer_.appendChild(closeButton);
-    closeButton.innerText = 'X';
+    closeButton.innerText = '\u00D7';
     const closeButtonStyle = closeButton.style;
-    closeButtonStyle.setProperty('z-index', '2147483647', 'important');
+    closeButtonStyle.setProperty('z-index', MAX_Z_INDEX, 'important');
     closeButtonStyle.setProperty('position', 'absolute', 'important');
-    closeButtonStyle.setProperty('width', '28px', 'important');
-    closeButtonStyle.setProperty('height', '28px', 'important');
-    closeButtonStyle.setProperty('top', '8px', 'important');
     closeButtonStyle.setProperty('right', '10px', 'important');
     closeButtonStyle.setProperty('color', '#757575', 'important');
-    closeButtonStyle.setProperty('font-size', '14px', 'important');
+    closeButtonStyle.setProperty('font-size', '28px', 'important');
     closeButtonStyle.setProperty('background-size', '13px 13px', 'important');
     closeButtonStyle
         .setProperty('background-position', '9px center', 'important');

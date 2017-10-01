@@ -15,6 +15,11 @@
  */
 
 
+/**
+ * Maximum value for z-index (32 bit Integer).
+ */
+export const MAX_Z_INDEX = '2147483647';
+
  /**
   * Checks if the subscription element is already available in Dom.
   * @param {!Window} win The window object.
