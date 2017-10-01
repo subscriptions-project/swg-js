@@ -16,10 +16,10 @@
 
 
 import {
-  addCloseButton,
   assertNoPopups,
   getAbbriviatedOffers,
   setCssAttributes,
+  MAX_Z_INDEX,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
 
@@ -84,7 +84,10 @@ export class SubscriptionsUiFlow {
     // Build the pop-up element and add the offers.
     /** @private @const {!Element} */
     this.offerContainer_ = this.document_.createElement(POPUP_TAG);
-    addCloseButton(this.offerContainer_, this.closeCallback_.bind(this));
+
+    // Add close button with action.
+    this.addCloseButton_();
+
     setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
     this.document_.body.appendChild(this.offerContainer_);
 
@@ -93,11 +96,30 @@ export class SubscriptionsUiFlow {
   }
 
   /**
-   * Removes the pop-up from the Dom.
+   * Builds and renders the close pop-up dialog button.
+   * TODO(dparikh): Use the setImportantStyles() as discussed.
    * @private
    */
-  closeCallback_() {
-    this.offerContainer_.parentNode.removeChild(this.offerContainer_);
+  addCloseButton_() {
+    const closeButton = this.document_.createElement('button');
+    closeButton.classList.add('swg-close-action');
+    this.offerContainer_.appendChild(closeButton);
+    closeButton.innerText = '\u00D7';
+    const closeButtonStyle = closeButton.style;
+    closeButtonStyle.setProperty('z-index', MAX_Z_INDEX, 'important');
+    closeButtonStyle.setProperty('position', 'absolute', 'important');
+    closeButtonStyle.setProperty('right', '10px', 'important');
+    closeButtonStyle.setProperty('color', '#757575', 'important');
+    closeButtonStyle.setProperty('font-size', '28px', 'important');
+    closeButtonStyle.setProperty('background-size', '13px 13px', 'important');
+    closeButtonStyle
+        .setProperty('background-position', '9px center', 'important');
+    closeButtonStyle.setProperty('background-color', '#ececec', 'important');
+    closeButtonStyle.setProperty('background-repeat', 'no-repeat', 'important');
+    closeButtonStyle.setProperty('border', 'none', 'important');
+
+    closeButton.addEventListener('click', () =>
+        this.offerContainer_.parentNode.removeChild(this.offerContainer_));
   }
 
   /**

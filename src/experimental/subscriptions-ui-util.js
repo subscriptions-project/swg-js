@@ -18,6 +18,11 @@ import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
 
 
+/**
+ * Maximum value for z-index (32 bit Integer).
+ */
+export const MAX_Z_INDEX = '2147483647';
+
  /**
   * Checks if the subscription element is already available in Dom.
   * @param {!Window} win The window object.
@@ -29,36 +34,6 @@ export function assertNoPopups(doc, elementTagName) {
   if (existingPopup) {
     throw new Error('Only one instance is allowed!');
   }
-}
-
- /**
-  * Builds and renders the close pop-up dialog button.
-  * @param {!Element} container The container element <swg-popup>.
-  * @param {function} closeCallback The function to call on close action.
-  * TODO(dparikh): Use the setImportantStyles() as discussed.
-  */
-export function addCloseButton(container, closeCallback) {
-  const closeButton = document.createElement('button');
-  closeButton.classList.add('swg-close-action');
-  container.appendChild(closeButton);
-  closeButton.innerText = 'X';
-  const closeButtonStyle = closeButton.style;
-  closeButtonStyle.setProperty('z-index', '2147483647', 'important');
-  closeButtonStyle.setProperty('position', 'absolute', 'important');
-  closeButtonStyle.setProperty('width', '28px', 'important');
-  closeButtonStyle.setProperty('height', '28px', 'important');
-  closeButtonStyle.setProperty('top', '8px', 'important');
-  closeButtonStyle.setProperty('right', '10px', 'important');
-  closeButtonStyle.setProperty('color', '#757575', 'important');
-  closeButtonStyle.setProperty('font-size', '14px', 'important');
-  closeButtonStyle.setProperty('background-size', '13px 13px', 'important');
-  closeButtonStyle
-      .setProperty('background-position', '9px center', 'important');
-  closeButtonStyle.setProperty('background-color', '#ececec', 'important');
-  closeButtonStyle.setProperty('background-repeat', 'no-repeat', 'important');
-  closeButtonStyle.setProperty('border', 'none', 'important');
-
-  closeButton.addEventListener('click', closeCallback);
 }
 
 /**
