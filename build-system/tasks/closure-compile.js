@@ -107,8 +107,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     }
     const srcs = [
       // Files under build/. Should be sparse.
-      'build/css.js',
-      'build/*.css.js',
+      'build/css/**/*.css.js',
       'src/*.js',
       'src/**/*.js',
       '!src/*-babel.js',
