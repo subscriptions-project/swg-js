@@ -43,10 +43,10 @@ exports.compile = function(opts) {
   mkdirSync('build/fake-module');
   mkdirSync('build/fake-module/src');
   mkdirSync('build/css');
-  var promises = [
-    // Compile CSS
-    compileCss('./src/', './build/css', Object.assign({}, opts || {})),
 
+  // Compile CSS then compileJs because we need the css files in compileJs step.
+  return compileCss('./src/', './build/css', Object.assign({}, opts || {}))
+      .then(() =>
     // For compilation with babel we start with the main-babel entry point,
     // but then rename to the subscriptions.js which we've been using all along.
     compileJs('./src/', 'main', './dist', Object.assign({
@@ -56,9 +56,7 @@ exports.compile = function(opts) {
       // If there is a sync JS error during initial load,
       // at least try to unhide the body.
       wrapper: '(function(){<%= contents %>})();'
-    }, opts || {})),
-  ];
-  return Promise.all(promises);
+    }, opts || {})));
 }
 
 
