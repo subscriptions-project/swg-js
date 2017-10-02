@@ -68,6 +68,7 @@ export class AbbriviatedOffersUi {
 
   /*
    * Builds the abbriviated offers element within the <swg-popup> element.
+   * @return {!Promise}
    */
   buildAbbriviatedOffers_() {
     const iframe = this.abbriviatedOffersElement_;
