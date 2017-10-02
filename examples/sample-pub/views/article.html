@@ -5,49 +5,6 @@
     <title>Pub Times</title>
     <link rel="canonical" href="<% id %>">
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
-    <!--TODO(dparikh): Move this style to CSS file to include in compiled JS. -->
-    <style>
-      @-webkit-keyframes loading {
-        0% {
-          transform: scale(1);
-        }
-        20% {
-          transform: scale(1, 2.2);
-        }
-        40% {
-          transform: scale(1);
-        }
-      }
-
-      @-webkit-keyframes fadeOut {
-         from {
-           opacity: 1;
-         }
-         to {
-           opacity: 0;
-         }
-      }
-
-      @-webkit-keyframes fadeIn {
-          from {
-              opacity: 0;
-          }
-          to {
-              opacity: .3;
-          }
-      }
-
-      @-webkit-keyframes swg-expand {
-        from {
-            top: 100%;
-            opacity: .5;
-        }
-        to {
-            top: calc(100vh - 200px);
-            opacity: 1;
-        }
-      }
-    </style>
     <script async src="/dist/subscriptions.max.js"></script>
     <script>
       // TODO(dparikh): Move event listener to subscriptions code.

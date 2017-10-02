@@ -20,8 +20,9 @@ import {CSS as OFFERS_CSS} from
 
 /**
  * Maximum value for z-index (32 bit Integer).
+ * @const {number}
  */
-export const MAX_Z_INDEX = '2147483647';
+export const MAX_Z_INDEX = 2147483647;
 
 const SUBSCRIPTIONS = {
   offers: [
@@ -141,18 +142,5 @@ function getFooter_() {
  * @param {string=} important Whether to add important.
  */
 export function setCssAttributes(element, height, important = 'important') {
-  const elementStyle = element.style;
-  elementStyle.setProperty('position', 'fixed', important);
-  elementStyle.setProperty('bottom', '0', important);
-  elementStyle.setProperty('left', '0', important);
-  elementStyle.setProperty('right', '0', important);
-  elementStyle.setProperty('z-index', '2147483647', important);
-  elementStyle.setProperty('border', 'none', important);
-  elementStyle
-      .setProperty('box-shadow', '3px 3px gray, 0 0 1.4em gray', important);
-  elementStyle.setProperty('background-color', '#fff', important);
-  elementStyle.setProperty('box-sizing', 'border-box', important);
-  elementStyle.setProperty('display', 'none', important);
-  elementStyle.setProperty('min-height', `${height}px`, important);
-  elementStyle.setProperty('-webkit-animation', 'swg-expand 2s', important);
+  element.style.setProperty('min-height', `${height}px`, important);
 }

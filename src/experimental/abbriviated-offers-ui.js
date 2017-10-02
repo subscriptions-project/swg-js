@@ -48,18 +48,14 @@ export class AbbriviatedOffersUi {
    */
   init() {
     return this.buildAbbriviatedOffers_(this.subscriptions)
-        .then(() => {
-          this.show();
-          Promise.resolve();
-        });
+        .then(() => this.show());
   }
 
   /*
    * Shows the abbriviated offers element within the <swg-popup> element.
    */
   show() {
-    this.abbriviatedOffersElement_.style
-        .setProperty('display', 'flex', 'important');
+    this.abbriviatedOffersElement_.style.removeProperty('display');
   }
 
   /*
@@ -78,8 +74,6 @@ export class AbbriviatedOffersUi {
      // TODO(dparikh): Polyfill 'srcdoc'.
      // Ref.: https://github.com/ampproject/amphtml/blob/master/src/friendly-iframe-embed.js#L148-L163
     iframe.srcdoc = getAbbriviatedOffers(this.subscriptions_);
-    iframe.id = 'offer-frame';
-    iframe.name = 'offer-frame';
     iframe.setAttribute('frameborder', 0);
     iframe.setAttribute('scrolling', 'no');
     iframe.style.position = 'fixed';

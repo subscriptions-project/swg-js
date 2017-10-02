@@ -34,7 +34,7 @@ export class LoadingUi {
     this.offerContainer_ = offerContainer;
 
     /** @private @const {Element} */
-    this.loadingContainer_ = this.document_.createElement('div');
+    this.loadingContainer_ = this.document_.createElement('swg-loading');
   }
 
   /*
@@ -53,8 +53,7 @@ export class LoadingUi {
    * TODO(dparikh): Check the container state.
    */
   show() {
-    this.loadingContainer_.style
-        .setProperty('display', 'inline-block', 'important');
+    this.loadingContainer_.style.setProperty('display', 'inline', 'important');
   }
 
   /*
@@ -66,37 +65,16 @@ export class LoadingUi {
   }
 
   /*
-   * Builds the loading indicator in the Dom.
+   * Builds the loading indicator <swg-loading> element in the Dom.
    */
   buildLoadingIndicator_() {
     const loadingContainer = this.loadingContainer_;
-    loadingContainer.classList.add('swg-loading');
-    loadingContainer.setAttribute('id', 'swg-loading');
-    const containerStyle = loadingContainer.style;
-    containerStyle.setProperty('position', 'absolute', 'important');
-    containerStyle.setProperty('display', 'none', 'important');
-    containerStyle.setProperty('top', 'calc(50% - 16px)', 'important');
-    containerStyle.setProperty('left', '50%', 'important');
-    containerStyle.setProperty('z-index', '1000', 'important');
     this.offerContainer_.appendChild(loadingContainer);
 
-    const gColors = ['#4285F4', '#0F9D58', '#F4B400', '#DB4437'];
-    const animDelay = ['0', '0.09s', '.18s', '.27s'];
+    // Add 4 vertical bars animated at different rates, as defined in the
+    // style.
     for (let i = 0; i < 4; i++) {
-      const loadingBar = this.document_.createElement('div');
-      loadingBar.classList.add('loading-bar');
-      const barStyle = loadingBar.style;
-      barStyle.setProperty('display', 'inline-block', 'important');
-      barStyle.setProperty('width', '5px', 'important');
-      barStyle.setProperty('height', '20px', 'important');
-      barStyle.setProperty('border-radius', '5px', 'important');
-      barStyle.setProperty('margin-right', '4px', 'important');
-      barStyle.setProperty('pointer-events', 'none', 'important');
-      barStyle.setProperty(
-          'animation', 'loading 1s ease-in-out infinite', 'important');
-
-      barStyle.setProperty('background-color', gColors[i], 'important');
-      barStyle.setProperty('animation-delay', animDelay[i], 'important');
+      const loadingBar = this.document_.createElement('swg-loading-bar');
       loadingContainer.appendChild(loadingBar);
     }
   }
