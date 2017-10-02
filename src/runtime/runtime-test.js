@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-import {installRuntime, getRuntime} from './runtime';
-
+import {installRuntime, getRuntime, Runtime} from './runtime';
 
 describes.realWin('installRuntime', {}, env => {
   let win;
+  let runtime;
+  let authStartStub;
 
   beforeEach(() => {
     win = env.win;
+    runtime = new Runtime(win);
+    authStartStub = sandbox.stub(runtime.auth_, 'start');
+    authStartStub.returns(Promise.resolve());
   });
 
   function dep(callback) {
@@ -40,7 +44,11 @@ describes.realWin('installRuntime', {}, env => {
     expect(progress).to.equal('');
 
     // Install runtime and schedule few more dependencies.
-    installRuntime(win);
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
     dep(function() {
       progress += '3';
     });
@@ -64,14 +72,22 @@ describes.realWin('installRuntime', {}, env => {
   });
 
   it('should reuse the same runtime on multiple runs', () => {
-    installRuntime(win);
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
     const runtime1 = getRuntime();
     installRuntime(win);
     expect(getRuntime()).to.equal(runtime1);
   });
 
   it('handles recursive calls after installation', function* () {
-    installRuntime(win);
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
     let progress = '';
     dep(() => {
       progress += '1';
@@ -99,10 +115,36 @@ describes.realWin('installRuntime', {}, env => {
         });
       });
     });
-    installRuntime(win);
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
     yield getRuntime().whenReady();
     yield getRuntime().whenReady();
     yield getRuntime().whenReady();
     expect(progress).to.equal('123');
+  });
+
+  it('starts automatically if access-control is not found', function() {
+    runtime.startSubscriptionsFlowIfNeeded();
+    expect(runtime.subscriptionsFlow_).to.not.be.null;
+  });
+
+  it('doesn\'t start automatically if access-control is found', function() {
+    const meta = win.document.createElement('meta');
+    meta.setAttribute('content', 'manual');
+    meta.setAttribute('name', 'access-control');
+    win.document.head.appendChild(meta);
+    expect(runtime.subscriptionsFlow_).to.be.null;
+    runtime.startSubscriptionsFlowIfNeeded();
+    expect(runtime.subscriptionsFlow_).to.be.null;
+    runtime.start();
+    expect(runtime.subscriptionsFlow_).to.not.be.null;
+  });
+
+  it('throws when start() is called twice', function() {
+    runtime.startSubscriptionsFlowIfNeeded();
+    expect(() => runtime.start()).to.throw(/flow can only be started once/);
   });
 });
