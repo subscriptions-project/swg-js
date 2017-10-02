@@ -118,8 +118,10 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       // one level below and confuse the compiler.
       '!node_modules/core-js/modules/library/**.js',
       // Don't include tests.
+      '!**-test.js',
       '!**_test.js',
       '!**/test-*.js',
+      '!**/*-test.js',
       '!**/*.extern.js',
     ];
     if (options.extraGlobs) {

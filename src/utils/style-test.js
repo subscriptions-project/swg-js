@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 The AMP HTML Authors. All Rights Reserved.
+ * Copyright 2017 The __PROJECT__ Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 import * as st from './style';
-import * as sinon from 'sinon';
 
 describes.realWin('Types', {}, env => {
   let win;
@@ -26,19 +25,7 @@ describes.realWin('Types', {}, env => {
     doc = win.document;
   });
 
-
   describe('Style', () => {
-
-    let sandbox;
-
-    beforeEach(() => {
-      sandbox = sinon.sandbox.create();
-    });
-
-    afterEach(() => {
-      sandbox.restore();
-    });
-
     it('toggle', () => {
       const element = doc.createElement('div');
       st.toggle(element);
