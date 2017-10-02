@@ -102,7 +102,7 @@ export class Runtime {
     /** @private @const {!Auth} */
     this.auth_ = new Auth(this.win, this.markup_);
 
-    /** @private {Promise} */
+    /** @private {?Promise} */
     this.subscriptionsFlow_ = null;
   }
 
@@ -131,6 +131,7 @@ export class Runtime {
 
   /**
    * Starts subscription flow.
+   * @return {Promise} [description]
    */
   start() {
     assert(!this.subscriptionsFlow_,
@@ -141,15 +142,22 @@ export class Runtime {
         launchPaymentsFlow(blob);
       }
     });
+    return this.subscriptionsFlow_;
   }
 
+  /**
+   * Starts the subscription flow if it hasn't been started and the page is
+   * configured to start it automatically.
+   *
+   * @return {?Promise}
+   */
   startSubscriptionsFlowIfNeeded() {
     const control = this.markup_.getAccessControl();
     if (control == 'manual') {
       log('Skipping automatic start because access-control is set to "manual"');
-      return;
+      return null;
     }
-    this.start();
+    return this.start();
   }
 }
 
