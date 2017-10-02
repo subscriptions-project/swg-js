@@ -20,8 +20,16 @@ import {CSS as OFFERS_CSS} from
 
 /**
  * Maximum value for z-index (32 bit Integer).
+ * @const {number}
  */
-export const MAX_Z_INDEX = '2147483647';
+export const MAX_Z_INDEX = 2147483647;
+
+const SUBSCRIPTIONS = {
+  offers: [
+    {name: 'First 14 days free, $8/mo, after'},
+    {name: '$85$/year'},
+  ],
+};
 
  /**
   * Checks if the subscription element is already available in Dom.
@@ -39,9 +47,10 @@ export function assertNoPopups(doc, elementTagName) {
 /**
  * Returns embedded HTML for abbriviated offers to use with iframe's srcdoc
  * attribute (friendly iframe).
+ * @param {!SubscriptionResponse} subscriptions The user subscription details.
  * @return {string}
  */
-export function getAbbriviatedOffers() {
+export function getAbbriviatedOffers(subscriptions) {
   const offers =
     `
       <html>
@@ -59,7 +68,7 @@ export function getAbbriviatedOffers() {
               <span style="flex: 1;"></span>
             </div>
             <!--The content area-->
-            ${getContent_()}
+            ${getContent_(subscriptions)}
             <!--The footer-->
             ${getFooter_()}
           </div>
@@ -76,17 +85,23 @@ export function getAbbriviatedOffers() {
  * @private
  */
 function getStyle_() {
-  const style =`<style>${OFFERS_CSS}</style>`;
+  const style = ` <style>${OFFERS_CSS}</style> `;
   return style;
 }
 
 /**
  * Builds and returns the content HTML for the offer dialog.
  * TODO(dparikh): Add offers within the content.
+ * @param {!SubscriptionResponse} subscriptions The user subscription details.
  * @private
  */
-function getContent_() {
-  return '<div class="swg-content"></div>';
+function getContent_(subscriptions) {
+  const offers = subscriptions.offers || SUBSCRIPTIONS.offers;
+  return `
+      <div class="swg-content" id="swg-content">
+        <div>${offers[0].name}</div>
+        <div>${offers[1].name}</div>
+      </div>`;
 }
 
 /**
@@ -127,17 +142,5 @@ function getFooter_() {
  * @param {string=} important Whether to add important.
  */
 export function setCssAttributes(element, height, important = 'important') {
-  const elementStyle = element.style;
-  elementStyle.setProperty('position', 'fixed', important);
-  elementStyle.setProperty('bottom', '0', important);
-  elementStyle.setProperty('left', '0', important);
-  elementStyle.setProperty('right', '0', important);
-  elementStyle.setProperty('z-index', '2147483647', important);
-  elementStyle.setProperty('border', 'none', important);
-  elementStyle
-      .setProperty('box-shadow', '3px 3px gray, 0 0 1.4em gray', important);
-  elementStyle.setProperty('background-color', '#fff', important);
-  elementStyle.setProperty('box-sizing', 'border-box', important);
-  elementStyle.setProperty('display', 'none', important);
-  elementStyle.setProperty('min-height', `${height}px`, important);
+  element.style.setProperty('min-height', `${height}px`, important);
 }

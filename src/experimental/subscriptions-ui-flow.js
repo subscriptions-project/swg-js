@@ -17,12 +17,13 @@
 
 import {
   assertNoPopups,
-  getAbbriviatedOffers,
   setCssAttributes,
   MAX_Z_INDEX,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
-
+import {AbbriviatedOffersUi} from './abbriviated-offers-ui';
+import {LoadingUi} from './loading-ui';
+import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 
 /**
  * The pop-up element name to be used.
@@ -51,6 +52,8 @@ const CONTAINER_HEIGHT = 200;
  * @param {!Window} win The main containing window object.
  * @return {!Promise}
  */
+
+
 export function buildSubscriptionsUi(win) {
 
   // Ensure that the element is not already built by external resource.
@@ -59,7 +62,9 @@ export function buildSubscriptionsUi(win) {
   // Gets subscription details and build the pop-up.
   getSubscriptionDetails()
       .then(response => {
-        const subscriptionsUiFlow = new SubscriptionsUiFlow(win, response);
+        const subscriptionsUiFlow =
+            new SubscriptionsUiFlow(win, response);
+        subscriptionsUiFlow.start();
         subscriptionsUiFlow.show_();
       });
 }
@@ -81,8 +86,26 @@ export class SubscriptionsUiFlow {
     /** @private @const {!SubscriptionResponse} */
     this.subscription_ = response;
 
-    // Build the pop-up element and add the offers.
-    /** @private @const {!Element} */
+    /** @private {Element} */
+    this.offerContainer_;
+
+    /** @private {Element} */
+    this.loadingUi_;
+
+    /** @private {Element} */
+    this.abbriviatedOffersUi_;
+
+    /** @private {boolean} */
+    this.isLoading_ = false;
+
+    /** @private {?string} */
+    this.activeView_;
+  }
+
+  /*
+   * Starts the subscriptions flow.
+   */
+  start() {
     this.offerContainer_ = this.document_.createElement(POPUP_TAG);
 
     // Add close button with action.
@@ -91,8 +114,34 @@ export class SubscriptionsUiFlow {
     setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
     this.document_.body.appendChild(this.offerContainer_);
 
-    // Add the abbriviated offers.
-    this.addAbbriviatedOfferFrame_();
+    this.injectCssToWindow_();
+    this.show_();
+
+    // Build the loading indicator.
+    this.loadingUi =
+        new LoadingUi(this.win_, this.document_, this.offerContainer_);
+
+    // Build the abbriviated offers element.
+    this.abbriviatedOffersUi_ =
+        new AbbriviatedOffersUi(
+            this.win_,
+            this.document_,
+            this.offerContainer_,
+            this.subscription_);
+
+    // Render the abbriviated offers.
+    this.abbriviatedOffersUi_.init();
+  }
+
+  /**
+   * Injects common CSS styles to the container window's <head> element.
+   * @private
+   */
+  injectCssToWindow_() {
+    const style = this.document_.createElement('style');
+    style.innerText = `${SWG_POPUP}`;
+    const head = this.document_.getElementsByTagName('HEAD')[0];
+    head.appendChild(style);
   }
 
   /**
@@ -105,18 +154,6 @@ export class SubscriptionsUiFlow {
     closeButton.classList.add('swg-close-action');
     this.offerContainer_.appendChild(closeButton);
     closeButton.innerText = '\u00D7';
-    const closeButtonStyle = closeButton.style;
-    closeButtonStyle.setProperty('z-index', MAX_Z_INDEX, 'important');
-    closeButtonStyle.setProperty('position', 'absolute', 'important');
-    closeButtonStyle.setProperty('right', '10px', 'important');
-    closeButtonStyle.setProperty('color', '#757575', 'important');
-    closeButtonStyle.setProperty('font-size', '28px', 'important');
-    closeButtonStyle.setProperty('background-size', '13px 13px', 'important');
-    closeButtonStyle
-        .setProperty('background-position', '9px center', 'important');
-    closeButtonStyle.setProperty('background-color', '#ececec', 'important');
-    closeButtonStyle.setProperty('background-repeat', 'no-repeat', 'important');
-    closeButtonStyle.setProperty('border', 'none', 'important');
 
     closeButton.addEventListener('click', () =>
         this.offerContainer_.parentNode.removeChild(this.offerContainer_));
@@ -128,35 +165,6 @@ export class SubscriptionsUiFlow {
    * @private
    */
   show_() {
-    this.offerContainer_.style.removeProperty('display');
-  }
-
-  /**
-   * Adds the abbriviated offers as a friendly iframe in the element.
-   * @private
-   * @return {?string}
-   */
-  addAbbriviatedOfferFrame_() {
-    const iframe = this.document_.createElement('iframe');
-    // TODO(dparikh): Polyfill 'srcdoc'.
-    // Ref.: https://github.com/ampproject/amphtml/blob/master/src/friendly-iframe-embed.js#L148-L163
-    iframe.srcdoc = getAbbriviatedOffers();
-    iframe.id = 'offer-frame';
-    iframe.name = 'offer-frame';
-    iframe.setAttribute('frameborder', 0);
-    iframe.setAttribute('scrolling', 'no');
-    iframe.style.position = 'fixed';
-    iframe.style.display = 'flex';
-    iframe.style.left = 0;
-    iframe.style.right = 0;
-    iframe.style.opacity = 1;
-    iframe.style.border = 'none';
-    iframe.style.width = '100%';
-    iframe.style.border = 'none';
-    iframe.style.backgroundColor = '#fff';
-    // TODO(dparikh): Vendor prefix for 'box-sizing'.
-    iframe.style.boxSizing = 'border-box';
-    iframe.style.minHeight = `${CONTAINER_HEIGHT}px`;
-    this.offerContainer_.appendChild(iframe);
+    this.offerContainer_.style.setProperty('display', 'inline', 'important');
   }
 }
