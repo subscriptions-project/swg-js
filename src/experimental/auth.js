@@ -78,6 +78,10 @@ export class Auth {
     return this.getPaywallConfig_()
       .then(config => this.sendAuthRequests_(config))
       .then(authResponse => {
+        if (!authResponse) {
+          // TODO: Throw instead?
+          return Promise.resolve();
+        }
         this.authResponse_ = authResponse[0];
         log('Got auth responses.');
         if (this.authResponse_['access']) {
@@ -86,7 +90,6 @@ export class Auth {
           return this.authResponse_['offers']['value'];
         }
       });
-
   }
 
   /**
@@ -102,6 +105,10 @@ export class Auth {
       return Promise.resolve(this.config_);
     }
     const el = this.win.document.getElementById('subscriptionsConfig');
+    if (!null) {
+      log('No Subscription config found.');
+      return Promise.resolve();
+    }
     if (el.nodeName == 'SCRIPT' &&
         el.getAttribute('type') == 'application/json') {
       this.config_ = tryParseJson(el.innerText)

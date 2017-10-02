@@ -15,11 +15,11 @@
  */
 
 
+import {assert, log} from '../utils/log';
 import {Auth} from '../experimental/auth';
 import {buildSubscriptionsUi} from '../experimental/subscriptions-ui-flow';
 import {isArray} from '../utils/types';
 import {launchPaymentsFlow} from '../experimental/payments-flow';
-import {log} from '../utils/log';
 import {SubscriptionMarkup} from './subscription-markup';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
@@ -81,6 +81,7 @@ export function installRuntime(win) {
     waitingArray.forEach(pushDependency);
   }
   runtimeInstance_ = runtime;
+  runtime.startSubscriptionsFlowIfNeeded();
 }
 
 
@@ -95,9 +96,14 @@ export class Runtime {
     /** @private @const {!Promise} */
     this.ready_ = Promise.resolve();
 
+    /** @private @const {!SubscriptionMarkup} */
     this.markup_ = new SubscriptionMarkup(this.win);
 
+    /** @private @const {!Auth} */
     this.auth_ = new Auth(this.win, this.markup_);
+
+    /** @private {boolean} */
+    this.subscriptionsStarted_ = false;
   }
 
   /**
@@ -127,13 +133,24 @@ export class Runtime {
    * Starts subscription flow.
    */
   start() {
-    log('Starting subscriptions processing');
+    assert(!this.subscriptionsStarted_,
+        'Subscription flow can only be started once.');
+    this.subscriptionsStarted_ = true;
+    log('Starting subscription flow');
     this.auth_.start().then(blob => {
       if (blob) {
         launchPaymentsFlow(blob);
       }
     });
+  }
 
+  startSubscriptionsFlowIfNeeded() {
+    const control = this.markup_.getAccessControl();
+    if (control == 'manual') {
+      log('Skipping automatic start because access-control is set to "manual"');
+      return;
+    }
+    this.start();
   }
 }
 

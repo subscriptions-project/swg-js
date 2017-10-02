@@ -14,14 +14,25 @@
  * limitations under the License.
  */
 
-import {installRuntime, getRuntime} from './runtime';
-
+import {installRuntime, getRuntime, Runtime} from './runtime';
+import * as sinon from 'sinon';
 
 describes.realWin('installRuntime', {}, env => {
   let win;
+  let runtime;
+  let sandbox;
+  let authStartStub;
 
   beforeEach(() => {
+    sandbox = sinon.sandbox.create();
     win = env.win;
+    runtime = new Runtime(win);
+    authStartStub = sandbox.stub(runtime.auth_, 'start');
+    authStartStub.returns(Promise.resolve());
+  });
+
+  afterEach(() => {
+    sandbox.restore();
   });
 
   function dep(callback) {
@@ -104,5 +115,24 @@ describes.realWin('installRuntime', {}, env => {
     yield getRuntime().whenReady();
     yield getRuntime().whenReady();
     expect(progress).to.equal('123');
+  });
+
+  it('starts automatically if access-control is not found', function() {
+    runtime.startSubscriptionsFlowIfNeeded();
+    expect(runtime.subscriptionsStarted_).to.be.true;
+  });
+
+  it('doesn\'t start automatically if access-control is found', function() {
+    const meta = win.document.createElement('meta');
+    meta.setAttribute('content', 'manual');
+    meta.setAttribute('name', 'access-control');
+    win.document.head.appendChild(meta);
+    runtime.startSubscriptionsFlowIfNeeded();
+    expect(runtime.subscriptionsStarted_).to.be.false;
+  });
+
+  it('throws when start() is called twice', function() {
+    runtime.startSubscriptionsFlowIfNeeded();
+    expect(() => runtime.start()).to.throw(/flow can only be started once/);
   });
 });
