@@ -79,8 +79,7 @@ export class Auth {
       .then(config => this.sendAuthRequests_(config))
       .then(authResponse => {
         if (!authResponse) {
-          // TODO: Throw instead?
-          return Promise.resolve();
+          throw new Error('Auth response not found.');
         }
         this.authResponse_ = authResponse[0];
         log('Got auth responses.');
@@ -105,9 +104,8 @@ export class Auth {
       return Promise.resolve(this.config_);
     }
     const el = this.win.document.getElementById('subscriptionsConfig');
-    if (!null) {
-      log('No Subscription config found.');
-      return Promise.resolve();
+    if (!el) {
+      throw new Error('No Subscription config found.');
     }
     if (el.nodeName == 'SCRIPT' &&
         el.getAttribute('type') == 'application/json') {

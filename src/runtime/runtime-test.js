@@ -15,24 +15,17 @@
  */
 
 import {installRuntime, getRuntime, Runtime} from './runtime';
-import * as sinon from 'sinon';
 
 describes.realWin('installRuntime', {}, env => {
   let win;
   let runtime;
-  let sandbox;
   let authStartStub;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
     win = env.win;
     runtime = new Runtime(win);
     authStartStub = sandbox.stub(runtime.auth_, 'start');
     authStartStub.returns(Promise.resolve());
-  });
-
-  afterEach(() => {
-    sandbox.restore();
   });
 
   function dep(callback) {
@@ -51,7 +44,11 @@ describes.realWin('installRuntime', {}, env => {
     expect(progress).to.equal('');
 
     // Install runtime and schedule few more dependencies.
-    installRuntime(win);
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
     dep(function() {
       progress += '3';
     });
@@ -75,14 +72,22 @@ describes.realWin('installRuntime', {}, env => {
   });
 
   it('should reuse the same runtime on multiple runs', () => {
-    installRuntime(win);
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
     const runtime1 = getRuntime();
     installRuntime(win);
     expect(getRuntime()).to.equal(runtime1);
   });
 
   it('handles recursive calls after installation', function* () {
-    installRuntime(win);
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
     let progress = '';
     dep(() => {
       progress += '1';
@@ -110,7 +115,11 @@ describes.realWin('installRuntime', {}, env => {
         });
       });
     });
-    installRuntime(win);
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
     yield getRuntime().whenReady();
     yield getRuntime().whenReady();
     yield getRuntime().whenReady();
@@ -119,7 +128,7 @@ describes.realWin('installRuntime', {}, env => {
 
   it('starts automatically if access-control is not found', function() {
     runtime.startSubscriptionsFlowIfNeeded();
-    expect(runtime.subscriptionsStarted_).to.be.true;
+    expect(runtime.subscriptionsFlow_).to.not.be.null;
   });
 
   it('doesn\'t start automatically if access-control is found', function() {
@@ -127,8 +136,11 @@ describes.realWin('installRuntime', {}, env => {
     meta.setAttribute('content', 'manual');
     meta.setAttribute('name', 'access-control');
     win.document.head.appendChild(meta);
+    expect(runtime.subscriptionsFlow_).to.be.null;
     runtime.startSubscriptionsFlowIfNeeded();
-    expect(runtime.subscriptionsStarted_).to.be.false;
+    expect(runtime.subscriptionsFlow_).to.be.null;
+    runtime.start();
+    expect(runtime.subscriptionsFlow_).to.not.be.null;
   });
 
   it('throws when start() is called twice', function() {

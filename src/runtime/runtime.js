@@ -102,8 +102,8 @@ export class Runtime {
     /** @private @const {!Auth} */
     this.auth_ = new Auth(this.win, this.markup_);
 
-    /** @private {boolean} */
-    this.subscriptionsStarted_ = false;
+    /** @private {Promise} */
+    this.subscriptionsFlow_ = null;
   }
 
   /**
@@ -133,11 +133,10 @@ export class Runtime {
    * Starts subscription flow.
    */
   start() {
-    assert(!this.subscriptionsStarted_,
+    assert(!this.subscriptionsFlow_,
         'Subscription flow can only be started once.');
-    this.subscriptionsStarted_ = true;
     log('Starting subscription flow');
-    this.auth_.start().then(blob => {
+    this.subscriptionsFlow_ = this.auth_.start().then(blob => {
       if (blob) {
         launchPaymentsFlow(blob);
       }
