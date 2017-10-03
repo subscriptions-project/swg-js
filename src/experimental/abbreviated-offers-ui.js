@@ -36,10 +36,10 @@ export class AbbreviatedOffersUi {
      /** @private @const {!Element} */
     this.offerContainer_ = offerContainer;
 
-    /** @privte @const {!SubscriptionResponse} */
+    /** @private @const {!SubscriptionResponse} */
     this.subscriptions_ = subscriptions;
 
-     /** @private {!Element} */
+     /** @private @const {!Element} */
     this.abbreviatedOffersElement_ = this.document_.createElement('iframe');
   }
 

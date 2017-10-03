@@ -41,6 +41,17 @@ const SUBSCRIPTIONS = {
   ],
 };
 
+/**
+ * Checks if current user is subscriber. It does not the healthy status.
+ * @param {!SubscriptionResponse} subscriptionResponse The Api response.
+ * @return {boolean}
+ */
+export function isSubscriber(subscriptionResponse) {
+  return subscriptionResponse.hasOwnProperty('subscriber') &&
+      subscriptionResponse['subscriber'].hasOwnProperty('types') &&
+      subscriptionResponse['subscriber']['types'].length > 0;
+}
+
  /**
   * Checks if the subscription element is already available in Dom.
   * @param {!Window} win The window object.
