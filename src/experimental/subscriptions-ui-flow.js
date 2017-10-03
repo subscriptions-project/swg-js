@@ -21,7 +21,7 @@ import {
   MAX_Z_INDEX,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
-import {AbbriviatedOffersUi} from './abbriviated-offers-ui';
+import {abbreviatedOffersUi} from './abbreviated-offers-ui';
 import {LoadingUi} from './loading-ui';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 
@@ -93,7 +93,7 @@ export class SubscriptionsUiFlow {
     this.loadingUi_;
 
     /** @private {Element} */
-    this.abbriviatedOffersUi_;
+    this.abbreviatedOffersUi_;
 
     /** @private {boolean} */
     this.isLoading_ = false;
@@ -121,16 +121,16 @@ export class SubscriptionsUiFlow {
     this.loadingUi =
         new LoadingUi(this.win_, this.document_, this.offerContainer_);
 
-    // Build the abbriviated offers element.
-    this.abbriviatedOffersUi_ =
-        new AbbriviatedOffersUi(
+    // Build the abbreviated offers element.
+    this.abbreviatedOffersUi_ =
+        new abbreviatedOffersUi(
             this.win_,
             this.document_,
             this.offerContainer_,
             this.subscription_);
 
-    // Render the abbriviated offers.
-    this.abbriviatedOffersUi_.init();
+    // Render the abbreviated offers.
+    this.abbreviatedOffersUi_.init();
   }
 
   /**
