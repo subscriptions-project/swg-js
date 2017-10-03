@@ -45,12 +45,12 @@ export function assertNoPopups(doc, elementTagName) {
 }
 
 /**
- * Returns embedded HTML for abbriviated offers to use with iframe's srcdoc
+ * Returns embedded HTML for abbreviated offers to use with iframe's srcdoc
  * attribute (friendly iframe).
  * @param {!SubscriptionResponse} subscriptions The user subscription details.
  * @return {string}
  */
-export function getAbbriviatedOffers(subscriptions) {
+export function getAbbreviatedOffers(subscriptions) {
   const offers =
     `
       <html>
