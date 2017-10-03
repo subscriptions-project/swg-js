@@ -18,7 +18,6 @@
 import {
   assertNoPopups,
   setCssAttributes,
-  MAX_Z_INDEX,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
 import {AbbriviatedOffersUi} from './abbriviated-offers-ui';

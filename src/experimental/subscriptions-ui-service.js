@@ -19,14 +19,14 @@
  * @const {string}
  */
 const OFFERS_API_URL = 'http://sp.localhost:8000/examples/sample-sp/api';
-
+const USER_TYPE = '?access-type=metered-avail-response';
 
 /**
  * Gets the details of the current user, such as if user is a subscriber.
  * @return {!Promise}
  */
 export function getSubscriptionDetails() {
-  return fetch(OFFERS_API_URL).then(response => {
+  return fetch(`${OFFERS_API_URL}${USER_TYPE}`).then(response => {
     if (!response.ok) {
       throw new Error(response);
     }
@@ -34,4 +34,3 @@ export function getSubscriptionDetails() {
     return response.json();
   });
 }
-
