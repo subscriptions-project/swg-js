@@ -109,7 +109,7 @@ export class Auth {
     }
     if (el.nodeName == 'SCRIPT' &&
         el.getAttribute('type') == 'application/json') {
-      this.config_ = tryParseJson(el.innerText)
+      this.config_ = tryParseJson(el.textContent)
       return Promise.resolve(this.config_);
     }
 

@@ -25,13 +25,13 @@ import {getAbbreviatedOffers} from './subscriptions-ui-util';
  */
 export class AbbreviatedOffersUi {
 
-  constructor(win, doc, offerContainer, subscriptions) {
+  constructor(win, offerContainer, subscriptions) {
 
      /** @private @const {!Window} */
     this.win_ = win;
 
      /** @private @const {!Element} */
-    this.document_ = doc;
+    this.document_ = win.document;
 
      /** @private @const {!Element} */
     this.offerContainer_ = offerContainer;
@@ -39,12 +39,32 @@ export class AbbreviatedOffersUi {
     /** @privte @const {!SubscriptionResponse} */
     this.subscriptions_ = subscriptions;
 
-     /** @private {!Element} */
+    /** @private {!Element} */
     this.abbreviatedOffersElement_ = this.document_.createElement('iframe');
+
+    /** @private {?function()} */
+    this.subscribeClicked_ = null;
+  }
+
+  /**
+   * @param {function()} callback
+   * @return {!AbbreviatedOffersUi}
+   */
+  onSubscribeClicked(callback) {
+    this.subscribeClicked_ = callback;
+    return this;
+  }
+
+  /**
+   * @return {!Element}
+   */
+  getElement() {
+    return this.abbreviatedOffersElement_;
   }
 
   /**
    * Initializes the abbreviated offers and renders in the <swg-popup>.
+   * @return {!Promise}
    */
   init() {
     return this.buildAbbreviatedOffers_(this.subscriptions)
@@ -90,7 +110,20 @@ export class AbbreviatedOffersUi {
     iframe.style.boxSizing = 'border-box';
     // TODO(dparikh): Need to pass the height of the iframe to the parent.
     iframe.style.minHeight = '200px';
+
+    // It's important to add `onload` callback before appending to DOM, otherwise
+    // onload could arrive immediately.
+    const readyPromise = new Promise(resolve => {
+      iframe.onload = resolve;
+    });
     this.offerContainer_.appendChild(iframe);
-    return Promise.resolve();
+
+    return readyPromise.then(() => {
+      const subscribeButton = iframe.contentDocument.getElementById(
+          'swg-button');
+      subscribeButton.onclick = () => {
+        this.subscribeClicked_();
+      };
+    });
   }
  }

@@ -22,29 +22,23 @@
  */
 export class LoadingUi {
 
-  constructor(win, doc, offerContainer) {
+  constructor(win, container) {
 
     /** @private @const {!Window} */
     this.win_ = win;
 
     /** @private @const {!Element} */
-    this.document_ = doc;
+    this.document_ = win.document;
 
     /** @private @const {!Element} */
-    this.offerContainer_ = offerContainer;
+    this.container_ = container;
 
     /** @private @const {Element} */
     this.loadingContainer_ = this.document_.createElement('swg-loading');
-  }
+    this.loadingContainer_.style.setProperty('display', 'none', 'important');
 
-  /*
-   * Initializes the element and checks the container state.
-   * TODO(dparikh): Add container state check.
-   */
-  init() {
     // Build the animated loading indicator.
     this.buildLoadingIndicator_();
-    this.show();
   }
 
   /*
@@ -53,7 +47,7 @@ export class LoadingUi {
    * TODO(dparikh): Check the container state.
    */
   show() {
-    this.loadingContainer_.style.setProperty('display', 'inline', 'important');
+    this.loadingContainer_.style.removeProperty('display');
   }
 
   /*
@@ -69,7 +63,7 @@ export class LoadingUi {
    */
   buildLoadingIndicator_() {
     const loadingContainer = this.loadingContainer_;
-    this.offerContainer_.appendChild(loadingContainer);
+    this.container_.appendChild(loadingContainer);
 
     // Add 4 vertical bars animated at different rates, as defined in the
     // style.
