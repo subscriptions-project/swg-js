@@ -47,7 +47,7 @@ export class AbbreviatedOffersUi {
    * Initializes the abbreviated offers and renders in the <swg-popup>.
    */
   init() {
-    return this.buildAbbriviatedOffers_(this.subscriptions)
+    return this.buildAbbreviatedOffers_(this.subscriptions)
         .then(() => this.show());
   }
 
@@ -70,11 +70,11 @@ export class AbbreviatedOffersUi {
    * Builds the abbreviated offers element within the <swg-popup> element.
    * @return {!Promise}
    */
-  buildAbbriviatedOffers_() {
+  buildAbbreviatedOffers_() {
     const iframe = this.abbreviatedOffersElement_;
      // TODO(dparikh): Polyfill 'srcdoc'.
      // Ref.: https://github.com/ampproject/amphtml/blob/master/src/friendly-iframe-embed.js#L148-L163
-    iframe.srcdoc = getAbbriviatedOffers(this.subscriptions_);
+    iframe.srcdoc = getAbbreviatedOffers(this.subscriptions_);
     iframe.setAttribute('frameborder', 0);
     iframe.setAttribute('scrolling', 'no');
     iframe.style.position = 'fixed';
