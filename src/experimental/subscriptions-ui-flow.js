@@ -20,7 +20,7 @@ import {
   setCssAttributes,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
-import {abbreviatedOffersUi} from './abbreviated-offers-ui';
+import {AbbreviatedOffersUi} from './abbreviated-offers-ui';
 import {LoadingUi} from './loading-ui';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 
@@ -122,7 +122,7 @@ export class SubscriptionsUiFlow {
 
     // Build the abbreviated offers element.
     this.abbreviatedOffersUi_ =
-        new abbreviatedOffersUi(
+        new AbbreviatedOffersUi(
             this.win_,
             this.document_,
             this.offerContainer_,
