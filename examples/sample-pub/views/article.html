@@ -5,20 +5,12 @@
     <title>Pub Times</title>
     <link rel="canonical" href="<% id %>">
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
-<<<<<<< HEAD
     <script async src="/dist/subscriptions.max.js"></script>
-=======
-    <script src="/dist/subscriptions.max.js"></script>
->>>>>>> formatting fix
     <script>
       // TODO(dparikh): Move event listener to subscriptions code.
       self.addEventListener('DOMContentLoaded', (event) => {
         (window.SUBSCRIPTIONS = window.SUBSCRIPTIONS || [])
-<<<<<<< HEAD
           .push((sub) => sub.startSubscriptionsUi(window));
-=======
-          .push((sub) => sub.startOffersContainer());
->>>>>>> formatting fix
       });
     </script>
     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
@@ -34,21 +26,12 @@
             <div class="prev">
               <a href="<% prev %>">Previous</a>
             </div>
-<<<<<<< HEAD
           <%/prev%>
           <%#next%>
             <div class="next">
               <a href="<% next %>">Next</a>
             </div>
           <%/next%>
-=======
-            <%/prev%>
-              <%#next%>
-                <div class="next">
-                  <a href="<% next %>">Next</a>
-                </div>
-              <%/next%>
->>>>>>> formatting fix
         </div>
       </header>
 
@@ -56,13 +39,8 @@
         <article>
 
           <!--
-<<<<<<< HEAD
             This section is visible to all users.
           -->
-=======
-              This section is visible to all users.
-            -->
->>>>>>> formatting fix
           <section>
             <h3><% title %></h3>
             <img
