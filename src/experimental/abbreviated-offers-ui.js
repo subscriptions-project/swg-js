@@ -15,15 +15,15 @@
  */
 
 
-import {getAbbriviatedOffers} from './subscriptions-ui-util';
+import {getAbbreviatedOffers} from './subscriptions-ui-util';
 
 
 /**
- * Abbriviated Offers view. Renders the content in the parent <swg-popup>
+ * Abbreviated Offers view. Renders the content in the parent <swg-popup>
  * element. Checks the state of <swg-popup> element to ensure that the no other
  * element exists. Hides the loading indicator once rendered.
  */
-export class AbbriviatedOffersUi {
+export class AbbreviatedOffersUi {
 
   constructor(win, doc, offerContainer, subscriptions) {
 
@@ -40,11 +40,11 @@ export class AbbriviatedOffersUi {
     this.subscriptions_ = subscriptions;
 
      /** @private {!Element} */
-    this.abbriviatedOffersElement_ = this.document_.createElement('iframe');
+    this.abbreviatedOffersElement_ = this.document_.createElement('iframe');
   }
 
   /**
-   * Initializes the abbriviated offers and renders in the <swg-popup>.
+   * Initializes the abbreviated offers and renders in the <swg-popup>.
    */
   init() {
     return this.buildAbbriviatedOffers_(this.subscriptions)
@@ -52,26 +52,26 @@ export class AbbriviatedOffersUi {
   }
 
   /*
-   * Shows the abbriviated offers element within the <swg-popup> element.
+   * Shows the abbreviated offers element within the <swg-popup> element.
    */
   show() {
-    this.abbriviatedOffersElement_.style.removeProperty('display');
+    this.abbreviatedOffersElement_.style.removeProperty('display');
   }
 
   /*
-   * Hides the abbriviated offers element within the <swg-popup> element.
+   * Hides the abbreviated offers element within the <swg-popup> element.
    */
   hide() {
-    this.abbriviatedOffersElement_.style
+    this.abbreviatedOffersElement_.style
         .setProperty('display', 'none', 'important');
   }
 
   /*
-   * Builds the abbriviated offers element within the <swg-popup> element.
+   * Builds the abbreviated offers element within the <swg-popup> element.
    * @return {!Promise}
    */
   buildAbbriviatedOffers_() {
-    const iframe = this.abbriviatedOffersElement_;
+    const iframe = this.abbreviatedOffersElement_;
      // TODO(dparikh): Polyfill 'srcdoc'.
      // Ref.: https://github.com/ampproject/amphtml/blob/master/src/friendly-iframe-embed.js#L148-L163
     iframe.srcdoc = getAbbriviatedOffers(this.subscriptions_);
