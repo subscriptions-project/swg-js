@@ -44,7 +44,7 @@ exports.compile = function(opts) {
   mkdirSync('build/fake-module/src');
   mkdirSync('build/css');
 
-  let promises = [
+  var promises = [
     // Compile CSS because we need the css files in compileJs step.
     compileCss('./src/', './build/css', Object.assign({}, opts || {}))
       .then(() =>
