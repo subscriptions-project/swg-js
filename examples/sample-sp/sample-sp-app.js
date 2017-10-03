@@ -45,6 +45,7 @@ app.get(/\/api/, (req, res) => {
     dotfiles: 'deny',
   };
 
+  // TODO(dparikh): req.headers.referer could be flaky. Find better option.
   const referer = req.headers.referer || '';
   let restResponse = getParameterByName_(referer, 'test_response');
   restResponse = RESPONSES.has(restResponse) ? restResponse : DEFAULT_RESPONSE;
