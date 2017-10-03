@@ -1,0 +1,19 @@
+{
+  "entitled": false,
+  "metering": {
+    "quotaLeft": 0,
+    "quotaMax": 10,
+    "quotaPeriod": "month",
+    "display": true
+  },
+  "offer": [
+    {
+      "displayString": "14 days free, $8/mo after",
+      "paymentRequest": ""
+    },
+    {
+      "displayString": "$80/year",
+      "paymentRequest": ""
+    }
+  ]
+}

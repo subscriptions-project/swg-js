@@ -24,10 +24,20 @@ import {CSS as OFFERS_CSS} from
  */
 export const MAX_Z_INDEX = 2147483647;
 
+/**
+ * Dummy offer details.
+ * @const {offer: {!Array<!Object>}}
+ */
 const SUBSCRIPTIONS = {
-  offers: [
-    {name: 'First 14 days free, $8/mo, after'},
-    {name: '$85$/year'},
+  offer: [
+    {
+      displayString: '7 days free, $8/mo, after',
+      paymentRequest: '',
+    },
+    {
+      displayString: '$85/year',
+      paymentRequest: '',
+    },
   ],
 };
 
@@ -96,11 +106,22 @@ function getStyle_() {
  * @private
  */
 function getContent_(subscriptions) {
-  const offers = subscriptions.offers || SUBSCRIPTIONS.offers;
+  const offers = subscriptions.offer || SUBSCRIPTIONS.offer;
+  let offerContent = '';
+  for (let i = 0; i < offers.length; i++) {
+    const pay = offers[i].paymentRequest;
+    offerContent += `
+        <div>
+          <label>
+            <input type="radio" name="offer" value="${pay}">
+            <span>${offers[i].displayString}</span>
+          </label>
+        </div>
+    `;
+  }
   return `
       <div class="swg-content" id="swg-content">
-        <div>${offers[0].name}</div>
-        <div>${offers[1].name}</div>
+        ${offerContent}
       </div>`;
 }
 
