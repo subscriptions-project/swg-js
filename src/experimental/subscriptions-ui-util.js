@@ -31,11 +31,11 @@ export const MAX_Z_INDEX = 2147483647;
 const SUBSCRIPTIONS = {
   offer: [
     {
-      displayString: 'First 14 days free, $8/mo, after',
+      displayString: '7 days free, $8/mo, after',
       paymentRequest: '',
     },
     {
-      displayString: '$85$/year',
+      displayString: '$85/year',
       paymentRequest: '',
     },
   ],
@@ -106,7 +106,7 @@ function getStyle_() {
  * @private
  */
 function getContent_(subscriptions) {
-  const offers = subscriptions.offer || SUBSCRIPTIONS.offers;
+  const offers = subscriptions.offer || SUBSCRIPTIONS.offer;
   let offerContent = '';
   for (let i = 0; i < offers.length; i++) {
     const pay = offers[i].paymentRequest;

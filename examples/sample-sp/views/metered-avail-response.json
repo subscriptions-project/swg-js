@@ -14,6 +14,10 @@
     {
       "displayString": "$80/year",
       "paymentRequest": ""
+    },
+    {
+      "displayString": "$220/3 years",
+      "paymentRequest": ""
     }
   ]
 }
