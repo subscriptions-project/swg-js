@@ -93,9 +93,6 @@ export class SubscriptionsUiFlow {
     /** @private {?LoadingUi} */
     this.loadingUi_ = null;
 
-    /** @private {boolean} */
-    this.isLoading_ = false;
-
     /** @private {?View} */
     this.activeView_ = null;
   }
