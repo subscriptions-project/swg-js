@@ -21,6 +21,7 @@ import {buildSubscriptionsUi} from '../experimental/subscriptions-ui-flow';
 import {isArray} from '../utils/types';
 import {launchPaymentsFlow} from '../experimental/payments-flow';
 import {SubscriptionMarkup} from './subscription-markup';
+import {SubscriptionState} from './subscription-state';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
 
@@ -99,11 +100,15 @@ export class Runtime {
     /** @private @const {!SubscriptionMarkup} */
     this.markup_ = new SubscriptionMarkup(this.win);
 
+    /** @private @const {SubscriptionState} */
+    this.subscriptionState_ = new SubscriptionState(this.win);
+
     /** @private @const {!Auth} */
-    this.auth_ = new Auth(this.win, this.markup_);
+    this.auth_ = new Auth(this.win, this.markup_, this.subscriptionState_);
 
     /** @private {?Promise} */
     this.subscriptionsFlow_ = null;
+
   }
 
   /**

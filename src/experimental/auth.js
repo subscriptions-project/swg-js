@@ -36,16 +36,20 @@ export class Auth {
 
   /**
    * Creates a new Auth object.
-   * @param  {!Window} win
-   * @param  {!SubscriptionMarkup} markup
+   * @param {!Window} win
+   * @param {!SubscriptionMarkup} markup
+   * @param {!SubscriptionState} state
    */
-  constructor(win, markup) {
+  constructor(win, markup, state) {
 
     /** @const */
     this.win = win;
 
     /** @const */
     this.markup_ = markup;
+
+    /** @const */
+    this.subscriptionState_ = state;
 
     /** @const {string} The type of access required for this page. */
     this.accessType_ = this.markup_.getAccessType();
@@ -71,7 +75,7 @@ export class Auth {
    * response, it then either navigates to an authorized page or returns a
    * string that can be passed to payments flow for purchase.
    *
-   * @return {!Promise<string>}
+   * @return {!Promise}
    */
   start() {
     // TODO: Add a timeout so this doesn't wait forever to show offers.
@@ -81,12 +85,14 @@ export class Auth {
         if (!authResponse) {
           throw new Error('Auth response not found.');
         }
+
         this.authResponse_ = authResponse[0];
         log('Got auth responses.');
         if (this.authResponse_['access']) {
-          // TODO Navigate to the full article.
-        } else if (this.authResponse_['offers']) {
-          return this.authResponse_['offers']['value'];
+          this.subscriptionState_.setAccess(true);
+        } else if (this.authResponse_['offer']) {
+          this.subscriptionState_.setOffers(this.authResponse_['offer']);
+          return Promise.resolve();
         }
       });
   }
@@ -124,7 +130,7 @@ export class Auth {
    * @private
    * @param  {JsonObject} config Configuration that contains details about
    *                             servers to contact.
-   * @return {!Promise<JsonObject>}
+   * @return {!Promise<Array<SubscriptionResponse>>}
    */
   sendAuthRequests_(config) {
     log('Sending auth requests.');
