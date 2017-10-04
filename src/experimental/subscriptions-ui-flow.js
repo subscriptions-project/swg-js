@@ -17,12 +17,14 @@
 
 import {
   assertNoPopups,
+  isSubscriber,
   setCssAttributes,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
 import {AbbreviatedOffersUi} from './abbreviated-offers-ui';
 import {LoadingUi} from './loading-ui';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
+import {NotificationUi} from './notification-ui';
 import {PaymentsView} from './payments-flow';
 import {setImportantStyles} from '../utils/style';
 
@@ -61,13 +63,27 @@ export function buildSubscriptionsUi(win) {
   assertNoPopups(win.document, POPUP_TAG);
 
   // Gets subscription details and build the pop-up.
-  getSubscriptionDetails()
-      .then(response => {
-        const subscriptionsUiFlow =
-            new SubscriptionsUiFlow(win, response);
-        subscriptionsUiFlow.start();
-        subscriptionsUiFlow.show_();
-      });
+  getSubscriptionDetails().then(response => {
+    // TODO(dparikh): See if multiple CSS be built and used based on the
+    // current view. (Currently, injects one CSS for everything).
+    injectCssToWindow_();
+
+    if (isSubscriber(response)) {
+      new NotificationUi(win, response).start();
+    } else {
+      new SubscriptionsUiFlow(win, response).start();
+    }
+  });
+
+  /**
+   * Injects common CSS styles to the container window's <head> element.
+   * @private
+   */
+  function injectCssToWindow_() {
+    const style = win.document.createElement('style');
+    style.textContent = `${SWG_POPUP}`;
+    win.document.head.appendChild(style);
+  }
 }
 
 
@@ -109,7 +125,6 @@ export class SubscriptionsUiFlow {
     setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
     this.document_.body.appendChild(this.offerContainer_);
 
-    this.injectCssToWindow_();
     this.show_();
 
     // Build the loading indicator.
@@ -131,6 +146,7 @@ export class SubscriptionsUiFlow {
    */
   openView_(view) {
     this.loadingUi_.show();
+
     if (this.activeView_) {
       this.offerContainer_.removeChild(this.activeView_.getElement());
       this.activeView_ = null;
@@ -157,16 +173,6 @@ export class SubscriptionsUiFlow {
   /** @private */
   activatePay_() {
     this.openView_(new PaymentsView(this.win_));
-  }
-
-  /**
-   * Injects common CSS styles to the container window's <head> element.
-   * @private
-   */
-  injectCssToWindow_() {
-    const style = this.document_.createElement('style');
-    style.textContent = `${SWG_POPUP}`;
-    this.document_.head.appendChild(style);
   }
 
   /**
