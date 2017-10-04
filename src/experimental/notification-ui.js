@@ -15,9 +15,6 @@
  */
 
 
-import {
-  isSubscriber,
-} from './subscriptions-ui-util';
 import {setImportantStyles} from '../utils/style';
 
 /**
@@ -31,15 +28,6 @@ const NOTIFICATION_TAG = 'swg-notification';
  * @const {number}
  */
 const CONTAINER_HEIGHT = 60;
-
-
-/**
- * Builds notification container for existing subscribers. Either the current
- * subscription is healthy or there could be payment issues. For healthy
- * account, user can view the subscription details by clicking on a link.
- * @param {!Window} win The main containing window object.
- * @return {!Promise}
- */
 
 
 /**
@@ -67,11 +55,7 @@ export class NotificationUi {
    * Starts the subscriptions flow.
    */
   start() {
-    if (isSubscriber(this.subscription_)) {
-      this.openView_();
-    } else {
-      throw new Error('Should not reach here!');
-    }
+    this.openView_();
   }
 
   /**
@@ -79,25 +63,8 @@ export class NotificationUi {
    */
   openView_() {
     setImportantStyles(this.notificationContainer_, {
-      'visibility': 'hidden',
       'height': `${CONTAINER_HEIGHT}`,
-      'opacity': 0,
     });
     this.document_.body.appendChild(this.notificationContainer_);
-    setImportantStyles(this.notificationContainer_, {
-      'visibility': 'visible',
-      'opacity': 1,
-    });
-    this.show_();
-  }
-
-  /**
-   * Displays the element in the UI. Element is hidden when created,
-   * and should now be displayed when element is attached to the DOM.
-   * @private
-   */
-  show_() {
-    this.notificationContainer_.style
-        .setProperty('display', 'inline', 'important');
   }
 }

@@ -60,7 +60,7 @@
   }
 }
 
-@-webkit-keyframes swg-notification {
+@-webkit-keyframes swg-notify {
   from {
       top: 100%;
       opacity: .5;
@@ -71,7 +71,7 @@
   }
 }
 
-body swg-notification {
+swg-notification {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
@@ -81,15 +81,14 @@ body swg-notification {
   box-shadow: 3px 3px gray, 0 0 1.4em gray !important;
   background-color: #333 !important;
   box-sizing: border-box !important;
-  display: none !important;
   min-height: 60px;
-  animation: swg-notification 1s !important;
+  animation: swg-notify 1s !important;
 }
 
 /**
  * Styles for main <swg-popup> element.
  */
-body swg-popup {
+swg-popup {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
