@@ -23,6 +23,8 @@ import {getSubscriptionDetails} from './subscriptions-ui-service';
 import {AbbreviatedOffersUi} from './abbreviated-offers-ui';
 import {LoadingUi} from './loading-ui';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
+import {PaymentsView} from './payments-flow';
+import {setImportantStyles} from '../utils/style';
 
 /**
  * The pop-up element name to be used.
@@ -85,20 +87,14 @@ export class SubscriptionsUiFlow {
     /** @private @const {!SubscriptionResponse} */
     this.subscription_ = response;
 
-    /** @private {Element} */
-    this.offerContainer_;
+    /** @private {?Element} */
+    this.offerContainer_ = null;
 
-    /** @private {Element} */
-    this.loadingUi_;
+    /** @private {?LoadingUi} */
+    this.loadingUi_ = null;
 
-    /** @private {Element} */
-    this.abbreviatedOffersUi_;
-
-    /** @private {boolean} */
-    this.isLoading_ = false;
-
-    /** @private {?string} */
-    this.activeView_;
+    /** @private {?View} */
+    this.activeView_ = null;
   }
 
   /*
@@ -117,19 +113,50 @@ export class SubscriptionsUiFlow {
     this.show_();
 
     // Build the loading indicator.
-    this.loadingUi =
-        new LoadingUi(this.win_, this.document_, this.offerContainer_);
+    this.loadingUi_ = new LoadingUi(this.win_, this.offerContainer_);
 
-    // Build the abbreviated offers element.
-    this.abbreviatedOffersUi_ =
-        new AbbreviatedOffersUi(
-            this.win_,
-            this.document_,
-            this.offerContainer_,
-            this.subscription_);
+    this.openView_(new AbbreviatedOffersUi(
+        this.win_,
+        this.offerContainer_,
+        this.subscription_)
+        .onSubscribeClicked(() => {
+          this.activatePay_();
+        }));
+  }
 
-    // Render the abbreviated offers.
-    this.abbreviatedOffersUi_.init();
+  /**
+   * @param {!View} view
+   * @return {!Promise}
+   * @private
+   */
+  openView_(view) {
+    this.loadingUi_.show();
+    if (this.activeView_) {
+      this.offerContainer_.removeChild(this.activeView_.getElement());
+      this.activeView_ = null;
+    }
+    this.activeView_ = view;
+    setImportantStyles(view.getElement(), {
+      'visibility': 'hidden',
+      'opacity': 0,
+    });
+    this.offerContainer_.appendChild(view.getElement());
+    return view.init().then(() => {
+      // TODO(dparikh): Transition necessary height and possible fade in content.
+      this.loadingUi_.hide();
+      setImportantStyles(view.getElement(), {
+        'visibility': 'visible',
+        'opacity': 1,
+      });
+    }, error => {
+      this.loadingUi_.hide();
+      throw error;
+    });
+  }
+
+  /** @private */
+  activatePay_() {
+    this.openView_(new PaymentsView(this.win_));
   }
 
   /**
@@ -138,9 +165,8 @@ export class SubscriptionsUiFlow {
    */
   injectCssToWindow_() {
     const style = this.document_.createElement('style');
-    style.innerText = `${SWG_POPUP}`;
-    const head = this.document_.getElementsByTagName('HEAD')[0];
-    head.appendChild(style);
+    style.textContent = `${SWG_POPUP}`;
+    this.document_.head.appendChild(style);
   }
 
   /**
@@ -152,7 +178,7 @@ export class SubscriptionsUiFlow {
     const closeButton = this.document_.createElement('button');
     closeButton.classList.add('swg-close-action');
     this.offerContainer_.appendChild(closeButton);
-    closeButton.innerText = '\u00D7';
+    closeButton.textContent = '\u00D7';
 
     closeButton.addEventListener('click', () =>
         this.offerContainer_.parentNode.removeChild(this.offerContainer_));
