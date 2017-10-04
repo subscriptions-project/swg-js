@@ -17,12 +17,14 @@
 
 import {
   assertNoPopups,
+  isSubscriber,
   setCssAttributes,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
 import {AbbreviatedOffersUi} from './abbreviated-offers-ui';
 import {LoadingUi} from './loading-ui';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
+import {NotificationUi} from './notification-ui';
 import {PaymentsView} from './payments-flow';
 import {setImportantStyles} from '../utils/style';
 
@@ -66,7 +68,6 @@ export function buildSubscriptionsUi(win) {
         const subscriptionsUiFlow =
             new SubscriptionsUiFlow(win, response);
         subscriptionsUiFlow.start();
-        subscriptionsUiFlow.show_();
       });
 }
 
@@ -101,27 +102,29 @@ export class SubscriptionsUiFlow {
    * Starts the subscriptions flow.
    */
   start() {
-    this.offerContainer_ = this.document_.createElement(POPUP_TAG);
-
-    // Add close button with action.
-    this.addCloseButton_();
-
-    setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
-    this.document_.body.appendChild(this.offerContainer_);
-
     this.injectCssToWindow_();
-    this.show_();
+    if (isSubscriber(this.subscription_)) {
+      const notificationUi = new NotificationUi(this.win_, this.subscription_);
+      notificationUi.start();
+    } else {
+      this.offerContainer_ = this.document_.createElement(POPUP_TAG);
 
-    // Build the loading indicator.
-    this.loadingUi_ = new LoadingUi(this.win_, this.offerContainer_);
+      setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
+      this.document_.body.appendChild(this.offerContainer_);
 
-    this.openView_(new AbbreviatedOffersUi(
-        this.win_,
-        this.offerContainer_,
-        this.subscription_)
-        .onSubscribeClicked(() => {
-          this.activatePay_();
-        }));
+      // Build the loading indicator.
+      this.loadingUi_ = new LoadingUi(this.win_, this.offerContainer_);
+
+      this.show_();
+
+      this.openView_(new AbbreviatedOffersUi(
+          this.win_,
+          this.offerContainer_,
+          this.subscription_)
+          .onSubscribeClicked(() => {
+            this.activatePay_();
+          }));
+    }
   }
 
   /**
@@ -130,7 +133,11 @@ export class SubscriptionsUiFlow {
    * @private
    */
   openView_(view) {
+    // Add close button with action.
+    this.addCloseButton_();
+
     this.loadingUi_.show();
+
     if (this.activeView_) {
       this.offerContainer_.removeChild(this.activeView_.getElement());
       this.activeView_ = null;
