@@ -16,6 +16,13 @@
 
 
 /**
+ * The loading element name to be used.
+ * @const {string}
+ */
+const LOADING_TAG = 'swg-loading';
+
+
+/**
  * Loading indicator class. Builds the loading indicator icon for the
  * <swg-popup> element. Provides methods to show/hide loading indicator based
  * on the state of the <swg-popup> element.
@@ -34,7 +41,7 @@ export class LoadingUi {
     this.offerContainer_ = offerContainer;
 
     /** @private @const {Element} */
-    this.loadingContainer_ = this.document_.createElement('swg-loading');
+    this.loadingContainer_ = this.document_.createElement(LOADING_TAG);
   }
 
   /*

@@ -17,6 +17,7 @@
 
 import {
   assertNoPopups,
+  isSubscriber,
   setCssAttributes,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
@@ -64,7 +65,6 @@ export function buildSubscriptionsUi(win) {
         const subscriptionsUiFlow =
             new SubscriptionsUiFlow(win, response);
         subscriptionsUiFlow.start();
-        subscriptionsUiFlow.show_();
       });
 }
 
@@ -86,50 +86,59 @@ export class SubscriptionsUiFlow {
     this.subscription_ = response;
 
     /** @private {Element} */
-    this.offerContainer_;
+    this.offerContainer_ = null;
 
     /** @private {Element} */
-    this.loadingUi_;
+    this.loadingUi_ = null;
 
     /** @private {Element} */
-    this.abbreviatedOffersUi_;
+    this.abbreviatedOffersUi_ = null;
 
     /** @private {boolean} */
     this.isLoading_ = false;
 
     /** @private {?string} */
-    this.activeView_;
+    this.activeView_ = null;
   }
 
   /*
    * Starts the subscriptions flow.
    */
   start() {
-    this.offerContainer_ = this.document_.createElement(POPUP_TAG);
-
-    // Add close button with action.
-    this.addCloseButton_();
-
-    setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
-    this.document_.body.appendChild(this.offerContainer_);
-
-    this.injectCssToWindow_();
-    this.show_();
-
     // Build the loading indicator.
     this.loadingUi =
         new LoadingUi(this.win_, this.document_, this.offerContainer_);
 
-    // Build the abbreviated offers element.
-    this.abbreviatedOffersUi_ =
-        new AbbreviatedOffersUi(
-            this.win_,
-            this.document_,
-            this.offerContainer_,
-            this.subscription_);
+    // Render notification if user is a subscriber.
+    if (isSubscriber(this.subscription_)) {
+      // TODO(dparikh): Implement notification bar.
+      // Show notification to view "Details" if valid.
+      // Show "Fix"/"Cancel" option if payment issues.
+    } else {
 
-    // Render the abbreviated offers.
-    this.abbreviatedOffersUi_.init();
+      this.offerContainer_ = this.document_.createElement(POPUP_TAG);
+
+      // Add close button with action.
+      // TODO(dparikh): Do not render if no metering quota available.
+      this.addCloseButton_();
+
+      setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
+      this.document_.body.appendChild(this.offerContainer_);
+
+      this.injectCssToWindow_();
+      this.show_();
+
+      // Build the abbreviated offers element.
+      this.abbreviatedOffersUi_ =
+          new AbbreviatedOffersUi(
+              this.win_,
+              this.document_,
+              this.offerContainer_,
+              this.subscription_);
+
+      // Render the abbreviated offers.
+      this.abbreviatedOffersUi_.init();
+    }
   }
 
   /**
