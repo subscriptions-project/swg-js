@@ -34,6 +34,7 @@ const RESPONSES = new Set([
   'subscriber-response',
   'unsigned-response',
   'offer',
+  'allowed',
 ]);
 
 
