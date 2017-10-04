@@ -16,7 +16,7 @@
 
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
-
+import {getMeteringLimitCount} from './user-metering.js';
 
 /**
  * Maximum value for z-index (32 bit Integer).
@@ -72,7 +72,7 @@ export function getAbbreviatedOffers(subscriptions) {
             <span style="flex: 1;"></span>
               <div style="padding-top: 8px;">
                   You can read
-                  <span style="font-weight: 500;">10</span>
+                  <span style="font-weight: 500;">${getMeteringLimitCount(window.location.href)}</span>
                   articles for free this month!
               </div>
               <span style="flex: 1;"></span>
