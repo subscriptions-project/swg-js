@@ -73,7 +73,7 @@ export class PaymentsView {
       // Wait for the first resize.
       this.onResize_ = resolve;
     });
-    window.addEventListener('message', e => {
+    this.win_.addEventListener('message', e => {
       if (e.source == this.iframe_.contentWindow &&
           e.origin == 'https://subs-pay.googleplex.com' &&
           e.data && e.data.type) {
