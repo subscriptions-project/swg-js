@@ -47,8 +47,8 @@ const SUBSCRIPTIONS = {
  * @return {boolean}
  */
 export function isSubscriber(subscriptionResponse) {
-  return subscriptionResponse.hasOwnProperty('subscriber') &&
-      subscriptionResponse['subscriber'].hasOwnProperty('types') &&
+  return subscriptionResponse['subscriber'] &&
+      subscriptionResponse['subscriber']['types'] &&
       subscriptionResponse['subscriber']['types'].length > 0;
 }
 
