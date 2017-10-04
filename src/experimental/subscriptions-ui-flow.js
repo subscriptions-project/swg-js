@@ -145,9 +145,6 @@ export class SubscriptionsUiFlow {
    * @private
    */
   openView_(view) {
-    // Add close button with action.
-    this.addCloseButton_();
-
     this.loadingUi_.show();
 
     if (this.activeView_) {
