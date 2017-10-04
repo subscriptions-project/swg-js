@@ -111,6 +111,9 @@ export class SubscriptionsUiFlow {
 
     /** @private {?View} */
     this.activeView_ = null;
+
+    /** @private {boolean} */
+    this.activeViewInitialized_ = false;
   }
 
   /*
@@ -134,9 +137,7 @@ export class SubscriptionsUiFlow {
         this.win_,
         this.offerContainer_,
         this.subscription_)
-        .onSubscribeClicked(() => {
-          this.activatePay_();
-        }));
+        .onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
   /**
@@ -152,6 +153,7 @@ export class SubscriptionsUiFlow {
       this.activeView_ = null;
     }
     this.activeView_ = view;
+    this.activeViewInitialized_ = false;
     setImportantStyles(view.getElement(), {
       'visibility': 'hidden',
       'opacity': 0,
@@ -164,15 +166,52 @@ export class SubscriptionsUiFlow {
         'visibility': 'visible',
         'opacity': 1,
       });
+      this.activeViewInitialized_ = true;
     }, error => {
       this.loadingUi_.hide();
       throw error;
     });
   }
 
+  /**
+   * @param {boolean} busy
+   */
+  setBusy(busy) {
+    if (!this.activeViewInitialized_) {
+      return;
+    }
+    if (busy) {
+      this.loadingUi_.show();
+      if (this.activeView_) {
+        setImportantStyles(this.activeView_.getElement(), {
+          'opacity': 0.5,
+        });
+      }
+    } else {
+      this.loadingUi_.hide();
+      if (this.activeView_) {
+        setImportantStyles(this.activeView_.getElement(), {
+          'opacity': 1,
+        });
+      }
+    }
+  }
+
+  /** @private */
+  close_() {
+    this.offerContainer_.parentNode.removeChild(this.offerContainer_);
+  }
+
   /** @private */
   activatePay_() {
-    this.openView_(new PaymentsView(this.win_));
+    this.openView_(new PaymentsView(this.win_, this)
+        .onComplete(this.paymentComplete_.bind(this)));
+  }
+
+  /** @private */
+  paymentComplete_() {
+    this.close_();
+    // TODO(avimehta): Restart authorization again.
   }
 
   /**
@@ -186,8 +225,7 @@ export class SubscriptionsUiFlow {
     this.offerContainer_.appendChild(closeButton);
     closeButton.textContent = '\u00D7';
 
-    closeButton.addEventListener('click', () =>
-        this.offerContainer_.parentNode.removeChild(this.offerContainer_));
+    closeButton.addEventListener('click', () => this.close_());
   }
 
   /**
