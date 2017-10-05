@@ -119,10 +119,15 @@ function getContent_(subscriptions) {
   let offerContent = '';
   for (let i = 0; i < offers.length; i++) {
     const pay = offers[i].paymentRequest;
+    const checked = (i == 0) ? 'checked' : '';
     offerContent += `
         <div class="swg-offer-item">
-          <label>
-            <input type="radio" name="offer" value="${pay}">
+          <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect">
+            <input
+                type="radio"
+                name="offer"
+                class="mdl-radio__button"
+                value="${pay}" ${checked}>
             <span>${offers[i].displayString}</span>
           </label>
         </div>
@@ -148,14 +153,4 @@ function getFooter_() {
     </div>
     `;
   return footer;
-}
-
-/**
- * Sets the CSS attributes for the element.
- * @param {!Element} element The new element.
- * @param {number} height The height of the element.
- * @param {string=} important Whether to add important.
- */
-export function setCssAttributes(element, height, important = 'important') {
-  element.style.setProperty('min-height', `${height}px`, important);
 }

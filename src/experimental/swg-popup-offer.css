@@ -38,12 +38,12 @@ body {
 .swg-content {
   box-sizing: border-box;
   padding: 5px;
-  height: 116px;
-  overflow-y: auto;
+  min-height: 116px;
+  overflow-y: visible;
 }
 
 .swg-offer-item {
-  padding: 5px;
+  padding: 10px;
 }
 
 .swg-offer-item label {
@@ -54,7 +54,7 @@ body {
 .swg-offer-item:hover,
 .swg-offer-item input:hover,
 .swg-offer-item input:focus {
-  background-color: #5a91eb;
+  border: 1px solid #eee;
 }
 
 .swg-h-spacer {

@@ -16,6 +16,7 @@
 
 
 import {getAbbreviatedOffers} from './subscriptions-ui-util';
+import {setImportantStyles} from '../utils/style';
 
 
 /**
@@ -97,19 +98,13 @@ export class AbbreviatedOffersUi {
     iframe.srcdoc = getAbbreviatedOffers(this.subscriptions_);
     iframe.setAttribute('frameborder', 0);
     iframe.setAttribute('scrolling', 'no');
-    iframe.style.position = 'fixed';
-    iframe.style.display = 'none';
-    iframe.style.left = 0;
-    iframe.style.right = 0;
-    iframe.style.opacity = 1;
-    iframe.style.border = 'none';
-    iframe.style.width = '100%';
-    iframe.style.border = 'none';
-    iframe.style.backgroundColor = '#fff';
-     // TODO(dparikh): Vendor prefix for 'box-sizing'.
-    iframe.style.boxSizing = 'border-box';
-    // TODO(dparikh): Need to pass the height of the iframe to the parent.
-    iframe.style.minHeight = '200px';
+
+    setImportantStyles(iframe, {
+      'opacity': 1,
+      'border': 'none',
+      'width': '100%',
+      'background-color': '#fff',
+    });
 
     // It's important to add `onload` callback before appending to DOM, otherwise
     // onload could arrive immediately.
@@ -121,9 +116,18 @@ export class AbbreviatedOffersUi {
     return readyPromise.then(() => {
       const subscribeButton = iframe.contentDocument.getElementById(
           'swg-button');
+
+      // Set the iframe height to the offer content height.
+      this.resizeContainer_();
+
       subscribeButton.onclick = () => {
         this.subscribeClicked_();
       };
     });
+  }
+
+  resizeContainer_() {
+    const iframe = this.abbreviatedOffersElement_;
+    iframe.style.height = `${iframe.contentDocument.body.scrollHeight}px`;
   }
  }
