@@ -85,7 +85,11 @@
 swg-notification {
   position: fixed !important;
   bottom: 0 !important;
+  color: #fff;
+  font-size: 15px;
   left: 0 !important;
+  padding: 8px;
+  margin-right: 8px;
   right: 0 !important;
   z-index: 2147483647 !important;
   border: none !important;;
@@ -94,6 +98,23 @@ swg-notification {
   box-sizing: border-box !important;
   min-height: 60px;
   animation: swg-notify 1s ease-in normal backwards, swg-notify-hide 1s ease-out 7s normal forwards;
+}
+
+swg-notification .label {
+  float: left;
+  transform: translateY(48%);
+}
+
+swg-notification .detail {
+  background: transparent;
+  color: rgb(0, 256, 0);
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  transform: translateY(40%);
+  outline:none;
+  white-space: nowrap;
+  float: right;
 }
 
 /**
