@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+
+const MAX_ALLOWED_READS = 10;
+
 /**
  * Returns the number of reads left for the user.
  * @param {string} link of the current article.
@@ -21,13 +24,12 @@
  */
 export function getMeteringLimitCount(articleLink) {
   const articlesArray = getArticlesReadArray_();
-  let readsLeft = 10 - articlesArray.length;
-  if (articlesArray.indexOf(articleLink) === -1) {
-    readsLeft--;
+  const readsLeft = MAX_ALLOWED_READS - articlesArray.length;
+  if (articlesArray.indexOf(articleLink) == -1) {
     articlesArray.push(articleLink);
   }
   setArticlesArray_(articlesArray);
-  return readsLeft < 10 ? 10 : readsLeft;
+  return readsLeft;
 }
 
 /**
