@@ -87,35 +87,31 @@ swg-notification {
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  color: #fff;
-  font-size: 15px;
-  padding: 8px;
-  margin-right: 8px;
+  color: #fff !important;
+  font-size: 15px !important;
+  padding: 20px 8px 0 !important;
   z-index: 2147483647 !important;
   border: none !important;;
-  box-shadow: 3px 3px gray, 0 0 1.4em gray !important;
+  box-shadow: 3px 3px gray, 0 0 1.4em #000 !important;
   background-color: #333 !important;
   box-sizing: border-box !important;
-  min-height: 60px;
-  width: 100%;
-  animation: swg-notify 1s ease-in normal backwards, swg-notify-hide 1s ease-out 7s normal forwards;
+  min-height: 60px !important;
+  animation: swg-notify 1s ease-out normal backwards, swg-notify-hide 1s ease-out 7s normal forwards !important;
 }
 
 swg-notification .label {
-  float: left;
-  transform: translateY(48%);
+  float: left !important;
 }
 
 swg-notification .detail {
-  background: transparent;
-  color: rgb(0, 256, 0);
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-  transform: translateY(40%);
-  outline:none;
-  white-space: nowrap;
-  float: right;
+  background: transparent !important;
+  color: #00FF00 !important;
+  border: none !important;
+  cursor: pointer !important;
+  font-size: inherit !important;
+  outline:none !important;
+  white-space: nowrap !important;
+  float: right !important;
 }
 
 /**
@@ -132,7 +128,7 @@ swg-popup {
   background-color: #fff  !important;
   box-sizing: border-box !important;
   display: none  !important;
-  min-height: 200px;
+  min-height: 200px !important;
   animation: swg-expand 1.5s !important;
 }
 
@@ -153,7 +149,7 @@ swg-popup swg-loading {
   position: absolute !important;
   top: 50% !important;
   left: 50% !important;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) !important;
   z-index: 2147483647 !important;
 }
 
@@ -162,26 +158,26 @@ swg-loading swg-loading-bar{
   width: 5px !important;
   height: 20px !important;
   border-radius: 5px !important;
-  margin-right: 5px;
+  margin-right: 5px !important;
   animation: swg-loading 1s ease-in-out infinite !important;
 }
 
 swg-loading-bar:nth-child(1) {
-  background-color: #4285f4;
+  background-color: #4285f4 !important;
   animation-delay: 0 !important;
 }
 
 swg-loading-bar:nth-child(2) {
-  background-color: #0f9d58;
+  background-color: #0f9d58 !important;
   animation-delay: 0.09s !important;
 }
 
 swg-loading-bar:nth-child(3) {
-  background-color: #f4b400;
+  background-color: #f4b400 !important;
   animation-delay: .18s !important;
 }
 
 swg-loading-bar:nth-child(4) {
-  background-color: #db4437;
+  background-color: #db4437 !important;
   animation-delay: .27s !important;
 }
