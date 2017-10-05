@@ -61,7 +61,9 @@ export function assertNoPopups(doc, elementTagName) {
  * @return {string}
  */
 export function getAbbreviatedOffers(subscriptions) {
-  const meteringResponse = subscriptions.metering;
+  const meteringResponse = updateMeteringResponse(
+      window.location.href, subscriptions.metering);
+  const quotaLeft = meteringResponse.quotaLeft;
   const offers =
     `
       <html>
@@ -74,8 +76,7 @@ export function getAbbreviatedOffers(subscriptions) {
               <div style="padding-top: 8px;">
                   You can read
                   <span style="font-weight: 500;">
-                    ${updateMeteringResponse(
-                        window.location.href, meteringResponse).quotaLeft}
+                    ${quotaLeft}
                   </span>
                   articles for free this ${meteringResponse.quotaPeriod}!
               </div>

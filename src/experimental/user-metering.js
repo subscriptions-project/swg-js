@@ -20,23 +20,28 @@ import {map} from '../utils/object';
 /**
  * Returns the number of reads left for the user.
  * @param {string} link of the current article.
+ * @param {jsonObject} metering response.
  * @return {number}
  */
 export function updateMeteringResponse(articleLink, meteringResponse) {
-  const articlesArray = getArticlesReadArray_();
+  const readArticlesArray = getArticlesReadArray_();
   meteringResponse =
     Object.assign({}, getDefaultMeteringQuota_(), meteringResponse);
-  let readsLeft = meteringResponse.quotaMax - articlesArray.length;
-  if (articlesArray.indexOf(articleLink) == -1) {
-    readsLeft--;
-    articlesArray.push(articleLink);
+  if (readArticlesArray.indexOf(articleLink) == -1) {
+    readArticlesArray.push(articleLink);
   }
-  setArticlesArray_(articlesArray);
+  setArticlesArray_(readArticlesArray);
   meteringResponse = Object.assign({}, meteringResponse);
-  meteringResponse.quotaLeft = readsLeft + 1;
+  meteringResponse.quotaLeft = getQuotaLeftCount(articleLink,
+      readArticlesArray, meteringResponse.quotaMax);
+
   return meteringResponse;
 }
 
+/**
+ * Get default metering quota if not present in response.
+ * @private
+ */
 function getDefaultMeteringQuota_() {
   return map({
     'quotaLeft': 3,
@@ -44,6 +49,22 @@ function getDefaultMeteringQuota_() {
     'quotaPeriod': 'month',
     'display': true,
   });
+}
+
+/**
+ * Get default metering quota if not present in response.
+ * @param {string} link of the current article.
+ * @param {array} articles read b the user.
+ * @param {number} maximum quota available
+ * @private
+ */
+function getQuotaLeftCount(articleLink, readArticlesArray, maxCount) {
+  let articlesRead = readArticlesArray.length;
+  // if user is on the same article again the count shall not decrease
+  if (readArticlesArray.indexOf(articleLink) !== -1) {
+    articlesRead--;
+  }
+  return maxCount - articlesRead;
 }
 
 /**
@@ -66,6 +87,6 @@ function getArticlesReadArray_() {
  * @param {array} links of articles read by the user.
  * @private
  */
-function setArticlesArray_(articlesArray) {
-  sessionStorage.setItem('articlesRead', JSON.stringify(articlesArray));
+function setArticlesArray_(readArticlesArray) {
+  sessionStorage.setItem('articlesRead', JSON.stringify(readArticlesArray));
 }
