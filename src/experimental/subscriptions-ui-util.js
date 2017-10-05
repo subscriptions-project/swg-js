@@ -25,23 +25,6 @@ import {CSS as OFFERS_CSS} from
 export const MAX_Z_INDEX = 2147483647;
 
 /**
- * Dummy offer details.
- * @const {offer: {!Array<!Object>}}
- */
-const SUBSCRIPTIONS = {
-  offer: [
-    {
-      displayString: '7 days free, $8/mo, after',
-      paymentRequest: '',
-    },
-    {
-      displayString: '$85/year',
-      paymentRequest: '',
-    },
-  ],
-};
-
-/**
  * Checks if current user is subscriber. It does not check the healthy status.
  * @param {!SubscriptionResponse} subscriptionResponse The Api response.
  * @return {boolean}
@@ -54,7 +37,7 @@ export function isSubscriber(subscriptionResponse) {
 
  /**
   * Checks if the subscription element is already available in Dom.
-  * @param {!Window} win The window object.
+  * @param {!Document} doc The window object.
   * @param {string} elementTagName The name of the element.
   * @return {?string}
   */
@@ -115,7 +98,7 @@ function getStyle_() {
  * @private
  */
 function getContent_(subscriptions) {
-  const offers = subscriptions.offer || SUBSCRIPTIONS.offer;
+  const offers = subscriptions.offer;
   let offerContent = '';
   for (let i = 0; i < offers.length; i++) {
     const pay = offers[i].paymentRequest;

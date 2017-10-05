@@ -18,9 +18,8 @@ import {log} from '../utils/log';
 import {tryParseJson} from '../utils/json';
 import {isObject} from '../utils/types';
 
-
 /**
- * Temporary method to shopw tosts in console till UI is in place.
+ * Temporary method to show toasts in console till UI is in place.
  * @param  {string} message
  */
 function showToast_(message) {
@@ -56,10 +55,7 @@ export class Auth {
      */
     this.config_ = null;
 
-    /**
-     * [authResponse_ description]
-     * @type {[type]}
-     */
+    /** @type {JsonObject} */
     this.authResponse_ = null;
   }
 
