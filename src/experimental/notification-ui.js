@@ -56,6 +56,7 @@ export class NotificationUi {
    */
   start() {
     this.openView_();
+    // TODO(dparikh): Set a flag to session storage to not render this again.
   }
 
   /**

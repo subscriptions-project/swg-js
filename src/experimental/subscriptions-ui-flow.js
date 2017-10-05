@@ -69,6 +69,7 @@ export function buildSubscriptionsUi(win) {
     injectCssToWindow_();
 
     if (isSubscriber(response)) {
+      // TODO(dparikh): Check session storage and show only once.
       new NotificationUi(win, response).start();
     } else {
       new SubscriptionsUiFlow(win, response).start();
