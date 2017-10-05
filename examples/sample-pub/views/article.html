@@ -7,13 +7,6 @@
     <meta name="access-type" content="offer">
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
     <script async src="/dist/subscriptions.max.js"></script>
-    <script>
-      // TODO(dparikh): Move event listener to subscriptions code.
-      self.addEventListener('DOMContentLoaded', (event) => {
-        (window.SUBSCRIPTIONS = window.SUBSCRIPTIONS || [])
-          .push((sub) => sub.startSubscriptionsUi(window));
-      });
-    </script>
     <script type="application/json" id="subscriptionsConfig">
     {
       "profiles": {

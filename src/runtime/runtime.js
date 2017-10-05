@@ -19,7 +19,6 @@ import {assert, log} from '../utils/log';
 import {Auth} from '../experimental/auth';
 import {buildSubscriptionsUi} from '../experimental/subscriptions-ui-flow';
 import {isArray} from '../utils/types';
-import {launchPaymentsFlow} from '../experimental/payments-flow';
 import {SubscriptionMarkup} from './subscription-markup';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
@@ -114,22 +113,6 @@ export class Runtime {
   }
 
   /**
-   * Starts the Subscriptions flow.
-   * @param {!Window} win The window object.
-   */
-  startSubscriptionsUi(win) {
-    buildSubscriptionsUi(win);
-  }
-
-  /**
-   * @param {string} blob
-   */
-  startPaymentsFlow(blob) {
-    // See go/subs-pay-blob.
-    launchPaymentsFlow(blob);
-  }
-
-  /**
    * Starts subscription flow.
    * @return {Promise} [description]
    */
@@ -137,11 +120,8 @@ export class Runtime {
     assert(!this.subscriptionsFlow_,
         'Subscription flow can only be started once.');
     log('Starting subscription flow');
-    this.subscriptionsFlow_ = this.auth_.start().then(blob => {
-      if (blob) {
-        launchPaymentsFlow(blob);
-      }
-    });
+    this.subscriptionsFlow_ = this.auth_.start()
+        .then(response => buildSubscriptionsUi(this.win, response));
     return this.subscriptionsFlow_;
   }
 
@@ -167,8 +147,6 @@ export class Runtime {
  */
 function createPublicRuntime(runtime) {
   return /** @type {!PublicRuntimeDef} */ ({
-    startSubscriptionsUi: runtime.startSubscriptionsUi.bind(runtime),
-    startPaymentsFlow: runtime.startPaymentsFlow.bind(runtime),
     start: runtime.start.bind(runtime),
   });
 }

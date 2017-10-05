@@ -19,7 +19,6 @@ import {
   assertNoPopups,
   isSubscriber,
 } from './subscriptions-ui-util';
-import {getSubscriptionDetails} from './subscriptions-ui-service';
 import {AbbreviatedOffersUi} from './abbreviated-offers-ui';
 import {LoadingUi} from './loading-ui';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
@@ -56,23 +55,22 @@ const CONTAINER_HEIGHT = 50;
  */
 
 
-export function buildSubscriptionsUi(win) {
+export function buildSubscriptionsUi(win, response) {
 
   // Ensure that the element is not already built by external resource.
   assertNoPopups(win.document, POPUP_TAG);
 
   // Gets subscription details and build the pop-up.
-  getSubscriptionDetails().then(response => {
-    // TODO(dparikh): See if multiple CSS be built and used based on the
-    // current view. (Currently, injects one CSS for everything).
-    injectCssToWindow_();
 
-    if (isSubscriber(response)) {
-      new NotificationUi(win, response).start();
-    } else {
-      new SubscriptionsUiFlow(win, response).start();
-    }
-  });
+  // TODO(dparikh): See if multiple CSS be built and used based on the
+  // current view. (Currently, injects one CSS for everything).
+  injectCssToWindow_();
+
+  if (isSubscriber(response)) {
+    new NotificationUi(win, response).start();
+  } else {
+    new SubscriptionsUiFlow(win, response).start();
+  }
 
   /**
    * Injects common CSS styles to the container window's <head> element.
@@ -219,9 +217,14 @@ export class SubscriptionsUiFlow {
     this.offerContainer_.parentNode.removeChild(this.offerContainer_);
   }
 
-  /** @private */
-  activatePay_() {
-    this.openView_(new PaymentsView(this.win_, this)
+  /**
+   * @private
+   * @param {!number} selectedOfferIndex
+   */
+  activatePay_(selectedOfferIndex) {
+    let paymentRequestBlob =
+        this.subscription_['offer'][selectedOfferIndex]['paymentRequest'];
+    this.openView_(new PaymentsView(this.win_, this, paymentRequestBlob)
         .onComplete(this.paymentComplete_.bind(this)));
   }
 
