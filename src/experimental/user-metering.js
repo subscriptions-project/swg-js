@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-
+import {parseJson} from '../utils/json';
 const MAX_ALLOWED_READS = 10;
 
 /**
@@ -42,7 +42,7 @@ function getArticlesReadArray_() {
   if (!sessionData) {
     return [];
   } else {
-    return JSON.parse(sessionData);
+    return parseJson(sessionData);
   }
 }
 
