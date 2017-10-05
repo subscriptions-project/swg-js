@@ -15,21 +15,35 @@
  */
 
 import {parseJson} from '../utils/json';
-const MAX_ALLOWED_READS = 10;
+import {map} from '../utils/object';
 
 /**
  * Returns the number of reads left for the user.
  * @param {string} link of the current article.
  * @return {number}
  */
-export function getMeteringLimitCount(articleLink) {
+export function updateMeteringResponse(articleLink, meteringResponse) {
   const articlesArray = getArticlesReadArray_();
-  const readsLeft = MAX_ALLOWED_READS - articlesArray.length;
+  meteringResponse =
+    Object.assign({}, getDefaultMeteringQuota_(), meteringResponse);
+  let readsLeft = meteringResponse.quotaMax - articlesArray.length;
   if (articlesArray.indexOf(articleLink) == -1) {
+    readsLeft--;
     articlesArray.push(articleLink);
   }
   setArticlesArray_(articlesArray);
-  return readsLeft;
+  meteringResponse = Object.assign({}, meteringResponse);
+  meteringResponse.quotaLeft = readsLeft + 1;
+  return meteringResponse;
+}
+
+function getDefaultMeteringQuota_() {
+  return map({
+    'quotaLeft': 3,
+    'quotaMax': 10,
+    'quotaPeriod': 'month',
+    'display': true,
+  });
 }
 
 /**

@@ -16,7 +16,7 @@
 
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
-import {getMeteringLimitCount} from './user-metering.js';
+import {updateMeteringResponse} from './user-metering.js';
 
 /**
  * Maximum value for z-index (32 bit Integer).
@@ -61,6 +61,7 @@ export function assertNoPopups(doc, elementTagName) {
  * @return {string}
  */
 export function getAbbreviatedOffers(subscriptions) {
+  const meteringResponse = subscriptions.metering;
   const offers =
     `
       <html>
@@ -72,8 +73,11 @@ export function getAbbreviatedOffers(subscriptions) {
             <span style="flex: 1;"></span>
               <div style="padding-top: 8px;">
                   You can read
-                  <span style="font-weight: 500;">${getMeteringLimitCount(window.location.href)}</span>
-                  articles for free this month!
+                  <span style="font-weight: 500;">
+                    ${updateMeteringResponse(
+                        window.location.href, meteringResponse).quotaLeft}
+                  </span>
+                  articles for free this ${meteringResponse.quotaPeriod}!
               </div>
               <span style="flex: 1;"></span>
             </div>
