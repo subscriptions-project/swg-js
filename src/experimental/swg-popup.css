@@ -62,22 +62,22 @@
 
 @-webkit-keyframes swg-notify {
   from {
-      top: 100%;
+      transform: translateY(100%);
       opacity: 0;
   }
   to {
-      top: calc(100vh - 60px);
+      transform: translateY(0%);
       opacity: 1;
   }
 }
 
 @-webkit-keyframes swg-notify-hide {
   from {
-    top: calc(100vh - 60px);
+    transform: translateY(0%);
     opacity: 1;
   }
-  100% {
-    top: 100%;
+  to {
+    transform: translateY(100%);
     opacity: 0;
   }
 }
@@ -99,11 +99,11 @@ swg-notification {
   animation: swg-notify 1s ease-out normal backwards, swg-notify-hide 1s ease-out 7s normal forwards !important;
 }
 
-swg-notification .label {
+swg-notification .swg-label {
   float: left !important;
 }
 
-swg-notification .detail {
+swg-notification .swg-detail {
   background: transparent !important;
   color: #00FF00 !important;
   border: none !important;

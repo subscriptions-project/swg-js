@@ -76,14 +76,14 @@ export class NotificationUi {
    * @private
    */
   addItems_() {
-    const label = this.document_.createElement('span');
+    const label = this.document_.createElement('div');
     label.textContent = 'Access via Google Subscriptions';
-    label.setAttribute('class', 'label');
+    label.setAttribute('class', 'swg-label');
     this.notificationContainer_.appendChild(label);
 
     const linkButton = this.document_.createElement('button');
     linkButton.textContent = 'Details';
-    linkButton.setAttribute('class', 'detail');
+    linkButton.setAttribute('class', 'swg-detail');
     this.notificationContainer_.appendChild(linkButton);
 
     linkButton.addEventListener('click', () => {
