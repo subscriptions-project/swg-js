@@ -211,7 +211,10 @@ export class SubscriptionsUiFlow {
   /** @private */
   paymentComplete_() {
     this.close_();
-    // TODO(avimehta): Restart authorization again.
+    // TODO(avimehta): Restart authorization again, instead of redirect here.
+    // (btw, it's fine if authorization restart does redirect itself when
+    // needed)
+    this.win_.location.reload(/* force */ true);
   }
 
   /**
