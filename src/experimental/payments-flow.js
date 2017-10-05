@@ -17,14 +17,13 @@
 import {setImportantStyles} from '../utils/style';
 
 const BLOB = [
-  'AFNo2jMpzZh8TPbec7JUf695ryozqoaeTW/zPkYs+Pz0ZMgP3tgFuCkwHiJqgAhPosX+lSaP8R8',
-  'MA81za/HQ7CPPVFj6k3zlDyRPwhGYM0qMA/U3XVUvOj0X/vP1E7aFxwk2D3UtMaH2F+8HWhQzWR',
-  'Q+vMfAaqONJH5acshBRRJQMHoXvHOwUy7iH4OerR8Ib6/BmT2cKNYTyOWz5HuK6EDOAqpsJ7zhv',
-  'legHymbK2qAcdTxKkVQvCsDIqq6Z0t8x1U6z8DULc8zWON7Dt0Wju1Ri8B3wrF4JSnKeadySgtZ',
-  '3BN1oyHEoZnUIPVtAT8x8fODYwVYI30JqDvhpmE2Eu6fgVOUfcZJ2IK8wwAX8etFu4FwdG56i71',
-  'gnSQIJhoAakGSckSRDOBIK7gch8aWRyG7mtZhs4YB1uKx9VeFFbR/6X+khDkfcCU+FER1idrYSx',
-  'Ok3B/QNt1WtQSWWgk2ETEhNWiI8i6o3gNtlU/ZhspACtN5KQ/xu+PSXaAWcVMs1RJHTRgDDVQvD',
-  'KoctL2ZrwaVfw6ejOIdWA==',
+  'AFNo2jP6vC1UQf/ygljw0tWov9h/V9jRTCCrKUlFVNOzQS6phouVIp5/cFjukVW9h4y/i6XYDop',
+  'U8IEm5/w0Cb6w3Pd6ufCLMkvCRA1wqRB/1ONmcCE183YXWJAqdFvO+p6xoqYywjS/uedMvQYLPD',
+  'RlpPXKJeso6Se2Gcct1qZz/ySBNlrM0HR456lheSnRvnHuUvuGUNJcwEDR+DoSQlFVhY2hUWOxi',
+  'F7nIDnm/W7HblT0so9dHJ0NCXxNQYDv5e9hxvzZwKtYyBvklQYWvjCSkyZ1uO+MDfiUO8XxIAtt',
+  'IxDAoJsKFo0Per756nMtNIGmsAJrZnDxgjZMK8G7cojZ2aKjYp19bHXO49Zr4N0kB44cPDHI9k5',
+  'XgAk4gR/HmUMZq8kJk2OYM9OgfrtNylglJI1xuh9kxd3CIilxc6wPhg2WjlP5a4nKQPsQ7ubst2',
+  'fs84Fy0l3dx2/2pRA2+BotzoSvVA6HD3i9rO0QQRhmdbAy4JkxVntIcU8qwnMukvF14+udG69e',
 ].join('');
 
 

@@ -16,16 +16,16 @@
 
 body {
   margin: 0;
-  background: #eee;
-  margin: 0 auto;
-  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  font-family: Playfair Display,serif;
+  font-size: 15px;
+  line-height: 1.42857143;
+  color: #333;
+  background-color: #fff;
 }
 
-.main-body {
-  background: #fff;
-  max-width: 600px;
-  margin: 0 auto;
-  overflow-x: hidden;
+*, :after, :before {
+    box-sizing: border-box;
 }
 
 [data-z-depth="2"] {
@@ -33,131 +33,268 @@ body {
   filter: drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.16)) drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.23));
 }
 
-header {
+.main-body > header {
   color: #fff;
-}
+  background-color: #37dc8c;
+  border: 1px solid transparent;
+  border-color: #37dc8c;
+  border-width: 0 0 1px;
 
-.navigation {
-  background: #3F51B5;
-  list-style-type: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  height: 50px;
   overflow: hidden;
-  margin: 0;
-  padding: 8px;
+  margin-bottom: 21px;
+  padding: 0 16px;
+
+  display: flex;
+  flex-direction: row;
 }
 
-.navigation .prev {
-  float: left;
-  background-image: url(img/chevron-left.png);
-  background-position: left center;
-  background-repeat: no-repeat;
-  padding-left: 24px;
-}
-
-.navigation .next {
-  float: right;
-  background-image: url(img/chevron-right.png);
-  background-position: right center;
-  background-repeat: no-repeat;
-  padding-right: 24px;
-}
-
-.navigation a {
-  display: inline-block;
-  text-align: center;
+.brand-header {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: row;
   color: #fff;
   text-decoration: none;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 32px;
+  align-items: center;
 }
 
 .brand-logo {
-  background: #303F9F;
-  padding: 8px;
-  overflow: hidden;
+  flex: 0 0 40px;
+  margin-right: 16px;
+  width: 40px;
+  height: 40px;
+  background-image: url("./icons/icon-2x.png");
+  background-size: 40px 40px;
+  background-repeat: no-repeat;
 }
 
-.brand-logo a{
+.brand-name {
+  flex: 1;
   color: #fff;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 21px;
+}
+
+.nav-header {
+  flex: 0 0 48px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.nav-button {
+  width: 24px;
+  height: 24px;
+  background-repeat: no-repeat;
+  background-size: 24px 24px;
   text-decoration: none;
 }
 
-.logout {
-  float: right;
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 32px;
+.nav-button.next {
+  background-image: url("./img/chevron-right.png");
+}
+
+.nav-button.prev {
+  background-image: url("./img/chevron-left.png");
 }
 
 main {
-  padding: 0 16px 48px;
+  padding-top: 50px;
+  background: #fff;
+  color: #333;
+  font-family: 'Muli', sans-serif;
+  font-size: 40px;
+  line-height: 22px;
 }
 
-hr {
+.hero-img-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.hero-img-container:after {
+  z-index: 1;
+  content: "";
+  display: block;
+  padding-top: 60%;
+}
+
+.hero-img-container > img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+main > .container {
+  max-width: 600px;
+  margin: 0 auto;
+  margin-top: 15px;
+  padding: 0px 20px;
+}
+
+h1, h2, p, body, figure, ul {
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+}
+
+.category {
+  color: #777;
+  font-size: 10pt;
+  line-height: 18pt;
+  letter-spacing: 0.6pt;
+  text-transform: uppercase;
+}
+
+.heading {
+  font-size: 27pt;
+  font-weight: 700;
+  margin-bottom: 0.3em;
+  letter-spacing: .33pt;
+  line-height: 30pt;
+}
+
+.kicker {
+  color: #666;
+  font-size: 16pt;
+  line-height: 24pt;
+  letter-spacing: .3pt;
+  vertical-align: top;
+  margin-bottom: 0.2em;
+}
+
+.byline {
+  font-size: 10pt;
+  line-height: 18pt;
+  color: black;
+  margin-bottom: 12px;
+}
+
+.hr {
+  background-color: #37dc8c;
+  width: 15%;
+  height: 2px;
+  margin: 0.5em 0;
+}
+
+.text {
+  font-size: 20px;
+  line-height: 30px;
+  letter-spacing: .3px;
+  color: #4A4A4A;
+  vertical-align: top;
+  margin-bottom: 16px;
+}
+
+h1.related {
+  font-size: 18pt;
+  line-height: 20pt;
+  margin-bottom: 1em;
+}
+
+ul.related {
+  list-style-type: none;
+  padding: 0;
+}
+
+ul.related li {
+  margin-top: 10px;
+  border-bottom: solid 1px #8c8c8c;
+  height: 90px;
+}
+
+ul.related a {
+  text-decoration: none;
+  color: #777;
+}
+
+ul.related div {
+  height: 100%;
+}
+
+ul.related img {
+  display: block;
+  float: left;
+}
+
+ul.related p {
+  font-size: 12pt;
+  padding-left: 110px;
+  padding-top: 26px;
+}
+
+.articles {
+  font-family: Playfair Display,serif;
+  font-size: 15px;
+  line-height: 1.42857143;
+}
+
+.article-list-item-a {
+  color: #2780e3;
+  text-decoration: none;
+}
+
+.article-list-item {
+  background-size: cover;
+  background-position: 50%;
+  margin-left: -15px;
+  margin-right: -15px;
+  margin-bottom: 5px;
+  height: 200px;
+  position: relative;
+}
+
+.article-list-item .scrim-top {
+  background: -webkit-linear-gradient(top,rgba(0,0,0,.33),transparent);
+  background: linear-gradient(180deg,rgba(0,0,0,.33),transparent);
+  height: 80px;
+}
+
+.article-list-item .scrim-bottom {
+  background: -webkit-linear-gradient(top,transparent,rgba(0,0,0,.33));
+  background: linear-gradient(180deg,transparent,rgba(0,0,0,.33));
+  width: 100%;
+  height: 60px;
+  position: absolute;
+  top: 140px;
+}
+
+.article-list-item h3 {
+  font-family: Playfair Display,serif;
+  font-weight: 700;
+  font-size: 22pt;
+  letter-spacing: 2px;
+  top: 25px;
+  right: 12%;
   margin: 0;
 }
 
-.meter-section {
-  margin-top: 16px;
-  padding: 8px;
-  background: #ffa;
-  font-size: 14px;
+.article-list-item h4 {
+  font-family: Muli,sans-serif;
   font-weight: 400;
-  line-height: 25px;
+  font-size: 8pt;
+  letter-spacing: 1px;
+  top: 160px;
 }
 
-.reset-section {
-  margin-top: 16px;
-  padding: 8px;
-  background: #ffa;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 25px;
-}
-
-.form-line {
-  margin-bottom: 8px;
-}
-
-.label {
-  margin-bottom: 8px;
-}
-
-#info {
-  color: orange;
-  margin-top: 20px;
-}
-
-.button {
-  display: inline-block;
-  position: relative;
-  padding: 8px;
-  line-height: 32px;
-  border-radius: 2px;
-  font-size: 0.9em;
-  background-color: #303F9F;
+.article-list-item h3, .article-list-item h4 {
   color: #fff;
-  margin: 16px 0;
-}
-
-.button.raised:active {
-  box-shadow: 0 8px 17px 0 rgba(0, 0, 0, 0.2);
-  transition-delay: 0s;
-}
-
-.center {
-  text-align: center;
-}
-
-.dismiss {
-  color: blue;
-}
-
-.notification {
-  padding: 8px;
-  background: #ffa;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 25px;
+  position: absolute;
+  left: 12%;
 }
