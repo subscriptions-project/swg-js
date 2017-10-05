@@ -56,6 +56,7 @@ export class NotificationUi {
    */
   start() {
     this.openView_();
+    // TODO(dparikh): Set a flag to session storage to not render this again.
   }
 
   /**
@@ -66,5 +67,27 @@ export class NotificationUi {
       'height': `${CONTAINER_HEIGHT}`,
     });
     this.document_.body.appendChild(this.notificationContainer_);
+
+    this.addItems_();
+  }
+
+  /**
+   * Adds label and detail button.
+   * @private
+   */
+  addItems_() {
+    const label = this.document_.createElement('div');
+    label.textContent = 'Access via Google Subscriptions';
+    label.setAttribute('class', 'swg-label');
+    this.notificationContainer_.appendChild(label);
+
+    const linkButton = this.document_.createElement('button');
+    linkButton.textContent = 'Details';
+    linkButton.setAttribute('class', 'swg-detail');
+    this.notificationContainer_.appendChild(linkButton);
+
+    linkButton.addEventListener('click', () => {
+      this.win_.open('https://play.google.com/store/account', '_blank');
+    });
   }
 }
