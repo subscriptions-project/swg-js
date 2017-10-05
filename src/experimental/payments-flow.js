@@ -17,14 +17,14 @@
 import {setImportantStyles} from '../utils/style';
 
 const BLOB = [
-  'AFNo2jNduCh+0/ExLXJ9AUz87cjXS/ziOOoK0Ef/o1e+16g/A0u2Ra29J6KmnIrDXWYAXQ9fYJN',
-  'za1ExlLnVfU/pEVvRa6pd6GRZmuR8eF3ahEhB3qN/5xlTStGmQqzphTPGP3HhI9xk+vnj1fye3o',
-  'Nxr9Fgv1xRr2figwA1NWDnKWeiXjEg/F0Yg+U8bcRwcuAdqVrS6Pwg4VAJgZrXeBXeqMHJOT5GV',
-  '7yUCGQNNBumaC205TgXberY+M6KBRvvXed1Ikzzjtfp380g1aVBTeHNTGh06nn4RaeO/ge85+W4',
-  'RLqAZCjwP/TBgjPwIvFrH3yc5N/ccaXR7I4YKqb1IhTXVFJD0UyxnULpyZgCdZjWrfPwuBJ3pit',
-  'R724gkZ6qIokoR8ykGEjDUPv4OUBxU2G2aOzjIa8H5V9tnHZ0Tfb3epHZ65KFcG5O14bhwWALlD',
-  'YUaHlv1aHm3itOLlxwqImggAUj/fqCGnsc9fzFVd9bGGK7jMi9MKzhTp1Bn2QStMGceHiRENSGj',
-  'Y7LDgK7HNvn1vDrwSgQ2w==',
+  'AFNo2jMpzZh8TPbec7JUf695ryozqoaeTW/zPkYs+Pz0ZMgP3tgFuCkwHiJqgAhPosX+lSaP8R8',
+  'MA81za/HQ7CPPVFj6k3zlDyRPwhGYM0qMA/U3XVUvOj0X/vP1E7aFxwk2D3UtMaH2F+8HWhQzWR',
+  'Q+vMfAaqONJH5acshBRRJQMHoXvHOwUy7iH4OerR8Ib6/BmT2cKNYTyOWz5HuK6EDOAqpsJ7zhv',
+  'legHymbK2qAcdTxKkVQvCsDIqq6Z0t8x1U6z8DULc8zWON7Dt0Wju1Ri8B3wrF4JSnKeadySgtZ',
+  '3BN1oyHEoZnUIPVtAT8x8fODYwVYI30JqDvhpmE2Eu6fgVOUfcZJ2IK8wwAX8etFu4FwdG56i71',
+  'gnSQIJhoAakGSckSRDOBIK7gch8aWRyG7mtZhs4YB1uKx9VeFFbR/6X+khDkfcCU+FER1idrYSx',
+  'Ok3B/QNt1WtQSWWgk2ETEhNWiI8i6o3gNtlU/ZhspACtN5KQ/xu+PSXaAWcVMs1RJHTRgDDVQvD',
+  'KoctL2ZrwaVfw6ejOIdWA==',
 ].join('');
 
 
@@ -40,9 +40,12 @@ export function launchPaymentsFlow(blob) {
 /**
  */
 export class PaymentsView {
-  constructor(win) {
+  constructor(win, context) {
     /** @const @private {!Window} */
     this.win_ = win;
+
+    /** @const @private {!PopupContext} */
+    this.context_ = context;
 
     /** @private @const {!Element} */
     this.iframe_ = this.win_.document.createElement('iframe');
@@ -56,6 +59,18 @@ export class PaymentsView {
 
     /** @private {?function(number, number)} */
     this.onResize_ = null;
+
+    /** @private {?function()} */
+    this.onComplete_ = null;
+  }
+
+  /**
+   * @param {function()} callback
+   * @return {!PaymentsView}
+   */
+  onComplete(callback) {
+    this.onComplete_ = callback;
+    return this;
   }
 
   /**
@@ -104,6 +119,14 @@ export class PaymentsView {
         });
         if (this.onResize_) {
           this.onResize_(payload.width, payload.height);
+        }
+        break;
+      case 'busy':
+        this.context_.setBusy(payload.busy);
+        break;
+      case 'complete':
+        if (this.onComplete_) {
+          this.onComplete_();
         }
         break;
       default:

@@ -118,8 +118,9 @@ swg-popup .swg-close-action {
  */
 swg-popup swg-loading {
   position: absolute !important;
-  top: calc(50% - 16px) !important;
+  top: 50% !important;
   left: 50% !important;
+  transform: translate(-50%, -50%);
   z-index: 2147483647 !important;
 }
 
