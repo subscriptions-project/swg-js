@@ -130,6 +130,7 @@ swg-popup {
   display: none  !important;
   min-height: 200px !important;
   animation: swg-expand 1.5s !important;
+  transition: max-height 600ms !important;
 }
 
 swg-popup .swg-close-action {
