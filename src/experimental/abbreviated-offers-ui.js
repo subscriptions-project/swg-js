@@ -126,6 +126,10 @@ export class AbbreviatedOffersUi {
     });
   }
 
+  /**
+   * Resizes the parent(iframe) based on the offer container.
+   * @private
+   */
   resizeContainer_() {
     const iframe = this.abbreviatedOffersElement_;
     iframe.style.height = `${iframe.contentDocument.body.scrollHeight}px`;
