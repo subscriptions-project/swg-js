@@ -17,29 +17,11 @@
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
 
-
 /**
  * Maximum value for z-index (32 bit Integer).
  * @const {number}
  */
 export const MAX_Z_INDEX = 2147483647;
-
-/**
- * Dummy offer details.
- * @const {offer: {!Array<!Object>}}
- */
-const SUBSCRIPTIONS = {
-  offer: [
-    {
-      displayString: '7 days free, $8/mo, after',
-      paymentRequest: '',
-    },
-    {
-      displayString: '$85/year',
-      paymentRequest: '',
-    },
-  ],
-};
 
 /**
  * Checks if current user is subscriber. It does not check the healthy status.
@@ -54,7 +36,7 @@ export function isSubscriber(subscriptionResponse) {
 
  /**
   * Checks if the subscription element is already available in Dom.
-  * @param {!Window} win The window object.
+  * @param {!Document} doc
   * @param {string} elementTagName The name of the element.
   * @return {?string}
   */
@@ -72,6 +54,8 @@ export function assertNoPopups(doc, elementTagName) {
  * @return {string}
  */
 export function getAbbreviatedOffers(subscriptions) {
+  const meteringResponse = subscriptions.metering;
+  const quotaLeft = meteringResponse.quotaLeft;
   const offers =
     `
       <html>
@@ -83,8 +67,11 @@ export function getAbbreviatedOffers(subscriptions) {
             <span style="flex: 1;"></span>
               <div style="padding-top: 8px;">
                   You can read
-                  <span style="font-weight: 500;">10</span>
-                  articles for free this month!
+                  <span style="font-weight: 500;">
+                    ${quotaLeft}
+                  </span>
+                  ${quotaLeft > 1 ? 'articles' : 'article'}
+                  for free this ${meteringResponse.quotaPeriod}!
               </div>
               <span style="flex: 1;"></span>
             </div>
@@ -115,7 +102,7 @@ function getStyle_() {
  * @private
  */
 function getContent_(subscriptions) {
-  const offers = subscriptions.offer || SUBSCRIPTIONS.offer;
+  const offers = subscriptions.offer;
   let offerContent = '';
   for (let i = 0; i < offers.length; i++) {
     const pay = offers[i].paymentRequest;
