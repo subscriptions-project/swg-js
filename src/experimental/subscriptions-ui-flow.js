@@ -26,6 +26,7 @@ import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {NotificationUi} from './notification-ui';
 import {PaymentsView} from './payments-flow';
 import {setImportantStyles} from '../utils/style';
+import {updateMeteringResponse} from './user-metering.js';
 
 /**
  * The pop-up element name to be used.
@@ -66,6 +67,10 @@ export function buildSubscriptionsUi(win) {
     // TODO(dparikh): See if multiple CSS be built and used based on the
     // current view. (Currently, injects one CSS for everything).
     injectCssToWindow_();
+
+    // Updating metering info
+    response.metering = updateMeteringResponse(
+        window.location.href, response.metering);
 
     if (isSubscriber(response)) {
       new NotificationUi(win, response).start();
