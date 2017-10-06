@@ -138,7 +138,14 @@ export class PaymentsView {
 // TODO(dvoytenko): remove
 export class PaymentsFlow {
 
-  constructor() {
+  /**
+   * @param {SubscriptionState} state
+   */
+  constructor(state) {
+
+    /** @const */
+    this.state_ = state;
+
     /** @private @const {!Element} */
     this.iframe_ = document.createElement('iframe');
     this.iframe_.style.position = 'fixed';
@@ -152,14 +159,17 @@ export class PaymentsFlow {
   }
 
   /**
-   * To generate blob, see go/subs-pay-blob.
-   * @param {string} blob
    * @return {!Promise}
    */
-  start(blob) {
+  start() {
+
+    let chosenOffer = this.state_.getChosenOffer();
+    assert(chosenOffer, "No offer was chosen");
+
     this.iframe_.style.background = 'gray';
     this.iframe_.src = 'https://subs-pay.googleplex.com/proxy.html?ep=' +
-        encodeURIComponent(blob);
+        // To generate payment_request blob, see go/subs-pay-blob.
+        encodeURIComponent(chosenOffer['payment_request']);
     document.body.appendChild(this.iframe_);
 
     window.addEventListener('message', e => {
