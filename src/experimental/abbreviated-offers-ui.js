@@ -26,10 +26,19 @@ import {setImportantStyles} from '../utils/style';
  */
 export class AbbreviatedOffersUi {
 
-  constructor(win, offerContainer, subscriptions) {
+  /**
+   * @param {!Window} win The parent window object.
+   * @param {!Element} context The Subscription container reference.
+   * @param {!Element} offerContainer The offer container element <swg-popup>.
+   * @param {!SubscriptionResponse} subscriptions The subscriptions object.
+   */
+  constructor(win, context, offerContainer, subscriptions) {
 
      /** @private @const {!Window} */
     this.win_ = win;
+
+    /** @const @private {!PopupContext} */
+    this.context_ = context;
 
      /** @private @const {!Element} */
     this.document_ = win.document;
@@ -118,7 +127,8 @@ export class AbbreviatedOffersUi {
           'swg-button');
 
       // Set the iframe height to the offer content height.
-      this.resizeContainer_();
+      const height = this.resizeContainer_();
+      this.context_.resizeView(this, height);
 
       subscribeButton.onclick = () => {
         this.subscribeClicked_();
@@ -132,6 +142,8 @@ export class AbbreviatedOffersUi {
    */
   resizeContainer_() {
     const iframe = this.abbreviatedOffersElement_;
-    iframe.style.height = `${iframe.contentDocument.body.scrollHeight}px`;
+    const height = iframe.contentDocument.body.scrollHeight;
+    iframe.style.height = `${height}px`;
+    return height;
   }
  }

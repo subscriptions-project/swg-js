@@ -35,13 +35,6 @@ const POPUP_TAG = 'swg-popup';
 
 
 /**
- * The default height of the pop-up.
- * @const {number}
- */
-const CONTAINER_HEIGHT = 200;
-
-
-/**
  * Builds offers container, including headers and footer. It builds an
  * element <swg-payflow> at the end of the <body> of the containing document.
  * The offer container within the element is built from the offers API response.
@@ -125,7 +118,6 @@ export class SubscriptionsUiFlow {
     this.addCloseButton_();
 
     setImportantStyles(this.offerContainer_, {
-      'min-height': `${CONTAINER_HEIGHT}px`,
       'display': 'none',
     });
     this.document_.body.appendChild(this.offerContainer_);
@@ -137,6 +129,7 @@ export class SubscriptionsUiFlow {
 
     this.openView_(new AbbreviatedOffersUi(
         this.win_,
+        this,
         this.offerContainer_,
         this.subscription_)
         .onSubscribeClicked(this.activatePay_.bind(this)));
