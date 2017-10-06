@@ -26,6 +26,7 @@ import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {NotificationUi} from './notification-ui';
 import {PaymentsView} from './payments-flow';
 import {setImportantStyles} from '../utils/style';
+import {debounce} from '../utils/rate-limit';
 
 /**
  * The pop-up element name to be used.
@@ -113,6 +114,14 @@ export class SubscriptionsUiFlow {
 
     /** @private {boolean} */
     this.activeViewInitialized_ = false;
+
+    /** @private {function} */
+    this.animateResizeOfferContainer_ = debounce(this.win_, () => {
+      setImportantStyles(this.offerContainer_, {
+        'transition': 'transform 300ms',
+        'transform': 'translateY(0px)',
+      });
+    }, 300);
   }
 
   /*
@@ -126,7 +135,6 @@ export class SubscriptionsUiFlow {
 
     setImportantStyles(this.offerContainer_, {
       'min-height': `${CONTAINER_HEIGHT}px`,
-      'transform': `translateY(-${CONTAINER_HEIGHT}px)`,
       'display': 'none',
     });
     this.document_.body.appendChild(this.offerContainer_);
@@ -206,10 +214,30 @@ export class SubscriptionsUiFlow {
    * @param {!Element} view The current view.
    * @param {number} newHeight The new height of the element.
    */
-  resizeView(view, newHeight) {
+  resizeView(view, newHeight, animate = false) {
     if (view != this.activeView_) {
       return;
     }
+    const oldHeight = view.getElement().offsetHeight;
+    const delta = newHeight - oldHeight;
+
+    if (delta === 0) {
+      return;
+    }
+
+    if (animate) {
+      // Adjust height and translate to show no difference in Y position.
+      // We dont want animation happening at this step
+      setImportantStyles(this.offerContainer_, {
+        'transition': 'none',
+        'transform': `translateY(${delta}px)`,
+      });
+
+      // Call the debounced resize function, this avoids multiple resize animations
+      // in a very short span
+      this.animateResizeOfferContainer_();
+    }
+
     setImportantStyles(view.getElement(), {
       'height': `${newHeight}px`,
     });
