@@ -26,14 +26,13 @@ import {map} from '../utils/object';
 export function updateMeteringResponse(articleLink, meteringResponse) {
   const readArticlesArray = getArticlesReadArray_();
   meteringResponse =
-    Object.assign({}, getDefaultMeteringQuota_(), meteringResponse);
+    Object.assign(getDefaultMeteringQuota_(), meteringResponse);
   if (readArticlesArray.indexOf(articleLink) == -1) {
     readArticlesArray.push(articleLink);
   }
   setArticlesArray_(readArticlesArray);
-  meteringResponse = map(meteringResponse);
-  meteringResponse.quotaLeft = meteringResponse.quotaMax
-      - readArticlesArray.length;
+  meteringResponse.quotaLeft = Math.max(0, meteringResponse.quotaMax
+      - readArticlesArray.length);
 
   return meteringResponse;
 }
