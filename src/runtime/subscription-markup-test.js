@@ -88,4 +88,10 @@ describes.realWin('markup', {}, env => {
 
     expect(subMarkup.getAccessContent()).to.equal('');
   });
+
+  it('should return theme color', () => {
+    meta.setAttribute('content', '#eee');
+    meta.setAttribute('name', 'theme-color');
+    expect(subMarkup.getThemeColor()).to.equal('#eee');
+  });
 });

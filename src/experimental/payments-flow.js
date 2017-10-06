@@ -14,7 +14,20 @@
  * limitations under the License.
  */
 
+import {SubscriptionMarkup} from '../runtime/subscription-markup';
 import {setImportantStyles} from '../utils/style';
+
+const USE_SANDBOX = false;
+const PAY_SERVICE =
+    USE_SANDBOX ?
+    {
+      origin: 'https://sandbox.google.com',
+      path: '/payments/apis/instantbuy/serving/proxy.html',
+    } :
+    {
+      origin: 'https://subs-pay.googleplex.com',
+      path: '/proxy.html',
+    };
 
 const BLOB = [
   'AFNo2jP6vC1UQf/ygljw0tWov9h/V9jRTCCrKUlFVNOzQS6phouVIp5/cFjukVW9h4y/i6XYDop',
@@ -87,16 +100,20 @@ export class PaymentsView {
       // Wait for the first resize.
       this.onResize_ = resolve;
     });
+    const loc = PAY_SERVICE;
+    const markup = new SubscriptionMarkup(this.win_);
+    const themeColor = markup.getThemeColor();
     this.win_.addEventListener('message', e => {
       if (e.source == this.iframe_.contentWindow &&
-          e.origin == 'https://subs-pay.googleplex.com' &&
+          e.origin == loc.origin &&
           e.data && e.data.type) {
         this.onMessage_(e.data.type, e.data.payload);
       }
     });
     // TODO(dvoytenko): pass blob as an argument.
-    this.iframe_.src = 'https://subs-pay.googleplex.com/proxy.html?ep=' +
-        encodeURIComponent(BLOB);
+    this.iframe_.src = loc.origin + loc.path
+        + '?pc=' + (themeColor ? encodeURIComponent(themeColor) : '')
+        + '&ep=' + encodeURIComponent(BLOB);
     return readyPromise;
   }
 
