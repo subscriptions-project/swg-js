@@ -38,7 +38,7 @@ const POPUP_TAG = 'swg-popup';
  * The default height of the pop-up.
  * @const {number}
  */
-const CONTAINER_HEIGHT = 206;
+const CONTAINER_HEIGHT = 50;
 
 
 /**
@@ -138,6 +138,7 @@ export class SubscriptionsUiFlow {
 
     this.openView_(new AbbreviatedOffersUi(
         this.win_,
+        this,
         this.offerContainer_,
         this.subscription_)
         .onSubscribeClicked(this.activatePay_.bind(this)));
@@ -198,6 +199,20 @@ export class SubscriptionsUiFlow {
         });
       }
     }
+  }
+
+  /**
+   * Resizes the current view based on the new height.
+   * @param {!Element} view The current view.
+   * @param {number} newHeight The new height of the element.
+   */
+  resizeView(view, newHeight) {
+    if (view != this.activeView_) {
+      return;
+    }
+    setImportantStyles(view.getElement(), {
+      'height': `${newHeight}px`,
+    });
   }
 
   /** @private */
