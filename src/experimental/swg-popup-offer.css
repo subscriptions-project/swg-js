@@ -29,6 +29,8 @@ body {
 }
 
 .swg-footer {
+  background-color: #fff;
+  border-top: 1px solid #eee;
   display: flex;
   height: 32px;
 }
@@ -36,8 +38,23 @@ body {
 .swg-content {
   box-sizing: border-box;
   padding: 5px;
-  height: 116px;
-  overflow-y: auto;
+  min-height: 116px;
+  overflow-y: visible;
+}
+
+.swg-offer-item {
+  padding: 10px;
+}
+
+.swg-offer-item label {
+  width: 100%;
+  display: inline-block;
+}
+
+.swg-offer-item:hover,
+.swg-offer-item input:hover,
+.swg-offer-item input:focus {
+  border: 1px solid #eee;
 }
 
 .swg-h-spacer {
@@ -55,7 +72,7 @@ body {
   color: #757575;
   border-radius: 1px;
   box-shadow: 0 2px 4px 0 rgba(0,0,0,.25);
-  border: none;
+  border: 1px solid #ddd;
   background-image: none;
   white-space: nowrap;
   display: flex;

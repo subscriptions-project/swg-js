@@ -17,14 +17,13 @@
 import {setImportantStyles} from '../utils/style';
 
 const BLOB = [
-  'AFNo2jNduCh+0/ExLXJ9AUz87cjXS/ziOOoK0Ef/o1e+16g/A0u2Ra29J6KmnIrDXWYAXQ9fYJN',
-  'za1ExlLnVfU/pEVvRa6pd6GRZmuR8eF3ahEhB3qN/5xlTStGmQqzphTPGP3HhI9xk+vnj1fye3o',
-  'Nxr9Fgv1xRr2figwA1NWDnKWeiXjEg/F0Yg+U8bcRwcuAdqVrS6Pwg4VAJgZrXeBXeqMHJOT5GV',
-  '7yUCGQNNBumaC205TgXberY+M6KBRvvXed1Ikzzjtfp380g1aVBTeHNTGh06nn4RaeO/ge85+W4',
-  'RLqAZCjwP/TBgjPwIvFrH3yc5N/ccaXR7I4YKqb1IhTXVFJD0UyxnULpyZgCdZjWrfPwuBJ3pit',
-  'R724gkZ6qIokoR8ykGEjDUPv4OUBxU2G2aOzjIa8H5V9tnHZ0Tfb3epHZ65KFcG5O14bhwWALlD',
-  'YUaHlv1aHm3itOLlxwqImggAUj/fqCGnsc9fzFVd9bGGK7jMi9MKzhTp1Bn2QStMGceHiRENSGj',
-  'Y7LDgK7HNvn1vDrwSgQ2w==',
+  'AFNo2jP6vC1UQf/ygljw0tWov9h/V9jRTCCrKUlFVNOzQS6phouVIp5/cFjukVW9h4y/i6XYDop',
+  'U8IEm5/w0Cb6w3Pd6ufCLMkvCRA1wqRB/1ONmcCE183YXWJAqdFvO+p6xoqYywjS/uedMvQYLPD',
+  'RlpPXKJeso6Se2Gcct1qZz/ySBNlrM0HR456lheSnRvnHuUvuGUNJcwEDR+DoSQlFVhY2hUWOxi',
+  'F7nIDnm/W7HblT0so9dHJ0NCXxNQYDv5e9hxvzZwKtYyBvklQYWvjCSkyZ1uO+MDfiUO8XxIAtt',
+  'IxDAoJsKFo0Per756nMtNIGmsAJrZnDxgjZMK8G7cojZ2aKjYp19bHXO49Zr4N0kB44cPDHI9k5',
+  'XgAk4gR/HmUMZq8kJk2OYM9OgfrtNylglJI1xuh9kxd3CIilxc6wPhg2WjlP5a4nKQPsQ7ubst2',
+  'fs84Fy0l3dx2/2pRA2+BotzoSvVA6HD3i9rO0QQRhmdbAy4JkxVntIcU8qwnMukvF14+udG69e',
 ].join('');
 
 
@@ -40,9 +39,12 @@ export function launchPaymentsFlow(blob) {
 /**
  */
 export class PaymentsView {
-  constructor(win) {
+  constructor(win, context) {
     /** @const @private {!Window} */
     this.win_ = win;
+
+    /** @const @private {!PopupContext} */
+    this.context_ = context;
 
     /** @private @const {!Element} */
     this.iframe_ = this.win_.document.createElement('iframe');
@@ -56,6 +58,18 @@ export class PaymentsView {
 
     /** @private {?function(number, number)} */
     this.onResize_ = null;
+
+    /** @private {?function()} */
+    this.onComplete_ = null;
+  }
+
+  /**
+   * @param {function()} callback
+   * @return {!PaymentsView}
+   */
+  onComplete(callback) {
+    this.onComplete_ = callback;
+    return this;
   }
 
   /**
@@ -100,11 +114,18 @@ export class PaymentsView {
       case 'resize':
         // TODO(dparikh): Decide on resize protocol for embeds and provide animation.
         setImportantStyles(this.iframe_, {
-          'width': `${payload.width}px`,
           'height': `${payload.height}px`,
         });
         if (this.onResize_) {
           this.onResize_(payload.width, payload.height);
+        }
+        break;
+      case 'busy':
+        this.context_.setBusy(payload.busy);
+        break;
+      case 'complete':
+        if (this.onComplete_) {
+          this.onComplete_();
         }
         break;
       default:

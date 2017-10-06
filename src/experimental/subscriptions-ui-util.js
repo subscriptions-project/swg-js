@@ -41,6 +41,17 @@ const SUBSCRIPTIONS = {
   ],
 };
 
+/**
+ * Checks if current user is subscriber. It does not check the healthy status.
+ * @param {!SubscriptionResponse} subscriptionResponse The Api response.
+ * @return {boolean}
+ */
+export function isSubscriber(subscriptionResponse) {
+  return subscriptionResponse['subscriber'] &&
+      subscriptionResponse['subscriber']['types'] &&
+      subscriptionResponse['subscriber']['types'].length > 0;
+}
+
  /**
   * Checks if the subscription element is already available in Dom.
   * @param {!Window} win The window object.
@@ -113,10 +124,11 @@ function getContent_(subscriptions) {
   let offerContent = '';
   for (let i = 0; i < offers.length; i++) {
     const pay = offers[i].paymentRequest;
+    const checked = (i == 0) ? 'checked' : '';
     offerContent += `
-        <div>
+        <div class="swg-offer-item">
           <label>
-            <input type="radio" name="offer" value="${pay}">
+            <input type="radio" name="offer" value="${pay}" ${checked}>
             <span>${offers[i].displayString}</span>
           </label>
         </div>
@@ -142,14 +154,4 @@ function getFooter_() {
     </div>
     `;
   return footer;
-}
-
-/**
- * Sets the CSS attributes for the element.
- * @param {!Element} element The new element.
- * @param {number} height The height of the element.
- * @param {string=} important Whether to add important.
- */
-export function setCssAttributes(element, height, important = 'important') {
-  element.style.setProperty('min-height', `${height}px`, important);
 }

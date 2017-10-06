@@ -17,12 +17,13 @@
 
 import {
   assertNoPopups,
-  setCssAttributes,
+  isSubscriber,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
 import {AbbreviatedOffersUi} from './abbreviated-offers-ui';
 import {LoadingUi} from './loading-ui';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
+import {NotificationUi} from './notification-ui';
 import {PaymentsView} from './payments-flow';
 import {setImportantStyles} from '../utils/style';
 
@@ -61,13 +62,27 @@ export function buildSubscriptionsUi(win) {
   assertNoPopups(win.document, POPUP_TAG);
 
   // Gets subscription details and build the pop-up.
-  getSubscriptionDetails()
-      .then(response => {
-        const subscriptionsUiFlow =
-            new SubscriptionsUiFlow(win, response);
-        subscriptionsUiFlow.start();
-        subscriptionsUiFlow.show_();
-      });
+  getSubscriptionDetails().then(response => {
+    // TODO(dparikh): See if multiple CSS be built and used based on the
+    // current view. (Currently, injects one CSS for everything).
+    injectCssToWindow_();
+
+    if (isSubscriber(response)) {
+      new NotificationUi(win, response).start();
+    } else {
+      new SubscriptionsUiFlow(win, response).start();
+    }
+  });
+
+  /**
+   * Injects common CSS styles to the container window's <head> element.
+   * @private
+   */
+  function injectCssToWindow_() {
+    const style = win.document.createElement('style');
+    style.textContent = `${SWG_POPUP}`;
+    win.document.head.appendChild(style);
+  }
 }
 
 
@@ -95,6 +110,9 @@ export class SubscriptionsUiFlow {
 
     /** @private {?View} */
     this.activeView_ = null;
+
+    /** @private {boolean} */
+    this.activeViewInitialized_ = false;
   }
 
   /*
@@ -106,10 +124,12 @@ export class SubscriptionsUiFlow {
     // Add close button with action.
     this.addCloseButton_();
 
-    setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
+    setImportantStyles(this.offerContainer_, {
+      'min-height': `${CONTAINER_HEIGHT}px`,
+      'display': 'none',
+    });
     this.document_.body.appendChild(this.offerContainer_);
 
-    this.injectCssToWindow_();
     this.show_();
 
     // Build the loading indicator.
@@ -119,9 +139,7 @@ export class SubscriptionsUiFlow {
         this.win_,
         this.offerContainer_,
         this.subscription_)
-        .onSubscribeClicked(() => {
-          this.activatePay_();
-        }));
+        .onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
   /**
@@ -131,11 +149,13 @@ export class SubscriptionsUiFlow {
    */
   openView_(view) {
     this.loadingUi_.show();
+
     if (this.activeView_) {
       this.offerContainer_.removeChild(this.activeView_.getElement());
       this.activeView_ = null;
     }
     this.activeView_ = view;
+    this.activeViewInitialized_ = false;
     setImportantStyles(view.getElement(), {
       'visibility': 'hidden',
       'opacity': 0,
@@ -148,25 +168,55 @@ export class SubscriptionsUiFlow {
         'visibility': 'visible',
         'opacity': 1,
       });
+      this.activeViewInitialized_ = true;
     }, error => {
       this.loadingUi_.hide();
       throw error;
     });
   }
 
-  /** @private */
-  activatePay_() {
-    this.openView_(new PaymentsView(this.win_));
+  /**
+   * @param {boolean} busy
+   */
+  setBusy(busy) {
+    if (!this.activeViewInitialized_) {
+      return;
+    }
+    if (busy) {
+      this.loadingUi_.show();
+      if (this.activeView_) {
+        setImportantStyles(this.activeView_.getElement(), {
+          'opacity': 0.5,
+        });
+      }
+    } else {
+      this.loadingUi_.hide();
+      if (this.activeView_) {
+        setImportantStyles(this.activeView_.getElement(), {
+          'opacity': 1,
+        });
+      }
+    }
   }
 
-  /**
-   * Injects common CSS styles to the container window's <head> element.
-   * @private
-   */
-  injectCssToWindow_() {
-    const style = this.document_.createElement('style');
-    style.textContent = `${SWG_POPUP}`;
-    this.document_.head.appendChild(style);
+  /** @private */
+  close_() {
+    this.offerContainer_.parentNode.removeChild(this.offerContainer_);
+  }
+
+  /** @private */
+  activatePay_() {
+    this.openView_(new PaymentsView(this.win_, this)
+        .onComplete(this.paymentComplete_.bind(this)));
+  }
+
+  /** @private */
+  paymentComplete_() {
+    this.close_();
+    // TODO(avimehta): Restart authorization again, instead of redirect here.
+    // (btw, it's fine if authorization restart does redirect itself when
+    // needed)
+    this.win_.location.reload(/* force */ true);
   }
 
   /**
@@ -180,8 +230,7 @@ export class SubscriptionsUiFlow {
     this.offerContainer_.appendChild(closeButton);
     closeButton.textContent = '\u00D7';
 
-    closeButton.addEventListener('click', () =>
-        this.offerContainer_.parentNode.removeChild(this.offerContainer_));
+    closeButton.addEventListener('click', () => this.close_());
   }
 
   /**
@@ -190,6 +239,6 @@ export class SubscriptionsUiFlow {
    * @private
    */
   show_() {
-    this.offerContainer_.style.setProperty('display', 'inline', 'important');
+    this.offerContainer_.style.removeProperty('display');
   }
 }
