@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {SubscriptionMarkup} from './subscription-markup';
+import {SubscriptionMarkup, EntitledState} from './subscription-markup';
 
 
 describes.realWin('markup', {}, env => {
@@ -93,5 +93,70 @@ describes.realWin('markup', {}, env => {
     meta.setAttribute('content', '#eee');
     meta.setAttribute('name', 'theme-color');
     expect(subMarkup.getThemeColor()).to.equal('#eee');
+
+  });
+
+  describe('setEntitled', () => {
+    let qsaStub;
+    let sedStub;
+    let el1, el2, el3, el4;
+
+    function createElement(access, accessHide) {
+      const el = win.document.createElement('span');
+      el.setAttribute('access', access);
+      if (accessHide === '') {
+        el.setAttribute('access-hide', accessHide);
+      }
+      return el;
+    }
+
+    beforeEach(() => {
+      qsaStub = sandbox.stub(win.document, 'querySelectorAll');
+      sedStub = sandbox.stub(subMarkup, 'setElementDisplay_');
+      el1 = createElement('true');
+      el2 = createElement('true', '');
+      el3 = createElement('false');
+      el4 = createElement('false', '');
+    });
+
+    it('changes nothing when no section is marked as access="true"', () => {
+      qsaStub.returns([]);
+      subMarkup.setEntitled(EntitledState.UNKNOWN);
+      subMarkup.setEntitled(EntitledState.ENTITLED);
+      subMarkup.setEntitled(EntitledState.NOT_ENTITLED);
+      expect(sedStub).to.not.be.called;
+    });
+
+    it('shows/hides content when not subscribed', () => {
+      qsaStub.returns([el1, el2, el3, el4]);
+      subMarkup.setEntitled(EntitledState.UNKNOWN);
+      expect(sedStub).to.have.callCount(4);
+      expect(sedStub.firstCall).to.be.calledWith(el1, true);
+      expect(sedStub.secondCall).to.be.calledWith(el2, false);
+      expect(sedStub.thirdCall).to.be.calledWith(el3, true);
+      expect(sedStub.lastCall).to.be.calledWith(el4, false);
+    });
+
+    it('shows/hides content when subscribed', () => {
+      qsaStub.returns([el1, el2, el3, el4]);
+      subMarkup.setEntitled(EntitledState.ENTITLED);
+
+      expect(sedStub).to.have.callCount(4);
+      expect(sedStub.firstCall).to.be.calledWith(el1, true);
+      expect(sedStub.secondCall).to.be.calledWith(el2, true);
+      expect(sedStub.thirdCall).to.be.calledWith(el3, false);
+      expect(sedStub.lastCall).to.be.calledWith(el4, false);
+    });
+
+    it('shows/hides content when subscription fails', () => {
+      qsaStub.returns([el1, el2, el3, el4]);
+      subMarkup.setEntitled(EntitledState.NOT_ENTITLED);
+
+      expect(sedStub).to.have.callCount(4);
+      expect(sedStub.firstCall).to.be.calledWith(el1, false);
+      expect(sedStub.secondCall).to.be.calledWith(el2, false);
+      expect(sedStub.thirdCall).to.be.calledWith(el3, true);
+      expect(sedStub.lastCall).to.be.calledWith(el4, true);
+    });
   });
 });

@@ -17,15 +17,16 @@
 
 import {
   assertNoPopups,
-  isSubscriber,
+  isEntitled,
 } from './subscriptions-ui-util';
-import {OffersView} from './offers-view';
-import {LoadingView} from './loading-view';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
+import {debounce} from '../utils/rate-limit';
+import {EntitledState} from '../runtime/subscription-markup';
+import {LoadingView} from './loading-view';
 import {NotificationView} from './notification-view';
+import {OffersView} from './offers-view';
 import {PaymentsView} from './payments-view';
 import {setImportantStyles} from '../utils/style';
-import {debounce} from '../utils/rate-limit';
 import {transition} from '../utils/animation';
 
 /**
@@ -51,11 +52,11 @@ const CONTAINER_HEIGHT = 50;
  *     4. Subscriber   : Payment broken. Notify user
  *     5. Not signed-in: Notify user to sign-in and show offers
  * @param {!Window} win The main containing window object.
+ * @param {!SubscriptionMarkup} markup
+ * @param {!SubscriptionResponse} response
  * @return {!Promise}
  */
-
-
-export function buildSubscriptionsUi(win, response) {
+export function buildSubscriptionsUi(win, markup, response) {
 
   // Ensure that the element is not already built by external resource.
   assertNoPopups(win.document, POPUP_TAG);
@@ -66,7 +67,8 @@ export function buildSubscriptionsUi(win, response) {
   // current view. (Currently, injects one CSS for everything).
   injectCssToWindow_();
 
-  if (isSubscriber(response)) {
+  if (isEntitled(response)) {
+    markup.setEntitled(EntitledState.ENTITLED);
     new NotificationView(win, response).start();
   } else {
     new SubscriptionsUiFlow(win, response).start();
@@ -329,7 +331,8 @@ export class SubscriptionsUiFlow {
     // TODO(avimehta, #21): Restart authorization again, instead of redirect here.
     // (btw, it's fine if authorization restart does redirect itself when
     // needed)
-    this.win_.location.reload(/* force */ true);
+    this.win_.location = `${document.location.origin}` +
+        `${document.location.pathname}?test_response=subscriber-response`;
   }
 
   /**
