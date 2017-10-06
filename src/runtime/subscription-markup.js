@@ -29,6 +29,7 @@ export class SubscriptionMarkup {
     this.accessType_ = null;
     this.accessContent_ = null;
     this.accessControl_ = null;
+    this.themeColor_ = null;
   }
 
   /**
@@ -59,6 +60,16 @@ export class SubscriptionMarkup {
       this.accessControl_ = this.getMetaTag_('access-control');
     }
     return this.accessControl_;
+  }
+
+  /**
+   * @return {string}
+   */
+  getThemeColor() {
+    if (this.themeColor_ == null) {
+      this.themeColor_ = this.getMetaTag_('theme-color');
+    }
+    return this.themeColor_;
   }
 
   /**
