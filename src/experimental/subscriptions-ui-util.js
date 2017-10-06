@@ -122,12 +122,8 @@ function getContent_(subscriptions) {
     const checked = (i == 0) ? 'checked' : '';
     offerContent += `
         <div class="swg-offer-item">
-          <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect">
-            <input
-                type="radio"
-                name="offer"
-                class="mdl-radio__button"
-                value="${pay}" ${checked}>
+          <label>
+            <input type="radio" name="offer" value="${pay}" ${checked}>
             <span>${offers[i].displayString}</span>
           </label>
         </div>
