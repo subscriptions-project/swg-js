@@ -118,8 +118,8 @@ export class SubscriptionsUiFlow {
     /** @private {function} */
     this.animateResizeOfferContainer_ = debounce(this.win_, () => {
       setImportantStyles(this.offerContainer_, {
-        'transition': 'transform 300ms',
-        'transform': 'translateY(0px)',
+        'transition': 'transform 300ms ease-out',
+        'transform': 'none',
       });
     }, 300);
   }
@@ -213,21 +213,26 @@ export class SubscriptionsUiFlow {
    * Resizes the current view based on the new height.
    * @param {!Element} view The current view.
    * @param {number} newHeight The new height of the element.
+   * @param {boolean} animate Animate the new height change or not.
    */
-  resizeView(view, newHeight, animate = false) {
+  resizeView(view, newHeight, animate = true) {
     if (view != this.activeView_) {
       return;
     }
     const oldHeight = view.getElement().offsetHeight;
     const delta = newHeight - oldHeight;
 
-    if (delta === 0) {
+    if (delta == 0) {
       return;
     }
 
+    setImportantStyles(view.getElement(), {
+      'height': `${newHeight}px`,
+    });
+
     if (animate) {
       // Adjust height and translate to show no difference in Y position.
-      // We dont want animation happening at this step
+      // We dont want animation happening at this step.
       setImportantStyles(this.offerContainer_, {
         'transition': 'none',
         'transform': `translateY(${delta}px)`,
@@ -237,10 +242,6 @@ export class SubscriptionsUiFlow {
       // in a very short span
       this.animateResizeOfferContainer_();
     }
-
-    setImportantStyles(view.getElement(), {
-      'height': `${newHeight}px`,
-    });
   }
 
   /** @private */

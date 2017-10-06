@@ -113,7 +113,7 @@ export class PaymentsView {
         break;
       case 'resize':
         // Notify the context about resize required.
-        this.context_.resizeView(this, payload.height, true);
+        this.context_.resizeView(this, payload.height);
 
         if (this.onResize_) {
           this.onResize_(payload.width, payload.height);
