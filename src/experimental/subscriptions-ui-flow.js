@@ -199,6 +199,20 @@ export class SubscriptionsUiFlow {
     }
   }
 
+  /**
+   * Resizes the current view based on the new height.
+   * @param {!Element} view The current view.
+   * @param {number} newHeight The new height of the element.
+   */
+  resizeView(view, newHeight) {
+    if (view != this.activeView_) {
+      return;
+    }
+    setImportantStyles(view.getElement(), {
+      'height': `${newHeight}px`,
+    });
+  }
+
   /** @private */
   close_() {
     this.offerContainer_.parentNode.removeChild(this.offerContainer_);
