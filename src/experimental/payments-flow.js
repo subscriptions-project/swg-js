@@ -112,10 +112,9 @@ export class PaymentsView {
       case 'ready':
         break;
       case 'resize':
-        // TODO(dparikh): Decide on resize protocol for embeds and provide animation.
-        setImportantStyles(this.iframe_, {
-          'height': `${payload.height}px`,
-        });
+        // Notify the context about resize required.
+        this.context_.resizeView(this, payload.height);
+
         if (this.onResize_) {
           this.onResize_(payload.width, payload.height);
         }
