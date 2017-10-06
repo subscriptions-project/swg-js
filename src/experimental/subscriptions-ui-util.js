@@ -158,4 +158,5 @@ function getFooter_() {
  */
 export function setCssAttributes(element, height, important = 'important') {
   element.style.setProperty('min-height', `${height}px`, important);
+  element.style.setProperty('transform', `translateY(-${height}px)`, important);
 }

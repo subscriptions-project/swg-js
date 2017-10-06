@@ -119,7 +119,7 @@ export class PaymentsView {
         });
 
         setImportantStyles(this.context_.offerContainer_, {
-          'transform': `translateY(-${payload.height - 200}px)`,
+          'transform': `translateY(-${this.context_.offerContainer_.clientHeight}px)`,
         });
 
         if (this.onResize_) {

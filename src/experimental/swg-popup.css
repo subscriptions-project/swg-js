@@ -51,11 +51,11 @@
 
 @-webkit-keyframes swg-expand {
   from {
-      top: 100%;
+      transform: translateY(0%);
       opacity: .5;
   }
   to {
-      top: calc(100vh - 200px);
+      transform: translateY(-100%);
       opacity: 1;
   }
 }
@@ -129,7 +129,7 @@ swg-popup {
   box-sizing: border-box !important;
   display: none  !important;
   min-height: 200px !important;
-  animation: swg-expand 1.5s forwards !important;
+  animation: swg-expand 1.5s !important;
   transition: transform 600ms !important;
   transform: translateY(0px);
 }
