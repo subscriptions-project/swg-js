@@ -19,6 +19,7 @@
  * @const {string}
  */
 const OFFERS_API_URL = 'http://sp.localhost:8000/examples/sample-sp/api';
+import {updateMeteringResponse} from './user-metering.js';
 
 /**
  * Gets the details of the current user, such as if user is a subscriber.
@@ -30,6 +31,11 @@ export function getSubscriptionDetails() {
       throw new Error(response);
     }
 
-    return response.json();
+    return response.json().then(json => {
+      // Updating metering info
+      json.metering = updateMeteringResponse(
+          window.location.href, json.metering);
+      return json;
+    });
   });
 }
