@@ -117,9 +117,11 @@ export class PaymentsView {
         setImportantStyles(this.iframe_, {
           'height': `${payload.height}px`,
         });
+
         setImportantStyles(this.context_.offerContainer_, {
-          'max-height': `${payload.height}px`,
+          'transform': `translateY(-${payload.height - 200}px)`,
         });
+
         if (this.onResize_) {
           this.onResize_(payload.width, payload.height);
         }
