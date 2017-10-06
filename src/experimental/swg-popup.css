@@ -66,14 +66,14 @@
       opacity: 0;
   }
   to {
-      transform: translateY(0%);
+      transform: translateY(0);
       opacity: 1;
   }
 }
 
 @-webkit-keyframes swg-notify-hide {
   from {
-    transform: translateY(0%);
+    transform: translateY(0);
     opacity: 1;
   }
   to {
@@ -127,9 +127,8 @@ swg-popup {
   box-shadow: 3px 3px gray, 0 0 1.4em gray !important;
   background-color: #fff  !important;
   box-sizing: border-box !important;
-  display: none  !important;
-  min-height: 200px !important;
-  animation: swg-expand 1.5s !important;
+  overflow: hidden !important;
+  animation: swg-expand 1.0s !important;
   transition: transform 600ms !important;
   transform: translateY(0px);
 }

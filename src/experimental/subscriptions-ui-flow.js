@@ -18,7 +18,6 @@
 import {
   assertNoPopups,
   isSubscriber,
-  setCssAttributes,
 } from './subscriptions-ui-util';
 import {getSubscriptionDetails} from './subscriptions-ui-service';
 import {AbbreviatedOffersUi} from './abbreviated-offers-ui';
@@ -39,7 +38,7 @@ const POPUP_TAG = 'swg-popup';
  * The default height of the pop-up.
  * @const {number}
  */
-const CONTAINER_HEIGHT = 200;
+const CONTAINER_HEIGHT = 206;
 
 
 /**
@@ -125,7 +124,11 @@ export class SubscriptionsUiFlow {
     // Add close button with action.
     this.addCloseButton_();
 
-    setCssAttributes(this.offerContainer_, CONTAINER_HEIGHT);
+    setImportantStyles(this.offerContainer_, {
+      'min-height': `${CONTAINER_HEIGHT}px`,
+      'transform': `translateY(-${CONTAINER_HEIGHT}px)`,
+      'display': 'none',
+    });
     this.document_.body.appendChild(this.offerContainer_);
 
     this.show_();
@@ -237,6 +240,6 @@ export class SubscriptionsUiFlow {
    * @private
    */
   show_() {
-    this.offerContainer_.style.setProperty('display', 'inline', 'important');
+    this.offerContainer_.style.removeProperty('display');
   }
 }

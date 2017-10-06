@@ -2,29 +2,41 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Pub Times</title>
+    <title>The Scenic</title>
     <link rel="canonical" href="index.html" >
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
-    <link rel="stylesheet" href="./sample-pub/styles.css" type="text/css">
-    <link rel="stylesheet" href="./sample-pub/material.css" type="text/css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Playfair+Display" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Muli" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="./styles.css" type="text/css">
+    <link rel="icon" type="image/png" href="./icons/icon-2x.png">
+    <link rel="apple-touch-icon" href="./icons/icon-2x.png">
+    <meta name="msapplication-TileImage" content="./icons/icon-2x.png">
+    <meta name="msapplication-TileColor" content="#37dc8c">
   </head>
   <body>
     <div class="main-body">
       <header>
-        <div class="brand-logo">
-          Pub Times
-        </div>
+        <a class="brand-header" href="/examples/sample-pub">
+          <div class="brand-logo"></div>
+          <div class="brand-name">The Scenic</div>
+        </a>
       </header>
       <main role="main">
-        <h4><% title %></h4>
-        <ul>
-          <%#articles%>
-            <li>
-              <a href="./sample-pub/<% id %>"><% title %></a>
-            </li>
-          <%/articles%>
-        </ul>
+        <div class="container">
+          <div class="articles">
+            <%#articles%>
+              <a class="article-list-item-a" href="./<% id %>">
+                <div class="article-list-item" style="background-image: url(&quot;<% hero %>&quot;);">
+                  <div class="scrim-top"></div>
+                  <div class="scrim-bottom"></div>
+                  <h3><% title %></h3>
+                  <h4>By <% author %>, <% date %></h4>
+                </div>
+              </a>
+            <%/articles%>
+          </div>
+        </div>
       </main>
     </div>
   </body>
