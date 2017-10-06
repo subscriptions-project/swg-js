@@ -37,7 +37,7 @@ export function isSubscriber(subscriptionResponse) {
 
  /**
   * Checks if the subscription element is already available in Dom.
-  * @param {!Document} doc The window object.
+  * @param {!Document} doc
   * @param {string} elementTagName The name of the element.
   * @return {?string}
   */

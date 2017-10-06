@@ -40,22 +40,22 @@ export class Auth {
    */
   constructor(win, markup) {
 
-    /** @const */
+    /** @private @const */
     this.win = win;
 
-    /** @const */
+    /** @private @const */
     this.markup_ = markup;
 
-    /** @const {string} The type of access required for this page. */
+    /** @private @const {string} The type of access required for this page. */
     this.accessType_ = this.markup_.getAccessType();
 
     /**
-     *  The subscription configuration associated with the page.
-     * @type {JsonObject}
+     * The subscription configuration associated with the page.
+     * @private {JsonObject}
      */
     this.config_ = null;
 
-    /** @type {JsonObject} */
+    /** @private {JsonObject} */
     this.authResponse_ = null;
   }
 
