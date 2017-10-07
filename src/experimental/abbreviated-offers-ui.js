@@ -145,6 +145,8 @@ export class AbbreviatedOffersUi {
    */
   resizeContainer_() {
     const iframe = this.abbreviatedOffersElement_;
+    // TODO(dparikh): Investigate/research the scrollHeight issue.
+    // ref: (https://github.com/dvoytenko/subscriptions/issues/56)
     this.win_.setTimeout(() => {
       const height = iframe.contentDocument.body.scrollHeight;
       iframe.style.height = `${height}px`;
