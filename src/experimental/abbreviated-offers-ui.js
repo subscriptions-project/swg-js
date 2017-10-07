@@ -139,7 +139,7 @@ export class AbbreviatedOffersUi {
    * Resizes the parent(iframe) based on the offer container.
    * Note: The chrome browser has random issue with reading the scrollHeight
    * of the iframe's body element. It happens very random and in through
-   * testing, seems that by adding a 10ms timeout resolves this issue.
+   * testing, seems that by adding a 100ms timeout resolves this issue.
    * Further testing with various browsers are pending.
    * @private
    */
@@ -149,6 +149,6 @@ export class AbbreviatedOffersUi {
       const height = iframe.contentDocument.body.scrollHeight;
       iframe.style.height = `${height}px`;
       this.context_.resizeView(this, height);
-    }, 10);
+    }, 100);
   }
  }
