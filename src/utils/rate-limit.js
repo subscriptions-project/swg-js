@@ -24,6 +24,7 @@
  * @param {number} minInterval the minimum time interval in millisecond
  * @returns {function(...*)}
  */
+
 export function throttle(win, callback, minInterval) {
   let locker = 0;
   let nextCallArgs = null;
