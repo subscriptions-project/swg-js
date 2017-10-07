@@ -127,8 +127,7 @@ export class AbbreviatedOffersUi {
           'swg-button');
 
       // Set the iframe height to the offer content height.
-      const height = this.resizeContainer_();
-      this.context_.resizeView(this, height);
+      this.resizeContainer_();
 
       subscribeButton.onclick = () => {
         this.subscribeClicked_();
@@ -138,12 +137,18 @@ export class AbbreviatedOffersUi {
 
   /**
    * Resizes the parent(iframe) based on the offer container.
+   * Note: The chrome browser has random issue with reading the scrollHeight
+   * of the iframe's body element. It happens very random and in through
+   * testing, seems that by adding a 10ms timeout resolves this issue.
+   * Further testing with various browsers are pending.
    * @private
    */
   resizeContainer_() {
     const iframe = this.abbreviatedOffersElement_;
-    const height = iframe.contentDocument.body.scrollHeight;
-    iframe.style.height = `${height}px`;
-    return height;
+    this.win_.setTimeout(() => {
+      const height = iframe.contentDocument.body.scrollHeight;
+      iframe.style.height = `${height}px`;
+      this.context_.resizeView(this, height);
+    }, 10);
   }
  }
