@@ -17,16 +17,7 @@
 import {log} from '../utils/log';
 import {tryParseJson} from '../utils/json';
 import {isObject} from '../utils/types';
-
-/**
- * Temporary method to show toasts in console till UI is in place.
- * @param  {string} message
- */
-function showToast_(message) {
-  let banner = '='.repeat(10);
-  console.log(`${banner}\n${message}\n${banner}`);
-}
-
+import {updateMeteringResponse} from './user-metering.js';
 
 /**
  * Performs authorization to check if a user has access to a given article.
@@ -54,9 +45,6 @@ export class Auth {
      * @private {JsonObject}
      */
     this.config_ = null;
-
-    /** @private {JsonObject} */
-    this.authResponse_ = null;
   }
 
   /**
@@ -77,13 +65,15 @@ export class Auth {
         if (!authResponse) {
           throw new Error('Auth response not found.');
         }
-        this.authResponse_ = authResponse[0];
-        log('Got auth responses.');
-        if (this.authResponse_['access']) {
-          // TODO Navigate to the full article.
-        } else if (this.authResponse_['offers']) {
-          return this.authResponse_['offers']['value'];
-        }
+        // TODO(avimehta): Figure out how to handle more than one responses.
+        return authResponse[0];
+      })
+      .then(json => {
+        // Updating metering info
+        // TODO(avimehta): Remove this once server side metering is in place.
+        json.metering = updateMeteringResponse(
+            this.win.location.href, json.metering);
+        return json;
       });
   }
 
@@ -94,7 +84,6 @@ export class Auth {
    * @return {!Promise<JsonObject>}
    */
   getPaywallConfig_() {
-    showToast_('Initiating subscriptions with Google.')
     log('Reading paywall config');
     if (this.config_) {
       return Promise.resolve(this.config_);
@@ -149,7 +138,6 @@ export class Auth {
       authPromises.push(window.fetch(url, init)
         .then(response => response.text())
         .then(responseText => {
-          showToast_(responseText);
           // TODO: Start the offers flow.
           return tryParseJson(responseText);
         }));

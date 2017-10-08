@@ -52,12 +52,14 @@ export function launchPaymentsFlow(blob) {
 /**
  */
 export class PaymentsView {
-  constructor(win, context) {
+  constructor(win, context, paymentRequestBlob) {
     /** @const @private {!Window} */
     this.win_ = win;
 
     /** @const @private {!PopupContext} */
     this.context_ = context;
+
+    this.paymentRequestBlob_ = paymentRequestBlob;
 
     /** @private @const {!Element} */
     this.iframe_ = this.win_.document.createElement('iframe');
@@ -110,10 +112,11 @@ export class PaymentsView {
         this.onMessage_(e.data.type, e.data.payload);
       }
     });
+
     // TODO(dvoytenko): pass blob as an argument.
     this.iframe_.src = loc.origin + loc.path
         + '?pc=' + (themeColor ? encodeURIComponent(themeColor) : '')
-        + '&ep=' + encodeURIComponent(BLOB);
+        + '&ep=' + encodeURIComponent(this.paymentRequestBlob_);
     return readyPromise;
   }
 

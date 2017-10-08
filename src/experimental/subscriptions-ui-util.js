@@ -25,7 +25,7 @@ export const MAX_Z_INDEX = 2147483647;
 
 /**
  * Checks if current user is subscriber. It does not check the healthy status.
- * @param {!SubscriptionResponse} subscriptionResponse The Api response.
+ * @param {!SubscriptionResponse} subscriptionResponse The API response.
  * @return {boolean}
  */
 export function isSubscriber(subscriptionResponse) {
@@ -106,11 +106,15 @@ function getContent_(subscriptions) {
   let offerContent = '';
   for (let i = 0; i < offers.length; i++) {
     const pay = offers[i].paymentRequest;
-    const checked = (i == 0) ? 'checked' : '';
     offerContent += `
         <div class="swg-offer-item">
           <label>
-            <input type="radio" name="offer" value="${pay}" ${checked}>
+            <input
+              type="radio"
+              name="offer"
+              value="${pay}"
+              ${(i == 0) ? 'checked' : ''}
+              data-offer-index="${i}">
             <span>${offers[i].displayString}</span>
           </label>
         </div>

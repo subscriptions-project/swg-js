@@ -130,7 +130,8 @@ export class AbbreviatedOffersUi {
       this.resizeContainer_();
 
       subscribeButton.onclick = () => {
-        this.subscribeClicked_();
+        var el = iframe.contentDocument.querySelector('input[name="offer"][checked]');
+        this.subscribeClicked_(el.dataset.offerIndex);
       };
     });
   }
