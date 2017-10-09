@@ -90,6 +90,10 @@ export function buildSubscriptionsUi(win, response) {
  */
 export class SubscriptionsUiFlow {
 
+  /**
+   * @param {!Window} win The parent window.
+   * @param {!SubscriptionResponse} response The subscriptions object.
+   */
   constructor(win, response) {
 
     /** @private @const {!Window} */
@@ -147,6 +151,7 @@ export class SubscriptionsUiFlow {
         this,
         this.offerContainer_,
         this.subscription_)
+        .onResizeIframe(this.addBottomPaddingToHtml_.bind(this))
         .onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
@@ -176,11 +181,31 @@ export class SubscriptionsUiFlow {
         'visibility': 'visible',
         'opacity': 1,
       });
+
       this.activeViewInitialized_ = true;
     }, error => {
       this.loadingUi_.hide();
       throw error;
     });
+  }
+
+  /**
+   * Adds bottom padding to the main Html element to allow scrolling through
+   * the entire document content, hiding behind the <swg-popup> element.
+   * @param {number} height The popup height.
+   * @private
+   */
+  addBottomPaddingToHtml_(height) {
+    if (height > 0) {
+      const bottomPadding = height + 20;  // Add some extra padding.
+      const htmlElement = this.document_.documentElement;
+      // TODO(dparikh): Read the existing padding with the unit value
+      // (em, ex, %, px, cm, mm, in, pt, pc), and if available then append the
+      // padding after converting the units.
+      setImportantStyles(htmlElement, {
+        'padding-bottom': `${bottomPadding}px`,
+      });
+    }
   }
 
   /**
@@ -244,6 +269,10 @@ export class SubscriptionsUiFlow {
 
   /** @private */
   close_() {
+    // Remove additional padding added at the document bottom.
+    this.document_.documentElement.style.removeProperty('padding-bottom');
+
+    // Remove the swg-popup element.
     this.offerContainer_.parentNode.removeChild(this.offerContainer_);
   }
 
@@ -252,7 +281,7 @@ export class SubscriptionsUiFlow {
    * @param {!number} selectedOfferIndex
    */
   activatePay_(selectedOfferIndex) {
-    let paymentRequestBlob =
+    const paymentRequestBlob =
         this.subscription_['offer'][selectedOfferIndex]['paymentRequest'];
     this.openView_(new PaymentsView(this.win_, this, paymentRequestBlob)
         .onComplete(this.paymentComplete_.bind(this)));

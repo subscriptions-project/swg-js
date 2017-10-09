@@ -54,6 +54,9 @@ export class AbbreviatedOffersUi {
 
     /** @private {?function()} */
     this.subscribeClicked_ = null;
+
+    /** @private @const {function()} */
+    this.ref_ = this.resizeListener_.bind(this);
   }
 
   /**
@@ -62,6 +65,17 @@ export class AbbreviatedOffersUi {
    */
   onSubscribeClicked(callback) {
     this.subscribeClicked_ = callback;
+    return this;
+  }
+
+  /**
+   * Captures the initial iframe resize event to notify the parent container
+   * about the correct height of the iframe.
+   * @param {function()} callback
+   * @return {!AbbreviatedOffersUi}
+   */
+  onResizeIframe(callback) {
+    this.iframeResized_ = callback;
     return this;
   }
 
@@ -108,13 +122,6 @@ export class AbbreviatedOffersUi {
     iframe.setAttribute('frameborder', 0);
     iframe.setAttribute('scrolling', 'no');
 
-    setImportantStyles(iframe, {
-      'opacity': 1,
-      'border': 'none',
-      'width': '100%',
-      'background-color': '#fff',
-    });
-
     // It's important to add `onload` callback before appending to DOM, otherwise
     // onload could arrive immediately.
     const readyPromise = new Promise(resolve => {
@@ -126,32 +133,29 @@ export class AbbreviatedOffersUi {
       const subscribeButton = iframe.contentDocument.getElementById(
           'swg-button');
 
-      // Set the iframe height to the offer content height.
-      this.resizeContainer_();
-
       subscribeButton.onclick = () => {
-        var el = iframe.contentDocument.querySelector('input[name="offer"][checked]');
+        const el = iframe.contentDocument
+            .querySelector('input[name="offer"][checked]');
         this.subscribeClicked_(el.dataset.offerIndex);
       };
+
+      setImportantStyles(iframe, {
+        'opacity': 1,
+        'border': 'none',
+        'width': '100%',
+        'height': '1px',
+        'background-color': '#fff',
+      });
+
+      iframe.contentWindow.addEventListener('resize', this.ref_);
     });
   }
 
-  /**
-   * Resizes the parent(iframe) based on the offer container.
-   * Note: The chrome browser has random issue with reading the scrollHeight
-   * of the iframe's body element. It happens very random and in through
-   * testing, seems that by adding a 100ms timeout resolves this issue.
-   * Further testing with various browsers are pending.
-   * @private
-   */
-  resizeContainer_() {
+  resizeListener_(e) {
     const iframe = this.abbreviatedOffersElement_;
-    // TODO(dparikh): Investigate/research the scrollHeight issue.
-    // ref: (https://github.com/dvoytenko/subscriptions/issues/56)
-    this.win_.setTimeout(() => {
-      const height = iframe.contentDocument.body.scrollHeight;
-      iframe.style.height = `${height}px`;
-      this.context_.resizeView(this, height);
-    }, 100);
+    const height = iframe.contentDocument.body.scrollHeight;
+    this.iframeResized_(height);
+    this.context_.resizeView(this, height);
+    e.currentTarget.removeEventListener(e.type, this.ref_);
   }
  }
