@@ -55,6 +55,9 @@ export class AbbreviatedOffersUi {
     /** @private {?function()} */
     this.subscribeClicked_ = null;
 
+    /** @private {?function(!Event)} */
+    this.iframeResized_ = null;
+
     /** @private @const {function()} */
     this.ref_ = this.resizeListener_.bind(this);
   }
@@ -113,6 +116,7 @@ export class AbbreviatedOffersUi {
   /*
    * Builds the abbreviated offers element within the <swg-popup> element.
    * @return {!Promise}
+   * @private
    */
   buildAbbreviatedOffers_() {
     const iframe = this.abbreviatedOffersElement_;
@@ -147,10 +151,20 @@ export class AbbreviatedOffersUi {
         'background-color': '#fff',
       });
 
+      // The correct scrollHeight of iframe's document is available only after
+      // 'resize' event, at least in Chrome (latest), for ref:
+      // https://bugs/chromium.org/p/chromium/issues/detail?id=34224
+      // After reading the iframe height, this event listener is removed.
       iframe.contentWindow.addEventListener('resize', this.ref_);
     });
   }
 
+  /**
+   * Listens for the iframe content resize to notify the parent container.
+   * The event listener is removed after reading the correct height.
+   * @param {!Event} event
+   * @private
+   */
   resizeListener_(e) {
     const iframe = this.abbreviatedOffersElement_;
     const height = iframe.contentDocument.body.scrollHeight;
