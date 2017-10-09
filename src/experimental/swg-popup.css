@@ -97,6 +97,7 @@ swg-notification {
   box-sizing: border-box !important;
   min-height: 60px !important;
   animation: swg-notify 1s ease-out normal backwards, swg-notify-hide 1s ease-out 7s normal forwards !important;
+  font-family: 'Roboto', sans-serif;
 }
 
 swg-notification .swg-label {
@@ -112,6 +113,7 @@ swg-notification .swg-detail {
   outline:none !important;
   white-space: nowrap !important;
   float: right !important;
+  font-family: 'Roboto', sans-serif;
 }
 
 /**

@@ -15,7 +15,7 @@
  */
 
 
-import {getOffers} from './subscriptions-ui-util';
+import {renderOffers} from './subscriptions-ui-util';
 import {setImportantStyles} from '../utils/style';
 
 
@@ -108,7 +108,7 @@ export class OffersView {
     const iframe = this.offersElement_;
      // TODO(dparikh): Polyfill 'srcdoc'.
      // Ref.: https://github.com/ampproject/amphtml/blob/master/src/friendly-iframe-embed.js#L148-L163
-    iframe.srcdoc = getOffers(this.subscriptions_);
+    iframe.srcdoc = renderOffers(this.subscriptions_);
     iframe.setAttribute('frameborder', 0);
     iframe.setAttribute('scrolling', 'no');
 

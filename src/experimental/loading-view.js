@@ -27,7 +27,7 @@ const LOADING_TAG = 'swg-loading';
  * <swg-popup> element. Provides methods to show/hide loading indicator based
  * on the state of the <swg-popup> element.
  */
-export class LoadingUi {
+export class LoadingView {
 
   constructor(win, container) {
 
