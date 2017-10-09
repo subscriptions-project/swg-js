@@ -20,6 +20,9 @@ body {
   margin: 0;
 }
 
+.swg-container {
+  font-family: 'Roboto', sans-serif;
+}
 .swg-header,
 .swg-footer {
   flex: 1;
@@ -79,11 +82,12 @@ body {
   flex-direction: row;
   padding: 8px;
   margin-right: 8px;
+  font-family: 'Roboto', sans-serif;
 }
 
 .swg-label {
   margin: 1px 0 0 8px;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 /**

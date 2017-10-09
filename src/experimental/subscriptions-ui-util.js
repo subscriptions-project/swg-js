@@ -92,7 +92,8 @@ export function getAbbreviatedOffers(subscriptions) {
  * @private
  */
 function getStyle_() {
-  const style = ` <style>${OFFERS_CSS}</style> `;
+  const fonts = '<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">';
+  const style = `${fonts}<style>${OFFERS_CSS}</style> `;
   return style;
 }
 
