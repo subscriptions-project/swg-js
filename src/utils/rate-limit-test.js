@@ -25,7 +25,7 @@
  * @returns {function(...*)}
  */
 
-import {throttle, debounce} from '../../../src/utils/rate-limit';
+import {throttle, debounce} from './rate-limit';
 import * as sinon from 'sinon';
 
 describe('function utils', () => {
