@@ -26,7 +26,7 @@ import {NotificationUi} from './notification-ui';
 import {PaymentsView} from './payments-view';
 import {setImportantStyles} from '../utils/style';
 import {debounce} from '../utils/rate-limit';
-import {onTransitionEnd} from '../utils/animation';
+import {transition} from '../utils/animation';
 
 /**
  * The pop-up element name to be used.
@@ -39,12 +39,6 @@ const POPUP_TAG = 'swg-popup';
  * @const {number}
  */
 const CONTAINER_HEIGHT = 50;
-
-/**
- * The animation defination for resizing.
- * @const {string}
- */
-const RESIZE_ANIMATION = 'transform 300ms ease-out';
 
 /**
  * Builds offers container, including headers and footer. It builds an
@@ -122,22 +116,14 @@ export class SubscriptionsUiFlow {
     /** @private {boolean} */
     this.activeViewInitialized_ = false;
 
-    /** @private {function} */
-    this.offerContainerExpandAnimation_ = debounce(this.win_,
-        (oldHeight, newHeight) => {
-          const delta = newHeight - oldHeight;
-          let transformString = '';
-          if (newHeight > oldHeight) {
-            transformString = 'none';
-          } else {
-            transformString = `translateY(${Math.abs(delta)}px)`;
-          }
+    /**
+     * Resizes the current view based on the new height.
+     * @param {!Element} view The current view.
+     * @param {number} newHeight The new height of the element.
+     * @param {boolean} animate Animate the new height change or not.
+     */
+    this.resizeView = debounce(this.win_, this.resizeView_.bind(this), 300);
 
-          setImportantStyles(this.offerContainer_, {
-            'transition': `${RESIZE_ANIMATION}`,
-            'transform': `${transformString}`,
-          });
-        }, 300);
   }
 
   /*
@@ -245,13 +231,8 @@ export class SubscriptionsUiFlow {
     }
   }
 
-  /**
-   * Resizes the current view based on the new height.
-   * @param {!Element} view The current view.
-   * @param {number} newHeight The new height of the element.
-   * @param {boolean} animate Animate the new height change or not.
-   */
-  resizeView(view, newHeight, animate = true) {
+  /** @private */
+  resizeView_(view, newHeight, animate = true) {
     if (view != this.activeView_) {
       return;
     }
@@ -273,26 +254,32 @@ export class SubscriptionsUiFlow {
           'transform': `translateY(${delta}px)`,
         });
 
-        // Call the debounced resize function, this avoids multiple resize animations
-        // in a very short span
-        this.offerContainerExpandAnimation_(oldHeight, newHeight);
+        requestAnimationFrame(() => {
+          this.animateViewToTransform_('none');
+        });
       } else {
 
         // First animate to scroll this down and then shrink the height
-        this.offerContainerExpandAnimation_(oldHeight, newHeight);
+        this.animateViewToTransform_(`translateY(${Math.abs(delta)}px)`)
+            .then(() => {
+              this.setBottomSheetHeight_(view.getElement(), newHeight);
 
-        onTransitionEnd(this.offerContainer_, () => {
-          this.setBottomSheetHeight_(view.getElement(), newHeight);
-
-          setImportantStyles(this.offerContainer_, {
-            'transition': 'none',
-            'transform': 'none',
-          });
-        }, true);
+              setImportantStyles(this.offerContainer_, {
+                'transition': 'none',
+                'transform': 'none',
+              });
+            });
       }
     } else {
       this.setBottomSheetHeight_(view.getElement(), newHeight);
     }
+  }
+
+  /** @private */
+  animateViewToTransform_(finalTransform) {
+    return transition(this.offerContainer_, {
+      'transform': `${finalTransform}`,
+    }, 600, 'ease-out');
   }
 
   /** @private */

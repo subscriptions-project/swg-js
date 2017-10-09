@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
+import {setImportantStyles} from './style';
+
 /**
  * Returns the ECMA [[Class]] of a value
  * @param {HtmlElement} el - Element to be observed
- * @param {function} cb - callback to be called once transition ends
- * @return {boolean} once - To be called after once or not.
+ * @param {jsonObject} props - properties to be animated
+ * @param {number} duration - duration of animation
+ * @param {string} curve - transition function for the animation
+ * @return {promise} Promise which resolves once the animation is done playing.
  */
 
-export function onTransitionEnd(el, cb, once) {
-  function done() {
-    if (once) {
-      el.removeEventListener('transitionend', transitionEndHandler);
-    }
-    cb();
-  }
-
-  function transitionEndHandler() {
-    done();
-  }
-
-  el.addEventListener('transitionend', transitionEndHandler);
-};
+export function transition(el, props, duration, curve) {
+  return new Promise(resolve => {
+    setTimeout(() => {resolve();}, duration);
+    setImportantStyles(el, Object.assign({
+      'transition': `transform ${duration}ms ${curve}`,
+    }, props));
+  });
+}
 
