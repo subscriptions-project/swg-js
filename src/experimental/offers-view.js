@@ -61,7 +61,7 @@ export class OffersView {
 
   /**
    * @param {function()} callback
-   * @return {!OffersUi}
+   * @return {!OffersView}
    */
   onSubscribeClicked(callback) {
     this.subscribeClicked_ = callback;
