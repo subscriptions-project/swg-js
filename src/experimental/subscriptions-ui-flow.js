@@ -23,7 +23,7 @@ import {AbbreviatedOffersUi} from './abbreviated-offers-ui';
 import {LoadingUi} from './loading-ui';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {NotificationUi} from './notification-ui';
-import {PaymentsView} from './payments-flow';
+import {PaymentsView} from './payments-view';
 import {setImportantStyles} from '../utils/style';
 
 /**
@@ -224,7 +224,7 @@ export class SubscriptionsUiFlow {
   activatePay_(selectedOfferIndex) {
     let paymentRequestBlob =
         this.subscription_['offer'][selectedOfferIndex]['paymentRequest'];
-    this.openView_(new PaymentsView(this.win_, this, paymentRequestBlob)
+    this.openView_(new PaymentsView(this.win_, this, paymentRequestBlob, this.markup_)
         .onComplete(this.paymentComplete_.bind(this)));
   }
 
