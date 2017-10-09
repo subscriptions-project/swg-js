@@ -25,6 +25,7 @@ import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {NotificationUi} from './notification-ui';
 import {PaymentsView} from './payments-flow';
 import {setImportantStyles} from '../utils/style';
+import {debounce} from '../utils/rate-limit';
 
 /**
  * The pop-up element name to be used.
@@ -111,6 +112,14 @@ export class SubscriptionsUiFlow {
 
     /** @private {boolean} */
     this.activeViewInitialized_ = false;
+
+    /** @private {function} */
+    this.animateResizeOfferContainer_ = debounce(this.win_, () => {
+      setImportantStyles(this.offerContainer_, {
+        'transition': 'transform 300ms ease-out',
+        'transform': 'none',
+      });
+    }, 300);
   }
 
   /*
@@ -202,14 +211,35 @@ export class SubscriptionsUiFlow {
    * Resizes the current view based on the new height.
    * @param {!Element} view The current view.
    * @param {number} newHeight The new height of the element.
+   * @param {boolean} animate Animate the new height change or not.
    */
-  resizeView(view, newHeight) {
+  resizeView(view, newHeight, animate = true) {
     if (view != this.activeView_) {
       return;
     }
+    const oldHeight = view.getElement().offsetHeight;
+    const delta = newHeight - oldHeight;
+
+    if (delta == 0) {
+      return;
+    }
+
     setImportantStyles(view.getElement(), {
       'height': `${newHeight}px`,
     });
+
+    if (animate) {
+      // Adjust height and translate to show no difference in Y position.
+      // We dont want animation happening at this step.
+      setImportantStyles(this.offerContainer_, {
+        'transition': 'none',
+        'transform': `translateY(${delta}px)`,
+      });
+
+      // Call the debounced resize function, this avoids multiple resize animations
+      // in a very short span
+      this.animateResizeOfferContainer_();
+    }
   }
 
   /** @private */
