@@ -66,12 +66,11 @@ export function getAbbreviatedOffers(subscriptions) {
             <div class="swg-header" style="display: flex;">
             <span style="flex: 1;"></span>
               <div style="padding-top: 8px;">
-                  You can read
                   <span style="font-weight: 500;">
                     ${quotaLeft}
                   </span>
                   ${quotaLeft > 1 ? 'articles' : 'article'}
-                  for free this ${meteringResponse.quotaPeriod}!
+                  left for this ${meteringResponse.quotaPeriod}!
               </div>
               <span style="flex: 1;"></span>
             </div>
