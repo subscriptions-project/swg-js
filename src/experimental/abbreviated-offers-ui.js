@@ -56,7 +56,7 @@ export class AbbreviatedOffersUi {
     this.subscribeClicked_ = null;
 
     /** @private @const {function()} */
-    this.ref_ = this.resizeListener_.bind(this);
+    this.ref_ = this.boundResizeListener_.bind(this);
   }
 
   /**
@@ -150,7 +150,7 @@ export class AbbreviatedOffersUi {
    * @param {!Event} event
    * @private
    */
-  resizeListener_(event) {
+  boundResizeListener_(event) {
     const iframe = this.abbreviatedOffersElement_;
     const height = iframe.contentDocument.body.scrollHeight;
     this.context_.resizeView(this, height);
