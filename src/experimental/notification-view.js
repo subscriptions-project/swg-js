@@ -33,7 +33,7 @@ const CONTAINER_HEIGHT = 60;
 /**
  * The class for SwG notification view.
  */
-export class NotificationUi {
+export class NotificationView {
 
   constructor(win, response) {
 

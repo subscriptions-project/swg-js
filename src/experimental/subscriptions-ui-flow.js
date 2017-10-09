@@ -20,9 +20,9 @@ import {
   isSubscriber,
 } from './subscriptions-ui-util';
 import {OffersView} from './offers-view';
-import {LoadingUi} from './loading-ui';
+import {LoadingView} from './loading-view';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
-import {NotificationUi} from './notification-ui';
+import {NotificationView} from './notification-view';
 import {PaymentsView} from './payments-view';
 import {setImportantStyles} from '../utils/style';
 import {debounce} from '../utils/rate-limit';
@@ -68,7 +68,7 @@ export function buildSubscriptionsUi(win, response) {
   injectCssToWindow_();
 
   if (isSubscriber(response)) {
-    new NotificationUi(win, response).start();
+    new NotificationView(win, response).start();
   } else {
     new SubscriptionsUiFlow(win, response).start();
   }
@@ -108,8 +108,8 @@ export class SubscriptionsUiFlow {
     /** @private {?Element} */
     this.offerContainer_ = null;
 
-    /** @private {?LoadingUi} */
-    this.loadingUi_ = null;
+    /** @private {?LoadingView} */
+    this.loadingView_ = null;
 
     /** @private {?View} */
     this.activeView_ = null;
@@ -144,7 +144,7 @@ export class SubscriptionsUiFlow {
     this.show_();
 
     // Build the loading indicator.
-    this.loadingUi_ = new LoadingUi(this.win_, this.offerContainer_);
+    this.loadingView_ = new LoadingView(this.win_, this.offerContainer_);
 
     this.openView_(new OffersView(
         this.win_,
@@ -160,7 +160,7 @@ export class SubscriptionsUiFlow {
    * @private
    */
   openView_(view) {
-    this.loadingUi_.show();
+    this.loadingView_.show();
 
     if (this.activeView_) {
       this.offerContainer_.removeChild(this.activeView_.getElement());
@@ -175,7 +175,7 @@ export class SubscriptionsUiFlow {
     this.offerContainer_.appendChild(view.getElement());
     return view.init().then(() => {
       // TODO(dparikh): Transition necessary height and possible fade in content.
-      this.loadingUi_.hide();
+      this.loadingView_.hide();
       setImportantStyles(view.getElement(), {
         'visibility': 'visible',
         'opacity': 1,
@@ -183,7 +183,7 @@ export class SubscriptionsUiFlow {
 
       this.activeViewInitialized_ = true;
     }, error => {
-      this.loadingUi_.hide();
+      this.loadingView_.hide();
       throw error;
     });
   }
@@ -215,14 +215,14 @@ export class SubscriptionsUiFlow {
       return;
     }
     if (busy) {
-      this.loadingUi_.show();
+      this.loadingView_.show();
       if (this.activeView_) {
         setImportantStyles(this.activeView_.getElement(), {
           'opacity': 0.5,
         });
       }
     } else {
-      this.loadingUi_.hide();
+      this.loadingView_.hide();
       if (this.activeView_) {
         setImportantStyles(this.activeView_.getElement(), {
           'opacity': 1,

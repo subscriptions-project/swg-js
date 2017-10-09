@@ -53,7 +53,7 @@ export function assertNoPopups(doc, elementTagName) {
  * @param {!SubscriptionResponse} subscriptions The user subscription details.
  * @return {string}
  */
-export function getOffers(subscriptions) {
+export function renderOffers(subscriptions) {
   const meteringResponse = subscriptions.metering;
   const quotaLeft = meteringResponse.quotaLeft;
   const offers =
