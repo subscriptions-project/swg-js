@@ -23,7 +23,7 @@ import {AbbreviatedOffersUi} from './abbreviated-offers-ui';
 import {LoadingUi} from './loading-ui';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {NotificationUi} from './notification-ui';
-import {PaymentsView} from './payments-flow';
+import {PaymentsView} from './payments-view';
 import {setImportantStyles} from '../utils/style';
 import {debounce} from '../utils/rate-limit';
 
