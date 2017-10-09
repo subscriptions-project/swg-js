@@ -151,7 +151,6 @@ export class SubscriptionsUiFlow {
         this,
         this.offerContainer_,
         this.subscription_)
-        .onResizeIframe(this.addBottomPaddingToHtml_.bind(this))
         .onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
@@ -252,6 +251,9 @@ export class SubscriptionsUiFlow {
     setImportantStyles(view.getElement(), {
       'height': `${newHeight}px`,
     });
+
+    // Add padding at the bootom of the page.
+    this.addBottomPaddingToHtml_(newHeight);
 
     if (animate) {
       // Adjust height and translate to show no difference in Y position.

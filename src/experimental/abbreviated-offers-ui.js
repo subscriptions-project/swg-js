@@ -55,9 +55,6 @@ export class AbbreviatedOffersUi {
     /** @private {?function()} */
     this.subscribeClicked_ = null;
 
-    /** @private {?function(!Event)} */
-    this.iframeResized_ = null;
-
     /** @private @const {function()} */
     this.ref_ = this.resizeListener_.bind(this);
   }
@@ -68,17 +65,6 @@ export class AbbreviatedOffersUi {
    */
   onSubscribeClicked(callback) {
     this.subscribeClicked_ = callback;
-    return this;
-  }
-
-  /**
-   * Captures the initial iframe resize event to notify the parent container
-   * about the correct height of the iframe.
-   * @param {function()} callback
-   * @return {!AbbreviatedOffersUi}
-   */
-  onResizeIframe(callback) {
-    this.iframeResized_ = callback;
     return this;
   }
 
@@ -167,7 +153,6 @@ export class AbbreviatedOffersUi {
   resizeListener_(e) {
     const iframe = this.abbreviatedOffersElement_;
     const height = iframe.contentDocument.body.scrollHeight;
-    this.iframeResized_(height);
     this.context_.resizeView(this, height);
     e.currentTarget.removeEventListener(e.type, this.ref_);
   }
