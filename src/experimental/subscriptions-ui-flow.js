@@ -26,6 +26,7 @@ import {NotificationUi} from './notification-ui';
 import {PaymentsView} from './payments-flow';
 import {setImportantStyles} from '../utils/style';
 import {debounce} from '../utils/rate-limit';
+import {onTransitionEnd} from '../utils/animation';
 
 /**
  * The pop-up element name to be used.
@@ -33,13 +34,17 @@ import {debounce} from '../utils/rate-limit';
  */
 const POPUP_TAG = 'swg-popup';
 
-
 /**
  * The default height of the pop-up.
  * @const {number}
  */
 const CONTAINER_HEIGHT = 50;
 
+/**
+ * The animation defination for resizing.
+ * @const {string}
+ */
+const RESIZE_ANIMATION = 'transform 300ms ease-out';
 
 /**
  * Builds offers container, including headers and footer. It builds an
@@ -114,12 +119,21 @@ export class SubscriptionsUiFlow {
     this.activeViewInitialized_ = false;
 
     /** @private {function} */
-    this.animateResizeOfferContainer_ = debounce(this.win_, () => {
-      setImportantStyles(this.offerContainer_, {
-        'transition': 'transform 300ms ease-out',
-        'transform': 'none',
-      });
-    }, 300);
+    this.offerContainerExpandAnimation_ = debounce(this.win_,
+        (oldHeight, newHeight) => {
+          const delta = newHeight - oldHeight;
+          let transformString = '';
+          if (newHeight > oldHeight) {
+            transformString = 'none';
+          } else {
+            transformString = `translateY(${Math.abs(delta)}px)`;
+          }
+
+          setImportantStyles(this.offerContainer_, {
+            'transition': `${RESIZE_ANIMATION}`,
+            'transform': `${transformString}`,
+          });
+        }, 300);
   }
 
   /*
@@ -224,21 +238,43 @@ export class SubscriptionsUiFlow {
       return;
     }
 
-    setImportantStyles(view.getElement(), {
-      'height': `${newHeight}px`,
-    });
-
     if (animate) {
-      // Adjust height and translate to show no difference in Y position.
-      // We dont want animation happening at this step.
-      setImportantStyles(this.offerContainer_, {
-        'transition': 'none',
-        'transform': `translateY(${delta}px)`,
+      if (newHeight > oldHeight) {
+        setImportantStyles(view.getElement(), {
+          'height': `${newHeight}px`,
+        });
+
+        // Adjust height and translate to show no difference in Y position.
+        // We dont want animation happening at this step.
+        setImportantStyles(this.offerContainer_, {
+          'transition': 'none',
+          'transform': `translateY(${delta}px)`,
+        });
+
+        // Call the debounced resize function, this avoids multiple resize animations
+        // in a very short span
+        this.offerContainerExpandAnimation_(oldHeight, newHeight);
+      } else {
+
+        // First animate to scroll this down and then shrink the height
+        this.offerContainerExpandAnimation_(oldHeight, newHeight);
+
+        onTransitionEnd(this.offerContainer_, () => {
+          setImportantStyles(view.getElement(), {
+            'height': `${newHeight}px`,
+          });
+
+          setImportantStyles(this.offerContainer_, {
+            'transition': 'none',
+            'transform': 'none',
+          });
+        }, true);
+      }
+    } else {
+      setImportantStyles(view.getElement(), {
+        'height': `${newHeight}px`,
       });
 
-      // Call the debounced resize function, this avoids multiple resize animations
-      // in a very short span
-      this.animateResizeOfferContainer_();
     }
   }
 

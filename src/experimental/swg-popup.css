@@ -129,6 +129,7 @@ swg-popup {
   box-sizing: border-box !important;
   overflow: hidden !important;
   animation: swg-expand 1.0s !important;
+  will-change: transform;
 }
 
 swg-popup .swg-close-action {
