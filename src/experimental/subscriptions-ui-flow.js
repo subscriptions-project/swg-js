@@ -19,7 +19,7 @@ import {
   assertNoPopups,
   isSubscriber,
 } from './subscriptions-ui-util';
-import {OffersUi} from './offers-ui';
+import {OffersView} from './offers-view';
 import {LoadingUi} from './loading-ui';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {NotificationUi} from './notification-ui';
@@ -146,7 +146,7 @@ export class SubscriptionsUiFlow {
     // Build the loading indicator.
     this.loadingUi_ = new LoadingUi(this.win_, this.offerContainer_);
 
-    this.openView_(new OffersUi(
+    this.openView_(new OffersView(
         this.win_,
         this,
         this.offerContainer_,

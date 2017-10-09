@@ -24,7 +24,7 @@ import {setImportantStyles} from '../utils/style';
  * element. Checks the state of <swg-popup> element to ensure that the no other
  * element exists. Hides the loading indicator once rendered.
  */
-export class OffersUi {
+export class OffersView {
 
   /**
    * @param {!Window} win The parent window object.
