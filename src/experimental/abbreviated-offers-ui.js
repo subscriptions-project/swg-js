@@ -150,10 +150,10 @@ export class AbbreviatedOffersUi {
    * @param {!Event} event
    * @private
    */
-  resizeListener_(e) {
+  resizeListener_(event) {
     const iframe = this.abbreviatedOffersElement_;
     const height = iframe.contentDocument.body.scrollHeight;
     this.context_.resizeView(this, height);
-    e.currentTarget.removeEventListener(e.type, this.ref_);
+    event.currentTarget.removeEventListener(event.type, this.ref_);
   }
  }
