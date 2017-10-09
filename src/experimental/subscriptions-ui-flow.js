@@ -224,7 +224,7 @@ export class SubscriptionsUiFlow {
   activatePay_(selectedOfferIndex) {
     let paymentRequestBlob =
         this.subscription_['offer'][selectedOfferIndex]['paymentRequest'];
-    this.openView_(new PaymentsView(this.win_, this, paymentRequestBlob, this.markup_)
+    this.openView_(new PaymentsView(this.win_, this, paymentRequestBlob)
         .onComplete(this.paymentComplete_.bind(this)));
   }
 
