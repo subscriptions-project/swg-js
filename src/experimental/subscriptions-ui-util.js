@@ -56,6 +56,7 @@ export function assertNoPopups(doc, elementTagName) {
 export function renderOffers(subscriptions) {
   const meteringResponse = subscriptions.metering;
   const quotaLeft = meteringResponse.quotaLeft;
+  const maxQuota = meteringResponse.maxQuota;
   const offers =
     `
       <html>
@@ -66,12 +67,8 @@ export function renderOffers(subscriptions) {
             <div class="swg-header" style="display: flex;">
             <span style="flex: 1;"></span>
               <div style="padding-top: 8px;">
-                  You can read
-                  <span style="font-weight: 500;">
-                    ${quotaLeft}
-                  </span>
-                  ${quotaLeft > 1 ? 'articles' : 'article'}
-                  for free this ${meteringResponse.quotaPeriod}!
+                ${getQuotaMessage(quotaLeft, maxQuota,
+                    meteringResponse.quotaPeriod)}
               </div>
               <span style="flex: 1;"></span>
             </div>
@@ -84,6 +81,18 @@ export function renderOffers(subscriptions) {
       </html>
     `;
   return offers;
+}
+
+/**
+ * Get quota message based on quota left
+ * @private
+ */
+function getQuotaMessage(quotaLeft, maxQuota, quotaPeriod) {
+  return quotaLeft == maxQuota
+	? `You can read <span style="font-weight: 500;">${quotaLeft}</span>
+			${quotaLeft > 1 ? 'articles' : 'article'} free this ${quotaPeriod}!`
+	: `<span style="font-weight: 500;">${quotaLeft} </span>
+			${quotaLeft > 1 ? 'articles' : 'article'} left for this ${quotaPeriod}!`;
 }
 
 /**
