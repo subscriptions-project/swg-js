@@ -25,11 +25,18 @@ import {setImportantStyles} from './style';
  * @return {!Promise} Promise which resolves once the animation is done playing.
  */
 export function transition(el, props, durationMillis, curve) {
+  const previousTransitionValue = el.style.transition || '';
   return new Promise(resolve => {
     setTimeout(resolve, durationMillis);
     setImportantStyles(el, Object.assign({
       'transition': `transform ${durationMillis}ms ${curve}`,
     }, props));
+  }).then(() => {
+    requestAnimationFrame(() => {
+      setImportantStyles(el, {
+        'transition': previousTransitionValue,
+      });
+    });
   });
 }
 
