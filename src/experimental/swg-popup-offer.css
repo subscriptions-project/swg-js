@@ -39,6 +39,7 @@ body {
 }
 
 .swg-content {
+  background-color: #fff;
   box-sizing: border-box;
   padding: 5px;
   min-height: 116px;
@@ -46,18 +47,43 @@ body {
 }
 
 .swg-offer-item {
-  padding: 10px;
+  background-color: #fff;
+  margin-bottom: 6px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  height: 32px;
+  padding: 10px 0 0 15px;
+  cursor: pointer;
+  font-size: 14px;
+  outline: none;
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, .1);;
 }
 
-.swg-offer-item label {
-  width: 100%;
-  display: inline-block;
+.swg-offer-item:focus,
+.swg-offer-item:hover {
+  background-color: #eee;
 }
 
-.swg-offer-item:hover,
-.swg-offer-item input:hover,
-.swg-offer-item input:focus {
-  border: 1px solid #eee;
+.swg-offer-item.checked {
+  background-color: #4285f4;
+  font-size: 15px;
+  color: #fff;
+}
+
+.swg-offer-item:before {
+  content: '';
+  white-space: nowrap;
+  padding-right: 20px;
+}
+
+.swg-offer-item.checked:before {
+  content: '\2713';
+  white-space: nowrap;
+  padding-right: 5px;
+}
+
+.swg-offer-item span {
+  pointer-events: none;
 }
 
 .swg-h-spacer {

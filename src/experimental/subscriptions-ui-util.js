@@ -23,6 +23,13 @@ import {CSS as OFFERS_CSS} from
  */
 export const MAX_Z_INDEX = 2147483647;
 
+/** @const {string} */
+export const SWG_OFFER_CONTENT_TAG = 'swg-content';
+
+/** @const {string} */
+export const SWG_OFFER_ITEM = 'swg-offer-item';
+
+
 /**
  * Checks if current user is subscriber. It does not check the healthy status.
  * @param {!SubscriptionResponse} subscriptionResponse The API response.
@@ -117,22 +124,15 @@ function getContent_(subscriptions) {
   const offers = subscriptions.offer;
   let offerContent = '';
   for (let i = 0; i < offers.length; i++) {
-    const pay = offers[i].paymentRequest;
+    const checked = `${(i == 0) ? 'checked' : ''}`;
     offerContent += `
-        <div class="swg-offer-item">
-          <label>
-            <input
-              type="radio"
-              name="offer"
-              value="${pay}"
-              ${(i == 0) ? 'checked' : ''}
-              data-offer-index="${i}">
-            <span>${offers[i].displayString}</span>
-          </label>
+        <div class="${SWG_OFFER_ITEM} ${checked}" data-offer-index="${i}" tabindex="1">
+          <span>${offers[i].displayString}</span>
         </div>
     `;
   }
-  return `<div class="swg-content" id="swg-content">${offerContent}</div>`;
+  return `<div class="${SWG_OFFER_CONTENT_TAG}" id="${SWG_OFFER_CONTENT_TAG}"
+      >${offerContent}</div>`;
 }
 
 /**

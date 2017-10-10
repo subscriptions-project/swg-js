@@ -15,7 +15,11 @@
  */
 
 
-import {renderOffers} from './subscriptions-ui-util';
+import {
+  renderOffers,
+  SWG_OFFER_ITEM,
+  SWG_OFFER_CONTENT_TAG,
+} from './subscriptions-ui-util';
 import {setImportantStyles} from '../utils/style';
 
 
@@ -57,6 +61,9 @@ export class OffersView {
 
     /** @private @const {function()} */
     this.ref_ = this.boundResizeListener_.bind(this);
+
+    /** @private {number} */
+    this.selectedOfferIndex_ = null;
   }
 
   /**
@@ -80,8 +87,13 @@ export class OffersView {
    * @return {!Promise}
    */
   init() {
-    return this.buildOffers_(this.subscriptions)
-        .then(() => this.show());
+    const subscriptions = this.subscriptions_;
+    if (!subscriptions.offer || subscriptions.offer.length == 0) {
+      throw new Error('No offers available!');
+    }
+    return this.buildOffers_(subscriptions)
+        .then(this.boundOfferSelection_.bind(this))
+        .then(this.show.bind(this));
   }
 
   /*
@@ -124,9 +136,7 @@ export class OffersView {
           'swg-button');
 
       subscribeButton.onclick = () => {
-        const el = iframe.contentDocument
-            .querySelector('input[name="offer"][checked]');
-        this.subscribeClicked_(el.dataset.offerIndex);
+        this.subscribeClicked_(this.selectedOfferIndex_);
       };
 
       setImportantStyles(iframe, {
@@ -142,6 +152,74 @@ export class OffersView {
       // After reading the iframe height, this event listener is removed.
       iframe.contentWindow.addEventListener('resize', this.ref_);
     });
+  }
+
+  /**
+   * Binds the selection event to the offers.
+   * @private
+   */
+  boundOfferSelection_() {
+    this.setSelectedOfferIndex_();
+    const iframe = this.offersElement_;
+    const offerItems =
+        iframe.contentDocument.querySelectorAll(`.${SWG_OFFER_ITEM}`);
+    offerItems.forEach(offerItem => offerItem
+        .addEventListener('click', this.offerSelectionTrigger_.bind(this)));
+
+    offerItems.forEach(offerItem => offerItem
+        .addEventListener('keyup', this.offerSelectionTrigger_.bind(this)));
+    return this;
+  }
+
+  /**
+   * Sets the index of the selected offer for later use.
+   * Defaults to first offer.
+   * @param {?number} index The offer index (zero based).
+   */
+  setSelectedOfferIndex_(index = 0) {
+    // If user has clicked/Pressed Enter key on existing offer.
+    if (this.selectedOfferIndex_ == index) {
+      return;
+    }
+
+    const previousOfferIndex = this.selectedOfferIndex_;
+    this.selectedOfferIndex_ = index;
+
+    this.updateOfferSelection_(this.selectedOfferIndex_, previousOfferIndex);
+  }
+
+  /**
+   * Updates the offer selection in the UI by highlighting the new selection
+   * and removing the previous selection.
+   * @param {number} currentOfferIndex
+   * @param {?number} previousOfferIndex
+   * @private
+   */
+  updateOfferSelection_(currentOfferIndex, previousOfferIndex) {
+    const iframe = this.offersElement_;
+    const offerContainer = iframe.contentDocument
+        .querySelector(`#${SWG_OFFER_CONTENT_TAG}`);
+    offerContainer.children[currentOfferIndex].classList.add('checked');
+    if (previousOfferIndex != undefined) {
+      offerContainer.children[previousOfferIndex].classList.remove('checked');
+    }
+  }
+
+  /**
+   * Selects the new offer, either by mouse click or by focusing the new
+   * offer and pressing the Enter key.
+   * @param {!Event} event The event object.
+   * @private
+   */
+  offerSelectionTrigger_(event) {
+    if (!event.target.dataset.offerIndex) {
+      throw new Error('No offers selected!');
+    }
+    // TODO(dparikh): Define constants for keyCode(s).
+    if (event.keyCode == 13 || event.type == 'click') {
+      const index = event.target.dataset.offerIndex;
+      this.setSelectedOfferIndex_(index);
+    }
   }
 
   /**
