@@ -98,10 +98,10 @@ export function renderOffers(subscriptions) {
  */
 function getQuotaMessage(quotaLeft, maxQuota, quotaPeriod) {
   return quotaLeft == maxQuota
-	? `You can read <span style="font-weight: 500;">${quotaLeft}</span>
-			${quotaLeft > 1 ? 'articles' : 'article'} free this ${quotaPeriod}!`
-	: `<span style="font-weight: 500;">${quotaLeft} </span>
-			${quotaLeft > 1 ? 'articles' : 'article'} left for this ${quotaPeriod}!`;
+  ? `You can read <span style="font-weight: 500;">${quotaLeft}</span>
+      ${quotaLeft > 1 ? 'articles' : 'article'} free this ${quotaPeriod}!`
+  : `<span style="font-weight: 500;">${quotaLeft} </span>
+      ${quotaLeft > 1 ? 'articles' : 'article'} left for this ${quotaPeriod}!`;
 }
 
 /**
