@@ -21,7 +21,7 @@ const app = module.exports = require('express').Router();
  * Default test response.
  * @const {string}
  */
-const DEFAULT_RESPONSE = 'metered-avail-response';
+const DEFAULT_RESPONSE = 'metered-full-response';
 
 /**
  * Availabe test responses.
@@ -29,7 +29,7 @@ const DEFAULT_RESPONSE = 'metered-avail-response';
  */
 const RESPONSES = new Set([
   DEFAULT_RESPONSE,
-  'metered-full-response',
+  'metered-avail-response',
   'subscriber-issue-response',
   'subscriber-response',
   'unsigned-response',
