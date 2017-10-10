@@ -231,7 +231,12 @@ export class SubscriptionsUiFlow {
     }
   }
 
-  /** @private */
+  /**
+   * @private
+   * @param {!Element} view The current view.
+   * @param {number} newHeight The new height of the element.
+   * @param {boolean} animate Animate the new height change or not.
+   **/
   resizeView_(view, newHeight, animate = true) {
     if (view != this.activeView_) {
       return;
@@ -244,7 +249,7 @@ export class SubscriptionsUiFlow {
     }
 
     if (animate) {
-      if (newHeight > oldHeight) {
+      if (delta > 0) {
         this.setBottomSheetHeight_(view.getElement(), newHeight);
 
         // Adjust height and translate to show no difference in Y position.
@@ -255,7 +260,11 @@ export class SubscriptionsUiFlow {
         });
 
         requestAnimationFrame(() => {
-          this.animateViewToTransform_('none');
+          this.animateViewToTransform_('none').then(() => {
+            setImportantStyles(this.offerContainer_, {
+              'transition': 'none',
+            });
+          });
         });
       } else {
 
@@ -275,14 +284,21 @@ export class SubscriptionsUiFlow {
     }
   }
 
-  /** @private */
+  /**
+   * @private
+   * @param {string} finalTransform Value of final transform property
+   **/
   animateViewToTransform_(finalTransform) {
     return transition(this.offerContainer_, {
       'transform': `${finalTransform}`,
     }, 600, 'ease-out');
   }
 
-  /** @private */
+  /**
+   * @private
+   * @param {!Element} view View of which height is to be set
+   * @param {!number} height New height of the view
+   **/
   setBottomSheetHeight_(view, height) {
     setImportantStyles(view, {
       'height': `${height}px`,

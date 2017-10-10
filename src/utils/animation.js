@@ -17,19 +17,18 @@
 import {setImportantStyles} from './style';
 
 /**
- * Returns the ECMA [[Class]] of a value
- * @param {HtmlElement} el - Element to be observed
- * @param {jsonObject} props - properties to be animated
- * @param {number} duration - duration of animation
- * @param {string} curve - transition function for the animation
- * @return {promise} Promise which resolves once the animation is done playing.
+ * Returns a promise which is resolved after the given duration of animation
+ * @param {!Element} el - Element to be observed.
+ * @param {JsonObject} props - properties to be animated.
+ * @param {number} durationMillis - duration of animation.
+ * @param {string} curve - transition function for the animation.
+ * @return {!Promise} Promise which resolves once the animation is done playing.
  */
-
-export function transition(el, props, duration, curve) {
+export function transition(el, props, durationMillis, curve) {
   return new Promise(resolve => {
-    setTimeout(() => {resolve();}, duration);
+    setTimeout(resolve, durationMillis);
     setImportantStyles(el, Object.assign({
-      'transition': `transform ${duration}ms ${curve}`,
+      'transition': `transform ${durationMillis}ms ${curve}`,
     }, props));
   });
 }
