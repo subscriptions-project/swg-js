@@ -58,19 +58,19 @@ export class Auth {
    * @return {!Promise<string>}
    */
   start() {
-    // TODO: Add a timeout so this doesn't wait forever to show offers.
+    // TODO(avimehta, #21): Add a timeout so this doesn't wait forever to show offers.
     return this.getPaywallConfig_()
       .then(config => this.sendAuthRequests_(config))
       .then(authResponse => {
         if (!authResponse) {
           throw new Error('Auth response not found.');
         }
-        // TODO(avimehta): Figure out how to handle more than one responses.
+        // TODO(avimehta, #21): Figure out how to handle more than one responses.
         return authResponse[0];
       })
       .then(json => {
         // Updating metering info
-        // TODO(avimehta): Remove this once server side metering is in place.
+        // TODO(avimehta, #21): Remove this once server side metering is in place.
         json.metering = updateMeteringResponse(
             this.win.location.href, json.metering);
         return json;
@@ -98,7 +98,7 @@ export class Auth {
       return Promise.resolve(this.config_);
     }
 
-    // TODO: Config not found. Handle error.
+    // TODO(avimehta, #21): Config not found. Handle error.
     return Promise.resolve();
   }
 
@@ -123,7 +123,7 @@ export class Auth {
       return Promise.resolve();
     }
 
-    // TODO Move XHR utils to a separate class.
+    // TODO(avimehta, #21): Move XHR utils to a separate class.
     const services = profiles[this.accessType_]['services'];
     let authPromises = [];
     for (let i = 0; i < services.length; i++) {

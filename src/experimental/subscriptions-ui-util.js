@@ -29,9 +29,11 @@ export const MAX_Z_INDEX = 2147483647;
  * @return {boolean}
  */
 export function isSubscriber(subscriptionResponse) {
-  return subscriptionResponse['subscriber'] &&
+  // TODO(avimehta, #21): Remove the check for 'entitled' before launch.
+  return subscriptionResponse['entitled'] ||
+      (subscriptionResponse['subscriber'] &&
       subscriptionResponse['subscriber']['types'] &&
-      subscriptionResponse['subscriber']['types'].length > 0;
+      subscriptionResponse['subscriber']['types'].length > 0);
 }
 
  /**
