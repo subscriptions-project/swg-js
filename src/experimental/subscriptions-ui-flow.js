@@ -285,7 +285,7 @@ export class SubscriptionsUiFlow {
    */
   animateViewToTransform_(finalTransform) {
     return transition(this.offerContainer_, {
-      'transform': `${finalTransform}`,
+      'transform': finalTransform,
     }, 300, 'ease-out');
   }
 

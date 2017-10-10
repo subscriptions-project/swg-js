@@ -19,7 +19,7 @@ import {setImportantStyles} from './style';
 /**
  * Returns a promise which is resolved after the given duration of animation
  * @param {!Element} el - Element to be observed.
- * @param {JsonObject} props - properties to be animated.
+ * @param {!JsonObject} props - properties to be animated.
  * @param {number} durationMillis - duration of animation.
  * @param {string} curve - transition function for the animation.
  * @return {!Promise} Promise which resolves once the animation is done playing.
