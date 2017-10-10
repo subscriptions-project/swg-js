@@ -88,28 +88,11 @@ export function getAbbreviatedOffers(subscriptions) {
  * @private
  */
 function getQuotaMessage(quotaLeft, maxQuota, quotaPeriod) {
-  let quotaMessage = '';
-  if (quotaLeft == maxQuota) {
-    quotaMessage =
-      `
-        You can read
-        <span style="font-weight: 500;">
-          ${quotaLeft}
-        </span>
-        ${quotaLeft > 1 ? 'articles' : 'article'}
-        for free this ${quotaPeriod}!
-      `;
-  } else {
-    quotaMessage =
-      `
-        <span style="font-weight: 500;">
-          ${quotaLeft}
-        </span>
-        ${quotaLeft > 1 ? 'articles' : 'article'}
-        left for this ${quotaPeriod}!
-      `;
-  }
-  return quotaMessage;
+  return quotaLeft == maxQuota
+	? `You can read <span style="font-weight: 500;">${quotaLeft}</span>
+			${quotaLeft > 1 ? 'articles' : 'article'} free this ${quotaPeriod}!`
+	: `<span style="font-weight: 500;">${quotaLeft} </span>
+			${quotaLeft > 1 ? 'articles' : 'article'} left for this ${quotaPeriod}!`;
 }
 
 /**
