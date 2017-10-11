@@ -117,10 +117,10 @@ export class SubscriptionsUiFlow {
     this.activeViewInitialized_ = false;
 
     /**
-     * @private
+     * Animates the resizing of view with additional debounce.
      * @param {!Element} view The current view.
      * @param {number} newHeight The new height of the element.
-     * Resizes bottom sheet with animation.
+     * @private
      */
     this.animateResizeView_ =
         debounce(this.win_, this.animateResizeView_.bind(this), 300);
@@ -233,10 +233,11 @@ export class SubscriptionsUiFlow {
   }
 
   /**
-   * @private
+   * Resizes the view to the given height.
    * @param {!Element} view The current view.
    * @param {number} newHeight The new height of the element.
-   * @param {boolean} animate Animate the new height change or not.
+   * @param {boolean=} animate Animate the new height change or not.
+   * @private
    */
   resizeView(view, newHeight, animate = true) {
     if (view != this.activeView_) {
@@ -251,10 +252,10 @@ export class SubscriptionsUiFlow {
   }
 
   /**
-   * Animates the resizing of view
-   * @private
+   * Animates the resizing of view.
    * @param {!Element} view The current view.
    * @param {number} newHeight The new height of the element.
+   * @private
    */
   animateResizeView_(view, newHeight) {
     const oldHeight = view.getElement().offsetHeight;
