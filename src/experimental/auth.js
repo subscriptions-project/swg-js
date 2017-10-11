@@ -55,7 +55,7 @@ export class Auth {
    * response, it then either navigates to an authorized page or returns a
    * string that can be passed to payments flow for purchase.
    *
-   * @return {!Promise<string>}
+   * @return {!Promise<!SubscriptionResponse>}
    */
   start() {
     // TODO(avimehta, #21): Add a timeout so this doesn't wait forever to show offers.

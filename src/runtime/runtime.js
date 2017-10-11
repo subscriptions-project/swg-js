@@ -121,7 +121,8 @@ export class Runtime {
         'Subscription flow can only be started once.');
     log('Starting subscription flow');
     this.subscriptionsFlow_ = this.auth_.start()
-        .then(response => buildSubscriptionsUi(this.win, response));
+        .then(response => buildSubscriptionsUi(this.win, this.markup_,
+            response));
     return this.subscriptionsFlow_;
   }
 
