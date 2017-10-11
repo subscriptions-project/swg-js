@@ -19,8 +19,8 @@ import {map} from '../utils/object';
 
 /**
  * Returns the number of reads left for the user.
- * @param {string} link of the current article.
- * @param {JsonObject} metering response.
+ * @param {string} articleLink of the current article.
+ * @param {JsonObject} meteringResponse response.
  * @return {number}
  */
 export function updateMeteringResponse(articleLink, meteringResponse) {
@@ -67,7 +67,7 @@ function getArticlesReadArray_() {
 /**
  * Sets the array in session storage
  * after stringifying.
- * @param {array} links of articles read by the user.
+ * @param {Array<string>} readArticlesArray of articles read by the user.
  * @private
  */
 function setArticlesArray_(readArticlesArray) {

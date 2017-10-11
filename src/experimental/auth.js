@@ -27,7 +27,7 @@ export class Auth {
   /**
    * Creates a new Auth object.
    * @param  {!Window} win
-   * @param  {!SubscriptionMarkup} markup
+   * @param  {!../runtime/subscription-markup.SubscriptionMarkup} markup
    */
   constructor(win, markup) {
 
