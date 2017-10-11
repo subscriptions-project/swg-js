@@ -97,16 +97,16 @@ body {
 
 .swg-continue-button, .swg-button {
   order: 2;
-  background-color: #fff;
+  background-color: #4285f4;
   color: #757575;
-  border-radius: 1px;
+  border-radius: 5px;
   box-shadow: 0 2px 4px 0 rgba(0,0,0,.25);
   border: 1px solid #ddd;
   background-image: none;
   white-space: nowrap;
   display: flex;
   flex-direction: row;
-  padding: 8px;
+  padding: 6px 10px;
   font-family: 'Roboto', sans-serif;
 }
 
@@ -119,6 +119,8 @@ body {
 .swg-label {
   margin: 1px 0 0 8px;
   font-size: 14px;
+  color: #fff;
+  text-transform: uppercase;
 }
 
 /**
