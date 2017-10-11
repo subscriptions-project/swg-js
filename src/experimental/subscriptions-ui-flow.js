@@ -20,8 +20,6 @@ import {
   isSubscriber,
 } from './subscriptions-ui-util';
 import {AbbreviatedView} from './abbreviated-view';
-import {OffersView} from './offers-view';
-import {LoadingView} from './loading-view';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {debounce} from '../utils/rate-limit';
 import {EntitledState} from '../runtime/subscription-markup';
