@@ -18,11 +18,11 @@
 import {
   assertNoPopups,
   isSubscriber,
+  SWG_OFFER_CONTENT_CLASS,
 } from './subscriptions-ui-util';
 import {AbbreviatedView} from './abbreviated-view';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {debounce} from '../utils/rate-limit';
-import {EntitledState} from '../runtime/subscription-markup';
 import {LoadingView} from './loading-view';
 import {NotificationView} from './notification-view';
 import {OffersView} from './offers-view';
@@ -43,6 +43,12 @@ const POPUP_TAG = 'swg-popup';
 const CONTAINER_HEIGHT = 50;
 
 /**
+ * The opacity value for the container, while subscription flow is in progress.
+ * @const {number}
+ */
+const CONTAINER_FADE_VALUE = .5;
+
+/**
  * Builds offers container, including headers and footer. It builds an
  * element <swg-payflow> at the end of the <body> of the containing document.
  * The offer container within the element is built from the offers API response.
@@ -55,7 +61,6 @@ const CONTAINER_HEIGHT = 50;
  * @param {!Window} win The main containing window object.
  * @param {!../runtime/subscription-markup.SubscriptionMarkup} markup
  * @param {!SubscriptionResponse} response
- * @return {!Promise}
  */
 export function buildSubscriptionsUi(win, markup, response) {
 
@@ -141,6 +146,7 @@ export class SubscriptionsUiFlow {
     setImportantStyles(this.offerContainer_, {
       'min-height': `${CONTAINER_HEIGHT}px`,
       'display': 'none',
+      'opacity': 1,
     });
     this.document_.body.appendChild(this.offerContainer_);
 
@@ -153,7 +159,8 @@ export class SubscriptionsUiFlow {
         this.win_,
         this,
         this.offerContainer_,
-        this.subscription_).onSubscribeClicked(this.activateOffers_.bind(this)));
+        this.subscription_)
+        .onSubscribeClicked(this.activateOffers_.bind(this)));
   }
 
   /**
@@ -183,11 +190,42 @@ export class SubscriptionsUiFlow {
         'opacity': 1,
       });
 
+      // Fade the parent window's content until subscription flow finishes.
+      this.fadeTheParent_();
+
       this.activeViewInitialized_ = true;
     }, error => {
       this.loadingView_.hide();
       throw error;
     });
+  }
+
+  /**
+   * Fades the main page content when subscription offers view is rendered.
+   * The content will be reset on close of the subscription popup.
+   * @private
+   */
+  fadeTheParent_() {
+    // TODO(dparikh): See if we can read the existing opacity style or
+    // computedStyle for the body and reset it again to the same value.
+    // Any existing opacity value in the body overfides below settings,
+    // though it is unlikely that main content has opacity value < 1.
+    // Confirm and either provide implementation or remove this comment.
+    if (this.activeView_ instanceof OffersView) {
+      this.document_.querySelector(`body :not(${SWG_OFFER_CONTENT_CLASS})`)
+          .style.setProperty('opacity', CONTAINER_FADE_VALUE);
+    } else if (this.activeView_ instanceof AbbreviatedView) {
+      this.resetFadeParent_();
+    }
+  }
+
+  /**
+   * Resets the parent content's fade effect.
+   * @private
+   */
+  resetFadeParent_() {
+    this.document_.querySelector(`body :not(${SWG_OFFER_CONTENT_CLASS})`)
+        .style.removeProperty('opacity');
   }
 
   /**
@@ -325,6 +363,8 @@ export class SubscriptionsUiFlow {
 
     // Remove the swg-popup element.
     this.offerContainer_.parentNode.removeChild(this.offerContainer_);
+
+    this.resetFadeParent_();
   }
 
   /**
@@ -354,8 +394,8 @@ export class SubscriptionsUiFlow {
     // TODO(avimehta, #21): Restart authorization again, instead of redirect here.
     // (btw, it's fine if authorization restart does redirect itself when
     // needed)
-    this.win_.location = `${document.location.origin}` +
-        `${document.location.pathname}?test_response=subscriber-response`;
+    this.win_.location = `${this.document_.location.origin}` +
+        `${this.document_.location.pathname}?test_response=subscriber-response`;
   }
 
   /**
