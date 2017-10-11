@@ -24,10 +24,10 @@ import {CSS as OFFERS_CSS} from
 export const MAX_Z_INDEX = 2147483647;
 
 /** @const {string} */
-export const SWG_OFFER_CONTENT_TAG = 'swg-content';
+export const SWG_OFFER_CONTENT_CLASS = 'swg-content';
 
 /** @const {string} */
-export const SWG_OFFER_ITEM = 'swg-offer-item';
+export const SWG_OFFER_ITEM_CLASS = 'swg-offer-item';
 
 
 /**
@@ -63,9 +63,6 @@ export function assertNoPopups(doc, elementTagName) {
  * @return {string}
  */
 export function renderOffers(subscriptions) {
-  const meteringResponse = subscriptions.metering;
-  const quotaLeft = meteringResponse.quotaLeft;
-  const maxQuota = meteringResponse.maxQuota;
   const offers =
     `
       <html>
@@ -76,8 +73,6 @@ export function renderOffers(subscriptions) {
             <div class="swg-header" style="display: flex;">
             <span style="flex: 1;"></span>
               <div style="padding-top: 8px;">
-                ${getQuotaMessage(quotaLeft, maxQuota,
-                    meteringResponse.quotaPeriod)}
               </div>
               <span style="flex: 1;"></span>
             </div>
@@ -126,12 +121,12 @@ function getContent_(subscriptions) {
   for (let i = 0; i < offers.length; i++) {
     const checked = `${(i == 0) ? 'checked' : ''}`;
     offerContent += `
-        <div class="${SWG_OFFER_ITEM} ${checked}" data-offer-index="${i}" tabindex="1">
+        <div class="${SWG_OFFER_ITEM_CLASS} ${checked}" data-offer-index="${i}" tabindex="1">
           <span>${offers[i].displayString}</span>
         </div>
     `;
   }
-  return `<div class="${SWG_OFFER_CONTENT_TAG}" id="${SWG_OFFER_CONTENT_TAG}"
+  return `<div class="${SWG_OFFER_CONTENT_CLASS}" id="${SWG_OFFER_CONTENT_CLASS}"
       >${offerContent}</div>`;
 }
 
@@ -144,10 +139,8 @@ function getFooter_() {
     `
     <div class="swg-footer">
       <div class="swg-h-spacer"></div>
-      <span class="swg-sign-in">Sign in</span>
       <button class="swg-button" id="swg-button">
-        <div class="swg-icon"></div>
-        <span class="swg-label">Subscribe with Google</span>
+        <span class="swg-label">Continue</span>
       </button>
     </div>
     `;

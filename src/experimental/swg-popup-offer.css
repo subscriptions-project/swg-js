@@ -107,7 +107,6 @@ body {
   display: flex;
   flex-direction: row;
   padding: 8px;
-  margin-right: 8px;
   font-family: 'Roboto', sans-serif;
 }
 

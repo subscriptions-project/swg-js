@@ -17,8 +17,8 @@
 
 import {
   renderOffers,
-  SWG_OFFER_ITEM,
-  SWG_OFFER_CONTENT_TAG,
+  SWG_OFFER_ITEM_CLASS,
+  SWG_OFFER_CONTENT_CLASS,
 } from './subscriptions-ui-util';
 import {setImportantStyles} from '../utils/style';
 
@@ -162,7 +162,7 @@ export class OffersView {
     this.setSelectedOfferIndex_();
     const iframe = this.offersElement_;
     const offerItems =
-        iframe.contentDocument.querySelectorAll(`.${SWG_OFFER_ITEM}`);
+        iframe.contentDocument.querySelectorAll(`.${SWG_OFFER_ITEM_CLASS}`);
     offerItems.forEach(offerItem => offerItem
         .addEventListener('click', this.offerSelectionTrigger_.bind(this)));
 
@@ -198,7 +198,7 @@ export class OffersView {
   updateOfferSelection_(currentOfferIndex, previousOfferIndex) {
     const iframe = this.offersElement_;
     const offerContainer = iframe.contentDocument
-        .querySelector(`#${SWG_OFFER_CONTENT_TAG}`);
+        .querySelector(`#${SWG_OFFER_CONTENT_CLASS}`);
     offerContainer.children[currentOfferIndex].classList.add('checked');
     if (previousOfferIndex != undefined) {
       offerContainer.children[previousOfferIndex].classList.remove('checked');
