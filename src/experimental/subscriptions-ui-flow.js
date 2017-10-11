@@ -119,12 +119,13 @@ export class SubscriptionsUiFlow {
     this.activeViewInitialized_ = false;
 
     /**
-     * Resizes the current view based on the new height.
+     * Animates the resizing of view with additional debounce.
      * @param {!Element} view The current view.
      * @param {number} newHeight The new height of the element.
-     * @param {boolean} animate Animate the new height change or not.
+     * @private
      */
-    this.resizeView = debounce(this.win_, this.resizeView_.bind(this), 300);
+    this.animateResizeView_ =
+        debounce(this.win_, this.animateResizeView_.bind(this), 300);
 
   }
 
@@ -233,15 +234,31 @@ export class SubscriptionsUiFlow {
   }
 
   /**
-   * @private
+   * Resizes the view to the given height.
    * @param {!Element} view The current view.
    * @param {number} newHeight The new height of the element.
-   * @param {boolean} animate Animate the new height change or not.
+   * @param {boolean=} animate Animate the new height change or not.
+   * @private
    */
-  resizeView_(view, newHeight, animate = true) {
+  resizeView(view, newHeight, animate = true) {
     if (view != this.activeView_) {
       return;
     }
+
+    if (animate) {
+      this.animateResizeView_(view, newHeight);
+    } else {
+      this.setBottomSheetHeight_(view.getElement(), newHeight);
+    }
+  }
+
+  /**
+   * Animates the resizing of view.
+   * @param {!Element} view The current view.
+   * @param {number} newHeight The new height of the element.
+   * @private
+   */
+  animateResizeView_(view, newHeight) {
     const oldHeight = view.getElement().offsetHeight;
     const delta = newHeight - oldHeight;
 
@@ -249,34 +266,30 @@ export class SubscriptionsUiFlow {
       return;
     }
 
-    if (animate) {
-      if (delta > 0) {
-        this.setBottomSheetHeight_(view.getElement(), newHeight);
-
-        // Adjust height and translate to show no difference in Y position.
-        // We dont want animation happening at this step.
-        setImportantStyles(this.offerContainer_, {
-          'transition': 'none',
-          'transform': `translateY(${delta}px)`,
-        });
-
-        requestAnimationFrame(() => {
-          this.animateViewToTransform_('none');
-        });
-      } else {
-
-        // First animate to scroll this down and then shrink the height
-        this.animateViewToTransform_(`translateY(${Math.abs(delta)}px)`)
-            .then(() => {
-              this.setBottomSheetHeight_(view.getElement(), newHeight);
-
-              setImportantStyles(this.offerContainer_, {
-                'transform': 'none',
-              });
-            });
-      }
-    } else {
+    if (delta > 0) {
       this.setBottomSheetHeight_(view.getElement(), newHeight);
+
+      // Adjust height and translate to show no difference in Y position.
+      // We dont want animation happening at this step.
+      setImportantStyles(this.offerContainer_, {
+        'transition': 'none',
+        'transform': `translateY(${delta}px)`,
+      });
+
+      requestAnimationFrame(() => {
+        this.animateViewToTransform_('none');
+      });
+    } else {
+
+      // First animate to scroll this down and then shrink the height
+      this.animateViewToTransform_(`translateY(${Math.abs(delta)}px)`)
+          .then(() => {
+            this.setBottomSheetHeight_(view.getElement(), newHeight);
+
+            setImportantStyles(this.offerContainer_, {
+              'transform': 'none',
+            });
+          });
     }
   }
 
