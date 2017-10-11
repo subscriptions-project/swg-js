@@ -122,7 +122,7 @@ export class SubscriptionsUiFlow {
      * @param {number} newHeight The new height of the element.
      * Resizes bottom sheet with animation.
      */
-    this.debouncedAnimateResizeView_ =
+    this.animateResizeView_ =
         debounce(this.win_, this.animateResizeView_.bind(this), 300);
 
   }
@@ -244,12 +244,18 @@ export class SubscriptionsUiFlow {
     }
 
     if (animate) {
-      this.debouncedAnimateResizeView_(view, newHeight);
+      this.animateResizeView_(view, newHeight);
     } else {
       this.setBottomSheetHeight_(view.getElement(), newHeight);
     }
   }
 
+  /**
+   * Animates the resizing of view
+   * @private
+   * @param {!Element} view The current view.
+   * @param {number} newHeight The new height of the element.
+   */
   animateResizeView_(view, newHeight) {
     const oldHeight = view.getElement().offsetHeight;
     const delta = newHeight - oldHeight;
