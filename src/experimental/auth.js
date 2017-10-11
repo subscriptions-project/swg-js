@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import {log} from '../utils/log';
-import {tryParseJson} from '../utils/json';
+import {EntitledState} from '../runtime/subscription-markup';
+import {isMeteredUser, isSubscriber} from './subscriptions-ui-util';
 import {isObject} from '../utils/types';
-import {updateMeteringResponse} from './user-metering.js';
+import {log} from '../utils/log';
+import {updateMeteringResponse} from './user-metering';
+import {tryParseJson} from '../utils/json';
 
 /**
  * Performs authorization to check if a user has access to a given article.
@@ -73,6 +75,11 @@ export class Auth {
         // TODO(avimehta, #21): Remove this once server side metering is in place.
         json.metering = updateMeteringResponse(
             this.win.location.href, json.metering);
+
+        if (isSubscriber(json) || isMeteredUser(json)) {
+          this.markup_.setEntitled(EntitledState.ENTITLED);
+        }
+
         return json;
       });
   }
