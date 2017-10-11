@@ -183,11 +183,11 @@ function getContent_(subscriptions) {
 function getAbbreviatedViewContent_() {
   const abbreviatedViewcontent =
     `
-      <div class="abbreviated-view">
+      <div class="swg-abbreviated-view">
         <div class="logo">
           <img height="50" src="./icons/icon-2x.png"/>
         </div>
-        <div class="abbreviated-view-description">
+        <div class="swg-abbreviated-view-description">
           <div class="heading">Award winning content.</div>
           <div class="sub-heading">Become subscriber now. Start free</div>
         </div>

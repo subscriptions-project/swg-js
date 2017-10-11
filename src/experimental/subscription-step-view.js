@@ -46,6 +46,9 @@ export class SubscriptionStepView {
 
     /** @private @const {function()} */
     this.ref_ = this.boundResizeListener_.bind(this);
+
+    /** @private @const {boolean} */
+    this.animateWhileResize_ = false;
   }
 
   /**
@@ -60,7 +63,7 @@ export class SubscriptionStepView {
    * @return {!Promise}
    */
   init() {
-    return this.buildView_().then(() => this.show());
+    return this.buildView().then(() => this.show());
   }
 
   /*
@@ -82,9 +85,9 @@ export class SubscriptionStepView {
    * Builds the  view element within the <swg-popup> element.
    * @param {string} Source doc for iframe.
    * @return {!Promise}
-   * @private
+   * @protected
    */
-  buildView_(sourceDoc) {
+  buildView(sourceDoc) {
     const iframe = this.viewElement_;
     iframe.srcdoc = sourceDoc;
     iframe.setAttribute('frameborder', 0);
@@ -118,7 +121,7 @@ export class SubscriptionStepView {
   boundResizeListener_(event) {
     const iframe = this.viewElement_;
     const height = iframe.contentDocument.body.scrollHeight;
-    this.context_.resizeView(this, height);
+    this.context_.resizeView(this, height, this.animateWhileResize_);
     event.currentTarget.removeEventListener(event.type, this.ref_);
   }
  }

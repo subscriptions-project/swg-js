@@ -22,6 +22,13 @@ import {SubscriptionStepView} from './subscription-step-view';
  * element.
  */
 export class AbbreviatedView extends SubscriptionStepView {
+
+  /**
+   * @param {!Window} win The parent window object.
+   * @param {!Element} context The Subscription container reference.
+   * @param {!Element} offerContainer The offer container element <swg-popup>.
+   * @param {!SubscriptionResponse} subscriptions The subscriptions object.
+   */
   constructor(win, context, offerContainer, subscriptions) {
     super(win, context, offerContainer);
 
@@ -46,11 +53,11 @@ export class AbbreviatedView extends SubscriptionStepView {
    * @return {!Promise}
    * @private
    */
-  buildView_() {
+  buildView() {
     const iframeSourceDoc = abbreviatedView(this.subscriptions_);
-    const buildPromise = super.buildView_(iframeSourceDoc);
+    const buildPromise = super.buildView(iframeSourceDoc);
 
-    // Add subscribe button listener
+    // Add subscribe button listener.
     return buildPromise.then(() => {
       const subscribeButton =
           this.viewElement_.contentDocument.getElementById('swg-button');
