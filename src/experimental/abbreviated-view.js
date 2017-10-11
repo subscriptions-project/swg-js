@@ -20,6 +20,9 @@ export class AbbreviatedView {
 
     /** @private @const {!Element} */
     this.abbreviatedViewElement_ = this.document_.createElement('iframe');
+
+    /** @private @const {function()} */
+    this.ref_ = this.boundResizeListener_.bind(this);
   }
 
   /**
@@ -91,7 +94,22 @@ export class AbbreviatedView {
         'width': '100%',
         'background-color': '#fff',
       });
+
+      iframe.contentWindow.addEventListener('resize', this.ref_);
     });
+  }
+
+  /**
+   * Listens for the iframe content resize to notify the parent container.
+   * The event listener is removed after reading the correct height.
+   * @param {!Event} event
+   * @private
+   */
+  boundResizeListener_(event) {
+    const iframe = this.abbreviatedViewElement_;
+    const height = iframe.contentDocument.body.scrollHeight;
+    this.context_.resizeView(this, height);
+    event.currentTarget.removeEventListener(event.type, this.ref_);
   }
 }
 

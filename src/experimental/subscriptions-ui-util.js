@@ -29,9 +29,11 @@ export const MAX_Z_INDEX = 2147483647;
  * @return {boolean}
  */
 export function isSubscriber(subscriptionResponse) {
-  return subscriptionResponse['subscriber'] &&
+  // TODO(avimehta, #21): Remove the check for 'entitled' before launch.
+  return subscriptionResponse['entitled'] ||
+      (subscriptionResponse['subscriber'] &&
       subscriptionResponse['subscriber']['types'] &&
-      subscriptionResponse['subscriber']['types'].length > 0;
+      subscriptionResponse['subscriber']['types'].length > 0);
 }
 
  /**
@@ -55,7 +57,6 @@ export function assertNoPopups(doc, elementTagName) {
  */
 export function renderOffers(subscriptions) {
   const meteringResponse = subscriptions.metering;
-  const quotaLeft = meteringResponse.quotaLeft;
   const offers =
     `
       <html>
@@ -66,12 +67,7 @@ export function renderOffers(subscriptions) {
             <div class="swg-header" style="display: flex;">
               <span style="flex: 1;"></span>
               <div style="padding-top: 8px;">
-                  You can read
-                  <span style="font-weight: 500;">
-                    ${quotaLeft}
-                  </span>
-                  ${quotaLeft > 1 ? 'articles' : 'article'}
-                  for free this ${meteringResponse.quotaPeriod}!
+                ${getQuotaMessage_(meteringResponse)}
               </div>
               <span style="flex: 1;"></span>
             </div>
@@ -93,7 +89,6 @@ export function renderOffers(subscriptions) {
  */
 export function abbreviatedView(subscriptions) {
   const meteringResponse = subscriptions.metering;
-  const quotaLeft = meteringResponse.quotaLeft;
   const abbreviatedView =
     `
       <html>
@@ -104,12 +99,7 @@ export function abbreviatedView(subscriptions) {
             <div class="swg-header" style="display: flex;">
               <span style="flex: 1;"></span>
               <div style="padding-top: 8px;">
-                You can read
-                <span style="font-weight: 500;">
-                  ${quotaLeft}
-                </span>
-                ${quotaLeft > 1 ? 'articles' : 'article'}
-                for free this ${meteringResponse.quotaPeriod}!
+                ${getQuotaMessage_(meteringResponse)}
               </div>
               <span style="flex: 1;"></span>
             </div>
@@ -122,6 +112,21 @@ export function abbreviatedView(subscriptions) {
       </html>
     `;
   return abbreviatedView;
+}
+
+/**
+ * Returns HTML for quota left message.
+ * @private
+ */
+function getQuotaMessage_(meteringResponse) {
+  const quotaLeft = meteringResponse.quotaLeft;
+  const maxQuota = meteringResponse.maxQuota;
+  const quotaPeriod = meteringResponse.quotaPeriod;
+  return quotaLeft == maxQuota
+  ? `You can read <span style="font-weight: 500;">${quotaLeft}</span>
+      ${quotaLeft > 1 ? 'articles' : 'article'} free this ${quotaPeriod}!`
+  : `<span style="font-weight: 500;">${quotaLeft} </span>
+      ${quotaLeft > 1 ? 'articles' : 'article'} left for this ${quotaPeriod}!`;
 }
 
 /**

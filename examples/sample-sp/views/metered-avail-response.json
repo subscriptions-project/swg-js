@@ -1,5 +1,5 @@
 {
-  "entitled": true,
+  "entitled": false,
   "metering": {
     "quotaLeft": 3,
     "quotaMax": 10,
