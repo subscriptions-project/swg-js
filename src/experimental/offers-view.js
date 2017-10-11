@@ -235,7 +235,7 @@ export class OffersView {
   /**
    * Listens for the iframe content resize to notify the parent container.
    * The event listener is removed after reading the correct height.
-   * @param {!Event} event
+   * @param {!Event=} event
    * @private
    */
   boundResizeListener_(event = null) {
