@@ -26,6 +26,7 @@ import {NotificationView} from './notification-view';
 import {PaymentsView} from './payments-view';
 import {setImportantStyles} from '../utils/style';
 import {debounce} from '../utils/rate-limit';
+import {transition} from '../utils/animation';
 
 /**
  * The pop-up element name to be used.
@@ -33,13 +34,11 @@ import {debounce} from '../utils/rate-limit';
  */
 const POPUP_TAG = 'swg-popup';
 
-
 /**
  * The default height of the pop-up.
  * @const {number}
  */
 const CONTAINER_HEIGHT = 50;
-
 
 /**
  * Builds offers container, including headers and footer. It builds an
@@ -117,13 +116,14 @@ export class SubscriptionsUiFlow {
     /** @private {boolean} */
     this.activeViewInitialized_ = false;
 
-    /** @private {function} */
-    this.animateResizeOfferContainer_ = debounce(this.win_, () => {
-      setImportantStyles(this.offerContainer_, {
-        'transition': 'transform 300ms ease-out',
-        'transform': 'none',
-      });
-    }, 300);
+    /**
+     * Resizes the current view based on the new height.
+     * @param {!Element} view The current view.
+     * @param {number} newHeight The new height of the element.
+     * @param {boolean} animate Animate the new height change or not.
+     */
+    this.resizeView = debounce(this.win_, this.resizeView_.bind(this), 300);
+
   }
 
   /*
@@ -232,12 +232,12 @@ export class SubscriptionsUiFlow {
   }
 
   /**
-   * Resizes the current view based on the new height.
+   * @private
    * @param {!Element} view The current view.
    * @param {number} newHeight The new height of the element.
    * @param {boolean} animate Animate the new height change or not.
    */
-  resizeView(view, newHeight, animate = true) {
+  resizeView_(view, newHeight, animate = true) {
     if (view != this.activeView_) {
       return;
     }
@@ -248,25 +248,59 @@ export class SubscriptionsUiFlow {
       return;
     }
 
-    setImportantStyles(view.getElement(), {
-      'height': `${newHeight}px`,
+    if (animate) {
+      if (delta > 0) {
+        this.setBottomSheetHeight_(view.getElement(), newHeight);
+
+        // Adjust height and translate to show no difference in Y position.
+        // We dont want animation happening at this step.
+        setImportantStyles(this.offerContainer_, {
+          'transition': 'none',
+          'transform': `translateY(${delta}px)`,
+        });
+
+        requestAnimationFrame(() => {
+          this.animateViewToTransform_('none');
+        });
+      } else {
+
+        // First animate to scroll this down and then shrink the height
+        this.animateViewToTransform_(`translateY(${Math.abs(delta)}px)`)
+            .then(() => {
+              this.setBottomSheetHeight_(view.getElement(), newHeight);
+
+              setImportantStyles(this.offerContainer_, {
+                'transform': 'none',
+              });
+            });
+      }
+    } else {
+      this.setBottomSheetHeight_(view.getElement(), newHeight);
+    }
+  }
+
+  /**
+   * @private
+   * @param {string} finalTransform Value of final transform property.
+   */
+  animateViewToTransform_(finalTransform) {
+    return transition(this.offerContainer_, {
+      'transform': finalTransform,
+    }, 300, 'ease-out');
+  }
+
+  /**
+   * @private
+   * @param {!Element} view View of which height is to be set.
+   * @param {!number} height New height of the view.
+   */
+  setBottomSheetHeight_(view, height) {
+    setImportantStyles(view, {
+      'height': `${height}px`,
     });
 
     // Add padding at the bootom of the page.
-    this.addBottomPaddingToHtml_(newHeight);
-
-    if (animate) {
-      // Adjust height and translate to show no difference in Y position.
-      // We dont want animation happening at this step.
-      setImportantStyles(this.offerContainer_, {
-        'transition': 'none',
-        'transform': `translateY(${delta}px)`,
-      });
-
-      // Call the debounced resize function, this avoids multiple resize animations
-      // in a very short span
-      this.animateResizeOfferContainer_();
-    }
+    this.addBottomPaddingToHtml_(height);
   }
 
   /** @private */
