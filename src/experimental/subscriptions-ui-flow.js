@@ -238,7 +238,7 @@ export class SubscriptionsUiFlow {
    * @param {!Element} view The current view.
    * @param {number} newHeight The new height of the element.
    * @param {boolean=} animate Animate the new height change or not.
-   * @private
+   * @return {!Promise<number>}
    */
   resizeView(view, newHeight, animate = true) {
     if (view != this.activeView_) {
@@ -250,6 +250,7 @@ export class SubscriptionsUiFlow {
     } else {
       this.setBottomSheetHeight_(view.getElement(), newHeight);
     }
+    return Promise.resolve(newHeight);
   }
 
   /**
