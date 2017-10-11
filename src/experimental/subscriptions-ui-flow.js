@@ -17,7 +17,7 @@
 
 import {
   assertNoPopups,
-  isEntitled,
+  isSubscriber,
 } from './subscriptions-ui-util';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {debounce} from '../utils/rate-limit';
@@ -67,8 +67,7 @@ export function buildSubscriptionsUi(win, markup, response) {
   // current view. (Currently, injects one CSS for everything).
   injectCssToWindow_();
 
-  if (isEntitled(response)) {
-    markup.setEntitled(EntitledState.ENTITLED);
+  if (isSubscriber(response)) {
     new NotificationView(win, response).start();
   } else {
     new SubscriptionsUiFlow(win, response).start();
