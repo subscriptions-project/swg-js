@@ -23,12 +23,51 @@ body {
 .swg-container {
   font-family: 'Roboto', sans-serif;
 }
+
 .swg-header,
 .swg-footer {
   flex: 1;
   background-color: #ececec;
   height: 28px;
   padding: 6px;
+}
+
+.swg-offers .swg-header {
+  padding: 0;
+  height: auto;
+  display: block;
+  background-color: transparent;
+}
+
+.swg-offers .swg-branding {
+  display: flex;
+  align-items: center;
+  background-color: #37dc8c;
+  color: #fff;
+}
+
+.swg-offers .swg-branding-header {
+  min-height: 45px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+}
+
+.swg-offers .swg-brand-name {
+  padding: 8px;
+  font-weight: 500;
+}
+
+.swg-offers .swg-logo {
+  margin: 5px 8px;
+}
+
+.swg-offers .swg-branding-description {
+  display: block;
+  padding: 8px;
+  font-weight: 300;
+  font-weight: 14px;
 }
 
 .swg-footer {
