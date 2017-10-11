@@ -231,7 +231,7 @@ export class OffersView {
   boundResizeListener_(event) {
     const iframe = this.offersElement_;
     const height = iframe.contentDocument.body.scrollHeight;
-    this.context_.resizeView(this, height, false);
+    this.context_.resizeView(this, height);
     event.currentTarget.removeEventListener(event.type, this.ref_);
   }
  }
