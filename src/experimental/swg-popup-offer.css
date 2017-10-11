@@ -110,7 +110,7 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
-.swg-continue-button{
+.swg-continue-button {
   background-color: #3F51B5;
   color: #fff;
   font-size: 14px;
@@ -135,16 +135,16 @@ body {
   flex: 1;
 }
 
-.swg-abbreviated-view .logo, .swg-abbreviated-view .swg-abbreviated-view-description {
+.swg-abbreviated-view .swg-logo, .swg-abbreviated-view .swg-abbreviated-view-description {
   padding: 8px;
 }
 
-.swg-abbreviated-view .heading {
+.swg-abbreviated-view .swg-heading {
   font-size: 20px;
   font-weight: 500;
 }
 
-.swg-abbreviated-view .sub-heading {
+.swg-abbreviated-view .swg-sub-heading {
   color: #333;
   font-size: 16px;
   font-weight: 300;

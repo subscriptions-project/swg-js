@@ -184,12 +184,12 @@ function getAbbreviatedViewContent_() {
   const abbreviatedViewcontent =
     `
       <div class="swg-abbreviated-view">
-        <div class="logo">
+        <div class="swg-logo">
           <img height="50" src="./icons/icon-2x.png"/>
         </div>
         <div class="swg-abbreviated-view-description">
-          <div class="heading">Award winning content.</div>
-          <div class="sub-heading">Become subscriber now. Start free</div>
+          <div class="swg-heading">Award winning content.</div>
+          <div class="swg-sub-heading">Become subscriber now. Start free</div>
         </div>
       </div>
     `;
