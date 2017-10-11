@@ -15,7 +15,8 @@
  */
 'use strict';
 
-const app = require('express')();
+const express = require('express');
+const app = express();
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
@@ -39,6 +40,13 @@ app.use((req, res, next) => {
     });
   }
   next();
+});
+
+/**
+ * Redirect to sample-pub.
+ */
+app.get('/', (req, res) => {
+  res.redirect(302, '/examples/sample-pub/');
 });
 
 app.use('/examples/sample-pub',
