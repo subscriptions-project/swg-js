@@ -35,19 +35,23 @@ body {
 .swg-offers .swg-header {
   padding: 0;
   height: auto;
-  display: flex;
+  display: block;
   background-color: transparent;
 }
 
 .swg-offers .swg-branding {
-  flex:1;
+  display: flex;
+  align-items: center;
+  background-color: #37dc8c;
+  color: #fff;
 }
 
 .swg-offers .swg-branding-header {
-  background-color: #37dc8c;
   min-height: 45px;
+  flex: 1;
   display: flex;
-  align-content: center;
+  align-items: center;
+  font-size: 18px;
 }
 
 .swg-offers .swg-brand-name {
@@ -55,7 +59,12 @@ body {
   font-weight: 500;
 }
 
+.swg-offers .swg-logo {
+  margin: 5px 8px;
+}
+
 .swg-offers .swg-branding-description {
+  display: block;
   padding: 8px;
   font-weight: 300;
   font-weight: 14px;

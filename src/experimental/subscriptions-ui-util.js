@@ -82,16 +82,16 @@ export function renderOffers(subscriptions) {
         <body>
           <div class="swg-container swg-offers">
             <div class="swg-header">
-              <div class="swg-logo">
-                <img height="90" src="./icons/icon-2x.png"/>
-              </div>
               <div class="swg-branding">
+                <div class="swg-logo">
+                  <img height="45" src="./icons/icon-2x.png"/>
+                </div>
                 <div class="swg-branding-header">
                   <span class="swg-brand-name">The Scenic</span>
                 </div>
-                <div class="swg-branding-description">
-                  Choose one of the following offers, to purchase membership.
-                </div>
+              </div>
+              <div class="swg-branding-description">
+                Choose one of the following offers, to purchase membership.
               </div>
             </div>
             <!--The content area-->
