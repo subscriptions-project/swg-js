@@ -52,7 +52,7 @@ const CONTAINER_HEIGHT = 50;
  *     4. Subscriber   : Payment broken. Notify user
  *     5. Not signed-in: Notify user to sign-in and show offers
  * @param {!Window} win The main containing window object.
- * @param {!SubscriptionMarkup} markup
+ * @param {!../runtime/subscription-markup.SubscriptionMarkup} markup
  * @param {!SubscriptionResponse} response
  * @return {!Promise}
  */
