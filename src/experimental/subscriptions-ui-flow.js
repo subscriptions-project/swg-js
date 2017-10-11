@@ -19,6 +19,7 @@ import {
   assertNoPopups,
   isSubscriber,
 } from './subscriptions-ui-util';
+import {AbbreviatedView} from './abbreviated-view';
 import {OffersView} from './offers-view';
 import {LoadingView} from './loading-view';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
@@ -146,12 +147,11 @@ export class SubscriptionsUiFlow {
     // Build the loading indicator.
     this.loadingView_ = new LoadingView(this.win_, this.offerContainer_);
 
-    this.openView_(new OffersView(
+    this.openView_(new AbbreviatedView(
         this.win_,
         this,
         this.offerContainer_,
-        this.subscription_)
-        .onSubscribeClicked(this.activatePay_.bind(this)));
+        this.subscription_).onSubscribeClicked(this.activateOffers_.bind(this)));
   }
 
   /**
@@ -276,6 +276,16 @@ export class SubscriptionsUiFlow {
 
     // Remove the swg-popup element.
     this.offerContainer_.parentNode.removeChild(this.offerContainer_);
+  }
+
+  /**
+   * @private
+   */
+  activateOffers_() {
+    this.openView_(new OffersView(this.win_,
+      this,
+      this.offerContainer_,
+      this.subscription_).onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
   /**
