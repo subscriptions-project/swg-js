@@ -14,6 +14,20 @@
  * limitations under the License.
  */
 
+import {setImportantStyles} from '../utils/style';
+
+/**
+* Enum used to identify entitled states.
+*
+* @enum {string}
+*/
+export const EntitledState = {
+  ENTITLED: 'entitled',
+  NOT_ENTITLED: 'not_entitled',
+  UNKNOWN: 'unknown',
+};
+
+
 
 /**
  * Class to expose document level settings relevant to subscription platform.
@@ -30,6 +44,8 @@ export class SubscriptionMarkup {
     this.accessContent_ = null;
     this.accessControl_ = null;
     this.themeColor_ = null;
+
+    this.setEntitled(EntitledState.UNKNOWN);
   }
 
   /**
@@ -73,6 +89,33 @@ export class SubscriptionMarkup {
   }
 
   /**
+   * @param {!EntitledState} entitled
+   */
+  setEntitled(entitled) {
+    const elements = this.win.document.querySelectorAll('[access]');
+    for (let e = 0; e < elements.length; e++) {
+      const el = elements[e];
+      const access = el.getAttribute('access') == 'true' ? true : false;
+      const accessHide = el.hasAttribute('access-hide');
+
+      if (access && accessHide) {
+        this.setElementDisplay_(el, entitled == EntitledState.ENTITLED);
+      } else if (access && !accessHide) {
+        this.setElementDisplay_(el,
+            entitled === EntitledState.ENTITLED ||
+            entitled === EntitledState.UNKNOWN);
+      } else if (!access && accessHide) {
+        this.setElementDisplay_(el, entitled === EntitledState.NOT_ENTITLED);
+      } else {
+        // !access && !accessHide
+        this.setElementDisplay_(el,
+            entitled === EntitledState.NOT_ENTITLED ||
+            entitled === EntitledState.UNKNOWN);
+      }
+    }
+  }
+
+  /**
    * Returns the value from content attribute of a meta tag with given name.
    *
    * If multiple tags are found, the first value is returned.
@@ -87,5 +130,18 @@ export class SubscriptionMarkup {
       return el.getAttribute('content') || '';
     }
     return '';
+  }
+
+  /**
+   * Sets element's display attribute to show or hide it.
+   * @param {!Element} el
+   * @param {boolean} display
+   */
+  setElementDisplay_(el, display) {
+    if (display) {
+      el.style.removeProperty('display');
+    } else {
+      setImportantStyles(el, {'display': 'none'});
+    }
   }
 }

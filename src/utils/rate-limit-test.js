@@ -26,25 +26,24 @@
  */
 
 import {throttle, debounce} from './rate-limit';
-import * as sinon from 'sinon';
 
-describe('function utils', () => {
+describes.realWin('function utils', {}, env => {
+  let sandbox;
+  let clock;
+  let win;
+
+  beforeEach(() => {
+    sandbox = env.sandbox;
+    clock = sandbox.useFakeTimers();
+    win = env.win;
+    win.setTimeout = self.setTimeout;
+    win.Date = self.Date;
+  });
+
   describe('throttle', () => {
-    let sandbox;
-    let clock;
-
-    beforeEach(() => {
-      sandbox = sinon.sandbox.create();
-      clock = sandbox.useFakeTimers();
-    });
-
-    afterEach(() => {
-      sandbox.restore();
-    });
-
     it('should work', () => {
       const callback = sandbox.spy();
-      const throttledCallback = throttle(window, callback, 100);
+      const throttledCallback = throttle(win, callback, 100);
 
       throttledCallback(1);
       expect(callback).to.be.calledWith(1); // let 1st call through immediately
@@ -85,7 +84,7 @@ describe('function utils', () => {
           throttledCallback(countdown - 1);
         }
       }
-      const throttledCallback = throttle(window, recursive, 100);
+      const throttledCallback = throttle(win, recursive, 100);
 
       // recursive 3 times
       throttledCallback(3);
@@ -101,21 +100,9 @@ describe('function utils', () => {
   });
 
   describe('debounce', () => {
-    let sandbox;
-    let clock;
-
-    beforeEach(() => {
-      sandbox = sinon.sandbox.create();
-      clock = sandbox.useFakeTimers();
-    });
-
-    afterEach(() => {
-      sandbox.restore();
-    });
-
     it('should wait before calling', () => {
       const callback = sandbox.spy();
-      const debounced = debounce(window, callback, 100);
+      const debounced = debounce(win, callback, 100);
 
       debounced(1);
       expect(callback).to.not.have.been.called;
@@ -144,7 +131,7 @@ describe('function utils', () => {
           debounced(countdown - 1);
         }
       }
-      const debounced = debounce(window, recursive, 100);
+      const debounced = debounce(win, recursive, 100);
 
       // recursive 3 times
       debounced(2);

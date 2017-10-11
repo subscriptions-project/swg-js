@@ -24,7 +24,7 @@ import {CSS as OFFERS_CSS} from
 export const MAX_Z_INDEX = 2147483647;
 
 /**
- * Checks if current user is subscriber. It does not check the healthy status.
+ * Checks if current user is a subscriber. It does not check the healthy status.
  * @param {!SubscriptionResponse} subscriptionResponse The API response.
  * @return {boolean}
  */
@@ -34,6 +34,16 @@ export function isSubscriber(subscriptionResponse) {
       (subscriptionResponse['subscriber'] &&
       subscriptionResponse['subscriber']['types'] &&
       subscriptionResponse['subscriber']['types'].length > 0);
+}
+
+/**
+ * Checks if current user is metered.
+ * @param {!SubscriptionResponse} subscriptionResponse The API response.
+ * @return {boolean}
+ */
+export function isMeteredUser(subscriptionResponse) {
+  return subscriptionResponse['metering'] &&
+        subscriptionResponse['metering']['quotaLeft'] > 0;
 }
 
  /**
