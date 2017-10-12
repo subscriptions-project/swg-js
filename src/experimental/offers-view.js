@@ -111,6 +111,14 @@ export class OffersView {
         .setProperty('display', 'none', 'important');
   }
 
+  /**
+   * Returns if document should fade for this view.
+   * @return {boolean}
+   */
+  shouldFadeBody() {
+    return true;
+  }
+
   /*
    * Builds the  offers element within the <swg-popup> element.
    * @return {!Promise}

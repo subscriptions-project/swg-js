@@ -22,7 +22,6 @@ import {
 import {AbbreviatedView} from './abbreviated-view';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {debounce} from '../utils/rate-limit';
-import {EntitledState} from '../runtime/subscription-markup';
 import {LoadingView} from './loading-view';
 import {NotificationView} from './notification-view';
 import {OffersView} from './offers-view';
@@ -55,7 +54,6 @@ const CONTAINER_HEIGHT = 50;
  * @param {!Window} win The main containing window object.
  * @param {!../runtime/subscription-markup.SubscriptionMarkup} markup
  * @param {!SubscriptionResponse} response
- * @return {!Promise}
  */
 export function buildSubscriptionsUi(win, markup, response) {
 
@@ -118,6 +116,12 @@ export class SubscriptionsUiFlow {
     /** @private {boolean} */
     this.activeViewInitialized_ = false;
 
+    /** @private {boolean} */
+    this.shouldFadeBody_ = false;
+
+    /** @private @const {!Element} */
+    this.fadeBackground_ = this.document_.createElement('swg-popup-background');
+
     /**
      * Animates the resizing of view with additional debounce.
      * @param {!Element} view The current view.
@@ -141,10 +145,14 @@ export class SubscriptionsUiFlow {
     setImportantStyles(this.offerContainer_, {
       'min-height': `${CONTAINER_HEIGHT}px`,
       'display': 'none',
+      'opacity': 1,
     });
     this.document_.body.appendChild(this.offerContainer_);
 
     this.show_();
+
+    // Attach the invisible faded background to be used for some views.
+    this.attachBackground_();
 
     // Build the loading indicator.
     this.loadingView_ = new LoadingView(this.win_, this.offerContainer_);
@@ -153,7 +161,19 @@ export class SubscriptionsUiFlow {
         this.win_,
         this,
         this.offerContainer_,
-        this.subscription_).onSubscribeClicked(this.activateOffers_.bind(this)));
+        this.subscription_)
+        .onSubscribeClicked(this.activateOffers_.bind(this)));
+  }
+
+  /**
+   * Attaches the hidden faded background to the parent document.
+   * @private
+   */
+  attachBackground_() {
+    setImportantStyles(this.fadeBackground_, {
+      'display': 'none',
+    });
+    this.document_.body.appendChild(this.fadeBackground_);
   }
 
   /**
@@ -169,6 +189,13 @@ export class SubscriptionsUiFlow {
       this.activeView_ = null;
     }
     this.activeView_ = view;
+    this.shouldFadeBody_ = this.shouldFadeBody_ || view.shouldFadeBody();
+
+    // If the current view should fade the parent document.
+    if (this.shouldFadeBody_) {
+      this.fadeTheParent_();
+    }
+
     this.activeViewInitialized_ = false;
     setImportantStyles(view.getElement(), {
       'visibility': 'hidden',
@@ -188,6 +215,15 @@ export class SubscriptionsUiFlow {
       this.loadingView_.hide();
       throw error;
     });
+  }
+
+  /**
+   * Fades the main page content when subscription offers view is rendered.
+   * The content will be reset on close of the subscription popup.
+   * @private
+   */
+  fadeTheParent_() {
+    this.fadeBackground_.style.removeProperty('display');
   }
 
   /**
@@ -327,6 +363,9 @@ export class SubscriptionsUiFlow {
 
     // Remove the swg-popup element.
     this.offerContainer_.parentNode.removeChild(this.offerContainer_);
+
+    // Remove the faded background from the parent document.
+    this.document_.body.removeChild(this.fadeBackground_);
   }
 
   /**
@@ -356,8 +395,8 @@ export class SubscriptionsUiFlow {
     // TODO(avimehta, #21): Restart authorization again, instead of redirect here.
     // (btw, it's fine if authorization restart does redirect itself when
     // needed)
-    this.win_.location = `${document.location.origin}` +
-        `${document.location.pathname}?test_response=subscriber-response`;
+    this.win_.location = `${this.document_.location.origin}` +
+        `${this.document_.location.pathname}?test_response=subscriber-response`;
   }
 
   /**

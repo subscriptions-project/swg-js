@@ -48,10 +48,17 @@ export class AbbreviatedView extends SubscriptionStepView {
     return this;
   }
 
+  /**
+   * Returns if document should fade for this view.
+   * @return {boolean}
+   */
+  shouldFadeBody() {
+    return false;
+  }
+
   /*
    * Builds the  abbreviated view element within the <swg-popup> element.
    * @return {!Promise}
-   * @private
    */
   buildView() {
     const iframeSourceDoc = abbreviatedView(this.subscriptions_);
@@ -68,4 +75,3 @@ export class AbbreviatedView extends SubscriptionStepView {
     });
   }
 }
-
