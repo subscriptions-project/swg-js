@@ -229,6 +229,7 @@ function getAbbreviatedViewFooter_() {
   `
   <div class="swg-footer">
     <div class="swg-h-spacer"></div>
+    <span class="swg-sign-in">Sign in</span>
     <button class="swg-button" id="swg-button">
       <div class="swg-icon"></div>
       <span class="swg-label">Subscribe with Google</span>
