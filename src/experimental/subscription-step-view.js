@@ -70,7 +70,7 @@ export class SubscriptionStepView {
    * Shows the view element within the <swg-popup> element.
    */
   show() {
-    this.viewElement_.style.removeProperty('display');
+    this.viewElement_.style.setProperty('display', 'block');
   }
 
   /*
@@ -106,6 +106,7 @@ export class SubscriptionStepView {
         'border': 'none',
         'width': '100%',
         'background-color': '#fff',
+        'display': 'block',
       });
 
       iframe.contentWindow.addEventListener('resize', this.ref_);

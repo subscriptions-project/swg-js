@@ -100,7 +100,7 @@ export class OffersView {
    * Shows the offers element within the <swg-popup> element.
    */
   show() {
-    this.offersElement_.style.removeProperty('display');
+    this.offersElement_.style.setProperty('display', 'block');
   }
 
   /*
@@ -153,6 +153,7 @@ export class OffersView {
         'border': 'none',
         'width': '100%',
         'background-color': '#fff',
+        'display': 'block',
       });
 
       const height = iframe.contentDocument.body.scrollHeight;

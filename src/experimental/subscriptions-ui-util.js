@@ -121,7 +121,7 @@ export function abbreviatedView(subscriptions) {
           <div class="swg-container">
             <div class="swg-header" style="display: flex;">
               <span style="flex: 1;"></span>
-              <div style="padding-top: 8px;">
+              <div>
                 ${getQuotaMessage_(meteringResponse)}
               </div>
               <span style="flex: 1;"></span>
