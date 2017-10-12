@@ -63,22 +63,7 @@ export class SubscriptionStepView {
    * @return {!Promise}
    */
   init() {
-    return this.buildView().then(() => this.show());
-  }
-
-  /*
-   * Shows the view element within the <swg-popup> element.
-   */
-  show() {
-    this.viewElement_.style.removeProperty('display');
-  }
-
-  /*
-   * Hides the view element within the <swg-popup> element.
-   */
-  hide() {
-    this.viewElement_.style
-        .setProperty('display', 'none', 'important');
+    return this.buildView();
   }
 
   /*
@@ -106,6 +91,7 @@ export class SubscriptionStepView {
         'border': 'none',
         'width': '100%',
         'background-color': '#fff',
+        'display': 'block',
       });
 
       iframe.contentWindow.addEventListener('resize', this.ref_);

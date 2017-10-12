@@ -29,7 +29,8 @@ body {
   flex: 1;
   background-color: #ececec;
   height: 28px;
-  padding: 6px;
+  padding: 6px 10px;
+  align-items: center;
 }
 
 .swg-offers .swg-header {
@@ -55,7 +56,6 @@ body {
 }
 
 .swg-offers .swg-brand-name {
-  padding: 8px;
   font-weight: 500;
 }
 
@@ -74,13 +74,13 @@ body {
   background-color: #fff;
   border-top: 1px solid #eee;
   display: flex;
-  height: 32px;
+  height: 36px;
 }
 
 .swg-content {
   background-color: #fff;
   box-sizing: border-box;
-  padding: 5px;
+  padding: 5px 10px;
   min-height: 116px;
   overflow-y: visible;
 }
@@ -89,7 +89,7 @@ body {
   background-color: #fff;
   margin-bottom: 6px;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 4px;
   height: 32px;
   padding: 10px 0 0 15px;
   cursor: pointer;
@@ -131,23 +131,23 @@ body {
 
 .swg-sign-in {
   margin-right: 16px;
-  padding-top: 8px;
   color: #555;
 }
 
 .swg-button {
   order: 2;
   background-color: #4285f4;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px 0 rgba(0,0,0,.25);
-  border: 1px solid #ddd;
+  border-radius: 1px;
+  box-shadow: 0 0 2px 1px rgba(0,0,0,.25);
+  border: none;
   background-image: none;
   white-space: nowrap;
   display: flex;
   flex-direction: row;
   padding: 6px 10px;
-  height: 35px;
+  height: 36px;
   font-family: 'Roboto', sans-serif;
+  cursor: pointer;
 }
 
 .swg-label {
