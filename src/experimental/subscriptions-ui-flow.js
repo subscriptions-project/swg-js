@@ -277,8 +277,10 @@ export class SubscriptionsUiFlow {
         'transform': `translateY(${delta}px)`,
       });
 
-      requestAnimationFrame(() => {
-        this.animateViewToTransform_('none');
+      this.win_.requestAnimationFrame(() => {
+        this.win_.requestAnimationFrame(() => {
+          this.animateViewToTransform_('none');
+        });
       });
     } else {
 
