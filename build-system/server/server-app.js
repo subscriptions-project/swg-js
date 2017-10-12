@@ -46,7 +46,9 @@ app.use((req, res, next) => {
  * Redirect to sample-pub.
  */
 app.get('/', (req, res) => {
-  res.redirect(302, '/examples/sample-pub/');
+  res.redirect(302,
+      '/examples/sample-pub/'
+      + (req.query.test !== undefined ? `?test=${req.query.test}` : ''));
 });
 
 app.use('/examples/sample-pub',

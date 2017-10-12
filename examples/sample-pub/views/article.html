@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title><% article.title %> - The Scenic</title>
     <link rel="canonical" href="<% id %>">
-    <meta name="access-type" content="offer">
+    <meta name="access-type" content="premium">
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
     <script async src="/dist/subscriptions.max.js"></script>
     <script type="application/json" id="subscriptionsConfig">
@@ -14,7 +14,7 @@
           "services": [
             {
               "id": "publisher.com",
-              "authorizationUrl": "http://sp.localhost:8000/examples/sample-sp/api"
+              "authorizationUrl": "<% authUrl %>?pub_id=scenic-2017.appspot.com"
             }
           ]
         },
@@ -22,7 +22,7 @@
           "services": [
             {
               "id": "publisher.com",
-              "authorizationUrl": "http://sp.localhost:8000/examples/sample-sp/api"
+              "authorizationUrl": "<% authUrl %>?pub_id=scenic-2017.appspot.com"
             }
           ]
         }
@@ -48,10 +48,10 @@
         </a>
         <div class="nav-header">
           <%#prev%>
-            <a class="nav-button prev" href="<% prev %>"></a>
+            <a class="nav-button prev" href="<% prev %>?<% testParams %>"></a>
           <%/prev%>
           <%#next%>
-            <a class="nav-button next" href="<% next %>"></a>
+            <a class="nav-button next" href="<% next %>?<% testParams %>"></a>
           <%/next%>
         </div>
       </header>
@@ -114,7 +114,7 @@
 
             <ul class="related">
               <li>
-                <a href="2.html">
+                <a href="2?<% testParams %>">
                   <div>
                     <img width="100" height="80" src="hero/2.jpeg" style="width: 100px; height: 80px;" src="hero/2.jpeg">
                     <p>Melbourne in 48 Hours</p>
@@ -122,7 +122,7 @@
                 </a>
               </li>
               <li>
-                <a href="3.html">
+                <a href="3?<% testParams %>">
                   <div>
                     <img width="100" height="80" src="hero/3.jpeg" style="width: 100px; height: 80px;" src="hero/3.jpeg">
                     <p>Paris in 48 Hours</p>
@@ -130,7 +130,7 @@
                 </a>
               </li>
               <li>
-                <a href="4.html">
+                <a href="4?<% testParams %>">
                   <div>
                     <img width="100" height="80" src="hero/4.jpeg" style="width: 100px; height: 80px;" src="hero/4.jpeg">
                     <p>Montreal in 48 Hours</p>
