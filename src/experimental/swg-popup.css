@@ -31,24 +31,6 @@
   }
 }
 
-@-webkit-keyframes swg-fadeout {
-   from {
-     opacity: 1;
-   }
-   to {
-     opacity: 0;
-   }
-}
-
-@-webkit-keyframes swg-fadein {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: .3;
-    }
-}
-
 @-webkit-keyframes swg-appear {
   from {
       opacity: 0;
