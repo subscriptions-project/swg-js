@@ -49,7 +49,6 @@ export class PaymentsView {
     setImportantStyles(this.iframe_, {
       'width': '100%',
       'min-height': '80px',
-      'padding-top': '16px',
     });
 
     /** @private {?function(number, number)} */

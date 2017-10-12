@@ -31,22 +31,13 @@
   }
 }
 
-@-webkit-keyframes swg-fadeout {
-   from {
-     opacity: 1;
-   }
-   to {
-     opacity: 0;
-   }
-}
-
-@-webkit-keyframes swg-fadein {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: .3;
-    }
+@-webkit-keyframes swg-appear {
+  from {
+      opacity: 0;
+  }
+  to {
+      opacity: 1;
+  }
 }
 
 @-webkit-keyframes swg-expand {
@@ -153,6 +144,10 @@ swg-popup .swg-close-action {
   background-color: #ececec !important;
   border: none !important;
   z-index: 2147483647 !important;
+}
+
+swg-popup .swg-step-appear{
+  animation: swg-appear 1.5s ease-out !important;
 }
 
 /**

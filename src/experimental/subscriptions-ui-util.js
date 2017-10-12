@@ -121,7 +121,7 @@ export function abbreviatedView(subscriptions) {
           <div class="swg-container">
             <div class="swg-header" style="display: flex;">
               <span style="flex: 1;"></span>
-              <div style="padding-top: 8px;">
+              <div>
                 ${getQuotaMessage_(meteringResponse)}
               </div>
               <span style="flex: 1;"></span>
@@ -174,13 +174,14 @@ function getContent_(subscriptions) {
   for (let i = 0; i < offers.length; i++) {
     const checked = `${(i == 0) ? 'checked' : ''}`;
     offerContent += `
-        <div class="${SWG_OFFER_ITEM_CLASS} ${checked}" data-offer-index="${i}" tabindex="1">
+        <div class="${SWG_OFFER_ITEM_CLASS} ${checked}"` +
+            `data-offer-index="${i}" tabindex="1">
           <span>${offers[i].displayString}</span>
         </div>
     `;
   }
-  return `<div class="${SWG_OFFER_CONTENT_CLASS}" id="${SWG_OFFER_CONTENT_CLASS}"
-      >${offerContent}</div>`;
+  const contentCls = SWG_OFFER_CONTENT_CLASS;
+  return `<div class="${contentCls}" id="${contentCls}">${offerContent}</div>`;
 }
 
 /**
@@ -196,7 +197,7 @@ function getAbbreviatedViewContent_() {
         </div>
         <div class="swg-abbreviated-view-description">
           <div class="swg-heading">Award winning content.</div>
-          <div class="swg-sub-heading">Become subscriber now. Start free</div>
+          <div class="swg-sub-heading">Become subscriber now. Start free.</div>
         </div>
       </div>
     `;

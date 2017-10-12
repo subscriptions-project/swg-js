@@ -7,6 +7,7 @@
     <meta name="access-type" content="premium">
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
     <script async src="/dist/subscriptions.max.js"></script>
+    <!-- TODO(dvoytenko): replace "com.nytimes.android" with "scenic" code -->
     <script type="application/json" id="subscriptionsConfig">
     {
       "profiles": {
@@ -14,7 +15,7 @@
           "services": [
             {
               "id": "publisher.com",
-              "authorizationUrl": "<% authUrl %>?pub_id=scenic-2017.appspot.com"
+              "authorizationUrl": "<% authUrl %>?pub_id=com.nytimes.android"
             }
           ]
         },
@@ -22,7 +23,7 @@
           "services": [
             {
               "id": "publisher.com",
-              "authorizationUrl": "<% authUrl %>?pub_id=scenic-2017.appspot.com"
+              "authorizationUrl": "<% authUrl %>?pub_id=com.nytimes.android"
             }
           ]
         }
@@ -62,7 +63,7 @@
         </div>
 
         <div class="container">
-          <h2 class="category"><% article.category %></h2>
+          <h2 class="category" onclick="sessionStorage.clear();"><% article.category %></h2>
           <h1 class="heading"><% article.title %></h1>
           <p class="kicker"><% article.kicker %></p>
           <p class="byline">By <% article.author %> on <% article.date %></p>
