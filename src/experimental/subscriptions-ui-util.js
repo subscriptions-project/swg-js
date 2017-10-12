@@ -197,7 +197,7 @@ function getAbbreviatedViewContent_() {
         </div>
         <div class="swg-abbreviated-view-description">
           <div class="swg-heading">Award winning content.</div>
-          <div class="swg-sub-heading">Become subscriber now. Start free</div>
+          <div class="swg-sub-heading">Become subscriber now. Start free.</div>
         </div>
       </div>
     `;

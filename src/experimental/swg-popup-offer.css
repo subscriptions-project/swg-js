@@ -176,6 +176,7 @@ body {
   display: flex;
   align-items: center;
   flex: 1;
+  align-items: center;
 }
 
 .swg-abbreviated-view .swg-logo, .swg-abbreviated-view .swg-abbreviated-view-description {
@@ -183,12 +184,12 @@ body {
 }
 
 .swg-abbreviated-view .swg-heading {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 500;
 }
 
 .swg-abbreviated-view .swg-sub-heading {
   color: #333;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 300;
 }
