@@ -363,9 +363,7 @@ export class SubscriptionsUiFlow {
     this.offerContainer_.parentNode.removeChild(this.offerContainer_);
 
     // Remove the faded background from the parent document.
-    setImportantStyles(this.fadeBackground_, {
-      'display': 'none',
-    });
+    this.document_.body.removeChild(this.fadeBackground_);
   }
 
   /**

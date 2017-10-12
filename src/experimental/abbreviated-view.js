@@ -37,9 +37,6 @@ export class AbbreviatedView extends SubscriptionStepView {
 
     /** @private {?function()} */
     this.subscribeClicked_ = null;
-
-    /** @private {boolean} */
-    this.shouldFadeBody_ = false;
   }
 
   /**
@@ -49,6 +46,14 @@ export class AbbreviatedView extends SubscriptionStepView {
   onSubscribeClicked(callback) {
     this.subscribeClicked_ = callback;
     return this;
+  }
+
+  /**
+   * Returns if document should fade for this view.
+   * @return {boolean}
+   */
+  shouldFadeBody() {
+    return false;
   }
 
   /*

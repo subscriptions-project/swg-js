@@ -49,9 +49,6 @@ export class SubscriptionStepView {
 
     /** @private @const {boolean} */
     this.animateWhileResize_ = false;
-
-    /** @private {?boolean} */
-    this.shouldFadeBody_;
   }
 
   /**
@@ -82,14 +79,6 @@ export class SubscriptionStepView {
   hide() {
     this.viewElement_.style
         .setProperty('display', 'none', 'important');
-  }
-
-  /**
-   * Returns if document should fade for this view.
-   * @return {boolean}
-   */
-  shouldFadeBody() {
-    return !!this.shouldFadeBody_;
   }
 
   /*
