@@ -174,13 +174,14 @@ function getContent_(subscriptions) {
   for (let i = 0; i < offers.length; i++) {
     const checked = `${(i == 0) ? 'checked' : ''}`;
     offerContent += `
-        <div class="${SWG_OFFER_ITEM_CLASS} ${checked}" data-offer-index="${i}" tabindex="1">
+        <div class="${SWG_OFFER_ITEM_CLASS} ${checked}"` +
+            `data-offer-index="${i}" tabindex="1">
           <span>${offers[i].displayString}</span>
         </div>
     `;
   }
-  return `<div class="${SWG_OFFER_CONTENT_CLASS}" id="${SWG_OFFER_CONTENT_CLASS}"
-      >${offerContent}</div>`;
+  const contentCls = SWG_OFFER_CONTENT_CLASS;
+  return `<div class="${contentCls}" id="${contentCls}">${offerContent}</div>`;
 }
 
 /**
