@@ -17,6 +17,9 @@
 
 const app = module.exports = require('express').Router();
 
+const AUTH_URL_TEST = '/examples/sample-sp/api';
+const AUTH_URL_PROD = 'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement?pub_id=scenic-2017.appspot.com';
+
 const ARTICLES = [
   {
     title: '16 Top Spots for Hiking',
@@ -287,10 +290,31 @@ app.get('/((\\d+))', (req, res) => {
   const article = ARTICLES[id - 1];
   const prevId = (id - 1) >= 0 ? String(id - 1) : false;
   const nextId = (id + 1) < ARTICLES.length ? String(id + 1) : false;
+  const authUrl = getAuthUrl(req);
   res.render('../examples/sample-pub/views/article', {
+    authUrl,
     id,
     article,
     prev: prevId,
     next: nextId,
   });
 });
+
+
+/**
+ * @param {HttpRequest} req
+ * @return {string}
+ */
+function getAuthUrl(req) {
+  const host = req.headers.host;
+  const isLocal = host.indexOf('localhost') != -1;
+  const isTest = (isLocal || req.query.test !== undefined)
+      && req.query.test !== '0';
+  if (isTest) {
+    if (isLocal) {
+      return `//${host.replace(/.*localhost/, 'sp.localhost')}${AUTH_URL_TEST}`;
+    }
+    return `//${host}${AUTH_URL_TEST}`;
+  }
+  return AUTH_URL_PROD;
+}

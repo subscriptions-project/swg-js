@@ -17,7 +17,7 @@
 import {SubscriptionMarkup} from '../runtime/subscription-markup';
 import {setImportantStyles} from '../utils/style';
 
-const USE_SANDBOX = false;
+const USE_SANDBOX = true;
 const PAY_SERVICE =
     USE_SANDBOX ?
     {

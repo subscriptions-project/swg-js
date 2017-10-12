@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title><% article.title %> - The Scenic</title>
     <link rel="canonical" href="<% id %>">
-    <meta name="access-type" content="offer">
+    <meta name="access-type" content="premium">
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
     <script async src="/dist/subscriptions.max.js"></script>
     <script type="application/json" id="subscriptionsConfig">
@@ -14,7 +14,7 @@
           "services": [
             {
               "id": "publisher.com",
-              "authorizationUrl": "http://sp.localhost:8000/examples/sample-sp/api"
+              "authorizationUrl": "<% authUrl %>"
             }
           ]
         },
@@ -22,7 +22,7 @@
           "services": [
             {
               "id": "publisher.com",
-              "authorizationUrl": "http://sp.localhost:8000/examples/sample-sp/api"
+              "authorizationUrl": "<% authUrl %>"
             }
           ]
         }

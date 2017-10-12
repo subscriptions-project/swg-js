@@ -140,8 +140,10 @@ export class Auth {
         headers: { 'Accept': 'application/json' },
         credentials: 'include',
       };
-      let url = service['authorizationUrl'] +
-          `?access-type=${this.accessType_}`;
+      const url = service['authorizationUrl'] +
+          `?access-type=${encodeURIComponent(this.accessType_)}` +
+          `&label=${encodeURIComponent(this.accessType_)}` +
+          `&content_id=${encodeURIComponent(this.win.location.pathname)}`;
       authPromises.push(window.fetch(url, init)
         .then(response => response.text())
         .then(responseText => {
