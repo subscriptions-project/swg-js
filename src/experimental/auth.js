@@ -72,8 +72,9 @@ export class Auth {
       })
       .then(json => {
         // TODO(dvoytenko): Remove once backend integration is in place.
-        if (sessionStorage) {
-          const subscriberDataStr = sessionStorage.getItem('subscriberData');
+        if (this.win.sessionStorage) {
+          const subscriberDataStr =
+              this.win.sessionStorage.getItem('subscriberData');
           const subscriberData =
               subscriberDataStr && tryParseJson(subscriberDataStr);
           if (subscriberData && Date.now() < subscriberData['expires']) {
