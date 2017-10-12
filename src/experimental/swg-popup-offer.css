@@ -134,10 +134,9 @@ body {
   padding-top: 8px;
 }
 
-.swg-continue-button, .swg-button {
+.swg-button {
   order: 2;
   background-color: #4285f4;
-  color: #757575;
   border-radius: 5px;
   box-shadow: 0 2px 4px 0 rgba(0,0,0,.25);
   border: 1px solid #ddd;
@@ -146,13 +145,8 @@ body {
   display: flex;
   flex-direction: row;
   padding: 6px 10px;
+  height: 35px;
   font-family: 'Roboto', sans-serif;
-}
-
-.swg-continue-button {
-  background-color: #3F51B5;
-  color: #fff;
-  font-size: 14px;
 }
 
 .swg-label {
