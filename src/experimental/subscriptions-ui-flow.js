@@ -205,6 +205,7 @@ export class SubscriptionsUiFlow {
     return view.init().then(() => {
       // TODO(dparikh): Transition necessary height and possible fade in content.
       this.loadingView_.hide();
+      view.getElement().classList.add('swg-step-appear');
       setImportantStyles(view.getElement(), {
         'visibility': 'visible',
         'opacity': 1,
