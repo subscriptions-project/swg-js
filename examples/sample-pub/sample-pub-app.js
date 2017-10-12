@@ -271,13 +271,21 @@ ARTICLES.forEach((a, index) => {
  * List all Articles.
  */
 app.get('/', (req, res) => {
-  if (req.originalUrl.charAt(req.originalUrl.length - 1) != '/') {
-    res.redirect(302, req.originalUrl + '/');
+  let originalUrl = req.originalUrl;
+  let originalQuery = '';
+  const queryIndex = originalUrl.indexOf('?');
+  if (queryIndex != -1) {
+    originalQuery = originalUrl.substring(queryIndex);
+    originalUrl = originalUrl.substring(0, queryIndex);
+  }
+  if (originalUrl.charAt(originalUrl.length - 1) != '/') {
+    res.redirect(302, originalUrl + '/' + originalQuery);
     return;
   }
   res.render('../examples/sample-pub/views/list', {
     title: 'Select an article to get started',
     articles: ARTICLES,
+    testParams: getTestParams(req),
   });
 });
 
@@ -297,24 +305,56 @@ app.get('/((\\d+))', (req, res) => {
     article,
     prev: prevId,
     next: nextId,
+    testParams: getTestParams(req),
   });
 });
 
 
 /**
- * @param {HttpRequest} req
+ * @param {!HttpRequest} req
+ * @return {boolean}
+ */
+function isLocalReq(req) {
+  const host = req.headers.host;
+  return host.indexOf('localhost') != -1;
+}
+
+
+/**
+ * @param {!HttpRequest} req
+ * @return {boolean}
+ */
+function isTestReq(req) {
+  return (isLocalReq(req) || req.query.test !== undefined)
+      && req.query.test !== '0';
+}
+
+
+/**
+ * @param {!HttpRequest} req
  * @return {string}
  */
 function getAuthUrl(req) {
-  const host = req.headers.host;
-  const isLocal = host.indexOf('localhost') != -1;
-  const isTest = (isLocal || req.query.test !== undefined)
-      && req.query.test !== '0';
+  const isTest = isTestReq(req);
   if (isTest) {
+    const isLocal = isLocalReq(req);
+    const host = req.headers.host;
     if (isLocal) {
       return `//${host.replace(/.*localhost/, 'sp.localhost')}${AUTH_URL_TEST}`;
     }
     return `//${host}${AUTH_URL_TEST}`;
   }
   return AUTH_URL_PROD;
+}
+
+
+/**
+ * @param {!HttpRequest} req
+ * @return {string}
+ */
+function getTestParams(req) {
+  if (isTestReq(req)) {
+    return isLocalReq(req) ? '' : 'test=1';
+  }
+  return isLocalReq(req) ? 'test=0' : '';
 }
