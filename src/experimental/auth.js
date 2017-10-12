@@ -19,7 +19,7 @@ import {isMeteredUser, isSubscriber} from './subscriptions-ui-util';
 import {isObject} from '../utils/types';
 import {log} from '../utils/log';
 import {updateMeteringResponse} from './user-metering';
-import {tryParseJson} from '../utils/json';
+import {parseJson} from '../utils/json';
 
 /**
  * Performs authorization to check if a user has access to a given article.
@@ -76,7 +76,7 @@ export class Auth {
           const subscriberDataStr =
               this.win.sessionStorage.getItem('subscriberData');
           const subscriberData =
-              subscriberDataStr && tryParseJson(subscriberDataStr);
+              subscriberDataStr && parseJson(subscriberDataStr);
           if (subscriberData && Date.now() < subscriberData['expires']) {
             json.subscriber = subscriberData;
           }
@@ -112,7 +112,7 @@ export class Auth {
     }
     if (el.nodeName == 'SCRIPT' &&
         el.getAttribute('type') == 'application/json') {
-      this.config_ = tryParseJson(el.textContent)
+      this.config_ = parseJson(el.textContent)
       return Promise.resolve(this.config_);
     }
 
@@ -160,7 +160,7 @@ export class Auth {
         .then(response => response.text())
         .then(responseText => {
           // TODO: Start the offers flow.
-          return tryParseJson(responseText);
+          return parseJson(responseText);
         }));
     }
     return Promise.all(authPromises);

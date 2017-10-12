@@ -380,14 +380,56 @@ export class SubscriptionsUiFlow {
   }
 
   /**
-   * @private
    * @param {!number} selectedOfferIndex
+   * @private
    */
   activatePay_(selectedOfferIndex) {
-    const paymentRequestBlob =
-        this.subscription_['offer'][selectedOfferIndex]['paymentRequest'];
-    this.openView_(new PaymentsView(this.win_, this, paymentRequestBlob)
-        .onComplete(this.paymentComplete_.bind(this)));
+    const offer = this.subscription_['offer'][selectedOfferIndex];
+    // First, try to pay via PaymentRequest
+    const prFlow =
+        offer['paymentRequestJson'] ?
+        this.executeViaPaymentRequest_(offer['paymentRequestJson']) :
+        Promise.resolve(false);
+    prFlow.then(working => {
+      if (!working) {
+        // Fallback to the inline flow.
+        const paymentRequestBlob = offer['paymentRequest'];
+        this.openView_(new PaymentsView(this.win_, this, paymentRequestBlob)
+            .onComplete(this.paymentComplete_.bind(this)));
+      }
+    });
+  }
+
+  /**
+   * @param {!Object} paymentRequestJson
+   * @return {!Promise<boolean>}
+   * @private
+   */
+  executeViaPaymentRequest_(paymentRequestJson) {
+    if (!this.win_.PaymentRequest ||
+        !this.win_.PaymentRequest.prototype.canMakePayment) {
+      return Promise.resolve(false);
+    }
+
+    // See https://www.w3.org/TR/payment-request/#constructing-a-paymentrequest
+    const methods = paymentRequestJson['methods'];
+    const details = paymentRequestJson['details'];
+    const options = {
+      'requestPayerName': true,
+      'requestPayerEmail': true,
+    };
+    const request = new this.win_.PaymentRequest(methods, details, options);
+    return request.canMakePayment().then(result => {
+      if (!result) {
+        return false;
+      }
+      request.show().then(result => {
+        if (result) {
+          this.paymentComplete_();
+        }
+      });
+      return true;
+    });
   }
 
   /** @private */
