@@ -185,6 +185,10 @@ export class SubscriptionsUiFlow {
     this.loadingView_.show();
 
     if (this.activeView_) {
+      // Change min-height so that loader screen does not change height
+      setImportantStyles(this.offerContainer_,{
+        'min-height': `${this.activeView_.getElement().scrollHeight}px`,
+      });
       this.offerContainer_.removeChild(this.activeView_.getElement());
       this.activeView_ = null;
     }
@@ -203,7 +207,13 @@ export class SubscriptionsUiFlow {
     });
     this.offerContainer_.appendChild(view.getElement());
     return view.init().then(() => {
-      // TODO(dparikh): Transition necessary height and possible fade in content.
+      // Setting the initial size as either onload or resize will fire resize animation
+      this.setBottomSheetHeight_(view.getElement(), this.offerContainer_.offsetHeight);
+
+      // Reset the min height back
+      setImportantStyles(this.offerContainer_,{
+        'min-height': '50px',
+      });
       this.loadingView_.hide();
       setImportantStyles(view.getElement(), {
         'visibility': 'visible',
