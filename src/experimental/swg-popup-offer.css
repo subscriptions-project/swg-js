@@ -131,7 +131,6 @@ body {
 
 .swg-sign-in {
   margin-right: 16px;
-  padding-top: 8px;
   color: #555;
 }
 
@@ -139,7 +138,7 @@ body {
   order: 2;
   background-color: #4285f4;
   border-radius: 1px;
-  box-shadow: 0 2px 2px 2px rgba(0,0,0,.25);
+  box-shadow: 0 0 2px 1px rgba(0,0,0,.25);
   border: none;
   background-image: none;
   white-space: nowrap;

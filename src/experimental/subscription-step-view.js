@@ -63,22 +63,7 @@ export class SubscriptionStepView {
    * @return {!Promise}
    */
   init() {
-    return this.buildView().then(() => this.show());
-  }
-
-  /*
-   * Shows the view element within the <swg-popup> element.
-   */
-  show() {
-    this.viewElement_.style.setProperty('display', 'block');
-  }
-
-  /*
-   * Hides the view element within the <swg-popup> element.
-   */
-  hide() {
-    this.viewElement_.style
-        .setProperty('display', 'none', 'important');
+    return this.buildView();
   }
 
   /*

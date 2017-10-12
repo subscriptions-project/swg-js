@@ -92,23 +92,7 @@ export class OffersView {
       throw new Error('No offers available!');
     }
     return this.buildOffers_(subscriptions)
-        .then(this.boundOfferSelection_.bind(this))
-        .then(this.show.bind(this));
-  }
-
-  /*
-   * Shows the offers element within the <swg-popup> element.
-   */
-  show() {
-    this.offersElement_.style.setProperty('display', 'block');
-  }
-
-  /*
-   * Hides the  offers element within the <swg-popup> element.
-   */
-  hide() {
-    this.offersElement_.style
-        .setProperty('display', 'none', 'important');
+        .then(this.boundOfferSelection_.bind(this));
   }
 
   /**
