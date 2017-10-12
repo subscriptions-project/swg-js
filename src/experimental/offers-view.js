@@ -64,6 +64,9 @@ export class OffersView {
 
     /** @private {number} */
     this.selectedOfferIndex_ = null;
+
+    /** @private {boolean} */
+    this.shouldFadeBody_ = true;
   }
 
   /**
@@ -109,6 +112,16 @@ export class OffersView {
   hide() {
     this.offersElement_.style
         .setProperty('display', 'none', 'important');
+  }
+
+  /**
+   * Returns if document should fade for this view.
+   * TODO(diparikh): Can be removed this implementation when inherits the
+   * parent class (SubscriptionStepView).
+   * @return {boolean}
+   */
+  shouldFadeBody() {
+    return this.shouldFadeBody_;
   }
 
   /*

@@ -37,6 +37,9 @@ export class AbbreviatedView extends SubscriptionStepView {
 
     /** @private {?function()} */
     this.subscribeClicked_ = null;
+
+    /** @private {boolean} */
+    this.shouldFadeBody_ = false;
   }
 
   /**
@@ -51,7 +54,6 @@ export class AbbreviatedView extends SubscriptionStepView {
   /*
    * Builds the  abbreviated view element within the <swg-popup> element.
    * @return {!Promise}
-   * @private
    */
   buildView() {
     const iframeSourceDoc = abbreviatedView(this.subscriptions_);
@@ -68,4 +70,3 @@ export class AbbreviatedView extends SubscriptionStepView {
     });
   }
 }
-

@@ -18,7 +18,6 @@
 import {
   assertNoPopups,
   isSubscriber,
-  SWG_OFFER_CONTENT_CLASS,
 } from './subscriptions-ui-util';
 import {AbbreviatedView} from './abbreviated-view';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
@@ -41,12 +40,6 @@ const POPUP_TAG = 'swg-popup';
  * @const {number}
  */
 const CONTAINER_HEIGHT = 50;
-
-/**
- * The opacity value for the container, while subscription flow is in progress.
- * @const {number}
- */
-const CONTAINER_FADE_VALUE = .5;
 
 /**
  * Builds offers container, including headers and footer. It builds an
@@ -123,6 +116,12 @@ export class SubscriptionsUiFlow {
     /** @private {boolean} */
     this.activeViewInitialized_ = false;
 
+    /** @private {boolean} */
+    this.shouldFadeBody_ = false;
+
+    /** @private @const {!Element} */
+    this.fadeBackground_ = this.document_.createElement('swg-popup-background');
+
     /**
      * Animates the resizing of view with additional debounce.
      * @param {!Element} view The current view.
@@ -152,6 +151,9 @@ export class SubscriptionsUiFlow {
 
     this.show_();
 
+    // Attach the invisible faded background to be used for some views.
+    this.attachBackground_();
+
     // Build the loading indicator.
     this.loadingView_ = new LoadingView(this.win_, this.offerContainer_);
 
@@ -161,6 +163,17 @@ export class SubscriptionsUiFlow {
         this.offerContainer_,
         this.subscription_)
         .onSubscribeClicked(this.activateOffers_.bind(this)));
+  }
+
+  /**
+   * Attaches the hidden faded background to the parent document.
+   * @private
+   */
+  attachBackground_() {
+    setImportantStyles(this.fadeBackground_, {
+      'display': 'none',
+    });
+    this.document_.body.appendChild(this.fadeBackground_);
   }
 
   /**
@@ -176,6 +189,13 @@ export class SubscriptionsUiFlow {
       this.activeView_ = null;
     }
     this.activeView_ = view;
+    this.shouldFadeBody_ = this.shouldFadeBody_ || view.shouldFadeBody();
+
+    // If the current view should fade the parent document.
+    if (this.shouldFadeBody_) {
+      this.fadeTheParent_();
+    }
+
     this.activeViewInitialized_ = false;
     setImportantStyles(view.getElement(), {
       'visibility': 'hidden',
@@ -190,9 +210,6 @@ export class SubscriptionsUiFlow {
         'opacity': 1,
       });
 
-      // Fade the parent window's content until subscription flow finishes.
-      this.fadeTheParent_();
-
       this.activeViewInitialized_ = true;
     }, error => {
       this.loadingView_.hide();
@@ -206,26 +223,7 @@ export class SubscriptionsUiFlow {
    * @private
    */
   fadeTheParent_() {
-    // TODO(dparikh): See if we can read the existing opacity style or
-    // computedStyle for the body and reset it again to the same value.
-    // Any existing opacity value in the body overfides below settings,
-    // though it is unlikely that main content has opacity value < 1.
-    // Confirm and either provide implementation or remove this comment.
-    if (this.activeView_ instanceof OffersView) {
-      this.document_.querySelector(`body :not(${SWG_OFFER_CONTENT_CLASS})`)
-          .style.setProperty('opacity', CONTAINER_FADE_VALUE);
-    } else if (this.activeView_ instanceof AbbreviatedView) {
-      this.resetFadeParent_();
-    }
-  }
-
-  /**
-   * Resets the parent content's fade effect.
-   * @private
-   */
-  resetFadeParent_() {
-    this.document_.querySelector(`body :not(${SWG_OFFER_CONTENT_CLASS})`)
-        .style.removeProperty('opacity');
+    this.fadeBackground_.style.removeProperty('display');
   }
 
   /**
@@ -364,7 +362,10 @@ export class SubscriptionsUiFlow {
     // Remove the swg-popup element.
     this.offerContainer_.parentNode.removeChild(this.offerContainer_);
 
-    this.resetFadeParent_();
+    // Remove the faded background from the parent document.
+    setImportantStyles(this.fadeBackground_, {
+      'display': 'none',
+    });
   }
 
   /**
