@@ -156,6 +156,10 @@ body {
   text-transform: uppercase;
 }
 
+.swg-abbreviated-footer .swg-label{
+  text-transform: none;
+}
+
 /**
  * Style for SwG action icon.
  */
