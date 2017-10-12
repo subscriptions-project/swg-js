@@ -131,6 +131,7 @@ export class OffersView {
     });
     this.offerContainer_.appendChild(iframe);
 
+    //iframe.contentWindow.addEventListener('resize', this.ref_);
     return readyPromise.then(() => {
       const subscribeButton = iframe.contentDocument.getElementById(
           'swg-button');
@@ -146,11 +147,20 @@ export class OffersView {
         'background-color': '#fff',
       });
 
-      // The correct scrollHeight of iframe's document is available only after
-      // 'resize' event, at least in Chrome (latest), for ref:
-      // https://bugs/chromium.org/p/chromium/issues/detail?id=34224
-      // After reading the iframe height, this event listener is removed.
-      iframe.contentWindow.addEventListener('resize', this.ref_);
+      const height = iframe.contentDocument.body.scrollHeight;
+
+      // If iframe's scrollHeight is available, use it skip adding an event
+      // listener for the 'resize' event. This check is to protect the case,
+      // when 'onload' event does not report the iframe's scrollHeight.
+      if (height > 0) {
+        this.ref_();
+      } else {
+        // The correct scrollHeight of iframe's document is available only after
+        // 'resize' event, at least in Chrome (latest), for ref:
+        // https://bugs/chromium.org/p/chromium/issues/detail?id=34224
+        // After reading the iframe height, this event listener is removed.
+        iframe.contentWindow.addEventListener('resize', this.ref_);
+      }
     });
   }
 
@@ -225,13 +235,16 @@ export class OffersView {
   /**
    * Listens for the iframe content resize to notify the parent container.
    * The event listener is removed after reading the correct height.
-   * @param {!Event} event
+   * @param {!Event=} event
    * @private
    */
-  boundResizeListener_(event) {
+  boundResizeListener_(event = null) {
     const iframe = this.offersElement_;
     const height = iframe.contentDocument.body.scrollHeight;
-    this.context_.resizeView(this, height);
-    event.currentTarget.removeEventListener(event.type, this.ref_);
+    this.context_.resizeView(this, height, false).then(() => {
+      if (event) {
+        event.currentTarget.removeEventListener(event.type, this.ref_);
+      }
+    });
   }
  }
