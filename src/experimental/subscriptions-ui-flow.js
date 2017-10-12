@@ -276,9 +276,11 @@ export class SubscriptionsUiFlow {
         'transform': `translateY(${delta}px)`,
       });
 
-      setTimeout(() => {
-        this.animateViewToTransform_('none');
-      }, 100);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          this.animateViewToTransform_('none');
+        });
+      });
     } else {
 
       // First animate to scroll this down and then shrink the height
