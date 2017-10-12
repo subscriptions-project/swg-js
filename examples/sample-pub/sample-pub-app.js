@@ -18,7 +18,7 @@
 const app = module.exports = require('express').Router();
 
 const AUTH_URL_TEST = '/examples/sample-sp/api';
-const AUTH_URL_PROD = 'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement?pub_id=scenic-2017.appspot.com';
+const AUTH_URL_PROD = 'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
 
 const ARTICLES = [
   {
