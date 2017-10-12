@@ -71,6 +71,16 @@ export class Auth {
         return authResponse[0];
       })
       .then(json => {
+        // TODO(dvoytenko): Remove once backend integration is in place.
+        if (sessionStorage) {
+          const subscriberDataStr = sessionStorage.getItem('subscriberData');
+          const subscriberData =
+              subscriberDataStr && tryParseJson(subscriberDataStr);
+          if (subscriberData && Date.now() < subscriberData['expires']) {
+            json.subscriber = subscriberData;
+          }
+        }
+
         // Updating metering info
         // TODO(avimehta, #21): Remove this once server side metering is in place.
         json.metering = updateMeteringResponse(

@@ -393,11 +393,17 @@ export class SubscriptionsUiFlow {
   /** @private */
   paymentComplete_() {
     this.close_();
+    // TODO(dvoytenko): Remove when integration with backend/OMS is complete.
+    if (sessionStorage) {
+      sessionStorage.setItem('subscriberData', JSON.stringify({
+        'types': ['premium'],
+        'expires': Date.now() + 1000 * 60 * 5,  // 5min
+      }))
+    }
     // TODO(avimehta, #21): Restart authorization again, instead of redirect here.
     // (btw, it's fine if authorization restart does redirect itself when
     // needed)
-    this.win_.location = `${this.document_.location.origin}` +
-        `${this.document_.location.pathname}?test_response=subscriber-response`;
+    this.win_.location.reload(true);
   }
 
   /**
