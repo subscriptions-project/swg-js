@@ -124,7 +124,7 @@ swg-notification .swg-detail {
 swg-popup {
   position: fixed !important;
   bottom: 0 !important;
-  right: 0 !important;
+  left: 0 !important;
   z-index: 2147483647 !important;
   border: none  !important;;
   box-shadow: 0px 3px gray, 0 0 1.4em gray !important;
@@ -133,17 +133,17 @@ swg-popup {
   overflow: hidden !important;
   animation: swg-expand 1.0s !important;
   width: 100%;
-  margin-left: calc(100vw - 100vw / 2);
 }
 
 /**
  * The maximum width allowed for swg-popup is 480 px. If the default width
  * is 100% (for container width < 480 px).
  */
-@media screen and (min-width: 480px) {
+@media (min-width: 480px) {
   swg-popup {
     width: 480px;
     left: -240px !important;
+    margin-left: calc(100vw - 100vw / 2) !important;
   }
 }
 
