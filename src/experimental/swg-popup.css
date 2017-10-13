@@ -88,7 +88,7 @@ swg-notification {
   box-sizing: border-box !important;
   min-height: 60px !important;
   animation: swg-notify 1s ease-out normal backwards, swg-notify-hide 1s ease-out 7s normal forwards !important;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Roboto', sans-serif !important;
 }
 
 swg-notification .swg-label {
@@ -104,7 +104,18 @@ swg-notification .swg-detail {
   outline:none !important;
   white-space: nowrap !important;
   float: right !important;
-  font-family: 'Roboto', sans-serif;
+  font-family: inherit !important;
+}
+
+/**
+ * Initial default style of embedded iframe.
+ */
+.swg-iframe {
+  opacity: 1 !important;
+  border: none !important;
+  width: 100% !important;
+  background-color: #fff !important;
+  display: block !important;
 }
 
 /**

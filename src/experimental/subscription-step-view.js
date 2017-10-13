@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {setImportantStyles} from '../utils/style';
 
 /**
  * Subscription step view base class. Renders the content in the parent <swg-popup>
@@ -86,14 +85,7 @@ export class SubscriptionStepView {
     this.offerContainer_.appendChild(iframe);
 
     return readyPromise.then(() => {
-      setImportantStyles(iframe, {
-        'opacity': 1,
-        'border': 'none',
-        'width': '100%',
-        'background-color': '#fff',
-        'display': 'block',
-      });
-
+      iframe.classList.add('swg-iframe');
       iframe.contentWindow.addEventListener('resize', this.ref_);
     });
   }

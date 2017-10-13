@@ -20,7 +20,6 @@ import {
   SWG_OFFER_ITEM_CLASS,
   SWG_OFFER_CONTENT_CLASS,
 } from './subscriptions-ui-util';
-import {setImportantStyles} from '../utils/style';
 
 
 /**
@@ -131,14 +130,7 @@ export class OffersView {
       subscribeButton.onclick = () => {
         this.subscribeClicked_(this.selectedOfferIndex_);
       };
-
-      setImportantStyles(iframe, {
-        'opacity': 1,
-        'border': 'none',
-        'width': '100%',
-        'background-color': '#fff',
-        'display': 'block',
-      });
+      iframe.classList.add('swg-iframe');
 
       const height = iframe.contentDocument.body.scrollHeight;
 

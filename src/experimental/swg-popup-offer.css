@@ -144,7 +144,7 @@ body {
   flex-direction: row;
   padding: 6px 10px;
   height: 36px;
-  font-family: 'Roboto', sans-serif;
+  font-family: inherit;
   cursor: pointer;
 }
 
@@ -172,12 +172,12 @@ body {
 
 .swg-container .swg-abbreviated-view {
   display: flex;
-  align-items: center;
   flex: 1;
   align-items: center;
 }
 
-.swg-abbreviated-view .swg-logo, .swg-abbreviated-view .swg-abbreviated-view-description {
+.swg-abbreviated-view .swg-logo,
+.swg-abbreviated-view .swg-abbreviated-view-description {
   padding: 8px;
 }
 
