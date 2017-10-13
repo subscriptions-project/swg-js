@@ -126,13 +126,13 @@ swg-popup {
   bottom: 0 !important;
   left: 0 !important;
   z-index: 2147483647 !important;
-  border: none  !important;;
+  border: none  !important;
   box-shadow: 0px 3px gray, 0 0 1.4em gray !important;
   background-color: #fff  !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
   animation: swg-expand 1.0s !important;
-  width: 100%;
+  width: 100% !important;
 }
 
 /**
@@ -141,7 +141,7 @@ swg-popup {
  */
 @media (min-width: 480px) {
   swg-popup {
-    width: 480px;
+    width: 480px !important;
     left: -240px !important;
     margin-left: calc(100vw - 100vw / 2) !important;
   }
