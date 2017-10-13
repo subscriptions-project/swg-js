@@ -148,7 +148,9 @@ swg-popup-background {
 
 swg-popup .swg-close-action {
   position: absolute !important;
-  right: 0px !important;
+  right: 10px !important;
+  padding: 0 !important;
+  margin: 0 !important;
   color: #757575 !important;
   font-size: 2em !important;
   background-color: #ececec !important;

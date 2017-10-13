@@ -144,7 +144,7 @@ body {
   flex-direction: row;
   padding: 6px 10px;
   height: 36px;
-  font-family: inherit;
+  font-family: 'Roboto', sans-serif;
   cursor: pointer;
 }
 
