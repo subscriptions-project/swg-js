@@ -36,6 +36,12 @@ import {transition} from '../utils/animation';
 const POPUP_TAG = 'swg-popup';
 
 /**
+ * The fullscreen pop-up class name to be used.
+ * @const {string}
+ */
+const POPUP_FULLSCREEN_CLASS = 'swg-popup-fullscreen';
+
+/**
  * The default height of the pop-up.
  * @const {number}
  */
@@ -299,10 +305,27 @@ export class SubscriptionsUiFlow {
    * @private
    */
   animateResizeView_(view, newHeight) {
+    const winHeight = this.win_.innerHeight;
+    const heightThreshold = winHeight * 0.7;
     const oldHeight = view.getElement().offsetHeight;
-    const delta = newHeight - oldHeight;
+    let delta = newHeight - oldHeight;
+
+    if (newHeight > heightThreshold) {
+      this.offerContainer_.classList.add(POPUP_FULLSCREEN_CLASS);
+      delta = winHeight - this.offerContainer_.offsetHeight;
+      // Setting this from js as 100vh in css would make screen jump due to keyboard
+      setImportantStyles(this.offerContainer_, {
+        'height': `${winHeight}px`,
+      });
+    } else if (oldHeight > heightThreshold) {
+      this.offerContainer_.classList.remove(POPUP_FULLSCREEN_CLASS);
+      delta = newHeight - winHeight;
+      // Not removing height here as it would because height it will shrink without animation
+    }
 
     if (delta == 0) {
+      // This might be needed in case height jumps above heightThreshold
+      this.setBottomSheetHeight_(view.getElement(), newHeight);
       return;
     }
 
@@ -327,6 +350,10 @@ export class SubscriptionsUiFlow {
       this.animateViewToTransform_(`translateY(${Math.abs(delta)}px)`)
           .then(() => {
             this.setBottomSheetHeight_(view.getElement(), newHeight);
+
+            if (oldHeight > heightThreshold) {
+              this.offerContainer_.style.removeProperty('height');
+            }
 
             setImportantStyles(this.offerContainer_, {
               'transform': 'none',

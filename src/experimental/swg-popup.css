@@ -124,6 +124,10 @@ swg-popup {
   animation: swg-expand 1.0s !important;
 }
 
+swg-popup.swg-popup-fullscreen{
+  overflow-y: scroll !important;
+}
+
 swg-popup-background {
   position: fixed !important;
   top: 0 !important;
