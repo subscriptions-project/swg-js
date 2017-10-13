@@ -17,6 +17,7 @@
 
 import {
   renderOffers,
+  IFRAME_CLASS,
   SWG_OFFER_ITEM_CLASS,
   SWG_OFFER_CONTENT_CLASS,
 } from './subscriptions-ui-util';
@@ -130,7 +131,7 @@ export class OffersView {
       subscribeButton.onclick = () => {
         this.subscribeClicked_(this.selectedOfferIndex_);
       };
-      iframe.classList.add('swg-iframe');
+      iframe.classList.add(IFRAME_CLASS);
 
       const height = iframe.contentDocument.body.scrollHeight;
 
