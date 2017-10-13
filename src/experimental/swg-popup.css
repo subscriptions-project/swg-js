@@ -122,7 +122,6 @@ swg-popup {
   box-sizing: border-box !important;
   overflow: hidden !important;
   animation: swg-expand 1.0s !important;
-  opacity: 1 !important;
 }
 
 swg-popup-background {
@@ -138,9 +137,9 @@ swg-popup-background {
 
 swg-popup .swg-close-action {
   position: absolute !important;
-  right: 10px !important;
+  right: 0px !important;
   color: #757575 !important;
-  font-size: 28px !important;
+  font-size: 2em !important;
   background-color: #ececec !important;
   border: none !important;
   z-index: 2147483647 !important;
