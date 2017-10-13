@@ -185,6 +185,9 @@ export class SubscriptionsUiFlow {
     this.loadingView_.show();
 
     if (this.activeView_) {
+      // Set initial height as previous screen so that content doesnt jump
+      // Onload or Resize event will resize this to match content height.
+      this.setBottomSheetHeight_(view.getElement(), this.activeView_.getElement().offsetHeight);
       this.offerContainer_.removeChild(this.activeView_.getElement());
       this.activeView_ = null;
     }
@@ -203,7 +206,6 @@ export class SubscriptionsUiFlow {
     });
     this.offerContainer_.appendChild(view.getElement());
     return view.init().then(() => {
-      // TODO(dparikh): Transition necessary height and possible fade in content.
       this.loadingView_.hide();
       view.getElement().classList.add('swg-step-appear');
       setImportantStyles(view.getElement(), {
