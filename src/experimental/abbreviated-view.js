@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {abbreviatedView} from './subscriptions-ui-util';
+import {renderAbbreviatedView} from './subscriptions-ui-util';
 import {SubscriptionStepView} from './subscription-step-view';
 
 /**
@@ -61,7 +61,7 @@ export class AbbreviatedView extends SubscriptionStepView {
    * @return {!Promise}
    */
   buildView() {
-    const iframeSourceDoc = abbreviatedView(this.subscriptions_);
+    const iframeSourceDoc = renderAbbreviatedView(this.subscriptions_);
     const buildPromise = super.buildView(iframeSourceDoc);
 
     // Add subscribe button listener.
