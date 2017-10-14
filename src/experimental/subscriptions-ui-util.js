@@ -76,12 +76,9 @@ export function renderOffersView(subscriptions) {
   const abbreviatedView =
     `
       <html>
-        <head>
-          ${getStyle_()}
-        </head>
+        <head>${getStyle_()}</head>
         <body>
           <div class="swg-container">
-            <!--The content area-->
             ${renderOffersViewContent_(subscriptions)}
           </div>
         </body>
@@ -98,14 +95,10 @@ export function renderAbbreviatedView(subscriptions) {
   const abbreviatedView =
     `
       <html>
-        <head>
-          ${getStyle_()}
-        </head>
+        <head>${getStyle_()}</head>
         <body>
           <div class="swg-container">
-            <!--The content area-->
             ${renderAbbreviatedViewContent_(meteringResponse)}
-            <!--The footer-->
             ${renderAbbreviatedViewFooter_()}
           </div>
         </body>
@@ -142,9 +135,7 @@ function renderOffersViewContent_(subscriptions) {
   }
   return `
       <div class="swg-offer-header">Select an offer to continue</div>
-      <div>
-        ${offerContent}
-      </div>
+      <div>${offerContent}</div>
   `;
 }
 
@@ -184,13 +175,11 @@ function renderAbbreviatedViewFooter_() {
   `
   <div class="swg-subscribe-footer swg-abbreviated-footer">
     <div class="swg-h-spacer"></div>
-    <div id="my-signin2">
-      <div id="swg-button" class="swg-button">
-        <div class="swg-button-content-wrapper">
-          <div class="swg-button-icon"><div class="swg-icon"></div></div>
-          <span class="swg-button-content">
-          <span id="not_signed_inusbnj5w6cf1r">Subscribe with Google</span>
-        </div>
+    <div id="swg-button" class="swg-button">
+      <div class="swg-button-content-wrapper">
+        <div class="swg-button-icon"><div class="swg-icon"></div></div>
+        <span class="swg-button-content">
+        <span>Subscribe with Google</span>
       </div>
     </div>
   </div>
