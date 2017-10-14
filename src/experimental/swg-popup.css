@@ -148,6 +148,36 @@ swg-popup {
   }
 }
 
+.swg-google-bar {
+  height: 4px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  z-index: 2147483647 !important;
+}
+
+.swg-google-bar .swg-bar {
+  height: 100% !important;
+  flex: 1 !important;
+  z-index: 2147483647 !important;
+}
+
+.swg-bar:nth-child(1) {
+  background-color: #4285f4 !important;
+}
+
+.swg-bar:nth-child(2) {
+  background-color: #0f9d58 !important;
+}
+
+.swg-bar:nth-child(3) {
+  background-color: #f4b400 !important;
+}
+
+.swg-bar:nth-child(4) {
+  background-color: #db4437 !important;
+}
+
 swg-popup-background {
   position: fixed !important;
   top: 0 !important;
@@ -161,12 +191,13 @@ swg-popup-background {
 
 swg-popup .swg-close-action {
   position: absolute !important;
-  right: 10px !important;
+  right: 16px !important;
+  top: 14px !important;
   padding: 0 !important;
   margin: 0 !important;
   color: #757575 !important;
-  font-size: 2em !important;
-  background-color: #ececec !important;
+  font-size: 24px !important;
+  background-color: transparent !important;
   border: none !important;
   z-index: 2147483647 !important;
 }

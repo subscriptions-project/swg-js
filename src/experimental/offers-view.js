@@ -16,10 +16,9 @@
 
 
 import {
-  renderOffers,
+  renderOffersView,
   IFRAME_CLASS,
   SWG_OFFER_ITEM_CLASS,
-  SWG_OFFER_CONTENT_CLASS,
 } from './subscriptions-ui-util';
 
 
@@ -61,9 +60,6 @@ export class OffersView {
 
     /** @private @const {function()} */
     this.ref_ = this.boundResizeListener_.bind(this);
-
-    /** @private {number} */
-    this.selectedOfferIndex_ = null;
   }
 
   /**
@@ -112,7 +108,7 @@ export class OffersView {
     const iframe = this.offersElement_;
      // TODO(dparikh): Polyfill 'srcdoc'.
      // Ref.: https://github.com/ampproject/amphtml/blob/master/src/friendly-iframe-embed.js#L148-L163
-    iframe.srcdoc = renderOffers(this.subscriptions_);
+    iframe.srcdoc = renderOffersView(this.subscriptions_);
     iframe.setAttribute('frameborder', 0);
     iframe.setAttribute('scrolling', 'no');
 
@@ -123,14 +119,7 @@ export class OffersView {
     });
     this.offerContainer_.appendChild(iframe);
 
-    //iframe.contentWindow.addEventListener('resize', this.ref_);
     return readyPromise.then(() => {
-      const subscribeButton = iframe.contentDocument.getElementById(
-          'swg-button');
-
-      subscribeButton.onclick = () => {
-        this.subscribeClicked_(this.selectedOfferIndex_);
-      };
       iframe.classList.add(IFRAME_CLASS);
 
       const height = iframe.contentDocument.body.scrollHeight;
@@ -155,50 +144,16 @@ export class OffersView {
    * @private
    */
   boundOfferSelection_() {
-    this.setSelectedOfferIndex_();
     const iframe = this.offersElement_;
     const offerItems =
         iframe.contentDocument.querySelectorAll(`.${SWG_OFFER_ITEM_CLASS}`);
+
     offerItems.forEach(offerItem => offerItem
         .addEventListener('click', this.offerSelectionTrigger_.bind(this)));
 
     offerItems.forEach(offerItem => offerItem
         .addEventListener('keyup', this.offerSelectionTrigger_.bind(this)));
     return this;
-  }
-
-  /**
-   * Sets the index of the selected offer for later use.
-   * Defaults to first offer.
-   * @param {?number} index The offer index (zero based).
-   */
-  setSelectedOfferIndex_(index = 0) {
-    // If user has clicked/Pressed Enter key on existing offer.
-    if (this.selectedOfferIndex_ == index) {
-      return;
-    }
-
-    const previousOfferIndex = this.selectedOfferIndex_;
-    this.selectedOfferIndex_ = index;
-
-    this.updateOfferSelection_(this.selectedOfferIndex_, previousOfferIndex);
-  }
-
-  /**
-   * Updates the offer selection in the UI by highlighting the new selection
-   * and removing the previous selection.
-   * @param {number} currentOfferIndex
-   * @param {?number} previousOfferIndex
-   * @private
-   */
-  updateOfferSelection_(currentOfferIndex, previousOfferIndex) {
-    const iframe = this.offersElement_;
-    const offerContainer = iframe.contentDocument
-        .querySelector(`#${SWG_OFFER_CONTENT_CLASS}`);
-    offerContainer.children[currentOfferIndex].classList.add('checked');
-    if (previousOfferIndex != undefined) {
-      offerContainer.children[previousOfferIndex].classList.remove('checked');
-    }
   }
 
   /**
@@ -214,7 +169,7 @@ export class OffersView {
     // TODO(dparikh): Define constants for keyCode(s).
     if (event.keyCode == 13 || event.type == 'click') {
       const index = event.target.dataset.offerIndex;
-      this.setSelectedOfferIndex_(index);
+      this.subscribeClicked_(index);
     }
   }
 

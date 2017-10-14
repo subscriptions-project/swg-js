@@ -141,6 +141,7 @@ export class SubscriptionsUiFlow {
 
     // Add close button with action.
     this.addCloseButton_();
+    this.addGoogleBar_();
 
     setImportantStyles(this.offerContainer_, {
       'min-height': `${CONTAINER_HEIGHT}px`,
@@ -187,7 +188,8 @@ export class SubscriptionsUiFlow {
     if (this.activeView_) {
       // Set initial height as previous screen so that content doesnt jump
       // Onload or Resize event will resize this to match content height.
-      this.setBottomSheetHeight_(view.getElement(), this.activeView_.getElement().offsetHeight);
+      this.setBottomSheetHeight_(view.getElement(),
+          this.activeView_.getElement().offsetHeight);
       this.offerContainer_.removeChild(this.activeView_.getElement());
       this.activeView_ = null;
     }
@@ -463,6 +465,21 @@ export class SubscriptionsUiFlow {
     closeButton.textContent = '\u00D7';
 
     closeButton.addEventListener('click', () => this.close_());
+  }
+
+  /**
+   * Adds the top Google branding multi-color bar.
+   * @private
+   */
+  addGoogleBar_() {
+    const googleBar = this.document_.createElement('div');
+    googleBar.classList.add('swg-google-bar');
+    for (let i = 0; i < 4; i++) {
+      const swgBar = this.document_.createElement('div');
+      googleBar.appendChild(swgBar);
+      swgBar.classList.add('swg-bar');
+    }
+    this.offerContainer_.appendChild(googleBar);
   }
 
   /**

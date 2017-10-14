@@ -70,69 +70,19 @@ export function assertNoPopups(doc, elementTagName) {
 }
 
 /**
- * Returns embedded HTML for offers to use with iframe's srcdoc
- * attribute (friendly iframe).
- * @param {!SubscriptionResponse} subscriptions The user subscription details.
- * @return {string}
+ * Renders offers view. Called from the subscriptions flow.
  */
-export function renderOffers(subscriptions) {
-
-  const offers =
-    `
-      <html>
-        <head></head>
-        ${getStyle_()}
-        <body>
-          <div class="swg-container swg-offers">
-            <div class="swg-header">
-              <div class="swg-branding">
-                <div class="swg-logo">
-                  <img height="45" src="./icons/icon-2x.png"/>
-                </div>
-                <div class="swg-branding-header">
-                  <span class="swg-brand-name">The Scenic</span>
-                </div>
-              </div>
-              <div class="swg-branding-description">
-                Choose one of the following offers, to purchase membership.
-              </div>
-            </div>
-            <!--The content area-->
-            ${getContent_(subscriptions)}
-            <!--The footer-->
-            ${getOffersFooter_()}
-          </div>
-        </body>
-      </html>
-    `;
-  return offers;
-}
-
-/**
- * Returns embedded HTML for abbreviated view to use with iframe's srcdoc
- * attribute (friendly iframe).
- * @return {string}
- */
-export function abbreviatedView(subscriptions) {
-  const meteringResponse = subscriptions.metering;
+export function renderOffersView(subscriptions) {
   const abbreviatedView =
     `
       <html>
-        <head></head>
-        ${getStyle_()}
+        <head>
+          ${getStyle_()}
+        </head>
         <body>
           <div class="swg-container">
-            <div class="swg-header" style="display: flex;">
-              <span style="flex: 1;"></span>
-              <div>
-                ${getQuotaMessage_(meteringResponse)}
-              </div>
-              <span style="flex: 1;"></span>
-            </div>
             <!--The content area-->
-            ${getAbbreviatedViewContent_()}
-            <!--The footer-->
-            ${getAbbreviatedViewFooter_()}
+            ${renderOffersViewContent_(subscriptions)}
           </div>
         </body>
       </html>
@@ -141,18 +91,27 @@ export function abbreviatedView(subscriptions) {
 }
 
 /**
- * Returns HTML for quota left message.
- * @private
+ * Renders abbreviated view. Called from the subscriptions flow.
  */
-function getQuotaMessage_(meteringResponse) {
-  const quotaLeft = meteringResponse.quotaLeft;
-  const maxQuota = meteringResponse.maxQuota;
-  const quotaPeriod = meteringResponse.quotaPeriod;
-  return quotaLeft == maxQuota
-  ? `You can read <span style="font-weight: 500;">${quotaLeft}</span>
-      ${quotaLeft > 1 ? 'articles' : 'article'} free this ${quotaPeriod}!`
-  : `<span style="font-weight: 500;">${quotaLeft} </span>
-      ${quotaLeft > 1 ? 'articles' : 'article'} left for this ${quotaPeriod}!`;
+export function renderAbbreviatedView(subscriptions) {
+  const meteringResponse = subscriptions.metering;
+  const abbreviatedView =
+    `
+      <html>
+        <head>
+          ${getStyle_()}
+        </head>
+        <body>
+          <div class="swg-container">
+            <!--The content area-->
+            ${renderAbbreviatedViewContent_(meteringResponse)}
+            <!--The footer-->
+            ${renderAbbreviatedViewFooter_()}
+          </div>
+        </body>
+      </html>
+    `;
+  return abbreviatedView;
 }
 
 /**
@@ -167,40 +126,49 @@ function getStyle_() {
 }
 
 /**
- * Builds and returns the content HTML for the offer dialog.
- * @param {!SubscriptionResponse} subscriptions The user subscription details.
+ * Renders offers view content.
  * @private
  */
-function getContent_(subscriptions) {
+function renderOffersViewContent_(subscriptions) {
   const offers = subscriptions.offer;
   let offerContent = '';
   for (let i = 0; i < offers.length; i++) {
-    const checked = `${(i == 0) ? 'checked' : ''}`;
     offerContent += `
-        <div class="${SWG_OFFER_ITEM_CLASS} ${checked}"` +
-            `data-offer-index="${i}" tabindex="1">
-          <span>${offers[i].displayString}</span>
-        </div>
+      <div class="${SWG_OFFER_ITEM_CLASS}" data-offer-index="${i}" tabindex="1">
+        <div class="swg-offer-item-header">Basic subscription</div>
+        <div class="swg-offer-item-detail">14 days free, $8/mo after</div>
+      </div>
     `;
   }
-  const contentCls = SWG_OFFER_CONTENT_CLASS;
-  return `<div class="${contentCls}" id="${contentCls}">${offerContent}</div>`;
+  return `
+      <div class="swg-offer-header">Select an offer to continue</div>
+      <div>
+        ${offerContent}
+      </div>
+  `;
 }
 
 /**
  * Builds and returns the content HTML for abbreviated view.
  * @private
  */
-function getAbbreviatedViewContent_() {
+function renderAbbreviatedViewContent_(meteringResponse) {
+  const quotaLeft = meteringResponse.quotaLeft;
   const abbreviatedViewcontent =
     `
       <div class="swg-abbreviated-view">
-        <div class="swg-logo">
-          <img height="50" src="./icons/icon-2x.png"/>
-        </div>
         <div class="swg-abbreviated-view-description">
-          <div class="swg-heading">Award winning content.</div>
-          <div class="swg-sub-heading">Become subscriber now. Start free.</div>
+          <div class="swg-heading">Hi there,</div>
+          <div class="swg-sub-heading">You can subscribe to</div>
+          <div class="swg-sub-heading">
+            <span class="swg-pub">The Scenic</span> with your
+          </div>
+          <div class="swg-sub-heading">Google account.</div>
+          <div class="swg-already-link">Already subscriber?</div>
+        </div>
+        <div class="swg-metering">
+          <div class="swg-metering-count"><div>${quotaLeft}</div></div>
+          <div class="swg-metering-label">Articles left</div>
         </div>
       </div>
     `;
@@ -208,36 +176,23 @@ function getAbbreviatedViewContent_() {
 }
 
 /**
- * Builds and returns the footer HTML for the offer dialog.
+ * Renders footer (Subscribe with Google button) for abbreviated view.
  * @private
  */
-function getOffersFooter_() {
-  const footer =
-    `
-    <div class="swg-footer">
-      <div class="swg-h-spacer"></div>
-      <button class="swg-button" id="swg-button">
-        <span class="swg-label">Continue</span>
-      </button>
-    </div>
-    `;
-  return footer;
-}
-
-/**
- * Builds and returns the footer HTML for the abbreviatedView.
- * @private
- */
-function getAbbreviatedViewFooter_() {
+function renderAbbreviatedViewFooter_() {
   const footer =
   `
-  <div class="swg-footer swg-abbreviated-footer">
+  <div class="swg-subscribe-footer swg-abbreviated-footer">
     <div class="swg-h-spacer"></div>
-    <span class="swg-sign-in">Sign in</span>
-    <button class="swg-button" id="swg-button">
-      <div class="swg-icon"></div>
-      <span class="swg-label">Subscribe with Google</span>
-    </button>
+    <div id="my-signin2">
+      <div id="swg-button" class="swg-button">
+        <div class="swg-button-content-wrapper">
+          <div class="swg-button-icon"><div class="swg-icon"></div></div>
+          <span class="swg-button-content">
+          <span id="not_signed_inusbnj5w6cf1r">Subscribe with Google</span>
+        </div>
+      </div>
+    </div>
   </div>
   `;
   return footer;
