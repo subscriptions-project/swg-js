@@ -124,11 +124,12 @@ function getStyle_() {
  */
 function renderOffersViewContent_(subscriptions) {
   const offers = subscriptions.offer;
+  const types = ['Basic', 'Premium'];
   let offerContent = '';
   for (let i = 0; i < offers.length; i++) {
     offerContent += `
       <div class="${SWG_OFFER_ITEM_CLASS}" data-offer-index="${i}" tabindex="1">
-        <div class="swg-offer-item-header">Basic subscription</div>
+        <div class="swg-offer-item-header">${types[i]} subscription</div>
         <div class="swg-offer-item-detail">14 days free, $8/mo after</div>
       </div>
     `;
