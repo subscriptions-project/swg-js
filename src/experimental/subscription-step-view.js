@@ -88,20 +88,30 @@ export class SubscriptionStepView {
 
     return readyPromise.then(() => {
       iframe.classList.add(IFRAME_CLASS);
-      iframe.contentWindow.addEventListener('resize', this.ref_);
+      const height = iframe.contentDocument.body.scrollHeight;
+
+      if (height > 0) {
+        this.ref_();
+      } else {
+        iframe.contentWindow.addEventListener('resize', this.ref_);
+      }
     });
   }
 
   /**
    * Listens for the iframe content resize to notify the parent container.
    * The event listener is removed after reading the correct height.
-   * @param {!Event} event
+   * @param {?Event=} event
    * @private
    */
-  boundResizeListener_(event) {
+  boundResizeListener_(event = null) {
     const iframe = this.viewElement_;
     const height = iframe.contentDocument.body.scrollHeight;
-    this.context_.resizeView(this, height, this.animateWhileResize_);
-    event.currentTarget.removeEventListener(event.type, this.ref_);
+    this.context_.resizeView(this, height, this.animateWhileResize_)
+        .then(() => {
+          if (event != null && event.currentTarget != null) {
+            event.currentTarget.removeEventListener(event.type, this.ref_);
+          }
+        });
   }
  }
