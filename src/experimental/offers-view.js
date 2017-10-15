@@ -228,7 +228,7 @@ export class OffersView {
     const iframe = this.offersElement_;
     const height = iframe.contentDocument.body.scrollHeight;
     this.context_.resizeView(this, height).then(() => {
-      if (event != null) {
+      if (event != null && event.currentTarget != null) {
         event.currentTarget.removeEventListener(event.type, this.ref_);
       }
     });

@@ -109,7 +109,7 @@ export class SubscriptionStepView {
     const height = iframe.contentDocument.body.scrollHeight;
     this.context_.resizeView(this, height, this.animateWhileResize_)
         .then(() => {
-          if (event != null) {
+          if (event != null && event.currentTarget != null) {
             event.currentTarget.removeEventListener(event.type, this.ref_);
           }
         });
