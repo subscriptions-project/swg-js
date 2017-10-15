@@ -77,7 +77,6 @@ swg-notification {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
-  right: 0 !important;
   color: #fff !important;
   font-size: 15px !important;
   padding: 20px 8px 0 !important;
@@ -89,6 +88,7 @@ swg-notification {
   min-height: 60px !important;
   animation: swg-notify 1s ease-out normal backwards, swg-notify-hide 1s ease-out 7s normal forwards !important;
   font-family: 'Roboto', sans-serif !important;
+  width: 100%;
 }
 
 swg-notification .swg-label {
@@ -140,7 +140,8 @@ swg-popup {
  * is 100% (for container width < 480 px).
  */
 @media (min-width: 480px) {
-  swg-popup {
+  swg-popup,
+  swg-notification {
     width: 480px !important;
     left: -240px !important;
     margin-left: calc(100vw - 100vw / 2) !important;
