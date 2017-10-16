@@ -137,6 +137,8 @@ export class SubscriptionsUiFlow {
     this.animateResizeView_ =
         debounce(this.win_, this.animateResizeView_.bind(this), 300);
 
+    /** @private @const {number} */
+    this.winHeight_ = this.win_.innerHeight;
   }
 
   /*
@@ -305,22 +307,21 @@ export class SubscriptionsUiFlow {
    * @private
    */
   animateResizeView_(view, newHeight) {
-    const winHeight = this.win_.innerHeight;
-    const heightThreshold = winHeight * 0.7;
+    const heightThreshold = this.winHeight_ * 0.7;
     const oldHeight = view.getElement().offsetHeight;
     let delta = newHeight - oldHeight;
 
     if (newHeight > heightThreshold) {
-      delta = winHeight - this.offerContainer_.offsetHeight;
+      delta = this.winHeight_ - this.offerContainer_.offsetHeight;
       this.offerContainer_.classList.add(POPUP_FULLSCREEN_CLASS);
+      // Setting this from js as 100vh in css would make screen jump due to keyboard
+      setImportantStyles(this.offerContainer_, {
+        'height': `${this.winHeight_}px`,
+      });
     } else if (oldHeight > heightThreshold) {
       this.offerContainer_.classList.remove(POPUP_FULLSCREEN_CLASS);
-
+      delta = newHeight - this.winHeight_;
       // Not removing height here as it would because height it will shrink without animation
-      setImportantStyles(this.offerContainer_, {
-        'height': `${winHeight}px`,
-      });
-      delta = newHeight - winHeight;
     }
 
     if (delta == 0) {

@@ -126,7 +126,6 @@ swg-popup {
 
 swg-popup.swg-popup-fullscreen{
   overflow-y: auto !important;
-  height: 100%;
 }
 
 swg-popup-background {
