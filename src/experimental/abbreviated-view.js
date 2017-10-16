@@ -72,6 +72,12 @@ export class AbbreviatedView extends SubscriptionStepView {
       subscribeButton.onclick = () => {
         this.subscribeClicked_();
       };
+
+      subscribeButton.addEventListener('keypress', event => {
+        if (event.keyCode == 13) {
+          this.subscribeClicked_();
+        }
+      });
     });
   }
 }

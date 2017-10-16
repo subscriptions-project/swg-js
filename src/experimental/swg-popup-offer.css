@@ -262,7 +262,7 @@ body {
 .swg-abbreviated-view .swg-already-link {
   color: #4285f4;
   font-size: 14px;
-  padding: 4px 0 16px 0;
+  margin: 4px 0 16px 0;
   cursor: pointer;
 }
 
@@ -285,6 +285,11 @@ body {
   white-space: nowrap;
   height: 36px;
   width: 240px;
+}
+
+.swg-button:focus,
+.swg-button:hover {
+  box-shadow: 2px 3px 4px 0 rgba(0,0,0,.5);
 }
 
 .swg-button .swg-button-content-wrapper {
