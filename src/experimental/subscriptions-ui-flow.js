@@ -48,6 +48,13 @@ const POPUP_FULLSCREEN_CLASS = 'swg-popup-fullscreen';
 const CONTAINER_HEIGHT = 50;
 
 /**
+ * The max height of the pop-up.
+ * This is in aspect ratio of max-width of pop-up
+ * @const {number}
+ */
+const MAX_POPUP_HEIGHT = 640;
+
+/**
  * Builds offers container, including headers and footer. It builds an
  * element <swg-payflow> at the end of the <body> of the containing document.
  * The offer container within the element is built from the offers API response.
@@ -191,6 +198,7 @@ export class SubscriptionsUiFlow {
    */
   openView_(view) {
     this.loadingView_.show();
+    this.unlockBodyScroll_();
 
     if (this.activeView_) {
       // Set initial height as previous screen so that content doesnt jump
@@ -308,19 +316,22 @@ export class SubscriptionsUiFlow {
    */
   animateResizeView_(view, newHeight) {
     const heightThreshold = this.winHeight_ * 0.7;
+    const winHeight = Math.min(this.winHeight_, MAX_POPUP_HEIGHT);
     const oldHeight = view.getElement().offsetHeight;
     let delta = newHeight - oldHeight;
 
     if (newHeight > heightThreshold) {
-      delta = this.winHeight_ - this.offerContainer_.offsetHeight;
+      delta = winHeight - this.offerContainer_.offsetHeight;
       this.offerContainer_.classList.add(POPUP_FULLSCREEN_CLASS);
       // Setting this from js as 100vh in css would make screen jump due to keyboard
       setImportantStyles(this.offerContainer_, {
-        'height': `${this.winHeight_}px`,
+        'height': `${winHeight}px`,
       });
+      this.lockBodyScroll_();
     } else if (oldHeight > heightThreshold) {
+      this.unlockBodyScroll_();
       this.offerContainer_.classList.remove(POPUP_FULLSCREEN_CLASS);
-      delta = newHeight - this.winHeight_;
+      delta = newHeight - winHeight;
       // Not removing height here as it would because height it will shrink without animation
     }
 
@@ -397,6 +408,9 @@ export class SubscriptionsUiFlow {
 
     // Remove the faded background from the parent document.
     this.document_.body.removeChild(this.fadeBackground_);
+
+    // Unlock scroll on body
+    this.unlockBodyScroll_();
   }
 
   /**
@@ -407,6 +421,22 @@ export class SubscriptionsUiFlow {
       this,
       this.offerContainer_,
       this.subscription_).onSubscribeClicked(this.activatePay_.bind(this)));
+  }
+
+  /**
+   * Locks the scroll on body
+   * @private
+   */
+  lockBodyScroll_() {
+    this.document_.body.classList.add('swg-locked');
+  }
+
+  /**
+   * Unlocks the scroll on body
+   * @private
+   */
+  unlockBodyScroll_() {
+    this.document_.body.classList.remove('swg-locked');
   }
 
   /**
