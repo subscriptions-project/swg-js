@@ -36,10 +36,29 @@ import {transition} from '../utils/animation';
 const POPUP_TAG = 'swg-popup';
 
 /**
+ * The fullscreen pop-up class name to be used.
+ * @const {string}
+ */
+const POPUP_FULLSCREEN_CLASS = 'swg-popup-fullscreen';
+
+/**
  * The default height of the pop-up.
  * @const {number}
  */
 const CONTAINER_HEIGHT = 50;
+
+/**
+ * The max width of the pop-up.
+ * @const {number}
+ */
+const MAX_POPUP_WIDTH = 480;
+
+/**
+ * The max height of the pop-up.
+ * This is in aspect ratio of max-width of pop-up
+ * @const {number}
+ */
+const MAX_POPUP_HEIGHT = 640;
 
 /**
  * Builds offers container, including headers and footer. It builds an
@@ -131,6 +150,17 @@ export class SubscriptionsUiFlow {
     this.animateResizeView_ =
         debounce(this.win_, this.animateResizeView_.bind(this), 300);
 
+    /** @private {number} */
+    this.winHeight_ = this.win_.innerHeight;
+
+    this.orientationChangeListener_ =
+        this.orientationChangeListener_.bind(this);
+
+    /**
+     * Listens to orientation change of window
+     */
+    this.win_.addEventListener('orientationchange',
+        this.orientationChangeListener_);
   }
 
   /*
@@ -166,6 +196,16 @@ export class SubscriptionsUiFlow {
         .onSubscribeClicked(this.activateOffers_.bind(this)));
   }
 
+  /** @private */
+  orientationChangeListener_() {
+    // Orientation change doesn't trigger right screen sizes instantly
+    setTimeout(() => {
+      this.winHeight_ = this.win_.innerHeight;
+      this.resizeView(this.activeView_,
+          this.activeView_.getElement().offsetHeight);
+    }, 200);
+  }
+
   /**
    * Attaches the hidden faded background to the parent document.
    * @private
@@ -184,6 +224,7 @@ export class SubscriptionsUiFlow {
    */
   openView_(view) {
     this.loadingView_.show();
+    this.unlockBodyScroll_();
 
     if (this.activeView_) {
       // Set initial height as previous screen so that content doesnt jump
@@ -301,10 +342,34 @@ export class SubscriptionsUiFlow {
    * @private
    */
   animateResizeView_(view, newHeight) {
+    const heightThreshold = this.winHeight_ * 0.7;
+
+    const winHeight =
+        this.win_.innerWidth > MAX_POPUP_WIDTH ?
+            Math.min(this.winHeight_, MAX_POPUP_HEIGHT) :
+            this.winHeight_;
+
     const oldHeight = view.getElement().offsetHeight;
-    const delta = newHeight - oldHeight;
+    let delta = newHeight - oldHeight;
+
+    if (newHeight > heightThreshold) {
+      delta = winHeight - this.offerContainer_.offsetHeight;
+      this.offerContainer_.classList.add(POPUP_FULLSCREEN_CLASS);
+      // Setting this from js as 100vh in css would make screen jump due to keyboard
+      setImportantStyles(this.offerContainer_, {
+        'height': `${winHeight}px`,
+      });
+      this.lockBodyScroll_();
+    } else if (oldHeight > heightThreshold) {
+      this.unlockBodyScroll_();
+      this.offerContainer_.classList.remove(POPUP_FULLSCREEN_CLASS);
+      delta = newHeight - winHeight;
+      // Not removing height here as it would because height it will shrink without animation
+    }
 
     if (delta == 0) {
+      // This might be needed in case height jumps above heightThreshold
+      this.setBottomSheetHeight_(view.getElement(), newHeight);
       return;
     }
 
@@ -329,6 +394,10 @@ export class SubscriptionsUiFlow {
       this.animateViewToTransform_(`translateY(${Math.abs(delta)}px)`)
           .then(() => {
             this.setBottomSheetHeight_(view.getElement(), newHeight);
+
+            if (oldHeight > heightThreshold && newHeight <= heightThreshold) {
+              this.offerContainer_.style.removeProperty('height');
+            }
 
             setImportantStyles(this.offerContainer_, {
               'transform': 'none',
@@ -371,6 +440,13 @@ export class SubscriptionsUiFlow {
 
     // Remove the faded background from the parent document.
     this.document_.body.removeChild(this.fadeBackground_);
+
+    // Unlock scroll on body
+    this.unlockBodyScroll_();
+
+    // Remove event listener for orientation change
+    this.win_.removeEventListener('orientationchange',
+        this.orientationChangeListener_);
   }
 
   /**
@@ -381,6 +457,22 @@ export class SubscriptionsUiFlow {
       this,
       this.offerContainer_,
       this.subscription_).onSubscribeClicked(this.activatePay_.bind(this)));
+  }
+
+  /**
+   * Locks the scroll on body
+   * @private
+   */
+  lockBodyScroll_() {
+    this.document_.body.classList.add('swg-locked');
+  }
+
+  /**
+   * Unlocks the scroll on body
+   * @private
+   */
+  unlockBodyScroll_() {
+    this.document_.body.classList.remove('swg-locked');
   }
 
   /**
