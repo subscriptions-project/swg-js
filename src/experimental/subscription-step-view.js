@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import {setImportantStyles} from '../utils/style';
+import {IFRAME_CLASS} from './subscriptions-ui-util';
+
 
 /**
  * Subscription step view base class. Renders the content in the parent <swg-popup>
@@ -86,28 +87,31 @@ export class SubscriptionStepView {
     this.offerContainer_.appendChild(iframe);
 
     return readyPromise.then(() => {
-      setImportantStyles(iframe, {
-        'opacity': 1,
-        'border': 'none',
-        'width': '100%',
-        'background-color': '#fff',
-        'display': 'block',
-      });
+      iframe.classList.add(IFRAME_CLASS);
+      const height = iframe.contentDocument.body.scrollHeight;
 
-      iframe.contentWindow.addEventListener('resize', this.ref_);
+      if (height > 0) {
+        this.ref_();
+      } else {
+        iframe.contentWindow.addEventListener('resize', this.ref_);
+      }
     });
   }
 
   /**
    * Listens for the iframe content resize to notify the parent container.
    * The event listener is removed after reading the correct height.
-   * @param {!Event} event
+   * @param {?Event=} event
    * @private
    */
-  boundResizeListener_(event) {
+  boundResizeListener_(event = null) {
     const iframe = this.viewElement_;
     const height = iframe.contentDocument.body.scrollHeight;
-    this.context_.resizeView(this, height, this.animateWhileResize_);
-    event.currentTarget.removeEventListener(event.type, this.ref_);
+    this.context_.resizeView(this, height, this.animateWhileResize_)
+        .then(() => {
+          if (event != null && event.currentTarget != null) {
+            event.currentTarget.removeEventListener(event.type, this.ref_);
+          }
+        });
   }
  }

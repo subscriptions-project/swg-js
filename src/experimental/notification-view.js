@@ -29,6 +29,9 @@ const NOTIFICATION_TAG = 'swg-notification';
  */
 const CONTAINER_HEIGHT = 60;
 
+/** @const {string} */
+const DEFAULT_SUBSCRIPTION_URL = 'https://play.google.com/store/account';
+
 
 /**
  * The class for SwG notification view.
@@ -86,8 +89,13 @@ export class NotificationView {
     linkButton.setAttribute('class', 'swg-detail');
     this.notificationContainer_.appendChild(linkButton);
 
+    let subscriptionUrl = DEFAULT_SUBSCRIPTION_URL;
+    if (this.subscription_['subscriber'] &&
+        this.subscription_['subscriber']['url']) {
+      subscriptionUrl = this.subscription_.subscriber.url;
+    }
     linkButton.addEventListener('click', () => {
-      this.win_.open('https://play.google.com/store/account', '_blank');
+      this.win_.open(subscriptionUrl, '_blank');
     });
   }
 }

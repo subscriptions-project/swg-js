@@ -77,7 +77,6 @@ swg-notification {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
-  right: 0 !important;
   color: #fff !important;
   font-size: 15px !important;
   padding: 20px 8px 0 !important;
@@ -88,7 +87,8 @@ swg-notification {
   box-sizing: border-box !important;
   min-height: 60px !important;
   animation: swg-notify 1s ease-out normal backwards, swg-notify-hide 1s ease-out 7s normal forwards !important;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Roboto', sans-serif !important;
+  width: 100%;
 }
 
 swg-notification .swg-label {
@@ -104,7 +104,18 @@ swg-notification .swg-detail {
   outline:none !important;
   white-space: nowrap !important;
   float: right !important;
-  font-family: 'Roboto', sans-serif;
+  font-family: inherit !important;
+}
+
+/**
+ * Initial default style of embedded iframe.
+ */
+.swg-iframe {
+  opacity: 1 !important;
+  border: none !important;
+  width: 100% !important;
+  background-color: #fff !important;
+  display: block !important;
 }
 
 /**
@@ -114,14 +125,27 @@ swg-popup {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
-  right: 0 !important;
   z-index: 2147483647 !important;
-  border: none  !important;;
-  box-shadow: 3px 3px gray, 0 0 1.4em gray !important;
+  border: none  !important;
+  box-shadow: 0px 3px gray, 0 0 1.4em gray !important;
   background-color: #fff  !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
   animation: swg-expand 1.0s !important;
+  width: 100% !important;
+}
+
+/**
+ * The maximum width allowed for swg-popup is 480 px. If the default width
+ * is 100% (for container width < 480 px).
+ */
+@media (min-width: 480px) {
+  swg-popup,
+  swg-notification {
+    width: 480px !important;
+    left: -240px !important;
+    margin-left: calc(100vw - 100vw / 2) !important;
+  }
 }
 
 swg-popup.swg-popup-fullscreen{
@@ -141,7 +165,9 @@ swg-popup-background {
 
 swg-popup .swg-close-action {
   position: absolute !important;
-  right: 0px !important;
+  right: 10px !important;
+  padding: 0 !important;
+  margin: 0 !important;
   color: #757575 !important;
   font-size: 2em !important;
   background-color: #ececec !important;

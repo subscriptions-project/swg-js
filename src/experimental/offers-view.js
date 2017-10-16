@@ -17,10 +17,10 @@
 
 import {
   renderOffers,
+  IFRAME_CLASS,
   SWG_OFFER_ITEM_CLASS,
   SWG_OFFER_CONTENT_CLASS,
 } from './subscriptions-ui-util';
-import {setImportantStyles} from '../utils/style';
 
 
 /**
@@ -131,14 +131,7 @@ export class OffersView {
       subscribeButton.onclick = () => {
         this.subscribeClicked_(this.selectedOfferIndex_);
       };
-
-      setImportantStyles(iframe, {
-        'opacity': 1,
-        'border': 'none',
-        'width': '100%',
-        'background-color': '#fff',
-        'display': 'block',
-      });
+      iframe.classList.add(IFRAME_CLASS);
 
       const height = iframe.contentDocument.body.scrollHeight;
 
@@ -235,7 +228,7 @@ export class OffersView {
     const iframe = this.offersElement_;
     const height = iframe.contentDocument.body.scrollHeight;
     this.context_.resizeView(this, height).then(() => {
-      if (event) {
+      if (event != null && event.currentTarget != null) {
         event.currentTarget.removeEventListener(event.type, this.ref_);
       }
     });

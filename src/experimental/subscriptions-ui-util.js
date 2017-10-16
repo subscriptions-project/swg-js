@@ -24,6 +24,9 @@ import {CSS as OFFERS_CSS} from
 export const MAX_Z_INDEX = 2147483647;
 
 /** @const {string} */
+export const IFRAME_CLASS = 'swg-iframe';
+
+/** @const {string} */
 export const SWG_OFFER_CONTENT_CLASS = 'swg-content';
 
 /** @const {string} */
