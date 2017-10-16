@@ -48,6 +48,12 @@ const POPUP_FULLSCREEN_CLASS = 'swg-popup-fullscreen';
 const CONTAINER_HEIGHT = 50;
 
 /**
+ * The max width of the pop-up.
+ * @const {number}
+ */
+const MAX_POPUP_WIDTH = 480;
+
+/**
  * The max height of the pop-up.
  * This is in aspect ratio of max-width of pop-up
  * @const {number}
@@ -144,21 +150,18 @@ export class SubscriptionsUiFlow {
     this.animateResizeView_ =
         debounce(this.win_, this.animateResizeView_.bind(this), 300);
 
-    /** @private @const {number} */
+    /** @private {number} */
     this.winHeight_ = this.win_.innerHeight;
+
+    this.orientationChangeListener_ =
+        this.orientationChangeListener_.bind(this);
 
     /**
      * Listens to orientation change of window
      * @private
      */
-    this.win_.onorientationchange = () => {
-      // Orientation change doesn't trigger right screen sizes instantly
-      setTimeout(() => {
-        this.winHeight_ = this.win_.innerHeight;
-        this.resizeView(this.activeView_,
-            this.activeView_.getElement().offsetHeight);
-      }, 200);
-    };
+    this.win_.addEventListener('orientationchange',
+        this.orientationChangeListener_);
   }
 
   /*
@@ -192,6 +195,15 @@ export class SubscriptionsUiFlow {
         this.offerContainer_,
         this.subscription_)
         .onSubscribeClicked(this.activateOffers_.bind(this)));
+  }
+
+  orientationChangeListener_() {
+    // Orientation change doesn't trigger right screen sizes instantly
+    setTimeout(() => {
+      this.winHeight_ = this.win_.innerHeight;
+      this.resizeView(this.activeView_,
+          this.activeView_.getElement().offsetHeight);
+    }, 200);
   }
 
   /**
@@ -331,7 +343,12 @@ export class SubscriptionsUiFlow {
    */
   animateResizeView_(view, newHeight) {
     const heightThreshold = this.winHeight_ * 0.7;
-    const winHeight = Math.min(this.winHeight_, MAX_POPUP_HEIGHT);
+
+    const winHeight =
+        this.win_.innerWidth > MAX_POPUP_WIDTH ?
+            Math.min(this.winHeight_, MAX_POPUP_HEIGHT) :
+            this.winHeight_;
+
     const oldHeight = view.getElement().offsetHeight;
     let delta = newHeight - oldHeight;
 
@@ -426,6 +443,10 @@ export class SubscriptionsUiFlow {
 
     // Unlock scroll on body
     this.unlockBodyScroll_();
+
+    // Remove event listener for orientation change
+    this.win_.removeEventListener('orientationchange',
+        this.orientationChangeListener_);
   }
 
   /**

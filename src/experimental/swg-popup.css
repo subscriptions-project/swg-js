@@ -21,7 +21,7 @@
 
 
 body.swg-locked {
-  overflow: hidden;
+  overflow: hidden !important;
 }
 
 @-webkit-keyframes swg-loading {
