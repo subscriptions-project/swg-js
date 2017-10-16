@@ -461,7 +461,9 @@ export class SubscriptionsUiFlow {
   addCloseButton_() {
     const closeButton = this.document_.createElement('div');
     closeButton.classList.add('swg-close-action');
+    closeButton.setAttribute('role', 'button');
     this.offerContainer_.appendChild(closeButton);
+
 
     closeButton.addEventListener('click', () => this.close_());
   }
