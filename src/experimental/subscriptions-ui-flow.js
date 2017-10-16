@@ -311,16 +311,16 @@ export class SubscriptionsUiFlow {
     let delta = newHeight - oldHeight;
 
     if (newHeight > heightThreshold) {
-      this.offerContainer_.classList.add(POPUP_FULLSCREEN_CLASS);
       delta = winHeight - this.offerContainer_.offsetHeight;
-      // Setting this from js as 100vh in css would make screen jump due to keyboard
+      this.offerContainer_.classList.add(POPUP_FULLSCREEN_CLASS);
+    } else if (oldHeight > heightThreshold) {
+      this.offerContainer_.classList.remove(POPUP_FULLSCREEN_CLASS);
+
+      // Not removing height here as it would because height it will shrink without animation
       setImportantStyles(this.offerContainer_, {
         'height': `${winHeight}px`,
       });
-    } else if (oldHeight > heightThreshold) {
-      this.offerContainer_.classList.remove(POPUP_FULLSCREEN_CLASS);
       delta = newHeight - winHeight;
-      // Not removing height here as it would because height it will shrink without animation
     }
 
     if (delta == 0) {
