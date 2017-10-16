@@ -81,7 +81,6 @@ body {
   background-color: #fff;
   border: .5px solid #ddd;
   border-radius: 2px;
-  /*height: 32px;*/
   padding: 16px;
   cursor: pointer;
   font-size: 15px;
@@ -89,7 +88,7 @@ body {
   color: rgba(0, 0, 0, .87);
 }
 
-.swg-offer-item:first-child {
+.swg-offer-item:not(:last-child) {
   margin-bottom: 8px;
 }
 
@@ -303,8 +302,6 @@ body {
 
 .swg-button-content {
   letter-spacing: .21px;
-  margin-left: 6px;
-  margin-right: 6px;
   vertical-align: top;
   font-weight: 400;
   color: #fff;
