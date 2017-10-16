@@ -88,7 +88,7 @@ swg-notification {
   min-height: 60px !important;
   animation: swg-notify 1s ease-out normal backwards, swg-notify-hide 1s ease-out 7s normal forwards !important;
   font-family: 'Roboto', sans-serif !important;
-  width: 100%;
+  width: 100% !important;
 }
 
 swg-notification .swg-label {
@@ -192,17 +192,15 @@ swg-popup-background {
 swg-popup .swg-close-action {
   position: absolute !important;
   right: 16px !important;
-  top: 14px !important;
+  top: 20px !important;  /* 16px padding + 4px top Google bar */
   padding: 0 !important;
   margin: 0 !important;
-  color: #757575 !important;
-  font-size: 24px !important;
   background-color: transparent !important;
   border: none !important;
   z-index: 2147483647 !important;
-  line-height: 16px;
-  width: 16px;
-  height: 16px;
+  width: 11px !important;
+  height: 11px !important;
+  background-image: url("data:image/svg+xml;charset=utf-8,<svg viewPort='0 0 11 11' version='1.1' xmlns='http://www.w3.org/2000/svg'><line x1='0' y1='11' x2='11' y2='0' stroke='#757575' stroke-width='1'/><line x1='0' y1='0' x2='11' y2='11' stroke='#757575' stroke-width='1'/></svg>") !important;
 }
 
 swg-popup .swg-step-appear{

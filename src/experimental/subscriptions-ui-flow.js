@@ -459,10 +459,11 @@ export class SubscriptionsUiFlow {
    * @private
    */
   addCloseButton_() {
-    const closeButton = this.document_.createElement('button');
+    const closeButton = this.document_.createElement('div');
     closeButton.classList.add('swg-close-action');
+    closeButton.setAttribute('role', 'button');
     this.offerContainer_.appendChild(closeButton);
-    closeButton.textContent = '\u00D7';
+
 
     closeButton.addEventListener('click', () => this.close_());
   }
