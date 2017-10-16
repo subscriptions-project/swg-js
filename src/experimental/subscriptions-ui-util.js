@@ -128,7 +128,8 @@ function renderOffersViewContent_(subscriptions) {
   let offerContent = '';
   for (let i = 0; i < offers.length; i++) {
     offerContent += `
-      <div class="${SWG_OFFER_ITEM_CLASS}" data-offer-index="${i}" tabindex="1">
+      <div class="${SWG_OFFER_ITEM_CLASS}" data-offer-index="${i}"
+          tabindex="1" role="button">
         <div class="swg-offer-item-header">${types[i]} subscription</div>
         <div class="swg-offer-item-detail">${offers[i]['displayString']}</div>
       </div>
@@ -156,7 +157,9 @@ function renderAbbreviatedViewContent_(meteringResponse) {
             <span class="swg-pub">The Scenic</span> with your
           </div>
           <div class="swg-sub-heading">Google account.</div>
-          <div class="swg-already-link">Already subscriber?</div>
+          <div class="swg-already-link" role="link" tabindex="1">
+            Already subscriber?
+          </div>
         </div>
         <div class="swg-metering">
           <div class="swg-metering-count"><div>${quotaLeft}</div></div>
@@ -176,7 +179,7 @@ function renderAbbreviatedViewFooter_() {
   `
   <div class="swg-subscribe-footer swg-abbreviated-footer">
     <div class="swg-h-spacer"></div>
-    <div id="swg-button" class="swg-button">
+    <div id="swg-button" class="swg-button" role="button" tabindex="1">
       <div class="swg-button-content-wrapper">
         <div class="swg-button-icon"><div class="swg-icon"></div></div>
         <div class="swg-button-content">

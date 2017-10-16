@@ -116,29 +116,8 @@ body {
   color: #fff;
 }
 
-/*.swg-offer-item:before {
-  content: '';
-  white-space: nowrap;
-  padding-right: 20px;
-}*/
-
-.swg-offer-item.checked:before {
-  content: '\2713';
-  white-space: nowrap;
-  padding-right: 9px;
-}
-
-.swg-offer-item span {
-  pointer-events: none;
-}
-
 .swg-h-spacer {
   flex: 1;
-}
-
-.swg-sign-in {
-  margin-right: 16px;
-  color: #555;
 }
 
 .swg-button {
@@ -156,6 +135,11 @@ body {
   height: 36px;
   font-family: 'Roboto', sans-serif;
   cursor: pointer;
+}
+
+.swg-button:focus,
+.swg-button:hover {
+  box-shadow: 2px 3px 4px 0 rgba(0,0,0,.5);
 }
 
 .swg-button-container {
@@ -262,7 +246,7 @@ body {
 .swg-abbreviated-view .swg-already-link {
   color: #4285f4;
   font-size: 14px;
-  padding: 4px 0 16px 0;
+  margin: 4px 0 16px 0;
   cursor: pointer;
 }
 
