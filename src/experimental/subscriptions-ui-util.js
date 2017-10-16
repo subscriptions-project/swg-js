@@ -130,7 +130,7 @@ function renderOffersViewContent_(subscriptions) {
     offerContent += `
       <div class="${SWG_OFFER_ITEM_CLASS}" data-offer-index="${i}" tabindex="1">
         <div class="swg-offer-item-header">${types[i]} subscription</div>
-        <div class="swg-offer-item-detail">14 days free, $8/mo after</div>
+        <div class="swg-offer-item-detail">${offers[i]['displayString']}</div>
       </div>
     `;
   }
@@ -179,8 +179,9 @@ function renderAbbreviatedViewFooter_() {
     <div id="swg-button" class="swg-button">
       <div class="swg-button-content-wrapper">
         <div class="swg-button-icon"><div class="swg-icon"></div></div>
-        <span class="swg-button-content">
-        <span>Subscribe with Google</span>
+        <div class="swg-button-content">
+          <span>Subscribe with Google</span>
+        </div>
       </div>
     </div>
   </div>
