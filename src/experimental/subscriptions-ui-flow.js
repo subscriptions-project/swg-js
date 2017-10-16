@@ -158,7 +158,6 @@ export class SubscriptionsUiFlow {
 
     /**
      * Listens to orientation change of window
-     * @private
      */
     this.win_.addEventListener('orientationchange',
         this.orientationChangeListener_);
@@ -197,6 +196,7 @@ export class SubscriptionsUiFlow {
         .onSubscribeClicked(this.activateOffers_.bind(this)));
   }
 
+  /** @private */
   orientationChangeListener_() {
     // Orientation change doesn't trigger right screen sizes instantly
     setTimeout(() => {
