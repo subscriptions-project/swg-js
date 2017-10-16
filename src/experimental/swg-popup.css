@@ -200,6 +200,9 @@ swg-popup .swg-close-action {
   background-color: transparent !important;
   border: none !important;
   z-index: 2147483647 !important;
+  line-height: 16px;
+  width: 16px;
+  height: 16px;
 }
 
 swg-popup .swg-step-appear{

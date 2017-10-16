@@ -152,11 +152,11 @@ function renderAbbreviatedViewContent_(meteringResponse) {
       <div class="swg-abbreviated-view">
         <div class="swg-abbreviated-view-description">
           <div class="swg-heading">Hi there,</div>
-          <div class="swg-sub-heading">You can subscribe to</div>
           <div class="swg-sub-heading">
-            <span class="swg-pub">The Scenic</span> with your
+            You can subscribe to
+            <span>The scenic</span>
+            with your Google account.
           </div>
-          <div class="swg-sub-heading">Google account.</div>
           <div class="swg-already-link" role="link" tabindex="1">
             Already subscriber?
           </div>
@@ -178,7 +178,6 @@ function renderAbbreviatedViewFooter_() {
   const footer =
   `
   <div class="swg-subscribe-footer swg-abbreviated-footer">
-    <div class="swg-h-spacer"></div>
     <div id="swg-button" class="swg-button" role="button" tabindex="1">
       <div class="swg-button-content-wrapper">
         <div class="swg-button-icon"><div class="swg-icon"></div></div>
