@@ -17,7 +17,7 @@
 
 import {assert, log} from '../utils/log';
 import {Auth} from '../experimental/auth';
-import {buildSubscriptionsUi} from '../experimental/subscriptions-ui-flow';
+import {buildSubscriptionsUi} from '../experimental/subscriptions-flow';
 import {isArray} from '../utils/types';
 import {SubscriptionMarkup} from './subscription-markup';
 
@@ -121,8 +121,7 @@ export class Runtime {
         'Subscription flow can only be started once.');
     log('Starting subscription flow');
     this.subscriptionsFlow_ = this.auth_.start()
-        .then(response => buildSubscriptionsUi(this.win, this.markup_,
-            response));
+        .then(response => buildSubscriptionsUi(this.win, response));
     return this.subscriptionsFlow_;
   }
 
