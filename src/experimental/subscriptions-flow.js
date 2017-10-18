@@ -533,14 +533,6 @@ export class SubscriptionsFlow {
   /** @private */
   paymentComplete_() {
     this.close_();
-    /* TODO(dvoytenko): Remove when integration with backend/OMS is complete.
-    if (this.win_.sessionStorage) {
-      this.win_.sessionStorage.setItem('subscriberData', JSON.stringify({
-        'types': ['premium'],
-        'expires': Date.now() + 1000 * 60 * 5,  // 5min
-      }));
-    }
-    */
     // TODO(avimehta, #21): Restart authorization again, instead of redirect
     // here. (btw, it's fine if authorization restart does redirect itself when
     // needed)

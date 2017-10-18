@@ -16,7 +16,7 @@
 
 
 import {assert, log} from '../utils/log';
-import {Auth} from '../experimental/auth';
+import {AuthorizationFlow} from './authorization-flow';
 import {buildSubscriptionsUi} from '../experimental/subscriptions-flow';
 import {isArray} from '../utils/types';
 import {SubscriptionMarkup} from './subscription-markup';
@@ -98,8 +98,8 @@ export class Runtime {
     /** @private @const {!SubscriptionMarkup} */
     this.markup_ = new SubscriptionMarkup(this.win);
 
-    /** @private @const {!Auth} */
-    this.auth_ = new Auth(this.win, this.markup_);
+    /** @private @const {!AuthorizationFlow} */
+    this.auth_ = new AuthorizationFlow(this.win, this.markup_);
 
     /** @private {?Promise} */
     this.subscriptionsFlow_ = null;
