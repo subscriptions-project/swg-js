@@ -18,7 +18,7 @@
 import {
   assertNoPopups,
   isSubscriber,
-} from './subscriptions-ui-util';
+} from './utils';
 import {AbbreviatedView} from './abbreviated-view';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {debounce} from '../utils/rate-limit';
@@ -71,10 +71,9 @@ const MAX_POPUP_HEIGHT = 640;
  *     4. Subscriber   : Payment broken. Notify user
  *     5. Not signed-in: Notify user to sign-in and show offers
  * @param {!Window} win The main containing window object.
- * @param {!../runtime/subscription-markup.SubscriptionMarkup} markup
  * @param {!SubscriptionResponse} response
  */
-export function buildSubscriptionsUi(win, markup, response) {
+export function buildSubscriptionsUi(win, response) {
 
   // Ensure that the element is not already built by external resource.
   assertNoPopups(win.document, POPUP_TAG);
@@ -88,7 +87,7 @@ export function buildSubscriptionsUi(win, markup, response) {
   if (isSubscriber(response)) {
     new NotificationView(win, response).start();
   } else {
-    new SubscriptionsUiFlow(win, response).start();
+    new SubscriptionsFlow(win, response).start();
   }
 
   /**
@@ -106,7 +105,7 @@ export function buildSubscriptionsUi(win, markup, response) {
 /**
  * The class for SwG offers flow.
  */
-export class SubscriptionsUiFlow {
+export class SubscriptionsFlow {
 
   /**
    * @param {!Window} win The parent window.
@@ -157,7 +156,7 @@ export class SubscriptionsUiFlow {
         this.orientationChangeListener_.bind(this);
 
     /**
-     * Listens to orientation change of window
+     * Listens to orientation change of window.
      */
     this.win_.addEventListener('orientationchange',
         this.orientationChangeListener_);
@@ -171,6 +170,7 @@ export class SubscriptionsUiFlow {
 
     // Add close button with action.
     this.addCloseButton_();
+
     this.addGoogleBar_();
 
     setImportantStyles(this.offerContainer_, {
@@ -198,7 +198,7 @@ export class SubscriptionsUiFlow {
 
   /** @private */
   orientationChangeListener_() {
-    // Orientation change doesn't trigger right screen sizes instantly
+    // Orientation change doesn't trigger right screen sizes instantly.
     setTimeout(() => {
       this.winHeight_ = this.win_.innerHeight;
       this.resizeView(this.activeView_,
@@ -355,7 +355,8 @@ export class SubscriptionsUiFlow {
     if (newHeight > heightThreshold) {
       delta = winHeight - this.offerContainer_.offsetHeight;
       this.offerContainer_.classList.add(POPUP_FULLSCREEN_CLASS);
-      // Setting this from js as 100vh in css would make screen jump due to keyboard
+      // Setting this from js as 100vh in css would make screen jump due to
+      // keyboard.
       setImportantStyles(this.offerContainer_, {
         'height': `${winHeight}px`,
       });
@@ -364,11 +365,12 @@ export class SubscriptionsUiFlow {
       this.unlockBodyScroll_();
       this.offerContainer_.classList.remove(POPUP_FULLSCREEN_CLASS);
       delta = newHeight - winHeight;
-      // Not removing height here as it would because height it will shrink without animation
+      // Not removing height here as it would because height it will shrink
+      // without animation.
     }
 
     if (delta == 0) {
-      // This might be needed in case height jumps above heightThreshold
+      // This might be needed in case height jumps above heightThreshold.
       this.setBottomSheetHeight_(view.getElement(), newHeight);
       return;
     }
@@ -390,7 +392,7 @@ export class SubscriptionsUiFlow {
       });
     } else {
 
-      // First animate to scroll this down and then shrink the height
+      // First animate to scroll this down and then shrink the height.
       this.animateViewToTransform_(`translateY(${Math.abs(delta)}px)`)
           .then(() => {
             this.setBottomSheetHeight_(view.getElement(), newHeight);
@@ -441,10 +443,10 @@ export class SubscriptionsUiFlow {
     // Remove the faded background from the parent document.
     this.document_.body.removeChild(this.fadeBackground_);
 
-    // Unlock scroll on body
+    // Unlock scroll on body.
     this.unlockBodyScroll_();
 
-    // Remove event listener for orientation change
+    // Remove event listener for orientation change.
     this.win_.removeEventListener('orientationchange',
         this.orientationChangeListener_);
   }
@@ -460,7 +462,7 @@ export class SubscriptionsUiFlow {
   }
 
   /**
-   * Locks the scroll on body
+   * Locks the scroll on body.
    * @private
    */
   lockBodyScroll_() {
@@ -468,7 +470,7 @@ export class SubscriptionsUiFlow {
   }
 
   /**
-   * Unlocks the scroll on body
+   * Unlocks the scroll on body.
    * @private
    */
   unlockBodyScroll_() {
@@ -481,7 +483,7 @@ export class SubscriptionsUiFlow {
    */
   activatePay_(selectedOfferIndex) {
     const offer = this.subscription_['offer'][selectedOfferIndex];
-    // First, try to pay via PaymentRequest
+    // First, try to pay via PaymentRequest.
     const prFlow =
         offer['paymentRequestJson'] ?
         this.executeViaPaymentRequest_(offer['paymentRequestJson']) :
@@ -539,8 +541,8 @@ export class SubscriptionsUiFlow {
       }));
     }
     */
-    // TODO(avimehta, #21): Restart authorization again, instead of redirect here.
-    // (btw, it's fine if authorization restart does redirect itself when
+    // TODO(avimehta, #21): Restart authorization again, instead of redirect
+    // here. (btw, it's fine if authorization restart does redirect itself when
     // needed)
     this.win_.location.reload(true);
   }

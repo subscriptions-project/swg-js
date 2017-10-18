@@ -15,7 +15,7 @@
  */
 
 import {EntitledState} from '../runtime/subscription-markup';
-import {isMeteredUser, isSubscriber} from './subscriptions-ui-util';
+import {isMeteredUser, isSubscriber} from './utils';
 import {isObject} from '../utils/types';
 import {log} from '../utils/log';
 import {updateMeteringResponse} from './user-metering';
@@ -62,37 +62,37 @@ export class Auth {
   start() {
     // TODO(avimehta, #21): Add a timeout so this doesn't wait forever to show offers.
     return this.getPaywallConfig_()
-      .then(config => this.sendAuthRequests_(config))
-      .then(authResponse => {
-        if (!authResponse) {
-          throw new Error('Auth response not found.');
-        }
-        // TODO(avimehta, #21): Figure out how to handle more than one responses.
-        return authResponse[0];
-      })
-      .then(json => {
-        // TODO(dvoytenko): Remove once backend integration is in place.
-        if (this.win.sessionStorage) {
-          const subscriberDataStr =
-              this.win.sessionStorage.getItem('subscriberData');
-          const subscriberData =
-              subscriberDataStr && parseJson(subscriberDataStr);
-          if (subscriberData && Date.now() < subscriberData['expires']) {
-            json.subscriber = subscriberData;
+        .then(config => this.sendAuthRequests_(config))
+        .then(authResponse => {
+          if (!authResponse) {
+            throw new Error('Auth response not found.');
           }
-        }
+        // TODO(avimehta, #21): Figure out how to handle more than one responses.
+          return authResponse[0];
+        })
+        .then(json => {
+        // TODO(dvoytenko): Remove once backend integration is in place.
+          if (this.win.sessionStorage) {
+            const subscriberDataStr =
+              this.win.sessionStorage.getItem('subscriberData');
+            const subscriberData =
+              subscriberDataStr && parseJson(subscriberDataStr);
+            if (subscriberData && Date.now() < subscriberData['expires']) {
+              json.subscriber = subscriberData;
+            }
+          }
 
         // Updating metering info
         // TODO(avimehta, #21): Remove this once server side metering is in place.
-        json.metering = updateMeteringResponse(
-            this.win.location.href, json.metering);
+          json.metering = updateMeteringResponse(
+              this.win.location.href, json.metering);
 
-        if (isSubscriber(json) || isMeteredUser(json)) {
-          this.markup_.setEntitled(EntitledState.ENTITLED);
-        }
+          if (isSubscriber(json) || isMeteredUser(json)) {
+            this.markup_.setEntitled(EntitledState.ENTITLED);
+          }
 
-        return json;
-      });
+          return json;
+        });
   }
 
   /**
@@ -112,7 +112,7 @@ export class Auth {
     }
     if (el.nodeName == 'SCRIPT' &&
         el.getAttribute('type') == 'application/json') {
-      this.config_ = parseJson(el.textContent)
+      this.config_ = parseJson(el.textContent);
       return Promise.resolve(this.config_);
     }
 
@@ -132,7 +132,7 @@ export class Auth {
   sendAuthRequests_(config) {
     log('Sending auth requests.');
     if (!isObject(config) || Object.keys(config).length === 0) {
-      log('Invalid config.')
+      log('Invalid config.');
       return Promise.resolve();
     }
     const profiles = config['profiles'];
@@ -143,12 +143,12 @@ export class Auth {
 
     // TODO(avimehta, #21): Move XHR utils to a separate class.
     const services = profiles[this.accessType_]['services'];
-    let authPromises = [];
+    const authPromises = [];
     for (let i = 0; i < services.length; i++) {
       const service = services[i];
       const init = {
         method: 'GET',
-        headers: { 'Accept': 'application/json' },
+        headers: {'Accept': 'application/json'},
         credentials: 'include',
       };
       // TODO(dvoytenko): add URL utils to construct URLs reliably
@@ -157,11 +157,11 @@ export class Auth {
           `&label=${encodeURIComponent(this.accessType_)}` +
           `&content_id=${encodeURIComponent(this.win.location.pathname)}`;
       authPromises.push(window.fetch(url, init)
-        .then(response => response.text())
-        .then(responseText => {
+          .then(response => response.text())
+          .then(responseText => {
           // TODO: Start the offers flow.
-          return parseJson(responseText);
-        }));
+            return parseJson(responseText);
+          }));
     }
     return Promise.all(authPromises);
   }

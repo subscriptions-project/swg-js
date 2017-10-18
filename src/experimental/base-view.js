@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-import {IFRAME_CLASS} from './subscriptions-ui-util';
+import {IFRAME_CLASS} from './utils';
 
 
 /**
  * Subscription step view base class. Renders the content in the parent <swg-popup>
  * element. Hides the loading indicator once rendered.
+ * @abstract
  */
-export class SubscriptionStepView {
+export class BaseView {
 
   /**
    * @param {!Window} win The parent window object.
@@ -79,8 +80,8 @@ export class SubscriptionStepView {
     iframe.setAttribute('frameborder', 0);
     iframe.setAttribute('scrolling', 'no');
 
-    // It's important to add `onload` callback before appending to DOM, otherwise
-    // onload could arrive immediately.
+    // It's important to add `onload` callback before appending to DOM,
+    // otherwise onload could arrive immediately.
     const readyPromise = new Promise(resolve => {
       iframe.onload = resolve;
     });

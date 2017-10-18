@@ -19,11 +19,11 @@ import {
   renderOffersView,
   IFRAME_CLASS,
   SWG_OFFER_ITEM_CLASS,
-} from './subscriptions-ui-util';
+} from './utils';
 
 
 /**
- *  Offers view. Renders the content in the parent <swg-popup>
+ * Offers view. Renders the content in the parent <swg-popup>
  * element. Checks the state of <swg-popup> element to ensure that the no other
  * element exists. Hides the loading indicator once rendered.
  */
@@ -112,8 +112,8 @@ export class OffersView {
     iframe.setAttribute('frameborder', 0);
     iframe.setAttribute('scrolling', 'no');
 
-    // It's important to add `onload` callback before appending to DOM, otherwise
-    // onload could arrive immediately.
+    // It's important to add `onload` callback before appending to DOM,
+    // otherwise onload could arrive immediately.
     const readyPromise = new Promise(resolve => {
       iframe.onload = resolve;
     });

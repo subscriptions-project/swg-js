@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import {renderAbbreviatedView} from './subscriptions-ui-util';
-import {SubscriptionStepView} from './subscription-step-view';
+import {renderAbbreviatedView} from './utils';
+import {BaseView} from './base-view';
 
 /**
  * Abbreviated view. Renders the content in the parent <swg-popup>
  * element.
  */
-export class AbbreviatedView extends SubscriptionStepView {
+export class AbbreviatedView extends BaseView {
 
   /**
    * @param {!Window} win The parent window object.
