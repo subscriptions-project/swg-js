@@ -15,13 +15,13 @@
  */
 
 import {renderAbbreviatedView} from './utils';
-import {BaseOffers} from './base-offers';
+import {BaseView} from './base-view';
 
 /**
  * Abbreviated view. Renders the content in the parent <swg-popup>
  * element.
  */
-export class AbbreviatedView extends BaseOffers {
+export class AbbreviatedView extends BaseView {
 
   /**
    * @param {!Window} win The parent window object.

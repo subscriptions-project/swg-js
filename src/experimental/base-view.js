@@ -22,7 +22,7 @@ import {IFRAME_CLASS} from './utils';
  * element. Hides the loading indicator once rendered.
  * @abstract
  */
-export class BaseOffers {
+export class BaseView {
 
   /**
    * @param {!Window} win The parent window object.
