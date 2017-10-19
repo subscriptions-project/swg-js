@@ -260,6 +260,16 @@ export function resetStyles(element, properties) {
 }
 
 
+export function injectStyles(doc, styles = '') {
+  if ((doc.nodeType != 9) || !('head' in doc) || styles == '') {
+    return doc;
+  }
+  const styleElement = createElementWithAttributes(doc, 'style', {});
+  styleElement.textContent = styles;
+  doc.head.appendChild(styleElement);
+}
+
+
 /**
  * Injects the font Url in the HEAD of the provided document object.
  * @param {!Document} doc The document object.
@@ -284,9 +294,9 @@ export function injectFontsUrl(doc, fontUrl = '') {
     'href': cleanFontUrl,
     'type': 'text/css',
   };
-  const styleElement = createElementWithAttributes(doc, 'link', attrs);
+  const linkElement = createElementWithAttributes(doc, 'link', attrs);
 
-  doc.head.appendChild(styleElement);
+  doc.head.appendChild(linkElement);
   return doc;
 }
 
