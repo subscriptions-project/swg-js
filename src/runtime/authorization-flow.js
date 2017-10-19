@@ -110,7 +110,7 @@ export class AuthorizationFlow {
       return Promise.reject(
           new Error('Subscription config could not be parsed.'));
     }
-    if (!config || !isObject(config) || Object.keys(config).length === 0) {
+    if (!config || !isObject(config) || Object.keys(config).length == 0) {
       return Promise.reject(new Error('Subscription config is empty.'));
     }
 

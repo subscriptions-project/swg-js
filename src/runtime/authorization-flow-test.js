@@ -22,19 +22,19 @@ describes.realWin('authorization flow', {}, env => {
   let win;
   let authFlow;
   let markup;
-  const validConfig =
-      `{
-        "profiles": {
-          "offer": {
-            "services": [
+  const validConfig = JSON.stringify(
+      {
+        'profiles': {
+          'offer': {
+            'services': [
               {
-                "id": "publisher.com",
-                "authorizationUrl": "http://foo.com"
-              }
-            ]
-          }
-        }
-      }`;
+                'id': 'publisher.com',
+                'authorizationUrl': 'http://foo.com',
+              },
+            ],
+          },
+        },
+      });
 
   beforeEach(() => {
     win = env.win;
