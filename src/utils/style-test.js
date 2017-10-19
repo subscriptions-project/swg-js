@@ -140,5 +140,23 @@ describes.realWin('Types', {}, env => {
         expect(prop).to.equal('OTransitionDuration');
       });
     });
+
+    describe('injectFontsUrl', () => {
+
+      it('should add the style link in the HEAD section', () => {
+        const fontsUrl =
+            'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
+        const existingStylesCount =
+            doc.querySelectorAll('head link[rel=stylesheet][href]').length;
+
+        st.injectFontsUrl(doc, fontsUrl);
+        // Try injecting same style with trailing "/". Should not inject.
+        st.injectFontsUrl(doc, `${fontsUrl}/`);
+        const newStylesCount =
+            doc.querySelectorAll('head link[rel=stylesheet][href]').length;
+        expect(newStylesCount).to.equal(existingStylesCount + 1);
+      });
+    });
+
   });
 });

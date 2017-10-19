@@ -218,6 +218,7 @@ export function scale(value) {
   return `scale(${value})`;
 }
 
+
 /**
  * Remove alpha value from a rgba color value.
  * Return the new color property with alpha equals if has the alpha value.
@@ -229,6 +230,7 @@ export function removeAlphaFromColor(rgbaColor) {
   return rgbaColor.replace(
       /\(([^,]+),([^,]+),([^,)]+),[^)]+\)/g, '($1,$2,$3, 1)');
 }
+
 
 /**
  * Gets the computed style of the element. The helper is necessary to enforce
@@ -255,4 +257,41 @@ export function resetStyles(element, properties) {
     styleObj[prop] = null;
   });
   setStyles(element, styleObj);
+}
+
+
+/**
+ * Injects the font Url in the HEAD of the provided document object.
+ * @param {!Document} doc The document object.
+ * @param {string=} fontUrl The Url of the fonts to be inserted.
+ * @return {!Document|undefined} The document object.
+ */
+export function injectFontsUrl(doc, fontUrl = '') {
+  if ((doc.nodeType != 9) || !('head' in doc) || fontUrl == '') {
+    return doc;
+  }
+
+  // Remove any trailing "/".
+  /** @type {string} */
+  const cleanFontUrl = fontUrl.replace(/\/$/, '');
+
+  // Check if existing link rel stylesheet with same href already defined.
+  const nodes = Array.prototype.slice
+      .call(doc.querySelectorAll('head link[rel=stylesheet][href]'));
+  const existingStyle =
+      nodes.some(link => {
+        return link.href == cleanFontUrl;
+      });
+
+  if (existingStyle) {
+    return;
+  }
+
+  const styleFont = doc.createElement('link');
+  styleFont.setAttribute('rel', 'stylesheet');
+  styleFont.setAttribute('href', cleanFontUrl);
+  styleFont.setAttribute('type', 'text/css');
+
+  doc.head.appendChild(styleFont);
+  return doc;
 }
