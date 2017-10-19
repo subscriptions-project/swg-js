@@ -291,7 +291,7 @@ export function injectFontsUrl(doc, fontUrl = '') {
   /** @type {string} */
   const cleanFontUrl = fontUrl.replace(/\/$/, '');
 
-  if (isStyleExistsForUrl(doc, cleanFontUrl)) {
+  if (styleExistsForUrl(doc, cleanFontUrl)) {
     return;
   }
 
@@ -309,7 +309,7 @@ export function injectFontsUrl(doc, fontUrl = '') {
  * @param {!string} cleanFontUrl The fonts Url.
  * @return {boolean}
  */
-function isStyleExistsForUrl(doc, cleanFontUrl) {
+function styleExistsForUrl(doc, cleanFontUrl) {
   // Check if existing link rel stylesheet with same href already defined.
   const nodes = Array.prototype.slice
       .call(doc.querySelectorAll('head link[rel=stylesheet][href]'));

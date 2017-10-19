@@ -18,12 +18,10 @@
 
 
  describes.realWin('Dom', {}, env => {
-   let win;
    let doc;
 
    beforeEach(() => {
-     win = env.win;
-     doc = win.document;
+     doc = env.win.document;
    });
 
    describe('Dom', () => {

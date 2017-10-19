@@ -18,8 +18,8 @@
  /**
  * Add attributes to an element.
  * @param {!Element} element
- * @param {!Object<string, string>} attributes
- * @return {!Element} created element.
+ * @param {!Object<string, string|number>} attributes
+ * @return {!Element} updated element.
  */
 export function addAttributesToElement(element, attributes) {
   for (const attr in attributes) {
