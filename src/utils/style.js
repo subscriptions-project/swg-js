@@ -25,6 +25,12 @@ let propertyNameCache;
 /** @const {!Array<string>} */
 const vendorPrefixes = ['Webkit', 'webkit', 'Moz', 'moz', 'ms', 'O', 'o'];
 
+/** @const @enum{string} */
+export const styleLinkAttrs = {
+  'rel': 'stylesheet',
+  'type': 'text/css',
+};
+
 
 /**
  * @export
@@ -289,11 +295,8 @@ export function injectFontsUrl(doc, fontUrl = '') {
     return;
   }
 
-  const attrs = {
-    'rel': 'stylesheet',
-    'href': cleanFontUrl,
-    'type': 'text/css',
-  };
+  const attrs = styleLinkAttrs;
+  attrs.href = cleanFontUrl;
   const linkElement = createElementWithAttributes(doc, 'link', attrs);
 
   doc.head.appendChild(linkElement);

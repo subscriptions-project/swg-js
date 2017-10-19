@@ -177,8 +177,8 @@ describes.realWin('Types', {}, env => {
         const linkList = doc.querySelectorAll(query);
         const newLink = linkList.item(linkList.length - 1);
         expect(newLink.href).to.equal(fontsUrl);
-        expect(newLink.rel).to.equal('stylesheet');
-        expect(newLink.type).to.equal('text/css');
+        expect(newLink.rel).to.equal(st.styleLinkAttrs.rel);
+        expect(newLink.type).to.equal(st.styleLinkAttrs.type);
       });
     });
 
