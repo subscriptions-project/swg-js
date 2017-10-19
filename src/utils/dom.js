@@ -14,16 +14,32 @@
  * limitations under the License.
  */
 
+import {setStyles} from './style';
+
+/** @const @enum{string} */
+export const styleLinkAttrs = {
+  'rel': 'stylesheet',
+  'type': 'text/css',
+};
+
+/** @const {string} */
+export const styleExistsQuerySelector = 'head link[rel=stylesheet][href]';
+
 
  /**
  * Add attributes to an element.
  * @param {!Element} element
- * @param {!Object<string, string|number>} attributes
+ * @param {!Object<string, *>} attributes
  * @return {!Element} updated element.
  */
 export function addAttributesToElement(element, attributes) {
   for (const attr in attributes) {
-    element.setAttribute(attr, attributes[attr]);
+    if (attr == 'style') {
+      setStyles(element, attributes[attr]);
+    } else {
+      element.setAttribute(attr, attributes[attr]);
+    }
+
   }
   return element;
 }
@@ -36,7 +52,62 @@ export function addAttributesToElement(element, attributes) {
  * @param {!Object<string, string>} attributes
  * @return {!Element} created element.
  */
-export function createElementWithAttributes(doc, tagName, attributes) {
+export function createElement(doc, tagName, attributes) {
   const element = doc.createElement(tagName);
   return addAttributesToElement(element, attributes);
+}
+
+
+/**
+ * Injects the provided styles in the HEAD section of the document.
+ * @param {!Document} doc The document object.
+ * @param {string} styleText The style string.
+ * @return {!Element}
+ */
+export function injectStyleSheet(doc, styleText) {
+  const styleElement = createElement(doc, 'style', {});
+  styleElement.textContent = styleText;
+  doc.head.appendChild(styleElement);
+  return styleElement;
+}
+
+
+/**
+ * Injects the font Url in the HEAD of the provided document object.
+ * @param {!Document} doc The document object.
+ * @param {string} fontUrl The Url of the fonts to be inserted.
+ * @return {!Document} The document object.
+ */
+export function injectFontsLink(doc, fontUrl) {
+
+  // Remove any trailing "/".
+  /** @type {string} */
+  const cleanFontUrl = fontUrl.replace(/\/$/, '');
+
+  if (styleExistsForUrl(doc, cleanFontUrl)) {
+    return doc;
+  }
+
+  const attrs = styleLinkAttrs;
+  attrs.href = cleanFontUrl;
+  const linkElement = createElement(doc, 'link', attrs);
+
+  doc.head.appendChild(linkElement);
+  return doc;
+}
+
+/**
+ * Checks if existing link rel stylesheet with the same href exists.
+ * @param {!Document} doc The document object.
+ * @param {!string} cleanFontUrl The fonts Url.
+ * @return {boolean}
+ */
+function styleExistsForUrl(doc, cleanFontUrl) {
+  // Check if existing link rel stylesheet with same href already defined.
+  const nodes = Array.prototype.slice
+      .call(doc.querySelectorAll(styleExistsQuerySelector));
+
+  return nodes.some(link => {
+    return link.href == cleanFontUrl;
+  });
 }

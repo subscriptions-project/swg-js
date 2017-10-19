@@ -140,47 +140,5 @@ describes.realWin('Types', {}, env => {
         expect(prop).to.equal('OTransitionDuration');
       });
     });
-
-    describe('injectStyles', () => {
-
-      it('should inject the style in the HEAD section', () => {
-        const query = 'head style';
-        const existingStylesCount =
-            doc.querySelectorAll(query).length;
-        const styles = 'body{padding:0;margin:0}';
-        st.injectStyles(doc, styles);
-        const newStylesCount =
-            doc.querySelectorAll(query).length;
-        expect(newStylesCount).to.equal(existingStylesCount + 1);
-        const styleList = doc.querySelectorAll(query);
-        const newStyle = styleList.item(styleList.length - 1).textContent;
-        expect(newStyle).to.equal(styles);
-      });
-    });
-
-    describe('injectFontsUrl', () => {
-
-      it('should add the style link in the HEAD section', () => {
-        const query = 'head link[rel=stylesheet][href]';
-        const fontsUrl =
-            'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
-        const existingLinksCount =
-            doc.querySelectorAll(query).length;
-
-        st.injectFontsUrl(doc, fontsUrl);
-        // Try injecting same style with trailing "/". Should not inject.
-        st.injectFontsUrl(doc, `${fontsUrl}/`);
-        const newLinksCount =
-            doc.querySelectorAll(query).length;
-        expect(newLinksCount).to.equal(existingLinksCount + 1);
-
-        const linkList = doc.querySelectorAll(query);
-        const newLink = linkList.item(linkList.length - 1);
-        expect(newLink.href).to.equal(fontsUrl);
-        expect(newLink.rel).to.equal(st.styleLinkAttrs.rel);
-        expect(newLink.type).to.equal(st.styleLinkAttrs.type);
-      });
-    });
-
   });
 });

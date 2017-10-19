@@ -17,19 +17,12 @@
 // Note: loaded by 3p system. Cannot rely on babel polyfills.
 import {map} from './object.js';
 import {startsWith} from './string';
-import {createElementWithAttributes} from './dom';
 
 /** @type {Object<string, string>} */
 let propertyNameCache;
 
 /** @const {!Array<string>} */
 const vendorPrefixes = ['Webkit', 'webkit', 'Moz', 'moz', 'ms', 'O', 'o'];
-
-/** @const @enum{string} */
-export const styleLinkAttrs = {
-  'rel': 'stylesheet',
-  'type': 'text/css',
-};
 
 
 /**
@@ -263,58 +256,4 @@ export function resetStyles(element, properties) {
     styleObj[prop] = null;
   });
   setStyles(element, styleObj);
-}
-
-
-export function injectStyles(doc, styles = '') {
-  if ((doc.nodeType != 9) || !('head' in doc) || styles == '') {
-    return doc;
-  }
-  const styleElement = createElementWithAttributes(doc, 'style', {});
-  styleElement.textContent = styles;
-  doc.head.appendChild(styleElement);
-}
-
-
-/**
- * Injects the font Url in the HEAD of the provided document object.
- * @param {!Document} doc The document object.
- * @param {string=} fontUrl The Url of the fonts to be inserted.
- * @return {!Document|undefined} The document object.
- */
-export function injectFontsUrl(doc, fontUrl = '') {
-  if ((doc.nodeType != 9) || !('head' in doc) || fontUrl == '') {
-    return doc;
-  }
-
-  // Remove any trailing "/".
-  /** @type {string} */
-  const cleanFontUrl = fontUrl.replace(/\/$/, '');
-
-  if (styleExistsForUrl(doc, cleanFontUrl)) {
-    return;
-  }
-
-  const attrs = styleLinkAttrs;
-  attrs.href = cleanFontUrl;
-  const linkElement = createElementWithAttributes(doc, 'link', attrs);
-
-  doc.head.appendChild(linkElement);
-  return doc;
-}
-
-/**
- * Checks if existing link rel stylesheet with the same href exists.
- * @param {!Document} doc The document object.
- * @param {!string} cleanFontUrl The fonts Url.
- * @return {boolean}
- */
-function styleExistsForUrl(doc, cleanFontUrl) {
-  // Check if existing link rel stylesheet with same href already defined.
-  const nodes = Array.prototype.slice
-      .call(doc.querySelectorAll('head link[rel=stylesheet][href]'));
-
-  return nodes.some(link => {
-    return link.href == cleanFontUrl;
-  });
 }
