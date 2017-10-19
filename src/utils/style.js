@@ -17,7 +17,7 @@
 // Note: loaded by 3p system. Cannot rely on babel polyfills.
 import {map} from './object.js';
 import {startsWith} from './string';
-
+import {createElementWithAttributes} from './dom';
 
 /** @type {Object<string, string>} */
 let propertyNameCache;
@@ -275,23 +275,33 @@ export function injectFontsUrl(doc, fontUrl = '') {
   /** @type {string} */
   const cleanFontUrl = fontUrl.replace(/\/$/, '');
 
-  // Check if existing link rel stylesheet with same href already defined.
-  const nodes = Array.prototype.slice
-      .call(doc.querySelectorAll('head link[rel=stylesheet][href]'));
-  const existingStyle =
-      nodes.some(link => {
-        return link.href == cleanFontUrl;
-      });
-
-  if (existingStyle) {
+  if (isStyleExistsForUrl(doc, cleanFontUrl)) {
     return;
   }
 
-  const styleFont = doc.createElement('link');
-  styleFont.setAttribute('rel', 'stylesheet');
-  styleFont.setAttribute('href', cleanFontUrl);
-  styleFont.setAttribute('type', 'text/css');
+  const attrs = {
+    'rel': 'stylesheet',
+    'href': cleanFontUrl,
+    'type': 'text/css',
+  };
+  const styleElement = createElementWithAttributes(doc, 'link', attrs);
 
-  doc.head.appendChild(styleFont);
+  doc.head.appendChild(styleElement);
   return doc;
+}
+
+/**
+ * Checks if existing link rel stylesheet with the same href exists.
+ * @param {!Document} doc The document object.
+ * @param {!string} cleanFontUrl The fonts Url.
+ * @return {boolean}
+ */
+function isStyleExistsForUrl(doc, cleanFontUrl) {
+  // Check if existing link rel stylesheet with same href already defined.
+  const nodes = Array.prototype.slice
+      .call(doc.querySelectorAll('head link[rel=stylesheet][href]'));
+
+  return nodes.some(link => {
+    return link.href == cleanFontUrl;
+  });
 }
