@@ -107,5 +107,18 @@ describes.realWin('Dom', {}, env => {
       expect(element.style['opacity'])
           .to.equal(attrs['style']['opacity'].toString());
     });
+
+    it('should remove element', () => {
+      const element = dom.createElement(doc, 'div', {});
+      const childElement = dom.createElement(doc, 'div', {});
+      element.appendChild(childElement);
+
+      expect(element.children.length).to.equal(1);
+      expect(element.firstChild).to.not.equal(null);
+
+      dom.removeElement(childElement);
+      expect(element.children.length).to.equal(0);
+      expect(element.firstChild).to.equal(null);
+    });
   });
 });

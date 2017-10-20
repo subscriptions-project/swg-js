@@ -59,6 +59,17 @@ export function createElement(doc, tagName, attributes) {
 
 
 /**
+ * Removes the element.
+ * @param {!Element} element
+ */
+export function removeElement(element) {
+  if (element.parentElement) {
+    element.parentElement.removeChild(element);
+  }
+}
+
+
+/**
  * Injects the provided styles in the HEAD section of the document.
  * @param {!Document} doc The document object.
  * @param {string} styleText The style string.
