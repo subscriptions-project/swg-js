@@ -18,7 +18,6 @@
 import {map} from './object.js';
 import {startsWith} from './string';
 
-
 /** @type {Object<string, string>} */
 let propertyNameCache;
 
@@ -218,6 +217,7 @@ export function scale(value) {
   return `scale(${value})`;
 }
 
+
 /**
  * Remove alpha value from a rgba color value.
  * Return the new color property with alpha equals if has the alpha value.
@@ -229,6 +229,7 @@ export function removeAlphaFromColor(rgbaColor) {
   return rgbaColor.replace(
       /\(([^,]+),([^,]+),([^,)]+),[^)]+\)/g, '($1,$2,$3, 1)');
 }
+
 
 /**
  * Gets the computed style of the element. The helper is necessary to enforce
