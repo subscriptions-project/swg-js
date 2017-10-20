@@ -110,7 +110,7 @@ export function injectFontsLink(doc, fontUrl) {
 /**
  * Checks if existing link rel stylesheet with the same href exists.
  * @param {!Document} doc The document object.
- * @param {!string} cleanFontUrl The fonts Url.
+ * @param {string} cleanFontUrl The fonts Url.
  * @return {boolean}
  */
 function styleExistsForUrl(doc, cleanFontUrl) {
