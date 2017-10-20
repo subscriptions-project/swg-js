@@ -23,7 +23,7 @@ export const styleLinkAttrs = {
 };
 
 /** @const {string} */
-export const styleExistsQuerySelector = 'head link[rel=stylesheet][href]';
+export const styleExistsQuerySelector = 'link[rel=stylesheet][href]';
 
 
  /**
@@ -116,7 +116,7 @@ export function injectFontsLink(doc, fontUrl) {
 function styleExistsForUrl(doc, cleanFontUrl) {
   // Check if existing link rel stylesheet with same href already defined.
   const nodes = Array.prototype.slice
-      .call(doc.querySelectorAll(styleExistsQuerySelector));
+      .call(doc.head.querySelectorAll(styleExistsQuerySelector));
 
   return nodes.some(link => {
     return link.href == cleanFontUrl;
