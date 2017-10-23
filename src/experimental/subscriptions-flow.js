@@ -192,7 +192,8 @@ export class SubscriptionsFlow {
         this.win_,
         this,
         this.offerContainer_,
-        this.subscription_)
+        this.subscription_,
+        this.loadingView_)
         .onSubscribeClicked(this.activateOffers_.bind(this)));
   }
 
@@ -223,7 +224,6 @@ export class SubscriptionsFlow {
    * @private
    */
   openView_(view) {
-    this.loadingView_.show();
     this.unlockBodyScroll_();
 
     if (this.activeView_) {
@@ -249,7 +249,6 @@ export class SubscriptionsFlow {
     });
     this.offerContainer_.appendChild(view.getElement());
     return view.init().then(() => {
-      this.loadingView_.hide();
       view.getElement().classList.add('swg-step-appear');
       setImportantStyles(view.getElement(), {
         'visibility': 'visible',
@@ -458,7 +457,8 @@ export class SubscriptionsFlow {
     this.openView_(new OffersView(this.win_,
       this,
       this.offerContainer_,
-      this.subscription_).onSubscribeClicked(this.activatePay_.bind(this)));
+      this.subscription_,
+      this.loadingView_).onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
   /**
@@ -492,8 +492,12 @@ export class SubscriptionsFlow {
       if (!working) {
         // Fallback to the inline flow.
         const paymentRequestBlob = offer['paymentRequest'];
-        this.openView_(new PaymentsView(this.win_, this, paymentRequestBlob)
-            .onComplete(this.paymentComplete_.bind(this)));
+        this.openView_(
+            new PaymentsView(
+              this.win_,
+              this, paymentRequestBlob,
+              this.loadingView_)
+                .onComplete(this.paymentComplete_.bind(this)));
       }
     });
   }
