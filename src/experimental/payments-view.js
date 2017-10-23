@@ -119,7 +119,8 @@ export class PaymentsView {
         }
         break;
       case 'busy':
-        this.context_.setBusy(payload.busy);
+        // No need to call content.setBusy() since, Payments UI manages it's
+        // own loading state.
         break;
       case 'complete':
         if (this.onComplete_) {
