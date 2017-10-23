@@ -34,8 +34,9 @@ export class OffersView {
    * @param {!Element} context The Subscription container reference.
    * @param {!Element} offerContainer The offer container element <swg-popup>.
    * @param {!SubscriptionResponse} subscriptions The subscriptions object.
+   * @param {!LoadingView} loadingView The loading indicator.
    */
-  constructor(win, context, offerContainer, subscriptions) {
+  constructor(win, context, offerContainer, subscriptions, loadingView) {
 
      /** @private @const {!Window} */
     this.win_ = win;
@@ -51,6 +52,9 @@ export class OffersView {
 
     /** @private @const {!SubscriptionResponse} */
     this.subscriptions_ = subscriptions;
+
+    /** @private {!LoadingView} */
+    this.loadingView_ = loadingView;
 
     /** @private @const {!Element} */
     this.offersElement_ = this.document_.createElement('iframe');
@@ -83,6 +87,7 @@ export class OffersView {
    * @return {!Promise}
    */
   init() {
+    this.loadingView_.show();
     const subscriptions = this.subscriptions_;
     if (!subscriptions.offer || subscriptions.offer.length == 0) {
       throw new Error('No offers available!');
@@ -136,6 +141,7 @@ export class OffersView {
         // After reading the iframe height, this event listener is removed.
         iframe.contentWindow.addEventListener('resize', this.ref_);
       }
+      this.loadingView_.hide();
     });
   }
 

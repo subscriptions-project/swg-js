@@ -17,6 +17,7 @@
 import {renderAbbreviatedView} from './utils';
 import {BaseView} from './base-view';
 
+
 /**
  * Abbreviated view. Renders the content in the parent <swg-popup>
  * element.
@@ -28,15 +29,21 @@ export class AbbreviatedView extends BaseView {
    * @param {!Element} context The Subscription container reference.
    * @param {!Element} offerContainer The offer container element <swg-popup>.
    * @param {!SubscriptionResponse} subscriptions The subscriptions object.
+   * @param {!LoadingView} loadingView The loading indicator.
    */
-  constructor(win, context, offerContainer, subscriptions) {
+  constructor(win, context, offerContainer, subscriptions, loadingView) {
     super(win, context, offerContainer);
 
     /** @private @const {!SubscriptionResponse} */
     this.subscriptions_ = subscriptions;
 
+    /** @private {?LoadingView} */
+    this.loadingView_ = loadingView;
+
     /** @private {?function()} */
     this.subscribeClicked_ = null;
+
+    this.loadingView_.show();
   }
 
   /**
@@ -78,6 +85,7 @@ export class AbbreviatedView extends BaseView {
           this.subscribeClicked_();
         }
       });
+      this.loadingView_.hide();
     });
   }
 }

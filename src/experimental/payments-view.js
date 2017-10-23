@@ -31,16 +31,24 @@ const PAY_SERVICE =
 
 
 /**
+ * @param {!Window} win The parent window object.
+ * @param {!Element} context The Subscription container reference.
+ * @param {string} paymentRequestBlob The payment request object.
+ * @param {!LoadingView} loadingView The loading indicator.
  */
 export class PaymentsView {
-  constructor(win, context, paymentRequestBlob) {
+  constructor(win, context, paymentRequestBlob, loadingView) {
     /** @const @private {!Window} */
     this.win_ = win;
 
     /** @const @private {!PopupContext} */
     this.context_ = context;
 
+    /** @const @private {string} */
     this.paymentRequestBlob_ = paymentRequestBlob;
+
+    /** @private {!LoadingView} */
+    this.loadingView_ = loadingView;
 
     /** @private @const {!Element} */
     this.iframe_ = this.win_.document.createElement('iframe');
@@ -78,6 +86,7 @@ export class PaymentsView {
    * @return {!Promise}
    */
   init() {
+    this.loadingView_.show();
     const readyPromise = new Promise(resolve => {
       // Wait for the first resize.
       this.onResize_ = resolve;
@@ -116,6 +125,7 @@ export class PaymentsView {
 
         if (this.onResize_) {
           this.onResize_(payload.width, payload.height);
+          this.loadingView_.hide();
         }
         break;
       case 'busy':
