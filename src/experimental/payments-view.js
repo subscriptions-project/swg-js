@@ -119,7 +119,6 @@ export class PaymentsView {
         }
         break;
       case 'busy':
-        this.context_.setBusy(payload.busy);
         break;
       case 'complete':
         if (this.onComplete_) {

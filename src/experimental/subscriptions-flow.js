@@ -293,6 +293,8 @@ export class SubscriptionsFlow {
 
   /**
    * @param {boolean} busy
+   * TODO(dparikh): For now, not called from payments view on 'busy', so as to
+   * not render duplicate loading indicator.
    */
   setBusy(busy) {
     if (!this.activeViewInitialized_) {
