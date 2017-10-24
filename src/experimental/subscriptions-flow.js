@@ -23,6 +23,7 @@ import {AbbreviatedView} from './abbreviated-view';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {debounce} from '../utils/rate-limit';
 import {LoadingView} from './loading-view';
+import {LoginWithView} from './login-with-view';
 import {NotificationView} from './notification-view';
 import {OffersView} from './offers-view';
 import {PaymentsView} from './payments-view';
@@ -175,12 +176,11 @@ export class SubscriptionsFlow {
 
     setImportantStyles(this.offerContainer_, {
       'min-height': `${CONTAINER_HEIGHT}px`,
-      'display': 'none',
+      'display': 'flex',
+      'flex-direction': 'column',
       'opacity': 1,
     });
     this.document_.body.appendChild(this.offerContainer_);
-
-    this.show_();
 
     // Attach the invisible faded background to be used for some views.
     this.attachBackground_();
@@ -193,6 +193,7 @@ export class SubscriptionsFlow {
         this,
         this.offerContainer_,
         this.subscription_)
+        .onAlreadySubscribedClicked(this.activateLoginWith_.bind(this))
         .onSubscribeClicked(this.activateOffers_.bind(this)));
   }
 
@@ -451,6 +452,12 @@ export class SubscriptionsFlow {
         this.orientationChangeListener_);
   }
 
+  activateLoginWith_() {
+    this.openView_(new LoginWithView(this.win_,
+      this,
+      this.offerContainer_));
+  }
+
   /**
    * @private
    */
@@ -575,14 +582,5 @@ export class SubscriptionsFlow {
       swgBar.classList.add('swg-bar');
     }
     this.offerContainer_.appendChild(googleBar);
-  }
-
-  /**
-   * Displays the element in the UI. Element is hidden when created,
-   * and should now be displayed when element is attached to the DOM.
-   * @private
-   */
-  show_() {
-    this.offerContainer_.style.removeProperty('display');
   }
 }

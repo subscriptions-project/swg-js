@@ -76,7 +76,7 @@ export function renderOffersView(subscriptions) {
   const abbreviatedView =
     `
       <html>
-        <head>${getStyle_()}</head>
+        <head>${getStyle()}</head>
         <body>
           <div class="swg-container">
             ${renderOffersViewContent_(subscriptions)}
@@ -95,7 +95,7 @@ export function renderAbbreviatedView(subscriptions) {
   const abbreviatedView =
     `
       <html>
-        <head>${getStyle_()}</head>
+        <head>${getStyle()}</head>
         <body>
           <div class="swg-container">
             ${renderAbbreviatedViewContent_(meteringResponse)}
@@ -110,9 +110,8 @@ export function renderAbbreviatedView(subscriptions) {
 /**
  * Sets the CSS style for the component.
  * injected in JavaScript code as a string.
- * @private
  */
-function getStyle_() {
+export function getStyle() {
   const fonts = '<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">';
   const style = `${fonts}<style>${OFFERS_CSS}</style> `;
   return style;
@@ -157,7 +156,8 @@ function renderAbbreviatedViewContent_(meteringResponse) {
             <span>The scenic</span>
             with your Google account.
           </div>
-          <div class="swg-already-link" role="link" tabindex="1">
+          <div class="swg-already-link" id="swg-already-link" role="link"
+              tabindex="1">
             Already subscriber?
           </div>
         </div>
