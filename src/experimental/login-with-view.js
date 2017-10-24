@@ -16,7 +16,7 @@
 
 import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
-import {createGoogleFontLink, IFRAME_CLASS} from './utils';
+import {createGoogleFontLink, createInlineStyle, IFRAME_CLASS} from './utils';
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
 
@@ -97,18 +97,13 @@ export class LoginWithView {
     return readyPromise.then(() => {
       const doc = iframe.contentDocument;
       const head = iframe.contentDocument.head;
+      const linkFonts = createGoogleFontLink(doc);
+      const inlineStyle = createInlineStyle(doc, OFFERS_CSS);
 
-      const linkFonts = createGoogleFontLink(iframe.contentDocument);
-      const inlineStyle = createElement(doc, 'style', {
-        'type': 'text/css',
-      });
-      const styleContent = this.document_.createTextNode(OFFERS_CSS);
-
-      inlineStyle.appendChild(styleContent);
       head.appendChild(linkFonts);
       head.appendChild(inlineStyle);
 
-      setImportantStyles(iframe.contentDocument.body, {
+      setImportantStyles(doc.body, {
         'padding': 0,
         'margin': 0,
       });
@@ -123,7 +118,7 @@ export class LoginWithView {
       button.textContent = 'Login with Google';
       container.appendChild(button);
 
-      iframe.contentDocument.body.appendChild(container);
+      doc.body.appendChild(container);
     });
   }
  }

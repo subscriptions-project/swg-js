@@ -196,6 +196,7 @@ function renderAbbreviatedViewFooter_() {
  * Creates a 'link' element for google fonts.
  * @param {!Document} doc The document object.
  * @param {string=} fontUrl The fonts to be added.
+ * @return {!Element}
  */
 export function createGoogleFontLink(doc,
   fontUrl =
@@ -205,4 +206,19 @@ export function createGoogleFontLink(doc,
     'href': fontUrl,
     'type': 'text/css',
   });
+}
+
+/**
+ * Creates a 'style' element for inline styles.
+ * @param {!Document} doc The document object.
+ * @param {string} styleText The style content.
+ * @return {!Element}
+ */
+export function createInlineStyle(doc, styleText) {
+  const inlineStyle = createElement(doc, 'style', {
+    'type': 'text/css',
+  });
+  const styleContent = doc.createTextNode(styleText);
+  inlineStyle.appendChild(styleContent);
+  return inlineStyle;
 }
