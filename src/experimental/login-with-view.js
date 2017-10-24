@@ -16,8 +16,9 @@
 
 import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
-import {getStyle, IFRAME_CLASS} from './utils';
-
+import {createGoogleFontLink, IFRAME_CLASS} from './utils';
+import {CSS as OFFERS_CSS} from
+    '../../build/css/experimental/swg-popup-offer.css';
 
 /**
  * Login with View. User could be a subscriber through "Subscribe with Google"
@@ -94,7 +95,19 @@ export class LoginWithView {
     this.offerContainer_.appendChild(this.viewElement_);
 
     return readyPromise.then(() => {
-      iframe.contentDocument.head.innerHTML = getStyle();
+      const doc = iframe.contentDocument;
+      const head = iframe.contentDocument.head;
+
+      const linkFonts = createGoogleFontLink(iframe.contentDocument);
+      const inlineStyle = createElement(doc, 'style', {
+        'type': 'text/css',
+      });
+      const styleContent = this.document_.createTextNode(OFFERS_CSS);
+
+      inlineStyle.appendChild(styleContent);
+      head.appendChild(linkFonts);
+      head.appendChild(inlineStyle);
+
       setImportantStyles(iframe.contentDocument.body, {
         'padding': 0,
         'margin': 0,

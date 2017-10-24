@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {createElement} from '../utils/dom';
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
 
@@ -189,4 +190,19 @@ function renderAbbreviatedViewFooter_() {
   </div>
   `;
   return footer;
+}
+
+/**
+ * Creates a 'link' element for google fonts.
+ * @param {!Document} doc The document object.
+ * @param {string=} fontUrl The fonts to be added.
+ */
+export function createGoogleFontLink(doc,
+  fontUrl =
+      'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700') {
+  return createElement(doc, 'link', {
+    'rel': 'stylesheet',
+    'href': fontUrl,
+    'type': 'text/css',
+  });
 }
