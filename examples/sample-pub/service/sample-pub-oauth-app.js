@@ -117,7 +117,7 @@ app.post('/token', (req, res) => {
         'token_type': 'bearer',
         'refresh_token': toBase64(encrypt(refreshToken)),
         'access_token': toBase64(encrypt(accessToken)),
-        'expires_in': 300000,  // 5 min.
+        'expires_in': 300,  // 5 min in seconds.
       });
     } else if (grant_type == 'refresh_token') {
       const refreshTokenStr = getParam(req, 'refresh_token');
@@ -132,7 +132,7 @@ app.post('/token', (req, res) => {
       response = JSON.stringify({
         'token_type': 'bearer',
         'access_token': toBase64(encrypt(accessToken)),
-        'expires_in': 300000,  // 5 min.
+        'expires_in': 300,  // 5 min in seconds.
       });
     } else {
       throw new Error('Unknown grant_type: ' + grant_type);
