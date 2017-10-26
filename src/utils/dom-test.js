@@ -36,8 +36,10 @@ describes.realWin('Dom', {}, env => {
              doc.querySelectorAll(query).length;
       expect(newStylesCount).to.equal(existingStylesCount + 1);
       const styleList = doc.querySelectorAll(query);
-      const newStyle = styleList.item(styleList.length - 1).textContent;
-      expect(newStyle).to.equal(styles);
+      const newStyle = styleList.item(styleList.length - 1);
+      const newStyleContent = newStyle.textContent;
+      expect(newStyleContent).to.equal(styles);
+      expect(newStyle.type).to.equal(dom.styleType);
     });
 
     it('should add the style link in the HEAD section', () => {

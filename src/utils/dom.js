@@ -23,6 +23,9 @@ export const styleLinkAttrs = {
 };
 
 /** @const {string} */
+export const styleType = 'text/css';
+
+/** @const {string} */
 export const styleExistsQuerySelector = 'link[rel=stylesheet][href]';
 
 
@@ -76,7 +79,9 @@ export function removeElement(element) {
  * @return {!Element}
  */
 export function injectStyleSheet(doc, styleText) {
-  const styleElement = createElement(doc, 'style', {});
+  const styleElement = createElement(doc, 'style', {
+    'type': styleType,
+  });
   styleElement.textContent = styleText;
   doc.head.appendChild(styleElement);
   return styleElement;

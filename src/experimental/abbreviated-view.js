@@ -41,6 +41,15 @@ export class AbbreviatedView extends BaseView {
 
   /**
    * @param {function()} callback
+   * @return {!LoginWithView}
+   */
+  onAlreadySubscribedClicked(callback) {
+    this.alreadySubscribedClicked_ = callback;
+    return this;
+  }
+
+  /**
+   * @param {function()} callback
    * @return {!OffersView}
    */
   onSubscribeClicked(callback) {
@@ -68,9 +77,15 @@ export class AbbreviatedView extends BaseView {
     return buildPromise.then(() => {
       const subscribeButton =
           this.viewElement_.contentDocument.getElementById('swg-button');
+      const alreadySubscriberLink =
+          this.viewElement_.contentDocument.getElementById('swg-already-link');
 
       subscribeButton.onclick = () => {
         this.subscribeClicked_();
+      };
+
+      alreadySubscriberLink.onclick = () => {
+        this.alreadySubscribedClicked_();
       };
 
       subscribeButton.addEventListener('keypress', event => {
