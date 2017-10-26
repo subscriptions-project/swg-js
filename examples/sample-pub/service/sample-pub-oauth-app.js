@@ -48,11 +48,11 @@ app.get('/signin-with-google', (req, res) => {
 app.get('/auth', (req, res) => {
   const params = verifyOauthParams(req);
   res.render('../examples/sample-pub/views/signin', {
-    client_id: params['client_id'],
-    redirect_uri: params['redirect_uri'],
-    state: params['state'],
-    scope: params['scope'],
-    response_type: params['response_type'],
+    'client_id': params.clientId,
+    'redirect_uri': params.redirectUri,
+    'state': params.state,
+    'scope': params.scope,
+    'response_type': params.responseType,
   });
 });
 
@@ -71,7 +71,7 @@ app.post('/auth-submit', (req, res) => {
   const authorizationCode = generateAuthorizationCode(params, email, password);
   const authorizationCodeStr = toBase64(encrypt(authorizationCode));
   const redirectUrl =
-      params.redirect_uri +
+      params.redirectUri +
       `?code=${encodeURIComponent(authorizationCodeStr)}` +
       `&state=${encodeURIComponent(params.state || '')}`;
   res.redirect(302, redirectUrl);
@@ -87,30 +87,30 @@ app.post('/auth-submit', (req, res) => {
  * - Exchanging refresh tokens for access tokens.
  */
 app.post('/token', (req, res) => {
-  let grant_type;
+  let grantType;
   let response;
   try {
-    const client_id = getParam(req, 'client_id');
-    if (client_id != CLIENT_ID) {
-      throw new Error('Invalid client_id: ' + client_id);
+    const clientId = getParam(req, 'client_id');
+    if (clientId != CLIENT_ID) {
+      throw new Error('Invalid client_id: ' + clientId);
     }
     const client_secret = getParam(req, 'client_secret');
     if (!client_secret) {
       throw new Error('Missing client_secret');
     }
     // TODO: Check client secret against expected value.
-    grant_type = getParam(req, 'grant_type');
-    if (grant_type == 'authorization_code') {
+    grantType = getParam(req, 'grant_type');
+    if (grantType == 'authorization_code') {
       const authorizationCodeStr = getParam(req, 'code');
       if (!authorizationCodeStr) {
         throw new Error('Missing authorization code');
       }
       const authorizationCode = decrypt(fromBase64(authorizationCodeStr));
-      if (authorizationCode['what'] != 'authorizationCode') {
+      if (authorizationCode.what != 'authorizationCode') {
         throw new Error('Invalid authorization code: ' +
-            authorizationCode['what']);
+            authorizationCode.what);
       }
-      // TODO: check if grant has expired via authorizationCode['exp']
+      // TODO: check if grant has expired via `authorizationCode.exp`.
       const refreshToken = generateRefreshToken(authorizationCode);
       const accessToken = generateAccessToken(refreshToken);
       response = JSON.stringify({
@@ -119,14 +119,14 @@ app.post('/token', (req, res) => {
         'access_token': toBase64(encrypt(accessToken)),
         'expires_in': 300,  // 5 min in seconds.
       });
-    } else if (grant_type == 'refresh_token') {
+    } else if (grantType == 'refresh_token') {
       const refreshTokenStr = getParam(req, 'refresh_token');
       if (!refreshTokenStr) {
         throw new Error('Missing refresh_token');
       }
       const refreshToken = decrypt(fromBase64(refreshTokenStr));
-      if (refreshToken['what'] != 'refreshToken') {
-        throw new Error('Invalid refresh_token: ' + refreshToken['what']);
+      if (refreshToken.what != 'refreshToken') {
+        throw new Error('Invalid refresh_token: ' + refreshToken.what);
       }
       const accessToken = generateAccessToken(refreshToken);
       response = JSON.stringify({
@@ -135,10 +135,10 @@ app.post('/token', (req, res) => {
         'expires_in': 300,  // 5 min in seconds.
       });
     } else {
-      throw new Error('Unknown grant_type: ' + grant_type);
+      throw new Error('Unknown grant_type: ' + grantType);
     }
   } catch (e) {
-    console.log('Error: ', grant_type, e);
+    console.log('Error: ', grantType, e);
     res.status(400).send(JSON.stringify({'error': 'invalid_grant'}));
     return;
   }
@@ -161,8 +161,8 @@ app.all('/authorized', (req, res) => {
   const accessTokenStr =
       authorizationHeader.substring('BEARER'.length + 1).trim();
   const accessToken = decrypt(fromBase64(accessTokenStr));
-  if (accessToken['what'] != 'accessToken') {
-    throw new Error('Invalid access token: ' + accessToken['what']);
+  if (accessToken.what != 'accessToken') {
+    throw new Error('Invalid access token: ' + accessToken.what);
   }
   res.send('access is granted');
 });
@@ -174,27 +174,27 @@ app.all('/authorized', (req, res) => {
  */
 function verifyOauthParams(req) {
   const params = {
-    client_id: getParam(req, 'client_id'),
-    redirect_uri: getParam(req, 'redirect_uri'),
+    clientId: getParam(req, 'client_id'),
+    redirectUri: getParam(req, 'redirect_uri'),
     state: getParam(req, 'state'),
     scope: getParam(req, 'scope'),
-    response_type: getParam(req, 'response_type'),
+    responseType: getParam(req, 'response_type'),
   };
-  if (params.client_id != CLIENT_ID) {
-    throw new Error('Invalid client_id: ' + params.client_id);
+  if (params.clientId != CLIENT_ID) {
+    throw new Error('Invalid client_id: ' + params.clientId);
   }
-  if (params.response_type != 'code') {
-    throw new Error('Invalid response_type: ' + params.response_type);
+  if (params.responseType != 'code') {
+    throw new Error('Invalid response_type: ' + params.responseType);
   }
-  if (!params.redirect_uri) {
+  if (!params.redirectUri) {
     throw new Error('Missing redirect_uri');
   }
   // TODO: restrict redirects to few predefined destinations.
   // const expectedRedirectUri =
   //     `https://oauth-redirect.googleusercontent.com/r/${PROJECT_ID}`;
-  // if (params.redirect_uri.indexOf(expectedRedirectUri) != 0 &&
-  //     params.redirect_uri != 'https://developers.google.com/oauthplayground') {
-  //   throw new Error('Invalid redirect_uri: ' + params.redirect_uri);
+  // if (params.redirectUri.indexOf(expectedRedirectUri) != 0 &&
+  //     params.redirectUri != 'https://developers.google.com/oauthplayground') {
+  //   throw new Error('Invalid redirect_uri: ' + params.redirectUri);
   // }
   return params;
 }
@@ -222,11 +222,11 @@ function generateAuthorizationCode(params, email, password) {
     exp: Date.now() + 600000,  // Expiration in 10 min.
     email,
     password,
-    client_id: params.client_id,
-    redirect_uri: params.redirect_uri,
+    clientId: params.clientId,
+    redirectUri: params.redirectUri,
     state: params.state,
     scope: params.scope,
-    response_type: params.response_type,
+    responseType: params.responseType,
   };
 }
 
@@ -238,10 +238,10 @@ function generateAuthorizationCode(params, email, password) {
 function generateRefreshToken(authorizationCode) {
   return {
     what: 'refreshToken',
-    email: authorizationCode['email'],
-    password: authorizationCode['password'],
-    client_id: authorizationCode['client_id'],
-    scope: authorizationCode['scope'],
+    email: authorizationCode.email,
+    password: authorizationCode.password,
+    clientId: authorizationCode.clientId,
+    scope: authorizationCode.scope,
   };
 }
 
@@ -253,10 +253,10 @@ function generateRefreshToken(authorizationCode) {
 function generateAccessToken(refreshToken) {
   return {
     what: 'accessToken',
-    email: refreshToken['email'],
-    password: refreshToken['password'],
-    client_id: refreshToken['client_id'],
-    scope: refreshToken['scope'],
+    email: refreshToken.email,
+    password: refreshToken.password,
+    clientId: refreshToken.clientId,
+    scope: refreshToken.scope,
   };
 }
 
