@@ -18,6 +18,7 @@
 /**
  * @fileoverview
  * See https://developers.google.com/actions/identity/oauth2-code-flow
+ * and https://developers.google.com/actions/identity/oauth2-implicit-flow
  */
 
 const app = module.exports = require('express').Router();
@@ -69,12 +70,29 @@ app.post('/auth-submit', (req, res) => {
     throw new Error('Missing email and/or password');
   }
   if (params.responseType == 'code') {
+    // Authorization code (server-side) flow.
+    // See https://developers.google.com/actions/identity/oauth2-code-flow
     const authorizationCode =
         generateAuthorizationCode(params, email, password);
     const authorizationCodeStr = toBase64(encrypt(authorizationCode));
     const redirectUrl =
         params.redirectUri +
         `?code=${encodeURIComponent(authorizationCodeStr)}` +
+        `&state=${encodeURIComponent(params.state || '')}`;
+    res.redirect(302, redirectUrl);
+  } else if (params.responseType == 'token') {
+    // Implicit flow.
+    // See https://developers.google.com/actions/identity/oauth2-implicit-flow
+    // Notice that access token never expires. Not clear how it can be revoked
+    // either.
+    const refreshToken = generateRefreshToken(
+        generateAuthorizationCode(params, email, password));
+    const accessToken = generateAccessToken(refreshToken);
+    const accessTokenStr = toBase64(encrypt(accessToken));
+    const redirectUrl =
+        params.redirectUri +
+        '#token_type=bearer' +
+        `&access_token=${encodeURIComponent(accessTokenStr)}` +
         `&state=${encodeURIComponent(params.state || '')}`;
     res.redirect(302, redirectUrl);
   } else {
