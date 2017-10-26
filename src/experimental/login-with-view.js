@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-import {createElement} from '../utils/dom';
+import {createElement, injectFontsLink, injectStyleSheet} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
-import {injectFontsLink, injectStyleSheet, IFRAME_CLASS} from './utils';
+import {IFRAME_CLASS} from './utils';
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
+
+/** @const {string} */
+const GOOGLE_FONTS_URL =
+    'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
+
 
 /**
  * Login with View. User could be a subscriber through "Subscribe with Google"
@@ -85,12 +90,8 @@ export class LoginWithView {
 
     return readyPromise.then(() => {
       const doc = iframe.contentDocument;
-      const head = iframe.contentDocument.head;
-      const linkFonts = injectFontsLink(doc);
-      const inlineStyle = injectStyleSheet(doc, OFFERS_CSS);
-
-      head.appendChild(linkFonts);
-      head.appendChild(inlineStyle);
+      injectFontsLink(doc, GOOGLE_FONTS_URL);
+      injectStyleSheet(doc, OFFERS_CSS);
 
       setImportantStyles(doc.body, {
         'padding': 0,

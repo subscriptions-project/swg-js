@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {createElement} from '../utils/dom';
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
 
@@ -190,35 +189,4 @@ function renderAbbreviatedViewFooter_() {
   </div>
   `;
   return footer;
-}
-
-/**
- * Creates a 'link' element for google fonts.
- * @param {!Document} doc The document object.
- * @param {string=} fontUrl The fonts to be added.
- * @return {!Element}
- */
-export function injectFontsLink(doc,
-  fontUrl =
-      'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700') {
-  return createElement(doc, 'link', {
-    'rel': 'stylesheet',
-    'href': fontUrl,
-    'type': 'text/css',
-  });
-}
-
-/**
- * Creates a 'style' element for inline styles.
- * @param {!Document} doc The document object.
- * @param {string} styleText The style content.
- * @return {!Element}
- */
-export function injectStyleSheet(doc, styleText) {
-  const inlineStyle = createElement(doc, 'style', {
-    'type': 'text/css',
-  });
-  const styleContent = doc.createTextNode(styleText);
-  inlineStyle.appendChild(styleContent);
-  return inlineStyle;
 }
