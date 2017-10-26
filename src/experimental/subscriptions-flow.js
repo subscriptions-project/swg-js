@@ -176,11 +176,12 @@ export class SubscriptionsFlow {
 
     setImportantStyles(this.offerContainer_, {
       'min-height': `${CONTAINER_HEIGHT}px`,
-      'display': 'flex',
-      'flex-direction': 'column',
+      'display': 'none',
       'opacity': 1,
     });
     this.document_.body.appendChild(this.offerContainer_);
+
+    this.show_();
 
     // Attach the invisible faded background to be used for some views.
     this.attachBackground_();
@@ -452,6 +453,7 @@ export class SubscriptionsFlow {
         this.orientationChangeListener_);
   }
 
+  /** @private */
   activateLoginWith_() {
     this.openView_(new LoginWithView(this.win_,
       this,
@@ -582,5 +584,14 @@ export class SubscriptionsFlow {
       swgBar.classList.add('swg-bar');
     }
     this.offerContainer_.appendChild(googleBar);
+  }
+
+/**
+   * Displays the element in the UI. Element is hidden when created,
+   * and should now be displayed when element is attached to the DOM.
+   * @private
+   */
+  show_() {
+    this.offerContainer_.style.removeProperty('display');
   }
 }

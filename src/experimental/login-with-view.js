@@ -16,7 +16,7 @@
 
 import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
-import {createGoogleFontLink, createInlineStyle, IFRAME_CLASS} from './utils';
+import {injectFontsLink, injectStyleSheet, IFRAME_CLASS} from './utils';
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
 
@@ -30,40 +30,30 @@ export class LoginWithView {
 
    /**
     * @param {!Window} win The parent window object.
-    * @param {!Element} context The Subscription container reference.
+    * @param {!PopupContext} context The Subscription container reference.
     * @param {!Element} offerContainer The offer container element <swg-popup>.
     */
   constructor(win, context, offerContainer) {
 
-     /** @private @const {!Window} */
+    /** @private @const {!Window} */
     this.win_ = win;
 
-     /** @const @private {!PopupContext} */
+    /** @const @private {!PopupContext} */
     this.context_ = context;
 
-     /** @private @const {!Element} */
+    /** @private @const {!Element} */
     this.offerContainer_ = offerContainer;
 
-     /** @private @const {!Element} */
+    /** @private @const {!Element} */
     this.document_ = win.document;
 
-     /** @private @const {!Element} */
+    /** @private @const {!Element} */
     this.viewElement_ = createElement(this.document_, 'iframe', {
       'frameborder': 0,
       'top': '4px',  // Space for the top 4px high Google bar.
       'scrolling': 'no',
+      'class': IFRAME_CLASS,
     });
-  }
-
-  /**
-   * Builds the view when user clicks on "Already subscriber?" link on
-   * abbreviated view.
-   * @param {function()} callback
-   * @return {!LoginWithView}
-   */
-  onAlreadySubscribedClicked(callback) {
-    this.loginWithClicked_ = callback;
-    return this;
   }
 
   /**
@@ -78,7 +68,7 @@ export class LoginWithView {
    * @return {boolean}
    */
   shouldFadeBody() {
-    return false;
+    return true;
   }
 
   /**
@@ -87,7 +77,6 @@ export class LoginWithView {
    */
   init() {
     const iframe = this.viewElement_;
-    iframe.classList.add(IFRAME_CLASS);
 
     const readyPromise = new Promise(resolve => {
       iframe.onload = resolve;
@@ -97,8 +86,8 @@ export class LoginWithView {
     return readyPromise.then(() => {
       const doc = iframe.contentDocument;
       const head = iframe.contentDocument.head;
-      const linkFonts = createGoogleFontLink(doc);
-      const inlineStyle = createInlineStyle(doc, OFFERS_CSS);
+      const linkFonts = injectFontsLink(doc);
+      const inlineStyle = injectStyleSheet(doc, OFFERS_CSS);
 
       head.appendChild(linkFonts);
       head.appendChild(inlineStyle);

@@ -198,7 +198,7 @@ function renderAbbreviatedViewFooter_() {
  * @param {string=} fontUrl The fonts to be added.
  * @return {!Element}
  */
-export function createGoogleFontLink(doc,
+export function injectFontsLink(doc,
   fontUrl =
       'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700') {
   return createElement(doc, 'link', {
@@ -214,7 +214,7 @@ export function createGoogleFontLink(doc,
  * @param {string} styleText The style content.
  * @return {!Element}
  */
-export function createInlineStyle(doc, styleText) {
+export function injectStyleSheet(doc, styleText) {
   const inlineStyle = createElement(doc, 'style', {
     'type': 'text/css',
   });
