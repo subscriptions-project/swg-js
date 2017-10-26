@@ -127,3 +127,15 @@ function styleExistsForUrl(doc, cleanFontUrl) {
     return link.href == cleanFontUrl;
   });
 }
+
+/**
+ * Retrieves the value of a meta tag defined in the header section.
+ * @param {!Document} doc The document object.
+ * @param {string} name The meta name attribute.
+ * @return {string}
+ */
+export function getMetaTagValue(doc, name) {
+  const metaTag =
+      doc.head.querySelector(`meta[name=${name}]`);
+  return metaTag ? metaTag.getAttribute('content') : '';
+}

@@ -262,3 +262,17 @@ body {
   font-size: 16px;
   padding-bottom: 16px;
 }
+
+.swg-signin-container {
+  position: absolute !important;
+  top: 0 !important;
+  left: 50% !important;
+  transform: translate(-50%, 0) !important;
+}
+
+.swg-signin-header {
+  color: rgba(0, 0, 0, .54);
+  font-size: 14px;
+  padding-bottom: 16px;
+  text-align: center;
+}
