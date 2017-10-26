@@ -68,13 +68,18 @@ app.post('/auth-submit', (req, res) => {
   if (!email || !password) {
     throw new Error('Missing email and/or password');
   }
-  const authorizationCode = generateAuthorizationCode(params, email, password);
-  const authorizationCodeStr = toBase64(encrypt(authorizationCode));
-  const redirectUrl =
-      params.redirectUri +
-      `?code=${encodeURIComponent(authorizationCodeStr)}` +
-      `&state=${encodeURIComponent(params.state || '')}`;
-  res.redirect(302, redirectUrl);
+  if (params.responseType == 'code') {
+    const authorizationCode =
+        generateAuthorizationCode(params, email, password);
+    const authorizationCodeStr = toBase64(encrypt(authorizationCode));
+    const redirectUrl =
+        params.redirectUri +
+        `?code=${encodeURIComponent(authorizationCodeStr)}` +
+        `&state=${encodeURIComponent(params.state || '')}`;
+    res.redirect(302, redirectUrl);
+  } else {
+    throw new Error('Invalid response_type: ' + params.responseType);
+  }
 });
 
 
@@ -183,8 +188,8 @@ function verifyOauthParams(req) {
   if (params.clientId != CLIENT_ID) {
     throw new Error('Invalid client_id: ' + params.clientId);
   }
-  if (params.responseType != 'code') {
-    throw new Error('Invalid response_type: ' + params.responseType);
+  if (!params.responseType) {
+    throw new Error('Missing response_type');
   }
   if (!params.redirectUri) {
     throw new Error('Missing redirect_uri');
