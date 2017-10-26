@@ -17,6 +17,10 @@
 
 const app = module.exports = require('express').Router();
 
+app.use('/oauth',
+    require('./service/sample-pub-oauth-app'));
+
+
 const AUTH_URL_TEST = '/examples/sample-sp/api';
 const AUTH_URL_PROD = 'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
 
