@@ -170,6 +170,10 @@ app.post('/token', (req, res) => {
         throw new Error('Missing jwt assertion.');
       }
       const scope = getParam(req, 'scope');
+      // TODO: This is an example only.
+      if (scope && scope.indexOf('broken-jwt') != -1) {
+        throw new Error('Broken JWT example. Not prod code.');
+      }
       // TODO: Use `verify()` instead of `decode()`.
       const jwt = jsonwebtoken.decode(jwtStr);
       if (jwt['iss'] != 'https://accounts.google.com') {
