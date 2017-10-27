@@ -16,7 +16,7 @@
   "scripts": {
     "start": "node build-system/server/server-gae.js",
     "start-local": "gulp",
-    "deploy": "gcloud app deploy",
+    "deploy": "gcloud app deploy --stop-previous-version",
     "test": "gulp test && ava",
     "ava": "ava",
     "lint": "gulp lint",
@@ -75,6 +75,7 @@
     "gzip-size": "3.0.0",
     "hogan-express": "0.5.2",
     "is-running": "^2.1.0",
+    "jsonwebtoken": "8.1.0",
     "jison": "0.4.15",
     "jsdom": "9.2.1",
     "json-stable-stringify": "1.0.1",

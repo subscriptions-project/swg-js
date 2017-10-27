@@ -22,6 +22,7 @@
  */
 
 const app = module.exports = require('express').Router();
+const jsonwebtoken = require('jsonwebtoken');
 
 /**
  * The Google client ID and client secret can be any URL-safe string values of
@@ -30,6 +31,7 @@ const app = module.exports = require('express').Router();
  */
 const PROJECT_ID = 'scenic-2017-gdi';
 const CLIENT_ID = 'scenic-2017.appspot.com';
+const GSI_CLIENT_ID = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com';
 
 
 /**
@@ -85,8 +87,7 @@ app.post('/auth-submit', (req, res) => {
     // See https://developers.google.com/actions/identity/oauth2-implicit-flow
     // Notice that access token never expires. Not clear how it can be revoked
     // either.
-    const refreshToken = generateRefreshToken(
-        generateAuthorizationCode(params, email, password));
+    const refreshToken = generateRefreshToken(params.scope, {email, password});
     const accessToken = generateAccessToken(refreshToken);
     const accessTokenStr = toBase64(encrypt(accessToken));
     const redirectUrl =
@@ -134,7 +135,8 @@ app.post('/token', (req, res) => {
             authorizationCode.what);
       }
       // TODO: check if grant has expired via `authorizationCode.exp`.
-      const refreshToken = generateRefreshToken(authorizationCode);
+      const refreshToken = generateRefreshToken(
+          authorizationCode.scope, authorizationCode.data);
       const accessToken = generateAccessToken(refreshToken);
       response = JSON.stringify({
         'token_type': 'bearer',
@@ -157,8 +159,41 @@ app.post('/token', (req, res) => {
         'access_token': toBase64(encrypt(accessToken)),
         'expires_in': 300,  // 5 min in seconds.
       });
+    } else if (grantType == 'urn:ietf:params:oauth:grant-type:jwt-bearer') {
+      // See https://developers.google.com/actions/identity/oauth2-assertion-flow
+      const intent = getParam(req, 'intent');
+      if (intent != 'get') {
+        throw new Error('Invalid intent: ' + intent);
+      }
+      const jwtStr = getParam(req, 'assertion');
+      if (!jwtStr) {
+        throw new Error('Missing jwt assertion.');
+      }
+      const scope = getParam(req, 'scope');
+      // TODO: Use `verify()` instead of `decode()`.
+      const jwt = jsonwebtoken.decode(jwtStr);
+      if (jwt['iss'] != 'https://accounts.google.com') {
+        throw new Error('Unsupported iss: ' + jwt['iss']);
+      }
+      if (jwt['aud'] != GSI_CLIENT_ID) {
+        throw new Error('Invalid aud: ' + jwt['aud']);
+      }
+      // TODO: Check `jwt['exp']`.
+      const refreshToken = generateRefreshToken(scope, jwt);
+      const accessToken = generateAccessToken(refreshToken);
+      response = JSON.stringify({
+        'token_type': 'bearer',
+        'refresh_token': toBase64(encrypt(refreshToken)),
+        'access_token': toBase64(encrypt(accessToken)),
+        'expires_in': 300,  // 5 min in seconds.
+      });
     } else {
-      throw new Error('Unknown grant_type: ' + grantType);
+      const info = [];
+      for (const k in req.body) {
+        info.push(`${k}={${req.body[k]}}`);
+      }
+      throw new Error('Unknown grant_type: ' + grantType +
+          ': ' + info.join('; '));
     }
   } catch (e) {
     console.log('Error: ', grantType, e);
@@ -242,29 +277,31 @@ function getParam(req, name) {
 function generateAuthorizationCode(params, email, password) {
   return {
     what: 'authorizationCode',
+    clientId: CLIENT_ID,
     exp: Date.now() + 600000,  // Expiration in 10 min.
-    email,
-    password,
-    clientId: params.clientId,
     redirectUri: params.redirectUri,
     state: params.state,
     scope: params.scope,
     responseType: params.responseType,
+    data: {
+      email,
+      password,
+    },
   };
 }
 
 
 /**
- * @param {!AuthorizationCode} params
+ * @param {string} scope
+ * @param {!Object} data
  * @return {!RefreshToken}
  */
-function generateRefreshToken(authorizationCode) {
+function generateRefreshToken(scope, data) {
   return {
     what: 'refreshToken',
-    email: authorizationCode.email,
-    password: authorizationCode.password,
-    clientId: authorizationCode.clientId,
-    scope: authorizationCode.scope,
+    clientId: CLIENT_ID,
+    scope,
+    data,
   };
 }
 
@@ -276,10 +313,9 @@ function generateRefreshToken(authorizationCode) {
 function generateAccessToken(refreshToken) {
   return {
     what: 'accessToken',
-    email: refreshToken.email,
-    password: refreshToken.password,
-    clientId: refreshToken.clientId,
+    clientId: CLIENT_ID,
     scope: refreshToken.scope,
+    data: refreshToken.data,
   };
 }
 
