@@ -16,7 +16,6 @@
 
 import {
   createElement,
-  getMetaTagValue,
   injectFontsLink,
   injectStyleSheet,
 } from '../utils/dom';
@@ -40,13 +39,17 @@ export class LoginWithView {
 
    /**
     * @param {!Window} win The parent window object.
+    * @param {!SubscriptionMarkup} markup The markup object.
     * @param {!PopupContext} context The Subscription container reference.
     * @param {!Element} offerContainer The offer container element <swg-popup>.
     */
-  constructor(win, context, offerContainer) {
+  constructor(win, markup, context, offerContainer) {
 
     /** @private @const {!Window} */
     this.win_ = win;
+
+    /** @private @const {!SubscriptionMarkup} */
+    this.markup_ = markup;
 
     /** @const @private {!PopupContext} */
     this.context_ = context;
@@ -65,6 +68,7 @@ export class LoginWithView {
       'class': IFRAME_CLASS,
     });
 
+    /** @const {Document} */
     this.viewElementDoc_ = null;
   }
 
@@ -120,10 +124,8 @@ export class LoginWithView {
    */
   injectContainer_() {
     const doc = this.viewElementDoc_;
-    const container = createElement(doc, 'div', {});
-    container.classList.add('swg-container', 'swg-signin-container');
-    setImportantStyles(container, {
-      'align-items': 'center',
+    const container = createElement(doc, 'div', {
+      'class': 'swg-container swg-signin-container',
     });
     return container;
   }
@@ -173,9 +175,6 @@ export class LoginWithView {
       'tabindex': 1,
     });
     gSwgButton.classList.add('swg-button');
-    setImportantStyles(gSwgButton, {
-      'margin': '8px',
-    });
 
     gSignInButton.appendChild(gSignInLabel);
     gSignInButtonIcon.appendChild(gSignInIcon);
@@ -209,8 +208,7 @@ export class LoginWithView {
       'class': 'swg-button',
     });
     setImportantStyles(swgButton, {
-      'background-color':
-          getMetaTagValue(this.document_, 'msapplication-TileColor'),
+      'background-color': this.markup_.getThemeColor() || '#777',
       'margin-top': '24px',
     });
 

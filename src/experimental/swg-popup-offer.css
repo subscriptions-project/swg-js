@@ -264,10 +264,8 @@ body {
 }
 
 .swg-signin-container {
-  position: absolute !important;
-  top: 0 !important;
-  left: 50% !important;
-  transform: translate(-50%, 0) !important;
+  margin: auto;
+  align-items: center;
 }
 
 .swg-signin-header {
