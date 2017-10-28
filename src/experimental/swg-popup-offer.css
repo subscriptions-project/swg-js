@@ -262,3 +262,15 @@ body {
   font-size: 16px;
   padding-bottom: 16px;
 }
+
+.swg-signin-container {
+  margin: auto;
+  align-items: center;
+}
+
+.swg-signin-header {
+  color: rgba(0, 0, 0, .54);
+  font-size: 14px;
+  padding-bottom: 16px;
+  text-align: center;
+}

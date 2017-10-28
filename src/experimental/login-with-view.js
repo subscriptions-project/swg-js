@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import {createElement, injectFontsLink, injectStyleSheet} from '../utils/dom';
+import {
+  createElement,
+  injectFontsLink,
+  injectStyleSheet,
+} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
 import {IFRAME_CLASS} from './utils';
 import {CSS as OFFERS_CSS} from
@@ -35,13 +39,17 @@ export class LoginWithView {
 
    /**
     * @param {!Window} win The parent window object.
+    * @param {!SubscriptionMarkup} markup The markup object.
     * @param {!PopupContext} context The Subscription container reference.
     * @param {!Element} offerContainer The offer container element <swg-popup>.
     */
-  constructor(win, context, offerContainer) {
+  constructor(win, markup, context, offerContainer) {
 
     /** @private @const {!Window} */
     this.win_ = win;
+
+    /** @private @const {!SubscriptionMarkup} */
+    this.markup_ = markup;
 
     /** @const @private {!PopupContext} */
     this.context_ = context;
@@ -59,6 +67,9 @@ export class LoginWithView {
       'scrolling': 'no',
       'class': IFRAME_CLASS,
     });
+
+    /** @const {Document} */
+    this.viewElementDoc_ = null;
   }
 
   /**
@@ -89,6 +100,7 @@ export class LoginWithView {
     this.offerContainer_.appendChild(this.viewElement_);
 
     return readyPromise.then(() => {
+      this.viewElementDoc_ = this.viewElement_.contentDocument;
       const doc = iframe.contentDocument;
       injectFontsLink(doc, GOOGLE_FONTS_URL);
       injectStyleSheet(doc, OFFERS_CSS);
@@ -98,17 +110,111 @@ export class LoginWithView {
         'margin': 0,
       });
 
-      const container = createElement(this.document_, 'div', {});
-      container.classList.add('swg-container');
+      const container = this.injectContainer_();
 
-      // TODO(dparikh): Implement with style.
-      const button = createElement(this.document_, 'button', {
-        'width': '200px',
-      });
-      button.textContent = 'Login with Google';
-      container.appendChild(button);
+      this.injectSignInContent_(container);
 
       doc.body.appendChild(container);
     });
+  }
+
+  /**
+   * Creates container element and injects in the BODY section of iframe.
+   * @private
+   */
+  injectContainer_() {
+    const doc = this.viewElementDoc_;
+    const container = createElement(doc, 'div', {
+      'class': 'swg-container swg-signin-container',
+    });
+    return container;
+  }
+
+  /**
+   * Injects sign-in content.
+   * @param {!Element} container The container div (class='swg-container').
+   */
+  injectSignInContent_(container) {
+    const signInHeader = createElement(this.viewElementDoc_, 'div', {
+      'class': 'swg-signin-header',
+    });
+
+    signInHeader.textContent = 'Choose account to Sign in with';
+    container.appendChild(signInHeader);
+
+    this.injectGoogleSigninButton_(container);
+    this.injectPublisherSigninButton_(container);
+  }
+
+  /**
+   * Injects Google sign-in button.
+   * @param {!Element} container The container div (class='swg-container').
+   */
+  injectGoogleSigninButton_(container) {
+    const gSignInLabel = createElement(this.viewElementDoc_, 'span', {});
+    gSignInLabel.textContent = 'Sign in with Google';
+
+    const gSignInButton = createElement(this.viewElementDoc_, 'div', {
+      'class': 'swg-button-content',
+    });
+
+    const gSignInIcon = createElement(this.viewElementDoc_, 'div', {
+      'class': 'swg-icon',
+    });
+
+    const gSignInButtonIcon = createElement(this.viewElementDoc_, 'div', {
+      'class': 'swg-button-icon',
+    });
+
+    const gSignInButtonContent = createElement(this.viewElementDoc_, 'div', {
+      'class': 'swg-button-content-wrapper',
+    });
+
+    const gSwgButton = createElement(this.viewElementDoc_, 'div', {
+      'role': 'button',
+      'tabindex': 1,
+    });
+    gSwgButton.classList.add('swg-button');
+
+    gSignInButton.appendChild(gSignInLabel);
+    gSignInButtonIcon.appendChild(gSignInIcon);
+
+    gSignInButtonContent.appendChild(gSignInButtonIcon);
+    gSignInButtonContent.appendChild(gSignInButton);
+
+    gSwgButton.appendChild(gSignInButtonContent);
+    container.appendChild(gSwgButton);
+  }
+
+  /**
+   * Injects publisher sign-in button.
+   * @param {!Element} container The container div (class='swg-container').
+   */
+  injectPublisherSigninButton_(container) {
+    const signInLabel = createElement(this.viewElementDoc_, 'span', {});
+    signInLabel.textContent = 'Sign in with Scenic';
+
+    const signInButton = createElement(this.viewElementDoc_, 'div', {
+      'class': 'swg-button-content',
+    });
+
+    const signInButtonContent = createElement(this.viewElementDoc_, 'div', {
+      'class': 'swg-button-content-wrapper',
+    });
+
+    const swgButton = createElement(this.viewElementDoc_, 'div', {
+      'role': 'button',
+      'tabindex': 1,
+      'class': 'swg-button',
+    });
+    setImportantStyles(swgButton, {
+      'background-color': this.markup_.getThemeColor() || '#777',
+      'margin-top': '24px',
+    });
+
+    signInButton.appendChild(signInLabel);
+    signInButtonContent.appendChild(signInButton);
+    swgButton.appendChild(signInButtonContent);
+    container.appendChild(swgButton);
   }
  }
