@@ -72,9 +72,10 @@ const MAX_POPUP_HEIGHT = 640;
  *     4. Subscriber   : Payment broken. Notify user
  *     5. Not signed-in: Notify user to sign-in and show offers
  * @param {!Window} win The main containing window object.
+ * @param {!SubscriptionMarkup} markup The markup object.
  * @param {!SubscriptionResponse} response
  */
-export function buildSubscriptionsUi(win, response) {
+export function buildSubscriptionsUi(win, markup, response) {
 
   // Ensure that the element is not already built by external resource.
   assertNoPopups(win.document, POPUP_TAG);
@@ -88,7 +89,7 @@ export function buildSubscriptionsUi(win, response) {
   if (isSubscriber(response)) {
     new NotificationView(win, response).start();
   } else {
-    new SubscriptionsFlow(win, response).start();
+    new SubscriptionsFlow(win, markup, response).start();
   }
 
   /**
@@ -110,15 +111,19 @@ export class SubscriptionsFlow {
 
   /**
    * @param {!Window} win The parent window.
+   * @param {!SubscriptionMarkup} markup The markup object.
    * @param {!SubscriptionResponse} response The subscriptions object.
    */
-  constructor(win, response) {
+  constructor(win, markup, response) {
 
     /** @private @const {!Window} */
     this.win_ = win;
 
     /** @private @const {!Element} */
     this.document_ = win.document;
+
+    /** @private @const {!SubscriptionMarkup} */
+    this.markup_ = markup;
 
     /** @private @const {!SubscriptionResponse} */
     this.subscription_ = response;
@@ -455,7 +460,9 @@ export class SubscriptionsFlow {
 
   /** @private */
   activateLoginWith_() {
-    this.openView_(new LoginWithView(this.win_,
+    this.openView_(new LoginWithView(
+      this.win_,
+      this.markup_,
       this,
       this.offerContainer_));
   }
