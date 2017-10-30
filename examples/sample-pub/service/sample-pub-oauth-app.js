@@ -200,8 +200,11 @@ app.post('/token', (req, res) => {
           ': ' + info.join('; '));
     }
   } catch (e) {
-    console.log('Error: ', grantType, e);
-    res.status(400).send(JSON.stringify({'error': 'invalid_grant'}));
+    res.status(400).send(JSON.stringify(
+        {
+          'error': 'invalid_grant: ' + grantType,
+          'details': e,
+        }));
     return;
   }
   res.send(response);
