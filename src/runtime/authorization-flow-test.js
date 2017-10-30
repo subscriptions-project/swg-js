@@ -97,7 +97,7 @@ describes.realWin('authorization flow', {}, env => {
     authFlow.accessType_ = 'offer';
 
     const fetchStub = sandbox.stub(win, 'fetch');
-    fetchStub.returns(Promise.resolve({text: () => undefined}));
+    fetchStub.returns(Promise.resolve(undefined));
     return authFlow.start().should.be.rejected;
   });
 
