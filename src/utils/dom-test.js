@@ -19,15 +19,9 @@ import * as dom from './dom';
 
 describes.realWin('Dom', {}, env => {
   let doc;
-  let sandbox;
 
   beforeEach(() => {
     doc = env.win.document;
-    sandbox = env.sandbox;
-  });
-
-  afterEach(() => {
-    sandbox.restore();
   });
 
   describe('Dom', () => {

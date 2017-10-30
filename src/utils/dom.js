@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {log} from './log';
 import {setStyles} from './style';
 
 /** @const @enum{string} */
@@ -128,6 +129,7 @@ function styleExistsForUrl(doc, cleanFontUrl) {
   });
 }
 
+
 /**
  * This method wraps around window's open method. It first tries to execute
  * `open` call with the provided target and if it fails, it retries the call
@@ -143,13 +145,13 @@ function styleExistsForUrl(doc, cleanFontUrl) {
  */
 export function openWindowDialog(win, url, target, opt_features) {
   // Try first with the specified target. If we're inside the WKWebView or
-  // a similar environments, this method is expected to fail by default for
+  // a similar environment, this method is expected to fail by default for
   // all targets except `_top`.
   let res;
   try {
     res = win.open(url, target, opt_features);
   } catch (e) {
-    win.console/*OK*/.log(`Could not open window with target: ${target}`);
+    log(`Could not open window with target: ${target}`);
   }
 
   // Then try with `_top` target.
