@@ -20,8 +20,8 @@ import {map} from '../utils/object';
 /**
  * Returns the number of reads left for the user.
  * @param {string} articleLink of the current article.
- * @param {JsonObject} meteringResponse response.
- * @return {number}
+ * @param {!SubscriptionMetering} meteringResponse response.
+ * @return {!SubscriptionMetering}
  */
 export function updateMeteringResponse(articleLink, meteringResponse) {
   const readArticlesArray = getArticlesReadArray_();
