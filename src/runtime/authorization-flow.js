@@ -61,11 +61,11 @@ export class AuthorizationFlow {
    */
   start() {
     // TODO(avimehta, #21): Add a timeout to show offers.
-    return this.getPaywallConfig_()
+    return Promise.resolve(this.getPaywallConfig_())
         .then(config => this.sendAuthRequests_(config))
         .then(authResponse => {
           if (!authResponse) {
-            return Promise.reject(new Error('Auth response not found.'));
+            throw new Error('Auth response not found.');
           }
           // TODO(avimehta, #21): Handle more than one responses.
           return authResponse[0];
@@ -96,22 +96,21 @@ export class AuthorizationFlow {
     }
     const el = this.win.document.getElementById('subscriptionsConfig');
     if (!el) {
-      return Promise.reject(new Error('No Subscription config found.'));
+      throw new Error('No Subscription config found.');
     }
     if (el.nodeName != 'SCRIPT' ||
         el.getAttribute('type') != 'application/json') {
-      return Promise.reject(new Error('Subscription config was invalid.'));
+      throw new Error('Subscription config was invalid.');
     }
 
     let config;
     try {
       config = parseJson(el.textContent);
     } catch (e) {
-      return Promise.reject(
-          new Error('Subscription config could not be parsed.'));
+      throw new Error('Subscription config could not be parsed.');
     }
     if (!config || !isObject(config) || Object.keys(config).length == 0) {
-      return Promise.reject(new Error('Subscription config is empty.'));
+      throw new Error('Subscription config is empty.');
     }
 
     this.config_ = config;
@@ -131,9 +130,8 @@ export class AuthorizationFlow {
     log('Sending auth requests.');
     const profiles = config['profiles'];
     if (!this.accessType_ || !profiles || !profiles[this.accessType_]) {
-      return Promise.reject(
-          new Error('Can\'t find the subscriber profile for this page in ' +
-              'subscription config.'));
+      throw new Error('Can\'t find the subscriber profile for this page in ' +
+          'subscription config.');
     }
 
     // TODO(avimehta, #21): Move XHR utils to a separate class.

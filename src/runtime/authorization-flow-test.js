@@ -54,17 +54,17 @@ describes.realWin('authorization flow', {}, env => {
   }
 
   it('throws when pay-wall config is not found on page', () => {
-    return authFlow.getPaywallConfig_().should.be.rejectedWith(
+    expect(() => authFlow.getPaywallConfig_()).to.throw(
         /No Subscription config found/);
   });
 
   it('throws when pay-wall config is empty', () => {
-    return authFlow.getPaywallConfig_().should.be.rejected; /* Native Error */
+    expect(() => authFlow.getPaywallConfig_()).to.throw; /* Native Error */
   });
 
   it('throws when pay-wall config is empty (2)', () => {
     addConfig('{}');
-    return authFlow.getPaywallConfig_().should.be.rejectedWith(
+    expect(() => authFlow.getPaywallConfig_()).to.throw(
         /Subscription config is empty/);
   });
 
@@ -82,14 +82,14 @@ describes.realWin('authorization flow', {}, env => {
             }
           }
         }`);
-    return authFlow.getPaywallConfig_().should.be.rejectedWith(
+    expect(() => authFlow.getPaywallConfig_()).to.throw(
         /Subscription config could not be parsed/);
   });
 
   it('throws when pay-wall config doesn\'t have the right profile', () => {
     addConfig(validConfig);
     return authFlow.start().should.be.rejectedWith(
-        /Can\'t find the subscriber profile/);
+        /Can't find the subscriber profile/);
   });
 
   it('throws when subscription service doesn\'t return JSON', () => {
@@ -107,6 +107,6 @@ describes.realWin('authorization flow', {}, env => {
 
     const fetchStub = sandbox.stub(win, 'fetch');
     fetchStub.returns(Promise.resolve({text: () => '{}'}));
-    return authFlow.start().should.not.be.null;
+    return expect(authFlow.start()).to.eventually.not.be.null;
   });
 });
