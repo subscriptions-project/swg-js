@@ -150,7 +150,8 @@ export class AuthorizationFlow {
           `&label=${encodeURIComponent(this.accessType_)}` +
           `&content_id=${encodeURIComponent(this.win.location.pathname)}`;
       authPromises.push(this.win.fetch(url, init)
-          .then(response => parseJson(response.text())));
+          .then(response => response.text())
+          .then(response => parseJson(response)));
     }
     return Promise.all(authPromises);
   }
