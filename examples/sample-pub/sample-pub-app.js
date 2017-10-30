@@ -295,10 +295,20 @@ app.get('/', (req, res) => {
 
 
 /**
+ * Signin page.
+ */
+app.get('/signin', (req, res) => {
+  const referer = req.headers.referer || '';
+  res.render('../examples/sample-pub/views/signin', {
+    'redirect_uri': referer,
+  });
+});
+
+/**
  * An Article.
  */
 app.get('/((\\d+))', (req, res) => {
-  const id = parseInt(req.params[0]);
+  const id = parseInt(req.params[0], 10);
   const article = ARTICLES[id - 1];
   const prevId = (id - 1) >= 0 ? String(id - 1) : false;
   const nextId = (id + 1) < ARTICLES.length ? String(id + 1) : false;

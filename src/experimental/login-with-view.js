@@ -18,6 +18,7 @@ import {
   createElement,
   injectFontsLink,
   injectStyleSheet,
+  openWindowDialog,
 } from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
 import {IFRAME_CLASS} from './utils';
@@ -212,6 +213,11 @@ export class LoginWithView {
       'margin-top': '24px',
     });
 
+    swgButton.addEventListener('click', () => {
+      openWindowDialog(this.win_,
+          'http://pub.localhost:8000/examples/sample-pub/signin',
+          '_blank');
+    });
     signInButton.appendChild(signInLabel);
     signInButtonContent.appendChild(signInButton);
     swgButton.appendChild(signInButtonContent);
