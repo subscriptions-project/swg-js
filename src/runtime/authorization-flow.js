@@ -19,7 +19,12 @@ import {isMeteredUser, isSubscriber} from '../experimental/utils';
 import {isObject} from '../utils/types';
 import {log} from '../utils/log';
 import {parseJson} from '../utils/json';
+import {Timer} from '../utils/timer';
 import {updateMeteringResponse} from '../experimental/user-metering';
+
+
+const AUTH_TIMEOUT = 10000; // 10 seconds.
+
 
 /**
  * Performs authorization to check if a user has access to a given article.
@@ -60,27 +65,27 @@ export class AuthorizationFlow {
    * @return {!Promise<!SubscriptionResponse>}
    */
   start() {
-    // TODO(avimehta, #21): Add a timeout to show offers.
-    return Promise.resolve(this.getPaywallConfig_())
-        .then(config => this.sendAuthRequests_(config))
-        .then(authResponse => {
-          if (!authResponse) {
-            throw new Error('Auth response not found.');
-          }
-          // TODO(avimehta, #21): Handle more than one responses.
-          return authResponse[0];
-        })
-        .then(json => {
-          // Updating metering info
-          // TODO(avimehta, #21): Remove when server side metering is in place.
-          json.metering = updateMeteringResponse(
-              this.win.location.href, json.metering);
+    return new Timer(this.win).timeoutPromise(AUTH_TIMEOUT,
+        this.getPaywallConfig_()
+            .then(config => this.sendAuthRequests_(config))
+            .then(authResponse => {
+              if (!authResponse) {
+                throw new Error('Auth response not found.');
+              }
+              // TODO(avimehta, #21): Handle more than one responses.
+              return authResponse[0];
+            })
+            .then(json => {
+              // Updating metering info
+              // TODO(avimehta, #21): Remove when server side metering is in place.
+              json.metering = updateMeteringResponse(
+                  this.win.location.href, json.metering);
 
-          if (isSubscriber(json) || isMeteredUser(json)) {
-            this.markup_.setEntitled(EntitledState.ENTITLED);
-          }
-          return json;
-        });
+              if (isSubscriber(json) || isMeteredUser(json)) {
+                this.markup_.setEntitled(EntitledState.ENTITLED);
+              }
+              return json;
+            }), 'Authorization could not complete on time');
   }
 
   /**
@@ -123,8 +128,8 @@ export class AuthorizationFlow {
    *
    * @private
    * @param  {JsonObject} config Configuration that contains details about
-   *                             servers to contact.
-   * @return {!Promise<Array<JsonObject>>}
+   *     servers to contact.
+   * @return {!Promise<Array<!SubscriptionResponse>>}
    */
   sendAuthRequests_(config) {
     log('Sending auth requests.');
