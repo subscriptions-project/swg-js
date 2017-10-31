@@ -109,4 +109,34 @@ describes.realWin('authorization flow', {}, env => {
     fetchStub.returns(Promise.resolve({text: () => '{}'}));
     return expect(authFlow.start()).to.eventually.not.be.null;
   });
+
+  describe('on slow connection', () => {
+    let resolve;
+    let clock;
+
+    beforeEach(() => {
+      clock = sandbox.useFakeTimers();
+      win.setTimeout = self.setTimeout;
+      authFlow.getPaywallConfig_ = () => new Promise(res => {
+        resolve = res;
+      });
+      authFlow.accessType_ = 'offer';
+      const fetchStub = sandbox.stub(win, 'fetch');
+      fetchStub.returns(Promise.resolve({text: () => '{}'}));
+    });
+
+    it('throws when the sub platform takes forever to respond', () => {
+      const authPromise = authFlow.start();
+      clock.tick(10000);
+      return authPromise.should.be.rejectedWith(
+          /Authorization could not complete on time/);
+    });
+
+    it('throws when the sub platform takes a little longer to respond', () => {
+      const authPromise = authFlow.start();
+      clock.tick(9999);
+      resolve(JSON.parse(validConfig));
+      return expect(authPromise).to.eventually.not.be.null;
+    });
+  });
 });
