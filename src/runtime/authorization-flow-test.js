@@ -129,8 +129,8 @@ describes.realWin('authorization flow', {}, env => {
     addConfig(validConfig);
     authFlow.accessType_ = 'offer';
 
-    const fetchStub = sandbox.stub(win, 'fetch');
-    fetchStub.returns(Promise.resolve({json: () => ({})}));
+    sandbox.stub(authFlow.xhr_, 'fetch')
+        .returns(Promise.resolve({json: () => ({})}));
     return expect(authFlow.start()).to.eventually.not.be.null;
   });
 
