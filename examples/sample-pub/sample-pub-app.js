@@ -298,11 +298,28 @@ app.get('/', (req, res) => {
  * Signin page.
  */
 app.get('/signin', (req, res) => {
-  const referer = req.headers.referer || '';
+  const params = getverifiedParams(req);
   res.render('../examples/sample-pub/views/signin', {
-    'redirect_uri': referer,
+    'redirect_uri': params.redirectUri,
   });
 });
+
+
+/**
+ * Checks the validity and return request parameters.
+ * @param {!HttpRequest} req
+ * @return {!Object<string, ?string>}
+ */
+function getverifiedParams(req) {
+  const params = {
+    redirectUri: req.query['redirect_uri'] || null,
+  };
+  if (!params.redirectUri) {
+    throw new Error('Missing redirect_uri in request.');
+  }
+  // TODO: Restrict correct redirect URL for the current publisher.
+  return params;
+}
 
 /**
  * An Article.

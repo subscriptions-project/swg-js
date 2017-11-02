@@ -190,3 +190,13 @@ function renderAbbreviatedViewFooter_() {
   `;
   return footer;
 }
+
+
+/**
+ * Returns 3P login Url.
+ * @return {string}
+ */
+export function getPublisherLoginUrl() {
+  // TODO: Fetch correct login Url for current publisher.
+  return 'http://pub.localhost:8000/examples/sample-pub/signin';
+}

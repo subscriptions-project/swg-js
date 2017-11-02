@@ -18,10 +18,9 @@ import {
   createElement,
   injectFontsLink,
   injectStyleSheet,
-  openWindowDialog,
 } from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
-import {IFRAME_CLASS} from './utils';
+import {getPublisherLoginUrl, IFRAME_CLASS} from './utils';
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
 
@@ -214,9 +213,11 @@ export class LoginWithView {
     });
 
     swgButton.addEventListener('click', () => {
-      openWindowDialog(this.win_,
-          'http://pub.localhost:8000/examples/sample-pub/signin',
-          '_blank');
+      const redirectUri = this.win_.encodeURIComponent(this.win_.location.href);
+      const loginUrl = getPublisherLoginUrl();
+      const loginUrlWithRedirectLink =
+          `${loginUrl}?redirect_uri=${redirectUri}`;
+      this.win_.location.assign(loginUrlWithRedirectLink);
     });
     signInButton.appendChild(signInLabel);
     signInButtonContent.appendChild(signInButton);
