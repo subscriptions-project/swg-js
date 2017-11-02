@@ -97,7 +97,7 @@ describes.realWin('authorization flow', {}, env => {
     authFlow.accessType_ = 'offer';
 
     const fetchStub = sandbox.stub(win, 'fetch');
-    fetchStub.returns(Promise.resolve({text: () => undefined}));
+    fetchStub.returns(Promise.resolve({json: () => undefined}));
     return authFlow.start().should.be.rejected;
   });
 
@@ -106,7 +106,7 @@ describes.realWin('authorization flow', {}, env => {
     authFlow.accessType_ = 'offer';
 
     const fetchStub = sandbox.stub(win, 'fetch');
-    fetchStub.returns(Promise.resolve({text: () => '{}'}));
+    fetchStub.returns(Promise.resolve({json: () => '{}'}));
     return expect(authFlow.start()).to.eventually.not.be.null;
   });
 
@@ -122,7 +122,7 @@ describes.realWin('authorization flow', {}, env => {
       });
       authFlow.accessType_ = 'offer';
       const fetchStub = sandbox.stub(win, 'fetch');
-      fetchStub.returns(Promise.resolve({text: () => '{}'}));
+      fetchStub.returns(Promise.resolve({json: () => '{}'}));
     });
 
     it('throws when the sub platform takes forever to respond', () => {
