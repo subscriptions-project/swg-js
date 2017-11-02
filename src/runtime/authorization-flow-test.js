@@ -16,6 +16,8 @@
 
 import {AuthorizationFlow} from './authorization-flow';
 import {SubscriptionMarkup} from './subscription-markup';
+import {map} from '../utils/object';
+import {isObject} from '../utils/types';
 
 
 describes.realWin('authorization flow', {}, env => {
@@ -36,6 +38,27 @@ describes.realWin('authorization flow', {}, env => {
         },
       });
 
+  const configWithMultipleSP = {
+    'profiles': {
+      'offer': {
+        'services': [
+          {
+            'id': 'publisher.com',
+            'authorizationUrl': 'http://foo.com',
+          },
+          {
+            'id': 'foobar.com',
+            'authorizationUrl': 'http://foobar.com',
+          },
+          {
+            'id': 'baz.com',
+            'authorizationUrl': 'http://baz.com',
+          },
+        ],
+      },
+    },
+  };
+
   beforeEach(() => {
     win = env.win;
     markup = new SubscriptionMarkup(win);
@@ -47,7 +70,8 @@ describes.realWin('authorization flow', {}, env => {
     config.id = 'subscriptionsConfig';
     config.setAttribute('type', 'application/json');
     if (content) {
-      config.textContent = content;
+      config.textContent = isObject(content)
+          ? JSON.stringify(content) : content;
     }
     win.document.body.appendChild(config);
 
@@ -106,8 +130,63 @@ describes.realWin('authorization flow', {}, env => {
     authFlow.accessType_ = 'offer';
 
     const fetchStub = sandbox.stub(win, 'fetch');
-    fetchStub.returns(Promise.resolve({json: () => '{}'}));
+    fetchStub.returns(Promise.resolve({json: () => ({})}));
     return expect(authFlow.start()).to.eventually.not.be.null;
+  });
+
+  it('returns multiple authorization response', () => {
+    authFlow.accessType_ = 'offer';
+
+    const fetchStub = sandbox.stub(win, 'fetch');
+    let index = 0;
+    fetchStub.returns(Promise.resolve({json: () => ({'data': index++})}));
+    return expect(authFlow.sendAuthRequests_(configWithMultipleSP)).to
+        .eventually.satisfy(function(res) {
+          return res.length == 3 && res[0]['data'] == '0'
+                && res[1]['data'] == '1' && res[2]['data'] == '2';
+
+        });
+  });
+
+  describe('sorts authorization responses', () => {
+    let fetchStub;
+    let index;
+    beforeEach(() => {
+      authFlow.accessType_ = 'offer';
+      fetchStub = sandbox.stub(win, 'fetch');
+      fetchStub.returns(Promise.resolve({json: () => ({'data': index++})}));
+      index = 0;
+    });
+
+    function getConfigWithWeights(first, second, third) {
+      const config = map(configWithMultipleSP);
+      const services = config['profiles'][authFlow.accessType_]['services'];
+      services[0]['weight'] = first;
+      services[1]['weight'] = second;
+      services[2]['weight'] = third;
+      return config;
+    }
+
+    it('based on weights (1/3)', () => {
+      addConfig(getConfigWithWeights(0, 1, 2));
+      return expect(authFlow.start()).to.eventually.have.property('data', 2);
+    });
+
+    it('based on weights (2/3)', () => {
+      addConfig(getConfigWithWeights(2, 1, 0));
+      return expect(authFlow.start()).to.eventually.have.property('data', 0);
+    });
+
+    it('based on weights (3/3)', () => {
+      addConfig(getConfigWithWeights(0, 2, 1));
+      return expect(authFlow.start()).to.eventually.have.property('data', 1);
+    });
+
+    it('and uses callback for platform selection', () => {
+      addConfig(getConfigWithWeights(0, 1, 2));
+      return expect(authFlow.start((responses => responses[1]))).to.eventually
+          .have.property('data', 1);
+    });
   });
 
   describe('on slow connection', () => {
@@ -122,7 +201,7 @@ describes.realWin('authorization flow', {}, env => {
       });
       authFlow.accessType_ = 'offer';
       const fetchStub = sandbox.stub(win, 'fetch');
-      fetchStub.returns(Promise.resolve({json: () => '{}'}));
+      fetchStub.returns(Promise.resolve({json: () => ({})}));
     });
 
     it('throws when the sub platform takes forever to respond', () => {
