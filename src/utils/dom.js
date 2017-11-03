@@ -15,6 +15,7 @@
  */
 
 import {log} from './log';
+import {setStyles} from './style';
 
 /** @const @enum{string} */
 export const styleLinkAttrs = {
@@ -28,17 +29,22 @@ export const styleType = 'text/css';
 /** @const {string} */
 export const styleExistsQuerySelector = 'link[rel=stylesheet][href]';
 
-
- /**
+/**
  * Add attributes to an element.
  * @param {!Element} element
- * @param {!Object<string, boolean|number|string>} attributes
+ * @param {!Object<string, string|number|boolean|!Object<string, string|number|boolean>>} attributes
  * @return {!Element} updated element.
  */
 export function addAttributesToElement(element, attributes) {
   for (const attr in attributes) {
-    assert(attr != 'style', 'Set style using style.setStyles.');
-    element.setAttribute(attr, attributes[attr]);
+    if (attr == 'style') {
+      setStyles(element,
+        /** @type !Object<string, string|boolean|number> */ (attributes[attr]));
+    } else {
+      element.setAttribute(attr,
+          /** @type {string|boolean|number} */(attributes[attr]));
+    }
+
   }
   return element;
 }

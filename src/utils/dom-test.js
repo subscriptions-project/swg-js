@@ -90,6 +90,11 @@ describes.realWin('Dom', {}, env => {
 
     it('should create style and other attributes', () => {
       const attrs = {
+        'style': {
+          'min-height': '100px',
+          'display': 'none',
+          'opacity': 1,
+        },
         'width': '100%',
         'height': '100%',
       };
@@ -97,6 +102,12 @@ describes.realWin('Dom', {}, env => {
       const element = dom.createElement(doc, 'div', attrs);
       expect(element.getAttribute('width')).to.equal(attrs['width']);
       expect(element.getAttribute('width')).to.equal(attrs['height']);
+      expect(element.style['min-height'])
+          .to.equal(attrs['style']['min-height']);
+      expect(element.style['display'])
+          .to.equal(attrs['style']['display']);
+      expect(element.style['opacity'])
+          .to.equal(attrs['style']['opacity'].toString());
     });
 
     it('should remove element', () => {
