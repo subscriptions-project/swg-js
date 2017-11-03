@@ -29,6 +29,7 @@ export const styleType = 'text/css';
 /** @const {string} */
 export const styleExistsQuerySelector = 'link[rel=stylesheet][href]';
 
+
 /**
  * Add attributes to an element.
  * @param {!Element} element
@@ -42,7 +43,7 @@ export function addAttributesToElement(element, attributes) {
         /** @type !Object<string, string|boolean|number> */ (attributes[attr]));
     } else {
       element.setAttribute(attr,
-          /** @type {string|boolean|number} */(attributes[attr]));
+          /** @type {string|boolean|number} */ (attributes[attr]));
     }
 
   }
@@ -122,7 +123,7 @@ export function injectFontsLink(doc, fontUrl) {
  */
 function styleExistsForUrl(doc, cleanFontUrl) {
   // Check if existing link rel stylesheet with same href already defined.
-  const nodes = /** @type {Array<!HTMLLinkElement>} */ (Array.prototype.slice
+  const nodes = /** @type {!Array<!HTMLLinkElement>} */ (Array.prototype.slice
       .call(doc.head.querySelectorAll(styleExistsQuerySelector)));
 
   return nodes.some(link => {
