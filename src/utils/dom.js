@@ -30,18 +30,20 @@ export const styleType = 'text/css';
 export const styleExistsQuerySelector = 'link[rel=stylesheet][href]';
 
 
- /**
+/**
  * Add attributes to an element.
  * @param {!Element} element
- * @param {!Object<string, *>} attributes
+ * @param {!Object<string, string|number|boolean|!Object<string, string|number|boolean>>} attributes
  * @return {!Element} updated element.
  */
 export function addAttributesToElement(element, attributes) {
   for (const attr in attributes) {
     if (attr == 'style') {
-      setStyles(element, attributes[attr]);
+      setStyles(element,
+        /** @type !Object<string, string|boolean|number> */ (attributes[attr]));
     } else {
-      element.setAttribute(attr, attributes[attr]);
+      element.setAttribute(attr,
+          /** @type {string|boolean|number} */ (attributes[attr]));
     }
 
   }
@@ -121,8 +123,8 @@ export function injectFontsLink(doc, fontUrl) {
  */
 function styleExistsForUrl(doc, cleanFontUrl) {
   // Check if existing link rel stylesheet with same href already defined.
-  const nodes = Array.prototype.slice
-      .call(doc.head.querySelectorAll(styleExistsQuerySelector));
+  const nodes = /** @type {!Array<!HTMLLinkElement>} */ (Array.prototype.slice
+      .call(doc.head.querySelectorAll(styleExistsQuerySelector)));
 
   return nodes.some(link => {
     return link.href == cleanFontUrl;
