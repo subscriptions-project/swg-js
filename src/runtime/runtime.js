@@ -151,7 +151,7 @@ export class Runtime {
    * @param {!SubscriptionPlatformSelector} platformSelector
    */
   setSubscriptionPlatformSelector(platformSelector) {
-    assert(platformSelector, 'Platform selector should not be false-y.');
+    assert(typeof platformSelector == 'function');
     this.platformSelector_ = platformSelector;
   }
 }
