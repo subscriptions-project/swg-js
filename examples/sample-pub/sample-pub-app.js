@@ -298,7 +298,7 @@ app.get('/', (req, res) => {
  * Signin page.
  */
 app.get('/signin', (req, res) => {
-  const params = getVerifiedParams(req);
+  const params = getVerifiedSigninParams(req);
   res.render('../examples/sample-pub/views/signin', {
     'redirect_uri': params.redirectUri,
   });
@@ -310,7 +310,7 @@ app.get('/signin', (req, res) => {
  * @param {!HttpRequest} req
  * @return {!Object<string, ?string>}
  */
-function getVerifiedParams(req) {
+function getVerifiedSigninParams(req) {
   const params = {
     redirectUri: req.query['redirect_uri'] || null,
   };
