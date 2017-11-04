@@ -45,6 +45,9 @@ export function getRuntime() {
 class PublicRuntimeDef {
 }
 
+/** @typedef {function(Array<!SubscriptionResponse>):!SubscriptionResponse} */
+export let SubscriptionPlatformSelector;
+
 
 /**
  * @param {!Window} win
@@ -103,6 +106,9 @@ export class Runtime {
 
     /** @private {?Promise} */
     this.subscriptionsFlow_ = null;
+
+    /** @private {?SubscriptionPlatformSelector} */
+    this.platformSelector_ = null;;
   }
 
   /**
@@ -120,7 +126,7 @@ export class Runtime {
     assert(!this.subscriptionsFlow_,
         'Subscription flow can only be started once.');
     log('Starting subscription flow');
-    this.subscriptionsFlow_ = this.auth_.start()
+    this.subscriptionsFlow_ = this.auth_.start(this.platformSelector_)
         .then(response =>
         buildSubscriptionsUi(this.win, this.markup_, response));
     return this.subscriptionsFlow_;
@@ -140,6 +146,14 @@ export class Runtime {
     }
     return this.start();
   }
+
+  /**
+   * @param {!SubscriptionPlatformSelector} platformSelector
+   */
+  setSubscriptionPlatformSelector(platformSelector) {
+    assert(typeof platformSelector == 'function');
+    this.platformSelector_ = platformSelector;
+  }
 }
 
 /**
@@ -149,5 +163,7 @@ export class Runtime {
 function createPublicRuntime(runtime) {
   return /** @type {!PublicRuntimeDef} */ ({
     start: runtime.start.bind(runtime),
+    setSubscriptionPlatformSelector:
+        runtime.setSubscriptionPlatformSelector.bind(runtime),
   });
 }

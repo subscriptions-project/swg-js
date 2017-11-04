@@ -18,6 +18,7 @@ import {EntitledState} from '../runtime/subscription-markup';
 import {isMeteredUser, isSubscriber} from '../experimental/utils';
 import {isObject} from '../utils/types';
 import {log} from '../utils/log';
+import {map} from '../utils/object';
 import {parseJson} from '../utils/json';
 import {Timer} from '../utils/timer';
 import {updateMeteringResponse} from '../experimental/user-metering';
@@ -34,7 +35,7 @@ export class AuthorizationFlow {
   /**
    * Creates a new AuthorizationFlow object.
    * @param  {!Window} win
-   * @param  {!../runtime/subscription-markup.SubscriptionMarkup} markup
+   * @param  {!./subscription-markup.SubscriptionMarkup} markup
    */
   constructor(win, markup) {
 
@@ -52,6 +53,13 @@ export class AuthorizationFlow {
      * @private {JsonObject}
      */
     this.config_ = null;
+
+    /**
+     * Map of service ids to their weights. Used for sorting responses sent
+     * from services.
+     * @private {!Object<string, number>}
+     */
+    this.serviceWeights_ = map();
   }
 
   /**
@@ -62,18 +70,22 @@ export class AuthorizationFlow {
    * response, it then either navigates to an authorized page or returns a
    * string that can be passed to payments flow for purchase.
    *
+   * @param {?./runtime.SubscriptionPlatformSelector=} opt_platformSelector
    * @return {!Promise<!SubscriptionResponse>}
    */
-  start() {
+  start(opt_platformSelector) {
+    const platformSelector =
+        /** @type {./runtime.SubscriptionPlatformSelector}*/ (
+          opt_platformSelector || (responses => responses[0]));
+
     return new Timer(this.win).timeoutPromise(AUTH_TIMEOUT,
         this.getPaywallConfig_()
             .then(config => this.sendAuthRequests_(config))
-            .then(authResponse => {
-              if (!authResponse) {
-                throw new Error('Auth response not found.');
+            .then(authResponses => {
+              if (!authResponses) {
+                throw new Error('Auth responses not found.');
               }
-              // TODO(avimehta, #21): Handle more than one responses.
-              return authResponse[0];
+              return platformSelector(this.sortResponses_(authResponses));
             })
             .then(json => {
               // Updating metering info
@@ -144,6 +156,12 @@ export class AuthorizationFlow {
     const authPromises = [];
     for (let i = 0; i < services.length; i++) {
       const service = services[i];
+
+      if (this.serviceWeights_[service['id']] === undefined) {
+        this.serviceWeights_[service['id']] = service['weight'] === undefined
+            ? 1 : service['weight'];
+      }
+
       const init = {
         method: 'GET',
         headers: {'Accept': 'application/json'},
@@ -155,8 +173,26 @@ export class AuthorizationFlow {
           `&label=${encodeURIComponent(this.accessType_)}` +
           `&content_id=${encodeURIComponent(this.win.location.pathname)}`;
       authPromises.push(this.win.fetch(url, init)
-          .then(response => response.json()));
+          .then(response => response.json())
+          .then(json => {
+            json['id'] = service['id'];
+            return json;
+          }));
     }
     return Promise.all(authPromises);
+  }
+
+  /**
+   * Sorts the subscription responses based on weights specified in paywall
+   * config.
+   *
+   * @param  {Array<!SubscriptionResponse>} responses
+   * @return {Array<!SubscriptionResponse>}
+   * @private
+   */
+  sortResponses_(responses) {
+    return responses.sort((a, b) => {
+      return this.serviceWeights_[b['id']] - this.serviceWeights_[a['id']];
+    });
   }
 }
