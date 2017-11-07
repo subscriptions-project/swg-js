@@ -88,7 +88,6 @@ export function parseUrl(url, opt_nocache) {
  * @param {!HTMLAnchorElement} a
  * @param {string} url
  * @return {!Location}
- * @suppress{invalidCasts}
  */
 function parseUrlWithA(a, url) {
   a.href = url;
