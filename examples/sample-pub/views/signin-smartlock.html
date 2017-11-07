@@ -24,6 +24,7 @@
       }
     </style>
     <script>
+      var startTime = Date.now();
       var clientId = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com';
       var yoloPromise = new Promise(function(resolve) {
         window.onGoogleYoloLoad = resolve;
@@ -83,7 +84,7 @@
         resultEl.textContent += 'Display name: ' + result.displayName + '\n';
         resultEl.textContent += 'Image: ' + result.profilePicture + '\n';
         resultEl.textContent += 'Email: ' + result.id + '\n';
-        console.log('User signed-in: ', result);
+        console.log('User signed-in: ', result, Date.now() - startTime);
       }
     </script>
   </head>
