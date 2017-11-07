@@ -22,6 +22,7 @@ import {
 import {AbbreviatedView} from './abbreviated-view';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {debounce} from '../utils/rate-limit';
+import {GoogleSigninView} from './google-signin-view';
 import {LoadingView} from './loading-view';
 import {LoginWithView} from './login-with-view';
 import {NotificationView} from './notification-view';
@@ -461,15 +462,38 @@ export class SubscriptionsFlow {
   /** @private */
   activateLoginWith_() {
     this.openView_(new LoginWithView(
-      this.win_,
-      this.markup_,
-      this,
-      this.offerContainer_));
+        this.win_,
+        this.markup_,
+        this,
+        this.offerContainer_)
+        .onGoogleSignin(this.activateGoogleSignin_.bind(this)));
+  }
+
+  /** @private */
+  activateGoogleSignin_() {
+    this.openView_(new GoogleSigninView(
+        this.win_,
+        this,
+        this.offerContainer_)
+        .onSignedIn(this.googleSigninConfirmed_.bind(this)));
   }
 
   /**
+   * @param {!Object} user
    * @private
    */
+  googleSigninConfirmed_(user) {
+    // TODO(avimehta, #21): Restart authorization again, instead of redirect
+    // here. (btw, it's fine if authorization restart does redirect itself when
+    // needed)
+    this.win_.location.assign(
+        this.win_.location.origin +
+        this.win_.location.pathname +
+        '?test=1' +
+        '&test_response=subscriber-response');
+  }
+
+  /** @private */
   activateOffers_() {
     this.openView_(new OffersView(this.win_,
       this,
