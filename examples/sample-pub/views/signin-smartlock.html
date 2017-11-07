@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Smart Lock - The Scenic</title>
+    <link rel="canonical" href="index.html" >
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Playfair+Display" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Muli" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="../styles.css" type="text/css">
+    <link rel="icon" type="image/png" href="../icons/icon-2x.png">
+    <link rel="apple-touch-icon" href="../icons/icon-2x.png">
+    <meta name="msapplication-TileImage" content="../icons/icon-2x.png">
+    <meta name="msapplication-TileColor" content="#37dc8c">
+    <script src="https://smartlock.google.com/client" async></script>
+    <style>
+      .container {
+        font-size: 16px;
+        line-height: 1.4em;
+      }
+      h2 {
+        margin-bottom: 16px;
+      }
+    </style>
+    <script>
+      var clientId = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com';
+      var yoloPromise = new Promise(function(resolve) {
+        window.onGoogleYoloLoad = resolve;
+      });
+
+      yoloPromise.then(function(yolo) {
+        console.log('YOLO: ', yolo);
+        yolo.retrieve({
+          supportedAuthMethods: [
+            "https://accounts.google.com",
+            "googleyolo://id-and-password"
+          ],
+          supportedIdTokenProviders: [
+            {
+              uri: "https://accounts.google.com",
+              clientId: clientId
+            }
+          ]
+        }).then(function(result) {
+          console.log('YOLO retrieve: ', result);
+          onSignIn(result);
+        }, function(reason) {
+          console.log('YOLO retrieve failed: ', reason);
+        });
+      });
+
+      function signIn() {
+        return yoloPromise.then(function(yolo) {
+          return yolo.hint({
+            supportedAuthMethods: [
+              "https://accounts.google.com"
+            ],
+            supportedIdTokenProviders: [
+              {
+                uri: "https://accounts.google.com",
+                clientId: clientId
+              }
+            ]
+          });
+        }).then(function(result) {
+          console.log('YOLO hint: ', result);
+          onSignIn(result);
+        }, function(reason) {
+          console.log('YOLO hint failed: ', reason);
+        });
+      }
+
+      function signOut() {
+        return yoloPromise.then(function(yolo) {
+          yolo.disableAutoSignIn();
+        });
+      }
+
+      function onSignIn(result) {
+        var resultEl = document.getElementById('result');
+        resultEl.textContent += 'ID: ' + result.id + '\n';
+        resultEl.textContent += 'Display name: ' + result.displayName + '\n';
+        resultEl.textContent += 'Image: ' + result.profilePicture + '\n';
+        resultEl.textContent += 'Email: ' + result.id + '\n';
+        console.log('User signed-in: ', result);
+      }
+    </script>
+  </head>
+  <body>
+    <div class="main-body">
+      <header>
+        <a class="brand-header" href="/examples/sample-pub">
+          <div class="brand-logo"></div>
+          <div class="brand-name">The Scenic</div>
+        </a>
+      </header>
+      <main role="main">
+        <div class="container">
+          <h2>Sign-in with Smart Lock</h2>
+          <button onclick="signIn()">Sign in</button>
+          <pre id="result"></pre>
+          <div><a onclick="signOut();">Logout</a></div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
