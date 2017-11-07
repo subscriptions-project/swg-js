@@ -120,7 +120,7 @@ describes.realWin('authorization flow', {}, env => {
     addConfig(validConfig);
     authFlow.accessType_ = 'offer';
 
-    const fetchStub = sandbox.stub(win, 'fetch');
+    const fetchStub = sandbox.stub(authFlow.xhr_, 'fetch');
     fetchStub.returns(Promise.resolve({json: () => undefined}));
     return authFlow.start().should.be.rejected;
   });
@@ -137,7 +137,7 @@ describes.realWin('authorization flow', {}, env => {
   it('returns multiple authorization response', () => {
     authFlow.accessType_ = 'offer';
 
-    const fetchStub = sandbox.stub(win, 'fetch');
+    const fetchStub = sandbox.stub(authFlow.xhr_, 'fetch');
     let index = 0;
     fetchStub.returns(Promise.resolve({json: () => ({'data': index++})}));
     return expect(authFlow.sendAuthRequests_(configWithMultipleSP)).to
@@ -153,7 +153,7 @@ describes.realWin('authorization flow', {}, env => {
     let index;
     beforeEach(() => {
       authFlow.accessType_ = 'offer';
-      fetchStub = sandbox.stub(win, 'fetch');
+      fetchStub = sandbox.stub(authFlow.xhr_, 'fetch');
       fetchStub.returns(Promise.resolve({json: () => ({'data': index++})}));
       index = 0;
     });
@@ -200,7 +200,7 @@ describes.realWin('authorization flow', {}, env => {
         resolve = res;
       });
       authFlow.accessType_ = 'offer';
-      const fetchStub = sandbox.stub(win, 'fetch');
+      const fetchStub = sandbox.stub(authFlow.xhr_, 'fetch');
       fetchStub.returns(Promise.resolve({json: () => ({})}));
     });
 
