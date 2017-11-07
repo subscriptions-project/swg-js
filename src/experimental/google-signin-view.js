@@ -173,6 +173,11 @@ export class GoogleSigninView {
         ]),
       ]);
       container.appendChild(addAccount);
+      addAccount.addEventListener('click', () => {
+        this.win_.location.assign(
+            'https://accounts.google.com/AddSession?hl=en&continue=' +
+            encodeURIComponent('https://www.google.com/'));
+      });
     });
   }
 }
