@@ -56,13 +56,13 @@ export function addAttributesToElement(element, attributes) {
  * @param {!Document} doc
  * @param {string} tagName
  * @param {!Object<string, string>} attributes
- * @param {(string|!Node|!ArrayLike<!Node>)=} opt_content
+ * @param {?(string|!Node|!ArrayLike<!Node>)=} opt_content
  * @return {!Element} created element.
  */
 export function createElement(doc, tagName, attributes, opt_content) {
   const element = doc.createElement(tagName);
   addAttributesToElement(element, attributes);
-  if (opt_content) {
+  if (opt_content != null) {
     if (typeof opt_content == 'string') {
       element.textContent = opt_content;
     } else if (opt_content.nodeType) {
