@@ -212,7 +212,8 @@ export function fetchPolyfill(input, init) {
  */
 function createXhrRequest(method, url) {
   const xhr = new XMLHttpRequest();
-  // TODO(avimehta): See if we need to use XDR when XHR CORS is not present.
+  // TODO(avimehta): IE 8/9 don't support XHR (with CORS). Use XDR instead
+  // if we plan to support those browsers.
   if ('withCredentials' in xhr) {
     xhr.open(method, url, true);
   } else {
