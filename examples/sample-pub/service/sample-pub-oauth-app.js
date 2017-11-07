@@ -43,6 +43,14 @@ app.get('/signin-with-google', (req, res) => {
 
 
 /**
+ * Smart-lock test.
+ */
+app.get('/signin-smartlock', (req, res) => {
+  res.render('../examples/sample-pub/views/signin-smartlock');
+});
+
+
+/**
  * OAuth authorization endpoint.
  * The authorization endpoint must accept user traffic.
  * Typical request looks like this:
