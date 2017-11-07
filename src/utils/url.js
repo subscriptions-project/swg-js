@@ -88,6 +88,7 @@ export function parseUrl(url, opt_nocache) {
  * @param {!HTMLAnchorElement} a
  * @param {string} url
  * @return {!Location}
+ * @suppress{invalidCasts}
  */
 function parseUrlWithA(a, url) {
   a.href = url;
@@ -98,7 +99,7 @@ function parseUrlWithA(a, url) {
     a.href = a.href;
   }
 
-  const info = /** @type {!Location} */({
+  const info = /** @type {!Location} */ ({
     href: a.href,
     protocol: a.protocol,
     host: a.host,
