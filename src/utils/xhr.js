@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {assert} from './log';
 import {parseJson} from './json';
 import {parseUrl} from './url';
 import {utf8EncodeSync} from './bytes';
