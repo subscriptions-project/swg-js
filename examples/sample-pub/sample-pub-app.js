@@ -23,6 +23,7 @@ app.use('/oauth',
 
 const AUTH_URL_TEST = '/examples/sample-sp/api';
 const AUTH_URL_PROD = 'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
+const CLIENT_ID = 'scenic-2017.appspot.com';
 
 const ARTICLES = [
   {
@@ -300,7 +301,11 @@ app.get('/', (req, res) => {
 app.get('/signin', (req, res) => {
   const params = getVerifiedSigninParams(req);
   res.render('../examples/sample-pub/views/signin', {
-    'redirect_uri': params.redirectUri,
+    'redirectUri': params.redirectUri,
+    'clientId': params.clientId,
+    'state': params.state,
+    'scope': params.scope,
+    'responseType': params.responseType,
   });
 });
 
@@ -313,9 +318,19 @@ app.get('/signin', (req, res) => {
 function getVerifiedSigninParams(req) {
   const params = {
     redirectUri: req.query['redirect_uri'] || null,
+    clientId: req.query['client_id'] || null,
+    state: req.query['state'] || null,
+    scope: req.query['scope'] || null,
+    responseType: req.query['response_type'] || null,
   };
   if (!params.redirectUri) {
     throw new Error('Missing redirect_uri in request.');
+  }
+  if (params.clientId != CLIENT_ID) {
+    throw new Error('Invalid client_id: ' + params.clientId);
+  }
+  if (!params.responseType) {
+    throw new Error('Missing response_type');
   }
   // TODO: Restrict correct redirect URL for the current publisher.
   return params;

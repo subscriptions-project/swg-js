@@ -28,6 +28,11 @@ import {CSS as OFFERS_CSS} from
 const GOOGLE_FONTS_URL =
     'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
 
+/** @const {string} */
+const CLIENT_ID = 'scenic-2017.appspot.com';
+
+/** @const {string} */
+const RESPONSE_TYPE = 'code';
 
 /**
  * Login with View. User could be a subscriber through "Subscribe with Google"
@@ -213,10 +218,15 @@ export class LoginWithView {
     });
 
     swgButton.addEventListener('click', () => {
-      const redirectUri = this.win_.encodeURIComponent(this.win_.location.href);
+      // Remove trailing ? character, if exists.
+      const redirectUri = this.win_
+          .encodeURIComponent(this.win_.location.href.replace(/\?$/, ''));
       const loginUrl = getPublisherLoginUrl();
       const loginUrlWithRedirectLink =
-          `${loginUrl}?redirect_uri=${redirectUri}`;
+          `${loginUrl}?redirect_uri=${redirectUri}` +
+          `&response_type=${this.win_.encodeURIComponent(RESPONSE_TYPE)}` +
+          `&client_id=${this.win_.encodeURIComponent(CLIENT_ID)}`;
+
       this.win_.location.assign(loginUrlWithRedirectLink);
     });
     signInButton.appendChild(signInLabel);
