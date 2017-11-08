@@ -298,11 +298,10 @@ app.get('/', (req, res) => {
 /**
  * Signin page.
  */
-app.get('/signin', (req, res) => {
+app.get('/pub-signin', (req, res) => {
   const params = getVerifiedSigninParams(req);
-  res.render('../examples/sample-pub/views/signin', {
+  res.render('../examples/sample-pub/views/pub-signin', {
     'redirectUri': params.redirectUri,
-    'state': params.state,
   });
 });
 
