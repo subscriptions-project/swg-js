@@ -169,6 +169,7 @@ var forbiddenTermsSrcInclusive = {
     message: 'TextEncoder/TextDecoder is not supported in all browsers.' +
         'Please use UTF8 utilities from src/bytes.js',
     whitelist: [
+      'src/utils/bytes.js'
     ],
   },
   'reject\\(\\)': {
@@ -211,9 +212,14 @@ var requiredTerms = {
  * @param {string} path
  * @return {boolean}
  */
-function isInTestFolder(path) {
-  var dirs = path.split('/');
-  return dirs.indexOf('test') >= 0;
+function isTestFile(file) {
+  var pathname = file.path;
+  var basename = path.basename(pathname);
+  var isTestFile = /^test-/.test(basename) || /^_init_tests/.test(basename)
+      || /-test\.js$/.test(basename);
+
+  var dirs = file.relative.split('/');
+  return isTestFile || dirs.indexOf('test') >= 0;
 }
 
 function stripComments(contents) {
@@ -254,7 +260,7 @@ function matchTerms(file, terms) {
     // NOTE: we could do a glob test instead of exact check in the future
     // if needed but that might be too permissive.
     if (Array.isArray(whitelist) && (whitelist.indexOf(relative) != -1 ||
-        isInTestFolder(relative) && !checkInTestFolder)) {
+        isTestFile(file) && !checkInTestFolder)) {
       return false;
     }
     // we can't optimize building the `RegExp` objects early unless we build
@@ -312,15 +318,11 @@ function matchTerms(file, terms) {
  */
 function hasAnyTerms(file) {
   var pathname = file.path;
-  var basename = path.basename(pathname);
   var hasTerms = false;
   var hasSrcInclusiveTerms = false;
 
   hasTerms = matchTerms(file, forbiddenTerms);
-
-  var isTestFile = /^test-/.test(basename) || /^_init_tests/.test(basename)
-      || /_test\.js$/.test(basename);
-  if (!isTestFile) {
+  if (!isTestFile(file)) {
     hasSrcInclusiveTerms = matchTerms(file, forbiddenTermsSrcInclusive);
   }
 

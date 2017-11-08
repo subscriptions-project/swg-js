@@ -22,6 +22,7 @@ import {map} from '../utils/object';
 import {parseJson} from '../utils/json';
 import {Timer} from '../utils/timer';
 import {updateMeteringResponse} from '../experimental/user-metering';
+import {Xhr} from '../utils/xhr';
 
 
 const AUTH_TIMEOUT = 10000; // 10 seconds.
@@ -60,6 +61,9 @@ export class AuthorizationFlow {
      * @private {!Object<string, number>}
      */
     this.serviceWeights_ = map();
+
+    /** @private {!../utils/xhr.Xhr} */
+    this.xhr_ = new Xhr(this.win);
   }
 
   /**
@@ -162,17 +166,17 @@ export class AuthorizationFlow {
             ? 1 : service['weight'];
       }
 
-      const init = {
+      const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
         method: 'GET',
         headers: {'Accept': 'application/json'},
         credentials: 'include',
-      };
+      });
       // TODO(dvoytenko): Add URL utils to construct URLs reliably
       const url = service['authorizationUrl'] +
           `&access-type=${encodeURIComponent(this.accessType_)}` +
           `&label=${encodeURIComponent(this.accessType_)}` +
           `&content_id=${encodeURIComponent(this.win.location.pathname)}`;
-      authPromises.push(this.win.fetch(url, init)
+      authPromises.push(this.xhr_.fetch(url, init)
           .then(response => response.json())
           .then(json => {
             json['id'] = service['id'];
