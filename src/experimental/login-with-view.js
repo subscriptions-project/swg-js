@@ -223,9 +223,7 @@ export class LoginWithView {
           .encodeURIComponent(this.win_.location.href.replace(/\?$/, ''));
       const loginUrl = getPublisherLoginUrl();
       const loginUrlWithRedirectLink =
-          `${loginUrl}?redirect_uri=${redirectUri}` +
-          `&response_type=${this.win_.encodeURIComponent(RESPONSE_TYPE)}` +
-          `&client_id=${this.win_.encodeURIComponent(CLIENT_ID)}`;
+          `${loginUrl}?redirect_uri=${redirectUri}`;
 
       this.win_.location.assign(loginUrlWithRedirectLink);
     });

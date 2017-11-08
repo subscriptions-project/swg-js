@@ -22,6 +22,7 @@
  */
 
 const app = module.exports = require('express').Router();
+const cookieParser = require('cookie-parser');
 const jsonwebtoken = require('jsonwebtoken');
 
 /**
@@ -29,10 +30,18 @@ const jsonwebtoken = require('jsonwebtoken');
  * your choice. You must ensure that the client secret is visible to only Google
  * and your service.
  */
+/** @const {string} */
 const PROJECT_ID = 'scenic-2017-gdi';
-const CLIENT_ID = 'scenic-2017.appspot.com';
-const GSI_CLIENT_ID = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com';
 
+/** @const {string} */
+const CLIENT_ID = 'scenic-2017.appspot.com';
+
+/** @const {string} */
+const GSI_CLIENT_ID = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4' +
+    '.apps.googleusercontent.com';
+
+/** @const {string} */
+const G_PUB_USER = 'G_PUB_USER';
 
 /**
  * Sign-in with Google test.
@@ -67,6 +76,31 @@ app.get('/auth', (req, res) => {
   });
 });
 
+app.post('/pub-signin-submit', (req, res) => {
+  const redirectUri = getParam(req, 'redirect_uri');
+  if (!redirectUri) {
+    throw new Error('No redirect URL specified!');
+  }
+  const email = req.body['email'];
+  const password = req.body['password'];
+  if (!email || !password) {
+    throw new Error('Missing email and/or password');
+  }
+  setUserInfoInCookies_(res, email);
+  res.redirect(302, redirectUri);
+});
+
+/**
+ * Sets user email in the cookie.
+ * @param {!HttpRequest} req
+ * @param {string} email
+ * @private
+ */
+function setUserInfoInCookies_(res, email) {
+  res.clearCookie(G_PUB_USER);
+  res.cookie(G_PUB_USER, toBase64(encrypt(email)),
+      {maxAge: /* 60 minutes */1000 * 60 * 60});
+}
 
 /**
  * OAuth authorization endpoint.

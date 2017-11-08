@@ -51,12 +51,9 @@
       <main role="main">
         <div class="container">
           <h2>Sign-in to Scenic</h2>
-          <form action="./oauth/auth-submit" method="post">
-            <input type="hidden" name="client_id" value="<% clientId %>">
+          <form action="./oauth/pub-signin-submit" method="post">
             <input type="hidden" name="redirect_uri" value="<% redirectUri %>">
             <input type="hidden" name="state" value="<% state %>">
-            <input type="hidden" name="scope" value="<% scope %>">
-            <input type="hidden" name="response_type" value="<% responseType %>">
             <div class="input-container">
               <span>Email:</span>
               <input name="email" type="email" required>
