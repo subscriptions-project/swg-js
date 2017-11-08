@@ -15,11 +15,12 @@
  */
 
 
+import {SubscriptionsUi} from '../experimental/subscriptions-ui';
 import {assert, log} from '../utils/log';
-import {AuthorizationFlow} from './authorization-flow';
-import {buildSubscriptionsUi} from '../experimental/subscriptions-flow';
 import {isArray} from '../utils/types';
+import {AuthorizationFlow} from './authorization-flow';
 import {SubscriptionMarkup} from './subscription-markup';
+import {SubscriptionState} from './subscription-state';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
 
@@ -42,8 +43,7 @@ export function getRuntime() {
 /**
  * @interface
  */
-class PublicRuntimeDef {
-}
+class PublicRuntimeDef {}
 
 /** @typedef {function(Array<!SubscriptionResponse>):!SubscriptionResponse} */
 export let SubscriptionPlatformSelector;
@@ -101,14 +101,23 @@ export class Runtime {
     /** @private @const {!SubscriptionMarkup} */
     this.markup_ = new SubscriptionMarkup(this.win);
 
+    /** @private @const {SubscriptionState} */
+    this.subscriptionState_ = new SubscriptionState(this.win);
+
     /** @private @const {!AuthorizationFlow} */
-    this.auth_ = new AuthorizationFlow(this.win, this.markup_);
+    this.auth_ =
+        new AuthorizationFlow(this.win, this.markup_, this.subscriptionState_);
+
+    /** @private @const {!SubscriptionsUi} */
+    this.ui_ =
+        new SubscriptionsUi(this.win, this.markup_, this.subscriptionState_);
 
     /** @private {?Promise} */
     this.subscriptionsFlow_ = null;
 
     /** @private {?SubscriptionPlatformSelector} */
-    this.platformSelector_ = null;;
+    this.platformSelector_ = null;
+    ;
   }
 
   /**
@@ -120,16 +129,30 @@ export class Runtime {
 
   /**
    * Starts subscription flow.
-   * @return {Promise} [description]
+   * @return {!Promise}
    */
   start() {
-    assert(!this.subscriptionsFlow_,
+    assert(
+        !this.subscriptionsFlow_,
         'Subscription flow can only be started once.');
     log('Starting subscription flow');
-    this.subscriptionsFlow_ = this.auth_.start(this.platformSelector_)
-        .then(response =>
-        buildSubscriptionsUi(this.win, this.markup_, response));
-    return this.subscriptionsFlow_;
+
+    return this.subscriptionsFlow_ = this.subscriptionLoop_();
+  }
+
+
+  /**
+   * Loop to execute auth flow and subscription flow as long as needed.
+   * @return {!Promise}
+   */
+  subscriptionLoop_() {
+    if (this.subscriptionState_.shouldRetry) {
+      return this.auth_.start(this.platformSelector_)
+          .then(this.ui_.start.bind(this.ui_))
+          .then(this.subscriptionLoop_.bind(this));
+    } else {
+      return Promise.resolve();  // null task - base case of recursion
+    }
   }
 
   /**

@@ -38,7 +38,7 @@ const DEFAULT_SUBSCRIPTION_URL = 'https://play.google.com/store/account';
  */
 export class NotificationView {
 
-  constructor(win, response) {
+  constructor(win, state) {
 
     /** @private @const {!Window} */
     this.win_ = win;
@@ -46,8 +46,8 @@ export class NotificationView {
     /** @private @const {!Element} */
     this.document_ = win.document;
 
-    /** @private @const {!SubscriptionResponse} */
-    this.subscription_ = response;
+    /** @private @const {!SubscriptionState} */
+    this.state_ = state;
 
     /** @private {?Element} */
     this.notificationContainer_ =
@@ -60,6 +60,8 @@ export class NotificationView {
   start() {
     this.openView_();
     // TODO(dparikh): Set a flag to session storage to not render this again.
+    this.state_.shouldRetry = false;
+    return Promise.resolve();
   }
 
   /**
@@ -90,9 +92,9 @@ export class NotificationView {
     this.notificationContainer_.appendChild(linkButton);
 
     let subscriptionUrl = DEFAULT_SUBSCRIPTION_URL;
-    if (this.subscription_['subscriber'] &&
-        this.subscription_['subscriber']['url']) {
-      subscriptionUrl = this.subscription_.subscriber.url;
+    if (this.state_.activeSubscriptionResponse['subscriber'] &&
+        this.state_.activeSubscriptionResponse['subscriber']['url']) {
+      subscriptionUrl = this.state_.activeSubscriptionResponse.subscriber.url;
     }
     linkButton.addEventListener('click', () => {
       this.win_.open(subscriptionUrl, '_blank');

@@ -124,7 +124,7 @@ export class PaymentsView {
         break;
       case 'complete':
         if (this.onComplete_) {
-          this.onComplete_();
+          this.onComplete_(payload);
         }
         break;
       default:

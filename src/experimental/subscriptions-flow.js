@@ -15,16 +15,11 @@
  */
 
 
-import {
-  assertNoPopups,
-  isSubscriber,
-} from './utils';
+import {assertNoPopups} from './utils';
 import {AbbreviatedView} from './abbreviated-view';
-import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {debounce} from '../utils/rate-limit';
 import {LoadingView} from './loading-view';
 import {LoginWithView} from './login-with-view';
-import {NotificationView} from './notification-view';
 import {OffersView} from './offers-view';
 import {PaymentsView} from './payments-view';
 import {setImportantStyles} from '../utils/style';
@@ -61,48 +56,6 @@ const MAX_POPUP_WIDTH = 480;
  */
 const MAX_POPUP_HEIGHT = 640;
 
-/**
- * Builds offers container, including headers and footer. It builds an
- * element <swg-payflow> at the end of the <body> of the containing document.
- * The offer container within the element is built from the offers API response.
- * The offers API response could be different base on:
- *     1. Subscriber   : Notify user with a toast message
- *     2. Metered      : Show available quota and offers received from the API
- *     3. Non-metered  : Show available quota and offers received from the API
- *     4. Subscriber   : Payment broken. Notify user
- *     5. Not signed-in: Notify user to sign-in and show offers
- * @param {!Window} win The main containing window object.
- * @param {!SubscriptionMarkup} markup The markup object.
- * @param {!SubscriptionResponse} response
- */
-export function buildSubscriptionsUi(win, markup, response) {
-
-  // Ensure that the element is not already built by external resource.
-  assertNoPopups(win.document, POPUP_TAG);
-
-  // Gets subscription details and build the pop-up.
-
-  // TODO(dparikh): See if multiple CSS be built and used based on the
-  // current view. (Currently, injects one CSS for everything).
-  injectCssToWindow_();
-
-  if (isSubscriber(response)) {
-    new NotificationView(win, response).start();
-  } else {
-    new SubscriptionsFlow(win, markup, response).start();
-  }
-
-  /**
-   * Injects common CSS styles to the container window's <head> element.
-   * @private
-   */
-  function injectCssToWindow_() {
-    const style = win.document.createElement('style');
-    style.textContent = `${SWG_POPUP}`;
-    win.document.head.appendChild(style);
-  }
-}
-
 
 /**
  * The class for SwG offers flow.
@@ -112,9 +65,9 @@ export class SubscriptionsFlow {
   /**
    * @param {!Window} win The parent window.
    * @param {!SubscriptionMarkup} markup The markup object.
-   * @param {!SubscriptionResponse} response The subscriptions object.
+   * @param {!SubscriptionState} response The subscriptions object.
    */
-  constructor(win, markup, response) {
+  constructor(win, markup, state) {
 
     /** @private @const {!Window} */
     this.win_ = win;
@@ -126,7 +79,7 @@ export class SubscriptionsFlow {
     this.markup_ = markup;
 
     /** @private @const {!SubscriptionResponse} */
-    this.subscription_ = response;
+    this.state_ = state;
 
     /** @private {?Element} */
     this.offerContainer_ = null;
@@ -166,13 +119,18 @@ export class SubscriptionsFlow {
      */
     this.win_.addEventListener('orientationchange',
         this.orientationChangeListener_);
+
+    this.complete_ = null;
   }
 
   /*
    * Starts the subscriptions flow.
    */
   start() {
-    this.offerContainer_ = this.document_.createElement(POPUP_TAG);
+    // Ensure that the element is not already built by external resource.
+   assertNoPopups(this.win_.document, POPUP_TAG);
+
+   this.offerContainer_ = this.document_.createElement(POPUP_TAG);
 
     // Add close button with action.
     this.addCloseButton_();
@@ -198,9 +156,12 @@ export class SubscriptionsFlow {
         this.win_,
         this,
         this.offerContainer_,
-        this.subscription_)
+        this.state_.activeSubscriptionResponse)
         .onAlreadySubscribedClicked(this.activateLoginWith_.bind(this))
         .onSubscribeClicked(this.activateOffers_.bind(this)));
+    return new Promise((resolve, reject) => {
+      this.complete_ = resolve;
+    });;
   }
 
   /** @private */
@@ -440,7 +401,7 @@ export class SubscriptionsFlow {
   }
 
   /** @private */
-  close_() {
+  close_(shouldRetry) {
     // Remove additional padding added at the document bottom.
     this.document_.documentElement.style.removeProperty('padding-bottom');
 
@@ -456,6 +417,11 @@ export class SubscriptionsFlow {
     // Remove event listener for orientation change.
     this.win_.removeEventListener('orientationchange',
         this.orientationChangeListener_);
+
+    this.activeView_ = null;
+
+    this.state_.shouldRetry = shouldRetry;
+    this.complete_();
   }
 
   /** @private */
@@ -472,9 +438,10 @@ export class SubscriptionsFlow {
    */
   activateOffers_() {
     this.openView_(new OffersView(this.win_,
-      this,
-      this.offerContainer_,
-      this.subscription_).onSubscribeClicked(this.activatePay_.bind(this)));
+        this,
+        this.offerContainer_,
+        this.state_.activeSubscriptionResponse)
+      .onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
   /**
@@ -498,7 +465,7 @@ export class SubscriptionsFlow {
    * @private
    */
   activatePay_(selectedOfferIndex) {
-    const offer = this.subscription_['offer'][selectedOfferIndex];
+    const offer = this.state_.activeSubscriptionResponse['offer'][selectedOfferIndex];
     // First, try to pay via PaymentRequest.
     const prFlow =
         offer['paymentRequestJson'] ?
@@ -547,12 +514,15 @@ export class SubscriptionsFlow {
   }
 
   /** @private */
-  paymentComplete_() {
-    this.close_();
-    // TODO(avimehta, #21): Restart authorization again, instead of redirect
-    // here. (btw, it's fine if authorization restart does redirect itself when
-    // needed)
-    this.win_.location.reload(true);
+  paymentComplete_(payload) {
+    // If payload and payload.data are present, the payment was successful.
+    this.close_(!!(payload && payload.data));
+  }
+
+  /** @private */
+  paymentError_(reason) {
+    // TODO(#144): Show an error to the user? Use reason to do that.
+    this.close_(false);
   }
 
   /**
@@ -567,7 +537,7 @@ export class SubscriptionsFlow {
     this.offerContainer_.appendChild(closeButton);
 
 
-    closeButton.addEventListener('click', () => this.close_());
+    closeButton.addEventListener('click', () => this.close_(false));
   }
 
   /**

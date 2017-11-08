@@ -16,6 +16,7 @@
 
 import {AuthorizationFlow} from './authorization-flow';
 import {SubscriptionMarkup} from './subscription-markup';
+import {SubscriptionState} from './subscription-state';
 import {map} from '../utils/object';
 import {isObject} from '../utils/types';
 
@@ -24,6 +25,7 @@ describes.realWin('authorization flow', {}, env => {
   let win;
   let authFlow;
   let markup;
+  let state;
   const validConfig = JSON.stringify(
       {
         'profiles': {
@@ -62,7 +64,8 @@ describes.realWin('authorization flow', {}, env => {
   beforeEach(() => {
     win = env.win;
     markup = new SubscriptionMarkup(win);
-    authFlow = new AuthorizationFlow(win, markup);
+    state = new SubscriptionState(win);
+    authFlow = new AuthorizationFlow(win, markup, state);
   });
 
   function addConfig(content) {
@@ -131,7 +134,8 @@ describes.realWin('authorization flow', {}, env => {
 
     sandbox.stub(authFlow.xhr_, 'fetch')
         .returns(Promise.resolve({json: () => ({})}));
-    return expect(authFlow.start()).to.eventually.not.be.null;
+    return expect(authFlow.start().then(() => state.activeSubscriptionResponse))
+        .to.eventually.not.be.null;
   });
 
   it('returns multiple authorization response', () => {
@@ -142,8 +146,9 @@ describes.realWin('authorization flow', {}, env => {
     fetchStub.returns(Promise.resolve({json: () => ({'data': index++})}));
     return expect(authFlow.sendAuthRequests_(configWithMultipleSP)).to
         .eventually.satisfy(function(res) {
-          return res.length == 3 && res[0]['data'] == '0'
-                && res[1]['data'] == '1' && res[2]['data'] == '2';
+          return res.length == 3 && res[0].response['data'] == '0'
+                && res[1].response['data'] == '1'
+                && res[2].response['data'] == '2';
 
         });
   });
@@ -169,23 +174,30 @@ describes.realWin('authorization flow', {}, env => {
 
     it('based on weights (1/3)', () => {
       addConfig(getConfigWithWeights(0, 1, 2));
-      return expect(authFlow.start()).to.eventually.have.property('data', 2);
+      return expect(authFlow.start()
+          .then(() => state.activeSubscriptionResponse))
+          .to.eventually.have.property('data', 2);
     });
 
     it('based on weights (2/3)', () => {
       addConfig(getConfigWithWeights(2, 1, 0));
-      return expect(authFlow.start()).to.eventually.have.property('data', 0);
+      return expect(authFlow.start()
+          .then(() => state.activeSubscriptionResponse))
+          .to.eventually.have.property('data', 0);
     });
 
     it('based on weights (3/3)', () => {
       addConfig(getConfigWithWeights(0, 2, 1));
-      return expect(authFlow.start()).to.eventually.have.property('data', 1);
+      return expect(authFlow.start()
+          .then(() => state.activeSubscriptionResponse))
+          .to.eventually.have.property('data', 1);
     });
 
     it('and uses callback for platform selection', () => {
       addConfig(getConfigWithWeights(0, 1, 2));
-      return expect(authFlow.start((responses => responses[1]))).to.eventually
-          .have.property('data', 1);
+      return expect(authFlow.start((responses => responses[1].response))
+          .then(() => state.activeSubscriptionResponse))
+          .to.eventually.have.property('data', 1);
     });
   });
 

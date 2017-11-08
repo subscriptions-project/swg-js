@@ -19,13 +19,14 @@ import {installRuntime, getRuntime, Runtime} from './runtime';
 describes.realWin('installRuntime', {}, env => {
   let win;
   let runtime;
-  let authStartStub;
 
   beforeEach(() => {
     win = env.win;
     runtime = new Runtime(win);
-    authStartStub = sandbox.stub(runtime.auth_, 'start');
-    authStartStub.returns(Promise.resolve());
+    sandbox.stub(runtime.auth_, 'start', () => {
+      runtime.subscriptionState_.shouldRetry = false;
+      return Promise.resolve();
+    });
   });
 
   function dep(callback) {
