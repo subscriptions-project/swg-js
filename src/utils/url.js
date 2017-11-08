@@ -18,6 +18,22 @@ import {isArray} from './types';
 
 
 /**
+  @typedef {{
+    href: string,
+    protocol: string,
+    host: string,
+    hostname: string,
+    port: string,
+    pathname: string,
+    search: string,
+    hash: string,
+    origin: string,
+  }}
+  */
+let LocationDef;
+
+
+/**
  * Cached a-tag to avoid memory allocation during URL parsing.
  * @type {HTMLAnchorElement}
  */
@@ -28,7 +44,7 @@ let a;
  * We cached all parsed URLs. As of now there are no use cases
  * of AMP docs that would ever parse an actual large number of URLs,
  * but we often parse the same one over and over again.
- * @type {Object<string, !Location>}
+ * @type {Object<string, !LocationDef>}
  */
 let cache;
 
@@ -64,7 +80,7 @@ export function serializeQueryString(params) {
  * testing by freezing the object.
  * @param {string} url
  * @param {boolean=} opt_nocache
- * @return {!Location}
+ * @return {!LocationDef}
  */
 export function parseUrl(url, opt_nocache) {
   if (!a) {
@@ -87,7 +103,7 @@ export function parseUrl(url, opt_nocache) {
  * the URL gets resolved.
  * @param {!HTMLAnchorElement} a
  * @param {string} url
- * @return {!Location}
+ * @return {!LocationDef}
  */
 function parseUrlWithA(a, url) {
   a.href = url;
@@ -98,7 +114,8 @@ function parseUrlWithA(a, url) {
     a.href = a.href;
   }
 
-  const info = /** @type {!Location} */ ({
+  /** @type {!LocationDef} */
+  const info = {
     href: a.href,
     protocol: a.protocol,
     host: a.host,
@@ -107,7 +124,8 @@ function parseUrlWithA(a, url) {
     pathname: a.pathname,
     search: a.search,
     hash: a.hash,
-  });
+    origin: '', // Set below.
+  };
 
   // Some IE11 specific polyfills.
   // 1) IE11 strips out the leading '/' in the pathname.
@@ -117,8 +135,8 @@ function parseUrlWithA(a, url) {
 
   // 2) For URLs with implicit ports, IE11 parses to default ports while
   // other browsers leave the port field empty.
-  if ((info.protocol == 'http:' && info.port == 80)
-      || (info.protocol == 'https:' && info.port == 443)) {
+  if ((info.protocol == 'http:' && info.port == 80) ||
+      (info.protocol == 'https:' && info.port == 443)) {
     info.port = '';
     info.host = info.hostname;
   }
