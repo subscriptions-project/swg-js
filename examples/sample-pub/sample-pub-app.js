@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// To resolve 'exports', 'Buffers' is not defined no-undef error.
+/*eslint-env node*/
 'use strict';
+
+const {encrypt, toBase64} = require('./utils/crypto');
 
 const app = module.exports = require('express').Router();
 
 app.use('/oauth',
     require('./service/sample-pub-oauth-app'));
 
-
+/** @const {string} */
 const AUTH_URL_TEST = '/examples/sample-sp/api';
+
+/** @const {string} */
 const AUTH_URL_PROD = 'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
+
+
+/** @const {string} */
+const G_PUB_USER = 'G_PUB_USER';
 
 const ARTICLES = [
   {
@@ -297,13 +307,42 @@ app.get('/', (req, res) => {
 /**
  * Signin page.
  */
-app.get('/signin', (req, res) => {
+app.get('/pub-signin', (req, res) => {
   const params = getVerifiedSigninParams(req);
-  res.render('../examples/sample-pub/views/signin', {
-    'redirect_uri': params.redirectUri,
+  res.render('../examples/sample-pub/views/pub-signin', {
+    'redirectUri': params.redirectUri,
   });
 });
 
+/**
+ * Logs-in user on the publisher's domain and redirects to the referrer.
+ * Also sets the authorized user's name in the cookie.
+ */
+app.post('/pub-signin-submit', (req, res) => {
+  const redirectUri = getParam(req, 'redirect_uri');
+  if (!redirectUri) {
+    throw new Error('No redirect URL specified!');
+  }
+  const email = req.body['email'];
+  const password = req.body['password'];
+  if (!email || !password) {
+    throw new Error('Missing email and/or password');
+  }
+  setUserInfoInCookies_(res, email);
+  res.redirect(302, redirectUri);
+});
+
+/**
+ * Sets user email in the cookie.
+ * @param {!HttpRequest} req
+ * @param {string} email
+ * @private
+ */
+function setUserInfoInCookies_(res, email) {
+  res.clearCookie(G_PUB_USER);
+  res.cookie(G_PUB_USER, toBase64(encrypt(email)),
+      {maxAge: /* 60 minutes */1000 * 60 * 60});
+}
 
 /**
  * Checks the validity and return request parameters.
@@ -313,6 +352,7 @@ app.get('/signin', (req, res) => {
 function getVerifiedSigninParams(req) {
   const params = {
     redirectUri: req.query['redirect_uri'] || null,
+    state: req.query['state'] || null,
   };
   if (!params.redirectUri) {
     throw new Error('Missing redirect_uri in request.');
@@ -388,4 +428,13 @@ function getTestParams(req) {
     return isLocalReq(req) ? '' : 'test=1';
   }
   return isLocalReq(req) ? 'test=0' : '';
+}
+
+/**
+ * @param {!HttpRequest} req
+ * @param {string} name
+ * @return {?string}
+ */
+function getParam(req, name) {
+  return req.query[name] || req.body && req.body[name] || null;
 }

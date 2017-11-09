@@ -198,5 +198,5 @@ function renderAbbreviatedViewFooter_() {
  */
 export function getPublisherLoginUrl() {
   // TODO(dparikh, #135): Fetch correct login Url for current publisher.
-  return '/examples/sample-pub/signin';
+  return '/examples/sample-pub/pub-signin';
 }
