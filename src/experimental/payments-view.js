@@ -59,7 +59,7 @@ export class PaymentsView {
   }
 
   /**
-   * @param {function()} callback
+   * @param {function(Object)} callback
    * @return {!PaymentsView}
    */
   onComplete(callback) {

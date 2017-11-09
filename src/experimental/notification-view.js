@@ -55,7 +55,10 @@ export class NotificationView {
   }
 
   /*
-   * Starts the subscriptions flow.
+   * Starts the subscriptions flow and returns a promise that resolves when the
+   * flow is complete.
+   *
+   * @return {!Promise}
    */
   start() {
     this.openView_();
@@ -92,9 +95,9 @@ export class NotificationView {
     this.notificationContainer_.appendChild(linkButton);
 
     let subscriptionUrl = DEFAULT_SUBSCRIPTION_URL;
-    if (this.state_.activeSubscriptionResponse['subscriber'] &&
-        this.state_.activeSubscriptionResponse['subscriber']['url']) {
-      subscriptionUrl = this.state_.activeSubscriptionResponse.subscriber.url;
+    const response = this.state_.activeSubscriptionResponse;
+    if (response['subscriber'] && response['subscriber']['url']) {
+      subscriptionUrl = response['subscriber']['url'];
     }
     linkButton.addEventListener('click', () => {
       this.win_.open(subscriptionUrl, '_blank');

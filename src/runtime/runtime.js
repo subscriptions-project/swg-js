@@ -15,17 +15,19 @@
  */
 
 
-import {SubscriptionsUi} from '../experimental/subscriptions-ui';
 import {assert, log} from '../utils/log';
-import {isArray} from '../utils/types';
 import {AuthorizationFlow} from './authorization-flow';
+import {isArray} from '../utils/types';
 import {SubscriptionMarkup} from './subscription-markup';
 import {SubscriptionState} from './subscription-state';
+import {SubscriptionsUi} from '../experimental/subscriptions-ui';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
 
+
 /** @private {Runtime} */
 let runtimeInstance_;
+
 
 /**
  * Returns runtime for testing if available. Throws if the runtime is not
@@ -40,12 +42,20 @@ export function getRuntime() {
   return runtimeInstance_;
 }
 
+
 /**
  * @interface
  */
 class PublicRuntimeDef {}
 
-/** @typedef {function(Array<!SubscriptionResponse>):!SubscriptionResponse} */
+
+/** @typedef {{id: !string, response: !SubscriptionResponse}} */
+export let SubscriptionPlatformEntry;
+
+
+/**
+ * @typedef {function(Array<!SubscriptionPlatformEntry>):!SubscriptionResponse}
+ */
 export let SubscriptionPlatformSelector;
 
 

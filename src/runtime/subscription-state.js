@@ -28,10 +28,7 @@ export class SubscriptionState {
     /** @type {boolean} */
     this.access_ = false;
 
-    /**
-     * @private {SubscriptionResponse} The response chosen by the
-     * platform/publisher displayed to the user.
-     */
+    /** @private {SubscriptionResponse} */
     this.response_ = {access: false};
 
     /** @private {string} */
@@ -46,14 +43,29 @@ export class SubscriptionState {
     return this.access_;
   }
 
+  /** @param {boolean} access */
+  set accessGranted(access) {
+    this.access_ = this.access_ || access;
+  }
+
   /** @return {!SubscriptionResponse} */
   get activeSubscriptionResponse() {
     return this.response_;
   }
 
+  /** @param {!SubscriptionResponse} response */
+  set activeSubscriptionResponse(response) {
+    this.response_ = response;
+  }
+
   /** @return {!string} */
   get activeServiceId() {
     return this.serviceId_;
+  }
+
+  /** @param {!string} serviceId */
+  set activeServiceId(serviceId) {
+    this.serviceId_ = serviceId;
   }
 
   /**
@@ -62,21 +74,6 @@ export class SubscriptionState {
    */
   get shouldRetry() {
     return this.shouldRetry_;
-  }
-
-  /** @param {boolean} access */
-  set accessGranted(access) {
-    this.access_ = this.access_ || access;
-  }
-
-  /** @param {!SubscriptionResponse} response */
-  set activeSubscriptionResponse(response) {
-    this.response_ = response;
-  }
-
-  /** @param {!string} serviceId */
-  set activeServiceId(serviceId) {
-    this.serviceId_ = serviceId;
   }
 
   /** @param {boolean} retry */

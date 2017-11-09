@@ -78,7 +78,7 @@ export class SubscriptionsFlow {
     /** @private @const {!SubscriptionMarkup} */
     this.markup_ = markup;
 
-    /** @private @const {!SubscriptionResponse} */
+    /** @private @const {!SubscriptionState} */
     this.state_ = state;
 
     /** @private {?Element} */
@@ -125,18 +125,19 @@ export class SubscriptionsFlow {
 
   /*
    * Starts the subscriptions flow.
+   *
+   * @return {!Promise}
    */
   start() {
     // Ensure that the element is not already built by external resource.
-   assertNoPopups(this.win_.document, POPUP_TAG);
-
-   this.offerContainer_ = this.document_.createElement(POPUP_TAG);
+    assertNoPopups(this.win_.document, POPUP_TAG);
 
     // Add close button with action.
     this.addCloseButton_();
 
     this.addGoogleBar_();
 
+    this.offerContainer_ = this.document_.createElement(POPUP_TAG);
     setImportantStyles(this.offerContainer_, {
       'min-height': `${CONTAINER_HEIGHT}px`,
       'display': 'none',
@@ -400,7 +401,11 @@ export class SubscriptionsFlow {
     this.addBottomPaddingToHtml_(height);
   }
 
-  /** @private */
+  /**
+   * @param  {boolean} shouldRetry True if the subscription flow should be
+   *     restarted.
+   * @private
+   */
   close_(shouldRetry) {
     // Remove additional padding added at the document bottom.
     this.document_.documentElement.style.removeProperty('padding-bottom');
@@ -419,7 +424,6 @@ export class SubscriptionsFlow {
         this.orientationChangeListener_);
 
     this.activeView_ = null;
-
     this.state_.shouldRetry = shouldRetry;
     this.complete_();
   }
@@ -513,16 +517,14 @@ export class SubscriptionsFlow {
     });
   }
 
-  /** @private */
+  /**
+   * @param {Object} payload Payload that indicates if the paymnt was successful
+   *     or not.
+   * @private
+   */
   paymentComplete_(payload) {
     // If payload and payload.data are present, the payment was successful.
     this.close_(!!(payload && payload.data));
-  }
-
-  /** @private */
-  paymentError_(reason) {
-    // TODO(#144): Show an error to the user? Use reason to do that.
-    this.close_(false);
   }
 
   /**

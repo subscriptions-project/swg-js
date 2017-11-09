@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import {updateMeteringResponse} from '../experimental/user-metering';
-import {isMeteredUser, isSubscriber} from '../experimental/utils';
 import {EntitledState} from '../runtime/subscription-markup';
-import {parseJson} from '../utils/json';
+import {isMeteredUser, isSubscriber} from '../experimental/utils';
+import {isObject} from '../utils/types';
 import {log} from '../utils/log';
 import {map} from '../utils/object';
+import {parseJson} from '../utils/json';
 import {Timer} from '../utils/timer';
-import {isObject} from '../utils/types';
+import {updateMeteringResponse} from '../experimental/user-metering';
 import {Xhr} from '../utils/xhr';
 
 
@@ -196,8 +196,8 @@ export class AuthorizationFlow {
    * Sorts the subscription responses based on weights specified in paywall
    * config.
    *
-   * @param  {Array<!SubscriptionResponse>} responses
-   * @return {Array<!SubscriptionResponse>}
+   * @param  {Array<!./runtime.SubscriptionPlatformEntry>} responses
+   * @return {Array<!./runtime.SubscriptionPlatformEntry>}
    * @private
    */
   sortResponses_(responses) {

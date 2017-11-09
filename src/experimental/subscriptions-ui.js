@@ -19,8 +19,10 @@ import {NotificationView} from './notification-view';
 import {SubscriptionsFlow} from './subscriptions-flow';
 import {isSubscriber} from './utils';
 
+/**
+ * @fileOverview Manages UI components for subscription runtime.
+ */
 export class SubscriptionsUi {
-
   /**
    * @param {!Window} win The parent window.
    * @param {!SubscriptionMarkup} markup The markup object.
