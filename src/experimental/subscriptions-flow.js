@@ -129,21 +129,7 @@ export class SubscriptionsFlow {
    * @return {!Promise}
    */
   start() {
-    // Ensure that the element is not already built by external resource.
-    assert(!this.document_.querySelector(POPUP_TAG),
-        'Only one instance of the popup tag is allowed!');
-
-    this.offerContainer_ = this.document_.createElement(POPUP_TAG);
-    // Add close button with action.
-    this.addCloseButton_();
-    this.addGoogleBar_();
-    setImportantStyles(this.offerContainer_, {
-      'min-height': `${CONTAINER_HEIGHT}px`,
-      'display': 'none',
-      'opacity': 1,
-    });
-    this.document_.body.appendChild(this.offerContainer_);
-
+    this.addOfferContainer_();
     this.show_();
 
     // Attach the invisible faded background to be used for some views.
@@ -526,25 +512,24 @@ export class SubscriptionsFlow {
   }
 
   /**
-   * Builds and renders the close pop-up dialog button.
-   * TODO(dparikh): Use the setImportantStyles() as discussed.
+   * Builds and renders the  offers container and it's UI elements.
    * @private
    */
-  addCloseButton_() {
+  addOfferContainer_() {
+    // Ensure that the element is not already built by external resource.
+    assert(!this.document_.querySelector(POPUP_TAG),
+        'Only one instance of the popup tag is allowed!');
+
+    this.offerContainer_ = this.document_.createElement(POPUP_TAG);
+
+    // Add UI elements to offerContainer_
     const closeButton = this.document_.createElement('div');
     closeButton.classList.add('swg-close-action');
     closeButton.setAttribute('role', 'button');
     this.offerContainer_.appendChild(closeButton);
-
-
     closeButton.addEventListener('click', () => this.close_(false));
-  }
 
-  /**
-   * Adds the top Google branding multi-color bar.
-   * @private
-   */
-  addGoogleBar_() {
+    // Add Google bar.
     const googleBar = this.document_.createElement('div');
     googleBar.classList.add('swg-google-bar');
     for (let i = 0; i < 4; i++) {
@@ -553,6 +538,13 @@ export class SubscriptionsFlow {
       swgBar.classList.add('swg-bar');
     }
     this.offerContainer_.appendChild(googleBar);
+
+    setImportantStyles(this.offerContainer_, {
+      'min-height': `${CONTAINER_HEIGHT}px`,
+      'display': 'none',
+      'opacity': 1,
+    });
+    this.document_.body.appendChild(this.offerContainer_);
   }
 
 /**
