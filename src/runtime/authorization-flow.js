@@ -20,7 +20,6 @@ import {log} from '../utils/log';
 import {map} from '../utils/object';
 import {parseJson} from '../utils/json';
 import {Timer} from '../utils/timer';
-import {updateMeteringResponse} from '../experimental/user-metering';
 import {Xhr} from '../utils/xhr';
 
 
@@ -91,19 +90,11 @@ export class AuthorizationFlow {
               if (!authResponses) {
                 throw new Error('Auth responses not found.');
               }
-              return platformSelector(this.sortResponses_(authResponses));
-            })
-            .then(json => {
-              // Updating metering info
-              // TODO(avimehta, #21): Remove when server side metering is in
-              // place.
-              json.metering =
-                  updateMeteringResponse(this.win.location.href, json.metering);
-
+              this.state_.activeResponse =
+                  platformSelector(this.sortResponses_(authResponses));
               if (this.state_.isSubscriber() || this.state_.isMeteredUser()) {
                 this.markup_.setEntitled(EntitledState.ENTITLED);
               }
-              this.state_.activeResponse = json;
             }),
         'Authorization could not complete on time');
   }
