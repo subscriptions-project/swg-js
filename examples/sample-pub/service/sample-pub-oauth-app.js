@@ -27,7 +27,7 @@
 const app = module.exports = require('express').Router();
 const cookieParser = require('cookie-parser');
 const jsonwebtoken = require('jsonwebtoken');
-const {encrypt, decrypt, toBase64} = require('../../../src/utils/crypto');
+const {encrypt, decrypt, toBase64} = require('../utils/crypto');
 
 /**
  * The Google client ID and client secret can be any URL-safe string values of

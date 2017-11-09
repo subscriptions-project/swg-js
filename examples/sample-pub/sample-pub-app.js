@@ -17,7 +17,7 @@
 /*eslint-env node*/
 'use strict';
 
-const {encrypt, toBase64} = require('../../src/utils/crypto');
+const {encrypt, toBase64} = require('./utils/crypto');
 
 const app = module.exports = require('express').Router();
 
