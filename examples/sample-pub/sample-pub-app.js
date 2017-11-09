@@ -314,6 +314,10 @@ app.get('/pub-signin', (req, res) => {
   });
 });
 
+/**
+ * Logs-in user on the publisher's domain and redirects to the referrer.
+ * Also sets the authorized user's name in the cookie.
+ */
 app.post('/pub-signin-submit', (req, res) => {
   const redirectUri = getParam(req, 'redirect_uri');
   if (!redirectUri) {
