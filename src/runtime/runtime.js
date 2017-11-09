@@ -17,10 +17,13 @@
 
 import {assert, log} from '../utils/log';
 import {AuthorizationFlow} from './authorization-flow';
+import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
+import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
+import {NotificationView} from '../experimental/notification-view';
 import {SubscriptionMarkup} from './subscription-markup';
 import {SubscriptionState} from './subscription-state';
-import {SubscriptionsUi} from '../experimental/subscriptions-ui';
+import {SubscriptionsFlow} from '../experimental/subscriptions-flow';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
 
@@ -66,6 +69,8 @@ export function installRuntime(win) {
   if (win[RUNTIME_PROP] && !isArray(win[RUNTIME_PROP])) {
     return;
   }
+
+  injectStyleSheet(win.document, `${SWG_POPUP}`);
 
   const runtime = new Runtime(win);
 
@@ -118,16 +123,19 @@ export class Runtime {
     this.auth_ =
         new AuthorizationFlow(this.win, this.markup_, this.subscriptionState_);
 
-    /** @private @const {!SubscriptionsUi} */
-    this.ui_ =
-        new SubscriptionsUi(this.win, this.markup_, this.subscriptionState_);
+    /** @private @const {!NotificationView} */
+    this.notificationView_ =
+        new NotificationView(this.win, this.subscriptionState_);
+
+    /** @private @const {!SubscriptionsFlow} */
+    this.subscriptionsFlow_ =
+        new SubscriptionsFlow(this.win, this.markup_, this.subscriptionState_);
 
     /** @private {?Promise} */
-    this.subscriptionsFlow_ = null;
+    this.subscriptionPromise_ = null;
 
     /** @private {?SubscriptionPlatformSelector} */
     this.platformSelector_ = null;
-    ;
   }
 
   /**
@@ -143,11 +151,11 @@ export class Runtime {
    */
   start() {
     assert(
-        !this.subscriptionsFlow_,
+        !this.subscriptionPromise_,
         'Subscription flow can only be started once.');
     log('Starting subscription flow');
 
-    return this.subscriptionsFlow_ = this.subscriptionLoop_();
+    return this.subscriptionPromise_ = this.subscriptionLoop_();
   }
 
 
@@ -157,8 +165,13 @@ export class Runtime {
    */
   subscriptionLoop_() {
     if (this.subscriptionState_.shouldRetry) {
+      this.subscriptionState_.shouldRetry = false;
       return this.auth_.start(this.platformSelector_)
-          .then(this.ui_.start.bind(this.ui_))
+          .then(() => {
+            return this.subscriptionState_.isSubscriber()
+                ? this.notificationView_.start()
+                : this.subscriptionsFlow_.start();
+          })
           .then(this.subscriptionLoop_.bind(this));
     } else {
       return Promise.resolve();  // null task - base case of recursion

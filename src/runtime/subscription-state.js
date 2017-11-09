@@ -19,43 +19,44 @@
  * data.
  */
 export class SubscriptionState {
-  /**
-   * @param  {!Window} win
-   */
   constructor(win) {
-    this.win = win;
 
-    /** @type {boolean} */
-    this.access_ = false;
+    /** @private @const {!Window} */
+    this.win_ = win;
+
+    /** @private {boolean} */
+    this.accessGranted_ = false;
 
     /** @private {SubscriptionResponse} */
-    this.response_ = {access: false};
+    this.activeResponse_ = {access: false};
 
     /** @private {string} */
     this.serviceId_ = '';
 
-    /** @type {boolean} */
+    /** @private {boolean} */
     this.shouldRetry_ = true;
   }
 
   /** @return {boolean} */
   get accessGranted() {
-    return this.access_;
+    return this.accessGranted_;
   }
 
   /** @param {boolean} access */
   set accessGranted(access) {
-    this.access_ = this.access_ || access;
+    assert(this.accessGranted_ && !access,
+        'Access should generally not be revoked once set.');
+    this.accessGranted_ = access;
   }
 
   /** @return {!SubscriptionResponse} */
-  get activeSubscriptionResponse() {
-    return this.response_;
+  get activeResponse() {
+    return this.activeResponse_;
   }
 
   /** @param {!SubscriptionResponse} response */
-  set activeSubscriptionResponse(response) {
-    this.response_ = response;
+  set activeResponse(response) {
+    this.activeResponse_ = response;
   }
 
   /** @return {!string} */
@@ -79,5 +80,26 @@ export class SubscriptionState {
   /** @param {boolean} retry */
   set shouldRetry(retry) {
     this.shouldRetry_ = retry;
+  }
+
+  /**
+   * Checks if current user is a subscriber.
+   * @return {boolean}
+   */
+  isSubscriber() {
+    // TODO(avimehta, #21): Remove the check for 'entitled' before launch.
+    return this.activeResponse_['entitled'] ||
+        (this.activeResponse_['subscriber'] &&
+        this.activeResponse_['subscriber']['types'] &&
+        this.activeResponse_['subscriber']['types'].length > 0);
+  }
+
+  /**
+   * Checks if current user is metered.
+   * @return {boolean}
+   */
+  isMeteredUser() {
+    return !!(this.activeResponse_['metering'] &&
+          this.activeResponse_['metering']['quotaLeft'] > 0);
   }
 }

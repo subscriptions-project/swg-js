@@ -134,7 +134,7 @@ describes.realWin('authorization flow', {}, env => {
 
     sandbox.stub(authFlow.xhr_, 'fetch')
         .returns(Promise.resolve({json: () => ({})}));
-    return expect(authFlow.start().then(() => state.activeSubscriptionResponse))
+    return expect(authFlow.start().then(() => state.activeResponse))
         .to.eventually.not.be.null;
   });
 
@@ -175,28 +175,28 @@ describes.realWin('authorization flow', {}, env => {
     it('based on weights (1/3)', () => {
       addConfig(getConfigWithWeights(0, 1, 2));
       return expect(authFlow.start()
-          .then(() => state.activeSubscriptionResponse))
+          .then(() => state.activeResponse))
           .to.eventually.have.property('data', 2);
     });
 
     it('based on weights (2/3)', () => {
       addConfig(getConfigWithWeights(2, 1, 0));
       return expect(authFlow.start()
-          .then(() => state.activeSubscriptionResponse))
+          .then(() => state.activeResponse))
           .to.eventually.have.property('data', 0);
     });
 
     it('based on weights (3/3)', () => {
       addConfig(getConfigWithWeights(0, 2, 1));
       return expect(authFlow.start()
-          .then(() => state.activeSubscriptionResponse))
+          .then(() => state.activeResponse))
           .to.eventually.have.property('data', 1);
     });
 
     it('and uses callback for platform selection', () => {
       addConfig(getConfigWithWeights(0, 1, 2));
       return expect(authFlow.start((responses => responses[1].response))
-          .then(() => state.activeSubscriptionResponse))
+          .then(() => state.activeResponse))
           .to.eventually.have.property('data', 1);
     });
   });

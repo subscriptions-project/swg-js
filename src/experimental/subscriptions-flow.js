@@ -15,8 +15,8 @@
  */
 
 
-import {assertNoPopups} from './utils';
 import {AbbreviatedView} from './abbreviated-view';
+import {assert} from '../utils/log';
 import {debounce} from '../utils/rate-limit';
 import {LoadingView} from './loading-view';
 import {LoginWithView} from './login-with-view';
@@ -65,7 +65,7 @@ export class SubscriptionsFlow {
   /**
    * @param {!Window} win The parent window.
    * @param {!SubscriptionMarkup} markup The markup object.
-   * @param {!SubscriptionState} response The subscriptions object.
+   * @param {!SubscriptionState} state The subscriptions state.
    */
   constructor(win, markup, state) {
 
@@ -130,14 +130,13 @@ export class SubscriptionsFlow {
    */
   start() {
     // Ensure that the element is not already built by external resource.
-    assertNoPopups(this.win_.document, POPUP_TAG);
-
-    // Add close button with action.
-    this.addCloseButton_();
-
-    this.addGoogleBar_();
+    assert(!this.document_.querySelector(POPUP_TAG),
+        'Only one instance of the popup tag is allowed!');
 
     this.offerContainer_ = this.document_.createElement(POPUP_TAG);
+    // Add close button with action.
+    this.addCloseButton_();
+    this.addGoogleBar_();
     setImportantStyles(this.offerContainer_, {
       'min-height': `${CONTAINER_HEIGHT}px`,
       'display': 'none',
@@ -157,12 +156,12 @@ export class SubscriptionsFlow {
         this.win_,
         this,
         this.offerContainer_,
-        this.state_.activeSubscriptionResponse)
+        this.state_.activeResponse)
         .onAlreadySubscribedClicked(this.activateLoginWith_.bind(this))
         .onSubscribeClicked(this.activateOffers_.bind(this)));
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       this.complete_ = resolve;
-    });;
+    });
   }
 
   /** @private */
@@ -444,7 +443,7 @@ export class SubscriptionsFlow {
     this.openView_(new OffersView(this.win_,
         this,
         this.offerContainer_,
-        this.state_.activeSubscriptionResponse)
+        this.state_.activeResponse)
       .onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
@@ -469,7 +468,7 @@ export class SubscriptionsFlow {
    * @private
    */
   activatePay_(selectedOfferIndex) {
-    const offer = this.state_.activeSubscriptionResponse['offer'][selectedOfferIndex];
+    const offer = this.state_.activeResponse['offer'][selectedOfferIndex];
     // First, try to pay via PaymentRequest.
     const prFlow =
         offer['paymentRequestJson'] ?
@@ -518,8 +517,7 @@ export class SubscriptionsFlow {
   }
 
   /**
-   * @param {Object} payload Payload that indicates if the paymnt was successful
-   *     or not.
+   * @param {Object} payload indicates if the payment was successful or not.
    * @private
    */
   paymentComplete_(payload) {

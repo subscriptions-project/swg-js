@@ -15,7 +15,6 @@
  */
 
 import {EntitledState} from '../runtime/subscription-markup';
-import {isMeteredUser, isSubscriber} from '../experimental/utils';
 import {isObject} from '../utils/types';
 import {log} from '../utils/log';
 import {map} from '../utils/object';
@@ -101,10 +100,10 @@ export class AuthorizationFlow {
               json.metering =
                   updateMeteringResponse(this.win.location.href, json.metering);
 
-              if (isSubscriber(json) || isMeteredUser(json)) {
+              if (this.state_.isSubscriber() || this.state_.isMeteredUser()) {
                 this.markup_.setEntitled(EntitledState.ENTITLED);
               }
-              this.state_.activeSubscriptionResponse = json;
+              this.state_.activeResponse = json;
             }),
         'Authorization could not complete on time');
   }
@@ -167,9 +166,9 @@ export class AuthorizationFlow {
     for (let i = 0; i < services.length; i++) {
       const service = services[i];
 
-      if (this.serviceWeights_[service['id']] === undefined) {
+      if (this.serviceWeights_[service['id']] == undefined) {
         this.serviceWeights_[service['id']] =
-            service['weight'] === undefined ? 1 : service['weight'];
+            service['weight'] == undefined ? 1 : service['weight'];
       }
 
       const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
@@ -185,8 +184,8 @@ export class AuthorizationFlow {
       authPromises.push(this.xhr_.fetch(url, init)
           .then(response => response.json())
           .then(json => ({
-            id: service['id'],
-            response: json,
+            'id': service['id'],
+            'response': json,
           })));
     }
     return Promise.all(authPromises);

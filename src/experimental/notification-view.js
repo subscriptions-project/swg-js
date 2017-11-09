@@ -95,7 +95,7 @@ export class NotificationView {
     this.notificationContainer_.appendChild(linkButton);
 
     let subscriptionUrl = DEFAULT_SUBSCRIPTION_URL;
-    const response = this.state_.activeSubscriptionResponse;
+    const response = this.state_.activeResponse;
     if (response['subscriber'] && response['subscriber']['url']) {
       subscriptionUrl = response['subscriber']['url'];
     }
