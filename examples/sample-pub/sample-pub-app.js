@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// To resolve 'exports', 'Buffers' is not defined no-undef error.
+/*eslint-env node*/
+'use strict';
 
-const crypto = require('../../src/utils/crypto');
+const {encrypt, toBase64} = require('../../src/utils/crypto');
 
 const app = module.exports = require('express').Router();
 
@@ -333,7 +336,7 @@ app.post('/pub-signin-submit', (req, res) => {
  */
 function setUserInfoInCookies_(res, email) {
   res.clearCookie(G_PUB_USER);
-  res.cookie(G_PUB_USER, crypto.toBase64(crypto.encrypt(email)),
+  res.cookie(G_PUB_USER, toBase64(encrypt(email)),
       {maxAge: /* 60 minutes */1000 * 60 * 60});
 }
 

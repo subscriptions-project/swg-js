@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- // To resolve 'exports', 'Buffers' is not defined no-undef error.
+// To resolve 'exports', 'Buffers' is not defined no-undef error.
 /*eslint-env node*/
 
 /**

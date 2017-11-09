@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// To resolve 'exports', 'Buffers' is not defined no-undef error.
+/*eslint-env node*/
 'use strict';
+
 
 /**
  * @fileoverview
@@ -24,7 +27,7 @@
 const app = module.exports = require('express').Router();
 const cookieParser = require('cookie-parser');
 const jsonwebtoken = require('jsonwebtoken');
-const crypto = require('../../../src/utils/crypto');
+const {encrypt, decrypt, toBase64} = require('../../../src/utils/crypto');
 
 /**
  * The Google client ID and client secret can be any URL-safe string values of
@@ -92,7 +95,7 @@ app.post('/auth-submit', (req, res) => {
     const authorizationCode =
         generateAuthorizationCode(params, email, password);
     const authorizationCodeStr =
-        crypto.toBase64(crypto.encrypt(authorizationCode));
+        toBase64(encrypt(authorizationCode));
     const redirectUrl =
         params.redirectUri +
         `?code=${encodeURIComponent(authorizationCodeStr)}` +
@@ -105,7 +108,7 @@ app.post('/auth-submit', (req, res) => {
     // either.
     const refreshToken = generateRefreshToken(params.scope, {email, password});
     const accessToken = generateAccessToken(refreshToken);
-    const accessTokenStr = crypto.toBase64(crypto.encrypt(accessToken));
+    const accessTokenStr = toBase64(encrypt(accessToken));
     const redirectUrl =
         params.redirectUri +
         '#token_type=bearer' +
@@ -146,7 +149,7 @@ app.post('/token', (req, res) => {
         throw new Error('Missing authorization code');
       }
       const authorizationCode =
-          crypto.decrypt(crypto.fromBase64(authorizationCodeStr));
+          decrypt(fromBase64(authorizationCodeStr));
       if (authorizationCode.what != 'authorizationCode') {
         throw new Error('Invalid authorization code: ' +
             authorizationCode.what);
@@ -157,8 +160,8 @@ app.post('/token', (req, res) => {
       const accessToken = generateAccessToken(refreshToken);
       response = JSON.stringify({
         'token_type': 'bearer',
-        'refresh_token': crypto.toBase64(crypto.encrypt(refreshToken)),
-        'access_token': crypto.toBase64(crypto.encrypt(accessToken)),
+        'refresh_token': toBase64(encrypt(refreshToken)),
+        'access_token': toBase64(encrypt(accessToken)),
         'expires_in': 300,  // 5 min in seconds.
       });
     } else if (grantType == 'refresh_token') {
@@ -166,14 +169,14 @@ app.post('/token', (req, res) => {
       if (!refreshTokenStr) {
         throw new Error('Missing refresh_token');
       }
-      const refreshToken = crypto.decrypt(crypto.fromBase64(refreshTokenStr));
+      const refreshToken = decrypt(fromBase64(refreshTokenStr));
       if (refreshToken.what != 'refreshToken') {
         throw new Error('Invalid refresh_token: ' + refreshToken.what);
       }
       const accessToken = generateAccessToken(refreshToken);
       response = JSON.stringify({
         'token_type': 'bearer',
-        'access_token': crypto.toBase64(crypto.encrypt(accessToken)),
+        'access_token': toBase64(encrypt(accessToken)),
         'expires_in': 300,  // 5 min in seconds.
       });
     } else if (grantType == 'urn:ietf:params:oauth:grant-type:jwt-bearer') {
@@ -204,8 +207,8 @@ app.post('/token', (req, res) => {
       const accessToken = generateAccessToken(refreshToken);
       response = JSON.stringify({
         'token_type': 'bearer',
-        'refresh_token': crypto.toBase64(crypto.encrypt(refreshToken)),
-        'access_token': crypto.toBase64(crypto.encrypt(accessToken)),
+        'refresh_token': toBase64(encrypt(refreshToken)),
+        'access_token': toBase64(encrypt(accessToken)),
         'expires_in': 300,  // 5 min in seconds.
       });
     } else {
@@ -242,7 +245,7 @@ app.all('/authorized', (req, res) => {
   }
   const accessTokenStr =
       authorizationHeader.substring('BEARER'.length + 1).trim();
-  const accessToken = crypto.decrypt(crypto.fromBase64(accessTokenStr));
+  const accessToken = decrypt(fromBase64(accessTokenStr));
   if (accessToken.what != 'accessToken') {
     throw new Error('Invalid access token: ' + accessToken.what);
   }
