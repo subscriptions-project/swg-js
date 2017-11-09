@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// To resolve 'exports', 'Buffers' is not defined no-undef error.
+/*eslint-env node*/
 'use strict';
+
 
 /**
  * @fileoverview
@@ -22,17 +25,24 @@
  */
 
 const app = module.exports = require('express').Router();
+const cookieParser = require('cookie-parser');
 const jsonwebtoken = require('jsonwebtoken');
+const {encrypt, decrypt, toBase64} = require('../utils/crypto');
 
 /**
  * The Google client ID and client secret can be any URL-safe string values of
  * your choice. You must ensure that the client secret is visible to only Google
  * and your service.
  */
+/** @const {string} */
 const PROJECT_ID = 'scenic-2017-gdi';
-const CLIENT_ID = 'scenic-2017.appspot.com';
-const GSI_CLIENT_ID = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com';
 
+/** @const {string} */
+const CLIENT_ID = 'scenic-2017.appspot.com';
+
+/** @const {string} */
+const GSI_CLIENT_ID = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4' +
+    '.apps.googleusercontent.com';
 
 /**
  * Sign-in with Google test.
@@ -84,7 +94,8 @@ app.post('/auth-submit', (req, res) => {
     // See https://developers.google.com/actions/identity/oauth2-code-flow
     const authorizationCode =
         generateAuthorizationCode(params, email, password);
-    const authorizationCodeStr = toBase64(encrypt(authorizationCode));
+    const authorizationCodeStr =
+        toBase64(encrypt(authorizationCode));
     const redirectUrl =
         params.redirectUri +
         `?code=${encodeURIComponent(authorizationCodeStr)}` +
@@ -137,7 +148,8 @@ app.post('/token', (req, res) => {
       if (!authorizationCodeStr) {
         throw new Error('Missing authorization code');
       }
-      const authorizationCode = decrypt(fromBase64(authorizationCodeStr));
+      const authorizationCode =
+          decrypt(fromBase64(authorizationCodeStr));
       if (authorizationCode.what != 'authorizationCode') {
         throw new Error('Invalid authorization code: ' +
             authorizationCode.what);
@@ -332,48 +344,4 @@ function generateAccessToken(refreshToken) {
     scope: refreshToken.scope,
     data: refreshToken.data,
   };
-}
-
-
-/**
- * @param {!Object<string, *>} object
- * @return {string}
- */
-function encrypt(object) {
-  return 'encrypted(' + JSON.stringify(object) + ')';
-}
-
-
-/**
- * @param {string} s
- * @return {!Object<string, *>}
- */
-function decrypt(s) {
-  if (s.indexOf('encrypted(') != 0) {
-    throw new Error('Cannot decrypt "' + s + '"');
-  }
-  const decrypted = s.substring('encrypted('.length, s.length - 1);
-  try {
-    return JSON.parse(decrypted);
-  } catch (e) {
-    throw new Error('Cannot parse decrypted blob: "' + decrypted + '": ' + e);
-  }
-}
-
-
-/**
- * @param {string} s
- * @return {string}
- */
-function toBase64(s) {
-  return Buffer.from(s).toString('base64');
-}
-
-
-/**
- * @param {string} s
- * @return {string}
- */
-function fromBase64(s) {
-  return Buffer.from(s, 'base64').toString();
 }

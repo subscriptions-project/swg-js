@@ -28,7 +28,6 @@ import {CSS as OFFERS_CSS} from
 const GOOGLE_FONTS_URL =
     'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
 
-
 /**
  * Login with View. User could be a subscriber through "Subscribe with Google"
  * service or with the publisher. Render options to login through either with
@@ -213,10 +212,13 @@ export class LoginWithView {
     });
 
     swgButton.addEventListener('click', () => {
-      const redirectUri = this.win_.encodeURIComponent(this.win_.location.href);
+      // Remove trailing ? character, if exists.
+      const redirectUri = this.win_
+          .encodeURIComponent(this.win_.location.href.replace(/\?$/, ''));
       const loginUrl = getPublisherLoginUrl();
       const loginUrlWithRedirectLink =
           `${loginUrl}?redirect_uri=${redirectUri}`;
+
       this.win_.location.assign(loginUrlWithRedirectLink);
     });
     signInButton.appendChild(signInLabel);
