@@ -28,12 +28,6 @@ import {CSS as OFFERS_CSS} from
 const GOOGLE_FONTS_URL =
     'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
 
-/** @const {string} */
-const CLIENT_ID = 'scenic-2017.appspot.com';
-
-/** @const {string} */
-const RESPONSE_TYPE = 'code';
-
 /**
  * Login with View. User could be a subscriber through "Subscribe with Google"
  * service or with the publisher. Render options to login through either with

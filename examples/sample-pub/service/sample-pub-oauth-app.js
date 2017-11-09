@@ -24,6 +24,7 @@
 const app = module.exports = require('express').Router();
 const cookieParser = require('cookie-parser');
 const jsonwebtoken = require('jsonwebtoken');
+const crypto = require('../../../src/utils/crypto');
 
 /**
  * The Google client ID and client secret can be any URL-safe string values of
@@ -39,9 +40,6 @@ const CLIENT_ID = 'scenic-2017.appspot.com';
 /** @const {string} */
 const GSI_CLIENT_ID = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4' +
     '.apps.googleusercontent.com';
-
-/** @const {string} */
-const G_PUB_USER = 'G_PUB_USER';
 
 /**
  * Sign-in with Google test.
@@ -76,31 +74,6 @@ app.get('/auth', (req, res) => {
   });
 });
 
-app.post('/pub-signin-submit', (req, res) => {
-  const redirectUri = getParam(req, 'redirect_uri');
-  if (!redirectUri) {
-    throw new Error('No redirect URL specified!');
-  }
-  const email = req.body['email'];
-  const password = req.body['password'];
-  if (!email || !password) {
-    throw new Error('Missing email and/or password');
-  }
-  setUserInfoInCookies_(res, email);
-  res.redirect(302, redirectUri);
-});
-
-/**
- * Sets user email in the cookie.
- * @param {!HttpRequest} req
- * @param {string} email
- * @private
- */
-function setUserInfoInCookies_(res, email) {
-  res.clearCookie(G_PUB_USER);
-  res.cookie(G_PUB_USER, toBase64(encrypt(email)),
-      {maxAge: /* 60 minutes */1000 * 60 * 60});
-}
 
 /**
  * OAuth authorization endpoint.
@@ -118,7 +91,8 @@ app.post('/auth-submit', (req, res) => {
     // See https://developers.google.com/actions/identity/oauth2-code-flow
     const authorizationCode =
         generateAuthorizationCode(params, email, password);
-    const authorizationCodeStr = toBase64(encrypt(authorizationCode));
+    const authorizationCodeStr =
+        crypto.toBase64(crypto.encrypt(authorizationCode));
     const redirectUrl =
         params.redirectUri +
         `?code=${encodeURIComponent(authorizationCodeStr)}` +
@@ -131,7 +105,7 @@ app.post('/auth-submit', (req, res) => {
     // either.
     const refreshToken = generateRefreshToken(params.scope, {email, password});
     const accessToken = generateAccessToken(refreshToken);
-    const accessTokenStr = toBase64(encrypt(accessToken));
+    const accessTokenStr = crypto.toBase64(crypto.encrypt(accessToken));
     const redirectUrl =
         params.redirectUri +
         '#token_type=bearer' +
@@ -171,7 +145,8 @@ app.post('/token', (req, res) => {
       if (!authorizationCodeStr) {
         throw new Error('Missing authorization code');
       }
-      const authorizationCode = decrypt(fromBase64(authorizationCodeStr));
+      const authorizationCode =
+          crypto.decrypt(crypto.fromBase64(authorizationCodeStr));
       if (authorizationCode.what != 'authorizationCode') {
         throw new Error('Invalid authorization code: ' +
             authorizationCode.what);
@@ -182,8 +157,8 @@ app.post('/token', (req, res) => {
       const accessToken = generateAccessToken(refreshToken);
       response = JSON.stringify({
         'token_type': 'bearer',
-        'refresh_token': toBase64(encrypt(refreshToken)),
-        'access_token': toBase64(encrypt(accessToken)),
+        'refresh_token': crypto.toBase64(crypto.encrypt(refreshToken)),
+        'access_token': crypto.toBase64(crypto.encrypt(accessToken)),
         'expires_in': 300,  // 5 min in seconds.
       });
     } else if (grantType == 'refresh_token') {
@@ -191,14 +166,14 @@ app.post('/token', (req, res) => {
       if (!refreshTokenStr) {
         throw new Error('Missing refresh_token');
       }
-      const refreshToken = decrypt(fromBase64(refreshTokenStr));
+      const refreshToken = crypto.decrypt(crypto.fromBase64(refreshTokenStr));
       if (refreshToken.what != 'refreshToken') {
         throw new Error('Invalid refresh_token: ' + refreshToken.what);
       }
       const accessToken = generateAccessToken(refreshToken);
       response = JSON.stringify({
         'token_type': 'bearer',
-        'access_token': toBase64(encrypt(accessToken)),
+        'access_token': crypto.toBase64(crypto.encrypt(accessToken)),
         'expires_in': 300,  // 5 min in seconds.
       });
     } else if (grantType == 'urn:ietf:params:oauth:grant-type:jwt-bearer') {
@@ -229,8 +204,8 @@ app.post('/token', (req, res) => {
       const accessToken = generateAccessToken(refreshToken);
       response = JSON.stringify({
         'token_type': 'bearer',
-        'refresh_token': toBase64(encrypt(refreshToken)),
-        'access_token': toBase64(encrypt(accessToken)),
+        'refresh_token': crypto.toBase64(crypto.encrypt(refreshToken)),
+        'access_token': crypto.toBase64(crypto.encrypt(accessToken)),
         'expires_in': 300,  // 5 min in seconds.
       });
     } else {
@@ -267,7 +242,7 @@ app.all('/authorized', (req, res) => {
   }
   const accessTokenStr =
       authorizationHeader.substring('BEARER'.length + 1).trim();
-  const accessToken = decrypt(fromBase64(accessTokenStr));
+  const accessToken = crypto.decrypt(crypto.fromBase64(accessTokenStr));
   if (accessToken.what != 'accessToken') {
     throw new Error('Invalid access token: ' + accessToken.what);
   }
@@ -366,48 +341,4 @@ function generateAccessToken(refreshToken) {
     scope: refreshToken.scope,
     data: refreshToken.data,
   };
-}
-
-
-/**
- * @param {!Object<string, *>} object
- * @return {string}
- */
-function encrypt(object) {
-  return 'encrypted(' + JSON.stringify(object) + ')';
-}
-
-
-/**
- * @param {string} s
- * @return {!Object<string, *>}
- */
-function decrypt(s) {
-  if (s.indexOf('encrypted(') != 0) {
-    throw new Error('Cannot decrypt "' + s + '"');
-  }
-  const decrypted = s.substring('encrypted('.length, s.length - 1);
-  try {
-    return JSON.parse(decrypted);
-  } catch (e) {
-    throw new Error('Cannot parse decrypted blob: "' + decrypted + '": ' + e);
-  }
-}
-
-
-/**
- * @param {string} s
- * @return {string}
- */
-function toBase64(s) {
-  return Buffer.from(s).toString('base64');
-}
-
-
-/**
- * @param {string} s
- * @return {string}
- */
-function fromBase64(s) {
-  return Buffer.from(s, 'base64').toString();
 }

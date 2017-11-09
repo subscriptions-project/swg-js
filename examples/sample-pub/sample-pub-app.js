@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+
+const crypto = require('../../src/utils/crypto');
 
 const app = module.exports = require('express').Router();
 
 app.use('/oauth',
     require('./service/sample-pub-oauth-app'));
 
-
+/** @const {string} */
 const AUTH_URL_TEST = '/examples/sample-sp/api';
+
+/** @const {string} */
 const AUTH_URL_PROD = 'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
-const CLIENT_ID = 'scenic-2017.appspot.com';
+
+
+/** @const {string} */
+const G_PUB_USER = 'G_PUB_USER';
 
 const ARTICLES = [
   {
@@ -305,6 +311,31 @@ app.get('/pub-signin', (req, res) => {
   });
 });
 
+app.post('/pub-signin-submit', (req, res) => {
+  const redirectUri = getParam(req, 'redirect_uri');
+  if (!redirectUri) {
+    throw new Error('No redirect URL specified!');
+  }
+  const email = req.body['email'];
+  const password = req.body['password'];
+  if (!email || !password) {
+    throw new Error('Missing email and/or password');
+  }
+  setUserInfoInCookies_(res, email);
+  res.redirect(302, redirectUri);
+});
+
+/**
+ * Sets user email in the cookie.
+ * @param {!HttpRequest} req
+ * @param {string} email
+ * @private
+ */
+function setUserInfoInCookies_(res, email) {
+  res.clearCookie(G_PUB_USER);
+  res.cookie(G_PUB_USER, crypto.toBase64(crypto.encrypt(email)),
+      {maxAge: /* 60 minutes */1000 * 60 * 60});
+}
 
 /**
  * Checks the validity and return request parameters.
@@ -390,4 +421,13 @@ function getTestParams(req) {
     return isLocalReq(req) ? '' : 'test=1';
   }
   return isLocalReq(req) ? 'test=0' : '';
+}
+
+/**
+ * @param {!HttpRequest} req
+ * @param {string} name
+ * @return {?string}
+ */
+function getParam(req, name) {
+  return req.query[name] || req.body && req.body[name] || null;
 }
