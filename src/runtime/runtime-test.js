@@ -19,13 +19,14 @@ import {installRuntime, getRuntime, Runtime} from './runtime';
 describes.realWin('installRuntime', {}, env => {
   let win;
   let runtime;
-  let authStartStub;
 
   beforeEach(() => {
     win = env.win;
     runtime = new Runtime(win);
-    authStartStub = sandbox.stub(runtime.auth_, 'start');
-    authStartStub.returns(Promise.resolve());
+    sandbox.stub(runtime.auth_, 'start', () => {
+      runtime.subscriptionState_.shouldRetry = false;
+      return Promise.resolve();
+    });
   });
 
   function dep(callback) {
@@ -128,7 +129,7 @@ describes.realWin('installRuntime', {}, env => {
 
   it('starts automatically if access-control is not found', function() {
     runtime.startSubscriptionsFlowIfNeeded();
-    expect(runtime.subscriptionsFlow_).to.not.be.null;
+    expect(runtime.subscriptionPromise_).to.not.be.null;
   });
 
   it('doesn\'t start automatically if access-control is found', function() {
@@ -136,11 +137,11 @@ describes.realWin('installRuntime', {}, env => {
     meta.setAttribute('content', 'manual');
     meta.setAttribute('name', 'access-control');
     win.document.head.appendChild(meta);
-    expect(runtime.subscriptionsFlow_).to.be.null;
+    expect(runtime.subscriptionPromise_).to.be.null;
     runtime.startSubscriptionsFlowIfNeeded();
-    expect(runtime.subscriptionsFlow_).to.be.null;
+    expect(runtime.subscriptionPromise_).to.be.null;
     runtime.start();
-    expect(runtime.subscriptionsFlow_).to.not.be.null;
+    expect(runtime.subscriptionPromise_).to.not.be.null;
   });
 
   it('throws when start() is called twice', function() {
