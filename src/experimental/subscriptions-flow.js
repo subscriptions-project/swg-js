@@ -15,16 +15,11 @@
  */
 
 
-import {
-  assertNoPopups,
-  isSubscriber,
-} from './utils';
 import {AbbreviatedView} from './abbreviated-view';
-import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
+import {assert} from '../utils/log';
 import {debounce} from '../utils/rate-limit';
 import {LoadingView} from './loading-view';
 import {LoginWithView} from './login-with-view';
-import {NotificationView} from './notification-view';
 import {OffersView} from './offers-view';
 import {PaymentsView} from './payments-view';
 import {setImportantStyles} from '../utils/style';
@@ -61,48 +56,6 @@ const MAX_POPUP_WIDTH = 480;
  */
 const MAX_POPUP_HEIGHT = 640;
 
-/**
- * Builds offers container, including headers and footer. It builds an
- * element <swg-payflow> at the end of the <body> of the containing document.
- * The offer container within the element is built from the offers API response.
- * The offers API response could be different base on:
- *     1. Subscriber   : Notify user with a toast message
- *     2. Metered      : Show available quota and offers received from the API
- *     3. Non-metered  : Show available quota and offers received from the API
- *     4. Subscriber   : Payment broken. Notify user
- *     5. Not signed-in: Notify user to sign-in and show offers
- * @param {!Window} win The main containing window object.
- * @param {!SubscriptionMarkup} markup The markup object.
- * @param {!SubscriptionResponse} response
- */
-export function buildSubscriptionsUi(win, markup, response) {
-
-  // Ensure that the element is not already built by external resource.
-  assertNoPopups(win.document, POPUP_TAG);
-
-  // Gets subscription details and build the pop-up.
-
-  // TODO(dparikh): See if multiple CSS be built and used based on the
-  // current view. (Currently, injects one CSS for everything).
-  injectCssToWindow_();
-
-  if (isSubscriber(response)) {
-    new NotificationView(win, response).start();
-  } else {
-    new SubscriptionsFlow(win, markup, response).start();
-  }
-
-  /**
-   * Injects common CSS styles to the container window's <head> element.
-   * @private
-   */
-  function injectCssToWindow_() {
-    const style = win.document.createElement('style');
-    style.textContent = `${SWG_POPUP}`;
-    win.document.head.appendChild(style);
-  }
-}
-
 
 /**
  * The class for SwG offers flow.
@@ -112,9 +65,9 @@ export class SubscriptionsFlow {
   /**
    * @param {!Window} win The parent window.
    * @param {!SubscriptionMarkup} markup The markup object.
-   * @param {!SubscriptionResponse} response The subscriptions object.
+   * @param {!SubscriptionState} state The subscriptions state.
    */
-  constructor(win, markup, response) {
+  constructor(win, markup, state) {
 
     /** @private @const {!Window} */
     this.win_ = win;
@@ -125,8 +78,8 @@ export class SubscriptionsFlow {
     /** @private @const {!SubscriptionMarkup} */
     this.markup_ = markup;
 
-    /** @private @const {!SubscriptionResponse} */
-    this.subscription_ = response;
+    /** @private @const {!SubscriptionState} */
+    this.state_ = state;
 
     /** @private {?Element} */
     this.offerContainer_ = null;
@@ -166,26 +119,17 @@ export class SubscriptionsFlow {
      */
     this.win_.addEventListener('orientationchange',
         this.orientationChangeListener_);
+
+    this.complete_ = null;
   }
 
   /*
    * Starts the subscriptions flow.
+   *
+   * @return {!Promise}
    */
   start() {
-    this.offerContainer_ = this.document_.createElement(POPUP_TAG);
-
-    // Add close button with action.
-    this.addCloseButton_();
-
-    this.addGoogleBar_();
-
-    setImportantStyles(this.offerContainer_, {
-      'min-height': `${CONTAINER_HEIGHT}px`,
-      'display': 'none',
-      'opacity': 1,
-    });
-    this.document_.body.appendChild(this.offerContainer_);
-
+    this.addOfferContainer_();
     this.show_();
 
     // Attach the invisible faded background to be used for some views.
@@ -198,9 +142,12 @@ export class SubscriptionsFlow {
         this.win_,
         this,
         this.offerContainer_,
-        this.subscription_)
+        this.state_.activeResponse)
         .onAlreadySubscribedClicked(this.activateLoginWith_.bind(this))
         .onSubscribeClicked(this.activateOffers_.bind(this)));
+    return new Promise(resolve => {
+      this.complete_ = resolve;
+    });
   }
 
   /** @private */
@@ -439,8 +386,12 @@ export class SubscriptionsFlow {
     this.addBottomPaddingToHtml_(height);
   }
 
-  /** @private */
-  close_() {
+  /**
+   * @param  {boolean} shouldRetry True if the subscription flow should be
+   *     restarted.
+   * @private
+   */
+  close_(shouldRetry) {
     // Remove additional padding added at the document bottom.
     this.document_.documentElement.style.removeProperty('padding-bottom');
 
@@ -456,6 +407,10 @@ export class SubscriptionsFlow {
     // Remove event listener for orientation change.
     this.win_.removeEventListener('orientationchange',
         this.orientationChangeListener_);
+
+    this.activeView_ = null;
+    this.state_.shouldRetry = shouldRetry;
+    this.complete_();
   }
 
   /** @private */
@@ -472,9 +427,10 @@ export class SubscriptionsFlow {
    */
   activateOffers_() {
     this.openView_(new OffersView(this.win_,
-      this,
-      this.offerContainer_,
-      this.subscription_).onSubscribeClicked(this.activatePay_.bind(this)));
+        this,
+        this.offerContainer_,
+        this.state_.activeResponse)
+      .onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
   /**
@@ -498,7 +454,7 @@ export class SubscriptionsFlow {
    * @private
    */
   activatePay_(selectedOfferIndex) {
-    const offer = this.subscription_['offer'][selectedOfferIndex];
+    const offer = this.state_.activeResponse['offer'][selectedOfferIndex];
     // First, try to pay via PaymentRequest.
     const prFlow =
         offer['paymentRequestJson'] ?
@@ -546,35 +502,34 @@ export class SubscriptionsFlow {
     });
   }
 
-  /** @private */
-  paymentComplete_() {
-    this.close_();
-    // TODO(avimehta, #21): Restart authorization again, instead of redirect
-    // here. (btw, it's fine if authorization restart does redirect itself when
-    // needed)
-    this.win_.location.reload(true);
+  /**
+   * @param {Object} payload indicates if the payment was successful or not.
+   * @private
+   */
+  paymentComplete_(payload) {
+    // If payload and payload.data are present, the payment was successful.
+    this.close_(!!(payload && payload.data));
   }
 
   /**
-   * Builds and renders the close pop-up dialog button.
-   * TODO(dparikh): Use the setImportantStyles() as discussed.
+   * Builds and renders the  offers container and it's UI elements.
    * @private
    */
-  addCloseButton_() {
+  addOfferContainer_() {
+    // Ensure that the element is not already built by external resource.
+    assert(!this.document_.querySelector(POPUP_TAG),
+        'Only one instance of the popup tag is allowed!');
+
+    this.offerContainer_ = this.document_.createElement(POPUP_TAG);
+
+    // Add UI elements to offerContainer_
     const closeButton = this.document_.createElement('div');
     closeButton.classList.add('swg-close-action');
     closeButton.setAttribute('role', 'button');
     this.offerContainer_.appendChild(closeButton);
+    closeButton.addEventListener('click', () => this.close_(false));
 
-
-    closeButton.addEventListener('click', () => this.close_());
-  }
-
-  /**
-   * Adds the top Google branding multi-color bar.
-   * @private
-   */
-  addGoogleBar_() {
+    // Add Google bar.
     const googleBar = this.document_.createElement('div');
     googleBar.classList.add('swg-google-bar');
     for (let i = 0; i < 4; i++) {
@@ -583,6 +538,13 @@ export class SubscriptionsFlow {
       swgBar.classList.add('swg-bar');
     }
     this.offerContainer_.appendChild(googleBar);
+
+    setImportantStyles(this.offerContainer_, {
+      'min-height': `${CONTAINER_HEIGHT}px`,
+      'display': 'none',
+      'opacity': 1,
+    });
+    this.document_.body.appendChild(this.offerContainer_);
   }
 
 /**

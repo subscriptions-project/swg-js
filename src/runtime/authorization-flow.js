@@ -15,7 +15,6 @@
  */
 
 import {EntitledState} from '../runtime/subscription-markup';
-import {isMeteredUser, isSubscriber} from '../experimental/utils';
 import {isObject} from '../utils/types';
 import {log} from '../utils/log';
 import {map} from '../utils/object';
@@ -25,21 +24,20 @@ import {updateMeteringResponse} from '../experimental/user-metering';
 import {Xhr} from '../utils/xhr';
 
 
-const AUTH_TIMEOUT = 10000; // 10 seconds.
+const AUTH_TIMEOUT = 10000;  // 10 seconds.
 
 
 /**
  * Performs authorization to check if a user has access to a given article.
  */
 export class AuthorizationFlow {
-
   /**
    * Creates a new AuthorizationFlow object.
    * @param  {!Window} win
    * @param  {!./subscription-markup.SubscriptionMarkup} markup
+   * @param  {!./subscription-state.SubscriptionState} state
    */
-  constructor(win, markup) {
-
+  constructor(win, markup, state) {
     /** @const */
     this.win = win;
 
@@ -64,6 +62,9 @@ export class AuthorizationFlow {
 
     /** @private {!../utils/xhr.Xhr} */
     this.xhr_ = new Xhr(this.win);
+
+    /** @private @const */
+    this.state_ = state;
   }
 
   /**
@@ -75,14 +76,15 @@ export class AuthorizationFlow {
    * string that can be passed to payments flow for purchase.
    *
    * @param {?./runtime.SubscriptionPlatformSelector=} opt_platformSelector
-   * @return {!Promise<!SubscriptionResponse>}
+   * @return {!Promise}
    */
   start(opt_platformSelector) {
     const platformSelector =
         /** @type {./runtime.SubscriptionPlatformSelector}*/ (
-          opt_platformSelector || (responses => responses[0]));
+            opt_platformSelector || (responses => responses[0].response));
 
-    return new Timer(this.win).timeoutPromise(AUTH_TIMEOUT,
+    return new Timer(this.win).timeoutPromise(
+        AUTH_TIMEOUT,
         this.getPaywallConfig_()
             .then(config => this.sendAuthRequests_(config))
             .then(authResponses => {
@@ -93,15 +95,17 @@ export class AuthorizationFlow {
             })
             .then(json => {
               // Updating metering info
-              // TODO(avimehta, #21): Remove when server side metering is in place.
-              json.metering = updateMeteringResponse(
-                  this.win.location.href, json.metering);
+              // TODO(avimehta, #21): Remove when server side metering is in
+              // place.
+              json.metering =
+                  updateMeteringResponse(this.win.location.href, json.metering);
 
-              if (isSubscriber(json) || isMeteredUser(json)) {
+              if (this.state_.isSubscriber() || this.state_.isMeteredUser()) {
                 this.markup_.setEntitled(EntitledState.ENTITLED);
               }
-              return json;
-            }), 'Authorization could not complete on time');
+              this.state_.activeResponse = json;
+            }),
+        'Authorization could not complete on time');
   }
 
   /**
@@ -151,8 +155,9 @@ export class AuthorizationFlow {
     log('Sending auth requests.');
     const profiles = config['profiles'];
     if (!this.accessType_ || !profiles || !profiles[this.accessType_]) {
-      throw new Error('Can\'t find the subscriber profile for this page in ' +
-          'subscription config.');
+      throw new Error(
+          'Can\'t find the subscriber profile for this page in subscription ' +
+          'config.');
     }
 
     // TODO(avimehta, #21): Move XHR utils to a separate class.
@@ -161,9 +166,9 @@ export class AuthorizationFlow {
     for (let i = 0; i < services.length; i++) {
       const service = services[i];
 
-      if (this.serviceWeights_[service['id']] === undefined) {
-        this.serviceWeights_[service['id']] = service['weight'] === undefined
-            ? 1 : service['weight'];
+      if (this.serviceWeights_[service['id']] == undefined) {
+        this.serviceWeights_[service['id']] =
+            service['weight'] == undefined ? 1 : service['weight'];
       }
 
       const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
@@ -178,10 +183,10 @@ export class AuthorizationFlow {
           `&content_id=${encodeURIComponent(this.win.location.pathname)}`;
       authPromises.push(this.xhr_.fetch(url, init)
           .then(response => response.json())
-          .then(json => {
-            json['id'] = service['id'];
-            return json;
-          }));
+          .then(json => ({
+            'id': service['id'],
+            'response': json,
+          })));
     }
     return Promise.all(authPromises);
   }
@@ -190,8 +195,8 @@ export class AuthorizationFlow {
    * Sorts the subscription responses based on weights specified in paywall
    * config.
    *
-   * @param  {Array<!SubscriptionResponse>} responses
-   * @return {Array<!SubscriptionResponse>}
+   * @param  {Array<!./runtime.SubscriptionPlatformEntry>} responses
+   * @return {Array<!./runtime.SubscriptionPlatformEntry>}
    * @private
    */
   sortResponses_(responses) {

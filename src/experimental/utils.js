@@ -34,42 +34,6 @@ export const SWG_OFFER_ITEM_CLASS = 'swg-offer-item';
 
 
 /**
- * Checks if current user is a subscriber. It does not check the healthy status.
- * @param {!SubscriptionResponse} subscriptionResponse The API response.
- * @return {boolean}
- */
-export function isSubscriber(subscriptionResponse) {
-  // TODO(avimehta, #21): Remove the check for 'entitled' before launch.
-  return subscriptionResponse['entitled'] ||
-      (subscriptionResponse['subscriber'] &&
-      subscriptionResponse['subscriber']['types'] &&
-      subscriptionResponse['subscriber']['types'].length > 0);
-}
-
-/**
- * Checks if current user is metered.
- * @param {!SubscriptionResponse} subscriptionResponse The API response.
- * @return {boolean}
- */
-export function isMeteredUser(subscriptionResponse) {
-  return subscriptionResponse['metering'] &&
-        subscriptionResponse['metering']['quotaLeft'] > 0;
-}
-
- /**
-  * Checks if the subscription element is already available in Dom.
-  * @param {!Document} doc
-  * @param {string} elementTagName The name of the element.
-  * @return {?string}
-  */
-export function assertNoPopups(doc, elementTagName) {
-  const existingPopup = doc.querySelector(elementTagName);
-  if (existingPopup) {
-    throw new Error('Only one instance is allowed!');
-  }
-}
-
-/**
  * Renders offers view. Called from the subscriptions flow.
  */
 export function renderOffersView(subscriptions) {

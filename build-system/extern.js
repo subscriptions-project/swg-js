@@ -64,7 +64,6 @@ var SubscriptionStatus;
  *   - Offers related to the publisher
  *
  *  @typedef {{
- *    id: string,
  *    access: boolean,
  *    subscriber: (SubscriptionStatus|undefined),
  *    metering: (SubscriptionMetering|undefined),
