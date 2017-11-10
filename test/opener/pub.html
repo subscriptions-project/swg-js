@@ -27,6 +27,11 @@
   </section>
 
   <section>
+    <h2>Redirect opener with rel=noopener</h2>
+    <button onclick="doOpen('redirect-opener', 'noopener')">Open</button>
+  </section>
+
+  <section>
     <h2>Redirect opener opened via about:blank</h2>
     <button onclick="doOpenViaBlank('redirect-opener')">Open</button>
   </section>
@@ -52,11 +57,15 @@ function tryAndPrint(target, callback) {
   }
 }
 
-function doOpen(name) {
-  return window.open('//sp.localhost:8000/test/opener/sp-' + name + '.html',
+function doOpen(name, opt_options) {
+  var popup = window.open('//sp.localhost:8000/test/opener/sp-' + name + '.html',
       '_blank');
+  if (opt_options && opt_options.indexOf('noopener') != -1) {
+    popup.opener = null;
+  }
+  return popup;
 }
-function doOpenViaBlank(name) {
+function doOpenViaBlank(name, opt_options) {
   var popup = window.open('about:blank', '_blank');
   popup.document.write('Wait...');
   setTimeout(function() {
