@@ -123,13 +123,11 @@ export class Runtime {
     this.auth_ =
         new AuthorizationFlow(this.win, this.markup_, this.subscriptionState_);
 
-    /** @private @const {!NotificationView} */
-    this.notificationView_ =
-        new NotificationView(this.win, this.subscriptionState_);
+    /** @private {NotificationView} */
+    this.notificationView_ = null;
 
-    /** @private @const {!SubscriptionsFlow} */
-    this.subscriptionsFlow_ =
-        new SubscriptionsFlow(this.win, this.markup_, this.subscriptionState_);
+    /** @private {SubscriptionsFlow} */
+    this.subscriptionsFlow_ = null;
 
     /** @private {?Promise} */
     this.subscriptionPromise_ = null;
@@ -154,6 +152,11 @@ export class Runtime {
         !this.subscriptionPromise_,
         'Subscription flow can only be started once.');
     log('Starting subscription flow');
+
+    this.notificationView_ = this.notificationView_ ||
+        new NotificationView(this.win, this.subscriptionState_);
+    this.subscriptionsFlow_ = this.subscriptionsFlow_ ||
+        new SubscriptionsFlow(this.win, this.markup_, this.subscriptionState_);
 
     return this.subscriptionPromise_ = this.subscriptionLoop_();
   }
