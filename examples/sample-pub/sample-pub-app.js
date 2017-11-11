@@ -28,7 +28,8 @@ app.use('/oauth',
 const AUTH_URL_TEST = '/examples/sample-sp/api';
 
 /** @const {string} */
-const AUTH_URL_PROD = 'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
+const AUTH_URL_PROD =
+    'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
 
 
 /** @const {string} */
@@ -62,7 +63,8 @@ const ARTICLES = [
   {
     title: 'Bucket List: New Zealand',
     category: 'Bucket List Adventures',
-    kicker: 'This majestic land is offers everything from volcanic terrain to lush pastures',
+    kicker: 'This majestic land is offers everything from volcanic terrain' +
+        ' to lush pastures',
     author: 'Nolan C. Sundquist',
     date: 'Sep 18, 2016 7:02 AM',
     hero: 'hero/12.jpeg',
@@ -94,7 +96,8 @@ const ARTICLES = [
   {
     title: 'Bucket List: UK Countryside',
     category: 'Bucket List Adventures',
-    kicker: 'Get outside the cities to relax in the idyllic heartland of the country',
+    kicker: 'Get outside the cities to relax in the idyllic heartland ' +
+        'of the country',
     author: 'Shannon W. Marshall',
     date: 'Sep 14, 2016 9:25 AM',
     hero: 'hero/15.jpeg',
@@ -110,7 +113,8 @@ const ARTICLES = [
   {
     title: 'Bucket List: Banff',
     category: 'Bucket List Adventures',
-    kicker: 'Don\'t miss all that this scenic spot in Alberta\'s Rockies can offer',
+    kicker: 'Don\'t miss all that this scenic spot in Alberta\'s ' +
+        'Rockies can offer',
     author: 'Shannon W. Marshall',
     date: 'Sep 13, 2016 1:56 PM',
     hero: 'hero/14.jpeg',
@@ -222,7 +226,8 @@ const ARTICLES = [
   {
     title: 'Bucket List: Yosemite',
     category: 'Bucket List Adventures',
-    kicker: 'From Mariposa Grove to Glacier Point, beautiful waterfalls and rock formations await you',
+    kicker: 'From Mariposa Grove to Glacier Point, beautiful waterfalls ' +
+        'and rock formations await you',
     author: 'Carol R. Wright',
     date: 'Aug 28, 2016 11:12 AM',
     hero: 'hero/13.jpeg',
@@ -303,7 +308,6 @@ app.get('/', (req, res) => {
   });
 });
 
-
 /**
  * Signin page.
  */
@@ -312,6 +316,13 @@ app.get('/pub-signin', (req, res) => {
   res.render('../examples/sample-pub/views/pub-signin', {
     'redirectUri': params.redirectUri,
   });
+});
+
+/**
+ * Publisher viewer page.
+ */
+app.get('/viewer', (req, res) => {
+  res.render('../examples/sample-pub/views/viewer', {});
 });
 
 /**
@@ -380,7 +391,6 @@ app.get('/((\\d+))', (req, res) => {
   });
 });
 
-
 /**
  * @param {!HttpRequest} req
  * @return {boolean}
@@ -390,7 +400,6 @@ function isLocalReq(req) {
   return host.indexOf('localhost') != -1;
 }
 
-
 /**
  * @param {!HttpRequest} req
  * @return {boolean}
@@ -399,7 +408,6 @@ function isTestReq(req) {
   return (isLocalReq(req) || req.query.test !== undefined)
       && req.query.test !== '0';
 }
-
 
 /**
  * @param {!HttpRequest} req
@@ -417,7 +425,6 @@ function getAuthUrl(req) {
   }
   return AUTH_URL_PROD;
 }
-
 
 /**
  * @param {!HttpRequest} req
