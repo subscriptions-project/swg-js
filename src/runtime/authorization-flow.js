@@ -80,7 +80,7 @@ export class AuthorizationFlow {
   start(opt_platformSelector) {
     const platformSelector =
         /** @type {./runtime.SubscriptionPlatformSelector}*/ (
-            opt_platformSelector || (responses => responses[0].response));
+            opt_platformSelector || this.platformSelector_.bind(this));
 
     return new Timer(this.win).timeoutPromise(
         AUTH_TIMEOUT,
@@ -194,5 +194,33 @@ export class AuthorizationFlow {
     return responses.sort((a, b) => {
       return this.serviceWeights_[b['id']] - this.serviceWeights_[a['id']];
     });
+  }
+
+  /**
+   * Sorts the subscription responses based on weights specified in paywall
+   * config.
+   *
+   * @param  {Array<!./runtime.SubscriptionPlatformEntry>} responses
+   * @return {!SubscriptionResponse}
+   * @private
+   */
+  platformSelector_(responses) {
+    responses.sort((a, b) => {
+      const aRes = a.response;
+      const bRes = b.response;
+      const aIsSub = this.state_.isSubscriber(aRes);
+      const aIsMetered = this.state_.isMeteredUser(aRes);
+      const bIsSub = this.state_.isSubscriber(bRes);
+      const bIsMetered = this.state_.isMeteredUser(bRes);
+      const sortKeyA =
+          (aIsSub ? 400 : aIsMetered ? 300 : aRes['offer'] ? 200 : 100) +
+          this.serviceWeights_[a['id']];
+      const sortKeyB =
+          (bIsSub ? 400 : bIsMetered ? 300 : bRes['offer'] ? 200 : 100) +
+          this.serviceWeights_[b['id']];
+      return sortKeyB - sortKeyA;
+    });
+
+    return responses[0].response;
   }
 }

@@ -77,7 +77,15 @@ describes.realWin('authorization flow', {}, env => {
           ? JSON.stringify(content) : content;
     }
     win.document.body.appendChild(config);
+  }
 
+  function getConfigWithWeights(first, second, third) {
+    const config = map(configWithMultipleSP);
+    const services = config['profiles'][authFlow.accessType_]['services'];
+    services[0]['weight'] = first;
+    services[1]['weight'] = second;
+    services[2]['weight'] = third;
+    return config;
   }
 
   it('throws when pay-wall config is not found on page', () => {
@@ -163,15 +171,6 @@ describes.realWin('authorization flow', {}, env => {
       index = 0;
     });
 
-    function getConfigWithWeights(first, second, third) {
-      const config = map(configWithMultipleSP);
-      const services = config['profiles'][authFlow.accessType_]['services'];
-      services[0]['weight'] = first;
-      services[1]['weight'] = second;
-      services[2]['weight'] = third;
-      return config;
-    }
-
     it('based on weights (1/3)', () => {
       addConfig(getConfigWithWeights(0, 1, 2));
       return expect(authFlow.start()
@@ -228,6 +227,84 @@ describes.realWin('authorization flow', {}, env => {
       clock.tick(9999);
       resolve(JSON.parse(validConfig));
       return expect(authPromise).to.eventually.not.be.null;
+    });
+  });
+
+  describe('platformSelector_', () => {
+    beforeEach(() => {
+      authFlow.accessType_ = 'offer';
+      authFlow.serviceWeights_ = {
+        'one': 1,
+        'two': 1,
+        'three': 1,
+        'four': 1,
+        'five': 5,
+        'six': 6,
+        'seven': 7,
+      };
+    });
+
+    const subscribed = id => ({id, response: {'entitled': true}});
+    const notSubscribed = id => ({id, response: {'entitled': false}});
+    const offer = id => ({id, response: {
+      'offer': [{
+        'displayString': '14 days free, $8/mo after',
+        'paymentRequest': 'foobar',
+      }],
+    },
+    });
+    const metered = id => ({id, response: {
+      'metering': {
+        'quotaLeft': 3,
+        'quotaMax': 3,
+        'quotaPeriod': 'month',
+        'display': true,
+      }},
+    });
+
+    it('selects subscribed response if available', () => {
+      const responses = [notSubscribed('one'), subscribed('two'),
+        metered('three'), offer('four')];
+      expect(authFlow.platformSelector_(responses).entitled).to.equal(true);
+    });
+
+    it('selects subscribed response regardless of weights', () => {
+      const responses = [notSubscribed('seven'), subscribed('two'),
+        metered('five'), offer('six')];
+      expect(authFlow.platformSelector_(responses).entitled).to.equal(true);
+    });
+
+    it('prefers highest weight when multiple responses are found', () => {
+      const responses = [subscribed('one'), subscribed('five')];
+      responses[0].response.data = 'foo';
+      responses[1].response.data = 'bar';
+      expect(authFlow.platformSelector_(responses).data).to.equal('bar');
+    });
+
+    it('prefers metered response over offers or not-subscribed', () => {
+      const responses = [notSubscribed('one'), offer('two'), metered('three')];
+      expect(authFlow.platformSelector_(responses)).to.deep
+          .equal(metered('three').response);
+    });
+
+    it('prefers metered over offers or not-subscribed with higher weights',
+        () => {
+          const responses = [notSubscribed('five'), offer('six'),
+            metered('three')];
+          expect(authFlow.platformSelector_(responses)).to.deep
+              .equal(metered('three').response);
+        });
+
+    it('prefers offers response or not-subscribed', () => {
+      const responses = [notSubscribed('one'), offer('two')];
+      expect(authFlow.platformSelector_(responses)).to.deep
+          .equal(offer('two').response);
+    });
+
+    it('prefers offers not-subscribed with higher weights', () => {
+      const responses = [notSubscribed('five'), offer('one')];
+      expect(authFlow.platformSelector_(responses)).to.deep
+          .equal(offer('three').response);
     });
   });
 });

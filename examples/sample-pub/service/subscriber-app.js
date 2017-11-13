@@ -29,55 +29,51 @@ const app = module.exports = require('express').Router();
 app.use(require('cookie-parser')())
 
 
-const DEFAULT_ENTITLELMENT = {
-  'subscribed': false,
-  'metering': {
-    'quotaLeft': 3,
-    'quotaMax': 3,
-    'quotaPeriod': 'month',
-    'display': true,
-  },
+const metering = {
+  'quotaLeft': 3,
+  'quotaMax': 3,
+  'quotaPeriod': 'month',
+  'display': true,
 };
 
 
-let users = {
+const DEFAULT_ENTITLEMENT = {'subscribed': false};
+
+
+const users = {
   'subscriber@gmail.com': { 'subscribed': true, },
   'metered@gmail.com': {
     subscribed: false,
-    metering: {
-      quotaLeft: 2,
-      quotaMax: 3,
-      quotaPeriod: 'month',
-      display: true
-    },
+    metering: map(metering)
   },
 };
 
 
 const meteringMeta = {};
 
-
 app.get('/', (req, res) => {
   const user = getUser(req);
   const articleLink = req.headers.referer || '';
   let response = {};
-  if (user) {
-    users[user] = users[user] || DEFAULT_ENTITLELMENT;
+  if (user && !users[user]) {
+    users[user] = users[user] || map(DEFAULT_ENTITLEMENT);
+    users[user]['metering'] = map(metering);
   }
   if (user && articleLink) {
-    var metering = users[user]['metering'];
+    let metering = users[user]['metering'];
     if ((users[user] && users[user]['subscribed']) ||
         (metering && metering['quotaLeft'] == 0)) {
       // Nothing to do here.
     } else {
       // Not a subscribed user but has read access through metering. Update meta.
-      var articlesRead = meteringMeta[user] || [];
+      let articlesRead = meteringMeta[user] || [];
       if (articlesRead.indexOf(articleLink) == -1) {
         articlesRead.push(articleLink);
       }
       meteringMeta[user] = articlesRead;
       users[user]['metering']['quotaLeft'] = Math.max(0,
           metering.quotaMax - articlesRead.length);
+
     }
     response = users[user];
   }
@@ -85,6 +81,7 @@ app.get('/', (req, res) => {
   const origin = req.get('origin') || '*';
   res.set('Access-Control-Allow-Origin', origin);
   res.set('Access-Control-Allow-Credentials', 'true');
+  res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
   res.send(response);
 });
 
@@ -93,7 +90,7 @@ app.get('/subscribers', (req, res) => {
   const USERS = [];
   let i = 0;
   for (let u in users) {
-    USERS[i] = users[u];
+    USERS[i] = map(users[u]);
     USERS[i]['id'] = u;
     USERS[i]['index'] = i + 1;
     i++;
@@ -107,4 +104,13 @@ function getUser(req) {
     return '';
   }
   return decrypt(fromBase64(req.cookies['G_PUB_USER']));
+}
+
+
+function map(opt_initial) {
+  const obj = Object.create(null);
+  if (opt_initial) {
+    Object.assign(obj, opt_initial);
+  }
+  return obj;
 }

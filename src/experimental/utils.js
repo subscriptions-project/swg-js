@@ -109,7 +109,16 @@ function renderOffersViewContent_(subscriptions) {
  * @private
  */
 function renderAbbreviatedViewContent_(meteringResponse) {
-  const quotaLeft = meteringResponse.quotaLeft;
+  const meteringBadge = meteringResponse ?
+    `
+        <div class="swg-metering">
+          <div class="swg-metering-count">
+            <div>${meteringResponse.quotaLeft}</div>
+          </div>
+          <div class="swg-metering-label">Articles left</div>
+        </div>
+    ` : '';
+
   const abbreviatedViewcontent =
     `
       <div class="swg-abbreviated-view">
@@ -125,10 +134,7 @@ function renderAbbreviatedViewContent_(meteringResponse) {
             Already subscriber?
           </div>
         </div>
-        <div class="swg-metering">
-          <div class="swg-metering-count"><div>${quotaLeft}</div></div>
-          <div class="swg-metering-label">Articles left</div>
-        </div>
+        ${meteringBadge}
       </div>
     `;
   return abbreviatedViewcontent;
