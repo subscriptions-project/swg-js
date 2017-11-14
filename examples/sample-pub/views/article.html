@@ -14,15 +14,20 @@
         "premium": {
           "services": [
             {
-              "id": "publisher.com",
+              "id": "sp.localhost",
               "authorizationUrl": "<% authUrl %>?pub_id=com.nytimes.android"
+            },
+            {
+              "id": "pub.localhost",
+              "authorizationUrl": "<% pubAuthUrl %>?pub_id=com.nytimes.android",
+              "weight": 1.1
             }
           ]
         },
         "offer": {
           "services": [
             {
-              "id": "publisher.com",
+              "id": "pub.localhost",
               "authorizationUrl": "<% authUrl %>?pub_id=com.nytimes.android"
             }
           ]
