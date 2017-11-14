@@ -29,7 +29,7 @@ const app = module.exports = require('express').Router();
 app.use(require('cookie-parser')())
 
 
-/** @const {Object} Default metering configuration. */
+/** @const {SubscriptionMetering} Default metering configuration. */
 const metering = {
   'quotaLeft': 3,
   'quotaMax': 3,
@@ -38,11 +38,14 @@ const metering = {
 };
 
 
-/** @const {Object} Default metering configuration. */
+/** @const {SubscriptionResponse} Default metering configuration. */
 const DEFAULT_ENTITLEMENT = {'entitled': false};
 
 
-/** @const {Object} List of users and their auth state. */
+/**
+ * @const {Object<string, SubscriptionResponse>} List of users and their auth
+ *   state.
+ */
 const users = {
   'subscriber@gmail.com': { 'entitled': true, },
   'metered@gmail.com': {

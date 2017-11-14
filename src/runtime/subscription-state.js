@@ -28,7 +28,7 @@ export class SubscriptionState {
     this.accessGranted_ = false;
 
     /** @private {SubscriptionResponse} */
-    this.activeResponse_ = {access: false};
+    this.activeResponse_ = {'entitled': false};
 
     /** @private {string} */
     this.serviceId_ = '';
@@ -94,7 +94,7 @@ export class SubscriptionState {
     // TODO(avimehta, #21): Remove the check for 'entitled' before launch.
     const response = opt_response || this.activeResponse_;
     return response['entitled'] ||
-        (response['subscriber'] && response['subscriber']['types'] &&
+        !!(response['subscriber'] && response['subscriber']['types'] &&
          response['subscriber']['types'].length > 0);
   }
 
