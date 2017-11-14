@@ -69,6 +69,18 @@ export class LoginWithView {
 
     /** @const {Document} */
     this.viewElementDoc_ = null;
+
+    /** @private {?function()} */
+    this.onGoogleSignin_ = null;
+  }
+
+  /**
+   * @param {function()} callback
+   * @return {!LoginWithView}
+   */
+  onGoogleSignin(callback) {
+    this.onGoogleSignin_ = callback;
+    return this;
   }
 
   /**
@@ -183,6 +195,10 @@ export class LoginWithView {
 
     gSwgButton.appendChild(gSignInButtonContent);
     container.appendChild(gSwgButton);
+
+    gSwgButton.addEventListener('click', () => {
+      this.onGoogleSignin_();
+    });
   }
 
   /**
