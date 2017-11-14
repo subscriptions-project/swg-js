@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {log} from './log';
+import {assert, log} from './log';
 import {setStyles} from './style';
 
 /** @const @enum{string} */
@@ -56,11 +56,26 @@ export function addAttributesToElement(element, attributes) {
  * @param {!Document} doc
  * @param {string} tagName
  * @param {!Object<string, string>} attributes
+ * @param {?(string|!Node|!ArrayLike<!Node>)=} opt_content
  * @return {!Element} created element.
  */
-export function createElement(doc, tagName, attributes) {
+export function createElement(doc, tagName, attributes, opt_content) {
   const element = doc.createElement(tagName);
-  return addAttributesToElement(element, attributes);
+  addAttributesToElement(element, attributes);
+  if (opt_content != null) {
+    if (typeof opt_content == 'string') {
+      element.textContent = opt_content;
+    } else if (opt_content.nodeType) {
+      element.appendChild(opt_content);
+    } else if ('length' in opt_content) {
+      for (let i = 0; i < opt_content.length; i++) {
+        element.appendChild(opt_content[i]);
+      }
+    } else {
+      assert(false, 'Unsupported content: %s', opt_content);
+    }
+  }
+  return element;
 }
 
 

@@ -79,6 +79,7 @@ describes.realWin('Dom', {}, env => {
       expect(element.getAttribute('border')).to.equal(null);
       expect(element.getAttribute('class')).to.equal(null);
       expect(element.getAttribute('style')).to.equal(null);
+      expect(element.firstChild).to.be.null;
     });
 
     it('should create an element with no attributes', () => {
@@ -86,6 +87,7 @@ describes.realWin('Dom', {}, env => {
       expect(element.getAttribute('frameborder')).to.equal(null);
       expect(element.getAttribute('scrolling')).to.equal(null);
       expect(element.getAttribute('border')).to.equal(null);
+      expect(element.firstChild).to.be.null;
     });
 
     it('should create style and other attributes', () => {
@@ -108,6 +110,41 @@ describes.realWin('Dom', {}, env => {
           .to.equal(attrs['style']['display']);
       expect(element.style['opacity'])
           .to.equal(attrs['style']['opacity'].toString());
+      expect(element.firstChild).to.be.null;
+    });
+
+    it('should create an element with empty text content', () => {
+      const element = dom.createElement(doc, 'div', {}, '');
+      expect(element.firstChild).to.be.null;
+      expect(element.textContent).to.equal('');
+    });
+
+    it('should create an element with text content', () => {
+      const element = dom.createElement(doc, 'div', {}, 'A');
+      expect(element.childNodes).to.have.length(1);
+      expect(element.textContent).to.equal('A');
+    });
+
+    it('should create an element with element as content', () => {
+      const child = dom.createElement(doc, 'a');
+      const element = dom.createElement(doc, 'div', {}, child);
+      expect(element.childNodes).to.have.length(1);
+      expect(element.firstChild).to.equal(child);
+    });
+
+    it('should create an element with an array of element as content', () => {
+      const child1 = dom.createElement(doc, 'a');
+      const child2 = dom.createElement(doc, 'a');
+      const element = dom.createElement(doc, 'div', {}, [child1, child2]);
+      expect(element.childNodes).to.have.length(2);
+      expect(element.children[0]).to.equal(child1);
+      expect(element.children[1]).to.equal(child2);
+    });
+
+    it('should create an element with illegal content', () => {
+      expect(() => {
+        dom.createElement(doc, 'div', {}, {});
+      }).to.throw(/Unsupported content/);
     });
 
     it('should remove element', () => {
