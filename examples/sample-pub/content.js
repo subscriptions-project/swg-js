@@ -257,3 +257,7 @@ exports.ARTICLES = [
     hero: 'hero/24.jpeg',
   },
 ];
+
+exports.ARTICLES.forEach((a, index) => {
+  a.id = index + 1;
+});

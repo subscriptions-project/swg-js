@@ -29,6 +29,7 @@ const app = module.exports = require('express').Router();
 app.use(require('cookie-parser')())
 
 
+/** @const {Object} Default metering configuration. */
 const metering = {
   'quotaLeft': 3,
   'quotaMax': 3,
@@ -37,19 +38,23 @@ const metering = {
 };
 
 
-const DEFAULT_ENTITLEMENT = {'subscribed': false};
+/** @const {Object} Default metering configuration. */
+const DEFAULT_ENTITLEMENT = {'entitled': false};
 
 
+/** @const {Object} List of users and their auth state. */
 const users = {
-  'subscriber@gmail.com': { 'subscribed': true, },
+  'subscriber@gmail.com': { 'entitled': true, },
   'metered@gmail.com': {
-    subscribed: false,
+    entitled: false,
     metering: map(metering)
   },
 };
 
 
+/** @const {Object} Meta information about the users. */
 const meteringMeta = {};
+
 
 app.get('/', (req, res) => {
   const user = getUser(req);
@@ -61,7 +66,7 @@ app.get('/', (req, res) => {
   }
   if (user && articleLink) {
     let metering = users[user]['metering'];
-    if ((users[user] && users[user]['subscribed']) ||
+    if ((users[user] && users[user]['entitled']) ||
         (metering && metering['quotaLeft'] == 0)) {
       // Nothing to do here.
     } else {
@@ -86,16 +91,16 @@ app.get('/', (req, res) => {
 });
 
 
-app.get('/subscribers', (req, res) => {
-  const USERS = [];
+app.get('/debug-subscribers', (req, res) => {
+  const displayUsers = [];
   let i = 0;
   for (let u in users) {
-    USERS[i] = map(users[u]);
-    USERS[i]['id'] = u;
-    USERS[i]['index'] = i + 1;
+    displayUsers[i] = map(users[u]);
+    displayUsers[i]['id'] = u;
+    displayUsers[i]['index'] = i + 1;
     i++;
   }
-  res.render('../examples/sample-pub/views/subscribers', {users: USERS});
+  res.render('../examples/sample-pub/views/subscribers', {users: displayUsers});
 });
 
 

@@ -21,12 +21,9 @@ const {encrypt, toBase64} = require('./utils/crypto');
 
 const app = module.exports = require('express').Router();
 const ARTICLES = require('./content').ARTICLES;
-ARTICLES.forEach((a, index) => {
-  a.id = index + 1;
-});
 
 app.use('/oauth', require('./service/sample-pub-oauth-app'));
-app.use('/api', require('./service/subscriber-app'));
+app.use('/api', require('./service/authorization-app'));
 
 /** @const {string} */
 const AUTH_URL_TEST = '/examples/sample-sp/api';
