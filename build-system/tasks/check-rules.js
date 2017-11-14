@@ -85,6 +85,9 @@ var forbiddenTerms = {
  'cookie\\W': {
     message: requiresReviewPrivacy,
     whitelist: [
+      "examples/sample-pub/sample-pub-app.js",
+      "examples/sample-pub/service/sample-pub-oauth-app.js",
+      "examples/sample-pub/service/authorization-app.js",
     ],
   },
   'getCookie\\W': {

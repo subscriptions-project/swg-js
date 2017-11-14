@@ -28,7 +28,7 @@ export class SubscriptionState {
     this.accessGranted_ = false;
 
     /** @private {SubscriptionResponse} */
-    this.activeResponse_ = {access: false};
+    this.activeResponse_ = {'entitled': false};
 
     /** @private {string} */
     this.serviceId_ = '';
@@ -83,23 +83,31 @@ export class SubscriptionState {
   }
 
   /**
-   * Checks if current user is a subscriber.
+   * Checks if the subscription response provides subscriber level access.
+   *
+   * If a subscription response is provided, it is used for checks. If not, the
+   * active response (which defaults to no access) is used.
+   * @param {!SubscriptionResponse=} opt_response
    * @return {boolean}
    */
-  isSubscriber() {
+  isSubscriber(opt_response) {
     // TODO(avimehta, #21): Remove the check for 'entitled' before launch.
-    return this.activeResponse_['entitled'] ||
-        (this.activeResponse_['subscriber'] &&
-        this.activeResponse_['subscriber']['types'] &&
-        this.activeResponse_['subscriber']['types'].length > 0);
+    const response = opt_response || this.activeResponse_;
+    return response['entitled'] ||
+        !!(response['subscriber'] && response['subscriber']['types'] &&
+         response['subscriber']['types'].length > 0);
   }
 
   /**
-   * Checks if current user is metered.
+   * Checks if the subscription response provides metered access.
+   *
+   * If a subscription response is provided, it is used for checks. If not, the
+   * active response (which defaults to no metering) is used.
+   * @param {!SubscriptionResponse=} opt_response
    * @return {boolean}
    */
-  isMeteredUser() {
-    return !!(this.activeResponse_['metering'] &&
-          this.activeResponse_['metering']['quotaLeft'] > 0);
+  isMeteredUser(opt_response) {
+    const response = opt_response || this.activeResponse_;
+    return !!(response['metering'] && response['metering']['quotaLeft'] > 0);
   }
 }
