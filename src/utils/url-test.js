@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {parseUrl, serializeQueryString} from './url';
+import {parseUrl, parseQueryString, serializeQueryString} from './url';
 
 describe('serializeQueryString', () => {
   it('should return empty string for empty params', () => {
@@ -173,5 +173,20 @@ describe('parseUrl', () => {
   it('should parse origin data:12345', () => {
     expect(parseUrl('data:12345').origin)
         .to.equal('data:12345');
+  });
+
+  it('should parse URL query string', () => {
+    let url = '?test=1&name=new&label=something';
+    let parsedQueryObject = parseQueryString(url);
+    expect(parsedQueryObject.test).to.equal('1');
+    expect(parsedQueryObject.name).to.equal('new');
+    expect(parsedQueryObject.label).to.equal('something');
+
+    url = '%3Ftest_response%3Dsubscriber-response%26view%3DNEW&a=1&&d';
+    parsedQueryObject = parseQueryString(url);
+
+    expect(parsedQueryObject.test_response).to.equal('subscriber-response');
+    expect(parsedQueryObject.view).to.equal('NEW');
+    expect(parsedQueryObject.d).to.be.undefined;
   });
 });

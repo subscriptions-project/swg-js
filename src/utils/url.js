@@ -152,3 +152,30 @@ function parseUrlWithA(a, url) {
   }
   return info;
 }
+
+
+/**
+ * Parses and builds Object of URL query string.
+ * @param {string} query The URL query string.
+ * @return {!Object<string, string>}
+ */
+export function parseQueryString(query) {
+  if (!query) {
+    return { };
+  }
+  const parsedQuery = decodeURIComponent(query);
+
+  return (/^[?#]/.test(parsedQuery) ? parsedQuery.slice(1) : parsedQuery)
+      .split('&')
+      .reduce((params, param) => {
+        const item = param.split('=');
+        const key = item[0] || '';
+        const value = item[1] || '';
+        // Skip this item if no key/value is defined.
+        if (key == '' || value == '') {
+          return params;
+        }
+        params[key] = value;
+        return params;
+      }, { });
+}
