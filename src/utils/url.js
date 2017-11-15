@@ -163,7 +163,7 @@ export function parseQueryString(query) {
   if (!query) {
     return { };
   }
-  const parsedQuery = decodeURIComponent(query);
+  const parsedQuery = parseUrl(decodeURIComponent(query)).search;
 
   return (/^[?#]/.test(parsedQuery) ? parsedQuery.slice(1) : parsedQuery)
       .split('&')
