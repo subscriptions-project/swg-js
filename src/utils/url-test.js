@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {parseUrl, serializeQueryString} from './url';
+import {parseUrl, parseQueryString, serializeQueryString} from './url';
 
 describe('serializeQueryString', () => {
   it('should return empty string for empty params', () => {
@@ -173,5 +173,31 @@ describe('parseUrl', () => {
   it('should parse origin data:12345', () => {
     expect(parseUrl('data:12345').origin)
         .to.equal('data:12345');
+  });
+
+  it('should parse URL query string', () => {
+    const url = 'http://test.com?test=1&name=new&label=something';
+    const parsedQueryObject = parseQueryString(url);
+    expect(parsedQueryObject.test).to.equal('1');
+    expect(parsedQueryObject.name).to.equal('new');
+    expect(parsedQueryObject.label).to.equal('something');
+  });
+
+  it('should parse URL with empty query params', () => {
+    const url = 'http%3A%2F%2Ftest.com%3Ftest%3D1%26name%3Dnew' +
+        '%26label%3Dsomething%26d%26%26e%3D';
+    const parsedQueryObject = parseQueryString(url);
+
+    expect(parsedQueryObject.test).to.equal('1');
+    expect(parsedQueryObject.name).to.equal('new');
+    expect(parsedQueryObject.label).to.equal('something');
+    expect(parsedQueryObject.d).to.be.undefined;
+  });
+
+  it('should parse URL with no query params', () => {
+    const url = 'http://test.com';
+    const parsedQueryObject = parseQueryString(url);
+
+    expect(parsedQueryObject).to.be.empty;
   });
 });
