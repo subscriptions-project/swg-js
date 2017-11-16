@@ -76,9 +76,19 @@ describes.realWin('SwgView', {}, env => {
         expect(closeButton.getAttribute('class')).to.equal('swg-close-action');
         expect(closeButton.getAttribute('role')).to.equal('button');
 
+        // Check if expected CSS styles are applied from class name.
+        expect(win.getComputedStyle(closeButton)['position'])
+            .to.equal('absolute');
+
         const googleBar = body.querySelector('.swg-google-bar');
         expect(googleBar.children.length).to.equal(4);
         expect(googleBar.getAttribute('class')).to.equal('swg-google-bar');
+
+        // Check if expected CSS styles are applied from class name.
+        expect(win.getComputedStyle(googleBar)['position'])
+            .to.equal('static');
+        expect(win.getComputedStyle(googleBar)['height'])
+            .to.equal('4px');
       });
     });
   });
