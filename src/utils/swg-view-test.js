@@ -48,7 +48,7 @@ describes.realWin('SwgView', {}, env => {
     swgView = new SwgView(win);
   });
 
-  describe('Swg', () => {
+  describe('SwgView', () => {
 
     it('should create a swg-iframe in the body of the document', () => {
       return swgView.init(doc).then(body => {
@@ -73,22 +73,32 @@ describes.realWin('SwgView', {}, env => {
         };
 
         const closeButton = body.querySelector('.swg-close-action');
+        expect(closeButton.tagName).to.equal('DIV');
         expect(closeButton.getAttribute('class')).to.equal('swg-close-action');
         expect(closeButton.getAttribute('role')).to.equal('button');
+        expect(closeButton.getAttribute('aria-label')).to.equal('Close');
 
-        // Check if expected CSS styles are applied from class name.
+        // Check some of the expected CSS styles are applied from class name.
         expect(win.getComputedStyle(closeButton)['position'])
             .to.equal('absolute');
+        expect(win.getComputedStyle(closeButton)['top']).to.equal('20px');
+        expect(win.getComputedStyle(closeButton)['padding']).to.equal('0px');
+        expect(win.getComputedStyle(closeButton)['margin']).to.equal('0px');
 
         const googleBar = body.querySelector('.swg-google-bar');
+        expect(googleBar.tagName).to.equal('DIV');
         expect(googleBar.children.length).to.equal(4);
         expect(googleBar.getAttribute('class')).to.equal('swg-google-bar');
 
-        // Check if expected CSS styles are applied from class name.
-        expect(win.getComputedStyle(googleBar)['position'])
-            .to.equal('static');
-        expect(win.getComputedStyle(googleBar)['height'])
-            .to.equal('4px');
+        const firstBar = googleBar.firstChild;
+        expect(firstBar.getAttribute('class')).to.equal('swg-bar');
+        expect(firstBar.tagName).to.equal('DIV');
+
+        // Check some of the expected CSS styles are applied from class name.
+        expect(win.getComputedStyle(googleBar)['position']).to.equal('static');
+        expect(win.getComputedStyle(googleBar)['height']).to.equal('4px');
+        expect(win.getComputedStyle(googleBar)['padding']).to.equal('0px');
+        expect(win.getComputedStyle(googleBar)['margin']).to.equal('0px');
       });
     });
   });

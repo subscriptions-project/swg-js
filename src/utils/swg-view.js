@@ -111,6 +111,7 @@ export class SwgView {
     const closeButton = createElement(iframeDoc, 'div', {
       'class': 'swg-close-action',
       'role': 'button',
+      'aria-label': 'Close',
     });
 
     iframeBody.appendChild(closeButton);
