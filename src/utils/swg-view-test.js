@@ -19,6 +19,8 @@ import {SwgView, IFRAME_STYLES} from './swg-view';
 /**
  * Parses 'style' attribute string into an Object of key value pair for
  * validation.
+ * @param {string} styleString
+ * @return {Array<Object<string, string>>|undefined}
  */
 function parseStyle(styleString = '') {
   if (styleString == '') {
