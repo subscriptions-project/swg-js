@@ -14,30 +14,9 @@
  * limitations under the License.
  */
 
+import {getStyle} from './style';
 import {SwgView, IFRAME_STYLES} from './swg-view';
 
-/**
- * Parses 'style' attribute string into an Object of key value pair for
- * validation.
- * @param {string} styleString
- * @return {Array<Object<string, string>>|undefined}
- */
-function parseStyle(styleString = '') {
-  if (styleString == '') {
-    return;
-  }
-
-  return styleString.split(';').reduce((result, style) => {
-    const currentStyle = style.split(':');
-    const key = (currentStyle[0] || '').trim();
-    const val = (currentStyle[1] || '').trim();
-
-    if (key != '' && val != '') {
-      result.push({[key]: val});
-    }
-    return result;
-  }, []);
-}
 
 describes.realWin('SwgView', {}, env => {
   let doc;
@@ -62,16 +41,9 @@ describes.realWin('SwgView', {}, env => {
         expect(iframe.getAttribute('scrolling')).to.equal('no');
         expect(iframe.getAttribute('src')).to.equal('about:blank');
 
-        const styles = parseStyle(iframe.getAttribute('style'));
-
         for (const key in IFRAME_STYLES) {
-          const styleItem =
-              styles.find(style => {
-                return style[key] != undefined;
-              });
-          // TODO(dparikh): Check this with other browsers, if the style
-          // attributes are modified or not.
-          expect(styleItem[key]).to.equal(`${IFRAME_STYLES[key]} !important`);
+          const styleValue = getStyle(iframe, key);
+          expect(styleValue).to.equal(IFRAME_STYLES[key].toString());
         };
 
         const closeButton = body.querySelector('.swg-close-action');
