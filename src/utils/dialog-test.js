@@ -15,24 +15,24 @@
  */
 
 import {getStyle} from './style';
-import {SwgView, IFRAME_STYLES} from './swg-view';
+import {Dialog, IFRAME_STYLES} from './dialog';
 
 
-describes.realWin('SwgView', {}, env => {
+describes.realWin('Dialog', {}, env => {
   let doc;
   let win;
-  let swgView;
+  let dialog;
 
   beforeEach(() => {
     doc = env.win.document;
     win = env.win;
-    swgView = new SwgView(win);
+    dialog = new Dialog(win);
   });
 
-  describe('SwgView', () => {
+  describe('dialog', () => {
 
     it('should create a swg-iframe in the body of the document', () => {
-      return swgView.init(doc).then(body => {
+      return dialog.init(doc).then(body => {
         const iframe = doc.getElementById('swg-iframe');
 
         expect(iframe.srcdoc).to.equal('<h1>Fake iframe</h1>');

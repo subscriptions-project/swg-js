@@ -19,7 +19,7 @@ import {
    injectFontsLink,
    injectStyleSheet,
 } from '../utils/dom';
-import {setImportantStyles} from './style';
+import {setStyles, setImportantStyles} from './style';
 
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
@@ -37,17 +37,18 @@ const CONTAINER_HEIGHT = 50;
 
 /**
  * Default iframe styles.
+ * Note: The iframe responsiveness media query style is injected in the
+ * publisher's page since style attribute can not include media query.
  * @const <!Object<string, string|number>
  */
 export const IFRAME_STYLES = {
   'min-height': `${CONTAINER_HEIGHT}px`,
   'opacity': 1,
   'border': 'none',
-  'width': '100%',
+  'display': 'block',
   'background-color': 'rgb(255, 255, 255)',
   'position': 'fixed',
   'bottom': '0px',
-  'left': '0px',
   'z-index': '2147483647',
   'box-shadow': 'gray 0px 3px, gray 0px 0px 1.4em',
   'box-sizing': 'border-box',
@@ -57,9 +58,9 @@ export const IFRAME_STYLES = {
 
 
 /**
- * Subscribe with Google, top level iframe.
+ * Subscribe with Google, top level dialog.
  */
-export class SwgView {
+export class Dialog {
 
   /**
    * @param {!Window} win The parent window object.
@@ -79,6 +80,7 @@ export class SwgView {
    */
   init(doc) {
 
+    // Create a container iframe to host various views.
     this.viewElement_ = createElement(doc, 'iframe', {
       'id': 'swg-iframe',
       'frameorder': 0,
@@ -90,7 +92,7 @@ export class SwgView {
     const readyPromise = new Promise(resolve => {
       iframe.onload = resolve;
     });
-    doc.body.appendChild(iframe);
+    doc.body.appendChild(iframe);  // Fires onload event.
 
     return readyPromise.then(() => {
       const iframeDoc = iframe.contentDocument;
@@ -100,6 +102,10 @@ export class SwgView {
       injectStyleSheet(iframeDoc, OFFERS_CSS);
 
       setImportantStyles(iframe, IFRAME_STYLES);
+      setStyles(iframe, {
+        'width': '100%',
+        'left': 0,
+      });
 
       this.addCloseButton_(iframeDoc, iframeBody);
       this.addGoogleBar_(iframeDoc, iframeBody);
