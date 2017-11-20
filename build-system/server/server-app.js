@@ -57,4 +57,7 @@ app.use('/examples/sample-pub',
 app.use('/examples/sample-sp',
     require('../../examples/sample-sp/sample-sp-app'));
 
+app.use('/test/auth-header/service',
+    require('../../test/auth-header/service-app'));
+
 module.exports = app;
