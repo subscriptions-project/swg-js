@@ -101,7 +101,7 @@ export class Dialog {
     // Create a container iframe to host various views.
     this.viewElement_ = createElement(doc, 'iframe', {
       'id': 'swg-iframe',
-      'frameorder': 0,
+      'frameborder': 0,
       'scrolling': 'no',
       'src': 'about:blank',  // Required for certain browsers (IE?).
     });
