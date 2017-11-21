@@ -19,20 +19,22 @@ import {
    injectFontsLink,
    injectStyleSheet,
 } from '../utils/dom';
-import {setStyles, setImportantStyles} from './style';
+import {setStyles,
+  setImportantStyles,
+} from './style';
 
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
 
 /** @const {string} */
-const GOOGLE_FONTS_URL =
+export const GOOGLE_FONTS_URL =
     'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
 
 /**
  * The default height of the pop-up.
  * @const {number}
  */
-const CONTAINER_HEIGHT = 50;
+export const CONTAINER_HEIGHT = 50;
 
 
 /**
@@ -72,6 +74,22 @@ export class Dialog {
 
     /** @private {Element} */
     this.viewElement_;
+  }
+
+  /**
+   * Returns the win.
+   * @return {!Window}
+   */
+  get win() {
+    return this.win_;
+  }
+
+  /**
+   * Returns the view element.
+   * @return {Element}
+   */
+  get viewElement() {
+    return this.viewElement_;
   }
 
   /**

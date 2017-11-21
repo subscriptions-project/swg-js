@@ -15,7 +15,12 @@
  */
 
 import {getStyle} from './style';
-import {Dialog, IFRAME_STYLES} from './dialog';
+import {
+  Dialog,
+  CONTAINER_HEIGHT,
+  GOOGLE_FONTS_URL,
+  IFRAME_STYLES,
+} from './dialog';
 
 
 describes.realWin('Dialog', {}, env => {
@@ -31,8 +36,25 @@ describes.realWin('Dialog', {}, env => {
 
   describe('dialog', () => {
 
+    it('should have container height value equal to 50', () => {
+      expect(CONTAINER_HEIGHT).to.equal(50);
+    });
+
+    it('should have valid https Url and fetch the fonts', function* () {
+      const response = yield fetch(GOOGLE_FONTS_URL);
+      expect(/^https:/.test(GOOGLE_FONTS_URL)).to.be.true;
+      expect(response.ok).to.be.true;
+      expect(response.status).to.equal(200);
+    });
+
+    it('should have called Dialog constructor', () => {
+      expect(dialog.win).to.be.defined;
+      expect(dialog.viewElement).to.be.undefined;
+    });
+
     it('should create a swg-iframe in the body of the document', () => {
       return dialog.init(doc).then(body => {
+        expect(dialog.viewElement).to.be.defined;
         const iframe = doc.getElementById('swg-iframe');
 
         expect(iframe.srcdoc).to.equal('<h1>Fake iframe</h1>');
