@@ -21,7 +21,7 @@ import {
 } from '../utils/dom';
 import {setStyles,
   setImportantStyles,
-} from './style';
+} from '../utils/style';
 
 import {CSS as OFFERS_CSS} from
     '../../build/css/experimental/swg-popup-offer.css';
