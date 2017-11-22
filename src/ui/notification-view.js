@@ -23,39 +23,63 @@ import {
   setStyles,
   setImportantStyles,
 } from '../utils/style';
+import {CSS as OFFERS_CSS} from
+    '../../build/css/experimental/swg-popup-offer.css';
 
 /**
 * The default height of the pop-up.
 * @const {number}
 */
-const CONTAINER_HEIGHT = 60;
+export const CONTAINER_HEIGHT = 60;
 
 /** @const {string} */
-const DEFAULT_SUBSCRIPTION_URL = 'https://play.google.com/store/account';
+export const DEFAULT_SUBSCRIPTION_URL = 'https://play.google.com/store/account';
 
-import {CSS as OFFERS_CSS} from
-    '../../build/css/experimental/swg-popup-offer.css';
-
+// TODO(dparikh): Consider moving this to a constants file and reuse.
 /** @const {string} */
 export const GOOGLE_FONTS_URL =
      'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
 
+/** @const @enum {string} */
 export const IFRAME_STYLES = {
+  'height': `${CONTAINER_HEIGHT}px`,
   'position': 'fixed',
-  'bottom': 0,
-  'color': '#fff',
+  'bottom': '0px',
+  'color': 'rgb(255, 255, 255)',
   'font-size': '15px',
-  'padding': '20px 8px 0',
+  'padding': '20px 8px 0px',
   'z-index': '2147483647',
   'border': 'none',
-  'box-shadow': '3px 3px gray, 0 0 1.4em #000',
-  'background-color': '#333',
+  'box-shadow': 'gray 3px 3px, rgb(0, 0, 0) 0px 0px 1.4em',
+  'background-color': 'rgb(51, 51, 51)',
   'box-sizing': 'border-box',
   'min-height': '60px',
-  'animation': 'swg-notify 1s ease-out normal backwards, ' +
+  'animation': 'swg-notify 1s ease-out normal backwards,' +
       ' swg-notify-hide 1s ease-out 7s normal forwards',
-  'font-family': 'Roboto sans-serif',
+  'font-family': 'Roboto',
 };
+
+/** @const @enum {string} */
+export const IFRAME_ATTRIBUTES = {
+  'frameborder': 0,
+  'scrolling': 'no',
+  'src': 'about:blank',
+};
+
+/** @const {string} */
+export const NOTIFICATION_LABEL = 'Access via Google Subscriptions';
+
+/** @const {string} */
+export const NOTIFICATION_LABEL_CLASS = 'swg-label';
+
+/** @const {string} */
+export const NOTIFICATION_DETAIL_CLASS = 'swg-detail';
+
+/** @const {string} */
+export const NOTIFICATION_DETAIL_LABEL = 'Details';
+
+/** @const {string} */
+export const NOTIFICATION_DETAIL_ARIA_LABEL = 'Account details';
 
 
 /**
@@ -82,6 +106,14 @@ export class NotificationView {
     this.notificationContainer_;
   }
 
+  /**
+   * Gets the container.
+   * @return {!Element}
+   */
+  get notificationContainer() {
+    return this.notificationContainer_;
+  }
+
   /*
    * Starts the subscriptions flow and returns a promise that resolves when the
    * flow is complete.
@@ -89,22 +121,20 @@ export class NotificationView {
    * @return {!Promise}
    */
   start() {
-    this.openView_();
-    // TODO(dparikh): Set a flag to session storage to not render this again.
+    return this.openView_();
+    // TODO(dparikh): Set a flag in session storage to not render this again.
     this.state_.shouldRetry = false;
-    return Promise.resolve();
   }
 
   /**
+   * Builds and opens the notification bar.
    * @private
+   * @return {!Promise}
    */
   openView_() {
     const doc = this.document_;
-    this.notificationContainer_ = createElement(doc, 'iframe', {
-      'frameborder': 0,
-      'scrolling': 'no',
-      'src': 'about:blank',  // Required for certain browsers (IE10?).
-    });
+    this.notificationContainer_ =
+        createElement(doc, 'iframe', IFRAME_ATTRIBUTES);
     const iframe = this.notificationContainer_;
 
     const readyPromise = new Promise(resolve => {
@@ -120,35 +150,36 @@ export class NotificationView {
       injectStyleSheet(iframeDoc, OFFERS_CSS);
 
       setImportantStyles(iframe, IFRAME_STYLES);
-    });
 
-    setImportantStyles(this.notificationContainer_, {
-      'height': `${CONTAINER_HEIGHT}`,
-    });
-    // Not important so as to allow resize.
-    setStyles(iframe, {
-      'width': '100%',
-      'left': 0,
-    });
-    this.document_.body.appendChild(this.notificationContainer_);
+      // Not important so as to allow resize.
+      setStyles(iframe, {
+        'width': '100%',
+        'left': 0,
+      });
 
-    this.addItems_();
+      this.addItems_(iframeDoc, iframeBody);
+      return iframeBody;
+    });
   }
 
   /**
    * Adds label and detail button.
-   * @private
+   * @param {!Document} iframeDoc
+   * @param {!Element} iframeBody
    */
-  addItems_() {
-    const label = this.document_.createElement('div');
-    label.textContent = 'Access via Google Subscriptions';
-    label.setAttribute('class', 'swg-label');
-    this.notificationContainer_.appendChild(label);
+  addItems_(iframeDoc, iframeBody) {
+    const label = createElement(iframeDoc, 'div', {
+      'class': NOTIFICATION_LABEL_CLASS,
+    });
+    label.textContent = NOTIFICATION_LABEL;
+    iframeBody.appendChild(label);
 
-    const linkButton = this.document_.createElement('button');
-    linkButton.textContent = 'Details';
-    linkButton.setAttribute('class', 'swg-detail');
-    this.notificationContainer_.appendChild(linkButton);
+    const linkButton = createElement(iframeDoc, 'button', {
+      'class': NOTIFICATION_DETAIL_CLASS,
+      'aria-label': NOTIFICATION_DETAIL_ARIA_LABEL,
+    });
+    linkButton.textContent = NOTIFICATION_DETAIL_LABEL;
+    iframeBody.appendChild(linkButton);
 
     let subscriptionUrl = DEFAULT_SUBSCRIPTION_URL;
     const response = this.state_.activeResponse;
