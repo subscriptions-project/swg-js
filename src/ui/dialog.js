@@ -19,7 +19,8 @@ import {
    injectFontsLink,
    injectStyleSheet,
 } from '../utils/dom';
-import {setStyles,
+import {
+  setStyles,
   setImportantStyles,
 } from '../utils/style';
 
@@ -120,6 +121,7 @@ export class Dialog {
       injectStyleSheet(iframeDoc, OFFERS_CSS);
 
       setImportantStyles(iframe, IFRAME_STYLES);
+      // To allow resize for max width.
       setStyles(iframe, {
         'width': '100%',
         'left': 0,
@@ -131,6 +133,11 @@ export class Dialog {
     });
   }
 
+  /**
+   * Adds the 'Close dialog' button.
+   * @param {!Document} iframeDoc
+   * @param {!Element} iframeBody
+   */
   addCloseButton_(iframeDoc, iframeBody) {
     const closeButton = createElement(iframeDoc, 'div', {
       'class': 'swg-close-action',
@@ -141,6 +148,11 @@ export class Dialog {
     iframeBody.appendChild(closeButton);
   }
 
+  /**
+   * Adds the 'Google bar' at the top of the dialog.
+   * @param {!Document} iframeDoc
+   * @param {!Element} iframeBody
+   */
   addGoogleBar_(iframeDoc, iframeBody) {
     const googleBar = createElement(iframeDoc, 'div', {
       'class': 'swg-google-bar',
