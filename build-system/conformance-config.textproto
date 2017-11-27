@@ -165,19 +165,6 @@ requirement: {
 }
 
 requirement: {
-  type: BANNED_PROPERTY_READ
-  error_message: 'Use eventHelper#getData to read the data property.'
-  value: 'Event.prototype.data'
-  value: 'MessageEvent.prototype.data'
-}
-
-requirement: {
-  type: RESTRICTED_METHOD_CALL
-  error_message: 'postMessage must be called with a string or a JsonObject'
-  value: 'Window.prototype.postMessage:function((string|?JsonObject), string, (Array|Transferable)=)'
-}
-
-requirement: {
   type: RESTRICTED_NAME_CALL
   error_message: 'JSON.stringify must be called with a JsonObject'
   # Unfortunately the Array is untyped, because the compiler doesn't check
