@@ -37,11 +37,11 @@ export class ActivityIframePort {
    * @param {?Object=} opt_args
    */
   constructor(iframe, url, origin, opt_args) {
-    /** @private @const */
+    /** @private @const {!HTMLIFrameElement} */
     this.iframe_ = iframe;
-    /** @private @const */
+    /** @private @const {string} */
     this.url_ = url;
-    /** @private @const */
+    /** @private @const {?Object} */
     this.args_ = opt_args || null;
 
     /** @private @const {!Window} */
@@ -83,7 +83,7 @@ export class ActivityIframePort {
     /** @private {?number} */
     this.requestedHeight_ = null;
 
-    /** @private @const */
+    /** @private @const {!Messenger} */
     this.messenger_ = new Messenger(
         this.win_,
         () => this.iframe_.contentWindow,

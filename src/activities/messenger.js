@@ -28,9 +28,9 @@ export class Messenger {
    * @param {?string} targetOrigin
    */
   constructor(win, targetOrCallback, targetOrigin) {
-    /** @private @const */
+    /** @private @const {!Window} */
     this.win_ = win;
-    /** @private @const */
+    /** @private @const {!Window|function():?Window} */
     this.targetOrCallback_ = targetOrCallback;
 
     /**

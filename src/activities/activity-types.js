@@ -29,6 +29,7 @@ export const ActivityResultCode = {
 /**
  * The result of an activity. The activity implementation returns this object
  * for a successful result, a cancelation or a failure.
+ * @struct
  */
 export class ActivityResult {
   /**

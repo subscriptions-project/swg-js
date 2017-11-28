@@ -28,7 +28,7 @@ export class Activities {
    * @param {!Window} win
    */
   constructor(win) {
-    /** @private @const */
+    /** @private @const {!Window} */
     this.win_ = win;
   }
 

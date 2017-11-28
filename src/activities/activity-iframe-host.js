@@ -31,13 +31,13 @@ export class ActivityIframeHost {
    * @param {!Window} win
    */
   constructor(win) {
-    /** @private @const */
+    /** @private @const {!Window} */
     this.win_ = win;
 
     /** @private {!Window} */
     this.target_ = win.parent;
 
-    /** @private @const */
+    /** @private @const {!Messenger} */
     this.messenger_ = new Messenger(
         this.win_,
         this.target_,
@@ -69,7 +69,7 @@ export class ActivityIframeHost {
     /** @private {number} */
     this.lastRequestedHeight_ = 0;
 
-    /** @private @const */
+    /** @private @const {function()} */
     this.boundResizeEvent_ = this.resizeEvent_.bind(this);
   }
 
