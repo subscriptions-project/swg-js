@@ -143,8 +143,12 @@ swg-popup {
 /**
  * The maximum width allowed for swg-popup is 480 px. If the default width
  * is 100% (for container width < 480 px).
+ * TODO(dparikh): Only this media query CSS will be injected in the publisher's
+ * page to control the iframe size. Remove all other styles from this file
+ * when new iframe re-factor is completed.
  */
 @media (min-width: 480px) {
+  #swg-iframe,
   swg-popup,
   swg-notification {
     width: 480px !important;
@@ -153,7 +157,7 @@ swg-popup {
   }
 }
 
-swg-popup.swg-popup-fullscreen{
+swg-popup.swg-popup-fullscreen {
   overflow-y: auto !important;
 }
 
