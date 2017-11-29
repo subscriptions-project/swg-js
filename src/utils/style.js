@@ -24,6 +24,301 @@ let propertyNameCache;
 /** @const {!Array<string>} */
 const vendorPrefixes = ['Webkit', 'webkit', 'Moz', 'moz', 'ms', 'O', 'o'];
 
+/** @const {!Array<string>} */
+const allStyles = [
+  'align-content',
+  'align-items',
+  'align-self',
+  'alignment-baseline',
+  'all',
+  'backface-visibility',
+  'background-attachment',
+  'background-blend-mode',
+  'background-clip',
+  'background-color',
+  'background-image',
+  'background-origin',
+  'background-position-x',
+  'background-position-y',
+  'background-repeat',
+  'background-size',
+  'baseline-shift',
+  'block-size',
+  'border',
+  'border-bottom-left-radius',
+  'border-bottom-right-radius',
+  'border-top-left-radius',
+  'border-top-right-radius',
+  'border-collapse',
+  'bottom',
+  'box-shadow',
+  'box-sizing',
+  'break-after',
+  'break-before',
+  'break-inside',
+  'buffered-rendering',
+  'caption-side',
+  'caret-color',
+  'clear',
+  'clip',
+  'clip-path',
+  'clip-rule',
+  'color-interpolation',
+  'color-interpolation-filters',
+  'color-rendering',
+  'column-count',
+  'column-fill',
+  'column-gap',
+  'column-rule-color',
+  'column-rule-style',
+  'column-rule-width',
+  'column-span',
+  'column-width',
+  'contain',
+  'content',
+  'counter-increment',
+  'counter-reset',
+  'cursor',
+  'cx',
+  'cy',
+  'd',
+  'direction',
+  'display',
+  'dominant-baseline',
+  'empty-cells',
+  'fill',
+  'fill-opacity',
+  'fill-rule',
+  'filter',
+  'flex-basis',
+  'flex-direction',
+  'flex-grow',
+  'flex-shrink',
+  'flex-wrap',
+  'float',
+  'flood-color',
+  'flood-opacity',
+  'font-family',
+  'font-feature-settings',
+  'font-kerning',
+  'font-stretch',
+  'font-style',
+  'font-variant-caps',
+  'font-variant-ligatures',
+  'font-variant-numeric',
+  'font-variation-settings',
+  'font-weight',
+  'grid-auto-columns',
+  'grid-auto-flow',
+  'grid-auto-rows',
+  'grid-column-end',
+  'grid-column-gap',
+  'grid-column-start',
+  'grid-row-end',
+  'grid-row-gap',
+  'grid-row-start',
+  'grid-template-areas',
+  'grid-template-columns',
+  'grid-template-rows',
+  'height',
+  'hyphens',
+  'image-rendering',
+  'inline-size',
+  'isolation',
+  'justify-content',
+  'justify-items',
+  'justify-self',
+  'letter-spacing',
+  'lighting-color',
+  'line-break',
+  'list-style-image',
+  'list-style-position',
+  'list-style-type',
+  'margin-bottom',
+  'margin-right',
+  'margin-top',
+  'margin-left',
+  'marker-end',
+  'marker-mid',
+  'marker-start',
+  'mask',
+  'mask-type',
+  'max-block-size',
+  'max-height',
+  'max-inline-size',
+  'max-width',
+  'min-block-size',
+  'min-height',
+  'min-inline-size',
+  'min-width',
+  'mix-blend-mode',
+  'object-fit',
+  'object-position',
+  'offset-distance',
+  'offset-path',
+  'offset-rotate',
+  'opacity',
+  'order',
+  'orphans',
+  'outline-color',
+  'outline-offset',
+  'outline-style',
+  'outline-width',
+  'overflow-anchor',
+  'overflow-wrap',
+  'overflow-x',
+  'overflow-y',
+  'padding-bottom',
+  'padding-left',
+  'padding-right',
+  'padding-top',
+  'page',
+  'paint-order',
+  'perspective',
+  'perspective-origin',
+  'pointer-events',
+  'position',
+  'quotes',
+  'r',
+  'resize',
+  'right',
+  'rx',
+  'ry',
+  'scroll-behavior',
+  'shape-image-threshold',
+  'shape-margin',
+  'shape-outside',
+  'shape-rendering',
+  'size',
+  'speak',
+  'stop-color',
+  'stop-opacity',
+  'stroke',
+  'stroke-dasharray',
+  'stroke-dashoffset',
+  'stroke-linecap',
+  'stroke-linejoin',
+  'stroke-miterlimit',
+  'stroke-opacity',
+  'stroke-width',
+  'tab-size',
+  'table-layout',
+  'text-align',
+  'text-align-last',
+  'text-anchor',
+  'text-combine-upright',
+  'text-decoration-color',
+  'text-decoration-line',
+  'text-decoration-skip',
+  'text-decoration-style',
+  'text-indent',
+  'text-decoration-color:',
+  'text-orientation',
+  'text-overflow',
+  'text-rendering',
+  'text-shadow',
+  'text-size-adjust',
+  'text-transform',
+  'text-underline-position',
+  'top',
+  'touch-action',
+  'transform',
+  'transform-origin',
+  'transform-style',
+  'transition-delay',
+  'transition-duration',
+  'transition-property',
+  'transition-timing-function',
+  'unicode-bidi',
+  'user-select',
+  'vector-effect',
+  'vertical-align',
+  'visibility',
+  'white-space',
+  'widows',
+  'will-change',
+  'word-break',
+  'word-spacing',
+  'word-wrap',
+  'writing-mode',
+  'x',
+  'y',
+  'zoom',
+  'z-index',
+];
+
+/** @const {string} */
+const googleFontsUrl =
+    'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
+
+/** @const {!Object<string|number} */
+const friendlyIframeAttributes = {
+  'frameborder': 0,
+  'scrolling': 'no',
+  'src': 'about:blank',
+};
+
+/**
+ * Default overwritable styles. This is required for responsive dialog.
+ * @const {!Object<string, string|number}
+ */
+const topFriendlyIframeStyles = {
+  'width': '100%',
+  'left': 0,
+};
+
+/**
+ * Default iframe important styles.
+ * Note: The iframe responsiveness media query style is injected in the
+ * publisher's page since style attribute can not include media query.
+ * @const {!Object<string, string|number}
+ */
+const topFriendlyIframeImportantStyles = {
+  'min-height': '50px',
+  'opacity': 1,
+  'border': 'none',
+  'display': 'block',
+  'background-color': 'rgb(255, 255, 255)',
+  'position': 'fixed',
+  'bottom': '0px',
+  'z-index': '2147483647',
+  'box-shadow': 'gray 0px 3px, gray 0px 0px 22px',
+  'box-sizing': 'border-box',
+};
+
+
+/**
+ * Gets all the possible styles for an element.
+ * @return {!Array<string>}
+ */
+export function getAllStyles() {
+  return allStyles;
+}
+
+
+/** @return {!Object<string, string|number} */
+export function getTopFriendlyIframeStyles() {
+  return topFriendlyIframeStyles;
+}
+
+
+/** @return {!Object<string, string|number} */
+export function getTopFriendlyIframeImportantStyles() {
+  return topFriendlyIframeImportantStyles;
+}
+
+
+/** @return {string} */
+export function getGoogleFontsUrl() {
+  return googleFontsUrl;
+}
+
+
+/** @return {!Object<string|number} */
+export function getFriendlyIframeAttributes() {
+  return friendlyIframeAttributes;
+}
+
 
 /**
  * @export
@@ -254,6 +549,23 @@ export function resetStyles(element, properties) {
   const styleObj = {};
   properties.forEach(prop => {
     styleObj[prop] = null;
+  });
+  setStyles(element, styleObj);
+}
+
+
+/**
+ * Resets all the styles of an element to a given value. Defaults to null.
+ * The valid values are 'inherit', 'initial', 'unset' or null.
+ */
+export function resetAllStylesWith(element, value = null) {
+  const validValues = ['inherit', 'initial', 'unset'];
+  if (value != null && !validValues.find(item => item == value)) {
+    throw Error(`Invalid value. Valid values are ${validValues.join(',')}`);
+  }
+  const styleObj = {};
+  getAllStyles().forEach(prop => {
+    styleObj[prop] = value;
   });
   setStyles(element, styleObj);
 }

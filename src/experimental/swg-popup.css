@@ -126,6 +126,7 @@ swg-notification .swg-detail {
 /**
  * Styles for main <swg-popup> element.
  */
+.swg-iframe,
 swg-popup {
   position: fixed !important;
   bottom: 0 !important;
@@ -145,6 +146,7 @@ swg-popup {
  * is 100% (for container width < 480 px).
  */
 @media (min-width: 480px) {
+  .swg-iframe,
   swg-popup,
   swg-notification {
     width: 480px !important;
@@ -153,7 +155,7 @@ swg-popup {
   }
 }
 
-swg-popup.swg-popup-fullscreen{
+swg-popup.swg-popup-fullscreen {
   overflow-y: auto !important;
 }
 

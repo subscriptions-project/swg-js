@@ -16,6 +16,7 @@
 
 
 import {AbbreviatedView} from './abbreviated-view';
+//import {AbbreviatedView2} from './abbreviated-view-2';
 import {assert} from '../utils/log';
 import {debounce} from '../utils/rate-limit';
 import {GoogleSigninView} from './google-signin-view';
@@ -24,6 +25,9 @@ import {LoginWithView} from './login-with-view';
 import {OffersView} from './offers-view';
 import {PaymentsView} from './payments-view';
 import {setImportantStyles} from '../utils/style';
+//import {SwgView} from '../utils/swg-view';
+import {Dialog} from '../components/dialog';
+import {parseQueryString} from '../utils/url';
 import {transition} from '../utils/animation';
 
 /**
@@ -130,25 +134,75 @@ export class SubscriptionsFlow {
    * @return {!Promise}
    */
   start() {
-    this.addOfferContainer_();
-    this.show_();
+    const renderIframe = this.win_.location;
 
-    // Attach the invisible faded background to be used for some views.
-    this.attachBackground_();
+    const isIframeRender = parseQueryString(renderIframe.search).iframe || 0;
 
-    // Build the loading indicator.
-    this.loadingView_ = new LoadingView(this.win_, this.offerContainer_);
+    // TODO(dparikh): This is to keep both views running for testing.
+    if (isIframeRender == 0) {
+      this.addOfferContainer_();
+      this.show_();
 
-    this.openView_(new AbbreviatedView(
-        this.win_,
-        this,
-        this.offerContainer_,
-        this.state_.activeResponse)
-        .onAlreadySubscribedClicked(this.activateLoginWith_.bind(this))
-        .onSubscribeClicked(this.activateOffers_.bind(this)));
-    return new Promise(resolve => {
-      this.complete_ = resolve;
-    });
+      // Build the loading indicator.
+      this.loadingView_ = new LoadingView(this.win_, this.offerContainer_);
+
+      this.openView_(new AbbreviatedView(
+          this.win_,
+          this,
+          this.offerContainer_,
+          this.state_.activeResponse)
+          .onAlreadySubscribedClicked(this.activateLoginWith_.bind(this))
+          .onSubscribeClicked(this.activateOffers_.bind(this)));
+      return new Promise(resolve => {
+        this.complete_ = resolve;
+      });
+      this.attachBackground_();
+    } else {
+      //this.offerContainer_ = new SwgView(this.win_).init(this.document_);
+
+      // document.body.appendChild(dialog.element);
+      // dialog.whenReady().then(() => {
+      //   dialog.container.appendChild(createelement('div', {}, 'It works!'));
+      // });
+
+      this.dialog_ = new Dialog(this.document_);
+      this.dialog_.open().then(() => {
+        console.log('dialog opened');
+      });
+
+      ////this.dialog_.close();
+
+      ////const view1 = new View(....);
+
+      //// dialog.openView(view1);
+      ////dialog.container.appendChild(view1.element);
+
+      /*new SwgView(this.win_).init(this.document_).then(response => {
+        //console.log(this.document_.getElementById('swg-iframe'));
+        this.iframe_ = this.document_.querySelector('#swg-iframe');
+        //console.log(this.iframe_.scrollHeight);
+        this.offerContainer_ = response;
+        console.log(this.offerContainer_.scrollHeight);
+        this.show_();
+
+        // Attach the invisible faded background to be used for some views.
+        this.attachBackground_();
+
+        // Build the loading indicator.
+        this.loadingView_ = new LoadingView(this.win_, this.offerContainer_);
+
+        this.openView_(new AbbreviatedView2(
+            this.win_,
+            this,
+            this.offerContainer_,
+            this.state_.activeResponse)
+            .onAlreadySubscribedClicked(this.activateLoginWith_.bind(this))
+            .onSubscribeClicked(this.activateOffers_.bind(this)));
+        return new Promise(resolve => {
+          this.complete_ = resolve;
+        });
+      });*/
+    }
   }
 
   /** @private */
@@ -203,7 +257,13 @@ export class SubscriptionsFlow {
       'opacity': 0,
     });
     this.offerContainer_.appendChild(view.getElement());
-    return view.init().then(() => {
+    return view.init().then(element => {
+
+      // TODO(dparikh): Remove condition once migrated to iframe.
+      if (this.iframe_) {
+        console.log(element.scrollHeight);
+        this.iframe_.setAttribute('height', `${element.scrollHeight}px`);
+      }
       this.loadingView_.hide();
       view.getElement().classList.add('swg-step-appear');
       setImportantStyles(view.getElement(), {
@@ -454,7 +514,7 @@ export class SubscriptionsFlow {
         this,
         this.offerContainer_,
         this.state_.activeResponse)
-      .onSubscribeClicked(this.activatePay_.bind(this)));
+        .onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
   /**
@@ -577,6 +637,7 @@ export class SubscriptionsFlow {
    * @private
    */
   show_() {
+    console.log(this.offerContainer_);
     this.offerContainer_.style.removeProperty('display');
   }
 }
