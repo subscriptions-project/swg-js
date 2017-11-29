@@ -17,9 +17,9 @@
 
 var commonTestPaths = [
   'test/_init_tests.js',
-  'test/fixtures/*.html',
+  '!node_modules',
   {
-    pattern: 'test/fixtures/served/*.html',
+    pattern: 'test/fixtures/*.html',
     included: false,
     nocache: false,
     watched: true,
@@ -46,7 +46,6 @@ var commonTestPaths = [
 
 var basicTestPaths = [
   'src/**/*-test.js',
-  'test/**/*.js',
 ];
 
 var testPaths = commonTestPaths.concat(basicTestPaths);
