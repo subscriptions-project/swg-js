@@ -169,7 +169,9 @@ export function parseQueryString(query) {
         const item = param.split('=');
         const key = decodeURIComponent(item[0] || '');
         const value = decodeURIComponent(item[1] || '');
-        params[key] = value;
+        if (key) {
+          params[key] = value;
+        }
         return params;
       }, {});
 }
