@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityResultCode} from './activity-types';
+import {ActivityHostDef, ActivityResultCode} from './activity-types';
 import {Messenger} from './messenger';
 
 
@@ -23,7 +23,7 @@ import {Messenger} from './messenger';
  * types of activities, this implementation can realistically request and
  * receive new size.
  *
- * @implements {./activity-types.ActivityHost}
+ * @implements {ActivityHostDef}
  */
 export class ActivityIframeHost {
 

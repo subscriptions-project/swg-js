@@ -15,6 +15,7 @@
  */
 
 import {
+  ActivityPortDef,
   ActivityResult,
   ActivityResultCode,
 } from './activity-types';
@@ -26,7 +27,7 @@ import {Messenger} from './messenger';
  * of activities, iframe-based activities are always connected and can react
  * to size requests.
  *
- * @implements {./activity-types.ActivityPort}
+ * @implements {ActivityPortDef}
  */
 export class ActivityIframePort {
 

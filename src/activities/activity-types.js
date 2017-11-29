@@ -58,7 +58,7 @@ export class ActivityResult {
  *
  * @interface
  */
-export class ActivityPort {
+export class ActivityPortDef {
 
   /**
    * Disconnect the activity binding and cleanup listeners.
@@ -74,7 +74,7 @@ export class ActivityPort {
  *
  * @interface
  */
-export class ActivityHost {
+export class ActivityHostDef {
 
   /**
    * Disconnect the activity implementation and cleanup listeners.

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActivityHostDef} from './activity-types';
 import {ActivityIframeHost} from './activity-iframe-host';
 import {ActivityIframePort} from './activity-iframe-port';
 
@@ -47,7 +48,7 @@ export class Activities {
 
   /**
    * Start activity implementation handler (host).
-   * @return {!Promise<!./activity-types.ActivityHost>}
+   * @return {!Promise<!ActivityHostDef>}
    */
   connectHost() {
     const host = new ActivityIframeHost(this.win_);
