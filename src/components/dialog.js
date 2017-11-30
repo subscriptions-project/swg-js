@@ -18,9 +18,9 @@ import {
   createElement,
 } from '../utils/dom';
 import {
-  getFriendlyIframeAttributes,
-  getTopFriendlyIframeStyles,
-  getTopFriendlyIframeImportantStyles,
+  friendlyIframeAttributes,
+  topFriendlyIframeStyles,
+  topFriendlyIframeImportantStyles,
 } from '../utils/style';
 import {FriendlyIframe} from './friendly-iframe';
 
@@ -38,11 +38,14 @@ export class Dialog {
     this.doc_ = doc;
 
     const mergedAttrs = Object.assign(
-        {}, getFriendlyIframeAttributes(), {'class': 'swg-iframe'});
+        {}, friendlyIframeAttributes, {'class': 'swg-dialog'});
 
     /** @private @const {!FriendlyIframe} */
     this.iframe_ =
-        new FriendlyIframe(doc, mergedAttrs, getTopFriendlyIframeStyles());
+        new FriendlyIframe(doc, mergedAttrs);
+    // Resets and set all important styles to default values.
+    this.iframe_.setImportantStyles(topFriendlyIframeImportantStyles);
+    this.iframe_.setStyles(topFriendlyIframeStyles);
 
     /** @private {?Element} */
     this.container_ = null;  // Depends on constructed document inside iframe.
@@ -70,9 +73,8 @@ export class Dialog {
   buildIframe_() {
     const iframe = this.iframe_;
     const iframeDoc = this.iframe_.getDocument();
-    iframe.injectIframeFontsLink();
-    iframe.setIframeImportantStyles(getTopFriendlyIframeImportantStyles());
-    iframe.setIframeStyles();
+    iframe.injectFontsLink();
+
     this.container_ =
         createElement(iframeDoc, 'div', {'class': 'swg-container'});
     iframe.getBody().appendChild(this.container_);

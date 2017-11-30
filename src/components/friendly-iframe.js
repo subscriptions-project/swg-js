@@ -19,8 +19,8 @@ import {
   injectFontsLink,
 } from '../utils/dom';
 import {
-  getGoogleFontsUrl,
-  resetAllStylesWith,
+  googleFontsUrl,
+  resetAllStyles,
   setStyles,
   setImportantStyles,
 } from '../utils/style';
@@ -34,15 +34,11 @@ export class FriendlyIframe {
   /**
    * @param {!Document} doc
    * @param {!Object<string, string|number} attrs
-   * @param {!Object<string, string|number} styles
    */
-  constructor(doc, attrs, styles) {
+  constructor(doc, attrs) {
 
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ = createElement(doc, 'iframe', attrs);
-
-    /** @private @const {!Object<string, string|number} */
-    this.style_ = styles;
 
     /** @private @const {!Promise} */
     this.ready_ = new Promise(resolve => {
@@ -102,26 +98,25 @@ export class FriendlyIframe {
   /**
    * Injects the google fonts in the HEAD section of the iframe document.
    */
-  injectIframeFontsLink() {
-    injectFontsLink(this.getDocument(), getGoogleFontsUrl());
+  injectFontsLink() {
+    injectFontsLink(this.getDocument(), googleFontsUrl);
   }
 
   /**
    * Resets all the styles and sets the provided styles.
    * @param {!Object<string, string|number}
    */
-  setIframeImportantStyles(styles) {
-    resetAllStylesWith(this.getElement());
+  setImportantStyles(styles) {
+    resetAllStyles(this.getElement());
     setImportantStyles(this.getElement(), styles);
   }
 
   /**
    * Sets provided styles (not !important) to an element, so that media query
    * can change the these styles on resize events.
-   * @param {!Object<string, string|number}
+   * @param {!Object<string, string|number} styles
    */
-  setIframeStyles(modifiedStyles = {}) {
-    const iframeStyles = Object.assign({}, this.styles_, modifiedStyles);
-    setStyles(this.getElement(), iframeStyles);
+  setStyles(styles) {
+    setStyles(this.getElement(), styles);
   }
 }

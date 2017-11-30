@@ -126,7 +126,7 @@ swg-notification .swg-detail {
 /**
  * Styles for main <swg-popup> element.
  */
-.swg-iframe,
+.swg-dialog,
 swg-popup {
   position: fixed !important;
   bottom: 0 !important;
@@ -146,7 +146,7 @@ swg-popup {
  * is 100% (for container width < 480 px).
  */
 @media (min-width: 480px) {
-  .swg-iframe,
+  .swg-dialog,
   swg-popup,
   swg-notification {
     width: 480px !important;

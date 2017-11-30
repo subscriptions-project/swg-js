@@ -16,9 +16,9 @@
 
 import {
   getStyle,
-  getFriendlyIframeAttributes,
-  getTopFriendlyIframeStyles,
-  getTopFriendlyIframeImportantStyles,
+  friendlyIframeAttributes,
+  topFriendlyIframeStyles,
+  topFriendlyIframeImportantStyles,
 } from '../utils/style';
 import {FriendlyIframe} from './friendly-iframe';
 
@@ -29,9 +29,9 @@ describes.realWin('FriendlyIframe', {}, env => {
   beforeEach(() => {
     doc = env.win.document;
     const attrs = Object.assign(
-        {}, getFriendlyIframeAttributes(), {'class': 'swg-iframe'});
+        {}, friendlyIframeAttributes, {'class': 'swg-iframe'});
     friendlyIframe =
-        new FriendlyIframe(doc, attrs, getTopFriendlyIframeStyles());
+        new FriendlyIframe(doc, attrs, topFriendlyIframeStyles);
   });
 
   describe('friendlyIframe', () => {
@@ -56,8 +56,8 @@ describes.realWin('FriendlyIframe', {}, env => {
       expect(iframe.getAttribute('style')).to.be.null;
 
       friendlyIframe
-          .setIframeImportantStyles(getTopFriendlyIframeImportantStyles());
-      friendlyIframe.setIframeStyles();
+          .setImportantStyles(topFriendlyIframeImportantStyles);
+      friendlyIframe.setStyles();
 
       expect(getStyle(iframe, 'opacity')).to.equal('1');
       expect(getStyle(iframe, 'position')).to.equal('fixed');
