@@ -15,10 +15,14 @@
  */
 
 import {createElement} from '../utils/dom';
-import {
-  friendlyIframeAttributes,
-  resetAllStyles,
-} from '../utils/style';
+import {resetAllStyles} from '../utils/style';
+
+/** @const {!Object<string|number} */
+const friendlyIframeAttributes = {
+  'frameborder': 0,
+  'scrolling': 'no',
+  'src': 'about:blank',
+};
 
 /**
  * The class for building friendly iframe.
@@ -27,11 +31,11 @@ export class FriendlyIframe {
 
   /**
    * @param {!Document} doc
+   * @param {!Object<string, string|number>=} attrs
    */
-  constructor(doc) {
+  constructor(doc, attrs = {}) {
 
-    const mergedAttrs = Object.assign(
-        {}, friendlyIframeAttributes, {'class': 'swg-dialog'});
+    const mergedAttrs = Object.assign({}, friendlyIframeAttributes, attrs);
 
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ = createElement(doc, 'iframe', mergedAttrs);

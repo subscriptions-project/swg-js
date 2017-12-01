@@ -33,7 +33,7 @@ import {FriendlyIframe} from './friendly-iframe';
  * publisher's page since style attribute can not include media query.
  * @const {!Object<string, string|number}
  */
-const topFriendlyIframeImportantStyles = {
+const rootElementImportantStyles = {
   'min-height': '50px',
   'opacity': 1,
   'border': 'none',
@@ -61,10 +61,10 @@ export class Dialog {
     this.doc_ = doc;
 
     /** @private @const {!FriendlyIframe} */
-    this.iframe_ = new FriendlyIframe(doc);
+    this.iframe_ = new FriendlyIframe(doc, {'class': 'swg-dialog'});
 
     setImportantStyles(
-        this.iframe_.getElement(), topFriendlyIframeImportantStyles);
+        this.iframe_.getElement(), rootElementImportantStyles);
 
     setStyles(this.iframe_.getElement(), topFriendlyIframePositionStyles);
 
@@ -127,9 +127,6 @@ export class Dialog {
    * @return {!HTMLIFrameElement}
    */
   getElement() {
-    if (!this.iframe_) {
-      throw new Error('Iframe not found');
-    }
     return this.iframe_.getElement();
   }
 }
