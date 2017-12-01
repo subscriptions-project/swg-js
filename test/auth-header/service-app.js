@@ -18,7 +18,7 @@
 'use strict';
 
 const app = module.exports = require('express').Router();
-app.use(require('cookie-parser')())
+app.use(require('cookie-parser')());
 
 /**
  */

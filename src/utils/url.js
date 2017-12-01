@@ -161,21 +161,17 @@ function parseUrlWithA(a, url) {
  */
 export function parseQueryString(query) {
   if (!query) {
-    return { };
+    return {};
   }
-  const parsedQuery = parseUrl(decodeURIComponent(query)).search;
-
-  return (/^[?#]/.test(parsedQuery) ? parsedQuery.slice(1) : parsedQuery)
+  return (/^[?#]/.test(query) ? query.slice(1) : query)
       .split('&')
       .reduce((params, param) => {
         const item = param.split('=');
-        const key = item[0] || '';
-        const value = item[1] || '';
-        // Skip this item if no key/value is defined.
-        if (key == '' || value == '') {
-          return params;
+        const key = decodeURIComponent(item[0] || '');
+        const value = decodeURIComponent(item[1] || '');
+        if (key) {
+          params[key] = value;
         }
-        params[key] = value;
         return params;
-      }, { });
+      }, {});
 }

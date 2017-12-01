@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+  <title>Activity Client</title>
+  <script async src="/dist/activities.max.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-size: 10px;
+    }
+    body.overflow {
+      background: pink;
+    }
+
+    #container {
+      overflow: hidden;
+    }
+
+    button {
+      border: 1px solid lightgray;
+      margin: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>Activity Iframe Host</h1>
+
+    <button id="result_button">Return result</button>
+    <button id="cancel_button">Cancel</button>
+    <button id="fail_button">Fail</button>
+
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut et elementum lorem, ut ullamcorper libero. Mauris pretium, dui sit amet elementum sagittis, lorem nisi facilisis massa, in euismod turpis arcu vitae diam. Proin a gravida nibh. Integer sollicitudin erat massa, a cursus enim euismod quis.
+    </p>
+  </div>
+
+<script>
+  var container = document.getElementById('container');
+
+  function whenReady(callback) {
+    (window.ACTIVITIES = window.ACTIVITIES || []).push(function(activities) {
+      callback(activities);
+    });
+  }
+
+  whenReady(function(activities) {
+    var host;
+    activities.connectHost().then(function(aHost) {
+      host = aHost;
+      var origin = host.getTargetOrigin();
+      var args = host.getArgs();
+      if (args.publicationId != 'scenic' || origin != 'http://pub.localhost:8000') {
+        host.failed(new Error('wrong pubid or origin: ' + args.publicationId + '/' + origin));
+      }
+    }).then(function() {
+      host.setSizeContainer(container);
+      host.onResizeComplete(function(height, requestedHeight, overflow) {
+        document.body.classList.toggle('overflow', overflow);
+      });
+      document.getElementById('result_button').onclick = function() {
+        host.result({token: 'abc'});
+      };
+      document.getElementById('cancel_button').onclick = function() {
+        host.cancel();
+      };
+      document.getElementById('fail_button').onclick = function() {
+        host.failed(new Error('something failed here'));
+      };
+      host.ready();
+    }).catch(function(reason) {
+      if (host) {
+        host.failed(reason);
+      }
+      throw reason;
+    });
+  });
+</script>
+</body>
+</html>
