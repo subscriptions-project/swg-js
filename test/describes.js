@@ -101,6 +101,22 @@ export const realWin = describeEnv(spec => [
 
 
 /**
+ * A test with a real fixture window.
+ * @param {string} name
+ * @param {{}} spec
+ * @param {function({
+ *   win: !Window,
+ *   iframe: !HTMLIFrameElement,
+ *   fixture: !IntegrationFixtureController,
+ * })} fn
+ */
+export const fixture = describeEnv(spec => [
+  new RealWinFixture(Object.assign(spec, {allowExternalResources: true})),
+  new IntegrationFixture(spec),
+]);
+
+
+/**
  * A repeating test.
  * @param {string} name
  * @param {!Object<string, *>} variants
@@ -361,6 +377,143 @@ class RealWinFixture {
     if (this.spec.mockFetch !== false) {
       fetchMock./*OK*/restore();
     }
+  }
+}
+
+
+/** @implements {Fixture} */
+class IntegrationFixture {
+
+  /**
+   * @param {!{}} spec
+   */
+  constructor(spec) {
+    /** @const */
+    this.spec = spec;
+  }
+
+  /** @override */
+  isOn() {
+    return true;
+  }
+
+  /** @override */
+  setup(env) {
+    const spec = this.spec;
+    const containerIframe = env.iframe;
+    const win = env.win;
+    const iframe = win.document.createElement('iframe');
+    env.iframe = iframe;
+    iframe.name = 'test_' + iframeCount++;
+    env.fixtureUrl = function(name, opt_hostPrefix) {
+      const loc = win.top.location;
+      return loc.protocol + '//' +
+        (opt_hostPrefix ? opt_hostPrefix + '.' : '') +
+        loc.host +
+        '/test/fixtures/' + name + '.html';
+    };
+    const fixture = new IntegrationFixtureController(win, iframe);
+    env.fixture = fixture;
+    win.document.body.appendChild(iframe);
+  }
+
+  /** @override */
+  teardown(env) {
+    if (env.fixture) {
+      env.fixture.disconnect();
+    }
+    if (env.iframe.parentNode) {
+      env.iframe.parentNode.removeChild(env.iframe);
+    }
+  }
+}
+
+
+/**
+ */
+class IntegrationFixtureController {
+
+  /**
+   * @param {!Window} parent
+   * @param {!HTMLIFrameElement} iframe
+   */
+  constructor(parent, iframe) {
+    this.parent = parent;
+    this.iframe = iframe;
+    this.win = null;
+    this.connectedResolver_ = null;
+    this.connected_ = new Promise(resolve => {
+      this.connectedResolver_ = resolve;
+    });
+    this.handlers_ = {};
+    this.handleMessage_ = this.handleMessage_.bind(this);
+    parent.addEventListener('message', this.handleMessage_);
+  }
+
+  /**
+   * @return {!Promise}
+   */
+  connected() {
+    return this.connected_;
+  }
+
+  /**
+   */
+  disconnect() {
+    parent.removeEventListener('message', this.handleMessage_);
+  }
+
+  /**
+   * @param {!MessageEvent} event
+   * @private
+   */
+  handleMessage_(event) {
+    if (event.source != this.iframe.contentWindow ||
+        !event.data ||
+        event.data['sentinel'] != '__FIXTURE__') {
+      return;
+    }
+    if (!this.win) {
+      this.win = this.iframe.contentWindow;
+    }
+    const type = event.data['type'];
+    const payload = event.data['payload'];
+    if (type == 'connect') {
+      this.connectedResolver_();
+      this.connectedResolver_ = null;
+    } else {
+      const handlers = this.handlers_[type];
+      if (handlers) {
+        handlers.forEach(handler => {
+          handler(payload);
+        });
+      }
+    }
+  }
+
+  /**
+   * @param {string} type
+   * @param {function(*)} handler
+   */
+  on(type, handler) {
+    let handlers = this.handlers_[type];
+    if (!handlers) {
+      handlers = [];
+      this.handlers_[type] = handlers;
+    }
+    handlers.push(handler);
+  }
+
+  /**
+   * @param {string} type
+   * @param {*} data
+   */
+  send(type, payload) {
+    this.win.postMessage({
+      sentinel: '__FIXTURE__',
+      type,
+      payload,
+    }, '*');
   }
 }
 

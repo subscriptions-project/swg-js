@@ -60,6 +60,15 @@ exports.compile = function(opts) {
             // at least try to unhide the body.
             wrapper: '(function(){<%= contents %>})();'
           }, opts || {})),
+        compileJs('./src/', 'activities-main', './dist',
+          Object.assign({
+            toName: 'activities.max.js',
+            minifiedName: 'activities.js',
+            includePolyfills: true,
+            // If there is a sync JS error during initial load,
+            // at least try to unhide the body.
+            wrapper: '(function(){<%= contents %>})();'
+          }, opts || {})),
         ]);
     });
 }

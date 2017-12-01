@@ -72,6 +72,7 @@ module.exports = {
     '!{node_modules,build,dist,third_party,build-system}/**/*.*',
     '!{testing,examples}/**/*.*',
     '!test/describes.js',
+    '!test/fixtures/**/*.*',
     '!eslint-rules/**/*.*',
     '!gulpfile.js',
     '!karma.conf.js',

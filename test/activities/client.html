@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+  <title>Activity Client</title>
+  <script async src="/dist/activities.max.js"></script>
+  <style>
+    body {
+      margin: 0;
+    }
+    iframe {
+      width: 98%;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 0;
+    }
+    button {
+      display: block;
+      border: 1px solid lightgray;
+      margin: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Activity Client</h1>
+
+  <button onclick="startIframe()">start iframe</button>
+
+<script>
+  function whenReady(callback) {
+    (window.ACTIVITIES = window.ACTIVITIES || []).push(function(activities) {
+      callback(activities);
+    });
+  }
+
+  function startIframe() {
+    whenReady(function(activities) {
+      var container = document.createElement('iframe');
+      container.src = 'about:blank';
+      container.setAttribute('scrolling', 'no');
+      container.setAttribute('width', '100%');
+      container.setAttribute('height', '0');
+      var iframe;
+      var promise = new Promise(function(resolve) {
+        container.onload = resolve;
+      });
+      promise.then(function() {
+        var doc = container.contentWindow.document;
+        iframe = doc.createElement('iframe');
+        iframe.style = 'position: absolute; top: 0; left: 0; right: 0; width: 100%;';
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('scrolling', 'no');
+        doc.body.appendChild(iframe);
+        return activities.openIframe(
+            iframe,
+            'http://sp.localhost:8000/test/activities/host-iframe.html',
+            'http://sp.localhost:8000',
+            {
+              publicationId: 'scenic',
+            });
+      }).then(function(port) {
+        port.onResizeRequest(function(height) {
+          var allowed = Math.min(height, 200);
+          iframe.style.height = allowed + 'px';
+          container.style.height = allowed + 'px';
+          port.resized();
+        });
+        return port.awaitResult();
+      }).then(function(result) {
+        console.log('CLIENT: result = ', result);
+      }, function(reason) {
+        console.log('CLIENT: failed: ', reason);
+      }).then(function() {
+        container.parentNode.removeChild(container);
+      });
+      document.body.appendChild(container);
+    });
+  }
+
+  startIframe();
+</script>
+</body>
+</html>
