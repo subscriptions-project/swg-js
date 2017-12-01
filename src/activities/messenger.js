@@ -130,14 +130,15 @@ export class Messenger {
     if (!data || data['sentinel'] != SENTINEL) {
       return;
     }
+    const origin = /** @type {string} */ (event.origin);
     const cmd = data['cmd'];
     const payload = data['payload'] || null;
     if (this.targetOrigin_ == null && cmd == 'start') {
-      this.targetOrigin_ = event.origin;
+      this.targetOrigin_ = origin;
     }
     // Notice that event.source may differ from the target because of
     // friendly-iframe intermediaries.
-    if (event.origin != this.targetOrigin_) {
+    if (origin != this.targetOrigin_) {
       return;
     }
     this.onCommand_(cmd, payload);
