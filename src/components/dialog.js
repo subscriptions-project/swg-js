@@ -41,7 +41,7 @@ const rootElementImportantStyles = {
   'background-color': 'rgb(255, 255, 255)',
   'font-family': 'Roboto, sans-serif',
   'position': 'fixed',
-  'bottom': '0px',
+  'bottom': '0',
   'z-index': '2147483647',
   'box-shadow': 'gray 0px 3px, gray 0px 0px 22px',
   'box-sizing': 'border-box',
@@ -70,6 +70,14 @@ export class Dialog {
 
     /** @private {?Element} */
     this.container_ = null;  // Depends on constructed document inside iframe.
+  }
+
+  /**
+   * Gets the attached iframe instance.
+   * @return {!FriendlyIframe}
+   */
+  get iframe() {
+    return this.iframe_;
   }
 
   /**
