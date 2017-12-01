@@ -32,16 +32,9 @@ export const defaultStyles = {
   'align-self': 'auto',
   'alignment-baseline': 'auto',
   'backface-visibility': 'hidden',
-  'background-attachment': 'scroll',
-  'background-blend-mode': 'normal',
   'background-clip': 'border-box',
   'background-color': 'rgb(0, 0, 0, 0)',
   'background-image': 'none',
-  'background-origin': 'padding-box',
-  'background-position-x': '0%',
-  'background-position-y': '0%',
-  'background-repeat': 'no-repeat',
-  'background-size': 'auto',
   'baseline-shift': '0px',
   'block-size': 'auto',
   'border': 'none',
@@ -57,11 +50,7 @@ export const defaultStyles = {
   'caption-side': 'top',
   'caret-color': 'rgb(51, 51, 51)',
   'clear': 'none',
-  'clip': 'auto',
-  'clip-path': 'none',
-  'clip-rule': 'nonzero',
-  'color-interpolation': 'sRGB',
-  'color-interpolation-filters': 'linearRGB',
+  'color': 'rgb(51, 51, 51)',
   'color-rendering': 'auto',
   'column-count': 'auto',
   'column-fill': 'balance',
@@ -72,7 +61,6 @@ export const defaultStyles = {
   'column-span': 'none',
   'column-width': 'auto',
   'contain': 'none',
-  'content': '',
   'counter-increment': 'none',
   'counter-reset': 'none',
   'cursor': 'auto',
@@ -92,7 +80,9 @@ export const defaultStyles = {
   'float': 'none',
   'flood-color': 'rgb(0, 0, 0)',
   'flood-opacity': '1',
-  'font': '',
+  'font': 'none',
+  'font-size': 'medium',
+  'font-family': '',
   'height': 'auto',
   'hyphens': 'manual',
   'image-rendering': 'auto',
@@ -104,12 +94,12 @@ export const defaultStyles = {
   'letter-spacing': 'normal',
   'lighting-color': 'rgb(255, 255, 255)',
   'line-break': 'auto',
+  'line-height': 'normal',
   'list-style-image': 'none',
   'list-style-position': 'outside',
   'list-style-type': 'disc',
   'margin': '',  // Setting to '0px' will not allow override.
   'mask': 'none',
-  'mask-type': 'luminance',
   'max-block-size': 'none',
   'max-height': 'none',
   'max-inline-size': 'none',
@@ -120,26 +110,21 @@ export const defaultStyles = {
   'min-width': '0px',
   'mix-blend-mode': 'normal',
   'object-fit': 'none',
-  'object-position': '50% 50%',
   'offset-distance': 'none',  // Chrome only (Experimental).
   'offset-path': 'none',  // Chrome only (Experimental).
   'offset-rotate': 'auto 0deg',  // Chrome only (Experimental).
   'opacity': '1',
   'order': '0',
   'orphans': '2',
-  'outline-color': 'rgb(51, 51, 51)',
-  'outline-offset': '0px',
-  'outline-style': 'none',
-  'outline-width': '0px',
+  'outline': 'none',
   'overflow-anchor': 'auto',
   'overflow-wrap': 'normal',
   'overflow': 'visible',
   'padding': '0px',
   'page': '',
   'perspective': 'none',
-  'perspective-origin': '',  // Only if perspective is used.
   'pointer-events': 'auto',
-  'position': '',
+  'position': 'static',
   'quotes': '',
   'resize': 'none',
   'right': '0px',
@@ -169,8 +154,6 @@ export const defaultStyles = {
   'top': 'auto',
   'touch-action': 'auto',
   'transform': 'none',
-  'transform-origin': '',
-  'transform-style': 'flat',
   'transition': 'none 0s ease 0s',
   'unicode-bidi': 'normal',
   'user-select': 'auto',
@@ -204,28 +187,9 @@ export const friendlyIframeAttributes = {
  * Default overwritable styles. This is required for responsive dialog.
  * @const {!Object<string, string|number}
  */
-export const topFriendlyIframeStyles = {
+export const topFriendlyIframePositionStyles = {
   'width': '100%',
   'left': 0,
-};
-
-/**
- * Default iframe important styles.
- * Note: The iframe responsiveness media query style is injected in the
- * publisher's page since style attribute can not include media query.
- * @const {!Object<string, string|number}
- */
-export const topFriendlyIframeImportantStyles = {
-  'min-height': '50px',
-  'opacity': 1,
-  'border': 'none',
-  'display': 'block',
-  'background-color': 'rgb(255, 255, 255)',
-  'position': 'fixed',
-  'bottom': '0px',
-  'z-index': '2147483647',
-  'box-shadow': 'gray 0px 3px, gray 0px 0px 22px',
-  'box-sizing': 'border-box',
 };
 
 
@@ -255,6 +219,7 @@ function getVendorJsPropertyName_(style, titleCase) {
   }
   return '';
 }
+
 
 /**
  * Returns the possibly prefixed JavaScript property name of a style property

@@ -16,11 +16,25 @@
 
 import {
   getStyle,
-  friendlyIframeAttributes,
-  topFriendlyIframeStyles,
-  topFriendlyIframeImportantStyles,
+  setStyles,
+  setImportantStyles,
 } from '../utils/style';
 import {FriendlyIframe} from './friendly-iframe';
+
+/** @const {!Object<string, string|number} */
+const importantStyles = {
+  'min-height': '50px',
+  'opacity': 1,
+  'border': 'none',
+  'display': 'block',
+  'background-color': 'rgb(255, 255, 255)',
+  'font-family': 'Roboto, sans-serif',
+  'position': 'fixed',
+  'bottom': '0px',
+  'z-index': '2147483647',
+  'box-shadow': 'gray 0px 3px, gray 0px 0px 22px',
+  'box-sizing': 'border-box',
+};
 
 describes.realWin('FriendlyIframe', {}, env => {
   let doc;
@@ -28,10 +42,7 @@ describes.realWin('FriendlyIframe', {}, env => {
 
   beforeEach(() => {
     doc = env.win.document;
-    const attrs = Object.assign(
-        {}, friendlyIframeAttributes, {'class': 'swg-iframe'});
-    friendlyIframe =
-        new FriendlyIframe(doc, attrs, topFriendlyIframeStyles);
+    friendlyIframe = new FriendlyIframe(doc);
   });
 
   describe('friendlyIframe', () => {
@@ -53,13 +64,13 @@ describes.realWin('FriendlyIframe', {}, env => {
       expect(iframeBody.nodeName).to.equal('BODY');
       expect(friendlyIframe.isConnected()).to.be.true;
 
-      expect(iframe.getAttribute('style')).to.be.null;
-
-      friendlyIframe
-          .setImportantStyles(topFriendlyIframeImportantStyles);
-      friendlyIframe.setStyles();
+      setImportantStyles(iframe, importantStyles);
+      setStyles(iframe);
 
       expect(getStyle(iframe, 'opacity')).to.equal('1');
+      expect(getStyle(iframe, 'display')).to.equal('block');
+      expect(getStyle(iframe, 'background-color'))
+          .to.equal('rgb(255, 255, 255)');
       expect(getStyle(iframe, 'position')).to.equal('fixed');
       expect(getStyle(iframe, 'bottom')).to.equal('0px');
     });

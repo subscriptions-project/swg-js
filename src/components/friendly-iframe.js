@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
+import {createElement} from '../utils/dom';
 import {
-  createElement,
-  injectFontsLink,
-} from '../utils/dom';
-import {
-  googleFontsUrl,
+  friendlyIframeAttributes,
   resetAllStyles,
-  setStyles,
-  setImportantStyles,
 } from '../utils/style';
-
 
 /**
  * The class for building friendly iframe.
@@ -33,12 +27,17 @@ export class FriendlyIframe {
 
   /**
    * @param {!Document} doc
-   * @param {!Object<string, string|number} attrs
    */
-  constructor(doc, attrs) {
+  constructor(doc) {
+
+    const mergedAttrs = Object.assign(
+        {}, friendlyIframeAttributes, {'class': 'swg-dialog'});
 
     /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ = createElement(doc, 'iframe', attrs);
+    this.iframe_ = createElement(doc, 'iframe', mergedAttrs);
+
+    // Ensure that the new iframe does not inherit any CSS styles.
+    resetAllStyles(this.iframe_);
 
     /** @private @const {!Promise} */
     this.ready_ = new Promise(resolve => {
@@ -68,7 +67,8 @@ export class FriendlyIframe {
    */
   getDocument() {
     const doc = this.getElement().contentDocument ||
-        this.getElement().contentWindow.document;
+        (this.getElement().contentWindow &&
+        this.getElement().contentWindow.document);
 
     if (!doc) {
       throw new Error('not loaded');
@@ -93,30 +93,5 @@ export class FriendlyIframe {
       return false;
     }
     return this.getElement().ownerDocument.contains(this.iframe_);
-  }
-
-  /**
-   * Injects the google fonts in the HEAD section of the iframe document.
-   */
-  injectFontsLink() {
-    injectFontsLink(this.getDocument(), googleFontsUrl);
-  }
-
-  /**
-   * Resets all the styles and sets the provided styles.
-   * @param {!Object<string, string|number}
-   */
-  setImportantStyles(styles) {
-    resetAllStyles(this.getElement());
-    setImportantStyles(this.getElement(), styles);
-  }
-
-  /**
-   * Sets provided styles (not !important) to an element, so that media query
-   * can change the these styles on resize events.
-   * @param {!Object<string, string|number} styles
-   */
-  setStyles(styles) {
-    setStyles(this.getElement(), styles);
   }
 }

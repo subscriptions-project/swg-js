@@ -16,13 +16,36 @@
 
 import {
   createElement,
+  injectFontsLink,
 } from '../utils/dom';
 import {
-  friendlyIframeAttributes,
-  topFriendlyIframeStyles,
-  topFriendlyIframeImportantStyles,
+  googleFontsUrl,
+  setStyles,
+  setImportantStyles,
+  topFriendlyIframePositionStyles,
 } from '../utils/style';
 import {FriendlyIframe} from './friendly-iframe';
+
+
+/**
+ * Default iframe important styles.
+ * Note: The iframe responsiveness media query style is injected in the
+ * publisher's page since style attribute can not include media query.
+ * @const {!Object<string, string|number}
+ */
+const topFriendlyIframeImportantStyles = {
+  'min-height': '50px',
+  'opacity': 1,
+  'border': 'none',
+  'display': 'block',
+  'background-color': 'rgb(255, 255, 255)',
+  'font-family': 'Roboto, sans-serif',
+  'position': 'fixed',
+  'bottom': '0px',
+  'z-index': '2147483647',
+  'box-shadow': 'gray 0px 3px, gray 0px 0px 22px',
+  'box-sizing': 'border-box',
+};
 
 
 /**
@@ -37,15 +60,13 @@ export class Dialog {
     /** @private @const {!Document} */
     this.doc_ = doc;
 
-    const mergedAttrs = Object.assign(
-        {}, friendlyIframeAttributes, {'class': 'swg-dialog'});
-
     /** @private @const {!FriendlyIframe} */
-    this.iframe_ =
-        new FriendlyIframe(doc, mergedAttrs);
-    // Resets and set all important styles to default values.
-    this.iframe_.setImportantStyles(topFriendlyIframeImportantStyles);
-    this.iframe_.setStyles(topFriendlyIframeStyles);
+    this.iframe_ = new FriendlyIframe(doc);
+
+    setImportantStyles(
+        this.iframe_.getElement(), topFriendlyIframeImportantStyles);
+
+    setStyles(this.iframe_.getElement(), topFriendlyIframePositionStyles);
 
     /** @private {?Element} */
     this.container_ = null;  // Depends on constructed document inside iframe.
@@ -73,7 +94,9 @@ export class Dialog {
   buildIframe_() {
     const iframe = this.iframe_;
     const iframeDoc = this.iframe_.getDocument();
-    iframe.injectFontsLink();
+
+    // Inject Google fonts in <HEAD> section of the iframe.
+    injectFontsLink(iframe.getDocument(), googleFontsUrl);
 
     this.container_ =
         createElement(iframeDoc, 'div', {'class': 'swg-container'});
@@ -82,8 +105,8 @@ export class Dialog {
   }
 
   /**
-  * Closes the dialog.
-  */
+   * Closes the dialog.
+   */
   close() {
     this.doc_.body.removeChild(this.iframe_.getElement());
   }
@@ -97,5 +120,16 @@ export class Dialog {
       throw new Error('not opened yet');
     }
     return this.container_;
+  }
+
+  /**
+   * Gets the Iframe element.
+   * @return {!HTMLIFrameElement}
+   */
+  getElement() {
+    if (!this.iframe_) {
+      throw new Error('Iframe not found');
+    }
+    return this.iframe_.getElement();
   }
 }
