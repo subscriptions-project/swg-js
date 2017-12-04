@@ -214,14 +214,15 @@ swg-popup .swg-close-action {
   background-image: url("data:image/svg+xml;charset=utf-8,<svg viewPort='0 0 11 11' version='1.1' xmlns='http://www.w3.org/2000/svg'><line x1='0' y1='11' x2='11' y2='0' stroke='#757575' stroke-width='1'/><line x1='0' y1='0' x2='11' y2='11' stroke='#757575' stroke-width='1'/></svg>") !important;
 }
 
-swg-popup .swg-step-appear{
+swg-popup .swg-step-appear {
   animation: swg-appear 1.5s ease-out !important;
 }
 
 /**
  * Styles for main <swg-loading> element.
  */
-swg-popup swg-loading {
+swg-popup swg-loading,
+.swg-loading {
   position: absolute !important;
   top: 50% !important;
   left: 50% !important;
@@ -229,7 +230,8 @@ swg-popup swg-loading {
   z-index: 2147483647 !important;
 }
 
-swg-loading swg-loading-bar{
+swg-loading swg-loading-bar,
+.swg-loading .swg-loading-bar {
   display: inline-block !important;
   width: 5px !important;
   height: 20px !important;
@@ -238,22 +240,26 @@ swg-loading swg-loading-bar{
   animation: swg-loading 1s ease-in-out infinite !important;
 }
 
-swg-loading-bar:nth-child(1) {
+swg-loading-bar:nth-child(1),
+.swg-loading-bar:nth-child(1) {
   background-color: #4285f4 !important;
   animation-delay: 0 !important;
 }
 
-swg-loading-bar:nth-child(2) {
+swg-loading-bar:nth-child(2),
+.swg-loading-bar:nth-child(2) {
   background-color: #0f9d58 !important;
   animation-delay: 0.09s !important;
 }
 
-swg-loading-bar:nth-child(3) {
+swg-loading-bar:nth-child(3),
+.swg-loading-bar:nth-child(3) {
   background-color: #f4b400 !important;
   animation-delay: .18s !important;
 }
 
-swg-loading-bar:nth-child(4) {
+swg-loading-bar:nth-child(4),
+.swg-loading-bar:nth-child(4) {
   background-color: #db4437 !important;
   animation-delay: .27s !important;
 }

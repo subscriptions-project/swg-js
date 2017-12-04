@@ -31,7 +31,7 @@ import {FriendlyIframe} from './friendly-iframe';
  * Default iframe important styles.
  * Note: The iframe responsiveness media query style is injected in the
  * publisher's page since style attribute can not include media query.
- * @const {!Object<string, string|number}
+ * @const {!Object<string, string|number>}
  */
 const rootElementImportantStyles = {
   'min-height': '50px',

@@ -15,10 +15,7 @@
  */
 
 import {injectStyleSheet} from '../utils/dom';
-import {
-  LOADING_TAG,
-  LoadingView,
-} from './loading-view';
+import {LoadingView} from './loading-view';
 
 
 describes.realWin('LoadingView', {}, env => {
@@ -26,8 +23,9 @@ describes.realWin('LoadingView', {}, env => {
   let body;
   let win;
   let loadingView;
+  let loadingContainer;
   const hiddenStyle = 'display: none !important;';
-  const styleText = `swg-loading {
+  const styleText = `.swg-loading {
     position: absolute !important;
     top: 50% !important;
     left: 50% !important;
@@ -40,8 +38,13 @@ describes.realWin('LoadingView', {}, env => {
     doc = env.win.document;
     body = doc.body;
     loadingView = new LoadingView(win, body);
+
+    // Inject the loading container to the body.
+    loadingView.inject(body);
+
     // TO test the injected styles have been applied.
     injectStyleSheet(doc, styleText);
+    loadingContainer = body.querySelector('div[class="swg-loading"]');
   });
 
   describe('loadingView', () => {
@@ -53,31 +56,28 @@ describes.realWin('LoadingView', {}, env => {
 
       // Should have injected styles applied.
       const loadingTagStyles =
-          win.getComputedStyle(body.querySelector(LOADING_TAG));
+          win.getComputedStyle(loadingContainer);
 
       // TODO(dparikh): Why position and transform values not populated?
-      expect(loadingTagStyles['top']).to.equal('50%');
-      expect(loadingTagStyles['left']).to.equal('50%');
+      expect(loadingTagStyles.top).to.equal('50%');
+      expect(loadingTagStyles.left).to.equal('50%');
       expect(loadingTagStyles['z-index']).to.equal('2147483647');
 
-      expect(body.querySelector(LOADING_TAG).children.length).to.equal(4);
+      expect(loadingContainer.children.length).to.equal(4);
     });
 
     it('should have hidden loading indicator', () => {
-      expect(body.querySelector(LOADING_TAG).getAttribute('style'))
-          .to.equal(hiddenStyle);
+      expect(loadingContainer.getAttribute('style')).to.equal(hiddenStyle);
     });
 
     it('should show the loading indicator when called show()', () => {
       loadingView.show();
-      expect(body.querySelector(LOADING_TAG).getAttribute('style'))
-          .to.equal('');
+      expect(loadingContainer.getAttribute('style')).to.equal('');
     });
 
     it('should have hidden loading indicator when called hide()', () => {
       loadingView.hide();
-      expect(body.querySelector(LOADING_TAG).getAttribute('style'))
-          .to.equal(hiddenStyle);
+      expect(loadingContainer.getAttribute('style')).to.equal(hiddenStyle);
     });
   });
 });

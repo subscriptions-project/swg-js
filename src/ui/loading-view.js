@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-
-/**
- * The loading element name to be used.
- * @const {string}
- */
-export const LOADING_TAG = 'swg-loading';
+import {createElement} from '../utils/dom';
 
 
 /**
- * Loading indicator class. Builds the loading indicator icon for the
- * <swg-popup> element. Provides methods to show/hide loading indicator based
- * on the state of the <swg-popup> element.
+ * Loading indicator class. Builds the loading indicator view to be injected in
+ * parent element <iframe class="swg-dialog"> element. Provides methods to
+ * show/hide loading indicator.
  */
 export class LoadingView {
 
   /**
    * @param {!Window} win
-   * @param {!Element} container
    */
-  constructor(win, container) {
+  constructor(win) {
 
     /** @private @const {!Window} */
     this.win_ = win;
@@ -42,44 +36,60 @@ export class LoadingView {
     this.document_ = win.document;
 
     /** @private @const {!Element} */
-    this.container_ = container;
+    this.loadingContainer_ = createElement(this.document_, 'div', {
+      'class': 'swg-loading',
+    });
 
-    /** @private @const {Element} */
-    this.loadingContainer_ = this.document_.createElement(LOADING_TAG);
     this.loadingContainer_.style.setProperty('display', 'none', 'important');
 
     // Build the animated loading indicator.
     this.buildLoadingIndicator_();
   }
 
+  /**
+   * Gets the populated loading container.
+   * @return {!Element}
+   */
+  getElement() {
+    return this.loadingContainer_;
+  }
+
   /*
-   * Shows the loading indicator only when there is no other container element
-   * within the <swg-popup> element.
-   * TODO(dparikh): Check the container state.
+   * Shows the loading indicator within the container element.
    */
   show() {
     this.loadingContainer_.style.removeProperty('display');
   }
 
   /*
-   * Hides the loading indicator when there is other container element within
-   * the <swg-popup> element.
+   * Hides the loading indicator within the container element.
    */
   hide() {
     this.loadingContainer_.style.setProperty('display', 'none', 'important');
   }
 
+  /**
+   * Injects the loading indicator to the provided container.
+   * @param {!Element} container
+   */
+  inject(container) {
+    container.appendChild(this.loadingContainer_);
+  }
+
   /*
-   * Builds the loading indicator <swg-loading> element in the Dom.
+   * Populates the loading indivicator view with children. The populated element
+   * can be added in any view, when required.
+   * @private
    */
   buildLoadingIndicator_() {
     const loadingContainer = this.loadingContainer_;
-    this.container_.appendChild(loadingContainer);
 
-    // Add 4 vertical bars animated at different rates, as defined in the
+    // Add 4 vertical bars animated at different speed, as defined in the
     // style.
     for (let i = 0; i < 4; i++) {
-      const loadingBar = this.document_.createElement('swg-loading-bar');
+      const loadingBar = createElement(this.document_, 'div', {
+        'class': 'swg-loading-bar',
+      });
       loadingContainer.appendChild(loadingBar);
     }
   }

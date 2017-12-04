@@ -17,7 +17,7 @@
 import {createElement} from '../utils/dom';
 import {resetAllStyles} from '../utils/style';
 
-/** @const {!Object<string|number} */
+/** @const {!Object<string|number>} */
 const friendlyIframeAttributes = {
   'frameborder': 0,
   'scrolling': 'no',
@@ -59,7 +59,7 @@ export class FriendlyIframe {
 
   /**
    * Gets the iframe element.
-   * @return {!!HTMLIFrameElement}
+   * @return {!HTMLIFrameElement}
    */
   getElement() {
     return this.iframe_;
