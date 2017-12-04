@@ -73,14 +73,6 @@ export class Dialog {
   }
 
   /**
-   * Gets the attached iframe instance.
-   * @return {!FriendlyIframe}
-   */
-  get iframe() {
-    return this.iframe_;
-  }
-
-  /**
    * Opens the dialog and builds the iframe container.
    * @return {!Promise}
    */
@@ -128,6 +120,14 @@ export class Dialog {
       throw new Error('not opened yet');
     }
     return this.container_;
+  }
+
+  /**
+   * Gets the attached iframe instance.
+   * @return {!FriendlyIframe}
+   */
+  getIframe() {
+    return this.iframe_;
   }
 
   /**

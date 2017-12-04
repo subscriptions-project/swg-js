@@ -57,7 +57,7 @@ describes.realWin('Dialog', {}, env => {
       expect(iframe.nodeName).to.equal('IFRAME');
 
       // Should have document loaded.
-      const iframeDoc = openedDialog.iframe.getDocument();
+      const iframeDoc = openedDialog.getIframe().getDocument();
       expect(iframeDoc.nodeType).to.equal(9);
       expect(iframeDoc.nodeName).to.equal('#document');
 
@@ -83,13 +83,13 @@ describes.realWin('Dialog', {}, env => {
       expect(iframe.getAttribute('src')).to.equal('about:blank');
       expect(iframe.nodeName).to.equal('IFRAME');
       expect(doc.querySelector('iframe')).to.equal(iframe);
-      expect(openedDialog.iframe.isConnected()).to.equal(true);
+      expect(openedDialog.getIframe().isConnected()).to.equal(true);
 
       // Remove the element from the dom.
       dialog.close();
 
       expect(doc.querySelector('iframe')).to.be.null;
-      expect(openedDialog.iframe.isConnected()).to.equal(false);
+      expect(openedDialog.getIframe().isConnected()).to.equal(false);
     });
   });
 });
