@@ -24,6 +24,148 @@ let propertyNameCache;
 /** @const {!Array<string>} */
 const vendorPrefixes = ['Webkit', 'webkit', 'Moz', 'moz', 'ms', 'O', 'o'];
 
+/** @const {!Object<string, string|number>} */
+export const defaultStyles = {
+  'align-content': 'normal',
+  'animation': 'none',
+  'align-items': 'normal',
+  'align-self': 'auto',
+  'alignment-baseline': 'auto',
+  'backface-visibility': 'hidden',
+  'background-clip': 'border-box',
+  'background-color': 'rgb(0, 0, 0, 0)',
+  'background-image': 'none',
+  'baseline-shift': '0',
+  'block-size': 'auto',
+  'border': 'none',
+  'border-radius': '0',
+  'border-collapse': 'separate',
+  'bottom': '0',
+  'box-shadow': '0 0 0 0 #000',
+  'box-sizing': 'border-box',
+  'break-after': 'auto',
+  'break-before': 'auto',
+  'break-inside': 'auto',
+  'buffered-rendering': 'auto',
+  'caption-side': 'top',
+  'caret-color': 'rgb(51, 51, 51)',
+  'clear': 'none',
+  'color': 'rgb(51, 51, 51)',
+  'color-rendering': 'auto',
+  'column-count': 'auto',
+  'column-fill': 'balance',
+  'column-gap': 'normal',
+  'column-rule-color': 'rgb(51, 51, 51)',
+  'column-rule-style': 'none',
+  'column-rule-width': '0',
+  'column-span': 'none',
+  'column-width': 'auto',
+  'contain': 'none',
+  'counter-increment': 'none',
+  'counter-reset': 'none',
+  'cursor': 'auto',
+  'direction': 'inherit',
+  'display': 'block',
+  'empty-cells': 'show',
+  'filter': 'none',
+  'flex': 'none',  // flex-grow, flex-shrink, and flex-basis.
+  'flex-flow': 'row nowrap',  // flex-direction, flex-wrap.
+  'float': 'none',
+  'flood-color': 'rgb(0, 0, 0)',
+  'flood-opacity': '1',
+  'font': 'none',
+  'font-size': 'medium',
+  'font-family': '',
+  'height': 'auto',
+  'hyphens': 'manual',
+  'image-rendering': 'auto',
+  'inline-size': '',  // Setting to 'auto' will not allow override.
+  'isolation': 'auto',
+  'justify-content': 'normal',
+  'justify-items': 'normal',
+  'justify-self': 'auto',
+  'letter-spacing': 'normal',
+  'lighting-color': 'rgb(255, 255, 255)',
+  'line-break': 'auto',
+  'line-height': 'normal',
+  'mask': 'none',
+  'max-block-size': 'none',
+  'max-height': 'none',
+  'max-inline-size': 'none',
+  'max-width': 'none',
+  'min-block-size': 'none',
+  'min-height': '0',
+  'min-inline-size': '0',
+  'min-width': '0',
+  'mix-blend-mode': 'normal',
+  'object-fit': 'none',
+  'offset-distance': 'none',  // Chrome only (Experimental).
+  'offset-path': 'none',  // Chrome only (Experimental).
+  'offset-rotate': 'auto 0deg',  // Chrome only (Experimental).
+  'opacity': '1',
+  'order': '0',
+  'orphans': '2',
+  'outline': 'none',
+  'overflow-anchor': 'auto',
+  'overflow-wrap': 'normal',
+  'overflow': 'visible',
+  'padding': '0',
+  'page': '',
+  'perspective': 'none',
+  'pointer-events': 'auto',
+  'position': 'static',
+  'quotes': '',
+  'resize': 'none',
+  'right': '0',
+  'scroll-behavior': 'auto',
+  'tab-size': '8',  // Only Chrome, Safari (Experimental).
+  'table-layout': 'auto',
+  'text-align': 'start',
+  'text-align-last': 'auto',
+  'text-anchor': 'start',
+  'text-combine-upright': 'none',
+  'text-decoration': 'none',
+  'text-indent': '0',
+  'text-orientation': 'mixed',
+  'text-overflow': 'clip',
+  'text-rendering': 'auto',
+  'text-shadow': 'none',
+  'text-size-adjust': 'auto',
+  'text-transform': 'none',
+  'text-underline-position': 'auto',
+  'top': 'auto',
+  'touch-action': 'auto',
+  'transform': 'none',
+  'transition': 'none 0s ease 0s',
+  'unicode-bidi': 'normal',
+  'user-select': 'auto',
+  'vector-effect': 'none',
+  'vertical-align': 'baseline',
+  'visibility': 'visible',
+  'white-space': 'normal',
+  'widows': '2',
+  'width': 'auto',
+  'word-break': 'normal',
+  'word-spacing': '0',
+  'word-wrap': 'normal',
+  'writing-mode': 'horizontal-tb',
+  'zoom': '1',
+  'z-index': 'auto',
+};
+
+/** @const {string} */
+export const googleFontsUrl =
+    'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
+
+/**
+ * Default overwritable styles. This is required for responsive dialog.
+ * @const {!Object<string, string|number}
+ */
+export const topFriendlyIframePositionStyles = {
+  'width': '100%',
+  'left': 0,
+};
+
 
 /**
  * @export
@@ -51,6 +193,7 @@ function getVendorJsPropertyName_(style, titleCase) {
   }
   return '';
 }
+
 
 /**
  * Returns the possibly prefixed JavaScript property name of a style property
@@ -256,4 +399,13 @@ export function resetStyles(element, properties) {
     styleObj[prop] = null;
   });
   setStyles(element, styleObj);
+}
+
+
+/**
+ * Resets all the styles of an element to a given value. Defaults to null.
+ * The valid values are 'inherit', 'initial', 'unset' or null.
+ */
+export function resetAllStyles(element) {
+  setImportantStyles(element, defaultStyles);
 }
