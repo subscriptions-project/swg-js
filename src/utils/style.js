@@ -159,7 +159,7 @@ export const googleFontsUrl =
 
 /**
  * Default overwritable styles. This is required for responsive dialog.
- * @const {!Object<string, string|number}
+ * @const {!Object<string, string|number>}
  */
 export const topFriendlyIframePositionStyles = {
   'width': '100%',
