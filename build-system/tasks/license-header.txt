@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 The __PROJECT__ Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,13 +14,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
-
-require('./babel-helpers');
-require('./build-activities');
-require('./builders');
-require('./check-rules');
-require('./compile');
-require('./lint');
-require('./serve');
-require('./test');

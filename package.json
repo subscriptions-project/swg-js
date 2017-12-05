@@ -113,6 +113,7 @@
     "pretty-bytes": "2.0.1",
     "request": "2.73.0",
     "rimraf": "2.5.1",
+    "rollup": "0.52.0",
     "shuffle-seed": "1.1.6",
     "sinon": "1.17.7",
     "sinon-chai": "2.8.0",
