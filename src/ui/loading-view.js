@@ -68,14 +68,6 @@ export class LoadingView {
     this.loadingContainer_.style.setProperty('display', 'none', 'important');
   }
 
-  /**
-   * Injects the loading indicator to the provided container.
-   * @param {!Element} container
-   */
-  inject(container) {
-    container.appendChild(this.loadingContainer_);
-  }
-
   /*
    * Populates the loading indivicator view with children. The populated element
    * can be added in any view, when required.

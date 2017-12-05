@@ -38,9 +38,7 @@ describes.realWin('LoadingView', {}, env => {
     doc = env.win.document;
     body = doc.body;
     loadingView = new LoadingView(win, body);
-
-    // Inject the loading container to the body.
-    loadingView.inject(body);
+    body.appendChild(loadingView.getElement());
 
     // TO test the injected styles have been applied.
     injectStyleSheet(doc, styleText);
