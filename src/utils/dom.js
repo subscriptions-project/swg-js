@@ -56,7 +56,7 @@ export function addAttributesToElement(element, attributes) {
  * @param {!Document} doc
  * @param {string} tagName
  * @param {!Object<string, string>} attributes
- * @param {?(string|!Node|!ArrayLike<!Node>)=} opt_content
+ * @param {?(string|!Node|!ArrayLike<!Node>|!Array<!Node>)=} opt_content
  * @return {!Element} created element.
  */
 export function createElement(doc, tagName, attributes, opt_content) {
