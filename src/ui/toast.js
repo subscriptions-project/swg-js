@@ -46,9 +46,10 @@ export const toastImportantStyles = {
 
 /** @typedef {{
  *    text: string,
- *    action: ({label: string, handler: function()}|undefined)}}
+ *    action: ({label: string, handler: function()}|undefined)
+ *  }}
  */
-export let ToastSpec;
+export let ToastSpecDef;
 
 
 /**
@@ -58,7 +59,7 @@ export class Toast {
 
   /**
    * @param {!Window} win
-   * @param {!ToastSpec} spec
+   * @param {!ToastSpecDef} spec
    */
   constructor(win, spec) {
 
@@ -68,7 +69,7 @@ export class Toast {
     /** @private @const {!HTMLDocument} */
     this.doc_ = win.document;
 
-    /** @private @const {!ToastSpec} */
+    /** @private @const {!ToastSpecDef} */
     this.spec_ = spec;
 
     /** @private @const {!FriendlyIframe} */

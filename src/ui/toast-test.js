@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
+import {Toast} from './toast';
 import {
   getStyle,
   googleFontsUrl,
 } from '../utils/style';
-
-import {Toast} from './toast';
-
 
 describes.realWin('Toast', {}, env => {
   let win;
