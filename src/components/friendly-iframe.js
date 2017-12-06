@@ -38,7 +38,8 @@ export class FriendlyIframe {
     const mergedAttrs = Object.assign({}, friendlyIframeAttributes, attrs);
 
     /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ = createElement(doc, 'iframe', mergedAttrs);
+    this.iframe_ =
+        /** {!HTMLIFrameElement} */ (createElement(doc, 'iframe', mergedAttrs));
 
     // Ensure that the new iframe does not inherit any CSS styles.
     resetAllStyles(this.iframe_);
@@ -82,7 +83,7 @@ export class FriendlyIframe {
 
   /**
    * Gets the body of the iframe.
-   * @return {!Element}
+   * @return {HTMLBodyElement}
    */
   getBody() {
     return this.getDocument().body;

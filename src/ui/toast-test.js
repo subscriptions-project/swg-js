@@ -64,23 +64,25 @@ describes.realWin('Toast', {}, env => {
   });
 
   it('should build the content of toast iframe', function* () {
-    const openedToast = yield toast.open();
-    const toastContainer = openedToast.getContainer();
+    yield toast.open();
+    const toastContainer = toast.getIframe().getBody()
+        .querySelector('div[class="swg-toast-container"]');
     expect(toastContainer.getAttribute('class'))
         .to.equal('swg-toast-container');
 
+    expect(win.getComputedStyle(toastContainer).getPropertyValue('display'))
+        .to.equal('flex');
+
     // Should have 'text' and 'action' items.
     expect(toastContainer.children.length).to.equal(2);
-    //expect(toastContainer).to.equal(1);
+
     const label = toastContainer.children[0];
-    expect(win.getComputedStyle(label).getPropertyValue('float'))
-        .to.equal('left');
     expect(label.getAttribute('class')).to.equal('swg-label');
     expect(label.textContent).to.equal(spec.text);
 
     const detail = toastContainer.children[1];
-    expect(win.getComputedStyle(detail).getPropertyValue('float'))
-        .to.equal('right');
+    expect(win.getComputedStyle(detail).getPropertyValue('color'))
+        .to.equal('rgb(0, 255, 0)');
     expect(detail.getAttribute('class')).to.equal('swg-detail');
     expect(detail.getAttribute('aria-label')).to.equal(spec.action.label);
     expect(detail.textContent).to.equal(spec.action.label);

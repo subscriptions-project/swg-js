@@ -17,37 +17,18 @@
 body {
   padding: 0;
   margin: 0;
+  font-family: 'Roboto', sans-serif;
 }
 
 .swg-toast-container {
-  font-family: 'Roboto', sans-serif;
   padding: 16px;
-}
-
-@-webkit-keyframes swg-notify {
-  from {
-      transform: translateY(100%);
-      opacity: 0;
-  }
-  to {
-      transform: translateY(0);
-      opacity: 1;
-  }
-}
-
-@-webkit-keyframes swg-notify-hide {
-  from {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(100%);
-    opacity: 0;
-  }
+  display: flex;
+  flex-direction: row;
+  width: 100%;
 }
 
 .swg-label {
-  float: left;
+  flex: auto;
 }
 
 .swg-detail {
@@ -58,6 +39,6 @@ body {
   font-size: inherit;
   outline: none;
   white-space: nowrap;
-  float: right;
+  flex: initial;
   font-family: inherit;
 }

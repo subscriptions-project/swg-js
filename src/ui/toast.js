@@ -28,11 +28,11 @@ import {
 } from '../utils/style';
 import {CSS as TOAST_CSS} from '../../build/css/ui/toast.css';
 
-/** @const @enum {string} */
+/** @const {!Object<string, string|number>} */
 export const toastImportantStyles = {
   'height': '60px',
   'position': 'fixed',
-  'bottom': '0',
+  'bottom': 0,
   'color': 'rgb(255, 255, 255)',
   'font-size': '15px',
   'padding': '20px 8px 0',
@@ -44,6 +44,12 @@ export const toastImportantStyles = {
   'font-family': 'Roboto, sans-serif',
 };
 
+/** @typedef {{
+ *    text: string,
+ *    action: ({label: string, handler: function()}|undefined)}}
+ */
+export let ToastSpec;
+
 
 /**
  * The class Notification toast.
@@ -52,23 +58,24 @@ export class Toast {
 
   /**
    * @param {!Window} win
-   * @param {!{
-   *   text: string,
-   *   action: (!{label: string, handler: function()}|undefined),
-   * }} spec
+   * @param {!ToastSpec} spec
    */
   constructor(win, spec) {
 
     /** @private @const {!Window} */
     this.win_ = win;
 
-    /** @private @const {!Element} */
+    /** @private @const {!HTMLDocument} */
     this.doc_ = win.document;
 
-    /** @private @const {!Object} */
+    /** @private @const {!ToastSpec} */
     this.spec_ = spec;
 
+    /** @private @const {!FriendlyIframe} */
     this.iframe_ = new FriendlyIframe(this.doc_, {'class': 'swg-toast'});
+
+    /** @private {?Element} */
+    this.container_ = null;
 
     setImportantStyles(this.iframe_.getElement(), toastImportantStyles);
     setStyles(this.iframe_.getElement(), topFriendlyIframePositionStyles);
@@ -91,7 +98,7 @@ export class Toast {
   }
 
   /**
-   * Opens the notification toasts.
+   * Opens the notification toast.
    * @return {!Promise}
    */
   open() {
@@ -101,12 +108,11 @@ export class Toast {
     }
     this.doc_.body.appendChild(iframe.getElement());  // Fires onload.
 
-    //this.state_.shouldRetry = false;
     return iframe.whenReady().then(() => this.buildIframe_());
   }
 
   /**
-   * Closes the dialog.
+   * Closes the toast.
    */
   close() {
     this.doc_.body.removeChild(this.iframe_.getElement());
@@ -132,42 +138,33 @@ export class Toast {
   }
 
   /**
-   * Gets the container within the toast.
-   * @return {!Element}
-   */
-  getContainer() {
-    if (!this.container_) {
-      throw new Error('not opened yet');
-    }
-    return this.container_;
-  }
-
-  /**
    * Adds label and detail button.
    * @param {!Document} iframeDoc
-   * @param {!Element} iframeBody
+   * @param {?HTMLBodyElement} iframeBody
    * @private
    */
   addItems_(iframeDoc, iframeBody) {
+    const childElements = [];
 
     const label = createElement(iframeDoc, 'div', {
       'class': 'swg-label',
-    });
-    label.textContent = this.spec_.text;
+    }, this.spec_.text);
+    childElements.push(label);
 
-    const linkButton = createElement(iframeDoc, 'button', {
-      'class': 'swg-detail',
-      'aria-label': 'Details',
-    });
-    linkButton.textContent = 'Details';
+    if (this.spec_.action && this.spec_.action.label) {
+      const linkButton = createElement(iframeDoc, 'button', {
+        'class': 'swg-detail',
+        'aria-label': 'Details',
+      }, this.spec_.action.label);
+      linkButton.addEventListener('click', this.spec_.action.handler);
+      childElements.push(linkButton);
+    }
 
-    // Create container element and add 'label' and 'linkButton' to it.
+    // Create container element and add 'label' and/or 'linkButton' to it.
     this.container_ = createElement(iframeDoc, 'div', {
       'class': 'swg-toast-container',
-    }, [label, linkButton]);
+    }, childElements);
 
     iframeBody.appendChild(this.container_);
-
-    linkButton.addEventListener('click', this.spec_.action.handler);
   }
 }
