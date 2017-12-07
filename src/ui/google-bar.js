@@ -42,7 +42,7 @@ export class GoogleBar {
   /**
    * Builds the child elements.
    * @private
-   * @return {!Array<Node>}
+   * @return {!Array<!Node>}
    */
   buildChildren_() {
     const items = [];

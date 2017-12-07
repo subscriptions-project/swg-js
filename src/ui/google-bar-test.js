@@ -16,47 +16,17 @@
 
 import {GoogleBar} from './google-bar';
 import {injectStyleSheet} from '../utils/dom';
+import {CSS as GOOGLE_BAR_CSS} from '../../build/css/ui/google-bar.css';
 
 describes.realWin('GoogleBar', {} , env => {
   let win;
   let doc;
   let googleBar;
 
-  const styles = `
-  .swg-google-bar {
-    height: 4px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    display: flex !important;
-    z-index: 2147483647 !important;
-  }
-
-  .swg-google-bar .swg-bar {
-    height: 100% !important;
-    flex: 1 !important;
-    z-index: 2147483647 !important;
-  }
-
-  .swg-bar:nth-child(1) {
-    background-color: #4285f4 !important;
-  }
-
-  .swg-bar:nth-child(2) {
-    background-color: #0f9d58 !important;
-  }
-
-  .swg-bar:nth-child(3) {
-    background-color: #f4b400 !important;
-  }
-
-  .swg-bar:nth-child(4) {
-    background-color: #db4437 !important;
-  }
-  `;
   beforeEach(() => {
     win = env.win;
     doc = win.document;
-    injectStyleSheet(doc, styles);
+    injectStyleSheet(doc, GOOGLE_BAR_CSS);
     googleBar = new GoogleBar(win);
   });
 
