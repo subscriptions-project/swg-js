@@ -434,10 +434,9 @@ export class SubscriptionsFlow {
   }
 
   /**
-   * @param {!Object} user
    * @private
    */
-  googleSigninConfirmed_(user) {
+  googleSigninConfirmed_() {
     // TODO(avimehta, #21): Restart authorization again, instead of redirect
     // here. (btw, it's fine if authorization restart does redirect itself when
     // needed)
@@ -454,7 +453,7 @@ export class SubscriptionsFlow {
         this,
         this.offerContainer_,
         this.state_.activeResponse)
-      .onSubscribeClicked(this.activatePay_.bind(this)));
+        .onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
   /**
