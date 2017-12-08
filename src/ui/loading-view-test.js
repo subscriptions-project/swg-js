@@ -16,7 +16,7 @@
 
 import {injectStyleSheet} from '../utils/dom';
 import {LoadingView} from './loading-view';
-
+import {CSS as LOADING_VIEW_CSS} from '../../build/css/ui/loading-view.css';
 
 describes.realWin('LoadingView', {}, env => {
   let doc;
@@ -25,13 +25,6 @@ describes.realWin('LoadingView', {}, env => {
   let loadingView;
   let loadingContainer;
   const hiddenStyle = 'display: none !important;';
-  const styleText = `.swg-loading {
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 2147483647 !important;
-  }`;
 
   beforeEach(() => {
     win = env.win;
@@ -41,7 +34,7 @@ describes.realWin('LoadingView', {}, env => {
     body.appendChild(loadingView.getElement());
 
     // TO test the injected styles have been applied.
-    injectStyleSheet(doc, styleText);
+    injectStyleSheet(doc, LOADING_VIEW_CSS);
     loadingContainer = body.querySelector('div[class="swg-loading"]');
   });
 
