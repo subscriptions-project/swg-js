@@ -40,9 +40,13 @@ export class SubscriptionMarkup {
   constructor(win) {
     this.win = win;
 
+    /** @type {?string} */
     this.accessType_ = null;
+    /** @type {?string} */
     this.accessContent_ = null;
+    /** @type {?string} */
     this.accessControl_ = null;
+    /** @type {?string} */
     this.themeColor_ = null;
 
     this.setEntitled(EntitledState.UNKNOWN);
@@ -52,7 +56,7 @@ export class SubscriptionMarkup {
    * @return {string} Returns the access type setting for a given page.
    */
   getAccessType() {
-    if (this.accessType_ == null) {
+    if (this.accessType_ === null) {
       this.accessType_ = this.getMetaTag_('access-type');
     }
     return this.accessType_;
@@ -62,7 +66,7 @@ export class SubscriptionMarkup {
    * @return {string} Returns the access content setting for a given page.
    */
   getAccessContent() {
-    if (this.accessContent_ == null) {
+    if (this.accessContent_ === null) {
       this.accessContent_ = this.getMetaTag_('access-content');
     }
     return this.accessContent_;
@@ -72,7 +76,7 @@ export class SubscriptionMarkup {
    * @return {string} Returns the access control setting for a given page.
    */
   getAccessControl() {
-    if (this.accessControl_ == null) {
+    if (this.accessControl_ === null) {
       this.accessControl_ = this.getMetaTag_('access-control');
     }
     return this.accessControl_;
@@ -82,7 +86,7 @@ export class SubscriptionMarkup {
    * @return {string}
    */
   getThemeColor() {
-    if (this.themeColor_ == null) {
+    if (this.themeColor_ === null) {
       this.themeColor_ = this.getMetaTag_('theme-color');
     }
     return this.themeColor_;

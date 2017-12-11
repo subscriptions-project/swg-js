@@ -66,7 +66,7 @@ export function createElement(doc, tagName, attributes, opt_content) {
     if (typeof opt_content == 'string') {
       element.textContent = opt_content;
     } else if (opt_content.nodeType) {
-      element.appendChild(opt_content);
+      element.appendChild(/** @type {!Node} */ (opt_content));
     } else if ('length' in opt_content) {
       for (let i = 0; i < opt_content.length; i++) {
         element.appendChild(opt_content[i]);
