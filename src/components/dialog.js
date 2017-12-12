@@ -50,7 +50,7 @@ const rootElementImportantStyles = {
  * Position of the dialog.
  * @const @enum {string}
  */
-const positionAt = {
+const PositionAt = {
   BOTTOM: 'BOTTOM',
   TOP: 'TOP',
   FLOAT: 'FLOAT',
@@ -178,7 +178,7 @@ export class Dialog {
    * @return {string}
    */
   setPosition_() {
-    setImportantStyles(this.getElement(), this.getpositionStyle_());
+    setImportantStyles(this.getElement(), this.getPositionStyle_());
   }
 
   /**
@@ -187,7 +187,7 @@ export class Dialog {
    * @private
    */
   updatePaddingToHtml_() {
-    if (this.inferPosition_() == positionAt.BOTTOM) {
+    if (this.inferPosition_() == PositionAt.BOTTOM) {
       const bottomPadding = this.getHeight_() + 20;  // Add some extra padding.
       const htmlElement = this.doc_.documentElement;
 
@@ -217,7 +217,7 @@ export class Dialog {
    * @private
    */
   inferPosition_() {
-    return positionAt.BOTTOM;
+    return PositionAt.BOTTOM;
   }
 
   /**
@@ -225,21 +225,21 @@ export class Dialog {
    * @return {!Object<string, string|number>}
    * @private
    */
-  getpositionStyle_() {
+  getPositionStyle_() {
     const dialogPosition = this.inferPosition_();
     switch (dialogPosition) {
-      case positionAt.BOTTOM:
+      case PositionAt.BOTTOM:
         return {'bottom': 0};
-      case positionAt.TOP:
+      case PositionAt.TOP:
         return {'top': 0};
-      case positionAt.FLOAT:
+      case PositionAt.FLOAT:
         return {
           'position': 'fixed',
           'top': '50%',
           'left': '50%',
           'transform': 'translate(-50%, -50%)',
         };
-      case positionAt.FULL:
+      case PositionAt.FULL:
         return {
           'position': 'fixed',
           'height': '100%',
