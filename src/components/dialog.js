@@ -19,6 +19,7 @@ import {
   injectFontsLink,
 } from '../utils/dom';
 import {
+  getStyle,
   googleFontsUrl,
   setStyles,
   setImportantStyles,
@@ -47,26 +48,50 @@ const rootElementImportantStyles = {
   'box-sizing': 'border-box',
 };
 
+/**
+ * Position of the dialog.
+ * @const @enum {string}
+ */
+const positionAt = {
+  BOTTOM: 'BOTTOM',
+  TOP: 'TOP',
+  FLOAT: 'FLOAT',
+  FULL: 'FULL',
+};
+
 
 /**
  * The class for the top level dialog.
+ * @final
  */
 export class Dialog {
 
   /**
-   * @param {!Document} doc
+   * Create a dialog with optionally provided window and override important
+   * styles and position styles.
+   * @param {!Window} win
+   * @param {!Object<string, string|number>=} importantStyles
+   * @param {!Object<string, string|number>=} styles
    */
-  constructor(doc) {
+  constructor(win, importantStyles = {}, styles = {}) {
+
+    /** @private @const {!Window} */
+    this.win_ = win;
+
     /** @private @const {!Document} */
-    this.doc_ = doc;
+    this.doc_ = this.win_.document;
 
     /** @private @const {!FriendlyIframe} */
-    this.iframe_ = new FriendlyIframe(doc, {'class': 'swg-dialog'});
+    this.iframe_ = new FriendlyIframe(this.doc_, {'class': 'swg-dialog'});
 
+    const modifiedImportantStyles =
+        Object.assign({}, rootElementImportantStyles, importantStyles);
     setImportantStyles(
-        this.iframe_.getElement(), rootElementImportantStyles);
+        this.iframe_.getElement(), modifiedImportantStyles);
 
-    setStyles(this.iframe_.getElement(), topFriendlyIframePositionStyles);
+    const modifiedStyles =
+        Object.assign({}, topFriendlyIframePositionStyles, styles);
+    setStyles(this.iframe_.getElement(), modifiedStyles);
 
     /** @private {?Element} */
     this.container_ = null;  // Depends on constructed document inside iframe.
@@ -101,6 +126,7 @@ export class Dialog {
     this.container_ =
         createElement(iframeDoc, 'div', {'class': 'swg-container'});
     iframe.getBody().appendChild(this.container_);
+    this.addBottomPaddingToHtml_();
     return this;
   }
 
@@ -109,6 +135,7 @@ export class Dialog {
    */
   close() {
     this.doc_.body.removeChild(this.iframe_.getElement());
+    this.removeBottomPaddingToHtml_();
   }
 
   /**
@@ -136,5 +163,60 @@ export class Dialog {
    */
   getElement() {
     return this.iframe_.getElement();
+  }
+
+  /**
+   * Gets the element's height.
+   * @return {number}
+   * @private
+   */
+  getHeight_() {
+    return this.getElement().offsetHeight;
+  }
+
+  /**
+   * Gets the position of the dialog. Currently 'BOTTOM' is set by default.
+   * @return {string}
+   */
+  getPosition() {
+    const bottom = getStyle(this.getElement(), 'bottom');
+    let position;
+    if (parseInt(bottom, 10) <= 0) {
+      position = positionAt.BOTTOM;
+    }
+
+    const top = getStyle(this.getElement(), 'top');
+    if (parseInt(top, 10) <= 0) {
+      position =
+          (position == positionAt.BOTTOM) ? positionAt.FULL : positionAt.TOP;
+    }
+
+    if (this.win_.innerHeight == this.getHeight_()) {
+      position = positionAt.FULL;
+    }
+    return position || positionAt.FLOAT;
+  }
+
+  /**
+   * Add the padding to the containing page so as to not hide the content
+   * behind the popup, if rendered at the bottom.
+   * @private
+   */
+  addBottomPaddingToHtml_() {
+    if (this.getPosition() == positionAt.BOTTOM) {
+      const bottomPadding = this.getHeight_() + 20;  // Add some extra padding.
+      const htmlElement = this.doc_.documentElement;
+
+      // TODO(dparikh): Read the existing padding with the unit value
+      // (em, ex, %, px, cm, mm, in, pt, pc), and if available then append the
+      // padding after converting the units.
+      setImportantStyles(htmlElement, {
+        'padding-bottom': `${bottomPadding}px`,
+      });
+    }
+  }
+
+  removeBottomPaddingToHtml_() {
+    this.doc_.documentElement.style.removeProperty('padding-bottom');
   }
 }
