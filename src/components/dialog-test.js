@@ -96,8 +96,8 @@ describes.realWin('Dialog', {}, env => {
     });
 
     it('should return the dialog position', function* () {
-      const openedDialog = yield dialog.open();
-      expect(openedDialog.getPosition()).to.equal('BOTTOM');
+      yield dialog.open();
+
       expect(win.document.documentElement.style.paddingBottom)
           .to.equal(`${documentHeight + 20}px`);
     });

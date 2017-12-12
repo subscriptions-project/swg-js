@@ -19,7 +19,6 @@ import {
   injectFontsLink,
 } from '../utils/dom';
 import {
-  getStyle,
   googleFontsUrl,
   setStyles,
   setImportantStyles,
@@ -42,7 +41,6 @@ const rootElementImportantStyles = {
   'background-color': 'rgb(255, 255, 255)',
   'font-family': 'Roboto, sans-serif',
   'position': 'fixed',
-  'bottom': '0',
   'z-index': '2147483647',
   'box-shadow': 'gray 0px 3px, gray 0px 0px 22px',
   'box-sizing': 'border-box',
@@ -126,7 +124,8 @@ export class Dialog {
     this.container_ =
         createElement(iframeDoc, 'div', {'class': 'swg-container'});
     iframe.getBody().appendChild(this.container_);
-    this.addBottomPaddingToHtml_();
+    this.setPosition_();
+    this.updatePaddingToHtml_();
     return this;
   }
 
@@ -135,7 +134,7 @@ export class Dialog {
    */
   close() {
     this.doc_.body.removeChild(this.iframe_.getElement());
-    this.removeBottomPaddingToHtml_();
+    this.removePaddingToHtml_();
   }
 
   /**
@@ -175,26 +174,11 @@ export class Dialog {
   }
 
   /**
-   * Gets the position of the dialog. Currently 'BOTTOM' is set by default.
+   * Sets the position of the dialog. Currently 'BOTTOM' is set by default.
    * @return {string}
    */
-  getPosition() {
-    const bottom = getStyle(this.getElement(), 'bottom');
-    let position;
-    if (parseInt(bottom, 10) <= 0) {
-      position = positionAt.BOTTOM;
-    }
-
-    const top = getStyle(this.getElement(), 'top');
-    if (parseInt(top, 10) <= 0) {
-      position =
-          (position == positionAt.BOTTOM) ? positionAt.FULL : positionAt.TOP;
-    }
-
-    if (this.win_.innerHeight == this.getHeight_()) {
-      position = positionAt.FULL;
-    }
-    return position || positionAt.FLOAT;
+  setPosition_() {
+    setImportantStyles(this.getElement(), this.getpositionStyle_());
   }
 
   /**
@@ -202,8 +186,8 @@ export class Dialog {
    * behind the popup, if rendered at the bottom.
    * @private
    */
-  addBottomPaddingToHtml_() {
-    if (this.getPosition() == positionAt.BOTTOM) {
+  updatePaddingToHtml_() {
+    if (this.inferPosition_() == positionAt.BOTTOM) {
       const bottomPadding = this.getHeight_() + 20;  // Add some extra padding.
       const htmlElement = this.doc_.documentElement;
 
@@ -216,7 +200,54 @@ export class Dialog {
     }
   }
 
-  removeBottomPaddingToHtml_() {
+  /**
+   * Removes previouly added bottom padding from the document.
+   * @private`
+   */
+  removePaddingToHtml_() {
     this.doc_.documentElement.style.removeProperty('padding-bottom');
+  }
+
+
+  /**
+   * Calculates the position of the dialog. Currently dialog is positioned at
+   * the bottom only. This could change in future to adjust the dialog position
+   * based on the screen size.
+   * @return {string}
+   * @private
+   */
+  inferPosition_() {
+    return positionAt.BOTTOM;
+  }
+
+  /**
+   * Returns the styles required to postion the dialog.
+   * @return {!Object<string, string|number>}
+   * @private
+   */
+  getpositionStyle_() {
+    const dialogPosition = this.inferPosition_();
+    switch (dialogPosition) {
+      case positionAt.BOTTOM:
+        return {'bottom': 0};
+      case positionAt.TOP:
+        return {'top': 0};
+      case positionAt.FLOAT:
+        return {
+          'position': 'fixed',
+          'top': '50%',
+          'left': '50%',
+          'transform': 'translate(-50%, -50%)',
+        };
+      case positionAt.FULL:
+        return {
+          'position': 'fixed',
+          'height': '100%',
+          'top': 0,
+          'bottom': 0,
+        };
+      default:
+        return {'bottom': 0};
+    }
   }
 }
