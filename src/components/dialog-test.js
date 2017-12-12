@@ -21,12 +21,15 @@ import {
 } from '../utils/style';
 
 describes.realWin('Dialog', {}, env => {
+  let win;
   let doc;
   let dialog;
+  const documentHeight = 100;
 
   beforeEach(() => {
+    win = env.win;
     doc = env.win.document;
-    dialog = new Dialog(doc);
+    dialog = new Dialog(win, {height: `${documentHeight}px`});
   });
 
   describe('dialog', () => {
@@ -90,6 +93,13 @@ describes.realWin('Dialog', {}, env => {
 
       expect(doc.querySelector('iframe')).to.be.null;
       expect(openedDialog.getIframe().isConnected()).to.equal(false);
+    });
+
+    it('should return the dialog position', function* () {
+      yield dialog.open();
+
+      expect(win.document.documentElement.style.paddingBottom)
+          .to.equal(`${documentHeight + 20}px`);
     });
   });
 });
