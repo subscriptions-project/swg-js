@@ -29,7 +29,7 @@ describes.realWin('Dialog', {}, env => {
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
-    dialog = new Dialog(win, {height: `${documentHeight}px`});
+    dialog = new Dialog(doc, {height: `${documentHeight}px`});
   });
 
   describe('dialog', () => {

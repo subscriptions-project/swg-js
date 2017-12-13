@@ -190,7 +190,6 @@ export class Dialog {
   }
 
   /**
-<<<<<<< HEAD
    * Gets the element's height.
    * @return {number}
    * @private
@@ -201,7 +200,6 @@ export class Dialog {
 
   /**
    * Sets the position of the dialog. Currently 'BOTTOM' is set by default.
-   * @return {string}
    */
   setPosition_() {
     setImportantStyles(this.getElement(), this.getPositionStyle_());
@@ -278,8 +276,6 @@ export class Dialog {
   }
 
   /**
-=======
->>>>>>> Added JSDoc
    * Adds the dialog close action button.
    * @param {HTMLBodyElement} body
    * @param {!HTMLDocument} doc
