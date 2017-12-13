@@ -138,8 +138,9 @@ export class SubscriptionsFlow {
     const renderIframe = this.win_.location;
     const isIframeRender = parseQueryString(renderIframe.search).iframe || 0;
 
+    // This is to test existing implementation and iframe implementation.
+    // TODO(dparikh): Remove this once iframe is fully implemented.
     if (isIframeRender == 0) {
-
       this.addOfferContainer_();
       this.show_();
 

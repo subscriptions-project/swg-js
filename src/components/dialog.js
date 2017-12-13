@@ -190,6 +190,7 @@ export class Dialog {
   }
 
   /**
+<<<<<<< HEAD
    * Gets the element's height.
    * @return {number}
    * @private
@@ -277,6 +278,8 @@ export class Dialog {
   }
 
   /**
+=======
+>>>>>>> Added JSDoc
    * Adds the dialog close action button.
    * @param {HTMLBodyElement} body
    * @param {!HTMLDocument} doc
