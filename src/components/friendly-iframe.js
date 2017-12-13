@@ -83,7 +83,7 @@ export class FriendlyIframe {
 
   /**
    * Gets the body of the iframe.
-   * @return {!Element}
+   * @return {HTMLBodyElement}
    */
   getBody() {
     return this.getDocument().body;

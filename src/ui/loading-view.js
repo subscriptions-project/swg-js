@@ -25,15 +25,12 @@ import {createElement} from '../utils/dom';
 export class LoadingView {
 
   /**
-   * @param {!Window} win
+   * @param {!Document} doc
    */
-  constructor(win) {
+  constructor(doc) {
 
-    /** @private @const {!Window} */
-    this.win_ = win;
-
-    /** @private @const {!Element} */
-    this.document_ = win.document;
+    /** @private @const {!Document} */
+    this.document_ = doc;
 
     /** @private @const {!Element} */
     this.loadingContainer_ = createElement(this.document_, 'div', {
