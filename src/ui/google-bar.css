@@ -18,31 +18,31 @@
   * Styles for Google top bar.
   */
 .swg-google-bar {
-  height: 4px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  display: flex !important;
-  z-index: 2147483647 !important;
+  height: 4px;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  z-index: 2147483647;
 }
 
 .swg-google-bar .swg-bar {
-  height: 100% !important;
-  flex: 1 !important;
-  z-index: 2147483647 !important;
+  height: 100%;
+  flex: 1;
+  z-index: 2147483647;
 }
 
 .swg-bar:nth-child(1) {
-  background-color: #4285f4 !important;
+  background-color: #4285f4;
 }
 
 .swg-bar:nth-child(2) {
-  background-color: #0f9d58 !important;
+  background-color: #0f9d58;
 }
 
 .swg-bar:nth-child(3) {
-  background-color: #f4b400 !important;
+  background-color: #f4b400;
 }
 
 .swg-bar:nth-child(4) {
-  background-color: #db4437 !important;
+  background-color: #db4437;
 }
