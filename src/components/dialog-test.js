@@ -137,10 +137,6 @@ describes.realWin('Dialog', {}, env => {
       const loadingView = iframeDoc.querySelector('.swg-loading');
       expect(loadingView.nodeName).to.equal('DIV');
 
-      // Test if at least one style is applied correctly and contains children.
-      // Extensive tests are included in individual loading-view-test.js.
-      expect(win.getComputedStyle(loadingView)
-          .getPropertyValue('height')).to.equal('24px');
       expect(loadingView.children.length).to.equal(4);
     });
   });
