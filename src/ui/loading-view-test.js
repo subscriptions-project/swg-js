@@ -30,7 +30,7 @@ describes.realWin('LoadingView', {}, env => {
     win = env.win;
     doc = env.win.document;
     body = doc.body;
-    loadingView = new LoadingView(win, body);
+    loadingView = new LoadingView(doc);
     body.appendChild(loadingView.getElement());
 
     // TO test the injected styles have been applied.

@@ -23,15 +23,12 @@ import {createElement} from '../utils/dom';
 export class GoogleBar {
 
     /**
-     * @param {!Window} win
+     * @param {!HTMLDocument} doc
      */
-  constructor(win) {
+  constructor(doc) {
 
-      /** @private @const {!Window} */
-    this.win_ = win;
-
-      /** @private @const {!HTMLDocument} */
-    this.doc_ = win.document;
+    /** @private @const {!HTMLDocument} */
+    this.doc_ = doc;
 
     /** @private {!Element} */
     this.gBar_ = createElement(this.doc_, 'div', {

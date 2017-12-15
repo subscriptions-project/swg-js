@@ -18,11 +18,13 @@
 import {AbbreviatedView} from './abbreviated-view';
 import {assert} from '../utils/log';
 import {debounce} from '../utils/rate-limit';
+import {Dialog} from '../components/dialog';
 import {GoogleSigninView} from './google-signin-view';
 import {LoadingView} from './loading-view';
 import {LoginWithView} from './login-with-view';
 import {OffersView} from './offers-view';
 import {PaymentsView} from './payments-view';
+import {parseQueryString} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 
@@ -82,6 +84,9 @@ export class SubscriptionsFlow {
     /** @private @const {!SubscriptionState} */
     this.state_ = state;
 
+    /** @private @const {!Dialog} */
+    this.dialog_ = new Dialog(this.document_);
+
     /** @private {?Element} */
     this.offerContainer_ = null;
 
@@ -130,25 +135,37 @@ export class SubscriptionsFlow {
    * @return {!Promise}
    */
   start() {
-    this.addOfferContainer_();
-    this.show_();
+    const urlLocation = this.win_.location;
+    const isIframeRender = parseQueryString(urlLocation.search).iframe || 0;
 
-    // Attach the invisible faded background to be used for some views.
-    this.attachBackground_();
+    // This is to test existing implementation and iframe implementation.
+    // TODO(dparikh): Remove this once iframe is fully implemented.
+    if (isIframeRender == 0) {
+      this.addOfferContainer_();
+      this.show_();
 
-    // Build the loading indicator.
-    this.loadingView_ = new LoadingView(this.win_, this.offerContainer_);
+      // Attach the invisible faded background to be used for some views.
+      this.attachBackground_();
 
-    this.openView_(new AbbreviatedView(
-        this.win_,
-        this,
-        this.offerContainer_,
-        this.state_.activeResponse)
-        .onAlreadySubscribedClicked(this.activateLoginWith_.bind(this))
-        .onSubscribeClicked(this.activateOffers_.bind(this)));
-    return new Promise(resolve => {
-      this.complete_ = resolve;
-    });
+      // Build the loading indicator.
+      this.loadingView_ = new LoadingView(this.win_, this.offerContainer_);
+
+      this.openView_(new AbbreviatedView(
+          this.win_,
+          this,
+          this.offerContainer_,
+          this.state_.activeResponse)
+          .onAlreadySubscribedClicked(this.activateLoginWith_.bind(this))
+          .onSubscribeClicked(this.activateOffers_.bind(this)));
+      return new Promise(resolve => {
+        this.complete_ = resolve;
+      });
+    } else {
+      this.dialog_.open().then(() => {
+        // TODO(dparikh): Implementation.
+      });
+
+    }
   }
 
   /** @private */

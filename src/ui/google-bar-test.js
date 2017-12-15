@@ -27,7 +27,7 @@ describes.realWin('GoogleBar', {} , env => {
     win = env.win;
     doc = win.document;
     injectStyleSheet(doc, GOOGLE_BAR_CSS);
-    googleBar = new GoogleBar(win);
+    googleBar = new GoogleBar(doc);
   });
 
   it('should have created a Google bar', () => {

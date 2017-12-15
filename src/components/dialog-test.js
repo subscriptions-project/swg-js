@@ -29,7 +29,7 @@ describes.realWin('Dialog', {}, env => {
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
-    dialog = new Dialog(win, {height: `${documentHeight}px`});
+    dialog = new Dialog(doc, {height: `${documentHeight}px`});
   });
 
   describe('dialog', () => {
@@ -100,6 +100,44 @@ describes.realWin('Dialog', {}, env => {
 
       expect(win.document.documentElement.style.paddingBottom)
           .to.equal(`${documentHeight + 20}px`);
+    });
+
+    it('should have Close button with click listener', function* () {
+      const openedDialog = yield dialog.open();
+      const iframeDoc = openedDialog.getIframe().getDocument();
+      const closeButton = iframeDoc.querySelector('.swg-close-action');
+      expect(closeButton.nodeName).to.equal('DIV');
+
+      // Before closing the dialog, check that iframe exists in document.
+      expect(doc.querySelector('iframe')).to.equal(openedDialog.getElement());
+
+      // Clicking the close button should remove the dialog from the document.
+      closeButton.click();
+
+      // Check that container iframe does not exist any more.
+      expect(doc.querySelector('iframe')).to.be.null;
+    });
+
+    it('should have Google bar element added', function* () {
+      const openedDialog = yield dialog.open();
+      const iframeDoc = openedDialog.getIframe().getDocument();
+      const googleBar = iframeDoc.querySelector('.swg-google-bar');
+      expect(googleBar.nodeName).to.equal('DIV');
+
+      // Test if at least one style is applied correctly.
+      // Extensite tests are included in individual google-bar-test.js.
+      expect(win.getComputedStyle(googleBar)
+          .getPropertyValue('height')).to.equal('4px');
+      expect(googleBar.children.length).to.equal(4);
+    });
+
+    it('should have Loading view element added', function* () {
+      const openedDialog = yield dialog.open();
+      const iframeDoc = openedDialog.getIframe().getDocument();
+      const loadingView = iframeDoc.querySelector('.swg-loading');
+      expect(loadingView.nodeName).to.equal('DIV');
+
+      expect(loadingView.children.length).to.equal(4);
     });
   });
 });

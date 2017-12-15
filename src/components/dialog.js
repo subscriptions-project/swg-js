@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
+import {GoogleBar} from '../ui/google-bar';
+import {LoadingView} from '../ui/loading-view';
+import {CSS as DIALOG_CSS} from
+    '../../build/css/ui/dialog.css';
 import {
   createElement,
   injectFontsLink,
+  injectStyleSheet,
 } from '../utils/dom';
 import {
   googleFontsUrl,
@@ -67,17 +72,14 @@ export class Dialog {
   /**
    * Create a dialog with optionally provided window and override important
    * styles and position styles.
-   * @param {!Window} win
+   * @param {!HTMLDocument} doc
    * @param {!Object<string, string|number>=} importantStyles
    * @param {!Object<string, string|number>=} styles
    */
-  constructor(win, importantStyles = {}, styles = {}) {
+  constructor(doc, importantStyles = {}, styles = {}) {
 
-    /** @private @const {!Window} */
-    this.win_ = win;
-
-    /** @private @const {!Document} */
-    this.doc_ = this.win_.document;
+    /** @private @const {!HTMLDocument} */
+    this.doc_ = doc;
 
     /** @private @const {!FriendlyIframe} */
     this.iframe_ = new FriendlyIframe(this.doc_, {'class': 'swg-dialog'});
@@ -90,6 +92,15 @@ export class Dialog {
     const modifiedStyles =
         Object.assign({}, topFriendlyIframePositionStyles, styles);
     setStyles(this.iframe_.getElement(), modifiedStyles);
+
+    /** @private {GoogleBar} */
+    this.googleBar_ = null;
+
+    /** @private {LoadingView} */
+    this.loadingView_ = null;
+
+    /** @private {Element} */
+    this.closeButton_ = null;
 
     /** @private {?Element} */
     this.container_ = null;  // Depends on constructed document inside iframe.
@@ -116,14 +127,28 @@ export class Dialog {
    */
   buildIframe_() {
     const iframe = this.iframe_;
-    const iframeDoc = this.iframe_.getDocument();
+    const iframeBody = iframe.getBody();
+    const iframeDoc = /** @type {!HTMLDocument} */ (this.iframe_.getDocument());
 
     // Inject Google fonts in <HEAD> section of the iframe.
-    injectFontsLink(iframe.getDocument(), googleFontsUrl);
+    injectFontsLink(iframeDoc, googleFontsUrl);
+    injectStyleSheet(iframeDoc, DIALOG_CSS);
 
+    this.closeButton_ = this.createCloseButton_(iframeDoc);
+    iframeBody.appendChild(this.closeButton_);
+
+    // Add GoogleBar.
+    this.googleBar_ = new GoogleBar(iframeDoc);
+    iframeBody.appendChild(this.googleBar_.getElement());
+
+    // Add Loading indicator.
+    this.loadingView_ = new LoadingView(iframeDoc);
+    iframeBody.appendChild(this.loadingView_.getElement());
+
+    // Container for all dynamic content, including 3P iframe.
     this.container_ =
         createElement(iframeDoc, 'div', {'class': 'swg-container'});
-    iframe.getBody().appendChild(this.container_);
+    iframeBody.appendChild(this.container_);
     this.setPosition_();
     this.updatePaddingToHtml_();
     return this;
@@ -175,7 +200,6 @@ export class Dialog {
 
   /**
    * Sets the position of the dialog. Currently 'BOTTOM' is set by default.
-   * @return {string}
    */
   setPosition_() {
     setImportantStyles(this.getElement(), this.getPositionStyle_());
@@ -249,5 +273,21 @@ export class Dialog {
       default:
         return {'bottom': 0};
     }
+  }
+
+  /**
+   * Adds the dialog close action button.
+   * @param {!Document} doc
+   * @return {!Element}
+   * @private
+   */
+  createCloseButton_(doc) {
+    const closeButton = createElement(doc, 'div', {
+      'class': 'swg-close-action',
+      'role': 'button',
+    });
+    closeButton.addEventListener('click', () => this.close());
+
+    return closeButton;
   }
 }
