@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-@import url('../ui/loading-view.css');
-@import url('../ui/google-bar.css');
+@import url('./loading-view.css');
+@import url('./google-bar.css');
 
 .swg-close-action {
-  position: absolute !important;
-  right: 16px !important;
-  top: 20px !important;  /* 16px padding + 4px top Google bar */
-  padding: 0 !important;
-  margin: 0 !important;
-  background-color: transparent !important;
-  border: none !important;
-  z-index: 2147483647 !important;
-  width: 11px !important;
-  height: 11px !important;
-  background-image: url("data:image/svg+xml;charset=utf-8,<svg viewPort='0 0 11 11' version='1.1' xmlns='http://www.w3.org/2000/svg'><line x1='0' y1='11' x2='11' y2='0' stroke='#757575' stroke-width='1'/><line x1='0' y1='0' x2='11' y2='11' stroke='#757575' stroke-width='1'/></svg>") !important;
+  position: absolute;
+  right: 16px;
+  top: 20px;  /* 16px padding + 4px top Google bar */
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  border: none;
+  z-index: 2147483647;
+  width: 11px;
+  height: 11px;
+  background-image: url("data:image/svg+xml;charset=utf-8,<svg viewPort='0 0 11 11' version='1.1' xmlns='http://www.w3.org/2000/svg'><line x1='0' y1='11' x2='11' y2='0' stroke='#757575' stroke-width='1'/><line x1='0' y1='0' x2='11' y2='11' stroke='#757575' stroke-width='1'/></svg>");
 }
 
 body {

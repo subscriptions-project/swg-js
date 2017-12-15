@@ -30,10 +30,10 @@ export class LoadingView {
   constructor(doc) {
 
     /** @private @const {!Document} */
-    this.document_ = doc;
+    this.doc_ = doc;
 
     /** @private @const {!Element} */
-    this.loadingContainer_ = createElement(this.document_, 'div', {
+    this.loadingContainer_ = createElement(this.doc_, 'div', {
       'class': 'swg-loading',
     });
 
@@ -76,7 +76,7 @@ export class LoadingView {
     // Add 4 vertical bars animated at different speed, as defined in the
     // style.
     for (let i = 0; i < 4; i++) {
-      const loadingBar = createElement(this.document_, 'div', {
+      const loadingBar = createElement(this.doc_, 'div', {
         'class': 'swg-loading-bar',
       });
       loadingContainer.appendChild(loadingBar);

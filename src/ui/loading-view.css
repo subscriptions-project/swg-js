@@ -18,7 +18,7 @@
  * Styles for main <div class="swg-loading"> element.
  */
 
-@-webkit-keyframes swg-loading {
+@keyframes swg-loading {
  0% {
    transform: scale(1);
  }

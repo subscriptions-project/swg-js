@@ -100,7 +100,7 @@ export class Dialog {
     this.loadingView_ = null;
 
     /** @private {Element} */
-    this.closeDialogButton_ = null;
+    this.closeButton_ = null;
 
     /** @private {?Element} */
     this.container_ = null;  // Depends on constructed document inside iframe.
@@ -134,16 +134,16 @@ export class Dialog {
     injectFontsLink(iframeDoc, googleFontsUrl);
     injectStyleSheet(iframeDoc, DIALOG_CSS);
 
-    this.closeDialogButton_ = this.addCloseButton_(iframeBody, iframeDoc);
+    this.closeButton_ = this.createCloseButton_(iframeDoc);
+    iframeBody.appendChild(this.closeButton_);
 
     // Add GoogleBar.
     this.googleBar_ = new GoogleBar(iframeDoc);
     iframeBody.appendChild(this.googleBar_.getElement());
 
-    // Add Loading indicator and make it visible.
+    // Add Loading indicator.
     this.loadingView_ = new LoadingView(iframeDoc);
     iframeBody.appendChild(this.loadingView_.getElement());
-    this.loadingView_.show();
 
     // Container for all dynamic content, including 3P iframe.
     this.container_ =
@@ -277,18 +277,16 @@ export class Dialog {
 
   /**
    * Adds the dialog close action button.
-   * @param {HTMLBodyElement} body
-   * @param {!HTMLDocument} doc
+   * @param {!Document} doc
    * @return {!Element}
    * @private
    */
-  addCloseButton_(body, doc) {
+  createCloseButton_(doc) {
     const closeButton = createElement(doc, 'div', {
       'class': 'swg-close-action',
       'role': 'button',
     });
     closeButton.addEventListener('click', () => this.close());
-    body.appendChild(closeButton);
 
     return closeButton;
   }

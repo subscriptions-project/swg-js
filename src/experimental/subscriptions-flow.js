@@ -135,8 +135,8 @@ export class SubscriptionsFlow {
    * @return {!Promise}
    */
   start() {
-    const renderIframe = this.win_.location;
-    const isIframeRender = parseQueryString(renderIframe.search).iframe || 0;
+    const urlLocation = this.win_.location;
+    const isIframeRender = parseQueryString(urlLocation.search).iframe || 0;
 
     // This is to test existing implementation and iframe implementation.
     // TODO(dparikh): Remove this once iframe is fully implemented.
