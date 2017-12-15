@@ -177,3 +177,13 @@ export function openWindowDialog(win, url, target, opt_features) {
   }
   return res;
 }
+
+
+/**
+ * Returns the BODY element of the document.
+ * @param {!Document} doc
+ * @return {!Element}
+ */
+export function getBody(doc) {
+  return /** @type {!Element} */ (doc.body);
+}

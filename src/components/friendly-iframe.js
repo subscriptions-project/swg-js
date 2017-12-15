@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import {createElement} from '../utils/dom';
+import {
+  createElement,
+  getBody,
+} from '../utils/dom';
 import {resetAllStyles} from '../utils/style';
 
 /** @const {!Object<string|number>} */
@@ -83,10 +86,10 @@ export class FriendlyIframe {
 
   /**
    * Gets the body of the iframe.
-   * @return {HTMLBodyElement}
+   * @return {!Element}
    */
   getBody() {
-    return this.getDocument().body;
+    return getBody(this.getDocument());
   }
 
   /**

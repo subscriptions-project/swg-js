@@ -270,6 +270,11 @@ describes.realWin('Dom', {}, env => {
             '_top', 'width=1');
         expect(res).to.be.null;
       });
+
+      it('should return the BODY element of the document', () => {
+        expect(dom.getBody(doc).nodeType).to.equal(1);
+        expect(dom.getBody(doc).nodeName).to.equal('BODY');
+      });
     });
   });
 });
