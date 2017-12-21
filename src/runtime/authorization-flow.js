@@ -103,7 +103,7 @@ export class AuthorizationFlow {
    * Retrieves the subscription config from the page or server and returns it.
    *
    * @private
-   * @return {!Promise<JsonObject>}
+   * @return {!Promise<!JsonObject>}
    */
   getPaywallConfig_() {
     log('Reading paywall config');
@@ -130,7 +130,7 @@ export class AuthorizationFlow {
     }
 
     this.config_ = config;
-    return Promise.resolve(this.config_);
+    return Promise.resolve(/** @type {!JsonObject} */ (this.config_));
   }
 
   /**
@@ -140,7 +140,7 @@ export class AuthorizationFlow {
    * @private
    * @param  {JsonObject} config Configuration that contains details about
    *     servers to contact.
-   * @return {!Promise<Array<!SubscriptionResponse>>}
+   * @return {!Promise<!Array<!SubscriptionResponse>>}
    */
   sendAuthRequests_(config) {
     log('Sending auth requests.');
@@ -153,7 +153,7 @@ export class AuthorizationFlow {
 
     // TODO(avimehta, #21): Move XHR utils to a separate class.
     const services = profiles[this.accessType_]['services'];
-    const authPromises = [];
+    const /** !Array<!Promise<!SubscriptionResponse>> */ authPromises = [];
     for (let i = 0; i < services.length; i++) {
       const service = services[i];
 
@@ -172,9 +172,10 @@ export class AuthorizationFlow {
           `&access-type=${encodeURIComponent(this.accessType_)}` +
           `&label=${encodeURIComponent(this.accessType_)}` +
           `&content_id=${encodeURIComponent(this.win.location.pathname)}`;
-      authPromises.push(this.xhr_.fetch(url, init)
+      authPromises.push(
+          this.xhr_.fetch(url, init)
           .then(response => response.json())
-          .then(json => ({
+          .then(json => /** @type {!SubscriptionResponse} */ ({
             'id': service['id'],
             'response': json,
           })));

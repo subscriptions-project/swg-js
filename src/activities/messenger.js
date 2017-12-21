@@ -123,7 +123,7 @@ export class Messenger {
   }
 
   /**
-   * @param {!MessageEvent} event
+   * @param {!Event} event
    * @private
    */
   handleEvent_(event) {
