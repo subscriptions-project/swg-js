@@ -21,6 +21,7 @@ import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
 import {NotificationView} from '../experimental/notification-view';
+import {OffersFlow} from './offers-flow';
 import {SubscriptionMarkup} from './subscription-markup';
 import {SubscriptionState} from './subscription-state';
 import {SubscriptionsFlow} from '../experimental/subscriptions-flow';
@@ -188,7 +189,7 @@ export class Runtime {
    * @return {?Promise}
    */
   startSubscriptionsFlowIfNeeded() {
-    const control = this.markup_.getAccessControl();
+    const control = this.markup_.getAccessControl() || 'manual';
     if (control == 'manual') {
       log('Skipping automatic start because access-control is set to "manual"');
       return null;
@@ -203,6 +204,13 @@ export class Runtime {
     assert(typeof platformSelector == 'function');
     this.platformSelector_ = platformSelector;
   }
+
+  /**
+   * Starts the Offers flow.
+   */
+  showOffers() {
+    return new OffersFlow(this.win).start();
+  }
 }
 
 /**
@@ -214,5 +222,6 @@ function createPublicRuntime(runtime) {
     start: runtime.start.bind(runtime),
     setSubscriptionPlatformSelector:
         runtime.setSubscriptionPlatformSelector.bind(runtime),
+    showOffers: runtime.showOffers.bind(runtime),
   });
 }

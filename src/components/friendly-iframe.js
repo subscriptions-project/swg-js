@@ -45,7 +45,8 @@ export class FriendlyIframe {
 
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ =
-        /** {!HTMLIFrameElement} */ (createElement(doc, 'iframe', mergedAttrs));
+        /** @type {!HTMLIFrameElement} */ (
+            createElement(doc, 'iframe', mergedAttrs));
 
     // Ensure that the new iframe does not inherit any CSS styles.
     resetAllStyles(this.iframe_);

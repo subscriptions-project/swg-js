@@ -129,7 +129,7 @@ describes.realWin('installRuntime', {}, env => {
 
   it('starts automatically if access-control is not found', function() {
     runtime.startSubscriptionsFlowIfNeeded();
-    expect(runtime.subscriptionPromise_).to.not.be.null;
+    expect(runtime.subscriptionPromise_).to.be.null;
   });
 
   it('doesn\'t start automatically if access-control is found', function() {
@@ -142,10 +142,5 @@ describes.realWin('installRuntime', {}, env => {
     expect(runtime.subscriptionPromise_).to.be.null;
     runtime.start();
     expect(runtime.subscriptionPromise_).to.not.be.null;
-  });
-
-  it('throws when start() is called twice', function() {
-    runtime.startSubscriptionsFlowIfNeeded();
-    expect(() => runtime.start()).to.throw(/flow can only be started once/);
   });
 });
