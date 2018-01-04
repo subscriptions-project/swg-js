@@ -19,6 +19,8 @@ import {createElement} from '../utils/dom';
 
  /**
   * The class for google branding bar.
+  * TODO(dparikh): The GoogleBar is removed from the UI, and this UI
+  * component can be removed, if this is not going to be used.
   */
 export class GoogleBar {
 
