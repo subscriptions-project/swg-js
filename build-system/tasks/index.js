@@ -16,7 +16,6 @@
 'use strict';
 
 require('./babel-helpers');
-require('./build-activities');
 require('./builders');
 require('./check-rules');
 require('./compile');

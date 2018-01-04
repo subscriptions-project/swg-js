@@ -69,7 +69,6 @@ var forbiddenTerms = {
     message: 'If you run against this, use console/*OK*/.log to ' +
       'whitelist a legit case.',
     whitelist: [
-      'src/activities-main.js',
       'src/main.js',
     ],
     checkInTestFolder: true,
