@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {GoogleBar} from '../ui/google-bar';
 import {LoadingView} from '../ui/loading-view';
 import {CSS as DIALOG_CSS} from
     '../../build/css/ui/dialog.css';
@@ -93,9 +92,6 @@ export class Dialog {
         Object.assign({}, topFriendlyIframePositionStyles, styles);
     setStyles(this.iframe_.getElement(), modifiedStyles);
 
-    /** @private {GoogleBar} */
-    this.googleBar_ = null;
-
     /** @private {LoadingView} */
     this.loadingView_ = null;
 
@@ -136,10 +132,6 @@ export class Dialog {
 
     this.closeButton_ = this.createCloseButton_(iframeDoc);
     iframeBody.appendChild(this.closeButton_);
-
-    // Add GoogleBar.
-    this.googleBar_ = new GoogleBar(iframeDoc);
-    iframeBody.appendChild(this.googleBar_.getElement());
 
     // Add Loading indicator.
     this.loadingView_ = new LoadingView(iframeDoc);

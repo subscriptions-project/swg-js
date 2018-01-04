@@ -118,19 +118,6 @@ describes.realWin('Dialog', {}, env => {
       expect(doc.querySelector('iframe')).to.be.null;
     });
 
-    it('should have Google bar element added', function* () {
-      const openedDialog = yield dialog.open();
-      const iframeDoc = openedDialog.getIframe().getDocument();
-      const googleBar = iframeDoc.querySelector('.swg-google-bar');
-      expect(googleBar.nodeName).to.equal('DIV');
-
-      // Test if at least one style is applied correctly.
-      // Extensite tests are included in individual google-bar-test.js.
-      expect(win.getComputedStyle(googleBar)
-          .getPropertyValue('height')).to.equal('4px');
-      expect(googleBar.children.length).to.equal(4);
-    });
-
     it('should have Loading view element added', function* () {
       const openedDialog = yield dialog.open();
       const iframeDoc = openedDialog.getIframe().getDocument();
