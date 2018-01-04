@@ -15,7 +15,7 @@
  */
 'use strict';
 
-var commonTestPaths = [
+const commonTestPaths = [
   'test/_init_tests.js',
   '!node_modules',
   {
@@ -44,28 +44,28 @@ var commonTestPaths = [
   },
 ];
 
-var basicTestPaths = [
+const basicTestPaths = [
   'src/**/*-test.js',
 ];
 
-var testPaths = commonTestPaths.concat(basicTestPaths);
+const testPaths = commonTestPaths.concat(basicTestPaths);
 
-var unitTestPaths = commonTestPaths.concat([
+const unitTestPaths = commonTestPaths.concat([
   'src/**/*-test.js',
   'test/functional/**/*.js',
 ]);
 
-var integrationTestPaths = commonTestPaths.concat([
+const integrationTestPaths = commonTestPaths.concat([
   'test/integration/**/*.js',
 ]);
 
 /** @const  */
 module.exports = {
-  commonTestPaths: commonTestPaths,
-  basicTestPaths: basicTestPaths,
-  testPaths: testPaths,
-  unitTestPaths: unitTestPaths,
-  integrationTestPaths: integrationTestPaths,
+  commonTestPaths,
+  basicTestPaths,
+  testPaths,
+  unitTestPaths,
+  integrationTestPaths,
   lintGlobs: [
     '**/*.js',
     '!**/*.extern.js',
@@ -90,11 +90,11 @@ module.exports = {
     '!build-system/server/*.js',
     '!build/polyfills.js',
     '!build/polyfills/*.js',
-    '!examples/sample-pub/material.css',
+    '!examples/sample-pub/**/*',
     '!gulpfile.js',
     '!src/experimental/**/*.js',
     '!third_party/**/*.*',
     '!test/coverage/**/*.*',
   ],
-  changelogIgnoreFileTypes: /\.md|\.json|\.yaml|LICENSE|CONTRIBUTORS$/
+  changelogIgnoreFileTypes: /\.md|\.json|\.yaml|LICENSE|CONTRIBUTORS$/,
 };
