@@ -41,12 +41,16 @@ export class OffersFlow {
     this.loadingView_ = null;
   }
 
+  /**
+   * Starts the offers flow.
+   * @return {!Promise}
+   */
   start() {
 
     // Build the loading indicator.
     this.loadingView_ = new LoadingView(this.document_);
 
-    this.dialog_.open().then(() => {
+    return this.dialog_.open().then(() => {
       this.loadingView_.show();
       // TODO add Offers iframe.
     });

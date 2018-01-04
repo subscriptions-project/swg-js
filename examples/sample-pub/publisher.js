@@ -16,12 +16,19 @@
 
 console.info('starting action from publisher.js');
 
+/**
+ * Add subsciptions when ready.
+ * @param {function()} callback
+ */
 function whenReady(callback) {
   (self.SUBSCRIPTIONS = self.SUBSCRIPTIONS || []).push(subscriptions => {
     callback(subscriptions);
   });
 }
 
+/**
+ * Starts the offers flow.
+ */
 function startOffersFlow() {
   whenReady(function(subscriptions) {
     subscriptions.showOffers();
