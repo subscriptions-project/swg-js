@@ -15,7 +15,6 @@
  */
 
 import {Dialog} from '../components/dialog';
-import {LoadingView} from '../ui/loading-view';
 
 
 /**
@@ -26,19 +25,20 @@ export class OffersFlow {
 
   /**
    * @param {!Window} win
+   * @param {!ActivityPorts} activityPorts
    */
-  constructor(win) {
+  constructor(win, activityPorts) {
     /** @private @const {!Window} */
     this.win_ = win;
 
     /** @private @const {!HTMLDocument} */
     this.document_ = win.document;
 
+    /** @private @const {!ActivityPorts} */
+    this.activityPorts_ = activityPorts;
+
     /** @private @const {!Dialog} */
     this.dialog_ = new Dialog(this.document_);
-
-    /** @private {?LoadingView} */
-    this.loadingView_ = null;
   }
 
   /**
@@ -46,13 +46,9 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
-
-    // Build the loading indicator.
-    this.loadingView_ = new LoadingView(this.document_);
-
     return this.dialog_.open().then(() => {
-      this.loadingView_.show();
       // TODO add Offers iframe.
     });
   }
+
 }
