@@ -15,23 +15,23 @@
  */
 'use strict';
 
-var $$ = require('gulp-load-plugins')();
-var babel = require('babelify');
-var browserify = require('browserify');
-var buffer = require('vinyl-buffer');
-var closureCompile = require('./closure-compile').closureCompile;
-var fs = require('fs-extra');
-var glob = require('glob');
-var gulp = $$.help(require('gulp'));
-var jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
-var lazypipe = require('lazypipe');
-var minimatch = require('minimatch');
-var minimist = require('minimist');
-var pathLib = require('path');
-var source = require('vinyl-source-stream');
-var touch = require('touch');
-var watchify = require('watchify');
-var internalRuntimeVersion = require('./internal-version').VERSION;
+const $$ = require('gulp-load-plugins')();
+const babel = require('babelify');
+const browserify = require('browserify');
+const buffer = require('vinyl-buffer');
+const closureCompile = require('./closure-compile').closureCompile;
+const fs = require('fs-extra');
+const glob = require('glob');
+const gulp = $$.help(require('gulp'));
+const jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
+const lazypipe = require('lazypipe');
+const minimatch = require('minimatch');
+const minimist = require('minimist');
+const pathLib = require('path');
+const source = require('vinyl-source-stream');
+const touch = require('touch');
+const watchify = require('watchify');
+const internalRuntimeVersion = require('./internal-version').VERSION;
 
 
 /**
@@ -46,23 +46,23 @@ exports.compile = function(opts) {
 
   // Compile CSS because we need the css files in compileJs step.
   return compileCss('./src/', './build/css', Object.assign({}, opts || {}))
-    .then(() => {
+      .then(() => {
 
       // For compilation with babel we start with the main-babel entry point,
       // but then rename to the subscriptions.js which we've been using all along.
-      return Promise.all([
-        compileJs('./src/', 'main', './dist',
-          Object.assign({
-            toName: 'subscriptions.max.js',
-            minifiedName: 'subscriptions.js',
-            includePolyfills: true,
+        return Promise.all([
+          compileJs('./src/', 'main', './dist', './node_modules/web-activities',
+              Object.assign({
+                toName: 'subscriptions.max.js',
+                minifiedName: 'subscriptions.js',
+                includePolyfills: true,
             // If there is a sync JS error during initial load,
             // at least try to unhide the body.
-            wrapper: '(function(){<%= contents %>})();'
-          }, opts || {})),
+                wrapper: '(function(){<%= contents %>})();',
+              }, opts || {})),
         ]);
-    });
-}
+      });
+};
 
 
 /**
@@ -108,43 +108,43 @@ function compileJs(srcDir, srcFilename, destDir, options) {
         });
   }
 
-  var bundler = browserify(srcDir + srcFilename + '-babel.js', {debug: true})
+  let bundler = browserify(srcDir + srcFilename + '-babel.js', {debug: true})
       .transform(babel, {loose: 'all'});
   if (options.watch) {
     bundler = watchify(bundler);
   }
 
-  var wrapper = options.wrapper || '<%= contents %>';
+  const wrapper = options.wrapper || '<%= contents %>';
 
-  var lazybuild = lazypipe()
+  const lazybuild = lazypipe()
       .pipe(source, srcFilename + '-babel.js')
       .pipe(buffer)
       .pipe($$.replace, /\$internalRuntimeVersion\$/g, internalRuntimeVersion)
       .pipe($$.wrap, wrapper)
       .pipe($$.sourcemaps.init.bind($$.sourcemaps), {loadMaps: true});
 
-  var lazywrite = lazypipe()
+  const lazywrite = lazypipe()
       .pipe($$.sourcemaps.write.bind($$.sourcemaps), './')
       .pipe(gulp.dest.bind(gulp), destDir);
 
-  var destFilename = options.toName || srcFilename + '.js';
+  const destFilename = options.toName || srcFilename + '.js';
   function rebundle() {
     const startTime = Date.now();
     return toPromise(bundler.bundle()
-      .on('error', function(err) {
-        if (err instanceof SyntaxError) {
-          console.error($$.util.colors.red('Syntax error:', err.message));
-        } else {
-          console.error($$.util.colors.red(err.message));
-        }
-      })
-      .pipe(lazybuild())
-      .pipe($$.rename(destFilename))
-      .pipe(lazywrite())
-      .on('end', function() {
-      })).then(() => {
-        endBuildStep('Compiled', srcFilename, startTime);
-      });
+        .on('error', function(err) {
+          if (err instanceof SyntaxError) {
+            console.error($$.util.colors.red('Syntax error:', err.message));
+          } else {
+            console.error($$.util.colors.red(err.message));
+          }
+        })
+        .pipe(lazybuild())
+        .pipe($$.rename(destFilename))
+        .pipe(lazywrite())
+        .on('end', function() {
+        })).then(() => {
+          endBuildStep('Compiled', srcFilename, startTime);
+        });
   }
 
   if (options.watch) {
@@ -230,7 +230,7 @@ function endBuildStep(stepName, targetName, startTime) {
   const executionTime = new Date(endTime - startTime);
   const secs = executionTime.getSeconds();
   const ms = executionTime.getMilliseconds().toString();
-  var timeString = '(';
+  let timeString = '(';
   if (secs === 0) {
     timeString += ms + ' ms)';
   } else {
@@ -248,7 +248,7 @@ function endBuildStep(stepName, targetName, startTime) {
 function mkdirSync(path) {
   try {
     fs.mkdirSync(path);
-  } catch(e) {
+  } catch (e) {
     if (e.code != 'EEXIST') {
       throw e;
     }
