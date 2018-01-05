@@ -25,7 +25,7 @@ export class OffersFlow {
 
   /**
    * @param {!Window} win
-   * @param {!ActivityPorts} activityPorts
+   * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
    */
   constructor(win, activityPorts) {
     /** @private @const {!Window} */
@@ -34,7 +34,7 @@ export class OffersFlow {
     /** @private @const {!HTMLDocument} */
     this.document_ = win.document;
 
-    /** @private @const {!ActivityPorts} */
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = activityPorts;
 
     /** @private @const {!Dialog} */

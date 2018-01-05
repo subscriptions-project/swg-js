@@ -134,7 +134,7 @@ export class Runtime {
     /** @private {?Promise} */
     this.subscriptionPromise_ = null;
 
-    /** @private @const {!ActivityPorts} */
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(win);
 
     /** @private {?SubscriptionPlatformSelector} */

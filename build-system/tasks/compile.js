@@ -51,7 +51,7 @@ exports.compile = function(opts) {
       // For compilation with babel we start with the main-babel entry point,
       // but then rename to the subscriptions.js which we've been using all along.
         return Promise.all([
-          compileJs('./src/', 'main', './dist', './node_modules/web-activities',
+          compileJs('./src/', 'main', './dist',
               Object.assign({
                 toName: 'subscriptions.max.js',
                 minifiedName: 'subscriptions.js',
