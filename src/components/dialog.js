@@ -186,7 +186,11 @@ export class Dialog {
    * @param {boolean} isLoading
    */
   setLoading(isLoading) {
-    isLoading ? this.loadingView_.show() : this.loadingView_.hide();
+    if (isLoading) {
+      this.loadingView_.show();
+    } else {
+      this.loadingView_.hide();
+    }
   }
 
   /**

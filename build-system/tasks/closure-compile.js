@@ -112,8 +112,8 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       'src/**/*.js',
       '!src/*-babel.js',
       '!third_party/babel/custom-babel-helpers.js',
-      'node_modules/web-activities/activity-ports.js',
       'node_modules/promise-pjs/promise.js',
+      'node_modules/web-activities/activity-ports.js',
       //'node_modules/core-js/modules/**.js',
       // Not sure what these files are, but they seem to duplicate code
       // one level below and confuse the compiler.
