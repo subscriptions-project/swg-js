@@ -16,6 +16,7 @@
 
 
 import {assert, log} from '../utils/log';
+import {ActivityPorts} from 'web-activities/activity-ports';
 import {AuthorizationFlow} from './authorization-flow';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {injectStyleSheet} from '../utils/dom';
@@ -133,6 +134,9 @@ export class Runtime {
     /** @private {?Promise} */
     this.subscriptionPromise_ = null;
 
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    this.activityPorts_ = new ActivityPorts(win);
+
     /** @private {?SubscriptionPlatformSelector} */
     this.platformSelector_ = null;
   }
@@ -209,7 +213,7 @@ export class Runtime {
    * Starts the Offers flow.
    */
   showOffers() {
-    return new OffersFlow(this.win).start();
+    return new OffersFlow(this.win, this.activityPorts_).start();
   }
 }
 
