@@ -15,20 +15,20 @@
  */
 'use strict';
 
-var fs = require('fs-extra');
-var argv = require('minimist')(process.argv.slice(2));
-var closureCompiler = require('gulp-closure-compiler');
-var gulp = require('gulp');
-var rename = require('gulp-rename');
-var replace = require('gulp-replace');
-var util = require('gulp-util');
-var internalRuntimeVersion = require('./internal-version').VERSION;
-var rimraf = require('rimraf');
+const fs = require('fs-extra');
+const argv = require('minimist')(process.argv.slice(2));
+const closureCompiler = require('gulp-closure-compiler');
+const gulp = require('gulp');
+const rename = require('gulp-rename');
+const replace = require('gulp-replace');
+const util = require('gulp-util');
+const internalRuntimeVersion = require('./internal-version').VERSION;
+const rimraf = require('rimraf');
 
-var isProdBuild = !!argv.type;
-var queue = [];
-var inProgress = 0;
-var MAX_PARALLEL_CLOSURE_INVOCATIONS = 4;
+const isProdBuild = !!argv.type;
+const queue = [];
+let inProgress = 0;
+const MAX_PARALLEL_CLOSURE_INVOCATIONS = 4;
 
 
 // Compiles code with the closure compiler. This is intended only for
@@ -72,12 +72,12 @@ exports.closureCompile = function(entryModuleFilename, outputDir,
     queue.push(start);
     next();
   });
-}
+};
 
 
 function compile(entryModuleFilenames, outputDir, outputFilename, options) {
   return new Promise(function(resolve, reject) {
-    var entryModuleFilename;
+    let entryModuleFilename;
     if (entryModuleFilenames instanceof Array) {
       entryModuleFilename = entryModuleFilenames[0];
     } else {
@@ -85,13 +85,13 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       entryModuleFilenames = [entryModuleFilename];
     }
     const checkTypes = options.checkTypes || argv.typecheck_only;
-    var intermediateFilename = 'build/cc/' +
+    const intermediateFilename = 'build/cc/' +
         entryModuleFilename.replace(/\//g, '_').replace(/^\./, '');
     // If undefined/null or false then we're ok executing the deletions
     // and mkdir.
-    var unneededFiles = [
+    const unneededFiles = [
     ];
-    var wrapper = '(function(){%output%})();';
+    let wrapper = '(function(){%output%})();';
     if (options.wrapper) {
       wrapper = options.wrapper.replace('<%= contents %>', '%output%');
     }
@@ -99,7 +99,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     if (fs.existsSync(intermediateFilename)) {
       fs.unlinkSync(intermediateFilename);
     }
-    var sourceMapBase = 'http://localhost:8000/';
+    let sourceMapBase = 'http://localhost:8000/';
     if (isProdBuild) {
       // Point sourcemap to fetch files from correct GitHub tag.
       sourceMapBase = 'https://raw.githubusercontent.com/dvoytenko/subscriptions/' +
@@ -113,6 +113,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       '!src/*-babel.js',
       '!third_party/babel/custom-babel-helpers.js',
       'node_modules/promise-pjs/promise.js',
+      'node_modules/web-activities/activity-ports.js',
       //'node_modules/core-js/modules/**.js',
       // Not sure what these files are, but they seem to duplicate code
       // one level below and confuse the compiler.
@@ -132,12 +133,12 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     // this works fine.
     if (options.includePolyfills) {
       srcs.push(
-        '!src/polyfills.js',
-        '!src/polyfills/**/*.js'
+          '!src/polyfills.js',
+          '!src/polyfills/**/*.js'
       );
       srcs.push(
-        'build/fake-module/src/polyfills.js',
-        '!build/fake-module/src/polyfills/**/*.js'
+          'build/fake-module/src/polyfills.js',
+          '!build/fake-module/src/polyfills/**/*.js'
       );
       unneededFiles.push('build/fake-module/src/polyfills.js');
     } else {
@@ -152,7 +153,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       }
     });
 
-    var externs = [
+    let externs = [
       'build-system/extern.js',
     ];
     if (options.externs) {
@@ -160,7 +161,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     }
 
     /*eslint "google-camelcase/google-camelcase": 0*/
-    var compilerOptions = {
+    const compilerOptions = {
       // Temporary shipping with our own compiler that has a single patch
       // applied
       compilerPath: 'build-system/runner/dist/runner.jar',
@@ -178,7 +179,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
         // If you need a polyfill. Manually include them in the
         // respective top level polyfills.js files.
         rewrite_polyfills: false,
-        externs: externs,
+        externs,
         js_module_root: [
           'node_modules/',
           'build/fake-module/',
@@ -202,7 +203,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
           'src/experimental/',
         ],
         jscomp_error: [],
-      }
+      },
     };
 
     // For now do type check separately
@@ -233,7 +234,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       delete compilerOptions.compilerFlags.define;
     }
 
-    var stream = gulp.src(srcs)
+    let stream = gulp.src(srcs)
         .pipe(closureCompiler(compilerOptions))
         .on('error', function(err) {
           console./*OK*/error(util.colors.red('Error compiling',

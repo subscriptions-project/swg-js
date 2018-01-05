@@ -182,6 +182,18 @@ export class Dialog {
   }
 
   /**
+   * Whether to display loading indicator.
+   * @param {boolean} isLoading
+   */
+  setLoading(isLoading) {
+    if (isLoading) {
+      this.loadingView_.show();
+    } else {
+      this.loadingView_.hide();
+    }
+  }
+
+  /**
    * Gets the element's height.
    * @return {number}
    * @private
