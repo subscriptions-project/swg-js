@@ -16,6 +16,7 @@
 
 import {Dialog} from './dialog';
 import {
+  computedStyle,
   getStyle,
   googleFontsUrl,
 } from '../utils/style';
@@ -24,12 +25,27 @@ describes.realWin('Dialog', {}, env => {
   let win;
   let doc;
   let dialog;
+  let view;
+  let element;
   const documentHeight = 100;
 
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
     dialog = new Dialog(doc, {height: `${documentHeight}px`});
+
+    element = doc.createElement('div');
+    view = {
+      getElement: function() {
+        return element;
+      },
+      init: function(dialog) {
+        return Promise.resolve(dialog);
+      },
+      resized: function() {
+        return;
+      },
+    };
   });
 
   describe('dialog', () => {
@@ -46,6 +62,21 @@ describes.realWin('Dialog', {}, env => {
       // These two properties are not set !important.
       expect(getStyle(iframe, 'width')).to.equal('100%');
       expect(getStyle(iframe, 'left')).to.equal('0px');
+    });
+
+    it('should build the view', function* () {
+      const openedDialog = yield dialog.open();
+      const response = yield openedDialog.openView(view);
+      expect(response).to.be.true;
+      expect(computedStyle(win, element)['opacity']).to.equal('1');
+    });
+
+    it('should resize the element', function* () {
+      const openedDialog = yield dialog.open();
+      yield openedDialog.openView(view);
+      openedDialog.resizeView(view, '99');
+      expect(computedStyle(win, dialog.getElement())['height'])
+          .to.equal('99px');
     });
 
     it('should open the dialog', function* () {

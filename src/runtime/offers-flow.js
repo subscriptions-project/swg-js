@@ -15,7 +15,13 @@
  */
 
 import {Dialog} from '../components/dialog';
+import {ActivityIframeView} from '../ui/activity-iframe-view';
 
+/**
+ * @const {string}
+ * TODO(diparikh): Replace correct URL for each env.
+ */
+const offersUrl = 'http://dp.mtv.corp.google.com:9879/subscribewithgoogleclientui/offersiframe';
 
 /**
  * The class for Offers flow.
@@ -39,6 +45,12 @@ export class OffersFlow {
 
     /** @private @const {!Dialog} */
     this.dialog_ = new Dialog(this.document_);
+
+    /** @private @const {!ActivityIframeView} */
+    this.activityIframeView_ = new ActivityIframeView(
+      this.win_,
+      this.activityPorts_,
+      offersUrl);
   }
 
   /**
@@ -47,8 +59,7 @@ export class OffersFlow {
    */
   start() {
     return this.dialog_.open().then(() => {
-      // TODO add Offers iframe.
+      return this.dialog_.openView(this.activityIframeView_);
     });
   }
-
 }
