@@ -217,7 +217,7 @@ export class Dialog {
   /**
    * Opens the given view and removes existing view from the DOM if any.
    * @param {!./view.View} view
-   * @return {!Promise<boolean>}
+   * @return {!Promise}
    */
   openView(view) {
     if (this.view_) {
@@ -234,7 +234,6 @@ export class Dialog {
         'opacity': 1,
       });
       this.setLoading(false);
-      return true;
     });
   }
 

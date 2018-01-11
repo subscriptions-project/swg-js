@@ -66,8 +66,7 @@ describes.realWin('Dialog', {}, env => {
 
     it('should build the view', function* () {
       const openedDialog = yield dialog.open();
-      const response = yield openedDialog.openView(view);
-      expect(response).to.be.true;
+      yield openedDialog.openView(view);
       expect(computedStyle(win, element)['opacity']).to.equal('1');
     });
 
