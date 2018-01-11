@@ -85,7 +85,7 @@ export class SubscriptionsFlow {
     this.state_ = state;
 
     /** @private @const {!Dialog} */
-    this.dialog_ = new Dialog(this.document_);
+    this.dialog_ = new Dialog(this.win_);
 
     /** @private {?Element} */
     this.offerContainer_ = null;
