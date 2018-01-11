@@ -21,7 +21,7 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
  * @const {string}
  * TODO(diparikh): Replace correct URL for each env.
  */
-const offersUrl = 'http://dp.mtv.corp.google.com:9879/subscribewithgoogleclientui/offersiframe';
+const offersUrl = '$frontend$/subscribewithgoogleclientui/offersiframe';
 
 /**
  * The class for Offers flow.
@@ -44,13 +44,14 @@ export class OffersFlow {
     this.activityPorts_ = activityPorts;
 
     /** @private @const {!Dialog} */
-    this.dialog_ = new Dialog(this.document_);
+    this.dialog_ = new Dialog(this.win_);
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      offersUrl);
+      offersUrl,
+      {'publicationId': ''}); // TODO(dparikh): Replace with actual PubId.
   }
 
   /**

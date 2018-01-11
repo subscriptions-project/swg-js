@@ -59,10 +59,10 @@ export class ActivityIframeView extends View {
     /** @private @const {string} */
     this.src_ = src;
 
-    /** @private @const {Object<string, string|number>} */
+    /** @private @const {!Object<string, string|number>} */
     this.args_ = args || {};
 
-    /** @private {web-activities/activity-ports.ActivityIframePort} */
+    /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
   }
 
@@ -80,6 +80,7 @@ export class ActivityIframeView extends View {
   /**
    * @param {!web-activities/activity-ports.ActivityIframePort} port
    * @param {!../components/dialog.Dialog} dialog
+   * @return {!Promise}
    */
   onOpenIframeResponse_(port, dialog) {
     this.port_ = port;
@@ -87,6 +88,7 @@ export class ActivityIframeView extends View {
     this.port_.onResizeRequest(height => {
       dialog.resizeView(this, height);
     });
+    return this.port_.whenReady();
   }
 
   /** @override */

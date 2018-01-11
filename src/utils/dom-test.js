@@ -160,6 +160,21 @@ describes.realWin('Dom', {}, env => {
       expect(element.firstChild).to.equal(null);
     });
 
+    it('should remove all the children', () => {
+      const element = dom.createElement(doc, 'div', {});
+      element.textContent = 'Some text';
+      const childElement1 = dom.createElement(doc, 'div', {});
+      const childElement2 = dom.createElement(doc, 'div', {});
+      element.appendChild(childElement1);
+      element.appendChild(childElement2);
+
+      expect(element.children.length).to.equal(2);
+      expect(element.firstChild).to.not.equal(null);
+
+      dom.removeChildren(element);
+      expect(element.children.length).to.equal(0);
+      expect(element.firstChild).to.equal(null);
+    });
 
     describe('openWindowDialog', () => {
       let windowApi;

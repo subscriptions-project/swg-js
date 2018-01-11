@@ -32,7 +32,7 @@ describes.realWin('Dialog', {}, env => {
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
-    dialog = new Dialog(doc, {height: `${documentHeight}px`});
+    dialog = new Dialog(win, {height: `${documentHeight}px`});
 
     element = doc.createElement('div');
     view = {
@@ -75,6 +75,8 @@ describes.realWin('Dialog', {}, env => {
       const openedDialog = yield dialog.open();
       yield openedDialog.openView(view);
       openedDialog.resizeView(view, '99');
+      // TODO(dparikh): When animiation is implemented, need to wait for
+      // resized() call.
       expect(computedStyle(win, dialog.getElement())['height'])
           .to.equal('99px');
     });

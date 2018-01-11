@@ -16,7 +16,8 @@
 
 
 /**
- * abstract View Class.
+ * abstract View Class. Used to render the content within the Dialog. The
+ * extended class has actual content.
  * @abstract
  */
 export class View {
