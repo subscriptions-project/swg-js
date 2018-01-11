@@ -91,6 +91,15 @@ export function removeElement(element) {
 
 
 /**
+ * Removes all children from the parent element.
+ * @param {!Element} parent
+ */
+export function removeChildren(parent) {
+  parent.textContent = '';
+}
+
+
+/**
  * Injects the provided styles in the HEAD section of the document.
  * @param {!Document} doc The document object.
  * @param {string} styleText The style string.
@@ -129,6 +138,7 @@ export function injectFontsLink(doc, fontUrl) {
   doc.head.appendChild(linkElement);
   return doc;
 }
+
 
 /**
  * Checks if existing link rel stylesheet with the same href exists.

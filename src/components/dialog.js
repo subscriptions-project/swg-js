@@ -21,6 +21,7 @@ import {
   createElement,
   injectFontsLink,
   injectStyleSheet,
+  removeChildren,
 } from '../utils/dom';
 import {
   googleFontsUrl,
@@ -51,6 +52,21 @@ const rootElementImportantStyles = {
 };
 
 /**
+ * Reset view styles.
+ * @const {!Object<string, string|number>}
+ */
+const resetViewStyles = {
+  'position': 'absolute',
+  'top': '0',
+  'left': '0',
+  'right': '0',
+  'bottom': '0',
+  'height': '100%',
+  'width': '100%',
+  'opacity': 0,
+};
+
+/**
  * Position of the dialog.
  * @const @enum {string}
  */
@@ -71,14 +87,16 @@ export class Dialog {
   /**
    * Create a dialog with optionally provided window and override important
    * styles and position styles.
-   * @param {!HTMLDocument} doc
+   * @param {!Window} win
    * @param {!Object<string, string|number>=} importantStyles
    * @param {!Object<string, string|number>=} styles
    */
-  constructor(doc, importantStyles = {}, styles = {}) {
+  constructor(win, importantStyles = {}, styles = {}) {
+
+    this.win_ = win;
 
     /** @private @const {!HTMLDocument} */
-    this.doc_ = doc;
+    this.doc_ = this.win_.document;
 
     /** @private @const {!FriendlyIframe} */
     this.iframe_ = new FriendlyIframe(this.doc_, {'class': 'swg-dialog'});
@@ -100,6 +118,9 @@ export class Dialog {
 
     /** @private {?Element} */
     this.container_ = null;  // Depends on constructed document inside iframe.
+
+    /** @private {?./view.View} */
+    this.view_ = null;
   }
 
   /**
@@ -191,6 +212,54 @@ export class Dialog {
     } else {
       this.loadingView_.hide();
     }
+  }
+
+  /**
+   * Opens the given view and removes existing view from the DOM if any.
+   * @param {!./view.View} view
+   * @return {!Promise}
+   */
+  openView(view) {
+    if (this.view_) {
+      // TODO(dparikh): Maybe I need to keep it until the new one is ready.
+      removeChildren(this.getContainer());
+    }
+    this.view_ = view;
+    setImportantStyles(view.getElement(), resetViewStyles);
+    this.setLoading(true);
+    this.getContainer().appendChild(view.getElement());
+
+    return view.init(this).then(() => {
+      setImportantStyles(view.getElement(), {
+        'opacity': 1,
+      });
+      this.setLoading(false);
+    });
+  }
+
+  /**
+   * Resizes the dialog container.
+   * @param {!./view.View} view
+   * @param {number} height
+   */
+  resizeView(view, height) {
+    if (this.view_ != view) {
+      return;
+    }
+    setImportantStyles(this.getElement(), {
+      'height': `${this.getMaxAllowedHeight_(height)}px`,
+    });
+    view.resized();
+  }
+
+  /**
+   * Returns maximum allowed height for current viewport.
+   * @param {number} height
+   * @return {number}
+   * @private
+   */
+  getMaxAllowedHeight_(height) {
+    return Math.min(height, this.win_./*OK*/innerHeight * 0.9);
   }
 
   /**

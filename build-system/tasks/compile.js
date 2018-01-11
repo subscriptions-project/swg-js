@@ -32,7 +32,8 @@ const source = require('vinyl-source-stream');
 const touch = require('touch');
 const watchify = require('watchify');
 const internalRuntimeVersion = require('./internal-version').VERSION;
-
+const argv = require('minimist')(process.argv.slice(2));
+const subscribeSandbox = 'https://subscribe.sandbox.google.com';
 
 /**
  * @return {!Promise}
@@ -120,6 +121,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
       .pipe(source, srcFilename + '-babel.js')
       .pipe(buffer)
       .pipe($$.replace, /\$internalRuntimeVersion\$/g, internalRuntimeVersion)
+      .pipe($$.replace, /\$frontend\$/g, argv.frontend || subscribeSandbox)
       .pipe($$.wrap, wrapper)
       .pipe($$.sourcemaps.init.bind($$.sourcemaps), {loadMaps: true});
 
