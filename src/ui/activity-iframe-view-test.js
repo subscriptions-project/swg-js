@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import {ActivityIframeView} from './activity-iframe-view';
 import {Dialog} from '../components/dialog';
+
 describes.realWin('ActivityIframeView', {}, env => {
   let win;
   let src;
@@ -22,6 +24,7 @@ describes.realWin('ActivityIframeView', {}, env => {
   let port;
   let activityIframeView;
   let dialog;
+
   beforeEach(() => {
     win = env.win;
     src = 'http://subscribe.sandbox.google.com/subscribewithgoogleclientui/offersiframe';
@@ -44,6 +47,7 @@ describes.realWin('ActivityIframeView', {}, env => {
     activityIframeView =
         new ActivityIframeView(win, mockActivityPorts, src, {});
   });
+
   describe('ActivityIframeView', () => {
     it('should have activityIframeView constructed', () => {
       const activityIframe = activityIframeView.getElement();
