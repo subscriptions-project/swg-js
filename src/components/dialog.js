@@ -115,7 +115,7 @@ export class Dialog {
     /** @private {LoadingView} */
     this.loadingView_ = null;
 
-    /** @private {boolean} */
+    /** @private @const {boolean} */
     this.showCloseAction_ = showCloseAction;
 
     /** @private {Element} */
@@ -156,11 +156,9 @@ export class Dialog {
     injectFontsLink(iframeDoc, googleFontsUrl);
     injectStyleSheet(iframeDoc, DIALOG_CSS);
 
-    // Only show close action if required for a given flow.
+    // Only show close action, initially if required for a given flow.
     if (this.showCloseAction_) {
       this.addCloseAction_(iframeDoc, iframeBody);
-      //this.closeButton_ = this.createCloseButton_(iframeDoc);
-      //iframeBody.appendChild(this.closeButton_);
     }
 
     // Add Loading indicator.
@@ -205,7 +203,6 @@ export class Dialog {
         removeElement(this.closeButton_);
       }
     }
-    this.showCloseAction_ = show;
   }
 
   /**
