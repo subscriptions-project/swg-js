@@ -22,7 +22,6 @@ import {
   injectFontsLink,
   injectStyleSheet,
   removeChildren,
-  removeElement,
 } from '../utils/dom';
 import {
   googleFontsUrl,
@@ -156,10 +155,8 @@ export class Dialog {
     injectFontsLink(iframeDoc, googleFontsUrl);
     injectStyleSheet(iframeDoc, DIALOG_CSS);
 
-    // Only show close action, initially if required for a given flow.
-    if (this.showCloseAction_) {
-      this.addCloseAction_(iframeDoc, iframeBody);
-    }
+    this.addCloseAction_(iframeDoc, iframeBody);
+    this.showCloseAction(this.showCloseAction_);
 
     // Add Loading indicator.
     this.loadingView_ = new LoadingView(iframeDoc);
@@ -192,16 +189,15 @@ export class Dialog {
    * @param {boolean} show
    */
   showCloseAction(show) {
-    const iframe = this.iframe_;
-    const iframeBody = iframe.getBody();
-    const iframeDoc = /** @type {!HTMLDocument} */ (this.iframe_.getDocument());
-
+    if (!this.closeButton_) {
+      return;
+    }
     if (show) {
-      this.addCloseAction_(iframeDoc, iframeBody);
+      this.closeButton_.style.removeProperty('display');
     } else {
-      if (this.closeButton_) {
-        removeElement(this.closeButton_);
-      }
+      setStyles(this.closeButton_, {
+        'display': 'none',
+      });
     }
   }
 
@@ -397,8 +393,8 @@ export class Dialog {
       'class': 'swg-close-action',
       'role': 'button',
     });
-    closeButton.addEventListener('click', () => this.close());
 
+    closeButton.addEventListener('click', () => this.close());
     return closeButton;
   }
 }

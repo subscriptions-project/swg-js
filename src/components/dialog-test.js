@@ -165,12 +165,11 @@ describes.realWin('Dialog', {}, env => {
       const openedDialogNoClose = yield dialogNoClose.open();
       const iframeDoc = openedDialogNoClose.getIframe().getDocument();
       let closeButton = iframeDoc.querySelector('.swg-close-action');
-      expect(closeButton).to.be.null;
+      expect(computedStyle(win, closeButton)['display']).to.equal('none');
 
       openedDialogNoClose.showCloseAction(true);
       closeButton = iframeDoc.querySelector('.swg-close-action');
-      expect(closeButton.nodeName).to.equal('DIV');
+      expect(computedStyle(win, closeButton)['display']).to.not.equal('none');
     });
-
   });
 });
