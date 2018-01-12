@@ -158,5 +158,18 @@ describes.realWin('Dialog', {}, env => {
 
       expect(loadingView.children.length).to.equal(4);
     });
+
+    it('should create a dialog without Close action button', function* () {
+      const dialogNoClose =
+          new Dialog(win, {height: `${documentHeight}px`}, null, null, false);
+      const openedDialogNoClose = yield dialogNoClose.open();
+      const iframeDoc = openedDialogNoClose.getIframe().getDocument();
+      let closeButton = iframeDoc.querySelector('.swg-close-action');
+      expect(computedStyle(win, closeButton)['display']).to.equal('none');
+
+      openedDialogNoClose.showCloseAction(true);
+      closeButton = iframeDoc.querySelector('.swg-close-action');
+      expect(computedStyle(win, closeButton)['display']).to.not.equal('none');
+    });
   });
 });
