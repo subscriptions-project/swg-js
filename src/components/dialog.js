@@ -205,6 +205,7 @@ export class Dialog {
         removeElement(this.closeButton_);
       }
     }
+    this.showCloseAction_ = show;
   }
 
   /**
