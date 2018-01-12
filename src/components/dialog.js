@@ -90,8 +90,9 @@ export class Dialog {
    * @param {!Window} win
    * @param {!Object<string, string|number>=} importantStyles
    * @param {!Object<string, string|number>=} styles
+   * @param {boolean=} showCloseAction
    */
-  constructor(win, importantStyles = {}, styles = {}) {
+  constructor(win, importantStyles = {}, styles = {}, showCloseAction = true) {
 
     this.win_ = win;
 
@@ -112,6 +113,9 @@ export class Dialog {
 
     /** @private {LoadingView} */
     this.loadingView_ = null;
+
+    /** @private @const {boolean} */
+    this.showCloseAction_ = showCloseAction;
 
     /** @private {Element} */
     this.closeButton_ = null;
@@ -151,8 +155,8 @@ export class Dialog {
     injectFontsLink(iframeDoc, googleFontsUrl);
     injectStyleSheet(iframeDoc, DIALOG_CSS);
 
-    this.closeButton_ = this.createCloseButton_(iframeDoc);
-    iframeBody.appendChild(this.closeButton_);
+    this.addCloseAction_(iframeDoc, iframeBody);
+    this.showCloseAction(this.showCloseAction_);
 
     // Add Loading indicator.
     this.loadingView_ = new LoadingView(iframeDoc);
@@ -165,6 +169,36 @@ export class Dialog {
     this.setPosition_();
     this.updatePaddingToHtml_();
     return this;
+  }
+
+  /**
+   * Adds close action button with event listener.
+   * @private
+   */
+  addCloseAction_(iframeDoc, iframeBody) {
+    if (this.closeButton_) {
+      return;
+    }
+    this.closeButton_ = this.createCloseButton_(iframeDoc);
+    iframeBody.appendChild(this.closeButton_);
+  }
+
+  /**
+   * Renders or hides the "Close" action button. For some flows, this button
+   * should be hidden.
+   * @param {boolean} show
+   */
+  showCloseAction(show) {
+    if (!this.closeButton_) {
+      return;
+    }
+    if (show) {
+      this.closeButton_.style.removeProperty('display');
+    } else {
+      setStyles(this.closeButton_, {
+        'display': 'none',
+      });
+    }
   }
 
   /**
@@ -359,8 +393,8 @@ export class Dialog {
       'class': 'swg-close-action',
       'role': 'button',
     });
-    closeButton.addEventListener('click', () => this.close());
 
+    closeButton.addEventListener('click', () => this.close());
     return closeButton;
   }
 }
