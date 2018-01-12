@@ -15,13 +15,14 @@
  */
 
 import {ActivityIframeView} from './activity-iframe-view';
+import {ActivityPorts, ActivityIframePort} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
 
 describes.realWin('ActivityIframeView', {}, env => {
   let win;
   let src;
-  let mockActivityPorts;
-  let port;
+  let activityPorts;
+  let activityIframePort;
   let activityIframeView;
   let dialog;
 
@@ -29,23 +30,26 @@ describes.realWin('ActivityIframeView', {}, env => {
     win = env.win;
     src = 'http://subscribe.sandbox.google.com/subscribewithgoogleclientui/offersiframe';
     dialog = new Dialog(win, {height: '100px'});
+    activityPorts = new ActivityPorts(win);
+    activityIframePort = new ActivityIframePort(dialog.getElement(), src);
 
-    port = {
-      onResizeRequest: function() {
-        return Promise.resolve(true);
-      },
-      whenReady: function() {
-        return Promise.resolve(true);
-      },
-    };
-    mockActivityPorts = {
-      openIframe: function() {
-        return Promise.resolve(port);
-      },
-    };
+    sandbox.stub(
+        activityIframePort,
+        'whenReady',
+        () => Promise.resolve(true));
+
+    sandbox.stub(
+        activityPorts,
+        'openIframe',
+        () => Promise.resolve(activityIframePort));
+
+    sandbox.stub(
+        activityIframePort,
+        'onResizeRequest',
+        () => true);
 
     activityIframeView =
-        new ActivityIframeView(win, mockActivityPorts, src, {});
+        new ActivityIframeView(win, activityPorts, src, {});
   });
 
   describe('ActivityIframeView', () => {
@@ -55,6 +59,7 @@ describes.realWin('ActivityIframeView', {}, env => {
       expect(activityIframe.nodeName).to.equal('IFRAME');
       expect(activityIframe.getAttribute('frameborder')).to.equal('0');
     });
+
     it('should should initialize and open an iframe', function* () {
       const openedDialog = yield dialog.open();
 
@@ -63,6 +68,9 @@ describes.realWin('ActivityIframeView', {}, env => {
 
       const activityResponse = yield activityIframeView.init(openedDialog);
       expect(activityResponse).to.be.true;
+      expect(activityPorts.openIframe).to.have.been.calledOnce;
+      expect(activityIframePort.onResizeRequest).to.have.been.calledOnce;
+      expect(activityIframePort.whenReady).to.have.been.calledOnce;
     });
   });
 });
