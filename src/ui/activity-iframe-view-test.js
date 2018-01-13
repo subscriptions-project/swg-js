@@ -75,6 +75,14 @@ describes.realWin('ActivityIframeView', {}, env => {
       const activityResponse = yield activityIframeView.init(openedDialog);
       expect(activityResponse).to.be.true;
       expect(activityPorts.openIframe).to.have.been.calledOnce;
+
+      const firstArgument = activityPorts.openIframe.getCall(0).args[0];
+      expect(firstArgument.nodeName).to.equal('IFRAME');
+      const secondArgument = activityPorts.openIframe.getCall(0).args[1];
+      expect(secondArgument).to.equal(src);
+      const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
+      expect(thirdArgument).to.equal(activityArgs);
+
       expect(activityIframePort.onResizeRequest).to.have.been.calledOnce;
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
     });

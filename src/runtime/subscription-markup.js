@@ -41,6 +41,7 @@ export class SubscriptionMarkup {
     this.win = win;
 
     this.accessType_ = null;
+    this.publicationId_ = null;
     this.accessContent_ = null;
     this.accessControl_ = null;
     this.themeColor_ = null;
@@ -56,6 +57,16 @@ export class SubscriptionMarkup {
       this.accessType_ = this.getMetaTag_('access-type');
     }
     return this.accessType_;
+  }
+
+  /**
+   * @return {string} Returns the publicationId setting for a given page.
+   */
+  getPublicationId() {
+    if (this.publicationId_ == null) {
+      this.publicationId_ = this.getMetaTag_('publication-id');
+    }
+    return this.publicationId_;
   }
 
   /**

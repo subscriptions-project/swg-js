@@ -16,6 +16,7 @@
 
 import {Dialog} from '../components/dialog';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {parseUrl} from '../utils/url';
 
 /**
  * @const {string}
@@ -23,14 +24,8 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 const linkFrontIframeUrl =
     '$frontend$/subscribewithgoogleclientui/linkfrontiframe';
 
-/**
- * @const @enum {string}
- */
-const activityArgs = {
-  'publicationId': 'com.appspot.scenic-2017', // TODO(dparikh): Replace with actual PubId.
-  'requestId': 'request1-complete',  // TODO(dparikh): Replace with actual requestId.
-  'returnUrl': 'https://scenic-2017.appspot.com/complete',  // TODO(dparikh): Replace with actual returnUrl.
-};
+/** @const {string} */
+const requestId = 'link-continue';
 
 /**
  * The class for Link accounts flow.
@@ -40,11 +35,15 @@ export class LinkAccountsFlow {
 
   /**
    * @param {!Window} win
+   * @param  {!./subscription-markup.SubscriptionMarkup} markup
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
    */
-  constructor(win, activityPorts) {
+  constructor(win, markup, activityPorts) {
     /** @private @const {!Window} */
     this.win_ = win;
+
+    /** @private @const {!./subscription-markup.SubscriptionMarkup} */
+    this.markup_ = markup;
 
     /** @private @const {!HTMLDocument} */
     this.document_ = win.document;
@@ -60,7 +59,11 @@ export class LinkAccountsFlow {
       this.win_,
       this.activityPorts_,
       linkFrontIframeUrl,
-      activityArgs);
+        {
+          'publicationId': this.markup_.getPublicationId(),
+          'requestId': requestId,
+          'returnUrl': this.getHostUrl_(this.win_.location.href),
+        });
   }
 
   /**
@@ -71,5 +74,16 @@ export class LinkAccountsFlow {
     return this.dialog_.open().then(() => {
       return this.dialog_.openView(this.activityIframeView_);
     });
+  }
+
+  /**
+   * Returns the Url including the path, without fregment.
+   * @param {string} url
+   * @return {string}
+   * @private
+   */
+  getHostUrl_(url) {
+    const locationHref = parseUrl(url);
+    return locationHref.origin + locationHref.pathname;
   }
 }
