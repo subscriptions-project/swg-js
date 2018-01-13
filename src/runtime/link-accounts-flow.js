@@ -33,7 +33,7 @@ const activityArgs = {
 };
 
 /**
- * The class for Link account flow.
+ * The class for Link accounts flow.
  *
  */
 export class LinkAccountsFlow {
