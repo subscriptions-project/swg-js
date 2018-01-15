@@ -77,13 +77,13 @@ export class LinkAccountsFlow {
   }
 
   /**
-   * Returns the Url including the path, without fregment.
+   * Returns the Url including the path and search, without fregment.
    * @param {string} url
    * @return {string}
    * @private
    */
   getHostUrl_(url) {
     const locationHref = parseUrl(url);
-    return locationHref.origin + locationHref.pathname;
+    return locationHref.origin + locationHref.pathname + locationHref.search;
   }
 }
