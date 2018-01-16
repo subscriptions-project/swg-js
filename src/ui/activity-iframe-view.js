@@ -73,7 +73,7 @@ export class ActivityIframeView extends View {
 
   /** @override */
   init(dialog) {
-    return this.activityPorts_.openIframe(this.iframe_, this.src_)
+    return this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
         .then(port => this.onOpenIframeResponse_(port, dialog));
   }
 
