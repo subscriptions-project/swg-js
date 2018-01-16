@@ -25,13 +25,19 @@ describes.realWin('ActivityIframeView', {}, env => {
   let activityIframePort;
   let activityIframeView;
   let dialog;
+  const activityArgs = {
+    'publicationId': 'com.appspot.scenic-2017',
+    'requestId': 'request1-complete',
+    'returnUrl': 'https://scenic-2017.appspot.com/complete',
+  };
 
   beforeEach(() => {
     win = env.win;
     src = 'http://subscribe.sandbox.google.com/subscribewithgoogleclientui/offersiframe';
     dialog = new Dialog(win, {height: '100px'});
     activityPorts = new ActivityPorts(win);
-    activityIframePort = new ActivityIframePort(dialog.getElement(), src);
+    activityIframePort =
+        new ActivityIframePort(dialog.getElement(), src, activityPorts);
 
     sandbox.stub(
         activityIframePort,
@@ -49,7 +55,7 @@ describes.realWin('ActivityIframeView', {}, env => {
         () => true);
 
     activityIframeView =
-        new ActivityIframeView(win, activityPorts, src, {});
+        new ActivityIframeView(win, activityPorts, src, activityArgs);
   });
 
   describe('ActivityIframeView', () => {
@@ -69,6 +75,14 @@ describes.realWin('ActivityIframeView', {}, env => {
       const activityResponse = yield activityIframeView.init(openedDialog);
       expect(activityResponse).to.be.true;
       expect(activityPorts.openIframe).to.have.been.calledOnce;
+
+      const firstArgument = activityPorts.openIframe.getCall(0).args[0];
+      expect(firstArgument.nodeName).to.equal('IFRAME');
+      const secondArgument = activityPorts.openIframe.getCall(0).args[1];
+      expect(secondArgument).to.equal(src);
+      const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
+      expect(thirdArgument).to.equal(activityArgs);
+
       expect(activityIframePort.onResizeRequest).to.have.been.calledOnce;
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
     });
