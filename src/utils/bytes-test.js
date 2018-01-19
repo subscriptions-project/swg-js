@@ -15,9 +15,14 @@
  */
 
 import {
+  base64UrlDecodeToBytes,
+  base64UrlEncodeFromBytes,
+  bytesToString,
   stringToBytes,
+  utf8DecodeSync,
   utf8EncodeSync,
 } from './bytes';
+
 
 describe('stringToBytes', function() {
   it('should map a sample string appropriately', () => {
@@ -33,7 +38,13 @@ describe('stringToBytes', function() {
       return stringToBytes('ab☺');
     }).to.throw();
   });
+
+  it('should convert bytes array to string', () => {
+    const str = bytesToString(new Uint8Array([102, 111, 111]));
+    expect(str).to.equal('foo');
+  });
 });
+
 
 describe('utf8', function() {
 
@@ -83,6 +94,19 @@ describe('utf8', function() {
   it('should encode given string into utf-8 byte array', () => {
     for (let i = 0; i < strings.length; i++) {
       utf8EncodeSync(strings[i]).should.deep.equal(new Uint8Array(bytes[i]));
+    }
+  });
+
+  it('should decode correctly', () => {
+    for (let i = 0; i < strings.length; i++) {
+      const data = strings[i];
+      const utf8Bytes = utf8EncodeSync(data);
+      const encoded = base64UrlEncodeFromBytes(utf8Bytes);
+      expect(encoded).not.to.equal(data);
+      expect(encoded).not.to.match(/[+/=]/g);
+      const decodedUtf8Bytes = base64UrlDecodeToBytes(encoded);
+      const decoded = utf8DecodeSync(decodedUtf8Bytes);
+      expect(decoded).to.equal(data);
     }
   });
 });
