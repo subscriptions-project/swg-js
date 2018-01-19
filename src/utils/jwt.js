@@ -26,7 +26,7 @@ import {tryParseJson} from './json';
  *   sig: string,
  * }}
  */
-export let JwtTokenInternalDef;
+let JwtTokenInternalDef;
 
 
 /**
