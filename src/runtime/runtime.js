@@ -21,6 +21,7 @@ import {AuthorizationFlow} from './authorization-flow';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
+import {LinkAccountsFlow} from './link-accounts-flow';
 import {NotificationView} from '../experimental/notification-view';
 import {OffersFlow} from './offers-flow';
 import {SubscriptionMarkup} from './subscription-markup';
@@ -213,7 +214,16 @@ export class Runtime {
    * Starts the Offers flow.
    */
   showOffers() {
-    return new OffersFlow(this.win, this.activityPorts_).start();
+    return new OffersFlow(this.win, this.markup_, this.activityPorts_).start();
+  }
+
+  /**
+   * Starts the Account linking flow.
+   * TODO(dparikh): For testing purpose only.
+   */
+  linkAccount() {
+    return new LinkAccountsFlow(
+        this.win, this.markup_, this.activityPorts_).start();
   }
 }
 
@@ -227,5 +237,6 @@ function createPublicRuntime(runtime) {
     setSubscriptionPlatformSelector:
         runtime.setSubscriptionPlatformSelector.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
+    linkAccount: runtime.linkAccount.bind(runtime),
   });
 }
