@@ -31,14 +31,18 @@ export class OffersFlow {
 
   /**
    * @param {!Window} win
+   * @param  {!./subscription-markup.SubscriptionMarkup} markup
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
    */
-  constructor(win, activityPorts) {
+  constructor(win, markup, activityPorts) {
     /** @private @const {!Window} */
     this.win_ = win;
 
     /** @private @const {!HTMLDocument} */
     this.document_ = win.document;
+
+    /** @private @const {!./subscription-markup.SubscriptionMarkup} */
+    this.markup_ = markup;
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = activityPorts;
@@ -51,7 +55,10 @@ export class OffersFlow {
       this.win_,
       this.activityPorts_,
       offersUrl,
-      {'publicationId': ''}); // TODO(dparikh): Replace with actual PubId.
+        {
+          'publicationId': this.markup_.getPublicationId(),
+          'label': 'premium',  // TODO(dparikh): Replace with actual label.
+        });
   }
 
   /**

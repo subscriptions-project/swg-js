@@ -22,11 +22,17 @@ describes.realWin('Offers flow', {}, env => {
   let win;
   let offersFlow;
   let activityPorts;
+  let markup;
 
   beforeEach(() => {
     win = env.win;
+    markup = {
+      getPublicationId: function() {
+        return 'scenic-2017';
+      },
+    };
     activityPorts = new ActivityPorts(win);
-    offersFlow = new OffersFlow(win, activityPorts);
+    offersFlow = new OffersFlow(win, markup, activityPorts);
   });
 
   it('should have valid OffersFlow constructed', () => {
