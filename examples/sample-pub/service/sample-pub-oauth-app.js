@@ -25,17 +25,17 @@
  */
 
 const app = module.exports = require('express').Router();
-const cookieParser = require('cookie-parser');
 const jsonwebtoken = require('jsonwebtoken');
-const {encrypt, decrypt, toBase64} = require('../utils/crypto');
+const {encrypt, decrypt, fromBase64, toBase64} = require('../utils/crypto');
 
 /**
  * The Google client ID and client secret can be any URL-safe string values of
  * your choice. You must ensure that the client secret is visible to only Google
  * and your service.
+ * TODO(dparikh): The usage is commented on #285.
  */
 /** @const {string} */
-const PROJECT_ID = 'scenic-2017-gdi';
+// const PROJECT_ID = 'scenic-2017-gdi';
 
 /** @const {string} */
 const CLIENT_ID = 'scenic-2017.appspot.com';
@@ -143,8 +143,8 @@ app.post('/token', (req, res) => {
     if (clientId != CLIENT_ID) {
       throw new Error('Invalid client_id: ' + clientId);
     }
-    const client_secret = getParam(req, 'client_secret');
-    if (!client_secret) {
+    const clientSecret = getParam(req, 'client_secret');
+    if (!clientSecret) {
       throw new Error('Missing client_secret');
     }
     // TODO: Check client secret against expected value.

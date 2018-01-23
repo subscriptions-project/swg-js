@@ -65,7 +65,7 @@ export class ActivityIframeView extends View {
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
 
-    /** @private {?Promise} */
+    /** @private {?function(!Promise<!Object>)} */
     this.resolve_ = null;
 
     /** @private @const {!Promise} */
