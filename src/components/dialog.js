@@ -392,9 +392,17 @@ export class Dialog {
     const closeButton = createElement(doc, 'div', {
       'class': 'swg-close-action',
       'role': 'button',
+      'tabindex': '1',
+      'aria-label': 'Close the subscribe with google dialog',
     });
 
     closeButton.addEventListener('click', () => this.close());
+    closeButton.addEventListener('keypress', event => {
+      const keyValue = (event.key || '').toUpperCase();
+      if (keyValue == 'ENTER') {
+        this.close();
+      }
+    });
     return closeButton;
   }
 }
