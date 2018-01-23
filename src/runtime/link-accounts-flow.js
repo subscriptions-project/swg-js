@@ -75,12 +75,7 @@ export class LinkAccountsFlow {
       return this.dialog_.openView(this.activityIframeView_).then(() => {
         this.activityIframeView_.acceptResult().then(result => {
           if (result.ok) {
-            if (result.data && result.data.action &&
-                result.data.action == 'CLOSE') {
-              this.dialog_.close();
-            } else {
-              this.openLoginForm_(result.data);
-            }
+            this.openLoginForm_(result.data);
           }
         });
       });
