@@ -27,7 +27,7 @@ function whenReady(callback) {
 }
 
 /**
- * Starts the offers flow.
+ * Starts the entitlements flow.
  */
 function getEntitlements() {
   whenReady(function(subscriptions) {
@@ -46,5 +46,16 @@ function startOffersFlow() {
   });
 }
 
+/**
+ * Starts the linking accounts flow.
+ */
+function startLinkAccountsFlow() {
+  whenReady(function(subscriptions) {
+    subscriptions.linkAccount();
+  });
+}
+
+
 // startOffersFlow();
+//startLinkAccountsFlow();
 getEntitlements();
