@@ -393,7 +393,7 @@ export class Dialog {
       'class': 'swg-close-action',
       'role': 'button',
       'tabindex': '1',
-      'aria-label': 'Close the subscribe with google dialog',
+      'aria-label': 'Close dialog',
     });
 
     closeButton.addEventListener('click', () => this.close());
