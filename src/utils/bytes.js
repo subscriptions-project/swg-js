@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {assert} from './log';
+
 /**
  * Character mapping from base64url to base64.
  * @const {!Object<string, string>}

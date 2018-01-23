@@ -29,10 +29,22 @@ function whenReady(callback) {
 /**
  * Starts the offers flow.
  */
+function getEntitlements() {
+  whenReady(function(subscriptions) {
+    subscriptions.getEntitlements().then(entitlements => {
+      console.log('entitlements: ', entitlements);
+    });
+  });
+}
+
+/**
+ * Starts the offers flow.
+ */
 function startOffersFlow() {
   whenReady(function(subscriptions) {
     subscriptions.showOffers();
   });
 }
 
-startOffersFlow();
+// startOffersFlow();
+getEntitlements();

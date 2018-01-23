@@ -15,26 +15,34 @@
  */
 
 
-/** @externs */
-
 /**
- * @template T
- * @constructor
  */
-var ArrayLike = function() {}
+export class PageConfig {
 
-/**
- * @type {number}
- */
-ArrayLike.prototype.length;
+  /**
+   * @param {{
+   *   publicationId: string,
+   *   label: ?string,
+   * }} config
+   */
+  constructor(config) {
+    /** @private @const {string} */
+    this.publicationId_ = config.publicationId;
+    /** @private @const {?string} */
+    this.label_ = config.label;
+  }
 
+  /**
+   * @return {string}
+   */
+  getPublicationId() {
+    return this.publicationId_;
+  }
 
-/**
- * A type for Objects that can be JSON serialized or that come from
- * JSON serialization. Requires the objects fields to be accessed with
- * bracket notation object['name'] to make sure the fields do not get
- * obfuscated.
- * @constructor
- * @dict
- */
-function JsonObject() {}
+  /**
+   * @return {?string}
+   */
+  getLabel() {
+    return this.label_;
+  }
+}

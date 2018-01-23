@@ -35,15 +35,12 @@ export class LinkAccountsFlow {
 
   /**
    * @param {!Window} win
-   * @param  {!./subscription-markup.SubscriptionMarkup} markup
+   * @param {!../model/page-config.PageConfig} pageConfig
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
    */
-  constructor(win, markup, activityPorts) {
+  constructor(win, pageConfig, activityPorts) {
     /** @private @const {!Window} */
     this.win_ = win;
-
-    /** @private @const {!./subscription-markup.SubscriptionMarkup} */
-    this.markup_ = markup;
 
     /** @private @const {!HTMLDocument} */
     this.document_ = win.document;
@@ -56,11 +53,11 @@ export class LinkAccountsFlow {
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
-      this.win_,
-      this.activityPorts_,
-      linkFrontIframeUrl,
+        this.win_,
+        this.activityPorts_,
+        linkFrontIframeUrl,
         {
-          'publicationId': this.markup_.getPublicationId(),
+          'publicationId': pageConfig.getPublicationId(),
           'requestId': requestId,
           'returnUrl': this.getHostUrl_(this.win_.location.href),
         });

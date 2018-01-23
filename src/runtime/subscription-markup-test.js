@@ -42,12 +42,6 @@ describes.realWin('markup', {}, env => {
     expect(subMarkup.getAccessType()).to.equal('foo1');
   });
 
-  it('should return publicationId', () => {
-    meta.setAttribute('content', 'pub.id.1');
-    meta.setAttribute('name', 'publication-id');
-    expect(subMarkup.getPublicationId()).to.equal('pub.id.1');
-  });
-
   it('should return access content', () => {
     meta.setAttribute('content', 'foo2');
     meta.setAttribute('name', 'access-content');

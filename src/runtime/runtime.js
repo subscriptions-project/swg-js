@@ -15,18 +15,18 @@
  */
 
 
-import {assert, log} from '../utils/log';
 import {ActivityPorts} from 'web-activities/activity-ports';
-import {AuthorizationFlow} from './authorization-flow';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
-import {injectStyleSheet} from '../utils/dom';
-import {isArray} from '../utils/types';
+import {EntitlementsManager} from '../entitlements/entitlements-manager';
 import {LinkAccountsFlow} from './link-accounts-flow';
 import {NotificationView} from '../experimental/notification-view';
 import {OffersFlow} from './offers-flow';
+import {PageConfigResolver} from '../model/page-config-resolver';
 import {SubscriptionMarkup} from './subscription-markup';
-import {SubscriptionState} from './subscription-state';
-import {SubscriptionsFlow} from '../experimental/subscriptions-flow';
+import {injectStyleSheet} from '../utils/dom';
+import {isArray} from '../utils/types';
+import {log} from '../utils/log';
+import {whenDocumentReady} from '../utils/document-ready';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
 
@@ -53,16 +53,6 @@ export function getRuntime() {
  * @interface
  */
 class PublicRuntimeDef {}
-
-
-/** @typedef {{id: !string, response: !SubscriptionResponse}} */
-export let SubscriptionPlatformEntry;
-
-
-/**
- * @typedef {function(Array<!SubscriptionPlatformEntry>):!SubscriptionResponse}
- */
-export let SubscriptionPlatformSelector;
 
 
 /**
@@ -110,36 +100,20 @@ export class Runtime {
    * @param {!Window} win
    */
   constructor(win) {
-    /** @const */
-    this.win = win;
+    /** @private @const {!Window} */
+    this.win_ = win;
 
     /** @private @const {!Promise} */
     this.ready_ = Promise.resolve();
 
-    /** @private @const {!SubscriptionMarkup} */
-    this.markup_ = new SubscriptionMarkup(this.win);
+    /** @private @const {!PageConfigResolver} */
+    this.pageConfigResolver_ = new PageConfigResolver(this.win_);
 
-    /** @private @const {SubscriptionState} */
-    this.subscriptionState_ = new SubscriptionState(this.win);
-
-    /** @private @const {!AuthorizationFlow} */
-    this.auth_ =
-        new AuthorizationFlow(this.win, this.markup_, this.subscriptionState_);
-
-    /** @private {NotificationView} */
-    this.notificationView_ = null;
-
-    /** @private {SubscriptionsFlow} */
-    this.subscriptionsFlow_ = null;
-
-    /** @private {?Promise} */
-    this.subscriptionPromise_ = null;
-
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = new ActivityPorts(win);
-
-    /** @private {?SubscriptionPlatformSelector} */
-    this.platformSelector_ = null;
+    /** @private @const {!Promise<!ConfiguredRuntime>} */
+    this.configured_ = this.pageConfigResolver_.resolveConfig()
+        .then(config => {
+          return new ConfiguredRuntime(this.win_, config);
+        });
   }
 
   /**
@@ -150,41 +124,111 @@ export class Runtime {
   }
 
   /**
+   * @return {!Promise<!ConfiguredRuntime>}
+   * @package
+   */
+  configured() {
+    return this.configured_;
+  }
+
+  /**
    * Starts subscription flow.
    * @return {!Promise}
    */
   start() {
-    assert(
-        !this.subscriptionPromise_,
-        'Subscription flow can only be started once.');
-    log('Starting subscription flow');
-
-    this.notificationView_ = this.notificationView_ ||
-        new NotificationView(this.win, this.subscriptionState_);
-    this.subscriptionsFlow_ = this.subscriptionsFlow_ ||
-        new SubscriptionsFlow(this.win, this.markup_, this.subscriptionState_);
-
-    return this.subscriptionPromise_ = this.subscriptionLoop_();
+    return this.configured().then(runtime => runtime.start());
   }
 
-
   /**
-   * Loop to execute auth flow and subscription flow as long as needed.
+   * Starts the subscription flow if it hasn't been started and the page is
+   * configured to start it automatically.
    * @return {!Promise}
    */
-  subscriptionLoop_() {
-    if (this.subscriptionState_.shouldRetry) {
-      this.subscriptionState_.shouldRetry = false;
-      return this.auth_.start(this.platformSelector_)
-          .then(() => {
-            return this.subscriptionState_.isSubscriber()
-                ? this.notificationView_.start()
-                : this.subscriptionsFlow_.start();
-          })
-          .then(this.subscriptionLoop_.bind(this));
-    } else {
-      return Promise.resolve();  // null task - base case of recursion
-    }
+  startSubscriptionsFlowIfNeeded() {
+    return this.configured()
+        .then(runtime => runtime.startSubscriptionsFlowIfNeeded());
+  }
+
+  /**
+   * @return {!Promise<?../entitlements/entitlements.Entitlements>}
+   */
+  getEntitlements() {
+    this.pageConfigResolver_.check();
+    return this.configured()
+        .then(runtime => runtime.getEntitlements());
+  }
+
+  /**
+   * Starts the Offers flow.
+   */
+  showOffers() {
+    return this.configured()
+        .then(runtime => runtime.showOffers());
+  }
+
+  /**
+   * Starts the Account linking flow.
+   * TODO(dparikh): For testing purpose only.
+   */
+  linkAccount() {
+    return this.configured()
+        .then(runtime => runtime.linkAccount());
+  }
+}
+
+
+/**
+ */
+export class ConfiguredRuntime {
+
+  /**
+   * @param {!Window} win
+   * @param {!../model/page-config.PageConfig} config
+   */
+  constructor(win, config) {
+    /** @private @const {!Window} */
+    this.win_ = win;
+
+    /** @private @const {!../model/page-config.PageConfig} */
+    this.config_ = config;
+
+    /** @private {boolean} */
+    this.started_ = false;
+
+    /** @private @const {!Promise} */
+    this.documentParsed_ = whenDocumentReady(this.win_.document);
+
+    /** @private @const {!EntitlementsManager} */
+    this.entitlementsManager_ =
+        new EntitlementsManager(this.win_, this.config_);
+
+    /** @private @const {!SubscriptionMarkup} */
+    this.markup_ = new SubscriptionMarkup(this.win_);
+
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    this.activityPorts_ = new ActivityPorts(win);
+  }
+
+  /**
+   * @return {!../model/page-config.PageConfig}
+   */
+  getConfig() {
+    return this.config_;
+  }
+
+  /**
+   * @return {boolean}
+   */
+  hasStarted() {
+    return this.started_;
+  }
+
+  /**
+   * Starts subscription flow.
+   */
+  start() {
+    this.started_ = true;
+    this.getEntitlements();
   }
 
   /**
@@ -203,29 +247,43 @@ export class Runtime {
   }
 
   /**
-   * @param {!SubscriptionPlatformSelector} platformSelector
+   * @return {!Promise<?../entitlements/entitlements.Entitlements>}
    */
-  setSubscriptionPlatformSelector(platformSelector) {
-    assert(typeof platformSelector == 'function');
-    this.platformSelector_ = platformSelector;
+  getEntitlements() {
+    return this.entitlementsManager_.getEntitlements().then(entitlements => {
+      // TODO(dvoytenko): remove notification view from here into the auth loop.
+      if (entitlements.enablesThis()) {
+        const notificationView = new NotificationView(this.win_);
+        notificationView.start();
+      }
+      return entitlements;
+    });
   }
 
   /**
    * Starts the Offers flow.
+   * @return {!Promise}
    */
   showOffers() {
-    return new OffersFlow(this.win, this.markup_, this.activityPorts_).start();
+    return this.documentParsed_.then(() => {
+      const flow = new OffersFlow(this.win_, this.config_, this.activityPorts_);
+      return flow.start();
+    });
   }
 
   /**
    * Starts the Account linking flow.
-   * TODO(dparikh): For testing purpose only.
+   * @return {!Promise}
    */
   linkAccount() {
-    return new LinkAccountsFlow(
-        this.win, this.markup_, this.activityPorts_).start();
+    return this.documentParsed_.then(() => {
+      const flow = new LinkAccountsFlow(
+          this.win_, this.config_, this.activityPorts_);
+      return flow.start();
+    });
   }
 }
+
 
 /**
  * @param {!Runtime} runtime
@@ -234,8 +292,7 @@ export class Runtime {
 function createPublicRuntime(runtime) {
   return /** @type {!PublicRuntimeDef} */ ({
     start: runtime.start.bind(runtime),
-    setSubscriptionPlatformSelector:
-        runtime.setSubscriptionPlatformSelector.bind(runtime),
+    getEntitlements: runtime.getEntitlements.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
   });
