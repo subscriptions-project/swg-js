@@ -64,6 +64,11 @@ export class ActivityIframeView extends View {
 
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
+
+    this.resolve_ = null;
+    this.promise_ = new Promise(resolve => {
+      this.resolve_ = resolve;
+    });
   }
 
   /** @override */
@@ -88,11 +93,20 @@ export class ActivityIframeView extends View {
     this.port_.onResizeRequest(height => {
       dialog.resizeView(this, height);
     });
+
+    this.resolve_(this.port_.acceptResult());
+
     return this.port_.whenReady();
+  }
+
+  acceptResult() {
+    return this.promise_;
   }
 
   /** @override */
   resized() {
-    this.port_.resized();
+    if (this.port_) {
+      this.port_.resized();
+    }
   }
 }
