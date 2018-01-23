@@ -24,6 +24,12 @@ import {parseUrl} from '../utils/url';
 const linkFrontIframeUrl =
     '$frontend$/subscribewithgoogleclientui/linkfrontiframe';
 
+/**
+ * @const {string}
+ */
+const linkConfirmIframeUrl =
+    '$frontend$/subscribewithgoogleclientui/linkconfirmiframe';
+
 /** @const {string} */
 const requestId = 'link-continue';
 
@@ -110,7 +116,7 @@ export class LinkAccountsFlow {
         new ActivityIframeView(
             this.win_,
             this.activityPorts_,
-            'TODO/confirm',
+            linkConfirmIframeUrl,
             {
               'publicationId': this.pageConfig_.getPublicationId(),
             });

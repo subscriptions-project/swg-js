@@ -65,7 +65,10 @@ export class ActivityIframeView extends View {
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
 
+    /** @private {?Promise} */
     this.resolve_ = null;
+
+    /** @private @const {!Promise} */
     this.promise_ = new Promise(resolve => {
       this.resolve_ = resolve;
     });
@@ -99,6 +102,10 @@ export class ActivityIframeView extends View {
     return this.port_.whenReady();
   }
 
+  /**
+   * Accepts results from the caller.
+   * @return {!Promise<!Object>}
+   */
   acceptResult() {
     return this.promise_;
   }
