@@ -31,18 +31,15 @@ export class OffersFlow {
 
   /**
    * @param {!Window} win
-   * @param  {!./subscription-markup.SubscriptionMarkup} markup
+   * @param {!../model/page-config.PageConfig} config
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
    */
-  constructor(win, markup, activityPorts) {
+  constructor(win, config, activityPorts) {
     /** @private @const {!Window} */
     this.win_ = win;
 
     /** @private @const {!HTMLDocument} */
     this.document_ = win.document;
-
-    /** @private @const {!./subscription-markup.SubscriptionMarkup} */
-    this.markup_ = markup;
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = activityPorts;
@@ -52,12 +49,12 @@ export class OffersFlow {
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
-      this.win_,
-      this.activityPorts_,
-      offersUrl,
+        this.win_,
+        this.activityPorts_,
+        offersUrl,
         {
-          'publicationId': this.markup_.getPublicationId(),
-          'label': 'premium',  // TODO(dparikh): Replace with actual label.
+          'publicationId': config.getPublicationId(),
+          'label': config.getLabel(),
         });
   }
 

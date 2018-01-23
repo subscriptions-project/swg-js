@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-import {installRuntime, getRuntime, Runtime} from './runtime';
+import {
+  ConfiguredRuntime,
+  Runtime,
+  installRuntime,
+  getRuntime,
+} from './runtime';
+import {PageConfig} from '../model/page-config';
+import {PageConfigResolver} from '../model/page-config-resolver';
+
 
 describes.realWin('installRuntime', {}, env => {
   let win;
-  let runtime;
 
   beforeEach(() => {
     win = env.win;
-    runtime = new Runtime(win);
-    sandbox.stub(runtime.auth_, 'start', () => {
-      runtime.subscriptionState_.shouldRetry = false;
-      return Promise.resolve();
-    });
   });
 
   function dep(callback) {
@@ -126,21 +128,99 @@ describes.realWin('installRuntime', {}, env => {
     yield getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
+});
 
-  it('starts automatically if access-control is not found', function() {
-    runtime.startSubscriptionsFlowIfNeeded();
-    expect(runtime.subscriptionPromise_).to.be.null;
+
+describes.realWin('Runtime', {}, env => {
+  let win;
+  let config;
+  let runtime;
+  let configuredRuntime;
+  let configuredRuntimeMock;
+
+  beforeEach(() => {
+    win = env.win;
+    config = new PageConfig({publicationId: 'pub1', label: null});
+    sandbox.stub(
+        PageConfigResolver.prototype,
+        'resolveConfig',
+        () => Promise.resolve(config));
+    runtime = new Runtime(win);
+    return runtime.configured().then(cr => {
+      configuredRuntime = cr;
+      configuredRuntimeMock = sandbox.mock(configuredRuntime);
+    });
   });
 
-  it('doesn\'t start automatically if access-control is found', function() {
+  afterEach(() => {
+    configuredRuntimeMock.verify();
+  });
+
+  it('should should initialize correctly', () => {
+    expect(configuredRuntime.getConfig()).to.equal(config);
+    expect(configuredRuntime.hasStarted()).to.be.false;
+  });
+
+  it('should should delegate "start"', () => {
+    configuredRuntimeMock.expects('start').once();
+    return runtime.start();
+  });
+
+  it('should should delegate "startSubscriptionsFlowIfNeeded"', () => {
+    configuredRuntimeMock.expects('startSubscriptionsFlowIfNeeded').once();
+    return runtime.startSubscriptionsFlowIfNeeded();
+  });
+
+  it('should should delegate "getEntitlements"', () => {
+    const ents = {};
+    configuredRuntimeMock.expects('getEntitlements')
+        .returns(Promise.resolve(ents));
+    return expect(runtime.getEntitlements()).to.eventually.equal(ents);
+  });
+
+  it('should should delegate "showOffers"', () => {
+    const resp = {};
+    configuredRuntimeMock.expects('showOffers')
+        .returns(Promise.resolve(resp));
+    return expect(runtime.showOffers()).to.eventually.equal(resp);
+  });
+});
+
+
+describes.realWin('ConfiguredRuntime', {}, env => {
+  let win;
+  let config;
+  let runtime;
+  let entitlementsManagerMock;
+
+  beforeEach(() => {
+    win = env.win;
+    config = new PageConfig({publicationId: 'pub1', label: null});
+    runtime = new ConfiguredRuntime(win, config);
+    entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager_);
+  });
+
+  afterEach(() => {
+    entitlementsManagerMock.verify();
+  });
+
+  it('should NOT starts automatically if access-control is not found', () => {
+    runtime.startSubscriptionsFlowIfNeeded();
+    expect(runtime.hasStarted()).to.be.false;
+  });
+
+  it('should NOT start automatically if access-control=manual', () => {
+    entitlementsManagerMock
+        .expects('getEntitlements')
+        .returns(Promise.resolve({}));
     const meta = win.document.createElement('meta');
     meta.setAttribute('content', 'manual');
     meta.setAttribute('name', 'access-control');
     win.document.head.appendChild(meta);
-    expect(runtime.subscriptionPromise_).to.be.null;
+    expect(runtime.hasStarted()).to.be.false;
     runtime.startSubscriptionsFlowIfNeeded();
-    expect(runtime.subscriptionPromise_).to.be.null;
+    expect(runtime.hasStarted()).to.be.false;
     runtime.start();
-    expect(runtime.subscriptionPromise_).to.not.be.null;
+    expect(runtime.hasStarted()).to.be.true;
   });
 });
