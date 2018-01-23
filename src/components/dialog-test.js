@@ -150,6 +150,22 @@ describes.realWin('Dialog', {}, env => {
       expect(doc.querySelector('iframe')).to.be.null;
     });
 
+    it('should have Close button with keypress="Enter" listener', function* () {
+      const openedDialog = yield dialog.open();
+      const iframeDoc = openedDialog.getIframe().getDocument();
+      const closeButton = iframeDoc.querySelector('.swg-close-action');
+      expect(closeButton.nodeName).to.equal('DIV');
+
+      // Before closing the dialog, check that iframe exists in document.
+      expect(doc.querySelector('iframe')).to.equal(openedDialog.getElement());
+
+      // Presseing the Enter key should remove the dialog from the document.
+      closeButton.dispatchEvent(new KeyboardEvent('keypress',{'key': 'Enter'}));
+
+      // Check that container iframe does not exist any more.
+      expect(doc.querySelector('iframe')).to.be.null;
+    });
+
     it('should have Loading view element added', function* () {
       const openedDialog = yield dialog.open();
       const iframeDoc = openedDialog.getIframe().getDocument();
