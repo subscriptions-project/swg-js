@@ -35,7 +35,7 @@ export class LinkAccountsFlow {
 
   /**
    * @param {!Window} win
-   * @param {!PageConfig} pageConfig
+   * @param {!../model/page-config.PageConfig} pageConfig
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
    */
   constructor(win, pageConfig, activityPorts) {

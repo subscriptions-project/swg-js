@@ -164,6 +164,15 @@ export class Runtime {
     return this.configured()
         .then(runtime => runtime.showOffers());
   }
+
+  /**
+   * Starts the Account linking flow.
+   * TODO(dparikh): For testing purpose only.
+   */
+  linkAccount() {
+    return this.configured()
+        .then(runtime => runtime.linkAccount());
+  }
 }
 
 
@@ -263,11 +272,11 @@ export class ConfiguredRuntime {
 
   /**
    * Starts the Account linking flow.
-   * TODO(dparikh): For testing purpose only.
+   * @return {!Promise}
    */
   linkAccount() {
     return this.documentParsed_.then(() => {
-      const flow = new new LinkAccountsFlow(
+      const flow = new LinkAccountsFlow(
           this.win_, this.config_, this.activityPorts_);
       return flow.start();
     });

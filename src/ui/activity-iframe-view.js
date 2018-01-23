@@ -34,7 +34,7 @@ export class ActivityIframeView extends View {
    * @param {!Window} win
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
    * @param {string} src
-   * @param {!Object<string, string|number>=} args
+   * @param {!Object<string, ?string|number>=} args
    */
   constructor(win, activityPorts, src, args) {
     super();
@@ -59,7 +59,7 @@ export class ActivityIframeView extends View {
     /** @private @const {string} */
     this.src_ = src;
 
-    /** @private @const {!Object<string, string|number>} */
+    /** @private @const {!Object<string, ?string|number>} */
     this.args_ = args || {};
 
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
