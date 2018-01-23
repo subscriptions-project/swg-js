@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-import {LinkAccountsFlow} from './link-accounts-flow';
 import {ActivityPorts} from 'web-activities/activity-ports';
+import {LinkAccountsFlow} from './link-accounts-flow';
+import {PageConfig} from '../model/page-config';
 
 
 describes.realWin('Link accounts flow', {}, env => {
   let win;
   let linkAccountsFlow;
   let activityPorts;
+  let pageConfig;
 
   beforeEach(() => {
     win = env.win;
     activityPorts = new ActivityPorts(win);
-    linkAccountsFlow = new LinkAccountsFlow(win, activityPorts);
+    pageConfig = new PageConfig({publicationId: 'pub1', label: null});
+    linkAccountsFlow = new LinkAccountsFlow(win, pageConfig, activityPorts);
   });
 
   it('should have valid LinkAccountsFlow constructed', () => {

@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-import {OffersFlow} from './offers-flow';
 import {ActivityPorts} from 'web-activities/activity-ports';
+import {OffersFlow} from './offers-flow';
+import {PageConfig} from '../model/page-config';
 
 
 describes.realWin('Offers flow', {}, env => {
   let win;
   let offersFlow;
   let activityPorts;
-  let markup;
+  let pageConfig;
 
   beforeEach(() => {
     win = env.win;
-    markup = {
-      getPublicationId: function() {
-        return 'scenic-2017';
-      },
-    };
+    pageConfig = new PageConfig({publicationId: 'pub1', label: 'label1'});
     activityPorts = new ActivityPorts(win);
-    offersFlow = new OffersFlow(win, markup, activityPorts);
+    offersFlow = new OffersFlow(win, pageConfig, activityPorts);
   });
 
   it('should have valid OffersFlow constructed', () => {
