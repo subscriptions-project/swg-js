@@ -77,6 +77,12 @@ app.get('/auth', (req, res) => {
   });
 });
 
+/**
+ * OAuth debug authorization endpoint. Simply returns back.
+ */
+app.get('/auth.debug', (req, res) => {
+  res.render('../examples/sample-pub/views/signin-debug');
+});
 
 /**
  * OAuth authorization endpoint.

@@ -24,6 +24,12 @@ import {parseUrl} from '../utils/url';
 const linkFrontIframeUrl =
     '$frontend$/subscribewithgoogleclientui/linkfrontiframe';
 
+/**
+ * @const {string}
+ */
+const linkConfirmIframeUrl =
+    '$frontend$/subscribewithgoogleclientui/linkconfirmiframe';
+
 /** @const {string} */
 const requestId = 'link-continue';
 
@@ -45,6 +51,9 @@ export class LinkAccountsFlow {
     /** @private @const {!HTMLDocument} */
     this.document_ = win.document;
 
+    /** @private @const {!../model/page-config.PageConfig} */
+    this.pageConfig_ = pageConfig;
+
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = activityPorts;
 
@@ -57,7 +66,7 @@ export class LinkAccountsFlow {
         this.activityPorts_,
         linkFrontIframeUrl,
         {
-          'publicationId': pageConfig.getPublicationId(),
+          'publicationId': this.pageConfig_.getPublicationId(),
           'requestId': requestId,
           'returnUrl': this.getHostUrl_(this.win_.location.href),
         });
@@ -69,7 +78,51 @@ export class LinkAccountsFlow {
    */
   start() {
     return this.dialog_.open().then(() => {
-      return this.dialog_.openView(this.activityIframeView_);
+      return this.dialog_.openView(this.activityIframeView_).then(() => {
+        this.activityIframeView_.acceptResult().then(result => {
+          if (result.ok) {
+            this.openLoginForm_(result.data);
+          }
+        });
+      });
+    });
+  }
+
+
+  /**
+   * Opens the publisher's login page.
+   * @param {!Object} resp
+   * @private
+   */
+  openLoginForm_(resp) {
+    const redirectUrl = resp['redirectUrl'];
+    this.activityPorts_.open(
+        requestId, redirectUrl, '_blank', null, {});
+    this.activityPorts_.onResult(requestId, port => {
+      return port.acceptResult().then(result => {
+        if (result.ok) {
+          this.showConfirmation_();
+        }
+      });
+    });
+  }
+
+  /**
+   * Renders the confirmation page upon successful sign-in.
+   * @private
+   */
+  showConfirmation_() {
+    const confirmActivityView =
+        new ActivityIframeView(
+            this.win_,
+            this.activityPorts_,
+            linkConfirmIframeUrl,
+            {
+              'publicationId': this.pageConfig_.getPublicationId(),
+            });
+    this.dialog_.openView(confirmActivityView);
+    confirmActivityView.acceptResult().then(() => {
+      // FLOW IS DONE!!!!
     });
   }
 
