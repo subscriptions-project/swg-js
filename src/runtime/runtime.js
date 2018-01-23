@@ -125,6 +125,7 @@ export class Runtime {
 
   /**
    * @return {!Promise<!ConfiguredRuntime>}
+   * @package
    */
   configured() {
     return this.configured_;

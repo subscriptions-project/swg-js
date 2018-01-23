@@ -31,10 +31,10 @@ export class OffersFlow {
 
   /**
    * @param {!Window} win
-   * @param {!../model/page-config.PageConfig} config
+   * @param {!../model/page-config.PageConfig} pageConfig
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
    */
-  constructor(win, config, activityPorts) {
+  constructor(win, pageConfig, activityPorts) {
     /** @private @const {!Window} */
     this.win_ = win;
 
@@ -53,8 +53,8 @@ export class OffersFlow {
         this.activityPorts_,
         offersUrl,
         {
-          'publicationId': config.getPublicationId(),
-          'label': config.getLabel(),
+          'publicationId': pageConfig.getPublicationId(),
+          'label': pageConfig.getLabel(),
         });
   }
 
