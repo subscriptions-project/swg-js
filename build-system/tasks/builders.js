@@ -73,8 +73,11 @@ function dist() {
   process.env.NODE_ENV = 'production';
   return clean().then(() => {
     return Promise.all([
-      compile({minify: true, checkTypes: true}),
-    ]);
+      compile({minify: true, checkTypes: false, isProdBuild: true}),
+    ]).then(() => {
+      // Check types now.
+      return compile({minify: true, checkTypes: true});
+    });
   });
 }
 
