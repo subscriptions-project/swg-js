@@ -100,7 +100,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       fs.unlinkSync(intermediateFilename);
     }
     let sourceMapBase = 'http://localhost:8000/';
-    if (isProdBuild) {
+    if (isProdBuild || options.isProdBuild) {
       // Point sourcemap to fetch files from correct GitHub tag.
       sourceMapBase = 'https://raw.githubusercontent.com/dvoytenko/subscriptions/' +
             internalRuntimeVersion + '/';
