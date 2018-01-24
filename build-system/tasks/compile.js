@@ -38,7 +38,8 @@ const subscribeSandbox = 'https://subscribe.sandbox.google.com';
 /**
  * @return {!Promise}
  */
-exports.compile = function(opts) {
+exports.compile = function(opt_opts) {
+  const opts = opt_opts || {};
   mkdirSync('build');
   mkdirSync('build/cc');
   mkdirSync('build/fake-module');
@@ -48,19 +49,19 @@ exports.compile = function(opts) {
   // Compile CSS because we need the css files in compileJs step.
   return compileCss('./src/', './build/css', Object.assign({}, opts || {}))
       .then(() => {
-
-      // For compilation with babel we start with the main-babel entry point,
-      // but then rename to the subscriptions.js which we've been using all along.
+        // For compilation with babel we start with the main-babel entry point,
+        // but then rename to the subscriptions.js which we've been using all along.
         return Promise.all([
           compileJs('./src/', 'main', './dist',
               Object.assign({
                 toName: 'subscriptions.max.js',
-                minifiedName: 'subscriptions.js',
+                minifiedName: opts.checkTypes ?
+                    'subscriptions.checktypes.js' : 'subscriptions.js',
                 includePolyfills: true,
-            // If there is a sync JS error during initial load,
-            // at least try to unhide the body.
+                // If there is a sync JS error during initial load,
+                // at least try to unhide the body.
                 wrapper: '(function(){<%= contents %>})();',
-              }, opts || {})),
+              }, opts)),
         ]);
       });
 };
