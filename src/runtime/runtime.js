@@ -16,7 +16,7 @@
 
 
 import {ActivityPorts} from 'web-activities/activity-ports';
-import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
+import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
 import {DepsDef} from '../model/deps';
 import {DialogManager} from '../components/dialog-manager';
@@ -69,7 +69,7 @@ export function installRuntime(win) {
     return;
   }
 
-  injectStyleSheet(win.document, `${SWG_POPUP}`);
+  injectStyleSheet(win.document, `${SWG_DIALOG}`);
 
   const runtime = new Runtime(win);
 
