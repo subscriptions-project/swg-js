@@ -65,10 +65,10 @@ export class ActivityIframeView extends View {
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
 
-    /** @private {?function(!Promise<!Object>)} */
+    /** @private {?function((!Object|!Promise<!Object>))} */
     this.resolve_ = null;
 
-    /** @private @const {!Promise} */
+    /** @private @const {!Promise<!Object>} */
     this.promise_ = new Promise(resolve => {
       this.resolve_ = resolve;
     });

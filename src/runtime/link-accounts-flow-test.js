@@ -14,26 +14,55 @@
  * limitations under the License.
  */
 
-import {ActivityPorts} from 'web-activities/activity-ports';
-import {LinkAccountsFlow} from './link-accounts-flow';
+import {ConfiguredRuntime} from './runtime';
+import {
+  LinkStartFlow,
+  LinkCompleteFlow,
+} from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 
 
-describes.realWin('Link accounts flow', {}, env => {
+describes.realWin('LinkStartFlow', {}, env => {
   let win;
-  let linkAccountsFlow;
-  let activityPorts;
   let pageConfig;
+  let runtime;
+  let linkAccountsFlow;
 
   beforeEach(() => {
     win = env.win;
-    activityPorts = new ActivityPorts(win);
     pageConfig = new PageConfig({publicationId: 'pub1', label: null});
-    linkAccountsFlow = new LinkAccountsFlow(win, pageConfig, activityPorts);
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    linkAccountsFlow = new LinkStartFlow(runtime);
   });
 
   it('should have valid LinkAccountsFlow constructed', () => {
     const linkAccountsPromise = linkAccountsFlow.start();
     expect(linkAccountsPromise).to.eventually.not.be.null;
+  });
+});
+
+
+describes.realWin('LinkCompleteFlow', {}, env => {
+  let win;
+  let pageConfig;
+  let runtime;
+  let callbacksMock;
+  let linkCompleteFlow;
+
+  beforeEach(() => {
+    win = env.win;
+    pageConfig = new PageConfig({publicationId: 'pub1', label: null});
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    callbacksMock = sandbox.mock(runtime.callbacks());
+    linkCompleteFlow = new LinkCompleteFlow(runtime);
+  });
+
+  afterEach(() => {
+    callbacksMock.verify();
+  });
+
+  it('should trigger event', () => {
+    callbacksMock.expects('triggerLinkComplete').once();
+    linkCompleteFlow.start();
   });
 });

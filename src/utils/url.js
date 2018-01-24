@@ -175,3 +175,14 @@ export function parseQueryString(query) {
         return params;
       }, {});
 }
+
+
+/**
+ * Returns the Url including the path and search, without fregment.
+ * @param {string} url
+ * @return {string}
+ */
+export function getHostUrl(url) {
+  const locationHref = parseUrl(url);
+  return locationHref.origin + locationHref.pathname + locationHref.search;
+}

@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import {parseUrl, parseQueryString, serializeQueryString} from './url';
+import {
+  getHostUrl,
+  parseUrl,
+  parseQueryString,
+  serializeQueryString,
+} from './url';
 
 describe('serializeQueryString', () => {
   it('should return empty string for empty params', () => {
@@ -203,5 +208,16 @@ describe('parseUrl', () => {
     expect(parseQueryString('?')).to.be.empty;
     expect(parseQueryString('#')).to.be.empty;
     expect(parseQueryString('')).to.be.empty;
+  });
+
+  it('should strip fragment for host url', () => {
+    expect(getHostUrl('https://example.com/abc?a=1#frag'))
+        .to.equal('https://example.com/abc?a=1');
+    expect(getHostUrl('https://example.com/abc?a=1'))
+        .to.equal('https://example.com/abc?a=1');
+    expect(getHostUrl('https://example.com/abc'))
+        .to.equal('https://example.com/abc');
+    expect(getHostUrl('https://example.com/'))
+        .to.equal('https://example.com/');
   });
 });

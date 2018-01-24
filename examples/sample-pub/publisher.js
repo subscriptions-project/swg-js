@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-console.info('starting action from publisher.js');
+function log() {
+  var var_args = Array.prototype.slice.call(arguments, 0);
+  var_args.unshift('[publisher.js]');
+  console.log.apply(console, var_args);
+}
+
+log('started');
 
 /**
  * Add subsciptions when ready.
@@ -26,13 +32,20 @@ function whenReady(callback) {
   });
 }
 
+// Callbacks.
+whenReady(function(subscriptions) {
+  subscriptions.setOnLinkComplete(function() {
+    log('link complete');
+  });
+});
+
 /**
  * Starts the entitlements flow.
  */
 function getEntitlements() {
   whenReady(function(subscriptions) {
     subscriptions.getEntitlements().then(entitlements => {
-      console.log('entitlements: ', entitlements);
+      log('entitlements: ', entitlements);
     });
   });
 }
@@ -57,5 +70,5 @@ function startLinkAccountsFlow() {
 
 
 // startOffersFlow();
-//startLinkAccountsFlow();
-getEntitlements();
+startLinkAccountsFlow();
+// getEntitlements();
