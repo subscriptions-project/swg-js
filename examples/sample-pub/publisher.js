@@ -15,7 +15,7 @@
  */
 
 function log() {
-  var var_args = Array.prototype.slice.call(arguments, 0);
+  const var_args = Array.prototype.slice.call(arguments, 0);
   var_args.unshift('[publisher.js]');
   console.log.apply(console, var_args);
 }
@@ -40,35 +40,23 @@ whenReady(function(subscriptions) {
 });
 
 /**
- * Starts the entitlements flow.
+ * Selects the flow based on the URL query parameter. Defaults to 'offersiframe'.
  */
-function getEntitlements() {
+function startFlow() {
   whenReady(function(subscriptions) {
-    subscriptions.getEntitlements().then(entitlements => {
-      log('entitlements: ', entitlements);
+    const flow = window.location.href.split('?')[1] || 'showOffers';
+    const flowFunc = subscriptions[flow];
+    const flows = Object.keys(subscriptions);
+    if (!(typeof flowFunc == 'function')) {
+      throw new Error(
+          `Flow "${flow}" not found: Available flows: "${flows}"`);
+    }
+    log('starting flow', flow, ` (${flows})`);
+    const result = flowFunc.call(subscriptions);
+    Promise.resolve(result).then(() => {
+      log('flow complete', flow);
     });
   });
 }
 
-/**
- * Starts the offers flow.
- */
-function startOffersFlow() {
-  whenReady(function(subscriptions) {
-    subscriptions.showOffers();
-  });
-}
-
-/**
- * Starts the linking accounts flow.
- */
-function startLinkAccountsFlow() {
-  whenReady(function(subscriptions) {
-    subscriptions.linkAccount();
-  });
-}
-
-
-// startOffersFlow();
-startLinkAccountsFlow();
-// getEntitlements();
+startFlow();
