@@ -129,7 +129,7 @@ export class Dialog {
 
   /**
    * Opens the dialog and builds the iframe container.
-   * @return {!Promise}
+   * @return {!Promise<!Dialog>}
    */
   open() {
     const iframe = this.iframe_;
@@ -137,14 +137,15 @@ export class Dialog {
       throw new Error('already opened');
     }
     this.doc_.body.appendChild(iframe.getElement());  // Fires onload.
-
-    return iframe.whenReady().then(() => this.buildIframe_());
+    return iframe.whenReady().then(() => {
+      this.buildIframe_();
+      return this;
+    });
   }
 
   /**
    * Build the iframe with the styling after iframe is loaded.
    * @private
-   * @return {!Dialog}
    */
   buildIframe_() {
     const iframe = this.iframe_;
@@ -168,7 +169,6 @@ export class Dialog {
     iframeBody.appendChild(this.container_);
     this.setPosition_();
     this.updatePaddingToHtml_();
-    return this;
   }
 
   /**
@@ -246,6 +246,11 @@ export class Dialog {
     } else {
       this.loadingView_.hide();
     }
+  }
+
+  /** @return {?./view.View} */
+  getCurrentView() {
+    return this.view_;
   }
 
   /**

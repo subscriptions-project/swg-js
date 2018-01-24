@@ -14,61 +14,45 @@
  * limitations under the License.
  */
 
-import {Dialog} from '../components/dialog';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {parseUrl} from '../utils/url';
+import {getHostUrl} from '../utils/url';
 
-/**
- * @const {string}
- */
-const linkFrontIframeUrl =
+const LINK_FRONT_IFRAME_URL =
     '$frontend$/subscribewithgoogleclientui/linkfrontiframe';
 
-/**
- * @const {string}
- */
-const linkConfirmIframeUrl =
+const LINK_CONFIRM_IFRAME_URL =
     '$frontend$/subscribewithgoogleclientui/linkconfirmiframe';
 
-/** @const {string} */
-const requestId = 'link-continue';
+const COMPLETE_LINK_REQUEST_ID = 'link-continue';
+
 
 /**
- * The class for Link accounts flow.
- *
+ * The flow to initiate linking process.
  */
-export class LinkAccountsFlow {
+export class LinkStartFlow {
 
   /**
-   * @param {!Window} win
-   * @param {!../model/page-config.PageConfig} pageConfig
-   * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
+   * @param {!../model/deps.DepsDef} deps
    */
-  constructor(win, pageConfig, activityPorts) {
+  constructor(deps) {
     /** @private @const {!Window} */
-    this.win_ = win;
-
-    /** @private @const {!HTMLDocument} */
-    this.document_ = win.document;
-
-    /** @private @const {!../model/page-config.PageConfig} */
-    this.pageConfig_ = pageConfig;
+    this.win_ = deps.win();
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = activityPorts;
+    this.activityPorts_ = deps.activities();
 
-    /** @private @const {!Dialog} */
-    this.dialog_ = new Dialog(this.win_);
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = deps.dialogManager();
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        linkFrontIframeUrl,
+        LINK_FRONT_IFRAME_URL,
         {
-          'publicationId': this.pageConfig_.getPublicationId(),
-          'requestId': requestId,
-          'returnUrl': this.getHostUrl_(this.win_.location.href),
+          'publicationId': deps.pageConfig().getPublicationId(),
+          'requestId': COMPLETE_LINK_REQUEST_ID,
+          'returnUrl': getHostUrl(this.win_.location.href),
         });
   }
 
@@ -77,15 +61,12 @@ export class LinkAccountsFlow {
    * @return {!Promise}
    */
   start() {
-    return this.dialog_.open().then(() => {
-      return this.dialog_.openView(this.activityIframeView_).then(() => {
-        this.activityIframeView_.acceptResult().then(result => {
-          if (result.ok) {
-            this.openLoginForm_(result.data);
-          }
-        });
-      });
+    this.activityIframeView_.acceptResult().then(result => {
+      if (result.ok) {
+        this.openLoginForm_(result.data);
+      }
     });
+    return this.dialogManager_.openView(this.activityIframeView_);
   }
 
 
@@ -97,43 +78,70 @@ export class LinkAccountsFlow {
   openLoginForm_(resp) {
     const redirectUrl = resp['redirectUrl'];
     this.activityPorts_.open(
-        requestId, redirectUrl, '_blank', null, {});
-    this.activityPorts_.onResult(requestId, port => {
+        COMPLETE_LINK_REQUEST_ID, redirectUrl, '_blank', null, {});
+    // Disconnected flow: will proceed with LinkCompleteFlow once popup
+    // returns.
+    this.dialogManager_.completeView(this.activityIframeView_);
+  }
+}
+
+
+/**
+ * The class for Link accounts flow.
+ */
+export class LinkCompleteFlow {
+
+  /**
+   * @param {!../model/deps.DepsDef} deps
+   */
+  static configurePending(deps) {
+    deps.activities().onResult(COMPLETE_LINK_REQUEST_ID, port => {
       return port.acceptResult().then(result => {
         if (result.ok) {
-          this.showConfirmation_();
+          const flow = new LinkCompleteFlow(deps);
+          flow.start();
         }
       });
     });
   }
 
   /**
-   * Renders the confirmation page upon successful sign-in.
-   * @private
+   * @param {!../model/deps.DepsDef} deps
    */
-  showConfirmation_() {
-    const confirmActivityView =
+  constructor(deps) {
+    /** @private @const {!Window} */
+    this.win_ = deps.win();
+
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    this.activityPorts_ = deps.activities();
+
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = deps.dialogManager();
+
+    /** @private @const {!../runtime/callbacks.Callbacks} */
+    this.callbacks_ = deps.callbacks();
+
+    /** @private @const {!ActivityIframeView} */
+    this.activityIframeView_ =
         new ActivityIframeView(
             this.win_,
             this.activityPorts_,
-            linkConfirmIframeUrl,
+            LINK_CONFIRM_IFRAME_URL,
             {
-              'publicationId': this.pageConfig_.getPublicationId(),
+              'publicationId': deps.pageConfig().getPublicationId(),
             });
-    this.dialog_.openView(confirmActivityView);
-    confirmActivityView.acceptResult().then(() => {
-      // FLOW IS DONE!!!!
-    });
   }
 
   /**
-   * Returns the Url including the path and search, without fregment.
-   * @param {string} url
-   * @return {string}
-   * @private
+   * Starts the Link account flow.
+   * @return {!Promise}
    */
-  getHostUrl_(url) {
-    const locationHref = parseUrl(url);
-    return locationHref.origin + locationHref.pathname + locationHref.search;
+  start() {
+    this.callbacks_.triggerLinkComplete();
+    this.activityIframeView_.acceptResult().then(() => {
+      // The flow is complete.
+      this.dialogManager_.completeView(this.activityIframeView_);
+    });
+    return this.dialogManager_.openView(this.activityIframeView_);
   }
 }
