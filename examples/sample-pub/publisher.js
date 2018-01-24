@@ -40,7 +40,10 @@ whenReady(function(subscriptions) {
 });
 
 /**
- * Selects the flow based on the URL query parameter. Defaults to 'offersiframe'.
+ * Selects the flow based on the URL query parameter.
+ * The query parameter is the name of the function defined in runtime.
+ * Defaults to 'showOffers'.
+ * Current valid values are: 'showOffers', 'linkAccount', 'getEntitlements'.
  */
 function startFlow() {
   whenReady(function(subscriptions) {
@@ -59,4 +62,5 @@ function startFlow() {
   });
 }
 
+/** Initiates the flow, if valid */
 startFlow();
