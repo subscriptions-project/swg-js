@@ -15,11 +15,21 @@
  */
 
 import {
+  ActivityPorts,
+  ActivityResult,
+  ActivityResultCode,
+} from 'web-activities/activity-ports';
+import {
   ConfiguredRuntime,
   Runtime,
   installRuntime,
   getRuntime,
 } from './runtime';
+import {DialogManager} from '../components/dialog-manager';
+import {
+  LinkStartFlow,
+  LinkCompleteFlow,
+} from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 
@@ -157,8 +167,8 @@ describes.realWin('Runtime', {}, env => {
   });
 
   it('should should initialize correctly', () => {
-    expect(configuredRuntime.getConfig()).to.equal(config);
     expect(configuredRuntime.hasStarted()).to.be.false;
+    expect(configuredRuntime.pageConfig()).to.equal(config);
   });
 
   it('should should delegate "start"', () => {
@@ -192,9 +202,18 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   let config;
   let runtime;
   let entitlementsManagerMock;
+  let activityResultCallbacks;
 
   beforeEach(() => {
     win = env.win;
+    activityResultCallbacks = {};
+    sandbox.stub(ActivityPorts.prototype, 'onResult',
+        function(requestId, callback) {
+          if (activityResultCallbacks[requestId]) {
+            throw new Error('duplicate');
+          }
+          activityResultCallbacks[requestId] = callback;
+        });
     config = new PageConfig({publicationId: 'pub1', label: null});
     runtime = new ConfiguredRuntime(win, config);
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager_);
@@ -202,6 +221,26 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
   afterEach(() => {
     entitlementsManagerMock.verify();
+  });
+
+  function returnActivity(requestId, code, opt_dataOrError) {
+    const activityResult = new ActivityResult(code, opt_dataOrError);
+    const activityResultPromise = Promise.resolve(activityResult);
+    activityResultCallbacks[requestId]({
+      acceptResult() {
+        return activityResultPromise;
+      },
+    });
+    return activityResultPromise.then(() => {
+      // Skip microtask.
+    });
+  }
+
+  it('should should initialize deps', () => {
+    expect(runtime.win()).to.equal(win);
+    expect(runtime.pageConfig()).to.equal(config);
+    expect(runtime.activities()).to.be.instanceof(ActivityPorts);
+    expect(runtime.dialogManager()).to.be.instanceof(DialogManager);
   });
 
   it('should NOT starts automatically if access-control is not found', () => {
@@ -222,5 +261,26 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(runtime.hasStarted()).to.be.false;
     runtime.start();
     expect(runtime.hasStarted()).to.be.true;
+  });
+
+  it('should start LinkStartFlow', () => {
+    const startStub = sandbox.stub(
+        LinkStartFlow.prototype,
+        'start',
+        () => Promise.resolve());
+    return runtime.linkAccount().then(() => {
+      expect(startStub).to.be.calledOnce;
+    });
+  });
+
+  it('should configure and start LinkCompleteFlow', () => {
+    expect(activityResultCallbacks['link-continue']).to.exist;
+    const startStub = sandbox.stub(
+        LinkCompleteFlow.prototype,
+        'start',
+        () => Promise.resolve());
+    return returnActivity('link-continue', ActivityResultCode.OK).then(() => {
+      expect(startStub).to.be.calledOnce;
+    });
   });
 });

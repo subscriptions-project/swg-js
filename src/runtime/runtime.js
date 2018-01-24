@@ -17,8 +17,14 @@
 
 import {ActivityPorts} from 'web-activities/activity-ports';
 import {CSS as SWG_POPUP} from '../../build/css/experimental/swg-popup.css';
+import {Callbacks} from './callbacks';
+import {DepsDef} from '../model/deps';
+import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from '../entitlements/entitlements-manager';
-import {LinkAccountsFlow} from './link-accounts-flow';
+import {
+  LinkStartFlow,
+  LinkCompleteFlow,
+} from './link-accounts-flow';
 import {NotificationView} from '../experimental/notification-view';
 import {OffersFlow} from './offers-flow';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -132,6 +138,14 @@ export class Runtime {
   }
 
   /**
+   * @param {function()} callback
+   */
+  setOnLinkComplete(callback) {
+    this.configured()
+        .then(runtime => runtime.setOnLinkComplete(callback));
+  }
+
+  /**
    * Starts subscription flow.
    * @return {!Promise}
    */
@@ -178,6 +192,7 @@ export class Runtime {
 
 
 /**
+ * @implements {DepsDef}
  */
 export class ConfiguredRuntime {
 
@@ -205,15 +220,41 @@ export class ConfiguredRuntime {
     /** @private @const {!SubscriptionMarkup} */
     this.markup_ = new SubscriptionMarkup(this.win_);
 
+    /** @private @const {!DialogManager} */
+    this.dialogManager_ = new DialogManager(win);
+
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(win);
+
+    /** @private @const {!Callbacks} */
+    this.callbacks_ = new Callbacks();
+
+    LinkCompleteFlow.configurePending(this);
   }
 
-  /**
-   * @return {!../model/page-config.PageConfig}
-   */
-  getConfig() {
+  /** @override */
+  win() {
+    return this.win_;
+  }
+
+  /** @override */
+  pageConfig() {
     return this.config_;
+  }
+
+  /** @override */
+  activities() {
+    return this.activityPorts_;
+  }
+
+  /** @override */
+  dialogManager() {
+    return this.dialogManager_;
+  }
+
+  /** @override */
+  callbacks() {
+    return this.callbacks_;
   }
 
   /**
@@ -221,6 +262,13 @@ export class ConfiguredRuntime {
    */
   hasStarted() {
     return this.started_;
+  }
+
+  /**
+   * @param {function()} callback
+   */
+  setOnLinkComplete(callback) {
+    this.callbacks_.setOnLinkComplete(callback);
   }
 
   /**
@@ -277,9 +325,7 @@ export class ConfiguredRuntime {
    */
   linkAccount() {
     return this.documentParsed_.then(() => {
-      const flow = new LinkAccountsFlow(
-          this.win_, this.config_, this.activityPorts_);
-      return flow.start();
+      return new LinkStartFlow(this).start();
     });
   }
 }
@@ -293,7 +339,8 @@ function createPublicRuntime(runtime) {
   return /** @type {!PublicRuntimeDef} */ ({
     start: runtime.start.bind(runtime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
-    showOffers: runtime.showOffers.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
+    showOffers: runtime.showOffers.bind(runtime),
+    setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
   });
 }
