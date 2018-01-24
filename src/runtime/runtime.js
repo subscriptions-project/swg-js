@@ -69,7 +69,7 @@ export function installRuntime(win) {
     return;
   }
 
-  injectStyleSheet(win.document, `${SWG_DIALOG}`);
+  injectStyleSheet(win.document, SWG_DIALOG);
 
   const runtime = new Runtime(win);
 

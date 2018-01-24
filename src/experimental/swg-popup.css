@@ -1,0 +1,265 @@
+/**
+ * Copyright 2017 The __PROJECT__ Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ /**
+  * All common styles, injected as <style> in the parent document's <head>
+  * element.
+  */
+
+
+body.swg-locked {
+  overflow: hidden !important;
+}
+
+@-webkit-keyframes swg-loading {
+  0% {
+    transform: scale(1);
+  }
+  20% {
+    transform: scale(1, 2.2);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+@-webkit-keyframes swg-appear {
+  from {
+      opacity: 0;
+  }
+  to {
+      opacity: 1;
+  }
+}
+
+@-webkit-keyframes swg-expand {
+  from {
+      transform: translateY(100%);
+      opacity: .5;
+  }
+  to {
+      transform: translateY(0);
+      opacity: 1;
+  }
+}
+
+@-webkit-keyframes swg-notify {
+  from {
+      transform: translateY(100%);
+      opacity: 0;
+  }
+  to {
+      transform: translateY(0);
+      opacity: 1;
+  }
+}
+
+@-webkit-keyframes swg-notify-hide {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+swg-notification {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  padding: 20px 8px 0 !important;
+  z-index: 2147483647 !important;
+  border: none !important;;
+  box-shadow: 3px 3px gray, 0 0 1.4em #000 !important;
+  background-color: #333 !important;
+  box-sizing: border-box !important;
+  min-height: 60px !important;
+  animation: swg-notify 1s ease-out normal backwards, swg-notify-hide 1s ease-out 7s normal forwards !important;
+  font-family: 'Roboto', sans-serif !important;
+  width: 100% !important;
+}
+
+swg-notification .swg-label {
+  float: left !important;
+}
+
+swg-notification .swg-detail {
+  background: transparent !important;
+  color: #00FF00 !important;
+  border: none !important;
+  cursor: pointer !important;
+  font-size: inherit !important;
+  outline:none !important;
+  white-space: nowrap !important;
+  float: right !important;
+  font-family: inherit !important;
+}
+
+/**
+ * Initial default style of embedded iframe.
+ */
+.swg-iframe {
+  opacity: 1 !important;
+  border: none !important;
+  width: 100% !important;
+  background-color: #fff !important;
+  display: block !important;
+}
+
+/**
+ * Styles for main <swg-popup> element.
+ */
+.swg-dialog,
+swg-popup {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  z-index: 2147483647 !important;
+  border: 0  !important;
+  box-shadow: 0px 3px gray, 0 0 1.4em gray !important;
+  background-color: #fff !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  animation: swg-expand 1.0s !important;
+  width: 100% !important;
+}
+
+/**
+ * The maximum width allowed for swg-popup is 480 px. If the default width
+ * is 100% (for container width < 480 px).
+ */
+@media (min-width: 480px) {
+  .swg-dialog,
+  swg-popup,
+  swg-notification {
+    width: 480px !important;
+    left: -240px !important;
+    margin-left: calc(100vw - 100vw / 2) !important;
+  }
+}
+
+swg-popup.swg-popup-fullscreen {
+  overflow-y: auto !important;
+}
+
+.swg-google-bar {
+  height: 4px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  z-index: 2147483647 !important;
+}
+
+.swg-google-bar .swg-bar {
+  height: 100% !important;
+  flex: 1 !important;
+  z-index: 2147483647 !important;
+}
+
+.swg-bar:nth-child(1) {
+  background-color: #4285f4 !important;
+}
+
+.swg-bar:nth-child(2) {
+  background-color: #0f9d58 !important;
+}
+
+.swg-bar:nth-child(3) {
+  background-color: #f4b400 !important;
+}
+
+.swg-bar:nth-child(4) {
+  background-color: #db4437 !important;
+}
+
+swg-popup-background {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  background-color: #fff !important;
+  opacity: .5 !important;
+  z-index: 2147483646 !important;  /** less than swg-popup */
+}
+
+swg-popup .swg-close-action {
+  position: absolute !important;
+  right: 16px !important;
+  top: 20px !important;  /* 16px padding + 4px top Google bar */
+  padding: 0 !important;
+  margin: 0 !important;
+  background-color: transparent !important;
+  border: none !important;
+  z-index: 2147483647 !important;
+  width: 11px !important;
+  height: 11px !important;
+  background-image: url("data:image/svg+xml;charset=utf-8,<svg viewPort='0 0 11 11' version='1.1' xmlns='http://www.w3.org/2000/svg'><line x1='0' y1='11' x2='11' y2='0' stroke='#757575' stroke-width='1'/><line x1='0' y1='0' x2='11' y2='11' stroke='#757575' stroke-width='1'/></svg>") !important;
+}
+
+swg-popup .swg-step-appear {
+  animation: swg-appear 1.5s ease-out !important;
+}
+
+/**
+ * Styles for main <swg-loading> element.
+ */
+swg-popup swg-loading,
+.swg-loading {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 2147483647 !important;
+}
+
+swg-loading swg-loading-bar,
+.swg-loading .swg-loading-bar {
+  display: inline-block !important;
+  width: 5px !important;
+  height: 20px !important;
+  border-radius: 5px !important;
+  margin-right: 5px !important;
+  animation: swg-loading 1s ease-in-out infinite !important;
+}
+
+swg-loading-bar:nth-child(1),
+.swg-loading-bar:nth-child(1) {
+  background-color: #4285f4 !important;
+  animation-delay: 0 !important;
+}
+
+swg-loading-bar:nth-child(2),
+.swg-loading-bar:nth-child(2) {
+  background-color: #0f9d58 !important;
+  animation-delay: 0.09s !important;
+}
+
+swg-loading-bar:nth-child(3),
+.swg-loading-bar:nth-child(3) {
+  background-color: #f4b400 !important;
+  animation-delay: .18s !important;
+}
+
+swg-loading-bar:nth-child(4),
+.swg-loading-bar:nth-child(4) {
+  background-color: #db4437 !important;
+  animation-delay: .27s !important;
+}
