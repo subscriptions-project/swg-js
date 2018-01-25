@@ -141,7 +141,7 @@ export class Toast {
   /**
    * Adds label and detail button.
    * @param {!Document} iframeDoc
-   * @param {?HTMLBodyElement} iframeBody
+   * @param {?Element} iframeBody
    * @private
    */
   addItems_(iframeDoc, iframeBody) {
