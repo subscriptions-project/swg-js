@@ -301,7 +301,7 @@ export class ConfiguredRuntime {
     return this.entitlementsManager_.getEntitlements().then(entitlements => {
       if (entitlements.enablesThis()) {
         const toast = new Toast(this.win_, {
-          text: 'Entitlements',
+          text: 'Access via Google Subscriptions',
           action: {
             label: 'View',
             handler: function() {
