@@ -28,6 +28,7 @@ export let EntitlementDef;
 
 /**
  * The holder of the entitlements for the service.
+ * TODO(dvoytenko): Move to api/
  */
 export class Entitlements {
 

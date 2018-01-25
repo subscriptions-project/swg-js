@@ -15,96 +15,81 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {getHostUrl} from '../utils/url';
+import {SubscribeResponse} from '../api/subscribe-response';
+import {acceptPortResult} from '../utils/activity-utils';
+import {parseUrl} from '../utils/url';
 
-const LINK_FRONT_IFRAME_URL =
-    '$frontend$/subscribewithgoogleclientui/linkfrontiframe';
+const PAY_URL =
+    '$frontend$/subscribewithgoogleclientui/pay';
 
-const LINK_CONFIRM_IFRAME_URL =
-    '$frontend$/subscribewithgoogleclientui/linkconfirmiframe';
+const PAY_CONFIRM_IFRAME_URL =
+    '$frontend$/subscribewithgoogleclientui/payconfirmiframe';
 
-const COMPLETE_LINK_REQUEST_ID = 'swg-link-continue';
+const PAY_REQUEST_ID = 'swg-pay';
 
 
 /**
- * The flow to initiate linking process.
+ * The flow to initiate payment process.
  */
-export class LinkStartFlow {
+export class PayStartFlow {
 
   /**
    * @param {!../model/deps.DepsDef} deps
+   * @param {string} sku
    */
-  constructor(deps) {
+  constructor(deps, sku) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+    /** @private @const {!../model/page-config.PageConfig} */
+    this.pageConfig_ = deps.pageConfig();
 
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        LINK_FRONT_IFRAME_URL,
-        {
-          'publicationId': deps.pageConfig().getPublicationId(),
-          'requestId': COMPLETE_LINK_REQUEST_ID,
-          'returnUrl': getHostUrl(this.win_.location.href),
-        });
+    /** @private @const {string} */
+    this.sku_ = sku;
   }
 
   /**
-   * Starts the Link account flow.
+   * Starts the payments flow.
    * @return {!Promise}
    */
   start() {
-    this.activityIframeView_.acceptResult().then(result => {
-      if (result.ok) {
-        this.openLoginForm_(result.data);
-      }
-    });
-    return this.dialogManager_.openView(this.activityIframeView_);
-  }
-
-
-  /**
-   * Opens the publisher's login page.
-   * @param {!Object} resp
-   * @private
-   */
-  openLoginForm_(resp) {
-    const redirectUrl = resp['redirectUrl'];
+    // TODO(dvoytenko): switch to gpay async client.
     this.activityPorts_.open(
-        COMPLETE_LINK_REQUEST_ID, redirectUrl, '_blank', null, {
-          // TODO(dvoytenko): Remove the debug code.
-          // Only keep request URL params for debugging URLs.
-          skipRequestInUrl: redirectUrl.indexOf('http://localhost') == -1,
-        });
-    // Disconnected flow: will proceed with LinkCompleteFlow once popup
-    // returns.
-    this.dialogManager_.completeView(this.activityIframeView_);
+        PAY_REQUEST_ID, PAY_URL, '_blank', {
+          'paymentRequest': {
+            'apiVersion': 1,
+            'allowedPaymentMethods': ['CARD'],
+            'publicationId': this.pageConfig_.getPublicationId(),
+            'swg': {
+              'publicationId': this.pageConfig_.getPublicationId(),
+              'skuId': this.sku_,
+            },
+          },
+        }, {});
+    return Promise.resolve();
   }
 }
 
 
 /**
- * The class for Link accounts flow.
+ * The flow for successful payments completion.
  */
-export class LinkCompleteFlow {
+export class PayCompleteFlow {
 
   /**
    * @param {!../model/deps.DepsDef} deps
    */
   static configurePending(deps) {
-    deps.activities().onResult(COMPLETE_LINK_REQUEST_ID, port => {
-      return port.acceptResult().then(result => {
-        if (result.ok) {
-          const flow = new LinkCompleteFlow(deps);
-          flow.start();
-        }
+    deps.activities().onResult(PAY_REQUEST_ID, port => {
+      return validatePayResponse(port).then(response => {
+        new PayCompleteFlow(deps).start();
+        deps.callbacks().triggerSubscribeResponse(Promise.resolve(response));
+      }, reason => {
+        deps.callbacks().triggerSubscribeResponse(Promise.reject(reason));
+        throw reason;
       });
     });
   }
@@ -130,22 +115,37 @@ export class LinkCompleteFlow {
         new ActivityIframeView(
             this.win_,
             this.activityPorts_,
-            LINK_CONFIRM_IFRAME_URL,
+            PAY_CONFIRM_IFRAME_URL,
             {
               'publicationId': deps.pageConfig().getPublicationId(),
             });
   }
 
   /**
-   * Starts the Link account flow.
+   * Starts the payments completion flow.
    * @return {!Promise}
    */
   start() {
-    this.callbacks_.triggerLinkComplete(Promise.resolve());
     this.activityIframeView_.acceptResult().then(() => {
       // The flow is complete.
       this.dialogManager_.completeView(this.activityIframeView_);
     });
     return this.dialogManager_.openView(this.activityIframeView_);
   }
+}
+
+
+/**
+ * @param {!web-activities/activity-ports.ActivityPort} port
+ * @return {!Promise<!SubscribeResponse>}
+ * @package Visible for testing only.
+ */
+export function validatePayResponse(port) {
+  return acceptPortResult(
+      port,
+      parseUrl(PAY_URL).origin,
+      // TODO(dvoytenko): support payload decryption.
+      /* requireOriginVerified */ true,
+      /* requireSecureChannel */ true)
+      .then(data => new SubscribeResponse(data));
 }

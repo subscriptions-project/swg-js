@@ -57,7 +57,7 @@ export class PageConfigResolver {
     }
 
     // Try to find publication id.
-    const publicationId = this.getMetaTag_('publication-id');
+    const publicationId = this.getMetaTag_('subscriptions-publication-id');
     if (!publicationId) {
       if (isDocumentReady(this.win_.document)) {
         this.configResolver_(Promise.reject(
@@ -68,7 +68,7 @@ export class PageConfigResolver {
     }
 
     // Publication ID has been found: initialize the rest of the config.
-    const label = this.getMetaTag_('label');
+    const label = this.getMetaTag_('subscriptions-product-label');
     this.configResolver_(new PageConfig({
       publicationId,
       label,

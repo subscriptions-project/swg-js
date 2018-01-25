@@ -33,8 +33,8 @@ describes.realWin('PageConfigResolver', {}, env => {
   }
 
   it('should parse publication id and label', () => {
-    addMeta('publication-id', 'pub1');
-    addMeta('label', 'label1');
+    addMeta('subscriptions-publication-id', 'pub1');
+    addMeta('subscriptions-product-label', 'label1');
     return new PageConfigResolver(win).resolveConfig().then(config => {
       expect(config.getPublicationId()).to.equal('pub1');
       expect(config.getLabel()).to.equal('label1');
@@ -42,7 +42,7 @@ describes.realWin('PageConfigResolver', {}, env => {
   });
 
   it('should parse publication id and null label', () => {
-    addMeta('publication-id', 'pub1');
+    addMeta('subscriptions-publication-id', 'pub1');
     return new PageConfigResolver(win).resolveConfig().then(config => {
       expect(config.getPublicationId()).to.equal('pub1');
       expect(config.getLabel()).to.be.null;
