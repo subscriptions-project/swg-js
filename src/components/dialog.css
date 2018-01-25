@@ -20,52 +20,6 @@
 */
 
 
-body.swg-locked {
-  overflow: hidden !important;
-}
-
-@-webkit-keyframes swg-appear {
-  from {
-      opacity: 0;
-  }
-  to {
-      opacity: 1;
-  }
-}
-
-@-webkit-keyframes swg-expand {
-  from {
-      transform: translateY(100%);
-      opacity: .5;
-  }
-  to {
-      transform: translateY(0);
-      opacity: 1;
-  }
-}
-
-@-webkit-keyframes swg-notify {
-  from {
-      transform: translateY(100%);
-      opacity: 0;
-  }
-  to {
-      transform: translateY(0);
-      opacity: 1;
-  }
-}
-
-@-webkit-keyframes swg-notify-hide {
-  from {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-}
-
 /**
  * The maximum width allowed for the dialog is 480 px. Default width
  * is 100% (for container width < 480 px).
@@ -81,22 +35,4 @@ body.swg-locked {
 
 .swg-dialog.swg-popup-fullscreen {
   overflow-y: auto !important;
-}
-
-/**
- * The light background to render underneath when the dialog is open.
- */
-swg-popup-background {
-  position: fixed !important;
-  top: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  background-color: #fff !important;
-  opacity: .5 !important;
-  z-index: 2147483646 !important;  /** less than swg-popup */
-}
-
-.swg-dialog .swg-step-appear {
-  animation: swg-appear 1.5s ease-out !important;
 }
