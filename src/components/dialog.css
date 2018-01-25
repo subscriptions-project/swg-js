@@ -32,7 +32,3 @@
     margin-left: calc(100vw - 100vw / 2) !important;
   }
 }
-
-.swg-dialog.swg-popup-fullscreen {
-  overflow-y: auto !important;
-}
