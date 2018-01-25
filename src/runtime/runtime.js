@@ -25,10 +25,10 @@ import {
   LinkStartFlow,
   LinkCompleteFlow,
 } from './link-accounts-flow';
-import {NotificationView} from '../experimental/notification-view';
 import {OffersFlow} from './offers-flow';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {SubscriptionMarkup} from './subscription-markup';
+import {Toast} from '../ui/toast';
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
 import {log} from '../utils/log';
@@ -299,10 +299,17 @@ export class ConfiguredRuntime {
    */
   getEntitlements() {
     return this.entitlementsManager_.getEntitlements().then(entitlements => {
-      // TODO(dvoytenko): remove notification view from here into the auth loop.
       if (entitlements.enablesThis()) {
-        const notificationView = new NotificationView(this.win_);
-        notificationView.start();
+        const toast = new Toast(this.win_, {
+          text: 'Access via Google Subscriptions',
+          action: {
+            label: 'View',
+            handler: function() {
+              // TODO(dparikh): Implementation.
+            },
+          },
+        });
+        toast.open();
       }
       return entitlements;
     });

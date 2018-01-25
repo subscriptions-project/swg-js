@@ -21,14 +21,15 @@ body {
 }
 
 .swg-toast-container {
-  padding: 16px;
   display: flex;
   flex-direction: row;
   width: 100%;
 }
 
 .swg-label {
+  color: #fff;
   flex: auto;
+  padding-left: 8px;
 }
 
 .swg-detail {
