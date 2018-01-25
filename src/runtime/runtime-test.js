@@ -32,6 +32,9 @@ import {
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
+import {
+  PayStartFlow,
+} from './pay-flow';
 
 
 describes.realWin('installRuntime', {}, env => {
@@ -194,6 +197,14 @@ describes.realWin('Runtime', {}, env => {
         .returns(Promise.resolve(resp));
     return expect(runtime.showOffers()).to.eventually.equal(resp);
   });
+
+  it('should should delegate "subscribe"', () => {
+    const resp = {};
+    configuredRuntimeMock.expects('subscribe')
+        .withExactArgs('sku1')
+        .returns(Promise.resolve(resp));
+    return expect(runtime.subscribe('sku1')).to.eventually.equal(resp);
+  });
 });
 
 
@@ -226,13 +237,17 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   function returnActivity(requestId, code, opt_dataOrError) {
     const activityResult = new ActivityResult(code, opt_dataOrError);
     const activityResultPromise = Promise.resolve(activityResult);
-    activityResultCallbacks[requestId]({
+    const promise = activityResultCallbacks[requestId]({
+      getTargetOrigin() {
+        return 'https://example.com';
+      },
       acceptResult() {
         return activityResultPromise;
       },
     });
     return activityResultPromise.then(() => {
       // Skip microtask.
+      return promise;
     });
   }
 
@@ -274,13 +289,42 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should configure and start LinkCompleteFlow', () => {
-    expect(activityResultCallbacks['link-continue']).to.exist;
+    expect(activityResultCallbacks['swg-link-continue']).to.exist;
     const startStub = sandbox.stub(
         LinkCompleteFlow.prototype,
         'start',
         () => Promise.resolve());
-    return returnActivity('link-continue', ActivityResultCode.OK).then(() => {
+    return returnActivity('swg-link-continue', ActivityResultCode.OK)
+        .then(() => {
+          expect(startStub).to.be.calledOnce;
+        });
+  });
+
+  it('should start PayStartFlow', () => {
+    let flowInstance;
+    const startStub = sandbox.stub(
+        PayStartFlow.prototype,
+        'start',
+        function() {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+    return runtime.subscribe('sku1').then(() => {
       expect(startStub).to.be.calledOnce;
+      expect(flowInstance.sku_).to.equal('sku1');
     });
+  });
+
+  it('should configure and start PayCompleteFlow', () => {
+    expect(activityResultCallbacks['swg-pay']).to.exist;
+    const stub = sandbox.stub(
+        runtime.callbacks(),
+        'triggerSubscribeResponse');
+    return returnActivity('swg-pay', ActivityResultCode.OK)
+        // Succeeds or fails is not important for this test.
+        .catch(() => {})
+        .then(() => {
+          expect(stub).to.be.calledOnce;
+        });
   });
 });

@@ -69,6 +69,7 @@ module.exports = {
   lintGlobs: [
     '**/*.js',
     '!**/*.extern.js',
+    '!src/api/subscriptions.js',  // Avoid "unused" prefixes in APIs.
     '!{node_modules,build,dist,third_party,build-system}/**/*.*',
     '!{testing,examples}/**/*.*',
     '!test/describes.js',

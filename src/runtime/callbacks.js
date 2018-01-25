@@ -18,6 +18,7 @@
 /** @enum {number} */
 const CallbackId = {
   LINK_COMPLETE: 1,
+  SUBSCRIBE: 2,
 };
 
 
@@ -28,28 +29,43 @@ export class Callbacks {
   /**
    */
   constructor() {
-    /** @private @const {!Object<number, function(*)>} */
+    /** @private @const {!Object<number, function(!Promise)>} */
     this.callbacks_ = {};
-    /** @private @const {!Object<number, *>} */
+    /** @private @const {!Object<number, !Promise>} */
     this.resultBuffer_ = {};
   }
 
   /**
-   * @param {function()} callback
+   * @param {function(!Promise)} callback
    */
   setOnLinkComplete(callback) {
     this.setCallback_(CallbackId.LINK_COMPLETE, callback);
   }
 
   /**
+   * @param {!Promise} promise
    */
-  triggerLinkComplete() {
-    this.trigger_(CallbackId.LINK_COMPLETE, /* data */ null);
+  triggerLinkComplete(promise) {
+    this.trigger_(CallbackId.LINK_COMPLETE, promise);
+  }
+
+  /**
+   * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
+   */
+  setOnSubscribeResponse(callback) {
+    this.setCallback_(CallbackId.SUBSCRIBE, callback);
+  }
+
+  /**
+   * @param {!Promise<!../api/subscribe-response.SubscribeResponse>} responsePromise
+   */
+  triggerSubscribeResponse(responsePromise) {
+    this.trigger_(CallbackId.SUBSCRIBE, responsePromise);
   }
 
   /**
    * @param {!CallbackId} id
-   * @param {function(*)} callback
+   * @param {function(!Promise)} callback
    * @private
    */
   setCallback_(id, callback) {
@@ -62,7 +78,7 @@ export class Callbacks {
 
   /**
    * @param {!CallbackId} id
-   * @param {*} data
+   * @param {!Promise} data
    * @private
    */
   trigger_(id, data) {
@@ -74,8 +90,8 @@ export class Callbacks {
   }
 
   /**
-   * @param {function(*)} callback
-   * @param {*} data
+   * @param {function(!Promise)} callback
+   * @param {!Promise} data
    * @private
    */
   executeCallback_(callback, data) {

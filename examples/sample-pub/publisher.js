@@ -34,9 +34,17 @@ function whenReady(callback) {
 
 // Callbacks.
 whenReady(function(subscriptions) {
-  subscriptions.setOnLinkComplete(function() {
-    log('link complete');
-  });
+  function eventCallback(eventName) {
+    return function(promise) {
+      promise.then(function(response) {
+        log(eventName, response);
+      }, function(reason) {
+        log(eventName + 'failed', reason);
+      });
+    };
+  }
+  subscriptions.setOnLinkComplete(eventCallback('link'));
+  subscriptions.setOnSubscribeResponse(eventCallback('subscribe'));
 });
 
 /**
@@ -47,7 +55,10 @@ whenReady(function(subscriptions) {
  */
 function startFlow() {
   whenReady(function(subscriptions) {
-    const flow = window.location.href.split('?')[1] || 'showOffers';
+    const flow = window.location.href.split('?')[1];
+    if (!flow) {
+      return;
+    }
     const flowFunc = subscriptions[flow];
     const flows = Object.keys(subscriptions);
     if (!(typeof flowFunc == 'function')) {
