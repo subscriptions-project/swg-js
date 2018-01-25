@@ -78,7 +78,10 @@ export class LinkStartFlow {
   openLoginForm_(resp) {
     const redirectUrl = resp['redirectUrl'];
     this.activityPorts_.open(
-        COMPLETE_LINK_REQUEST_ID, redirectUrl, '_blank', null, {});
+        COMPLETE_LINK_REQUEST_ID, redirectUrl, '_blank', null, {
+          // Only keep request URL params for debugging URLs.
+          skipRequestInUrl: redirectUrl.indexOf('http://localhost') == -1,
+        });
     // Disconnected flow: will proceed with LinkCompleteFlow once popup
     // returns.
     this.dialogManager_.completeView(this.activityIframeView_);
