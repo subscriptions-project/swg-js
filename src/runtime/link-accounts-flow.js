@@ -79,6 +79,7 @@ export class LinkStartFlow {
     const redirectUrl = resp['redirectUrl'];
     this.activityPorts_.open(
         COMPLETE_LINK_REQUEST_ID, redirectUrl, '_blank', null, {
+          // TODO(dvoytenko): Remove the debug code.
           // Only keep request URL params for debugging URLs.
           skipRequestInUrl: redirectUrl.indexOf('http://localhost') == -1,
         });
