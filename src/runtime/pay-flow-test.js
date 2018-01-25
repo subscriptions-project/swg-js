@@ -41,7 +41,7 @@ describes.realWin('PayStartFlow', {}, env => {
     pageConfig = new PageConfig({publicationId: 'pub1', label: null});
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
-    flow = new PayStartFlow(runtime);
+    flow = new PayStartFlow(runtime, 'sku1');
   });
 
   afterEach(() => {
@@ -53,7 +53,17 @@ describes.realWin('PayStartFlow', {}, env => {
         'swg-pay',
         sinon.match.string,
         '_blank',
-        {},
+        {
+          'paymentRequest': {
+            'apiVersion': 1,
+            'allowedPaymentMethods': ['CARD'],
+            'publicationId': 'pub1',
+            'swg': {
+              'publicationId': 'pub1',
+              'skuId': 'sku1',
+            },
+          },
+        },
         {})
         .once();
     const flowPromise = flow.start();
@@ -124,6 +134,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
 
     it('should NOT start flow on incorrect payments response', () => {
       PayCompleteFlow.configurePending(runtime);
+      const result = new ActivityResult(ActivityResultCode.OK, 'A');
+      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       return startCallback(port).then(() => {
         throw new Error('must have failed');
       }, reason => {
@@ -151,7 +163,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         return triggerPromise;
       }).then(response => {
         expect(response).to.be.instanceof(SubscribeResponse);
-        expect(response.raw).to.equal('A');
+        expect(response.raw_).to.equal('A');
       });
     });
 

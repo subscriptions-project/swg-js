@@ -44,7 +44,10 @@ export class PayStartFlow {
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
-    /** @private {string} */
+    /** @private @const {!../model/page-config.PageConfig} */
+    this.pageConfig_ = deps.pageConfig();
+
+    /** @private @const {string} */
     this.sku_ = sku;
   }
 
@@ -53,9 +56,18 @@ export class PayStartFlow {
    * @return {!Promise}
    */
   start() {
+    // TODO(dvoytenko): switch to gpay async client.
     this.activityPorts_.open(
         PAY_REQUEST_ID, PAY_URL, '_blank', {
-          // TODO(dvoytenko): confirm and set arguments.
+          'paymentRequest': {
+            'apiVersion': 1,
+            'allowedPaymentMethods': ['CARD'],
+            'publicationId': this.pageConfig_.getPublicationId(),
+            'swg': {
+              'publicationId': this.pageConfig_.getPublicationId(),
+              'skuId': this.sku_,
+            },
+          },
         }, {});
     return Promise.resolve();
   }

@@ -30,29 +30,21 @@ export function acceptPortResult(
     requireOrigin,
     requireOriginVerified,
     requireSecureChannel) {
-  return new Promise(resolve => {
-    if (port.getTargetOrigin() != requireOrigin ||
-        requireOriginVerified && !port.isTargetOriginVerified() ||
-        requireSecureChannel && !port.isSecureChannel()) {
-      throw new Error('channel mismatch');
+  return port.acceptResult().then(result => {
+    if (result.ok) {
+      if (port.getTargetOrigin() != requireOrigin ||
+          requireOriginVerified && !port.isTargetOriginVerified() ||
+          requireSecureChannel && !port.isSecureChannel()) {
+        throw new Error('channel mismatch');
+      }
+      return result.data;
     }
-    resolve(port.acceptResult());
-  }).then(result => {
-    return convertActivityResult(result);
+    if (result.code == ActivityResultCode.CANCELED) {
+      throw new AbortError();
+    }
+    if (result.error) {
+      throw result.error;
+    }
+    throw new Error();
   });
-}
-
-
-/**
- * @param {!web-activities/activity-ports.ActivityResult} result
- * @return {!Promise<!Object>}
- */
-function convertActivityResult(result) {
-  if (result.ok) {
-    return Promise.resolve(result.data);
-  }
-  if (result.code == ActivityResultCode.CANCELED) {
-    return Promise.reject(new AbortError());
-  }
-  return Promise.reject(result.error);
 }

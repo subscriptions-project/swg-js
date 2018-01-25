@@ -24,6 +24,6 @@ export class SubscribeResponse {
    */
   constructor(raw) {
     /** @const {*} */
-    this.raw = raw;
+    this.raw_ = raw;
   }
 }
