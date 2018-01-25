@@ -27,11 +27,15 @@ import {
 } from './link-accounts-flow';
 import {OffersFlow} from './offers-flow';
 import {PageConfigResolver} from '../model/page-config-resolver';
+import {
+  PayStartFlow,
+  PayCompleteFlow,
+} from './pay-flow';
 import {SubscriptionMarkup} from './subscription-markup';
+import {Subscriptions} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
-import {log} from '../utils/log';
 import {whenDocumentReady} from '../utils/document-ready';
 
 const RUNTIME_PROP = 'SUBSCRIPTIONS';
@@ -56,12 +60,6 @@ export function getRuntime() {
 
 
 /**
- * @interface
- */
-class PublicRuntimeDef {}
-
-
-/**
  * @param {!Window} win
  */
 export function installRuntime(win) {
@@ -81,7 +79,7 @@ export function installRuntime(win) {
   const dependencyInstaller = {};
 
   /**
-   * @param {function(!PublicRuntimeDef)} callback
+   * @param {function(!Subscriptions)} callback
    */
   function pushDependency(callback) {
     runtime.whenReady().then(() => {
@@ -101,6 +99,9 @@ export function installRuntime(win) {
 }
 
 
+/**
+ * @implements {Subscriptions}
+ */
 export class Runtime {
   /**
    * @param {!Window} win
@@ -138,14 +139,6 @@ export class Runtime {
   }
 
   /**
-   * @param {function()} callback
-   */
-  setOnLinkComplete(callback) {
-    this.configured()
-        .then(runtime => runtime.setOnLinkComplete(callback));
-  }
-
-  /**
    * Starts subscription flow.
    * @return {!Promise}
    */
@@ -163,29 +156,40 @@ export class Runtime {
         .then(runtime => runtime.startSubscriptionsFlowIfNeeded());
   }
 
-  /**
-   * @return {!Promise<?../entitlements/entitlements.Entitlements>}
-   */
+  /** @override */
   getEntitlements() {
     this.pageConfigResolver_.check();
     return this.configured()
         .then(runtime => runtime.getEntitlements());
   }
 
-  /**
-   * Starts the Offers flow.
-   */
+  /** @override */
   showOffers() {
     return this.configured()
         .then(runtime => runtime.showOffers());
   }
 
-  /**
-   * Starts the Account linking flow.
-   * TODO(dparikh): For testing purpose only.
-   */
-  linkAccount() {
+  /** @override */
+  setOnSubscribeResponse(callback) {
+    this.configured()
+        .then(runtime => runtime.setOnSubscribeResponse(callback));
+  }
+
+  /** @override */
+  subscribe(sku) {
     return this.configured()
+        .then(runtime => runtime.subscribe(sku));
+  }
+
+  /** @override */
+  setOnLinkComplete(callback) {
+    this.configured()
+        .then(runtime => runtime.setOnLinkComplete(callback));
+  }
+
+  /** @override */
+  linkAccount() {
+    this.configured()
         .then(runtime => runtime.linkAccount());
   }
 }
@@ -193,6 +197,7 @@ export class Runtime {
 
 /**
  * @implements {DepsDef}
+ * @implements {Subscriptions}
  */
 export class ConfiguredRuntime {
 
@@ -230,6 +235,7 @@ export class ConfiguredRuntime {
     this.callbacks_ = new Callbacks();
 
     LinkCompleteFlow.configurePending(this);
+    PayCompleteFlow.configurePending(this);
   }
 
   /** @override */
@@ -265,13 +271,6 @@ export class ConfiguredRuntime {
   }
 
   /**
-   * @param {function()} callback
-   */
-  setOnLinkComplete(callback) {
-    this.callbacks_.setOnLinkComplete(callback);
-  }
-
-  /**
    * Starts subscription flow.
    */
   start() {
@@ -288,15 +287,14 @@ export class ConfiguredRuntime {
   startSubscriptionsFlowIfNeeded() {
     const control = this.markup_.getAccessControl() || 'manual';
     if (control == 'manual') {
-      log('Skipping automatic start because access-control is set to "manual"');
+      // TODO(dvoytenko): make default with
+      // "Skipping automatic start because access-control is set to "manual".
       return null;
     }
     return this.start();
   }
 
-  /**
-   * @return {!Promise<?../entitlements/entitlements.Entitlements>}
-   */
+  /** @override */
   getEntitlements() {
     return this.entitlementsManager_.getEntitlements().then(entitlements => {
       if (entitlements.enablesThis()) {
@@ -315,10 +313,7 @@ export class ConfiguredRuntime {
     });
   }
 
-  /**
-   * Starts the Offers flow.
-   * @return {!Promise}
-   */
+  /** @override */
   showOffers() {
     return this.documentParsed_.then(() => {
       const flow = new OffersFlow(this.win_, this.config_, this.activityPorts_);
@@ -326,13 +321,27 @@ export class ConfiguredRuntime {
     });
   }
 
-  /**
-   * Starts the Account linking flow.
-   * @return {!Promise}
-   */
+  /** @override */
+  setOnLinkComplete(callback) {
+    this.callbacks_.setOnLinkComplete(callback);
+  }
+
+  /** @override */
   linkAccount() {
     return this.documentParsed_.then(() => {
       return new LinkStartFlow(this).start();
+    });
+  }
+
+  /** @override */
+  setOnSubscribeResponse(callback) {
+    this.callbacks_.setOnSubscribeResponse(callback);
+  }
+
+  /** @override */
+  subscribe(sku) {
+    return this.documentParsed_.then(() => {
+      return new PayStartFlow(this, sku).start();
     });
   }
 }
@@ -340,14 +349,25 @@ export class ConfiguredRuntime {
 
 /**
  * @param {!Runtime} runtime
- * @return {!PublicRuntimeDef}
+ * @return {!Subscriptions}
  */
 function createPublicRuntime(runtime) {
-  return /** @type {!PublicRuntimeDef} */ ({
+  return /** @type {!Subscriptions} */ ({
     start: runtime.start.bind(runtime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
+    subscribe: runtime.subscribe.bind(runtime),
     setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
+    setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
   });
+}
+
+
+/**
+ * @return {!Function}
+ * @protected
+ */
+export function getSubscriptionsClassForTesting() {
+  return Subscriptions;
 }

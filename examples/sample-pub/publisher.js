@@ -15,7 +15,7 @@
  */
 
 function log() {
-  const var_args = Array.prototype.slice.call(arguments, 0);
+  var var_args = Array.prototype.slice.call(arguments, 0);
   var_args.unshift('[publisher.js]');
   console.log.apply(console, var_args);
 }
@@ -27,16 +27,24 @@ log('started');
  * @param {function()} callback
  */
 function whenReady(callback) {
-  (self.SUBSCRIPTIONS = self.SUBSCRIPTIONS || []).push(subscriptions => {
+  (self.SUBSCRIPTIONS = self.SUBSCRIPTIONS || []).push(function(subscriptions) {
     callback(subscriptions);
   });
 }
 
 // Callbacks.
 whenReady(function(subscriptions) {
-  subscriptions.setOnLinkComplete(function() {
-    log('link complete');
-  });
+  function eventCallback(eventName) {
+    return function(promise) {
+      promise.then(function(response) {
+        log(eventName, response);
+      }, function(reason) {
+        log(eventName + 'failed', reason);
+      });
+    };
+  }
+  subscriptions.setOnLinkComplete(eventCallback('link'));
+  subscriptions.setOnSubscribeResponse(eventCallback('subscribe'));
 });
 
 /**
@@ -44,23 +52,39 @@ whenReady(function(subscriptions) {
  * The query parameter is the name of the function defined in runtime.
  * Defaults to 'showOffers'.
  * Current valid values are: 'showOffers', 'linkAccount', 'getEntitlements'.
+ * @param {string} flow
+ * @param {...} var_args
  */
-function startFlow() {
+function startFlow(flow, var_args) {
+  var_args = Array.prototype.slice.call(arguments, 1);
   whenReady(function(subscriptions) {
-    const flow = window.location.href.split('?')[1] || 'showOffers';
-    const flowFunc = subscriptions[flow];
-    const flows = Object.keys(subscriptions);
+    var flowFunc = subscriptions[flow];
+    var flows = Object.keys(subscriptions);
     if (!(typeof flowFunc == 'function')) {
       throw new Error(
           `Flow "${flow}" not found: Available flows: "${flows}"`);
     }
-    log('starting flow', flow, ` (${flows})`);
-    const result = flowFunc.call(subscriptions);
-    Promise.resolve(result).then(() => {
+    log('starting flow', flow, '(', var_args, ')', ` {${flows}}`);
+    var result = flowFunc.apply(subscriptions, var_args);
+    Promise.resolve(result).then(function() {
       log('flow complete', flow);
     });
   });
 }
 
+
+/**
+ * Selects the flow based on the URL query parameter.
+ * The query parameter is the name of the function defined in runtime.
+ * Defaults to 'showOffers'.
+ * Current valid values are: 'showOffers', 'linkAccount', 'getEntitlements'.
+ */
+function startFlowAuto() {
+  var flow = window.location.href.split('?')[1];
+  if (flow) {
+    startFlow(flow);
+  }
+}
+
 /** Initiates the flow, if valid */
-startFlow();
+startFlowAuto();

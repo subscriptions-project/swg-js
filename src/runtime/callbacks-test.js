@@ -75,11 +75,24 @@ describes.sandboxed('Callbacks', {}, () => {
 
   it('should trigger and execute linkComplete', () => {
     const spy = sandbox.spy();
+    const p = Promise.resolve();
     callbacks.setOnLinkComplete(spy);
-    callbacks.triggerLinkComplete();
+    callbacks.triggerLinkComplete(p);
     return skipMicro().then(() => {
       expect(spy).to.be.calledOnce;
-      expect(spy).to.be.calledWith(null);
+      expect(spy).to.be.calledWith(p);
+    });
+  });
+
+  it('should trigger and execute subscribeResponse', () => {
+    const spy = sandbox.spy();
+    const p = Promise.resolve();
+    callbacks.setOnLinkComplete(spy);  // Make sure there's no ID conflict.
+    callbacks.setOnSubscribeResponse(spy);
+    callbacks.triggerSubscribeResponse(p);
+    return skipMicro().then(() => {
+      expect(spy).to.be.calledOnce;
+      expect(spy).to.be.calledWith(p);
     });
   });
 });
