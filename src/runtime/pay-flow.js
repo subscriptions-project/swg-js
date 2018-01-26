@@ -20,10 +20,10 @@ import {acceptPortResult} from '../utils/activity-utils';
 import {parseUrl} from '../utils/url';
 
 const PAY_URL =
-    '$frontend$/subscribewithgoogleclientui/pay?jsmode=du';
+    '$frontend$/subscribewithgoogleclientui/pay$frontendDebug$';
 
 const PAY_CONFIRM_IFRAME_URL =
-    '$frontend$/subscribewithgoogleclientui/payconfirmiframe?jsmode=du';
+    '$frontend$/subscribewithgoogleclientui/payconfirmiframe$frontendDebug$';
 
 const PAY_REQUEST_ID = 'swg-pay';
 

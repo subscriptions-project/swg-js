@@ -28,5 +28,6 @@ exports.resolveConfig = function() {
   return {
     'internalRuntimeVersion': internalRuntimeVersion,
     'frontend': argv.frontend || FRONTEND,
+    'frontendDebug': argv.frontendDebug || '',
   };
 }
