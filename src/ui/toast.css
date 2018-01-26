@@ -29,6 +29,7 @@ body {
 .swg-label {
   color: #fff;
   flex: auto;
+  font-weight: 300;
   padding-left: 8px;
 }
 
