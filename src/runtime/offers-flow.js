@@ -22,7 +22,7 @@ import {
 } from './pay-flow';
 
 const OFFERS_URL =
-    '$frontend$/subscribewithgoogleclientui/offersiframe?$frontendDebug$';
+    '$frontend$/subscribewithgoogleclientui/offersiframe$frontendDebug$';
 
 
 /**
