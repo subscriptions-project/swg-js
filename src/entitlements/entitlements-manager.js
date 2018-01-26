@@ -73,7 +73,7 @@ export class EntitlementsManager {
     return this.xhr_.fetch(url, init).then(response => {
       return response.json();
     }).then(json => {
-      const signedData = json['signedData'];
+      const signedData = json['signedEntitlements'];
       if (signedData) {
         const jwt = this.jwtHelper_.decode(signedData);
         const entitlementsClaim = jwt['entitlements'];
