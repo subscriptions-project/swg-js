@@ -18,10 +18,10 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {getHostUrl} from '../utils/url';
 
 const LINK_FRONT_IFRAME_URL =
-    '$frontend$/subscribewithgoogleclientui/linkfrontiframe';
+    '$frontend$/subscribewithgoogleclientui/linkfrontiframe?jsmode=du';
 
 const LINK_CONFIRM_IFRAME_URL =
-    '$frontend$/subscribewithgoogleclientui/linkconfirmiframe';
+    '$frontend$/subscribewithgoogleclientui/linkconfirmiframe?jsmode=du';
 
 const COMPLETE_LINK_REQUEST_ID = 'swg-link-continue';
 
