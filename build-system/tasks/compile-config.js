@@ -16,8 +16,18 @@
 'use strict';
 
 const argv = require('minimist')(process.argv.slice(2));
+const internalRuntimeVersion = require('./internal-version').VERSION;
+
+const FRONTEND = 'https://subscribe.sandbox.google.com';
 
 
-// Used to e.g. references the ads binary from the runtime to get
-// version lock.
-exports.VERSION = argv.version ? String(argv.version) : String(Date.now());
+/**
+ * @return {!Object<string, string>}
+ */
+exports.resolveConfig = function() {
+  return {
+    'internalRuntimeVersion': internalRuntimeVersion,
+    'frontend': argv.frontend || FRONTEND,
+    'frontendDebug': argv.frontendDebug || '',
+  };
+}
