@@ -79,7 +79,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         })
         .returns(Promise.resolve({
           json: () => Promise.resolve({
-            signedData: 'SIGNED_DATA',
+            signedEntitlements: 'SIGNED_DATA',
           }),
         }));
     return manager.getEntitlements().then(ents => {
