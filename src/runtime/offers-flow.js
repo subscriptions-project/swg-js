@@ -16,17 +16,14 @@
 
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {Dialog} from '../components/dialog';
 import {
   PayStartFlow,
   PayCompleteFlow,
 } from './pay-flow';
 
-/**
- * @const {string}
- * TODO(diparikh): Replace correct URL for each env.
- */
-const offersUrl = '$frontend$/subscribewithgoogleclientui/offersiframe';
+const OFFERS_URL =
+    '$frontend$/subscribewithgoogleclientui/offersiframe?$frontendDebug$';
+
 
 /**
  * The class for Offers flow.
@@ -51,14 +48,14 @@ export class OffersFlow {
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
-    /** @private @const {!Dialog} */
-    this.dialog_ = new Dialog(this.win_);
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = deps.dialogManager();
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        offersUrl,
+        OFFERS_URL,
         {
           'publicationId': deps.pageConfig().getPublicationId(),
           'label': deps.pageConfig().getLabel(),
@@ -72,20 +69,17 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
-
     // If result is due to OfferSelection, redirect to payments.
     this.activityIframeView_.acceptResult().then(result => {
-      const skuId = (result.data && result.data.skuId) ? result.data.skuId : '';
-      if (result.ok && result.originVerified && result.secureChannel
-          && skuId != '') {
-        return new PayStartFlow(this.deps_, result.data.skuId).start();
-      } else {
-        throw new Error('Unable to proceed');
+      if (result.ok && result.originVerified && result.secureChannel) {
+        const skuId = result.data && result.data['skuId'] || '';
+        if (skuId) {
+          return new PayStartFlow(this.deps_, skuId).start();
+        } else {
+          throw new Error('Missing skuId!');
+        }
       }
     });
-
-    return this.dialog_.open().then(() => {
-      return this.dialog_.openView(this.activityIframeView_);
-    });
+    return this.dialogManager_.openView(this.activityIframeView_);
   }
 }
