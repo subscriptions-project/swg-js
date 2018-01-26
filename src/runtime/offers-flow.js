@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-import {Dialog} from '../components/dialog';
+
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {Dialog} from '../components/dialog';
+import {
+  PayStartFlow,
+  PayCompleteFlow,
+} from './pay-flow';
 
 /**
  * @const {string}
@@ -30,19 +35,21 @@ const offersUrl = '$frontend$/subscribewithgoogleclientui/offersiframe';
 export class OffersFlow {
 
   /**
-   * @param {!Window} win
-   * @param {!../model/page-config.PageConfig} pageConfig
-   * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
+   * @param {!../model/deps.DepsDef} deps
    */
-  constructor(win, pageConfig, activityPorts) {
+  constructor(deps) {
+
+    /** @private @const {!../model/deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!Window} */
-    this.win_ = win;
+    this.win_ = deps.win();
 
     /** @private @const {!HTMLDocument} */
-    this.document_ = win.document;
+    this.document_ = this.win_.document;
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = activityPorts;
+    this.activityPorts_ = deps.activities();
 
     /** @private @const {!Dialog} */
     this.dialog_ = new Dialog(this.win_);
@@ -53,9 +60,11 @@ export class OffersFlow {
         this.activityPorts_,
         offersUrl,
         {
-          'publicationId': pageConfig.getPublicationId(),
-          'label': pageConfig.getLabel(),
+          'publicationId': deps.pageConfig().getPublicationId(),
+          'label': deps.pageConfig().getLabel(),
         });
+
+    PayCompleteFlow.configurePending(this.deps_);
   }
 
   /**
@@ -63,6 +72,18 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
+
+    // If result is due to OfferSelection, redirect to payments.
+    this.activityIframeView_.acceptResult().then(result => {
+      const skuId = (result.data && result.data.skuId) ? result.data.skuId : '';
+      if (result.ok && result.originVerified && result.secureChannel
+          && skuId != '') {
+        return new PayStartFlow(this.deps_, result.data.skuId).start();
+      } else {
+        throw new Error('Unable to proceed');
+      }
+    });
+
     return this.dialog_.open().then(() => {
       return this.dialog_.openView(this.activityIframeView_);
     });
