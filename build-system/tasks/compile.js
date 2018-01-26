@@ -28,12 +28,12 @@ const lazypipe = require('lazypipe');
 const minimatch = require('minimatch');
 const minimist = require('minimist');
 const pathLib = require('path');
+const resolveConfig = require('./compile-config').resolveConfig;
 const source = require('vinyl-source-stream');
 const touch = require('touch');
 const watchify = require('watchify');
 const internalRuntimeVersion = require('./internal-version').VERSION;
 const argv = require('minimist')(process.argv.slice(2));
-const subscribeSandbox = 'https://subscribe.sandbox.google.com';
 
 /**
  * @return {!Promise}
@@ -118,11 +118,21 @@ function compileJs(srcDir, srcFilename, destDir, options) {
 
   const wrapper = options.wrapper || '<%= contents %>';
 
-  const lazybuild = lazypipe()
+  let lazybuild = lazypipe()
       .pipe(source, srcFilename + '-babel.js')
-      .pipe(buffer)
-      .pipe($$.replace, /\$internalRuntimeVersion\$/g, internalRuntimeVersion)
-      .pipe($$.replace, /\$frontend\$/g, argv.frontend || subscribeSandbox)
+      .pipe(buffer);
+
+  // Replacements.
+  const replacements = resolveConfig();
+  for (const k in replacements) {
+    lazybuild = lazybuild.pipe(
+        $$.replace,
+        new RegExp('\\$' + k + '\\$', 'g'),
+        replacements[k]);
+  }
+
+  // Complete build with wrapper and sourcemaps.
+  lazybuild = lazybuild
       .pipe($$.wrap, wrapper)
       .pipe($$.sourcemaps.init.bind($$.sourcemaps), {loadMaps: true});
 

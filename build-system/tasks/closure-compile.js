@@ -21,6 +21,7 @@ const closureCompiler = require('gulp-closure-compiler');
 const gulp = require('gulp');
 const rename = require('gulp-rename');
 const replace = require('gulp-replace');
+const resolveConfig = require('./compile-config').resolveConfig;
 const util = require('gulp-util');
 const internalRuntimeVersion = require('./internal-version').VERSION;
 const rimraf = require('rimraf');
@@ -246,8 +247,19 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     // If we're only doing type checking, no need to output the files.
     if (!argv.typecheck_only) {
       stream = stream
-        .pipe(rename(outputFilename))
-        .pipe(replace(/\$internalRuntimeVersion\$/g, internalRuntimeVersion))
+        .pipe(rename(outputFilename));
+
+      // Replacements.
+      const replacements = resolveConfig();
+      for (const k in replacements) {
+        stream = stream
+          .pipe(replace(
+              new RegExp('\\$' + k + '\\$', 'g'),
+              replacements[k]));
+      }
+
+      // Complete build: dist and source maps.
+      stream = stream
         .pipe(gulp.dest(outputDir))
         .on('end', function() {
           gulp.src(intermediateFilename + '.map')
