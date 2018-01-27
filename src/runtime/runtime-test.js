@@ -191,6 +191,11 @@ describes.realWin('Runtime', {}, env => {
     return expect(runtime.getEntitlements()).to.eventually.equal(ents);
   });
 
+  it('should should delegate "reset"', () => {
+    configuredRuntimeMock.expects('reset').once();
+    return expect(runtime.reset()).to.eventually.be.undefined;
+  });
+
   it('should should delegate "showOffers"', () => {
     const resp = {};
     configuredRuntimeMock.expects('showOffers')
@@ -276,6 +281,11 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(runtime.hasStarted()).to.be.false;
     runtime.start();
     expect(runtime.hasStarted()).to.be.true;
+  });
+
+  it('should reset entitlements', () => {
+    entitlementsManagerMock.expects('reset').once();
+    runtime.reset();
   });
 
   it('should start LinkStartFlow', () => {
