@@ -14,14 +14,30 @@
  * limitations under the License.
  */
 
-import {Dialog} from '../components/dialog';
+
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {
+  PayStartFlow,
+  PayCompleteFlow,
+} from './pay-flow';
+import {assert} from '../utils/log';
 
 /**
- * @const {string}
- * TODO(diparikh): Replace correct URL for each env.
+ * @typedef {{
+ *   code: string,
+ *   data: !Object<string, string>,
+ *   error: ?string,
+ *   ok: boolean,
+ *   origin: string,
+ *   originVerified: boolean,
+ *   secureChannel: boolean
+ * }}
  */
-const offersUrl = '$frontend$/subscribewithgoogleclientui/offersiframe';
+export let OfferSelectionResponse;
+
+const OFFERS_URL =
+    '$frontend$/subscribewithgoogleclientui/offersiframe$frontendDebug$';
+
 
 /**
  * The class for Offers flow.
@@ -30,32 +46,36 @@ const offersUrl = '$frontend$/subscribewithgoogleclientui/offersiframe';
 export class OffersFlow {
 
   /**
-   * @param {!Window} win
-   * @param {!../model/page-config.PageConfig} pageConfig
-   * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
+   * @param {!../model/deps.DepsDef} deps
    */
-  constructor(win, pageConfig, activityPorts) {
+  constructor(deps) {
+
+    /** @private @const {!../model/deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!Window} */
-    this.win_ = win;
+    this.win_ = deps.win();
 
     /** @private @const {!HTMLDocument} */
-    this.document_ = win.document;
+    this.document_ = this.win_.document;
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = activityPorts;
+    this.activityPorts_ = deps.activities();
 
-    /** @private @const {!Dialog} */
-    this.dialog_ = new Dialog(this.win_);
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = deps.dialogManager();
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        offersUrl,
+        OFFERS_URL,
         {
-          'publicationId': pageConfig.getPublicationId(),
-          'label': pageConfig.getLabel(),
+          'publicationId': deps.pageConfig().getPublicationId(),
+          'label': deps.pageConfig().getLabel(),
         });
+
+    PayCompleteFlow.configurePending(this.deps_);
   }
 
   /**
@@ -63,8 +83,16 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
-    return this.dialog_.open().then(() => {
-      return this.dialog_.openView(this.activityIframeView_);
+    // If result is due to OfferSelection, redirect to payments.
+    this.activityIframeView_.acceptResult().then(result => {
+      const response = /** @type {!OfferSelectionResponse} */ (result);
+      assert(response.ok, 'The response is not OK!');
+      assert(response.originVerified, 'The origin is not verified');
+      assert(response.secureChannel, 'The channel is not secured');
+      // TODO(dparikh): Remove 'test_sku', once Payments allows.
+      const skuId = 'test_sku' || response.data && response.data['skuId'] || '';
+      return new PayStartFlow(this.deps_, skuId).start();
     });
+    return this.dialogManager_.openView(this.activityIframeView_);
   }
 }

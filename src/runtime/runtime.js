@@ -316,7 +316,7 @@ export class ConfiguredRuntime {
   /** @override */
   showOffers() {
     return this.documentParsed_.then(() => {
-      const flow = new OffersFlow(this.win_, this.config_, this.activityPorts_);
+      const flow = new OffersFlow(this);
       return flow.start();
     });
   }
