@@ -164,6 +164,12 @@ export class Runtime {
   }
 
   /** @override */
+  reset() {
+    return this.configured()
+        .then(runtime => runtime.reset());
+  }
+
+  /** @override */
   showOffers() {
     return this.configured()
         .then(runtime => runtime.showOffers());
@@ -314,6 +320,11 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  reset() {
+    this.entitlementsManager_.reset();
+  }
+
+  /** @override */
   showOffers() {
     return this.documentParsed_.then(() => {
       const flow = new OffersFlow(this);
@@ -354,6 +365,7 @@ export class ConfiguredRuntime {
 function createPublicRuntime(runtime) {
   return /** @type {!Subscriptions} */ ({
     start: runtime.start.bind(runtime),
+    reset: runtime.reset.bind(runtime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),

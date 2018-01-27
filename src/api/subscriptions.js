@@ -26,6 +26,11 @@ export class Subscriptions {
   getEntitlements() {}
 
   /**
+   * Resets the entitlements that can be fetched again.
+   */
+  reset() {}
+
+  /**
    * Starts the Offers flow.
    */
   showOffers() {}
