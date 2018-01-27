@@ -20,6 +20,20 @@ import {
   PayStartFlow,
   PayCompleteFlow,
 } from './pay-flow';
+import {assert} from '../utils/log';
+
+/**
+ * @typedef {{
+ *   code: string,
+ *   data: !Object<string, string>,
+ *   error: ?string,
+ *   ok: boolean,
+ *   origin: string,
+ *   originVerified: boolean,
+ *   secureChannel: boolean
+ * }}
+ */
+export let OfferSelectionResponse;
 
 const OFFERS_URL =
     '$frontend$/subscribewithgoogleclientui/offersiframe$frontendDebug$';
@@ -71,14 +85,13 @@ export class OffersFlow {
   start() {
     // If result is due to OfferSelection, redirect to payments.
     this.activityIframeView_.acceptResult().then(result => {
-      if (result.ok && result.originVerified && result.secureChannel) {
-        const skuId = result.data && result.data['skuId'] || '';
-        if (skuId) {
-          return new PayStartFlow(this.deps_, skuId).start();
-        } else {
-          throw new Error('Missing skuId!');
-        }
-      }
+      const response = /** @type {!OfferSelectionResponse} */ (result);
+      assert(response.ok, 'The response is not OK!');
+      assert(response.originVerified, 'The origin is not verified');
+      assert(response.secureChannel, 'The channel is not secured');
+      // TODO(dparikh): Remove 'test_sku', once Payments allows.
+      const skuId = 'test_sku' || response.data && response.data['skuId'] || '';
+      return new PayStartFlow(this.deps_, skuId).start();
     });
     return this.dialogManager_.openView(this.activityIframeView_);
   }
