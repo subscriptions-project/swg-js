@@ -57,6 +57,12 @@ export class EntitlementsManager {
   }
 
   /**
+   */
+  reset() {
+    this.responsePromise_ = null;
+  }
+
+  /**
    * @return {!Promise<?Entitlements>}
    * @private
    */

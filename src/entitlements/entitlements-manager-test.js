@@ -94,4 +94,27 @@ describes.realWin('EntitlementsManager', {}, env => {
       expect(ents.enablesThis()).to.be.true;
     });
   });
+
+  it('should only fetch once', () => {
+    xhrMock.expects('fetch')
+        .returns(Promise.resolve({
+          json: () => Promise.resolve({}),
+        }))
+        .once();
+    return manager.getEntitlements().then(() => {
+      return manager.getEntitlements();
+    });
+  });
+
+  it('should re-fetch after reset', () => {
+    xhrMock.expects('fetch')
+        .returns(Promise.resolve({
+          json: () => Promise.resolve({}),
+        }))
+        .twice();
+    return manager.getEntitlements().then(() => {
+      manager.reset();
+      return manager.getEntitlements();
+    });
+  });
 });
