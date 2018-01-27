@@ -62,7 +62,7 @@ export class EntitlementsManager {
    */
   fetch_() {
     const url =
-        'http://swg-staging.sandbox.google.com/_/v1/publication/' +
+        '$entitlements$/_/v1/publication/' +
         encodeURIComponent(this.config_.getPublicationId()) +
         '/entitlements';
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
