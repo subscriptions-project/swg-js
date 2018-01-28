@@ -14,27 +14,43 @@
  * limitations under the License.
  */
 
+import {ActivityPort} from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {OffersFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
-
+import * as sinon from 'sinon';
 
 describes.realWin('Offers flow', {}, env => {
   let win;
   let offersFlow;
   let runtime;
+  let activitiesMock;
+  let callbacksMock;
   let pageConfig;
 
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig({publicationId: 'pub1', label: 'label1'});
     runtime = new ConfiguredRuntime(win, pageConfig);
+    activitiesMock = sandbox.mock(runtime.activities());
+    callbacksMock = sandbox.mock(runtime.callbacks());
     offersFlow = new OffersFlow(runtime);
   });
 
+  afterEach(() => {
+    activitiesMock.verify();
+    callbacksMock.verify();
+  });
+
   it('should have valid OffersFlow constructed', () => {
-    const offersPromise = offersFlow.start();
-    // TODO(dparikh): Fix unit tests.
-    expect(offersPromise).to.eventually.not.be.null;
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sinon.match.string,
+        {publicationId: 'pub1', label: 'label1'})
+        .returns(Promise.resolve(port));
+    return offersFlow.start();
   });
 });
