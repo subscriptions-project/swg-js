@@ -151,10 +151,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should start flow on correct payment response', () => {
-      sandbox.stub(port, 'getTargetOrigin', () => location.origin);
-      sandbox.stub(port, 'isTargetOriginVerified', () => true);
-      sandbox.stub(port, 'isSecureChannel', () => true);
-      const result = new ActivityResult(ActivityResultCode.OK, 'A');
+      const result = new ActivityResult(ActivityResultCode.OK, 'A',
+          'POPUP', location.origin, true, true);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       PayCompleteFlow.configurePending(runtime);
       return startCallback(port).then(() => {
@@ -168,10 +166,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should require channel security', () => {
-      sandbox.stub(port, 'getTargetOrigin', () => location.origin);
-      sandbox.stub(port, 'isTargetOriginVerified', () => true);
-      sandbox.stub(port, 'isSecureChannel', () => false);
-      const result = new ActivityResult(ActivityResultCode.OK, 'A');
+      const result = new ActivityResult(ActivityResultCode.OK, 'A',
+          'REDIRECT', location.origin, true, false);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       PayCompleteFlow.configurePending(runtime);
       return startCallback(port).then(() => {

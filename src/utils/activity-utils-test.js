@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {AbortError} from '../api/abort-error';
 import {
   ActivityPort,
   ActivityResult,
@@ -50,13 +49,20 @@ describes.sandboxed('acceptPortResult', {}, () => {
   });
 
   function result(code, dataOrError, origin, originVerified, secureChannel) {
-    sandbox.stub(port, 'getTargetOrigin', () => origin);
-    sandbox.stub(port, 'isTargetOriginVerified', () => originVerified);
-    sandbox.stub(port, 'isSecureChannel', () => secureChannel);
     const result = new ActivityResult(
-        code, dataOrError,
+        code, dataOrError, 'MODE',
         origin, originVerified, secureChannel);
-    sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
+    sandbox.stub(port, 'acceptResult', () => {
+      if (result.code == OK) {
+        return Promise.resolve(result);
+      }
+      if (result.code == CANCELED) {
+        const error = new Error();
+        error.name = 'AbortError';
+        return Promise.reject(error);
+      }
+      return Promise.reject(result.error);
+    });
   }
 
   it('should resolve success with everything required ', () => {
@@ -120,9 +126,6 @@ describes.sandboxed('acceptPortResult', {}, () => {
   });
 
   it('should resolve unexpected failure', () => {
-    sandbox.stub(port, 'getTargetOrigin', () => ORIGIN);
-    sandbox.stub(port, 'isTargetOriginVerified', () => VERIFIED);
-    sandbox.stub(port, 'isSecureChannel', () => SECURE);
     sandbox.stub(port, 'acceptResult',
         () => Promise.reject(new Error('intentional')));
     return acceptPortResult(
@@ -141,7 +144,7 @@ describes.sandboxed('acceptPortResult', {}, () => {
         ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE).then(() => {
           throw new Error('must have failed');
         }, reason => {
-          expect(reason).to.be.instanceof(AbortError);
+          expect(reason.name).to.equal('AbortError');
         });
   });
 
@@ -152,7 +155,7 @@ describes.sandboxed('acceptPortResult', {}, () => {
         ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE).then(() => {
           throw new Error('must have failed');
         }, reason => {
-          expect(reason).to.not.be.instanceof(AbortError);
+          expect(reason.name).to.not.equal('AbortError');
           expect(() => {throw reason;}).to.throw(/failure/);
         });
   });
