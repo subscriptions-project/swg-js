@@ -60,6 +60,14 @@ describes.realWin('Types', {}, env => {
       expect(element.style.height).to.equal('102px');
     });
 
+    it('resetAllStyles', () => {
+      const element = doc.createElement('div');
+      st.resetAllStyles(element);
+      expect(element.style.objectFit).to.equal('fill');
+      expect(element.style.opacity).to.equal('1');
+      expect(element.style.display).to.equal('block');
+    });
+
     it('px', () => {
       expect(st.px(0)).to.equal('0px');
       expect(st.px(101)).to.equal('101px');

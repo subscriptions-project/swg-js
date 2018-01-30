@@ -98,7 +98,7 @@ export const defaultStyles = {
   'min-inline-size': '0',
   'min-width': '0',
   'mix-blend-mode': 'normal',
-  'object-fit': 'none',
+  'object-fit': 'fill',  // Important for Safari browser.
   'offset-distance': 'none',  // Chrome only (Experimental).
   'offset-path': 'none',  // Chrome only (Experimental).
   'offset-rotate': 'auto 0deg',  // Chrome only (Experimental).
