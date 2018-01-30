@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {AbortError} from '../api/abort-error';
 import {ActivityResultCode} from 'web-activities/activity-ports';
 
 
@@ -31,20 +30,11 @@ export function acceptPortResult(
     requireOriginVerified,
     requireSecureChannel) {
   return port.acceptResult().then(result => {
-    if (result.ok) {
-      if (port.getTargetOrigin() != requireOrigin ||
-          requireOriginVerified && !port.isTargetOriginVerified() ||
-          requireSecureChannel && !port.isSecureChannel()) {
-        throw new Error('channel mismatch');
-      }
-      return result.data;
+    if (result.origin != requireOrigin ||
+        requireOriginVerified && !result.originVerified ||
+        requireSecureChannel && !result.secureChannel) {
+      throw new Error('channel mismatch');
     }
-    if (result.code == ActivityResultCode.CANCELED) {
-      throw new AbortError();
-    }
-    if (result.error) {
-      throw result.error;
-    }
-    throw new Error();
+    return result.data;
   });
 }

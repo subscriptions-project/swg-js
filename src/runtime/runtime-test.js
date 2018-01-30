@@ -240,12 +240,10 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   function returnActivity(requestId, code, opt_dataOrError) {
-    const activityResult = new ActivityResult(code, opt_dataOrError);
+    const activityResult = new ActivityResult(code, opt_dataOrError,
+        'POPUP', 'https://example.com', false, false);
     const activityResultPromise = Promise.resolve(activityResult);
     const promise = activityResultCallbacks[requestId]({
-      getTargetOrigin() {
-        return 'https://example.com';
-      },
       acceptResult() {
         return activityResultPromise;
       },

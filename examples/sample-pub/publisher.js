@@ -22,12 +22,16 @@ function log() {
 
 log('started');
 
+// Available for testing only. A very bad idea to have a global like this.
+var globalSubscriptions;
+
 /**
  * Add subsciptions when ready.
  * @param {function()} callback
  */
 function whenReady(callback) {
   (self.SUBSCRIPTIONS = self.SUBSCRIPTIONS || []).push(function(subscriptions) {
+    globalSubscriptions = subscriptions;
     callback(subscriptions);
   });
 }
