@@ -19,6 +19,7 @@ import {isArray} from '../utils/types';
 
 /**
  * @typedef {{
+ *   source: string,
  *   labels: !Array<string>,
  *   subscriptionToken: string,
  * }}
@@ -98,6 +99,13 @@ export class Entitlements {
   }
 
   /**
+   * @return {?EntitlementDef}
+   */
+  getEntitlementForThis() {
+    return this.getEntitlementFor(this.label_);
+  }
+
+  /**
    * @param {?string} label
    * @return {?EntitlementDef}
    */
@@ -137,9 +145,11 @@ function parseEntitlementFromJson(json) {
   if (!json) {
     json = {};
   }
+  const source = json['source'] || '';
   const labels = json['labels'] || (json['label'] ? [json['label']] : []);
   const subscriptionToken = json['subscriptionToken'];
   return {
+    source,
     labels,
     subscriptionToken,
   };

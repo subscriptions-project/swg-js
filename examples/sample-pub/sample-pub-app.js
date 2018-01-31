@@ -36,6 +36,15 @@ const AUTH_URL_PROD =
     'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
 
 /** @const {string} */
+const SWG_JS_URL_LOCAL = '/dist/subscriptions.max.js';
+
+/** @const {string} */
+const SWG_JS_URL_PROD = 'https://subscribe.sandbox.google.com/swglib/swg.js';
+
+/** @const {string} */
+const SWG_JS_URL = SWG_JS_URL_LOCAL;
+
+/** @const {string} */
 const G_PUB_USER = 'G_PUB_USER';
 
 /**
@@ -135,6 +144,7 @@ app.get('/((\\d+))', (req, res) => {
   res.render('../examples/sample-pub/views/article', {
     authUrl: getAuthUrl(req),
     pubAuthUrl: getPubAuthUrl(req),
+    swgJsUrl: SWG_JS_URL,
     id,
     article,
     prev: prevId,

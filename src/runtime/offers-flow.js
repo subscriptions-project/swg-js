@@ -22,19 +22,6 @@ import {
 } from './pay-flow';
 import {assert} from '../utils/log';
 
-/**
- * @typedef {{
- *   code: string,
- *   data: !Object<string, string>,
- *   error: ?string,
- *   ok: boolean,
- *   origin: string,
- *   originVerified: boolean,
- *   secureChannel: boolean
- * }}
- */
-export let OfferSelectionResponse;
-
 const OFFERS_URL =
     '$frontend$/subscribewithgoogleclientui/offersiframe$frontendDebug$';
 
@@ -85,12 +72,18 @@ export class OffersFlow {
   start() {
     // If result is due to OfferSelection, redirect to payments.
     this.activityIframeView_.acceptResult().then(result => {
-      const response = /** @type {!OfferSelectionResponse} */ (result);
-      assert(response.ok, 'The response is not OK!');
-      assert(response.originVerified, 'The origin is not verified');
-      assert(response.secureChannel, 'The channel is not secured');
+      this.dialogManager_.completeView(this.activityIframeView_);
+      assert(result.secureChannel, 'The channel is not secured');
+      const data = result.data;
+      if (!data) {
+        return;
+      }
+      if (data['alreadySubscribed']) {
+        this.deps_.callbacks().triggerLoginRequest();
+        return;
+      }
       // TODO(dparikh): Remove 'test_sku', once Payments allows.
-      const skuId = 'test_sku' || response.data && response.data['skuId'] || '';
+      const skuId = 'test_sku' || data['skuId'] || '';
       return new PayStartFlow(this.deps_, skuId).start();
     });
     return this.dialogManager_.openView(this.activityIframeView_);

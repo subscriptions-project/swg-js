@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import {ActivityResultCode} from 'web-activities/activity-ports';
-
 
 /**
  * @param {!web-activities/activity-ports.ActivityPort} port

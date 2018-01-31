@@ -50,6 +50,7 @@ export class SubscriptionMarkup {
 
   /**
    * @return {string} Returns the access type setting for a given page.
+   * TODO(dvoytenko): Deprecate and discontinue.
    */
   getAccessType() {
     if (this.accessType_ == null) {

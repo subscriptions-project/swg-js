@@ -52,6 +52,7 @@ describes.sandboxed('Entitlements', {}, () => {
     expect(ents.getEntitlementFor('label2')).to.equal(list[0]);
     expect(ents.getEntitlementFor('label3')).to.equal(list[1]);
     expect(ents.getEntitlementFor('label4')).to.be.null;
+    expect(ents.getEntitlementForThis()).to.equal(list[0]);
   });
 
   it('should always test as false for a null label', () => {
@@ -78,6 +79,7 @@ describes.sandboxed('Entitlements', {}, () => {
       });
       expect(list).to.deep.equal([
         {
+          source: '',
           labels: ['label1'],
           subscriptionToken: 'token1',
         },
@@ -91,6 +93,7 @@ describes.sandboxed('Entitlements', {}, () => {
       });
       expect(list).to.deep.equal([
         {
+          source: '',
           labels: ['label1', 'label2'],
           subscriptionToken: 'token1',
         },
@@ -110,14 +113,31 @@ describes.sandboxed('Entitlements', {}, () => {
       ]);
       expect(list).to.deep.equal([
         {
+          source: '',
           labels: ['label1', 'label2'],
           subscriptionToken: 'token1',
         },
         {
+          source: '',
           labels: ['label2', 'label3'],
           subscriptionToken: 'token2',
         },
       ]);
+    });
+
+    it('should parse an empty source', () => {
+      const list = parseEntitlementsFromJson({
+        label: 'label1',
+      });
+      expect(list[0].source).to.equal('');
+    });
+
+    it('should parse a non-empty source', () => {
+      const list = parseEntitlementsFromJson({
+        source: 'pub1',
+        label: 'label1',
+      });
+      expect(list[0].source).to.equal('pub1');
     });
   });
 });

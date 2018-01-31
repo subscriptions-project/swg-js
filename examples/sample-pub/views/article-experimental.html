@@ -2,16 +2,42 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
     <title><% article.title %> - The Scenic</title>
     <link rel="canonical" href="<% id %>">
-
+    <meta name="access-type" content="premium">
     <meta name="subscriptions-publication-id" content="com.appspot.scenic-2017">
     <meta name="subscriptions-product-label" content="premium">
-    <script async src="<% swgJsUrl %>"></script>
-
-    <script async src="/examples/sample-pub/publisher.js"></script>
-
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+    <script async src="/dist/subscriptions.max.js"></script>
+    <script async src="publisher.js"></script>
+    <!-- TODO(dvoytenko): replace "com.nytimes.android" with "scenic" code -->
+    <script type="application/json" id="subscriptionsConfig">
+    {
+      "profiles": {
+        "premium": {
+          "services": [
+            {
+              "id": "sp.localhost",
+              "authorizationUrl": "<% authUrl %>?pub_id=com.nytimes.android"
+            },
+            {
+              "id": "pub.localhost",
+              "authorizationUrl": "<% pubAuthUrl %>?pub_id=com.nytimes.android",
+              "weight": 1.1
+            }
+          ]
+        },
+        "offer": {
+          "services": [
+            {
+              "id": "pub.localhost",
+              "authorizationUrl": "<% authUrl %>?pub_id=com.nytimes.android"
+            }
+          ]
+        }
+      }
+    }
+    </script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Playfair+Display" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Muli" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
@@ -21,21 +47,6 @@
     <link rel="apple-touch-icon" href="./icons/icon-2x.png">
     <meta name="msapplication-TileImage" content="./icons/icon-2x.png">
     <meta name="msapplication-TileColor" content="#37dc8c">
-
-    <style>
-      .paywalled-section {
-        display: none;
-      }
-      .paywalled-disclaimer {
-        display: block;
-      }
-      .open-paywall .paywalled-section {
-        display: block;
-      }
-      .open-paywall .paywalled-disclaimer {
-        display: none;
-      }
-    </style>
   </head>
   <body>
     <div class="main-body">
@@ -73,7 +84,7 @@
           <p class="text">
             Gingerbread biscuit gummies cupcake. Powder sugar plum chocolate cake chocolate cake cake. Marzipan brownie halvah. Marzipan soufflé bear claw gummi bears muffin.
           </p>
-          <section class="paywalled-section">
+          <section access="true" access-hide>
             <p class="text">
               Muffin jelly-o wafer ice cream brownie dessert chocolate bar. Candy canes cotton candy apple pie cake. Chupa chups bonbon dragée bear claw dessert. Oat cake croissant sweet roll apple pie pie.
             </p>
@@ -137,7 +148,17 @@
               </li>
             </ul>
           </section>
-          <section class="paywalled-disclaimer">
+          <section access="true">
+            <p class="text">
+              This content will hide if subscription is denied.
+            </p>
+          </section>
+          <section access="false" access-hide>
+            <p class="text">
+              <strong>Subscription flow failed. Please subscribe for more content.</strong>
+            </p>
+          </section>
+          <section access="false">
             <p class="text">
               <strong>Please go through subscribe flow to see more content.</strong>
             </p>
