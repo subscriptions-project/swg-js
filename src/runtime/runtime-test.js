@@ -26,7 +26,7 @@ import {
   getRuntime,
 } from './runtime';
 import {DialogManager} from '../components/dialog-manager';
-import {Entitlements} from '../entitlements/entitlements';
+import {Entitlement, Entitlements} from '../api/entitlements';
 import {
   LinkStartFlow,
   LinkCompleteFlow,
@@ -290,7 +290,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   it('should start entitlements flow with success', () => {
     const entitlements = new Entitlements(
         'service', 'raw',
-        [{labels: ['label1']}],
+        [new Entitlement('', ['label1'], 'token1')],
         'label1');
     entitlementsManagerMock.expects('getEntitlements')
         .withExactArgs()
@@ -327,7 +327,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   it('should cancel entitlements flow for subscription response', () => {
     const entitlements = new Entitlements(
         'service', 'raw',
-        [{labels: ['label1']}],
+        [new Entitlement('', ['label1'], 'token1')],
         'label1');
     entitlementsManagerMock.expects('getEntitlements')
         .withExactArgs()
