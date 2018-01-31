@@ -38,17 +38,19 @@ export class Callbacks {
   }
 
   /**
-   * @param {function(!Promise<?../entitlements/entitlements.Entitlements>)} callback
+   * @param {function(!Promise<?../api/entitlements.Entitlements>)} callback
    */
   setOnEntitlementsResponse(callback) {
     this.setCallback_(CallbackId.ENTITLEMENTS, callback);
   }
 
   /**
-   * @param {!Promise<?../entitlements/entitlements.Entitlements>} promise
+   * @param {!Promise<?../api/entitlements.Entitlements>} promise
    */
   triggerEntitlementsResponse(promise) {
-    return this.trigger_(CallbackId.ENTITLEMENTS, promise);
+    return this.trigger_(
+        CallbackId.ENTITLEMENTS,
+        promise.then(res => res.clone()));
   }
 
   /**
@@ -92,7 +94,9 @@ export class Callbacks {
    * @return {boolean} Whether the callback has been found.
    */
   triggerSubscribeResponse(responsePromise) {
-    return this.trigger_(CallbackId.SUBSCRIBE, responsePromise);
+    return this.trigger_(
+        CallbackId.SUBSCRIBE,
+        responsePromise.then(res => res.clone()));
   }
 
   /**

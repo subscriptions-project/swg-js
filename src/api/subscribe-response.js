@@ -23,7 +23,14 @@ export class SubscribeResponse {
    * @param {!Object} raw
    */
   constructor(raw) {
-    /** @const {*} */
-    this.raw_ = raw;
+    /** @const {!Object} */
+    this.raw = raw;
+  }
+
+  /**
+   * @return {!SubscribeResponse}
+   */
+  clone() {
+    return new SubscribeResponse(this.raw);
   }
 }

@@ -15,13 +15,33 @@
  */
 
 
- import {map} from './object';
+import {findInArray, map} from './object';
 
- describe('map', () => {
-   it('should return a map-like object', () => {
-     const obj = {a: 1, b: 2};
-     expect(map(obj)).should.be.an.object;
-     expect(map(obj)).to.deep.equal(obj);
-     expect(map()).to.deep.equal({});
-   });
- });
+
+describe('map', () => {
+  it('should return a map-like object', () => {
+    const obj = {a: 1, b: 2};
+    expect(map(obj)).should.be.an.object;
+    expect(map(obj)).to.deep.equal(obj);
+    expect(map()).to.deep.equal({});
+  });
+});
+
+
+describes.sandboxed('findInArray', {}, () => {
+  it('should find a value', () => {
+    const array = [1, 2, 3, 4];
+    expect(findInArray(array, num => num > 2)).to.equal(3);
+  });
+
+  it('should supply all arguments', () => {
+    const array = [1];
+    const spy = sandbox.spy();
+    findInArray(array, spy);
+    expect(spy).to.be.calledOnce;
+    expect(spy.args[0][0]).to.equal(1);
+    expect(spy.args[0][1]).to.equal(0);
+    expect(spy.args[0][2]).to.equal(array);
+    expect(spy.args[0][3]).to.be.undefined;
+  });
+});

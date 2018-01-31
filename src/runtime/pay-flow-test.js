@@ -161,7 +161,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         return triggerPromise;
       }).then(response => {
         expect(response).to.be.instanceof(SubscribeResponse);
-        expect(response.raw_).to.equal('A');
+        expect(response.raw).to.equal('A');
       });
     });
 
