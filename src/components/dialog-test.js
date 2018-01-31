@@ -68,6 +68,12 @@ describes.realWin('Dialog', {}, env => {
       const openedDialog = yield dialog.open();
       yield openedDialog.openView(view);
       expect(computedStyle(win, element)['opacity']).to.equal('1');
+      expect(computedStyle(win, element)['max-height']).to.equal('100%');
+      expect(computedStyle(win, element)['max-width']).to.equal('100%');
+      expect(computedStyle(win, element)['min-height']).to.equal('100%');
+      expect(computedStyle(win, element)['min-width']).to.equal('100%');
+      expect(computedStyle(win, element)['height']).to.match(/px$/g);
+      expect(computedStyle(win, element)['width']).to.match(/px$/g);
     });
 
     it('should resize the element', function* () {
