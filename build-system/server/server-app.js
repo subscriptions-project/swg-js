@@ -23,7 +23,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.set('view engine', 'html');
-app.enable('view cache');
 app.engine('html', require('hogan-express'));
 app.locals.delimiters = '<% %>';
 

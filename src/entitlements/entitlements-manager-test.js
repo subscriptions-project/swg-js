@@ -87,6 +87,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       expect(ents.raw()).to.equal('SIGNED_DATA');
       expect(ents.list()).to.deep.equal([
         {
+          source: '',
           labels: ['label1'],
           subscriptionToken: 'token1',
         },
