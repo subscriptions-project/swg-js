@@ -100,7 +100,7 @@ export class EntitlementsManager {
 
 
 /**
- * The JSON is expected in one the forms:
+ * The JSON is expected in one of the forms:
  * - Single entitlement: `{labels: [], ...}`.
  * - A list of entitlements: `[{labels: [], ...}, {...}]`.
  * @param {!Object|!Array<!Object>} json
