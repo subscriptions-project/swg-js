@@ -82,9 +82,10 @@ export class OffersFlow {
         this.deps_.callbacks().triggerLoginRequest();
         return;
       }
-      // TODO(dparikh): Remove 'test_sku', once Payments allows.
-      const skuId = 'test_sku' || data['skuId'] || '';
-      return new PayStartFlow(this.deps_, skuId).start();
+      const skuId = data['skuId'] || '';
+      if (skuId) {
+        return new PayStartFlow(this.deps_, skuId).start();
+      }
     });
     return this.dialogManager_.openView(this.activityIframeView_);
   }
