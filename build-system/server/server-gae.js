@@ -25,6 +25,9 @@ const express = require('express');
 const app = require(require.resolve('./server-app'));
 const port = process.env.PORT || 8080;
 
+// View cache.
+app.enable('view cache');
+
 // Enable static file serving via express.
 app.use(express.static('.'));
 

@@ -139,14 +139,6 @@ export class Runtime {
   }
 
   /**
-   * Starts subscription flow.
-   * @return {!Promise}
-   */
-  start() {
-    return this.configured().then(runtime => runtime.start());
-  }
-
-  /**
    * Starts the subscription flow if it hasn't been started and the page is
    * configured to start it automatically.
    * @return {!Promise}
@@ -154,6 +146,20 @@ export class Runtime {
   startSubscriptionsFlowIfNeeded() {
     return this.configured()
         .then(runtime => runtime.startSubscriptionsFlowIfNeeded());
+  }
+
+  /**
+   * Starts subscription flow.
+   * @return {!Promise}
+   */
+  start() {
+    return this.configured().then(runtime => runtime.start());
+  }
+
+  /** @override */
+  reset() {
+    return this.configured()
+        .then(runtime => runtime.reset());
   }
 
   /** @override */
@@ -164,9 +170,9 @@ export class Runtime {
   }
 
   /** @override */
-  reset() {
+  setOnEntitlementsResponse(callback) {
     return this.configured()
-        .then(runtime => runtime.reset());
+        .then(runtime => runtime.setOnEntitlementsResponse(callback));
   }
 
   /** @override */
@@ -185,6 +191,12 @@ export class Runtime {
   subscribe(sku) {
     return this.configured()
         .then(runtime => runtime.subscribe(sku));
+  }
+
+  /** @override */
+  setOnLoginRequest(callback) {
+    this.configured()
+        .then(runtime => runtime.setOnLoginRequest(callback));
   }
 
   /** @override */
@@ -277,14 +289,6 @@ export class ConfiguredRuntime {
   }
 
   /**
-   * Starts subscription flow.
-   */
-  start() {
-    this.started_ = true;
-    this.getEntitlements();
-  }
-
-  /**
    * Starts the subscription flow if it hasn't been started and the page is
    * configured to start it automatically.
    *
@@ -300,12 +304,31 @@ export class ConfiguredRuntime {
     return this.start();
   }
 
-  /** @override */
-  getEntitlements() {
-    return this.entitlementsManager_.getEntitlements().then(entitlements => {
-      if (entitlements.enablesThis()) {
+  /**
+   * Starts subscription flow.
+   */
+  start() {
+    this.started_ = true;
+    // TODO(dvoytenko): is there a point in running entitlements at all before
+    // subscription response is discovered?
+    // TODO(dvoytenko): what's the right action when pay flow was canceled?
+    const promise = this.entitlementsManager_.getEntitlements();
+    return promise.catch(() => null).then(entitlements => {
+      if (this.callbacks_.hasSubscribeResponsePending()) {
+        return;
+      }
+      this.callbacks_.triggerEntitlementsResponse(promise);
+      if (!entitlements) {
+        return;
+      }
+      const entitlement = entitlements.getEntitlementForThis();
+      if (entitlement) {
         const toast = new Toast(this.win_, {
-          text: 'Access via Google Subscriptions',
+          text:
+              (entitlement.source || 'google') == 'google' ?
+              'Access via Google Subscriptions' :
+              // TODO(dvoytenko): display name instead.
+              'Access via [' + entitlement.source + ']',
           action: {
             label: 'View',
             handler: function() {
@@ -315,7 +338,6 @@ export class ConfiguredRuntime {
         });
         toast.open();
       }
-      return entitlements;
     });
   }
 
@@ -325,11 +347,26 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  getEntitlements() {
+    return this.entitlementsManager_.getEntitlements();
+  }
+
+  /** @override */
+  setOnEntitlementsResponse(callback) {
+    this.callbacks_.setOnEntitlementsResponse(callback);
+  }
+
+  /** @override */
   showOffers() {
     return this.documentParsed_.then(() => {
       const flow = new OffersFlow(this);
       return flow.start();
     });
+  }
+
+  /** @override */
+  setOnLoginRequest(callback) {
+    this.callbacks_.setOnLoginRequest(callback);
   }
 
   /** @override */
@@ -370,6 +407,8 @@ function createPublicRuntime(runtime) {
     linkAccount: runtime.linkAccount.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
+    setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
+    setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
     setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
   });

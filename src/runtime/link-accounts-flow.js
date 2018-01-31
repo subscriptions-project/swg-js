@@ -63,7 +63,7 @@ export class LinkStartFlow {
   start() {
     this.activityIframeView_.acceptResult().then(result => {
       if (result.ok) {
-        this.openLoginForm_(result.data);
+        this.openLoginForm_(/** @type {!Object} */ (result.data));
       }
     });
     return this.dialogManager_.openView(this.activityIframeView_);

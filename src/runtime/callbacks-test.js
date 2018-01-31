@@ -40,13 +40,13 @@ describes.sandboxed('Callbacks', {}, () => {
     return skipMicro().then(() => {
       expect(spy1).to.not.be.called;
       expect(spy2).to.not.be.called;
-      callbacks.trigger_(1, 'one');
+      expect(callbacks.trigger_(1, 'one')).to.be.true;
       return skipMicro();
     }).then(() => {
       expect(spy1).to.be.calledOnce;
       expect(spy1).to.be.calledWith('one');
       expect(spy2).to.not.be.called;
-      callbacks.trigger_(2, 'two');
+      expect(callbacks.trigger_(2, 'two')).to.be.true;
       return skipMicro();
     }).then(() => {
       expect(spy1).to.be.calledOnce;
@@ -59,8 +59,8 @@ describes.sandboxed('Callbacks', {}, () => {
   it('should trigger first can callback later', () => {
     const spy1 = sandbox.spy();
     const spy2 = sandbox.spy();
-    callbacks.trigger_(1, 'one');
-    callbacks.trigger_(2, 'two');
+    expect(callbacks.trigger_(1, 'one')).to.be.false;
+    expect(callbacks.trigger_(2, 'two')).to.be.false;
     callbacks.setCallback_(1, spy1);
     callbacks.setCallback_(2, spy2);
     expect(spy1).to.not.be.called;
@@ -77,10 +77,19 @@ describes.sandboxed('Callbacks', {}, () => {
     const spy = sandbox.spy();
     const p = Promise.resolve();
     callbacks.setOnLinkComplete(spy);
-    callbacks.triggerLinkComplete(p);
+    expect(callbacks.triggerLinkComplete(p)).to.be.true;
     return skipMicro().then(() => {
       expect(spy).to.be.calledOnce;
       expect(spy).to.be.calledWith(p);
+    });
+  });
+
+  it('should trigger and execute loginRequest', () => {
+    const spy = sandbox.spy();
+    callbacks.setOnLoginRequest(spy);
+    expect(callbacks.triggerLoginRequest()).to.be.true;
+    return skipMicro().then(() => {
+      expect(spy).to.be.calledOnce;
     });
   });
 
@@ -89,7 +98,22 @@ describes.sandboxed('Callbacks', {}, () => {
     const p = Promise.resolve();
     callbacks.setOnLinkComplete(spy);  // Make sure there's no ID conflict.
     callbacks.setOnSubscribeResponse(spy);
-    callbacks.triggerSubscribeResponse(p);
+    expect(callbacks.hasSubscribeResponsePending()).to.be.false;
+    expect(callbacks.triggerSubscribeResponse(p)).to.be.true;
+    expect(callbacks.hasSubscribeResponsePending()).to.be.true;
+    return skipMicro().then(() => {
+      expect(spy).to.be.calledOnce;
+      expect(spy).to.be.calledWith(p);
+      expect(callbacks.hasSubscribeResponsePending()).to.be.true;
+    });
+  });
+
+  it('should trigger and execute entitlementsResponse', () => {
+    const spy = sandbox.spy();
+    const p = Promise.resolve();
+    callbacks.setOnLinkComplete(spy);  // Make sure there's no ID conflict.
+    callbacks.setOnEntitlementsResponse(spy);
+    expect(callbacks.triggerEntitlementsResponse(p)).to.be.true;
     return skipMicro().then(() => {
       expect(spy).to.be.calledOnce;
       expect(spy).to.be.calledWith(p);

@@ -26,6 +26,7 @@ import {
   getRuntime,
 } from './runtime';
 import {DialogManager} from '../components/dialog-manager';
+import {Entitlements} from '../entitlements/entitlements';
 import {
   LinkStartFlow,
   LinkCompleteFlow,
@@ -284,6 +285,60 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   it('should reset entitlements', () => {
     entitlementsManagerMock.expects('reset').once();
     runtime.reset();
+  });
+
+  it('should start entitlements flow with success', () => {
+    const entitlements = new Entitlements(
+        'service', 'raw',
+        [{labels: ['label1']}],
+        'label1');
+    entitlementsManagerMock.expects('getEntitlements')
+        .withExactArgs()
+        .returns(Promise.resolve(entitlements))
+        .once();
+    const triggerStub = sandbox.stub(runtime.callbacks(),
+        'triggerEntitlementsResponse');
+    return runtime.start().then(() => {
+      expect(triggerStub).to.be.calledOnce;
+      return triggerStub.args[0][0].then(res => {
+        expect(res).to.equal(entitlements);
+      });
+    });
+  });
+
+  it('should start entitlements flow with failure', () => {
+    const error = new Error('broken');
+    entitlementsManagerMock.expects('getEntitlements')
+        .withExactArgs()
+        .returns(Promise.reject(error))
+        .once();
+    const triggerStub = sandbox.stub(runtime.callbacks(),
+        'triggerEntitlementsResponse');
+    return runtime.start().then(() => {
+      expect(triggerStub).to.be.calledOnce;
+      return triggerStub.args[0][0].then(() => {
+        throw new Error('must have failed');
+      }, reason => {
+        expect(reason).to.equal(error);
+      });
+    });
+  });
+
+  it('should cancel entitlements flow for subscription response', () => {
+    const entitlements = new Entitlements(
+        'service', 'raw',
+        [{labels: ['label1']}],
+        'label1');
+    entitlementsManagerMock.expects('getEntitlements')
+        .withExactArgs()
+        .returns(Promise.resolve(entitlements))
+        .once();
+    const triggerStub = sandbox.stub(runtime.callbacks(),
+        'triggerEntitlementsResponse');
+    runtime.callbacks().triggerSubscribeResponse(Promise.resolve());
+    return runtime.start().then(() => {
+      expect(triggerStub).to.not.be.called;
+    });
   });
 
   it('should start LinkStartFlow', () => {

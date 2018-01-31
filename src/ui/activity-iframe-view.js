@@ -65,10 +65,16 @@ export class ActivityIframeView extends View {
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
 
-    /** @private {?function((!Object|!Promise<!Object>))} */
+    /**
+     * @private
+     * {?function((!web-activities/activity-ports.ActivityResult|!Promise))}
+     */
     this.resolve_ = null;
 
-    /** @private @const {!Promise<!Object>} */
+    /**
+     * @private @const
+     * {!Promise<!web-activities/activity-ports.ActivityResult>}
+     */
     this.promise_ = new Promise(resolve => {
       this.resolve_ = resolve;
     });
@@ -104,7 +110,7 @@ export class ActivityIframeView extends View {
 
   /**
    * Accepts results from the caller.
-   * @return {!Promise<!Object>}
+   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
    */
   acceptResult() {
     return this.promise_;

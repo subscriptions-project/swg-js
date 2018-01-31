@@ -84,12 +84,10 @@ export class PayCompleteFlow {
    */
   static configurePending(deps) {
     deps.activities().onResult(PAY_REQUEST_ID, port => {
-      return validatePayResponse(port).then(response => {
+      const promise = validatePayResponse(port);
+      deps.callbacks().triggerSubscribeResponse(promise);
+      return promise.then(() => {
         new PayCompleteFlow(deps).start();
-        deps.callbacks().triggerSubscribeResponse(Promise.resolve(response));
-      }, reason => {
-        deps.callbacks().triggerSubscribeResponse(Promise.reject(reason));
-        throw reason;
       });
     });
   }

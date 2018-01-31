@@ -17,8 +17,10 @@
 
 /** @enum {number} */
 const CallbackId = {
-  LINK_COMPLETE: 1,
+  ENTITLEMENTS: 1,
   SUBSCRIBE: 2,
+  LOGIN_REQUEST: 3,
+  LINK_COMPLETE: 4,
 };
 
 
@@ -36,6 +38,34 @@ export class Callbacks {
   }
 
   /**
+   * @param {function(!Promise<?../entitlements/entitlements.Entitlements>)} callback
+   */
+  setOnEntitlementsResponse(callback) {
+    this.setCallback_(CallbackId.ENTITLEMENTS, callback);
+  }
+
+  /**
+   * @param {!Promise<?../entitlements/entitlements.Entitlements>} promise
+   */
+  triggerEntitlementsResponse(promise) {
+    return this.trigger_(CallbackId.ENTITLEMENTS, promise);
+  }
+
+  /**
+   * @param {function()} callback
+   */
+  setOnLoginRequest(callback) {
+    this.setCallback_(CallbackId.LOGIN_REQUEST, callback);
+  }
+
+  /**
+   * @return {boolean} Whether the callback has been found.
+   */
+  triggerLoginRequest() {
+    return this.trigger_(CallbackId.LOGIN_REQUEST, Promise.resolve());
+  }
+
+  /**
    * @param {function(!Promise)} callback
    */
   setOnLinkComplete(callback) {
@@ -44,9 +74,10 @@ export class Callbacks {
 
   /**
    * @param {!Promise} promise
+   * @return {boolean} Whether the callback has been found.
    */
   triggerLinkComplete(promise) {
-    this.trigger_(CallbackId.LINK_COMPLETE, promise);
+    return this.trigger_(CallbackId.LINK_COMPLETE, promise);
   }
 
   /**
@@ -58,9 +89,17 @@ export class Callbacks {
 
   /**
    * @param {!Promise<!../api/subscribe-response.SubscribeResponse>} responsePromise
+   * @return {boolean} Whether the callback has been found.
    */
   triggerSubscribeResponse(responsePromise) {
-    this.trigger_(CallbackId.SUBSCRIBE, responsePromise);
+    return this.trigger_(CallbackId.SUBSCRIBE, responsePromise);
+  }
+
+  /**
+   * @return {boolean}
+   */
+  hasSubscribeResponsePending() {
+    return !!this.resultBuffer_[CallbackId.SUBSCRIBE];
   }
 
   /**
@@ -79,6 +118,7 @@ export class Callbacks {
   /**
    * @param {!CallbackId} id
    * @param {!Promise} data
+   * @return {boolean}
    * @private
    */
   trigger_(id, data) {
@@ -87,6 +127,7 @@ export class Callbacks {
     if (callback) {
       this.executeCallback_(callback, data);
     }
+    return !!callback;
   }
 
   /**

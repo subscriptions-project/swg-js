@@ -21,14 +21,25 @@
 export class Subscriptions {
 
   /**
-   * @return {!Promise<?../entitlements/entitlements.Entitlements>}
+   * Starts the entitlement flow.
    */
-  getEntitlements() {}
+  start() {}
 
   /**
    * Resets the entitlements that can be fetched again.
    */
   reset() {}
+
+  /**
+   * @return {!Promise<?../entitlements/entitlements.Entitlements>}
+   */
+  getEntitlements() {}
+
+  /**
+   * Set the subscribe callback.
+   * @param {function(!Promise<?../entitlements/entitlements.Entitlements>)} callback
+   */
+  setOnEntitlementsResponse(callback) {}
 
   /**
    * Starts the Offers flow.
@@ -46,6 +57,11 @@ export class Subscriptions {
    * @param {string} sku
    */
   subscribe(sku) {}
+
+  /**
+   * @param {function()} callback
+   */
+  setOnLoginRequest(callback) {}
 
   /**
    * @param {function(!Promise)} callback
