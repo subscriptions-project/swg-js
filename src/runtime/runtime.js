@@ -20,7 +20,7 @@ import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
 import {DepsDef} from '../model/deps';
 import {DialogManager} from '../components/dialog-manager';
-import {EntitlementsManager} from '../entitlements/entitlements-manager';
+import {EntitlementsManager} from './entitlements-manager';
 import {
   LinkStartFlow,
   LinkCompleteFlow,
@@ -348,7 +348,8 @@ export class ConfiguredRuntime {
 
   /** @override */
   getEntitlements() {
-    return this.entitlementsManager_.getEntitlements();
+    return this.entitlementsManager_.getEntitlements()
+        .then(entitlements => entitlements.clone());
   }
 
   /** @override */

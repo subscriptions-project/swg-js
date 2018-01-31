@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import {Entitlements, parseEntitlementsFromJson} from './entitlements';
+import {Entitlement, Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
 import {Xhr} from '../utils/xhr';
+import {isArray} from '../utils/types';
 
 const SERVICE_ID = 'subscribe.google.com';
 
@@ -42,12 +43,12 @@ export class EntitlementsManager {
     /** @private @const {!JwtHelper} */
     this.jwtHelper_ = new JwtHelper();
 
-    /** @private {?Promise<?Entitlements>} */
+    /** @private {?Promise<!Entitlements>} */
     this.responsePromise_ = null;
   }
 
   /**
-   * @return {!Promise<?Entitlements>}
+   * @return {!Promise<!Entitlements>}
    */
   getEntitlements() {
     if (!this.responsePromise_) {
@@ -63,7 +64,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @return {!Promise<?Entitlements>}
+   * @return {!Promise<!Entitlements>}
    * @private
    */
   fetch_() {
@@ -95,4 +96,33 @@ export class EntitlementsManager {
       return new Entitlements(SERVICE_ID, '', [], this.config_.getLabel());
     });
   }
+}
+
+
+/**
+ * The JSON is expected in one the forms:
+ * - Single entitlement: `{labels: [], ...}`.
+ * - A list of entitlements: `[{labels: [], ...}, {...}]`.
+ * @param {!Object|!Array<!Object>} json
+ * @return {!Array<!Entitlement>}
+ */
+export function parseEntitlementsFromJson(json) {
+  const jsonList = isArray(json) ?
+      /** @type {!Array<Object>} */ (json) : [json];
+  return jsonList.map(parseEntitlementFromJson);
+}
+
+
+/**
+ * @param {?Object} json
+ * @return {!Entitlement}
+ */
+function parseEntitlementFromJson(json) {
+  if (!json) {
+    json = {};
+  }
+  const source = json['source'] || '';
+  const labels = json['labels'] || (json['label'] ? [json['label']] : []);
+  const subscriptionToken = json['subscriptionToken'];
+  return new Entitlement(source, labels, subscriptionToken);
 }
