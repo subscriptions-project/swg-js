@@ -16,7 +16,6 @@
 
 import {View} from '../components/view';
 import {createElement} from '../utils/dom';
-import {resetAllStyles} from '../utils/style';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
@@ -49,9 +48,6 @@ export class ActivityIframeView extends View {
     this.iframe_ =
         /** @type {!HTMLIFrameElement} */ (
             createElement(this.doc_, 'iframe', iframeAttributes));
-
-    // Reset all the styles.
-    resetAllStyles(this.iframe_);
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = activityPorts;
