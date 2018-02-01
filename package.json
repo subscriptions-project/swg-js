@@ -1,14 +1,14 @@
 {
   "private": true,
-  "name": "__PROJECT__",
+  "name": "subscribe-with-google",
   "version": "0.1.0",
-  "description": "__PROJECT__",
+  "description": "Subscribe with Google",
   "main": "index.js",
   "engines": {
     "node": ">=6",
     "yarn": ">=1.0.2"
   },
-  "author": "__PROJECT__ Authors",
+  "author": "Subscribe with Google Authors",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

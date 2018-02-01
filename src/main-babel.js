@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 The __PROJECT__ Authors. All Rights Reserved.
+ * Copyright 2017 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// Entry point into __PROJECT__ for compilation with babel. Just loads main.js
+// Entry point into library for compilation with babel. Just loads main.js
 // and Babel's helpers.
 
 import '../third_party/babel/custom-babel-helpers';

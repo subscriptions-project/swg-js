@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 The __PROJECT__ Authors. All Rights Reserved.
+ * Copyright 2017 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ function checkTypes() {
 
 gulp.task('clean', 'Removes build output', clean);
 gulp.task('watch', 'Watches for changes in files, re-build', watch);
-gulp.task('build', 'Builds the __PROJECT__ library', build);
+gulp.task('build', 'Builds the library', build);
 gulp.task('dist', 'Build production binaries', dist, {
   options: {
     pseudo_names: 'Compiles with readable names. ' +
