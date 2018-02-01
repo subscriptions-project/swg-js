@@ -54,14 +54,12 @@ describes.realWin('PayStartFlow', {}, env => {
         sinon.match.string,
         '_blank',
         {
-          'paymentRequest': {
-            'apiVersion': 1,
-            'allowedPaymentMethods': ['CARD'],
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'publicationId': 'pub1',
+          'swg': {
             'publicationId': 'pub1',
-            'swg': {
-              'publicationId': 'pub1',
-              'skuId': 'sku1',
-            },
+            'skuId': 'sku1',
           },
         },
         {})
