@@ -16,7 +16,7 @@
 
 import {injectStyleSheet} from '../utils/dom';
 import {LoadingView} from './loading-view';
-import {CSS as LOADING_VIEW_CSS} from '../../build/css/ui/loading-view.css';
+import {CSS as LOADING_VIEW_CSS} from '../../build/css/ui/ui.css';
 
 describes.realWin('LoadingView', {}, env => {
   let doc;
