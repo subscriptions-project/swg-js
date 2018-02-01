@@ -14,10 +14,28 @@
  * limitations under the License.
  */
 
-/**
- * Styles for main <div class="swg-loading"> element.
- */
+body {
+  padding: 0;
+  margin: 0;
+}
 
+.swg-close-action {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  padding: 8px;
+  margin: 0;
+  border: none;
+  z-index: 2147483647;
+  width: 11px;
+  height: 11px;
+  background: transparent url("data:image/svg+xml;charset=utf-8,<svg viewPort='0 0 11 11' version='1.1' xmlns='http://www.w3.org/2000/svg'><line x1='0' y1='11' x2='11' y2='0' stroke='#757575' stroke-width='1'/><line x1='0' y1='0' x2='11' y2='11' stroke='#757575' stroke-width='1'/></svg>") no-repeat center center;
+  background-size: 11px;
+  cursor: pointer;
+}
+
+
+/* loading-view styles */
 @keyframes swg-loading {
  0% {
    transform: scale(1);
