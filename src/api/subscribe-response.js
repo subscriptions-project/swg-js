@@ -20,17 +20,67 @@
 export class SubscribeResponse {
 
   /**
-   * @param {!Object} raw
+   * @param {string} raw
+   * @param {!PurchaseData} purchaseData
+   * @param {!./user-data.UserData} userData
    */
-  constructor(raw) {
-    /** @const {!Object} */
+  constructor(raw, purchaseData, userData) {
+    /** @const {string} */
     this.raw = raw;
+    /** @const {!PurchaseData} */
+    this.purchaseData = purchaseData;
+    /** @const {!./user-data.UserData} */
+    this.userData = userData;
   }
 
   /**
    * @return {!SubscribeResponse}
    */
   clone() {
-    return new SubscribeResponse(this.raw);
+    return new SubscribeResponse(
+        this.raw,
+        this.purchaseData,
+        this.userData);
+  }
+
+  /**
+   * @return {!Object}
+   */
+  json() {
+    return {
+      'purchaseData': this.purchaseData.json(),
+      'userData': this.userData.json(),
+    };
+  }
+}
+
+
+/**
+ */
+export class PurchaseData {
+
+  /**
+   * @param {string} raw
+   * @param {string} signature
+   */
+  constructor(raw, signature) {
+    /** @const {string} */
+    this.raw = raw;
+    /** @const {string} */
+    this.signature = signature;
+  }
+
+  /**
+   * @return {!PurchaseData}
+   */
+  clone() {
+    return new PurchaseData(this.raw, this.signature);
+  }
+
+  /**
+   * @return {!Object}
+   */
+  json() {
+    return {};
   }
 }

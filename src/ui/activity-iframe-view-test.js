@@ -26,14 +26,14 @@ describes.realWin('ActivityIframeView', {}, env => {
   let activityIframeView;
   let dialog;
   const activityArgs = {
-    'publicationId': 'com.appspot.scenic-2017',
+    'publicationId': 'pub1',
     'requestId': 'request1-complete',
-    'returnUrl': 'https://scenic-2017.appspot.com/complete',
+    'returnUrl': 'https://pub.com/complete',
   };
 
   beforeEach(() => {
     win = env.win;
-    src = 'http://subscribe.sandbox.google.com/subscribewithgoogleclientui/offersiframe';
+    src = '$frontend$/offersiframe';
     dialog = new Dialog(win, {height: '100px'});
     activityPorts = new ActivityPorts(win);
     activityIframePort =
