@@ -1,6 +1,6 @@
-# The __PROJECT__ open source project code of conduct
+# The Subscribe with Google open source project code of conduct
 
-All members, committers and volunteers in this community are required to act according to the following code of conduct. We encourage you to follow these guidelines, which help steer our interactions, keep the __PROJECT__ a positive, growing project and community and provide and ensure a safe environment for everyone.
+All members, committers and volunteers in this community are required to act according to the following code of conduct. We encourage you to follow these guidelines, which help steer our interactions, keep the Subscribe with Google a positive, growing project and community and provide and ensure a safe environment for everyone.
 
 ## Responsible and enforcing this code of conduct
 
@@ -38,7 +38,7 @@ Decisions about consequences of violations of this code of conduct are being mad
 
 ## For questions or feedback
 
-If you have any questions or feedback on this code of conduct, we're happy to hear from you: __PROJECT__-coc@googlegroups.com (Private group; posts are not publicly visible; access is limited to selected committers)
+If you have any questions or feedback on this code of conduct, we're happy to hear from you: subscribe-with-google-coc@googlegroups.com (Private group; posts are not publicly visible; access is limited to selected committers)
 
 ## Thanks for the inspiration
 

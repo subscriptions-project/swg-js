@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 The __PROJECT__ Authors. All Rights Reserved.
+ * Copyright 2017 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ checkMinVersion();
 function checkMinVersion() {
   const majorVersion = Number(process.version.replace(/v/, '').split('.')[0]);
   if (majorVersion < NODE_MIN_VERSION) {
-    $$.util.log('Please run __PROJECT__ with node.js version ' +
+    $$.util.log('Please run Subscribe with Google with node.js version ' +
         `${NODE_MIN_VERSION} or newer.`);
     $$.util.log('Your version is', process.version);
     process.exit(1);

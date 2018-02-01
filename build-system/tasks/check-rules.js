@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 The __PROJECT__ Authors. All Rights Reserved.
+ * Copyright 2017 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,7 +137,7 @@ var forbiddenTerms = {
 };
 
 var bannedTermsHelpString = 'Please review viewport service for helper ' +
-    'methods or mark with `/*OK*/` or `/*REVIEW*/` and consult the __PROJECT__ team. ' +
+    'methods or mark with `/*OK*/` or `/*REVIEW*/` and consult the Subscribe with Google team. ' +
     'Most of the forbidden property/method access banned on the ' +
     '`forbiddenTermsSrcInclusive` object can be found in ' +
     '[What forces layout / reflow gist by Paul Irish]' +
@@ -201,7 +201,7 @@ var forbiddenTermsSrcInclusive = {
 
 // Terms that must appear in a source file.
 var requiredTerms = {
-  'Copyright 20(17|18) The __PROJECT__ Authors\\.':
+  'Copyright 20(17|18) The Subscribe with Google Authors\\.':
       dedicatedCopyrightNoteSources,
   'Licensed under the Apache License, Version 2\\.0':
       dedicatedCopyrightNoteSources,
@@ -377,7 +377,7 @@ function checkForbiddenAndRequiredTerms() {
     .on('end', function() {
       if (forbiddenFound) {
         util.log(util.colors.blue(
-            'Please remove these usages or consult with the __PROJECT__ team.'));
+            'Please remove these usages or consult with the Subscribe with Google team.'));
       }
       if (missingRequirements) {
         util.log(util.colors.blue(
