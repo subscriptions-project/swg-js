@@ -1,5 +1,5 @@
 <!---
-Copyright 2017 The __PROJECT__ Authors. All Rights Reserved.
+Copyright 2017 The Subscribe with Google Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# Development on __PROJECT__
+# Development on Subscribe with Google
 
 ## How to get started
 
-Before you start developing in __PROJECT__, check out these resources:
-* [CONTRIBUTING.md](../CONTRIBUTING.md) has details on various ways you can contribute to the __PROJECT__.
-  * If you're developing in __PROJECT__, you should read the [Contributing code](../CONTRIBUTING.md#contributing-code).
+Before you start developing in Subscribe with Google, check out these resources:
+* [CONTRIBUTING.md](../CONTRIBUTING.md) has details on various ways you can contribute to the Subscribe with Google.
+  * If you're developing in Subscribe with Google, you should read the [Contributing code](../CONTRIBUTING.md#contributing-code).
 
 ## Setup
 
@@ -46,7 +46,7 @@ Use the following Gulp commands:
 | `gulp lint`                                                             | Validates against Google Closure Linter.                              |
 | `gulp lint --watch`                                                     | Watches for changes in files, Validates against Google Closure Linter.|
 | `gulp lint --fix`                                                       | Fixes simple lint warnings/errors automatically.                      |
-| `gulp build`<sup>[[1]](#footnote-1)</sup>                               | Builds the __PROJECT__ library.                                               |
+| `gulp build`<sup>[[1]](#footnote-1)</sup>                               | Builds the library.                                               |
 | `gulp check-links --files foo.md,bar.md`                                | Reports dead links in `.md` files.                                                 |
 | `gulp clean`                                                            | Removes build output.                                                 |
 | `gulp watch`<sup>[[1]](#footnote-1)</sup>                               | Watches for changes in files, re-build.                               |
@@ -56,19 +56,19 @@ Use the following Gulp commands:
 
 ## Manual testing
 
-For manual testing build __PROJECT__ and start the Node.js server by running `gulp`.
+For manual testing build Subscribe with Google and start the Node.js server by running `gulp`.
 
 ## Repository Layout
 <pre>
   build/          - (generated) intermediate generated files
   build-system/   - build infrastructure
-  contributing/   - docs for people contributing to the __PROJECT__
+  contributing/   - docs for people contributing to the project
   dist/           - (generated) main JS binaries are created here. This is what
-                    gets deployed to cdn.__PROJECT__.
-  docs/           - documentation about __PROJECT__
-  examples/       - example __PROJECT__ files and corresponding assets
-  src/            - source code for the __PROJECT__
-  test/           - tests for the __PROJECT__
+                    gets deployed to CDN.
+  docs/           - documentation
+  examples/       - example files and corresponding assets
+  src/            - source code
+  test/           - tests
 </pre>
 
 ## Deploying for testing
