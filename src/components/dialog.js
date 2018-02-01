@@ -15,8 +15,7 @@
  */
 
 import {LoadingView} from '../ui/loading-view';
-import {CSS as DIALOG_CSS} from
-    '../../build/css/ui/dialog.css';
+import {CSS as DIALOG_CSS} from '../../build/css/ui/ui.css';
 import {
   createElement,
   injectFontsLink,
