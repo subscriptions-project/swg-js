@@ -82,7 +82,7 @@ export class OffersFlow {
         this.deps_.callbacks().triggerLoginRequest();
         return;
       }
-      const skuId = data['skuId'] || '';
+      const skuId = data['sku'] || data['skuId'] || '';
       if (skuId) {
         return new PayStartFlow(this.deps_, skuId).start();
       }
