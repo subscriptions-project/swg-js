@@ -250,7 +250,7 @@ app.all('/entitlements', (req, res) => {
   const email = decryptedAccessToken.data['email'];
   const response = JSON.stringify({
     'entitlements': {
-      'labels': ['premium', publicationId, email],
+      'labels': ['premium', 'news', publicationId, email],
       'originatorToken': 'sub-' + email,
       'detail': 'For ' + email,
     },
