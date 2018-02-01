@@ -15,8 +15,13 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {SubscribeResponse} from '../api/subscribe-response';
+import {
+  PurchaseData,
+  SubscribeResponse,
+} from '../api/subscribe-response';
+import {UserData} from '../api/user-data';
 import {acceptPortResult} from '../utils/activity-utils';
+import {parseJson} from '../utils/json';
 import {parseUrl} from '../utils/url';
 
 const PAY_URL =
@@ -65,7 +70,11 @@ export class PayStartFlow {
             'publicationId': this.pageConfig_.getPublicationId(),
             'swg': {
               'publicationId': this.pageConfig_.getPublicationId(),
+              // TODO(dvoytenko): use 'instant' for tests if necessary.
               'skuId': this.sku_,
+              // TODO(dvoytenko): configure different targets for different
+              // environemnts.
+              'targetId': '12649180',
             },
           },
         }, {});
@@ -143,7 +152,61 @@ export function validatePayResponse(port) {
       port,
       parseUrl(PAY_URL).origin,
       // TODO(dvoytenko): support payload decryption.
-      /* requireOriginVerified */ true,
-      /* requireSecureChannel */ true)
-      .then(data => new SubscribeResponse(data));
+      /* requireOriginVerified */ false,
+      /* requireSecureChannel */ false)
+      .then(data => parseSubscriptionResponse(data));
+}
+
+
+/**
+ * @param {*} data
+ * @return {!SubscribeResponse}
+ */
+export function parseSubscriptionResponse(data) {
+  let raw = null;
+  if (data) {
+    if (typeof data == 'string') {
+      raw = /** @type {string} */ (data);
+    } else {
+      // Assume it's a json object in the format:
+      // `{integratorClientCallbackData: "..."}`.
+      const json = /** @type {!Object} */ (data);
+      raw = json['integratorClientCallbackData'];
+    }
+  }
+
+  let swgData = null;
+  if (raw) {
+    const parsed = parseJson(atob(raw));
+    swgData = parsed['swgCallbackData'];
+  }
+  if (!swgData) {
+    throw new Error('unexpected payment response');
+  }
+  return new SubscribeResponse(
+      raw,
+      parsePurchaseData(swgData),
+      parseUserData(swgData));
+}
+
+
+/**
+ * @param {!Object} swgData
+ * @return {!PurchaseData}
+ */
+function parsePurchaseData(swgData) {
+  const raw = swgData['purchaseData'];
+  const signature = swgData['purchaseDataSignature'];
+  // TODO(dvoytenko): hydrate the purchase data once available.
+  return new PurchaseData(raw, signature);
+}
+
+
+/**
+ * @param {!Object} unusedSwgData
+ * @return {!UserData}
+ */
+function parseUserData(unusedSwgData) {
+  // TODO(dvoytenko): hydrate the user data once available.
+  return new UserData('', '', '', '');
 }

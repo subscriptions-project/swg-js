@@ -25,23 +25,16 @@ const ARTICLES = require('./content').ARTICLES;
 app.use('/oauth', require('./service/sample-pub-oauth-app'));
 app.use('/api', require('./service/authorization-app'));
 
-/** @const {string} */
 const AUTH_URL_TEST = '/examples/sample-sp/api';
-
-/** @const {string} */
 const AUTH_URL_PUB = '/examples/sample-pub/api';
 
-/** @const {string} */
+const PUBLICATION_ID = 'com.appspot.scenic-2017';
+
 const AUTH_URL_PROD =
     'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
 
-/** @const {string} */
 const SWG_JS_URL_LOCAL = '/dist/subscriptions.max.js';
-
-/** @const {string} */
 const SWG_JS_URL_PROD = 'https://subscribe.sandbox.google.com/swglib/swg.js';
-
-/** @const {string} */
 const SWG_JS_URL = SWG_JS_URL_LOCAL;
 
 /** @const {string} */
@@ -145,6 +138,7 @@ app.get('/((\\d+))', (req, res) => {
     authUrl: getAuthUrl(req),
     pubAuthUrl: getPubAuthUrl(req),
     swgJsUrl: SWG_JS_URL,
+    publicationId: PUBLICATION_ID,
     id,
     article,
     prev: prevId,
