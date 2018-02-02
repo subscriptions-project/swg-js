@@ -28,7 +28,7 @@ app.use('/api', require('./service/authorization-app'));
 const AUTH_URL_TEST = '/examples/sample-sp/api';
 const AUTH_URL_PUB = '/examples/sample-pub/api';
 
-const PUBLICATION_ID = 'com.appspot.scenic-2017';
+const PUBLICATION_ID = process.env.SERVE_PUBID || 'com.appspot.scenic-2017';
 
 const AUTH_URL_PROD =
     'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';

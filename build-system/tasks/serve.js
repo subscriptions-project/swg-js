@@ -15,15 +15,16 @@
  */
 'use strict';
 
-var argv = require('minimist')(process.argv.slice(2));
-var gulp = require('gulp-help')(require('gulp'));
-var util = require('gulp-util');
-var nodemon = require('nodemon');
+const argv = require('minimist')(process.argv.slice(2));
+const gulp = require('gulp-help')(require('gulp'));
+const util = require('gulp-util');
+const nodemon = require('nodemon');
 
-var host = argv.host || 'localhost';
-var port = argv.port || process.env.PORT || 8000;
-var useHttps = argv.https != undefined;
-var quiet = argv.quiet != undefined;
+const host = argv.host || 'localhost';
+const port = argv.port || process.env.PORT || 8000;
+const useHttps = argv.https != undefined;
+const quiet = argv.quiet != undefined;
+const publicationId = argv.publicationId || 'com.appspot.scenic-2017-test';
 
 /**
  * Starts a simple http server at the repository root
@@ -34,7 +35,7 @@ function serve() {
   nodemon({
     script: require.resolve('../server/server.js'),
     watch: [
-      require.resolve('../server/server.js')
+      require.resolve('../server/server.js'),
     ],
     env: {
       'NODE_ENV': 'development',
@@ -42,12 +43,13 @@ function serve() {
       'SERVE_HOST': host,
       'SERVE_USEHTTPS': useHttps,
       'SERVE_PROCESS_ID': process.pid,
-      'SERVE_QUIET': quiet
+      'SERVE_QUIET': quiet,
+      'SERVE_PUBID': publicationId,
     },
   })
-  .once('quit', function () {
-    util.log(util.colors.green('Shutting down server'));
-  });
+      .once('quit', function() {
+        util.log(util.colors.green('Shutting down server'));
+      });
   if (!quiet) {
     util.log(util.colors.yellow('Run `gulp build` then go to '
         + getHost() + '/examples/article.html'
@@ -68,8 +70,9 @@ gulp.task(
         'host': '  Hostname or IP address to bind to (default: localhost)',
         'port': '  Specifies alternative port (default: 8000)',
         'https': '  Use HTTPS server (default: false)',
-        'quiet': '  Do not log HTTP requests (default: false)'
-      }
+        'quiet': '  Do not log HTTP requests (default: false)',
+        'publicationId': '  Sample publicationId',
+      },
     }
 );
 
