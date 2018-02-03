@@ -240,18 +240,19 @@ app.post('/token', (req, res) => {
 /**
  * Authorization sync endpoint.
  * Query parameters:
- * - publication_id={publication_id}
+ * - publisher_id={publisher_id}
  * - access_token={access_token}
  */
 app.all('/entitlements', (req, res) => {
-  const publicationId = getParam(req, 'publication_id');
+  const publisherId = getParam(req, 'publisher_id') || 'none';
   const accessToken = getParam(req, 'access_token');
   const decryptedAccessToken = decrypt(fromBase64(accessToken));
   const email = decryptedAccessToken.data['email'];
   const response = JSON.stringify({
     'entitlements': {
-      'labels': ['premium', 'news', publicationId, email],
-      'originatorToken': 'sub-' + email,
+      'labels': ['premium', 'news'],  // MIGRATE
+      'products': [publisherId + ':premium', publisherId + ':news'],
+      'originatorToken': 'sub-' + publisherId + '-' + email,
       'detail': 'For ' + email,
     },
   });

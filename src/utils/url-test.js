@@ -181,27 +181,27 @@ describe('parseUrl', () => {
   });
 
   it('should parse URL query string', () => {
-    const url = '?test=1&name=new&label=something';
+    const url = '?test=1&name=new&product=something';
     const parsedQueryObject = parseQueryString(url);
     expect(parsedQueryObject.test).to.equal('1');
     expect(parsedQueryObject.name).to.equal('new');
-    expect(parsedQueryObject.label).to.equal('something');
+    expect(parsedQueryObject.product).to.equal('something');
   });
 
   it('should parse URL query string as fragment', () => {
-    const url = '#test=1&name=new&label=something';
+    const url = '#test=1&name=new&product=something';
     const parsedQueryObject = parseQueryString(url);
     expect(parsedQueryObject.test).to.equal('1');
     expect(parsedQueryObject.name).to.equal('new');
-    expect(parsedQueryObject.label).to.equal('something');
+    expect(parsedQueryObject.product).to.equal('something');
   });
 
   it('should parse URL query string as clear string', () => {
-    const url = 'test=1&name=new&label=something';
+    const url = 'test=1&name=new&product=something';
     const parsedQueryObject = parseQueryString(url);
     expect(parsedQueryObject.test).to.equal('1');
     expect(parsedQueryObject.name).to.equal('new');
-    expect(parsedQueryObject.label).to.equal('something');
+    expect(parsedQueryObject.product).to.equal('something');
   });
 
   it('should parse URL with no query params', () => {

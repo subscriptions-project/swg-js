@@ -154,7 +154,7 @@ describes.realWin('Runtime', {}, env => {
 
   beforeEach(() => {
     win = env.win;
-    config = new PageConfig({publicationId: 'pub1', label: null});
+    config = new PageConfig('pub1');
     sandbox.stub(
         PageConfigResolver.prototype,
         'resolveConfig',
@@ -231,7 +231,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
           }
           activityResultCallbacks[requestId] = callback;
         });
-    config = new PageConfig({publicationId: 'pub1', label: null});
+    config = new PageConfig('pub1');
     runtime = new ConfiguredRuntime(win, config);
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager_);
   });
@@ -290,8 +290,8 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   it('should start entitlements flow with success', () => {
     const entitlements = new Entitlements(
         'service', 'raw',
-        [new Entitlement('', ['label1'], 'token1')],
-        'label1');
+        [new Entitlement('', ['product1'], 'token1')],
+        'product1');
     entitlementsManagerMock.expects('getEntitlements')
         .withExactArgs()
         .returns(Promise.resolve(entitlements))
@@ -327,8 +327,8 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   it('should cancel entitlements flow for subscription response', () => {
     const entitlements = new Entitlements(
         'service', 'raw',
-        [new Entitlement('', ['label1'], 'token1')],
-        'label1');
+        [new Entitlement('', ['product1'], 'token1')],
+        'product1');
     entitlementsManagerMock.expects('getEntitlements')
         .withExactArgs()
         .returns(Promise.resolve(entitlements))

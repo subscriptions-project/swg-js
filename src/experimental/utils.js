@@ -65,7 +65,7 @@ function renderAbbreviatedViewContent_(meteringResponse) {
           <div class="swg-metering-count">
             <div>${meteringResponse.quotaLeft}</div>
           </div>
-          <div class="swg-metering-label">Articles left</div>
+          <div class="swg-metering-title">Articles left</div>
         </div>
     ` : '';
 
