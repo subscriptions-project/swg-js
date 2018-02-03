@@ -40,24 +40,6 @@ export class AbbreviatedView extends BaseView {
   }
 
   /**
-   * @param {function()} callback
-   * @return {!LoginWithView}
-   */
-  onAlreadySubscribedClicked(callback) {
-    this.alreadySubscribedClicked_ = callback;
-    return this;
-  }
-
-  /**
-   * @param {function()} callback
-   * @return {!OffersView}
-   */
-  onSubscribeClicked(callback) {
-    this.subscribeClicked_ = callback;
-    return this;
-  }
-
-  /**
    * Returns if document should fade for this view.
    * @return {boolean}
    */
