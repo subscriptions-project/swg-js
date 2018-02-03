@@ -51,6 +51,7 @@ export class LinkStartFlow {
         LINK_FRONT_IFRAME_URL,
         {
           'publisherId': deps.pageConfig().getPublisherId(),
+          'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
           'requestId': COMPLETE_LINK_REQUEST_ID,
           'returnUrl': getHostUrl(this.win_.location.href),
         });
@@ -133,6 +134,7 @@ export class LinkCompleteFlow {
             LINK_CONFIRM_IFRAME_URL,
             {
               'publisherId': deps.pageConfig().getPublisherId(),
+              'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
             });
   }
 

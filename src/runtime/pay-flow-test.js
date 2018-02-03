@@ -67,8 +67,10 @@ describes.realWin('PayStartFlow', {}, env => {
             'apiVersion': 1,
             'allowedPaymentMethods': ['CARD'],
             'publisherId': 'pub1',
+            'publicationId': 'pub1',
             'swg': {
               'publisherId': 'pub1',
+              'publicationId': 'pub1',
               'skuId': 'sku1',
               'targetId': '12649180',
             },
@@ -111,7 +113,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         sinon.match.string,
-        {publisherId: 'pub1'})
+        {
+          publisherId: 'pub1',
+          publicationId: 'pub1',
+        })
         .returns(Promise.resolve(port));
     return flow.start();
   });

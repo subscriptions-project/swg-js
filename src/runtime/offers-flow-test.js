@@ -49,7 +49,12 @@ describes.realWin('Offers flow', {}, env => {
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         sinon.match.string,
-        {productId: 'pub1:label1', publisherId: 'pub1', label: 'label1'})
+        {
+          publisherId: 'pub1',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          label: 'label1',
+        })
         .returns(Promise.resolve(port));
     return offersFlow.start();
   });

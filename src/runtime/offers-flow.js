@@ -60,6 +60,7 @@ export class OffersFlow {
         {
           'productId': deps.pageConfig().getProductId(),
           'publisherId': deps.pageConfig().getPublisherId(),
+          'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
           'label': deps.pageConfig().getLabel(),  // MIGRATE
         });
 
