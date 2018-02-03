@@ -19,11 +19,6 @@ import {AbbreviatedView} from './abbreviated-view';
 import {assert} from '../utils/log';
 import {debounce} from '../utils/rate-limit';
 import {Dialog} from '../components/dialog';
-import {GoogleSigninView} from './google-signin-view';
-import {LoadingView} from './loading-view';
-import {LoginWithView} from './login-with-view';
-import {OffersView} from './offers-view';
-import {PaymentsView} from './payments-view';
 import {parseQueryString} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {transition} from '../utils/animation';
@@ -90,9 +85,6 @@ export class SubscriptionsFlow {
     /** @private {?Element} */
     this.offerContainer_ = null;
 
-    /** @private {?LoadingView} */
-    this.loadingView_ = null;
-
     /** @private {?View} */
     this.activeView_ = null;
 
@@ -147,9 +139,6 @@ export class SubscriptionsFlow {
       // Attach the invisible faded background to be used for some views.
       this.attachBackground_();
 
-      // Build the loading indicator.
-      this.loadingView_ = new LoadingView(this.win_, this.offerContainer_);
-
       this.openView_(new AbbreviatedView(
           this.win_,
           this,
@@ -195,7 +184,6 @@ export class SubscriptionsFlow {
    * @private
    */
   openView_(view) {
-    this.loadingView_.show();
     this.unlockBodyScroll_();
 
     if (this.activeView_) {
@@ -221,7 +209,6 @@ export class SubscriptionsFlow {
     });
     this.offerContainer_.appendChild(view.getElement());
     return view.init().then(() => {
-      this.loadingView_.hide();
       view.getElement().classList.add('swg-step-appear');
       setImportantStyles(view.getElement(), {
         'visibility': 'visible',
@@ -230,7 +217,6 @@ export class SubscriptionsFlow {
 
       this.activeViewInitialized_ = true;
     }, error => {
-      this.loadingView_.hide();
       throw error;
     });
   }
@@ -271,14 +257,12 @@ export class SubscriptionsFlow {
       return;
     }
     if (busy) {
-      this.loadingView_.show();
       if (this.activeView_) {
         setImportantStyles(this.activeView_.getElement(), {
           'opacity': 0.5,
         });
       }
     } else {
-      this.loadingView_.hide();
       if (this.activeView_) {
         setImportantStyles(this.activeView_.getElement(), {
           'opacity': 1,
@@ -431,25 +415,6 @@ export class SubscriptionsFlow {
     this.complete_();
   }
 
-  /** @private */
-  activateLoginWith_() {
-    this.openView_(new LoginWithView(
-        this.win_,
-        this.markup_,
-        this,
-        this.offerContainer_)
-        .onGoogleSignin(this.activateGoogleSignin_.bind(this)));
-  }
-
-  /** @private */
-  activateGoogleSignin_() {
-    this.openView_(new GoogleSigninView(
-        this.win_,
-        this,
-        this.offerContainer_)
-        .onSignedIn(this.googleSigninConfirmed_.bind(this)));
-  }
-
   /**
    * @private
    */
@@ -462,15 +427,6 @@ export class SubscriptionsFlow {
         this.win_.location.pathname +
         '?test=1' +
         '&test_response=subscriber-response');
-  }
-
-  /** @private */
-  activateOffers_() {
-    this.openView_(new OffersView(this.win_,
-        this,
-        this.offerContainer_,
-        this.state_.activeResponse)
-        .onSubscribeClicked(this.activatePay_.bind(this)));
   }
 
   /**
@@ -502,10 +458,6 @@ export class SubscriptionsFlow {
         Promise.resolve(false);
     prFlow.then(working => {
       if (!working) {
-        // Fallback to the inline flow.
-        const paymentRequestBlob = offer['paymentRequest'];
-        this.openView_(new PaymentsView(this.win_, this, paymentRequestBlob)
-            .onComplete(this.paymentComplete_.bind(this)));
       }
     });
   }
