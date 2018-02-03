@@ -408,7 +408,7 @@ export class Dialog {
       'aria-label': 'Close dialog',
     });
 
-    closeButton.addEventListener('click', () => this.close(), false);
+    closeButton.addEventListener('click', () => this.close());
     closeButton.addEventListener('keypress', event => {
       const keyValue = (event.key || '').toUpperCase();
       if (keyValue == 'ENTER') {
