@@ -70,7 +70,7 @@ export class EntitlementsManager {
   fetch_() {
     const url =
         '$entitlements$/_/v1/publication/' +
-        encodeURIComponent(this.config_.getPublicationId()) +
+        encodeURIComponent(this.config_.getPublisherId()) +
         '/entitlements';
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
@@ -88,12 +88,13 @@ export class EntitlementsManager {
           return new Entitlements(
               SERVICE_ID,
               signedData,
-              parseEntitlementsFromJson(entitlementsClaim),
-              this.config_.getLabel());
+              parseEntitlementsFromJson(
+                  this.config_.getPublisherId(), entitlementsClaim),
+              this.config_.getProductId());
         }
       }
       // Empty response.
-      return new Entitlements(SERVICE_ID, '', [], this.config_.getLabel());
+      return new Entitlements(SERVICE_ID, '', [], this.config_.getProductId());
     });
   }
 }
@@ -101,28 +102,36 @@ export class EntitlementsManager {
 
 /**
  * The JSON is expected in one of the forms:
- * - Single entitlement: `{labels: [], ...}`.
- * - A list of entitlements: `[{labels: [], ...}, {...}]`.
+ * - Single entitlement: `{products: [], ...}`.
+ * - A list of entitlements: `[{products: [], ...}, {...}]`.
+ * @param {string} publisherId
  * @param {!Object|!Array<!Object>} json
  * @return {!Array<!Entitlement>}
  */
-export function parseEntitlementsFromJson(json) {
+export function parseEntitlementsFromJson(publisherId, json) {
   const jsonList = isArray(json) ?
       /** @type {!Array<Object>} */ (json) : [json];
-  return jsonList.map(parseEntitlementFromJson);
+  return jsonList.map(json => parseEntitlementFromJson(publisherId, json));
 }
 
 
 /**
+ * @param {string} publisherId
  * @param {?Object} json
  * @return {!Entitlement}
  */
-function parseEntitlementFromJson(json) {
+function parseEntitlementFromJson(publisherId, json) {
   if (!json) {
     json = {};
   }
   const source = json['source'] || '';
-  const labels = json['labels'] || (json['label'] ? [json['label']] : []);
+  let products = json['products'];
+  if (!products && json['labels']) {  // MIGRATE: backward compatibility.
+    products = json['labels'].map(label => `${publisherId}:${label}`);
+  }
+  if (!products) {
+    products = [];
+  }
   const subscriptionToken = json['subscriptionToken'];
-  return new Entitlement(source, labels, subscriptionToken);
+  return new Entitlement(source, products, subscriptionToken);
 }

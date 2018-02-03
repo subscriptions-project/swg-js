@@ -26,9 +26,9 @@ export class Entitlements {
    * @param {string} service
    * @param {string} raw
    * @param {!Array<!Entitlement>} entitlements
-   * @param {?string} currentLabel
+   * @param {?string} currentProduct
    */
-  constructor(service, raw, entitlements, currentLabel) {
+  constructor(service, raw, entitlements, currentProduct) {
     /** @const {string} */
     this.service = service;
     /** @const {string} */
@@ -37,7 +37,7 @@ export class Entitlements {
     this.entitlements = entitlements;
 
     /** @private @const {?string} */
-    this.label_ = currentLabel;
+    this.product_ = currentProduct;
   }
 
   /**
@@ -48,7 +48,7 @@ export class Entitlements {
         this.service,
         this.raw,
         this.entitlements.map(ent => ent.clone()),
-        this.label_);
+        this.product_);
   }
 
   /**
@@ -65,7 +65,7 @@ export class Entitlements {
    * @return {boolean}
    */
   enablesThis() {
-    return this.enables(this.label_);
+    return this.enables(this.product_);
   }
 
   /**
@@ -73,7 +73,7 @@ export class Entitlements {
    */
   enablesAny() {
     for (let i = 0; i < this.entitlements.length; i++) {
-      if (this.entitlements[i].labels.length > 0) {
+      if (this.entitlements[i].products.length > 0) {
         return true;
       }
     }
@@ -81,33 +81,33 @@ export class Entitlements {
   }
 
   /**
-   * @param {?string} label
+   * @param {?string} product
    * @return {boolean}
    */
-  enables(label) {
-    if (!label) {
+  enables(product) {
+    if (!product) {
       return false;
     }
-    return !!this.getEntitlementFor(label);
+    return !!this.getEntitlementFor(product);
   }
 
   /**
    * @return {?Entitlement}
    */
   getEntitlementForThis() {
-    return this.getEntitlementFor(this.label_);
+    return this.getEntitlementFor(this.product_);
   }
 
   /**
-   * @param {?string} label
+   * @param {?string} product
    * @return {?Entitlement}
    */
-  getEntitlementFor(label) {
-    if (!label) {
+  getEntitlementFor(product) {
+    if (!product) {
       return null;
     }
     return findInArray(this.entitlements, entitlement => {
-      return entitlement.enables(label);
+      return entitlement.enables(product);
     });
   }
 }
@@ -120,14 +120,14 @@ export class Entitlement {
 
   /**
    * @param {string} source
-   * @param {!Array<string>} labels
+   * @param {!Array<string>} products
    * @param {string} subscriptionToken
    */
-  constructor(source, labels, subscriptionToken) {
+  constructor(source, products, subscriptionToken) {
     /** @const {string} */
     this.source = source;
     /** @const {!Array<string>} */
-    this.labels = labels;
+    this.products = products;
     /** @const {string} */
     this.subscriptionToken = subscriptionToken;
   }
@@ -138,7 +138,7 @@ export class Entitlement {
   clone() {
     return new Entitlement(
         this.source,
-        this.labels.slice(0),
+        this.products.slice(0),
         this.subscriptionToken);
   }
 
@@ -148,19 +148,19 @@ export class Entitlement {
   json() {
     return {
       'source': this.source,
-      'labels': this.labels,
+      'products': this.products,
       'subscriptionToken': this.subscriptionToken,
     };
   }
 
   /**
-   * @param {?string} label
+   * @param {?string} product
    * @return {boolean}
    */
-  enables(label) {
-    if (!label) {
+  enables(product) {
+    if (!product) {
       return false;
     }
-    return this.labels.includes(label);
+    return this.products.includes(product);
   }
 }

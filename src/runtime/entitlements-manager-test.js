@@ -35,31 +35,31 @@ describes.sandboxed('Entitlements', {}, () => {
     expect(ents.enablesAny()).to.be.false;
   });
 
-  it('should test labels', () => {
+  it('should test products', () => {
     const list = [
-      new Entitlement('', ['label1', 'label2'], 'token1'),
-      new Entitlement('', ['label2', 'label3'], 'token2'),
+      new Entitlement('', ['product1', 'product2'], 'token1'),
+      new Entitlement('', ['product2', 'product3'], 'token2'),
     ];
-    const ents = new Entitlements('service1', 'RaW', list, 'label1');
+    const ents = new Entitlements('service1', 'RaW', list, 'product1');
     expect(ents.enablesAny()).to.be.true;
     expect(ents.enablesThis()).to.be.true;
-    expect(ents.enables('label1')).to.be.true;
-    expect(ents.enables('label2')).to.be.true;
-    expect(ents.enables('label3')).to.be.true;
-    expect(ents.enables('label4')).to.be.false;
-    expect(ents.getEntitlementFor('label1')).to.equal(list[0]);
-    expect(ents.getEntitlementFor('label2')).to.equal(list[0]);
-    expect(ents.getEntitlementFor('label3')).to.equal(list[1]);
-    expect(ents.getEntitlementFor('label4')).to.be.null;
+    expect(ents.enables('product1')).to.be.true;
+    expect(ents.enables('product2')).to.be.true;
+    expect(ents.enables('product3')).to.be.true;
+    expect(ents.enables('product4')).to.be.false;
+    expect(ents.getEntitlementFor('product1')).to.equal(list[0]);
+    expect(ents.getEntitlementFor('product2')).to.equal(list[0]);
+    expect(ents.getEntitlementFor('product3')).to.equal(list[1]);
+    expect(ents.getEntitlementFor('product4')).to.be.null;
     expect(ents.getEntitlementForThis()).to.equal(list[0]);
   });
 
   it('should clone', () => {
     const list = [
-      new Entitlement('source1', ['label1', 'label2'], 'token1'),
-      new Entitlement('source2', ['label2', 'label3'], 'token2'),
+      new Entitlement('source1', ['product1', 'product2'], 'token1'),
+      new Entitlement('source2', ['product2', 'product3'], 'token2'),
     ];
-    const ents = new Entitlements('service1', 'RaW', list, 'label1');
+    const ents = new Entitlements('service1', 'RaW', list, 'product1');
     const cloned = ents.clone();
     expect(cloned.raw).to.equal('RaW');
     expect(cloned.json()).to.deep.equal({
@@ -67,22 +67,22 @@ describes.sandboxed('Entitlements', {}, () => {
       entitlements: [
         {
           source: 'source1',
-          labels: ['label1', 'label2'],
+          products: ['product1', 'product2'],
           subscriptionToken: 'token1',
         },
         {
           source: 'source2',
-          labels: ['label2', 'label3'],
+          products: ['product2', 'product3'],
           subscriptionToken: 'token2',
         },
       ],
     });
   });
 
-  it('should always test as false for a null label', () => {
+  it('should always test as false for a null product', () => {
     const list = [
-      new Entitlement('', ['label1', 'label2'], 'token1'),
-      new Entitlement('', ['label2', 'label3'], 'token2'),
+      new Entitlement('', ['product1', 'product2'], 'token1'),
+      new Entitlement('', ['product2', 'product3'], 'token2'),
     ];
     const ents = new Entitlements('service1', 'RaW', list, null);
     expect(ents.enablesAny()).to.be.true;
@@ -90,69 +90,95 @@ describes.sandboxed('Entitlements', {}, () => {
   });
 
   describe('parseEntitlementsFromJson', () => {
-    it('should parse a json object with a single label', () => {
-      const list = parseEntitlementsFromJson({
-        label: 'label1',
+    it('should parse a json object with a single product', () => {
+      const list = parseEntitlementsFromJson('pub1', {
+        products: ['product1'],
         subscriptionToken: 'token1',
       });
       expect(list).to.have.length(1);
       expect(list[0].json()).to.deep.equal({
         source: '',
-        labels: ['label1'],
+        products: ['product1'],
         subscriptionToken: 'token1',
       });
     });
 
-    it('should parse a json object with multiple labels', () => {
-      const list = parseEntitlementsFromJson({
-        labels: ['label1', 'label2'],
+    it('should parse a json object with multiple products', () => {
+      const list = parseEntitlementsFromJson('pub1', {
+        products: ['product1', 'product2'],
         subscriptionToken: 'token1',
       });
       expect(list).to.have.length(1);
       expect(list[0].json()).to.deep.equal({
         source: '',
-        labels: ['label1', 'label2'],
+        products: ['product1', 'product2'],
         subscriptionToken: 'token1',
       });
     });
 
-    it('should parse a json array with multiple labels', () => {
-      const list = parseEntitlementsFromJson([
+    it('should parse a json array with multiple products', () => {
+      const list = parseEntitlementsFromJson('pub1', [
         {
-          labels: ['label1', 'label2'],
+          products: ['product1', 'product2'],
           subscriptionToken: 'token1',
         },
         {
-          labels: ['label2', 'label3'],
+          products: ['product2', 'product3'],
           subscriptionToken: 'token2',
         },
       ]);
       expect(list).to.have.length(2);
       expect(list[0].json()).to.deep.equal({
         source: '',
-        labels: ['label1', 'label2'],
+        products: ['product1', 'product2'],
         subscriptionToken: 'token1',
       });
       expect(list[1].json()).to.deep.equal({
         source: '',
-        labels: ['label2', 'label3'],
+        products: ['product2', 'product3'],
         subscriptionToken: 'token2',
       });
     });
 
     it('should parse an empty source', () => {
-      const list = parseEntitlementsFromJson({
-        label: 'label1',
+      const list = parseEntitlementsFromJson('pub1', {
+        product: 'product1',
       });
       expect(list[0].source).to.equal('');
     });
 
     it('should parse a non-empty source', () => {
-      const list = parseEntitlementsFromJson({
+      const list = parseEntitlementsFromJson('pub1', {
         source: 'pub1',
-        label: 'label1',
+        product: 'product1',
       });
       expect(list[0].source).to.equal('pub1');
+    });
+
+    it('should parse a json object with a single label', () => {  // MIGRATE
+      const list = parseEntitlementsFromJson('pub1', {
+        labels: ['label1'],
+        subscriptionToken: 'token1',
+      });
+      expect(list).to.have.length(1);
+      expect(list[0].json()).to.deep.equal({
+        source: '',
+        products: ['pub1:label1'],
+        subscriptionToken: 'token1',
+      });
+    });
+
+    it('should parse a json object with multiple labels', () => {  // MIGRATE
+      const list = parseEntitlementsFromJson('pub1', {
+        labels: ['label1', 'label2'],
+        subscriptionToken: 'token1',
+      });
+      expect(list).to.have.length(1);
+      expect(list[0].json()).to.deep.equal({
+        source: '',
+        products: ['pub1:label1', 'pub1:label2'],
+        subscriptionToken: 'token1',
+      });
     });
   });
 });
@@ -167,7 +193,7 @@ describes.realWin('EntitlementsManager', {}, env => {
 
   beforeEach(() => {
     win = env.win;
-    config = new PageConfig({publicationId: 'pub1', label: 'label1'});
+    config = new PageConfig('pub1:label1');
     manager = new EntitlementsManager(win, config);
     xhrMock = sandbox.mock(manager.xhr_);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
@@ -194,7 +220,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       expect(ents.service).to.equal('subscribe.google.com');
       expect(ents.raw).to.equal('');
       expect(ents.entitlements).to.deep.equal([]);
-      expect(ents.label_).to.equal('label1');
+      expect(ents.product_).to.equal('pub1:label1');
       expect(ents.enablesThis()).to.be.false;
     });
   });
@@ -204,7 +230,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         .withExactArgs('SIGNED_DATA')
         .returns({
           entitlements: {
-            label: 'label1',
+            products: ['pub1:label1'],
             subscriptionToken: 'token1',
           },
         });
@@ -228,7 +254,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       expect(ents.entitlements).to.deep.equal([
         {
           source: '',
-          labels: ['label1'],
+          products: ['pub1:label1'],
           subscriptionToken: 'token1',
         },
       ]);
