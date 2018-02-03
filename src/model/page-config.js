@@ -20,23 +20,43 @@
 export class PageConfig {
 
   /**
-   * @param {{
-   *   publicationId: string,
-   *   label: ?string,
-   * }} config
+   * @param {string} productOrPublisherId
    */
-  constructor(config) {
+  constructor(productOrPublisherId) {
+    let publisherId, productId, label;
+    const div = productOrPublisherId.indexOf(':');
+    if (div != -1) {
+      // The argument is a product id.
+      productId = productOrPublisherId;
+      publisherId = productId.substring(0, div);
+      label = productId.substring(div + 1);
+    } else {
+      // The argument is a publisher id.
+      publisherId = productOrPublisherId;
+      productId = null;
+      label = null;
+    }
+
     /** @private @const {string} */
-    this.publicationId_ = config.publicationId;
+    this.publisherId_ = publisherId;
     /** @private @const {?string} */
-    this.label_ = config.label;
+    this.productId_ = productId;
+    /** @private @const {?string} */
+    this.label_ = label;
   }
 
   /**
    * @return {string}
    */
-  getPublicationId() {
-    return this.publicationId_;
+  getPublisherId() {
+    return this.publisherId_;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getProductId() {
+    return this.productId_;
   }
 
   /**

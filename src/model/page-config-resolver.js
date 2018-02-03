@@ -56,23 +56,19 @@ export class PageConfigResolver {
       return;
     }
 
-    // Try to find publication id.
-    const publicationId = this.getMetaTag_('subscriptions-publication-id');
-    if (!publicationId) {
+    // Try to find product id.
+    const productId = this.getMetaTag_('subscriptions-product-id');
+    if (!productId) {
       if (isDocumentReady(this.win_.document)) {
         this.configResolver_(Promise.reject(
-            new Error('No publication id defined on the page')));
+            new Error('No product id defined on the page')));
         this.configResolver_ = null;
       }
       return;
     }
 
-    // Publication ID has been found: initialize the rest of the config.
-    const label = this.getMetaTag_('subscriptions-product-label');
-    this.configResolver_(new PageConfig({
-      publicationId,
-      label,
-    }));
+    // Product ID has been found: initialize the rest of the config.
+    this.configResolver_(new PageConfig(productId));
     this.configResolver_ = null;
   }
 

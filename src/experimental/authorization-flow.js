@@ -170,7 +170,7 @@ export class AuthorizationFlow {
       // TODO(dvoytenko): Add URL utils to construct URLs reliably
       const url = service['authorizationUrl'] +
           `&access-type=${encodeURIComponent(this.accessType_)}` +
-          `&label=${encodeURIComponent(this.accessType_)}` +
+          `&product=${encodeURIComponent(this.accessType_)}` +
           `&content_id=${encodeURIComponent(this.win.location.pathname)}`;
       authPromises.push(this.xhr_.fetch(url, init)
           .then(response => response.json())

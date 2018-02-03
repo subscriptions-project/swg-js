@@ -47,7 +47,7 @@ describes.realWin('PayStartFlow', {}, env => {
 
   beforeEach(() => {
     win = env.win;
-    pageConfig = new PageConfig({publicationId: 'pub1', label: null});
+    pageConfig = new PageConfig('pub1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     flow = new PayStartFlow(runtime, 'sku1');
@@ -66,9 +66,9 @@ describes.realWin('PayStartFlow', {}, env => {
           'paymentRequest': {
             'apiVersion': 1,
             'allowedPaymentMethods': ['CARD'],
-            'publicationId': 'pub1',
+            'publisherId': 'pub1',
             'swg': {
-              'publicationId': 'pub1',
+              'publisherId': 'pub1',
               'skuId': 'sku1',
               'targetId': '12649180',
             },
@@ -92,7 +92,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
 
   beforeEach(() => {
     win = env.win;
-    pageConfig = new PageConfig({publicationId: 'pub1', label: null});
+    pageConfig = new PageConfig('pub1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
@@ -111,7 +111,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         sinon.match.string,
-        {publicationId: 'pub1'})
+        {publisherId: 'pub1'})
         .returns(Promise.resolve(port));
     return flow.start();
   });

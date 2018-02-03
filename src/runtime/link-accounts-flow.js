@@ -50,7 +50,7 @@ export class LinkStartFlow {
         this.activityPorts_,
         LINK_FRONT_IFRAME_URL,
         {
-          'publicationId': deps.pageConfig().getPublicationId(),
+          'publisherId': deps.pageConfig().getPublisherId(),
           'requestId': COMPLETE_LINK_REQUEST_ID,
           'returnUrl': getHostUrl(this.win_.location.href),
         });
@@ -132,7 +132,7 @@ export class LinkCompleteFlow {
             this.activityPorts_,
             LINK_CONFIRM_IFRAME_URL,
             {
-              'publicationId': deps.pageConfig().getPublicationId(),
+              'publisherId': deps.pageConfig().getPublisherId(),
             });
   }
 

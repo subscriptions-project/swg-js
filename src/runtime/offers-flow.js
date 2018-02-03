@@ -58,8 +58,9 @@ export class OffersFlow {
         this.activityPorts_,
         OFFERS_URL,
         {
-          'publicationId': deps.pageConfig().getPublicationId(),
-          'label': deps.pageConfig().getLabel(),
+          'productId': deps.pageConfig().getProductId(),
+          'publisherId': deps.pageConfig().getPublisherId(),
+          'label': deps.pageConfig().getLabel(),  // MIGRATE
         });
 
     PayCompleteFlow.configurePending(this.deps_);

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {PageConfig} from './page-config';
 import {PageConfigResolver} from './page-config-resolver';
 
 
@@ -32,20 +33,45 @@ describes.realWin('PageConfigResolver', {}, env => {
     doc.head.appendChild(meta);
   }
 
-  it('should parse publication id and label', () => {
-    addMeta('subscriptions-publication-id', 'pub1');
-    addMeta('subscriptions-product-label', 'label1');
+  it('should parse publisher id and product', () => {
+    addMeta('subscriptions-product-id', 'pub1:label1');
     return new PageConfigResolver(win).resolveConfig().then(config => {
-      expect(config.getPublicationId()).to.equal('pub1');
+      expect(config.getProductId()).to.equal('pub1:label1');
+      expect(config.getPublisherId()).to.equal('pub1');
       expect(config.getLabel()).to.equal('label1');
     });
   });
 
-  it('should parse publication id and null label', () => {
-    addMeta('subscriptions-publication-id', 'pub1');
+  it('should parse publisher id and null product', () => {
+    addMeta('subscriptions-product-id', 'pub1');
     return new PageConfigResolver(win).resolveConfig().then(config => {
-      expect(config.getPublicationId()).to.equal('pub1');
+      expect(config.getPublisherId()).to.equal('pub1');
+      expect(config.getProductId()).to.be.null;
       expect(config.getLabel()).to.be.null;
     });
+  });
+});
+
+
+describes.sandboxed('PageConfig', {}, () => {
+  it('should create from product id', () => {
+    const config = new PageConfig('a.b.c.pub1:d.e.f');
+    expect(config.getPublisherId()).to.equal('a.b.c.pub1');
+    expect(config.getProductId()).to.equal('a.b.c.pub1:d.e.f');
+    expect(config.getLabel()).to.equal('d.e.f');
+  });
+
+  it('should create from publisher id', () => {
+    const config = new PageConfig('a.b.c.pub1');
+    expect(config.getPublisherId()).to.equal('a.b.c.pub1');
+    expect(config.getProductId()).to.be.null;
+    expect(config.getLabel()).to.be.null;
+  });
+
+  it('should tolerate unusual labels', () => {
+    const config = new PageConfig('a.b.c.pub1:d:e.f');
+    expect(config.getPublisherId()).to.equal('a.b.c.pub1');
+    expect(config.getProductId()).to.equal('a.b.c.pub1:d:e.f');
+    expect(config.getLabel()).to.equal('d:e.f');
   });
 });

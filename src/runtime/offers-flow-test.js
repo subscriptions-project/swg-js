@@ -30,7 +30,7 @@ describes.realWin('Offers flow', {}, env => {
 
   beforeEach(() => {
     win = env.win;
-    pageConfig = new PageConfig({publicationId: 'pub1', label: 'label1'});
+    pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
@@ -49,7 +49,7 @@ describes.realWin('Offers flow', {}, env => {
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         sinon.match.string,
-        {publicationId: 'pub1', label: 'label1'})
+        {productId: 'pub1:label1', publisherId: 'pub1', label: 'label1'})
         .returns(Promise.resolve(port));
     return offersFlow.start();
   });

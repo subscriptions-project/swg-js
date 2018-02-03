@@ -67,9 +67,9 @@ export class PayStartFlow {
           'paymentRequest': {
             'apiVersion': 1,
             'allowedPaymentMethods': ['CARD'],
-            'publicationId': this.pageConfig_.getPublicationId(),
+            'publisherId': this.pageConfig_.getPublisherId(),
             'swg': {
-              'publicationId': this.pageConfig_.getPublicationId(),
+              'publisherId': this.pageConfig_.getPublisherId(),
               // TODO(dvoytenko): use 'instant' for tests if necessary.
               'skuId': this.sku_,
               // TODO(dvoytenko): configure different targets for different
@@ -124,7 +124,7 @@ export class PayCompleteFlow {
             this.activityPorts_,
             PAY_CONFIRM_IFRAME_URL,
             {
-              'publicationId': deps.pageConfig().getPublicationId(),
+              'publisherId': deps.pageConfig().getPublisherId(),
             });
   }
 

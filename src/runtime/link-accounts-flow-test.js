@@ -30,7 +30,7 @@ describes.realWin('LinkStartFlow', {}, env => {
 
   beforeEach(() => {
     win = env.win;
-    pageConfig = new PageConfig({publicationId: 'pub1', label: null});
+    pageConfig = new PageConfig('pub1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     linkAccountsFlow = new LinkStartFlow(runtime);
   });
@@ -51,7 +51,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
   beforeEach(() => {
     win = env.win;
-    pageConfig = new PageConfig({publicationId: 'pub1', label: null});
+    pageConfig = new PageConfig('pub1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     callbacksMock = sandbox.mock(runtime.callbacks());
     linkCompleteFlow = new LinkCompleteFlow(runtime);
