@@ -21,8 +21,9 @@ export class PageConfig {
 
   /**
    * @param {string} productOrPublisherId
+   * @param {boolean} locked
    */
-  constructor(productOrPublisherId) {
+  constructor(productOrPublisherId, locked) {
     let publisherId, productId, label;
     const div = productOrPublisherId.indexOf(':');
     if (div != -1) {
@@ -43,6 +44,8 @@ export class PageConfig {
     this.productId_ = productId;
     /** @private @const {?string} */
     this.label_ = label;
+    /** @private @const {boolean} */
+    this.locked_ = locked;
   }
 
   /**
@@ -64,5 +67,12 @@ export class PageConfig {
    */
   getLabel() {
     return this.label_;
+  }
+
+  /**
+   * @return {boolean}
+   */
+  isLocked() {
+    return this.locked_;
   }
 }
