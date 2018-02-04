@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 import {ActivityPorts} from 'web-activities/activity-ports';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
@@ -26,12 +25,15 @@ import {
   LinkCompleteFlow,
 } from './link-accounts-flow';
 import {OffersFlow} from './offers-flow';
-import {PageConfigResolver} from '../model/page-config-resolver';
+import {PageConfig} from '../model/page-config';
+import {
+  PageConfigResolver,
+  getControlFlag,
+} from '../model/page-config-resolver';
 import {
   PayStartFlow,
   PayCompleteFlow,
 } from './pay-flow';
-import {SubscriptionMarkup} from './subscription-markup';
 import {Subscriptions} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 import {injectStyleSheet} from '../utils/dom';
@@ -113,14 +115,22 @@ export class Runtime {
     /** @private @const {!Promise} */
     this.ready_ = Promise.resolve();
 
-    /** @private @const {!PageConfigResolver} */
-    this.pageConfigResolver_ = new PageConfigResolver(this.win_);
+    /** @private {?string} */
+    this.productOrPublisherId_ = null;
+
+    /** @private {boolean} */
+    this.committed_ = false;
+
+    /** @private {?function((!ConfiguredRuntime|!Promise))} */
+    this.configuredResolver_ = null;
 
     /** @private @const {!Promise<!ConfiguredRuntime>} */
-    this.configured_ = this.pageConfigResolver_.resolveConfig()
-        .then(config => {
-          return new ConfiguredRuntime(this.win_, config);
-        });
+    this.configuredPromise_ = new Promise(resolve => {
+      this.configuredResolver_ = resolve;
+    });
+
+    /** @private {?PageConfigResolver} */
+    this.pageConfigResolver_ = null;
   }
 
   /**
@@ -131,83 +141,121 @@ export class Runtime {
   }
 
   /**
+   * @param {boolean} commit
    * @return {!Promise<!ConfiguredRuntime>}
-   * @package
+   * @private
    */
-  configured() {
-    return this.configured_;
+  configured_(commit) {
+    if (!this.committed_ && commit) {
+      this.committed_ = true;
+      /** @type {!Promise<!PageConfig>} */
+      let configPromise;
+      if (this.productOrPublisherId_) {
+        configPromise = Promise.resolve(new PageConfig(
+            this.productOrPublisherId_,
+            /* locked */ false));
+      } else {
+        this.pageConfigResolver_ = new PageConfigResolver(this.win_);
+        configPromise = this.pageConfigResolver_.resolveConfig()
+            .then(config => {
+              this.pageConfigResolver_ = null;
+              return config;
+            });
+      }
+      configPromise.then(config => {
+        this.configuredResolver_(new ConfiguredRuntime(this.win_, config));
+        this.configuredResolver_ = null;
+      }, reason => {
+        this.configuredResolver_(Promise.reject(reason));
+        this.configuredResolver_ = null;
+      });
+    } else if (commit && this.pageConfigResolver_) {
+      this.pageConfigResolver_.check();
+    }
+    return this.configuredPromise_;
   }
 
   /**
    * Starts the subscription flow if it hasn't been started and the page is
    * configured to start it automatically.
-   * @return {!Promise}
+   *
+   * @return {?Promise}
+   * @package
    */
   startSubscriptionsFlowIfNeeded() {
-    return this.configured()
-        .then(runtime => runtime.startSubscriptionsFlowIfNeeded());
+    const control = getControlFlag(this.win_);
+    if (control == 'manual') {
+      // "Skipping automatic start because control flag is set to "manual".
+      return null;
+    }
+    return this.start();
   }
 
-  /**
-   * Starts subscription flow.
-   * @return {!Promise}
-   */
+  /** @override */
+  init(productOrPublisherId) {
+    if (this.committed_) {
+      throw new Error('already configured');
+    }
+    this.productOrPublisherId_ = productOrPublisherId;
+  }
+
+  /** @override */
   start() {
-    return this.configured().then(runtime => runtime.start());
+    return this.configured_(true)
+        .then(runtime => runtime.start());
   }
 
   /** @override */
   reset() {
-    return this.configured()
+    return this.configured_(true)
         .then(runtime => runtime.reset());
   }
 
   /** @override */
   getEntitlements() {
-    this.pageConfigResolver_.check();
-    return this.configured()
+    return this.configured_(true)
         .then(runtime => runtime.getEntitlements());
   }
 
   /** @override */
   setOnEntitlementsResponse(callback) {
-    return this.configured()
+    return this.configured_(false)
         .then(runtime => runtime.setOnEntitlementsResponse(callback));
   }
 
   /** @override */
   showOffers() {
-    return this.configured()
+    return this.configured_(true)
         .then(runtime => runtime.showOffers());
   }
 
   /** @override */
   setOnSubscribeResponse(callback) {
-    this.configured()
+    return this.configured_(false)
         .then(runtime => runtime.setOnSubscribeResponse(callback));
   }
 
   /** @override */
   subscribe(sku) {
-    return this.configured()
+    return this.configured_(true)
         .then(runtime => runtime.subscribe(sku));
   }
 
   /** @override */
   setOnLoginRequest(callback) {
-    this.configured()
+    return this.configured_(false)
         .then(runtime => runtime.setOnLoginRequest(callback));
   }
 
   /** @override */
   setOnLinkComplete(callback) {
-    this.configured()
+    return this.configured_(false)
         .then(runtime => runtime.setOnLinkComplete(callback));
   }
 
   /** @override */
   linkAccount() {
-    this.configured()
+    return this.configured_(true)
         .then(runtime => runtime.linkAccount());
   }
 }
@@ -230,18 +278,12 @@ export class ConfiguredRuntime {
     /** @private @const {!../model/page-config.PageConfig} */
     this.config_ = config;
 
-    /** @private {boolean} */
-    this.started_ = false;
-
     /** @private @const {!Promise} */
     this.documentParsed_ = whenDocumentReady(this.win_.document);
 
     /** @private @const {!EntitlementsManager} */
     this.entitlementsManager_ =
         new EntitlementsManager(this.win_, this.config_);
-
-    /** @private @const {!SubscriptionMarkup} */
-    this.markup_ = new SubscriptionMarkup(this.win_);
 
     /** @private @const {!DialogManager} */
     this.dialogManager_ = new DialogManager(win);
@@ -281,34 +323,17 @@ export class ConfiguredRuntime {
     return this.callbacks_;
   }
 
-  /**
-   * @return {boolean}
-   */
-  hasStarted() {
-    return this.started_;
+  /** @override */
+  init() {
+    // Implemented by the `Runtime` class.
   }
 
-  /**
-   * Starts the subscription flow if it hasn't been started and the page is
-   * configured to start it automatically.
-   *
-   * @return {?Promise}
-   */
-  startSubscriptionsFlowIfNeeded() {
-    const control = this.markup_.getAccessControl() || 'manual';
-    if (control == 'manual') {
-      // TODO(dvoytenko): make default with
-      // "Skipping automatic start because access-control is set to "manual".
-      return null;
-    }
-    return this.start();
-  }
-
-  /**
-   * Starts subscription flow.
-   */
+  /** @override */
   start() {
-    this.started_ = true;
+    // No need to run entitlements without a product or for an unlocked page.
+    if (!this.config_.getProductId() || !this.config_.isLocked()) {
+      return Promise.resolve();
+    }
     // TODO(dvoytenko): is there a point in running entitlements at all before
     // subscription response is discovered?
     // TODO(dvoytenko): what's the right action when pay flow was canceled?
@@ -402,6 +427,7 @@ export class ConfiguredRuntime {
  */
 function createPublicRuntime(runtime) {
   return /** @type {!Subscriptions} */ ({
+    init: runtime.init.bind(runtime),
     start: runtime.start.bind(runtime),
     reset: runtime.reset.bind(runtime),
     getEntitlements: runtime.getEntitlements.bind(runtime),

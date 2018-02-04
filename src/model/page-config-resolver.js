@@ -17,6 +17,8 @@
 import {PageConfig} from './page-config';
 import {isDocumentReady, whenDocumentReady} from '../utils/document-ready';
 
+const CONTROL_FLAG = 'subscriptions-control';
+
 
 /**
  */
@@ -29,23 +31,22 @@ export class PageConfigResolver {
     /** @private @const {!Window} */
     this.win_ = win;
 
-    /** @private {?function((!PageConfig|!Promise<!PageConfig>))} */
+    /** @private {?function((!PageConfig|!Promise))} */
     this.configResolver_ = null;
 
     /** @private @const {!Promise<!PageConfig>} */
     this.configPromise_ = new Promise(resolve => {
       this.configResolver_ = resolve;
     });
-
-    // Try resolve the config at different times.
-    Promise.resolve().then(this.check.bind(this));
-    whenDocumentReady(this.win_.document).then(this.check.bind(this));
   }
 
   /**
    * @return {!Promise<!PageConfig>}
    */
   resolveConfig() {
+    // Try resolve the config at different times.
+    Promise.resolve().then(this.check.bind(this));
+    whenDocumentReady(this.win_.document).then(this.check.bind(this));
     return this.configPromise_;
   }
 
@@ -57,7 +58,7 @@ export class PageConfigResolver {
     }
 
     // Try to find product id.
-    const productId = this.getMetaTag_('subscriptions-product-id');
+    const productId = getMetaTag(this.win_, 'subscriptions-product-id');
     if (!productId) {
       if (isDocumentReady(this.win_.document)) {
         this.configResolver_(Promise.reject(
@@ -67,25 +68,52 @@ export class PageConfigResolver {
       return;
     }
 
+    // Is locked?
+    const accessibleForFree =
+        getMetaTag(this.win_, 'subscriptions-accessible-for-free');
+    const locked = (accessibleForFree &&
+        accessibleForFree.toLowerCase() == 'false') || false;
+
     // Product ID has been found: initialize the rest of the config.
-    this.configResolver_(new PageConfig(productId));
+    this.configResolver_(new PageConfig(productId, locked));
     this.configResolver_ = null;
   }
+}
 
-  /**
-   * Returns the value from content attribute of a meta tag with given name.
-   *
-   * If multiple tags are found, the first value is returned.
-   *
-   * @private
-   * @param {string} name The tag name to look for.
-   * @return {?string} attribute value or empty string.
-   */
-  getMetaTag_(name) {
-    const el = this.win_.document.querySelector(`meta[name="${name}"]`);
-    if (el) {
-      return el.getAttribute('content') || '';
-    }
-    return null;
+
+/**
+ * @param {!Window} win
+ * @return {?string}
+ */
+export function getControlFlag(win) {
+  // Look for the flag in `meta`.
+  const flag = getMetaTag(win, CONTROL_FLAG);
+  if (flag) {
+    return flag;
   }
+  // Look for the flag in `script`.
+  const el = win.document.querySelector(`script[${CONTROL_FLAG}]`);
+  if (el) {
+    return el.getAttribute(CONTROL_FLAG);
+  }
+  return null;
+}
+
+
+/**
+ * Returns the value from content attribute of a meta tag with given name.
+ *
+ * If multiple tags are found, the first value is returned.
+ *
+ * @param {!Window} win
+ * @param {string} name The tag name to look for.
+ * @return {?string} attribute value or empty string.
+ * @private
+ */
+function getMetaTag(win, name) {
+  const el = win.document.querySelector(`meta[name="${name}"]`);
+  if (el) {
+    return el.getAttribute('content');
+  }
+  return null;
 }

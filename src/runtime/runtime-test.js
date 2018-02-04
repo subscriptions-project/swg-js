@@ -36,6 +36,8 @@ import {PageConfigResolver} from '../model/page-config-resolver';
 import {
   PayStartFlow,
 } from './pay-flow';
+import {Subscriptions} from '../api/subscriptions';
+import {createElement} from '../utils/dom';
 
 
 describes.realWin('installRuntime', {}, env => {
@@ -142,74 +144,220 @@ describes.realWin('installRuntime', {}, env => {
     yield getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
+
+  it('should implement all APIs', () => {
+    installRuntime(win);
+    return new Promise(resolve => {
+      dep(resolve);
+    }).then(subscriptions => {
+      const names = Object.getOwnPropertyNames(Subscriptions.prototype);
+      names.forEach(name => {
+        if (name == 'constructor') {
+          return;
+        }
+        expect(subscriptions).to.have.property(name);
+      });
+    });
+  });
 });
 
 
 describes.realWin('Runtime', {}, env => {
   let win;
-  let config;
   let runtime;
-  let configuredRuntime;
-  let configuredRuntimeMock;
 
   beforeEach(() => {
     win = env.win;
-    config = new PageConfig('pub1');
-    sandbox.stub(
-        PageConfigResolver.prototype,
-        'resolveConfig',
-        () => Promise.resolve(config));
     runtime = new Runtime(win);
-    return runtime.configured().then(cr => {
-      configuredRuntime = cr;
-      configuredRuntimeMock = sandbox.mock(configuredRuntime);
+  });
+
+  describe('startSubscriptionsFlowIfNeeded', () => {
+    let startStub;
+
+    beforeEach(() => {
+      startStub = sandbox.stub(runtime, 'start');
+    });
+
+    it('should default to auto and start', () => {
+      runtime.startSubscriptionsFlowIfNeeded();
+      expect(startStub).to.be.calledOnce;
+    });
+
+    it('should not start when manual', () => {
+      const doc = win.document;
+      doc.head.appendChild(createElement(doc, 'meta', {
+        name: 'subscriptions-control',
+        content: 'manual',
+      }));
+      runtime.startSubscriptionsFlowIfNeeded();
+      expect(startStub).to.not.be.called;
+    });
+
+    it('should start when auto', () => {
+      const doc = win.document;
+      doc.head.appendChild(createElement(doc, 'meta', {
+        name: 'subscriptions-control',
+        content: 'auto',
+      }));
+      runtime.startSubscriptionsFlowIfNeeded();
+      expect(startStub).to.be.calledOnce;
     });
   });
 
-  afterEach(() => {
-    configuredRuntimeMock.verify();
+  describe('initialization', () => {
+    let config;
+    let configPromise;
+    let resolveStub;
+
+    beforeEach(() => {
+      config = new PageConfig('pub1', true);
+      configPromise = Promise.resolve(config);
+      resolveStub = sandbox.stub(
+          PageConfigResolver.prototype,
+          'resolveConfig',
+          () => configPromise);
+    });
+
+    it('should initialize correctly with config lookup', () => {
+      const p = runtime.configured_(true);
+      expect(resolveStub).to.be.calledOnce;
+      return p.then(cr => {
+        expect(resolveStub).to.be.calledOnce;
+        expect(cr.pageConfig()).to.equal(config);
+      });
+    });
+
+    it('should initialize correctly with direct config, unlocked', () => {
+      runtime.init('pub2');
+      return runtime.configured_(true).then(cr => {
+        expect(resolveStub).to.not.be.called;
+        expect(cr.pageConfig()).to.not.equal(config);
+        expect(cr.pageConfig().getPublisherId()).to.equal('pub2');
+        expect(cr.pageConfig().isLocked()).to.be.false;
+      });
+    });
+
+    it('should not force initialization without commit', () => {
+      runtime.configured_(false);
+      expect(resolveStub).to.not.be.called;
+    });
+
+    it('should initialize only once', () => {
+      runtime.configured_(true);
+      runtime.configured_(true);
+      expect(resolveStub).to.be.calledOnce;
+      expect(() => {
+        runtime.init('pub2');
+      }).to.throw(/already configured/);
+    });
+
+    it('should fail when config lookup fails', () => {
+      configPromise = Promise.reject('config broken');
+      return runtime.configured_(true).then(() => {
+        throw new Error('must have failed');
+      }, reason => {
+        expect(() => {throw reason;}).to.throw(/config broken/);
+      });
+    });
   });
 
-  it('should should initialize correctly', () => {
-    expect(configuredRuntime.hasStarted()).to.be.false;
-    expect(configuredRuntime.pageConfig()).to.equal(config);
-  });
+  describe('configured', () => {
+    let config;
+    let configureStub;
+    let configuredRuntime;
+    let configuredRuntimeMock;
 
-  it('should should delegate "start"', () => {
-    configuredRuntimeMock.expects('start').once();
-    return runtime.start();
-  });
+    beforeEach(() => {
+      config = new PageConfig('pub1');
+      configuredRuntime = new ConfiguredRuntime(win, config);
+      configuredRuntimeMock = sandbox.mock(configuredRuntime);
+      configureStub = sandbox.stub(runtime, 'configured_',
+          () => Promise.resolve(configuredRuntime));
+    });
 
-  it('should should delegate "startSubscriptionsFlowIfNeeded"', () => {
-    configuredRuntimeMock.expects('startSubscriptionsFlowIfNeeded').once();
-    return runtime.startSubscriptionsFlowIfNeeded();
-  });
+    afterEach(() => {
+      configuredRuntimeMock.verify();
+    });
 
-  it('should should delegate "getEntitlements"', () => {
-    const ents = {};
-    configuredRuntimeMock.expects('getEntitlements')
-        .returns(Promise.resolve(ents));
-    return expect(runtime.getEntitlements()).to.eventually.equal(ents);
-  });
+    it('should should delegate "start"', () => {
+      configuredRuntimeMock.expects('start').once();
+      return runtime.start().then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
 
-  it('should should delegate "reset"', () => {
-    configuredRuntimeMock.expects('reset').once();
-    return expect(runtime.reset()).to.eventually.be.undefined;
-  });
+    it('should should delegate "getEntitlements"', () => {
+      const ents = {};
+      configuredRuntimeMock.expects('getEntitlements')
+          .returns(Promise.resolve(ents));
+      return runtime.getEntitlements().then(value => {
+        expect(value).to.equal(ents);
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
 
-  it('should should delegate "showOffers"', () => {
-    const resp = {};
-    configuredRuntimeMock.expects('showOffers')
-        .returns(Promise.resolve(resp));
-    return expect(runtime.showOffers()).to.eventually.equal(resp);
-  });
+    it('should should delegate "reset"', () => {
+      configuredRuntimeMock.expects('reset').once();
+      return runtime.reset().then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
 
-  it('should should delegate "subscribe"', () => {
-    const resp = {};
-    configuredRuntimeMock.expects('subscribe')
-        .withExactArgs('sku1')
-        .returns(Promise.resolve(resp));
-    return expect(runtime.subscribe('sku1')).to.eventually.equal(resp);
+    it('should should delegate "showOffers"', () => {
+      configuredRuntimeMock.expects('showOffers').once();
+      return runtime.showOffers().then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
+    it('should should delegate "subscribe"', () => {
+      configuredRuntimeMock.expects('subscribe')
+          .withExactArgs('sku1')
+          .once();
+      return runtime.subscribe('sku1').then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
+    it('should should delegate "setOnEntitlementsResponse"', () => {
+      const callback = function() {};
+      configuredRuntimeMock.expects('setOnEntitlementsResponse')
+          .withExactArgs(callback)
+          .once();
+      return runtime.setOnEntitlementsResponse(callback).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(false);
+      });
+    });
+
+    it('should should delegate "setOnSubscribeResponse"', () => {
+      const callback = function() {};
+      configuredRuntimeMock.expects('setOnSubscribeResponse')
+          .withExactArgs(callback)
+          .once();
+      return runtime.setOnSubscribeResponse(callback).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(false);
+      });
+    });
+
+    it('should should delegate "setOnLoginRequest"', () => {
+      const callback = function() {};
+      configuredRuntimeMock.expects('setOnLoginRequest')
+          .withExactArgs(callback)
+          .once();
+      return runtime.setOnLoginRequest(callback).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(false);
+      });
+    });
+
+    it('should should delegate "setOnLinkComplete"', () => {
+      const callback = function() {};
+      configuredRuntimeMock.expects('setOnLinkComplete')
+          .withExactArgs(callback)
+          .once();
+      return runtime.setOnLinkComplete(callback).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(false);
+      });
+    });
   });
 });
 
@@ -231,7 +379,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
           }
           activityResultCallbacks[requestId] = callback;
         });
-    config = new PageConfig('pub1');
+    config = new PageConfig('pub1:label1', true);
     runtime = new ConfiguredRuntime(win, config);
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager_);
   });
@@ -262,29 +410,29 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(runtime.dialogManager()).to.be.instanceof(DialogManager);
   });
 
-  it('should NOT starts automatically if access-control is not found', () => {
-    runtime.startSubscriptionsFlowIfNeeded();
-    expect(runtime.hasStarted()).to.be.false;
-  });
-
-  it('should NOT start automatically if access-control=manual', () => {
-    entitlementsManagerMock
-        .expects('getEntitlements')
-        .returns(Promise.resolve({}));
-    const meta = win.document.createElement('meta');
-    meta.setAttribute('content', 'manual');
-    meta.setAttribute('name', 'access-control');
-    win.document.head.appendChild(meta);
-    expect(runtime.hasStarted()).to.be.false;
-    runtime.startSubscriptionsFlowIfNeeded();
-    expect(runtime.hasStarted()).to.be.false;
-    runtime.start();
-    expect(runtime.hasStarted()).to.be.true;
-  });
-
   it('should reset entitlements', () => {
     entitlementsManagerMock.expects('reset').once();
     runtime.reset();
+  });
+
+  it('should not start entitlements flow without product', () => {
+    sandbox.stub(config, 'getProductId', () => null);
+    entitlementsManagerMock.expects('getEntitlements').never();
+    const triggerStub = sandbox.stub(runtime.callbacks(),
+        'triggerEntitlementsResponse');
+    return runtime.start().then(() => {
+      expect(triggerStub).to.not.be.called;
+    });
+  });
+
+  it('should not start entitlements flow for unlocked', () => {
+    sandbox.stub(config, 'isLocked', () => false);
+    entitlementsManagerMock.expects('getEntitlements').never();
+    const triggerStub = sandbox.stub(runtime.callbacks(),
+        'triggerEntitlementsResponse');
+    return runtime.start().then(() => {
+      expect(triggerStub).to.not.be.called;
+    });
   });
 
   it('should start entitlements flow with success', () => {

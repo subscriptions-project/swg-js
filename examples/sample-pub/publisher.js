@@ -51,7 +51,9 @@ whenReady(function(subscriptions) {
       });
     };
   }
-  subscriptions.setOnLinkComplete(eventCallback('link'));
+  subscriptions.setOnEntitlementsResponse(eventCallback('entitlements'));
+  subscriptions.setOnLinkComplete(eventCallback('link-complete'));
+  subscriptions.setOnLoginRequest(eventCallback('login-request'));
   subscriptions.setOnSubscribeResponse(eventCallback('subscribe'));
 });
 
@@ -88,14 +90,16 @@ function startFlow(flow, var_args) {
  * Current valid values are: 'showOffers', 'linkAccount', 'getEntitlements'.
  */
 function startFlowAuto() {
-  var flow = window.location.href.split('?')[1] || 'demo';
+  var flow = (window.location.search || '').split('?')[1] || 'demo';
   if (flow == 'none') {
     return;
   }
   if (flow == 'demo') {
     whenReady(function(subscriptions) {
-      var controller = new DemoPaywallController(subscriptions);
-      controller.start();
+      whenDemoReady(function() {
+        var controller = new DemoPaywallController(subscriptions);
+        controller.start();
+      });
     });
     return;
   }
@@ -104,94 +108,23 @@ function startFlowAuto() {
 
 
 /**
- * Demo paywall controller to demonstrate some key features.
+ * @param {function()} callback
  */
-class DemoPaywallController {
-
-  /**
-   * @param {!Subscriptions} subscriptions
-   */
-  constructor(subscriptions) {
-    /** @const {!Subscriptions} */
-    this.subscriptions = subscriptions;
-
-    this.subscriptions.setOnEntitlementsResponse(
-        this.onEntitlements_.bind(this));
-    this.subscriptions.setOnLoginRequest(this.loginRequest_.bind(this));
-    this.subscriptions.setOnLinkComplete(this.linkComplete_.bind(this));
-    this.subscriptions.setOnSubscribeResponse(
-        this.subscribeResponse_.bind(this));
-
-    /** @const {?Entitlements} */
-    this.entitlements = null;
-  }
-
-  start() {
-    log('DemoPaywallController started');
-    this.subscriptions.reset();
-    this.subscriptions.start();
-  }
-
-  /** @private */
-  onEntitlements_(entitlementsPromise) {
-    entitlementsPromise.then(entitlements => {
-      log('got entitlements: ', entitlements, entitlements.enablesThis());
-      if (entitlements && entitlements.enablesThis()) {
-        // Entitlements available: open access.
-        this.openPaywall_();
-      } else {
-        // In a simplest case, just launch offers flow.
-        this.subscriptions.showOffers();
+function whenDemoReady(callback) {
+  if (typeof DemoPaywallController == 'function') {
+    callback();
+  } else {
+    var attempts = 0;
+    var interval = setInterval(function() {
+      attempts++;
+      if (typeof DemoPaywallController == 'function') {
+        clearInterval(interval);
+        callback();
+      } else if (attempts > 100) {
+        clearInterval(interval);
+        throw new Error('cannot find DemoPaywallController');
       }
-    }, reason => {
-      log('entitlements failed: ', reason);
-      throw reason;
-    });
-  }
-
-  /**
-   * The simplest possible implementation: they paywall is now open. A more
-   * sophisticated implementation could fetch more data, or set cookies and
-   * refresh the whole page.
-   * @private
-   */
-  openPaywall_() {
-    log('open paywall');
-    document.documentElement.classList.add('open-paywall');
-  }
-
-  /**
-   * The subscription has been complete.
-   * @param {!Promise<!SubscribeResponse>} promise
-   * @private
-   */
-  subscribeResponse_(promise) {
-    promise.then(response => {
-      // TODO: Start account creation flow. Restart entitlements.
-      log('got subscription response', response);
-      this.openPaywall_();
-    }, reason => {
-      log('subscription response failed: ', reason);
-      throw reason;
-    });
-  }
-
-  /**
-   * Login requested. This sample starts linking flow.
-   * @private
-   */
-  loginRequest_() {
-    log('login request');
-    this.subscriptions.linkAccount();
-  }
-
-  /**
-   * Linking has been complete. Possibly we have permissions now.
-   * @private
-   */
-  linkComplete_() {
-    log('linking complete');
-    this.start();
+    }, 100);
   }
 }
 

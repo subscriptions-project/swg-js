@@ -21,6 +21,14 @@
 export class Subscriptions {
 
   /**
+   * Optionally initializes the subscriptions runtime with publisher/product ID.
+   * If not called, the runtime will look for the initialization parameters in
+   * the page's markup.
+   * @param {string} productOrPublisherId
+   */
+  init(productOrPublisherId) {}
+
+  /**
    * Starts the entitlement flow.
    */
   start() {}
