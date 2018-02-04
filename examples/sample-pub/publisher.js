@@ -90,7 +90,7 @@ function startFlow(flow, var_args) {
  * Current valid values are: 'showOffers', 'linkAccount', 'getEntitlements'.
  */
 function startFlowAuto() {
-  var flow = window.location.href.split('?')[1] || 'demo';
+  var flow = (window.location.search || '').split('?')[1] || 'demo';
   if (flow == 'none') {
     return;
   }
