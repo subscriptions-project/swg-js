@@ -7,9 +7,11 @@
     <link rel="canonical" href="<% id %>">
 
     <meta name="subscriptions-product-id" content="<% publisherId %>:news">
-    <script async src="<% swgJsUrl %>"></script>
+    <meta name="subscriptions-accessible-for-free" content="false">
+    <script async subscriptions-control="manual" src="<% swgJsUrl %>"></script>
 
     <script async src="/examples/sample-pub/publisher.js"></script>
+    <script async src="/examples/sample-pub/demo.js"></script>
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Playfair+Display" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Muli" rel="stylesheet" type="text/css">
