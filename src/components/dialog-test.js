@@ -164,6 +164,9 @@ describes.realWin('Dialog', {}, env => {
 
       expect(doc.querySelector('iframe')).to.be.null;
       expect(openedDialog.getIframe().isConnected()).to.equal(false);
+
+      // Check if document padding was removed.
+      expect(win.document.documentElement.style.paddingBottom).to.equal('');
     });
 
     it('should have Close button with click listener', function* () {
