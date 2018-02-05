@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {UserData} from './user-data';
+
 
 /**
  */
@@ -22,14 +24,14 @@ export class SubscribeResponse {
   /**
    * @param {string} raw
    * @param {!PurchaseData} purchaseData
-   * @param {!./user-data.UserData} userData
+   * @param {!UserData} userData
    */
   constructor(raw, purchaseData, userData) {
     /** @const {string} */
     this.raw = raw;
     /** @const {!PurchaseData} */
     this.purchaseData = purchaseData;
-    /** @const {!./user-data.UserData} */
+    /** @const {!UserData} */
     this.userData = userData;
   }
 

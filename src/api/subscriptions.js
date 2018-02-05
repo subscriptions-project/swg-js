@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import {Entitlements} from './entitlements';
+import {SubscribeResponse} from './subscribe-response';
+
 
 /**
  * @interface
@@ -39,13 +42,13 @@ export class Subscriptions {
   reset() {}
 
   /**
-   * @return {!Promise<?./entitlements.Entitlements>}
+   * @return {!Promise<!Entitlements>}
    */
   getEntitlements() {}
 
   /**
    * Set the subscribe callback.
-   * @param {function(!Promise<?./entitlements.Entitlements>)} callback
+   * @param {function(!Promise<!Entitlements>)} callback
    */
   setOnEntitlementsResponse(callback) {}
 
@@ -56,7 +59,7 @@ export class Subscriptions {
 
   /**
    * Set the subscribe callback.
-   * @param {function(!Promise<!./subscribe-response.SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponse>)} callback
    */
   setOnSubscribeResponse(callback) {}
 
