@@ -114,6 +114,34 @@ describes.realWin('Dialog', {}, env => {
       expect(container.getAttribute('class')).to.equal('swg-container');
     });
 
+    it('should have iframe element before close button', function* () {
+      const openedDialog = yield dialog.open();
+      expect(openedDialog.getContainer().getAttribute('class'))
+          .to.equal('swg-container');
+
+      // Should have top level friendly iframe created.
+      const iframe = openedDialog.getElement();
+      expect(iframe.getAttribute('src')).to.equal('about:blank');
+      expect(iframe.nodeName).to.equal('IFRAME');
+
+      // Should have container created.
+      const container = openedDialog.getContainer();
+      expect(container.nodeType).to.equal(1);
+      expect(container.nodeName).to.equal('DIV');
+      expect(container.getAttribute('class')).to.equal('swg-container');
+
+      // Should have close button created.
+      const iframeDoc = openedDialog.getIframe().getDocument();
+      const closeButton = iframeDoc.querySelector('.swg-close-action');
+      expect(closeButton.nodeName).to.equal('DIV');
+
+      // Ensure that close button is following the container element in the DOM.
+      // This is to ensure that the clsoe button receives the click event and
+      // not the container element.
+      expect(container.compareDocumentPosition(closeButton))
+          .to.equal(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
     it('should remove the dialog', function* () {
       const openedDialog = yield dialog.open();
       expect(openedDialog.getContainer().getAttribute('class'))
