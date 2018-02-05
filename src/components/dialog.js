@@ -161,9 +161,6 @@ export class Dialog {
     injectFontsLink(iframeDoc, googleFontsUrl);
     injectStyleSheet(iframeDoc, DIALOG_CSS);
 
-    this.addCloseAction_(iframeDoc, iframeBody);
-    this.showCloseAction(this.showCloseAction_);
-
     // Add Loading indicator.
     this.loadingView_ = new LoadingView(iframeDoc);
     iframeBody.appendChild(this.loadingView_.getElement());
@@ -174,6 +171,11 @@ export class Dialog {
     iframeBody.appendChild(this.container_);
     this.setPosition_();
     this.updatePaddingToHtml_();
+
+    // Inject the close button after the iframe for mouse click event to
+    // respond otherwisethe mouse click event is captured by iframe.
+    this.addCloseAction_(iframeDoc, iframeBody);
+    this.showCloseAction(this.showCloseAction_);
   }
 
   /**
