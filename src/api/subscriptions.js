@@ -42,13 +42,13 @@ export class Subscriptions {
   reset() {}
 
   /**
-   * @return {!Promise<?Entitlements>}
+   * @return {!Promise<!Entitlements>}
    */
   getEntitlements() {}
 
   /**
    * Set the subscribe callback.
-   * @param {function(!Promise<?Entitlements>)} callback
+   * @param {function(!Promise<!Entitlements>)} callback
    */
   setOnEntitlementsResponse(callback) {}
 

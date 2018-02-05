@@ -38,14 +38,14 @@ export class Callbacks {
   }
 
   /**
-   * @param {function(!Promise<?../api/entitlements.Entitlements>)} callback
+   * @param {function(!Promise<!../api/entitlements.Entitlements>)} callback
    */
   setOnEntitlementsResponse(callback) {
     this.setCallback_(CallbackId.ENTITLEMENTS, callback);
   }
 
   /**
-   * @param {!Promise<?../api/entitlements.Entitlements>} promise
+   * @param {!Promise<!../api/entitlements.Entitlements>} promise
    */
   triggerEntitlementsResponse(promise) {
     return this.trigger_(
