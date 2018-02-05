@@ -244,13 +244,13 @@ app.post('/token', (req, res) => {
  * - access_token={access_token}
  */
 app.all('/entitlements', (req, res) => {
-  const publisherId = getParam(req, 'publisher_id') || 'none';
+  const publisherId = getParam(req, 'publisher_id') ||
+      getParam(req, 'publication_id') || 'none';  // MIGRATE
   const accessToken = getParam(req, 'access_token');
   const decryptedAccessToken = decrypt(fromBase64(accessToken));
   const email = decryptedAccessToken.data['email'];
   const response = JSON.stringify({
     'entitlements': {
-      'labels': ['premium', 'news'],  // MIGRATE
       'products': [publisherId + ':premium', publisherId + ':news'],
       'originatorToken': 'sub-' + publisherId + '-' + email,
       'detail': 'For ' + email,
