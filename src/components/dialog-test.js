@@ -79,11 +79,16 @@ describes.realWin('Dialog', {}, env => {
     it('should resize the element', function* () {
       const openedDialog = yield dialog.open();
       yield openedDialog.openView(view);
-      openedDialog.resizeView(view, '99');
+      const dialogHeight = 99;
+      openedDialog.resizeView(view, dialogHeight);
       // TODO(dparikh): When animiation is implemented, need to wait for
       // resized() call.
       expect(computedStyle(win, dialog.getElement())['height'])
-          .to.equal('99px');
+          .to.equal(`${dialogHeight}px`);
+
+      // Check if correct document padding was added.
+      expect(win.document.documentElement.style.paddingBottom)
+          .to.equal(`${dialogHeight + 20}px`);
     });
 
     it('should open the dialog', function* () {
@@ -159,13 +164,6 @@ describes.realWin('Dialog', {}, env => {
 
       expect(doc.querySelector('iframe')).to.be.null;
       expect(openedDialog.getIframe().isConnected()).to.equal(false);
-    });
-
-    it('should return the dialog position', function* () {
-      yield dialog.open();
-
-      expect(win.document.documentElement.style.paddingBottom)
-          .to.equal(`${documentHeight + 20}px`);
     });
 
     it('should have Close button with click listener', function* () {
