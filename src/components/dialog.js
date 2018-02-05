@@ -170,7 +170,6 @@ export class Dialog {
         createElement(iframeDoc, 'div', {'class': 'swg-container'});
     iframeBody.appendChild(this.container_);
     this.setPosition_();
-    this.updatePaddingToHtml_();
 
     // Inject the close button after the iframe for mouse click event to
     // respond otherwisethe mouse click event is captured by iframe.
@@ -295,6 +294,7 @@ export class Dialog {
     setImportantStyles(this.getElement(), {
       'height': `${this.getMaxAllowedHeight_(height)}px`,
     });
+    this.updatePaddingToHtml_(height);
     view.resized();
   }
 
@@ -327,11 +327,12 @@ export class Dialog {
   /**
    * Add the padding to the containing page so as to not hide the content
    * behind the popup, if rendered at the bottom.
+   * @param {number} newHeight
    * @private
    */
-  updatePaddingToHtml_() {
+  updatePaddingToHtml_(newHeight) {
     if (this.inferPosition_() == PositionAt.BOTTOM) {
-      const bottomPadding = this.getHeight_() + 20;  // Add some extra padding.
+      const bottomPadding = newHeight + 20;  // Add some extra padding.
       const htmlElement = this.doc_.documentElement;
 
       // TODO(dparikh): Read the existing padding with the unit value
