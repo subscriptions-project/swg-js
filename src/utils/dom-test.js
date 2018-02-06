@@ -292,4 +292,41 @@ describes.realWin('Dom', {}, env => {
       });
     });
   });
+
+  describe('hasNextNodeInDocumentOrder', () => {
+    it('should return true when the element has a nextSibling', () => {
+      const element = doc.createElement('div');
+      const parent = doc.createElement('div');
+      const sibling = doc.createElement('div');
+      expect(dom.hasNextNodeInDocumentOrder(element)).to.be.false;
+      parent.appendChild(element);
+      expect(dom.hasNextNodeInDocumentOrder(element)).to.be.false;
+      parent.appendChild(sibling);
+      expect(dom.hasNextNodeInDocumentOrder(element)).to.be.true;
+    });
+
+    it('should return true when element ancestor has nextSibling', () => {
+      const element = doc.createElement('div');
+      const parent = doc.createElement('div');
+      const uncle = doc.createElement('div');
+      const ancestor = doc.createElement('div');
+      expect(dom.hasNextNodeInDocumentOrder(element)).to.be.false;
+      ancestor.appendChild(parent);
+      ancestor.appendChild(uncle);
+      parent.appendChild(element);
+      expect(dom.hasNextNodeInDocumentOrder(element)).to.be.true;
+    });
+
+    it('should return false when ancestor with sibling with stop node', () => {
+      const element = doc.createElement('div');
+      const parent = doc.createElement('div');
+      const uncle = doc.createElement('div');
+      const ancestor = doc.createElement('div');
+      ancestor.appendChild(parent);
+      ancestor.appendChild(uncle);
+      parent.appendChild(element);
+      expect(dom.hasNextNodeInDocumentOrder(element)).to.be.true;
+      expect(dom.hasNextNodeInDocumentOrder(element, parent)).to.be.false;
+    });
+  });
 });

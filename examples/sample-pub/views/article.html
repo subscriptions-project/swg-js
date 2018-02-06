@@ -6,10 +6,6 @@
     <title><% article.title %> - The Scenic</title>
     <link rel="canonical" href="<% id %>">
 
-    <meta name="subscriptions-product-id" content="<% publisherId %>:news">
-    <meta name="subscriptions-accessible-for-free" content="false">
-    <script async subscriptions-control="manual" src="<% swgJsUrl %>"></script>
-
     <script async src="/examples/sample-pub/publisher.js"></script>
     <script async src="/examples/sample-pub/demo.js"></script>
 
@@ -37,6 +33,39 @@
         display: none;
       }
     </style>
+
+    <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "http://schema.org/NewsArticle",
+      "headline": "<% article.title %>",
+      "image": "https://scenic-2017.appspot.com/examples/sample-pub/icons/icon-2x.png",
+      "datePublished": "2025-02-05T08:00:00+08:00",
+      "dateModified": "2025-02-05T09:20:00+08:00",
+      "author": {
+        "@type": "Person",
+        "name": "John Doe"
+      },
+      "publisher": {
+         "name": "The Scenic",
+         "@type": "Organization",
+         "@id": "scenic-2017.appspot.com",
+         "logo": {
+            "@type": "ImageObject",
+            "url": "https://scenic-2017.appspot.com/examples/sample-pub/icons/icon-2x.png"
+         }
+      },
+      "description": "A most wonderful article",
+      "isAccessibleForFree": "False",
+      "isPartOf": {
+        "@type": ["CreativeWork", "Product"],
+        "name" : "Scenic News",
+        "productID": "<% publisherId %>:news"
+      }
+    }
+    </script>
+    <script async subscriptions-control="manual" src="<% swgJsUrl %>"></script>
+
   </head>
   <body>
     <div class="main-body">
