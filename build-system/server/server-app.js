@@ -26,6 +26,24 @@ app.set('view engine', 'html');
 app.engine('html', require('hogan-express'));
 app.locals.delimiters = '<% %>';
 
+// HTTPS redirect.
+app.use((req, res, next) => {
+  let host = req.headers.host || req.host;
+  const secure = (req.secure ||
+      req.connection.encrypted ||
+      req.get('X-Forwarded-Proto') === 'https');
+  if (secure || host.indexOf('localhost') != -1) {
+    // Skip localhost or if already secure.
+    next();
+    return;
+  }
+  if (host.indexOf(':80') == host.length - 3) {
+    host = host.substring(0, host.length - 3);
+  }
+  res.writeHead(301, {location: 'https://' + host + req.originalUrl});
+  res.end();
+});
+
 // X-Frame-Options and CSP
 app.use((req, res, next) => {
   if (req.query['--X-Frame-Options']) {
