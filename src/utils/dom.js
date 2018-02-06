@@ -197,3 +197,24 @@ export function openWindowDialog(win, url, target, opt_features) {
 export function getBody(doc) {
   return /** @type {!Element} */ (doc.body);
 }
+
+
+/**
+ * Whether the element have a next node in the document order.
+ * This means either:
+ *  a. The element itself has a nextSibling.
+ *  b. Any of the element ancestors has a nextSibling.
+ * @param {!Element} element
+ * @param {?Node=} opt_stopNode
+ * @return {boolean}
+ */
+export function hasNextNodeInDocumentOrder(element, opt_stopNode) {
+  let currentElement = element;
+  do {
+    if (currentElement.nextSibling) {
+      return true;
+    }
+  } while ((currentElement = currentElement.parentNode) &&
+            currentElement != opt_stopNode);
+  return false;
+}

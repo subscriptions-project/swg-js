@@ -31,29 +31,237 @@ describes.realWin('PageConfigResolver', {}, env => {
     doc.head.appendChild(createElement(doc, 'meta', {name, content}));
   }
 
-  it('should parse publisher id and product', () => {
-    addMeta('subscriptions-product-id', 'pub1:label1');
-    return new PageConfigResolver(win).resolveConfig().then(config => {
-      expect(config.getProductId()).to.equal('pub1:label1');
-      expect(config.getPublisherId()).to.equal('pub1');
-      expect(config.getLabel()).to.equal('label1');
+  function addJsonLd(content) {
+    const element = createElement(doc, 'script', {
+      type: 'application/ld+json',
+    }, JSON.stringify(content));
+    doc.body.appendChild(element);
+    return element;
+  }
+
+  describe('parse meta', () => {
+    it('should parse publisher id and product', () => {
+      addMeta('subscriptions-product-id', 'pub1:label1');
+      return new PageConfigResolver(win).resolveConfig().then(config => {
+        expect(config.getProductId()).to.equal('pub1:label1');
+        expect(config.getPublisherId()).to.equal('pub1');
+        expect(config.getLabel()).to.equal('label1');
+      });
+    });
+
+    it('should parse publisher id and null product', () => {
+      addMeta('subscriptions-product-id', 'pub1');
+      return new PageConfigResolver(win).resolveConfig().then(config => {
+        expect(config.getPublisherId()).to.equal('pub1');
+        expect(config.getProductId()).to.be.null;
+        expect(config.getLabel()).to.be.null;
+      });
+    });
+
+    it('should default locked to false', () => {
+      addMeta('subscriptions-product-id', 'pub1:label1');
+      return new PageConfigResolver(win).resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.false;
+        expect(config.getProductId()).to.equal('pub1:label1');
+      });
     });
   });
 
-  it('should parse publisher id and null product', () => {
-    addMeta('subscriptions-product-id', 'pub1');
-    return new PageConfigResolver(win).resolveConfig().then(config => {
-      expect(config.getPublisherId()).to.equal('pub1');
-      expect(config.getProductId()).to.be.null;
-      expect(config.getLabel()).to.be.null;
-    });
-  });
+  describe('parse json-ld', () => {
+    let schema;
+    let readyState;
 
-  it('should default locked to false', () => {
-    addMeta('subscriptions-product-id', 'pub1:label1');
-    return new PageConfigResolver(win).resolveConfig().then(config => {
-      expect(config.isLocked()).to.be.false;
-      expect(config.getProductId()).to.equal('pub1:label1');
+    beforeEach(() => {
+      schema = {
+        '@context': 'http://schema.org',
+        '@type': 'NewsArticle',
+        'isAccessibleForFree': 'False',
+        'isPartOf': {
+          '@type': ['CreativeWork', 'Product'],
+          'name': 'The Times Journal',
+          'productID': 'pub1:basic',
+        },
+      };
+      readyState = 'loading';
+      Object.defineProperty(doc, 'readyState', {get: () => readyState});
+    });
+
+    it('should discover parse properties from schema', () => {
+      addJsonLd(schema);
+      readyState = 'complete';
+      return new PageConfigResolver(win).resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.true;
+        expect(config.getProductId()).to.equal('pub1:basic');
+      });
+    });
+
+    it('should wait until the element is ready (not empty)', () => {
+      const resolver = new PageConfigResolver(win);
+      const element = createElement(doc, 'script', {
+        type: 'application/ld+json',
+      });
+      doc.body.appendChild(element);
+      doc.body.appendChild(createElement(doc, 'div'));  // Next element.
+
+      // Empty content.
+      let config = resolver.check();
+      expect(config).to.be.null;
+
+      // Add content.
+      element.textContent = JSON.stringify(schema);
+      config = resolver.check();
+      expect(config).to.be.ok;
+      expect(config.getProductId()).to.equal('pub1:basic');
+      return expect(resolver.resolveConfig()).to.eventually.equal(config);
+    });
+
+    it('should wait until the element is ready (next sibling)', () => {
+      const resolver = new PageConfigResolver(win);
+      addJsonLd(schema);
+
+      // No siblings.
+      let config = resolver.check();
+      expect(config).to.be.null;
+
+      // Add a sibling.
+      doc.body.appendChild(createElement(doc, 'div'));  // Next element.
+      config = resolver.check();
+      expect(config).to.be.ok;
+      expect(config.getProductId()).to.equal('pub1:basic');
+      return expect(resolver.resolveConfig()).to.eventually.equal(config);
+    });
+
+    it('should wait until the element is ready (dom ready)', () => {
+      const resolver = new PageConfigResolver(win);
+      addJsonLd(schema);
+
+      // Document not complete and no siblings.
+      let config = resolver.check();
+      expect(config).to.be.null;
+
+      // Complete document.
+      readyState = 'complete';
+      config = resolver.check();
+      expect(config).to.be.ok;
+      expect(config.getProductId()).to.equal('pub1:basic');
+      return expect(resolver.resolveConfig()).to.eventually.equal(config);
+    });
+
+    it('should ignore wrong script type', () => {
+      doc.body.appendChild(createElement(doc, 'script', {
+        type: 'application/json',  // Not LD.
+      }, JSON.stringify(schema)));
+      readyState = 'complete';
+      const resolver = new PageConfigResolver(win);
+      expect(resolver.check()).to.be.null;
+    });
+
+    it('should ignore wrong LD type', () => {
+      schema['@type'] = 'Other';
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check()).to.be.null;
+    });
+
+    it('should allow array for LD type', () => {
+      schema['@type'] = ['NewsArticle'];
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check().getProductId())
+          .to.equal('pub1:basic');
+    });
+
+    it('should allow full namespace for LD type', () => {
+      schema['@type'] = ['http://schema.org/NewsArticle'];
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check().getProductId())
+          .to.equal('pub1:basic');
+    });
+
+    it('should tolerate broken JSON', () => {
+      const element = createElement(doc, 'script', {
+        type: 'application/ld+json',
+      }, '{NewsArticle');
+      doc.body.appendChild(element);
+      readyState = 'complete';
+
+      // Doesn't fail.
+      expect(new PageConfigResolver(win).check()).to.be.null;
+    });
+
+    it('should allow array of products', () => {
+      schema['isPartOf'] = [{}, schema['isPartOf']];
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check().getProductId())
+          .to.equal('pub1:basic');
+    });
+
+    it('should allow array of product types', () => {
+      schema['isPartOf']['@type'] = ['CreativeWork', 'Product'];
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check().getProductId())
+          .to.equal('pub1:basic');
+    });
+
+    it('should ignore wrong product type', () => {
+      schema['isPartOf']['@type'] = ['CreativeWork', 'Other'];
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check()).to.be.null;
+    });
+
+    it('should allow array of product IDs', () => {
+      schema['isPartOf']['productID'] = ['pub1:l1', 'pub1:l2'];
+      addJsonLd(schema);
+      readyState = 'complete';
+      // First one is picked.
+      expect(new PageConfigResolver(win).check().getProductId())
+          .to.equal('pub1:l1');
+    });
+
+    it('should accept false string for isAccessibleForFree', () => {
+      schema['isAccessibleForFree'] = 'FaLsE';
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check().isLocked()).to.be.true;
+    });
+
+    it('should accept true string for isAccessibleForFree', () => {
+      schema['isAccessibleForFree'] = 'TRuE';
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check().isLocked()).to.be.false;
+    });
+
+    it('should accept false bool for isAccessibleForFree', () => {
+      schema['isAccessibleForFree'] = false;
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check().isLocked()).to.be.true;
+    });
+
+    it('should accept true bool for isAccessibleForFree', () => {
+      schema['isAccessibleForFree'] = true;
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check().isLocked()).to.be.false;
+    });
+
+    it('should default isAccessibleForFree to unlocked', () => {
+      delete schema['isAccessibleForFree'];
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check().isLocked()).to.be.false;
+    });
+
+    it('should accept array for isAccessibleForFree', () => {
+      schema['isAccessibleForFree'] = [false, true];
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(win).check().isLocked()).to.be.true;
     });
   });
 
