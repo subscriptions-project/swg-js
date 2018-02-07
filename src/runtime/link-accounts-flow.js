@@ -54,8 +54,9 @@ export class LinkStartFlow {
           'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
           'requestId': COMPLETE_LINK_REQUEST_ID,
           'returnUrl': getHostUrl(this.win_.location.href),
-          'shouldFadeBody': true,
-        });
+        },
+        /* shouldFadeBody */ true
+    );
   }
 
   /**
@@ -136,8 +137,9 @@ export class LinkCompleteFlow {
             {
               'publisherId': deps.pageConfig().getPublisherId(),
               'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
-              'shouldFadeBody': true,
-            });
+            },
+            /* shouldFadeBody */ true
+        );
   }
 
   /**

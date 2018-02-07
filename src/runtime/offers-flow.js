@@ -62,8 +62,9 @@ export class OffersFlow {
           'publisherId': deps.pageConfig().getPublisherId(),
           'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
           'label': deps.pageConfig().getProductId(),  // MIGRATE
-          'shouldFadeBody': true,
-        });
+        },
+        /* shouldFadeBody */ true
+    );
 
     PayCompleteFlow.configurePending(this.deps_);
   }
