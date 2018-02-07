@@ -25,13 +25,19 @@ import {
   PayStartFlow,
   PayCompleteFlow,
   parseSubscriptionResponse,
+  parseUserData,
 } from './pay-flow';
 import {SubscribeResponse} from '../api/subscribe-response';
 import * as sinon from 'sinon';
 
 const INTEGR_DATA_STRING =
-    'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoiIiwic' +
-    'HVyY2hhc2VEYXRhU2lnbmF0dXJlIjoiIn19';
+    'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
+    'JERVJcIn0iLCJwdXJjaGFzZURhdGFTaWduYXR1cmUiOiJQRF9TSUciLCJpZFRva2VuIjoi' +
+    'ZXlKaGJHY2lPaUpTVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnpkV0lpT2lKSlJGOV' +
+    'VUMHNpZlEuU0lHIn19';
+
+const EMPTY_ID_TOK = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9' +
+    '.eyJzdWIiOiJJRF9UT0sifQ.SIG';
 
 const INTEGR_DATA_OBJ = {
   'integratorClientCallbackData': INTEGR_DATA_STRING,
@@ -72,7 +78,6 @@ describes.realWin('PayStartFlow', {}, env => {
               'publisherId': 'pub1',
               'publicationId': 'pub1',
               'skuId': 'sku1',
-              'targetId': '12649180',
             },
           },
         },
@@ -205,10 +210,33 @@ describe('parseSubscriptionResponse', () => {
   it('should parse a string response', () => {
     const sr = parseSubscriptionResponse(INTEGR_DATA_STRING);
     expect(sr.raw).to.equal(INTEGR_DATA_STRING);
+    expect(sr.purchaseData.raw).to.equal('{\"orderId\":\"ORDER\"}');
+    expect(sr.purchaseData.signature).to.equal('PD_SIG');
+    expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
   });
 
   it('should parse a json response', () => {
     const sr = parseSubscriptionResponse(INTEGR_DATA_OBJ);
     expect(sr.raw).to.equal(INTEGR_DATA_STRING);
+    expect(sr.purchaseData.raw).to.equal('{\"orderId\":\"ORDER\"}');
+    expect(sr.purchaseData.signature).to.equal('PD_SIG');
+    expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
+  });
+
+  it('should parse complete idToken', () => {
+    const idToken = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NS' +
+        'IsImVtYWlsIjoidGVzdEBleGFtcGxlLm9yZyIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlL' +
+        'CJuYW1lIjoiVGVzdCBPbmUiLCJwaWN0dXJlIjoiaHR0cHM6Ly9leGFtcGxlLm9yZy9h' +
+        'dmF0YXIvdGVzdCIsImdpdmVuX25hbWUiOiJUZXN0IiwiZmFtaWx5X25hbWUiOiJPbmU' +
+        'ifQ.SIG';
+    const ud = parseUserData({idToken});
+    expect(ud.idToken).to.equal(idToken);
+    expect(ud.id).to.equal('12345');
+    expect(ud.email).to.equal('test@example.org');
+    expect(ud.emailVerified).to.be.true;
+    expect(ud.name).to.equal('Test One');
+    expect(ud.givenName).to.equal('Test');
+    expect(ud.familyName).to.equal('One');
+    expect(ud.pictureUrl).to.equal('https://example.org/avatar/test');
   });
 });
