@@ -447,7 +447,7 @@ export class Dialog {
       'left': 0,
       'background-color': '#fff',
       'opacity': '.5',
-      'z-index': 2147483646,
+      'z-index': 2147483646,  /** 1 less than SwG dialog */
     });
     this.doc_.body.appendChild(this.fadeBackground_);
   }
