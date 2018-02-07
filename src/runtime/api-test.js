@@ -51,7 +51,7 @@ describe('SubscribeResponse', () => {
 
   beforeEach(() => {
     pd = new PurchaseData('PD_RAW', 'PD_SIG');
-    ud = new UserData('ID_TOKEN', 'id1', 'id1@email.org', 'Id One');
+    ud = new UserData('ID_TOKEN', {sub: '1234'});
     sr = new SubscribeResponse('SR_RAW', pd, ud);
   });
 
@@ -85,16 +85,26 @@ describe('UserData', () => {
   beforeEach(() => {
     userData = new UserData(
         'ID_TOKEN',
-        'id1',
-        'id1@email.org',
-        'Id One');
+        {
+          'sub': 'id1',
+          'email': 'id1@email.org',
+          'email_verified': true,
+          'name': 'Id One',
+          'picture': 'https://example.org/avatar/test',
+          'given_name': 'Id',
+          'family_name': 'One',
+        });
   });
 
   it('should correctly initialize', () => {
     expect(userData.idToken).to.equal('ID_TOKEN');
     expect(userData.id).to.equal('id1');
     expect(userData.email).to.equal('id1@email.org');
+    expect(userData.emailVerified).to.equal(true);
     expect(userData.name).to.equal('Id One');
+    expect(userData.givenName).to.equal('Id');
+    expect(userData.familyName).to.equal('One');
+    expect(userData.pictureUrl).to.equal('https://example.org/avatar/test');
   });
 
   it('should clone correctly', () => {
@@ -104,14 +114,22 @@ describe('UserData', () => {
     expect(clone.idToken).to.equal('ID_TOKEN');
     expect(clone.id).to.equal('id1');
     expect(clone.email).to.equal('id1@email.org');
+    expect(userData.emailVerified).to.equal(true);
     expect(clone.name).to.equal('Id One');
+    expect(clone.givenName).to.equal('Id');
+    expect(clone.familyName).to.equal('One');
+    expect(clone.pictureUrl).to.equal('https://example.org/avatar/test');
   });
 
   it('should export json', () => {
     expect(userData.json()).to.deep.equal({
       'id': 'id1',
       'email': 'id1@email.org',
+      'emailVerified': true,
       'name': 'Id One',
+      'givenName': 'Id',
+      'familyName': 'One',
+      'pictureUrl': 'https://example.org/avatar/test',
     });
   });
 });
