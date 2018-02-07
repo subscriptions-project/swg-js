@@ -107,6 +107,9 @@ export class Dialog {
     /** @private @const {!FriendlyIframe} */
     this.iframe_ = new FriendlyIframe(this.doc_, {'class': 'swg-dialog'});
 
+    /** @private @const {!Element} */
+    this.fadeBackground_ = this.doc_.createElement('swg-popup-background');
+
     const modifiedImportantStyles =
         Object.assign({}, rootElementImportantStyles, importantStyles);
     setImportantStyles(
@@ -141,6 +144,9 @@ export class Dialog {
     if (iframe.isConnected()) {
       throw new Error('already opened');
     }
+    // Attach the invisible faded background to be used for some views.
+    this.attachBackground_();
+
     this.doc_.body.appendChild(iframe.getElement());  // Fires onload.
     return iframe.whenReady().then(() => {
       this.buildIframe_();
@@ -213,6 +219,9 @@ export class Dialog {
   close() {
     this.doc_.body.removeChild(this.iframe_.getElement());
     this.removePaddingToHtml_();
+
+    // Remove the faded background from the parent document.
+    this.doc_.body.removeChild(this.fadeBackground_);
   }
 
   /**
@@ -279,6 +288,11 @@ export class Dialog {
         'opacity': 1,
       });
       this.setLoading(false);
+
+      // If the current view should fade the parent document.
+      if (view.shouldFadeBody()) {
+        this.fadeTheParent_();
+      }
     });
   }
 
@@ -417,5 +431,32 @@ export class Dialog {
       }
     });
     return closeButton;
+  }
+
+  /**
+   * Attaches the hidden faded background to the parent document.
+   * @private
+   */
+  attachBackground_() {
+    setImportantStyles(this.fadeBackground_, {
+      'display': 'none',
+      'position': 'fixed',
+      'top': 0,
+      'right': 0,
+      'bottom': 0,
+      'left': 0,
+      'background-color': '#fff',
+      'opacity': '.5',
+      'z-index': 2147483646,  /** 1 less than SwG dialog */
+    });
+    this.doc_.body.appendChild(this.fadeBackground_);
+  }
+
+  /**
+   * Fades the main page content when a view is rendered and fading is enabled..
+   * @private
+   */
+  fadeTheParent_() {
+    this.fadeBackground_.style.removeProperty('display');
   }
 }
