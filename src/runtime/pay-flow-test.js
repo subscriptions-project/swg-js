@@ -78,7 +78,6 @@ describes.realWin('PayStartFlow', {}, env => {
               'publisherId': 'pub1',
               'publicationId': 'pub1',
               'skuId': 'sku1',
-              'targetId': '12649180',
             },
           },
         },

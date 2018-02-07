@@ -75,9 +75,6 @@ export class PayStartFlow {
               'publicationId': this.pageConfig_.getPublisherId(),  // MIGRATE
               // TODO(dvoytenko): use 'instant' for tests if necessary.
               'skuId': this.sku_,
-              // TODO(dvoytenko): configure different targets for different
-              // environemnts.
-              'targetId': '12649180',
             },
           },
         }, {});
