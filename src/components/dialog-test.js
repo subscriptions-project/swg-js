@@ -45,6 +45,9 @@ describes.realWin('Dialog', {}, env => {
       resized: function() {
         return;
       },
+      shouldFadeBody: function() {
+        return true;
+      },
     };
   });
 
@@ -62,6 +65,28 @@ describes.realWin('Dialog', {}, env => {
       // These two properties are not set !important.
       expect(getStyle(iframe, 'width')).to.equal('100%');
       expect(getStyle(iframe, 'left')).to.equal('0px');
+    });
+
+    it('should have created fade background', function* () {
+      const openedDialog = yield dialog.open();
+
+      const backgroundElement =
+          win.document.querySelector('swg-popup-background');
+      expect(backgroundElement.nodeName).to.equal('SWG-POPUP-BACKGROUND');
+
+      // Background is hidden initially.
+      expect(computedStyle(win, backgroundElement)['display']).to.equal('none');
+
+      yield openedDialog.openView(view);
+      // Background is not hidden when dialog is open.
+      expect(computedStyle(win, backgroundElement)['display'])
+          .to.equal('block');
+
+      dialog.close();
+      // Background element is removed from the DOM on dialog close.
+      const backgroundEl =
+          win.document.querySelector('swg-popup-background');
+      expect(backgroundEl).to.be.null;
     });
 
     it('should build the view', function* () {

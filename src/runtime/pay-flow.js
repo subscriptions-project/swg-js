@@ -126,6 +126,7 @@ export class PayCompleteFlow {
             {
               'publisherId': deps.pageConfig().getPublisherId(),
               'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
+              'shouldFadeBody': true,
             });
   }
 
