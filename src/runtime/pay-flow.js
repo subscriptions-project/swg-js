@@ -118,15 +118,16 @@ export class PayCompleteFlow {
     this.callbacks_ = deps.callbacks();
 
     /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ =
-        new ActivityIframeView(
-            this.win_,
-            this.activityPorts_,
-            PAY_CONFIRM_IFRAME_URL,
-            {
-              'publisherId': deps.pageConfig().getPublisherId(),
-              'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
-            });
+    this.activityIframeView_ = new ActivityIframeView(
+        this.win_,
+        this.activityPorts_,
+        PAY_CONFIRM_IFRAME_URL,
+        {
+          'publisherId': deps.pageConfig().getPublisherId(),
+          'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
+        },
+        /* shouldFadeBody */ true
+    );
   }
 
   /**

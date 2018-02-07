@@ -34,8 +34,9 @@ export class ActivityIframeView extends View {
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
    * @param {string} src
    * @param {!Object<string, ?string|number>=} args
+   * @param {boolean=} shouldFadeBody
    */
-  constructor(win, activityPorts, src, args) {
+  constructor(win, activityPorts, src, args, shouldFadeBody = false) {
     super();
 
     /** @private @const {!Window} */
@@ -57,6 +58,9 @@ export class ActivityIframeView extends View {
 
     /** @private @const {!Object<string, ?string|number>} */
     this.args_ = args || {};
+
+    /** @private @const {boolean} */
+    this.shouldFadeBody_ = shouldFadeBody;
 
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
@@ -85,6 +89,14 @@ export class ActivityIframeView extends View {
   init(dialog) {
     return this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
         .then(port => this.onOpenIframeResponse_(port, dialog));
+  }
+
+  /**
+   * Returns if document should fade for this view.
+   * @return {boolean}
+   */
+  shouldFadeBody() {
+    return this.shouldFadeBody_;
   }
 
   /**

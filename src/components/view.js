@@ -47,4 +47,10 @@ export class View {
   resized() {
     // Do nothing by default. Override if needed.
   }
+
+  /**
+   * @return {boolean}
+   * @abstract
+   */
+  shouldFadeBody() {}
 }
