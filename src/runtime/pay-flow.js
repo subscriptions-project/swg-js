@@ -15,6 +15,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {JwtHelper} from '../utils/jwt';
 import {
   PurchaseData,
   SubscribeResponse,
@@ -200,16 +201,20 @@ export function parseSubscriptionResponse(data) {
 function parsePurchaseData(swgData) {
   const raw = swgData['purchaseData'];
   const signature = swgData['purchaseDataSignature'];
-  // TODO(dvoytenko): hydrate the purchase data once available.
   return new PurchaseData(raw, signature);
 }
 
 
 /**
- * @param {!Object} unusedSwgData
- * @return {!UserData}
+ * @param {!Object} swgData
+ * @return {?UserData}
+ * @package Visible for testing.
  */
-function parseUserData(unusedSwgData) {
-  // TODO(dvoytenko): hydrate the user data once available.
-  return new UserData('', '', '', '');
+export function parseUserData(swgData) {
+  const idToken = swgData['idToken'];
+  if (!idToken) {
+    return null;
+  }
+  const jwt = /** @type {!Object} */ (new JwtHelper().decode(idToken));
+  return new UserData(idToken, jwt);
 }

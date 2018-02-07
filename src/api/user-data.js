@@ -21,30 +21,35 @@ export class UserData {
 
   /**
    * @param {string} idToken
-   * @param {string} id
-   * @param {string} email
-   * @param {string} name
+   * @param {!Object} data
    */
-  constructor(idToken, id, email, name) {
+  constructor(idToken, data) {
     /** @const {string} */
     this.idToken = idToken;
+    /** @private @const {!Object} */
+    this.data = data;
+
     /** @const {string} */
-    this.id = id;
+    this.id = data['sub'];
     /** @const {string} */
-    this.email = email;
+    this.email = data['email'];
+    /** @const {boolean} */
+    this.emailVerified = data['email_verified'];
     /** @const {string} */
-    this.name = name;
+    this.name = data['name'];
+    /** @const {string} */
+    this.givenName = data['given_name'];
+    /** @const {string} */
+    this.familyName = data['family_name'];
+    /** @const {string} */
+    this.pictureUrl = data['picture'];
   }
 
   /**
    * @return {!UserData}
    */
   clone() {
-    return new UserData(
-        this.idToken,
-        this.id,
-        this.email,
-        this.name);
+    return new UserData(this.idToken, this.data);
   }
 
   /**
@@ -54,7 +59,11 @@ export class UserData {
     return {
       'id': this.id,
       'email': this.email,
+      'emailVerified': this.emailVerified,
       'name': this.name,
+      'givenName': this.givenName,
+      'familyName': this.familyName,
+      'pictureUrl': this.pictureUrl,
     };
   }
 }

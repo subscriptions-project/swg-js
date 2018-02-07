@@ -24,14 +24,14 @@ export class SubscribeResponse {
   /**
    * @param {string} raw
    * @param {!PurchaseData} purchaseData
-   * @param {!UserData} userData
+   * @param {?UserData} userData
    */
   constructor(raw, purchaseData, userData) {
     /** @const {string} */
     this.raw = raw;
     /** @const {!PurchaseData} */
     this.purchaseData = purchaseData;
-    /** @const {!UserData} */
+    /** @const {?UserData} */
     this.userData = userData;
   }
 
@@ -51,7 +51,7 @@ export class SubscribeResponse {
   json() {
     return {
       'purchaseData': this.purchaseData.json(),
-      'userData': this.userData.json(),
+      'userData': this.userData ? this.userData.json() : null,
     };
   }
 }
