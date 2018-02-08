@@ -49,7 +49,7 @@ describes.realWin('LoadingView', {}, env => {
       const loadingTagStyles =
           win.getComputedStyle(loadingContainer);
 
-      // TODO(dparikh): Why position and transform values not populated?
+      expect(loadingTagStyles.position).to.equal('fixed');
       expect(loadingTagStyles.top).to.equal('50%');
       expect(loadingTagStyles.left).to.equal('50%');
       expect(loadingTagStyles['z-index']).to.equal('2147483647');
