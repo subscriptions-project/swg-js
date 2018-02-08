@@ -349,9 +349,6 @@ export class Dialog {
       const bottomPadding = newHeight + 20;  // Add some extra padding.
       const htmlElement = this.doc_.documentElement;
 
-      // TODO(dparikh): Read the existing padding with the unit value
-      // (em, ex, %, px, cm, mm, in, pt, pc), and if available then append the
-      // padding after converting the units.
       setImportantStyles(htmlElement, {
         'padding-bottom': `${bottomPadding}px`,
       });
