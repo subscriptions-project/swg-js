@@ -32,7 +32,6 @@ const {encrypt, decrypt, fromBase64, toBase64} = require('../utils/crypto');
  * The Google client ID and client secret can be any URL-safe string values of
  * your choice. You must ensure that the client secret is visible to only Google
  * and your service.
- * TODO(dparikh): The usage is commented for value 'expectedRedirectUri'.
  */
 /** @const {string} */
 // const PROJECT_ID = 'scenic-2017-gdi';
