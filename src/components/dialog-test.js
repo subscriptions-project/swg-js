@@ -59,8 +59,6 @@ describes.realWin('Dialog', {}, env => {
       expect(iframe.nodeName).to.equal('IFRAME');
 
       expect(getStyle(iframe, 'opacity')).to.equal('1');
-      expect(getStyle(iframe, 'font-family'))
-          .to.equal('Google sans, sans-serif');
       expect(getStyle(iframe, 'bottom')).to.equal('0px');
       expect(getStyle(iframe, 'display')).to.equal('block');
       // These two properties are not set !important.
