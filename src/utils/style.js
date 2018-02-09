@@ -155,7 +155,7 @@ export const defaultStyles = {
 
 /** @const {string} */
 export const googleFontsUrl =
-    'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
+    'https://fonts.googleapis.com/css?family=Google+Sans';
 
 /**
  * Default overwritable styles. This is required for responsive dialog.

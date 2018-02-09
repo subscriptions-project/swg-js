@@ -41,7 +41,7 @@ export const toastImportantStyles = {
   'box-shadow': 'gray 3px 3px, rgb(0, 0, 0) 0 0 1.4em',
   'background-color': 'rgb(51, 51, 51)',
   'box-sizing': 'border-box',
-  'font-family': 'Roboto, sans-serif',
+  'font-family': 'Google sans, sans-serif',
   'animation': 'swg-notify 1s ease-out normal backwards, '
       + 'swg-notify-hide 1s ease-out 7s normal forwards',
 };

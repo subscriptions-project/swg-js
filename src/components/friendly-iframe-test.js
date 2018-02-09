@@ -28,7 +28,7 @@ const importantStyles = {
   'border': 'none',
   'display': 'block',
   'background-color': 'rgb(255, 255, 255)',
-  'font-family': 'Roboto, sans-serif',
+  'font-family': 'Google sans, sans-serif',
   'position': 'fixed',
   'bottom': '0px',
   'z-index': '2147483647',
