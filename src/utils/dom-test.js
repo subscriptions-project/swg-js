@@ -45,7 +45,7 @@ describes.realWin('Dom', {}, env => {
     it('should add the style link in the HEAD section', () => {
       const query = 'head link[rel=stylesheet][href]';
       const fontsUrl =
-             'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700';
+             'https://fonts.googleapis.com/css?family=Google+sans:300,400,500,700';
       const existingLinksCount =
              doc.querySelectorAll(dom.styleExistsQuerySelector).length;
 
