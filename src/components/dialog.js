@@ -175,6 +175,10 @@ export class Dialog {
         createElement(iframeDoc, 'div', {'class': 'swg-container'});
     iframeBody.appendChild(this.container_);
     this.setPosition_();
+
+    // Inject the close button after the iframe for mouse click event to
+    // respond otherwisethe mouse click event is captured by iframe.
+    this.addCloseAction_(iframeDoc, iframeBody);
   }
 
   /**
@@ -274,12 +278,7 @@ export class Dialog {
     }
     this.view_ = view;
 
-    const iframe = this.iframe_;
-    const iframeBody = iframe.getBody();
-    const iframeDoc = /** @type {!HTMLDocument} */ (this.iframe_.getDocument());
-
     if (view.shouldShowCloseAction()) {
-      this.addCloseAction_(iframeDoc, iframeBody);
       this.showCloseAction(this.showCloseAction_);
     }
     setImportantStyles(view.getElement(), resetViewStyles);
