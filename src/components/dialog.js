@@ -43,7 +43,7 @@ const rootElementImportantStyles = {
   'border': 'none',
   'display': 'block',
   'background-color': 'rgb(255, 255, 255)',
-  'font-family': 'Roboto, sans-serif',
+  'font-family': 'Google sans',
   'position': 'fixed',
   'z-index': '2147483647',
   'box-shadow': 'gray 0px 3px, gray 0px 0px 22px',
