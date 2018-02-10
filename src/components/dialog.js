@@ -179,7 +179,6 @@ export class Dialog {
     // Inject the close button after the iframe for mouse click event to
     // respond otherwisethe mouse click event is captured by iframe.
     this.addCloseAction_(iframeDoc, iframeBody);
-    this.showCloseAction(this.showCloseAction_);
   }
 
   /**
@@ -278,6 +277,10 @@ export class Dialog {
       removeChildren(this.getContainer());
     }
     this.view_ = view;
+
+    if (view.shouldShowCloseAction()) {
+      this.showCloseAction(this.showCloseAction_);
+    }
     setImportantStyles(view.getElement(), resetViewStyles);
     this.setLoading(true);
     this.getContainer().appendChild(view.getElement());
