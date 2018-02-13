@@ -48,6 +48,9 @@ describes.realWin('Dialog', {}, env => {
       shouldFadeBody: function() {
         return true;
       },
+      shouldShowCloseAction: function() {
+        return false;
+      },
     };
   });
 
@@ -235,16 +238,16 @@ describes.realWin('Dialog', {}, env => {
     });
 
     it('should create a dialog without Close action button', function* () {
-      const dialogNoClose =
+      const dialogWithClose =
           new Dialog(win, {height: `${documentHeight}px`}, null, null, false);
-      const openedDialogNoClose = yield dialogNoClose.open();
-      const iframeDoc = openedDialogNoClose.getIframe().getDocument();
+      const openedDialogWithClose = yield dialogWithClose.open();
+      const iframeDoc = openedDialogWithClose.getIframe().getDocument();
       let closeButton = iframeDoc.querySelector('.swg-close-action');
-      expect(computedStyle(win, closeButton)['display']).to.equal('none');
+      expect(computedStyle(win, closeButton)['display']).to.equal('block');
 
-      openedDialogNoClose.showCloseAction(true);
+      openedDialogWithClose.showCloseAction(false);
       closeButton = iframeDoc.querySelector('.swg-close-action');
-      expect(computedStyle(win, closeButton)['display']).to.not.equal('none');
+      expect(computedStyle(win, closeButton)['display']).to.equal('none');
     });
   });
 });
