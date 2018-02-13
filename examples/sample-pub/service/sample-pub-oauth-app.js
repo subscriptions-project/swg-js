@@ -251,7 +251,7 @@ app.all('/entitlements', (req, res) => {
   const response = JSON.stringify({
     'entitlements': {
       'products': [publisherId + ':premium', publisherId + ':news'],
-      'originatorToken': 'sub-' + publisherId + '-' + email,
+      'subscriptionToken': 'sub-' + publisherId + '-' + email,
       'detail': 'For ' + email,
     },
   });
