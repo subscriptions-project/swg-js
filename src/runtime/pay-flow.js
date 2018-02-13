@@ -173,7 +173,10 @@ export function parseSubscriptionResponse(data) {
     } else {
       // Assume it's a json object in the format:
       // `{integratorClientCallbackData: "..."}`.
-      const json = /** @type {!Object} */ (data);
+      let json = /** @type {!Object} */ (data);
+      if ('details' in json) {
+        json = /** @type {!Object} */ (json['details']);
+      }
       raw = json['integratorClientCallbackData'];
     }
   }

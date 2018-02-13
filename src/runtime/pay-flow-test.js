@@ -43,6 +43,10 @@ const INTEGR_DATA_OBJ = {
   'integratorClientCallbackData': INTEGR_DATA_STRING,
 };
 
+const INTEGR_DATA_OBJ_WITH_DETAILS = {
+  'details': INTEGR_DATA_OBJ,
+};
+
 
 describes.realWin('PayStartFlow', {}, env => {
   let win;
@@ -190,6 +194,22 @@ describes.realWin('PayCompleteFlow', {}, env => {
 
     it('should start flow on correct payment response', () => {
       const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
+          'POPUP', location.origin, true, true);
+      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
+      PayCompleteFlow.configurePending(runtime);
+      return startCallback(port).then(() => {
+        expect(startStub).to.be.calledOnce;
+        expect(triggerPromise).to.exist;
+        return triggerPromise;
+      }).then(response => {
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.raw).to.equal(INTEGR_DATA_STRING);
+      });
+    });
+
+    it('should start flow on correct payment response with details', () => {
+      const result = new ActivityResult(ActivityResultCode.OK,
+          INTEGR_DATA_OBJ_WITH_DETAILS,
           'POPUP', location.origin, true, true);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       PayCompleteFlow.configurePending(runtime);
