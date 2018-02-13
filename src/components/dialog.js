@@ -203,7 +203,9 @@ export class Dialog {
       return;
     }
     if (show) {
-      this.closeButton_.style.removeProperty('display');
+      setStyles(this.closeButton_, {
+        'display': 'block',
+      });
     } else {
       setStyles(this.closeButton_, {
         'display': 'none',

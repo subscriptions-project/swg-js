@@ -48,6 +48,9 @@ describes.realWin('Dialog', {}, env => {
       shouldFadeBody: function() {
         return true;
       },
+      shouldShowCloseAction: function() {
+        return false;
+      },
     };
   });
 
