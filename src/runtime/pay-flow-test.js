@@ -43,8 +43,12 @@ const INTEGR_DATA_OBJ = {
   'integratorClientCallbackData': INTEGR_DATA_STRING,
 };
 
-const INTEGR_DATA_OBJ_WITH_DETAILS = {
-  'details': INTEGR_DATA_OBJ,
+const INTEGR_DATA_OBJ_DECODED = {
+  'swgCallbackData': {
+    'purchaseData': '{"orderId":"ORDER"}',
+    'purchaseDataSignature': 'PD_SIG',
+    'idToken': EMPTY_ID_TOK,
+  },
 };
 
 
@@ -203,13 +207,17 @@ describes.realWin('PayCompleteFlow', {}, env => {
         return triggerPromise;
       }).then(response => {
         expect(response).to.be.instanceof(SubscribeResponse);
-        expect(response.raw).to.equal(INTEGR_DATA_STRING);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+        expect(response.purchaseData.signature).to.equal('PD_SIG');
+        expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+        expect(JSON.parse(response.raw)).to.deep
+            .equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
       });
     });
 
-    it('should start flow on correct payment response with details', () => {
+    it('should start flow on correct payment response as decoded obj', () => {
       const result = new ActivityResult(ActivityResultCode.OK,
-          INTEGR_DATA_OBJ_WITH_DETAILS,
+          INTEGR_DATA_OBJ_DECODED,
           'POPUP', location.origin, true, true);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       PayCompleteFlow.configurePending(runtime);
@@ -219,7 +227,11 @@ describes.realWin('PayCompleteFlow', {}, env => {
         return triggerPromise;
       }).then(response => {
         expect(response).to.be.instanceof(SubscribeResponse);
-        expect(response.raw).to.equal(INTEGR_DATA_STRING);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+        expect(response.purchaseData.signature).to.equal('PD_SIG');
+        expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+        expect(JSON.parse(response.raw)).to.deep
+            .equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
       });
     });
   });
@@ -229,7 +241,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
 describe('parseSubscriptionResponse', () => {
   it('should parse a string response', () => {
     const sr = parseSubscriptionResponse(INTEGR_DATA_STRING);
-    expect(sr.raw).to.equal(INTEGR_DATA_STRING);
+    expect(JSON.parse(sr.raw))
+        .to.deep.equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
     expect(sr.purchaseData.raw).to.equal('{\"orderId\":\"ORDER\"}');
     expect(sr.purchaseData.signature).to.equal('PD_SIG');
     expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
@@ -237,7 +250,17 @@ describe('parseSubscriptionResponse', () => {
 
   it('should parse a json response', () => {
     const sr = parseSubscriptionResponse(INTEGR_DATA_OBJ);
-    expect(sr.raw).to.equal(INTEGR_DATA_STRING);
+    expect(JSON.parse(sr.raw))
+        .to.deep.equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
+    expect(sr.purchaseData.raw).to.equal('{\"orderId\":\"ORDER\"}');
+    expect(sr.purchaseData.signature).to.equal('PD_SIG');
+    expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
+  });
+
+  it('should parse a decoded json response', () => {
+    const sr = parseSubscriptionResponse(INTEGR_DATA_OBJ_DECODED);
+    expect(JSON.parse(sr.raw))
+        .to.deep.equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
     expect(sr.purchaseData.raw).to.equal('{\"orderId\":\"ORDER\"}');
     expect(sr.purchaseData.signature).to.equal('PD_SIG');
     expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);

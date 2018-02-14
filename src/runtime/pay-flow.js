@@ -166,29 +166,33 @@ export function validatePayResponse(port) {
  * @return {!SubscribeResponse}
  */
 export function parseSubscriptionResponse(data) {
+  let swgData = null;
   let raw = null;
   if (data) {
     if (typeof data == 'string') {
       raw = /** @type {string} */ (data);
     } else {
       // Assume it's a json object in the format:
-      // `{integratorClientCallbackData: "..."}`.
-      let json = /** @type {!Object} */ (data);
-      if ('details' in json) {
-        json = /** @type {!Object} */ (json['details']);
+      // `{integratorClientCallbackData: "..."}` or `{swgCallbackData: "..."}`.
+      const json = /** @type {!Object} */ (data);
+      if ('swgCallbackData' in json) {
+        swgData = /** @type {!Object} */ (json['swgCallbackData']);
+      } else if ('integratorClientCallbackData' in json) {
+        raw = json['integratorClientCallbackData'];
       }
-      raw = json['integratorClientCallbackData'];
     }
   }
-
-  let swgData = null;
-  if (raw) {
-    const parsed = parseJson(atob(raw));
-    swgData = parsed['swgCallbackData'];
+  if (raw && !swgData) {
+    raw = atob(raw);
+    if (raw) {
+      const parsed = parseJson(raw);
+      swgData = parsed['swgCallbackData'];
+    }
   }
   if (!swgData) {
     throw new Error('unexpected payment response');
   }
+  raw = JSON.stringify(/** @type {!JsonObject} */ (swgData));
   return new SubscribeResponse(
       raw,
       parsePurchaseData(swgData),
