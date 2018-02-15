@@ -26,10 +26,10 @@ import {parseJson} from '../utils/json';
 import {parseUrl} from '../utils/url';
 
 const PAY_URL =
-    '$frontend$/subscribewithgoogleclientui/pay$frontendDebug$';
+    '$frontend$/swglib/pay$frontendDebug$';
 
 const PAY_CONFIRM_IFRAME_URL =
-    '$frontend$/subscribewithgoogleclientui/payconfirmiframe$frontendDebug$';
+    '$frontend$/swglib/payconfirmiframe$frontendDebug$';
 
 const PAY_REQUEST_ID = 'swg-pay';
 
@@ -65,17 +65,12 @@ export class PayStartFlow {
     // TODO(dvoytenko): switch to gpay async client.
     this.activityPorts_.open(
         PAY_REQUEST_ID, PAY_URL, '_blank', {
-          'paymentRequest': {
-            'apiVersion': 1,
-            'allowedPaymentMethods': ['CARD'],
-            'publisherId': this.pageConfig_.getPublisherId(),
-            'publicationId': this.pageConfig_.getPublisherId(),  // MIGRATE
-            'swg': {
-              'publisherId': this.pageConfig_.getPublisherId(),
-              'publicationId': this.pageConfig_.getPublisherId(),  // MIGRATE
-              // TODO(dvoytenko): use 'instant' for tests if necessary.
-              'skuId': this.sku_,
-            },
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'swg': {
+            'publicationId': this.pageConfig_.getPublisherId(),
+            // TODO(dvoytenko): use 'instant' for tests if necessary.
+            'skuId': this.sku_,
           },
         }, {});
     return Promise.resolve();
@@ -123,8 +118,7 @@ export class PayCompleteFlow {
         this.activityPorts_,
         PAY_CONFIRM_IFRAME_URL,
         {
-          'publisherId': deps.pageConfig().getPublisherId(),
-          'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
+          'publicationId': deps.pageConfig().getPublisherId(),
         },
         /* shouldFadeBody */ true,
         /* showCloseAction */ false

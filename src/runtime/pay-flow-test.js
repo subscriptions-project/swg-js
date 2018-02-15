@@ -77,16 +77,11 @@ describes.realWin('PayStartFlow', {}, env => {
         sinon.match.string,
         '_blank',
         {
-          'paymentRequest': {
-            'apiVersion': 1,
-            'allowedPaymentMethods': ['CARD'],
-            'publisherId': 'pub1',
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'swg': {
             'publicationId': 'pub1',
-            'swg': {
-              'publisherId': 'pub1',
-              'publicationId': 'pub1',
-              'skuId': 'sku1',
-            },
+            'skuId': 'sku1',
           },
         },
         {})
@@ -127,7 +122,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
         sinon.match(arg => arg.tagName == 'IFRAME'),
         sinon.match.string,
         {
-          publisherId: 'pub1',
           publicationId: 'pub1',
         })
         .returns(Promise.resolve(port));
