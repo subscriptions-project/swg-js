@@ -23,7 +23,7 @@ import {
 import {assert} from '../utils/log';
 
 const OFFERS_URL =
-    '$frontend$/subscribewithgoogleclientui/offersiframe$frontendDebug$';
+    '$frontend$/swglib/offersiframe$frontendDebug$';
 
 
 /**
