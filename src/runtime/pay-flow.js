@@ -26,10 +26,10 @@ import {parseJson} from '../utils/json';
 import {parseUrl} from '../utils/url';
 
 const PAY_URL =
-    '$frontend$/subscribewithgoogleclientui/pay$frontendDebug$';
+    '$frontend$/swglib/pay$frontendDebug$';
 
 const PAY_CONFIRM_IFRAME_URL =
-    '$frontend$/subscribewithgoogleclientui/payconfirmiframe$frontendDebug$';
+    '$frontend$/swglib/payconfirmiframe$frontendDebug$';
 
 const PAY_REQUEST_ID = 'swg-pay';
 
@@ -118,8 +118,7 @@ export class PayCompleteFlow {
         this.activityPorts_,
         PAY_CONFIRM_IFRAME_URL,
         {
-          'publisherId': deps.pageConfig().getPublisherId(),
-          'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
+          'publicationId': deps.pageConfig().getPublisherId(),
         },
         /* shouldFadeBody */ true,
         /* showCloseAction */ false
