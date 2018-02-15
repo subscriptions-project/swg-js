@@ -65,17 +65,12 @@ export class PayStartFlow {
     // TODO(dvoytenko): switch to gpay async client.
     this.activityPorts_.open(
         PAY_REQUEST_ID, PAY_URL, '_blank', {
-          'paymentRequest': {
-            'apiVersion': 1,
-            'allowedPaymentMethods': ['CARD'],
-            'publisherId': this.pageConfig_.getPublisherId(),
-            'publicationId': this.pageConfig_.getPublisherId(),  // MIGRATE
-            'swg': {
-              'publisherId': this.pageConfig_.getPublisherId(),
-              'publicationId': this.pageConfig_.getPublisherId(),  // MIGRATE
-              // TODO(dvoytenko): use 'instant' for tests if necessary.
-              'skuId': this.sku_,
-            },
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'swg': {
+            'publicationId': this.pageConfig_.getPublisherId(),
+            // TODO(dvoytenko): use 'instant' for tests if necessary.
+            'skuId': this.sku_,
           },
         }, {});
     return Promise.resolve();
