@@ -19,6 +19,7 @@ require('./babel-helpers');
 require('./builders');
 require('./check-rules');
 require('./compile');
+require('./export-to-es');
 require('./lint');
 require('./serve');
 require('./test');
