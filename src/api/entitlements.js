@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import {findInArray} from '../utils/object';
-
 
 /**
  * The holder of the entitlements for a service.
@@ -103,12 +101,14 @@ export class Entitlements {
    * @return {?Entitlement}
    */
   getEntitlementFor(product) {
-    if (!product) {
-      return null;
+    if (product && this.entitlements.length > 0) {
+      for (let i = 0; i < this.entitlements.length; i++) {
+        if (this.entitlements[i].enables(product)) {
+          return this.entitlements[i];
+        }
+      }
     }
-    return findInArray(this.entitlements, entitlement => {
-      return entitlement.enables(product);
-    });
+    return null;
   }
 }
 
@@ -162,5 +162,32 @@ export class Entitlement {
       return false;
     }
     return this.products.includes(product);
+  }
+
+  /**
+   * @param {?Object} json
+   * @return {!Entitlement}
+   */
+  static parseFromJson(json) {
+    if (!json) {
+      json = {};
+    }
+    const source = json['source'] || '';
+    const products = json['products'] || [];
+    const subscriptionToken = json['subscriptionToken'];
+    return new Entitlement(source, products, subscriptionToken);
+  }
+
+  /**
+   * The JSON is expected in one of the forms:
+   * - Single entitlement: `{products: [], ...}`.
+   * - A list of entitlements: `[{products: [], ...}, {...}]`.
+   * @param {!Object|!Array<!Object>} json
+   * @return {!Array<!Entitlement>}
+   */
+  static parseListFromJson(json) {
+    const jsonList = Array.isArray(json) ?
+        /** @type {!Array<Object>} */ (json) : [json];
+    return jsonList.map(json => Entitlement.parseFromJson(json));
   }
 }

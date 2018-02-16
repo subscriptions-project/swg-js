@@ -39,7 +39,10 @@ describes.realWin('Toast', {}, env => {
     toast = new Toast(win, spec);
   });
 
-  it('should have valid https Url and fetch the fonts', function* () {
+  // TODO(dparikh): too flaky with fetch. Cool idea. Maybe setup in integration
+  // tests somehow? But it also depends if we are going to have any fonts
+  // left here?
+  it.skip('should have valid https Url and fetch the fonts', function* () {
     const response = yield fetch(googleFontsUrl);
     expect(/^https:/.test(googleFontsUrl)).to.be.true;
     expect(response.ok).to.be.true;
