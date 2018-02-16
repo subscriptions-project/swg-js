@@ -17,7 +17,6 @@
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
 import {Xhr} from '../utils/xhr';
-import {isArray} from '../utils/types';
 
 const SERVICE_ID = 'subscribe.google.com';
 
@@ -88,8 +87,7 @@ export class EntitlementsManager {
           return new Entitlements(
               SERVICE_ID,
               signedData,
-              parseEntitlementsFromJson(
-                  this.config_.getPublisherId(), entitlementsClaim),
+              Entitlement.parseListFromJson(entitlementsClaim),
               this.config_.getProductId());
         }
       }
@@ -97,41 +95,4 @@ export class EntitlementsManager {
       return new Entitlements(SERVICE_ID, '', [], this.config_.getProductId());
     });
   }
-}
-
-
-/**
- * The JSON is expected in one of the forms:
- * - Single entitlement: `{products: [], ...}`.
- * - A list of entitlements: `[{products: [], ...}, {...}]`.
- * @param {string} publisherId
- * @param {!Object|!Array<!Object>} json
- * @return {!Array<!Entitlement>}
- */
-export function parseEntitlementsFromJson(publisherId, json) {
-  const jsonList = isArray(json) ?
-      /** @type {!Array<Object>} */ (json) : [json];
-  return jsonList.map(json => parseEntitlementFromJson(publisherId, json));
-}
-
-
-/**
- * @param {string} publisherId
- * @param {?Object} json
- * @return {!Entitlement}
- */
-function parseEntitlementFromJson(publisherId, json) {
-  if (!json) {
-    json = {};
-  }
-  const source = json['source'] || '';
-  let products = json['products'];
-  if (!products && json['labels']) {  // MIGRATE: backward compatibility.
-    products = json['labels'].map(label => `${publisherId}:${label}`);
-  }
-  if (!products) {
-    products = [];
-  }
-  const subscriptionToken = json['subscriptionToken'];
-  return new Entitlement(source, products, subscriptionToken);
 }
