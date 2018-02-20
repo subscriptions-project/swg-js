@@ -249,11 +249,9 @@ app.all('/entitlements', (req, res) => {
   const decryptedAccessToken = decrypt(fromBase64(accessToken));
   const email = decryptedAccessToken.data['email'];
   const response = JSON.stringify({
-    'entitlements': {
-      'products': [publisherId + ':premium', publisherId + ':news'],
-      'subscriptionToken': 'subtok-' + publisherId + '-' + email,
-      'detail': 'For ' + email,
-    },
+    'products': [publisherId + ':premium', publisherId + ':news'],
+    'subscriptionToken': 'subtok-' + publisherId + '-' + email,
+    'detail': 'For ' + email,
   });
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
