@@ -20,6 +20,7 @@ import {Callbacks} from './callbacks';
 import {DepsDef} from '../model/deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
+import {Fetcher, XhrFetcher} from './fetcher';
 import {
   LinkStartFlow,
   LinkCompleteFlow,
@@ -270,8 +271,11 @@ export class ConfiguredRuntime {
   /**
    * @param {!Window} win
    * @param {!../model/page-config.PageConfig} config
+   * @param {{
+   *     fetcher: (!Fetcher|undefined),
+   *   }=} opt_integr
    */
-  constructor(win, config) {
+  constructor(win, config, opt_integr) {
     /** @private @const {!Window} */
     this.win_ = win;
 
@@ -281,9 +285,12 @@ export class ConfiguredRuntime {
     /** @private @const {!Promise} */
     this.documentParsed_ = whenDocumentReady(this.win_.document);
 
+    /** @private @const {!Fetcher} */
+    this.fetcher_ = opt_integr && opt_integr.fetcher || new XhrFetcher(win);
+
     /** @private @const {!EntitlementsManager} */
     this.entitlementsManager_ =
-        new EntitlementsManager(this.win_, this.config_);
+        new EntitlementsManager(this.win_, this.config_, this.fetcher_);
 
     /** @private @const {!DialogManager} */
     this.dialogManager_ = new DialogManager(win);
@@ -448,4 +455,12 @@ function createPublicRuntime(runtime) {
  */
 export function getSubscriptionsClassForTesting() {
   return Subscriptions;
+}
+
+/**
+ * @return {!Function}
+ * @protected
+ */
+export function getFetcherClassForTesting() {
+  return Fetcher;
 }

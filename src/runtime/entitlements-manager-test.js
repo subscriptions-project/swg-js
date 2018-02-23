@@ -18,20 +18,23 @@ import {
   EntitlementsManager,
 } from './entitlements-manager';
 import {PageConfig} from '../model/page-config';
+import {XhrFetcher} from './fetcher';
 
 
 describes.realWin('EntitlementsManager', {}, env => {
   let win;
   let config;
   let manager;
+  let fetcher;
   let xhrMock;
   let jwtHelperMock;
 
   beforeEach(() => {
     win = env.win;
     config = new PageConfig('pub1:label1');
-    manager = new EntitlementsManager(win, config);
-    xhrMock = sandbox.mock(manager.xhr_);
+    fetcher = new XhrFetcher(win);
+    xhrMock = sandbox.mock(fetcher.xhr_);
+    manager = new EntitlementsManager(win, config, fetcher);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
   });
 
