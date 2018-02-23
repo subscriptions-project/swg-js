@@ -222,7 +222,7 @@ export class Dialog {
 
   /**
    * Is View available to the user. View may not be available if another
-   * @param {boolean} available
+   * @param {boolean=} available
    */
   setAvailable(available = true) {
     const container = this.getContainer();
