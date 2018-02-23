@@ -63,15 +63,6 @@ export class DialogManager {
     });
   }
 
-  processingView(view) {
-    // Give a small amount of time for another view to take over the dialog.
-    setTimeout(() => {
-      if (this.dialog_ && this.dialog_.getCurrentView() == view) {
-        this.dialog_.setAvailable(false);
-      }
-    }, 100);
-  }
-
   /**
    * @param {!./view.View} view
    */
