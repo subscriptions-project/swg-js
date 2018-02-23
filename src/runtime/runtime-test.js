@@ -27,6 +27,7 @@ import {
 } from './runtime';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
+import {Fetcher, XhrFetcher} from './fetcher';
 import {
   LinkStartFlow,
   LinkCompleteFlow,
@@ -356,6 +357,37 @@ describes.realWin('Runtime', {}, env => {
           .once();
       return runtime.setOnLinkComplete(callback).then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(false);
+      });
+    });
+
+    it('should use default fetcher', () => {
+      const ents = {};
+      const xhrFetchStub = sandbox.stub(
+          XhrFetcher.prototype,
+          'fetchCredentialedJson',
+          () => Promise.resolve(ents));
+      return runtime.getEntitlements().then(() => {
+        expect(xhrFetchStub).to.be.calledOnce;
+      });
+    });
+
+    it('should override fetcher', () => {
+      const ents = {};
+      const otherFetcher = new Fetcher();
+      const fetchStub = sandbox.stub(
+          otherFetcher,
+          'fetchCredentialedJson',
+          () => Promise.resolve(ents));
+      const xhrFetchStub = sandbox.stub(
+          XhrFetcher.prototype,
+          'fetchCredentialedJson',
+          () => Promise.resolve(ents));
+      runtime = new ConfiguredRuntime(win, config, {
+        fetcher: otherFetcher,
+      });
+      return runtime.getEntitlements().then(() => {
+        expect(fetchStub).to.be.calledOnce;
+        expect(xhrFetchStub).to.not.be.called;
       });
     });
   });

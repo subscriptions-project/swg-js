@@ -16,7 +16,6 @@
 
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
-import {Xhr} from '../utils/xhr';
 
 const SERVICE_ID = 'subscribe.google.com';
 
@@ -28,16 +27,17 @@ export class EntitlementsManager {
   /**
    * @param {!Window} win
    * @param {!../model/page-config.PageConfig} config
+   * @param {!./fetcher.Fetcher} fetcher
    */
-  constructor(win, config) {
+  constructor(win, config, fetcher) {
     /** @private @const {!Window} */
     this.win_ = win;
 
     /** @private @const {!../model/page-config.PageConfig} */
     this.config_ = config;
 
-    /** @private @const {!Xhr} */
-    this.xhr_ = new Xhr(this.win_);
+    /** @private @const {!./fetcher.Fetcher} */
+    this.fetcher_ = fetcher;
 
     /** @private @const {!JwtHelper} */
     this.jwtHelper_ = new JwtHelper();
@@ -71,14 +71,7 @@ export class EntitlementsManager {
         '$entitlements$/_/v1/publication/' +
         encodeURIComponent(this.config_.getPublisherId()) +
         '/entitlements';
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-      method: 'GET',
-      headers: {'Accept': 'text/plain, application/json'},
-      credentials: 'include',
-    });
-    return this.xhr_.fetch(url, init).then(response => {
-      return response.json();
-    }).then(json => {
+    return this.fetcher_.fetchCredentialedJson(url).then(json => {
       const signedData = json['signedEntitlements'];
       if (signedData) {
         const jwt = this.jwtHelper_.decode(signedData);

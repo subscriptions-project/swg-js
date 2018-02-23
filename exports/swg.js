@@ -15,8 +15,10 @@
  */
 
 import {ConfiguredRuntime} from '../src/runtime/runtime';
+import {Fetcher} from '../src/runtime/fetcher';
 
 
 module.exports = {
   ConfiguredRuntime,
+  Fetcher,
 };
