@@ -53,9 +53,23 @@ export class DialogManager {
    * @return {!Promise}
    */
   openView(view) {
+    if (this.dialog_ && this.dialog_.getCurrentView() != view) {
+      this.dialog_.close();
+      this.dialog_ = null;
+      this.openPromise_ = null;
+    }
     return this.openDialog().then(dialog => {
       return dialog.openView(view);
     });
+  }
+
+  processingView(view) {
+    // Give a small amount of time for another view to take over the dialog.
+    setTimeout(() => {
+      if (this.dialog_ && this.dialog_.getCurrentView() == view) {
+        this.dialog_.setAvailable(false);
+      }
+    }, 100);
   }
 
   /**

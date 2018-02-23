@@ -77,7 +77,7 @@ export class OffersFlow {
   start() {
     // If result is due to OfferSelection, redirect to payments.
     this.activityIframeView_.acceptResult().then(result => {
-      this.dialogManager_.completeView(this.activityIframeView_);
+      this.dialogManager_.processingView(this.activityIframeView_);
       assert(result.secureChannel, 'The channel is not secured');
       const data = result.data;
       if (!data) {

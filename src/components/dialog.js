@@ -221,6 +221,18 @@ export class Dialog {
   }
 
   /**
+   * Is View available to the user. View may not be available if another
+   * @param {boolean} available
+   */
+  setAvailable(available = true) {
+    const container = this.getContainer();
+    setStyles(container, {
+      'opacity': available ? '1' : '0.4',
+      'pointer-events': available ? 'auto' : 'none',
+    });
+  }
+
+  /**
    * Gets the container within the dialog.
    * @return {!Element}
    */
@@ -280,6 +292,9 @@ export class Dialog {
     setImportantStyles(view.getElement(), resetViewStyles);
     this.setLoading(true);
     this.getContainer().appendChild(view.getElement());
+
+    // Ensure that the view container is available to interact with.
+    this.setAvailable(true);
 
     return view.init(this).then(() => {
       setImportantStyles(view.getElement(), {
