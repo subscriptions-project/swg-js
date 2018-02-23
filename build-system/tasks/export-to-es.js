@@ -20,6 +20,7 @@ const BBPromise = require('bluebird');
 const exec = BBPromise.promisify(require('child_process').exec);
 const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
+const resolveConfig = require('./compile-config').resolveConfig;
 const version = require('./internal-version').VERSION;
 
 
@@ -28,6 +29,8 @@ function runAllExportsToEs() {
     return exportToEs6('exports/apis.js', 'dist/exports-apis.js');
   }).then(() => {
     return exportToEs6('exports/config.js', 'dist/exports-config.js');
+  }).then(() => {
+    return exportToEs6('exports/swg.js', 'dist/exports-swg.js');
   });
 }
 
@@ -69,8 +72,11 @@ function exportToEs6(inputFile, outputFile) {
     }
     js = `${license}\n /** Version: ${version} */\n'use strict';\n${js}`;
 
-    // 2. Replace "$internalRuntimeVersion$".
-    js = js.replace(/\$internalRuntimeVersion\$/g, version);
+    // 2. Replace vars.
+    const replacements = resolveConfig();
+    for (const k in replacements) {
+      js = js.replace(new RegExp('\\$' + k + '\\$', 'g'), replacements[k]);
+    }
 
     // 3. Change the export format.
     js = js.replace(/module.exports\s*\=\s*\{/g, 'export {');
@@ -79,8 +85,6 @@ function exportToEs6(inputFile, outputFile) {
   }).then(js => {
     // Save.
     fs.writeFileSync(outputFile, js);
-    // Check some possible issues.
-    check(js, /\.\/[^*]/, 'All types must be expanded', outputFile);
   });
 };
 
