@@ -239,7 +239,7 @@ describes.realWin('Dialog', {}, env => {
 
     it('should create a dialog without Close action button', function* () {
       const dialogNoClose =
-          new Dialog(win, {height: `${documentHeight}px`}, null, null, false);
+          new Dialog(win, {height: `${documentHeight}px`}, null, null);
       const openedDialogNoClose = yield dialogNoClose.open();
       const iframeDoc = openedDialogNoClose.getIframe().getDocument();
       let closeButton = iframeDoc.querySelector('.swg-close-action');
