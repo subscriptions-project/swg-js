@@ -23,7 +23,8 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  margin: 16px;
+  padding: 16px;
+  margin: 0;
   border: none;
   z-index: 2147483647;
   width: 16px;
