@@ -94,9 +94,8 @@ export class Dialog {
    * @param {!Window} win
    * @param {!Object<string, string|number>=} importantStyles
    * @param {!Object<string, string|number>=} styles
-   * @param {boolean=} showCloseAction
    */
-  constructor(win, importantStyles = {}, styles = {}, showCloseAction = true) {
+  constructor(win, importantStyles = {}, styles = {}) {
 
     this.win_ = win;
 
@@ -120,9 +119,6 @@ export class Dialog {
 
     /** @private {LoadingView} */
     this.loadingView_ = null;
-
-    /** @private @const {boolean} */
-    this.showCloseAction_ = showCloseAction;
 
     /** @private {Element} */
     this.closeButton_ = null;
@@ -280,9 +276,7 @@ export class Dialog {
     }
     this.view_ = view;
 
-    if (view.shouldShowCloseAction()) {
-      this.showCloseAction(this.showCloseAction_);
-    }
+    this.showCloseAction(view.shouldShowCloseAction());
     setImportantStyles(view.getElement(), resetViewStyles);
     this.setLoading(true);
     this.getContainer().appendChild(view.getElement());
