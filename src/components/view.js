@@ -53,10 +53,4 @@ export class View {
    * @abstract
    */
   shouldFadeBody() {}
-
-  /**
-   * @return {boolean}
-   * @abstract
-   */
-  shouldShowCloseAction() {}
 }

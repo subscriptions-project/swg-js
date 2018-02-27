@@ -35,15 +35,13 @@ export class ActivityIframeView extends View {
    * @param {string} src
    * @param {!Object<string, ?string|number>=} args
    * @param {boolean=} shouldFadeBody
-   * @param {boolean=} showCloseAction
    */
   constructor(
       win,
       activityPorts,
       src,
       args,
-      shouldFadeBody = false,
-      showCloseAction = false) {
+      shouldFadeBody = false) {
     super();
 
     /** @private @const {!Window} */
@@ -68,9 +66,6 @@ export class ActivityIframeView extends View {
 
     /** @private @const {boolean} */
     this.shouldFadeBody_ = shouldFadeBody;
-
-    /** @private @const {boolean} */
-    this.showCloseAction_ = showCloseAction;
 
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
@@ -107,14 +102,6 @@ export class ActivityIframeView extends View {
    */
   shouldFadeBody() {
     return this.shouldFadeBody_;
-  }
-
-  /**
-   * Returns if document should fade for this view.
-   * @return {boolean}
-   */
-  shouldShowCloseAction() {
-    return this.showCloseAction_;
   }
 
   /**
