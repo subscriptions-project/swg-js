@@ -54,7 +54,7 @@ export class DialogManager {
    */
   openView(view) {
     view.whenComplete().catch(reason => {
-      if (reason.name && reason.name === 'AbortError') {
+      if (reason.name === 'AbortError') {
         this.completeView(view);
       }
       throw (reason);

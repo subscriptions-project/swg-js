@@ -86,19 +86,6 @@ export class ActivityIframeView extends View {
     this.promise_ = new Promise(resolve => {
       this.resolve_ = resolve;
     });
-
-    /**
-     * @private {?function(!Object<string, string|number>)}
-     */
-    this.whenCompleteResolve_ = null;
-
-    /**
-     * @private @const
-     * {!Promise}
-     */
-    this.whenCompletePromise_ = new Promise(resolve => {
-      this.whenCompleteResolve_ = resolve;
-    });
   }
 
   /** @override */
@@ -164,7 +151,7 @@ export class ActivityIframeView extends View {
    * @return {!Promise}
    */
   whenComplete() {
-    return this.whenCompletePromise_;
+    return this.promise_;
   }
 
   /** @override */
