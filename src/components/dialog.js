@@ -120,9 +120,6 @@ export class Dialog {
     /** @private {LoadingView} */
     this.loadingView_ = null;
 
-    /** @private {Element} */
-    this.closeButton_ = null;
-
     /** @private {?Element} */
     this.container_ = null;  // Depends on constructed document inside iframe.
 
@@ -171,42 +168,6 @@ export class Dialog {
         createElement(iframeDoc, 'div', {'class': 'swg-container'});
     iframeBody.appendChild(this.container_);
     this.setPosition_();
-
-    // Inject the close button after the iframe for mouse click event to
-    // respond otherwisethe mouse click event is captured by iframe.
-    this.addCloseAction_(iframeDoc, iframeBody);
-  }
-
-  /**
-   * Adds close action button with event listener.
-   * @private
-   */
-  addCloseAction_(iframeDoc, iframeBody) {
-    if (this.closeButton_) {
-      return;
-    }
-    this.closeButton_ = this.createCloseButton_(iframeDoc);
-    iframeBody.appendChild(this.closeButton_);
-  }
-
-  /**
-   * Renders or hides the "Close" action button. For some flows, this button
-   * should be hidden.
-   * @param {boolean} show
-   */
-  showCloseAction(show) {
-    if (!this.closeButton_) {
-      return;
-    }
-    if (show) {
-      setStyles(this.closeButton_, {
-        'display': 'block',
-      });
-    } else {
-      setStyles(this.closeButton_, {
-        'display': 'none',
-      });
-    }
   }
 
   /**
@@ -276,7 +237,6 @@ export class Dialog {
     }
     this.view_ = view;
 
-    this.showCloseAction(view.shouldShowCloseAction());
     setImportantStyles(view.getElement(), resetViewStyles);
     this.setLoading(true);
     this.getContainer().appendChild(view.getElement());
@@ -402,30 +362,6 @@ export class Dialog {
       default:
         return {'bottom': 0};
     }
-  }
-
-  /**
-   * Adds the dialog close action button.
-   * @param {!Document} doc
-   * @return {!Element}
-   * @private
-   */
-  createCloseButton_(doc) {
-    const closeButton = createElement(doc, 'div', {
-      'class': 'swg-close-action',
-      'role': 'button',
-      'tabindex': '1',
-      'aria-label': 'Close dialog',
-    });
-
-    closeButton.addEventListener('click', () => this.close());
-    closeButton.addEventListener('keypress', event => {
-      const keyValue = (event.key || '').toUpperCase();
-      if (keyValue == 'ENTER') {
-        this.close();
-      }
-    });
-    return closeButton;
   }
 
   /**

@@ -120,8 +120,7 @@ export class PayCompleteFlow {
         {
           'publicationId': deps.pageConfig().getPublisherId(),
         },
-        /* shouldFadeBody */ true,
-        /* showCloseAction */ false
+        /* shouldFadeBody */ true
     );
   }
 
