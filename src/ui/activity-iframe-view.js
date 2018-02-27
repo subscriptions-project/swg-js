@@ -70,6 +70,9 @@ export class ActivityIframeView extends View {
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
 
+    /* @private {Promise<!Object<string, string|number>} */
+    this.onMessage_ = null;
+
     /**
      * @private
      * {?function((!web-activities/activity-ports.ActivityResult|!Promise))}
@@ -118,7 +121,21 @@ export class ActivityIframeView extends View {
 
     this.resolve_(this.port_.acceptResult());
 
+    this.port_.onMessage(message => {
+      if (this.onMessage_) {
+        this.onMessage_(message);
+      }
+    });
+
     return this.port_.whenReady();
+  }
+
+  /**
+   * Handles the message received by the port.
+   * @param {function(!Object<string, string|boolean>)} callback
+   */
+  onMessage(callback) {
+    this.onMessage_ = callback;
   }
 
   /**

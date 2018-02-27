@@ -20,7 +20,6 @@ import {
   PayStartFlow,
   PayCompleteFlow,
 } from './pay-flow';
-import {assert} from '../utils/log';
 
 const OFFERS_URL =
     '$frontend$/swglib/offersiframe$frontendDebug$';
@@ -70,30 +69,22 @@ export class OffersFlow {
   }
 
   /**
-   * Starts the offers flow.
+   * Starts the offers flow or alreadySubscribed flow.
    * @return {!Promise}
    */
   start() {
     // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.acceptResult().then(result => {
-      this.dialogManager_.completeView(this.activityIframeView_);
-      assert(result.secureChannel, 'The channel is not secured');
-      const data = result.data;
-      if (!data) {
-        return;
-      }
-      if (data['alreadySubscribed']) {
+    this.activityIframeView_.onMessage(result => {
+      if (result['alreadySubscribed']) {
         this.deps_.callbacks().triggerLoginRequest();
         return;
       }
-      const skuId = data['sku'] || data['skuId'] || '';
+      const skuId = result.sku || '';
       if (skuId) {
-        return new PayStartFlow(this.deps_, skuId).start();
+        new PayStartFlow(this.deps_, skuId).start();
       }
-    }).catch(reason => {
-      this.dialogManager_.completeView(this.activityIframeView_);
-      throw (reason);
     });
+
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 }

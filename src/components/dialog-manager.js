@@ -53,6 +53,10 @@ export class DialogManager {
    * @return {!Promise}
    */
   openView(view) {
+    view.acceptResult().catch(reason => {
+      this.completeView(view);
+      throw (reason);
+    });
     return this.openDialog().then(dialog => {
       return dialog.openView(view);
     });
