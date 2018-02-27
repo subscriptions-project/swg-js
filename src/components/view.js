@@ -52,7 +52,7 @@ export class View {
    * Accept the result.
    * @return {!Promise}
    */
-  acceptResult() {}
+  whenComplete() {}
 
   /**
    * @return {boolean}

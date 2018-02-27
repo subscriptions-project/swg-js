@@ -53,8 +53,10 @@ export class DialogManager {
    * @return {!Promise}
    */
   openView(view) {
-    view.acceptResult().catch(reason => {
-      this.completeView(view);
+    view.whenComplete().catch(reason => {
+      if (reason.name && reason.name === 'AbortError') {
+        this.completeView(view);
+      }
       throw (reason);
     });
     return this.openDialog().then(dialog => {

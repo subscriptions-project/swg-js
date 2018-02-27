@@ -70,7 +70,7 @@ export class ActivityIframeView extends View {
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
 
-    /* @private {Promise<!Object<string, string|number>} */
+    /* @private {?function<!Object<string, string|number>} */
     this.onMessage_ = null;
 
     /**
@@ -85,6 +85,19 @@ export class ActivityIframeView extends View {
      */
     this.promise_ = new Promise(resolve => {
       this.resolve_ = resolve;
+    });
+
+    /**
+     * @private {?function(!Object<string, string|number>)}
+     */
+    this.whenCompleteResolve_ = null;
+
+    /**
+     * @private @const
+     * {!Promise}
+     */
+    this.whenCompletePromise_ = new Promise(resolve => {
+      this.whenCompleteResolve_ = resolve;
     });
   }
 
@@ -144,6 +157,14 @@ export class ActivityIframeView extends View {
    */
   acceptResult() {
     return this.promise_;
+  }
+
+  /**
+   * Completes the flow.
+   * @return {!Promise}
+   */
+  whenComplete() {
+    return this.whenCompletePromise_;
   }
 
   /** @override */
