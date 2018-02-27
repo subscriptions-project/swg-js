@@ -76,6 +76,7 @@ export class OffersFlow {
   start() {
     // If result is due to OfferSelection, redirect to payments.
     this.activityIframeView_.acceptResult().then(result => {
+      this.dialogManager_.completeView(this.activityIframeView_);
       assert(result.secureChannel, 'The channel is not secured');
       const data = result.data;
       if (!data) {
@@ -89,8 +90,9 @@ export class OffersFlow {
       if (skuId) {
         return new PayStartFlow(this.deps_, skuId).start();
       }
-    }).catch(() => {
+    }).catch(reason => {
       this.dialogManager_.completeView(this.activityIframeView_);
+      throw (reason);
     });
     return this.dialogManager_.openView(this.activityIframeView_);
   }
