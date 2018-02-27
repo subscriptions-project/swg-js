@@ -63,8 +63,7 @@ export class OffersFlow {
           'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
           'label': deps.pageConfig().getProductId(),  // MIGRATE
         },
-        /* shouldFadeBody */ true,
-        /* showCloseAction */ true
+        /* shouldFadeBody */ true
     );
 
     PayCompleteFlow.configurePending(this.deps_);
@@ -90,6 +89,8 @@ export class OffersFlow {
       if (skuId) {
         return new PayStartFlow(this.deps_, skuId).start();
       }
+    }).catch(() => {
+      this.dialogManager_.completeView(this.activityIframeView_);
     });
     return this.dialogManager_.openView(this.activityIframeView_);
   }

@@ -48,9 +48,6 @@ describes.realWin('Dialog', {}, env => {
       shouldFadeBody: function() {
         return true;
       },
-      shouldShowCloseAction: function() {
-        return false;
-      },
     };
   });
 
@@ -83,12 +80,6 @@ describes.realWin('Dialog', {}, env => {
       // Background is not hidden when dialog is open.
       expect(computedStyle(win, backgroundElement)['display'])
           .to.equal('block');
-
-      dialog.close();
-      // Background element is removed from the DOM on dialog close.
-      const backgroundEl =
-          win.document.querySelector('swg-popup-background');
-      expect(backgroundEl).to.be.null;
     });
 
     it('should build the view', function* () {
@@ -146,34 +137,6 @@ describes.realWin('Dialog', {}, env => {
       expect(container.getAttribute('class')).to.equal('swg-container');
     });
 
-    it('should have iframe element before close button', function* () {
-      const openedDialog = yield dialog.open();
-      expect(openedDialog.getContainer().getAttribute('class'))
-          .to.equal('swg-container');
-
-      // Should have top level friendly iframe created.
-      const iframe = openedDialog.getElement();
-      expect(iframe.getAttribute('src')).to.equal('about:blank');
-      expect(iframe.nodeName).to.equal('IFRAME');
-
-      // Should have container created.
-      const container = openedDialog.getContainer();
-      expect(container.nodeType).to.equal(1);
-      expect(container.nodeName).to.equal('DIV');
-      expect(container.getAttribute('class')).to.equal('swg-container');
-
-      // Should have close button created.
-      const iframeDoc = openedDialog.getIframe().getDocument();
-      const closeButton = iframeDoc.querySelector('.swg-close-action');
-      expect(closeButton.nodeName).to.equal('DIV');
-
-      // Ensure that close button is following the container element in the DOM.
-      // This is to ensure that the clsoe button receives the click event and
-      // not the container element.
-      expect(container.compareDocumentPosition(closeButton))
-          .to.equal(Node.DOCUMENT_POSITION_FOLLOWING);
-    });
-
     it('should remove the dialog', function* () {
       const openedDialog = yield dialog.open();
       expect(openedDialog.getContainer().getAttribute('class'))
@@ -195,39 +158,6 @@ describes.realWin('Dialog', {}, env => {
       // Check if document padding was removed.
       expect(win.document.documentElement.style.paddingBottom).to.equal('');
     });
-
-    it('should have Close button with click listener', function* () {
-      const openedDialog = yield dialog.open();
-      const iframeDoc = openedDialog.getIframe().getDocument();
-      const closeButton = iframeDoc.querySelector('.swg-close-action');
-      expect(closeButton.nodeName).to.equal('DIV');
-
-      // Before closing the dialog, check that iframe exists in document.
-      expect(doc.querySelector('iframe')).to.equal(openedDialog.getElement());
-
-      // Clicking the close button should remove the dialog from the document.
-      closeButton.click();
-
-      // Check that container iframe does not exist any more.
-      expect(doc.querySelector('iframe')).to.be.null;
-    });
-
-    it('should have Close button with keypress="Enter" listener', function* () {
-      const openedDialog = yield dialog.open();
-      const iframeDoc = openedDialog.getIframe().getDocument();
-      const closeButton = iframeDoc.querySelector('.swg-close-action');
-      expect(closeButton.nodeName).to.equal('DIV');
-
-      // Before closing the dialog, check that iframe exists in document.
-      expect(doc.querySelector('iframe')).to.equal(openedDialog.getElement());
-
-      // Presseing the Enter key should remove the dialog from the document.
-      closeButton.dispatchEvent(new KeyboardEvent('keypress',{'key': 'Enter'}));
-
-      // Check that container iframe does not exist any more.
-      expect(doc.querySelector('iframe')).to.be.null;
-    });
-
     it('should have Loading view element added', function* () {
       const openedDialog = yield dialog.open();
       const iframeDoc = openedDialog.getIframe().getDocument();
@@ -235,19 +165,6 @@ describes.realWin('Dialog', {}, env => {
       expect(loadingView.nodeName).to.equal('DIV');
 
       expect(loadingView.children.length).to.equal(4);
-    });
-
-    it('should create a dialog without Close action button', function* () {
-      const dialogNoClose =
-          new Dialog(win, {height: `${documentHeight}px`}, null, null);
-      const openedDialogNoClose = yield dialogNoClose.open();
-      const iframeDoc = openedDialogNoClose.getIframe().getDocument();
-      let closeButton = iframeDoc.querySelector('.swg-close-action');
-      expect(computedStyle(win, closeButton)['display']).to.equal('none');
-
-      openedDialogNoClose.showCloseAction(true);
-      closeButton = iframeDoc.querySelector('.swg-close-action');
-      expect(computedStyle(win, closeButton)['display']).to.not.equal('none');
     });
   });
 });
