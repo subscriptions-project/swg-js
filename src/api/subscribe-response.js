@@ -25,6 +25,7 @@ export class SubscribeResponse {
    * @param {string} raw
    * @param {!PurchaseData} purchaseData
    * @param {?UserData} userData
+   * @param {function():!Promise} completeHandler
    */
   constructor(raw, purchaseData, userData) {
     /** @const {string} */
@@ -33,6 +34,8 @@ export class SubscribeResponse {
     this.purchaseData = purchaseData;
     /** @const {?UserData} */
     this.userData = userData;
+    /** @private @const {function():!Promise} */
+    this.completeHandler_ = completeHandler;
   }
 
   /**
@@ -53,6 +56,23 @@ export class SubscribeResponse {
       'purchaseData': this.purchaseData.json(),
       'userData': this.userData ? this.userData.json() : null,
     };
+  }
+
+  /**
+   * Allows the receiving site to complete/acknowledge that it registered
+   * the subscription purchase. The typical action would be to create an
+   * account (or match an existing one) and associated the purchase with
+   * that account.
+   *
+   * SwG will display progress indicator until this method is called and
+   * upon receiving this call will show the confirmation to the user.
+   * The promise returned by this method will yield once the user closes
+   * the confirmation.
+   *
+   * @return {!Promise}
+   */
+  complete() {
+    return this.completeHandler_();
   }
 }
 
