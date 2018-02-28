@@ -21,6 +21,8 @@ const internalRuntimeVersion = require('./internal-version').VERSION;
 const FRONTEND = 'https://subscribe.sandbox.google.com';
 const FRONTEND_DEBUG = '';
 const ENTITLEMENTS = 'https://swg-staging.sandbox.google.com';
+const PAY_ENVIRONMENT = '';
+const PLAY_ENVIRONMENT = '';
 
 
 /**
@@ -32,5 +34,7 @@ exports.resolveConfig = function() {
     'frontend': argv.frontend || FRONTEND,
     'frontendDebug': argv.frontendDebug || FRONTEND_DEBUG,
     'entitlements': argv.entitlements || ENTITLEMENTS,
+    'payEnvironment': argv.payEnvironment || PAY_ENVIRONMENT,
+    'playEnvironment': argv.playEnvironment || PLAY_ENVIRONMENT,
   };
 }

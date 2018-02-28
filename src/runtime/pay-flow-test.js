@@ -79,6 +79,8 @@ describes.realWin('PayStartFlow', {}, env => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
           'swg': {
             'publicationId': 'pub1',
             'skuId': 'sku1',
