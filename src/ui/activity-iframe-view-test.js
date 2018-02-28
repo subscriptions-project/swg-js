@@ -45,6 +45,16 @@ describes.realWin('ActivityIframeView', {}, env => {
         () => Promise.resolve(true));
 
     sandbox.stub(
+        activityIframePort,
+        'onMessage',
+        () => {
+          return Promise.resolve(true);
+          return function() {
+            return {'sku': 'basic'};
+          };
+        });
+
+    sandbox.stub(
         activityPorts,
         'openIframe',
         () => Promise.resolve(activityIframePort));
