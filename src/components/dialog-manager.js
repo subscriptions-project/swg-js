@@ -65,7 +65,7 @@ export class DialogManager {
   }
 
   /**
-   * @param {!./view.View} view
+   * @param {?./view.View} view
    */
   completeView(view) {
     // Give a small amount of time for another view to take over the dialog.
