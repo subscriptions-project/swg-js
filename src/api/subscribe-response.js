@@ -27,7 +27,7 @@ export class SubscribeResponse {
    * @param {?UserData} userData
    * @param {function():!Promise} completeHandler
    */
-  constructor(raw, purchaseData, userData) {
+  constructor(raw, purchaseData, userData, completeHandler) {
     /** @const {string} */
     this.raw = raw;
     /** @const {!PurchaseData} */
@@ -45,7 +45,8 @@ export class SubscribeResponse {
     return new SubscribeResponse(
         this.raw,
         this.purchaseData,
-        this.userData);
+        this.userData,
+        this.completeHandler_);
   }
 
   /**

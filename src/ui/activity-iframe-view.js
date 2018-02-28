@@ -131,6 +131,13 @@ export class ActivityIframeView extends View {
   }
 
   /**
+   * @param {!Object} data
+   */
+  message(data) {
+    this.port_.message(data);
+  }
+
+  /**
    * Handles the message received by the port.
    * @param {function(!Object<string, string|boolean>)} callback
    */

@@ -183,19 +183,22 @@ describe('PurchaseData', () => {
 });
 
 
-describe('SubscribeResponse', () => {
-  let sr, pd, ud;
+describes.sandboxed('SubscribeResponse', {}, () => {
+  let sr, pd, ud, complete, promise;
 
   beforeEach(() => {
     pd = new PurchaseData('PD_RAW', 'PD_SIG');
     ud = new UserData('ID_TOKEN', {sub: '1234'});
-    sr = new SubscribeResponse('SR_RAW', pd, ud);
+    promise = Promise.resolve();
+    complete = () => promise;
+    sr = new SubscribeResponse('SR_RAW', pd, ud, complete);
   });
 
   it('should initialize correctly', () => {
     expect(sr.raw).to.equal('SR_RAW');
     expect(sr.purchaseData).to.equal(pd);
     expect(sr.userData).to.equal(ud);
+    expect(sr.complete()).to.equal(promise);
   });
 
   it('should clone', () => {
@@ -205,6 +208,7 @@ describe('SubscribeResponse', () => {
     expect(clone.raw).to.equal('SR_RAW');
     expect(clone.purchaseData).to.equal(pd);
     expect(clone.userData).to.equal(ud);
+    expect(clone.complete()).to.equal(promise);
   });
 
   it('should export json', () => {
