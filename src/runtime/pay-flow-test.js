@@ -27,7 +27,8 @@ import {
   parseSubscriptionResponse,
   parseUserData,
 } from './pay-flow';
-import {SubscribeResponse} from '../api/subscribe-response';
+import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
+import {UserData} from '../api/user-data';
 import * as sinon from 'sinon';
 
 const INTEGR_DATA_STRING =
@@ -117,6 +118,11 @@ describes.realWin('PayCompleteFlow', {}, env => {
   });
 
   it('should have valid flow constructed', () => {
+    const purchaseData = new PurchaseData();
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const response = new SubscribeResponse('RaW', purchaseData, userData);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
@@ -126,9 +132,31 @@ describes.realWin('PayCompleteFlow', {}, env => {
         sinon.match.string,
         {
           publicationId: 'pub1',
+          loginHint: 'test@example.org',
         })
         .returns(Promise.resolve(port));
-    return flow.start();
+    return flow.start(response);
+  });
+
+  it('should complete the flow', () => {
+    const purchaseData = new PurchaseData();
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const response = new SubscribeResponse('RaW', purchaseData, userData);
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.message = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve();
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const messageStub = sandbox.stub(port, 'message');
+    return flow.start(response).then(() => {
+      return flow.complete();
+    }).then(() => {
+      expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+    });
   });
 
   describe('payments response', () => {
@@ -197,9 +225,11 @@ describes.realWin('PayCompleteFlow', {}, env => {
       const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
           'POPUP', location.origin, true, true);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
+      const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       PayCompleteFlow.configurePending(runtime);
       return startCallback(port).then(() => {
         expect(startStub).to.be.calledOnce;
+        expect(startStub.args[0][0]).to.be.instanceof(SubscribeResponse);
         expect(triggerPromise).to.exist;
         return triggerPromise;
       }).then(response => {
@@ -209,6 +239,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
         expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
         expect(JSON.parse(response.raw)).to.deep
             .equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
+        expect(completeStub).to.not.be.called;
+        response.complete();
+        expect(completeStub).to.be.calledOnce;
       });
     });
 
@@ -217,6 +250,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           INTEGR_DATA_OBJ_DECODED,
           'POPUP', location.origin, true, true);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
+      const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       PayCompleteFlow.configurePending(runtime);
       return startCallback(port).then(() => {
         expect(startStub).to.be.calledOnce;
@@ -229,13 +263,23 @@ describes.realWin('PayCompleteFlow', {}, env => {
         expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
         expect(JSON.parse(response.raw)).to.deep
             .equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
+        expect(completeStub).to.not.be.called;
+        response.complete();
+        expect(completeStub).to.be.calledOnce;
       });
     });
   });
 });
 
 
-describe('parseSubscriptionResponse', () => {
+describes.sandboxed('parseSubscriptionResponse', {}, () => {
+  it('should pass through the callback', () => {
+    const complete = sandbox.spy();
+    const sr = parseSubscriptionResponse(INTEGR_DATA_STRING, complete);
+    sr.complete();
+    expect(complete).to.be.calledOnce;
+  });
+
   it('should parse a string response', () => {
     const sr = parseSubscriptionResponse(INTEGR_DATA_STRING);
     expect(JSON.parse(sr.raw))

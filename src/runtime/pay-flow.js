@@ -90,10 +90,12 @@ export class PayCompleteFlow {
    */
   static configurePending(deps) {
     deps.activities().onResult(PAY_REQUEST_ID, port => {
-      const promise = validatePayResponse(port);
+      const flow = new PayCompleteFlow(deps);
+      const promise = validatePayResponse(
+          port, flow.complete.bind(flow));
       deps.callbacks().triggerSubscribeResponse(promise);
-      return promise.then(() => {
-        new PayCompleteFlow(deps).start();
+      return promise.then(response => {
+        flow.start(response);
       });
     });
   }
@@ -105,6 +107,9 @@ export class PayCompleteFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
+    /** @private @const {!../model/deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
@@ -114,53 +119,77 @@ export class PayCompleteFlow {
     /** @private @const {!../runtime/callbacks.Callbacks} */
     this.callbacks_ = deps.callbacks();
 
-    /** @private @const {!ActivityIframeView} */
+    /** @private {?ActivityIframeView} */
+    this.activityIframeView_ = null;
+
+    /** @private {?SubscribeResponse} */
+    this.response_ = null;
+
+    /** @private {?Promise} */
+    this.readyPromise_ = null;
+  }
+
+  /**
+   * Starts the payments completion flow.
+   * @param {!SubscribeResponse} response
+   * @return {!Promise}
+   */
+  start(response) {
+    this.response_ = response;
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
         PAY_CONFIRM_IFRAME_URL,
         {
-          'publicationId': deps.pageConfig().getPublisherId(),
+          'publicationId': this.deps_.pageConfig().getPublisherId(),
+          'loginHint': response.userData && response.userData.email,
         },
-        /* shouldFadeBody */ true
-    );
-  }
-
-  /**
-   * Starts the payments completion flow.
-   * @return {!Promise}
-   */
-  start() {
+        /* shouldFadeBody */ true);
     this.activityIframeView_.acceptResult().then(() => {
       // The flow is complete.
       this.dialogManager_.completeView(this.activityIframeView_);
     });
-    return this.dialogManager_.openView(this.activityIframeView_);
+    this.readyPromise_ = this.dialogManager_.openView(this.activityIframeView_);
+    return this.readyPromise_;
+  }
+
+  /**
+   * @return {!Promise}
+   */
+  complete() {
+    this.readyPromise_.then(() => {
+      this.activityIframeView_.message({'complete': true});
+    });
+    return this.activityIframeView_.acceptResult().catch(() => {
+      // Ignore errors.
+    });
   }
 }
 
 
 /**
  * @param {!web-activities/activity-ports.ActivityPort} port
+ * @param {function():!Promise} completeHandler
  * @return {!Promise<!SubscribeResponse>}
  * @package Visible for testing only.
  */
-export function validatePayResponse(port) {
+export function validatePayResponse(port, completeHandler) {
   return acceptPortResult(
       port,
       parseUrl(PAY_URL).origin,
       // TODO(dvoytenko): support payload decryption.
       /* requireOriginVerified */ false,
       /* requireSecureChannel */ false)
-      .then(data => parseSubscriptionResponse(data));
+      .then(data => parseSubscriptionResponse(data, completeHandler));
 }
 
 
 /**
  * @param {*} data
+ * @param {function():!Promise} completeHandler
  * @return {!SubscribeResponse}
  */
-export function parseSubscriptionResponse(data) {
+export function parseSubscriptionResponse(data, completeHandler) {
   let swgData = null;
   let raw = null;
   if (data) {
@@ -191,7 +220,8 @@ export function parseSubscriptionResponse(data) {
   return new SubscribeResponse(
       raw,
       parsePurchaseData(swgData),
-      parseUserData(swgData));
+      parseUserData(swgData),
+      completeHandler);
 }
 
 

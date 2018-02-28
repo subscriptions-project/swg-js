@@ -80,9 +80,15 @@ class DemoPaywallController {
    */
   subscribeResponse_(promise) {
     promise.then(response => {
-      // TODO: Start account creation flow. Restart entitlements.
+      // TODO: Start account creation flow.
       log('got subscription response', response);
       this.openPaywall_();
+      // TODO: wait for account creation to be complete.
+      setTimeout(function() {
+        response.complete().then(() => {
+          log('subscription has been confirmed');
+        });
+      }, 2000);
     }, reason => {
       log('subscription response failed: ', reason);
       throw reason;
