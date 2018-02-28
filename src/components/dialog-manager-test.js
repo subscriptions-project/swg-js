@@ -24,12 +24,18 @@ describes.realWin('DialogManager', {}, env => {
   let dialogManager;
   let dialogIfc;
   let currentView;
+  let initView;
 
   beforeEach(() => {
     clock = sandbox.useFakeTimers();
     win = env.win;
     dialogManager = new DialogManager(win);
     currentView = null;
+    initView = {
+      whenComplete: function() {
+        return Promise.resolve(true);
+      },
+    };
     dialogIfc = {
       open: sandbox.stub(Dialog.prototype, 'open', function() {
         return Promise.resolve(this);
@@ -65,19 +71,17 @@ describes.realWin('DialogManager', {}, env => {
   });
 
   it('should open view', () => {
-    const view = {};
-    return dialogManager.openView(view).then(() => {
+    return dialogManager.openView(initView).then(() => {
       expect(dialogIfc.open).to.be.calledOnce;
       expect(dialogIfc.openView).to.be.calledOnce;
-      expect(dialogIfc.openView).to.be.calledWith(view);
+      expect(dialogIfc.openView).to.be.calledWith(initView);
     });
   });
 
   it('should complete view and close dialog', () => {
-    const view = {};
-    return dialogManager.openView(view).then(() => {
-      expect(currentView).to.equal(view);
-      dialogManager.completeView(view);
+    return dialogManager.openView(initView).then(() => {
+      expect(currentView).to.equal(initView);
+      dialogManager.completeView(initView);
       expect(dialogIfc.close).to.not.be.called;
       expect(dialogManager.dialog_).to.exist;
       clock.tick(10);
@@ -90,11 +94,10 @@ describes.realWin('DialogManager', {}, env => {
   });
 
   it('should complete view and continue dialog', () => {
-    const view = {};
-    const view2 = {};
-    return dialogManager.openView(view).then(() => {
-      expect(currentView).to.equal(view);
-      dialogManager.completeView(view);
+    const view2 = Object.assign({}, initView);
+    return dialogManager.openView(initView).then(() => {
+      expect(currentView).to.equal(initView);
+      dialogManager.completeView(initView);
       clock.tick(10);
       expect(dialogIfc.close).to.not.be.called;
       expect(dialogManager.dialog_).to.exist;
@@ -110,10 +113,9 @@ describes.realWin('DialogManager', {}, env => {
   });
 
   it('should ignore close for the different view', () => {
-    const view = {};
-    const view2 = {};
-    return dialogManager.openView(view).then(() => {
-      expect(currentView).to.equal(view);
+    const view2 = Object.assign({}, initView);
+    return dialogManager.openView(initView).then(() => {
+      expect(currentView).to.equal(initView);
       dialogManager.completeView(view2);
       clock.tick(110);
       expect(dialogIfc.close).to.not.be.called;
@@ -122,11 +124,10 @@ describes.realWin('DialogManager', {}, env => {
   });
 
   it('should complete view and reopen dialog', () => {
-    const view = {};
-    const view2 = {};
-    return dialogManager.openView(view).then(() => {
-      expect(currentView).to.equal(view);
-      dialogManager.completeView(view);
+    const view2 = Object.assign({}, initView);
+    return dialogManager.openView(initView).then(() => {
+      expect(currentView).to.equal(initView);
+      dialogManager.completeView(initView);
       const oldDialog = dialogManager.dialog_;
       clock.tick(110);
       expect(dialogIfc.close).to.be.calledOnce;
