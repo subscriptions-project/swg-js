@@ -45,6 +45,7 @@ describes.realWin('Offers flow', {}, env => {
   it('should have valid OffersFlow constructed', () => {
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
+    port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
