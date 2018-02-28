@@ -67,6 +67,8 @@ export class PayStartFlow {
         PAY_REQUEST_ID, PAY_URL, '_blank', {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
           'swg': {
             'publicationId': this.pageConfig_.getPublisherId(),
             // TODO(dvoytenko): use 'instant' for tests if necessary.
