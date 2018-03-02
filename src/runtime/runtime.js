@@ -326,6 +326,11 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  entitlementsManager() {
+    return this.entitlementsManager_;
+  }
+
+  /** @override */
   callbacks() {
     return this.callbacks_;
   }
@@ -346,7 +351,9 @@ export class ConfiguredRuntime {
     // TODO(dvoytenko): what's the right action when pay flow was canceled?
     const promise = this.entitlementsManager_.getEntitlements();
     return promise.catch(() => null).then(entitlements => {
-      if (this.callbacks_.hasSubscribeResponsePending()) {
+      if (this.callbacks_.hasSubscribeResponsePending() ||
+          this.callbacks_.hasLinkProgressPending() ||
+          this.callbacks_.hasLinkCompletePending()) {
         return;
       }
       this.callbacks_.triggerEntitlementsResponse(promise);

@@ -15,15 +15,21 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {acceptPortResult} from '../utils/activity-utils';
 import {getHostUrl} from '../utils/url';
+import {parseUrl} from '../utils/url';
 
 const LINK_FRONT_IFRAME_URL =
     '$frontend$/swglib/linkfrontiframe$frontendDebug$';
 
-const LINK_CONFIRM_IFRAME_URL =
-    '$frontend$/swglib/linkconfirmiframe$frontendDebug$';
+const LINKBACK_URL =
+    '$frontend$/swglib/linkbackstart$frontendDebug$';
 
-const COMPLETE_LINK_REQUEST_ID = 'swg-link-continue';
+const LINK_CONFIRM_IFRAME_URL =
+    '$frontend$/u/$index$/swglib/linkconfirmiframe$frontendDebug$';
+
+const CONTINUE_LINK_REQUEST_ID = 'swg-link-continue';
+const LINK_REQUEST_ID = 'swg-link';
 
 
 /**
@@ -52,7 +58,7 @@ export class LinkStartFlow {
         {
           'publisherId': deps.pageConfig().getPublisherId(),
           'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
-          'requestId': COMPLETE_LINK_REQUEST_ID,
+          'requestId': CONTINUE_LINK_REQUEST_ID,
           'returnUrl': getHostUrl(this.win_.location.href),
         },
         /* shouldFadeBody */ true
@@ -81,7 +87,7 @@ export class LinkStartFlow {
   openLoginForm_(resp) {
     const redirectUrl = resp['redirectUrl'];
     this.activityPorts_.open(
-        COMPLETE_LINK_REQUEST_ID, redirectUrl, '_blank', null, {
+        CONTINUE_LINK_REQUEST_ID, redirectUrl, '_blank', null, {
           // TODO(dvoytenko): Remove the debug code.
           // Only keep request URL params for debugging URLs.
           skipRequestInUrl: redirectUrl.indexOf('http://localhost') == -1,
@@ -89,6 +95,39 @@ export class LinkStartFlow {
     // Disconnected flow: will proceed with LinkCompleteFlow once popup
     // returns.
     this.dialogManager_.completeView(this.activityIframeView_);
+  }
+}
+
+
+/**
+ * The flow to initiate linkback flow.
+ */
+export class LinkbackFlow {
+
+  /**
+   * @param {!../model/deps.DepsDef} deps
+   */
+  constructor(deps) {
+    /** @private @const {!Window} */
+    this.win_ = deps.win();
+
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    this.activityPorts_ = deps.activities();
+
+    /** @private @const {!../model/page-config.PageConfig} */
+    this.pageConfig_ = deps.pageConfig();
+  }
+
+  /**
+   * Starts the Link account flow.
+   * @return {!Promise}
+   */
+  start() {
+    this.activityPorts_.open(
+        LINK_REQUEST_ID, LINKBACK_URL, '_blank', {
+          'publicationId': this.pageConfig_.getPublisherId(),
+        }, {});
+    return Promise.resolve();
   }
 }
 
@@ -102,20 +141,27 @@ export class LinkCompleteFlow {
    * @param {!../model/deps.DepsDef} deps
    */
   static configurePending(deps) {
-    deps.activities().onResult(COMPLETE_LINK_REQUEST_ID, port => {
-      return port.acceptResult().then(result => {
-        if (result.ok) {
-          const flow = new LinkCompleteFlow(deps);
-          flow.start();
-        }
+    function handler(port) {
+      deps.callbacks().triggerLinkProgress(Promise.resolve());
+      const promise = acceptPortResult(
+          port,
+          parseUrl(LINK_CONFIRM_IFRAME_URL).origin,
+          /* requireOriginVerified */ false,
+          /* requireSecureChannel */ false);
+      return promise.then(response => {
+        const flow = new LinkCompleteFlow(deps, response);
+        flow.start();
       });
-    });
+    };
+    deps.activities().onResult(CONTINUE_LINK_REQUEST_ID, handler);
+    deps.activities().onResult(LINK_REQUEST_ID, handler);
   }
 
   /**
    * @param {!../model/deps.DepsDef} deps
+   * @param {?Object} response
    */
-  constructor(deps) {
+  constructor(deps, response) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -125,21 +171,32 @@ export class LinkCompleteFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private @const {!../runtime/callbacks.Callbacks} */
+    /** @private @const {!./entitlements-manager.EntitlementsManager} */
+    this.entitlementsManager_ = deps.entitlementsManager();
+
+    /** @private @const {!./callbacks.Callbacks} */
     this.callbacks_ = deps.callbacks();
 
+    const index = response && response['index'] || '0';
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ =
         new ActivityIframeView(
             this.win_,
             this.activityPorts_,
-            LINK_CONFIRM_IFRAME_URL,
+            LINK_CONFIRM_IFRAME_URL.replace(/\$index\$/g, index),
             {
-              'publisherId': deps.pageConfig().getPublisherId(),
-              'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
+              'productId': deps.pageConfig().getProductId(),
+              'publicationId': deps.pageConfig().getPublisherId(),
             },
-            /* shouldFadeBody */ true
-        );
+            /* shouldFadeBody */ true);
+
+    /** @private {?function()} */
+    this.completeResolver_ = null;
+
+    /** @private @const {!Promise} */
+    this.completePromise_ = new Promise(resolve => {
+      this.completeResolver_ = resolve;
+    });
   }
 
   /**
@@ -147,11 +204,39 @@ export class LinkCompleteFlow {
    * @return {!Promise}
    */
   start() {
-    this.callbacks_.triggerLinkComplete(Promise.resolve());
-    this.activityIframeView_.acceptResult().then(() => {
+    const promise = this.activityIframeView_.port().then(port => {
+      return acceptPortResult(
+          port,
+          parseUrl(LINK_CONFIRM_IFRAME_URL).origin,
+          /* requireOriginVerified */ true,
+          /* requireSecureChannel */ true);
+    });
+    promise.then(response => {
+      this.complete_(response);
+    }).catch(reason => {
+      // Rethrow async.
+      setTimeout(() => {
+        throw reason;
+      });
+    }).then(() => {
       // The flow is complete.
       this.dialogManager_.completeView(this.activityIframeView_);
     });
     return this.dialogManager_.openView(this.activityIframeView_);
+  }
+
+  /**
+   * @param {?Object} response
+   * @private
+   */
+  complete_(response) {
+    this.callbacks_.triggerLinkComplete(Promise.resolve());
+    this.entitlementsManager_.reset(response && response['success'] || false);
+    this.completeResolver_();
+  }
+
+  /** @return {!Promise} */
+  whenComplete() {
+    return this.completePromise_;
   }
 }

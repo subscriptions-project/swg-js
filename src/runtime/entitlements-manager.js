@@ -44,6 +44,9 @@ export class EntitlementsManager {
 
     /** @private {?Promise<!Entitlements>} */
     this.responsePromise_ = null;
+
+    /** @private {number} */
+    this.positiveRetries_ = 0;
   }
 
   /**
@@ -51,15 +54,42 @@ export class EntitlementsManager {
    */
   getEntitlements() {
     if (!this.responsePromise_) {
-      this.responsePromise_ = this.fetch_();
+      this.responsePromise_ = this.fetchConsistent_();
     }
     return this.responsePromise_;
   }
 
   /**
+   * @param {boolean=} opt_expectPositive
    */
-  reset() {
+  reset(opt_expectPositive) {
     this.responsePromise_ = null;
+    this.positiveRetries_ = Math.max(
+        this.positiveRetries_, opt_expectPositive ? 3 : 0);
+  }
+
+  /**
+   * @return {!Promise<!Entitlements>}
+   * @private
+   */
+  fetchConsistent_() {
+    // TODO(dvoytenko): Replace retries with consistent fetch.
+    let positiveRetries = this.positiveRetries_;
+    this.positiveRetries_ = 0;
+    const attempt = () => {
+      positiveRetries--;
+      return this.fetch_().then(entitlements => {
+        if (entitlements.enablesThis() || positiveRetries <= 0) {
+          return entitlements;
+        }
+        return new Promise(resolve => {
+          this.win_.setTimeout(() => {
+            resolve(attempt());
+          }, 550);
+        });
+      });
+    };
+    return attempt();
   }
 
   /**
@@ -81,6 +111,15 @@ export class EntitlementsManager {
               SERVICE_ID,
               signedData,
               Entitlement.parseListFromJson(entitlementsClaim),
+              this.config_.getProductId());
+        }
+      } else {
+        const plainEntitlements = json['entitlements'];
+        if (plainEntitlements) {
+          return new Entitlements(
+              SERVICE_ID,
+              '',
+              Entitlement.parseListFromJson(plainEntitlements),
               this.config_.getProductId());
         }
       }

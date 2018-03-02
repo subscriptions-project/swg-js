@@ -15,7 +15,11 @@
  */
 
 import {ActivityIframeView} from './activity-iframe-view';
-import {ActivityPorts, ActivityIframePort} from 'web-activities/activity-ports';
+import {
+  ActivityPorts,
+  ActivityIframePort,
+  ActivityResult,
+} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
 
 describes.realWin('ActivityIframeView', {}, env => {
@@ -76,7 +80,7 @@ describes.realWin('ActivityIframeView', {}, env => {
       expect(activityIframe.getAttribute('frameborder')).to.equal('0');
     });
 
-    it('should should initialize and open an iframe', function* () {
+    it('should initialize and open an iframe', function* () {
       const openedDialog = yield dialog.open();
 
       // The iframe should be inside DOM to call init().
@@ -95,6 +99,22 @@ describes.realWin('ActivityIframeView', {}, env => {
 
       expect(activityIframePort.onResizeRequest).to.have.been.calledOnce;
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
+    });
+
+    it('should accept port and result', function* () {
+      const result = new ActivityResult('OK');
+      sandbox.stub(
+          activityIframePort,
+          'acceptResult',
+          () => Promise.resolve(result));
+
+      yield activityIframeView.init(dialog);
+      expect(activityIframePort.whenReady).to.have.been.calledOnce;
+
+      const actualPort = yield activityIframeView.port();
+      const actualResult = yield activityIframeView.acceptResult();
+      expect(actualPort).to.equal(activityIframePort);
+      expect(actualResult).to.equal(result);
     });
   });
 });

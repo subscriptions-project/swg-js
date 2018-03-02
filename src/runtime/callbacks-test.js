@@ -73,14 +73,31 @@ describes.sandboxed('Callbacks', {}, () => {
     });
   });
 
+  it('should trigger and execute linkProgress', () => {
+    const spy = sandbox.spy();
+    const p = Promise.resolve();
+    callbacks.setOnLinkProgress(spy);
+    expect(callbacks.hasLinkProgressPending()).to.be.false;
+    expect(callbacks.triggerLinkProgress(p)).to.be.true;
+    expect(callbacks.hasLinkProgressPending()).to.be.true;
+    return skipMicro().then(() => {
+      expect(spy).to.be.calledOnce;
+      expect(spy).to.be.calledWith(p);
+      expect(callbacks.hasLinkProgressPending()).to.be.true;
+    });
+  });
+
   it('should trigger and execute linkComplete', () => {
     const spy = sandbox.spy();
     const p = Promise.resolve();
     callbacks.setOnLinkComplete(spy);
+    expect(callbacks.hasLinkCompletePending()).to.be.false;
     expect(callbacks.triggerLinkComplete(p)).to.be.true;
+    expect(callbacks.hasLinkCompletePending()).to.be.true;
     return skipMicro().then(() => {
       expect(spy).to.be.calledOnce;
       expect(spy).to.be.calledWith(p);
+      expect(callbacks.hasLinkCompletePending()).to.be.true;
     });
   });
 
@@ -98,6 +115,7 @@ describes.sandboxed('Callbacks', {}, () => {
     const p = Promise.resolve();
     callbacks.setOnLinkComplete(spy);  // Make sure there's no ID conflict.
     callbacks.setOnSubscribeResponse(spy);
+    expect(callbacks.hasLinkCompletePending()).to.be.false;
     expect(callbacks.hasSubscribeResponsePending()).to.be.false;
     expect(callbacks.triggerSubscribeResponse(p)).to.be.true;
     expect(callbacks.hasSubscribeResponsePending()).to.be.true;
@@ -114,6 +132,7 @@ describes.sandboxed('Callbacks', {}, () => {
     callbacks.setOnLinkComplete(spy);  // Make sure there's no ID conflict.
     callbacks.setOnEntitlementsResponse(spy);
     expect(callbacks.triggerEntitlementsResponse(p)).to.be.true;
+    expect(callbacks.hasLinkCompletePending()).to.be.false;
     return skipMicro().then(() => {
       expect(spy).to.be.calledOnce;
       expect(spy).to.be.calledWith(p);

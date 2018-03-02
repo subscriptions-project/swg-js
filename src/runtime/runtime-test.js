@@ -420,9 +420,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     entitlementsManagerMock.verify();
   });
 
-  function returnActivity(requestId, code, opt_dataOrError) {
+  function returnActivity(requestId, code, opt_dataOrError, opt_origin) {
     const activityResult = new ActivityResult(code, opt_dataOrError,
-        'POPUP', 'https://example.com', false, false);
+        'POPUP', opt_origin || 'https://example.com', false, false);
     const activityResultPromise = Promise.resolve(activityResult);
     const promise = activityResultCallbacks[requestId]({
       acceptResult() {
@@ -521,6 +521,40 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
   });
 
+  it('should cancel entitlements flow for link complete response', () => {
+    const entitlements = new Entitlements(
+        'service', 'raw',
+        [new Entitlement('', ['product1'], 'token1')],
+        'product1');
+    entitlementsManagerMock.expects('getEntitlements')
+        .withExactArgs()
+        .returns(Promise.resolve(entitlements))
+        .once();
+    const triggerStub = sandbox.stub(runtime.callbacks(),
+        'triggerEntitlementsResponse');
+    runtime.callbacks().triggerLinkComplete(Promise.resolve());
+    return runtime.start().then(() => {
+      expect(triggerStub).to.not.be.called;
+    });
+  });
+
+  it('should cancel entitlements flow for link progress response', () => {
+    const entitlements = new Entitlements(
+        'service', 'raw',
+        [new Entitlement('', ['product1'], 'token1')],
+        'product1');
+    entitlementsManagerMock.expects('getEntitlements')
+        .withExactArgs()
+        .returns(Promise.resolve(entitlements))
+        .once();
+    const triggerStub = sandbox.stub(runtime.callbacks(),
+        'triggerEntitlementsResponse');
+    runtime.callbacks().triggerLinkProgress(Promise.resolve());
+    return runtime.start().then(() => {
+      expect(triggerStub).to.not.be.called;
+    });
+  });
+
   it('should start LinkStartFlow', () => {
     const startStub = sandbox.stub(
         LinkStartFlow.prototype,
@@ -537,7 +571,25 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         LinkCompleteFlow.prototype,
         'start',
         () => Promise.resolve());
-    return returnActivity('swg-link-continue', ActivityResultCode.OK)
+    return returnActivity('swg-link-continue', ActivityResultCode.OK, {},
+        location.origin)
+        // Succeeds or fails is not important for this test.
+        .catch(() => {})
+        .then(() => {
+          expect(startStub).to.be.calledOnce;
+        });
+  });
+
+  it('should configure and start LinkCompleteFlow for swg-link', () => {
+    expect(activityResultCallbacks['swg-link']).to.exist;
+    const startStub = sandbox.stub(
+        LinkCompleteFlow.prototype,
+        'start',
+        () => Promise.resolve());
+    return returnActivity('swg-link', ActivityResultCode.OK, {},
+        location.origin)
+        // Succeeds or fails is not important for this test.
+        .catch(() => {})
         .then(() => {
           expect(startStub).to.be.calledOnce;
         });
