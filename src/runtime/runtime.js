@@ -22,8 +22,8 @@ import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
 import {
-  LinkStartFlow,
   LinkCompleteFlow,
+  LinkbackFlow,
 } from './link-accounts-flow';
 import {OffersFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
@@ -417,7 +417,7 @@ export class ConfiguredRuntime {
   /** @override */
   linkAccount() {
     return this.documentParsed_.then(() => {
-      return new LinkStartFlow(this).start();
+      return new LinkbackFlow(this).start();
     });
   }
 

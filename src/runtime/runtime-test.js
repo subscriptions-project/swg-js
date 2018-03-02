@@ -29,8 +29,8 @@ import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {Fetcher, XhrFetcher} from './fetcher';
 import {
-  LinkStartFlow,
   LinkCompleteFlow,
+  LinkbackFlow,
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -555,9 +555,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
   });
 
-  it('should start LinkStartFlow', () => {
+  it('should start LinkbackFlow', () => {
     const startStub = sandbox.stub(
-        LinkStartFlow.prototype,
+        LinkbackFlow.prototype,
         'start',
         () => Promise.resolve());
     return runtime.linkAccount().then(() => {
