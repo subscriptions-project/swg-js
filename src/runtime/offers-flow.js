@@ -16,10 +16,7 @@
 
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {
-  PayStartFlow,
-  PayCompleteFlow,
-} from './pay-flow';
+import {PayStartFlow} from './pay-flow';
 
 const OFFERS_URL =
     '$frontend$/swglib/offersiframe$frontendDebug$';
