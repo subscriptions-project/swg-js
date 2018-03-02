@@ -20,7 +20,8 @@ const CallbackId = {
   ENTITLEMENTS: 1,
   SUBSCRIBE: 2,
   LOGIN_REQUEST: 3,
-  LINK_COMPLETE: 4,
+  LINK_PROGRESS: 4,
+  LINK_COMPLETE: 5,
 };
 
 
@@ -70,6 +71,28 @@ export class Callbacks {
   /**
    * @param {function(!Promise)} callback
    */
+  setOnLinkProgress(callback) {
+    this.setCallback_(CallbackId.LINK_PROGRESS, callback);
+  }
+
+  /**
+   * @param {!Promise} promise
+   * @return {boolean} Whether the callback has been found.
+   */
+  triggerLinkProgress(promise) {
+    return this.trigger_(CallbackId.LINK_PROGRESS, promise);
+  }
+
+  /**
+   * @return {boolean}
+   */
+  hasLinkProgressPending() {
+    return !!this.resultBuffer_[CallbackId.LINK_PROGRESS];
+  }
+
+  /**
+   * @param {function(!Promise)} callback
+   */
   setOnLinkComplete(callback) {
     this.setCallback_(CallbackId.LINK_COMPLETE, callback);
   }
@@ -80,6 +103,13 @@ export class Callbacks {
    */
   triggerLinkComplete(promise) {
     return this.trigger_(CallbackId.LINK_COMPLETE, promise);
+  }
+
+  /**
+   * @return {boolean}
+   */
+  hasLinkCompletePending() {
+    return !!this.resultBuffer_[CallbackId.LINK_COMPLETE];
   }
 
   /**

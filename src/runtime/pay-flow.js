@@ -135,6 +135,7 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   start(response) {
+    this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,

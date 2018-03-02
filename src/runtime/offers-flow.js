@@ -58,8 +58,7 @@ export class OffersFlow {
         OFFERS_URL,
         {
           'productId': deps.pageConfig().getProductId(),
-          'publisherId': deps.pageConfig().getPublisherId(),
-          'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
+          'publicationId': deps.pageConfig().getPublisherId(),
           'label': deps.pageConfig().getProductId(),  // MIGRATE
         },
         /* shouldFadeBody */ true

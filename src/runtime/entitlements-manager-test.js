@@ -123,4 +123,98 @@ describes.realWin('EntitlementsManager', {}, env => {
       return manager.getEntitlements();
     });
   });
+
+  it('should reset with positive expectation', () => {
+    manager.reset();
+    expect(manager.positiveRetries_).to.equal(0);
+    manager.reset(true);
+    expect(manager.positiveRetries_).to.equal(3);
+    manager.reset(true);
+    expect(manager.positiveRetries_).to.equal(3);
+    manager.reset();
+    expect(manager.positiveRetries_).to.equal(3);
+  });
+
+  it('should fetch with positive expectation with one attempt', () => {
+    xhrMock.expects('fetch')
+        .returns(Promise.resolve({
+          json: () => Promise.resolve({
+            entitlements: {
+              products: ['pub1:label1'],
+              subscriptionToken: 's1',
+            },
+          }),
+        }))
+        .once();
+    manager.reset(true);
+    expect(manager.positiveRetries_).to.equal(3);
+    const promise = manager.getEntitlements();
+    expect(manager.positiveRetries_).to.equal(0);
+    return promise.then(entitlements => {
+      expect(entitlements.entitlements[0].subscriptionToken).to.equal('s1');
+    });
+  });
+
+  it('should fetch with positive expectation with two attempts', () => {
+    let totalTime = 0;
+    sandbox.stub(win, 'setTimeout', (callback, timeout) => {
+      totalTime += timeout;
+      callback();
+    });
+    xhrMock.expects('fetch')
+        .returns(Promise.resolve({
+          json: () => Promise.resolve({
+            entitlements: {
+              products: ['pub1:label2'],
+              subscriptionToken: 's2',
+            },
+          }),
+        }))
+        .once();
+    xhrMock.expects('fetch')
+        .returns(Promise.resolve({
+          json: () => Promise.resolve({
+            entitlements: {
+              products: ['pub1:label1'],
+              subscriptionToken: 's1',
+            },
+          }),
+        }))
+        .once();
+    manager.reset(true);
+    expect(manager.positiveRetries_).to.equal(3);
+    const promise = manager.getEntitlements();
+    expect(manager.positiveRetries_).to.equal(0);
+    return promise.then(entitlements => {
+      expect(entitlements.entitlements[0].subscriptionToken).to.equal('s1');
+      expect(totalTime).to.be.greaterThan(499);
+    });
+  });
+
+  it('should fetch with positive expectation with max attempts', () => {
+    let totalTime = 0;
+    sandbox.stub(win, 'setTimeout', (callback, timeout) => {
+      totalTime += timeout;
+      callback();
+    });
+    xhrMock.expects('fetch')
+        .returns(Promise.resolve({
+          json: () => Promise.resolve({
+            entitlements: {
+              products: ['pub1:label2'],
+              subscriptionToken: 's2',
+            },
+          }),
+        }))
+        .thrice();
+    manager.reset(true);
+    expect(manager.positiveRetries_).to.equal(3);
+    const promise = manager.getEntitlements();
+    expect(manager.positiveRetries_).to.equal(0);
+    return promise.then(entitlements => {
+      expect(entitlements.entitlements).to.have.length(1);
+      expect(entitlements.entitlements[0].subscriptionToken).to.equal('s2');
+      expect(totalTime).to.be.greaterThan(999);
+    });
+  });
 });

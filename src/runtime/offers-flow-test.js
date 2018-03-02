@@ -51,7 +51,6 @@ describes.realWin('Offers flow', {}, env => {
         sinon.match(arg => arg.tagName == 'IFRAME'),
         sinon.match.string,
         {
-          publisherId: 'pub1',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           label: 'pub1:label1',
