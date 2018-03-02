@@ -32,6 +32,15 @@
       .open-paywall .paywalled-disclaimer {
         display: none;
       }
+      #creating_account_toast {
+        position: fixed;
+        z-index: 1111;
+        top: 20px;
+        left: 10px;
+        right: 10px;
+        background: lightyellow;
+        padding: 16px;
+      }
     </style>
 
     <script type="application/ld+json">
@@ -174,6 +183,9 @@
           </section>
         </div>
       </main>
+    </div>
+    <div id="creating_account_toast" style="display: none;">
+      Scenic is creating account for <span id="creating_account_toast_user"></span>...
     </div>
   </body>
 </html>

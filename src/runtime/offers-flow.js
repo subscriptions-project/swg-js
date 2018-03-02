@@ -61,10 +61,7 @@ export class OffersFlow {
           'publicationId': deps.pageConfig().getPublisherId(),
           'label': deps.pageConfig().getProductId(),  // MIGRATE
         },
-        /* shouldFadeBody */ true
-    );
-
-    PayCompleteFlow.configurePending(this.deps_);
+        /* shouldFadeBody */ true);
   }
 
   /**
