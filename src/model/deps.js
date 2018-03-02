@@ -39,6 +39,11 @@ export class DepsDef {
   dialogManager() {}
 
   /**
+   * @return {!../runtime/entitlements-manager.EntitlementsManager}
+   */
+  entitlementsManager() {}
+
+  /**
    * @return {!../runtime/callbacks.Callbacks}
    */
   callbacks() {}

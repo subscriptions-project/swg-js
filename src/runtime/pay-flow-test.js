@@ -101,12 +101,14 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let runtime;
   let activitiesMock;
   let callbacksMock;
+  let entitlementsManagerMock;
   let flow;
 
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1');
     runtime = new ConfiguredRuntime(win, pageConfig);
+    entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     flow = new PayCompleteFlow(runtime);
@@ -151,6 +153,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    entitlementsManagerMock.expects('reset')
+        .withExactArgs(true)  // Expected positive.
+        .once();
     const messageStub = sandbox.stub(port, 'message');
     return flow.start(response).then(() => {
       return flow.complete();

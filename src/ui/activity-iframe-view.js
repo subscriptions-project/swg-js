@@ -70,21 +70,18 @@ export class ActivityIframeView extends View {
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
 
-    /* @private {?function<!Object<string, string|number>} */
-    this.onMessage_ = null;
-
     /**
      * @private
-     * {?function((!web-activities/activity-ports.ActivityResult|!Promise))}
+     * {?function<!web-activities/activity-ports.ActivityIframePort|!Promise>}
      */
-    this.resolve_ = null;
+    this.portResolver_ = null;
 
     /**
      * @private @const
-     * {!Promise<!web-activities/activity-ports.ActivityResult>}
+     * {!Promise<!web-activities/activity-ports.ActivityIframePort>}
      */
-    this.promise_ = new Promise(resolve => {
-      this.resolve_ = resolve;
+    this.portPromise_ = new Promise(resolve => {
+      this.portResolver_ = resolve;
     });
   }
 
@@ -114,27 +111,29 @@ export class ActivityIframeView extends View {
    */
   onOpenIframeResponse_(port, dialog) {
     this.port_ = port;
+    this.portResolver_(port);
 
     this.port_.onResizeRequest(height => {
       dialog.resizeView(this, height);
-    });
-
-    this.resolve_(this.port_.acceptResult());
-
-    this.port_.onMessage(message => {
-      if (this.onMessage_) {
-        this.onMessage_(message);
-      }
     });
 
     return this.port_.whenReady();
   }
 
   /**
+   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+   */
+  port() {
+    return this.portPromise_;
+  }
+
+  /**
    * @param {!Object} data
    */
   message(data) {
-    this.port_.message(data);
+    this.port().then(port => {
+      port.message(data);
+    });
   }
 
   /**
@@ -142,7 +141,9 @@ export class ActivityIframeView extends View {
    * @param {function(!Object<string, string|boolean>)} callback
    */
   onMessage(callback) {
-    this.onMessage_ = callback;
+    this.port().then(port => {
+      port.onMessage(callback);
+    });
   }
 
   /**
@@ -150,7 +151,7 @@ export class ActivityIframeView extends View {
    * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
    */
   acceptResult() {
-    return this.promise_;
+    return this.port().then(port => port.acceptResult());
   }
 
   /**
@@ -158,7 +159,7 @@ export class ActivityIframeView extends View {
    * @return {!Promise}
    */
   whenComplete() {
-    return this.promise_;
+    return this.acceptResult();
   }
 
   /** @override */
