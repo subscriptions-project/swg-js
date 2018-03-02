@@ -231,6 +231,7 @@ export class LinkCompleteFlow {
    */
   complete_(response) {
     this.callbacks_.triggerLinkComplete(Promise.resolve());
+    this.callbacks_.resetLinkProgress();
     this.entitlementsManager_.reset(response && response['success'] || false);
     this.completeResolver_();
   }

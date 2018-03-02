@@ -41,7 +41,6 @@ class DemoPaywallController {
 
   start() {
     log('DemoPaywallController started');
-    this.subscriptions.reset();
     this.subscriptions.start();
   }
 
@@ -115,6 +114,7 @@ class DemoPaywallController {
    */
   linkComplete_() {
     log('linking complete');
+    this.subscriptions.reset();
     this.start();
   }
 }

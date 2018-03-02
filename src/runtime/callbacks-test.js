@@ -83,7 +83,7 @@ describes.sandboxed('Callbacks', {}, () => {
     return skipMicro().then(() => {
       expect(spy).to.be.calledOnce;
       expect(spy).to.be.calledWith(p);
-      expect(callbacks.hasLinkProgressPending()).to.be.true;
+      expect(callbacks.hasLinkProgressPending()).to.be.false;
     });
   });
 
@@ -97,7 +97,7 @@ describes.sandboxed('Callbacks', {}, () => {
     return skipMicro().then(() => {
       expect(spy).to.be.calledOnce;
       expect(spy).to.be.calledWith(p);
-      expect(callbacks.hasLinkCompletePending()).to.be.true;
+      expect(callbacks.hasLinkCompletePending()).to.be.false;
     });
   });
 
@@ -122,7 +122,7 @@ describes.sandboxed('Callbacks', {}, () => {
     return skipMicro().then(() => {
       expect(spy).to.be.calledOnce;
       expect(spy).to.be.calledWith(p);
-      expect(callbacks.hasSubscribeResponsePending()).to.be.true;
+      expect(callbacks.hasSubscribeResponsePending()).to.be.false;
     });
   });
 

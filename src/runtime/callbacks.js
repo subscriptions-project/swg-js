@@ -91,6 +91,12 @@ export class Callbacks {
   }
 
   /**
+   */
+  resetLinkProgress() {
+    this.resetCallback_(CallbackId.LINK_PROGRESS);
+  }
+
+  /**
    * @param {function(!Promise)} callback
    */
   setOnLinkComplete(callback) {
@@ -145,7 +151,7 @@ export class Callbacks {
     this.callbacks_[id] = callback;
     // If result already exist, execute the callback right away.
     if (id in this.resultBuffer_) {
-      this.executeCallback_(callback, this.resultBuffer_[id]);
+      this.executeCallback_(id, callback, this.resultBuffer_[id]);
     }
   }
 
@@ -159,20 +165,32 @@ export class Callbacks {
     this.resultBuffer_[id] = data;
     const callback = this.callbacks_[id];
     if (callback) {
-      this.executeCallback_(callback, data);
+      this.executeCallback_(id, callback, data);
     }
     return !!callback;
   }
 
   /**
+   * @param {!CallbackId} id
+   * @private
+   */
+  resetCallback_(id) {
+    if (id in this.resultBuffer_) {
+      delete this.resultBuffer_[id];
+    }
+  }
+
+  /**
+   * @param {!CallbackId} id
    * @param {function(!Promise)} callback
    * @param {!Promise} data
    * @private
    */
-  executeCallback_(callback, data) {
+  executeCallback_(id, callback, data) {
     // Always execute callbacks in a microtask.
     Promise.resolve().then(() => {
       callback(data);
+      this.resetCallback_(id);
     });
   }
 }
