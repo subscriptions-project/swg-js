@@ -125,8 +125,7 @@
     "vinyl-buffer": "1.0.0",
     "vinyl-source-stream": "1.1.0",
     "watchify": "3.9.0",
-    "yamljs": "0.3.0",
-    "yarn": "^1.5.1"
+    "yamljs": "0.3.0"
   },
   "ava": {
     "files": [
