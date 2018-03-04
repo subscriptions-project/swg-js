@@ -99,7 +99,7 @@ export class EntitlementsManager {
   fetch_() {
     const url =
         '$entitlements$/_/v1/publication/' +
-        encodeURIComponent(this.config_.getPublisherId()) +
+        encodeURIComponent(this.config_.getPublicationId()) +
         '/entitlements';
     return this.fetcher_.fetchCredentialedJson(url).then(json => {
       const signedData = json['signedEntitlements'];

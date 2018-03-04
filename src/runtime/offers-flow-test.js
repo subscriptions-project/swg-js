@@ -53,7 +53,6 @@ describes.realWin('Offers flow', {}, env => {
         {
           publicationId: 'pub1',
           productId: 'pub1:label1',
-          label: 'pub1:label1',
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();

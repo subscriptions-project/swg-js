@@ -55,8 +55,7 @@ export class OffersFlow {
         OFFERS_URL,
         {
           'productId': deps.pageConfig().getProductId(),
-          'publicationId': deps.pageConfig().getPublisherId(),
-          'label': deps.pageConfig().getProductId(),  // MIGRATE
+          'publicationId': deps.pageConfig().getPublicationId(),
         },
         /* shouldFadeBody */ true);
   }
