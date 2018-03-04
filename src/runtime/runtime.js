@@ -41,7 +41,8 @@ import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
 import {whenDocumentReady} from '../utils/document-ready';
 
-const RUNTIME_PROP = 'SUBSCRIPTIONS';
+const RUNTIME_PROP = 'SWG';
+const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
 
 
 /** @private {Runtime} */
@@ -74,7 +75,7 @@ export function installRuntime(win) {
 
   const runtime = new Runtime(win);
 
-  const waitingArray = win[RUNTIME_PROP];
+  const waitingArray = [].concat(win[RUNTIME_PROP], win[RUNTIME_LEGACY_PROP]);
 
   // Public runtime.
   const publicRuntime = createPublicRuntime(runtime);
@@ -85,6 +86,9 @@ export function installRuntime(win) {
    * @param {function(!Subscriptions)} callback
    */
   function pushDependency(callback) {
+    if (!callback) {
+      return;
+    }
     runtime.whenReady().then(() => {
       callback(publicRuntime);
     });
@@ -94,6 +98,7 @@ export function installRuntime(win) {
     configurable: false,
   });
   win[RUNTIME_PROP] = dependencyInstaller;
+  win[RUNTIME_LEGACY_PROP] = dependencyInstaller;
   if (waitingArray) {
     waitingArray.forEach(pushDependency);
   }

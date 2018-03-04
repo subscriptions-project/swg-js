@@ -34,7 +34,7 @@ var globalSubscriptions;
  * @param {function()} callback
  */
 function whenReady(callback) {
-  (self.SUBSCRIPTIONS = self.SUBSCRIPTIONS || []).push(function(subscriptions) {
+  (self.SWG = self.SWG || []).push(function(subscriptions) {
     globalSubscriptions = subscriptions;
     callback(subscriptions);
   });
