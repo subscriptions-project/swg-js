@@ -16,8 +16,10 @@
 
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
+import {Toast} from '../ui/toast';
 
 const SERVICE_ID = 'subscribe.google.com';
+const TOAST_STORAGE_KEY = 'toast';
 
 
 /**
@@ -28,8 +30,9 @@ export class EntitlementsManager {
    * @param {!Window} win
    * @param {!../model/page-config.PageConfig} config
    * @param {!./fetcher.Fetcher} fetcher
+   * @param {!../model/deps.DepsDef} deps
    */
-  constructor(win, config, fetcher) {
+  constructor(win, config, fetcher, deps) {
     /** @private @const {!Window} */
     this.win_ = win;
 
@@ -39,6 +42,9 @@ export class EntitlementsManager {
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
 
+    /** @private @const {!../model/deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!JwtHelper} */
     this.jwtHelper_ = new JwtHelper();
 
@@ -47,16 +53,9 @@ export class EntitlementsManager {
 
     /** @private {number} */
     this.positiveRetries_ = 0;
-  }
 
-  /**
-   * @return {!Promise<!Entitlements>}
-   */
-  getEntitlements() {
-    if (!this.responsePromise_) {
-      this.responsePromise_ = this.fetchConsistent_();
-    }
-    return this.responsePromise_;
+    /** @private @const {!./storage.Storage} */
+    this.storage_ = deps.storage();
   }
 
   /**
@@ -70,9 +69,18 @@ export class EntitlementsManager {
 
   /**
    * @return {!Promise<!Entitlements>}
-   * @private
    */
-  fetchConsistent_() {
+  getEntitlements() {
+    if (!this.responsePromise_) {
+      this.responsePromise_ = this.getEntitlementsFlow_();
+    }
+    return this.responsePromise_;
+  }
+
+  /**
+   * @return {!Promise<!Entitlements>}
+   */
+  fetchEntitlements() {
     // TODO(dvoytenko): Replace retries with consistent fetch.
     let positiveRetries = this.positiveRetries_;
     this.positiveRetries_ = 0;
@@ -90,6 +98,89 @@ export class EntitlementsManager {
       });
     };
     return attempt();
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setToastShown(value) {
+    this.storage_.set(TOAST_STORAGE_KEY, value ? '1' : '0');
+  }
+
+  /**
+   * @return {!Promise<!Entitlements>}
+   */
+  getEntitlementsFlow_() {
+    return this.fetchEntitlements().then(entitlements => {
+      this.onEntitlementsFetched_(entitlements);
+      return entitlements;
+    });
+  }
+
+  /**
+   * @param {!Entitlements} entitlements
+   * @private
+   */
+  onEntitlementsFetched_(entitlements) {
+    // Skip any notifications and toast if other flows are ongoing.
+    // TODO(dvoytenko): what's the right action when pay flow was canceled?
+    const callbacks = this.deps_.callbacks();
+    if (callbacks.hasSubscribeResponsePending() ||
+        callbacks.hasLinkProgressPending() ||
+        callbacks.hasLinkCompletePending()) {
+      return;
+    }
+
+    // Notify on the received entitlements.
+    callbacks.triggerEntitlementsResponse(Promise.resolve(entitlements));
+
+    // Show a toast if needed.
+    this.maybeShowToast_(entitlements);
+  }
+
+  /**
+   * @param {!Entitlements} entitlements
+   * @return {!Promise}
+   * @private
+   */
+  maybeShowToast_(entitlements) {
+    const entitlement = entitlements.getEntitlementForThis();
+    if (!entitlement) {
+      return Promise.resolve();
+    }
+
+    return this.storage_.get(TOAST_STORAGE_KEY).then(value => {
+      if (value == '1') {
+        // Already shown;
+        return;
+      }
+
+      this.setToastShown(true);
+      if (entitlement) {
+        this.showToast_(entitlement);
+      }
+    });
+  }
+
+  /**
+   * @param {!Entitlement} entitlement
+   * @private
+   */
+  showToast_(entitlement) {
+    const toast = new Toast(this.win_, {
+      text:
+          (entitlement.source || 'google') == 'google' ?
+          'Access via Google Subscriptions' :
+          // TODO(dvoytenko): display name instead.
+          'Access via [' + entitlement.source + ']',
+      action: {
+        label: 'View',
+        handler: function() {
+          // TODO(dparikh): Implementation.
+        },
+      },
+    });
+    toast.open();
   }
 
   /**
