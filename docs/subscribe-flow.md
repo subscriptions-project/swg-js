@@ -16,7 +16,7 @@ limitations under the License.
 
 # SwG Subscribe Flow
 
-This flow shows the payment form, accepts payment, records subscription and updates the reader's entitlements. See [Subscriptions APIs](../core-apis.md).
+This flow shows the payment form, accepts payment, records subscription and updates the reader's entitlements. See [Subscriptions APIs](./core-apis.md).
 
 *Important!* Please ensure you set up the `setOnSubscribeResponse` on any page where you accept purchases, even if the `subscribe` or `showOffers` was not called in that impression. SwG client ensures it can recover subscriptions even when browsers unload pages.
 

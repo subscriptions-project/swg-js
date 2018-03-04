@@ -16,7 +16,7 @@ limitations under the License.
 
 # SwG Offers Flow
 
-This flow allows the publication site to display numerous flow to purchase the subscription. See [Subscriptions APIs](../core-apis.md).
+This flow allows the publication site to display numerous flow to purchase the subscription. See [Subscriptions APIs](./core-apis.md).
 
 *Important!* Please ensure you set up the `setOnSubscribeResponse` on any page where you accept purchases, even if the `subscribe` or `showOffers` was not called in that impression. SwG client ensures it can recover subscriptions even when browsers unload pages. See [Subscribe flow](./subscribe-flow.md) for more details.
 

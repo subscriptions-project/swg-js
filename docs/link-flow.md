@@ -16,6 +16,6 @@ limitations under the License.
 
 # SwG Link Flow
 
-This flow is normally originated from another surface and allows the reader to link this publication's subscription to that surface. See [Subscriptions APIs](../core-apis.md).
+This flow is normally originated from another surface and allows the reader to link this publication's subscription to that surface. See [Subscriptions APIs](./core-apis.md).
 
 The link flow would normally be executed by a 3p surface to let a user to claim an existing subscription. However, SwG client provides `linkAccount` and `setOnLinkComplete` APIs for testing purposes.

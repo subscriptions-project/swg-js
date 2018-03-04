@@ -16,7 +16,7 @@ limitations under the License.
 
 # SwG Entitlements Flow
 
-This flow would notify the publication site when SwG believes that the reader is entitled to read the content, e.g. due to previously pruchased subscription. See [Subscriptions APIs](../core-apis.md).
+This flow would notify the publication site when SwG believes that the reader is entitled to read the content, e.g. due to previously pruchased subscription. See [Subscriptions APIs](./core-apis.md).
 
 It's recommended that the site install entitlements listener as early as practical using `setOnEntitlementsResponse` method.
 
@@ -31,7 +31,7 @@ subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
 
 This callback will be called whenever the new entitlements have been updated.
 
-In the [auto mode](../embed-client.md#auto-initialization), the entitlements are fetched automatically. In the [manual mode](../embed-client.md#manual-initialization) the site can call `start` method:
+In the [auto mode](./embed-client.md#auto-initialization), the entitlements are fetched automatically. In the [manual mode](./embed-client.md#manual-initialization) the site can call `start` method:
 
 ```
 subscriptions.start();
