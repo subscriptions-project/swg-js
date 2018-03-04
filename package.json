@@ -48,6 +48,7 @@
     "cssnano": "3.3.2",
     "del": "2.2.0",
     "eslint": "3.18.0",
+    "eslint-plugin-swg-internal": "file:build-system/eslint-rules",
     "eslint-plugin-google-camelcase": "0.0.2",
     "express": "4.14.0",
     "fetch-mock": "5.12.2",

@@ -1,0 +1,6 @@
+{
+  "name": "eslint-plugin-swg-internal",
+  "version": "0.1.0",
+  "description": "ESLint rules for the SwG project",
+  "private": true
+}
