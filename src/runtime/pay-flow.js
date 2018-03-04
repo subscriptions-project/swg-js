@@ -40,7 +40,7 @@ const PAY_REQUEST_ID = 'swg-pay';
 export class PayStartFlow {
 
   /**
-   * @param {!../model/deps.DepsDef} deps
+   * @param {!./deps.DepsDef} deps
    * @param {string} sku
    */
   constructor(deps, sku) {
@@ -85,7 +85,7 @@ export class PayStartFlow {
 export class PayCompleteFlow {
 
   /**
-   * @param {!../model/deps.DepsDef} deps
+   * @param {!./deps.DepsDef} deps
    */
   static configurePending(deps) {
     deps.activities().onResult(PAY_REQUEST_ID, port => {
@@ -100,13 +100,13 @@ export class PayCompleteFlow {
   }
 
   /**
-   * @param {!../model/deps.DepsDef} deps
+   * @param {!./deps.DepsDef} deps
    */
   constructor(deps) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!../model/deps.DepsDef} */
+    /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
