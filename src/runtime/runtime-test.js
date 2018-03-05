@@ -49,6 +49,128 @@ describes.realWin('installRuntime', {}, env => {
   });
 
   function dep(callback) {
+    (win.SWG = win.SWG || []).push(callback);
+  }
+
+  it('should chain and execute dependencies in order', function* () {
+    // Before runtime is installed.
+    let progress = '';
+    dep(function() {
+      progress += '1';
+    });
+    dep(function() {
+      progress += '2';
+    });
+    expect(progress).to.equal('');
+
+    // Install runtime and schedule few more dependencies.
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
+    dep(function() {
+      progress += '3';
+    });
+    dep(function() {
+      progress += '4';
+    });
+
+    // Wait for ready signal.
+    yield getRuntime().whenReady();
+    expect(progress).to.equal('1234');
+
+    // Few more.
+    dep(function() {
+      progress += '5';
+    });
+    dep(function() {
+      progress += '6';
+    });
+    yield getRuntime().whenReady();
+    expect(progress).to.equal('123456');
+  });
+
+  it('should reuse the same runtime on multiple runs', () => {
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
+    const runtime1 = getRuntime();
+    installRuntime(win);
+    expect(getRuntime()).to.equal(runtime1);
+  });
+
+  it('handles recursive calls after installation', function* () {
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
+    let progress = '';
+    dep(() => {
+      progress += '1';
+      dep(() => {
+        progress += '2';
+        dep(() => {
+          progress += '3';
+        });
+      });
+    });
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
+    expect(progress).to.equal('123');
+  });
+
+  it('handles recursive calls before installation', function* () {
+    let progress = '';
+    dep(() => {
+      progress += '1';
+      dep(() => {
+        progress += '2';
+        dep(() => {
+          progress += '3';
+        });
+      });
+    });
+    try {
+      installRuntime(win);
+    } catch (e) {
+      // Page doesn't have valid subscription and hence this function throws.
+    }
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
+    yield getRuntime().whenReady();
+    expect(progress).to.equal('123');
+  });
+
+  it('should implement all APIs', () => {
+    installRuntime(win);
+    return new Promise(resolve => {
+      dep(resolve);
+    }).then(subscriptions => {
+      const names = Object.getOwnPropertyNames(Subscriptions.prototype);
+      names.forEach(name => {
+        if (name == 'constructor') {
+          return;
+        }
+        expect(subscriptions).to.have.property(name);
+      });
+    });
+  });
+});
+
+
+describes.realWin('installRuntime legacy', {}, env => {
+  let win;
+
+  beforeEach(() => {
+    win = env.win;
+  });
+
+  function dep(callback) {
     (win.SUBSCRIPTIONS = win.SUBSCRIPTIONS || []).push(callback);
   }
 
