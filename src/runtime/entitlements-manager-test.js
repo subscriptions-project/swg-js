@@ -15,7 +15,7 @@
  */
 
 import {Callbacks} from './callbacks';
-import {DepsDef} from '../model/deps';
+import {DepsDef} from './deps';
 import {
   EntitlementsManager,
 } from './entitlements-manager';

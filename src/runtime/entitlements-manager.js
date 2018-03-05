@@ -30,7 +30,7 @@ export class EntitlementsManager {
    * @param {!Window} win
    * @param {!../model/page-config.PageConfig} config
    * @param {!./fetcher.Fetcher} fetcher
-   * @param {!../model/deps.DepsDef} deps
+   * @param {!./deps.DepsDef} deps
    */
   constructor(win, config, fetcher, deps) {
     /** @private @const {!Window} */
@@ -42,7 +42,7 @@ export class EntitlementsManager {
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
 
-    /** @private @const {!../model/deps.DepsDef} */
+    /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
     /** @private @const {!JwtHelper} */
