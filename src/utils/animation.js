@@ -19,24 +19,24 @@ import {setImportantStyles} from './style';
 /**
  * Returns a promise which is resolved after the given duration of animation
  * @param {!Element} el - Element to be observed.
- * @param {!JsonObject} props - properties to be animated.
+ * @param {!Object<string, string|number>} props - properties to be animated.
  * @param {number} durationMillis - duration of animation.
  * @param {string} curve - transition function for the animation.
  * @return {!Promise} Promise which resolves once the animation is done playing.
  */
 export function transition(el, props, durationMillis, curve) {
+  const win = el.ownerDocument.defaultView;
   const previousTransitionValue = el.style.transition || '';
   return new Promise(resolve => {
-    setTimeout(resolve, durationMillis);
-    setImportantStyles(el, Object.assign({
-      'transition': `transform ${durationMillis}ms ${curve}`,
-    }, props));
+    win.setTimeout(() => {
+      win.setTimeout(resolve, durationMillis);
+      setImportantStyles(el, Object.assign({
+        'transition': `transform ${durationMillis}ms ${curve}`,
+      }, props));
+    });
   }).then(() => {
-    requestAnimationFrame(() => {
-      setImportantStyles(el, {
-        'transition': previousTransitionValue,
-      });
+    setImportantStyles(el, {
+      'transition': previousTransitionValue,
     });
   });
 }
-

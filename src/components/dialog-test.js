@@ -21,6 +21,10 @@ import {
   googleFontsUrl,
 } from '../utils/style';
 
+const NO_ANIMATE = false;
+const ANIMATE = true;
+
+
 describes.realWin('Dialog', {}, env => {
   let win;
   let doc;
@@ -51,6 +55,12 @@ describes.realWin('Dialog', {}, env => {
     };
   });
 
+  function immediate() {
+    win.setTimeout = function(callback) {
+      callback();
+    };
+  }
+
   describe('dialog', () => {
 
     it('should have created a friendly iframe instance', function* () {
@@ -67,7 +77,7 @@ describes.realWin('Dialog', {}, env => {
     });
 
     it('should have created fade background', function* () {
-      const openedDialog = yield dialog.open();
+      const openedDialog = yield dialog.open(NO_ANIMATE);
 
       const backgroundElement =
           win.document.querySelector('swg-popup-background');
@@ -82,8 +92,17 @@ describes.realWin('Dialog', {}, env => {
           .to.equal('block');
     });
 
+    it('should open dialog with animation', function* () {
+      immediate();
+      dialog.open(ANIMATE);
+      yield dialog.animating_;
+
+      expect(getStyle(dialog.getElement(), 'transform'))
+          .to.equal('translateY(0px)');
+    });
+
     it('should build the view', function* () {
-      const openedDialog = yield dialog.open();
+      const openedDialog = yield dialog.open(NO_ANIMATE);
       yield openedDialog.openView(view);
       expect(computedStyle(win, element)['opacity']).to.equal('1');
       expect(computedStyle(win, element)['max-height']).to.equal('100%');
@@ -95,10 +114,10 @@ describes.realWin('Dialog', {}, env => {
     });
 
     it('should resize the element', function* () {
-      const openedDialog = yield dialog.open();
+      const openedDialog = yield dialog.open(NO_ANIMATE);
       yield openedDialog.openView(view);
       const dialogHeight = 99;
-      openedDialog.resizeView(view, dialogHeight);
+      yield openedDialog.resizeView(view, dialogHeight, NO_ANIMATE);
       // TODO(dparikh): When animiation is implemented, need to wait for
       // resized() call.
       expect(computedStyle(win, dialog.getElement())['height'])
@@ -109,9 +128,39 @@ describes.realWin('Dialog', {}, env => {
           .to.equal(`${dialogHeight + 20}px`);
     });
 
+    it('should resize the element to expand with animation', function* () {
+      immediate();
+      yield dialog.open(NO_ANIMATE);
+      yield dialog.openView(view);
+      yield dialog.resizeView(view, 99, ANIMATE);
+
+      expect(getStyle(dialog.getElement(), 'transform'))
+          .to.equal('translateY(0px)');
+      expect(getStyle(dialog.getElement(), 'height'))
+          .to.equal('99px');
+      // Check if correct document padding was added.
+      expect(win.document.documentElement.style.paddingBottom)
+          .to.equal(`${99 + 20}px`);
+    });
+
+    it('should resize the element to collapse with animation', function* () {
+      immediate();
+      yield dialog.open(NO_ANIMATE);
+      yield dialog.openView(view);
+      yield dialog.resizeView(view, 19, ANIMATE);
+
+      expect(getStyle(dialog.getElement(), 'transform'))
+          .to.equal('translateY(0px)');
+      expect(getStyle(dialog.getElement(), 'height'))
+          .to.equal('19px');
+      // Check if correct document padding was added.
+      expect(win.document.documentElement.style.paddingBottom)
+          .to.equal(`${19 + 20}px`);
+    });
+
     it('should open the dialog', function* () {
 
-      const openedDialog = yield dialog.open();
+      const openedDialog = yield dialog.open(NO_ANIMATE);
       expect(openedDialog.getContainer().getAttribute('class'))
           .to.equal('swg-container');
 
@@ -138,7 +187,7 @@ describes.realWin('Dialog', {}, env => {
     });
 
     it('should remove the dialog', function* () {
-      const openedDialog = yield dialog.open();
+      const openedDialog = yield dialog.open(NO_ANIMATE);
       expect(openedDialog.getContainer().getAttribute('class'))
           .to.equal('swg-container');
 
@@ -150,7 +199,7 @@ describes.realWin('Dialog', {}, env => {
       expect(openedDialog.getIframe().isConnected()).to.equal(true);
 
       // Remove the element from the dom.
-      dialog.close();
+      yield dialog.close(NO_ANIMATE);
 
       expect(doc.querySelector('iframe')).to.be.null;
       expect(openedDialog.getIframe().isConnected()).to.equal(false);
@@ -158,8 +207,19 @@ describes.realWin('Dialog', {}, env => {
       // Check if document padding was removed.
       expect(win.document.documentElement.style.paddingBottom).to.equal('');
     });
+
+    it('should remove the dialog with animation', function* () {
+      immediate();
+      yield dialog.open(NO_ANIMATE);
+      yield dialog.close(ANIMATE);
+      expect(win.document.documentElement.contains(dialog.getElement()))
+          .to.be.false;
+      // Check if document padding was removed.
+      expect(win.document.documentElement.style.paddingBottom).to.equal('');
+    });
+
     it('should have Loading view element added', function* () {
-      const openedDialog = yield dialog.open();
+      const openedDialog = yield dialog.open(NO_ANIMATE);
       const iframeDoc = openedDialog.getIframe().getDocument();
       const loadingView = iframeDoc.querySelector('.swg-loading');
       expect(loadingView.nodeName).to.equal('DIV');
