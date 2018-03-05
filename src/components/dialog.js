@@ -28,6 +28,7 @@ import {
   setImportantStyles,
   topFriendlyIframePositionStyles,
 } from '../utils/style';
+import {transition} from '../utils/animation';
 import {FriendlyIframe} from './friendly-iframe';
 
 
@@ -125,19 +126,34 @@ export class Dialog {
 
     /** @private {?./view.View} */
     this.view_ = null;
+
+    /** @private {?Promise} */
+    this.animating_ = null;
   }
 
   /**
    * Opens the dialog and builds the iframe container.
+   * @param {boolean=} animated
    * @return {!Promise<!Dialog>}
    */
-  open() {
+  open(animated = true) {
     const iframe = this.iframe_;
     if (iframe.isConnected()) {
       throw new Error('already opened');
     }
     // Attach the invisible faded background to be used for some views.
     this.attachBackground_();
+
+    if (animated) {
+      this.animate_(() => {
+        setImportantStyles(iframe.getElement(), {
+          'transform': 'translateY(100%)',
+        });
+        return transition(iframe.getElement(), {
+          'transform': 'translateY(0)',
+        }, 300, 'ease-out');
+      });
+    }
 
     this.doc_.body.appendChild(iframe.getElement());  // Fires onload.
     return iframe.whenReady().then(() => {
@@ -172,13 +188,26 @@ export class Dialog {
 
   /**
    * Closes the dialog.
+   * @param {boolean=} animated
+   * @return {!Promise}
    */
-  close() {
-    this.doc_.body.removeChild(this.iframe_.getElement());
-    this.removePaddingToHtml_();
-
-    // Remove the faded background from the parent document.
-    this.doc_.body.removeChild(this.fadeBackground_);
+  close(animated = true) {
+    let animating;
+    if (animated) {
+      animating = this.animate_(() => {
+        return transition(this.getElement(), {
+          'transform': 'translateY(100%)',
+        }, 300, 'ease-out');
+      });
+    } else {
+      animating = Promise.resolve();
+    }
+    return animating.then(() => {
+      this.doc_.body.removeChild(this.iframe_.getElement());
+      this.removePaddingToHtml_();
+      // Remove the faded background from the parent document.
+      this.doc_.body.removeChild(this.fadeBackground_);
+    });
   }
 
   /**
@@ -258,16 +287,68 @@ export class Dialog {
    * Resizes the dialog container.
    * @param {!./view.View} view
    * @param {number} height
+   * @param {boolean=} animated
+   * @return {?Promise}
    */
-  resizeView(view, height) {
+  resizeView(view, height, animated = true) {
     if (this.view_ != view) {
-      return;
+      return null;
     }
-    setImportantStyles(this.getElement(), {
-      'height': `${this.getMaxAllowedHeight_(height)}px`,
+    const newHeight = this.getMaxAllowedHeight_(height);
+
+    let animating;
+    if (animated) {
+      const oldHeight = this.getElement().offsetHeight;
+      if (newHeight >= oldHeight) {
+        // Expand.
+        animating = this.animate_(() => {
+          setImportantStyles(this.getElement(), {
+            'height': `${newHeight}px`,
+            'transform': `translateY(${newHeight - oldHeight}px)`,
+          });
+          return transition(this.getElement(), {
+            'transform': 'translateY(0)',
+          }, 300, 'ease-out');
+        });
+      } else {
+        // Collapse.
+        animating = this.animate_(() => {
+          return transition(this.getElement(), {
+            'transform': `translateY(${oldHeight - newHeight}px)`,
+          }, 300, 'ease-out').then(() => {
+            setImportantStyles(this.getElement(), {
+              'height': `${newHeight}px`,
+              'transform': 'translateY(0)',
+            });
+          });
+        });
+      }
+    } else {
+      setImportantStyles(this.getElement(), {
+        'height': `${newHeight}px`,
+      });
+      animating = Promise.resolve();
+    }
+    return animating.then(() => {
+      this.updatePaddingToHtml_(height);
+      view.resized();
     });
-    this.updatePaddingToHtml_(height);
-    view.resized();
+  }
+
+  /**
+   * @param {function():!Promise} callback
+   * @return {!Promise}
+   * @private
+   */
+  animate_(callback) {
+    const wait = this.animating_ || Promise.resolve();
+    return this.animating_ = wait.then(() => {
+      return callback();
+    }, () => {
+      // Ignore errors to make sure animations don't get stuck.
+    }).then(() => {
+      this.animating_ = null;
+    });
   }
 
   /**
