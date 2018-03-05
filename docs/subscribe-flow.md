@@ -18,7 +18,7 @@ limitations under the License.
 
 This flow shows the payment form, accepts payment, records subscription and updates the reader's entitlements. See [Subscriptions APIs](./core-apis.md).
 
-*Important!* Please ensure you set up the `setOnSubscribeResponse` on any page where you accept purchases, even if the `subscribe` or `showOffers` was not called in that impression. SwG client ensures it can recover subscriptions even when browsers unload pages.
+*Important!* Please ensure you set up the `setOnSubscribeResponse` on any page where you accept purchases, not just before you call `subscribe` or `showOffers`. SwG client ensures it can recover subscriptions even when browsers unload pages.
 
 First, please setup the subscription response callback via `setOnSubscribeResponse`:
 
