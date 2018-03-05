@@ -233,7 +233,7 @@ describes.realWin('Runtime', {}, env => {
       return runtime.configured_(true).then(cr => {
         expect(resolveStub).to.not.be.called;
         expect(cr.pageConfig()).to.not.equal(config);
-        expect(cr.pageConfig().getPublisherId()).to.equal('pub2');
+        expect(cr.pageConfig().getPublicationId()).to.equal('pub2');
         expect(cr.pageConfig().isLocked()).to.be.false;
       });
     });

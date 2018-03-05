@@ -19,7 +19,7 @@
 /**
  * @fileoverview
  *
- * This file provides support for publisher defined subscription status. By
+ * This file provides support for publication defined subscription status. By
  * default, a few email addresses are treated as subscribers but others can be
  * added over time.
  */

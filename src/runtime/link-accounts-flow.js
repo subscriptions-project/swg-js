@@ -56,8 +56,7 @@ export class LinkStartFlow {
         this.activityPorts_,
         LINK_FRONT_IFRAME_URL,
         {
-          'publisherId': deps.pageConfig().getPublisherId(),
-          'publicationId': deps.pageConfig().getPublisherId(),  // MIGRATE
+          'publicationId': deps.pageConfig().getPublicationId(),
           'requestId': CONTINUE_LINK_REQUEST_ID,
           'returnUrl': getHostUrl(this.win_.location.href),
         },
@@ -80,7 +79,7 @@ export class LinkStartFlow {
 
 
   /**
-   * Opens the publisher's login page.
+   * Opens the publication's login page.
    * @param {!Object} resp
    * @private
    */
@@ -125,7 +124,7 @@ export class LinkbackFlow {
   start() {
     this.activityPorts_.open(
         LINK_REQUEST_ID, LINKBACK_URL, '_blank', {
-          'publicationId': this.pageConfig_.getPublisherId(),
+          'publicationId': this.pageConfig_.getPublicationId(),
         }, {});
     return Promise.resolve();
   }
@@ -186,7 +185,7 @@ export class LinkCompleteFlow {
             LINK_CONFIRM_IFRAME_URL.replace(/\$index\$/g, index),
             {
               'productId': deps.pageConfig().getProductId(),
-              'publicationId': deps.pageConfig().getPublisherId(),
+              'publicationId': deps.pageConfig().getPublicationId(),
             },
             /* shouldFadeBody */ true);
 

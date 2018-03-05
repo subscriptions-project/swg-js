@@ -70,8 +70,7 @@ export class PayStartFlow {
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
           'swg': {
-            'publicationId': this.pageConfig_.getPublisherId(),
-            // TODO(dvoytenko): use 'instant' for tests if necessary.
+            'publicationId': this.pageConfig_.getPublicationId(),
             'skuId': this.sku_,
           },
         }, {});
@@ -142,7 +141,7 @@ export class PayCompleteFlow {
         this.activityPorts_,
         PAY_CONFIRM_IFRAME_URL,
         {
-          'publicationId': this.deps_.pageConfig().getPublisherId(),
+          'publicationId': this.deps_.pageConfig().getPublicationId(),
           'loginHint': response.userData && response.userData.email,
         },
         /* shouldFadeBody */ true);
