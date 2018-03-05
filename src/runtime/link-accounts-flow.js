@@ -38,7 +38,7 @@ const LINK_REQUEST_ID = 'swg-link';
 export class LinkStartFlow {
 
   /**
-   * @param {!../model/deps.DepsDef} deps
+   * @param {!./deps.DepsDef} deps
    */
   constructor(deps) {
     /** @private @const {!Window} */
@@ -104,7 +104,7 @@ export class LinkStartFlow {
 export class LinkbackFlow {
 
   /**
-   * @param {!../model/deps.DepsDef} deps
+   * @param {!./deps.DepsDef} deps
    */
   constructor(deps) {
     /** @private @const {!Window} */
@@ -137,7 +137,7 @@ export class LinkbackFlow {
 export class LinkCompleteFlow {
 
   /**
-   * @param {!../model/deps.DepsDef} deps
+   * @param {!./deps.DepsDef} deps
    */
   static configurePending(deps) {
     function handler(port) {
@@ -157,7 +157,7 @@ export class LinkCompleteFlow {
   }
 
   /**
-   * @param {!../model/deps.DepsDef} deps
+   * @param {!./deps.DepsDef} deps
    * @param {?Object} response
    */
   constructor(deps, response) {

@@ -24,7 +24,7 @@ export class DepsDef {
   win() {}
 
   /**
-   * @return {!./page-config.PageConfig}
+   * @return {!../model/page-config.PageConfig}
    */
   pageConfig() {}
 
@@ -39,12 +39,12 @@ export class DepsDef {
   dialogManager() {}
 
   /**
-   * @return {!../runtime/entitlements-manager.EntitlementsManager}
+   * @return {!./entitlements-manager.EntitlementsManager}
    */
   entitlementsManager() {}
 
   /**
-   * @return {!../runtime/callbacks.Callbacks}
+   * @return {!./callbacks.Callbacks}
    */
   callbacks() {}
 }

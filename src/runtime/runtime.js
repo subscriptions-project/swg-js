@@ -17,7 +17,7 @@
 import {ActivityPorts} from 'web-activities/activity-ports';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
-import {DepsDef} from '../model/deps';
+import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
