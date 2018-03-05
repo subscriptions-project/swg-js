@@ -598,14 +598,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .withExactArgs()
         .returns(Promise.resolve(entitlements))
         .once();
-    const triggerStub = sandbox.stub(runtime.callbacks(),
-        'triggerEntitlementsResponse');
-    return runtime.start().then(() => {
-      expect(triggerStub).to.be.calledOnce;
-      return triggerStub.args[0][0].then(res => {
-        expect(res).to.equal(entitlements);
-      });
-    });
+    return runtime.start();
   });
 
   it('should start entitlements flow with failure', () => {
@@ -614,67 +607,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .withExactArgs()
         .returns(Promise.reject(error))
         .once();
-    const triggerStub = sandbox.stub(runtime.callbacks(),
-        'triggerEntitlementsResponse');
-    return runtime.start().then(() => {
-      expect(triggerStub).to.be.calledOnce;
-      return triggerStub.args[0][0].then(() => {
-        throw new Error('must have failed');
-      }, reason => {
-        expect(reason).to.equal(error);
-      });
-    });
-  });
-
-  it('should cancel entitlements flow for subscription response', () => {
-    const entitlements = new Entitlements(
-        'service', 'raw',
-        [new Entitlement('', ['product1'], 'token1')],
-        'product1');
-    entitlementsManagerMock.expects('getEntitlements')
-        .withExactArgs()
-        .returns(Promise.resolve(entitlements))
-        .once();
-    const triggerStub = sandbox.stub(runtime.callbacks(),
-        'triggerEntitlementsResponse');
-    runtime.callbacks().triggerSubscribeResponse(Promise.resolve());
-    return runtime.start().then(() => {
-      expect(triggerStub).to.not.be.called;
-    });
-  });
-
-  it('should cancel entitlements flow for link complete response', () => {
-    const entitlements = new Entitlements(
-        'service', 'raw',
-        [new Entitlement('', ['product1'], 'token1')],
-        'product1');
-    entitlementsManagerMock.expects('getEntitlements')
-        .withExactArgs()
-        .returns(Promise.resolve(entitlements))
-        .once();
-    const triggerStub = sandbox.stub(runtime.callbacks(),
-        'triggerEntitlementsResponse');
-    runtime.callbacks().triggerLinkComplete(Promise.resolve());
-    return runtime.start().then(() => {
-      expect(triggerStub).to.not.be.called;
-    });
-  });
-
-  it('should cancel entitlements flow for link progress response', () => {
-    const entitlements = new Entitlements(
-        'service', 'raw',
-        [new Entitlement('', ['product1'], 'token1')],
-        'product1');
-    entitlementsManagerMock.expects('getEntitlements')
-        .withExactArgs()
-        .returns(Promise.resolve(entitlements))
-        .once();
-    const triggerStub = sandbox.stub(runtime.callbacks(),
-        'triggerEntitlementsResponse');
-    runtime.callbacks().triggerLinkProgress(Promise.resolve());
-    return runtime.start().then(() => {
-      expect(triggerStub).to.not.be.called;
-    });
+    return runtime.start();
   });
 
   it('should start LinkbackFlow', () => {

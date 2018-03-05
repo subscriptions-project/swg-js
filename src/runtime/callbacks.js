@@ -55,6 +55,13 @@ export class Callbacks {
   }
 
   /**
+   * @return {boolean}
+   */
+  hasEntitlementsResponsePending() {
+    return !!this.resultBuffer_[CallbackId.ENTITLEMENTS];
+  }
+
+  /**
    * @param {function()} callback
    */
   setOnLoginRequest(callback) {

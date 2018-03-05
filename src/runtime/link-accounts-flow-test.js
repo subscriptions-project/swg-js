@@ -194,6 +194,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
         .returns(Promise.resolve(port))
         .once();
     entitlementsManagerMock.expects('reset').withExactArgs(true).once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     return linkCompleteFlow.start().then(() => {
       expect(triggerLinkCompleteSpy).to.not.be.called;
       const result = new ActivityResult(
@@ -222,6 +223,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
         .returns(Promise.resolve(port))
         .once();
     entitlementsManagerMock.expects('reset').withExactArgs(false).once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     return linkCompleteFlow.start().then(() => {
       const result = new ActivityResult(
           ActivityResultCode.OK,

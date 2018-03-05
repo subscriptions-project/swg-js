@@ -113,6 +113,7 @@ var forbiddenTerms = {
   'sessionStorage': {
     message: requiresReviewPrivacy,
     whitelist: [
+      'src/runtime/storage.js',
     ],
   },
   'indexedDB': {
