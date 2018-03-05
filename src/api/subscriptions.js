@@ -24,12 +24,12 @@ import {SubscribeResponse} from './subscribe-response';
 export class Subscriptions {
 
   /**
-   * Optionally initializes the subscriptions runtime with publisher/product ID.
-   * If not called, the runtime will look for the initialization parameters in
-   * the page's markup.
-   * @param {string} productOrPublisherId
+   * Optionally initializes the subscriptions runtime with publication or
+   * product ID. If not called, the runtime will look for the initialization
+   * parameters in the page's markup.
+   * @param {string} productOrPublicationId
    */
-  init(productOrPublisherId) {}
+  init(productOrPublicationId) {}
 
   /**
    * Starts the entitlement flow.

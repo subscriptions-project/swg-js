@@ -24,7 +24,7 @@ const host = argv.host || 'localhost';
 const port = argv.port || process.env.PORT || 8000;
 const useHttps = argv.https != undefined;
 const quiet = argv.quiet != undefined;
-const publisherId = argv.publisherId || 'com.appspot.scenic-2017-test';
+const publicationId = argv.publicationId || 'com.appspot.scenic-2017-test';
 
 /**
  * Starts a simple http server at the repository root
@@ -44,7 +44,7 @@ function serve() {
       'SERVE_USEHTTPS': useHttps,
       'SERVE_PROCESS_ID': process.pid,
       'SERVE_QUIET': quiet,
-      'SERVE_PUBID': publisherId,
+      'SERVE_PUBID': publicationId,
     },
   })
       .once('quit', function() {
@@ -71,7 +71,7 @@ gulp.task(
         'port': '  Specifies alternative port (default: 8000)',
         'https': '  Use HTTPS server (default: false)',
         'quiet': '  Do not log HTTP requests (default: false)',
-        'publisherId': '  Sample publisherId',
+        'publicationId': '  Sample publicationId',
       },
     }
 );

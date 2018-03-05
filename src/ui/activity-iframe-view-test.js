@@ -30,7 +30,7 @@ describes.realWin('ActivityIframeView', {}, env => {
   let activityIframeView;
   let dialog;
   const activityArgs = {
-    'publisherId': 'pub1',
+    'publicationId': 'pub1',
     'requestId': 'request1-complete',
     'returnUrl': 'https://pub.com/complete',
   };

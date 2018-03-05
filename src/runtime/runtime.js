@@ -117,7 +117,7 @@ export class Runtime {
     this.ready_ = Promise.resolve();
 
     /** @private {?string} */
-    this.productOrPublisherId_ = null;
+    this.productOrPublicationId_ = null;
 
     /** @private {boolean} */
     this.committed_ = false;
@@ -151,9 +151,9 @@ export class Runtime {
       this.committed_ = true;
       /** @type {!Promise<!PageConfig>} */
       let configPromise;
-      if (this.productOrPublisherId_) {
+      if (this.productOrPublicationId_) {
         configPromise = Promise.resolve(new PageConfig(
-            this.productOrPublisherId_,
+            this.productOrPublicationId_,
             /* locked */ false));
       } else {
         this.pageConfigResolver_ = new PageConfigResolver(this.win_);
@@ -193,11 +193,11 @@ export class Runtime {
   }
 
   /** @override */
-  init(productOrPublisherId) {
+  init(productOrPublicationId) {
     if (this.committed_) {
       throw new Error('already configured');
     }
-    this.productOrPublisherId_ = productOrPublisherId;
+    this.productOrPublicationId_ = productOrPublicationId;
   }
 
   /** @override */

@@ -28,7 +28,7 @@ app.use('/api', require('./service/authorization-app'));
 const AUTH_URL_TEST = '/examples/sample-sp/api';
 const AUTH_URL_PUB = '/examples/sample-pub/api';
 
-const PUBLISHER_ID = process.env.SERVE_PUBID || 'scenic-2017.appspot.com';
+const PUBLICATION_ID = process.env.SERVE_PUBID || 'scenic-2017.appspot.com';
 
 const AUTH_URL_PROD =
     'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
@@ -73,14 +73,14 @@ app.get('/pub-signin', (req, res) => {
 });
 
 /**
- * Publisher viewer page.
+ * Publication viewer page.
  */
 app.get('/viewer', (req, res) => {
   res.render('../examples/sample-pub/views/viewer', {});
 });
 
 /**
- * Logs-in user on the publisher's domain and redirects to the referrer.
+ * Logs-in user on the publication's domain and redirects to the referrer.
  * Also sets the authorized user's name in the cookie.
  */
 app.post('/pub-signin-submit', (req, res) => {
@@ -122,7 +122,7 @@ function getVerifiedSigninParams(req) {
   if (!params.redirectUri) {
     throw new Error('Missing redirect_uri in request.');
   }
-  // TODO: Restrict correct redirect URL for the current publisher.
+  // TODO: Restrict correct redirect URL for the current publication.
   return params;
 }
 
@@ -138,7 +138,7 @@ app.get('/((\\d+))', (req, res) => {
     authUrl: getAuthUrl(req),
     pubAuthUrl: getPubAuthUrl(req),
     swgJsUrl: SWG_JS_URL,
-    publisherId: PUBLISHER_ID,
+    publicationId: PUBLICATION_ID,
     id,
     article,
     prev: prevId,
