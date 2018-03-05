@@ -156,6 +156,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock.expects('reset')
         .withExactArgs(true)  // Expected positive.
         .once();
+    entitlementsManagerMock.expects('setToastShown')
+        .withExactArgs(true)
+        .once();
     const messageStub = sandbox.stub(port, 'message');
     return flow.start(response).then(() => {
       return flow.complete();

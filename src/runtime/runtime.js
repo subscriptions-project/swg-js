@@ -35,8 +35,8 @@ import {
   PayStartFlow,
   PayCompleteFlow,
 } from './pay-flow';
+import {Storage} from './storage';
 import {Subscriptions} from '../api/subscriptions';
-import {Toast} from '../ui/toast';
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
 import {whenDocumentReady} from '../utils/document-ready';
@@ -293,9 +293,8 @@ export class ConfiguredRuntime {
     /** @private @const {!Fetcher} */
     this.fetcher_ = opt_integr && opt_integr.fetcher || new XhrFetcher(win);
 
-    /** @private @const {!EntitlementsManager} */
-    this.entitlementsManager_ =
-        new EntitlementsManager(this.win_, this.config_, this.fetcher_);
+    /** @private @const {!Storage} */
+    this.storage_ = new Storage(this.win_);
 
     /** @private @const {!DialogManager} */
     this.dialogManager_ = new DialogManager(win);
@@ -305,6 +304,10 @@ export class ConfiguredRuntime {
 
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
+
+    /** @private @const {!EntitlementsManager} */
+    this.entitlementsManager_ =
+        new EntitlementsManager(this.win_, this.config_, this.fetcher_, this);
 
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
@@ -341,8 +344,18 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  storage() {
+    return this.storage_;
+  }
+
+  /** @override */
   init() {
     // Implemented by the `Runtime` class.
+  }
+
+  /** @override */
+  reset() {
+    this.entitlementsManager_.reset();
   }
 
   /** @override */
@@ -351,43 +364,7 @@ export class ConfiguredRuntime {
     if (!this.config_.getProductId() || !this.config_.isLocked()) {
       return Promise.resolve();
     }
-    // TODO(dvoytenko): is there a point in running entitlements at all before
-    // subscription response is discovered?
-    // TODO(dvoytenko): what's the right action when pay flow was canceled?
-    const promise = this.entitlementsManager_.getEntitlements();
-    return promise.catch(() => null).then(entitlements => {
-      if (this.callbacks_.hasSubscribeResponsePending() ||
-          this.callbacks_.hasLinkProgressPending() ||
-          this.callbacks_.hasLinkCompletePending()) {
-        return;
-      }
-      this.callbacks_.triggerEntitlementsResponse(promise);
-      if (!entitlements) {
-        return;
-      }
-      const entitlement = entitlements.getEntitlementForThis();
-      if (entitlement) {
-        const toast = new Toast(this.win_, {
-          text:
-              (entitlement.source || 'google') == 'google' ?
-              'Access via Google Subscriptions' :
-              // TODO(dvoytenko): display name instead.
-              'Access via [' + entitlement.source + ']',
-          action: {
-            label: 'View',
-            handler: function() {
-              // TODO(dparikh): Implementation.
-            },
-          },
-        });
-        toast.open();
-      }
-    });
-  }
-
-  /** @override */
-  reset() {
-    this.entitlementsManager_.reset();
+    this.getEntitlements();
   }
 
   /** @override */

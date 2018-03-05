@@ -47,4 +47,9 @@ export class DepsDef {
    * @return {!./callbacks.Callbacks}
    */
   callbacks() {}
+
+  /**
+   * @return {!../runtime/storage.Storage}
+   */
+  storage() {}
 }
