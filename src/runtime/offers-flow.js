@@ -29,11 +29,11 @@ const OFFERS_URL =
 export class OffersFlow {
 
   /**
-   * @param {!../model/deps.DepsDef} deps
+   * @param {!./deps.DepsDef} deps
    */
   constructor(deps) {
 
-    /** @private @const {!../model/deps.DepsDef} */
+    /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
     /** @private @const {!Window} */
