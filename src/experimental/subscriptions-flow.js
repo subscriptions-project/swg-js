@@ -21,7 +21,6 @@ import {debounce} from '../utils/rate-limit';
 import {Dialog} from '../components/dialog';
 import {parseQueryString} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
-import {transition} from '../utils/animation';
 
 /**
  * The pop-up element name to be used.
@@ -331,45 +330,7 @@ export class SubscriptionsFlow {
 
     if (delta > 0) {
       this.setBottomSheetHeight_(view.getElement(), newHeight);
-
-      // Adjust height and translate to show no difference in Y position.
-      // We dont want animation happening at this step.
-      setImportantStyles(this.offerContainer_, {
-        'transition': 'none',
-        'transform': `translateY(${delta}px)`,
-      });
-
-      this.win_.requestAnimationFrame(() => {
-        this.win_.requestAnimationFrame(() => {
-          this.animateViewToTransform_('none');
-        });
-      });
-    } else {
-
-      // First animate to scroll this down and then shrink the height.
-      this.animateViewToTransform_(`translateY(${Math.abs(delta)}px)`)
-          .then(() => {
-            this.setBottomSheetHeight_(view.getElement(), newHeight);
-
-            if (oldHeight > heightThreshold && newHeight <= heightThreshold) {
-              this.offerContainer_.style.removeProperty('height');
-            }
-
-            setImportantStyles(this.offerContainer_, {
-              'transform': 'none',
-            });
-          });
     }
-  }
-
-  /**
-   * @private
-   * @param {string} finalTransform Value of final transform property.
-   */
-  animateViewToTransform_(finalTransform) {
-    return transition(this.offerContainer_, {
-      'transform': finalTransform,
-    }, 300, 'ease-out');
   }
 
   /**
