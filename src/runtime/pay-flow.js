@@ -89,9 +89,9 @@ export class PayCompleteFlow {
    */
   static configurePending(deps) {
     deps.activities().onResult(PAY_REQUEST_ID, port => {
+      deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
-      const promise = validatePayResponse(
-          port, flow.complete.bind(flow));
+      const promise = validatePayResponse(port, flow.complete.bind(flow));
       deps.callbacks().triggerSubscribeResponse(promise);
       return promise.then(response => {
         flow.start(response);

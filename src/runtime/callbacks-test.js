@@ -77,13 +77,10 @@ describes.sandboxed('Callbacks', {}, () => {
     const spy = sandbox.spy();
     const p = Promise.resolve();
     callbacks.setOnLinkProgress(spy);
-    expect(callbacks.hasLinkProgressPending()).to.be.false;
     expect(callbacks.triggerLinkProgress(p)).to.be.true;
-    expect(callbacks.hasLinkProgressPending()).to.be.true;
     return skipMicro().then(() => {
       expect(spy).to.be.calledOnce;
       expect(spy).to.be.calledWith(p);
-      expect(callbacks.hasLinkProgressPending()).to.be.false;
     });
   });
 

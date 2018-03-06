@@ -54,6 +54,9 @@ export class EntitlementsManager {
     /** @private {number} */
     this.positiveRetries_ = 0;
 
+    /** @private {boolean} */
+    this.blockNextNotification_ = false;
+
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
   }
@@ -108,6 +111,12 @@ export class EntitlementsManager {
   }
 
   /**
+   */
+  blockNextNotification() {
+    this.blockNextNotification_ = true;
+  }
+
+  /**
    * @return {!Promise<!Entitlements>}
    */
   getEntitlementsFlow_() {
@@ -124,15 +133,15 @@ export class EntitlementsManager {
   onEntitlementsFetched_(entitlements) {
     // Skip any notifications and toast if other flows are ongoing.
     // TODO(dvoytenko): what's the right action when pay flow was canceled?
-    const callbacks = this.deps_.callbacks();
-    if (callbacks.hasSubscribeResponsePending() ||
-        callbacks.hasLinkProgressPending() ||
-        callbacks.hasLinkCompletePending()) {
+    const blockNotification = this.blockNextNotification_;
+    this.blockNextNotification_ = false;
+    if (blockNotification) {
       return;
     }
 
     // Notify on the received entitlements.
-    callbacks.triggerEntitlementsResponse(Promise.resolve(entitlements));
+    this.deps_.callbacks().triggerEntitlementsResponse(
+        Promise.resolve(entitlements));
 
     // Show a toast if needed.
     this.maybeShowToast_(entitlements);
