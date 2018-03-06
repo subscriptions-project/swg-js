@@ -121,6 +121,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
           return typeof arg == 'function';
         }))
         .once();
+    entitlementsManagerMock.expects('blockNextNotification').once();
     LinkCompleteFlow.configurePending(runtime);
     expect(handler).to.exist;
     expect(triggerLinkProgressSpy).to.not.be.called;
@@ -193,8 +194,8 @@ describes.realWin('LinkCompleteFlow', {}, env => {
         })
         .returns(Promise.resolve(port))
         .once();
-    entitlementsManagerMock.expects('reset').withExactArgs(true).once();
     entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
+    entitlementsManagerMock.expects('reset').withExactArgs(true).once();
     return linkCompleteFlow.start().then(() => {
       expect(triggerLinkCompleteSpy).to.not.be.called;
       const result = new ActivityResult(

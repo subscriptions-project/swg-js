@@ -359,36 +359,13 @@ describes.realWin('EntitlementsManager', {}, env => {
       });
     });
 
-    it('should NOT trigger entitlements when subscribe flow pending', () => {
+    it('should NOT trigger entitlements when notification is blocked', () => {
       expectToastShown('0');
       storageMock.expects('set').never();
       expectGoogleResponse();
-      callbacks.triggerSubscribeResponse(Promise.resolve({}));
+      manager.blockNextNotification();
       return manager.getEntitlements().then(entitlements => {
-        expect(entitlements.enablesThis()).to.be.true;
-        expect(callbacks.hasEntitlementsResponsePending()).to.be.false;
-        expect(toastOpenStub).to.not.be.called;
-      });
-    });
-
-    it('should NOT trigger entitlements when link flow pending', () => {
-      expectToastShown('0');
-      storageMock.expects('set').never();
-      expectGoogleResponse();
-      callbacks.triggerLinkProgress(Promise.resolve());
-      return manager.getEntitlements().then(entitlements => {
-        expect(entitlements.enablesThis()).to.be.true;
-        expect(callbacks.hasEntitlementsResponsePending()).to.be.false;
-        expect(toastOpenStub).to.not.be.called;
-      });
-    });
-
-    it('should NOT trigger entitlements when link complete pending', () => {
-      expectToastShown('0');
-      storageMock.expects('set').never();
-      expectGoogleResponse();
-      callbacks.triggerLinkComplete(Promise.resolve());
-      return manager.getEntitlements().then(entitlements => {
+        expect(manager.blockNextNotification_).to.be.false;  // Reset.
         expect(entitlements.enablesThis()).to.be.true;
         expect(callbacks.hasEntitlementsResponsePending()).to.be.false;
         expect(toastOpenStub).to.not.be.called;

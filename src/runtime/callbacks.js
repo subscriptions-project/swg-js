@@ -91,13 +91,6 @@ export class Callbacks {
   }
 
   /**
-   * @return {boolean}
-   */
-  hasLinkProgressPending() {
-    return !!this.resultBuffer_[CallbackId.LINK_PROGRESS];
-  }
-
-  /**
    */
   resetLinkProgress() {
     this.resetCallback_(CallbackId.LINK_PROGRESS);
