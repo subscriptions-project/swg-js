@@ -562,6 +562,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(runtime.pageConfig()).to.equal(config);
     expect(runtime.activities()).to.be.instanceof(ActivityPorts);
     expect(runtime.dialogManager()).to.be.instanceof(DialogManager);
+    expect(runtime.entitlementsManager().blockNextNotification_).to.be.false;
   });
 
   it('should reset entitlements', () => {
