@@ -230,6 +230,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should start flow on correct payment response', () => {
+      entitlementsManagerMock.expects('blockNextNotification').once();
       const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
           'POPUP', location.origin, true, true);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
