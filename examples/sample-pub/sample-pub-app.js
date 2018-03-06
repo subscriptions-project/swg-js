@@ -20,6 +20,7 @@
 const {encrypt, toBase64} = require('./utils/crypto');
 
 const app = module.exports = require('express').Router();
+app.use(require('cookie-parser')())
 const ARTICLES = require('./content').ARTICLES;
 
 app.use('/oauth', require('./service/sample-pub-oauth-app'));
@@ -33,9 +34,11 @@ const PUBLICATION_ID = process.env.SERVE_PUBID || 'scenic-2017.appspot.com';
 const AUTH_URL_PROD =
     'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
 
-const SWG_JS_URL_LOCAL = '/dist/subscriptions.max.js';
-const SWG_JS_URL_PROD = 'https://subscribe.sandbox.google.com/swglib/swg.js';
-const SWG_JS_URL = SWG_JS_URL_LOCAL;
+const SWG_JS_URLS = {
+  local: '/dist/subscriptions.max.js',
+  sandbox: 'https://subscribe.sandbox.google.com/swglib/swg.js',
+  autopush: 'https://subscribe-autopush.sandbox.google.com/swglib/swg.js',
+};
 
 /** @const {string} */
 const G_PUB_USER = 'G_PUB_USER';
@@ -134,10 +137,14 @@ app.get('/((\\d+))', (req, res) => {
   const article = ARTICLES[id - 1];
   const prevId = (id - 1) >= 0 ? String(id - 1) : false;
   const nextId = (id + 1) < ARTICLES.length ? String(id + 1) : false;
+  const setup = {
+    script: req.cookies && req.cookies['script'] || 'local',
+  };
   res.render('../examples/sample-pub/views/article', {
     authUrl: getAuthUrl(req),
     pubAuthUrl: getPubAuthUrl(req),
-    swgJsUrl: SWG_JS_URL,
+    swgJsUrl: SWG_JS_URLS[setup.script],
+    setup: setup,
     publicationId: PUBLICATION_ID,
     id,
     article,
@@ -145,6 +152,34 @@ app.get('/((\\d+))', (req, res) => {
     next: nextId,
     testParams: getTestParams(req),
   });
+});
+
+/**
+ * Setup page.
+ */
+app.get('/setup', (req, res) => {
+  const state = {
+    script: req.cookies && req.cookies['script'] || 'local',
+  };
+  const args = {};
+  args['script'] = state.script;
+  args['script_' + state.script] = true;
+  res.render('../examples/sample-pub/views/setup', args);
+});
+
+/**
+ * Update setup page.
+ */
+app.post('/update-setup', (req, res) => {
+  // Update data.
+  const state = {
+    script: req.body['script'] || 'local',
+  };
+  res.clearCookie('script');
+  res.cookie('script', state.script);
+
+  // Redirect back.
+  res.redirect(302, '/examples/sample-pub/setup');
 });
 
 /**
