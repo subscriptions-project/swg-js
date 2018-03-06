@@ -189,7 +189,7 @@ export class EntitlementsManager {
    */
   fetch_() {
     const url =
-        '$entitlements$/_/v1/publication/' +
+        '$entitlements$/v1/publication/' +
         encodeURIComponent(this.config_.getPublicationId()) +
         '/entitlements';
     return this.fetcher_.fetchCredentialedJson(url).then(json => {
