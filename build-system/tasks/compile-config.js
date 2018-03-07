@@ -20,7 +20,7 @@ const internalRuntimeVersion = require('./internal-version').VERSION;
 
 const FRONTEND = 'https://subscribe.sandbox.google.com';
 const FRONTEND_DEBUG = '';
-const ENTITLEMENTS = 'https://swg-staging.sandbox.google.com/_';
+const ENTITLEMENTS = 'https://subscribe.sandbox.google.com/swg/_/api';
 const PAY_ENVIRONMENT = '';
 const PLAY_ENVIRONMENT = '';
 
