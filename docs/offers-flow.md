@@ -37,3 +37,14 @@ subscriptions.setOnLoginRequest(function() {
 ```
 
 If a user elects for a presented offer, SwG will run the [Subscribe flow](./subscribe-flow.md).
+
+
+## SwG Subscribe Option
+
+A small variation of `subscriptions.showOffers` is the `subscriptions.showSubscribeOption` API. This presents a non-blocking abbreviated option to user to use SwG.
+
+To activate:
+
+```
+subscriptions.showSubscribeOption();
+```

@@ -58,6 +58,11 @@ export class Subscriptions {
   showOffers() {}
 
   /**
+   * Show subscription option.
+   */
+  showSubscribeOption() {}
+
+  /**
    * Set the subscribe callback.
    * @param {function(!Promise<!SubscribeResponse>)} callback
    */
