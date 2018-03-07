@@ -103,8 +103,9 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     let sourceMapBase = 'http://localhost:8000/';
     if (isProdBuild || options.isProdBuild) {
       // Point sourcemap to fetch files from correct GitHub tag.
-      sourceMapBase = 'https://raw.githubusercontent.com/dvoytenko/subscriptions/' +
-            internalRuntimeVersion + '/';
+      sourceMapBase = 'https://raw.githubusercontent.com/' +
+          'subscriptions-project/swg-js/' +
+          internalRuntimeVersion + '/';
     }
     const srcs = [
       // Files under build/. Should be sparse.
