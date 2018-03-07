@@ -36,6 +36,9 @@ const NODE_MIN_VERSION = 4;
 
 require('./build-system/tasks');
 
+const internalRuntimeVersion =
+    require('./build-system/tasks/internal-version').VERSION;
+
 /**
  * Checks if installed local Node.js version is > NODE_MIN_VERSION.
  */
@@ -56,6 +59,10 @@ function checkMinVersion() {
   }
 }
 
+function printVersion() {
+  fs.writeFileSync('dist/version.txt', internalRuntimeVersion);
+}
+
 
 // Gulp tasks.
 gulp.task('check', 'Run through all checks',
@@ -63,3 +70,4 @@ gulp.task('check', 'Run through all checks',
 gulp.task('presubmit', 'Run through all checks and tests',
     gulpSequence('check', 'test'));
 gulp.task('default', 'Same as "watch"', ['watch', 'serve']);
+gulp.task('print-version', 'SwG version', printVersion);

@@ -25,4 +25,4 @@ const packageVersion = packageJson.version;
 // version lock.
 exports.VERSION = argv.version ?
     String(argv.version) :
-    packageVersion + '-' + Date.now();
+    packageVersion + '-' + (argv.subversion || Date.now());
