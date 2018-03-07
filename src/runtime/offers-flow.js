@@ -21,10 +21,12 @@ import {PayStartFlow} from './pay-flow';
 const OFFERS_URL =
     '$frontend$/swglib/offersiframe$frontendDebug$';
 
+const OPTION_URL =
+    '$frontend$/swglib/optionsiframe$frontendDebug$';
+
 
 /**
  * The class for Offers flow.
- *
  */
 export class OffersFlow {
 
@@ -38,9 +40,6 @@ export class OffersFlow {
 
     /** @private @const {!Window} */
     this.win_ = deps.win();
-
-    /** @private @const {!HTMLDocument} */
-    this.document_ = this.win_.document;
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
@@ -71,12 +70,68 @@ export class OffersFlow {
         this.deps_.callbacks().triggerLoginRequest();
         return;
       }
-      const skuId = result.sku || '';
+      const skuId = /** @type {string} */ (result['sku'] || '');
       if (skuId) {
         new PayStartFlow(this.deps_, skuId).start();
       }
     });
 
     return this.dialogManager_.openView(this.activityIframeView_);
+  }
+}
+
+
+/**
+ * The class for subscribe option flow.
+ */
+export class SubscribeOptionFlow {
+
+  /**
+   * @param {!./deps.DepsDef} deps
+   */
+  constructor(deps) {
+
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    this.activityPorts_ = deps.activities();
+
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = deps.dialogManager();
+
+    /** @private @const {!ActivityIframeView} */
+    this.activityIframeView_ = new ActivityIframeView(
+        deps.win(),
+        this.activityPorts_,
+        OPTION_URL,
+        {
+          'publicationId': deps.pageConfig().getPublicationId(),
+        },
+        /* shouldFadeBody */ false);
+  }
+
+  /**
+   * Starts the offers flow or alreadySubscribed flow.
+   * @return {!Promise}
+   */
+  start() {
+    this.activityIframeView_.onMessage(data => {
+      this.maybeOpenOffersFlow_(data);
+    });
+    this.activityIframeView_.acceptResult().then(result => {
+      this.maybeOpenOffersFlow_(result.data);
+    });
+    return this.dialogManager_.openView(this.activityIframeView_);
+  }
+
+  /**
+   * @param {*} data
+   * @private
+   */
+  maybeOpenOffersFlow_(data) {
+    if (data && data['subscribe']) {
+      new OffersFlow(this.deps_).start();
+    }
   }
 }

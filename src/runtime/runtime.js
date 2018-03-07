@@ -25,7 +25,10 @@ import {
   LinkCompleteFlow,
   LinkbackFlow,
 } from './link-accounts-flow';
-import {OffersFlow} from './offers-flow';
+import {
+  OffersFlow,
+  SubscribeOptionFlow,
+} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {
   PageConfigResolver,
@@ -236,6 +239,12 @@ export class Runtime {
   }
 
   /** @override */
+  showSubscribeOption() {
+    return this.configured_(true)
+        .then(runtime => runtime.showSubscribeOption());
+  }
+
+  /** @override */
   setOnSubscribeResponse(callback) {
     return this.configured_(false)
         .then(runtime => runtime.setOnSubscribeResponse(callback));
@@ -387,6 +396,14 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  showSubscribeOption() {
+    return this.documentParsed_.then(() => {
+      const flow = new SubscribeOptionFlow(this);
+      return flow.start();
+    });
+  }
+
+  /** @override */
   setOnLoginRequest(callback) {
     this.callbacks_.setOnLoginRequest(callback);
   }
@@ -429,6 +446,7 @@ function createPublicRuntime(runtime) {
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
+    showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
     setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
