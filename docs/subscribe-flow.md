@@ -48,6 +48,6 @@ subscriptions.subscribe(sku);
 
 Another way to trigger the subscribe flow is by starting [Offers flow](./offers-flow.md).
 
-The `setOnSubscribeResponse` callback will be called ince the subscription is complete, or when the previously executed subscription is recovered.
+The `setOnSubscribeResponse` callback will be called once the subscription is complete, or when the previously executed subscription is recovered.
 
 The response returned by the `setOnSubscribeResponse` callback is the [`SubscribeResponse`](./core-apis.md) object. It includes purchase details, as well as user data.
