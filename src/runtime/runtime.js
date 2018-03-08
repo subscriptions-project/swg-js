@@ -245,6 +245,12 @@ export class Runtime {
   }
 
   /** @override */
+  setOnNativeSubscribeRequest(callback) {
+    return this.configured_(false)
+        .then(runtime => runtime.setOnNativeSubscribeRequest(callback));
+  }
+
+  /** @override */
   setOnSubscribeResponse(callback) {
     return this.configured_(false)
         .then(runtime => runtime.setOnSubscribeResponse(callback));
@@ -421,6 +427,11 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  setOnNativeSubscribeRequest(callback) {
+    this.callbacks_.setOnSubscribeRequest(callback);
+  }
+
+  /** @override */
   setOnSubscribeResponse(callback) {
     this.callbacks_.setOnSubscribeResponse(callback);
   }
@@ -451,6 +462,8 @@ function createPublicRuntime(runtime) {
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
     setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
     setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
+    setOnNativeSubscribeRequest:
+        runtime.setOnNativeSubscribeRequest.bind(runtime),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
   });
 }

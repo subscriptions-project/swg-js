@@ -149,10 +149,10 @@ describes.realWin('LinkCompleteFlow', {}, env => {
         });
 
     handler(port);
-    expect(triggerLinkProgressSpy).to.be.calledOnce;
+    expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
     expect(triggerLinkCompleteSpy).to.not.be.called;
     return startPromise.then(() => {
-      expect(startStub).to.be.calledWith();
+      expect(startStub).to.be.calledWithExactly();
       expect(instance.activityIframeView_.src_).to.contain('/u/1/');
     });
   });
@@ -196,6 +196,8 @@ describes.realWin('LinkCompleteFlow', {}, env => {
         .once();
     entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     entitlementsManagerMock.expects('reset').withExactArgs(true).once();
+    entitlementsManagerMock.expects('unblockNextNotification')
+        .withExactArgs().once();
     return linkCompleteFlow.start().then(() => {
       expect(triggerLinkCompleteSpy).to.not.be.called;
       const result = new ActivityResult(
@@ -205,7 +207,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       resultResolver(result);
       return linkCompleteFlow.whenComplete();
     }).then(() => {
-      expect(triggerLinkCompleteSpy).to.be.calledOnce;
+      expect(triggerLinkCompleteSpy).to.be.calledOnce.calledWithExactly();
       expect(triggerLinkProgressSpy).to.not.be.called;
     });
   });
@@ -225,6 +227,8 @@ describes.realWin('LinkCompleteFlow', {}, env => {
         .once();
     entitlementsManagerMock.expects('reset').withExactArgs(false).once();
     entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
+    entitlementsManagerMock.expects('unblockNextNotification')
+        .withExactArgs().once();
     return linkCompleteFlow.start().then(() => {
       const result = new ActivityResult(
           ActivityResultCode.OK,

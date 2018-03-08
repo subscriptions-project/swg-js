@@ -117,6 +117,12 @@ export class EntitlementsManager {
   }
 
   /**
+   */
+  unblockNextNotification() {
+    this.blockNextNotification_ = false;
+  }
+
+  /**
    * @return {!Promise<!Entitlements>}
    */
   getEntitlementsFlow_() {

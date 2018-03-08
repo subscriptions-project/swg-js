@@ -59,32 +59,76 @@ describes.realWin('OffersFlow', {}, env => {
         {
           publicationId: 'pub1',
           productId: 'pub1:label1',
+          showNative: false,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
   });
 
-  it('should activate pay and linking flow', () => {
+  it('should request native offers', () => {
+    runtime.callbacks().setOnSubscribeRequest(function() {});
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swglib/offersiframe$frontendDebug$',
+        {
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          showNative: true,
+        })
+        .returns(Promise.resolve(port));
+    offersFlow = new OffersFlow(runtime);
+    return offersFlow.start();
+  });
+
+  it('should activate pay, login and native offers', () => {
     let messageCallback;
     sandbox.stub(port, 'onMessage', callback => {
       messageCallback = callback;
     });
     const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
+    const nativeStub = sandbox.stub(
+        runtime.callbacks(), 'triggerSubscribeRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return offersFlow.start().then(() => {
       // Unrlated message.
       messageCallback({});
       expect(payStub).to.not.be.called;
       expect(loginStub).to.not.be.called;
+      expect(nativeStub).to.not.be.called;
       // Pay message.
       messageCallback({'sku': 'sku1'});
       expect(payStub).to.be.calledOnce;
       expect(loginStub).to.not.be.called;
+      expect(nativeStub).to.not.be.called;
       // Login message.
       messageCallback({'alreadySubscribed': true});
-      expect(loginStub).to.be.calledOnce;
+      expect(loginStub).to.be.calledOnce
+          .calledWithExactly({linkRequested: false});
       expect(payStub).to.be.calledOnce;  // Dind't change.
+      expect(nativeStub).to.not.be.called;
+      // Native message.
+      messageCallback({'native': true});
+      expect(nativeStub).to.be.calledOnce.calledWithExactly();
+      expect(loginStub).to.be.calledOnce;  // Dind't change.
+      expect(payStub).to.be.calledOnce;  // Dind't change.
+    });
+  });
+
+  it('should activate login with linking', () => {
+    let messageCallback;
+    sandbox.stub(port, 'onMessage', callback => {
+      messageCallback = callback;
+    });
+    const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    return offersFlow.start().then(() => {
+      messageCallback({
+        'alreadySubscribed': true,
+        'linkRequested': true,
+      });
+      expect(loginStub).to.be.calledOnce
+          .calledWithExactly({linkRequested: true});
     });
   });
 });

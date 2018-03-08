@@ -15,10 +15,18 @@
  */
 
 import {ConfiguredRuntime} from '../src/runtime/runtime';
+import {
+  Entitlements,
+  Entitlement,
+} from '../src/api/entitlements';
 import {Fetcher} from '../src/runtime/fetcher';
+import {SubscribeResponse} from '../src/api/subscribe-response';
 
 
 module.exports = {
   ConfiguredRuntime,
+  Entitlements,
+  Entitlement,
   Fetcher,
+  SubscribeResponse,
 };

@@ -33,7 +33,7 @@ export class ActivityIframeView extends View {
    * @param {!Window} win
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
    * @param {string} src
-   * @param {!Object<string, ?string|number>=} args
+   * @param {!Object<string, ?string|number|boolean>=} args
    * @param {boolean=} shouldFadeBody
    */
   constructor(
@@ -61,7 +61,7 @@ export class ActivityIframeView extends View {
     /** @private @const {string} */
     this.src_ = src;
 
-    /** @private @const {!Object<string, ?string|number>} */
+    /** @private @const {!Object<string, ?string|number|boolean>} */
     this.args_ = args || {};
 
     /** @private @const {boolean} */
