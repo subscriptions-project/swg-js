@@ -157,6 +157,7 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   complete() {
+    this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
       this.activityIframeView_.message({'complete': true});
     });

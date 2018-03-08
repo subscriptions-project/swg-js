@@ -142,7 +142,7 @@ export class LinkCompleteFlow {
   static configurePending(deps) {
     function handler(port) {
       deps.entitlementsManager().blockNextNotification();
-      deps.callbacks().triggerLinkProgress(Promise.resolve());
+      deps.callbacks().triggerLinkProgress();
       const promise = acceptPortResult(
           port,
           parseUrl(LINK_CONFIRM_IFRAME_URL).origin,
@@ -230,9 +230,10 @@ export class LinkCompleteFlow {
    * @private
    */
   complete_(response) {
-    this.callbacks_.triggerLinkComplete(Promise.resolve());
+    this.callbacks_.triggerLinkComplete();
     this.callbacks_.resetLinkProgress();
     this.entitlementsManager_.setToastShown(true);
+    this.entitlementsManager_.unblockNextNotification();
     this.entitlementsManager_.reset(response && response['success'] || false);
     this.completeResolver_();
   }

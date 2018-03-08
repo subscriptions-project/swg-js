@@ -81,15 +81,17 @@ class DemoPaywallController {
     promise.then(response => {
       // TODO: Start account creation flow.
       log('got subscription response', response);
-      this.openPaywall_();
       var toast = document.getElementById('creating_account_toast');
       var userEl = document.getElementById('creating_account_toast_user');
       userEl.textContent = response.userData.email;
       toast.style.display = 'block';
       // TODO: wait for account creation to be complete.
-      setTimeout(function() {
+      setTimeout(() => {
         response.complete().then(() => {
           log('subscription has been confirmed');
+          // Open the content.
+          this.subscriptions.reset();
+          this.start();
         });
         toast.style.display = 'none';
       }, 3000);

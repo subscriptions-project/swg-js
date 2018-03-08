@@ -159,6 +159,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock.expects('setToastShown')
         .withExactArgs(true)
         .once();
+    entitlementsManagerMock.expects('unblockNextNotification')
+        .withExactArgs()
+        .once();
     const messageStub = sandbox.stub(port, 'message');
     return flow.start(response).then(() => {
       return flow.complete();

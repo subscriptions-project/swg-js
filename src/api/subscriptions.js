@@ -63,7 +63,14 @@ export class Subscriptions {
   showSubscribeOption() {}
 
   /**
-   * Set the subscribe callback.
+   * Set the callback for the native subscribe request. Setting this callback
+   * triggers the "native" option in the offers flow.
+   * @param {function()} callback
+   */
+  setOnNativeSubscribeRequest(callback) {}
+
+  /**
+   * Set the subscribe complete callback.
    * @param {function(!Promise<!SubscribeResponse>)} callback
    */
   setOnSubscribeResponse(callback) {}
@@ -75,12 +82,12 @@ export class Subscriptions {
   subscribe(sku) {}
 
   /**
-   * @param {function()} callback
+   * @param {function(!LoginRequest)} callback
    */
   setOnLoginRequest(callback) {}
 
   /**
-   * @param {function(!Promise)} callback
+   * @param {function()} callback
    */
   setOnLinkComplete(callback) {}
 
@@ -90,3 +97,11 @@ export class Subscriptions {
    */
   linkAccount() {}
 }
+
+
+/**
+ * @typedef {{
+ *   linkRequested: boolean,
+ * }}
+ */
+export let LoginRequest;

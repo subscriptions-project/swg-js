@@ -55,6 +55,7 @@ export class OffersFlow {
         {
           'productId': deps.pageConfig().getProductId(),
           'publicationId': deps.pageConfig().getPublicationId(),
+          'showNative': deps.callbacks().hasSubscribeRequestCallback(),
         },
         /* shouldFadeBody */ true);
   }
@@ -67,12 +68,21 @@ export class OffersFlow {
     // If result is due to OfferSelection, redirect to payments.
     this.activityIframeView_.onMessage(result => {
       if (result['alreadySubscribed']) {
-        this.deps_.callbacks().triggerLoginRequest();
+        this.deps_.callbacks().triggerLoginRequest({
+          linkRequested: !!result['linkRequested'],
+        });
         return;
       }
-      const skuId = /** @type {string} */ (result['sku'] || '');
-      if (skuId) {
-        new PayStartFlow(this.deps_, skuId).start();
+      if (result['sku']) {
+        new PayStartFlow(
+            this.deps_,
+            /** @type {string} */ (result['sku']))
+            .start();
+        return;
+      }
+      if (result['native']) {
+        this.deps_.callbacks().triggerSubscribeRequest();
+        return;
       }
     });
 
