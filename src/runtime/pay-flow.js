@@ -157,13 +157,13 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   complete() {
+    this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
       this.activityIframeView_.message({'complete': true});
     });
     return this.activityIframeView_.acceptResult().catch(() => {
       // Ignore errors.
     }).then(() => {
-      this.deps_.entitlementsManager().unblockNextNotification();
       this.deps_.entitlementsManager().setToastShown(true);
     });
   }
