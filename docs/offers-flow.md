@@ -39,6 +39,17 @@ subscriptions.setOnLoginRequest(function() {
 If a user elects for a presented offer, SwG will run the [Subscribe flow](./subscribe-flow.md).
 
 
+### Native option in offers
+
+There's a mode when showing SwG Offers that will give the user an option to see more offers on the publisher's side. To enable this option, you simply need to declare the `setOnNativeSubscribeRequest` callback:
+
+```
+subscriptions.setOnNativeSubscribeRequest(function() {
+  // Proceed to the publisher's own offers UX.
+});
+```
+
+
 ## SwG Subscribe Option
 
 A small variation of `subscriptions.showOffers` is the `subscriptions.showSubscribeOption` API. This presents a non-blocking abbreviated option to user to use SwG.
