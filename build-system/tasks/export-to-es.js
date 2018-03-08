@@ -26,8 +26,6 @@ const version = require('./internal-version').VERSION;
 
 function runAllExportsToEs() {
   return Promise.resolve().then(() => {
-    return exportToEs6('exports/apis.js', 'dist/exports-apis.js');
-  }).then(() => {
     return exportToEs6('exports/config.js', 'dist/exports-config.js');
   }).then(() => {
     return exportToEs6('exports/swg.js', 'dist/exports-swg.js');
