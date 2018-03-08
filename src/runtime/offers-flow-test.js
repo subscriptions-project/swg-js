@@ -55,8 +55,9 @@ describes.realWin('OffersFlow', {}, env => {
   it('should have valid OffersFlow constructed', () => {
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swglib/offersiframe$frontendDebug$',
+        '$frontend$/swglib/offersiframe',
         {
+          _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           showNative: false,
@@ -69,8 +70,9 @@ describes.realWin('OffersFlow', {}, env => {
     runtime.callbacks().setOnSubscribeRequest(function() {});
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swglib/offersiframe$frontendDebug$',
+        '$frontend$/swglib/offersiframe',
         {
+          _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           showNative: true,
@@ -164,8 +166,9 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
   it('should have valid SubscribeOptionFlow constructed', () => {
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swglib/optionsiframe$frontendDebug$',
+        '$frontend$/swglib/optionsiframe',
         {
+          _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
         })
         .returns(Promise.resolve(port));

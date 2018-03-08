@@ -38,7 +38,7 @@ describes.realWin('OffersApi', {}, () => {
 
   it('should fetch with default product', () => {
     const expectedUrl =
-        '$entitlements$/v1/publication/pub1/offers?label=pub1%3Alabel1';
+        '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
     fetcherMock.expects('fetchCredentialedJson')
         .withExactArgs(expectedUrl)
         .returns(Promise.resolve({offers: [
@@ -56,7 +56,7 @@ describes.realWin('OffersApi', {}, () => {
 
   it('should fetch with a different product', () => {
     const expectedUrl =
-        '$entitlements$/v1/publication/pub1/offers?label=pub1%3Alabel2';
+        '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel2';
     fetcherMock.expects('fetchCredentialedJson')
         .withExactArgs(expectedUrl)
         .returns(Promise.resolve({offers: [
@@ -74,7 +74,7 @@ describes.realWin('OffersApi', {}, () => {
 
   it('should fetch empty response', () => {
     const expectedUrl =
-        '$entitlements$/v1/publication/pub1/offers?label=pub1%3Alabel1';
+        '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
     fetcherMock.expects('fetchCredentialedJson')
         .withExactArgs(expectedUrl)
         .returns(Promise.resolve({}))

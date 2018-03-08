@@ -17,12 +17,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
-
-const OFFERS_URL =
-    '$frontend$/swglib/offersiframe$frontendDebug$';
-
-const OPTION_URL =
-    '$frontend$/swglib/optionsiframe$frontendDebug$';
+import {feArgs, feUrl} from './services';
 
 
 /**
@@ -51,12 +46,12 @@ export class OffersFlow {
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        OFFERS_URL,
-        {
+        feUrl('/offersiframe'),
+        feArgs({
           'productId': deps.pageConfig().getProductId(),
           'publicationId': deps.pageConfig().getPublicationId(),
           'showNative': deps.callbacks().hasSubscribeRequestCallback(),
-        },
+        }),
         /* shouldFadeBody */ true);
   }
 
@@ -114,10 +109,10 @@ export class SubscribeOptionFlow {
     this.activityIframeView_ = new ActivityIframeView(
         deps.win(),
         this.activityPorts_,
-        OPTION_URL,
-        {
+        feUrl('/optionsiframe'),
+        feArgs({
           'publicationId': deps.pageConfig().getPublicationId(),
-        },
+        }),
         /* shouldFadeBody */ false);
   }
 
