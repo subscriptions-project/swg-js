@@ -31,13 +31,11 @@ const AUTH_URL_PUB = '/examples/sample-pub/api';
 
 const PUBLICATION_ID = process.env.SERVE_PUBID || 'scenic-2017.appspot.com';
 
-const AUTH_URL_PROD =
-    'https://swg-staging.sandbox.google.com/_/v1/swg/entitlement';
-
 const SWG_JS_URLS = {
   local: '/dist/subscriptions.max.js',
-  sandbox: 'https://subscribe.sandbox.google.com/swglib/swg.js',
-  autopush: 'https://subscribe-autopush.sandbox.google.com/swglib/swg.js',
+  prod: 'https://news.google.com/swg/js/v1/swg.js',
+  autopush: 'https://news.google.com/swg/js/v1/swg-autopush.js',
+  tt: 'https://news.google.com/swg/js/v1/swg-tt.js',
 };
 
 /** @const {string} */
@@ -141,8 +139,6 @@ app.get('/((\\d+))', (req, res) => {
     script: req.cookies && req.cookies['script'] || 'local',
   };
   res.render('../examples/sample-pub/views/article', {
-    authUrl: getAuthUrl(req),
-    pubAuthUrl: getPubAuthUrl(req),
     swgJsUrl: SWG_JS_URLS[setup.script],
     setup: setup,
     publicationId: PUBLICATION_ID,
@@ -198,36 +194,6 @@ function isLocalReq(req) {
 function isTestReq(req) {
   return (isLocalReq(req) || req.query.test !== undefined)
       && req.query.test !== '0';
-}
-
-/**
- * @param {!HttpRequest} req
- * @return {string}
- */
-function getAuthUrl(req) {
-  const isTest = isTestReq(req);
-  if (isTest) {
-    const isLocal = isLocalReq(req);
-    const host = req.headers.host;
-    if (isLocal) {
-      return `//${host.replace(/.*localhost/, 'sp.localhost')}${AUTH_URL_TEST}`;
-    }
-    return `//${host}${AUTH_URL_TEST}`;
-  }
-  return AUTH_URL_PROD;
-}
-
-/**
- * @param {!HttpRequest} req
- * @return {string}
- */
-function getPubAuthUrl(req) {
-  const isLocal = isLocalReq(req);
-  const host = req.headers.host;
-  if (isLocal) {
-    return `//${host.replace(/.*localhost/, 'pub.localhost')}${AUTH_URL_PUB}`;
-  }
-  return `//${host}${AUTH_URL_PUB}`;
 }
 
 
