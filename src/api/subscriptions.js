@@ -15,6 +15,7 @@
  */
 
 import {Entitlements} from './entitlements';
+import {Offer} from './offer';
 import {SubscribeResponse} from './subscribe-response';
 
 
@@ -51,6 +52,15 @@ export class Subscriptions {
    * @param {function(!Promise<!Entitlements>)} callback
    */
   setOnEntitlementsResponse(callback) {}
+
+  /**
+   * Returns a set of offers.
+   * @param {{
+   *   productId: (string|undefined),
+   * }=} opt_options
+   * @return {!Promise<!Array<!Offer>>}
+   */
+  getOffers(opt_options) {}
 
   /**
    * Starts the Offers flow.

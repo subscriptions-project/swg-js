@@ -25,6 +25,7 @@ import {
   LinkCompleteFlow,
   LinkbackFlow,
 } from './link-accounts-flow';
+import {OffersApi} from './offers-api';
 import {
   OffersFlow,
   SubscribeOptionFlow,
@@ -233,6 +234,12 @@ export class Runtime {
   }
 
   /** @override */
+  getOffers(opt_options) {
+    return this.configured_(true)
+        .then(runtime => runtime.getOffers(opt_options));
+  }
+
+  /** @override */
   showOffers() {
     return this.configured_(true)
         .then(runtime => runtime.showOffers());
@@ -324,6 +331,9 @@ export class ConfiguredRuntime {
     this.entitlementsManager_ =
         new EntitlementsManager(this.win_, this.config_, this.fetcher_, this);
 
+    /** @private @const {!OffersApi} */
+    this.offersApi_ = new OffersApi(this.config_, this.fetcher_);
+
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
   }
@@ -394,6 +404,11 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  getOffers(opt_options) {
+    return this.offersApi_.getOffers(opt_options && opt_options.productId);
+  }
+
+  /** @override */
   showOffers() {
     return this.documentParsed_.then(() => {
       const flow = new OffersFlow(this);
@@ -456,6 +471,7 @@ function createPublicRuntime(runtime) {
     reset: runtime.reset.bind(runtime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
+    getOffers: runtime.getOffers.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
