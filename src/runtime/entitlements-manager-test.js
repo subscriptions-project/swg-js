@@ -60,9 +60,7 @@ describes.realWin('EntitlementsManager', {}, env => {
   describe('fetching', () => {
     it('should fetch empty response', () => {
       xhrMock.expects('fetch').withExactArgs(
-          '$entitlements$/v1/publication/' +
-          'pub1' +
-          '/entitlements',
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -89,9 +87,7 @@ describes.realWin('EntitlementsManager', {}, env => {
             },
           });
       xhrMock.expects('fetch').withExactArgs(
-          '$entitlements$/v1/publication/' +
-          'pub1' +
-          '/entitlements',
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {serviceUrl} from './services';
+
 
 export class OffersApi {
 
@@ -47,11 +49,11 @@ export class OffersApi {
    * @private
    */
   fetch_(productId) {
-    const url =
-        '$entitlements$/v1/publication/' +
+    const url = serviceUrl(
+        '/publication/' +
         encodeURIComponent(this.config_.getPublicationId()) +
         '/offers' +
-        '?label=' + encodeURIComponent(productId);
+        '?label=' + encodeURIComponent(productId));
     // TODO(dvoytenko): switch to a non-credentialed request after launch.
     return this.fetcher_.fetchCredentialedJson(url).then(json => {
       return json['offers'] || [];
