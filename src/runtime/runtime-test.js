@@ -439,6 +439,23 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should should delegate "getOffers"', () => {
+      configuredRuntimeMock.expects('getOffers').withExactArgs(undefined)
+          .once();
+      return runtime.getOffers().then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
+    it('should should delegate "getOffers" with options', () => {
+      const opts = {productId: 'abc'};
+      configuredRuntimeMock.expects('getOffers').withExactArgs(opts)
+          .once();
+      return runtime.getOffers(opts).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
     it('should should delegate "showOffers"', () => {
       configuredRuntimeMock.expects('showOffers').once();
       return runtime.showOffers().then(() => {
@@ -552,6 +569,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   let runtime;
   let entitlementsManagerMock;
   let activityResultCallbacks;
+  let offersApiMock;
 
   beforeEach(() => {
     win = env.win;
@@ -566,10 +584,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     config = new PageConfig('pub1:label1', true);
     runtime = new ConfiguredRuntime(win, config);
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager_);
+    offersApiMock = sandbox.mock(runtime.offersApi_);
   });
 
   afterEach(() => {
     entitlementsManagerMock.verify();
+    offersApiMock.verify();
   });
 
   function returnActivity(requestId, code, opt_dataOrError, opt_origin) {
@@ -639,6 +659,25 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .returns(Promise.reject(error))
         .once();
     return runtime.start();
+  });
+
+  it('should call offers API w/o productId', () => {
+    const p = Promise.resolve();
+    offersApiMock.expects('getOffers')
+        .withExactArgs(undefined)
+        .returns(p)
+        .twice();
+    expect(runtime.getOffers()).to.equal(p);
+    expect(runtime.getOffers({})).to.equal(p);
+  });
+
+  it('should call offers API with productId', () => {
+    const p = Promise.resolve();
+    offersApiMock.expects('getOffers')
+        .withExactArgs('p1')
+        .returns(p)
+        .once();
+    expect(runtime.getOffers({productId: 'p1'})).to.equal(p);
   });
 
   it('should start LinkbackFlow', () => {

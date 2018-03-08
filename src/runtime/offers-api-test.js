@@ -1,0 +1,86 @@
+/**
+ * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {DepsDef} from './deps';
+import {OffersApi} from './offers-api';
+import {PageConfig} from '../model/page-config';
+import {Fetcher} from './fetcher';
+
+
+describes.realWin('OffersApi', {}, () => {
+  let offersApi;
+  let pageConfig;
+  let fetcherMock;
+
+  beforeEach(() => {
+    pageConfig = new PageConfig('pub1:label1');
+    const fetcher = new Fetcher();
+    fetcherMock = sandbox.mock(fetcher);
+    offersApi = new OffersApi(pageConfig, fetcher);
+  });
+
+  afterEach(() => {
+    fetcherMock.verify();
+  });
+
+  it('should fetch with default product', () => {
+    const expectedUrl =
+        '$entitlements$/v1/publication/pub1/offers?label=pub1%3Alabel1';
+    fetcherMock.expects('fetchCredentialedJson')
+        .withExactArgs(expectedUrl)
+        .returns(Promise.resolve({offers: [
+          {skuId: '1'},
+          {skuId: '2'},
+        ]}))
+        .once();
+    return offersApi.getOffers().then(offers => {
+      expect(offers).to.deep.equal([
+        {skuId: '1'},
+        {skuId: '2'},
+      ]);
+    });
+  });
+
+  it('should fetch with a different product', () => {
+    const expectedUrl =
+        '$entitlements$/v1/publication/pub1/offers?label=pub1%3Alabel2';
+    fetcherMock.expects('fetchCredentialedJson')
+        .withExactArgs(expectedUrl)
+        .returns(Promise.resolve({offers: [
+          {skuId: '1'},
+          {skuId: '2'},
+        ]}))
+        .once();
+    return offersApi.getOffers('pub1:label2').then(offers => {
+      expect(offers).to.deep.equal([
+        {skuId: '1'},
+        {skuId: '2'},
+      ]);
+    });
+  });
+
+  it('should fetch empty response', () => {
+    const expectedUrl =
+        '$entitlements$/v1/publication/pub1/offers?label=pub1%3Alabel1';
+    fetcherMock.expects('fetchCredentialedJson')
+        .withExactArgs(expectedUrl)
+        .returns(Promise.resolve({}))
+        .once();
+    return offersApi.getOffers().then(offers => {
+      expect(offers).to.deep.equal([]);
+    });
+  });
+});
