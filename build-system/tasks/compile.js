@@ -56,7 +56,8 @@ exports.compile = function(opt_opts) {
               Object.assign({
                 toName: 'subscriptions.max.js',
                 minifiedName: opts.checkTypes ?
-                    'subscriptions.checktypes.js' : 'subscriptions.js',
+                    'subscriptions.checktypes.js' :
+                    (argv.minifiedName || 'subscriptions.js'),
                 includePolyfills: true,
                 // If there is a sync JS error during initial load,
                 // at least try to unhide the body.

@@ -23,13 +23,7 @@ import {
 import {UserData} from '../api/user-data';
 import {acceptPortResult} from '../utils/activity-utils';
 import {parseJson} from '../utils/json';
-import {parseUrl} from '../utils/url';
-
-const PAY_URL =
-    '$frontend$/swglib/pay$frontendDebug$';
-
-const PAY_CONFIRM_IFRAME_URL =
-    '$frontend$/swglib/payconfirmiframe$frontendDebug$';
+import {feArgs, feOrigin, feUrl} from './services';
 
 const PAY_REQUEST_ID = 'swg-pay';
 
@@ -64,7 +58,10 @@ export class PayStartFlow {
   start() {
     // TODO(dvoytenko): switch to gpay async client.
     this.activityPorts_.open(
-        PAY_REQUEST_ID, PAY_URL, '_blank', {
+        PAY_REQUEST_ID,
+        feUrl('/pay'),
+        '_blank',
+        feArgs({
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
@@ -73,7 +70,7 @@ export class PayStartFlow {
             'publicationId': this.pageConfig_.getPublicationId(),
             'skuId': this.sku_,
           },
-        }, {});
+        }), {});
     return Promise.resolve();
   }
 }
@@ -139,11 +136,11 @@ export class PayCompleteFlow {
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        PAY_CONFIRM_IFRAME_URL,
-        {
+        feUrl('/payconfirmiframe'),
+        feArgs({
           'publicationId': this.deps_.pageConfig().getPublicationId(),
           'loginHint': response.userData && response.userData.email,
-        },
+        }),
         /* shouldFadeBody */ true);
     this.activityIframeView_.acceptResult().then(() => {
       // The flow is complete.
@@ -179,7 +176,7 @@ export class PayCompleteFlow {
 export function validatePayResponse(port, completeHandler) {
   return acceptPortResult(
       port,
-      parseUrl(PAY_URL).origin,
+      feOrigin(),
       // TODO(dvoytenko): support payload decryption.
       /* requireOriginVerified */ false,
       /* requireSecureChannel */ false)

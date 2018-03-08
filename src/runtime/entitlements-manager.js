@@ -17,6 +17,7 @@
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
+import {serviceUrl} from './services';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -203,10 +204,10 @@ export class EntitlementsManager {
    * @private
    */
   fetch_() {
-    const url =
-        '$entitlements$/v1/publication/' +
+    const url = serviceUrl(
+        '/publication/' +
         encodeURIComponent(this.config_.getPublicationId()) +
-        '/entitlements';
+        '/entitlements');
     return this.fetcher_.fetchCredentialedJson(url).then(json => {
       const signedData = json['signedEntitlements'];
       if (signedData) {

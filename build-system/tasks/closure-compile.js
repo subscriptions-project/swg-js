@@ -105,7 +105,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       // Point sourcemap to fetch files from correct GitHub tag.
       sourceMapBase = 'https://raw.githubusercontent.com/' +
           'subscriptions-project/swg-js/' +
-          internalRuntimeVersion + '/';
+          (argv.sourceBranch || internalRuntimeVersion) + '/';
     }
     const srcs = [
       // Files under build/. Should be sparse.

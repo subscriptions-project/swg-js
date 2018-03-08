@@ -17,16 +17,7 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {acceptPortResult} from '../utils/activity-utils';
 import {getHostUrl} from '../utils/url';
-import {parseUrl} from '../utils/url';
-
-const LINK_FRONT_IFRAME_URL =
-    '$frontend$/swglib/linkfrontiframe$frontendDebug$';
-
-const LINKBACK_URL =
-    '$frontend$/swglib/linkbackstart$frontendDebug$';
-
-const LINK_CONFIRM_IFRAME_URL =
-    '$frontend$/u/$index$/swglib/linkconfirmiframe$frontendDebug$';
+import {feArgs, feOrigin, feUrl} from './services';
 
 const CONTINUE_LINK_REQUEST_ID = 'swg-link-continue';
 const LINK_REQUEST_ID = 'swg-link';
@@ -54,12 +45,12 @@ export class LinkStartFlow {
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        LINK_FRONT_IFRAME_URL,
-        {
+        feUrl('/linkfrontiframe'),
+        feArgs({
           'publicationId': deps.pageConfig().getPublicationId(),
           'requestId': CONTINUE_LINK_REQUEST_ID,
           'returnUrl': getHostUrl(this.win_.location.href),
-        },
+        }),
         /* shouldFadeBody */ true
     );
   }
@@ -123,9 +114,12 @@ export class LinkbackFlow {
    */
   start() {
     this.activityPorts_.open(
-        LINK_REQUEST_ID, LINKBACK_URL, '_blank', {
+        LINK_REQUEST_ID,
+        feUrl('/linkbackstart'),
+        '_blank',
+        feArgs({
           'publicationId': this.pageConfig_.getPublicationId(),
-        }, {});
+        }), {});
     return Promise.resolve();
   }
 }
@@ -145,7 +139,7 @@ export class LinkCompleteFlow {
       deps.callbacks().triggerLinkProgress();
       const promise = acceptPortResult(
           port,
-          parseUrl(LINK_CONFIRM_IFRAME_URL).origin,
+          feOrigin(),
           /* requireOriginVerified */ false,
           /* requireSecureChannel */ false);
       return promise.then(response => {
@@ -183,11 +177,11 @@ export class LinkCompleteFlow {
         new ActivityIframeView(
             this.win_,
             this.activityPorts_,
-            LINK_CONFIRM_IFRAME_URL.replace(/\$index\$/g, index),
-            {
+            feUrl('/linkconfirmiframe', '/u/' + index),
+            feArgs({
               'productId': deps.pageConfig().getProductId(),
               'publicationId': deps.pageConfig().getPublicationId(),
-            },
+            }),
             /* shouldFadeBody */ true);
 
     /** @private {?function()} */
@@ -207,7 +201,7 @@ export class LinkCompleteFlow {
     const promise = this.activityIframeView_.port().then(port => {
       return acceptPortResult(
           port,
-          parseUrl(LINK_CONFIRM_IFRAME_URL).origin,
+          feOrigin(),
           /* requireOriginVerified */ true,
           /* requireSecureChannel */ true);
     });
