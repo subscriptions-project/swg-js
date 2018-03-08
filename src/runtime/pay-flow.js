@@ -163,6 +163,7 @@ export class PayCompleteFlow {
     return this.activityIframeView_.acceptResult().catch(() => {
       // Ignore errors.
     }).then(() => {
+      this.deps_.entitlementsManager().unblockNextNotification();
       this.deps_.entitlementsManager().setToastShown(true);
     });
   }

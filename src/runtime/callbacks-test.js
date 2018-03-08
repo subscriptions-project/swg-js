@@ -75,25 +75,21 @@ describes.sandboxed('Callbacks', {}, () => {
 
   it('should trigger and execute linkProgress', () => {
     const spy = sandbox.spy();
-    const p = Promise.resolve();
     callbacks.setOnLinkProgress(spy);
-    expect(callbacks.triggerLinkProgress(p)).to.be.true;
+    expect(callbacks.triggerLinkProgress()).to.be.true;
     return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce;
-      expect(spy).to.be.calledWith(p);
+      expect(spy).to.be.calledOnce.calledWithExactly(true);
     });
   });
 
   it('should trigger and execute linkComplete', () => {
     const spy = sandbox.spy();
-    const p = Promise.resolve();
     callbacks.setOnLinkComplete(spy);
     expect(callbacks.hasLinkCompletePending()).to.be.false;
-    expect(callbacks.triggerLinkComplete(p)).to.be.true;
+    expect(callbacks.triggerLinkComplete()).to.be.true;
     expect(callbacks.hasLinkCompletePending()).to.be.true;
     return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce;
-      expect(spy).to.be.calledWith(p);
+      expect(spy).to.be.calledOnce.calledWithExactly(true);
       expect(callbacks.hasLinkCompletePending()).to.be.false;
     });
   });
@@ -101,9 +97,21 @@ describes.sandboxed('Callbacks', {}, () => {
   it('should trigger and execute loginRequest', () => {
     const spy = sandbox.spy();
     callbacks.setOnLoginRequest(spy);
-    expect(callbacks.triggerLoginRequest()).to.be.true;
+    expect(callbacks.triggerLoginRequest({linkRequested: true})).to.be.true;
     return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce;
+      expect(spy).to.be.calledOnce.calledWith({linkRequested: true});
+    });
+  });
+
+  it('should trigger and execute subscribeRequest', () => {
+    const spy = sandbox.spy();
+    expect(callbacks.hasSubscribeRequestCallback()).to.be.false;
+    callbacks.setOnSubscribeRequest(spy);
+    expect(callbacks.hasSubscribeRequestCallback()).to.be.true;
+    expect(callbacks.triggerSubscribeRequest()).to.be.true;
+    return skipMicro().then(() => {
+      expect(spy).to.be.calledOnce.calledWithExactly(true);
+      expect(callbacks.hasSubscribeRequestCallback()).to.be.true;
     });
   });
 
@@ -117,8 +125,7 @@ describes.sandboxed('Callbacks', {}, () => {
     expect(callbacks.triggerSubscribeResponse(p)).to.be.true;
     expect(callbacks.hasSubscribeResponsePending()).to.be.true;
     return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce;
-      expect(spy).to.be.calledWith(p);
+      expect(spy).to.be.calledOnce.calledWith(p);
       expect(callbacks.hasSubscribeResponsePending()).to.be.false;
     });
   });
@@ -131,8 +138,7 @@ describes.sandboxed('Callbacks', {}, () => {
     expect(callbacks.triggerEntitlementsResponse(p)).to.be.true;
     expect(callbacks.hasLinkCompletePending()).to.be.false;
     return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce;
-      expect(spy).to.be.calledWith(p);
+      expect(spy).to.be.calledOnce.calledWith(p);
     });
   });
 });

@@ -37,6 +37,7 @@ import {PageConfigResolver} from '../model/page-config-resolver';
 import {
   PayStartFlow,
 } from './pay-flow';
+import {SubscribeResponse} from '../api/subscribe-response';
 import {Subscriptions} from '../api/subscriptions';
 import {createElement} from '../utils/dom';
 
@@ -100,6 +101,18 @@ describes.realWin('installRuntime', {}, env => {
     const runtime1 = getRuntime();
     installRuntime(win);
     expect(getRuntime()).to.equal(runtime1);
+  });
+
+  it('should implement Subscriptions interface', () => {
+    const promise = new Promise(resolve => {
+      dep(resolve);
+    });
+    installRuntime(win);
+    return promise.then(subscriptions => {
+      for (const k in Subscriptions.prototype) {
+        expect(subscriptions).to.contain(k);
+      }
+    });
   });
 
   it('handles recursive calls after installation', function* () {
@@ -459,6 +472,16 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should should delegate "setOnNativeSubscribeRequest"', () => {
+      const callback = function() {};
+      configuredRuntimeMock.expects('setOnNativeSubscribeRequest')
+          .withExactArgs(callback)
+          .once();
+      return runtime.setOnNativeSubscribeRequest(callback).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(false);
+      });
+    });
+
     it('should should delegate "setOnSubscribeResponse"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnSubscribeResponse')
@@ -684,5 +707,55 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .then(() => {
           expect(stub).to.be.calledOnce;
         });
+  });
+
+  describe('callbacks', () => {
+    it('should trigger entitlements callback', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnEntitlementsResponse(resolve);
+      });
+      runtime.callbacks().triggerEntitlementsResponse(
+          Promise.resolve(new Entitlements('', 'RaW', [])));
+      return promise.then(result => {
+        expect(result.raw).to.equal('RaW');
+      });
+    });
+
+    it('should trigger native subscribe request', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnNativeSubscribeRequest(resolve);
+      });
+      runtime.callbacks().triggerSubscribeRequest();
+      return promise;
+    });
+
+    it('should trigger subscribe response', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnSubscribeResponse(resolve);
+      });
+      runtime.callbacks().triggerSubscribeResponse(Promise.resolve(
+          new SubscribeResponse('RaW')));
+      return promise.then(result => {
+        expect(result.raw).to.equal('RaW');
+      });
+    });
+
+    it('should trigger login request', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnLoginRequest(resolve);
+      });
+      runtime.callbacks().triggerLoginRequest({linkRequested: true});
+      return promise.then(result => {
+        expect(result.linkRequested).to.be.true;
+      });
+    });
+
+    it('should trigger link complete', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnLinkComplete(resolve);
+      });
+      runtime.callbacks().triggerLinkComplete();
+      return promise;
+    });
   });
 });

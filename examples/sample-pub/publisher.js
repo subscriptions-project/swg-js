@@ -43,7 +43,8 @@ function whenReady(callback) {
 // Callbacks.
 whenReady(function(subscriptions) {
   function eventCallback(eventName) {
-    return function(promise) {
+    return function(value) {
+      var promise = Promise.resolve(value);
       promise.then(function(response) {
         log(eventName, response);
       }, function(reason) {

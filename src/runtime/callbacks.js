@@ -18,10 +18,11 @@
 /** @enum {number} */
 const CallbackId = {
   ENTITLEMENTS: 1,
-  SUBSCRIBE: 2,
-  LOGIN_REQUEST: 3,
-  LINK_PROGRESS: 4,
-  LINK_COMPLETE: 5,
+  SUBSCRIBE_REQUEST: 2,
+  SUBSCRIBE_RESPONSE: 3,
+  LOGIN_REQUEST: 4,
+  LINK_PROGRESS: 5,
+  LINK_COMPLETE: 6,
 };
 
 
@@ -32,9 +33,9 @@ export class Callbacks {
   /**
    */
   constructor() {
-    /** @private @const {!Object<number, function(!Promise)>} */
+    /** @private @const {!Object<CallbackId, function(*)>} */
     this.callbacks_ = {};
-    /** @private @const {!Object<number, !Promise>} */
+    /** @private @const {!Object<CallbackId, *>} */
     this.resultBuffer_ = {};
   }
 
@@ -62,32 +63,32 @@ export class Callbacks {
   }
 
   /**
-   * @param {function()} callback
+   * @param {function(!../api/subscriptions.LoginRequest)} callback
    */
   setOnLoginRequest(callback) {
     this.setCallback_(CallbackId.LOGIN_REQUEST, callback);
   }
 
   /**
+   * @param {!../api/subscriptions.LoginRequest} request
    * @return {boolean} Whether the callback has been found.
    */
-  triggerLoginRequest() {
-    return this.trigger_(CallbackId.LOGIN_REQUEST, Promise.resolve());
+  triggerLoginRequest(request) {
+    return this.trigger_(CallbackId.LOGIN_REQUEST, request);
   }
 
   /**
-   * @param {function(!Promise)} callback
+   * @param {function()} callback
    */
   setOnLinkProgress(callback) {
     this.setCallback_(CallbackId.LINK_PROGRESS, callback);
   }
 
   /**
-   * @param {!Promise} promise
    * @return {boolean} Whether the callback has been found.
    */
-  triggerLinkProgress(promise) {
-    return this.trigger_(CallbackId.LINK_PROGRESS, promise);
+  triggerLinkProgress() {
+    return this.trigger_(CallbackId.LINK_PROGRESS, true);
   }
 
   /**
@@ -97,18 +98,17 @@ export class Callbacks {
   }
 
   /**
-   * @param {function(!Promise)} callback
+   * @param {function()} callback
    */
   setOnLinkComplete(callback) {
     this.setCallback_(CallbackId.LINK_COMPLETE, callback);
   }
 
   /**
-   * @param {!Promise} promise
    * @return {boolean} Whether the callback has been found.
    */
-  triggerLinkComplete(promise) {
-    return this.trigger_(CallbackId.LINK_COMPLETE, promise);
+  triggerLinkComplete() {
+    return this.trigger_(CallbackId.LINK_COMPLETE, true);
   }
 
   /**
@@ -119,10 +119,31 @@ export class Callbacks {
   }
 
   /**
+   * @param {function()} callback
+   */
+  setOnSubscribeRequest(callback) {
+    this.setCallback_(CallbackId.SUBSCRIBE_REQUEST, callback);
+  }
+
+  /**
+   * @return {boolean} Whether the callback has been found.
+   */
+  triggerSubscribeRequest() {
+    return this.trigger_(CallbackId.SUBSCRIBE_REQUEST, true);
+  }
+
+  /**
+   * @return {boolean}
+   */
+  hasSubscribeRequestCallback() {
+    return !!this.callbacks_[CallbackId.SUBSCRIBE_REQUEST];
+  }
+
+  /**
    * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
    */
   setOnSubscribeResponse(callback) {
-    this.setCallback_(CallbackId.SUBSCRIBE, callback);
+    this.setCallback_(CallbackId.SUBSCRIBE_RESPONSE, callback);
   }
 
   /**
@@ -131,7 +152,7 @@ export class Callbacks {
    */
   triggerSubscribeResponse(responsePromise) {
     return this.trigger_(
-        CallbackId.SUBSCRIBE,
+        CallbackId.SUBSCRIBE_RESPONSE,
         responsePromise.then(res => res.clone()));
   }
 
@@ -139,12 +160,12 @@ export class Callbacks {
    * @return {boolean}
    */
   hasSubscribeResponsePending() {
-    return !!this.resultBuffer_[CallbackId.SUBSCRIBE];
+    return !!this.resultBuffer_[CallbackId.SUBSCRIBE_RESPONSE];
   }
 
   /**
    * @param {!CallbackId} id
-   * @param {function(!Promise)} callback
+   * @param {function(?)} callback
    * @private
    */
   setCallback_(id, callback) {
@@ -157,7 +178,7 @@ export class Callbacks {
 
   /**
    * @param {!CallbackId} id
-   * @param {!Promise} data
+   * @param {*} data
    * @return {boolean}
    * @private
    */
@@ -182,8 +203,8 @@ export class Callbacks {
 
   /**
    * @param {!CallbackId} id
-   * @param {function(!Promise)} callback
-   * @param {!Promise} data
+   * @param {function(*)} callback
+   * @param {*} data
    * @private
    */
   executeCallback_(id, callback, data) {

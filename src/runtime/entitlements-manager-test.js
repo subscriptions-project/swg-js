@@ -372,6 +372,13 @@ describes.realWin('EntitlementsManager', {}, env => {
       });
     });
 
+    it('should reset blocked state', () => {
+      manager.blockNextNotification();
+      expect(manager.blockNextNotification_).to.be.true;
+      manager.unblockNextNotification();
+      expect(manager.blockNextNotification_).to.be.false;  // Reset.
+    });
+
     it('should NOT show toast if already shown', () => {
       expectToastShown('1');
       storageMock.expects('set').never();
