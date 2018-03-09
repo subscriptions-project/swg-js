@@ -97,25 +97,18 @@ export class Toast {
   }
 
   /**
-   * @return {!Promise}
-   */
-  whenReady() {
-    return this.ready_;
-  }
-
-  /**
    * Opens the notification toast.
    * @return {!Promise}
    */
   open() {
     this.doc_.body.appendChild(this.iframe_);  // Fires onload.
 
-    return this.whenReady().then(() => {
-      this.buildToast_();
-      return this;
-    });
+    return this.buildToast_();
   }
 
+  /**
+   * Builds the content of the iframe. On load, animates the toast.
+   */
   buildToast_() {
     return this.activityPorts_.openIframe(
         this.iframe_, feUrl('/toastiframe'),
