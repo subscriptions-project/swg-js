@@ -135,10 +135,29 @@ app.get('/((\\d+))', (req, res) => {
   const article = ARTICLES[id - 1];
   const prevId = (id - 1) >= 0 ? String(id - 1) : false;
   const nextId = (id + 1) < ARTICLES.length ? String(id + 1) : false;
-  const setup = {
-    script: req.cookies && req.cookies['script'] || 'local',
-  };
+  const setup = getSetup(req);
   res.render('../examples/sample-pub/views/article', {
+    swgJsUrl: SWG_JS_URLS[setup.script],
+    setup: setup,
+    publicationId: PUBLICATION_ID,
+    id,
+    article,
+    prev: prevId,
+    next: nextId,
+    testParams: getTestParams(req),
+  });
+});
+
+/**
+ * An AMP Article.
+ */
+app.get('/((\\d+))\.amp', (req, res) => {
+  const id = parseInt(req.params[0], 10);
+  const article = ARTICLES[id - 1];
+  const prevId = (id - 1) >= 0 ? String(id - 1) + '.amp' : false;
+  const nextId = (id + 1) < ARTICLES.length ? String(id + 1) + '.amp' : false;
+  const setup = getSetup(req);
+  res.render('../examples/sample-pub/views/article-amp', {
     swgJsUrl: SWG_JS_URLS[setup.script],
     setup: setup,
     publicationId: PUBLICATION_ID,
@@ -154,9 +173,7 @@ app.get('/((\\d+))', (req, res) => {
  * Setup page.
  */
 app.get('/setup', (req, res) => {
-  const state = {
-    script: req.cookies && req.cookies['script'] || 'local',
-  };
+  const state = getSetup(req);
   const args = {};
   args['script'] = state.script;
   args['script_' + state.script] = true;
@@ -177,6 +194,18 @@ app.post('/update-setup', (req, res) => {
   // Redirect back.
   res.redirect(302, '/examples/sample-pub/setup');
 });
+
+/**
+ * @param {!HttpRequest} req
+ * @return {{
+ *   script: string,
+ * }}
+ */
+function getSetup(req) {
+  return {
+    script: req.cookies && req.cookies['script'] || 'local',
+  };
+}
 
 /**
  * @param {!HttpRequest} req
