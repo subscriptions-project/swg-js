@@ -19,6 +19,7 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {feArgs, feUrl} from './services';
 
+
 /**
  * The class for Offers flow.
  */
