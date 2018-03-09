@@ -189,7 +189,7 @@ export function addQueryParam(url, param, value) {
   const fragmentIndex = url.indexOf('#');
   let fragment = '';
   if (fragmentIndex != -1) {
-    fragment = fragmentIndex != -1 ? url.substring(fragmentIndex) : '';
+    fragment = url.substring(fragmentIndex);
     url = url.substring(0, fragmentIndex);
   }
   if (queryIndex == -1) {
