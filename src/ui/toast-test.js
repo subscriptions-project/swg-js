@@ -44,7 +44,6 @@ describes.realWin('Toast', {}, env => {
 
   it('should have created Notification View', function() {
     const iframe = toast.getElement();
-    console.log('iframe', toast);
     toast.whenReady().then(() => {
       expect(iframe.nodeType).to.equal(1);
       expect(iframe.nodeName).to.equal('IFRAME');
