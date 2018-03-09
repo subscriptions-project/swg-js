@@ -14,7 +14,20 @@
  * limitations under the License.
  */
 
-import {parseUrl} from '../utils/url';
+import {addQueryParam, parseUrl} from '../utils/url';
+
+/**
+ * Have to put these in the map to avoid compiler optimization. Due to
+ * optimization issues, this map only allows property-style keys. E.g. "hr1",
+ * as opposed to "1hr".
+ * @type {!Object<string, number>}
+ * @package Visible for testing only.
+ */
+export const CACHE_KEYS = {
+  'nocache': 1,
+  'hr1': 3600000,  // 1hr = 1000 * 60 * 60
+  'hr12': 43200000,  // 12hr = 1000 * 60 * 60 * 12
+};
 
 
 /**
@@ -33,6 +46,7 @@ export function serviceUrl(url) {
   return '$frontend$/swg/_/api/v1' + url;
 }
 
+
 /**
  * @param {string} url Relative URL, e.g. "/offersiframe".
  * @param {string=} prefix
@@ -40,8 +54,11 @@ export function serviceUrl(url) {
  */
 export function feUrl(url, prefix = '') {
   // TODO(dvoytenko): switch to "/swg/_/ui/v1" URLs.
-  return '$frontend$' + prefix + '/swglib' + url;
+  return addQueryParam(
+      '$frontend$' + prefix + '/swglib' + url,
+      '_', cacheParam('$frontendCache$'));
 }
+
 
 /**
  * @param {!Object<string, ?>} args
@@ -51,4 +68,22 @@ export function feArgs(args) {
   return Object.assign(args, {
     '_client': 'SwG $internalRuntimeVersion$',
   });
+}
+
+
+/**
+ * @param {string} cacheKey
+ * @return {string}
+ * @package Visible for testing only.
+ */
+export function cacheParam(cacheKey) {
+  let period = CACHE_KEYS[cacheKey];
+  if (period == null) {
+    period = 1;
+  }
+  if (period === 0) {
+    return '_';
+  }
+  const now = Date.now();
+  return String(period <= 1 ? now : Math.floor(now / period));
 }

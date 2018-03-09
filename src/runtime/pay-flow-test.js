@@ -75,7 +75,7 @@ describes.realWin('PayStartFlow', {}, env => {
   it('should have valid flow constructed', () => {
     activitiesMock.expects('open').withExactArgs(
         'swg-pay',
-        '$frontend$/swglib/pay',
+        '$frontend$/swglib/pay?_=_',
         '_blank',
         {
           '_client': 'SwG $internalRuntimeVersion$',
@@ -132,7 +132,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swglib/payconfirmiframe',
+        '$frontend$/swglib/payconfirmiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',

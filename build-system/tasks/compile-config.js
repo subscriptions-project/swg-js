@@ -19,6 +19,7 @@ const argv = require('minimist')(process.argv.slice(2));
 const internalRuntimeVersion = require('./internal-version').VERSION;
 
 const FRONTEND = 'https://subscribe.sandbox.google.com';
+const FRONTEND_CACHE = 'nocache';
 const PAY_ENVIRONMENT = '';
 const PLAY_ENVIRONMENT = '';
 
@@ -30,6 +31,7 @@ exports.resolveConfig = function() {
   return {
     'internalRuntimeVersion': internalRuntimeVersion,
     'frontend': argv.frontend || FRONTEND,
+    'frontendCache': argv.frontendCache || FRONTEND_CACHE,
     'payEnvironment': argv.payEnvironment || PAY_ENVIRONMENT,
     'playEnvironment': argv.playEnvironment || PLAY_ENVIRONMENT,
   };

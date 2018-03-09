@@ -178,6 +178,31 @@ export function parseQueryString(query) {
 
 
 /**
+ * Adds a parameter to a query string.
+ * @param {string} url
+ * @param {string} param
+ * @param {string} value
+ * @return {string}
+ */
+export function addQueryParam(url, param, value) {
+  const queryIndex = url.indexOf('?');
+  const fragmentIndex = url.indexOf('#');
+  let fragment = '';
+  if (fragmentIndex != -1) {
+    fragment = fragmentIndex != -1 ? url.substring(fragmentIndex) : '';
+    url = url.substring(0, fragmentIndex);
+  }
+  if (queryIndex == -1) {
+    url += '?';
+  } else if (queryIndex < url.length - 1) {
+    url += '&';
+  }
+  url += encodeURIComponent(param) + '=' + encodeURIComponent(value);
+  return url + fragment;
+}
+
+
+/**
  * Returns the Url including the path and search, without fregment.
  * @param {string} url
  * @return {string}

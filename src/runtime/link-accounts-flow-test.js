@@ -71,7 +71,7 @@ describes.realWin('LinkbackFlow', {}, env => {
   it('should start correctly', () => {
     activitiesMock.expects('open').withExactArgs(
         'swg-link',
-        '$frontend$/swglib/linkbackstart',
+        '$frontend$/swglib/linkbackstart?_=_',
         '_blank', {
           '_client': 'SwG $internalRuntimeVersion$',
           'publicationId': 'pub1',
@@ -166,7 +166,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/u/0/swglib/linkconfirmiframe',
+        '$frontend$/u/0/swglib/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
           'productId': 'pub1:prod1',
@@ -189,7 +189,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.acceptResult = () => resultPromise;
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/u/1/swglib/linkconfirmiframe',
+        '$frontend$/u/1/swglib/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
           'productId': 'pub1:prod1',
