@@ -21,6 +21,14 @@ import {PageConfig} from '../model/page-config';
 import {getStyle} from '../utils/style';
 import * as sinon from 'sinon';
 
+const src = '$frontend$/swglib/toastiframe';
+
+const args = {
+  _client: 'SwG $internalRuntimeVersion$',
+  publicationId: 'pub1',
+  source: 'google',
+};
+
 describes.realWin('Toast', {}, env => {
   let win;
   let runtime;
@@ -34,7 +42,7 @@ describes.realWin('Toast', {}, env => {
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
-    toast = new Toast(runtime, {'source': 'google'});
+    toast = new Toast(runtime, src, args);
     toast.whenReady = () => Promise.resolve();
     port = new ActivityPort();
     port.onResizeRequest = () => {};

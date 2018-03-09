@@ -21,7 +21,6 @@ import {
   setImportantStyles,
   topFriendlyIframePositionStyles,
 } from '../utils/style';
-import {feArgs, feUrl} from '../runtime/services';
 
 /** @const {!Object<string, string|number>} */
 export const toastImportantStyles = {
@@ -54,9 +53,10 @@ export class Toast {
 
   /**
    * @param {!../runtime/deps.DepsDef} deps
+   * @param {string} src
    * @param {!Object<string, ?>} args
    */
-  constructor(deps, args) {
+  constructor(deps, src, args) {
 
     /** @private @const {!Window} */
     this.win_ = deps.win();
@@ -71,16 +71,10 @@ export class Toast {
     this.deps_ = deps;
 
     /** @private @const {string} */
-    this.src_ = feUrl('/toastiframe');
-
-    /** @private @const {string} */
-    this.publicationId_ = this.deps_.pageConfig().getPublicationId();
-
+    this.src_ = src;
 
     /** @private @const {!Object<string, ?>} */
-    this.args_ =
-        feArgs(Object.assign({'publicationId': this.publicationId_}, args));
-
+    this.args_ = args;
 
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ =

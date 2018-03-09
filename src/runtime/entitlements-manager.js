@@ -18,6 +18,7 @@ import {Entitlement, Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
+import {feArgs, feUrl} from '../runtime/services';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -60,6 +61,15 @@ export class EntitlementsManager {
 
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
+
+    /** @private @const {string} */
+    this.toastSrc_ = feUrl('/toastiframe');
+
+    /** @private @const {string} */
+    this.publicationId_ = this.deps_.pageConfig().getPublicationId();
+
+    /** @private @const {!Object<string, ?>} */
+    this.toastArgs_ = feArgs({'publicationId': this.publicationId_});
   }
 
   /**
@@ -184,7 +194,8 @@ export class EntitlementsManager {
    */
   showToast_(entitlement) {
     const source = entitlement.source || 'google';
-    return new Toast(this.deps_, {'source': source}).open();
+    const args = Object.assign(this.toastArgs_, {'source': source});
+    return new Toast(this.deps_, this.toastSrc_, args).open();
   }
 
   /**
