@@ -183,7 +183,7 @@ export class EntitlementsManager {
    * @private
    */
   showToast_(entitlement) {
-    const source = entitlement.source || 'Google';
+    const source = entitlement.source || 'google';
     return new Toast(this.deps_, {'source': source}).open();
   }
 

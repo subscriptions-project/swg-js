@@ -18,7 +18,7 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {feArgs, feUrl} from './services';
-
+import {Toast} from '../ui/toast';
 
 /**
  * The class for Offers flow.
@@ -60,6 +60,7 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
+    return new Toast(this.deps_, {'source': 'google'}).open();
     // If result is due to OfferSelection, redirect to payments.
     this.activityIframeView_.onMessage(result => {
       if (result['alreadySubscribed']) {

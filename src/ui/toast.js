@@ -81,18 +81,22 @@ export class Toast {
     setImportantStyles(this.iframe_, toastImportantStyles);
     setStyles(this.iframe_, topFriendlyIframePositionStyles);
 
-            /** @private @const {!Promise} */
+    /** @private @const {!Promise} */
     this.ready_ = new Promise(resolve => {
       this.iframe_.onload = resolve;
     });
   }
 
+
+  /**
+   * Returns the iframe element.
+   * @return {!HTMLIFrameElement}
+   */
   getElement() {
     return this.iframe;
   }
 
   /**
-   * When promise is resolved.
    * @return {!Promise}
    */
   whenReady() {
@@ -117,15 +121,13 @@ export class Toast {
         this.iframe_, feUrl('/toastiframe'),
         feArgs({
           'publicationId': this.deps_.pageConfig().getPublicationId(),
-          'showNative': this.deps_.callbacks().hasSubscribeRequestCallback(),
           'source': this.args_.source,
-        })).then(port => {
+        })).then(() => {
           resetStyles(this.iframe_, ['height']);
           setImportantStyles(this.iframe_, {
-            'animation': 'swg-notify 1s ease-out normal backwards, '
-                  + 'swg-notify-hide 1s ease-out 7s normal forwards',
+            'animation': 'swg-notify .5s ease-out normal backwards, '
+                  + 'swg-notify-hide .5s ease-out 7s normal forwards',
           });
-          return port.acceptResult();
         });
   }
 
