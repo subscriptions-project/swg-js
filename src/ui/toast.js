@@ -93,7 +93,7 @@ export class Toast {
    * @return {!HTMLIFrameElement}
    */
   getElement() {
-    return this.iframe;
+    return this.iframe_;
   }
 
   /**
