@@ -1,0 +1,31 @@
+language: node_js
+sudo: required  # See http://docs.travis-ci.com/user/trusty-ci-environment/
+dist: trusty
+node_js:
+  - "6"
+python:
+  - "2.7"
+before_install:
+  - export CHROME_BIN=google-chrome
+  - export DISPLAY=:99.0
+  - unset _JAVA_OPTIONS  # JVM heap sizes break closure compiler. #11203.
+  - sh -e /etc/init.d/xvfb start
+  - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+  - sudo dpkg -i google-chrome*.deb
+before_script:
+  - export PATH="`pwd`/node_modules/.bin:$PATH"
+script: gulp presubmit
+branches:
+  only:
+    - master
+matrix:
+  include:
+    - env: BUILD_SHARD="unit_tests"
+      addons:
+        hosts:
+          - pub.localhost
+          - sp.localhost
+-cache:
+  directories:
+  - node_modules
+  bundler: true
