@@ -15,6 +15,7 @@
  */
 
 import {
+  addQueryParam,
   getHostUrl,
   parseUrl,
   parseQueryString,
@@ -219,5 +220,43 @@ describe('parseUrl', () => {
         .to.equal('https://example.com/abc');
     expect(getHostUrl('https://example.com/'))
         .to.equal('https://example.com/');
+  });
+});
+
+describe('addQueryParam', () => {
+  it('should add on a simple url', () => {
+    expect(addQueryParam('https://example.org/file', 'a', 'b'))
+        .to.equal('https://example.org/file?a=b');
+    expect(addQueryParam('https://example.org/', 'a', 'b'))
+        .to.equal('https://example.org/?a=b');
+    expect(addQueryParam('https://example.org', 'a', 'b'))
+        .to.equal('https://example.org?a=b');
+    expect(addQueryParam('/file', 'a', 'b'))
+        .to.equal('/file?a=b');
+    expect(addQueryParam('file', 'a', 'b'))
+        .to.equal('file?a=b');
+  });
+
+  it('should add on a empty url', () => {
+    expect(addQueryParam('', 'a', 'b'))
+        .to.equal('?a=b');
+  });
+
+  it('should add with existing query', () => {
+    expect(addQueryParam('file?', 'a', 'b'))
+        .to.equal('file?a=b');
+    expect(addQueryParam('file?d=e', 'a', 'b'))
+        .to.equal('file?d=e&a=b');
+  });
+
+  it('should add with existing fragment', () => {
+    expect(addQueryParam('file#', 'a', 'b'))
+        .to.equal('file?a=b#');
+    expect(addQueryParam('file#f', 'a', 'b'))
+        .to.equal('file?a=b#f');
+    expect(addQueryParam('file?#f', 'a', 'b'))
+        .to.equal('file?a=b#f');
+    expect(addQueryParam('file?d=e#f', 'a', 'b'))
+        .to.equal('file?d=e&a=b#f');
   });
 });

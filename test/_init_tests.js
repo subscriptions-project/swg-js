@@ -18,6 +18,7 @@
 import '../third_party/babel/custom-babel-helpers';
 import '../src/polyfills';
 import * as describes from '../test/describes';
+import {CACHE_KEYS} from '../src/runtime/services';
 import {installYieldIt} from '../test/yield';
 import stringify from 'json-stable-stringify';
 
@@ -48,6 +49,7 @@ sinon.sandbox.create = function(config) {
 beforeEach(function() {
   this.timeout(5000);
   window.TEST = true;
+  CACHE_KEYS['$frontendCache$'] = 0;
 });
 
 // Global cleanup of tags added during tests. Cool to add more
