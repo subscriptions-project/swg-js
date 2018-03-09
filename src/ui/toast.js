@@ -54,7 +54,7 @@ export class Toast {
 
   /**
    * @param {!../runtime/deps.DepsDef} deps
-   * @param {{'source': string}} args
+   * @param {!Object<string, ?>} args
    */
   constructor(deps, args) {
 
@@ -70,8 +70,17 @@ export class Toast {
     /** @private @const {!../runtime/deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {{'source': string}} */
-    this.args_ = args;
+    /** @private @const {string} */
+    this.src_ = feUrl('/toastiframe');
+
+    /** @private @const {string} */
+    this.publicationId_ = this.deps_.pageConfig().getPublicationId();
+
+
+    /** @private @const {!Object<string, ?>} */
+    this.args_ =
+        feArgs(Object.assign({'publicationId': this.publicationId_}, args));
+
 
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ =
@@ -111,15 +120,13 @@ export class Toast {
    */
   buildToast_() {
     return this.activityPorts_.openIframe(
-        this.iframe_, feUrl('/toastiframe'),
-        feArgs({
-          'publicationId': this.deps_.pageConfig().getPublicationId(),
-          'source': this.args_.source,
-        })).then(() => {
+        this.iframe_, this.src_, this.args_).then(port => {
+          return port.whenReady();
+        }).then(() => {
           resetStyles(this.iframe_, ['height']);
           setImportantStyles(this.iframe_, {
-            'animation': 'swg-notify .5s ease-out normal backwards, '
-                  + 'swg-notify-hide .5s ease-out 7s normal forwards',
+            'animation': 'swg-notify .3s ease-out normal backwards, '
+                  + 'swg-notify-hide .3s ease-out 7s normal forwards',
           });
         });
   }
