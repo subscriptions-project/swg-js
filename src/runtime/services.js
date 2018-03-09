@@ -53,9 +53,8 @@ export function serviceUrl(url) {
  * @return {string} The complete URL.
  */
 export function feUrl(url, prefix = '') {
-  // TODO(dvoytenko): switch to "/swg/_/ui/v1" URLs.
   return addQueryParam(
-      '$frontend$' + prefix + '/swglib' + url,
+      '$frontend$' + prefix + '/swg/_/ui/v1' + url,
       '_', cacheParam('$frontendCache$'));
 }
 
