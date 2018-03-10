@@ -15,78 +15,67 @@
  */
 
 import {Toast} from './toast';
-import {
-  getStyle,
-  googleFontsUrl,
-} from '../utils/style';
+import {ActivityPort} from 'web-activities/activity-ports';
+import {ConfiguredRuntime} from '../runtime/runtime';
+import {PageConfig} from '../model/page-config';
+import {getStyle} from '../utils/style';
+import * as sinon from 'sinon';
+
+const src = '$frontend$/swglib/toastiframe?_=_';
+
+const args = {
+  _client: 'SwG $internalRuntimeVersion$',
+  publicationId: 'pub1',
+  source: 'google',
+};
 
 describes.realWin('Toast', {}, env => {
   let win;
-  let spec;
+  let runtime;
+  let activitiesMock;
+  let pageConfig;
+  let port;
   let toast;
 
   beforeEach(() => {
     win = env.win;
-    spec = {
-      text: 'Access via Google Subscriptions',
-      action: {
-        label: 'Details',
-        handler: function() {
-          return true;
-        },
-      },
-    };
-    toast = new Toast(win, spec);
+    pageConfig = new PageConfig('pub1:label1');
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    activitiesMock = sandbox.mock(runtime.activities());
+    toast = new Toast(runtime, src, args);
+    toast.whenReady = () => Promise.resolve();
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
   });
 
-  // TODO(dparikh): too flaky with fetch. Cool idea. Maybe setup in integration
-  // tests somehow? But it also depends if we are going to have any fonts
-  // left here?
-  it.skip('should have valid https Url and fetch the fonts', function* () {
-    const response = yield fetch(googleFontsUrl);
-    expect(/^https:/.test(googleFontsUrl)).to.be.true;
-    expect(response.ok).to.be.true;
-    expect(response.status).to.equal(200);
-  });
-
-  it('should have created Notification View', function* () {
+  it('should have created Notification View', function() {
     const iframe = toast.getElement();
-    expect(iframe.nodeType).to.equal(1);
-    expect(iframe.nodeName).to.equal('IFRAME');
+    toast.whenReady().then(() => {
+      expect(iframe.nodeType).to.equal(1);
+      expect(iframe.nodeName).to.equal('IFRAME');
 
-    expect(getStyle(iframe, 'opacity')).to.equal('1');
-    expect(getStyle(iframe, 'font-family'))
-        .to.equal('"Google sans", sans-serif');
-    expect(getStyle(iframe, 'bottom')).to.equal('0px');
-    expect(getStyle(iframe, 'display')).to.equal('block');
+      expect(getStyle(iframe, 'opacity')).to.equal('1');
+      expect(getStyle(iframe, 'bottom')).to.equal('0px');
+      expect(getStyle(iframe, 'display')).to.equal('block');
 
     // These two properties are not set !important.
-    expect(getStyle(iframe, 'width')).to.equal('100%');
-    expect(getStyle(iframe, 'left')).to.equal('0px');
+      expect(getStyle(iframe, 'width')).to.equal('100%');
+      expect(getStyle(iframe, 'left')).to.equal('0px');
+    });
   });
 
   it('should build the content of toast iframe', function* () {
-    yield toast.open();
-    const toastContainer = toast.getIframe().getBody()
-        .querySelector('div[class="swg-toast-container"]');
-    expect(toastContainer.getAttribute('class'))
-        .to.equal('swg-toast-container');
-
-    expect(win.getComputedStyle(toastContainer).getPropertyValue('display'))
-        .to.equal('flex');
-
-    // Should have 'text' and 'action' items.
-    expect(toastContainer.children.length).to.equal(2);
-
-    const label = toastContainer.children[0];
-    expect(label.getAttribute('class')).to.equal('swg-label');
-    expect(label.textContent).to.equal(spec.text);
-
-    const detail = toastContainer.children[1];
-    expect(win.getComputedStyle(detail).getPropertyValue('color'))
-        .to.equal('rgb(0, 255, 0)');
-    expect(detail.getAttribute('class')).to.equal('swg-detail');
-    expect(detail.getAttribute('aria-label')).to.equal(spec.action.label);
-    expect(detail.textContent).to.equal(spec.action.label);
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swglib/toastiframe',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          source: 'google',
+        })
+        .returns(Promise.resolve(port));
+    return toast.open();
   });
 });

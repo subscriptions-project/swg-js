@@ -18,6 +18,7 @@ import {Entitlement, Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
+import {feArgs, feUrl} from '../runtime/services';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -39,6 +40,9 @@ export class EntitlementsManager {
 
     /** @private @const {!../model/page-config.PageConfig} */
     this.config_ = config;
+
+    /** @private @const {string} */
+    this.publicationId_ = this.config_.getPublicationId();
 
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
@@ -183,20 +187,12 @@ export class EntitlementsManager {
    * @private
    */
   showToast_(entitlement) {
-    const toast = new Toast(this.win_, {
-      text:
-          (entitlement.source || 'google') == 'google' ?
-          'Access via Google Subscriptions' :
-          // TODO(dvoytenko): display name instead.
-          'Access via [' + entitlement.source + ']',
-      action: {
-        label: 'View',
-        handler: function() {
-          // TODO(dparikh): Implementation.
-        },
-      },
-    });
-    toast.open();
+    const source = entitlement.source || 'google';
+
+    return new Toast(this.deps_, feUrl('/toastiframe'), feArgs({
+      'publicationId': this.publicationId_,
+      'source': source,
+    })).open();
   }
 
   /**
@@ -206,7 +202,7 @@ export class EntitlementsManager {
   fetch_() {
     const url = serviceUrl(
         '/publication/' +
-        encodeURIComponent(this.config_.getPublicationId()) +
+        encodeURIComponent(this.publicationId_) +
         '/entitlements');
     return this.fetcher_.fetchCredentialedJson(url).then(json => {
       const signedData = json['signedEntitlements'];

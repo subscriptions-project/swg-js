@@ -24,7 +24,6 @@ import {Storage} from './storage';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 
-
 describes.realWin('EntitlementsManager', {}, env => {
   let win;
   let config;
@@ -42,6 +41,7 @@ describes.realWin('EntitlementsManager', {}, env => {
     xhrMock = sandbox.mock(fetcher.xhr_);
 
     const deps = new DepsDef();
+    sandbox.stub(deps, 'win', () => win);
     callbacks = new Callbacks();
     sandbox.stub(deps, 'callbacks', () => callbacks);
     const storage = new Storage(win);
@@ -330,7 +330,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       }).then(entitlements => {
         expect(entitlements.getEntitlementForThis().source).to.equal('google');
         expect(toastOpenStub).to.be.calledOnce;
-        expect(toast.spec_.text).to.contain('Google');
+        expect(toast.args_.source).to.equal('google');
       });
     });
 
@@ -351,7 +351,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       }).then(entitlements => {
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
         expect(toastOpenStub).to.be.calledOnce;
-        expect(toast.spec_.text).to.contain('pub1');
+        expect(toast.args_.source).to.equal('pub1');
       });
     });
 
