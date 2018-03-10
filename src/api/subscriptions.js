@@ -73,6 +73,11 @@ export class Subscriptions {
   showSubscribeOption() {}
 
   /**
+   * Show abbreviated offers.
+   */
+  showAbbrvOffer() {}
+
+  /**
    * Set the callback for the native subscribe request. Setting this callback
    * triggers the "native" option in the offers flow.
    * @param {function()} callback
