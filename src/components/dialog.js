@@ -458,7 +458,7 @@ export class Dialog {
       'right': 0,
       'bottom': 0,
       'left': 0,
-      'background-color': 'rgba(0, 0, 0, .4)',
+      'background-color': 'rgba(32, 33, 36, .6)',
       'z-index': 2147483646,  /** 1 less than SwG dialog */
     });
     this.doc_.body.appendChild(this.fadeBackground_);
