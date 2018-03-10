@@ -41,6 +41,9 @@ export class EntitlementsManager {
     /** @private @const {!../model/page-config.PageConfig} */
     this.config_ = config;
 
+    /** @private @const {string} */
+    this.publicationId_ = this.config_.getPublicationId();
+
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
 
