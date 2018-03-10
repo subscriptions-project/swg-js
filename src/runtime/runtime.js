@@ -252,6 +252,12 @@ export class Runtime {
   }
 
   /** @override */
+  showAbbrvOffer() {
+    return this.configured_(true)
+        .then(runtime => runtime.showAbbrvOffer());
+  }
+	
+  /** @override */
   setOnNativeSubscribeRequest(callback) {
     return this.configured_(false)
         .then(runtime => runtime.setOnNativeSubscribeRequest(callback));
@@ -422,6 +428,14 @@ export class ConfiguredRuntime {
       const flow = new SubscribeOptionFlow(this);
       return flow.start();
     });
+  }
+
+  /** override */
+  showAbbrvOffer() {
+     return this.documentParsed_.then(() => {
+       const flow = new AbbrvOfferFlow(this);
+       return flow.start();
+     });
   }
 
   /** @override */

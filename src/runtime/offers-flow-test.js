@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from 'web-activities/activity-ports';
+import {
+  ActivityPort,
+  ActivityResult,
+  ActivityResultCode} from 'web-activities/activity-ports';
+import {
+  acceptPortResult,
+} from './../utils/activity-utils';
 import {ConfiguredRuntime} from './runtime';
 import {
   OffersFlow,
   SubscribeOptionFlow,
+  AbbrvOfferFlow,
 } from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
@@ -193,3 +200,112 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     });
   });
 });
+
+describes.realWin('Abbrv Offer flow', {}, env => {
+  let win;
+  let runtime;
+  let activitiesMock;
+  let callbacksMock;
+  let pageConfig;
+  let abbrvOfferFlow;
+  let port;
+
+  beforeEach(() => {
+    win = env.win;
+    pageConfig = new PageConfig('pub1:label1');
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    activitiesMock = sandbox.mock(runtime.activities());
+    callbacksMock = sandbox.mock(runtime.callbacks());
+    abbrvOfferFlow = new AbbrvOfferFlow(runtime);
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.onMessage = () => {};
+    port.acceptResult = () => Promise.resolve();
+    port.whenReady = () => Promise.resolve();
+
+  });
+
+  afterEach(() => {
+    activitiesMock.verify();
+    callbacksMock.verify();
+  });
+
+  it('should have valid AbbrvOfferFlow constructed', () => {
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+        })
+        .returns(Promise.resolve(port));
+    return abbrvOfferFlow.start();
+  });
+
+  it('should trigger login flow for a subscribed user', () => {
+    let messageCallback;
+    sandbox.stub(port, 'onMessage', callback => {
+      messageCallback = callback;
+    });
+    const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    return abbrvOfferFlow.start().then(() => {
+      messageCallback({'alreadySubscribed': true, 'loggedIn': false});
+      expect(loginStub).to.be.calledOnce;
+    });
+    loginStub.restore();
+  });
+
+  it('should not trigger login flow for subscibed logged in user', () => {
+    let messageCallback;
+    sandbox.stub(port, 'onMessage', callback => {
+      messageCallback = callback;
+    });
+    const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    return abbrvOfferFlow.start().then(() => {
+      messageCallback({'alreadySubscribed': true, 'loggedIn': true});
+      expect(loginStub).to.not.be.called;
+    });
+    loginStub.restore();
+  });
+
+  it('should trigger offers flow when requested', () => {
+    const offersStartStub = sandbox.stub(OffersFlow.prototype, 'start');
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    expect(offersStartStub).to.not.be.called;
+    const result = new ActivityResult('OK', {'viewOffers': true},
+        'MODE', 'https://example.com', true, true);
+    result.data = {'viewOffers': true};
+    const resultPromise = Promise.resolve(result);
+    sandbox.stub(port, 'acceptResult', () => resultPromise);
+    return abbrvOfferFlow.start().then(() => {
+      return resultPromise.then(() => {
+        expect(offersStartStub).to.be.calledOnce;
+      });
+    });
+    offersStartStub.restore();
+  });
+
+  it('should not trigger offers flow when cancelled', () => {
+    const offersStartStub = sandbox.stub(OffersFlow.prototype, 'start');
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    expect(offersStartStub).to.not.be.called;
+    const error = new Error();
+    error.name = 'AbortError';
+    sandbox.stub(port, 'acceptResult', () => {
+      return Promise.reject(error);
+    });
+    return abbrvOfferFlow.start().then(() => {
+      return acceptPortResult(port, 'https://example.com', true, true).then(() => {
+        throw new Error('must have failed');
+      }, reason => {
+        expect(reason.name).to.equal('AbortError');
+      });
+      expect(offersStartStub).to.not.be.called;
+    });
+    offersStartStub.restore();
+  });
+});
+
