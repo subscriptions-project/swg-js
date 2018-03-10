@@ -46,7 +46,8 @@ const rootElementImportantStyles = {
   'background-color': 'rgb(255, 255, 255)',
   'position': 'fixed',
   'z-index': '2147483647',
-  'box-shadow': 'gray 0px 3px, gray 0px 0px 22px',
+  'box-shadow':
+      'rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px',
   'box-sizing': 'border-box',
 };
 

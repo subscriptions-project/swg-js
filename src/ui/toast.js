@@ -67,9 +67,6 @@ export class Toast {
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
-    /** @private @const {!../runtime/deps.DepsDef} */
-    this.deps_ = deps;
-
     /** @private @const {string} */
     this.src_ = src;
 
@@ -90,7 +87,6 @@ export class Toast {
     });
   }
 
-
   /**
    * Returns the iframe element.
    * @return {!HTMLIFrameElement}
@@ -105,7 +101,6 @@ export class Toast {
    */
   open() {
     this.doc_.body.appendChild(this.iframe_);  // Fires onload.
-
     return this.buildToast_();
   }
 
@@ -113,6 +108,7 @@ export class Toast {
    * Builds the content of the iframe. On load, animates the toast.
    */
   buildToast_() {
+    const toastDurationSeconds = 7;
     return this.activityPorts_.openIframe(
         this.iframe_, this.src_, this.args_).then(port => {
           return port.whenReady();
@@ -120,8 +116,12 @@ export class Toast {
           resetStyles(this.iframe_, ['height']);
           setImportantStyles(this.iframe_, {
             'animation': 'swg-notify .3s ease-out normal backwards, '
-                  + 'swg-notify-hide .3s ease-out 7s normal forwards',
+                  + 'swg-notify-hide .3s ease-out ' + toastDurationSeconds +
+                  's normal forwards',
           });
+          this.win_.setTimeout(() => {
+            this.close();
+          }, (toastDurationSeconds + 1) * 1000);
         });
   }
 

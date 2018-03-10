@@ -61,15 +61,6 @@ export class EntitlementsManager {
 
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
-
-    /** @private @const {string} */
-    this.toastSrc_ = feUrl('/toastiframe');
-
-    /** @private @const {string} */
-    this.publicationId_ = this.deps_.pageConfig().getPublicationId();
-
-    /** @private @const {!Object<string, ?>} */
-    this.toastArgs_ = feArgs({'publicationId': this.publicationId_});
   }
 
   /**
@@ -194,8 +185,11 @@ export class EntitlementsManager {
    */
   showToast_(entitlement) {
     const source = entitlement.source || 'google';
-    const args = Object.assign(this.toastArgs_, {'source': source});
-    return new Toast(this.deps_, this.toastSrc_, args).open();
+
+    return new Toast(this.deps_, feUrl('/toastiframe'), feArgs({
+      'publicationId': this.publicationId_,
+      'source': source,
+    })).open();
   }
 
   /**
