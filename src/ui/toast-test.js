@@ -69,7 +69,7 @@ describes.realWin('Toast', {}, env => {
   it('should build the content of toast iframe', function* () {
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swglib/toastiframe',
+        '$frontend$/swglib/toastiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
