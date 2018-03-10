@@ -46,7 +46,8 @@ const rootElementImportantStyles = {
   'background-color': 'rgb(255, 255, 255)',
   'position': 'fixed',
   'z-index': '2147483647',
-  'box-shadow': 'gray 0px 3px, gray 0px 0px 22px',
+  'box-shadow':
+      'rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px',
   'box-sizing': 'border-box',
 };
 
@@ -457,7 +458,7 @@ export class Dialog {
       'right': 0,
       'bottom': 0,
       'left': 0,
-      'background-color': 'rgba(0, 0, 0, .4)',
+      'background-color': 'rgba(32, 33, 36, .6)',
       'z-index': 2147483646,  /** 1 less than SwG dialog */
     });
     this.doc_.body.appendChild(this.fadeBackground_);
