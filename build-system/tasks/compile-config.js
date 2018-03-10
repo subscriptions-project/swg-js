@@ -18,7 +18,7 @@
 const argv = require('minimist')(process.argv.slice(2));
 const internalRuntimeVersion = require('./internal-version').VERSION;
 
-const FRONTEND = 'https://subscribe.sandbox.google.com';
+const FRONTEND = 'https://subscribe-autopush.sandbox.google.com';
 const FRONTEND_CACHE = 'nocache';
 const PAY_ENVIRONMENT = '';
 const PLAY_ENVIRONMENT = '';
