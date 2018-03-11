@@ -46,85 +46,85 @@ body {
   height: 36px;
   -webkit-animation: mspin-medium-film 5332ms infinite steps(324);
   -moz-animation: mspin-medium-film 5332ms infinite steps(324);
-  animation: mspin-medium-film 5332ms infinite steps(324)
+  animation: mspin-medium-film 5332ms infinite steps(324);
 }
 
 @-webkit-keyframes mspin-medium-film {
   from {
-    -webkit-transform: translateX(0)
+    -webkit-transform: translateX(0);
   }
   to {
-    -webkit-transform: translateX(-11664px)
+    -webkit-transform: translateX(-11664px);
   }
 }
 
 @-webkit-keyframes mspin-rotate {
   from {
-    -webkit-transform: rotate(0deg)
+    -webkit-transform: rotate(0deg);
   }
   to {
-    -webkit-transform: rotate(360deg)
+    -webkit-transform: rotate(360deg);
   }
 }
 
 @-webkit-keyframes mspin-revrot {
   from {
-    -webkit-transform: rotate(0deg)
+    -webkit-transform: rotate(0deg);
   }
   to {
-    -webkit-transform: rotate(-360deg)
+    -webkit-transform: rotate(-360deg);
   }
 }
 
 @-moz-keyframes mspin-medium-film {
   from {
-    -moz-transform: translateX(0)
+    -moz-transform: translateX(0);
   } to {
-    -moz-transform: translateX(-11664px)
+    -moz-transform: translateX(-11664px);
   }
 }
 
 @-moz-keyframes mspin-rotate {
   from {
-    -moz-transform: rotate(0deg)
+    -moz-transform: rotate(0deg);
   }
   to {
-    -moz-transform: rotate(360deg)
+    -moz-transform: rotate(360deg);
   }
 }
 
 @-moz-keyframes mspin-revrot {
   from {
-    -moz-transform: rotate(0deg)
+    -moz-transform: rotate(0deg);
   }
   to {
-    -moz-transform: rotate(-360deg)
+    -moz-transform: rotate(-360deg);
   }
 }
 
 @keyframes mspin-medium-film {
   from {
-    transform: translateX(0)
+    transform: translateX(0);
   }
   to {
-    transform: translateX(-11664px)
+    transform: translateX(-11664px);
   }
 }
 
 @keyframes mspin-rotate {
   from {
-    transform: rotate(0deg)
+    transform: rotate(0deg);
   }
   to {
-    transform: rotate(360deg)
+    transform: rotate(360deg);
   }
 }
 
 @keyframes mspin-revrot {
   from {
-    transform: rotate(0deg)
+    transform: rotate(0deg);
   }
   to {
-    transform: rotate(-360deg)
+    transform: rotate(-360deg);
   }
 }
