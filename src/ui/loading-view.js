@@ -34,7 +34,7 @@ export class LoadingView {
 
     /** @private @const {!Element} */
     this.loadingContainer_ = createElement(this.doc_, 'div', {
-      'class': 'swg-loading',
+      'class': 'mspin-medium',
     });
 
     this.loadingContainer_.style.setProperty('display', 'none', 'important');
@@ -66,20 +66,17 @@ export class LoadingView {
   }
 
   /*
-   * Populates the loading indivicator view with children. The populated element
+   * Populates the loading indivicator. The populated element
    * can be added in any view, when required.
    * @private
    */
   buildLoadingIndicator_() {
     const loadingContainer = this.loadingContainer_;
 
-    // Add 4 vertical bars animated at different speed, as defined in the
-    // style.
-    for (let i = 0; i < 4; i++) {
-      const loadingBar = createElement(this.doc_, 'div', {
-        'class': 'swg-loading-bar',
-      });
-      loadingContainer.appendChild(loadingBar);
-    }
+    const loadingIndicatorTopContainer = createElement(this.doc_, 'div', {});
+    loadingContainer.appendChild(loadingIndicatorTopContainer);
+
+    const loadingIndicatorChildContainer = createElement(this.doc_, 'div', {});
+    loadingIndicatorTopContainer.appendChild(loadingIndicatorChildContainer);
   }
 }
