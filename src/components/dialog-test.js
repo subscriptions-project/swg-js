@@ -224,7 +224,7 @@ describes.realWin('Dialog', {}, env => {
       const loadingView = iframeDoc.querySelector('.swg-loading');
       expect(loadingView.nodeName).to.equal('DIV');
 
-      expect(loadingView.children.length).to.equal(4);
+      expect(loadingView.children.length).to.equal(1);
     });
   });
 });

@@ -15,37 +15,37 @@
  */
 'use strict';
 
-var gulp = require('gulp-help')(require('gulp'));
-var path = require('path');
-var srcGlobs = require('../config').presubmitGlobs;
-var util = require('gulp-util');
-var through2 = require('through2');
+const gulp = require('gulp-help')(require('gulp'));
+const path = require('path');
+const srcGlobs = require('../config').presubmitGlobs;
+const util = require('gulp-util');
+const through2 = require('through2');
 
-var dedicatedCopyrightNoteSources = /(\.js|\.css|\.go)$/;
+const dedicatedCopyrightNoteSources = /(\.js|\.css|\.go)$/;
 
-var es6polyfill = 'Not available because we do not currently' +
+const es6polyfill = 'Not available because we do not currently' +
     ' ship with a needed ES6 polyfill.';
 
-var requiresReviewPrivacy =
+const requiresReviewPrivacy =
     'Usage of this API requires dedicated review due to ' +
     'being privacy sensitive. Please file an issue asking for permission' +
     ' to use if you have not yet done so.';
 
-var privateServiceFactory = 'This service should only be installed in ' +
+const privateServiceFactory = 'This service should only be installed in ' +
     'the whitelisted files. Other modules should use a public function ' +
     'typically called serviceNameFor.';
 
-var shouldNeverBeUsed =
+const shouldNeverBeUsed =
     'Usage of this API is not allowed - only for internal purposes.';
 
-var backwardCompat = 'This method must not be called. It is only retained ' +
+const backwardCompat = 'This method must not be called. It is only retained ' +
     'for backward compatibility during rollout.';
 
-var realiasGetMode = 'Do not re-alias getMode or its return so it can be ' +
+const realiasGetMode = 'Do not re-alias getMode or its return so it can be ' +
     'DCE\'d. Use explicitly like "getMode().localDev" instead.';
 
 // Terms that must not appear in our source files.
-var forbiddenTerms = {
+const forbiddenTerms = {
   'DO NOT SUBMIT': '',
   'describe\\.only': '',
   'describes.*\\.only': '',
@@ -82,12 +82,12 @@ var forbiddenTerms = {
   '\\.prefetch\\(': {
     message: 'Do not use preconnect.prefetch, use preconnect.preload instead.',
   },
- 'cookie\\W': {
+  'cookie\\W': {
     message: requiresReviewPrivacy,
     whitelist: [
-      "examples/sample-pub/sample-pub-app.js",
-      "examples/sample-pub/service/sample-pub-oauth-app.js",
-      "examples/sample-pub/service/authorization-app.js",
+      'examples/sample-pub/sample-pub-app.js',
+      'examples/sample-pub/service/sample-pub-oauth-app.js',
+      'examples/sample-pub/service/authorization-app.js',
     ],
   },
   'getCookie\\W': {
@@ -130,17 +130,17 @@ var forbiddenTerms = {
     whitelist: [
     ],
   },
-  'data:image/svg(?!\\+xml;charset=utf-8,)[^,]*,': {
+  'data:image/svg(?!\\+xml;charset=utf-8,)[^,|;]*,': {
     message: 'SVG data images must use charset=utf-8: ' +
         '"data:image/svg+xml;charset=utf-8,..."',
   },
   '(AMP|Amp|amp-|\\Wamp\\W)': 'Illegal AMP dependency',
 };
 
-var bannedTermsHelpString = 'Please review viewport service for helper ' +
-    'methods or mark with `/*OK*/` or `/*REVIEW*/` and consult the Subscribe with Google team. ' +
-    'Most of the forbidden property/method access banned on the ' +
-    '`forbiddenTermsSrcInclusive` object can be found in ' +
+const bannedTermsHelpString = 'Please review viewport service for helper ' +
+    'methods or mark with `/*OK*/` or `/*REVIEW*/` and consult the Subscribe' +
+    'with Google team. Most of the forbidden property/method access banned ' +
+    'on the `forbiddenTermsSrcInclusive` object can be found in ' +
     '[What forces layout / reflow gist by Paul Irish]' +
     '(https://gist.github.com/paulirish/5d52fb081b3570c81e3a). ' +
     'These properties/methods when read/used require the browser ' +
@@ -151,7 +151,7 @@ var bannedTermsHelpString = 'Please review viewport service for helper ' +
     'forbidden property/method or mark it with `object./*REVIEW*/property` ' +
     'if you are unsure and so that it stands out in code reviews.';
 
-var forbiddenTermsSrcInclusive = {
+const forbiddenTermsSrcInclusive = {
   '\\.innerHTML(?!_)': bannedTermsHelpString,
   '\\.outerHTML(?!_)': bannedTermsHelpString,
   '\\.innerText(?!_)': bannedTermsHelpString,
@@ -173,7 +173,7 @@ var forbiddenTermsSrcInclusive = {
     message: 'TextEncoder/TextDecoder is not supported in all browsers.' +
         'Please use UTF8 utilities from src/bytes.js',
     whitelist: [
-      'src/utils/bytes.js'
+      'src/utils/bytes.js',
     ],
   },
   'reject\\(\\)': {
@@ -201,7 +201,7 @@ var forbiddenTermsSrcInclusive = {
 };
 
 // Terms that must appear in a source file.
-var requiredTerms = {
+const requiredTerms = {
   'Copyright 20(17|18) The Subscribe with Google Authors\\.':
       dedicatedCopyrightNoteSources,
   'Licensed under the Apache License, Version 2\\.0':
@@ -217,12 +217,12 @@ var requiredTerms = {
  * @return {boolean}
  */
 function isTestFile(file) {
-  var pathname = file.path;
-  var basename = path.basename(pathname);
-  var isTestFile = /^test-/.test(basename) || /^_init_tests/.test(basename)
+  const pathname = file.path;
+  const basename = path.basename(pathname);
+  const isTestFile = /^test-/.test(basename) || /^_init_tests/.test(basename)
       || /-test\.js$/.test(basename);
 
-  var dirs = file.relative.split('/');
+  const dirs = file.relative.split('/');
   return isTestFile || dirs.indexOf('test') >= 0;
 }
 
@@ -230,8 +230,8 @@ function stripComments(contents) {
   // Multi-line comments
   contents = contents.replace(/\/\*(?!.*\*\/)(.|\n)*?\*\//g, function(match) {
     // Preserve the newlines
-    var newlines = [];
-    for (var i = 0; i < match.length; i++) {
+    const newlines = [];
+    for (let i = 0; i < match.length; i++) {
       if (match[i] === '\n') {
         newlines.push('\n');
       }
@@ -255,12 +255,12 @@ function stripComments(contents) {
  *   false otherwise
  */
 function matchTerms(file, terms) {
-  var contents = stripComments(file.contents.toString());
-  var relative = file.relative;
+  const contents = stripComments(file.contents.toString());
+  const relative = file.relative;
   return Object.keys(terms).map(function(term) {
-    var fix;
-    var whitelist = terms[term].whitelist;
-    var checkInTestFolder = terms[term].checkInTestFolder;
+    let fix;
+    const whitelist = terms[term].whitelist;
+    const checkInTestFolder = terms[term].checkInTestFolder;
     // NOTE: we could do a glob test instead of exact check in the future
     // if needed but that might be too permissive.
     if (Array.isArray(whitelist) && (whitelist.indexOf(relative) != -1 ||
@@ -272,12 +272,12 @@ function matchTerms(file, terms) {
     // original term to get the possible fix value. This is ok as the
     // presubmit doesn't have to be blazing fast and this is most likely
     // negligible.
-    var regex = new RegExp(term, 'gm');
-    var index = 0;
-    var line = 1;
-    var column = 0;
-    var match;
-    var hasTerm = false;
+    const regex = new RegExp(term, 'gm');
+    let index = 0;
+    let line = 1;
+    let column = 0;
+    let match;
+    let hasTerm = false;
 
     while ((match = regex.exec(contents))) {
       hasTerm = true;
@@ -321,9 +321,8 @@ function matchTerms(file, terms) {
  *   false otherwise
  */
 function hasAnyTerms(file) {
-  var pathname = file.path;
-  var hasTerms = false;
-  var hasSrcInclusiveTerms = false;
+  let hasTerms = false;
+  let hasSrcInclusiveTerms = false;
 
   hasTerms = matchTerms(file, forbiddenTerms);
   if (!isTestFile(file)) {
@@ -342,14 +341,14 @@ function hasAnyTerms(file) {
  *  content, false otherwise
  */
 function isMissingTerms(file) {
-  var contents = file.contents.toString();
+  const contents = file.contents.toString();
   return Object.keys(requiredTerms).map(function(term) {
-    var filter = requiredTerms[term];
+    const filter = requiredTerms[term];
     if (!filter.test(file.path)) {
       return false;
     }
 
-    var matches = contents.match(new RegExp(term));
+    const matches = contents.match(new RegExp(term));
     if (!matches) {
       util.log(util.colors.red('Did not find required: "' + term +
           '" in ' + file.relative));
@@ -367,30 +366,31 @@ function isMissingTerms(file) {
  * any forbidden terms and log any errors found.
  */
 function checkForbiddenAndRequiredTerms() {
-  var forbiddenFound = false;
-  var missingRequirements = false;
+  let forbiddenFound = false;
+  let missingRequirements = false;
   return gulp.src(srcGlobs)
-    .pipe(through2.obj(function(file, enc, cb) {
-      forbiddenFound = hasAnyTerms(file) || forbiddenFound;
-      missingRequirements = isMissingTerms(file) || missingRequirements;
-      cb();
-    }))
-    .on('end', function() {
-      if (forbiddenFound) {
-        util.log(util.colors.blue(
-            'Please remove these usages or consult with the Subscribe with Google team.'));
-      }
-      if (missingRequirements) {
-        util.log(util.colors.blue(
-            'Adding these terms (e.g. by adding a required LICENSE ' +
+      .pipe(through2.obj(function(file, enc, cb) {
+        forbiddenFound = hasAnyTerms(file) || forbiddenFound;
+        missingRequirements = isMissingTerms(file) || missingRequirements;
+        cb();
+      }))
+      .on('end', function() {
+        if (forbiddenFound) {
+          util.log(util.colors.blue(
+              'Please remove these usages or consult with the Subscribe' +
+              ' with Google team.'));
+        }
+        if (missingRequirements) {
+          util.log(util.colors.blue(
+              'Adding these terms (e.g. by adding a required LICENSE ' +
             'to the file)'));
-      }
-      if (forbiddenFound || missingRequirements) {
-        process.exit(1);
-      }
-    });
+        }
+        if (forbiddenFound || missingRequirements) {
+          process.exit(1);
+        }
+      });
 }
 
 
-gulp.task('check-rules', 'Run validation against files to check for forbidden ' +
-  'and required terms', checkForbiddenAndRequiredTerms);
+gulp.task('check-rules', 'Run validation against files to check for ' +
+  'forbidden and required terms', checkForbiddenAndRequiredTerms);
