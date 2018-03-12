@@ -34,7 +34,7 @@ export class LoadingView {
 
     /** @private @const {!Element} */
     this.loadingContainer_ = createElement(this.doc_, 'div', {
-      'class': 'mspin-medium',
+      'class': 'swg-loading',
     });
 
     this.loadingContainer_.style.setProperty('display', 'none', 'important');
