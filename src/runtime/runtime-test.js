@@ -470,6 +470,13 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should delegate "showAbbrvOffer" ', () => {
+      configuredRuntimeMock.expects('showAbbrvOffer').once();
+      return runtime.showAbbrvOffer().then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
     it('should should delegate "subscribe"', () => {
       configuredRuntimeMock.expects('subscribe')
           .withExactArgs('sku1')

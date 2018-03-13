@@ -29,6 +29,7 @@ import {OffersApi} from './offers-api';
 import {
   OffersFlow,
   SubscribeOptionFlow,
+  AbbrvOfferFlow,
 } from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {
@@ -252,6 +253,12 @@ export class Runtime {
   }
 
   /** @override */
+  showAbbrvOffer() {
+    return this.configured_(true)
+        .then(runtime => runtime.showAbbrvOffer());
+  }
+
+  /** @override */
   setOnNativeSubscribeRequest(callback) {
     return this.configured_(false)
         .then(runtime => runtime.setOnNativeSubscribeRequest(callback));
@@ -424,6 +431,14 @@ export class ConfiguredRuntime {
     });
   }
 
+  /** override */
+  showAbbrvOffer() {
+    return this.documentParsed_.then(() => {
+      const flow = new AbbrvOfferFlow(this);
+      return flow.start();
+    });
+  }
+
   /** @override */
   setOnLoginRequest(callback) {
     this.callbacks_.setOnLoginRequest(callback);
@@ -473,6 +488,7 @@ function createPublicRuntime(runtime) {
     linkAccount: runtime.linkAccount.bind(runtime),
     getOffers: runtime.getOffers.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
+    showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
