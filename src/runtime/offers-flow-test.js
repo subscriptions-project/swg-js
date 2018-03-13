@@ -16,15 +16,16 @@
 
 import {
   ActivityPort,
-  ActivityResult} from 'web-activities/activity-ports';
+  ActivityResult,
+} from 'web-activities/activity-ports';
 import {
   acceptPortResult,
 } from './../utils/activity-utils';
 import {ConfiguredRuntime} from './runtime';
 import {
+  AbbrvOfferFlow,
   OffersFlow,
   SubscribeOptionFlow,
-  AbbrvOfferFlow,
 } from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
@@ -200,7 +201,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
   });
 });
 
-describes.realWin('Abbrv Offer flow', {}, env => {
+describes.realWin('AbbrvOfferFlow', {}, env => {
   let win;
   let runtime;
   let activitiesMock;
@@ -236,13 +237,12 @@ describes.realWin('Abbrv Offer flow', {}, env => {
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
-          productId: 'pub1:label1',
         })
         .returns(Promise.resolve(port));
     return abbrvOfferFlow.start();
   });
 
-  it('should trigger login flow for a subscribed user', () => {
+  it('should trigger login flow for a subscribed user with linking', () => {
     let messageCallback;
     sandbox.stub(port, 'onMessage', callback => {
       messageCallback = callback;
@@ -250,12 +250,13 @@ describes.realWin('Abbrv Offer flow', {}, env => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return abbrvOfferFlow.start().then(() => {
-      messageCallback({'alreadySubscribed': true, 'loggedIn': false});
-      expect(loginStub).to.be.calledOnce;
+      messageCallback({'alreadySubscribed': true, 'linkRequested': true});
+      expect(loginStub).to.be.calledOnce
+          .calledWithExactly({linkRequested: true});
     });
   });
 
-  it('should not trigger login flow for subscibed logged in user', () => {
+  it('should trigger login flow for subscibed user without linking', () => {
     let messageCallback;
     sandbox.stub(port, 'onMessage', callback => {
       messageCallback = callback;
@@ -263,8 +264,9 @@ describes.realWin('Abbrv Offer flow', {}, env => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return abbrvOfferFlow.start().then(() => {
-      messageCallback({'alreadySubscribed': true, 'loggedIn': true});
-      expect(loginStub).to.not.be.called;
+      messageCallback({'alreadySubscribed': true, 'linkRequested': false});
+      expect(loginStub).to.be.calledOnce
+          .calledWithExactly({linkRequested: false});
     });
   });
 
