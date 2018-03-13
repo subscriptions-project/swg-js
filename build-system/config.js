@@ -78,7 +78,6 @@ module.exports = {
     '!eslint-rules/**/*.*',
     '!gulpfile.js',
     '!karma.conf.js',
-    '!src/experimental/**/*.js',
     '!test/coverage/**/*.*',
   ],
   jsonGlobs: [
@@ -94,7 +93,6 @@ module.exports = {
     '!build/polyfills/*.js',
     '!examples/sample-pub/**/*',
     '!gulpfile.js',
-    '!src/experimental/**/*.js',
     '!third_party/**/*.*',
     '!test/coverage/**/*.*',
   ],
