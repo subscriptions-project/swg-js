@@ -162,7 +162,7 @@ export class AbbrvOfferFlow {
     /** @private @const {!HTMLDocument} */
     this.document_ = this.win_.document;
 
-    /** @private @const {!web-activities /activity-ports.ActivityPorts} */
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
@@ -189,15 +189,15 @@ export class AbbrvOfferFlow {
     // If the user is already subscribed, trigger login flow
     this.activityIframeView_.onMessage(data => {
       if (data['alreadySubscribed'] && !data['loggedIn']) {
-        this.deps_.callbacks().triggerLoginRequest();
+        this.deps_.callbacks().triggerLoginRequest({
+          linkRequested: true,
+        });
         return;
       }
       // TODO(sohanirao) : Handle the case when user is logged in
     });
-    console.log('view', this.activityIframeView_);
     // If result is due to requesting offers, redirect to offers flow
     this.activityIframeView_.acceptResult().then(result => {
-      console.log(result);
       if (result.data['viewOffers']) {
         new OffersFlow(this.deps_).start();
       }
