@@ -140,3 +140,66 @@ export class SubscribeOptionFlow {
     }
   }
 }
+
+
+/**
+ * The class for Abbreviated Offer flow.
+ *
+ */
+export class AbbrvOfferFlow {
+
+  /**
+   * @param {!./deps.DepsDef} deps
+   */
+  constructor(deps) {
+
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
+    /** @private @const {!Window} */
+    this.win_ = deps.win();
+
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    this.activityPorts_ = deps.activities();
+
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = deps.dialogManager();
+
+    /** @private @const {!ActivityIframeView} */
+    this.activityIframeView_ = new ActivityIframeView(
+        this.win_,
+        this.activityPorts_,
+        feUrl('/abbrvofferiframe'),
+        feArgs({
+          'publicationId': deps.pageConfig().getPublicationId(),
+        }),
+        /* shouldFadeBody */ true);
+  }
+
+  /**
+   * Starts the offers flow
+   * @return {!Promise}
+   */
+  start() {
+
+    // If the user is already subscribed, trigger login flow
+    this.activityIframeView_.onMessage(data => {
+      if (data['alreadySubscribed']) {
+        this.deps_.callbacks().triggerLoginRequest({
+          linkRequested: !!data['linkRequested'],
+        });
+        return;
+      }
+      // TODO(sohanirao) : Handle the case when user is logged in
+    });
+    // If result is due to requesting offers, redirect to offers flow
+    this.activityIframeView_.acceptResult().then(result => {
+      if (result.data['viewOffers']) {
+        new OffersFlow(this.deps_).start();
+      }
+    });
+
+    return this.dialogManager_.openView(this.activityIframeView_);
+  }
+}
+
