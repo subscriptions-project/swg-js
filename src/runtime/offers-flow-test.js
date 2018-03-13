@@ -16,8 +16,7 @@
 
 import {
   ActivityPort,
-  ActivityResult,
-  ActivityResultCode} from 'web-activities/activity-ports';
+  ActivityResult} from 'web-activities/activity-ports';
 import {
   acceptPortResult,
 } from './../utils/activity-utils';
@@ -254,7 +253,6 @@ describes.realWin('Abbrv Offer flow', {}, env => {
       messageCallback({'alreadySubscribed': true, 'loggedIn': false});
       expect(loginStub).to.be.calledOnce;
     });
-    loginStub.restore();
   });
 
   it('should not trigger login flow for subscibed logged in user', () => {
@@ -268,7 +266,6 @@ describes.realWin('Abbrv Offer flow', {}, env => {
       messageCallback({'alreadySubscribed': true, 'loggedIn': true});
       expect(loginStub).to.not.be.called;
     });
-    loginStub.restore();
   });
 
   it('should trigger offers flow when requested', () => {
@@ -285,7 +282,6 @@ describes.realWin('Abbrv Offer flow', {}, env => {
         expect(offersStartStub).to.be.calledOnce;
       });
     });
-    offersStartStub.restore();
   });
 
   it('should not trigger offers flow when cancelled', () => {
@@ -305,7 +301,6 @@ describes.realWin('Abbrv Offer flow', {}, env => {
       });
       expect(offersStartStub).to.not.be.called;
     });
-    offersStartStub.restore();
   });
 });
 
