@@ -159,9 +159,6 @@ export class AbbrvOfferFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!HTMLDocument} */
-    this.document_ = this.win_.document;
-
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
@@ -174,7 +171,6 @@ export class AbbrvOfferFlow {
         this.activityPorts_,
         feUrl('/abbrvofferiframe'),
         feArgs({
-          'productId': deps.pageConfig().getProductId(),
           'publicationId': deps.pageConfig().getPublicationId(),
         }),
         /* shouldFadeBody */ true);
@@ -188,9 +184,9 @@ export class AbbrvOfferFlow {
 
     // If the user is already subscribed, trigger login flow
     this.activityIframeView_.onMessage(data => {
-      if (data['alreadySubscribed'] && !data['loggedIn']) {
+      if (data['alreadySubscribed']) {
         this.deps_.callbacks().triggerLoginRequest({
-          linkRequested: true,
+          linkRequested: !!data['linkRequested'],
         });
         return;
       }
