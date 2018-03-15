@@ -23,13 +23,31 @@ import {UserData} from '../api/user-data';
 
 
 describes.sandboxed('Entitlements', {}, () => {
+  let ackSpy;
+
+  beforeEach(() => {
+    ackSpy = sandbox.spy();
+  });
 
   it('should return properties', () => {
-    const ents = new Entitlements('service1', 'RaW', [], null);
+    const ents = new Entitlements('service1', 'RaW', [], null, ackSpy);
     expect(ents.service).to.equal('service1');
     expect(ents.raw).to.equal('RaW');
     expect(ents.entitlements).to.deep.equal([]);
     expect(ents.enablesAny()).to.be.false;
+  });
+
+  it('should ack receipt', () => {
+    const ents = new Entitlements('service1', 'RaW', [], null, ackSpy);
+    expect(ackSpy).to.not.be.called;
+    ents.ack();
+    expect(ackSpy).to.be.calledOnce.calledWithExactly(ents);
+
+    const clone = ents.clone();
+    expect(ackSpy).to.be.calledOnce;
+    clone.ack();
+    expect(ackSpy).to.be.calledTwice;
+    expect(ackSpy.args[1][0]).to.equal(clone);
   });
 
   it('should test products', () => {
@@ -37,7 +55,7 @@ describes.sandboxed('Entitlements', {}, () => {
       new Entitlement('', ['product1', 'product2'], 'token1'),
       new Entitlement('', ['product2', 'product3'], 'token2'),
     ];
-    const ents = new Entitlements('service1', 'RaW', list, 'product1');
+    const ents = new Entitlements('service1', 'RaW', list, 'product1', ackSpy);
     expect(ents.enablesAny()).to.be.true;
     expect(ents.enablesThis()).to.be.true;
     expect(ents.enables('product1')).to.be.true;
@@ -56,7 +74,7 @@ describes.sandboxed('Entitlements', {}, () => {
       new Entitlement('source1', ['product1', 'product2'], 'token1'),
       new Entitlement('source2', ['product2', 'product3'], 'token2'),
     ];
-    const ents = new Entitlements('service1', 'RaW', list, 'product1');
+    const ents = new Entitlements('service1', 'RaW', list, 'product1', ackSpy);
     const cloned = ents.clone();
     expect(cloned.raw).to.equal('RaW');
     expect(cloned.json()).to.deep.equal({
@@ -81,7 +99,7 @@ describes.sandboxed('Entitlements', {}, () => {
       new Entitlement('', ['product1', 'product2'], 'token1'),
       new Entitlement('', ['product2', 'product3'], 'token2'),
     ];
-    const ents = new Entitlements('service1', 'RaW', list, null);
+    const ents = new Entitlements('service1', 'RaW', list, null, ackSpy);
     expect(ents.enablesAny()).to.be.true;
     expect(ents.enablesThis()).to.be.false;
   });

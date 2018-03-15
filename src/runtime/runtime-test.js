@@ -662,7 +662,8 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     const entitlements = new Entitlements(
         'service', 'raw',
         [new Entitlement('', ['product1'], 'token1')],
-        'product1');
+        'product1',
+        () => {});
     entitlementsManagerMock.expects('getEntitlements')
         .withExactArgs()
         .returns(Promise.resolve(entitlements))
@@ -772,7 +773,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         runtime.setOnEntitlementsResponse(resolve);
       });
       runtime.callbacks().triggerEntitlementsResponse(
-          Promise.resolve(new Entitlements('', 'RaW', [])));
+          Promise.resolve(new Entitlements('', 'RaW', [], null, () => {})));
       return promise.then(result => {
         expect(result.raw).to.equal('RaW');
       });
