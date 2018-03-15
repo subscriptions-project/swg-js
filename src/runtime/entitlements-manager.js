@@ -168,14 +168,13 @@ export class EntitlementsManager {
     if (!entitlement) {
       return Promise.resolve();
     }
-
+    // Check if storage bit is set. It's only set by the `Entitlements.ack`
+    // method.
     return this.storage_.get(TOAST_STORAGE_KEY).then(value => {
       if (value == '1') {
         // Already shown;
         return;
       }
-
-      this.setToastShown(true);
       if (entitlement) {
         this.showToast_(entitlement);
       }
@@ -188,11 +187,20 @@ export class EntitlementsManager {
    */
   showToast_(entitlement) {
     const source = entitlement.source || 'google';
-
     return new Toast(this.deps_, feUrl('/toastiframe'), feArgs({
       'publicationId': this.publicationId_,
       'source': source,
     })).open();
+  }
+
+  /**
+   * @param {!Entitlements} entitlements
+   * @private
+   */
+  ack_(entitlements) {
+    if (entitlements.getEntitlementForThis()) {
+      this.setToastShown(true);
+    }
   }
 
   /**
@@ -205,6 +213,7 @@ export class EntitlementsManager {
         encodeURIComponent(this.publicationId_) +
         '/entitlements');
     return this.fetcher_.fetchCredentialedJson(url).then(json => {
+      const ackHandler = this.ack_.bind(this);
       const signedData = json['signedEntitlements'];
       if (signedData) {
         const jwt = this.jwtHelper_.decode(signedData);
@@ -214,7 +223,8 @@ export class EntitlementsManager {
               SERVICE_ID,
               signedData,
               Entitlement.parseListFromJson(entitlementsClaim),
-              this.config_.getProductId());
+              this.config_.getProductId(),
+              ackHandler);
         }
       } else {
         const plainEntitlements = json['entitlements'];
@@ -223,11 +233,17 @@ export class EntitlementsManager {
               SERVICE_ID,
               '',
               Entitlement.parseListFromJson(plainEntitlements),
-              this.config_.getProductId());
+              this.config_.getProductId(),
+              ackHandler);
         }
       }
       // Empty response.
-      return new Entitlements(SERVICE_ID, '', [], this.config_.getProductId());
+      return new Entitlements(
+          SERVICE_ID,
+          '',
+          [],
+          this.config_.getProductId(),
+          ackHandler);
     });
   }
 }

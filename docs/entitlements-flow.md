@@ -45,3 +45,17 @@ subscriptions.getEntitlements().then(function(entitlements) {
 });
 ```
 
+## Entitlement acknowledgement
+
+The successful entitlements object should be acknowledge by the publication site to stop it from showing the notification. This is done by calling the `entitlements.ack()` method.
+
+For instance:
+
+```
+subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
+  entitlementsPromise.then(function(entitlements) {
+    // Handle the entitlements.
+    entitlements.ack();
+  });
+})
+```

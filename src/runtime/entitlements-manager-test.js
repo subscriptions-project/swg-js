@@ -53,6 +53,7 @@ describes.realWin('EntitlementsManager', {}, env => {
   });
 
   afterEach(() => {
+    storageMock.verify();
     xhrMock.verify();
     jwtHelperMock.verify();
   });
@@ -294,12 +295,8 @@ describes.realWin('EntitlementsManager', {}, env => {
     });
 
     it('should trigger entitlements event for empty response', () => {
-      expectToastShown('0');
+      storageMock.expects('get').never();
       storageMock.expects('set').never();
-      storageMock.expects('get')
-          .withExactArgs('toast')
-          .returns(Promise.resolve(false))
-          .once();
       expectNoResponse();
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.false;
@@ -315,9 +312,7 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     it('should trigger entitlements event for Google response', () => {
       expectToastShown('0');
-      storageMock.expects('set')
-          .withExactArgs('toast', '1')
-          .once();
+      storageMock.expects('set').never();
       expectGoogleResponse();
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.true;
@@ -331,6 +326,27 @@ describes.realWin('EntitlementsManager', {}, env => {
         expect(entitlements.getEntitlementForThis().source).to.equal('google');
         expect(toastOpenStub).to.be.calledOnce;
         expect(toast.args_.source).to.equal('google');
+      });
+    });
+
+    it('should acknowledge and update the toast bit', () => {
+      expectToastShown('0');
+      storageMock.expects('set')
+          .withExactArgs('toast', '1')
+          .once();
+      expectGoogleResponse();
+      return manager.getEntitlements().then(entitlements => {
+        expect(entitlements.enablesThis()).to.be.true;
+        entitlements.ack();
+      });
+    });
+
+    it('should acknowledge and NOT update the toast bit', () => {
+      storageMock.expects('set').never();
+      expectNoResponse();
+      return manager.getEntitlements().then(entitlements => {
+        expect(entitlements.enablesThis()).to.be.false;
+        entitlements.ack();
       });
     });
 
@@ -349,6 +365,9 @@ describes.realWin('EntitlementsManager', {}, env => {
           callbacks.setOnEntitlementsResponse(resolve);
         });
       }).then(entitlements => {
+        entitlements.ack();
+        return entitlements;
+      }).then(entitlements => {
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
         expect(toastOpenStub).to.be.calledOnce;
         expect(toast.args_.source).to.equal('pub1');
@@ -356,8 +375,6 @@ describes.realWin('EntitlementsManager', {}, env => {
     });
 
     it('should NOT trigger entitlements when notification is blocked', () => {
-      expectToastShown('0');
-      storageMock.expects('set').never();
       expectGoogleResponse();
       manager.blockNextNotification();
       return manager.getEntitlements().then(entitlements => {
