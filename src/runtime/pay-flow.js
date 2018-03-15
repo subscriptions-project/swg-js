@@ -96,7 +96,8 @@ export class PayCompleteFlow {
     deps.activities().onResult(PAY_REQUEST_ID, port => {
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
-      const promise = validatePayResponse(deps.win(), port, flow.complete.bind(flow));
+      const promise = validatePayResponse(
+        deps.win(), port, flow.complete.bind(flow));
       deps.callbacks().triggerSubscribeResponse(promise);
       return promise.then(response => {
         flow.start(response);
@@ -192,7 +193,6 @@ export function validatePayResponse(win, port, completeHandler) {
       /* requireSecureChannel */ false)
       .then(data => {
         if (data['redirectEncryptedCallbackData']) {
-          console.log("data", data);
           const xhr = new Xhr(win);
           const url = getDecryptionUrl(data['environment']);
           const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
@@ -215,7 +215,6 @@ export function validatePayResponse(win, port, completeHandler) {
  * @return {!SubscribeResponse}
  */
 export function parseSubscriptionResponse(data, completeHandler) {
-  console.log("parsed Data", data);
   let swgData = null;
   let raw = null;
   if (data) {

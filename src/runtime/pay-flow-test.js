@@ -288,7 +288,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
     });
 
-    it('should start flow on correct payment response as encrypted object', () => {
+    it('should start flow on correct payment response as encrypted obj', () => {
       const encryptedResponse = {
         redirectEncryptedCallbackData: INTEGR_DATA_STRING,
         environment: 'PRODUCTION',
@@ -297,7 +297,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           encryptedResponse,
           'POPUP', location.origin, true, true);
       const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
-       () => Promise.resolve({json:() => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}))
+        () => Promise.resolve({json:() => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}))
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       PayCompleteFlow.configurePending(runtime);
