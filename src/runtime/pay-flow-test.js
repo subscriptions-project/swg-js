@@ -288,7 +288,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
     });
 
-    it.only('should start flow on correct payment response as encrypted object', () => {
+    it('should start flow on correct payment response as encrypted object', () => {
       const encryptedResponse = {
         redirectEncryptedCallbackData: INTEGR_DATA_STRING,
         environment: 'PRODUCTION',
