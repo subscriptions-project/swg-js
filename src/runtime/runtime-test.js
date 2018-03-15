@@ -619,7 +619,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
   it('should prefetch payments', () => {
     const el = win.document.head.querySelector(
-        'link[rel=prefetch][href*="/pay?"]');
+        'link[rel="preconnect prefetch"][href*="/pay?"]');
     expect(el).to.exist;
     expect(el.getAttribute('href')).to.equal('$frontend$/swg/_/ui/v1/pay?_=_');
   });
