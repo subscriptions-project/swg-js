@@ -617,6 +617,13 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
   }
 
+  it('should prefetch payments', () => {
+    const el = win.document.head.querySelector(
+        'link[rel=prefetch][href*="/pay?"]');
+    expect(el).to.exist;
+    expect(el.getAttribute('href')).to.equal('$frontend$/swg/_/ui/v1/pay?_=_');
+  });
+
   it('should should initialize deps', () => {
     expect(runtime.win()).to.equal(win);
     expect(runtime.pageConfig()).to.equal(config);

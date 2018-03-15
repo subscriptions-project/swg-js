@@ -34,6 +34,13 @@ const PAY_REQUEST_ID = 'swg-pay';
 export class PayStartFlow {
 
   /**
+   * @param {!../utils/preconnect.Preconnect} pre
+   */
+  static preconnect(pre) {
+    pre.prefetch(feUrl('/pay'));
+  }
+
+  /**
    * @param {!./deps.DepsDef} deps
    * @param {string} sku
    */
