@@ -45,7 +45,7 @@ export class Preconnect {
    * @param {string} url
    */
   prefetch(url) {
-    this.pre_(url, 'prefetch');
+    this.pre_(url, 'preconnect prefetch');
   }
 
   /**
@@ -53,7 +53,7 @@ export class Preconnect {
    * @param {string} as
    */
   preload(url, as) {
-    this.pre_(url, 'preload', as);
+    this.pre_(url, 'preconnect preload', as);
   }
 
   /**

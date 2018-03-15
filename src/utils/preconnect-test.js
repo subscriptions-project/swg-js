@@ -29,7 +29,7 @@ describes.realWin('preconnect', {}, env => {
   it('should prefetch a resource', () => {
     preconnect.prefetch('one');
     const elements = doc.head.querySelectorAll(
-        'link[rel=prefetch][href=one]');
+        'link[rel="preconnect prefetch"][href=one]');
     expect(elements.length).to.equal(1);
   });
 
@@ -50,7 +50,7 @@ describes.realWin('preconnect', {}, env => {
   it('should preload a resource', () => {
     preconnect.preload('one', 'image');
     const elements = doc.head.querySelectorAll(
-        'link[rel=preload][href=one][as=image]');
+        'link[rel="preconnect preload"][href=one][as=image]');
     expect(elements.length).to.equal(1);
   });
 });
