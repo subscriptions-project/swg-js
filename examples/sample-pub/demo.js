@@ -51,6 +51,7 @@ class DemoPaywallController {
       if (entitlements && entitlements.enablesThis()) {
         // Entitlements available: open access.
         this.openPaywall_();
+        entitlements.ack();
       } else {
         // In a simplest case, just launch offers flow.
         this.subscriptions.showOffers();

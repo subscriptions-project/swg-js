@@ -25,8 +25,9 @@ export class Entitlements {
    * @param {string} raw
    * @param {!Array<!Entitlement>} entitlements
    * @param {?string} currentProduct
+   * @param {function(!Entitlements)} ackHandler
    */
-  constructor(service, raw, entitlements, currentProduct) {
+  constructor(service, raw, entitlements, currentProduct, ackHandler) {
     /** @const {string} */
     this.service = service;
     /** @const {string} */
@@ -36,6 +37,8 @@ export class Entitlements {
 
     /** @private @const {?string} */
     this.product_ = currentProduct;
+    /** @private @const {function(!Entitlements)} */
+    this.ackHandler_ = ackHandler;
   }
 
   /**
@@ -46,7 +49,8 @@ export class Entitlements {
         this.service,
         this.raw,
         this.entitlements.map(ent => ent.clone()),
-        this.product_);
+        this.product_,
+        this.ackHandler_);
   }
 
   /**
@@ -109,6 +113,14 @@ export class Entitlements {
       }
     }
     return null;
+  }
+
+  /**
+   * A 3p site should call this method to acknowledge that it "saw" and
+   * "understood" entitlements.
+   */
+  ack() {
+    this.ackHandler_(this);
   }
 }
 
