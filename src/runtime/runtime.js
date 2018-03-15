@@ -40,6 +40,7 @@ import {
   PayStartFlow,
   PayCompleteFlow,
 } from './pay-flow';
+import {Preconnect} from '../utils/preconnect';
 import {Storage} from './storage';
 import {Subscriptions} from '../api/subscriptions';
 import {injectStyleSheet} from '../utils/dom';
@@ -341,8 +342,11 @@ export class ConfiguredRuntime {
     /** @private @const {!OffersApi} */
     this.offersApi_ = new OffersApi(this.config_, this.fetcher_);
 
+    const preconnect = new Preconnect(this.win_.document);
+
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
+    PayStartFlow.preconnect(preconnect);
   }
 
   /** @override */

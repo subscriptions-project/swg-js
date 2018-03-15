@@ -79,9 +79,6 @@ const forbiddenTerms = {
       'src/mode.js',
     ],
   },
-  '\\.prefetch\\(': {
-    message: 'Do not use preconnect.prefetch, use preconnect.preload instead.',
-  },
   'cookie\\W': {
     message: requiresReviewPrivacy,
     whitelist: [
