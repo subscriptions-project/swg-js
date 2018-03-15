@@ -27,9 +27,9 @@ export class OffersFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {!../api/subscriptions.OptionsRequest|undefined} options
    */
-  constructor(deps) {
-
+  constructor(deps, options) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -51,6 +51,8 @@ export class OffersFlow {
           'productId': deps.pageConfig().getProductId(),
           'publicationId': deps.pageConfig().getPublicationId(),
           'showNative': deps.callbacks().hasSubscribeRequestCallback(),
+          'list': options && options.list || 'default',
+          'skus': options && options.skus || null,
         }),
         /* shouldFadeBody */ true);
   }
@@ -93,11 +95,15 @@ export class SubscribeOptionFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {!../api/subscriptions.OptionsRequest|undefined} options
    */
-  constructor(deps) {
+  constructor(deps, options) {
 
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
+
+    /** @private @const {!../api/subscriptions.OptionsRequest|undefined} */
+    this.options_ = options;
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
@@ -136,7 +142,7 @@ export class SubscribeOptionFlow {
    */
   maybeOpenOffersFlow_(data) {
     if (data && data['subscribe']) {
-      new OffersFlow(this.deps_).start();
+      new OffersFlow(this.deps_, this.options_).start();
     }
   }
 }
@@ -150,11 +156,15 @@ export class AbbrvOfferFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {!../api/subscriptions.OptionsRequest|undefined} options
    */
-  constructor(deps) {
+  constructor(deps, options) {
 
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
+
+    /** @private @const {!../api/subscriptions.OptionsRequest|undefined} */
+    this.options_ = options;
 
     /** @private @const {!Window} */
     this.win_ = deps.win();
@@ -190,12 +200,11 @@ export class AbbrvOfferFlow {
         });
         return;
       }
-      // TODO(sohanirao) : Handle the case when user is logged in
     });
     // If result is due to requesting offers, redirect to offers flow
     this.activityIframeView_.acceptResult().then(result => {
       if (result.data['viewOffers']) {
-        new OffersFlow(this.deps_).start();
+        new OffersFlow(this.deps_, this.options_).start();
       }
     });
 

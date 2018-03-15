@@ -15,6 +15,11 @@
  */
 
 import {
+  AbbrvOfferFlow,
+  OffersFlow,
+  SubscribeOptionFlow,
+} from './offers-flow';
+import {
   ActivityPorts,
   ActivityResult,
   ActivityResultCode,
@@ -457,22 +462,58 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should should delegate "showOffers"', () => {
-      configuredRuntimeMock.expects('showOffers').once();
+      configuredRuntimeMock.expects('showOffers')
+          .withExactArgs(undefined)
+          .once();
       return runtime.showOffers().then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(true);
       });
     });
 
+    it('should should delegate "showOffers" with options', () => {
+      const options = {list: 'other'};
+      configuredRuntimeMock.expects('showOffers')
+          .withExactArgs(options)
+          .once();
+      return runtime.showOffers(options).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
     it('should should delegate "showSubscribeOption"', () => {
-      configuredRuntimeMock.expects('showSubscribeOption').once();
+      configuredRuntimeMock.expects('showSubscribeOption')
+          .withExactArgs(undefined)
+          .once();
       return runtime.showSubscribeOption().then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(true);
       });
     });
 
-    it('should delegate "showAbbrvOffer" ', () => {
-      configuredRuntimeMock.expects('showAbbrvOffer').once();
+    it('should should delegate "showSubscribeOption" with options', () => {
+      const options = {list: 'other'};
+      configuredRuntimeMock.expects('showSubscribeOption')
+          .withExactArgs(options)
+          .once();
+      return runtime.showSubscribeOption(options).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
+    it('should delegate "showAbbrvOffer"', () => {
+      configuredRuntimeMock.expects('showAbbrvOffer')
+          .withExactArgs(undefined)
+          .once();
       return runtime.showAbbrvOffer().then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
+    it('should delegate "showAbbrvOffer" with options', () => {
+      const options = {list: 'other'};
+      configuredRuntimeMock.expects('showAbbrvOffer')
+          .withExactArgs(options)
+          .once();
+      return runtime.showAbbrvOffer(options).then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(true);
       });
     });
@@ -689,6 +730,78 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .returns(p)
         .once();
     expect(runtime.getOffers({productId: 'p1'})).to.equal(p);
+  });
+
+  it('should call "showOffers"', () => {
+    let offersFlow;
+    sandbox.stub(OffersFlow.prototype, 'start', function() {
+      offersFlow = this;
+      return new Promise(() => {});
+    });
+    runtime.showOffers();
+    return runtime.documentParsed_.then(() => {
+      expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
+    });
+  });
+
+  it('should call "showOffers" with options', () => {
+    let offersFlow;
+    sandbox.stub(OffersFlow.prototype, 'start', function() {
+      offersFlow = this;
+      return new Promise(() => {});
+    });
+    runtime.showOffers({list: 'other'});
+    return runtime.documentParsed_.then(() => {
+      expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+    });
+  });
+
+  it('should call "showAbbrvOffer"', () => {
+    let offersFlow;
+    sandbox.stub(AbbrvOfferFlow.prototype, 'start', function() {
+      offersFlow = this;
+      return new Promise(() => {});
+    });
+    runtime.showAbbrvOffer();
+    return runtime.documentParsed_.then(() => {
+      expect(offersFlow.options_).to.be.undefined;
+    });
+  });
+
+  it('should call "showAbbrvOffer" with options', () => {
+    let offersFlow;
+    sandbox.stub(AbbrvOfferFlow.prototype, 'start', function() {
+      offersFlow = this;
+      return new Promise(() => {});
+    });
+    runtime.showAbbrvOffer({list: 'other'});
+    return runtime.documentParsed_.then(() => {
+      expect(offersFlow.options_).to.deep.equal({list: 'other'});
+    });
+  });
+
+  it('should call "showSubscribeOption"', () => {
+    let offersFlow;
+    sandbox.stub(SubscribeOptionFlow.prototype, 'start', function() {
+      offersFlow = this;
+      return new Promise(() => {});
+    });
+    runtime.showSubscribeOption();
+    return runtime.documentParsed_.then(() => {
+      expect(offersFlow.options_).to.be.undefined;
+    });
+  });
+
+  it('should call "showSubscribeOption" with options', () => {
+    let offersFlow;
+    sandbox.stub(SubscribeOptionFlow.prototype, 'start', function() {
+      offersFlow = this;
+      return new Promise(() => {});
+    });
+    runtime.showSubscribeOption({list: 'other'});
+    return runtime.documentParsed_.then(() => {
+      expect(offersFlow.options_).to.deep.equal({list: 'other'});
+    });
   });
 
   it('should start LinkbackFlow', () => {

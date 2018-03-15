@@ -59,3 +59,25 @@ To activate:
 ```
 subscriptions.showSubscribeOption();
 ```
+
+
+## SwG Abbreviated Offer
+
+Another small variation of `subscriptions.showOffers` is the `subscriptions.showAbbrvOffer` API. This presents a non-blocking abbreviated option to user to select offers or to proceed to login/account linking.
+
+To activate:
+
+```
+subscriptions.showAbbrvOffer();
+```
+
+
+## Offer options
+
+All offers APIs (`showOffers`, `showSubscribeOption`, and `showAbbrvOffer`) accept a list of SKUs to be displayed.
+
+For instance:
+
+```
+subscriptions.showOffers({skus: ['sku1', 'sku2']});
+```
