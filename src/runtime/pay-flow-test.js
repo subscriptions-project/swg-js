@@ -52,6 +52,11 @@ const INTEGR_DATA_OBJ_DECODED = {
   },
 };
 
+const INTEGR_DATA_OBJ_ENCRYPTED = {
+  redirectEncryptedCallbackData: INTEGR_DATA_STRING
+};
+
+
 
 describes.realWin('PayStartFlow', {}, env => {
   let win;
@@ -282,6 +287,31 @@ describes.realWin('PayCompleteFlow', {}, env => {
         expect(completeStub).to.be.calledOnce;
       });
     });
+
+    it('should start flow on correct payment response as encrypted object', () => {
+      const result = new ActivityResult(ActivityResultCode.OK,
+          INTEGR_DATA_OBJ_ENCRYPTED,
+          'POPUP', location.origin, true, true);
+      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
+      const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
+      PayCompleteFlow.configurePending(runtime);
+      return startCallback(port).then(() => {
+        expect(startStub).to.be.calledOnce;
+        expect(triggerPromise).to.exist;
+        return triggerPromise;
+      }).then(response => {
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+        expect(response.purchaseData.signature).to.equal('PD_SIG');
+        expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+        expect(JSON.parse(response.raw)).to.deep
+            .equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
+        expect(completeStub).to.not.be.called;
+        response.complete();
+        expect(completeStub).to.be.calledOnce;
+      });
+    });
+
   });
 });
 

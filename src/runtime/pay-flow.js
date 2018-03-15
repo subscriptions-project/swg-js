@@ -175,19 +175,35 @@ export class PayCompleteFlow {
 
 
 /**
+  *@param @const {!Window} win
  * @param {!web-activities/activity-ports.ActivityPort} port
  * @param {function():!Promise} completeHandler
+
  * @return {!Promise<!SubscribeResponse>}
  * @package Visible for testing only.
  */
-export function validatePayResponse(port, completeHandler) {
+export function validatePayResponse(win, port, completeHandler) {
   return acceptPortResult(
       port,
       feOrigin(),
       // TODO(dvoytenko): support payload decryption.
       /* requireOriginVerified */ false,
       /* requireSecureChannel */ false)
-      .then(data => parseSubscriptionResponse(data, completeHandler));
+      .then(data => {
+        if (data['redirectEncryptedCallbackData']) {
+          const xhr_ = new Xhr(win);
+          const url = 'http://kaipa.mtv.corp.google.com:9879/gp/p/apis/buyflow/process'
+          const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+            method: 'post',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+            body: data['redirectEncryptedCallbackData'],
+            mode: 'cors',
+          });
+          return this.xhr_.fetch(url, init).then(response => response.json());
+        }
+        return data;
+      }).then(data => parseSubscriptionResponse(data, completeHandler));
 }
 
 
