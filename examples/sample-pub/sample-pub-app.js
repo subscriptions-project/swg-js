@@ -17,7 +17,13 @@
 /*eslint-env node*/
 'use strict';
 
-const {encrypt, toBase64} = require('./utils/crypto');
+const jsonwebtoken = require('jsonwebtoken');
+const {
+  decrypt,
+  encrypt,
+  fromBase64,
+  toBase64,
+} = require('./utils/crypto');
 
 const app = module.exports = require('express').Router();
 app.use(require('cookie-parser')())
@@ -30,6 +36,7 @@ const AUTH_URL_TEST = '/examples/sample-sp/api';
 const AUTH_URL_PUB = '/examples/sample-pub/api';
 
 const PUBLICATION_ID = process.env.SERVE_PUBID || 'scenic-2017.appspot.com';
+const AMP_LOCAL = process.env.SERVE_AMP_LOCAL == 'true';
 
 const SWG_JS_URLS = {
   local: '/dist/subscriptions.max.js',
@@ -39,7 +46,7 @@ const SWG_JS_URLS = {
 };
 
 /** @const {string} */
-const G_PUB_USER = 'G_PUB_USER';
+const AUTH_COOKIE = 'SCENIC_AUTH';
 
 /**
  * List all Articles.
@@ -64,39 +71,97 @@ app.get('/', (req, res) => {
 });
 
 /**
- * Signin page.
+ * Subscribe page. Format:
+ * /signin?return=RETURN_URL
  */
-app.get('/pub-signin', (req, res) => {
-  const params = getVerifiedSigninParams(req);
-  res.render('../examples/sample-pub/views/pub-signin', {
-    'redirectUri': params.redirectUri,
+app.get('/subscribe', (req, res) => {
+  const returnUrl = cleanupReturnUrl(req.query['return'] || null);
+  res.render('../examples/sample-pub/views/signin', {
+    'type_subscribe': true,
+    'returnUrl': returnUrl,
   });
 });
 
 /**
- * Publication viewer page.
+ * Signin page. Format:
+ * /signin?return=RETURN_URL
  */
-app.get('/viewer', (req, res) => {
-  res.render('../examples/sample-pub/views/viewer', {});
+app.get('/signin', (req, res) => {
+  const returnUrl = cleanupReturnUrl(req.query['return'] || null);
+  res.render('../examples/sample-pub/views/signin', {
+    'type_signin': true,
+    'returnUrl': returnUrl,
+  });
 });
 
 /**
  * Logs-in user on the publication's domain and redirects to the referrer.
  * Also sets the authorized user's name in the cookie.
  */
-app.post('/pub-signin-submit', (req, res) => {
-  const redirectUri = getParam(req, 'redirect_uri');
-  if (!redirectUri) {
-    throw new Error('No redirect URL specified!');
-  }
-  const email = req.body['email'];
+app.post('/signin', (req, res) => {
+  const returnUrl = cleanupReturnUrl(getParam(req, 'returnUrl'));
+  let email = req.body['email'];
   const password = req.body['password'];
-  if (!email || !password) {
+  const idToken = req.body['id_token'];
+  if ((!email || !password) && !idToken) {
     throw new Error('Missing email and/or password');
   }
+  if (idToken) {
+    // TODO(dvoytenko): verify token as well.
+    const jwt = jsonwebtoken.decode(idToken);
+    email = jwt['email'];
+  }
   setUserInfoInCookies_(res, email);
-  res.redirect(302, redirectUri);
+  res.redirect(302, returnUrl);
 });
+
+/**
+ * Signout page. Format:
+ * /signin?return=RETURN_URL
+ */
+app.get('/signout', (req, res) => {
+  setUserInfoInCookies_(res, null);
+  res.redirect(302, '/');
+});
+
+/**
+ * Signin page.
+ */
+app.get('/amp-entitlements', (req, res) => {
+  const pubId = req.query.pubid;
+  // TODO(dvoytenko): test if the origin is actually allowed.
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Expose-Headers',
+      'AMP-Access-Control-Allow-Source-Origin');
+  if (req.query.__amp_source_origin) {
+    res.setHeader('AMP-Access-Control-Allow-Source-Origin',
+        req.query.__amp_source_origin);
+  }
+  const email = getUserInfoFromCookies_(req);
+  if (email) {
+    res.json({
+      'products': [pubId + ':news'],
+      'subscriptionToken': 'subtok-' + pubId + '-' + toBase64(encrypt(email)),
+    });
+  } else {
+    res.json({});
+  }
+});
+
+/**
+ * Returns subscriber.
+ * @param {!HttpRequest} req
+ * @return {?string}
+ * @private
+ */
+function getUserInfoFromCookies_(req) {
+  const cookie = req.cookies && req.cookies[AUTH_COOKIE];
+  if (!cookie) {
+    return null;
+  }
+  return decrypt(fromBase64(cookie));
+}
 
 /**
  * Sets user email in the cookie.
@@ -105,26 +170,30 @@ app.post('/pub-signin-submit', (req, res) => {
  * @private
  */
 function setUserInfoInCookies_(res, email) {
-  res.clearCookie(G_PUB_USER);
-  res.cookie(G_PUB_USER, toBase64(encrypt(email)),
-      {maxAge: /* 60 minutes */1000 * 60 * 60});
+  res.clearCookie(AUTH_COOKIE);
+  if (email) {
+    res.cookie(AUTH_COOKIE, toBase64(encrypt(email)),
+        {maxAge: /* 60 minutes */1000 * 60 * 60});
+  }
 }
 
 /**
- * Checks the validity and return request parameters.
- * @param {!HttpRequest} req
- * @return {!Object<string, ?string>}
+ * @param {string} returnUrl
+ * @return {string}
  */
-function getVerifiedSigninParams(req) {
-  const params = {
-    redirectUri: req.query['redirect_uri'] || null,
-    state: req.query['state'] || null,
-  };
-  if (!params.redirectUri) {
-    throw new Error('Missing redirect_uri in request.');
+function cleanupReturnUrl(returnUrl) {
+  if (!returnUrl) {
+    returnUrl = '/';
   }
-  // TODO: Restrict correct redirect URL for the current publication.
-  return params;
+  // Make sure we do not introduce a universal unbound redirector.
+  if (!returnUrl.startsWith('/') &&
+      !returnUrl.startsWith('https://cdn.ampproject.org') &&
+      !returnUrl.startsWith('https://scenic-2017.appspot.com') &&
+      !returnUrl.startsWith('http://localhost:') &&
+      !returnUrl.startsWith('https://localhost:')) {
+    returnUrl = '/';
+  }
+  return returnUrl;
 }
 
 /**
@@ -157,8 +226,14 @@ app.get('/((\\d+))\.amp', (req, res) => {
   const prevId = (id - 1) >= 0 ? String(id - 1) + '.amp' : false;
   const nextId = (id + 1) < ARTICLES.length ? String(id + 1) + '.amp' : false;
   const setup = getSetup(req);
+  const amp = {
+    'amp_js': ampJsUrl('amp'),
+    'subscriptions_js': ampJsUrl('amp-subscriptions'),
+    'subscriptions_google_js': ampJsUrl('amp-subscriptions-google'),
+    'mustache_js': ampJsUrl('amp-mustache'),
+  };
   res.render('../examples/sample-pub/views/article-amp', {
-    swgJsUrl: SWG_JS_URLS[setup.script],
+    amp: amp,
     setup: setup,
     publicationId: PUBLICATION_ID,
     id,
@@ -244,4 +319,19 @@ function getTestParams(req) {
  */
 function getParam(req, name) {
   return req.query[name] || req.body && req.body[name] || null;
+}
+
+/**
+ * @param {string} name
+ * @return {string}
+ */
+function ampJsUrl(name) {
+  if (name == 'amp') {
+    return AMP_LOCAL ?
+        'http://localhost:8001/dist/amp.js' :
+        'https://cdn.ampproject.org/v0.js';
+  }
+  return AMP_LOCAL ?
+      'http://localhost:8001/dist/v0/' + name + '-0.1.max.js' :
+      'https://cdn.ampproject.org/v0/' + name + '-0.1.js';
 }

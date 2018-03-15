@@ -67,7 +67,7 @@ app.get('/signin-smartlock', (req, res) => {
  */
 app.get('/auth', (req, res) => {
   const params = verifyOauthParams(req);
-  res.render('../examples/sample-pub/views/signin', {
+  res.render('../examples/sample-pub/views/signin-oauth', {
     'client_id': params.clientId,
     'redirect_uri': params.redirectUri,
     'state': params.state,
