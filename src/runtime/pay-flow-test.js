@@ -29,8 +29,8 @@ import {
 } from './pay-flow';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
-import * as sinon from 'sinon';
 import {Xhr} from '../utils/xhr';
+import * as sinon from 'sinon';
 
 
 const INTEGR_DATA_STRING =
@@ -288,16 +288,18 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
     });
 
-    it('should start flow on correct payment response as encrypted obj', () => {
+    it('should start flow on correct payment response as encrypted obj in PRODUCTION',
+      () => {
+      const encryptedData = "ENCRYPTED";
       const encryptedResponse = {
-        redirectEncryptedCallbackData: INTEGR_DATA_STRING,
+        redirectEncryptedCallbackData: encryptedData,
         environment: 'PRODUCTION',
       };
       const result = new ActivityResult(ActivityResultCode.OK,
           encryptedResponse,
           'POPUP', location.origin, true, true);
       const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
-        () => Promise.resolve({json:() => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}))
+        () => Promise.resolve({json:() => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       PayCompleteFlow.configurePending(runtime);
@@ -323,13 +325,56 @@ describes.realWin('PayCompleteFlow', {}, env => {
             method: 'post',
             headers: {'Accept': 'text/plain, application/json'},
             credentials: 'include',
-            body: INTEGR_DATA_STRING,
+            body: encryptedData,
             mode: 'cors',
           }));
 
       });
     });
 
+    it('should start flow on correct payment response as encrypted obj in SANDBOX',
+      () => {
+      const encryptedData = "<ENCRYPTED>";
+      const encryptedResponse = {
+        redirectEncryptedCallbackData: encryptedData,
+        environment: 'SANDBOX',
+      };
+      const result = new ActivityResult(ActivityResultCode.OK,
+          encryptedResponse,
+          'POPUP', location.origin, true, true);
+      const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
+        () => Promise.resolve({json:() => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
+      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
+      const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
+      PayCompleteFlow.configurePending(runtime);
+      return startCallback(port).then(() => {
+        expect(startStub).to.be.calledOnce;
+        expect(triggerPromise).to.exist;
+        return triggerPromise;
+      }).then(response => {
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+        expect(response.purchaseData.signature).to.equal('PD_SIG');
+        expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+        expect(JSON.parse(response.raw)).to.deep
+            .equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
+        expect(completeStub).to.not.be.called;
+        response.complete();
+        expect(completeStub).to.be.calledOnce;
+
+        // Verify xhr call
+        expect(xhrFetchStub).to.be.calledOnce;
+        expect(xhrFetchStub).to.be.calledWith(
+          'https://pay.sandbox.google.com/gp/p/apis/buyflow/process', ({
+            method: 'post',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+            body: encryptedData,
+            mode: 'cors',
+          }));
+
+      });
+    });
   });
 });
 

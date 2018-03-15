@@ -21,10 +21,10 @@ import {
   SubscribeResponse,
 } from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
+import {Xhr} from '../utils/xhr';
 import {acceptPortResult} from '../utils/activity-utils';
 import {parseJson} from '../utils/json';
 import {feArgs, feOrigin, feUrl} from './services';
-import {Xhr} from '../utils/xhr';
 
 const PAY_REQUEST_ID = 'swg-pay';
 
@@ -177,10 +177,9 @@ export class PayCompleteFlow {
 
 
 /**
-  *@param @const {!Window} win
+  *@param {!Window} win
  * @param {!web-activities/activity-ports.ActivityPort} port
  * @param {function():!Promise} completeHandler
-
  * @return {!Promise<!SubscribeResponse>}
  * @package Visible for testing only.
  */
@@ -259,7 +258,7 @@ function getDecryptionUrl(environment) {
   if (environment == 'PRODUCTION') {
     return 'https://pay.google.com/gp/p/apis/buyflow/process';
   }
-    return 'https://pay.sandbox.google.com/gp/p/apis/buyflow/process';
+  return 'https://pay.sandbox.google.com/gp/p/apis/buyflow/process';
 }
 
 
