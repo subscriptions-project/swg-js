@@ -71,10 +71,23 @@ export class DialogManager {
     // Give a small amount of time for another view to take over the dialog.
     setTimeout(() => {
       if (this.dialog_ && this.dialog_.getCurrentView() == view) {
-        this.dialog_.close();
-        this.dialog_ = null;
-        this.openPromise_ = null;
+        this.close_();
       }
     }, 100);
+  }
+
+  /**
+   */
+  completeAll() {
+    if (this.dialog_) {
+      this.close_();
+    }
+  }
+
+  /** @private */
+  close_() {
+    this.dialog_.close();
+    this.dialog_ = null;
+    this.openPromise_ = null;
   }
 }

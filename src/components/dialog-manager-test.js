@@ -93,6 +93,14 @@ describes.realWin('DialogManager', {}, env => {
     });
   });
 
+  it('should complete all and close dialog', () => {
+    return dialogManager.openView(initView).then(() => {
+      dialogManager.completeAll();
+      expect(dialogIfc.close).to.be.calledOnce;
+      expect(dialogManager.dialog_).to.not.exist;
+    });
+  });
+
   it('should complete view and continue dialog', () => {
     const view2 = Object.assign({}, initView);
     return dialogManager.openView(initView).then(() => {

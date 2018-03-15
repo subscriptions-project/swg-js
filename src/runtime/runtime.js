@@ -388,6 +388,7 @@ export class ConfiguredRuntime {
   /** @override */
   reset() {
     this.entitlementsManager_.reset();
+    this.dialogManager_.completeAll();
   }
 
   /** @override */
