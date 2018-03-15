@@ -575,6 +575,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   let config;
   let runtime;
   let entitlementsManagerMock;
+  let dialogManagerMock;
   let activityResultCallbacks;
   let offersApiMock;
 
@@ -591,10 +592,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     config = new PageConfig('pub1:label1', true);
     runtime = new ConfiguredRuntime(win, config);
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager_);
+    dialogManagerMock = sandbox.mock(runtime.dialogManager_);
     offersApiMock = sandbox.mock(runtime.offersApi_);
   });
 
   afterEach(() => {
+    dialogManagerMock.verify();
     entitlementsManagerMock.verify();
     offersApiMock.verify();
   });
@@ -623,6 +626,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should reset entitlements', () => {
+    dialogManagerMock.expects('completeAll').once();
     entitlementsManagerMock.expects('reset').once();
     runtime.reset();
   });
