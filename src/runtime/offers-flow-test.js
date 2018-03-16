@@ -40,6 +40,7 @@ describes.realWin('OffersFlow', {}, env => {
   let callbacksMock;
   let pageConfig;
   let port;
+  let messageCallback;
 
   beforeEach(() => {
     win = env.win;
@@ -52,6 +53,10 @@ describes.realWin('OffersFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
+    messageCallback = undefined;
+    sandbox.stub(port, 'onMessage', callback => {
+      messageCallback = callback;
+    });
   });
 
   afterEach(() => {
@@ -68,6 +73,42 @@ describes.realWin('OffersFlow', {}, env => {
           publicationId: 'pub1',
           productId: 'pub1:label1',
           showNative: false,
+          list: 'default',
+          skus: null,
+        })
+        .returns(Promise.resolve(port));
+    return offersFlow.start();
+  });
+
+  it('should have valid OffersFlow constructed with a list', () => {
+    offersFlow = new OffersFlow(runtime, {list: 'other'});
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          showNative: false,
+          list: 'other',
+          skus: null,
+        })
+        .returns(Promise.resolve(port));
+    return offersFlow.start();
+  });
+
+  it('should have valid OffersFlow constructed with skus', () => {
+    offersFlow = new OffersFlow(runtime, {skus: ['sku1', 'sku2']});
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          showNative: false,
+          list: 'default',
+          skus: ['sku1', 'sku2'],
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -83,6 +124,8 @@ describes.realWin('OffersFlow', {}, env => {
           publicationId: 'pub1',
           productId: 'pub1:label1',
           showNative: true,
+          list: 'default',
+          skus: null,
         })
         .returns(Promise.resolve(port));
     offersFlow = new OffersFlow(runtime);
@@ -90,10 +133,6 @@ describes.realWin('OffersFlow', {}, env => {
   });
 
   it('should activate pay, login and native offers', () => {
-    let messageCallback;
-    sandbox.stub(port, 'onMessage', callback => {
-      messageCallback = callback;
-    });
     const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     const nativeStub = sandbox.stub(
@@ -125,10 +164,6 @@ describes.realWin('OffersFlow', {}, env => {
   });
 
   it('should activate login with linking', () => {
-    let messageCallback;
-    sandbox.stub(port, 'onMessage', callback => {
-      messageCallback = callback;
-    });
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return offersFlow.start().then(() => {
@@ -151,6 +186,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
   let callbacksMock;
   let pageConfig;
   let port;
+  let messageCallback;
 
   beforeEach(() => {
     win = env.win;
@@ -163,6 +199,10 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
+    messageCallback = undefined;
+    sandbox.stub(port, 'onMessage', callback => {
+      messageCallback = callback;
+    });
   });
 
   afterEach(() => {
@@ -183,10 +223,6 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
   });
 
   it('should trigger offers flow when accepted', () => {
-    let messageCallback;
-    sandbox.stub(port, 'onMessage', callback => {
-      messageCallback = callback;
-    });
     const offersStartStub = sandbox.stub(OffersFlow.prototype, 'start');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     expect(offersStartStub).to.not.be.called;
@@ -199,6 +235,22 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
       expect(offersStartStub).to.be.calledOnce;
     });
   });
+
+  it('should trigger offers flow with options', () => {
+    const options = {list: 'other'};
+    const optionFlow = new SubscribeOptionFlow(runtime, options);
+    let offersFlow;
+    sandbox.stub(OffersFlow.prototype, 'start',
+        function() {
+          offersFlow = this;
+          return Promise.resolve();
+        });
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    return optionFlow.start().then(() => {
+      messageCallback({'subscribe': true});
+      expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+    });
+  });
 });
 
 describes.realWin('AbbrvOfferFlow', {}, env => {
@@ -209,6 +261,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   let pageConfig;
   let abbrvOfferFlow;
   let port;
+  let messageCallback;
 
   beforeEach(() => {
     win = env.win;
@@ -222,7 +275,10 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     port.onMessage = () => {};
     port.acceptResult = () => Promise.resolve();
     port.whenReady = () => Promise.resolve();
-
+    messageCallback = undefined;
+    sandbox.stub(port, 'onMessage', callback => {
+      messageCallback = callback;
+    });
   });
 
   afterEach(() => {
@@ -243,10 +299,6 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   });
 
   it('should trigger login flow for a subscribed user with linking', () => {
-    let messageCallback;
-    sandbox.stub(port, 'onMessage', callback => {
-      messageCallback = callback;
-    });
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return abbrvOfferFlow.start().then(() => {
@@ -257,10 +309,6 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   });
 
   it('should trigger login flow for subscibed user without linking', () => {
-    let messageCallback;
-    sandbox.stub(port, 'onMessage', callback => {
-      messageCallback = callback;
-    });
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return abbrvOfferFlow.start().then(() => {
@@ -304,5 +352,26 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
       expect(offersStartStub).to.not.be.called;
     });
   });
-});
 
+  it('should trigger offers flow with options', () => {
+    const options = {list: 'other'};
+    const optionFlow = new AbbrvOfferFlow(runtime, options);
+    let offersFlow;
+    sandbox.stub(OffersFlow.prototype, 'start',
+        function() {
+          offersFlow = this;
+          return Promise.resolve();
+        });
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const result = new ActivityResult('OK', {'viewOffers': true},
+        'MODE', 'https://example.com', true, true);
+    result.data = {'viewOffers': true};
+    const resultPromise = Promise.resolve(result);
+    sandbox.stub(port, 'acceptResult', () => resultPromise);
+    return optionFlow.start().then(() => {
+      return resultPromise.then(() => {
+        expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+      });
+    });
+  });
+});

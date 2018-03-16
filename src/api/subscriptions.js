@@ -64,18 +64,21 @@ export class Subscriptions {
 
   /**
    * Starts the Offers flow.
+   * @param {!OptionsRequest=} opt_options
    */
-  showOffers() {}
+  showOffers(opt_options) {}
 
   /**
    * Show subscription option.
+   * @param {!OptionsRequest=} opt_options
    */
-  showSubscribeOption() {}
+  showSubscribeOption(opt_options) {}
 
   /**
    * Show abbreviated offers.
+   * @param {!OptionsRequest=} opt_options
    */
-  showAbbrvOffer() {}
+  showAbbrvOffer(opt_options) {}
 
   /**
    * Set the callback for the native subscribe request. Setting this callback
@@ -112,6 +115,21 @@ export class Subscriptions {
    */
   linkAccount() {}
 }
+
+
+/**
+ * Properties:
+ * - skus - a list of SKUs to return from the defined or default list. The
+ *   order is preserved.
+ * - list - a predefined list of SKUs. Use of this property is uncommon.
+ *   Possible values are "default" and "amp". Default is "default".
+ *
+ * @typedef {{
+ *   skus: (!Array<string>|undefined),
+ *   list: (string|undefined),
+ * }}
+ */
+export let OptionsRequest;
 
 
 /**
