@@ -242,21 +242,21 @@ export class Runtime {
   }
 
   /** @override */
-  showOffers() {
+  showOffers(opt_options) {
     return this.configured_(true)
-        .then(runtime => runtime.showOffers());
+        .then(runtime => runtime.showOffers(opt_options));
   }
 
   /** @override */
-  showSubscribeOption() {
+  showSubscribeOption(opt_options) {
     return this.configured_(true)
-        .then(runtime => runtime.showSubscribeOption());
+        .then(runtime => runtime.showSubscribeOption(opt_options));
   }
 
   /** @override */
-  showAbbrvOffer() {
+  showAbbrvOffer(opt_options) {
     return this.configured_(true)
-        .then(runtime => runtime.showAbbrvOffer());
+        .then(runtime => runtime.showAbbrvOffer(opt_options));
   }
 
   /** @override */
@@ -421,25 +421,25 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  showOffers() {
+  showOffers(opt_options) {
     return this.documentParsed_.then(() => {
-      const flow = new OffersFlow(this);
+      const flow = new OffersFlow(this, opt_options);
       return flow.start();
     });
   }
 
   /** @override */
-  showSubscribeOption() {
+  showSubscribeOption(opt_options) {
     return this.documentParsed_.then(() => {
-      const flow = new SubscribeOptionFlow(this);
+      const flow = new SubscribeOptionFlow(this, opt_options);
       return flow.start();
     });
   }
 
-  /** override */
-  showAbbrvOffer() {
+  /** @override */
+  showAbbrvOffer(opt_options) {
     return this.documentParsed_.then(() => {
-      const flow = new AbbrvOfferFlow(this);
+      const flow = new AbbrvOfferFlow(this, opt_options);
       return flow.start();
     });
   }
