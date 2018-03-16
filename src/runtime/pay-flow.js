@@ -21,6 +21,7 @@ import {
   SubscribeResponse,
 } from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
+import {Xhr} from '../utils/xhr';
 import {acceptPortResult} from '../utils/activity-utils';
 import {parseJson} from '../utils/json';
 import {feArgs, feOrigin, feUrl} from './services';
@@ -95,7 +96,8 @@ export class PayCompleteFlow {
     deps.activities().onResult(PAY_REQUEST_ID, port => {
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
-      const promise = validatePayResponse(port, flow.complete.bind(flow));
+      const promise = validatePayResponse(
+          deps.win(), port, flow.complete.bind(flow));
       deps.callbacks().triggerSubscribeResponse(promise);
       return promise.then(response => {
         flow.start(response);
@@ -175,19 +177,34 @@ export class PayCompleteFlow {
 
 
 /**
+  *@param {!Window} win
  * @param {!web-activities/activity-ports.ActivityPort} port
  * @param {function():!Promise} completeHandler
  * @return {!Promise<!SubscribeResponse>}
  * @package Visible for testing only.
  */
-export function validatePayResponse(port, completeHandler) {
+export function validatePayResponse(win, port, completeHandler) {
   return acceptPortResult(
       port,
       feOrigin(),
       // TODO(dvoytenko): support payload decryption.
       /* requireOriginVerified */ false,
       /* requireSecureChannel */ false)
-      .then(data => parseSubscriptionResponse(data, completeHandler));
+      .then(data => {
+        if (data['redirectEncryptedCallbackData']) {
+          const xhr = new Xhr(win);
+          const url = getDecryptionUrl(data['environment']);
+          const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+            method: 'post',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+            body: data['redirectEncryptedCallbackData'],
+            mode: 'cors',
+          });
+          return xhr.fetch(url, init).then(response => response.json());
+        }
+        return data;
+      }).then(data => parseSubscriptionResponse(data, completeHandler));
 }
 
 
@@ -229,6 +246,19 @@ export function parseSubscriptionResponse(data, completeHandler) {
       parsePurchaseData(swgData),
       parseUserData(swgData),
       completeHandler);
+}
+
+/**
+   * Returns the decryption url to be used to decrypt the encrypted payload.
+   *
+   * @param {!string} environment
+   * @return {!string} The decryption url
+   */
+function getDecryptionUrl(environment) {
+  if (environment == 'PRODUCTION') {
+    return 'https://pay.google.com/gp/p/apis/buyflow/process';
+  }
+  return 'https://pay.sandbox.google.com/gp/p/apis/buyflow/process';
 }
 
 
