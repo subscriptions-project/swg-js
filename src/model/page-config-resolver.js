@@ -317,7 +317,7 @@ class MicrodataParser {
             add it to the results list
           else if this element is not the root
             create an entry with either 'isAccessibleForFree' or 'productID' and corresponding value,
-            and the parent of the element as the entry for 'element' key
+            and the parent of the element as the entry for 'element' key, add this entry to items list
       When the items list is processed, results list contains entries that meet the requirements:
         type is NewsArticle, contains either isAccessibleForFree value or productID value.
         When the results array contains entries for both and the corresponding elements are the same,
