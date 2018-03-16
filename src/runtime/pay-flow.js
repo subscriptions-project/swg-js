@@ -97,7 +97,7 @@ export class PayCompleteFlow {
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
       const promise = validatePayResponse(
-        deps.win(), port, flow.complete.bind(flow));
+          deps.win(), port, flow.complete.bind(flow));
       deps.callbacks().triggerSubscribeResponse(promise);
       return promise.then(response => {
         flow.start(response);

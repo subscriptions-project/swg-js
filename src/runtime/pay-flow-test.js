@@ -288,9 +288,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
     });
 
-    it('should start flow on correct payment response as encrypted obj in PRODUCTION',
-      () => {
-      const encryptedData = "ENCRYPTED";
+    it('should start flow on correct payment response as encrypted obj' +
+       ' in PRODUCTION', () => {
+      const encryptedData = 'ENCRYPTED';
       const encryptedResponse = {
         redirectEncryptedCallbackData: encryptedData,
         environment: 'PRODUCTION',
@@ -299,7 +299,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
           encryptedResponse,
           'POPUP', location.origin, true, true);
       const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
-        () => Promise.resolve({json:() => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
+          () => Promise.resolve(
+          {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       PayCompleteFlow.configurePending(runtime);
@@ -321,20 +322,19 @@ describes.realWin('PayCompleteFlow', {}, env => {
         // Verify xhr call
         expect(xhrFetchStub).to.be.calledOnce;
         expect(xhrFetchStub).to.be.calledWith(
-          'https://pay.google.com/gp/p/apis/buyflow/process', ({
-            method: 'post',
-            headers: {'Accept': 'text/plain, application/json'},
-            credentials: 'include',
-            body: encryptedData,
-            mode: 'cors',
-          }));
-
+            'https://pay.google.com/gp/p/apis/buyflow/process', ({
+              method: 'post',
+              headers: {'Accept': 'text/plain, application/json'},
+              credentials: 'include',
+              body: encryptedData,
+              mode: 'cors',
+            }));
       });
     });
 
-    it('should start flow on correct payment response as encrypted obj in SANDBOX',
-      () => {
-      const encryptedData = "<ENCRYPTED>";
+    it('should start flow on correct payment response as encrypted obj' +
+      ' in SANDBOX', () => {
+      const encryptedData = 'ENCRYPTED';
       const encryptedResponse = {
         redirectEncryptedCallbackData: encryptedData,
         environment: 'SANDBOX',
@@ -343,7 +343,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
           encryptedResponse,
           'POPUP', location.origin, true, true);
       const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
-        () => Promise.resolve({json:() => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
+          () => Promise.resolve(
+            {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       PayCompleteFlow.configurePending(runtime);
@@ -365,14 +366,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
         // Verify xhr call
         expect(xhrFetchStub).to.be.calledOnce;
         expect(xhrFetchStub).to.be.calledWith(
-          'https://pay.sandbox.google.com/gp/p/apis/buyflow/process', ({
-            method: 'post',
-            headers: {'Accept': 'text/plain, application/json'},
-            credentials: 'include',
-            body: encryptedData,
-            mode: 'cors',
-          }));
-
+            'https://pay.sandbox.google.com/gp/p/apis/buyflow/process', ({
+              method: 'post',
+              headers: {'Accept': 'text/plain, application/json'},
+              credentials: 'include',
+              body: encryptedData,
+              mode: 'cors',
+            }));
       });
     });
   });
