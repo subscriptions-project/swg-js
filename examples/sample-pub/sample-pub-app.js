@@ -45,8 +45,9 @@ const SWG_JS_URLS = {
   tt: 'https://news.google.com/swg/js/v1/swg-tt.js',
 };
 
-/** @const {string} */
 const AUTH_COOKIE = 'SCENIC_AUTH';
+const METER_COOKIE = 'SCENIC_METER';
+const MAX_METER = 3;
 
 /**
  * List all Articles.
@@ -66,6 +67,54 @@ app.get('/', (req, res) => {
   res.render('../examples/sample-pub/views/list', {
     title: 'Select an article to get started',
     articles: ARTICLES,
+    testParams: getTestParams(req),
+  });
+});
+
+/**
+ * An Article.
+ */
+app.get('/((\\d+))', (req, res) => {
+  const id = parseInt(req.params[0], 10);
+  const article = ARTICLES[id - 1];
+  const prevId = (id - 1) >= 0 ? String(id - 1) : false;
+  const nextId = (id + 1) < ARTICLES.length ? String(id + 1) : false;
+  const setup = getSetup(req);
+  res.render('../examples/sample-pub/views/article', {
+    swgJsUrl: SWG_JS_URLS[setup.script],
+    setup: setup,
+    publicationId: PUBLICATION_ID,
+    id,
+    article,
+    prev: prevId,
+    next: nextId,
+    testParams: getTestParams(req),
+  });
+});
+
+/**
+ * An AMP Article.
+ */
+app.get('/((\\d+))\.amp', (req, res) => {
+  const id = parseInt(req.params[0], 10);
+  const article = ARTICLES[id - 1];
+  const prevId = (id - 1) >= 0 ? String(id - 1) + '.amp' : false;
+  const nextId = (id + 1) < ARTICLES.length ? String(id + 1) + '.amp' : false;
+  const setup = getSetup(req);
+  const amp = {
+    'amp_js': ampJsUrl('amp'),
+    'subscriptions_js': ampJsUrl('amp-subscriptions'),
+    'subscriptions_google_js': ampJsUrl('amp-subscriptions-google'),
+    'mustache_js': ampJsUrl('amp-mustache'),
+  };
+  res.render('../examples/sample-pub/views/article-amp', {
+    amp: amp,
+    setup: setup,
+    publicationId: PUBLICATION_ID,
+    id,
+    article,
+    prev: prevId,
+    next: nextId,
     testParams: getTestParams(req),
   });
 });
@@ -125,7 +174,7 @@ app.get('/signout', (req, res) => {
 });
 
 /**
- * Signin page.
+ * AMP entitlements request.
  */
 app.get('/amp-entitlements', (req, res) => {
   const pubId = req.query.pubid;
@@ -144,104 +193,39 @@ app.get('/amp-entitlements', (req, res) => {
       'products': [pubId + ':news'],
       'subscriptionToken': 'subtok-' + pubId + '-' + toBase64(encrypt(email)),
     });
+  } else if (req.query.meter == '1') {
+    const meter = getMeterFromCookies(req);
+    if (meter > 0) {
+      res.json({
+        'products': [pubId + ':news'],
+        'metering': {
+          'left': meter,
+          'total': MAX_METER,
+        },
+      });
+    } else {
+      res.json({});
+    }
   } else {
     res.json({});
   }
 });
 
 /**
- * Returns subscriber.
- * @param {!HttpRequest} req
- * @return {?string}
- * @private
+ * AMP pingback request.
  */
-function getUserInfoFromCookies_(req) {
-  const cookie = req.cookies && req.cookies[AUTH_COOKIE];
-  if (!cookie) {
-    return null;
+app.post('/amp-pingback', (req, res) => {
+  const pubId = req.query.pubid;
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Expose-Headers',
+      'AMP-Access-Control-Allow-Source-Origin');
+  if (req.query.__amp_source_origin) {
+    res.setHeader('AMP-Access-Control-Allow-Source-Origin',
+        req.query.__amp_source_origin);
   }
-  return decrypt(fromBase64(cookie));
-}
-
-/**
- * Sets user email in the cookie.
- * @param {!HttpRequest} req
- * @param {string} email
- * @private
- */
-function setUserInfoInCookies_(res, email) {
-  res.clearCookie(AUTH_COOKIE);
-  if (email) {
-    res.cookie(AUTH_COOKIE, toBase64(encrypt(email)),
-        {maxAge: /* 60 minutes */1000 * 60 * 60});
-  }
-}
-
-/**
- * @param {string} returnUrl
- * @return {string}
- */
-function cleanupReturnUrl(returnUrl) {
-  if (!returnUrl) {
-    returnUrl = '/';
-  }
-  // Make sure we do not introduce a universal unbound redirector.
-  if (!returnUrl.startsWith('/') &&
-      !returnUrl.startsWith('https://cdn.ampproject.org') &&
-      !returnUrl.startsWith('https://scenic-2017.appspot.com') &&
-      !returnUrl.startsWith('http://localhost:') &&
-      !returnUrl.startsWith('https://localhost:')) {
-    returnUrl = '/';
-  }
-  return returnUrl;
-}
-
-/**
- * An Article.
- */
-app.get('/((\\d+))', (req, res) => {
-  const id = parseInt(req.params[0], 10);
-  const article = ARTICLES[id - 1];
-  const prevId = (id - 1) >= 0 ? String(id - 1) : false;
-  const nextId = (id + 1) < ARTICLES.length ? String(id + 1) : false;
-  const setup = getSetup(req);
-  res.render('../examples/sample-pub/views/article', {
-    swgJsUrl: SWG_JS_URLS[setup.script],
-    setup: setup,
-    publicationId: PUBLICATION_ID,
-    id,
-    article,
-    prev: prevId,
-    next: nextId,
-    testParams: getTestParams(req),
-  });
-});
-
-/**
- * An AMP Article.
- */
-app.get('/((\\d+))\.amp', (req, res) => {
-  const id = parseInt(req.params[0], 10);
-  const article = ARTICLES[id - 1];
-  const prevId = (id - 1) >= 0 ? String(id - 1) + '.amp' : false;
-  const nextId = (id + 1) < ARTICLES.length ? String(id + 1) + '.amp' : false;
-  const setup = getSetup(req);
-  const amp = {
-    'amp_js': ampJsUrl('amp'),
-    'subscriptions_js': ampJsUrl('amp-subscriptions'),
-    'subscriptions_google_js': ampJsUrl('amp-subscriptions-google'),
-    'mustache_js': ampJsUrl('amp-mustache'),
-  };
-  res.render('../examples/sample-pub/views/article-amp', {
-    amp: amp,
-    setup: setup,
-    publicationId: PUBLICATION_ID,
-    id,
-    article,
-    prev: prevId,
-    next: nextId,
-    testParams: getTestParams(req),
-  });
+  decMeterInCookies(req, res);
+  res.json({});
 });
 
 /**
@@ -319,6 +303,76 @@ function getTestParams(req) {
  */
 function getParam(req, name) {
   return req.query[name] || req.body && req.body[name] || null;
+}
+
+/**
+ * Returns subscriber.
+ * @param {!HttpRequest} req
+ * @return {?string}
+ * @private
+ */
+function getUserInfoFromCookies_(req) {
+  const cookie = req.cookies && req.cookies[AUTH_COOKIE];
+  if (!cookie) {
+    return null;
+  }
+  return decrypt(fromBase64(cookie));
+}
+
+/**
+ * Sets user email in the cookie.
+ * @param {!HttpResponse} res
+ * @param {string} email
+ * @private
+ */
+function setUserInfoInCookies_(res, email) {
+  res.clearCookie(AUTH_COOKIE);
+  if (email) {
+    res.cookie(AUTH_COOKIE, toBase64(encrypt(email)),
+        {maxAge: /* 60 minutes */1000 * 60 * 60});
+  }
+}
+
+/**
+ * @param {string} returnUrl
+ * @return {string}
+ */
+function cleanupReturnUrl(returnUrl) {
+  if (!returnUrl) {
+    returnUrl = '/';
+  }
+  // Make sure we do not introduce a universal unbound redirector.
+  if (!returnUrl.startsWith('/') &&
+      !returnUrl.startsWith('https://cdn.ampproject.org') &&
+      !returnUrl.startsWith('https://scenic-2017.appspot.com') &&
+      !returnUrl.startsWith('http://localhost:') &&
+      !returnUrl.startsWith('https://localhost:')) {
+    returnUrl = '/';
+  }
+  return returnUrl;
+}
+
+/**
+ * @param {!HttpRequest} req
+ * @return {number}
+ */
+function getMeterFromCookies(req) {
+  const cookie = req.cookies && req.cookies[METER_COOKIE];
+  if (!cookie) {
+    return MAX_METER;
+  }
+  return parseInt(cookie, 10);
+}
+
+/**
+ * @param {!HttpRequest} req
+ * @param {!HttpResponse} res
+ */
+function decMeterInCookies(req, res) {
+  const oldMeter = getMeterFromCookies(req);
+  const newMeter = Math.max(oldMeter - 1, 0);
+  res.cookie(METER_COOKIE, String(newMeter),
+      {maxAge: /* 60 minutes */ 1000 * 60 * 60});
 }
 
 /**
