@@ -265,6 +265,10 @@ describes.realWin('PageConfigResolver', {}, env => {
     });
   });
 
+  describe('parse microdata', () => {
+    // TODO(sohanirao): Add tests to parse microdata
+  });
+
   describe('locked', () => {
     it('should parse locked', () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
