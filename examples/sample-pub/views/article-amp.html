@@ -46,7 +46,8 @@
       {
         "services": [
           {
-            "authorizationUrl": "//localhost:8000/examples/sample-pub/amp-entitlements?pubid=<% publicationId %>",
+            "authorizationUrl": "//localhost:8000/examples/sample-pub/amp-entitlements?pubid=<% publicationId %>&meter=1",
+            "pingbackUrl": "//localhost:8000/examples/sample-pub/amp-pingback?pubid=<% publicationId %>",
             "actions": {
               "login": "//localhost:8000/examples/sample-pub/signin",
               "subscribe": "//localhost:8000/examples/sample-pub/subscribe"
@@ -267,6 +268,15 @@ ul.related p {
   padding-left: 110px;
   padding-top: 26px;
 }
+
+.subs-dialog {
+  padding: 16px;
+}
+
+.subs-dialog > a {
+  font-weight: bold;
+  color: lightblue;
+}
     </style>
   </head>
   <body>
@@ -381,7 +391,22 @@ ul.related p {
     </div>
 
     <template type="amp-mustache" subscriptions-dialog subscriptions-display="subscribed">
-      You are a scenic subscriber.
+      <div class="subs-dialog">
+        You are a Scenic subscriber.
+      </div>
     </template>
+    <template type="amp-mustache" subscriptions-dialog subscriptions-display="metered">
+      <div class="subs-dialog">
+        You have {{entitlement.metering.left}} articles left.
+      </div>
+    </template>
+    <div subscriptions-dialog subscriptions-display="NOT granted">
+      <div class="subs-dialog">
+        No more articles left. You can either
+        <a subscriptions-action="subscribe" subscriptions-display="TRUE">Subscribe</a>
+        or
+        <a subscriptions-action="login" subscriptions-display="TRUE">Login</a>
+      </div>
+    </div>
   </body>
 </html>
