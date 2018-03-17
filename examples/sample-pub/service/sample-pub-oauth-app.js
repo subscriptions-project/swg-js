@@ -28,6 +28,8 @@ const app = module.exports = require('express').Router();
 const jsonwebtoken = require('jsonwebtoken');
 const {encrypt, decrypt, fromBase64, toBase64} = require('../utils/crypto');
 
+const PUBLICATION_ID = process.env.SERVE_PUBID || 'scenic-2017.appspot.com';
+
 /**
  * The Google client ID and client secret can be any URL-safe string values of
  * your choice. You must ensure that the client secret is visible to only Google
@@ -243,9 +245,7 @@ app.post('/token', (req, res) => {
  * - access_token={access_token}
  */
 app.all('/entitlements', (req, res) => {
-  const publicationId = getParam(req, 'publication_id') ||
-      getParam(req, 'publisher_id') ||  // MIGRATE
-      'none';
+  const publicationId = PUBLICATION_ID;
   const accessToken = getParam(req, 'access_token');
   const decryptedAccessToken = decrypt(fromBase64(accessToken));
   const email = decryptedAccessToken.data['email'];
