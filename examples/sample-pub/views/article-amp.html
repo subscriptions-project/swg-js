@@ -42,15 +42,15 @@
     }
     </script>
 
-    <script type="json" id="amp-subscriptions">
+    <script type="application/json" id="amp-subscriptions">
       {
         "services": [
           {
-            "authorizationUrl": "//localhost:8000/examples/sample-pub/amp-entitlements?pubid=<% publicationId %>&meter=1",
-            "pingbackUrl": "//localhost:8000/examples/sample-pub/amp-pingback?pubid=<% publicationId %>",
+            "authorizationUrl": "<% serviceBase %>/examples/sample-pub/amp-entitlements?pubid=<% publicationId %>&meter=1",
+            "pingbackUrl": "<% serviceBase %>/examples/sample-pub/amp-pingback?pubid=<% publicationId %>",
             "actions": {
-              "login": "//localhost:8000/examples/sample-pub/signin",
-              "subscribe": "//localhost:8000/examples/sample-pub/subscribe"
+              "login": "<% serviceBase %>/examples/sample-pub/signin",
+              "subscribe": "<% serviceBase %>/examples/sample-pub/subscribe"
             }
           },
           {
@@ -277,7 +277,48 @@ ul.related p {
   font-weight: bold;
   color: lightblue;
 }
+
+.message {
+  position: fixed;
+  top: 10%;
+  left: 5%;
+  width: 90%;
+  padding: 24px;
+  background: lightyellow;
+  z-index: 10000001;
+}
     </style>
+
+<%#authConnect%>
+<script>
+(self.AMP=self.AMP||[]).push(function(AMP) {
+
+  function showMessage(success, response) {
+    var messageEl = document.createElement('div');
+    messageEl.className = 'message';
+    messageEl.textContent = success ?
+        'Received auth response: ' + response :
+        'ERROR: ' + response;
+    messageEl.style.display = '';
+    document.body.appendChild(messageEl);
+    console.log('auth response: ', success, response);
+  }
+
+  var viewer = AMP.viewer;
+  var cap = viewer.getParam('cap') || '';
+  if (cap.indexOf('auth') != -1) {
+    viewer.sendMessageAwaitResponse('auth', {
+      'publicationId': '<% publicationId %>',
+      'product': '<% publicationId %>:news'
+    }).then(function(response) {
+      showMessage(true, response['authorization']);
+    }, function(reason) {
+      showMessage(false, reason);
+    });
+  }
+});
+</script>
+<%/authConnect%>
   </head>
   <body>
     <div class="main-body">

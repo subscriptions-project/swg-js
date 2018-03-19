@@ -68,6 +68,14 @@ app.get('/', (req, res) => {
       + (req.query.test !== undefined ? `?test=${req.query.test}` : ''));
 });
 
+/**
+ */
+app.get('/env', (req, res) => {
+  res.json({
+    'NODE_ENV': process.env.NODE_ENV,
+  });
+});
+
 app.use('/examples/sample-pub',
     require('../../examples/sample-pub/sample-pub-app'));
 
