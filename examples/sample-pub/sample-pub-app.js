@@ -107,10 +107,15 @@ app.get('/((\\d+))\.amp', (req, res) => {
     'subscriptions_google_js': ampJsUrl('amp-subscriptions-google'),
     'mustache_js': ampJsUrl('amp-mustache'),
   };
+  const baseUrl = process.env.NODE_ENV == 'production' ?
+      'https://scenic-2017.appspot.com' :
+      '//localhost:8000';
   res.render('../examples/sample-pub/views/article-amp', {
-    amp: amp,
-    setup: setup,
+    amp,
+    setup,
+    serviceBase: baseUrl,
     publicationId: PUBLICATION_ID,
+    authConnect: req.query['ac'] == '1',
     id,
     article,
     prev: prevId,
