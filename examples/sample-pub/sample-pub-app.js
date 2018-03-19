@@ -267,7 +267,7 @@ app.post('/update-setup', (req, res) => {
  */
 function getSetup(req) {
   return {
-    script: req.cookies && req.cookies['script'] || 'local',
+    script: req.cookies && req.cookies['script'] || 'prod',
   };
 }
 
