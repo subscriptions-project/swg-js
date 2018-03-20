@@ -49,6 +49,7 @@ describes.realWin('LoadingView', {}, env => {
       const loadingTagStyles =
           win.getComputedStyle(loadingContainer);
 
+      expect(loadingTagStyles.position).to.equal('fixed');
       expect(loadingTagStyles.top).to.equal('40%');
       expect(loadingTagStyles.left).to.equal('45%');
       expect(loadingTagStyles['z-index']).to.equal('2147483647');
