@@ -17,10 +17,7 @@
 import {
   createElement,
 } from '../utils/dom';
-import {
-  resetAllStyles,
-  setStyles,
-} from '../utils/style';
+import {resetAllStyles} from '../utils/style';
 
 /** @const {!Object<string|number>} */
 const friendlyIframeAttributes = {
@@ -49,12 +46,6 @@ export class FriendlyIframe {
 
     // Ensure that the new iframe does not inherit any CSS styles.
     resetAllStyles(this.iframe_);
-
-    // Overrides the the top-left and top-right border radius to '8px'.
-    setStyles(this.iframe_, {
-      'border-top-left-radius': '8px',
-      'border-top-right-radius': '8px',
-    });
 
     /** @private @const {!Promise} */
     this.ready_ = new Promise(resolve => {

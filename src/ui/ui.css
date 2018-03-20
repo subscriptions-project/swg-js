@@ -19,6 +19,36 @@ body {
   margin: 0;
 }
 
+/**
+ * Since the desktop view has the parent iframe (.swg-dialog) transperant,
+ * this style adds the background with borders to the loading indicator.
+ */
+@media (min-width: 630px) {
+  .swg-loading-container {
+    width: 550px !important;
+    height: 148px !important;
+    bottom: 0 !important;
+    margin-left: 40px !important;
+    margin-top: 5px !important;
+    z-index: 2147483647 !important;
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
+    background-color: rgba(255, 255, 255, 1) !important;
+    box-shadow:
+        rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px !important;
+  }
+}
+
+.swg-loading-container {
+  position: fixed !important;
+  width: 550px !important;
+  height: 148px !important;
+  bottom: 0 !important;
+  margin-left: 40px !important;
+  margin-top: 5px !important;
+  z-index: 2147483647 !important;
+}
+
 swg-container,
 swg-loading,
 swg-loading-animate,

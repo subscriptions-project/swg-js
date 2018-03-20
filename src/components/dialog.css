@@ -24,12 +24,52 @@
  * The maximum width allowed for the dialog is 480 px. Default width
  * is 100% (for container width < 480 px).
  */
-@media (min-width: 480px) {
+@media (max-width: 640px), (max-height: 640px) {
   .swg-dialog,
   .swg-toast {
     width: 480px !important;
     left: -240px !important;
     margin-left: calc(100vw - 100vw / 2) !important;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 1) !important;
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
+    box-shadow:
+        rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px !important;
+  }
+}
+
+/**
+ * Use dialog width as 100% when device width is less than 480px.
+ */
+@media (max-width: 480px) {
+  .swg-dialog,
+  .swg-toast {
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin-left: 0 !important;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 1) !important;
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
+    box-shadow:
+        rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px !important;
+  }
+}
+
+/**
+ * Desktop/Large screen support. When device with or height is > 640px.
+ *
+ */
+@media (min-width: 640px) and (min-height: 640px) {
+  .swg-dialog {
+    width: 630px !important;
+    box-sizing: border-box;
+    left: -315px !important;
+    margin-left: calc(100vw - 100vw / 2) !important;
+    background-color: rgba(255, 255, 255, 0) !important;
+    border: none !important;
   }
 }
 
