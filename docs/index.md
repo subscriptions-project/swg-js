@@ -16,6 +16,8 @@ limitations under the License.
 
 # SwG
 
+For introduction, see [Introducing Subscribe with Google YouTube video](https://www.youtube.com/watch?v=2N04xgq7EsM).
+
 - [Including SwG client on a site](./embed-client.md)
 - [Page markup](./page-markup.md)
 - [Core APIs](./core-apis.md)
