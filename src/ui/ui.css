@@ -56,6 +56,7 @@ swg-loading-image {
   display: block;
 }
 
+swg-loading-container,
 swg-loading {
   position: fixed !important;
   top: 40% !important;

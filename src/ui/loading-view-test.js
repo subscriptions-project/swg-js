@@ -20,12 +20,14 @@ import {CSS as LOADING_VIEW_CSS} from '../../build/css/ui/ui.css';
 
 describes.realWin('LoadingView', {}, env => {
   let doc;
+  let win;
   let body;
   let loadingView;
   let loadingContainer;
   const hiddenStyle = 'display: none !important;';
 
   beforeEach(() => {
+    win = env.win;
     doc = env.win.document;
     body = doc.body;
     loadingView = new LoadingView(doc);
@@ -44,12 +46,12 @@ describes.realWin('LoadingView', {}, env => {
       assert.isFunction(loadingView.hide);
 
       // Should have injected styles applied.
-      //const loadingTagStyles =
-      //    win.getComputedStyle(loadingContainer);
+      const loadingTagStyles =
+          win.getComputedStyle(loadingContainer);
 
-      //expect(loadingTagStyles.top).to.equal('40%');
-      //expect(loadingTagStyles.left).to.equal('45%');
-      //expect(loadingTagStyles['z-index']).to.equal('2147483647');
+      expect(loadingTagStyles.top).to.equal('40%');
+      expect(loadingTagStyles.left).to.equal('45%');
+      expect(loadingTagStyles['z-index']).to.equal('2147483647');
 
     });
 
