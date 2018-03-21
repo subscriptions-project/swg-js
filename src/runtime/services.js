@@ -53,9 +53,16 @@ export function serviceUrl(url) {
  * @return {string} The complete URL.
  */
 export function feUrl(url, prefix = '') {
-  return addQueryParam(
-      '$frontend$' + prefix + '/swg/_/ui/v1' + url,
-      '_', cacheParam('$frontendCache$'));
+  return feCached('$frontend$' + prefix + '/swg/_/ui/v1' + url);
+}
+
+
+/**
+ * @param {string} url FE URL.
+ * @return {string} The complete URL including cache params.
+ */
+export function feCached(url) {
+  return addQueryParam(url, '_', cacheParam('$frontendCache$'));
 }
 
 
