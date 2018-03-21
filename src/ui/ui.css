@@ -23,7 +23,7 @@ body {
  * Since the desktop view has the parent iframe (.swg-dialog) transperant,
  * this style adds the background with borders to the loading indicator.
  */
-@media (min-width: 630px) {
+@media (min-width: 630px), (min-height: 630px) {
   .swg-loading-container {
     width: 550px !important;
     height: 148px !important;
