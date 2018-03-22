@@ -80,7 +80,7 @@ describes.realWin('PayStartFlow', {}, env => {
   it('should have valid flow constructed', () => {
     activitiesMock.expects('open').withExactArgs(
         'swg-pay',
-        '$frontend$/swg/_/ui/v1/pay?_=_',
+        'PAY_ORIGIN/gp/p/ui/pay?_=_',
         '_blank',
         {
           '_client': 'SwG $internalRuntimeVersion$',
@@ -224,7 +224,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     // TODO(dvoytenko): support payload decryption.
     it.skip('should require channel security', () => {
       const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
-          'REDIRECT', location.origin, true, false);
+          'REDIRECT', 'PAY_ORIGIN', true, false);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       PayCompleteFlow.configurePending(runtime);
       return startCallback(port).then(() => {
@@ -242,7 +242,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     it('should start flow on correct payment response', () => {
       entitlementsManagerMock.expects('blockNextNotification').once();
       const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
-          'POPUP', location.origin, true, true);
+          'POPUP', 'PAY_ORIGIN', true, true);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       PayCompleteFlow.configurePending(runtime);
@@ -267,7 +267,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     it('should start flow on correct payment response as decoded obj', () => {
       const result = new ActivityResult(ActivityResultCode.OK,
           INTEGR_DATA_OBJ_DECODED,
-          'POPUP', location.origin, true, true);
+          'POPUP', 'PAY_ORIGIN', true, true);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       PayCompleteFlow.configurePending(runtime);
@@ -297,7 +297,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       };
       const result = new ActivityResult(ActivityResultCode.OK,
           encryptedResponse,
-          'POPUP', location.origin, true, true);
+          'POPUP', 'PAY_ORIGIN', true, true);
       const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
           () => Promise.resolve(
           {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
@@ -322,7 +322,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         // Verify xhr call
         expect(xhrFetchStub).to.be.calledOnce;
         expect(xhrFetchStub).to.be.calledWith(
-            'https://pay.google.com/gp/p/apis/buyflow/process', ({
+            'PAY_ORIGIN/gp/p/apis/buyflow/process', ({
               method: 'post',
               headers: {'Accept': 'text/plain, application/json'},
               credentials: 'include',
@@ -341,7 +341,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       };
       const result = new ActivityResult(ActivityResultCode.OK,
           encryptedResponse,
-          'POPUP', location.origin, true, true);
+          'POPUP', 'PAY_ORIGIN', true, true);
       const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
           () => Promise.resolve(
             {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
@@ -366,7 +366,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         // Verify xhr call
         expect(xhrFetchStub).to.be.calledOnce;
         expect(xhrFetchStub).to.be.calledWith(
-            'https://pay.sandbox.google.com/gp/p/apis/buyflow/process', ({
+            'PAY_ORIGIN/gp/p/apis/buyflow/process', ({
               method: 'post',
               headers: {'Accept': 'text/plain, application/json'},
               credentials: 'include',
