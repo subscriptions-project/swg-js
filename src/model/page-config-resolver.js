@@ -282,6 +282,73 @@ class JsonLdParser {
   }
 }
 
+/**
+ * Class to define a microdata item found in the page
+*/
+class Item {
+
+  constructor(type, properties) {
+    this.type = type;
+    this.properties = properties;
+  }
+}
+
+/**
+ * Class to describe the microdata items found
+ */
+class MicrodataEntry {
+  /**
+   * @param {int} id
+   * @param {!Array<Item>} list of items
+   */
+  constructor(id, items) {
+    this.id = id;
+    this.items = items;
+  }
+}
+
+/**
+ * Class the describes the microdata found in the page
+*/
+class Microdata {
+  /**
+ * @param {!Array<MicrodataEntry>} entries of microdata
+   */
+  constructor(entries) {
+    this.entries = entries;
+  }
+
+  /**
+   * Returns the first page configuration found, if present
+  * @return {?PageConfig} pageConfigs found
+  */
+  getPageConfig() {
+    const pageConfigs = [];
+    let locked = false;
+    let productId = null;
+    this.entries.forEach(entry => {
+      entry.items.forEach(item => {
+        Object.keys(item.properties).forEach(property => {
+          if (property == 'isAccessibleForFree') {
+            locked = !item.properties[property];
+          }
+          if ((property == 'productID') && item.type.indexOf('Product') >= 0) {
+            productId = item.properties[property];
+          }
+        });
+      });
+      if (productId != null) {
+        pageConfigs.push(new PageConfig(productId, locked));
+      }
+    });
+    if (pageConfigs.length == 0) {
+      return null;
+    } else {
+      return pageConfigs[0];
+    }
+  }
+}
+
 class MicrodataParser {
   /**
    * @param {!Window} win
@@ -291,39 +358,81 @@ class MicrodataParser {
     this.win_ = win;
   }
 
+  discoverAccess_(prop) {
+    if (prop.getAttribute('itemprop') == 'isAccessibleForFree') {
+      const value = prop.content || prop.textContent;
+      if (typeof value == 'boolean') {
+        return value;
+      }
+		  if (value === 'False' || value === 'false') {
+			  return false;
+      } else if (value === 'true' || value == 'True') {
+        return true;
+      }
+    }
+    return null;
+  }
+
+  discoverProductId_(prop) {
+    if (prop.getAttribute('itemprop') == 'productID')	{
+      return prop.content || prop.textContent;
+    }
+    return null;
+  };
+
+  tryExtractConfig_(doc) {
+    let itemId = 0;
+    const results = [];
+    doc.querySelectorAll('[itemscope]')
+        .forEach(element => {
+          console.log(element.getAttribute('itemtype'));
+          if (element.getAttribute('itemtype') == 'http://schema.org/NewsArticle') {
+            const props = element.querySelectorAll('[itemprop]');
+            console.log(props.length);
+            const items = [];
+            props.forEach(prop => {
+              let type = 'default';
+              if (prop.matches('[itemscope]')) {
+                type = prop.getAttribute('itemtype');
+              }
+              const item = {
+                'itemtype': type,
+                'properties': {},
+              };
+              const _props = prop.querySelectorAll('[itemprop]');
+              _props.forEach(_prop => {
+                const access = this.discoverAccess_(_prop);
+                if (access != null) {
+                  item.properties['isAccessibleForFree'] = access;
+                }
+                const productId = this.discoverProductId_(_prop);
+                if (productId != null) {
+                  item.properties['productID'] = productId;
+                }
+              });
+              const itemFound = new Item(item.itemtype, item.properties);
+              items.push(itemFound);
+            });
+            console.log(items);
+            results.push(new MicrodataEntry(++itemId, items));
+          }
+        });
+    return new Microdata(results);
+  }
+
   /**
    * @return {?PageConfig}
    */
   check() {
     if (!this.win_.document.body) {
       // Wait until the whole `<head>` is parsed.
+      debugger;
       return null;
     }
-
-    // TODO(sohanirao): create page config from DOM
-    /* Psuedo code
-      Initialize an empty list of items
-      Get all items (query elements that have itemscope)
-        For each element
-          get a list of properties
-            if a property is 'isAccessibleForFree', create an entry in the items list:
-            {'isAccessibleForFree': booleanvalue, 'element': elementWithTheProperty}
-            if a property is 'productID', create an entry in the items list as follows:
-            {'productID': value, 'element': elementWithTheProperty}
-      Initialize an empty list of results
-      Iterate through entries in the items list
-        Pop an entry,
-          if the element's type is "NewsArticle"
-            add it to the results list
-          else if this element is not the root
-            create an entry with either 'isAccessibleForFree' or 'productID' and corresponding value,
-            and the parent of the element as the entry for 'element' key, add this entry to items list
-      When the items list is processed, results list contains entries that meet the requirements:
-        type is NewsArticle, contains either isAccessibleForFree value or productID value.
-        When the results array contains entries for both and the corresponding elements are the same,
-          return PageConfig, otherwise return null
-    */
-    return null;
+    debugger;
+    let microdata = this.tryExtractConfig_(this.win_.document);
+    debugger;
+    return microdata.getPageConfig();
   }
 }
 
