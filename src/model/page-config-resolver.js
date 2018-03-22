@@ -385,10 +385,8 @@ class MicrodataParser {
     const results = [];
     doc.querySelectorAll('[itemscope]')
         .forEach(element => {
-          console.log(element.getAttribute('itemtype'));
           if (element.getAttribute('itemtype') == 'http://schema.org/NewsArticle') {
             const props = element.querySelectorAll('[itemprop]');
-            console.log(props.length);
             const items = [];
             props.forEach(prop => {
               let type = 'default';
@@ -410,10 +408,9 @@ class MicrodataParser {
                   item.properties['productID'] = productId;
                 }
               });
-              const itemFound = new Item(item.itemtype, item.properties);
+
               items.push(itemFound);
             });
-            console.log(items);
             results.push(new MicrodataEntry(++itemId, items));
           }
         });
@@ -426,12 +423,9 @@ class MicrodataParser {
   check() {
     if (!this.win_.document.body) {
       // Wait until the whole `<head>` is parsed.
-      debugger;
       return null;
     }
-    debugger;
-    let microdata = this.tryExtractConfig_(this.win_.document);
-    debugger;
+    const microdata = this.tryExtractConfig_(this.win_.document);
     return microdata.getPageConfig();
   }
 }
