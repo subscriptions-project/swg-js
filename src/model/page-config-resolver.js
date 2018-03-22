@@ -394,7 +394,7 @@ class MicrodataParser {
                 type = prop.getAttribute('itemtype');
               }
               const item = {
-                'itemtype': type,
+                'type': type,
                 'properties': {},
               };
               const _props = prop.querySelectorAll('[itemprop]');
@@ -408,8 +408,7 @@ class MicrodataParser {
                   item.properties['productID'] = productId;
                 }
               });
-
-              items.push(itemFound);
+              items.push(new Item(item.type, item.properties));
             });
             results.push(new MicrodataEntry(++itemId, items));
           }
