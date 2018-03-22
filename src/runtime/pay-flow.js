@@ -24,9 +24,34 @@ import {UserData} from '../api/user-data';
 import {Xhr} from '../utils/xhr';
 import {acceptPortResult} from '../utils/activity-utils';
 import {parseJson} from '../utils/json';
-import {feArgs, feOrigin, feUrl} from './services';
+import {feArgs, feCached, feUrl} from './services';
 
 const PAY_REQUEST_ID = 'swg-pay';
+
+/**
+ * @const {!Object<string, string>}
+ * @package Visible for testing only.
+ */
+export const PAY_ORIGIN = {
+  'PRODUCTION': 'https://pay.google.com',
+  'SANDBOX': 'https://pay.sandbox.google.com',
+};
+
+
+/** @return {string} */
+function payOrigin() {
+  return PAY_ORIGIN['$payEnvironment$'];
+}
+
+/** @return {string} */
+function payUrl() {
+  return feCached(PAY_ORIGIN['$payEnvironment$'] + '/gp/p/ui/pay');
+}
+
+/** @return {string} */
+function payDecryptUrl() {
+  return PAY_ORIGIN['$payEnvironment$'] + '/gp/p/apis/buyflow/process';
+}
 
 
 /**
@@ -38,7 +63,7 @@ export class PayStartFlow {
    * @param {!../utils/preconnect.Preconnect} pre
    */
   static preconnect(pre) {
-    pre.prefetch(feUrl('/pay'));
+    pre.prefetch(payUrl());
   }
 
   /**
@@ -67,7 +92,7 @@ export class PayStartFlow {
     // TODO(dvoytenko): switch to gpay async client.
     this.activityPorts_.open(
         PAY_REQUEST_ID,
-        feUrl('/pay'),
+        payUrl(),
         '_blank',
         feArgs({
           'apiVersion': 1,
@@ -186,14 +211,14 @@ export class PayCompleteFlow {
 export function validatePayResponse(win, port, completeHandler) {
   return acceptPortResult(
       port,
-      feOrigin(),
+      payOrigin(),
       // TODO(dvoytenko): support payload decryption.
       /* requireOriginVerified */ false,
       /* requireSecureChannel */ false)
       .then(data => {
         if (data['redirectEncryptedCallbackData']) {
           const xhr = new Xhr(win);
-          const url = getDecryptionUrl(data['environment']);
+          const url = payDecryptUrl();
           const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
             method: 'post',
             headers: {'Accept': 'text/plain, application/json'},
@@ -203,6 +228,7 @@ export function validatePayResponse(win, port, completeHandler) {
           });
           return xhr.fetch(url, init).then(response => response.json());
         }
+        // TODO(dvoytenko): prohibit this branch in case of redirect.
         return data;
       }).then(data => parseSubscriptionResponse(data, completeHandler));
 }
@@ -246,19 +272,6 @@ export function parseSubscriptionResponse(data, completeHandler) {
       parsePurchaseData(swgData),
       parseUserData(swgData),
       completeHandler);
-}
-
-/**
-   * Returns the decryption url to be used to decrypt the encrypted payload.
-   *
-   * @param {!string} environment
-   * @return {!string} The decryption url
-   */
-function getDecryptionUrl(environment) {
-  if (environment == 'PRODUCTION') {
-    return 'https://pay.google.com/gp/p/apis/buyflow/process';
-  }
-  return 'https://pay.sandbox.google.com/gp/p/apis/buyflow/process';
 }
 
 

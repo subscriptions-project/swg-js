@@ -19,6 +19,7 @@ import '../third_party/babel/custom-babel-helpers';
 import '../src/polyfills';
 import * as describes from '../test/describes';
 import {CACHE_KEYS} from '../src/runtime/services';
+import {PAY_ORIGIN} from '../src/runtime/pay-flow';
 import {installYieldIt} from '../test/yield';
 import stringify from 'json-stable-stringify';
 
@@ -50,6 +51,7 @@ beforeEach(function() {
   this.timeout(5000);
   window.TEST = true;
   CACHE_KEYS['$frontendCache$'] = 0;
+  PAY_ORIGIN['$payEnvironment$'] = 'PAY_ORIGIN';
 });
 
 // Global cleanup of tags added during tests. Cool to add more

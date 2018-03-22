@@ -20,8 +20,8 @@ const internalRuntimeVersion = require('./internal-version').VERSION;
 
 const FRONTEND = 'https://subscribe-autopush.sandbox.google.com';
 const FRONTEND_CACHE = 'nocache';
-const PAY_ENVIRONMENT = '';
-const PLAY_ENVIRONMENT = '';
+const PAY_ENVIRONMENT = 'SANDBOX';
+const PLAY_ENVIRONMENT = 'STAGING';
 
 
 /**
