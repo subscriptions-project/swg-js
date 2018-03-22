@@ -41,6 +41,10 @@ describes.realWin('PageConfigResolver', {}, env => {
     return element;
   }
 
+  function addMicroData(content) {
+    doc.body.appendChild(content);
+  }
+
   describe('parse meta', () => {
     it('should parse publication id and product', () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
@@ -268,7 +272,143 @@ describes.realWin('PageConfigResolver', {}, env => {
   });
 
   describe('parse microdata', () => {
-    // TODO(sohanirao): Add tests to parse microdata
+    let readyState;
+
+    beforeEach(() => {
+      readyState = 'loading';
+      Object.defineProperty(doc, 'readyState', {get: () => readyState});
+    });
+
+    function getTestDiv(options) {
+      const access = (options['isAccessibleForFree'] != undefined);
+      const productId = options['productId'];
+      const topItemtype = options['newsArticleType'];
+      const divElement = createElement(doc, 'div');
+      if (!!topItemtype) {
+        divElement.setAttribute('itemtype', 'http://schema.org/NewsArticle');
+        divElement.setAttribute('itemscope', '');
+      }
+      if (!!access) {
+        const accessElement = createElement(doc, 'meta');
+        accessElement.setAttribute('itemprop', 'isAccessibleForFree');
+        accessElement.content = options['isAccessibleForFree'];
+        divElement.appendChild(accessElement);
+      }
+      const divWithProduct = createElement(doc, 'div');
+      divWithProduct.setAttribute('itemscope', '');
+      divWithProduct.setAttribute('itemtype', 'http://schema.org/CreativeWork http://schema.org/Product');
+      divWithProduct.setAttribute('itemprop', 'isPartOf');
+      if (!!productId) {
+        const productElement = createElement(doc, 'meta');
+        productElement.setAttribute('itemprop', 'productID');
+        productElement.content = 'pub1:premium';
+        divWithProduct.appendChild(productElement);
+      }
+      divElement.appendChild(divWithProduct);
+      const accessDiv = createElement(doc, 'div');
+      accessDiv.setAttribute('itemscope', '');
+      accessDiv.setAttribute('itemtype', 'http://schema.org/WebPageElement');
+      accessDiv.setAttribute('itemprop', 'hasPart');
+      if (!!access) {
+        const accessElement = createElement(doc, 'meta');
+        accessElement.setAttribute('itemprop', 'isAccessibleForFree');
+        accessElement.content = options['isAccessibleForFree'];
+        accessDiv.appendChild(accessElement);
+      }
+      divElement.appendChild(accessDiv);
+      return divElement;
+    }
+
+    it('should parse locked access as a string', () => {
+      const options = {
+        'isAccessibleForFree': 'false',
+        'productId': 'pub1:premium',
+        'newsArticleType': 'http://schema.org/NewsArticle',
+      };
+      addMicroData(getTestDiv(options));
+      readyState = 'complete';
+      return new PageConfigResolver(win).resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.true;
+        expect(config.getProductId()).to.equal('pub1:premium');
+      });
+    });
+
+    it('should parse locked access as a bool', () => {
+      const options = {
+        'isAccessibleForFree': false,
+        'productId': 'pub1:premium',
+        'newsArticleType': 'http://schema.org/NewsArticle',
+      };
+      addMicroData(getTestDiv(options));
+      readyState = 'complete';
+      return new PageConfigResolver(win).resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.true;
+        expect(config.getProductId()).to.equal('pub1:premium');
+      });
+    });
+
+    it('should parse unlocked access as a bool', () => {
+      const options = {
+        'isAccessibleForFree': true,
+        'productId': 'pub1:premium',
+        'newsArticleType': 'http://schema.org/NewsArticle',
+      };
+      addMicroData(getTestDiv(options));
+      readyState = 'complete';
+      return new PageConfigResolver(win).resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.false;
+        expect(config.getProductId()).to.equal('pub1:premium');
+      });
+    });
+
+    it('should parse unlocked access as a string', () => {
+      const options = {
+        'isAccessibleForFree': 'True',
+        'productId': 'pub1:premium',
+        'newsArticleType': 'http://schema.org/NewsArticle',
+      };
+      addMicroData(getTestDiv(options));
+      readyState = 'complete';
+      return new PageConfigResolver(win).resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.false;
+        expect(config.getProductId()).to.equal('pub1:premium');
+      });
+    });
+
+    it('malformed microdata no productId', () => {
+      const options = {
+        'isAccessibleForFree': 'True',
+        'newsArticleType': 'http://schema.org/NewsArticle',
+      };
+      addMicroData(getTestDiv(options));
+      readyState = 'complete';
+      const resolver = new PageConfigResolver(win);
+      expect(resolver.check()).to.be.null;
+    });
+
+    it('malformed microdata no access info default to unlocked', () => {
+      const options = {
+        'productId': 'pub1:premium',
+        'newsArticleType': 'http://schema.org/NewsArticle',
+      };
+      addMicroData(getTestDiv(options));
+      readyState = 'complete';
+      return new PageConfigResolver(win).resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.false;
+        expect(config.getProductId()).to.equal('pub1:premium');
+      });
+    });
+
+    it('malformed microdata not news article type', () => {
+      const options = {
+        'isAccessibleForFree': 'True',
+        'productId': 'pub1:premium',
+      };
+      addMicroData(getTestDiv(options));
+      readyState = 'complete';
+      const resolver = new PageConfigResolver(win);
+      expect(resolver.check()).to.be.null;
+    });
   });
 
   describe('locked', () => {
