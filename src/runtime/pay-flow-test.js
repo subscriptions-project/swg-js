@@ -55,14 +55,12 @@ const INTEGR_DATA_OBJ_DECODED = {
 };
 
 
-
-
-
 describes.realWin('PayStartFlow', {}, env => {
   let win;
   let pageConfig;
   let runtime;
   let activitiesMock;
+  let dialogManagerMock;
   let flow;
 
   beforeEach(() => {
@@ -70,14 +68,20 @@ describes.realWin('PayStartFlow', {}, env => {
     pageConfig = new PageConfig('pub1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     flow = new PayStartFlow(runtime, 'sku1');
   });
 
   afterEach(() => {
     activitiesMock.verify();
+    dialogManagerMock.verify();
   });
 
   it('should have valid flow constructed', () => {
+    const popupWin = {};
+    dialogManagerMock.expects('popupOpened')
+        .withExactArgs(popupWin)
+        .once();
     activitiesMock.expects('open').withExactArgs(
         'swg-pay',
         'PAY_ORIGIN/gp/p/ui/pay?_=_',
@@ -94,6 +98,7 @@ describes.realWin('PayStartFlow', {}, env => {
           },
         },
         {})
+        .returns({targetWin: popupWin})
         .once();
     const flowPromise = flow.start();
     return expect(flowPromise).to.eventually.be.undefined;
@@ -108,6 +113,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let activitiesMock;
   let callbacksMock;
   let entitlementsManagerMock;
+  let dialogManagerMock;
   let flow;
 
   beforeEach(() => {
@@ -117,6 +123,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     flow = new PayCompleteFlow(runtime);
   });
 
@@ -204,6 +211,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should NOT start flow on incorrect payments response', () => {
+      dialogManagerMock.expects('popupClosed').once();
       PayCompleteFlow.configurePending(runtime);
       const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
@@ -240,6 +248,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should start flow on correct payment response', () => {
+      dialogManagerMock.expects('popupClosed').once();
       entitlementsManagerMock.expects('blockNextNotification').once();
       const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
           'POPUP', 'PAY_ORIGIN', true, true);

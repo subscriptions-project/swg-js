@@ -54,6 +54,7 @@ describes.realWin('LinkbackFlow', {}, env => {
   let pageConfig;
   let runtime;
   let activitiesMock;
+  let dialogManagerMock;
   let linkbackFlow;
 
   beforeEach(() => {
@@ -61,6 +62,7 @@ describes.realWin('LinkbackFlow', {}, env => {
     pageConfig = new PageConfig('pub1:prod1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     linkbackFlow = new LinkbackFlow(runtime);
   });
 
@@ -69,6 +71,10 @@ describes.realWin('LinkbackFlow', {}, env => {
   });
 
   it('should start correctly', () => {
+    const popupWin = {};
+    dialogManagerMock.expects('popupOpened')
+        .withExactArgs(popupWin)
+        .once();
     activitiesMock.expects('open').withExactArgs(
         'swg-link',
         '$frontend$/swg/_/ui/v1/linkbackstart?_=_',
@@ -76,6 +82,7 @@ describes.realWin('LinkbackFlow', {}, env => {
           '_client': 'SwG $internalRuntimeVersion$',
           'publicationId': 'pub1',
         }, {})
+        .returns({targetWin: popupWin})
         .once();
     linkbackFlow.start();
   });
@@ -88,6 +95,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   let runtime;
   let activitiesMock;
   let entitlementsManagerMock;
+  let dialogManagerMock;
   let linkCompleteFlow;
   let triggerLinkProgressSpy, triggerLinkCompleteSpy;
 
@@ -97,6 +105,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     linkCompleteFlow = new LinkCompleteFlow(runtime, {'index': '1'});
     triggerLinkProgressSpy = sandbox.stub(
         runtime.callbacks(), 'triggerLinkProgress');
@@ -110,6 +119,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   });
 
   it('should trigger on link response', () => {
+    dialogManagerMock.expects('popupClosed').once();
     let handler;
     activitiesMock.expects('onResult')
         .withExactArgs('swg-link-continue', sinon.match(arg => {
@@ -159,6 +169,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   });
 
   it('should default index to 0', () => {
+    dialogManagerMock.expects('popupClosed').once();
     linkCompleteFlow = new LinkCompleteFlow(runtime, {});
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -178,6 +189,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   });
 
   it('should trigger events and reset entitlements', () => {
+    dialogManagerMock.expects('popupClosed').once();
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
@@ -216,6 +228,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   });
 
   it('should reset entitlements for unsuccessful response', () => {
+    dialogManagerMock.expects('popupClosed').once();
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
