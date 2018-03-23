@@ -25,6 +25,7 @@ describes.realWin('DialogManager', {}, env => {
   let dialogIfc;
   let currentView;
   let initView;
+  let graypaneStubs;
 
   beforeEach(() => {
     clock = sandbox.useFakeTimers();
@@ -47,6 +48,19 @@ describes.realWin('DialogManager', {}, env => {
       }),
       getCurrentView: sandbox.stub(Dialog.prototype, 'getCurrentView',
           () => currentView),
+    };
+    let graypaneAttached;
+    const graypane = dialogManager.popupGraypane_;
+    graypaneStubs = {
+      isAttached: sandbox.stub(graypane, 'isAttached', () => graypaneAttached),
+      attach: sandbox.stub(graypane, 'attach', () => {
+        graypaneAttached = true;
+      }),
+      destroy: sandbox.stub(graypane, 'destroy', () => {
+        graypaneAttached = false;
+      }),
+      show: sandbox.stub(graypane, 'show'),
+      hide: sandbox.stub(graypane, 'hide'),
     };
   });
 
@@ -98,6 +112,7 @@ describes.realWin('DialogManager', {}, env => {
       dialogManager.completeAll();
       expect(dialogIfc.close).to.be.calledOnce;
       expect(dialogManager.dialog_).to.not.exist;
+      expect(graypaneStubs.destroy).to.not.be.called;
     });
   });
 
@@ -148,5 +163,35 @@ describes.realWin('DialogManager', {}, env => {
         expect(dialogIfc.open).to.be.calledTwice;
       });
     });
+  });
+
+  it('should open graypane w/o popup window', () => {
+    dialogManager.popupOpened();
+    expect(graypaneStubs.isAttached()).to.be.true;
+    expect(graypaneStubs.show).to.be.calledOnce;
+  });
+
+  it('should open graypane w/popup window and handle click', () => {
+    const popup = {
+      focus: sandbox.spy(),
+    };
+    dialogManager.popupOpened(popup);
+    expect(graypaneStubs.isAttached()).to.be.true;
+    expect(graypaneStubs.show).to.be.calledOnce;
+    dialogManager.popupGraypane_.getElement().click();
+    expect(popup.focus).to.be.calledOnce;
+  });
+
+  it('should close graypane', () => {
+    dialogManager.popupOpened();
+    expect(graypaneStubs.isAttached()).to.be.true;
+    dialogManager.popupClosed();
+    expect(graypaneStubs.hide).to.be.calledOnce;
+  });
+
+  it('should complete all and close graypane when attached', () => {
+    dialogManager.popupOpened();
+    dialogManager.completeAll();
+    expect(graypaneStubs.destroy).to.be.calledOnce;
   });
 });

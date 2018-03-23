@@ -106,6 +106,9 @@ export class LinkbackFlow {
 
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = deps.pageConfig();
+
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = deps.dialogManager();
   }
 
   /**
@@ -113,13 +116,14 @@ export class LinkbackFlow {
    * @return {!Promise}
    */
   start() {
-    this.activityPorts_.open(
+    const opener = this.activityPorts_.open(
         LINK_REQUEST_ID,
         feUrl('/linkbackstart'),
         '_blank',
         feArgs({
           'publicationId': this.pageConfig_.getPublicationId(),
         }), {});
+    this.dialogManager_.popupOpened(opener && opener.targetWin);
     return Promise.resolve();
   }
 }
@@ -137,6 +141,7 @@ export class LinkCompleteFlow {
     function handler(port) {
       deps.entitlementsManager().blockNextNotification();
       deps.callbacks().triggerLinkProgress();
+      deps.dialogManager().popupClosed();
       const promise = acceptPortResult(
           port,
           feOrigin(),
