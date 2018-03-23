@@ -80,6 +80,9 @@ export class PayStartFlow {
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = deps.pageConfig();
 
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = deps.dialogManager();
+
     /** @private @const {string} */
     this.sku_ = sku;
   }
@@ -90,7 +93,7 @@ export class PayStartFlow {
    */
   start() {
     // TODO(dvoytenko): switch to gpay async client.
-    this.activityPorts_.open(
+    const opener = this.activityPorts_.open(
         PAY_REQUEST_ID,
         payUrl(),
         '_blank',
@@ -104,6 +107,7 @@ export class PayStartFlow {
             'skuId': this.sku_,
           },
         }), {});
+    this.dialogManager_.popupOpened(opener && opener.targetWin);
     return Promise.resolve();
   }
 }
@@ -119,6 +123,7 @@ export class PayCompleteFlow {
    */
   static configurePending(deps) {
     deps.activities().onResult(PAY_REQUEST_ID, port => {
+      deps.dialogManager().popupClosed();
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
       const promise = validatePayResponse(

@@ -15,6 +15,9 @@
  */
 
 import {Dialog} from './dialog';
+import {Graypane} from './graypane';
+
+const POPUP_Z_INDEX = 2147483647;
 
 
 /**
@@ -35,6 +38,22 @@ export class DialogManager {
 
     /** @private {?Promise<!Dialog>} */
     this.openPromise_ = null;
+
+    /** @private @const {!Graypane} */
+    this.popupGraypane_ = new Graypane(win.document, POPUP_Z_INDEX);
+
+    /** @private {?Window} */
+    this.popupWin_ = null;
+
+    this.popupGraypane_.getElement().addEventListener('click', () => {
+      if (this.popupWin_) {
+        try {
+          this.popupWin_.focus();
+        } catch (e) {
+          // Ignore error.
+        }
+      }
+    });
   }
 
   /**
@@ -82,6 +101,9 @@ export class DialogManager {
     if (this.dialog_) {
       this.close_();
     }
+    if (this.popupGraypane_.isAttached()) {
+      this.popupGraypane_.destroy();
+    }
   }
 
   /** @private */
@@ -89,5 +111,27 @@ export class DialogManager {
     this.dialog_.close();
     this.dialog_ = null;
     this.openPromise_ = null;
+  }
+
+  /**
+   * @param {?Window|undefined} targetWin
+   */
+  popupOpened(targetWin) {
+    this.popupWin_ = targetWin || null;
+    if (!this.popupGraypane_.isAttached()) {
+      this.popupGraypane_.attach();
+    }
+    this.popupGraypane_.show();
+  }
+
+  /**
+   */
+  popupClosed() {
+    this.popupWin_ = null;
+    try {
+      this.popupGraypane_.hide();
+    } catch (e) {
+      // Ignore.
+    }
   }
 }

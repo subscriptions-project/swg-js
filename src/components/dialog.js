@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-import {LoadingView} from '../ui/loading-view';
 import {CSS as DIALOG_CSS} from '../../build/css/ui/ui.css';
+import {Graypane} from './graypane';
+import {LoadingView} from '../ui/loading-view';
 import {
   createElement,
-  injectFontsLink,
   injectStyleSheet,
   removeChildren,
 } from '../utils/dom';
 import {
-  googleFontsUrl,
   setStyles,
   setImportantStyles,
   topFriendlyIframePositionStyles,
@@ -31,6 +30,7 @@ import {
 import {transition} from '../utils/animation';
 import {FriendlyIframe} from './friendly-iframe';
 
+const Z_INDEX = 2147483647;
 
 /**
  * Default iframe important styles.
@@ -45,7 +45,7 @@ const rootElementImportantStyles = {
   'display': 'block',
   'background-color': 'rgb(255, 255, 255)',
   'position': 'fixed',
-  'z-index': '2147483647',
+  'z-index': Z_INDEX,
   'box-shadow':
       'rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px',
   'box-sizing': 'border-box',
@@ -107,8 +107,8 @@ export class Dialog {
     /** @private @const {!FriendlyIframe} */
     this.iframe_ = new FriendlyIframe(this.doc_, {'class': 'swg-dialog'});
 
-    /** @private @const {!Element} */
-    this.fadeBackground_ = this.doc_.createElement('swg-popup-background');
+    /** @private @const {!Graypane} */
+    this.graypane_ = new Graypane(this.doc_, Z_INDEX - 1);
 
     const modifiedImportantStyles =
         Object.assign({}, rootElementImportantStyles, importantStyles);
@@ -142,8 +142,10 @@ export class Dialog {
     if (iframe.isConnected()) {
       throw new Error('already opened');
     }
-    // Attach the invisible faded background to be used for some views.
-    this.attachBackground_();
+
+    // Attach.
+    this.doc_.body.appendChild(iframe.getElement());  // Fires onload.
+    this.graypane_.attach();
 
     if (animated) {
       this.animate_(() => {
@@ -156,7 +158,6 @@ export class Dialog {
       });
     }
 
-    this.doc_.body.appendChild(iframe.getElement());  // Fires onload.
     return iframe.whenReady().then(() => {
       this.buildIframe_();
       return this;
@@ -173,7 +174,6 @@ export class Dialog {
     const iframeDoc = /** @type {!HTMLDocument} */ (this.iframe_.getDocument());
 
     // Inject Google fonts in <HEAD> section of the iframe.
-    injectFontsLink(iframeDoc, googleFontsUrl);
     injectStyleSheet(iframeDoc, DIALOG_CSS);
 
     // Add Loading indicator.
@@ -196,6 +196,7 @@ export class Dialog {
     let animating;
     if (animated) {
       animating = this.animate_(() => {
+        this.graypane_.hide(/* animate */ true);
         return transition(this.getElement(), {
           'transform': 'translateY(100%)',
         }, 300, 'ease-out');
@@ -206,8 +207,7 @@ export class Dialog {
     return animating.then(() => {
       this.doc_.body.removeChild(this.iframe_.getElement());
       this.removePaddingToHtml_();
-      // Remove the faded background from the parent document.
-      this.doc_.body.removeChild(this.fadeBackground_);
+      this.graypane_.destroy();
     });
   }
 
@@ -271,16 +271,15 @@ export class Dialog {
     this.setLoading(true);
     this.getContainer().appendChild(view.getElement());
 
+    // If the current view should fade the parent document.
+    if (view.shouldFadeBody()) {
+      this.graypane_.show(/* animate */ true);
+    }
     return view.init(this).then(() => {
       setImportantStyles(view.getElement(), {
         'opacity': 1,
       });
       this.setLoading(false);
-
-      // If the current view should fade the parent document.
-      if (view.shouldFadeBody()) {
-        this.fadeTheParent_();
-      }
     });
   }
 
@@ -444,31 +443,5 @@ export class Dialog {
       default:
         return {'bottom': 0};
     }
-  }
-
-  /**
-   * Attaches the hidden faded background to the parent document.
-   * @private
-   */
-  attachBackground_() {
-    setImportantStyles(this.fadeBackground_, {
-      'display': 'none',
-      'position': 'fixed',
-      'top': 0,
-      'right': 0,
-      'bottom': 0,
-      'left': 0,
-      'background-color': 'rgba(32, 33, 36, .6)',
-      'z-index': 2147483646,  /** 1 less than SwG dialog */
-    });
-    this.doc_.body.appendChild(this.fadeBackground_);
-  }
-
-  /**
-   * Fades the main page content when a view is rendered and fading is enabled..
-   * @private
-   */
-  fadeTheParent_() {
-    this.fadeBackground_.style.removeProperty('display');
   }
 }

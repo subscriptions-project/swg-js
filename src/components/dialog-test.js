@@ -18,7 +18,6 @@ import {Dialog} from './dialog';
 import {
   computedStyle,
   getStyle,
-  googleFontsUrl,
 } from '../utils/style';
 
 const NO_ANIMATE = false;
@@ -29,6 +28,7 @@ describes.realWin('Dialog', {}, env => {
   let win;
   let doc;
   let dialog;
+  let graypaneStubs;
   let view;
   let element;
   const documentHeight = 100;
@@ -37,6 +37,7 @@ describes.realWin('Dialog', {}, env => {
     win = env.win;
     doc = env.win.document;
     dialog = new Dialog(win, {height: `${documentHeight}px`});
+    graypaneStubs = sandbox.stub(dialog.graypane_);
 
     element = doc.createElement('div');
     view = {
@@ -77,19 +78,16 @@ describes.realWin('Dialog', {}, env => {
     });
 
     it('should have created fade background', function* () {
+      expect(graypaneStubs.attach).to.not.be.called;
       const openedDialog = yield dialog.open(NO_ANIMATE);
-
-      const backgroundElement =
-          win.document.querySelector('swg-popup-background');
-      expect(backgroundElement.nodeName).to.equal('SWG-POPUP-BACKGROUND');
-
-      // Background is hidden initially.
-      expect(computedStyle(win, backgroundElement)['display']).to.equal('none');
+      expect(graypaneStubs.attach).to.be.calledOnce;
+      expect(graypaneStubs.show).to.not.be.called;
 
       yield openedDialog.openView(view);
-      // Background is not hidden when dialog is open.
-      expect(computedStyle(win, backgroundElement)['display'])
-          .to.equal('block');
+      expect(graypaneStubs.show).to.be.calledOnce.calledWith(ANIMATE);
+      expect(graypaneStubs.attach).to.be.calledOnce;
+      expect(dialog.graypane_.fadeBackground_.style.zIndex)
+          .to.equal('2147483646');
     });
 
     it('should open dialog with animation', function* () {
@@ -99,6 +97,8 @@ describes.realWin('Dialog', {}, env => {
 
       expect(getStyle(dialog.getElement(), 'transform'))
           .to.equal('translateY(0px)');
+      expect(graypaneStubs.attach).to.be.calledOnce;
+      expect(graypaneStubs.show).to.not.be.called;
     });
 
     it('should build the view', function* () {
@@ -111,6 +111,7 @@ describes.realWin('Dialog', {}, env => {
       expect(computedStyle(win, element)['min-width']).to.equal('100%');
       expect(computedStyle(win, element)['height']).to.match(/px$/g);
       expect(computedStyle(win, element)['width']).to.match(/px$/g);
+      expect(graypaneStubs.show).to.be.calledOnce.calledWith(ANIMATE);
     });
 
     it('should resize the element', function* () {
@@ -174,11 +175,6 @@ describes.realWin('Dialog', {}, env => {
       expect(iframeDoc.nodeType).to.equal(9);
       expect(iframeDoc.nodeName).to.equal('#document');
 
-      // Should have Google fonts link added to the HEAD section.
-      const fontsLink =
-          iframeDoc.querySelector('link[rel="stylesheet"][type="text/css"]');
-      expect(fontsLink.getAttribute('href')).to.equal(googleFontsUrl);
-
       // Should have container created.
       const container = openedDialog.getContainer();
       expect(container.nodeType).to.equal(1);
@@ -206,6 +202,8 @@ describes.realWin('Dialog', {}, env => {
 
       // Check if document padding was removed.
       expect(win.document.documentElement.style.paddingBottom).to.equal('');
+      expect(graypaneStubs.destroy).to.be.calledOnce;
+      expect(graypaneStubs.hide).to.not.be.called;
     });
 
     it('should remove the dialog with animation', function* () {
@@ -216,6 +214,8 @@ describes.realWin('Dialog', {}, env => {
           .to.be.false;
       // Check if document padding was removed.
       expect(win.document.documentElement.style.paddingBottom).to.equal('');
+      expect(graypaneStubs.destroy).to.be.calledOnce;
+      expect(graypaneStubs.hide).to.be.calledOnce.calledWith(ANIMATE);
     });
 
     it('should have Loading view element added', function* () {
