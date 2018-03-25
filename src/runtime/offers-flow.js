@@ -118,6 +118,9 @@ export class SubscribeOptionFlow {
         feUrl('/optionsiframe'),
         feArgs({
           'publicationId': deps.pageConfig().getPublicationId(),
+          'productId': deps.pageConfig().getProductId(),
+          'list': options && options.list || 'default',
+          'skus': options && options.skus || null,
         }),
         /* shouldFadeBody */ false);
   }
@@ -132,6 +135,9 @@ export class SubscribeOptionFlow {
     });
     this.activityIframeView_.acceptResult().then(result => {
       this.maybeOpenOffersFlow_(result.data);
+    }, reason => {
+      this.dialogManager_.completeView(this.activityIframeView_);
+      throw reason;
     });
     return this.dialogManager_.openView(this.activityIframeView_);
   }
@@ -182,6 +188,10 @@ export class AbbrvOfferFlow {
         feUrl('/abbrvofferiframe'),
         feArgs({
           'publicationId': deps.pageConfig().getPublicationId(),
+          'productId': deps.pageConfig().getProductId(),
+          'showNative': deps.callbacks().hasSubscribeRequestCallback(),
+          'list': options && options.list || 'default',
+          'skus': options && options.skus || null,
         }),
         /* shouldFadeBody */ true);
   }
@@ -205,6 +215,13 @@ export class AbbrvOfferFlow {
     this.activityIframeView_.acceptResult().then(result => {
       if (result.data['viewOffers']) {
         new OffersFlow(this.deps_, this.options_).start();
+        return;
+      }
+      if (result.data['native']) {
+        this.deps_.callbacks().triggerSubscribeRequest();
+        // The flow is complete.
+        this.dialogManager_.completeView(this.activityIframeView_);
+        return;
       }
     });
 

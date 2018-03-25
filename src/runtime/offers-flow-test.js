@@ -217,6 +217,26 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
+          productId: 'pub1:label1',
+          list: 'default',
+          skus: null,
+        })
+        .returns(Promise.resolve(port));
+    return offersFlow.start();
+  });
+
+  it('should propagate list args', () => {
+    offersFlow = new SubscribeOptionFlow(runtime,
+        {list: 'other', skus: ['sku1']});
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          list: 'other',
+          skus: ['sku1'],
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -293,6 +313,46 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
+          productId: 'pub1:label1',
+          list: 'default',
+          skus: null,
+          showNative: false,
+        })
+        .returns(Promise.resolve(port));
+    return abbrvOfferFlow.start();
+  });
+
+  it('should have valid AbbrvOfferFlow constructed w/native', () => {
+    runtime.callbacks().setOnSubscribeRequest(function() {});
+    abbrvOfferFlow = new AbbrvOfferFlow(runtime);
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          list: 'default',
+          skus: null,
+          showNative: true,
+        })
+        .returns(Promise.resolve(port));
+    return abbrvOfferFlow.start();
+  });
+
+  it('should propagate list args', () => {
+    abbrvOfferFlow = new AbbrvOfferFlow(runtime,
+        {list: 'other', skus: ['sku1']});
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          list: 'other',
+          skus: ['sku1'],
+          showNative: false,
         })
         .returns(Promise.resolve(port));
     return abbrvOfferFlow.start();
