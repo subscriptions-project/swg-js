@@ -19,6 +19,7 @@ import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
 import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
+import {Doc, resolveDoc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
 import {
@@ -45,7 +46,6 @@ import {Storage} from './storage';
 import {Subscriptions} from '../api/subscriptions';
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
-import {whenDocumentReady} from '../utils/document-ready';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -76,8 +76,6 @@ export function installRuntime(win) {
   if (win[RUNTIME_PROP] && !isArray(win[RUNTIME_PROP])) {
     return;
   }
-
-  injectStyleSheet(win.document, SWG_DIALOG);
 
   const runtime = new Runtime(win);
 
@@ -124,6 +122,9 @@ export class Runtime {
     /** @private @const {!Window} */
     this.win_ = win;
 
+    /** @private @const {!Doc} */
+    this.doc_ = resolveDoc(win);
+
     /** @private @const {!Promise} */
     this.ready_ = Promise.resolve();
 
@@ -167,7 +168,7 @@ export class Runtime {
             this.productOrPublicationId_,
             /* locked */ false));
       } else {
-        this.pageConfigResolver_ = new PageConfigResolver(this.win_);
+        this.pageConfigResolver_ = new PageConfigResolver(this.doc_);
         configPromise = this.pageConfigResolver_.resolveConfig()
             .then(config => {
               this.pageConfigResolver_ = null;
@@ -175,7 +176,7 @@ export class Runtime {
             });
       }
       configPromise.then(config => {
-        this.configuredResolver_(new ConfiguredRuntime(this.win_, config));
+        this.configuredResolver_(new ConfiguredRuntime(this.doc_, config));
         this.configuredResolver_ = null;
       }, reason => {
         this.configuredResolver_(Promise.reject(reason));
@@ -195,7 +196,7 @@ export class Runtime {
    * @package
    */
   startSubscriptionsFlowIfNeeded() {
-    const control = getControlFlag(this.win_);
+    const control = getControlFlag(this.win_.document);
     if (control == 'manual') {
       // "Skipping automatic start because control flag is set to "manual".
       return null;
@@ -304,33 +305,37 @@ export class Runtime {
 export class ConfiguredRuntime {
 
   /**
-   * @param {!Window} win
+   * @param {!Window|!Document|!Doc} winOrDoc
    * @param {!../model/page-config.PageConfig} config
    * @param {{
    *     fetcher: (!Fetcher|undefined),
    *   }=} opt_integr
    */
-  constructor(win, config, opt_integr) {
+  constructor(winOrDoc, config, opt_integr) {
+    /** @private @const {!Doc} */
+    this.doc_ = resolveDoc(winOrDoc);
+
     /** @private @const {!Window} */
-    this.win_ = win;
+    this.win_ = this.doc_.getWin();
 
     /** @private @const {!../model/page-config.PageConfig} */
     this.config_ = config;
 
     /** @private @const {!Promise} */
-    this.documentParsed_ = whenDocumentReady(this.win_.document);
+    this.documentParsed_ = this.doc_.whenReady();
 
     /** @private @const {!Fetcher} */
-    this.fetcher_ = opt_integr && opt_integr.fetcher || new XhrFetcher(win);
+    this.fetcher_ = opt_integr && opt_integr.fetcher ||
+        new XhrFetcher(this.win_);
 
     /** @private @const {!Storage} */
     this.storage_ = new Storage(this.win_);
 
     /** @private @const {!DialogManager} */
-    this.dialogManager_ = new DialogManager(win);
+    this.dialogManager_ = new DialogManager(this.win_);
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = new ActivityPorts(win);
+    this.activityPorts_ = new ActivityPorts(this.win_);
 
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
@@ -347,6 +352,13 @@ export class ConfiguredRuntime {
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
     PayStartFlow.preconnect(preconnect);
+
+    injectStyleSheet(this.win_.document, SWG_DIALOG);
+  }
+
+  /** @override */
+  doc() {
+    return this.doc_;
   }
 
   /** @override */
@@ -520,4 +532,9 @@ export function getSubscriptionsClassForTesting() {
  */
 export function getFetcherClassForTesting() {
   return Fetcher;
+}
+
+/** @package Visible for testing only. */
+export function getDocClassForTesting() {
+  return Doc;
 }

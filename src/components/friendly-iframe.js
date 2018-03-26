@@ -16,7 +16,6 @@
 
 import {
   createElement,
-  getBody,
 } from '../utils/dom';
 import {
   resetAllStyles,
@@ -99,7 +98,7 @@ export class FriendlyIframe {
    * @return {!Element}
    */
   getBody() {
-    return getBody(this.getDocument());
+    return /** @type {!Element} */ (this.getDocument().body);
   }
 
   /**

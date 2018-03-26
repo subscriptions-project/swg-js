@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {assert, log} from './log';
+import {assert} from './log';
 import {setStyles} from './style';
 
 /** @const @enum{string} */
@@ -112,90 +112,6 @@ export function injectStyleSheet(doc, styleText) {
   styleElement.textContent = styleText;
   doc.head.appendChild(styleElement);
   return styleElement;
-}
-
-
-/**
- * Injects the font Url in the HEAD of the provided document object.
- * @param {!Document} doc The document object.
- * @param {string} fontUrl The Url of the fonts to be inserted.
- * @return {!Document} The document object.
- */
-export function injectFontsLink(doc, fontUrl) {
-
-  // Remove any trailing "/".
-  /** @type {string} */
-  const cleanFontUrl = fontUrl.replace(/\/$/, '');
-
-  if (styleExistsForUrl(doc, cleanFontUrl)) {
-    return doc;
-  }
-
-  const attrs = styleLinkAttrs;
-  attrs.href = cleanFontUrl;
-  const linkElement = createElement(doc, 'link', attrs);
-
-  doc.head.appendChild(linkElement);
-  return doc;
-}
-
-
-/**
- * Checks if existing link rel stylesheet with the same href exists.
- * @param {!Document} doc The document object.
- * @param {string} cleanFontUrl The fonts Url.
- * @return {boolean}
- */
-function styleExistsForUrl(doc, cleanFontUrl) {
-  // Check if existing link rel stylesheet with same href already defined.
-  const nodes = /** @type {!Array<!HTMLLinkElement>} */ (Array.prototype.slice
-      .call(doc.head.querySelectorAll(styleExistsQuerySelector)));
-
-  return nodes.some(link => {
-    return link.href == cleanFontUrl;
-  });
-}
-
-
-/**
- * This method wraps around window's open method. It first tries to execute
- * `open` call with the provided target and if it fails, it retries the call
- * with the `_top` target. This is necessary given that in some embedding
- * scenarios, such as iOS' WKWebView, navigation to `_blank` and other targets
- * is blocked by default.
- *
- * @param {!Window} win
- * @param {string} url
- * @param {string} target
- * @param {string=} opt_features
- * @return {?Window}
- */
-export function openWindowDialog(win, url, target, opt_features) {
-  // Try first with the specified target. If we're inside the WKWebView or
-  // a similar environment, this method is expected to fail by default for
-  // all targets except `_top`.
-  let res;
-  try {
-    res = win.open(url, target, opt_features);
-  } catch (e) {
-    log(`Could not open window with target: ${target}`);
-  }
-
-  // Then try with `_top` target.
-  if (!res && target != '_top') {
-    res = win.open(url, '_top');
-  }
-  return res;
-}
-
-
-/**
- * Returns the BODY element of the document.
- * @param {!Document} doc
- * @return {!Element}
- */
-export function getBody(doc) {
-  return /** @type {!Element} */ (doc.body);
 }
 
 
