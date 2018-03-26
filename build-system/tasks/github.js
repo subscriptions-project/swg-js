@@ -15,12 +15,27 @@
  */
 'use strict';
 
-require('./babel-helpers');
-require('./builders');
-require('./changelog');
-require('./check-rules');
-require('./compile');
-require('./export-to-es');
-require('./lint');
-require('./serve');
-require('./test');
+const BBPromise = require('bluebird');
+const request = BBPromise.promisify(require('request'));
+
+const GITHUB_ACCESS_TOKEN = process.env.GITHUB_ACCESS_TOKEN;
+const GITHUB_BASE = 'https://api.github.com/repos/subscriptions-project/swg-js';
+
+
+/**
+ * @param {!{path: string}} req
+ */
+exports.githubRequest = function(req) {
+  return request({
+    url: GITHUB_BASE + req.path,
+    qs: Object.assign({
+      'access_token': GITHUB_ACCESS_TOKEN,
+    }, req.qs || {}),
+    headers: {
+      'User-Agent': 'swg-changelog-gulp-task',
+      'Accept': 'application/vnd.github.v3+json',
+    },
+  }).then(res => {
+    return JSON.parse(res.body);
+  });
+}
