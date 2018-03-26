@@ -284,36 +284,11 @@ class JsonLdParser {
 }
 
 /**
- * Class to define a microdata item found in the page
-*/
-class Item {
-
-  constructor(type, properties) {
-    this.type = type;
-    this.properties = properties;
-  }
-}
-
-/**
- * Class to describe the microdata items found
- */
-class MicrodataEntry {
-  /**
-   * @param {int} id
-   * @param {!Array<Item>} list of items
-   */
-  constructor(id, items) {
-    this.id = id;
-    this.items = items;
-  }
-}
-
-/**
  * Class the describes the microdata found in the page
-*/
+ */
 class Microdata {
   /**
- * @param {!Array<MicrodataEntry>} entries of microdata
+   * @param {!Array<{id: {number}, properties:[{key:value}]}>} entries of microdata
    */
   constructor(entries) {
     this.entries = entries;
@@ -321,22 +296,20 @@ class Microdata {
 
   /**
    * Returns the first page configuration found, if present
-  * @return {?PageConfig} pageConfigs found
+  * @return {?PageConfig} pageConfig found
   */
   getPageConfig() {
     const pageConfigs = [];
     let locked = false;
     let productId = null;
-    this.entries.forEach(entry => {
-      entry.items.forEach(item => {
-        Object.keys(item.properties).forEach(property => {
-          if (property == 'isAccessibleForFree') {
-            locked = !item.properties[property];
-          }
-          if ((property == 'productID') && item.type.indexOf('Product') >= 0) {
-            productId = item.properties[property];
-          }
-        });
+    this.entries.forEach(item => {
+      Object.keys(item.properties).forEach(property => {
+        if (property == 'isAccessibleForFree') {
+          locked = !item.properties[property];
+        }
+        if (property == 'productID') {
+          productId = item.properties[property];
+        }
       });
       if (productId != null) {
         pageConfigs.push(new PageConfig(productId, locked));
@@ -359,61 +332,116 @@ class MicrodataParser {
     this.doc_ = doc;
   }
 
-  discoverAccess_(prop) {
-    if (prop.getAttribute('itemprop') == 'isAccessibleForFree') {
-      const value = prop.content || prop.textContent;
-      if (typeof value == 'boolean') {
-        return value;
+  /**
+   * Returns true if access is restricted, otherwise false
+   * @param {Node} root A node that is an item of type 'NewsArticle'
+   * @return {?boolean} locked access
+   * @private
+   */
+  discoverLocked_(root) {
+    const ALREADY_SEEN = 'alreadySeenForAccessInfo';
+    const nodeList = root
+        .querySelectorAll("[itemprop='isAccessibleForFree']");
+    for (let i = 0; nodeList[i]; i++) {
+      const element = nodeList[i];
+      const content = element.content || element.textContent;
+      let value = null;
+      if (content.toLowerCase() == 'true') {
+        value = true;
+      } else if (content.toLowerCase() == 'false') {
+        value = false;
       }
-		  if (value === 'False' || value === 'false') {
-			  return false;
-      } else if (value === 'true' || value == 'True') {
-        return true;
+      if (this.isValidElement_(element, root, ALREADY_SEEN)) {
+        return !value;
       }
     }
     return null;
   }
 
-  discoverProductId_(prop) {
-    if (prop.getAttribute('itemprop') == 'productID')	{
-      return prop.content || prop.textContent;
+  /**
+   * Verifies if a node is valid based on the following
+   * - child of an item of type 'NewsArticle'
+   * - not a child of an item of type 'Section'
+   * - not seen before, marked using the alreadySeen tag
+   * @param current the node to be verified
+   * @param root the parent to track up to
+   * @param alreadySeen used to tag already visited nodes
+   * @return {!@boolean} valid node
+   * @private
+   */
+  isValidElement_(current, root, alreadySeen) {
+    while (current && !current[alreadySeen]) {
+      current[alreadySeen] = true;
+      if (current.hasAttribute('itemscope')) {
+        const type = current.getAttribute('itemtype');
+        if (type == 'http://schema.org/NewsArticle') {
+          // This parent may need to be check for other nodes
+          current[alreadySeen] = false;
+          return true;
+        } else if (type.indexOf('Section') >= 0) {
+          return false;
+        }
+      }
+      current = current.parentNode;
+    }
+    return false;
+  }
+
+  /**
+   * Obtains the product ID that meets the requirements
+   * - child of an item of type 'NewsArticle'
+   * - Not a child of an item of type 'Section'
+   * - child of an item of type 'productID'
+   * @param {Node} root A node that is an item of type 'NewsArticle'
+   * @return {?string} product ID, if found
+   * @private
+   */
+  discoverProductId_(root) {
+    const ALREADY_SEEN = 'alreadySeenForProductInfo';
+    const nodeList = root
+        .querySelectorAll("[itemprop='productID']");
+    for (let i = 0; nodeList[i]; i++) {
+      const element = nodeList[i];
+      const value = nodeList[i].content;
+      const item = element.closest('[itemtype][itemscope]');
+      const type = item.getAttribute('itemtype');
+      if (type.indexOf('Product') <= -1) {
+        continue;
+      }
+      if (this.isValidElement_(item.parentNode, root, ALREADY_SEEN)) {
+        return value;
+      }
     }
     return null;
-  };
+  }
 
+  /**
+   * Extracts microdata embedded in the DOM
+   * @param {!Document} doc
+   * @return {!Mircordata} microdata found in the doc
+   */
   tryExtractConfig_(doc) {
     let itemId = 0;
     const results = [];
-    doc.querySelectorAll('[itemscope]')
-        .forEach(element => {
-          if (element.getAttribute('itemtype') == 'http://schema.org/NewsArticle') {
-            const props = element.querySelectorAll('[itemprop]');
-            const items = [];
-            props.forEach(prop => {
-              let type = 'default';
-              if (prop.matches('[itemscope]')) {
-                type = prop.getAttribute('itemtype');
-              }
-              const item = {
-                'type': type,
-                'properties': {},
-              };
-              const _props = prop.querySelectorAll('[itemprop]');
-              _props.forEach(_prop => {
-                const access = this.discoverAccess_(_prop);
-                if (access != null) {
-                  item.properties['isAccessibleForFree'] = access;
-                }
-                const productId = this.discoverProductId_(_prop);
-                if (productId != null) {
-                  item.properties['productID'] = productId;
-                }
-              });
-              items.push(new Item(item.type, item.properties));
-            });
-            results.push(new MicrodataEntry(++itemId, items));
-          }
-        });
+    const nodeList = doc.querySelectorAll(
+        "[itemscope][itemtype='http://schema.org/NewsArticle']");
+    const domReady = isDocumentReady(this.win_.document);
+    for (let i = 0; nodeList[i]; i++) {
+      const element = nodeList[i];
+      if (!domReady && !hasNextNodeInDocumentOrder(element)) {
+        continue;
+      }
+      const locked = this.discoverLocked_(element);
+      const productInfo = this.discoverProductId_(element);
+      const props = {};
+      if (!!locked) {
+        props['isAccessibleForFree'] = !locked;
+      }
+      if (productInfo) {
+        props['productID'] = productInfo;
+      }
+      results.push({id: ++itemId, properties: props});
+    }
     return new Microdata(results);
   }
 
@@ -447,7 +475,6 @@ export function getControlFlag(rootNode) {
   }
   return null;
 }
-
 
 /**
  * Returns the value from content attribute of a meta tag with given name.
