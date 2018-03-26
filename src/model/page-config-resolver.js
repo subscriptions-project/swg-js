@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+import {Doc, resolveDoc} from './doc';
 import {PageConfig} from './page-config';
 import {hasNextNodeInDocumentOrder} from '../utils/dom';
 import {isArray} from '../utils/types';
-import {isDocumentReady, whenDocumentReady} from '../utils/document-ready';
 import {tryParseJson} from '../utils/json';
 
 const ALREADY_SEEN = '__SUBSCRIPTIONS-SEEN__';
@@ -29,11 +29,11 @@ const CONTROL_FLAG = 'subscriptions-control';
 export class PageConfigResolver {
 
   /**
-   * @param {!Window} win
+   * @param {!Window|!Document|!Doc} winOrDoc
    */
-  constructor(win) {
-    /** @private @const {!Window} */
-    this.win_ = win;
+  constructor(winOrDoc) {
+    /** @private @const {!Doc} */
+    this.doc_ = resolveDoc(winOrDoc);
 
     /** @private {?function((!PageConfig|!Promise))} */
     this.configResolver_ = null;
@@ -44,11 +44,11 @@ export class PageConfigResolver {
     });
 
     /** @private @const {!MetaParser} */
-    this.metaParser_ = new MetaParser(win);
+    this.metaParser_ = new MetaParser(this.doc_);
     /** @private @const {!JsonLdParser} */
-    this.ldParser_ = new JsonLdParser(win);
+    this.ldParser_ = new JsonLdParser(this.doc_);
     /** @private @const {!MicrodataParser} */
-    this.microdataParser_ = new MicrodataParser(win);
+    this.microdataParser_ = new MicrodataParser(this.doc_);
   }
 
   /**
@@ -57,7 +57,7 @@ export class PageConfigResolver {
   resolveConfig() {
     // Try resolve the config at different times.
     Promise.resolve().then(this.check.bind(this));
-    whenDocumentReady(this.win_.document).then(this.check.bind(this));
+    this.doc_.whenReady().then(this.check.bind(this));
     return this.configPromise_;
   }
 
@@ -82,7 +82,7 @@ export class PageConfigResolver {
       // Product ID has been found: initialize the rest of the config.
       this.configResolver_(config);
       this.configResolver_ = null;
-    } else if (isDocumentReady(this.win_.document)) {
+    } else if (this.doc_.isReady()) {
       this.configResolver_(Promise.reject(
           new Error('No config could be discovered in the page')));
       this.configResolver_ = null;
@@ -94,31 +94,32 @@ export class PageConfigResolver {
 
 class MetaParser {
   /**
-   * @param {!Window} win
+   * @param {!Doc} doc
    */
-  constructor(win) {
-    /** @private @const {!Window} */
-    this.win_ = win;
+  constructor(doc) {
+    /** @private @const {!Doc} */
+    this.doc_ = doc;
   }
 
   /**
    * @return {?PageConfig}
    */
   check() {
-    if (!this.win_.document.body) {
+    if (!this.doc_.getBody()) {
       // Wait until the whole `<head>` is parsed.
       return null;
     }
 
     // Try to find product id.
-    const productId = getMetaTag(this.win_, 'subscriptions-product-id');
+    const productId = getMetaTag(this.doc_.getRootNode(),
+        'subscriptions-product-id');
     if (!productId) {
       return null;
     }
 
     // Is locked?
-    const accessibleForFree =
-        getMetaTag(this.win_, 'subscriptions-accessible-for-free');
+    const accessibleForFree = getMetaTag(this.doc_.getRootNode(),
+        'subscriptions-accessible-for-free');
     const locked = (accessibleForFree &&
         accessibleForFree.toLowerCase() == 'false') || false;
 
@@ -129,26 +130,26 @@ class MetaParser {
 
 class JsonLdParser {
   /**
-   * @param {!Window} win
+   * @param {!Doc} doc
    */
-  constructor(win) {
-    /** @private @const {!Window} */
-    this.win_ = win;
+  constructor(doc) {
+    /** @private @const {!Doc} */
+    this.doc_ = doc;
   }
 
   /**
    * @return {?PageConfig}
    */
   check() {
-    if (!this.win_.document.body) {
+    if (!this.doc_.getBody()) {
       // Wait until the whole `<head>` is parsed.
       return null;
     }
 
-    const domReady = isDocumentReady(this.win_.document);
+    const domReady = this.doc_.isReady();
 
     // type: 'application/ld+json'
-    const elements = this.win_.document.querySelectorAll(
+    const elements = this.doc_.getRootNode().querySelectorAll(
         'script[type="application/ld+json"]');
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i];
@@ -284,18 +285,18 @@ class JsonLdParser {
 
 class MicrodataParser {
   /**
-   * @param {!Window} win
+   * @param {!Doc} doc
    */
-  constructor(win) {
-    /** @private @const {!Window} */
-    this.win_ = win;
+  constructor(doc) {
+    /** @private @const {!Doc} */
+    this.doc_ = doc;
   }
 
   /**
    * @return {?PageConfig}
    */
   check() {
-    if (!this.win_.document.body) {
+    if (!this.doc_.getBody()) {
       // Wait until the whole `<head>` is parsed.
       return null;
     }
@@ -328,17 +329,17 @@ class MicrodataParser {
 }
 
 /**
- * @param {!Window} win
+ * @param {!Node} rootNode
  * @return {?string}
  */
-export function getControlFlag(win) {
+export function getControlFlag(rootNode) {
   // Look for the flag in `meta`.
-  const flag = getMetaTag(win, CONTROL_FLAG);
+  const flag = getMetaTag(rootNode, CONTROL_FLAG);
   if (flag) {
     return flag;
   }
   // Look for the flag in `script`.
-  const el = win.document.querySelector(`script[${CONTROL_FLAG}]`);
+  const el = rootNode.querySelector(`script[${CONTROL_FLAG}]`);
   if (el) {
     return el.getAttribute(CONTROL_FLAG);
   }
@@ -351,15 +352,21 @@ export function getControlFlag(win) {
  *
  * If multiple tags are found, the first value is returned.
  *
- * @param {!Window} win
+ * @param {!Node} rootNode
  * @param {string} name The tag name to look for.
  * @return {?string} attribute value or empty string.
  * @private
  */
-function getMetaTag(win, name) {
-  const el = win.document.querySelector(`meta[name="${name}"]`);
+function getMetaTag(rootNode, name) {
+  const el = rootNode.querySelector(`meta[name="${name}"]`);
   if (el) {
     return el.getAttribute('content');
   }
   return null;
+}
+
+
+/** @package Visible for testing only. */
+export function getDocClassForTesting() {
+  return Doc;
 }
