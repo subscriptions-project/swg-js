@@ -33,6 +33,7 @@ import {
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {GlobalDoc} from '../model/doc';
 import {
   LinkCompleteFlow,
   LinkbackFlow,
@@ -410,7 +411,7 @@ describes.realWin('Runtime', {}, env => {
 
     beforeEach(() => {
       config = new PageConfig('pub1');
-      configuredRuntime = new ConfiguredRuntime(win, config);
+      configuredRuntime = new ConfiguredRuntime(new GlobalDoc(win), config);
       configuredRuntimeMock = sandbox.mock(configuredRuntime);
       configureStub = sandbox.stub(runtime, 'configured_',
           () => Promise.resolve(configuredRuntime));
@@ -599,7 +600,7 @@ describes.realWin('Runtime', {}, env => {
           XhrFetcher.prototype,
           'fetchCredentialedJson',
           () => Promise.resolve(ents));
-      runtime = new ConfiguredRuntime(win, config, {
+      runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
         fetcher: otherFetcher,
       });
       return runtime.getEntitlements().then(() => {
@@ -667,6 +668,8 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
   it('should should initialize deps', () => {
     expect(runtime.win()).to.equal(win);
+    expect(runtime.doc().getWin()).to.equal(win);
+    expect(runtime.doc().getRootNode()).to.equal(win.document);
     expect(runtime.pageConfig()).to.equal(config);
     expect(runtime.activities()).to.be.instanceof(ActivityPorts);
     expect(runtime.dialogManager()).to.be.instanceof(DialogManager);

@@ -19,6 +19,11 @@
 export class DepsDef {
 
   /**
+   * @return {!../model/doc.Doc}
+   */
+  doc() {}
+
+  /**
    * @return {!Window}
    */
   win() {}

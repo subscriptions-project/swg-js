@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
+import {GlobalDoc} from './doc';
 import {PageConfig} from './page-config';
 import {PageConfigResolver, getControlFlag} from './page-config-resolver';
 import {createElement} from '../utils/dom';
 
 
 describes.realWin('PageConfigResolver', {}, env => {
-  let win, doc;
+  let win, doc, gd;
 
   beforeEach(() => {
     win = env.win;
     doc = win.document;
+    gd = new GlobalDoc(win);
   });
 
   function addMeta(name, content) {
@@ -42,7 +44,7 @@ describes.realWin('PageConfigResolver', {}, env => {
   describe('parse meta', () => {
     it('should parse publication id and product', () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.getProductId()).to.equal('pub1:label1');
         expect(config.getPublicationId()).to.equal('pub1');
         expect(config.getLabel()).to.equal('label1');
@@ -51,7 +53,7 @@ describes.realWin('PageConfigResolver', {}, env => {
 
     it('should parse publication id and null product', () => {
       addMeta('subscriptions-product-id', 'pub1');
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.getPublicationId()).to.equal('pub1');
         expect(config.getProductId()).to.be.null;
         expect(config.getLabel()).to.be.null;
@@ -60,7 +62,7 @@ describes.realWin('PageConfigResolver', {}, env => {
 
     it('should default locked to false', () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.isLocked()).to.be.false;
         expect(config.getProductId()).to.equal('pub1:label1');
       });
@@ -89,14 +91,14 @@ describes.realWin('PageConfigResolver', {}, env => {
     it('should discover parse properties from schema', () => {
       addJsonLd(schema);
       readyState = 'complete';
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.isLocked()).to.be.true;
         expect(config.getProductId()).to.equal('pub1:basic');
       });
     });
 
     it('should wait until the element is ready (not empty)', () => {
-      const resolver = new PageConfigResolver(win);
+      const resolver = new PageConfigResolver(gd);
       const element = createElement(doc, 'script', {
         type: 'application/ld+json',
       });
@@ -116,7 +118,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     });
 
     it('should wait until the element is ready (next sibling)', () => {
-      const resolver = new PageConfigResolver(win);
+      const resolver = new PageConfigResolver(gd);
       addJsonLd(schema);
 
       // No siblings.
@@ -132,7 +134,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     });
 
     it('should wait until the element is ready (dom ready)', () => {
-      const resolver = new PageConfigResolver(win);
+      const resolver = new PageConfigResolver(gd);
       addJsonLd(schema);
 
       // Document not complete and no siblings.
@@ -152,7 +154,7 @@ describes.realWin('PageConfigResolver', {}, env => {
         type: 'application/json',  // Not LD.
       }, JSON.stringify(schema)));
       readyState = 'complete';
-      const resolver = new PageConfigResolver(win);
+      const resolver = new PageConfigResolver(gd);
       expect(resolver.check()).to.be.null;
     });
 
@@ -160,14 +162,14 @@ describes.realWin('PageConfigResolver', {}, env => {
       schema['@type'] = 'Other';
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check()).to.be.null;
+      expect(new PageConfigResolver(gd).check()).to.be.null;
     });
 
     it('should allow array for LD type', () => {
       schema['@type'] = ['NewsArticle'];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check().getProductId())
+      expect(new PageConfigResolver(gd).check().getProductId())
           .to.equal('pub1:basic');
     });
 
@@ -175,7 +177,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       schema['@type'] = ['http://schema.org/NewsArticle'];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check().getProductId())
+      expect(new PageConfigResolver(gd).check().getProductId())
           .to.equal('pub1:basic');
     });
 
@@ -187,14 +189,14 @@ describes.realWin('PageConfigResolver', {}, env => {
       readyState = 'complete';
 
       // Doesn't fail.
-      expect(new PageConfigResolver(win).check()).to.be.null;
+      expect(new PageConfigResolver(gd).check()).to.be.null;
     });
 
     it('should allow array of products', () => {
       schema['isPartOf'] = [{}, schema['isPartOf']];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check().getProductId())
+      expect(new PageConfigResolver(gd).check().getProductId())
           .to.equal('pub1:basic');
     });
 
@@ -202,7 +204,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       schema['isPartOf']['@type'] = ['CreativeWork', 'Product'];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check().getProductId())
+      expect(new PageConfigResolver(gd).check().getProductId())
           .to.equal('pub1:basic');
     });
 
@@ -210,7 +212,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       schema['isPartOf']['@type'] = ['CreativeWork', 'Other'];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check()).to.be.null;
+      expect(new PageConfigResolver(gd).check()).to.be.null;
     });
 
     it('should allow array of product IDs', () => {
@@ -218,7 +220,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       addJsonLd(schema);
       readyState = 'complete';
       // First one is picked.
-      expect(new PageConfigResolver(win).check().getProductId())
+      expect(new PageConfigResolver(gd).check().getProductId())
           .to.equal('pub1:l1');
     });
 
@@ -226,42 +228,42 @@ describes.realWin('PageConfigResolver', {}, env => {
       schema['isAccessibleForFree'] = 'FaLsE';
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check().isLocked()).to.be.true;
+      expect(new PageConfigResolver(gd).check().isLocked()).to.be.true;
     });
 
     it('should accept true string for isAccessibleForFree', () => {
       schema['isAccessibleForFree'] = 'TRuE';
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check().isLocked()).to.be.false;
+      expect(new PageConfigResolver(gd).check().isLocked()).to.be.false;
     });
 
     it('should accept false bool for isAccessibleForFree', () => {
       schema['isAccessibleForFree'] = false;
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check().isLocked()).to.be.true;
+      expect(new PageConfigResolver(gd).check().isLocked()).to.be.true;
     });
 
     it('should accept true bool for isAccessibleForFree', () => {
       schema['isAccessibleForFree'] = true;
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check().isLocked()).to.be.false;
+      expect(new PageConfigResolver(gd).check().isLocked()).to.be.false;
     });
 
     it('should default isAccessibleForFree to unlocked', () => {
       delete schema['isAccessibleForFree'];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check().isLocked()).to.be.false;
+      expect(new PageConfigResolver(gd).check().isLocked()).to.be.false;
     });
 
     it('should accept array for isAccessibleForFree', () => {
       schema['isAccessibleForFree'] = [false, true];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(win).check().isLocked()).to.be.true;
+      expect(new PageConfigResolver(gd).check().isLocked()).to.be.true;
     });
   });
 
@@ -273,7 +275,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     it('should parse locked', () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
       addMeta('subscriptions-accessible-for-free', 'false');
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.isLocked()).to.be.true;
         expect(config.getProductId()).to.equal('pub1:label1');
       });
@@ -282,7 +284,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     it('should parse locked in other forms', () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
       addMeta('subscriptions-accessible-for-free', 'FALSE');
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.isLocked()).to.be.true;
         expect(config.getProductId()).to.equal('pub1:label1');
       });
@@ -291,7 +293,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     it('should parse unlocked', () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
       addMeta('subscriptions-accessible-for-free', 'true');
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.isLocked()).to.be.false;
         expect(config.getProductId()).to.equal('pub1:label1');
       });
@@ -300,19 +302,19 @@ describes.realWin('PageConfigResolver', {}, env => {
 
   describe('control flag', () => {
     it('should parse as null if not found', () => {
-      expect(getControlFlag(win)).to.be.null;
+      expect(getControlFlag(doc)).to.be.null;
     });
 
     it('should parse from a meta tag', () => {
       addMeta('subscriptions-control', 'auto');
-      expect(getControlFlag(win)).to.equal('auto');
+      expect(getControlFlag(doc)).to.equal('auto');
     });
 
     it('should parse from a script tag', () => {
       doc.head.appendChild(createElement(doc, 'script', {
         'subscriptions-control': 'manual',
       }));
-      expect(getControlFlag(win)).to.equal('manual');
+      expect(getControlFlag(doc)).to.equal('manual');
     });
 
     it('should prefer meta tag', () => {
@@ -320,7 +322,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       doc.head.appendChild(createElement(doc, 'script', {
         'subscriptions-control': 'manual',
       }));
-      expect(getControlFlag(win)).to.equal('auto');
+      expect(getControlFlag(doc)).to.equal('auto');
     });
   });
 });
