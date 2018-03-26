@@ -140,7 +140,7 @@ function getGithubPullRequestsMetadata(release) {
     });
   }
 
-  // (erwinm): Github seems to only return data for the first 3 pages
+  // TODO(erwinm): Github seems to only return data for the first 3 pages
   // from my manual testing.
   return BBPromise.all([
     getClosedPullRequests(1),
