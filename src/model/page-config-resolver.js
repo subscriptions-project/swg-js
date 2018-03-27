@@ -420,13 +420,12 @@ class MicrodataParser {
 
   /**
    * Extracts microdata embedded in the DOM
-   * @param {!Doc} doc
    * @return {!Microdata} microdata found in the doc
    */
-  tryExtractConfig_(doc) {
+  tryExtractConfig_() {
     let itemId = 0;
     const results = [];
-    const nodeList = doc.getRootElement().querySelectorAll(
+    const nodeList = this.doc_.getRootNode().querySelectorAll(
         "[itemscope][itemtype='http://schema.org/NewsArticle']");
     const domReady = this.doc_.isReady();
     for (let i = 0; nodeList[i]; i++) {
@@ -456,7 +455,7 @@ class MicrodataParser {
       // Wait until the whole `<head>` is parsed.
       return null;
     }
-    const microdata = this.tryExtractConfig_(this.doc_);
+    const microdata = this.tryExtractConfig_();
     return microdata.getPageConfig();
   }
 }
