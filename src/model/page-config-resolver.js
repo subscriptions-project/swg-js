@@ -348,7 +348,9 @@ class MicrodataParser {
     for (let i = 0; nodeList[i]; i++) {
       const element = nodeList[i];
       const content = element.content || element.textContent;
-      let value = null;
+      if (!content) {
+        continue;
+      }
       if (content.toLowerCase() == 'true') {
         value = true;
       } else if (content.toLowerCase() == 'false') {
