@@ -284,17 +284,14 @@ class JsonLdParser {
 }
 
 /**
- * @typedef {Object.<string, (string|boolean)>} Property
- */
-/**
- * @typedef {{id:{number}, properties:Property}} Item
- */
-/**
  * Class the describes the microdata found in the page
  */
 class Microdata {
   /**
-   * @param {!Array.<!Item>} entries
+  * @global @type {Object<string, (string|boolean)>} Property
+  */
+  /**
+   * @param {!Array<!{id: number, properties: Object<string, (string|boolean)>}>} entries
    */
   constructor(entries) {
     this.entries = entries;
@@ -423,15 +420,15 @@ class MicrodataParser {
 
   /**
    * Extracts microdata embedded in the DOM
-   * @param {!Document} doc
+   * @param {!Doc} doc
    * @return {!Microdata} microdata found in the doc
    */
   tryExtractConfig_(doc) {
     let itemId = 0;
     const results = [];
-    const nodeList = doc.querySelectorAll(
+    const nodeList = doc.getRootElement().querySelectorAll(
         "[itemscope][itemtype='http://schema.org/NewsArticle']");
-    const domReady = isDocumentReady(this.win_.document);
+    const domReady = this.doc_.isReady();
     for (let i = 0; nodeList[i]; i++) {
       const element = nodeList[i];
       if (!domReady && !hasNextNodeInDocumentOrder(element)) {
@@ -459,7 +456,7 @@ class MicrodataParser {
       // Wait until the whole `<head>` is parsed.
       return null;
     }
-    const microdata = this.tryExtractConfig_(this.win_.document);
+    const microdata = this.tryExtractConfig_(this.doc_);
     return microdata.getPageConfig();
   }
 }

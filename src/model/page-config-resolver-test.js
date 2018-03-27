@@ -294,7 +294,7 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       readyState = 'complete';
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.isLocked()).to.be.true;
         expect(config.getProductId()).to.equal('pub1:premium');
       });
@@ -318,14 +318,14 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       readyState = 'complete';
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.isLocked()).to.be.false;
         expect(config.getProductId()).to.equal('pub1:premium');
       });
     });
 
     it('should wait for element ready', () => {
-      const resolver = new PageConfigResolver(win);
+      const resolver = new PageConfigResolver(gd);
       const element = createElement(doc, 'div');
       addMicrodata(element);
 
@@ -378,7 +378,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       addMicrodata(divElement);
       readyState = 'complete';
 
-      const resolver = new PageConfigResolver(win);
+      const resolver = new PageConfigResolver(gd);
       resolver.resolveConfig().then(config => {
         expect(config.isLocked()).to.be.true;
         expect(config.getProductId()).to.equal('pub1:premium');
@@ -399,7 +399,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     });
 
     it('should wait until dom is ready', () => {
-      const resolver = new PageConfigResolver(win);
+      const resolver = new PageConfigResolver(gd);
       // Add content.
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
@@ -446,7 +446,7 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       readyState = 'complete';
-      const resolver = new PageConfigResolver(win);
+      const resolver = new PageConfigResolver(gd);
       expect(resolver.check()).to.be.null;
     });
 
@@ -465,7 +465,7 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       readyState = 'complete';
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.isLocked()).to.be.false;
         expect(config.getProductId()).to.equal('pub1:premium');
       });
@@ -490,7 +490,7 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       readyState = 'complete';
-      const resolver = new PageConfigResolver(win);
+      const resolver = new PageConfigResolver(gd);
       expect(resolver.check()).to.be.null;
     });
 
@@ -514,7 +514,7 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       readyState = 'complete';
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.isLocked()).to.be.false;
         expect(config.getProductId()).to.equal('pub1:premium');
       });
@@ -540,7 +540,7 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       readyState = 'complete';
-      const resolver = new PageConfigResolver(win);
+      const resolver = new PageConfigResolver(gd);
       expect(resolver.check()).to.be.null;
     });
 
@@ -568,7 +568,7 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       readyState = 'complete';
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.isLocked()).to.be.true;
         expect(config.getProductId()).to.equal('pub1:premium');
       });
@@ -598,7 +598,7 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       readyState = 'complete';
-      return new PageConfigResolver(win).resolveConfig().then(config => {
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
         expect(config.isLocked()).to.be.true;
         expect(config.getProductId()).to.equal('pub1:premium');
       });
