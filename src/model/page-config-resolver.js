@@ -283,11 +283,17 @@ class JsonLdParser {
 }
 
 /**
+ * @typedef {Object.<string, (string|boolean)>} Property
+ */
+/**
+ * @typedef {{id:{number}, properties:Property}} Item
+ */
+/**
  * Class the describes the microdata found in the page
  */
 class Microdata {
   /**
-   * @param {!Array<{id: {number}, properties:[{key:value}]}>} entries of microdata
+   * @param {!Array.<!Item>} entries
    */
   constructor(entries) {
     this.entries = entries;
@@ -365,7 +371,7 @@ class MicrodataParser {
    * @param current the node to be verified
    * @param root the parent to track up to
    * @param alreadySeen used to tag already visited nodes
-   * @return {!@boolean} valid node
+   * @return {!boolean} valid node
    * @private
    */
   isValidElement_(current, root, alreadySeen) {
@@ -401,14 +407,14 @@ class MicrodataParser {
         .querySelectorAll("[itemprop='productID']");
     for (let i = 0; nodeList[i]; i++) {
       const element = nodeList[i];
-      const value = nodeList[i].content;
+      const content = element.content || element.textContent;
       const item = element.closest('[itemtype][itemscope]');
       const type = item.getAttribute('itemtype');
       if (type.indexOf('Product') <= -1) {
         continue;
       }
       if (this.isValidElement_(item.parentNode, root, ALREADY_SEEN)) {
-        return value;
+        return content;
       }
     }
     return null;
@@ -417,7 +423,7 @@ class MicrodataParser {
   /**
    * Extracts microdata embedded in the DOM
    * @param {!Document} doc
-   * @return {!Mircordata} microdata found in the doc
+   * @return {!Microdata} microdata found in the doc
    */
   tryExtractConfig_(doc) {
     let itemId = 0;
