@@ -288,9 +288,6 @@ class JsonLdParser {
  */
 class Microdata {
   /**
-  * @global @type {Object<string, (string|boolean)>} Property
-  */
-  /**
    * @param {!Array<!{id: number, properties: Object<string, (string|boolean)>}>} entries
    */
   constructor(entries) {
@@ -333,15 +330,19 @@ class MicrodataParser {
   constructor(doc) {
     /** @private @const {!Doc} */
     this.doc_ = doc;
+    /** @private {?boolean} */
+    this.access_ = null;
+    /** @private {?string} */
+    this.productID_ = null;
   }
 
   /**
-   * Returns true if access is restricted, otherwise false
+   * Returns false if access is restricted, otherwise true
    * @param {Node} root A node that is an item of type 'NewsArticle'
    * @return {?boolean} locked access
    * @private
    */
-  discoverLocked_(root) {
+  discoverAccess_(root) {
     const ALREADY_SEEN = 'alreadySeenForAccessInfo';
     const nodeList = root
         .querySelectorAll("[itemprop='isAccessibleForFree']");
@@ -351,13 +352,14 @@ class MicrodataParser {
       if (!content) {
         continue;
       }
+      let accessForFree = null;
       if (content.toLowerCase() == 'true') {
-        value = true;
+        accessForFree = true;
       } else if (content.toLowerCase() == 'false') {
-        value = false;
+        accessForFree = false;
       }
       if (this.isValidElement_(element, root, ALREADY_SEEN)) {
-        return !value;
+        return accessForFree;
       }
     }
     return null;
@@ -375,19 +377,17 @@ class MicrodataParser {
    * @private
    */
   isValidElement_(current, root, alreadySeen) {
-    while (current && !current[alreadySeen]) {
-      current[alreadySeen] = true;
-      if (current.hasAttribute('itemscope')) {
-        const type = current.getAttribute('itemtype');
-        if (type == 'http://schema.org/NewsArticle') {
-          // This parent may need to be check for other nodes
-          current[alreadySeen] = false;
+    for (let node = current;
+        node && !node[alreadySeen]; node = node.parentNode) {
+      node[alreadySeen] = true;
+      if (node.hasAttribute('itemscope')) {
+        const type = node.getAttribute('itemtype');
+        if (type.indexOf('http://schema.org/NewsArticle') >= 0) {
           return true;
-        } else if (type.indexOf('Section') >= 0) {
+        } else {
           return false;
         }
       }
-      current = current.parentNode;
     }
     return false;
   }
@@ -404,13 +404,13 @@ class MicrodataParser {
   discoverProductId_(root) {
     const ALREADY_SEEN = 'alreadySeenForProductInfo';
     const nodeList = root
-        .querySelectorAll("[itemprop='productID']");
+        .querySelectorAll('[itemprop="productID"]');
     for (let i = 0; nodeList[i]; i++) {
       const element = nodeList[i];
       const content = element.content || element.textContent;
       const item = element.closest('[itemtype][itemscope]');
       const type = item.getAttribute('itemtype');
-      if (type.indexOf('Product') <= -1) {
+      if (type.indexOf('http://schema.org/Product') <= -1) {
         continue;
       }
       if (this.isValidElement_(item.parentNode, root, ALREADY_SEEN)) {
@@ -435,14 +435,24 @@ class MicrodataParser {
       if (!domReady && !hasNextNodeInDocumentOrder(element)) {
         continue;
       }
-      const locked = this.discoverLocked_(element);
-      const productInfo = this.discoverProductId_(element);
       const props = {};
-      if (!!locked) {
-        props['isAccessibleForFree'] = !locked;
+      if (this.access_ == null) {
+        const discoveredAccess = this.discoverAccess_(element);
+        if (discoveredAccess != null) {
+          this.access_ = discoveredAccess;
+          props['isAccessibleForFree'] = discoveredAccess;
+        }
+      } else {
+        props['isAccessibleForFree'] = !this.access_;
       }
-      if (productInfo) {
-        props['productID'] = productInfo;
+      const discoveredProductInfo = this.discoverProductId_(element);
+      if (this.productID_ == null) {
+        if (discoveredProductInfo) {
+          this.productID_ = discoveredProductInfo;
+          props['productID'] = discoveredProductInfo;
+        }
+      } else {
+        props['productID'] = this.productID_;
       }
       results.push({id: ++itemId, properties: props});
     }
