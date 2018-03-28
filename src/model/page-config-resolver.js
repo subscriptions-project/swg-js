@@ -69,7 +69,6 @@ export class PageConfigResolver {
     if (!this.configResolver_) {
       return null;
     }
-
     let config = this.metaParser_.check();
     if (!config) {
       config = this.ldParser_.check();
@@ -77,7 +76,6 @@ export class PageConfigResolver {
     if (!config) {
       config = this.microdataParser_.check();
     }
-
     if (config) {
       // Product ID has been found: initialize the rest of the config.
       this.configResolver_(config);
@@ -283,46 +281,6 @@ class JsonLdParser {
   }
 }
 
-/**
- * Class the describes the microdata found in the page
- */
-class Microdata {
-  /**
-   * @param {!Array<!{id: number, properties: Object<string, (string|boolean)>}>} entries
-   */
-  constructor(entries) {
-    this.entries = entries;
-  }
-
-  /**
-   * Returns the first page configuration found, if present
-  * @return {?PageConfig} pageConfig found
-  */
-  getPageConfig() {
-    const pageConfigs = [];
-    let locked = false;
-    let productId = null;
-    this.entries.forEach(item => {
-      Object.keys(item.properties).forEach(property => {
-        if (property == 'isAccessibleForFree') {
-          locked = !item.properties[property];
-        }
-        if (property == 'productID') {
-          productId = item.properties[property];
-        }
-      });
-      if (productId != null) {
-        pageConfigs.push(new PageConfig(productId, locked));
-      }
-    });
-    if (pageConfigs.length == 0) {
-      return null;
-    } else {
-      return pageConfigs[0];
-    }
-  }
-}
-
 class MicrodataParser {
   /**
    * @param {!Doc} doc
@@ -338,7 +296,7 @@ class MicrodataParser {
 
   /**
    * Returns false if access is restricted, otherwise true
-   * @param {Node} root A node that is an item of type 'NewsArticle'
+   * @param {!Element} root An element that is an item of type 'NewsArticle'
    * @return {?boolean} locked access
    * @private
    */
@@ -348,17 +306,17 @@ class MicrodataParser {
         .querySelectorAll("[itemprop='isAccessibleForFree']");
     for (let i = 0; nodeList[i]; i++) {
       const element = nodeList[i];
-      const content = element.content || element.textContent;
+      const content = element.getAttribute('content') || element.textContent;
       if (!content) {
         continue;
       }
-      let accessForFree = null;
-      if (content.toLowerCase() == 'true') {
-        accessForFree = true;
-      } else if (content.toLowerCase() == 'false') {
-        accessForFree = false;
-      }
       if (this.isValidElement_(element, root, ALREADY_SEEN)) {
+        let accessForFree = null;
+        if (content.toLowerCase() == 'true') {
+          accessForFree = true;
+        } else if (content.toLowerCase() == 'false') {
+          accessForFree = false;
+        }
         return accessForFree;
       }
     }
@@ -366,13 +324,13 @@ class MicrodataParser {
   }
 
   /**
-   * Verifies if a node is valid based on the following
+   * Verifies if an element is valid based on the following
    * - child of an item of type 'NewsArticle'
-   * - not a child of an item of type 'Section'
+   * - not a child of an item of any other type
    * - not seen before, marked using the alreadySeen tag
-   * @param current the node to be verified
-   * @param root the parent to track up to
-   * @param alreadySeen used to tag already visited nodes
+   * @param {?Element} current the element to be verified
+   * @param {!Element} root the parent to track up to
+   * @param {!string} alreadySeen used to tag already visited nodes
    * @return {!boolean} valid node
    * @private
    */
@@ -381,6 +339,7 @@ class MicrodataParser {
         node && !node[alreadySeen]; node = node.parentNode) {
       node[alreadySeen] = true;
       if (node.hasAttribute('itemscope')) {
+        /**{?string} */
         const type = node.getAttribute('itemtype');
         if (type.indexOf('http://schema.org/NewsArticle') >= 0) {
           return true;
@@ -397,7 +356,7 @@ class MicrodataParser {
    * - child of an item of type 'NewsArticle'
    * - Not a child of an item of type 'Section'
    * - child of an item of type 'productID'
-   * @param {Node} root A node that is an item of type 'NewsArticle'
+   * @param {!Element} root An element that is an item of type 'NewsArticle'
    * @return {?string} product ID, if found
    * @private
    */
@@ -407,13 +366,13 @@ class MicrodataParser {
         .querySelectorAll('[itemprop="productID"]');
     for (let i = 0; nodeList[i]; i++) {
       const element = nodeList[i];
-      const content = element.content || element.textContent;
+      const content = element.getAttribute('content') || element.textContent;
       const item = element.closest('[itemtype][itemscope]');
       const type = item.getAttribute('itemtype');
       if (type.indexOf('http://schema.org/Product') <= -1) {
         continue;
       }
-      if (this.isValidElement_(item.parentNode, root, ALREADY_SEEN)) {
+      if (this.isValidElement_(item.parentElement, root, ALREADY_SEEN)) {
         return content;
       }
     }
@@ -421,42 +380,45 @@ class MicrodataParser {
   }
 
   /**
-   * Extracts microdata embedded in the DOM
-   * @return {!Microdata} microdata found in the doc
+   * Returns PageConfig if available
+   * @return {?PageConfig} PageConfig found so far
+   */
+  getPageConfig_() {
+    let locked = null;
+    if (this.access_ != null) {
+      locked = !this.access_;
+    } else if (this.doc_.isReady()) {
+      // Default to unlocked
+      locked = false;
+    }
+    if (this.productID_ != null && locked != null) {
+      return new PageConfig(this.productID_, locked);
+    }
+    return null;
+  }
+
+  /**
+   * Extracts page config from Microdata in the DOM
+   * @return {?PageConfig} PageConfig found
    */
   tryExtractConfig_() {
-    let itemId = 0;
-    const results = [];
+    let config = this.getPageConfig_();
+    if (config) {
+      return config;
+    }
     const nodeList = this.doc_.getRootNode().querySelectorAll(
         "[itemscope][itemtype='http://schema.org/NewsArticle']");
-    const domReady = this.doc_.isReady();
-    for (let i = 0; nodeList[i]; i++) {
+    for (let i = 0; nodeList[i] && config == null; i++) {
       const element = nodeList[i];
-      if (!domReady && !hasNextNodeInDocumentOrder(element)) {
-        continue;
-      }
-      const props = {};
       if (this.access_ == null) {
-        const discoveredAccess = this.discoverAccess_(element);
-        if (discoveredAccess != null) {
-          this.access_ = discoveredAccess;
-          props['isAccessibleForFree'] = discoveredAccess;
-        }
-      } else {
-        props['isAccessibleForFree'] = !this.access_;
+        this.access_ = this.discoverAccess_(element);
       }
-      const discoveredProductInfo = this.discoverProductId_(element);
-      if (this.productID_ == null) {
-        if (discoveredProductInfo) {
-          this.productID_ = discoveredProductInfo;
-          props['productID'] = discoveredProductInfo;
-        }
-      } else {
-        props['productID'] = this.productID_;
+      if (!this.productID_) {
+        this.productID_ = this.discoverProductId_(element);
       }
-      results.push({id: ++itemId, properties: props});
+      config = this.getPageConfig_();
     }
-    return new Microdata(results);
+    return config;
   }
 
   /**
@@ -467,8 +429,7 @@ class MicrodataParser {
       // Wait until the whole `<head>` is parsed.
       return null;
     }
-    const microdata = this.tryExtractConfig_();
-    return microdata.getPageConfig();
+    return this.tryExtractConfig_();
   }
 }
 
