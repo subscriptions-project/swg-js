@@ -291,7 +291,7 @@ class MicrodataParser {
     /** @private {?boolean} */
     this.access_ = null;
     /** @private {?string} */
-    this.productID_ = null;
+    this.productId_ = null;
   }
 
   /**
@@ -391,8 +391,8 @@ class MicrodataParser {
       // Default to unlocked
       locked = false;
     }
-    if (this.productID_ != null && locked != null) {
-      return new PageConfig(this.productID_, locked);
+    if (this.productId_ != null && locked != null) {
+      return new PageConfig(this.productId_, locked);
     }
     return null;
   }
@@ -413,8 +413,8 @@ class MicrodataParser {
       if (this.access_ == null) {
         this.access_ = this.discoverAccess_(element);
       }
-      if (!this.productID_) {
-        this.productID_ = this.discoverProductId_(element);
+      if (!this.productId_) {
+        this.productId_ = this.discoverProductId_(element);
       }
       config = this.getPageConfig_();
     }
