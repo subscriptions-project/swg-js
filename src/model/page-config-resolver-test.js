@@ -279,6 +279,27 @@ describes.realWin('PageConfigResolver', {}, env => {
       Object.defineProperty(doc, 'readyState', {get: () => readyState});
     });
 
+    it('should handle multiple item types', () => {
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+          '<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other"> \
+            <meta itemprop="isAccessibleForFree" content="True"/> \
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
+              <meta itemprop="name" content="New York Times"/> \
+              <meta itemprop="productID" content="pub1:premium"/> \
+            </div> \
+            <div itemprop="articleBody" class="paywalled-section"> \
+              Paid content possibly. \
+            </div> \
+          </div>';
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      return resolver.resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.false;
+        expect(config.getProductId()).to.equal('pub1:premium');
+      });
+    });
+
     it('should parse unlocked access when available', () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =

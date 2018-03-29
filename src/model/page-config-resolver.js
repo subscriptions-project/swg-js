@@ -407,7 +407,7 @@ class MicrodataParser {
       return config;
     }
     const nodeList = this.doc_.getRootNode().querySelectorAll(
-        "[itemscope][itemtype='http://schema.org/NewsArticle']");
+        '[itemscope][itemtype*="http://schema.org/NewsArticle"]');
     for (let i = 0; nodeList[i] && config == null; i++) {
       const element = nodeList[i];
       if (this.access_ == null) {
