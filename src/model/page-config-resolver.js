@@ -69,7 +69,6 @@ export class PageConfigResolver {
     if (!this.configResolver_) {
       return null;
     }
-
     let config = this.metaParser_.check();
     if (!config) {
       config = this.ldParser_.check();
@@ -77,7 +76,6 @@ export class PageConfigResolver {
     if (!config) {
       config = this.microdataParser_.check();
     }
-
     if (config) {
       // Product ID has been found: initialize the rest of the config.
       this.configResolver_(config);
@@ -290,6 +288,137 @@ class MicrodataParser {
   constructor(doc) {
     /** @private @const {!Doc} */
     this.doc_ = doc;
+    /** @private {?boolean} */
+    this.access_ = null;
+    /** @private {?string} */
+    this.productId_ = null;
+  }
+
+  /**
+   * Returns false if access is restricted, otherwise true
+   * @param {!Element} root An element that is an item of type 'NewsArticle'
+   * @return {?boolean} locked access
+   * @private
+   */
+  discoverAccess_(root) {
+    const ALREADY_SEEN = 'alreadySeenForAccessInfo';
+    const nodeList = root
+        .querySelectorAll("[itemprop='isAccessibleForFree']");
+    for (let i = 0; nodeList[i]; i++) {
+      const element = nodeList[i];
+      const content = element.getAttribute('content') || element.textContent;
+      if (!content) {
+        continue;
+      }
+      if (this.isValidElement_(element, root, ALREADY_SEEN)) {
+        let accessForFree = null;
+        if (content.toLowerCase() == 'true') {
+          accessForFree = true;
+        } else if (content.toLowerCase() == 'false') {
+          accessForFree = false;
+        }
+        return accessForFree;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Verifies if an element is valid based on the following
+   * - child of an item of type 'NewsArticle'
+   * - not a child of an item of any other type
+   * - not seen before, marked using the alreadySeen tag
+   * @param {?Element} current the element to be verified
+   * @param {!Element} root the parent to track up to
+   * @param {!string} alreadySeen used to tag already visited nodes
+   * @return {!boolean} valid node
+   * @private
+   */
+  isValidElement_(current, root, alreadySeen) {
+    for (let node = current;
+        node && !node[alreadySeen]; node = node.parentNode) {
+      node[alreadySeen] = true;
+      if (node.hasAttribute('itemscope')) {
+        /**{?string} */
+        const type = node.getAttribute('itemtype');
+        if (type.indexOf('http://schema.org/NewsArticle') >= 0) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Obtains the product ID that meets the requirements
+   * - child of an item of type 'NewsArticle'
+   * - Not a child of an item of type 'Section'
+   * - child of an item of type 'productID'
+   * @param {!Element} root An element that is an item of type 'NewsArticle'
+   * @return {?string} product ID, if found
+   * @private
+   */
+  discoverProductId_(root) {
+    const ALREADY_SEEN = 'alreadySeenForProductInfo';
+    const nodeList = root
+        .querySelectorAll('[itemprop="productID"]');
+    for (let i = 0; nodeList[i]; i++) {
+      const element = nodeList[i];
+      const content = element.getAttribute('content') || element.textContent;
+      const item = element.closest('[itemtype][itemscope]');
+      const type = item.getAttribute('itemtype');
+      if (type.indexOf('http://schema.org/Product') <= -1) {
+        continue;
+      }
+      if (this.isValidElement_(item.parentElement, root, ALREADY_SEEN)) {
+        return content;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns PageConfig if available
+   * @return {?PageConfig} PageConfig found so far
+   */
+  getPageConfig_() {
+    let locked = null;
+    if (this.access_ != null) {
+      locked = !this.access_;
+    } else if (this.doc_.isReady()) {
+      // Default to unlocked
+      locked = false;
+    }
+    if (this.productId_ != null && locked != null) {
+      return new PageConfig(this.productId_, locked);
+    }
+    return null;
+  }
+
+  /**
+   * Extracts page config from Microdata in the DOM
+   * @return {?PageConfig} PageConfig found
+   */
+  tryExtractConfig_() {
+    let config = this.getPageConfig_();
+    if (config) {
+      return config;
+    }
+    const nodeList = this.doc_.getRootNode().querySelectorAll(
+        '[itemscope][itemtype*="http://schema.org/NewsArticle"]');
+    for (let i = 0; nodeList[i] && config == null; i++) {
+      const element = nodeList[i];
+      if (this.access_ == null) {
+        this.access_ = this.discoverAccess_(element);
+      }
+      if (!this.productId_) {
+        this.productId_ = this.discoverProductId_(element);
+      }
+      config = this.getPageConfig_();
+    }
+    return config;
   }
 
   /**
@@ -300,31 +429,7 @@ class MicrodataParser {
       // Wait until the whole `<head>` is parsed.
       return null;
     }
-
-    // TODO(sohanirao): create page config from DOM
-    /* Psuedo code
-      Initialize an empty list of items
-      Get all items (query elements that have itemscope)
-        For each element
-          get a list of properties
-            if a property is 'isAccessibleForFree', create an entry in the items list:
-            {'isAccessibleForFree': booleanvalue, 'element': elementWithTheProperty}
-            if a property is 'productID', create an entry in the items list as follows:
-            {'productID': value, 'element': elementWithTheProperty}
-      Initialize an empty list of results
-      Iterate through entries in the items list
-        Pop an entry,
-          if the element's type is "NewsArticle"
-            add it to the results list
-          else if this element is not the root
-            create an entry with either 'isAccessibleForFree' or 'productID' and corresponding value,
-            and the parent of the element as the entry for 'element' key, add this entry to items list
-      When the items list is processed, results list contains entries that meet the requirements:
-        type is NewsArticle, contains either isAccessibleForFree value or productID value.
-        When the results array contains entries for both and the corresponding elements are the same,
-          return PageConfig, otherwise return null
-    */
-    return null;
+    return this.tryExtractConfig_();
   }
 }
 
@@ -345,7 +450,6 @@ export function getControlFlag(rootNode) {
   }
   return null;
 }
-
 
 /**
  * Returns the value from content attribute of a meta tag with given name.
