@@ -62,6 +62,12 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
+    // Start/cancel events.
+    this.deps_.callbacks().triggerFlowStarted('showOffers');
+    this.activityIframeView_.onCancel(() => {
+      this.deps_.callbacks().triggerFlowCanceled('showOffers');
+    });
+
     // If result is due to OfferSelection, redirect to payments.
     this.activityIframeView_.onMessage(result => {
       if (result['alreadySubscribed']) {
@@ -130,6 +136,12 @@ export class SubscribeOptionFlow {
    * @return {!Promise}
    */
   start() {
+    // Start/cancel events.
+    this.deps_.callbacks().triggerFlowStarted('showSubscribeOption');
+    this.activityIframeView_.onCancel(() => {
+      this.deps_.callbacks().triggerFlowCanceled('showSubscribeOption');
+    });
+
     this.activityIframeView_.onMessage(data => {
       this.maybeOpenOffersFlow_(data);
     });
@@ -201,6 +213,11 @@ export class AbbrvOfferFlow {
    * @return {!Promise}
    */
   start() {
+    // Start/cancel events.
+    this.deps_.callbacks().triggerFlowStarted('showAbbrvOffer');
+    this.activityIframeView_.onCancel(() => {
+      this.deps_.callbacks().triggerFlowCanceled('showAbbrvOffer');
+    });
 
     // If the user is already subscribed, trigger login flow
     this.activityIframeView_.onMessage(data => {

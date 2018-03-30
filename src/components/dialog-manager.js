@@ -16,6 +16,7 @@
 
 import {Dialog} from './dialog';
 import {Graypane} from './graypane';
+import {isCancelError} from '../utils/errors';
 
 const POPUP_Z_INDEX = 2147483647;
 
@@ -73,7 +74,7 @@ export class DialogManager {
    */
   openView(view) {
     view.whenComplete().catch(reason => {
-      if (reason.name === 'AbortError') {
+      if (isCancelError(reason)) {
         this.completeView(view);
       }
       throw (reason);

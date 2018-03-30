@@ -118,5 +118,17 @@ describes.realWin('ActivityIframeView', {}, env => {
       expect(actualPort).to.equal(activityIframePort);
       expect(actualResult).to.equal(result);
     });
+
+    it('should yield cancel callback', function* () {
+      sandbox.stub(
+          activityIframePort,
+          'acceptResult',
+          () => Promise.reject(new DOMException('cancel', 'AbortError')));
+      const cancelPromise = new Promise(resolve => {
+        activityIframeView.onCancel(resolve);
+      });
+      activityIframeView.init(dialog);
+      return cancelPromise;
+    });
   });
 });
