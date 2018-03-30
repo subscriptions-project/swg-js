@@ -51,5 +51,38 @@ Thus, notice that:
 
 ## Microdata markup
 
-Microdata format support is coming soon.
+SWG uses schema.org markup. Using Microdata, the mark up could look like this:
 
+```
+<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other" id="top">
+  <meta itemprop="isAccessibleForFree" content="false"/>
+  <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+    <meta itemprop="name" content="New York Times"/>
+    <meta itemprop="productID" content="pub1:premium"/>
+  </div>
+  <div itemprop="articleBody" class="paywalled-section">
+    Paid content possibly.
+  </div>
+  <div itemscope itemtype="http://schema.org/OtherSection" id="bottom">
+    <meta itemprop="isAccessibleForFree" content="True"/>
+  </div>
+</div>
+```
+
+The requirements to retreive a usable configuration from embedded microdata are:
+ 1. Presence of atleast one div marked up as itemscope with itemtype containing 'NewsArticle' in
+    schema vocabulary (indicated by URL http://schema.org/)
+ 2. With presence of such a node as parent, a valid configuration is returned if it
+   - contains a meta in one of its childres, with item property "isAccessibleForFree" indicating
+     access info that is not broken in itemscope ownership upto the above parent and
+   - contains a child itemscope of type containing 'Product' in schema vocabulary and a item
+     property 'productID' that is not broken in itemscope ownership upto the above parent
+
+In the example above, the div with id = "bottom" is ignored. The result configuration will be as
+follows:
+  isAccessibleForFree: false, productID: pub1:premium
+
+For each, the first valid page configuration is used even if there are more configurations that
+exist. It is therefore, advised to place the configuration as high up in the DOM tree as possible
+sthat represents the accurate information. When DOM is ready, if no access info is found, it is
+assumed that access is indeed free.
