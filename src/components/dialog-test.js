@@ -15,6 +15,7 @@
  */
 
 import {Dialog} from './dialog';
+import {GlobalDoc} from '../model/doc';
 import {
   computedStyle,
   getStyle,
@@ -36,7 +37,7 @@ describes.realWin('Dialog', {}, env => {
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
-    dialog = new Dialog(win, {height: `${documentHeight}px`});
+    dialog = new Dialog(new GlobalDoc(win), {height: `${documentHeight}px`});
     graypaneStubs = sandbox.stub(dialog.graypane_);
 
     element = doc.createElement('div');

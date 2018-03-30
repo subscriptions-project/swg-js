@@ -27,11 +27,11 @@ const POPUP_Z_INDEX = 2147483647;
 export class DialogManager {
 
   /**
-   * @param {!Window} win
+   * @param {!../model/doc.Doc} doc
    */
-  constructor(win) {
-    /** @private @const {!Window} */
-    this.win_ = win;
+  constructor(doc) {
+    /** @private @const {!../model/doc.Doc} */
+    this.doc_ = doc;
 
     /** @private {?Dialog} */
     this.dialog_ = null;
@@ -40,7 +40,7 @@ export class DialogManager {
     this.openPromise_ = null;
 
     /** @private @const {!Graypane} */
-    this.popupGraypane_ = new Graypane(win.document, POPUP_Z_INDEX);
+    this.popupGraypane_ = new Graypane(doc, POPUP_Z_INDEX);
 
     /** @private {?Window} */
     this.popupWin_ = null;
@@ -61,7 +61,7 @@ export class DialogManager {
    */
   openDialog() {
     if (!this.openPromise_) {
-      this.dialog_ = new Dialog(this.win_);
+      this.dialog_ = new Dialog(this.doc_);
       this.openPromise_ = this.dialog_.open();
     }
     return this.openPromise_;

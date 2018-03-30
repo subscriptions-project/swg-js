@@ -91,24 +91,21 @@ const PositionAt = {
 export class Dialog {
 
   /**
-   * Create a dialog with optionally provided window and override important
-   * styles and position styles.
-   * @param {!Window} win
+   * Create a dialog for the provided doc.
+   * @param {!../model/doc.Doc} doc
    * @param {!Object<string, string|number>=} importantStyles
    * @param {!Object<string, string|number>=} styles
    */
-  constructor(win, importantStyles = {}, styles = {}) {
-
-    this.win_ = win;
-
-    /** @private @const {!HTMLDocument} */
-    this.doc_ = this.win_.document;
+  constructor(doc, importantStyles = {}, styles = {}) {
+    /** @private @const {!../model/doc.Doc} */
+    this.doc_ = doc;
 
     /** @private @const {!FriendlyIframe} */
-    this.iframe_ = new FriendlyIframe(this.doc_, {'class': 'swg-dialog'});
+    this.iframe_ = new FriendlyIframe(
+        doc.getWin().document, {'class': 'swg-dialog'});
 
     /** @private @const {!Graypane} */
-    this.graypane_ = new Graypane(this.doc_, Z_INDEX - 1);
+    this.graypane_ = new Graypane(doc, Z_INDEX - 1);
 
     const modifiedImportantStyles =
         Object.assign({}, rootElementImportantStyles, importantStyles);
@@ -144,7 +141,7 @@ export class Dialog {
     }
 
     // Attach.
-    this.doc_.body.appendChild(iframe.getElement());  // Fires onload.
+    this.doc_.getBody().appendChild(iframe.getElement());  // Fires onload.
     this.graypane_.attach();
 
     if (animated) {
@@ -205,7 +202,7 @@ export class Dialog {
       animating = Promise.resolve();
     }
     return animating.then(() => {
-      this.doc_.body.removeChild(this.iframe_.getElement());
+      this.doc_.getBody().removeChild(this.iframe_.getElement());
       this.removePaddingToHtml_();
       this.graypane_.destroy();
     });
@@ -358,7 +355,7 @@ export class Dialog {
    * @private
    */
   getMaxAllowedHeight_(height) {
-    return Math.min(height, this.win_./*OK*/innerHeight * 0.9);
+    return Math.min(height, this.doc_.getWin()./*OK*/innerHeight * 0.9);
   }
 
   /**
@@ -386,8 +383,7 @@ export class Dialog {
   updatePaddingToHtml_(newHeight) {
     if (this.inferPosition_() == PositionAt.BOTTOM) {
       const bottomPadding = newHeight + 20;  // Add some extra padding.
-      const htmlElement = this.doc_.documentElement;
-
+      const htmlElement = this.doc_.getRootElement();
       setImportantStyles(htmlElement, {
         'padding-bottom': `${bottomPadding}px`,
       });
@@ -399,7 +395,7 @@ export class Dialog {
    * @private`
    */
   removePaddingToHtml_() {
-    this.doc_.documentElement.style.removeProperty('padding-bottom');
+    this.doc_.getRootElement().style.removeProperty('padding-bottom');
   }
 
 
