@@ -16,6 +16,7 @@
 
 import {Dialog} from './dialog';
 import {DialogManager} from './dialog-manager';
+import {GlobalDoc} from '../model/doc';
 
 
 describes.realWin('DialogManager', {}, env => {
@@ -30,7 +31,7 @@ describes.realWin('DialogManager', {}, env => {
   beforeEach(() => {
     clock = sandbox.useFakeTimers();
     win = env.win;
-    dialogManager = new DialogManager(win);
+    dialogManager = new DialogManager(new GlobalDoc(win));
     currentView = null;
     initView = {
       whenComplete: function() {
