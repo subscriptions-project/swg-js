@@ -19,10 +19,12 @@ import {DepsDef} from './deps';
 import {
   EntitlementsManager,
 } from './entitlements-manager';
+import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
+
 
 describes.realWin('EntitlementsManager', {}, env => {
   let win;
@@ -42,6 +44,8 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     const deps = new DepsDef();
     sandbox.stub(deps, 'win', () => win);
+    const globalDoc = new GlobalDoc(win);
+    sandbox.stub(deps, 'doc', () => globalDoc);
     callbacks = new Callbacks();
     sandbox.stub(deps, 'callbacks', () => callbacks);
     const storage = new Storage(win);

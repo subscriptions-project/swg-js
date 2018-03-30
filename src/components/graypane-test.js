@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {GlobalDoc} from '../model/doc';
 import {Graypane} from './graypane';
 import {getStyle} from '../utils/style';
 
@@ -28,7 +29,7 @@ describes.realWin('Graypane', {}, env => {
 
   beforeEach(() => {
     win = env.win;
-    graypane = new Graypane(win.document, 17);
+    graypane = new Graypane(new GlobalDoc(win), 17);
     element = graypane.getElement();
   });
 

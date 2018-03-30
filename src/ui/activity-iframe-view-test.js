@@ -21,6 +21,8 @@ import {
   ActivityResult,
 } from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
+
 
 describes.realWin('ActivityIframeView', {}, env => {
   let win;
@@ -38,7 +40,7 @@ describes.realWin('ActivityIframeView', {}, env => {
   beforeEach(() => {
     win = env.win;
     src = '$frontend$/offersiframe';
-    dialog = new Dialog(win, {height: '100px'});
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     activityPorts = new ActivityPorts(win);
     activityIframePort =
         new ActivityIframePort(dialog.getElement(), src, activityPorts);

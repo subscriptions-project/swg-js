@@ -332,7 +332,7 @@ export class ConfiguredRuntime {
     this.storage_ = new Storage(this.win_);
 
     /** @private @const {!DialogManager} */
-    this.dialogManager_ = new DialogManager(this.win_);
+    this.dialogManager_ = new DialogManager(this.doc_);
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(this.win_);

@@ -58,11 +58,8 @@ export class Toast {
    */
   constructor(deps, src, args) {
 
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
-
-    /** @private @const {!HTMLDocument} */
-    this.doc_ = this.win_.document;
+    /** @private @const {!../model/doc.Doc} */
+    this.doc_ = deps.doc();
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
@@ -76,7 +73,10 @@ export class Toast {
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ =
         /** @type {!HTMLIFrameElement} */ (
-            createElement(this.doc_, 'iframe', iframeAttributes));
+            createElement(
+                this.doc_.getWin().document,
+                'iframe',
+                iframeAttributes));
 
     setImportantStyles(this.iframe_, toastImportantStyles);
     setStyles(this.iframe_, topFriendlyIframePositionStyles);
@@ -100,7 +100,7 @@ export class Toast {
    * @return {!Promise}
    */
   open() {
-    this.doc_.body.appendChild(this.iframe_);  // Fires onload.
+    this.doc_.getBody().appendChild(this.iframe_);  // Fires onload.
     return this.buildToast_();
   }
 
@@ -119,7 +119,7 @@ export class Toast {
                   + 'swg-notify-hide .3s ease-out ' + toastDurationSeconds +
                   's normal forwards',
           });
-          this.win_.setTimeout(() => {
+          this.doc_.getWin().setTimeout(() => {
             this.close();
           }, (toastDurationSeconds + 1) * 1000);
         });
@@ -129,6 +129,6 @@ export class Toast {
    * Closes the toast.
    */
   close() {
-    this.doc_.body.removeChild(this.iframe_);
+    this.doc_.getBody().removeChild(this.iframe_);
   }
 }

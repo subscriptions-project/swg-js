@@ -23,16 +23,16 @@ import {transition} from '../utils/animation';
 export class Graypane {
 
   /**
-   * @param {!Document} doc
+   * @param {!../model/doc.Doc} doc
    * @param {number} zIndex
    */
   constructor(doc, zIndex) {
-
-    /** @private @const {!Document} */
+    /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
 
     /** @private @const {!Element} */
-    this.fadeBackground_ = this.doc_.createElement('swg-popup-background');
+    this.fadeBackground_ = this.doc_.getWin().document.createElement(
+        'swg-popup-background');
     setImportantStyles(this.fadeBackground_, {
       'z-index': zIndex,
       'display': 'none',
@@ -63,14 +63,14 @@ export class Graypane {
    * Attaches the graypane to the document.
    */
   attach() {
-    this.doc_.body.appendChild(this.fadeBackground_);
+    this.doc_.getBody().appendChild(this.fadeBackground_);
   }
 
   /**
    * Detaches the graypane to the document.
    */
   destroy() {
-    this.doc_.body.removeChild(this.fadeBackground_);
+    this.doc_.getBody().removeChild(this.fadeBackground_);
   }
 
   /**
