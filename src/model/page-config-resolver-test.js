@@ -41,6 +41,10 @@ describes.realWin('PageConfigResolver', {}, env => {
     return element;
   }
 
+  function addMicrodata(content) {
+    doc.body.appendChild(content);
+  }
+
   describe('parse meta', () => {
     it('should parse publication id and product', () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
@@ -268,7 +272,212 @@ describes.realWin('PageConfigResolver', {}, env => {
   });
 
   describe('parse microdata', () => {
-    // TODO(sohanirao): Add tests to parse microdata
+    let readyState;
+
+    beforeEach(() => {
+      readyState = 'loading';
+      Object.defineProperty(doc, 'readyState', {get: () => readyState});
+    });
+
+    it('should handle multiple item types', () => {
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+          '<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other"> \
+            <meta itemprop="isAccessibleForFree" content="True"/> \
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
+              <meta itemprop="name" content="New York Times"/> \
+              <meta itemprop="productID" content="pub1:premium"/> \
+            </div> \
+            <div itemprop="articleBody" class="paywalled-section"> \
+              Paid content possibly. \
+            </div> \
+          </div>';
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      return resolver.resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.false;
+        expect(config.getProductId()).to.equal('pub1:premium');
+      });
+    });
+
+    it('should parse unlocked access when available', () => {
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+          '<div itemscope itemtype="http://schema.org/NewsArticle"> \
+            <meta itemprop="isAccessibleForFree" content="True"/> \
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
+              <meta itemprop="name" content="New York Times"/> \
+              <meta itemprop="productID" content="pub1:premium"/> \
+            </div> \
+            <div itemprop="articleBody" class="paywalled-section"> \
+              Paid content possibly. \
+            </div> \
+          </div>';
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      return resolver.resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.false;
+        expect(config.getProductId()).to.equal('pub1:premium');
+      });
+    });
+
+    it('should not default unlocked access when dom is not ready', () => {
+      const resolver = new PageConfigResolver(gd);
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+          '<div itemscope itemtype="http://schema.org/NewsArticle" id="top"> \
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
+            <meta itemprop="name" content="New York Times"/> \
+            <meta itemprop="productID" content="pub1:premium"/> \
+          </div> \
+          <div itemprop="hasPart" itemscope itemtype="http://schema.org/WebPageElement"> \
+            <meta itemprop="isAccessibleForFree" content="true"> \
+            <meta itemprop="cssSelector" content=".paywalled-section"/> \
+          </div> \
+          <div itemprop="articleBody" class="paywalled-section"> \
+            Paid content possibly. \
+          </div> \
+        </div>';
+      addMicrodata(divElement);
+      readyState = 'loading';
+      // Empty content.
+      let config = resolver.check();
+      expect(config).to.be.null;
+
+      // Add content.
+      const validAccessElement = createElement(doc, 'div');
+      validAccessElement.innerHTML =
+          `<div id="bottom">
+            <meta itemprop="isAccessibleForFree" content="false"/>
+            <meta itemprop="cssSelector" content=".paywalled-section"/>
+          </div>`;
+      doc.getElementById('top').appendChild(validAccessElement);
+      config = resolver.check();
+      readyState = 'complete';
+      expect(config).to.be.ok;
+      expect(config.isLocked()).to.be.true;
+      expect(config.getProductId()).to.equal('pub1:premium');
+      return expect(resolver.resolveConfig()).to.eventually.equal(config);
+    });
+
+    it('malformed microdata no productId', () => {
+      // Add content.
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+          `<div itemscope itemtype="http://schema.org/NewsArticle">
+            <div itemprop="hasPart" itemscope itemtype="http://schema.org/WebPageElement">
+              <meta itemprop="isAccessibleForFree" content=true/>
+              <meta itemprop="cssSelector" content=".paywalled-section"/>
+            </div>
+            <div itemprop="articleBody" class="paywalled-section">
+              Paid content possibly.
+            </div>
+          </div>`;
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      expect(resolver.check()).to.be.null;
+    });
+
+    it('malformed microdata not news article type', () => {
+      // Add content.
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+          `<div>
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+              <meta itemprop="name" content="New York Times"/>
+              <meta itemprop="productID" content="pub1:premium"/>
+            </div>
+            <div itemprop="hasPart" itemscope itemtype="http://schema.org/WebPageElement">
+              <meta itemprop="isAccessibleForFree" content=true/>
+              <meta itemprop="cssSelector" content=".paywalled-section"/>
+            </div>
+            <div itemprop="articleBody" class="paywalled-section">
+              Paid content possibly.
+            </div>
+          </div>`;
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      expect(resolver.check()).to.be.null;
+    });
+
+    it('malformed microdata tree product info under section type', () => {
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+        `<div itemscope itemtype="http://schema.org/NewsArticle">
+          <div itemscope itemtype="http://schema.org/Section">
+              <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+                <meta itemprop="name" content="New York Times"/>
+                <meta itemprop="productID" content="pub1:premium"/>
+              </div>
+            </div>
+            <div>
+              <meta itemprop="isAccessibleForFree" content="False"/>
+              <meta itemprop="cssSelector" content=".paywalled-section"/>
+            </div>
+            <div itemprop="articleBody" class="paywalled-section">
+              Paid content possibly.
+            </div>
+          </div>`;
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      expect(resolver.check()).to.be.null;
+    });
+
+    it('multiple product info but one valid', () => {
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+          `<div itemscope itemtype="http://schema.org/NewsArticle">
+           <div itemscope itemtype="http://schema.org/Section">
+              <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+                <meta itemprop="name" content="New York Times"/>
+                <meta itemprop="productID" content="pub1:basic"/>
+              </div>
+            </div>
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+              <meta itemprop="name" content="New York Times"/>
+              <meta itemprop="productID" content="pub1:premium"/>
+            </div>
+            <div>
+              <meta itemprop="isAccessibleForFree" content="False"/>
+              <meta itemprop="cssSelector" content=".paywalled-section"/>
+            </div>
+            <div itemprop="articleBody" class="paywalled-section">
+              Paid content possibly.
+            </div>
+          </div>`;
+      addMicrodata(divElement);
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.true;
+        expect(config.getProductId()).to.equal('pub1:premium');
+      });
+    });
+
+    it('multiple access info but one valid', () => {
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+          `<div itemscope itemtype="http://schema.org/NewsArticle">
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+              <meta itemprop="name" content="New York Times"/>
+              <meta itemprop="productID" content="pub1:premium"/>
+            </div>
+            <div itemprop="hasPart" itemscope itemtype="http://schema.org/WebPageElement">
+              <meta itemprop="isAccessibleForFree" content="True"/>
+              <meta itemprop="cssSelector" content=".paywalled-section"/>
+            </div>
+            <div>
+              <meta itemprop="isAccessibleForFree" content="False"/>
+              <meta itemprop="cssSelector" content=".paywalled-section"/>
+            </div>
+            <div itemprop="articleBody" class="paywalled-section">
+              Paid content possibly.
+            </div>
+          </div>`;
+      addMicrodata(divElement);
+      return new PageConfigResolver(gd).resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.true;
+        expect(config.getProductId()).to.equal('pub1:premium');
+      });
+    });
   });
 
   describe('locked', () => {
