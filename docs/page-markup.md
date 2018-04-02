@@ -20,9 +20,11 @@ SwG requires configuring two main properties:
  1. The product ID that the user must be granted to view the content.
  2. Whether this content requires this product at this time.
 
+SwG uses Schema.org markup. The JSON-LD and Microdata formats are supported.
+
 ## JSON-LD markup
 
-SwG uses Schema.org markup. Using JSON-LD, the markup would look like:
+Using JSON-LD, the markup would look like:
 
 ```
 <script type="application/ld+json">
@@ -51,7 +53,7 @@ Thus, notice that:
 
 ## Microdata markup
 
-SwG uses Schema.org markup. Using Microdata, the mark up could look like this:
+Using Microdata, the markup could look like this:
 
 ```
 <div itemscope itemtype="http://schema.org/NewsArticle>
@@ -63,11 +65,12 @@ SwG uses Schema.org markup. Using Microdata, the mark up could look like this:
 </div>
 ```
 
-A usable configuration will provide 'NewsArticle' typed item with 'isAccessibleForFree' property and a
-subitem of type 'Product' that specifies the productID. For the example above, the result configuration is:
-  isAccessibleForFree: false, productID: 'norcal_tribue.com:basic'
+A usable configuration will provide `NewsArticle` typed item with `isAccessibleForFree` property and a
+subitem of type `Product` that specifies the `productID`.
 
-The first valid page configuration found is used even if there are more configurations that
-exist. It is therefore, advised to place the configuration as high up in the DOM tree as possible
-that represents the accurate information. When DOM is ready, if no access info is found, it is
-assumed that access is indeed unlocked.
+In this example:
+ 1. The product ID is "norcal_tribune.com:basic" (`"productID": "norcal_tribune.com:basic"`).
+ 2. This document is currently locked (`"isAccessibleForFree": false`)
+
+The configuration is resolved as soon as `productID` and `isAccessibleForFree` are found. It is, therefore,
+advised to place the configuration as high up in the DOM tree as possible.
