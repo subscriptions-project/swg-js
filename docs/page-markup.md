@@ -69,5 +69,5 @@ subitem of type 'Product' that specifies the productID. For the example above, t
 
 The first valid page configuration found is used even if there are more configurations that
 exist. It is therefore, advised to place the configuration as high up in the DOM tree as possible
-sthat represents the accurate information. When DOM is ready, if no access info is found, it is
+that represents the accurate information. When DOM is ready, if no access info is found, it is
 assumed that access is indeed unlocked.s
