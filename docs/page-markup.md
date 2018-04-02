@@ -63,8 +63,8 @@ SwG uses Schema.org markup. Using Microdata, the mark up could look like this:
 </div>
 ```
 
-A usable configuration will provide 'NewsArticle' typed item with 'isAccessibleForFree' property
-subitem of type 'Product' that specifies the productID. For the example above, the configurations is:
+A usable configuration will provide 'NewsArticle' typed item with 'isAccessibleForFree' property and a
+subitem of type 'Product' that specifies the productID. For the example above, the result configuration is:
   isAccessibleForFree: false, productID: 'norcal_tribue.com:basic'
 
 The first valid page configuration found is used even if there are more configurations that
