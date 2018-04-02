@@ -20,9 +20,11 @@ SwG requires configuring two main properties:
  1. The product ID that the user must be granted to view the content.
  2. Whether this content requires this product at this time.
 
+SwG uses Schema.org markup. The JSON-LD and Microdata formats are supported.
+
 ## JSON-LD markup
 
-SwG uses Schema.org markup. Using JSON-LD, the markup would look like:
+Using JSON-LD, the markup would look like:
 
 ```
 <script type="application/ld+json">
@@ -51,5 +53,24 @@ Thus, notice that:
 
 ## Microdata markup
 
-Microdata format support is coming soon.
+Using Microdata, the markup could look like this:
 
+```
+<div itemscope itemtype="http://schema.org/NewsArticle>
+  <meta itemprop="isAccessibleForFree" content="false"/>
+  <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+    <meta itemprop="name" content="The Norcal Tribune"/>
+    <meta itemprop="productID" content="norcal_tribute.com:basic"/>
+  </div>
+</div>
+```
+
+A usable configuration will provide `NewsArticle` typed item with `isAccessibleForFree` property and a
+subitem of type `Product` that specifies the `productID`.
+
+In this example:
+ 1. The product ID is "norcal_tribune.com:basic" (`"productID": "norcal_tribune.com:basic"`).
+ 2. This document is currently locked (`"isAccessibleForFree": false`)
+
+The configuration is resolved as soon as `productID` and `isAccessibleForFree` are found. It is, therefore,
+advised to place the configuration as high up in the DOM tree as possible.
