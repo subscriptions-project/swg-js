@@ -61,6 +61,7 @@ describes.realWin('PayStartFlow', {}, env => {
   let runtime;
   let activitiesMock;
   let dialogManagerMock;
+  let callbacksMock;
   let flow;
 
   beforeEach(() => {
@@ -69,12 +70,14 @@ describes.realWin('PayStartFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    callbacksMock = sandbox.mock(runtime.callbacks());
     flow = new PayStartFlow(runtime, 'sku1');
   });
 
   afterEach(() => {
     activitiesMock.verify();
     dialogManagerMock.verify();
+    callbacksMock.verify();
   });
 
   it('should have valid flow constructed', () => {
@@ -82,6 +85,10 @@ describes.realWin('PayStartFlow', {}, env => {
     dialogManagerMock.expects('popupOpened')
         .withExactArgs(popupWin)
         .once();
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('subscribe')
+        .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('open').withExactArgs(
         'swg-pay',
         'PAY_ORIGIN/gp/p/ui/pay?_=_',
@@ -248,6 +255,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should start flow on correct payment response', () => {
+      callbacksMock.expects('triggerFlowCanceled').never();
       dialogManagerMock.expects('popupClosed').once();
       entitlementsManagerMock.expects('blockNextNotification').once();
       const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
@@ -382,6 +390,22 @@ describes.realWin('PayCompleteFlow', {}, env => {
               body: encryptedData,
               mode: 'cors',
             }));
+      });
+    });
+
+    it('should NOT start flow on cancelation', () => {
+      callbacksMock.expects('triggerFlowCanceled')
+          .withExactArgs('subscribe')
+          .once();
+      sandbox.stub(port, 'acceptResult', () => Promise.reject(
+          new DOMException('cancel', 'AbortError')));
+      PayCompleteFlow.configurePending(runtime);
+      startCallback(port);
+      return Promise.resolve().then(() => {
+        // Skip microtask.
+        return Promise.resolve();
+      }).then(() => {
+        expect(startStub).to.not.be.called;
       });
     });
   });

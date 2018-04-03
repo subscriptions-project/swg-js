@@ -114,6 +114,43 @@ export class Subscriptions {
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
    */
   linkAccount() {}
+
+  /**
+   * Notifies the client that a flow has been started. The name of the flow
+   * is passed as the callback argument. The flow name corresponds to the
+   * method name in this interface, such as "showOffers", or "subscribe".
+   * See `SubscriptionFlows` for the full list.
+   *
+   * Also see `setOnFlowCanceled` method.
+   *
+   * @param {function({flow: string})} callback
+   */
+  setOnFlowStarted(callback) {}
+
+  /**
+   * Notifies the client that a flow has been canceled. The name of the flow
+   * is passed as the callback argument. The flow name corresponds to the
+   * method name in this interface, such as "showOffers", or "subscribe".
+   * See `SubscriptionFlows` for the full list.
+   *
+   * Notice that some of the flows, such as "subscribe", could additionally
+   * have their own "cancel" events.
+   *
+   * Also see `setOnFlowStarted` method.
+   *
+   * @param {function({flow: string})} callback
+   */
+  setOnFlowCanceled(callback) {}
+}
+
+
+/** @enum {string} */
+export const SubscriptionFlows = {
+  SHOW_OFFERS: 'showOffers',
+  SHOW_SUBSCRIBE_OPTION: 'showSubscribeOption',
+  SHOW_ABBRV_OFFER: 'showAbbrvOffer',
+  SUBSCRIBE: 'subscribe',
+  LINK_ACCOUNT: 'linkAccount',
 }
 
 

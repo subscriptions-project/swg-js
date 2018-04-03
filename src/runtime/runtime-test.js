@@ -578,6 +578,26 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should should delegate "setOnFlowStarted"', () => {
+      const callback = function() {};
+      configuredRuntimeMock.expects('setOnFlowStarted')
+          .withExactArgs(callback)
+          .once();
+      return runtime.setOnFlowStarted(callback).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(false);
+      });
+    });
+
+    it('should should delegate "setOnFlowCanceled"', () => {
+      const callback = function() {};
+      configuredRuntimeMock.expects('setOnFlowCanceled')
+          .withExactArgs(callback)
+          .once();
+      return runtime.setOnFlowCanceled(callback).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(false);
+      });
+    });
+
     it('should use default fetcher', () => {
       const ents = {};
       const xhrFetchStub = sandbox.stub(
@@ -931,6 +951,26 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
       runtime.callbacks().triggerLinkComplete();
       return promise;
+    });
+
+    it('should trigger flow started callback', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnFlowStarted(resolve);
+      });
+      runtime.callbacks().triggerFlowStarted('flow1');
+      return promise.then(result => {
+        expect(result).to.deep.equal({flow: 'flow1'});
+      });
+    });
+
+    it('should trigger flow canceled callback', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnFlowCanceled(resolve);
+      });
+      runtime.callbacks().triggerFlowCanceled('flow1');
+      return promise.then(result => {
+        expect(result).to.deep.equal({flow: 'flow1'});
+      });
     });
   });
 });
