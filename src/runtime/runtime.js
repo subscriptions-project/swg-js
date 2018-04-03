@@ -32,6 +32,9 @@ import {
   SubscribeOptionFlow,
   AbbrvOfferFlow,
 } from './offers-flow';
+import {
+  SaveSubscriptionFlow,
+} from './save-subscription-flow';
 import {PageConfig} from '../model/page-config';
 import {
   PageConfigResolver,
@@ -295,6 +298,12 @@ export class Runtime {
     return this.configured_(true)
         .then(runtime => runtime.linkAccount());
   }
+
+  /** @override */
+  saveSubscription() {
+    return this.configured_(true)
+        .then(runtime => runtime.saveSubscription());
+  }
 }
 
 
@@ -474,6 +483,13 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  saveSubscription() {
+    return this.documentParsed_.then(() => {
+      return new SaveSubscriptionFlow(this).start();
+    });
+  }
+
+  /** @override */
   setOnNativeSubscribeRequest(callback) {
     this.callbacks_.setOnSubscribeRequest(callback);
   }
@@ -490,7 +506,6 @@ export class ConfiguredRuntime {
     });
   }
 }
-
 
 /**
  * @param {!Runtime} runtime
@@ -514,6 +529,7 @@ function createPublicRuntime(runtime) {
     setOnNativeSubscribeRequest:
         runtime.setOnNativeSubscribeRequest.bind(runtime),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
+    saveSubscription: runtime.saveSubscription.bind(runtime),
   });
 }
 

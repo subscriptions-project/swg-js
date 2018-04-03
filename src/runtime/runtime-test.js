@@ -20,6 +20,9 @@ import {
   SubscribeOptionFlow,
 } from './offers-flow';
 import {
+  SaveSubscriptionFlow,
+} from './save-subscription-flow';
+import {
   ActivityPorts,
   ActivityResult,
   ActivityResultCode,
@@ -578,6 +581,13 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should should delegage "saveSubscription"', () => {
+      configuredRuntimeMock.expects('saveSubscription').once();
+      return runtime.saveSubscription().then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
     it('should use default fetcher', () => {
       const ents = {};
       const xhrFetchStub = sandbox.stub(
@@ -931,6 +941,16 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
       runtime.callbacks().triggerLinkComplete();
       return promise;
+    });
+
+    it('should start saveSubscriptionFlow', () => {
+      const startStub = sandbox.stub(
+          SaveSubscriptionFlow.prototype,
+          'start',
+          () => Promise.resolve());
+      return runtime.saveSubscription().then(() => {
+        expect(startStub).to.be.calledOnce;
+      });
     });
   });
 });

@@ -114,6 +114,11 @@ export class Subscriptions {
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
    */
   linkAccount() {}
+
+  /**
+   * Starts the save subscriptions flow.
+   */
+  saveSubscription() {}
 }
 
 
