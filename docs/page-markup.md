@@ -56,7 +56,7 @@ Thus, notice that:
 Using Microdata, the markup could look like this:
 
 ```
-<div itemscope itemtype="http://schema.org/NewsArticle>
+<div itemscope itemtype="http://schema.org/NewsArticle">
   <meta itemprop="isAccessibleForFree" content="false"/>
   <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
     <meta itemprop="name" content="The Norcal Tribune"/>

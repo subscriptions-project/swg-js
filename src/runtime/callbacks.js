@@ -23,6 +23,8 @@ const CallbackId = {
   LOGIN_REQUEST: 4,
   LINK_PROGRESS: 5,
   LINK_COMPLETE: 6,
+  FLOW_STARTED: 7,
+  FLOW_CANCELED: 8,
 };
 
 
@@ -161,6 +163,36 @@ export class Callbacks {
    */
   hasSubscribeResponsePending() {
     return !!this.resultBuffer_[CallbackId.SUBSCRIBE_RESPONSE];
+  }
+
+  /**
+   * @param {function({flow: string})} callback
+   */
+  setOnFlowStarted(callback) {
+    this.setCallback_(CallbackId.FLOW_STARTED, callback);
+  }
+
+  /**
+   * @param {string} flow
+   * @return {boolean} Whether the callback has been found.
+   */
+  triggerFlowStarted(flow) {
+    return this.trigger_(CallbackId.FLOW_STARTED, {flow});
+  }
+
+  /**
+   * @param {function({flow: string})} callback
+   */
+  setOnFlowCanceled(callback) {
+    this.setCallback_(CallbackId.FLOW_CANCELED, callback);
+  }
+
+  /**
+   * @param {string} flow
+   * @return {boolean} Whether the callback has been found.
+   */
+  triggerFlowCanceled(flow) {
+    return this.trigger_(CallbackId.FLOW_CANCELED, {flow});
   }
 
   /**

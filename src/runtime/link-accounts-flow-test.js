@@ -55,6 +55,7 @@ describes.realWin('LinkbackFlow', {}, env => {
   let runtime;
   let activitiesMock;
   let dialogManagerMock;
+  let triggerFlowStartSpy;
   let linkbackFlow;
 
   beforeEach(() => {
@@ -64,6 +65,8 @@ describes.realWin('LinkbackFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     linkbackFlow = new LinkbackFlow(runtime);
+    triggerFlowStartSpy = sandbox.stub(
+        runtime.callbacks(), 'triggerFlowStarted');
   });
 
   afterEach(() => {
@@ -85,6 +88,8 @@ describes.realWin('LinkbackFlow', {}, env => {
         .returns({targetWin: popupWin})
         .once();
     linkbackFlow.start();
+    expect(triggerFlowStartSpy).to.be.calledOnce
+        .calledWithExactly('linkAccount');
   });
 });
 
@@ -97,7 +102,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   let entitlementsManagerMock;
   let dialogManagerMock;
   let linkCompleteFlow;
-  let triggerLinkProgressSpy, triggerLinkCompleteSpy;
+  let triggerLinkProgressSpy, triggerLinkCompleteSpy, triggerFlowCancelSpy;
 
   beforeEach(() => {
     win = env.win;
@@ -111,6 +116,8 @@ describes.realWin('LinkCompleteFlow', {}, env => {
         runtime.callbacks(), 'triggerLinkProgress');
     triggerLinkCompleteSpy = sandbox.stub(
         runtime.callbacks(), 'triggerLinkComplete');
+    triggerFlowCancelSpy = sandbox.stub(
+        runtime.callbacks(), 'triggerFlowCanceled');
   });
 
   afterEach(() => {
@@ -165,6 +172,49 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     return startPromise.then(() => {
       expect(startStub).to.be.calledWithExactly();
       expect(instance.activityIframeView_.src_).to.contain('/u/1/');
+      expect(triggerFlowCancelSpy).to.not.be.called;
+    });
+  });
+
+  it('should trigger on failed link response', () => {
+    dialogManagerMock.expects('popupClosed').once();
+    let handler;
+    activitiesMock.expects('onResult')
+        .withExactArgs('swg-link-continue', sinon.match(arg => {
+          return typeof arg == 'function';
+        }))
+        .once();
+    activitiesMock.expects('onResult')
+        .withExactArgs('swg-link', sinon.match(arg => {
+          handler = arg;
+          return typeof arg == 'function';
+        }))
+        .once();
+    entitlementsManagerMock.expects('blockNextNotification').once();
+    LinkCompleteFlow.configurePending(runtime);
+    expect(handler).to.exist;
+    expect(triggerLinkProgressSpy).to.not.be.called;
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+    expect(triggerFlowCancelSpy).to.not.be.called;
+
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.reject(
+        new DOMException('cancel', 'AbortError'));
+
+    const startStub = sandbox.stub(LinkCompleteFlow.prototype, 'start');
+
+    handler(port);
+    expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+    return Promise.resolve().then(() => {
+      // Skip microtask.
+      return Promise.resolve();
+    }).then(() => {
+      expect(triggerFlowCancelSpy).to.be.calledOnce;
+      expect(startStub).to.not.be.called;
     });
   });
 

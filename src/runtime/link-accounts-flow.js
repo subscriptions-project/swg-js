@@ -15,9 +15,11 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {SubscriptionFlows} from '../api/subscriptions';
 import {acceptPortResult} from '../utils/activity-utils';
-import {getHostUrl} from '../utils/url';
 import {feArgs, feOrigin, feUrl} from './services';
+import {getHostUrl} from '../utils/url';
+import {isCancelError} from '../utils/errors';
 
 const CONTINUE_LINK_REQUEST_ID = 'swg-link-continue';
 const LINK_REQUEST_ID = 'swg-link';
@@ -98,8 +100,8 @@ export class LinkbackFlow {
    * @param {!./deps.DepsDef} deps
    */
   constructor(deps) {
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
@@ -116,6 +118,7 @@ export class LinkbackFlow {
    * @return {!Promise}
    */
   start() {
+    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
     const opener = this.activityPorts_.open(
         LINK_REQUEST_ID,
         feUrl('/linkbackstart'),
@@ -150,6 +153,10 @@ export class LinkCompleteFlow {
       return promise.then(response => {
         const flow = new LinkCompleteFlow(deps, response);
         flow.start();
+      }, reason => {
+        if (isCancelError(reason)) {
+          deps.callbacks().triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
+        }
       });
     };
     deps.activities().onResult(CONTINUE_LINK_REQUEST_ID, handler);

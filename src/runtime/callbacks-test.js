@@ -141,4 +141,24 @@ describes.sandboxed('Callbacks', {}, () => {
       expect(spy).to.be.calledOnce.calledWith(p);
     });
   });
+
+  it('should trigger and execute flowStarted', () => {
+    const spy = sandbox.spy();
+    callbacks.setOnFlowCanceled(spy);  // Make sure there's no ID conflict.
+    callbacks.setOnFlowStarted(spy);
+    expect(callbacks.triggerFlowStarted('flow1')).to.be.true;
+    return skipMicro().then(() => {
+      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1'});
+    });
+  });
+
+  it('should trigger and execute flowCanceled', () => {
+    const spy = sandbox.spy();
+    callbacks.setOnFlowStarted(spy);  // Make sure there's no ID conflict.
+    callbacks.setOnFlowCanceled(spy);
+    expect(callbacks.triggerFlowCanceled('flow1')).to.be.true;
+    return skipMicro().then(() => {
+      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1'});
+    });
+  });
 });

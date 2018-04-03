@@ -53,6 +53,7 @@ describes.realWin('OffersFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve();
     messageCallback = undefined;
     sandbox.stub(port, 'onMessage', callback => {
       messageCallback = callback;
@@ -65,6 +66,34 @@ describes.realWin('OffersFlow', {}, env => {
   });
 
   it('should have valid OffersFlow constructed', () => {
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('showOffers')
+        .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          showNative: false,
+          list: 'default',
+          skus: null,
+        })
+        .returns(Promise.resolve(port));
+    return offersFlow.start();
+  });
+
+  it('should trigger on cancel', () => {
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('showOffers')
+        .once();
+    callbacksMock.expects('triggerFlowCanceled')
+        .withExactArgs('showOffers')
+        .once();
+    port.acceptResult = () => Promise.reject(
+        new DOMException('cancel', 'AbortError'));
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
@@ -211,6 +240,33 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
   });
 
   it('should have valid SubscribeOptionFlow constructed', () => {
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('showSubscribeOption')
+        .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          list: 'default',
+          skus: null,
+        })
+        .returns(Promise.resolve(port));
+    return offersFlow.start();
+  });
+
+  it('should report cancel', () => {
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('showSubscribeOption')
+        .once();
+    callbacksMock.expects('triggerFlowCanceled')
+        .withExactArgs('showSubscribeOption')
+        .once();
+    port.acceptResult = () => Promise.reject(
+        new DOMException('cancel', 'AbortError'));
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
@@ -307,6 +363,10 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   });
 
   it('should have valid AbbrvOfferFlow constructed', () => {
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('showAbbrvOffer')
+        .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
@@ -335,6 +395,30 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
           list: 'default',
           skus: null,
           showNative: true,
+        })
+        .returns(Promise.resolve(port));
+    return abbrvOfferFlow.start();
+  });
+
+  it('should report cancel', () => {
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('showAbbrvOffer')
+        .once();
+    callbacksMock.expects('triggerFlowCanceled')
+        .withExactArgs('showAbbrvOffer')
+        .once();
+    port.acceptResult = () => Promise.reject(
+        new DOMException('cancel', 'AbortError'));
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          list: 'default',
+          skus: null,
+          showNative: false,
         })
         .returns(Promise.resolve(port));
     return abbrvOfferFlow.start();

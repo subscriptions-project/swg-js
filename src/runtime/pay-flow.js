@@ -20,11 +20,13 @@ import {
   PurchaseData,
   SubscribeResponse,
 } from '../api/subscribe-response';
+import {SubscriptionFlows} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {Xhr} from '../utils/xhr';
 import {acceptPortResult} from '../utils/activity-utils';
-import {parseJson} from '../utils/json';
 import {feArgs, feCached, feUrl} from './services';
+import {isCancelError} from '../utils/errors';
+import {parseJson} from '../utils/json';
 
 const PAY_REQUEST_ID = 'swg-pay';
 
@@ -71,6 +73,9 @@ export class PayStartFlow {
    * @param {string} sku
    */
   constructor(deps, sku) {
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -92,6 +97,9 @@ export class PayStartFlow {
    * @return {!Promise}
    */
   start() {
+    // Start/cancel events.
+    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE);
+
     // TODO(dvoytenko): switch to gpay async client.
     const opener = this.activityPorts_.open(
         PAY_REQUEST_ID,
@@ -131,6 +139,11 @@ export class PayCompleteFlow {
       deps.callbacks().triggerSubscribeResponse(promise);
       return promise.then(response => {
         flow.start(response);
+      }, reason => {
+        if (isCancelError(reason)) {
+          deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
+        }
+        throw reason;
       });
     });
   }
