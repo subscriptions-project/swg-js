@@ -25,6 +25,7 @@ import {Fetcher, XhrFetcher} from './fetcher';
 import {
   LinkCompleteFlow,
   LinkbackFlow,
+  LinkSaveFlow,
 } from './link-accounts-flow';
 import {OffersApi} from './offers-api';
 import {
@@ -32,9 +33,6 @@ import {
   SubscribeOptionFlow,
   AbbrvOfferFlow,
 } from './offers-flow';
-import {
-  SaveSubscriptionFlow,
-} from './save-subscription-flow';
 import {PageConfig} from '../model/page-config';
 import {
   PageConfigResolver,
@@ -300,9 +298,9 @@ export class Runtime {
   }
 
   /** @override */
-  saveSubscription() {
+  saveSubscription(tokenOrCallback) {
     return this.configured_(true)
-        .then(runtime => runtime.saveSubscription());
+        .then(runtime => runtime.saveSubscription(tokenOrCallback));
   }
 }
 
@@ -483,9 +481,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  saveSubscription() {
+  saveSubscription(tokenOrCallback) {
     return this.documentParsed_.then(() => {
-      return new SaveSubscriptionFlow(this).start();
+      return new LinkSaveFlow(this, tokenOrCallback).start();
     });
   }
 

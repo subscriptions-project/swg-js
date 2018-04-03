@@ -20,9 +20,6 @@ import {
   SubscribeOptionFlow,
 } from './offers-flow';
 import {
-  SaveSubscriptionFlow,
-} from './save-subscription-flow';
-import {
   ActivityPorts,
   ActivityResult,
   ActivityResultCode,
@@ -40,6 +37,7 @@ import {GlobalDoc} from '../model/doc';
 import {
   LinkCompleteFlow,
   LinkbackFlow,
+  LinkSaveFlow,
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -944,12 +942,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
 
     it('should start saveSubscriptionFlow', () => {
-      const startStub = sandbox.stub(
-          SaveSubscriptionFlow.prototype,
-          'start',
-          () => Promise.resolve());
-      return runtime.saveSubscription().then(() => {
-        expect(startStub).to.be.calledOnce;
+      let linkSaveFlow;
+      sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
+        linkSaveFlow = this;
+        return new Promise(() => {});
+      });
+      runtime.saveSubscription({token: 'test'});
+      return runtime.documentParsed_.then(() => {
+        expect(linkSaveFlow.tokenOrCallback_).to.deep.equal({token: 'test'});
       });
     });
   });

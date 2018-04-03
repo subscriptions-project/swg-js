@@ -242,3 +242,60 @@ export class LinkCompleteFlow {
     return this.completePromise_;
   }
 }
+
+/**
+ * The flow to save subscription information.
+ */
+export class LinkSaveFlow {
+
+  /**
+   * @param {!./deps.DepsDef} deps
+   * @param {!(../api/subscriptions.Token|function(!../api/subscriptions.Token))} tokenOrCallback
+   */
+  constructor(deps, tokenOrCallback) {
+    /** @private @const {!Window} */
+    this.win_ = deps.win();
+
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    this.activityPorts_ = deps.activities();
+
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = deps.dialogManager();
+
+    /** @private @const {!(../api/subscriptions.Token|function(!../api/subscriptions.Token))} */
+    this.tokenOrCallback_ = tokenOrCallback;
+
+    /** @private @const {!ActivityIframeView} */
+    this.activityIframeView_ = new ActivityIframeView(
+        this.win_,
+        this.activityPorts_,
+        feUrl('/linksaveiframe'),
+        feArgs({
+          'publicationId': deps.pageConfig().getPublicationId(),
+        }),
+        /* shouldFadeBody */ true
+    );
+  }
+
+  /**
+   * Starts the save subscription
+   * @return {!Promise}
+   */
+  start() {
+    this.activityIframeView_.onMessage(data => {
+      this.maybeSaveSubscription_(data);
+    });
+    return this.dialogManager_.openView(this.activityIframeView_);
+  }
+
+  /**
+   * @param {*} data
+   * @private
+   */
+  maybeSaveSubscription_(data) {
+    if (!data) {
+      return;
+    }
+    //TODO(sohanirao) : handle data
+  }
+}

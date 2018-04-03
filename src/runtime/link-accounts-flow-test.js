@@ -24,6 +24,7 @@ import {
   LinkStartFlow,
   LinkCompleteFlow,
   LinkbackFlow,
+  LinkSaveFlow,
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
@@ -258,4 +259,45 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     });
   });
 
+});
+
+describes.realWin('LinkSaveFlow', {}, env => {
+  let win;
+  let runtime;
+  let activitiesMock;
+  let callbacksMock;
+  let pageConfig;
+  let saveSubscriptionFlow;
+  let port;
+
+  beforeEach(() => {
+    win = env.win;
+    pageConfig = new PageConfig('pub1:label1');
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    activitiesMock = sandbox.mock(runtime.activities());
+    callbacksMock = sandbox.mock(runtime.callbacks());
+    saveSubscriptionFlow = new LinkSaveFlow(runtime);
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.onMessage = () => {};
+    port.acceptResult = () => Promise.resolve();
+    port.whenReady = () => Promise.resolve();
+  });
+
+  afterEach(() => {
+    activitiesMock.verify();
+    callbacksMock.verify();
+  });
+
+  it('should have valid LinkSaveFlow constructed', () => {
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+        })
+        .returns(Promise.resolve(port));
+    return saveSubscriptionFlow.start();
+  });
 });

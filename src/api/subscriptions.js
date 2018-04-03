@@ -117,8 +117,9 @@ export class Subscriptions {
 
   /**
    * Starts the save subscriptions flow.
+   * @param {!(Token|function(!Token))} tokenOrCallback
    */
-  saveSubscription() {}
+  saveSubscription(tokenOrCallback) {}
 }
 
 
@@ -143,3 +144,11 @@ export let OptionsRequest;
  * }}
  */
 export let LoginRequest;
+
+/**
+ * @typedef {{
+ *   token: !string,
+ * }}
+ */
+export let Token;
+
