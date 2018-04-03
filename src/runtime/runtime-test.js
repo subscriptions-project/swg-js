@@ -581,7 +581,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegage "saveSubscription"', () => {
+    it('should should delegate "saveSubscription"', () => {
       configuredRuntimeMock.expects('saveSubscription').once();
       return runtime.saveSubscription().then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(true);
