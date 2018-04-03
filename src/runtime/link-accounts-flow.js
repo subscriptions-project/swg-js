@@ -273,7 +273,7 @@ export class LinkSaveFlow {
         feArgs({
           'publicationId': deps.pageConfig().getPublicationId(),
         }),
-        /* shouldFadeBody */ true
+        /* shouldFadeBody */ false
     );
   }
 
