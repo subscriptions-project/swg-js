@@ -19,3 +19,7 @@ limitations under the License.
 This flow is normally originated from another surface and allows the reader to link this publication's subscription to that surface. See [Subscriptions APIs](./core-apis.md).
 
 The link flow would normally be executed by a 3p surface to let a user to claim an existing subscription. However, SwG client provides `linkAccount` and `setOnLinkComplete` APIs for testing purposes.
+
+SwG supports two flavors of OAuth account linking:
+ - [OAuth implicit flow](https://developers.google.com/actions/identity/oauth2-implicit-flow)
+ - [OAuth authorization code flow](https://developers.google.com/actions/identity/oauth2-code-flow)
