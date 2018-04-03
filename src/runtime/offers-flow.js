@@ -17,6 +17,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
+import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 
@@ -63,9 +64,11 @@ export class OffersFlow {
    */
   start() {
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted('showOffers');
+    this.deps_.callbacks().triggerFlowStarted(
+        SubscriptionFlows.SHOW_OFFERS);
     this.activityIframeView_.onCancel(() => {
-      this.deps_.callbacks().triggerFlowCanceled('showOffers');
+      this.deps_.callbacks().triggerFlowCanceled(
+          SubscriptionFlows.SHOW_OFFERS);
     });
 
     // If result is due to OfferSelection, redirect to payments.
@@ -137,9 +140,11 @@ export class SubscribeOptionFlow {
    */
   start() {
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted('showSubscribeOption');
+    this.deps_.callbacks().triggerFlowStarted(
+        SubscriptionFlows.SHOW_SUBSCRIBE_OPTION);
     this.activityIframeView_.onCancel(() => {
-      this.deps_.callbacks().triggerFlowCanceled('showSubscribeOption');
+      this.deps_.callbacks().triggerFlowCanceled(
+          SubscriptionFlows.SHOW_SUBSCRIBE_OPTION);
     });
 
     this.activityIframeView_.onMessage(data => {
@@ -214,9 +219,11 @@ export class AbbrvOfferFlow {
    */
   start() {
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted('showAbbrvOffer');
+    this.deps_.callbacks().triggerFlowStarted(
+        SubscriptionFlows.SHOW_ABBRV_OFFER);
     this.activityIframeView_.onCancel(() => {
-      this.deps_.callbacks().triggerFlowCanceled('showAbbrvOffer');
+      this.deps_.callbacks().triggerFlowCanceled(
+          SubscriptionFlows.SHOW_ABBRV_OFFER);
     });
 
     // If the user is already subscribed, trigger login flow

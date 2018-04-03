@@ -15,6 +15,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {SubscriptionFlows} from '../api/subscriptions';
 import {acceptPortResult} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {getHostUrl} from '../utils/url';
@@ -117,7 +118,7 @@ export class LinkbackFlow {
    * @return {!Promise}
    */
   start() {
-    this.deps_.callbacks().triggerFlowStarted('linkAccount');
+    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
     const opener = this.activityPorts_.open(
         LINK_REQUEST_ID,
         feUrl('/linkbackstart'),
@@ -154,7 +155,7 @@ export class LinkCompleteFlow {
         flow.start();
       }, reason => {
         if (isCancelError(reason)) {
-          deps.callbacks().triggerFlowCanceled('linkAccount');
+          deps.callbacks().triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
         }
       });
     };

@@ -20,6 +20,7 @@ import {
   PurchaseData,
   SubscribeResponse,
 } from '../api/subscribe-response';
+import {SubscriptionFlows} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {Xhr} from '../utils/xhr';
 import {acceptPortResult} from '../utils/activity-utils';
@@ -97,7 +98,7 @@ export class PayStartFlow {
    */
   start() {
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted('subscribe');
+    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE);
 
     // TODO(dvoytenko): switch to gpay async client.
     const opener = this.activityPorts_.open(
@@ -140,7 +141,7 @@ export class PayCompleteFlow {
         flow.start(response);
       }, reason => {
         if (isCancelError(reason)) {
-          deps.callbacks().triggerFlowCanceled('subscribe');
+          deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
         }
         throw reason;
       });
