@@ -21,74 +21,7 @@ import {feArgs, feOrigin, feUrl} from './services';
 import {getHostUrl} from '../utils/url';
 import {isCancelError} from '../utils/errors';
 
-const CONTINUE_LINK_REQUEST_ID = 'swg-link-continue';
 const LINK_REQUEST_ID = 'swg-link';
-
-
-/**
- * The flow to initiate linking process.
- */
-export class LinkStartFlow {
-
-  /**
-   * @param {!./deps.DepsDef} deps
-   */
-  constructor(deps) {
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
-
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
-
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
-
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl('/linkfrontiframe'),
-        feArgs({
-          'publicationId': deps.pageConfig().getPublicationId(),
-          'requestId': CONTINUE_LINK_REQUEST_ID,
-          'returnUrl': getHostUrl(this.win_.location.href),
-        }),
-        /* shouldFadeBody */ true
-    );
-  }
-
-  /**
-   * Starts the Link account flow.
-   * @return {!Promise}
-   */
-  start() {
-    this.activityIframeView_.acceptResult().then(result => {
-      if (result.ok) {
-        this.openLoginForm_(/** @type {!Object} */ (result.data));
-      }
-    });
-    return this.dialogManager_.openView(this.activityIframeView_);
-  }
-
-
-  /**
-   * Opens the publication's login page.
-   * @param {!Object} resp
-   * @private
-   */
-  openLoginForm_(resp) {
-    const redirectUrl = resp['redirectUrl'];
-    this.activityPorts_.open(
-        CONTINUE_LINK_REQUEST_ID, redirectUrl, '_blank', null, {
-          // TODO(dvoytenko): Remove the debug code.
-          // Only keep request URL params for debugging URLs.
-          skipRequestInUrl: redirectUrl.indexOf('http://localhost') == -1,
-        });
-    // Disconnected flow: will proceed with LinkCompleteFlow once popup
-    // returns.
-    this.dialogManager_.completeView(this.activityIframeView_);
-  }
-}
 
 
 /**
@@ -159,7 +92,6 @@ export class LinkCompleteFlow {
         }
       });
     };
-    deps.activities().onResult(CONTINUE_LINK_REQUEST_ID, handler);
     deps.activities().onResult(LINK_REQUEST_ID, handler);
   }
 
