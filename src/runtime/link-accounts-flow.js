@@ -18,7 +18,6 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {acceptPortResult} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
-import {getHostUrl} from '../utils/url';
 import {isCancelError} from '../utils/errors';
 
 const LINK_REQUEST_ID = 'swg-link';

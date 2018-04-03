@@ -154,11 +154,6 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     dialogManagerMock.expects('popupClosed').once();
     let handler;
     activitiesMock.expects('onResult')
-        .withExactArgs('swg-link-continue', sinon.match(arg => {
-          return typeof arg == 'function';
-        }))
-        .once();
-    activitiesMock.expects('onResult')
         .withExactArgs('swg-link', sinon.match(arg => {
           handler = arg;
           return typeof arg == 'function';
