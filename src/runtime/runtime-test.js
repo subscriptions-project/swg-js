@@ -846,21 +846,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
   });
 
-  it('should configure and start LinkCompleteFlow', () => {
-    expect(activityResultCallbacks['swg-link-continue']).to.exist;
-    const startStub = sandbox.stub(
-        LinkCompleteFlow.prototype,
-        'start',
-        () => Promise.resolve());
-    return returnActivity('swg-link-continue', ActivityResultCode.OK, {},
-        location.origin)
-        // Succeeds or fails is not important for this test.
-        .catch(() => {})
-        .then(() => {
-          expect(startStub).to.be.calledOnce;
-        });
-  });
-
   it('should configure and start LinkCompleteFlow for swg-link', () => {
     expect(activityResultCallbacks['swg-link']).to.exist;
     const startStub = sandbox.stub(
