@@ -38,6 +38,14 @@ describes.realWin('Types', {}, env => {
       expect(element.style.display).to.equal('none');
     });
 
+    it('check defaultStyle for restricted attributes', () => {
+      const defaultStyles = st.defaultStyles;
+
+      expect(defaultStyles.width).to.equal(undefined);
+      expect(defaultStyles.left).to.equal(undefined);
+      expect(defaultStyles['margin-left']).to.equal(undefined);
+    });
+
     it('setStyle', () => {
       const element = doc.createElement('div');
       st.setStyle(element, 'width', '1px');
