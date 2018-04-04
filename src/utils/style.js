@@ -24,7 +24,13 @@ let propertyNameCache;
 /** @const {!Array<string>} */
 const vendorPrefixes = ['Webkit', 'webkit', 'Moz', 'moz', 'ms', 'O', 'o'];
 
-/** @const {!Object<string, string|number>} */
+/**
+ * Default styles to be set for top level friendly iframe.
+ * Some attributes are not included such as height, left, margin-left; since
+ * these attributes are updated by @media queries and having these values
+ * defined here as !important does not work on IE/edge browsers.
+ * @const {!Object<string, string|number>}
+ */
 export const defaultStyles = {
   'align-content': 'normal',
   'animation': 'none',
