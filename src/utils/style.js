@@ -144,7 +144,6 @@ export const defaultStyles = {
   'visibility': 'visible',
   'white-space': 'normal',
   'widows': '2',
-  'width': 'auto',
   'word-break': 'normal',
   'word-spacing': '0',
   'word-wrap': 'normal',
@@ -156,16 +155,6 @@ export const defaultStyles = {
 /** @const {string} */
 export const googleFontsUrl =
     'https://fonts.googleapis.com/css?family=Google+Sans';
-
-/**
- * Default overwritable styles. This is required for responsive dialog.
- * @const {!Object<string, string|number>}
- */
-export const topFriendlyIframePositionStyles = {
-  'width': '100%',
-  'left': 0,
-};
-
 
 /**
  * @export

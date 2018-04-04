@@ -73,9 +73,6 @@ describes.realWin('Dialog', {}, env => {
       expect(getStyle(iframe, 'opacity')).to.equal('1');
       expect(getStyle(iframe, 'bottom')).to.equal('0px');
       expect(getStyle(iframe, 'display')).to.equal('block');
-      // These two properties are not set !important.
-      expect(getStyle(iframe, 'width')).to.equal('100%');
-      expect(getStyle(iframe, 'left')).to.equal('0px');
     });
 
     it('should have created fade background', function* () {
