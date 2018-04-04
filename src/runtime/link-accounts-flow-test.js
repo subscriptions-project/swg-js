@@ -267,7 +267,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   let activitiesMock;
   let callbacksMock;
   let pageConfig;
-  let saveSubscriptionFlow;
+  let linkSaveFlow;
   let port;
 
   beforeEach(() => {
@@ -276,7 +276,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
-    saveSubscriptionFlow = new LinkSaveFlow(runtime);
+    linkSaveFlow = new LinkSaveFlow(runtime, {'token': 'test'});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
@@ -296,8 +296,9 @@ describes.realWin('LinkSaveFlow', {}, env => {
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
+          token: 'test',
         })
         .returns(Promise.resolve(port));
-    return saveSubscriptionFlow.start();
+    return linkSaveFlow.start();
   });
 });

@@ -117,7 +117,7 @@ export class Subscriptions {
 
   /**
    * Starts the save subscriptions flow.
-   * @param {!(Token|function(!Token))} tokenOrCallback
+   * @param {!(Token|function():!string)} tokenOrCallback
    */
   saveSubscription(tokenOrCallback) {}
 }

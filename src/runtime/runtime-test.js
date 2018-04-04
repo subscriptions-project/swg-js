@@ -949,7 +949,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
       runtime.saveSubscription({token: 'test'});
       return runtime.documentParsed_.then(() => {
-        expect(linkSaveFlow.tokenOrCallback_).to.deep.equal({token: 'test'});
+        expect(linkSaveFlow.token_).to.deep.equal('test');
       });
     });
   });
