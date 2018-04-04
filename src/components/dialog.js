@@ -25,7 +25,6 @@ import {
 import {
   setStyles,
   setImportantStyles,
-  topFriendlyIframePositionStyles,
 } from '../utils/style';
 import {transition} from '../utils/animation';
 import {FriendlyIframe} from './friendly-iframe';
@@ -112,9 +111,7 @@ export class Dialog {
     setImportantStyles(
         this.iframe_.getElement(), modifiedImportantStyles);
 
-    const modifiedStyles =
-        Object.assign({}, topFriendlyIframePositionStyles, styles);
-    setStyles(this.iframe_.getElement(), modifiedStyles);
+    setStyles(this.iframe_.getElement(), styles);
 
     /** @private {LoadingView} */
     this.loadingView_ = null;
