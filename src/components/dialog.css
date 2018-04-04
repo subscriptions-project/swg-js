@@ -33,6 +33,15 @@
   }
 }
 
+@media (max-width: 480px) {
+  .swg-dialog,
+  .swg-toast {
+    width: 100% !important;
+    left: 0 !important;
+    margin-left: 0 !important;
+  }
+}
+
 /*
  * Toast animation
  */

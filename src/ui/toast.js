@@ -17,9 +17,7 @@
 import {createElement} from '../utils/dom';
 import {
   resetStyles,
-  setStyles,
   setImportantStyles,
-  topFriendlyIframePositionStyles,
 } from '../utils/style';
 
 /** @const {!Object<string, string|number>} */
@@ -79,7 +77,6 @@ export class Toast {
                 iframeAttributes));
 
     setImportantStyles(this.iframe_, toastImportantStyles);
-    setStyles(this.iframe_, topFriendlyIframePositionStyles);
 
     /** @private @const {!Promise} */
     this.ready_ = new Promise(resolve => {
