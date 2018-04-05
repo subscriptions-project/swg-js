@@ -298,9 +298,9 @@ export class Runtime {
   }
 
   /** @override */
-  saveSubscription(tokenOrCallback) {
+  saveSubscription(saveSubscriptionRequest) {
     return this.configured_(true)
-        .then(runtime => runtime.saveSubscription(tokenOrCallback));
+        .then(runtime => runtime.saveSubscription(saveSubscriptionRequest));
   }
 }
 
@@ -481,9 +481,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  saveSubscription(tokenOrCallback) {
+  saveSubscription(saveSubscriptionRequest) {
     return this.documentParsed_.then(() => {
-      return new LinkSaveFlow(this, tokenOrCallback).start();
+      return new LinkSaveFlow(this, saveSubscriptionRequest).start();
     });
   }
 

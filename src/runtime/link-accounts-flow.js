@@ -250,9 +250,9 @@ export class LinkSaveFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!(../api/subscriptions.Token|function():!string)} tokenOrCallback
+   * @param {!../api/subscriptions.SaveSubscriptionRequest} saveSubscriptionRequest
    */
-  constructor(deps, tokenOrCallback) {
+  constructor(deps, saveSubscriptionRequest) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -262,18 +262,8 @@ export class LinkSaveFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private {?string} */
-    this.token_ = (() => {
-      if (!tokenOrCallback) {
-        return null;
-      }
-      if (tokenOrCallback['token']) {
-        return tokenOrCallback['token'];
-      } else if (typeof tokenOrCallback == 'function') {
-        /* Invoke callback */
-        return tokenOrCallback();
-      }
-    })();
+    /** @private {!../api/subscriptions.SaveSubscriptionRequest} */
+    this.saveSubscriptionRequest_ = saveSubscriptionRequest;
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -282,7 +272,7 @@ export class LinkSaveFlow {
         feUrl('/linksaveiframe'),
         feArgs({
           'publicationId': deps.pageConfig().getPublicationId(),
-          'token': this.token_,
+          'token': this.saveSubscriptionRequest_['token'],
         }),
         /* shouldFadeBody */ false
     );

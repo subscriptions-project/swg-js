@@ -20,13 +20,13 @@ This flow is normally originated from another surface and allows the reader to l
 
 The link flow would normally be executed by a 3p surface to let a user to claim an existing subscription. However, SwG client provides `linkAccount` and `setOnLinkComplete` APIs for testing purposes.
 
-# SwG Link Save flow
+# SwG Link Save flow (Not launched)
 
 This flow is normally originated from the publisher and allows the reader to link publication's subscription to the reader's account.
 
-To start saving subscription link, provide a token or a callback to get the token corresponding to the readers subscription:
+To start saving subscription link, provide a request token corresponding to the readers subscription:
 
-subscriptions.saveSubscription(tokenOrCallback);
+subscriptions.saveSubscription(saveSubscriptionRequest);
 
 A list of user's accounts will be surfaced and the user can select the account to be linked to the subscription token. Upon saving this link, a non-blocking confirmation will be shown to the user.
 

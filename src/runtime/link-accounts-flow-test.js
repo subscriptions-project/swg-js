@@ -276,7 +276,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
-    linkSaveFlow = new LinkSaveFlow(runtime, {'token': 'test'});
+    linkSaveFlow = new LinkSaveFlow(runtime, {token: 'test'});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
