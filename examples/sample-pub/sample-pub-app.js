@@ -101,11 +101,14 @@ app.get('/((\\d+))\.amp', (req, res) => {
   const prevId = (id - 1) >= 0 ? String(id - 1) + '.amp' : false;
   const nextId = (id + 1) < ARTICLES.length ? String(id + 1) + '.amp' : false;
   const setup = getSetup(req);
+  const ac = req.query['ac'] == '1';
+  // TODO(dvoytenko): eventually only look for rtv value, regardless of ac.
+  const rtv = ac ? req.query['rtv'] || '001522422854768' : null;
   const amp = {
-    'amp_js': ampJsUrl('amp'),
-    'subscriptions_js': ampJsUrl('amp-subscriptions'),
-    'subscriptions_google_js': ampJsUrl('amp-subscriptions-google'),
-    'mustache_js': ampJsUrl('amp-mustache'),
+    'amp_js': ampJsUrl('amp', rtv),
+    'subscriptions_js': ampJsUrl('amp-subscriptions', rtv),
+    'subscriptions_google_js': ampJsUrl('amp-subscriptions-google', rtv),
+    'mustache_js': ampJsUrl('amp-mustache', rtv),
   };
   const baseUrl = process.env.NODE_ENV == 'production' ?
       'https://scenic-2017.appspot.com' :
@@ -115,7 +118,8 @@ app.get('/((\\d+))\.amp', (req, res) => {
     setup,
     serviceBase: baseUrl,
     publicationId: PUBLICATION_ID,
-    authConnect: req.query['ac'] == '1',
+    // TODO(dvoytenko): remove completely.
+    // authConnect: ac,
     id,
     article,
     prev: prevId,
@@ -382,15 +386,19 @@ function decMeterInCookies(req, res) {
 
 /**
  * @param {string} name
+ * @param {?string} rtv
  * @return {string}
  */
-function ampJsUrl(name) {
+function ampJsUrl(name, rtv) {
+  const cdnBase = rtv ?
+      'https://cdn.ampproject.org/rtv/' + rtv :
+      'https://cdn.ampproject.org';
   if (name == 'amp') {
     return AMP_LOCAL ?
         'http://localhost:8001/dist/amp.js' :
-        'https://cdn.ampproject.org/v0.js';
+        cdnBase + '/v0.js';
   }
   return AMP_LOCAL ?
       'http://localhost:8001/dist/v0/' + name + '-0.1.max.js' :
-      'https://cdn.ampproject.org/v0/' + name + '-0.1.js';
+      cdnBase + '/v0/' + name + '-0.1.js';
 }
