@@ -160,8 +160,8 @@ describes.realWin('Dialog', {}, env => {
     it('should open the dialog', function* () {
 
       const openedDialog = yield dialog.open(NO_ANIMATE);
-      expect(openedDialog.getContainer().getAttribute('class'))
-          .to.equal('swg-container');
+      expect(openedDialog.getContainer().tagName)
+          .to.equal('SWG-CONTAINER');
 
       // Should have top level friendly iframe created.
       const iframe = openedDialog.getElement();
@@ -176,14 +176,13 @@ describes.realWin('Dialog', {}, env => {
       // Should have container created.
       const container = openedDialog.getContainer();
       expect(container.nodeType).to.equal(1);
-      expect(container.nodeName).to.equal('DIV');
-      expect(container.getAttribute('class')).to.equal('swg-container');
+      expect(container.nodeName).to.equal('SWG-CONTAINER');
     });
 
     it('should remove the dialog', function* () {
       const openedDialog = yield dialog.open(NO_ANIMATE);
-      expect(openedDialog.getContainer().getAttribute('class'))
-          .to.equal('swg-container');
+      expect(openedDialog.getContainer().tagName)
+          .to.equal('SWG-CONTAINER');
 
       // Should have top level friendly iframe created.
       const iframe = openedDialog.getElement();
@@ -219,8 +218,8 @@ describes.realWin('Dialog', {}, env => {
     it('should have Loading view element added', function* () {
       const openedDialog = yield dialog.open(NO_ANIMATE);
       const iframeDoc = openedDialog.getIframe().getDocument();
-      const loadingView = iframeDoc.querySelector('.swg-loading');
-      expect(loadingView.nodeName).to.equal('DIV');
+      const loadingView = iframeDoc.querySelector('swg-loading');
+      expect(loadingView.nodeName).to.equal('SWG-LOADING');
 
       expect(loadingView.children.length).to.equal(1);
     });
