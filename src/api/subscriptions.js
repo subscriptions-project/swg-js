@@ -117,9 +117,10 @@ export class Subscriptions {
 
   /**
    * Starts the save subscriptions flow.
-   * @param {!SaveSubscriptionRequest} saveSubscriptionRequest
+   * @param {!SaveSubscriptionRequest} request
+   * @return {!Promise}
    */
-  saveSubscription(saveSubscriptionRequest) {}
+  saveSubscription(request) {}
 }
 
 
