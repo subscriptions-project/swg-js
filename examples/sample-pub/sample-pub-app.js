@@ -40,6 +40,7 @@ const AMP_LOCAL = process.env.SERVE_AMP_LOCAL == 'true';
 
 const SWG_JS_URLS = {
   local: '/dist/subscriptions.max.js',
+  local_min: '/dist/subscriptions.js',
   prod: 'https://news.google.com/swg/js/v1/swg.js',
   autopush: 'https://news.google.com/swg/js/v1/swg-autopush.js',
   tt: 'https://news.google.com/swg/js/v1/swg-tt.js',

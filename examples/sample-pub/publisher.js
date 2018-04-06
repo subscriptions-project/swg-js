@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
 function log() {
   if (!console || !console.log) {
@@ -73,9 +72,9 @@ function startFlow(flow, var_args) {
     var flows = Object.keys(subscriptions);
     if (!(typeof flowFunc == 'function')) {
       throw new Error(
-          `Flow "${flow}" not found: Available flows: "${flows}"`);
+          'Flow "' + flow + '" not found: Available flows: "' + flows + '"');
     }
-    log('starting flow', flow, '(', var_args, ')', ` {${flows}}`);
+    log('starting flow', flow, '(', var_args, ')', ' {' + flows + '}');
     var result = flowFunc.apply(subscriptions, var_args);
     Promise.resolve(result).then(function() {
       log('flow complete', flow);

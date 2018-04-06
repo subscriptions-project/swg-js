@@ -22,5 +22,6 @@ RUN npm install --only=dev --unsafe-perm || \
   ((if [ -f npm-debug.log ]; then \
       cat npm-debug.log; \
     fi) && false)
+RUN gulp dist
 RUN gulp build
 CMD npm start
