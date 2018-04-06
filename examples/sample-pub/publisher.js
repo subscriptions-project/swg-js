@@ -54,7 +54,11 @@ whenReady(function(subscriptions) {
   }
   subscriptions.setOnEntitlementsResponse(eventCallback('entitlements'));
   subscriptions.setOnLinkComplete(eventCallback('link-complete'));
-  subscriptions.setOnLoginRequest(eventCallback('login-request'));
+  // DO NOT SUBMIT: just a test.
+  subscriptions.setOnLoginRequest(function() {
+    eventCallback('login-request')();
+    subscriptions.linkAccount();
+  });
   subscriptions.setOnSubscribeResponse(eventCallback('subscribe'));
 });
 
