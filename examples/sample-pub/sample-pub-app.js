@@ -104,7 +104,7 @@ app.get('/((\\d+))\.amp', (req, res) => {
   const setup = getSetup(req);
   const ac = req.query['ac'] == '1';
   // TODO(dvoytenko): eventually only look for rtv value, regardless of ac.
-  const rtv = ac ? req.query['rtv'] || '001522422854768' : null;
+  const rtv = ac ? req.query['rtv'] || '001523056882788' : null;
   const amp = {
     'amp_js': ampJsUrl('amp', rtv),
     'subscriptions_js': ampJsUrl('amp-subscriptions', rtv),
