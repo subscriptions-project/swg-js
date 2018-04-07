@@ -53,9 +53,7 @@ export function serviceUrl(url) {
  * @return {string} The complete URL.
  */
 export function feUrl(url, prefix = '') {
-  // DO NOT SUBMIT
-  return 'https://nonmanaged-7f0d0978-4082f221a2f392bc.demos.corp.google.com/swg/_/ui/v1' + url + '?_hostType=NewsHostType&e=EnableSubscribewithgoogleClient';
-  // return feCached('$frontend$' + prefix + '/swg/_/ui/v1' + url);
+  return feCached('$frontend$' + prefix + '/swg/_/ui/v1' + url);
 }
 
 
