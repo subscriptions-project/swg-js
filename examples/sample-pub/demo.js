@@ -19,7 +19,7 @@
  * Demo paywall controller to demonstrate some key features.
  * @param {!Subscriptions} subscriptions
  */
-function DemoPaywallController() {
+function DemoPaywallController(subscriptions) {
   /** @const {!Subscriptions} */
   this.subscriptions = subscriptions;
 
