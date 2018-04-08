@@ -13,111 +13,106 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
 
 /**
  * Demo paywall controller to demonstrate some key features.
+ * @param {!Subscriptions} subscriptions
  */
-class DemoPaywallController {
+function DemoPaywallController(subscriptions) {
+  /** @const {!Subscriptions} */
+  this.subscriptions = subscriptions;
 
-  /**
-   * @param {!Subscriptions} subscriptions
-   */
-  constructor(subscriptions) {
-    /** @const {!Subscriptions} */
-    this.subscriptions = subscriptions;
+  this.subscriptions.setOnEntitlementsResponse(
+      this.onEntitlements_.bind(this));
+  this.subscriptions.setOnLoginRequest(this.loginRequest_.bind(this));
+  this.subscriptions.setOnLinkComplete(this.linkComplete_.bind(this));
+  this.subscriptions.setOnSubscribeResponse(
+      this.subscribeResponse_.bind(this));
 
-    this.subscriptions.setOnEntitlementsResponse(
-        this.onEntitlements_.bind(this));
-    this.subscriptions.setOnLoginRequest(this.loginRequest_.bind(this));
-    this.subscriptions.setOnLinkComplete(this.linkComplete_.bind(this));
-    this.subscriptions.setOnSubscribeResponse(
-        this.subscribeResponse_.bind(this));
+  /** @const {?Entitlements} */
+  this.entitlements = null;
+};
 
-    /** @const {?Entitlements} */
-    this.entitlements = null;
-  }
+/** */
+DemoPaywallController.prototype.start = function() {
+  log('DemoPaywallController started');
+  this.subscriptions.start();
+};
 
-  start() {
-    log('DemoPaywallController started');
-    this.subscriptions.start();
-  }
+/** @private */
+DemoPaywallController.prototype.onEntitlements_ = function(entitlementsPromise) {
+  entitlementsPromise.then((function(entitlements) {
+    log('got entitlements: ', entitlements, entitlements.enablesThis());
+    if (entitlements && entitlements.enablesThis()) {
+      // Entitlements available: open access.
+      this.openPaywall_();
+      entitlements.ack();
+    } else {
+      // In a simplest case, just launch offers flow.
+      this.subscriptions.showOffers();
+    }
+  }).bind(this), function(reason) {
+    log('entitlements failed: ', reason);
+    throw reason;
+  });
+};
 
-  /** @private */
-  onEntitlements_(entitlementsPromise) {
-    entitlementsPromise.then(entitlements => {
-      log('got entitlements: ', entitlements, entitlements.enablesThis());
-      if (entitlements && entitlements.enablesThis()) {
-        // Entitlements available: open access.
-        this.openPaywall_();
-        entitlements.ack();
-      } else {
-        // In a simplest case, just launch offers flow.
-        this.subscriptions.showOffers();
-      }
-    }, reason => {
-      log('entitlements failed: ', reason);
-      throw reason;
-    });
-  }
+/**
+ * The simplest possible implementation: they paywall is now open. A more
+ * sophisticated implementation could fetch more data, or set cookies and
+ * refresh the whole page.
+ * @private
+ */
+DemoPaywallController.prototype.openPaywall_ = function() {
+  log('open paywall');
+  document.documentElement.classList.add('open-paywall');
+};
 
-  /**
-   * The simplest possible implementation: they paywall is now open. A more
-   * sophisticated implementation could fetch more data, or set cookies and
-   * refresh the whole page.
-   * @private
-   */
-  openPaywall_() {
-    log('open paywall');
-    document.documentElement.classList.add('open-paywall');
-  }
+/**
+ * The subscription has been complete.
+ * @param {!Promise<!SubscribeResponse>} promise
+ * @private
+ */
+DemoPaywallController.prototype.subscribeResponse_ = function(promise) {
+  promise.then((function(response) {
+    // TODO: Start account creation flow.
+    log('got subscription response', response);
+    var toast = document.getElementById('creating_account_toast');
+    var userEl = document.getElementById('creating_account_toast_user');
+    userEl.textContent = response.userData.email;
+    toast.style.display = 'block';
+    // TODO: wait for account creation to be complete.
+    setTimeout((function() {
+      response.complete().then((function() {
+        log('subscription has been confirmed');
+        // Open the content.
+        this.subscriptions.reset();
+        this.start();
+      }).bind(this));
+      toast.style.display = 'none';
+    }).bind(this), 3000);
+  }).bind(this), function(reason) {
+    log('subscription response failed: ', reason);
+    throw reason;
+  });
+};
 
-  /**
-   * The subscription has been complete.
-   * @param {!Promise<!SubscribeResponse>} promise
-   * @private
-   */
-  subscribeResponse_(promise) {
-    promise.then(response => {
-      // TODO: Start account creation flow.
-      log('got subscription response', response);
-      var toast = document.getElementById('creating_account_toast');
-      var userEl = document.getElementById('creating_account_toast_user');
-      userEl.textContent = response.userData.email;
-      toast.style.display = 'block';
-      // TODO: wait for account creation to be complete.
-      setTimeout(() => {
-        response.complete().then(() => {
-          log('subscription has been confirmed');
-          // Open the content.
-          this.subscriptions.reset();
-          this.start();
-        });
-        toast.style.display = 'none';
-      }, 3000);
-    }, reason => {
-      log('subscription response failed: ', reason);
-      throw reason;
-    });
-  }
+/**
+ * Login requested. This sample starts linking flow.
+ * @private
+ */
+DemoPaywallController.prototype.loginRequest_ = function() {
+  log('login request');
+  this.subscriptions.linkAccount();
+};
 
-  /**
-   * Login requested. This sample starts linking flow.
-   * @private
-   */
-  loginRequest_() {
-    log('login request');
-    this.subscriptions.linkAccount();
-  }
-
-  /**
-   * Linking has been complete. Possibly we have permissions now.
-   * @private
-   */
-  linkComplete_() {
-    log('linking complete');
-    this.subscriptions.reset();
-    this.start();
-  }
-}
+/**
+ * Linking has been complete. Possibly we have permissions now.
+ * @private
+ */
+DemoPaywallController.prototype.linkComplete_ = function() {
+  log('linking complete');
+  this.subscriptions.reset();
+  this.start();
+};

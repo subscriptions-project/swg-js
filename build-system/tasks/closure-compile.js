@@ -135,14 +135,9 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     // this works fine.
     if (options.includePolyfills) {
       srcs.push(
-          '!src/polyfills.js',
-          '!src/polyfills/**/*.js'
-      );
-      srcs.push(
-          'build/fake-module/src/polyfills.js',
+          '!build/fake-module/src/polyfills.js',
           '!build/fake-module/src/polyfills/**/*.js'
       );
-      unneededFiles.push('build/fake-module/src/polyfills.js');
     } else {
       srcs.push('!src/polyfills.js');
       unneededFiles.push('build/fake-module/src/polyfills.js');
@@ -201,6 +196,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
         jscomp_off: ['unknownDefines'],
         define: [],
         hide_warnings_for: [
+          'src/polyfills/',
           'node_modules/',
         ],
         jscomp_error: [],
