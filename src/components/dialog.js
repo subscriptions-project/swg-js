@@ -25,7 +25,6 @@ import {
 import {
   setStyles,
   setImportantStyles,
-  topFriendlyIframePositionStyles,
 } from '../utils/style';
 import {transition} from '../utils/animation';
 import {FriendlyIframe} from './friendly-iframe';
@@ -40,14 +39,10 @@ const Z_INDEX = 2147483647;
  */
 const rootElementImportantStyles = {
   'min-height': '50px',
-  'opacity': 1,
   'border': 'none',
   'display': 'block',
-  'background-color': 'rgb(255, 255, 255)',
   'position': 'fixed',
   'z-index': Z_INDEX,
-  'box-shadow':
-      'rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px',
   'box-sizing': 'border-box',
 };
 
@@ -112,9 +107,7 @@ export class Dialog {
     setImportantStyles(
         this.iframe_.getElement(), modifiedImportantStyles);
 
-    const modifiedStyles =
-        Object.assign({}, topFriendlyIframePositionStyles, styles);
-    setStyles(this.iframe_.getElement(), modifiedStyles);
+    setStyles(this.iframe_.getElement(), styles);
 
     /** @private {LoadingView} */
     this.loadingView_ = null;
@@ -178,8 +171,7 @@ export class Dialog {
     iframeBody.appendChild(this.loadingView_.getElement());
 
     // Container for all dynamic content, including 3P iframe.
-    this.container_ =
-        createElement(iframeDoc, 'div', {'class': 'swg-container'});
+    this.container_ = createElement(iframeDoc, 'swg-container', {});
     iframeBody.appendChild(this.container_);
     this.setPosition_();
   }

@@ -22,3 +22,5 @@ The [Subscriptions APIs](./core-apis.md) use cases be summarized in a few flows:
 2. [Subscribe flow](./subscribe-flow.md). This flow shows the payment form, accepts payment, records subscription and updates the reader's entitlements.
 3. [Offers flow](./offers-flow.md). This flow allows the publication site to display numerous flow to purchase the subscription.
 4. [Link flow](./link-flow.md). This flow is normally originated from another surface and allows the reader to link this publication's subscription to that surface.
+
+Besides the actual flow APIs SwG also provides general flow callbacks, which could be used for analytics. These callbacks include `setOnFlowStarted` and `setOnFlowCanceled`.

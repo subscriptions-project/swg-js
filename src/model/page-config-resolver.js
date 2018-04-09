@@ -20,7 +20,7 @@ import {hasNextNodeInDocumentOrder} from '../utils/dom';
 import {isArray} from '../utils/types';
 import {tryParseJson} from '../utils/json';
 
-const ALREADY_SEEN = '__SUBSCRIPTIONS-SEEN__';
+const ALREADY_SEEN = '__SWG-SEEN__';
 const CONTROL_FLAG = 'subscriptions-control';
 
 

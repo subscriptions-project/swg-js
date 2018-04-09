@@ -298,6 +298,18 @@ export class Runtime {
   }
 
   /** @override */
+  setOnFlowStarted(callback) {
+    return this.configured_(false)
+        .then(runtime => runtime.setOnFlowStarted(callback));
+  }
+
+  /** @override */
+  setOnFlowCanceled(callback) {
+    return this.configured_(false)
+        .then(runtime => runtime.setOnFlowCanceled(callback));
+  }
+  
+  /** @override */
   saveSubscription(saveSubscriptionRequest) {
     return this.configured_(true)
         .then(runtime => {
@@ -505,6 +517,16 @@ export class ConfiguredRuntime {
       return new PayStartFlow(this, sku).start();
     });
   }
+
+  /** @override */
+  setOnFlowStarted(callback) {
+    this.callbacks_.setOnFlowStarted(callback);
+  }
+
+  /** @override */
+  setOnFlowCanceled(callback) {
+    this.callbacks_.setOnFlowCanceled(callback);
+  }
 }
 
 /**
@@ -529,6 +551,8 @@ function createPublicRuntime(runtime) {
     setOnNativeSubscribeRequest:
         runtime.setOnNativeSubscribeRequest.bind(runtime),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
+    setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),
+    setOnFlowCanceled: runtime.setOnFlowCanceled.bind(runtime),
     saveSubscription: runtime.saveSubscription.bind(runtime),
   });
 }

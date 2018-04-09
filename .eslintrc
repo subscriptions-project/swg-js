@@ -27,6 +27,7 @@
     "before": false,
     "after": false,
     "SUBSCRIPTIONS": false,
+    "SWG": false,
     "assert": false,
     "sinon": true,
     "sandbox": true,

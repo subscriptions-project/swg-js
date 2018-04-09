@@ -24,7 +24,13 @@ let propertyNameCache;
 /** @const {!Array<string>} */
 const vendorPrefixes = ['Webkit', 'webkit', 'Moz', 'moz', 'ms', 'O', 'o'];
 
-/** @const {!Object<string, string|number>} */
+/**
+ * Default styles to be set for top level friendly iframe.
+ * Some attributes are not included such as height, left, margin-left; since
+ * these attributes are updated by @media queries and having these values
+ * defined here as !important does not work on IE/edge browsers.
+ * @const {!Object<string, string|number>}
+ */
 export const defaultStyles = {
   'align-content': 'normal',
   'animation': 'none',
@@ -33,15 +39,12 @@ export const defaultStyles = {
   'alignment-baseline': 'auto',
   'backface-visibility': 'hidden',
   'background-clip': 'border-box',
-  'background-color': 'rgb(0, 0, 0, 0)',
   'background-image': 'none',
   'baseline-shift': '0',
   'block-size': 'auto',
   'border': 'none',
-  'border-radius': '0',
   'border-collapse': 'separate',
   'bottom': '0',
-  'box-shadow': '0 0 0 0 #000',
   'box-sizing': 'border-box',
   'break-after': 'auto',
   'break-before': 'auto',
@@ -144,7 +147,6 @@ export const defaultStyles = {
   'visibility': 'visible',
   'white-space': 'normal',
   'widows': '2',
-  'width': 'auto',
   'word-break': 'normal',
   'word-spacing': '0',
   'word-wrap': 'normal',
@@ -156,16 +158,6 @@ export const defaultStyles = {
 /** @const {string} */
 export const googleFontsUrl =
     'https://fonts.googleapis.com/css?family=Google+Sans';
-
-/**
- * Default overwritable styles. This is required for responsive dialog.
- * @const {!Object<string, string|number>}
- */
-export const topFriendlyIframePositionStyles = {
-  'width': '100%',
-  'left': 0,
-};
-
 
 /**
  * @export

@@ -112,7 +112,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   }
 
   let bundler = browserify(srcDir + srcFilename + '-babel.js', {debug: true})
-      .transform(babel, {loose: 'all'});
+      .transform(babel, {loose: true});
   if (options.watch) {
     bundler = watchify(bundler);
   }

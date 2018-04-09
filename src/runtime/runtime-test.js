@@ -579,6 +579,26 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should should delegate "setOnFlowStarted"', () => {
+      const callback = function() {};
+      configuredRuntimeMock.expects('setOnFlowStarted')
+          .withExactArgs(callback)
+          .once();
+      return runtime.setOnFlowStarted(callback).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(false);
+      });
+    });
+
+    it('should should delegate "setOnFlowCanceled"', () => {
+      const callback = function() {};
+      configuredRuntimeMock.expects('setOnFlowCanceled')
+          .withExactArgs(callback)
+          .once();
+      return runtime.setOnFlowCanceled(callback).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(false);
+      });
+    });
+
     it('should should delegate "saveSubscricption"', () => {
       const newPromise = new Promise(() => {});
       configuredRuntimeMock.expects('saveSubscription').once()
@@ -839,21 +859,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
   });
 
-  it('should configure and start LinkCompleteFlow', () => {
-    expect(activityResultCallbacks['swg-link-continue']).to.exist;
-    const startStub = sandbox.stub(
-        LinkCompleteFlow.prototype,
-        'start',
-        () => Promise.resolve());
-    return returnActivity('swg-link-continue', ActivityResultCode.OK, {},
-        location.origin)
-        // Succeeds or fails is not important for this test.
-        .catch(() => {})
-        .then(() => {
-          expect(startStub).to.be.calledOnce;
-        });
-  });
-
   it('should configure and start LinkCompleteFlow for swg-link', () => {
     expect(activityResultCallbacks['swg-link']).to.exist;
     const startStub = sandbox.stub(
@@ -944,6 +949,26 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
       runtime.callbacks().triggerLinkComplete();
       return promise;
+    });
+
+    it('should trigger flow started callback', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnFlowStarted(resolve);
+      });
+      runtime.callbacks().triggerFlowStarted('flow1');
+      return promise.then(result => {
+        expect(result).to.deep.equal({flow: 'flow1'});
+      });
+    });
+
+    it('should trigger flow canceled callback', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnFlowCanceled(resolve);
+      });
+      runtime.callbacks().triggerFlowCanceled('flow1');
+      return promise.then(result => {
+        expect(result).to.deep.equal({flow: 'flow1'});
+      });
     });
 
     it('should start saveSubscriptionFlow', () => {

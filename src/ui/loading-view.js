@@ -32,10 +32,12 @@ export class LoadingView {
     /** @private @const {!Document} */
     this.doc_ = doc;
 
+    this.loadingContainer_ =
+        createElement(this.doc_, 'swg-loading-container', {});
+
     /** @private @const {!Element} */
-    this.loadingContainer_ = createElement(this.doc_, 'div', {
-      'class': 'swg-loading',
-    });
+    this.loading_ = createElement(this.doc_, 'swg-loading', {});
+    this.loadingContainer_.appendChild(this.loading_);
 
     this.loadingContainer_.style.setProperty('display', 'none', 'important');
 
@@ -71,12 +73,14 @@ export class LoadingView {
    * @private
    */
   buildLoadingIndicator_() {
-    const loadingContainer = this.loadingContainer_;
+    const loadingContainer = this.loading_;
 
-    const loadingIndicatorTopContainer = createElement(this.doc_, 'div', {});
+    const loadingIndicatorTopContainer =
+        createElement(this.doc_, 'swg-loading-animate', {});
     loadingContainer.appendChild(loadingIndicatorTopContainer);
 
-    const loadingIndicatorChildContainer = createElement(this.doc_, 'div', {});
+    const loadingIndicatorChildContainer =
+        createElement(this.doc_, 'swg-loading-image', {});
     loadingIndicatorTopContainer.appendChild(loadingIndicatorChildContainer);
   }
 }

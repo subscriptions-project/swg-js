@@ -16,6 +16,7 @@
 
 import {View} from '../components/view';
 import {createElement} from '../utils/dom';
+import {isCancelError} from '../utils/errors';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
@@ -160,6 +161,18 @@ export class ActivityIframeView extends View {
    */
   whenComplete() {
     return this.acceptResult();
+  }
+
+  /**
+   * @param {function()} callback
+   */
+  onCancel(callback) {
+    this.acceptResult().catch(reason => {
+      if (isCancelError(reason)) {
+        callback();
+      }
+      throw reason;
+    });
   }
 
   /** @override */
