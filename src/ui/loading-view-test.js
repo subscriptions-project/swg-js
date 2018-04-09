@@ -35,7 +35,7 @@ describes.realWin('LoadingView', {}, env => {
 
     // TO test the injected styles have been applied.
     injectStyleSheet(doc, LOADING_VIEW_CSS);
-    loadingContainer = body.querySelector('swg-loading');
+    loadingContainer = body.querySelector('.swg-loading-container');
   });
 
   describe('loadingView', () => {
@@ -49,7 +49,6 @@ describes.realWin('LoadingView', {}, env => {
       const loadingTagStyles =
           win.getComputedStyle(loadingContainer);
 
-      expect(loadingTagStyles.position).to.equal('fixed');
       expect(loadingTagStyles.bottom).to.equal('0px');
       expect(loadingTagStyles['z-index']).to.equal('2147483647');
 
