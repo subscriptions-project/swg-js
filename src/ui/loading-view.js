@@ -32,9 +32,8 @@ export class LoadingView {
     /** @private @const {!Document} */
     this.doc_ = doc;
 
-    this.loadingContainer_ = createElement(this.doc_, 'div', {
-      'class': 'swg-loading-container',
-    });
+    this.loadingContainer_ =
+        createElement(this.doc_, 'swg-loading-container', {});
 
     /** @private @const {!Element} */
     this.loading_ = createElement(this.doc_, 'swg-loading', {});

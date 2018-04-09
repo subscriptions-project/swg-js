@@ -19,7 +19,7 @@ body {
   margin: 0;
 }
 
-.swg-loading-container {
+swg-loading-container {
   position: absolute !important;
   width: 100% !important;
   height: 148px !important;
@@ -33,7 +33,7 @@ body {
  * this style adds the background with borders to the loading indicator.
  */
 @media (min-width: 630px), (min-height: 630px) {
-  .swg-loading-container {
+  swg-loading-container {
     width: 560px !important;
     margin-left: 35px !important;
     border-top-left-radius: 8px !important;
@@ -45,13 +45,13 @@ body {
 }
 
 swg-container,
+swg-loading-container,
 swg-loading,
 swg-loading-animate,
 swg-loading-image {
   display: block;
 }
 
-swg-loading-container,
 swg-loading {
   position: absolute !important;
   top: 40% !important;

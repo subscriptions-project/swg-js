@@ -35,7 +35,7 @@ describes.realWin('LoadingView', {}, env => {
 
     // TO test the injected styles have been applied.
     injectStyleSheet(doc, LOADING_VIEW_CSS);
-    loadingContainer = body.querySelector('.swg-loading-container');
+    loadingContainer = body.querySelector('swg-loading-container');
   });
 
   describe('loadingView', () => {
