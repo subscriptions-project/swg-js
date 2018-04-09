@@ -579,11 +579,16 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "saveSubscription"', () => {
-      configuredRuntimeMock.expects('saveSubscription').once();
-      return runtime.saveSubscription().then(() => {
-        expect(configureStub).to.be.calledOnce.calledWith(true);
-      });
+    it('should should delegate "saveSubscricption"', () => {
+      const newPromise = new Promise(() => {});
+      configuredRuntimeMock.expects('saveSubscription').once()
+          .withExactArgs({token: 'test'}).returns(newPromise);
+      const resultPromise = runtime.saveSubscription({token: 'test'})
+          .then(() => {
+            expect(configureStub).to.be.calledOnce.calledWith(true);
+            expect(resultPromise).to.deep.equal(newPromise);
+          });
+      return resultPromise;
     });
 
     it('should use default fetcher', () => {
@@ -943,14 +948,16 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should start saveSubscriptionFlow', () => {
       let linkSaveFlow;
+      const newPromise = new Promise(() => {});
       sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
         linkSaveFlow = this;
-        return new Promise(() => {});
+        return newPromise;
       });
-      runtime.saveSubscription({token: 'test'});
+      const resultPromise = runtime.saveSubscription({token: 'test'});
       return runtime.documentParsed_.then(() => {
         expect(linkSaveFlow.saveSubscriptionRequest_['token'])
             .to.deep.equal('test');
+        expect(resultPromise).to.deep.equal(newPromise);
       });
     });
   });

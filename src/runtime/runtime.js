@@ -300,7 +300,9 @@ export class Runtime {
   /** @override */
   saveSubscription(saveSubscriptionRequest) {
     return this.configured_(true)
-        .then(runtime => runtime.saveSubscription(saveSubscriptionRequest));
+        .then(runtime => {
+          runtime.saveSubscription(saveSubscriptionRequest);
+        });
   }
 }
 

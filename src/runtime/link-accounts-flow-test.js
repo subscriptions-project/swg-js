@@ -301,4 +301,11 @@ describes.realWin('LinkSaveFlow', {}, env => {
         .returns(Promise.resolve(port));
     return linkSaveFlow.start();
   });
+
+  it('should complete the flow', () => {
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    return linkSaveFlow.start().then(() => {
+      expect(linkSaveFlow.completed_).to.be.true;
+    });
+  });
 });

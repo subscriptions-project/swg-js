@@ -265,6 +265,9 @@ export class LinkSaveFlow {
     /** @private {!../api/subscriptions.SaveSubscriptionRequest} */
     this.saveSubscriptionRequest_ = saveSubscriptionRequest;
 
+    /** {!boolean} */
+    this.completed_ = false;
+
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
@@ -283,8 +286,11 @@ export class LinkSaveFlow {
    * @return {!Promise}
    */
   start() {
-    this.activityIframeView_.onMessage(data => {
-      this.maybeSaveSubscription_(data);
+    this.activityIframeView_.acceptResult().then(result => {
+      this.maybeSaveSubscription_(result);
+      this.completed_ = true;
+      // The flow is complete.
+      return this.dialogManager_.completeView(this.activityIframeView_);
     });
     return this.dialogManager_.openView(this.activityIframeView_);
   }
