@@ -37,6 +37,7 @@ import {GlobalDoc} from '../model/doc';
 import {
   LinkCompleteFlow,
   LinkbackFlow,
+  LinkSaveFlow,
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -598,6 +599,18 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should should delegate "saveSubscricption"', () => {
+      const newPromise = new Promise(() => {});
+      configuredRuntimeMock.expects('saveSubscription').once()
+          .withExactArgs({token: 'test'}).returns(newPromise);
+      const resultPromise = runtime.saveSubscription({token: 'test'})
+          .then(() => {
+            expect(configureStub).to.be.calledOnce.calledWith(true);
+            expect(resultPromise).to.deep.equal(newPromise);
+          });
+      return resultPromise;
+    });
+
     it('should use default fetcher', () => {
       const ents = {};
       const xhrFetchStub = sandbox.stub(
@@ -955,6 +968,21 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       runtime.callbacks().triggerFlowCanceled('flow1');
       return promise.then(result => {
         expect(result).to.deep.equal({flow: 'flow1'});
+      });
+    });
+
+    it('should start saveSubscriptionFlow', () => {
+      let linkSaveFlow;
+      const newPromise = new Promise(() => {});
+      sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
+        linkSaveFlow = this;
+        return newPromise;
+      });
+      const resultPromise = runtime.saveSubscription({token: 'test'});
+      return runtime.documentParsed_.then(() => {
+        expect(linkSaveFlow.saveSubscriptionRequest_['token'])
+            .to.deep.equal('test');
+        expect(resultPromise).to.deep.equal(newPromise);
       });
     });
   });
