@@ -25,10 +25,10 @@ The link flow would normally be executed by a 3p surface to let a user to claim 
 This flow is normally originated from the publisher and allows the reader to link publication's subscription to the reader's account.
 
 To start saving subscription link, provide a request containing a token corresponding to the reader's
-subscription, Eg: {token: 'THE TOKEN'}
+subscription, Eg:
 
 ```
-subscriptions.saveSubscription(request);
+subscriptions.saveSubscription({token: 'THE TOKEN'});
 ```
 
 A list of user's accounts will be surfaced and the user can select the account to be linked to the provided token. Upon saving this link, a non-blocking confirmation will be shown to the user.
