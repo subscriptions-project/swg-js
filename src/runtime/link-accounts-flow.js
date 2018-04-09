@@ -286,23 +286,11 @@ export class LinkSaveFlow {
    * @return {!Promise}
    */
   start() {
-    this.activityIframeView_.acceptResult().then(result => {
-      this.maybeSaveSubscription_(result);
+    this.activityIframeView_.acceptResult().then(() => {
       this.completed_ = true;
       // The flow is complete.
       return this.dialogManager_.completeView(this.activityIframeView_);
     });
     return this.dialogManager_.openView(this.activityIframeView_);
-  }
-
-  /**
-   * @param {*} data
-   * @private
-   */
-  maybeSaveSubscription_(data) {
-    if (!data) {
-      return;
-    }
-    //TODO(sohanirao) : handle data
   }
 }
