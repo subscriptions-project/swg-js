@@ -34,8 +34,8 @@ body {
  */
 @media (min-width: 630px), (min-height: 630px) {
   .swg-loading-container {
-    width: 550px !important;
-    margin-left: 40px !important;
+    width: 560px !important;
+    margin-left: 35px !important;
     border-top-left-radius: 8px !important;
     border-top-right-radius: 8px !important;
     background-color: rgba(255, 255, 255, 1) !important;
