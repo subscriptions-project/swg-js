@@ -39,14 +39,10 @@ const Z_INDEX = 2147483647;
  */
 const rootElementImportantStyles = {
   'min-height': '50px',
-  'opacity': 1,
   'border': 'none',
   'display': 'block',
-  'background-color': 'rgb(255, 255, 255)',
   'position': 'fixed',
   'z-index': Z_INDEX,
-  'box-shadow':
-      'rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px',
   'box-sizing': 'border-box',
 };
 
