@@ -141,6 +141,13 @@ export class Subscriptions {
    * @param {function({flow: string})} callback
    */
   setOnFlowCanceled(callback) {}
+
+ /**
+  * Starts the save subscriptions flow.
+  * @param {!SaveSubscriptionRequest} request
+  * @return {!Promise}
+  */
+  saveSubscription(request) {}
 }
 
 
@@ -151,7 +158,7 @@ export const SubscriptionFlows = {
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
   SUBSCRIBE: 'subscribe',
   LINK_ACCOUNT: 'linkAccount',
-}
+};
 
 
 /**
@@ -175,3 +182,11 @@ export let OptionsRequest;
  * }}
  */
 export let LoginRequest;
+
+/**
+ * @typedef {{
+ *   token: string,
+ * }}
+ */
+export let SaveSubscriptionRequest;
+
