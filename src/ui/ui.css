@@ -56,7 +56,6 @@ swg-loading {
   position: absolute !important;
   top: 40% !important;
   left: 45% !important;
-  transform: translate(-50%, -50%) !important;
   z-index: 2147483647 !important;
   width: 36px;
   height: 36px;
