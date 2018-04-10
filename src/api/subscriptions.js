@@ -158,7 +158,7 @@ export const SubscriptionFlows = {
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
   SUBSCRIBE: 'subscribe',
   LINK_ACCOUNT: 'linkAccount',
-};
+}
 
 
 /**
