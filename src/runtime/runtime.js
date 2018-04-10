@@ -25,6 +25,7 @@ import {Fetcher, XhrFetcher} from './fetcher';
 import {
   LinkCompleteFlow,
   LinkbackFlow,
+  LinkSaveFlow,
 } from './link-accounts-flow';
 import {OffersApi} from './offers-api';
 import {
@@ -307,6 +308,13 @@ export class Runtime {
     return this.configured_(false)
         .then(runtime => runtime.setOnFlowCanceled(callback));
   }
+
+  saveSubscription(saveSubscriptionRequest) {
+    return this.configured_(true)
+        .then(runtime => {
+          runtime.saveSubscription(saveSubscriptionRequest);
+        });
+  }
 }
 
 
@@ -486,6 +494,13 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  saveSubscription(saveSubscriptionRequest) {
+    return this.documentParsed_.then(() => {
+      return new LinkSaveFlow(this, saveSubscriptionRequest).start();
+    });
+  }
+
+  /** @override */
   setOnNativeSubscribeRequest(callback) {
     this.callbacks_.setOnSubscribeRequest(callback);
   }
@@ -513,7 +528,6 @@ export class ConfiguredRuntime {
   }
 }
 
-
 /**
  * @param {!Runtime} runtime
  * @return {!Subscriptions}
@@ -538,6 +552,7 @@ function createPublicRuntime(runtime) {
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
     setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),
     setOnFlowCanceled: runtime.setOnFlowCanceled.bind(runtime),
+    saveSubscription: runtime.saveSubscription.bind(runtime),
   });
 }
 
