@@ -50,8 +50,6 @@ describes.realWin('LoadingView', {}, env => {
           win.getComputedStyle(loadingContainer);
 
       expect(loadingTagStyles.bottom).to.equal('0px');
-      expect(loadingTagStyles['z-index']).to.equal('2147483647');
-
     });
 
     it('should have hidden loading indicator', () => {
