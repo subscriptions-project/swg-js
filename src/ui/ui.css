@@ -19,6 +19,13 @@ body {
   margin: 0;
 }
 
+swg-container,
+swg-loading,
+swg-loading-animate,
+swg-loading-image {
+  display: block;
+}
+
 swg-loading-container {
   width: 100% !important;
   display: flex !important;
@@ -45,13 +52,6 @@ swg-loading-container {
     box-shadow:
         rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px !important;
   }
-}
-
-swg-container,
-swg-loading,
-swg-loading-animate,
-swg-loading-image {
-  display: block;
 }
 
 swg-loading {
