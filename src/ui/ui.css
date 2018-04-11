@@ -20,8 +20,10 @@ body {
 }
 
 swg-loading-container {
-  position: absolute !important;
   width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   height: 148px !important;
   bottom: 0 !important;
   margin-top: 5px !important;
