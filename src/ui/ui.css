@@ -24,7 +24,8 @@ swg-loading-container {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  height: 148px !important;
+  min-height: 148px !important;
+  height: 100% !important;
   bottom: 0 !important;
   margin-top: 5px !important;
   z-index: 2147483647 !important;
