@@ -54,6 +54,7 @@ export class OffersFlow {
           'showNative': deps.callbacks().hasSubscribeRequestCallback(),
           'list': options && options.list || 'default',
           'skus': options && options.skus || null,
+          'isClosable': options && !!options.isClosable,
         }),
         /* shouldFadeBody */ true);
   }
@@ -179,9 +180,9 @@ export class AbbrvOfferFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.OptionsRequest|undefined} options
+   * @param {!../api/subscriptions.OptionsRequest=} options
    */
-  constructor(deps, options) {
+  constructor(deps, options = {}) {
 
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
@@ -238,7 +239,10 @@ export class AbbrvOfferFlow {
     // If result is due to requesting offers, redirect to offers flow
     this.activityIframeView_.acceptResult().then(result => {
       if (result.data['viewOffers']) {
-        new OffersFlow(this.deps_, this.options_).start();
+        const isClosable = result.data && result.data['isClosable'] || false;
+        const options = this.options_ || {};
+        Object.assign(options, {'isClosable': isClosable});
+        new OffersFlow(this.deps_, options).start();
         return;
       }
       if (result.data['native']) {
@@ -252,4 +256,3 @@ export class AbbrvOfferFlow {
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 }
-

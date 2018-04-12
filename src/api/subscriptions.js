@@ -158,7 +158,7 @@ export const SubscriptionFlows = {
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
   SUBSCRIBE: 'subscribe',
   LINK_ACCOUNT: 'linkAccount',
-}
+};
 
 
 /**
@@ -171,6 +171,7 @@ export const SubscriptionFlows = {
  * @typedef {{
  *   skus: (!Array<string>|undefined),
  *   list: (string|undefined),
+ *   isClosable: (boolean|undefined),
  * }}
  */
 export let OptionsRequest;
@@ -189,4 +190,3 @@ export let LoginRequest;
  * }}
  */
 export let SaveSubscriptionRequest;
-

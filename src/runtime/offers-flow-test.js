@@ -48,7 +48,7 @@ describes.realWin('OffersFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
-    offersFlow = new OffersFlow(runtime);
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
@@ -80,6 +80,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: false,
           list: 'default',
           skus: null,
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -104,6 +105,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: false,
           list: 'default',
           skus: null,
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -121,6 +123,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: false,
           list: 'other',
           skus: null,
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -138,6 +141,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: false,
           list: 'default',
           skus: ['sku1', 'sku2'],
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -155,6 +159,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: true,
           list: 'default',
           skus: null,
+          isClosable: undefined,
         })
         .returns(Promise.resolve(port));
     offersFlow = new OffersFlow(runtime);
