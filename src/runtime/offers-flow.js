@@ -176,7 +176,9 @@ export class SubscribeOptionFlow {
   maybeOpenOffersFlow_(data) {
     if (data && data['subscribe']) {
       const options = this.options_ || {};
-      options.isClosable = this.isOffersViewClosable_;
+      if (options.isClosable == undefined) {
+        options.isClosable = this.isOffersViewClosable_;
+      }
       new OffersFlow(this.deps_, options).start();
     }
   }
@@ -255,7 +257,9 @@ export class AbbrvOfferFlow {
     this.activityIframeView_.acceptResult().then(result => {
       if (result.data['viewOffers']) {
         const options = this.options_ || {};
-        options.isClosable = this.isOffersViewClosable_;
+        if (options.isClosable == undefined) {
+          options.isClosable = this.isOffersViewClosable_;
+        }
         new OffersFlow(this.deps_, options).start();
         return;
       }
