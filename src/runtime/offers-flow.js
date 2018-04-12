@@ -28,7 +28,7 @@ export class OffersFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.OptionsRequest|undefined} options
+   * @param {!../api/subscriptions.OffersRequest|undefined} options
    */
   constructor(deps, options) {
     /** @private @const {!./deps.DepsDef} */
@@ -43,6 +43,11 @@ export class OffersFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
+    let isClosable = options && options.isClosable;
+    if (isClosable == undefined) {
+      isClosable = true;  // Default is to show Close button.
+    }
+
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
@@ -54,7 +59,7 @@ export class OffersFlow {
           'showNative': deps.callbacks().hasSubscribeRequestCallback(),
           'list': options && options.list || 'default',
           'skus': options && options.skus || null,
-          'isClosable': options && !!options.isClosable,
+          'isClosable': isClosable,
         }),
         /* shouldFadeBody */ true);
   }
@@ -105,14 +110,14 @@ export class SubscribeOptionFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.OptionsRequest|undefined} options
+   * @param {!../api/subscriptions.OffersRequest|undefined} options
    */
   constructor(deps, options) {
 
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!../api/subscriptions.OptionsRequest|undefined} */
+    /** @private @const {!../api/subscriptions.OffersRequest|undefined} */
     this.options_ = options;
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
@@ -120,6 +125,9 @@ export class SubscribeOptionFlow {
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
+
+    /** @private @const {boolean} */
+    this.isOffersViewClosable_ = false;
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -131,6 +139,7 @@ export class SubscribeOptionFlow {
           'productId': deps.pageConfig().getProductId(),
           'list': options && options.list || 'default',
           'skus': options && options.skus || null,
+          'isClosable': true,
         }),
         /* shouldFadeBody */ false);
   }
@@ -166,7 +175,9 @@ export class SubscribeOptionFlow {
    */
   maybeOpenOffersFlow_(data) {
     if (data && data['subscribe']) {
-      new OffersFlow(this.deps_, this.options_).start();
+      const options = this.options_ || {};
+      options.isClosable = this.isOffersViewClosable_;
+      new OffersFlow(this.deps_, options).start();
     }
   }
 }
@@ -180,14 +191,14 @@ export class AbbrvOfferFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.OptionsRequest=} options
+   * @param {!../api/subscriptions.OffersRequest=} options
    */
   constructor(deps, options = {}) {
 
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!../api/subscriptions.OptionsRequest|undefined} */
+    /** @private @const {!../api/subscriptions.OffersRequest|undefined} */
     this.options_ = options;
 
     /** @private @const {!Window} */
@@ -198,6 +209,9 @@ export class AbbrvOfferFlow {
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
+
+    /** @private @const {boolean} */
+    this.isOffersViewClosable_ = false;
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -210,6 +224,7 @@ export class AbbrvOfferFlow {
           'showNative': deps.callbacks().hasSubscribeRequestCallback(),
           'list': options && options.list || 'default',
           'skus': options && options.skus || null,
+          'isClosable': true,
         }),
         /* shouldFadeBody */ false);
   }
@@ -239,9 +254,8 @@ export class AbbrvOfferFlow {
     // If result is due to requesting offers, redirect to offers flow
     this.activityIframeView_.acceptResult().then(result => {
       if (result.data['viewOffers']) {
-        const isClosable = result.data && result.data['isClosable'] || false;
         const options = this.options_ || {};
-        Object.assign(options, {'isClosable': isClosable});
+        options.isClosable = this.isOffersViewClosable_;
         new OffersFlow(this.deps_, options).start();
         return;
       }
