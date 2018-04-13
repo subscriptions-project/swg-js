@@ -64,19 +64,19 @@ export class Subscriptions {
 
   /**
    * Starts the Offers flow.
-   * @param {!OptionsRequest=} opt_options
+   * @param {!OffersRequest=} opt_options
    */
   showOffers(opt_options) {}
 
   /**
    * Show subscription option.
-   * @param {!OptionsRequest=} opt_options
+   * @param {!OffersRequest=} opt_options
    */
   showSubscribeOption(opt_options) {}
 
   /**
    * Show abbreviated offers.
-   * @param {!OptionsRequest=} opt_options
+   * @param {!OffersRequest=} opt_options
    */
   showAbbrvOffer(opt_options) {}
 
@@ -158,7 +158,7 @@ export const SubscriptionFlows = {
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
   SUBSCRIBE: 'subscribe',
   LINK_ACCOUNT: 'linkAccount',
-}
+};
 
 
 /**
@@ -167,13 +167,15 @@ export const SubscriptionFlows = {
  *   order is preserved.
  * - list - a predefined list of SKUs. Use of this property is uncommon.
  *   Possible values are "default" and "amp". Default is "default".
+ * - isClosable - a boolean value to determine whether the view is closable.
  *
  * @typedef {{
  *   skus: (!Array<string>|undefined),
  *   list: (string|undefined),
+ *   isClosable: (boolean|undefined),
  * }}
  */
-export let OptionsRequest;
+export let OffersRequest;
 
 
 /**
@@ -189,4 +191,3 @@ export let LoginRequest;
  * }}
  */
 export let SaveSubscriptionRequest;
-
