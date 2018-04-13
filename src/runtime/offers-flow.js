@@ -20,6 +20,7 @@ import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
+const OFFERS_VIEW_CLOSABLE = false;
 
 /**
  * The class for Offers flow.
@@ -126,9 +127,6 @@ export class SubscribeOptionFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private @const {boolean} */
-    this.isOffersViewClosable_ = false;
-
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
         deps.win(),
@@ -177,7 +175,7 @@ export class SubscribeOptionFlow {
     if (data && data['subscribe']) {
       const options = this.options_ || {};
       if (options.isClosable == undefined) {
-        options.isClosable = this.isOffersViewClosable_;
+        options.isClosable = OFFERS_VIEW_CLOSABLE;
       }
       new OffersFlow(this.deps_, options).start();
     }
@@ -211,9 +209,6 @@ export class AbbrvOfferFlow {
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
-
-    /** @private @const {boolean} */
-    this.isOffersViewClosable_ = false;
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -258,7 +253,7 @@ export class AbbrvOfferFlow {
       if (result.data['viewOffers']) {
         const options = this.options_ || {};
         if (options.isClosable == undefined) {
-          options.isClosable = this.isOffersViewClosable_;
+          options.isClosable = OFFERS_VIEW_CLOSABLE;
         }
         new OffersFlow(this.deps_, options).start();
         return;
