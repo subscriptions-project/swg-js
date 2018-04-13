@@ -123,7 +123,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: false,
           list: 'other',
           skus: null,
-          isClosable: true,
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -141,7 +141,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: false,
           list: 'default',
           skus: ['sku1', 'sku2'],
-          isClosable: true,
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -159,7 +159,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: true,
           list: 'default',
           skus: null,
-          isClosable: true,
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     offersFlow = new OffersFlow(runtime);

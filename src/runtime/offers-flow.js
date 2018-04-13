@@ -20,7 +20,11 @@ import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
-const OFFERS_VIEW_CLOSABLE = false;
+/**
+ * Offers view is closable when request was originated from 'AbbrvOfferFlow'
+ * or from 'SubscribeOptionFlow'.
+ */
+const OFFERS_VIEW_CLOSABLE = true;
 
 /**
  * The class for Offers flow.
@@ -46,7 +50,7 @@ export class OffersFlow {
 
     let isClosable = options && options.isClosable;
     if (isClosable == undefined) {
-      isClosable = true;  // Default is to show Close button.
+      isClosable = false;  // Default is to hide Close button.
     }
 
     /** @private @const {!ActivityIframeView} */
