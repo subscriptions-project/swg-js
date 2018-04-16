@@ -809,7 +809,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
     runtime.showAbbrvOffer();
     return runtime.documentParsed_.then(() => {
-      expect(offersFlow.options_).to.be.undefined;
+      expect(offersFlow.options_).to.deep.equal({});
     });
   });
 
