@@ -49,9 +49,10 @@
 }
 
 /**
- * Use dialog width as 100% when device width is less than 480px.
+ * Use dialog width as 100% when device width is less than 480px and
+ * device height is less than 480px.
  */
-@media (max-width: 480px), (max-height: 480px) {
+@media (max-width: 480px) and (max-height: 480px) {
   .swg-dialog,
   .swg-toast {
     width: 100% !important;
