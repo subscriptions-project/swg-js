@@ -49,24 +49,6 @@
 }
 
 /**
- * Use dialog width as 100% when device width is less than 480px and
- * device height is less than 480px.
- */
-@media (max-width: 480px) and (max-height: 480px) {
-  .swg-dialog,
-  .swg-toast {
-    width: 100% !important;
-    left: 0 !important;
-    right: 0 !important;
-    margin-left: 0 !important;
-    border-top-left-radius: 8px !important;
-    border-top-right-radius: 8px !important;
-    box-shadow:
-        rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px !important;
-  }
-}
-
-/**
  * Desktop/Large screen support. When device width AND height is > 640px.
  *
  */
@@ -85,7 +67,12 @@
   .swg-toast {
     width: 100% !important;
     left: 0 !important;
+    right: 0 !important;
     margin-left: 0 !important;
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
+    box-shadow:
+        rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px !important;
   }
 }
 
