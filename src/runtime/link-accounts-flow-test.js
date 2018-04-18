@@ -316,6 +316,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           token: 'test',
+          isClosable: true,
         })
         .returns(Promise.resolve(port));
     return linkSaveFlow.start();
