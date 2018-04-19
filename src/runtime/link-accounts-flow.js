@@ -203,14 +203,12 @@ export class LinkSaveFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
+    /** TODO(sohanirao): Default request only for test */
     /** {!../api/subscriptions.SaveSubscriptionRequest} */
     const defaultRequest = {token: 'test'};
 
     /** @private {!../api/subscriptions.SaveSubscriptionRequest} */
     this.saveSubscriptionRequest_ = saveSubscriptionRequest || defaultRequest;
-
-    /** {!boolean} */
-    this.completed_ = false;
 
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
@@ -233,27 +231,22 @@ export class LinkSaveFlow {
       /* shouldFadeBody */ false
     );
     /** {!Promise<boolean>} */
-    const returnPromise = new Promise(resolve => {
-      const promise = this.activityIframeView_.port().then(port => {
+    return this.dialogManager_.openView(this.activityIframeView_).then(() => {
+      return this.activityIframeView_.port().then(port => {
         return acceptPortResult(
             port,
             feOrigin(),
             /* requireOriginVerified */ true,
             /* requireSecureChannel */ true);
-      });
-      promise.then(result => {
+      }).then(result => {
         return result['linked'];
       }).catch(() => {
         return false;
       }).then(result => {
         // The flow is complete.
         this.dialogManager_.completeView(this.activityIframeView_);
-        this.completed_ = true;
-        resolve(result);
+        return result;
       });
-    });
-    return this.dialogManager_.openView(this.activityIframeView_).then(() => {
-      return returnPromise;
     });
   }
 }

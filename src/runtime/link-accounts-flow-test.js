@@ -322,10 +322,43 @@ describes.realWin('LinkSaveFlow', {}, env => {
     return linkSaveFlow.start();
   });
 
-  it('should complete the flow', () => {
+  it('should return false when cancelled', () => {
+    port.acceptResult = () => Promise.reject(
+        new DOMException('cancel', 'AbortError'));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    return linkSaveFlow.start().then(() => {
-      expect(linkSaveFlow.completed_).to.be.true;
+    return linkSaveFlow.start().then(result => {
+      expect(result).to.be.false;
+    });
+  });
+
+  it('should return false when linking not accepted', () => {
+    const result = new ActivityResult(ActivityResultCode.OK,
+      {'linked': false},
+      'IFRAME', location.origin, true, true);
+    port.acceptResult = () => Promise.resolve(result);
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    return linkSaveFlow.start().then(result => {
+      expect(result).to.be.false;
+    });
+  });
+
+  it('should return false if error occurs', () => {
+    port.acceptResult = () => Promise.reject(
+        new Error('linking failed'));
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    return linkSaveFlow.start().then(result => {
+      expect(result).to.be.false;
+    });
+  });
+
+  it('should return true when linking succeeds', () => {
+    const result = new ActivityResult(ActivityResultCode.OK,
+      {'linked': true},
+      'IFRAME', location.origin, true, true);
+    port.acceptResult = () => Promise.resolve(result);
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    return linkSaveFlow.start().then(result => {
+      expect(result).to.be.true;
     });
   });
 });

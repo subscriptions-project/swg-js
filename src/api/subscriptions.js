@@ -145,7 +145,7 @@ export class Subscriptions {
  /**
   * Starts the save subscriptions flow.
   * @param {!SaveSubscriptionRequest} request
-  * @return {!Promise<!boolean>} status or promise of status of request
+  * @return {!Promise<boolean>} status or promise of status of request
   */
   saveSubscription(request) {}
 }
