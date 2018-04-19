@@ -204,7 +204,7 @@ export class LinkSaveFlow {
     this.dialogManager_ = deps.dialogManager();
 
     /** TODO(sohanirao): Default request only for test */
-    /** {!../api/subscriptions.SaveSubscriptionRequest} */
+    /** @type {!../api/subscriptions.SaveSubscriptionRequest} */
     const defaultRequest = {token: 'test'};
 
     /** @private {!../api/subscriptions.SaveSubscriptionRequest} */
