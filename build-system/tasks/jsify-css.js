@@ -57,10 +57,14 @@ const cssnano = cssnanoDecl({
  * to the stylesheet
  *
  * @param {string} filename css file
+ * @param {?Object=} opt_options
  * @return {!Promise<string>} that resolves with the css content after
  *    processing
  */
-exports.jsifyCssAsync = function(filename) {
+exports.jsifyCssAsync = function(filename, opt_options) {
+  const options = Object.assign({
+    sourceMap: true,
+  }, opt_options || {});
   const css = fs.readFileSync(filename, 'utf8');
   const transformers = [cssprefixer, cssnano];
   return postcss(transformers).use(postcssImport).process(css.toString(), {
@@ -69,7 +73,10 @@ exports.jsifyCssAsync = function(filename) {
     result.warnings().forEach(function(warn) {
       $$.util.log($$.util.colors.red(warn.toString()));
     });
-    const css = result.css;
-    return css + '\n/*# sourceURL=/' + filename + '*/';
+    let css = result.css;
+    if (options.sourceMap) {
+      css += '\n/*# sourceURL=/' + filename + '*/';
+    }
+    return css;
   });
 };
