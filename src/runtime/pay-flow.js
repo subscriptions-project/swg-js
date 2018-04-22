@@ -98,7 +98,9 @@ export class PayStartFlow {
    */
   start() {
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE);
+    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, {
+      'sku': this.sku_,
+    });
 
     // TODO(dvoytenko): switch to gpay async client.
     const opener = this.activityPorts_.open(
