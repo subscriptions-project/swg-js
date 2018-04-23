@@ -41,7 +41,7 @@ export class ButtonApi {
     }
 
     const url = 'https://news.google.com/swg/js/v1/swg-button.css';
-    const existing = head.querySelector(`link[href="${url}"]`)
+    const existing = head.querySelector(`link[href="${url}"]`);
     if (existing) {
       return;
     }
@@ -60,7 +60,7 @@ export class ButtonApi {
    * @return {!Element}
    */
   create(optionsOrCallback, opt_callback) {
-    const button = createElement(this.doc_.getWin().document, 'button');
+    const button = createElement(this.doc_.getWin().document, 'button', {});
     return this.attach(button, optionsOrCallback, opt_callback);
   }
 
@@ -74,8 +74,9 @@ export class ButtonApi {
     const options =
         typeof optionsOrCallback != 'function' ?
         optionsOrCallback : null;
-    const callback = (typeof optionsOrCallback == 'function' ?
-        optionsOrCallback : null) || opt_callback;
+    const callback = /** @type {function()} */ (
+        (typeof optionsOrCallback == 'function' ? optionsOrCallback : null) ||
+            opt_callback);
     let theme = options && options['theme'];
     if (theme !== 'light' && theme !== 'dark') {
       theme = 'light';
