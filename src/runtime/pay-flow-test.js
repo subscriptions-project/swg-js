@@ -86,7 +86,7 @@ describes.realWin('PayStartFlow', {}, env => {
         .withExactArgs(popupWin)
         .once();
     callbacksMock.expects('triggerFlowStarted')
-        .withExactArgs('subscribe')
+        .withExactArgs('subscribe', {sku: 'sku1'})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('open').withExactArgs(
