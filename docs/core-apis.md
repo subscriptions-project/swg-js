@@ -26,6 +26,8 @@ to this service.
 
 For key uses of these APIs see [Subscriptions flows](./flows.md).
 
+For SwG buttons see [SwG buttons](./buttons.md).
+
 
 ## Types used within the Subscriptions API
 

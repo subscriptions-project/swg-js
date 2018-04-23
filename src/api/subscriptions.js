@@ -148,6 +148,26 @@ export class Subscriptions {
   * @return {!Promise<boolean>} status or promise of status of request
   */
   saveSubscription(request) {}
+
+  /**
+   * Creates an element with the SwG button style and the provided callback.
+   * The default theme is "light".
+   *
+   * @param {!ButtonOptions|function()} optionsOrCallback
+   * @param {function()=} opt_callback
+   * @return {!Element}
+   */
+  createButton(optionsOrCallback, opt_callback) {}
+
+  /**
+   * Attaches the SwG button style and the provided callback to an existing
+   * DOM element. The default theme is "light".
+   *
+   * @param {!Element} button
+   * @param {!ButtonOptions|function()} optionsOrCallback
+   * @param {function()=} opt_callback
+   */
+  attachButton(button, optionsOrCallback, opt_callback) {}
 }
 
 
@@ -191,3 +211,13 @@ export let LoginRequest;
  * }}
  */
 export let SaveSubscriptionRequest;
+
+/**
+ * Properties:
+ * - theme: "light" or "dark". Default is "light".
+ *
+ * @typedef {{
+ *   theme: string,
+ * }}
+ */
+export let ButtonOptions;
