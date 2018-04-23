@@ -20,7 +20,7 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {
-  acceptPortResult,
+  acceptPortResultData,
 } from './activity-utils';
 
 const OK = ActivityResultCode.OK;
@@ -41,7 +41,7 @@ const REQUIRE_SECURE = true;
 const DONT_REQUIRE_SECURE = false;
 
 
-describes.sandboxed('acceptPortResult', {}, () => {
+describes.sandboxed('acceptPortResultData', {}, () => {
   let port;
 
   beforeEach(() => {
@@ -67,7 +67,7 @@ describes.sandboxed('acceptPortResult', {}, () => {
 
   it('should resolve success with everything required ', () => {
     result(OK, 'A', ORIGIN, VERIFIED, SECURE);
-    return acceptPortResult(
+    return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(data => {
           expect(data).to.equal('A');
@@ -76,7 +76,7 @@ describes.sandboxed('acceptPortResult', {}, () => {
 
   it('should fail success on wrong origin', () => {
     result(OK, 'A', OTHER_ORIGIN, VERIFIED, SECURE);
-    return acceptPortResult(
+    return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
           throw new Error('must have failed');
@@ -87,7 +87,7 @@ describes.sandboxed('acceptPortResult', {}, () => {
 
   it('should fail success on not verified', () => {
     result(OK, 'A', ORIGIN, NOT_VERIFIED, SECURE);
-    return acceptPortResult(
+    return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
           throw new Error('must have failed');
@@ -98,7 +98,7 @@ describes.sandboxed('acceptPortResult', {}, () => {
 
   it('should allow success on not verified', () => {
     result(OK, 'A', ORIGIN, NOT_VERIFIED, SECURE);
-    return acceptPortResult(
+    return acceptPortResultData(
         port,
         ORIGIN, DONT_REQUIRE_VERIFIED, REQUIRE_SECURE).then(data => {
           expect(data).to.equal('A');
@@ -107,7 +107,7 @@ describes.sandboxed('acceptPortResult', {}, () => {
 
   it('should fail success on not secure channel', () => {
     result(OK, 'A', ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResult(
+    return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
           throw new Error('must have failed');
@@ -118,7 +118,7 @@ describes.sandboxed('acceptPortResult', {}, () => {
 
   it('should allow success on not secure channel', () => {
     result(OK, 'A', ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResult(
+    return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE).then(data => {
           expect(data).to.equal('A');
@@ -128,7 +128,7 @@ describes.sandboxed('acceptPortResult', {}, () => {
   it('should resolve unexpected failure', () => {
     sandbox.stub(port, 'acceptResult',
         () => Promise.reject(new Error('intentional')));
-    return acceptPortResult(
+    return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
           throw new Error('must have failed');
@@ -139,7 +139,7 @@ describes.sandboxed('acceptPortResult', {}, () => {
 
   it('should resolve cancel', () => {
     result(CANCELED, null, ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResult(
+    return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE).then(() => {
           throw new Error('must have failed');
@@ -150,7 +150,7 @@ describes.sandboxed('acceptPortResult', {}, () => {
 
   it('should resolve failure', () => {
     result(FAILED, 'failure', ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResult(
+    return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE).then(() => {
           throw new Error('must have failed');

@@ -16,7 +16,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows} from '../api/subscriptions';
-import {acceptPortResult} from '../utils/activity-utils';
+import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 
@@ -77,7 +77,7 @@ export class LinkCompleteFlow {
       deps.entitlementsManager().blockNextNotification();
       deps.callbacks().triggerLinkProgress();
       deps.dialogManager().popupClosed();
-      const promise = acceptPortResult(
+      const promise = acceptPortResultData(
           port,
           feOrigin(),
           /* requireOriginVerified */ false,
@@ -142,7 +142,7 @@ export class LinkCompleteFlow {
    */
   start() {
     const promise = this.activityIframeView_.port().then(port => {
-      return acceptPortResult(
+      return acceptPortResultData(
           port,
           feOrigin(),
           /* requireOriginVerified */ true,
@@ -233,7 +233,7 @@ export class LinkSaveFlow {
     /** {!Promise<boolean>} */
     return this.dialogManager_.openView(this.activityIframeView_).then(() => {
       return this.activityIframeView_.port().then(port => {
-        return acceptPortResult(
+        return acceptPortResultData(
             port,
             feOrigin(),
             /* requireOriginVerified */ true,
