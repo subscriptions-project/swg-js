@@ -123,7 +123,7 @@ export class Subscriptions {
    *
    * Also see `setOnFlowCanceled` method.
    *
-   * @param {function({flow: string})} callback
+   * @param {function({flow: string, data: !Object})} callback
    */
   setOnFlowStarted(callback) {}
 
@@ -138,7 +138,7 @@ export class Subscriptions {
    *
    * Also see `setOnFlowStarted` method.
    *
-   * @param {function({flow: string})} callback
+   * @param {function({flow: string, data: !Object})} callback
    */
   setOnFlowCanceled(callback) {}
 

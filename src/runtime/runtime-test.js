@@ -955,9 +955,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       const promise = new Promise(resolve => {
         runtime.setOnFlowStarted(resolve);
       });
-      runtime.callbacks().triggerFlowStarted('flow1');
+      runtime.callbacks().triggerFlowStarted('flow1', {a: 1});
       return promise.then(result => {
-        expect(result).to.deep.equal({flow: 'flow1'});
+        expect(result).to.deep.equal({flow: 'flow1', data: {a: 1}});
       });
     });
 
@@ -965,9 +965,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       const promise = new Promise(resolve => {
         runtime.setOnFlowCanceled(resolve);
       });
-      runtime.callbacks().triggerFlowCanceled('flow1');
+      runtime.callbacks().triggerFlowCanceled('flow1', {b: 2});
       return promise.then(result => {
-        expect(result).to.deep.equal({flow: 'flow1'});
+        expect(result).to.deep.equal({flow: 'flow1', data: {b: 2}});
       });
     });
 
