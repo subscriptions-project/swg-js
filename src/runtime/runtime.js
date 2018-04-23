@@ -285,6 +285,12 @@ export class Runtime {
   }
 
   /** @override */
+  completeDeferredAccountCreation(opt_options) {
+    // QQQQ
+    return Promise.reject('not implemented');
+  }
+
+  /** @override */
   setOnLoginRequest(callback) {
     return this.configured_(false)
         .then(runtime => runtime.setOnLoginRequest(callback));
@@ -538,6 +544,12 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  completeDeferredAccountCreation(opt_options) {
+    // QQQQ
+    return Promise.reject('not implemented');
+  }
+
+  /** @override */
   setOnFlowStarted(callback) {
     this.callbacks_.setOnFlowStarted(callback);
   }
@@ -576,6 +588,8 @@ function createPublicRuntime(runtime) {
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
+    completeDeferredAccountCreation:
+        runtime.completeDeferredAccountCreation.bind(runtime),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
     setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
     setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),

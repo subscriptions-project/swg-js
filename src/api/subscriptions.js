@@ -16,6 +16,10 @@
 
 import {Entitlements} from './entitlements';
 import {Offer} from './offer';
+import {
+  DeferredAccountCreationRequest,
+  DeferredAccountCreationResponse,
+} from './deferred-account-creation';
 import {SubscribeResponse} from './subscribe-response';
 
 
@@ -100,6 +104,14 @@ export class Subscriptions {
   subscribe(sku) {}
 
   /**
+   * Starts the deferred account creation flow.
+   * See `DeferredAccountCreationRequest` for more details.
+   * @param {?DeferredAccountCreationRequest=} opt_options
+   * @return {!Promise<!DeferredAccountCreationResponse>}
+   */
+  completeDeferredAccountCreation(opt_options) {}
+
+  /**
    * @param {function(!LoginRequest)} callback
    */
   setOnLoginRequest(callback) {}
@@ -177,6 +189,7 @@ export const SubscriptionFlows = {
   SHOW_SUBSCRIBE_OPTION: 'showSubscribeOption',
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
   SUBSCRIBE: 'subscribe',
+  COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',
 };
 
@@ -204,6 +217,7 @@ export let OffersRequest;
  * }}
  */
 export let LoginRequest;
+
 
 /**
  * @typedef {{
