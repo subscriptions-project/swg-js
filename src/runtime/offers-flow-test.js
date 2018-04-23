@@ -19,7 +19,7 @@ import {
   ActivityResult,
 } from 'web-activities/activity-ports';
 import {
-  acceptPortResult,
+  acceptPortResultData,
 } from './../utils/activity-utils';
 import {ConfiguredRuntime} from './runtime';
 import {
@@ -500,11 +500,12 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
       return Promise.reject(error);
     });
     return abbrvOfferFlow.start().then(() => {
-      return acceptPortResult(port, 'https://example.com', true, true).then(() => {
-        throw new Error('must have failed');
-      }, reason => {
-        expect(reason.name).to.equal('AbortError');
-      });
+      return acceptPortResultData(port, 'https://example.com', true, true)
+          .then(() => {
+            throw new Error('must have failed');
+          }, reason => {
+            expect(reason.name).to.equal('AbortError');
+          });
       expect(offersStartStub).to.not.be.called;
     });
   });

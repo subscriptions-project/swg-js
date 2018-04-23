@@ -236,10 +236,26 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
     });
 
-    // TODO(dvoytenko): support payload decryption.
-    it.skip('should require channel security', () => {
+    it('should require secure channel for unencrypted payload', () => {
       const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
           'REDIRECT', 'PAY_ORIGIN', true, false);
+      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
+      PayCompleteFlow.configurePending(runtime);
+      return startCallback(port).then(() => {
+        throw new Error('must have failed');
+      }, reason => {
+        expect(() => {throw reason;}).to.throw(/channel mismatch/);
+        return triggerPromise.then(() => {
+          throw new Error('must have failed');
+        }, reason => {
+          expect(() => {throw reason;}).to.throw(/channel mismatch/);
+        });
+      });
+    });
+
+    it('should require secure channel for unverified payload', () => {
+      const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
+          'REDIRECT', 'PAY_ORIGIN', false, true);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       PayCompleteFlow.configurePending(runtime);
       return startCallback(port).then(() => {

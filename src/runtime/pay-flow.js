@@ -23,7 +23,6 @@ import {
 import {SubscriptionFlows} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {Xhr} from '../utils/xhr';
-import {acceptPortResult} from '../utils/activity-utils';
 import {feArgs, feCached, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseJson} from '../utils/json';
@@ -227,28 +226,31 @@ export class PayCompleteFlow {
  * @package Visible for testing only.
  */
 export function validatePayResponse(win, port, completeHandler) {
-  return acceptPortResult(
-      port,
-      payOrigin(),
-      // TODO(dvoytenko): support payload decryption.
-      /* requireOriginVerified */ false,
-      /* requireSecureChannel */ false)
-      .then(data => {
-        if (data['redirectEncryptedCallbackData']) {
-          const xhr = new Xhr(win);
-          const url = payDecryptUrl();
-          const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-            method: 'post',
-            headers: {'Accept': 'text/plain, application/json'},
-            credentials: 'include',
-            body: data['redirectEncryptedCallbackData'],
-            mode: 'cors',
-          });
-          return xhr.fetch(url, init).then(response => response.json());
-        }
-        // TODO(dvoytenko): prohibit this branch in case of redirect.
-        return data;
-      }).then(data => parseSubscriptionResponse(data, completeHandler));
+  // Do not require security immediately: it will be checked below.
+  return port.acceptResult().then(result => {
+    if (result.origin != payOrigin()) {
+      throw new Error('channel mismatch');
+    }
+    const data = /** @type {!Object} */ (result.data);
+    if (data['redirectEncryptedCallbackData']) {
+      // Data is supplied as an encrypted blob.
+      const xhr = new Xhr(win);
+      const url = payDecryptUrl();
+      const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+        method: 'post',
+        headers: {'Accept': 'text/plain, application/json'},
+        credentials: 'include',
+        body: data['redirectEncryptedCallbackData'],
+        mode: 'cors',
+      });
+      return xhr.fetch(url, init).then(response => response.json());
+    }
+    // Data is supplied directly: must be a verified and secure channel.
+    if (result.originVerified && result.secureChannel) {
+      return data;
+    }
+    throw new Error('channel mismatch');
+  }).then(data => parseSubscriptionResponse(data, completeHandler));
 }
 
 
