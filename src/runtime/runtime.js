@@ -15,6 +15,7 @@
  */
 
 import {ActivityPorts} from 'web-activities/activity-ports';
+import {ButtonApi} from './button-api';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
 import {DepsDef} from './deps';
@@ -145,6 +146,10 @@ export class Runtime {
 
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
+
+    /** @private @const {!ButtonApi} */
+    this.buttonApi_ = new ButtonApi(this.doc_);
+    this.buttonApi_.init();  // Injects swg-button stylesheet.
   }
 
   /**
@@ -309,11 +314,22 @@ export class Runtime {
         .then(runtime => runtime.setOnFlowCanceled(callback));
   }
 
+  /** @override */
   saveSubscription(saveSubscriptionRequest) {
     return this.configured_(true)
         .then(runtime => {
           runtime.saveSubscription(saveSubscriptionRequest);
         });
+  }
+
+  /** @override */
+  createButton(optionsOrCallback, opt_callback) {
+    return this.buttonApi_.create(optionsOrCallback, opt_callback);
+  }
+
+  /** @override */
+  attachButton(button, optionsOrCallback, opt_callback) {
+    return this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
   }
 }
 
@@ -367,6 +383,9 @@ export class ConfiguredRuntime {
     /** @private @const {!OffersApi} */
     this.offersApi_ = new OffersApi(this.config_, this.fetcher_);
 
+    /** @private @const {!ButtonApi} */
+    this.buttonApi_ = new ButtonApi(this.doc_);
+
     const preconnect = new Preconnect(this.win_.document);
 
     LinkCompleteFlow.configurePending(this);
@@ -374,6 +393,7 @@ export class ConfiguredRuntime {
     PayStartFlow.preconnect(preconnect);
 
     injectStyleSheet(this.win_.document, SWG_DIALOG);
+    this.buttonApi_.init();  // Injects swg-button stylesheet.
   }
 
   /** @override */
@@ -526,6 +546,18 @@ export class ConfiguredRuntime {
   setOnFlowCanceled(callback) {
     this.callbacks_.setOnFlowCanceled(callback);
   }
+
+  /** @override */
+  createButton(optionsOrCallback, opt_callback) {
+    // This is a minor duplication to allow this code to be sync.
+    return this.buttonApi_.create(optionsOrCallback, opt_callback);
+  }
+
+  /** @override */
+  attachButton(button, optionsOrCallback, opt_callback) {
+    // This is a minor duplication to allow this code to be sync.
+    this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
+  }
 }
 
 /**
@@ -553,6 +585,8 @@ function createPublicRuntime(runtime) {
     setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),
     setOnFlowCanceled: runtime.setOnFlowCanceled.bind(runtime),
     saveSubscription: runtime.saveSubscription.bind(runtime),
+    createButton: runtime.createButton.bind(runtime),
+    attachButton: runtime.attachButton.bind(runtime),
   });
 }
 
