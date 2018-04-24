@@ -103,6 +103,23 @@ function startFlowAuto() {
     });
     return;
   }
+  if (flow == 'button') {
+    whenReady(function(subscriptions) {
+      whenDemoReady(function() {
+        var button = subscriptions.createButton(function() {
+          log('SwG button clicked!');
+        });
+        document.body.appendChild(button);
+
+        var button2 = document.createElement('button');
+        document.body.appendChild(button2);
+        subscriptions.attachButton(button2, {theme: 'dark'}, function() {
+          log('SwG button2 clicked!');
+        });
+      });
+    });
+    return;
+  }
   startFlow(flow);
 }
 

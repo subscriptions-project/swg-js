@@ -16,7 +16,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows} from '../api/subscriptions';
-import {acceptPortResult} from '../utils/activity-utils';
+import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 
@@ -77,7 +77,7 @@ export class LinkCompleteFlow {
       deps.entitlementsManager().blockNextNotification();
       deps.callbacks().triggerLinkProgress();
       deps.dialogManager().popupClosed();
-      const promise = acceptPortResult(
+      const promise = acceptPortResultData(
           port,
           feOrigin(),
           /* requireOriginVerified */ false,
@@ -142,7 +142,7 @@ export class LinkCompleteFlow {
    */
   start() {
     const promise = this.activityIframeView_.port().then(port => {
-      return acceptPortResult(
+      return acceptPortResultData(
           port,
           feOrigin(),
           /* requireOriginVerified */ true,
@@ -194,29 +194,24 @@ export class LinkSaveFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
+    /** TODO(sohanirao): Default request only for test */
+    /** @type {!../api/subscriptions.SaveSubscriptionRequest} */
+    const defaultRequest = {token: 'test'};
+
     /** @private {!../api/subscriptions.SaveSubscriptionRequest} */
-    this.saveSubscriptionRequest_ = saveSubscriptionRequest;
+    this.saveSubscriptionRequest_ = saveSubscriptionRequest || defaultRequest;
 
-    /** {!boolean} */
-    this.completed_ = false;
-
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl('/linksaveiframe'),
-        feArgs({
-          'publicationId': deps.pageConfig().getPublicationId(),
-          'token': this.saveSubscriptionRequest_['token'],
-        }),
-        /* shouldFadeBody */ false
-    );
+    /** @private {?ActivityIframeView} */
+    this.activityIframeView_ = null;
   }
 
   /**
@@ -224,11 +219,34 @@ export class LinkSaveFlow {
    * @return {!Promise}
    */
   start() {
-    this.activityIframeView_.acceptResult().then(() => {
-      this.completed_ = true;
-      // The flow is complete.
-      return this.dialogManager_.completeView(this.activityIframeView_);
+    this.activityIframeView_ = new ActivityIframeView(
+      this.win_,
+      this.activityPorts_,
+      feUrl('/linksaveiframe'),
+      feArgs({
+        'publicationId': this.deps_.pageConfig().getPublicationId(),
+        'token': this.saveSubscriptionRequest_['token'],
+        'isClosable': true,
+      }),
+      /* shouldFadeBody */ false
+    );
+    /** {!Promise<boolean>} */
+    return this.dialogManager_.openView(this.activityIframeView_).then(() => {
+      return this.activityIframeView_.port().then(port => {
+        return acceptPortResultData(
+            port,
+            feOrigin(),
+            /* requireOriginVerified */ true,
+            /* requireSecureChannel */ true);
+      }).then(result => {
+        return result['linked'];
+      }).catch(() => {
+        return false;
+      }).then(result => {
+        // The flow is complete.
+        this.dialogManager_.completeView(this.activityIframeView_);
+        return result;
+      });
     });
-    return this.dialogManager_.openView(this.activityIframeView_);
   }
 }

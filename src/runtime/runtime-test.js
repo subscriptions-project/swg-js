@@ -611,6 +611,28 @@ describes.realWin('Runtime', {}, env => {
       return resultPromise;
     });
 
+    it('should directly call "createButton"', () => {
+      const options = {};
+      const callback = () => {};
+      const button = win.document.createElement('button');
+      const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
+        return button;
+      });
+      const result = runtime.createButton(options, callback);
+      expect(result).to.equal(button);
+      expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
+    });
+
+    it('should directly call "attachButton"', () => {
+      const options = {};
+      const callback = () => {};
+      const button = win.document.createElement('button');
+      const stub = sandbox.stub(runtime.buttonApi_, 'attach');
+      runtime.attachButton(button, options, callback);
+      expect(stub).to.be.calledOnce
+          .calledWithExactly(button, options, callback);
+    });
+
     it('should use default fetcher', () => {
       const ents = {};
       const xhrFetchStub = sandbox.stub(
@@ -697,6 +719,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         'link[rel="preconnect prefetch"][href*="/pay?"]');
     expect(el).to.exist;
     expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
+  });
+
+  it('should inject button stylesheet', () => {
+    const el = win.document.head.querySelector(
+        'link[href*="swg-button.css"]');
+    expect(el).to.exist;
+    expect(el.getAttribute('href'))
+        .to.equal('https://news.google.com/swg/js/v1/swg-button.css');
   });
 
   it('should should initialize deps', () => {
@@ -955,9 +985,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       const promise = new Promise(resolve => {
         runtime.setOnFlowStarted(resolve);
       });
-      runtime.callbacks().triggerFlowStarted('flow1');
+      runtime.callbacks().triggerFlowStarted('flow1', {a: 1});
       return promise.then(result => {
-        expect(result).to.deep.equal({flow: 'flow1'});
+        expect(result).to.deep.equal({flow: 'flow1', data: {a: 1}});
       });
     });
 
@@ -965,9 +995,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       const promise = new Promise(resolve => {
         runtime.setOnFlowCanceled(resolve);
       });
-      runtime.callbacks().triggerFlowCanceled('flow1');
+      runtime.callbacks().triggerFlowCanceled('flow1', {b: 2});
       return promise.then(result => {
-        expect(result).to.deep.equal({flow: 'flow1'});
+        expect(result).to.deep.equal({flow: 'flow1', data: {b: 2}});
       });
     });
 
@@ -984,6 +1014,28 @@ describes.realWin('ConfiguredRuntime', {}, env => {
             .to.deep.equal('test');
         expect(resultPromise).to.deep.equal(newPromise);
       });
+    });
+
+    it('should directly call "createButton"', () => {
+      const options = {};
+      const callback = () => {};
+      const button = win.document.createElement('button');
+      const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
+        return button;
+      });
+      const result = runtime.createButton(options, callback);
+      expect(result).to.equal(button);
+      expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
+    });
+
+    it('should directly call "attachButton"', () => {
+      const options = {};
+      const callback = () => {};
+      const button = win.document.createElement('button');
+      const stub = sandbox.stub(runtime.buttonApi_, 'attach');
+      runtime.attachButton(button, options, callback);
+      expect(stub).to.be.calledOnce
+          .calledWithExactly(button, options, callback);
     });
   });
 });
