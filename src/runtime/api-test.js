@@ -52,8 +52,8 @@ describes.sandboxed('Entitlements', {}, () => {
 
   it('should test products', () => {
     const list = [
-      new Entitlement('', ['product1', 'product2'], 'token1'),
-      new Entitlement('', ['product2', 'product3'], 'token2'),
+      new Entitlement('source1', ['product1', 'product2'], 'token1'),
+      new Entitlement('source2', ['product2', 'product3'], 'token2'),
     ];
     const ents = new Entitlements('service1', 'RaW', list, 'product1', ackSpy);
     expect(ents.enablesAny()).to.be.true;
@@ -67,6 +67,37 @@ describes.sandboxed('Entitlements', {}, () => {
     expect(ents.getEntitlementFor('product3')).to.equal(list[1]);
     expect(ents.getEntitlementFor('product4')).to.be.null;
     expect(ents.getEntitlementForThis()).to.equal(list[0]);
+
+    expect(ents.enablesAny('source1')).to.be.true;
+    expect(ents.enablesAny('source2')).to.be.true;
+    expect(ents.enablesAny('source3')).to.be.false;  // Unknown source.
+    expect(ents.enablesThis('source1')).to.be.true;
+    expect(ents.enablesThis('source2')).to.be.false;  // No "product1".
+    expect(ents.enablesThis('source3')).to.be.false;  // Unknown source.
+    expect(ents.enables('product1', 'source1')).to.be.true;
+    expect(ents.enables('product1', 'source2')).to.be.false;  // No "product1"
+    expect(ents.enables('product2', 'source1')).to.be.true;
+    expect(ents.enables('product2', 'source2')).to.be.true;
+    expect(ents.enables('product3', 'source1')).to.be.false;  // No "product3"
+    expect(ents.enables('product3', 'source2')).to.be.true;
+    expect(ents.enables('product4', 'source1')).to.be.false;  // No "product4".
+    expect(ents.enables('product4', 'source2')).to.be.false;  // No "product4".
+    expect(ents.getEntitlementFor('product1', 'source1')).to.equal(list[0]);
+    expect(ents.getEntitlementFor('product1', 'source2')).to.be.null;
+    expect(ents.getEntitlementFor('product2', 'source1')).to.equal(list[0]);
+    expect(ents.getEntitlementFor('product2', 'source2')).to.equal(list[1]);
+    expect(ents.getEntitlementFor('product3', 'source1')).to.be.null;
+    expect(ents.getEntitlementFor('product3', 'source2')).to.equal(list[1]);
+    expect(ents.getEntitlementFor('product4', 'source1')).to.be.null;
+    expect(ents.getEntitlementFor('product4', 'source2')).to.be.null;
+    expect(ents.getEntitlementForThis('source1')).to.equal(list[0]);
+    expect(ents.getEntitlementForThis('source2')).to.be.null;  // No "product1".
+    expect(ents.getEntitlementForThis('source3')).to.be.null;  // No source.
+
+    // Change current product.
+    ents.product_ = 'product2';
+    expect(ents.getEntitlementForThis('source1')).to.equal(list[0]);
+    expect(ents.getEntitlementForThis('source2')).to.equal(list[1]);
   });
 
   it('should clone', () => {
