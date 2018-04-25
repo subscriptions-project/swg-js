@@ -28,8 +28,8 @@ function onEntitlement(entitlements) {
     return;
   }
   // The entitlement enables this product.
-  // 1. Check if the publisher site knows this subscription.
-  if (!myKnownSubscription(entitlements)) {
+  // 1. Check if the publisher site has account/user info for this subscription.
+  if (!hasAssociatedUserAccount(entitlements)) {
     // 2. Start deferred account creation.
     subscriptions.completeDeferredAccountCreation(
         {entitlements: entitlements, consent: true})
