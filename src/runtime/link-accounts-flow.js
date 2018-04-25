@@ -205,7 +205,7 @@ export class LinkSaveFlow {
 
     /** TODO(sohanirao): Default request only for test */
     /** @type {!../api/subscriptions.SaveSubscriptionRequest} */
-    const defaultRequest = {token: 'test'};
+    const defaultRequest = {request: {token: 'test'}};
 
     /** @private {!../api/subscriptions.SaveSubscriptionRequest} */
     this.saveSubscriptionRequest_ = saveSubscriptionRequest || defaultRequest;
@@ -225,7 +225,7 @@ export class LinkSaveFlow {
       feUrl('/linksaveiframe'),
       feArgs({
         'publicationId': this.deps_.pageConfig().getPublicationId(),
-        'token': this.saveSubscriptionRequest_['token'],
+        'request': this.saveSubscriptionRequest_['request'],
         'isClosable': true,
       }),
       /* shouldFadeBody */ false

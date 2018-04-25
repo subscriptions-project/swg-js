@@ -602,8 +602,8 @@ describes.realWin('Runtime', {}, env => {
     it('should should delegate "saveSubscricption"', () => {
       const newPromise = new Promise(() => {});
       configuredRuntimeMock.expects('saveSubscription').once()
-          .withExactArgs({token: 'test'}).returns(newPromise);
-      const resultPromise = runtime.saveSubscription({token: 'test'})
+          .withExactArgs({request: {token: 'test'}}).returns(newPromise);
+      const resultPromise = runtime.saveSubscription({request: {token: 'test'}})
           .then(() => {
             expect(configureStub).to.be.calledOnce.calledWith(true);
             expect(resultPromise).to.deep.equal(newPromise);
@@ -1008,10 +1008,11 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         linkSaveFlow = this;
         return newPromise;
       });
-      const resultPromise = runtime.saveSubscription({token: 'test'});
+      const resultPromise = runtime.saveSubscription(
+          {request: {token: 'test'}});
       return runtime.documentParsed_.then(() => {
-        expect(linkSaveFlow.saveSubscriptionRequest_['token'])
-            .to.deep.equal('test');
+        expect(linkSaveFlow.saveSubscriptionRequest_['request'])
+            .to.deep.equal({token: 'test'});
         expect(resultPromise).to.deep.equal(newPromise);
       });
     });

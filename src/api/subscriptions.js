@@ -207,7 +207,7 @@ export let LoginRequest;
 
 /**
  * @typedef {{
- *   token: string,
+ *   request: {(token|authCode): string}
  * }}
  */
 export let SaveSubscriptionRequest;
