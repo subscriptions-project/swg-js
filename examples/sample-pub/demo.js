@@ -109,7 +109,7 @@ DemoPaywallController.prototype.subscribeResponse_ = function(promise) {
 DemoPaywallController.prototype.completeDeferredAccountCreation_ = function(
     entitlements) {
   // TODO(dvoytenko): decide when completion is needed for demo.
-  var accountFound = this.knownAccount;
+  var accountFound = this.knownAccount || true;
   if (accountFound) {
     // Nothing needs to be completed.
     return;
