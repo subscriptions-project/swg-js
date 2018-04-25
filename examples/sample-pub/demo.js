@@ -44,6 +44,9 @@ DemoPaywallController.prototype.start = function() {
 DemoPaywallController.prototype.onEntitlements_ = function(entitlementsPromise) {
   entitlementsPromise.then((function(entitlements) {
     log('got entitlements: ', entitlements, entitlements.enablesThis());
+    if (this.completeDeferredAccountCreation_(entitlements)) {
+      return;
+    }
     if (entitlements && entitlements.enablesThis()) {
       // Entitlements available: open access.
       this.openPaywall_();
@@ -96,6 +99,43 @@ DemoPaywallController.prototype.subscribeResponse_ = function(promise) {
     log('subscription response failed: ', reason);
     throw reason;
   });
+};
+
+/**
+ * @param {!Entitlements} entitlements
+ * @return {!Promise|undefined}
+ * @private
+ */
+DemoPaywallController.prototype.completeDeferredAccountCreation_ = function(
+    entitlements) {
+  // TODO(dvoytenko): decide when completion is needed for demo.
+  var accountFound = this.knownAccount;
+  if (accountFound) {
+    // Nothing needs to be completed.
+    return;
+  }
+  log('start deferred account creation');
+  return this.subscriptions.completeDeferredAccountCreation({
+    entitlements: entitlements,
+  }).then((function(response) {
+    // TODO: Start deferred account creation flow.
+    log('got deferred account response', response);
+    this.knownAccount = true;
+    var toast = document.getElementById('creating_account_toast');
+    var userEl = document.getElementById('creating_account_toast_user');
+    userEl.textContent = 'deferred/' + response.userData.email;
+    toast.style.display = 'block';
+    // TODO: wait for account creation to be complete.
+    setTimeout((function() {
+      response.complete().then((function() {
+        log('subscription has been confirmed');
+        // Open the content.
+        this.subscriptions.reset();
+        this.start();
+      }).bind(this));
+      toast.style.display = 'none';
+    }).bind(this), 3000);
+  }).bind(this));
 };
 
 /**
