@@ -1009,21 +1009,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
   });
 
-  it('should start saveSubscriptionFlow', () => {
-    let linkSaveFlow;
-    const newPromise = new Promise(() => {});
-    sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
-      linkSaveFlow = this;
-      return newPromise;
-    });
-    const resultPromise = runtime.saveSubscription({token: 'test'});
-    return runtime.documentParsed_.then(() => {
-      expect(linkSaveFlow.saveSubscriptionRequest_['token'])
-          .to.deep.equal('test');
-      expect(resultPromise).to.deep.equal(newPromise);
-    });
-  });
-
   it('should start PayStartFlow', () => {
     let flowInstance;
     const startStub = sandbox.stub(
