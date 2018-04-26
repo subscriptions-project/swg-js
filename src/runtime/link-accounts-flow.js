@@ -203,12 +203,8 @@ export class LinkSaveFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** TODO(sohanirao): Default request only for test */
-    /** @type {!../api/subscriptions.SaveSubscriptionRequest} */
-    const defaultRequest = {request: {token: 'test'}};
-
     /** @private {!../api/subscriptions.SaveSubscriptionRequest} */
-    this.saveSubscriptionRequest_ = saveSubscriptionRequest || defaultRequest;
+    this.saveSubscriptionRequest_ = saveSubscriptionRequest;
 
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
@@ -219,15 +215,43 @@ export class LinkSaveFlow {
    * @return {!Promise}
    */
   start() {
+    const iframeArgs = {
+      'publicationId': this.deps_.pageConfig().getPublicationId(),
+      'isClosable': true,
+    };
+    /** string */
+    const token = (() => {
+      if (this.saveSubscriptionRequest_) {
+        return this.saveSubscriptionRequest_['token'];
+      }
+      return null;
+    })();
+
+    /** string */
+    const authCode = (() => {
+      if (this.saveSubscriptionRequest_) {
+        return this.saveSubscriptionRequest_['authCode'];
+      }
+      return null;
+    })();
+
+    if (token) {
+      if (!authCode) {
+        iframeArgs['token'] = token;
+      } else {
+        throw new Error('Both authCode and token is available');
+      }
+    } else if (authCode) {
+      iframeArgs['authCode'] = authCode;
+    } else {
+      throw new Error('Neither token or authCode is available');
+    }
+
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       feUrl('/linksaveiframe'),
-      feArgs({
-        'publicationId': this.deps_.pageConfig().getPublicationId(),
-        'request': this.saveSubscriptionRequest_['request'],
-        'isClosable': true,
-      }),
+      feArgs(iframeArgs),
       /* shouldFadeBody */ false
     );
     /** {!Promise<boolean>} */

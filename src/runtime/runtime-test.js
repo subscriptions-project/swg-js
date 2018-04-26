@@ -599,11 +599,23 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "saveSubscricption"', () => {
+    it('should should delegate "saveSubscricption" with token', () => {
       const newPromise = new Promise(() => {});
       configuredRuntimeMock.expects('saveSubscription').once()
-          .withExactArgs({request: {token: 'test'}}).returns(newPromise);
-      const resultPromise = runtime.saveSubscription({request: {token: 'test'}})
+          .withExactArgs({token: 'test'}).returns(newPromise);
+      const resultPromise = runtime.saveSubscription({token: 'test'})
+          .then(() => {
+            expect(configureStub).to.be.calledOnce.calledWith(true);
+            expect(resultPromise).to.deep.equal(newPromise);
+          });
+      return resultPromise;
+    });
+
+    it('should should delegate "saveSubscricption" with authCode', () => {
+      const newPromise = new Promise(() => {});
+      configuredRuntimeMock.expects('saveSubscription').once()
+          .withExactArgs({authCode: 'testCode'}).returns(newPromise);
+      const resultPromise = runtime.saveSubscription({authCode: 'testCode'})
           .then(() => {
             expect(configureStub).to.be.calledOnce.calledWith(true);
             expect(resultPromise).to.deep.equal(newPromise);
@@ -1001,18 +1013,32 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
     });
 
-    it('should start saveSubscriptionFlow', () => {
+    it('should start saveSubscriptionFlow with token', () => {
       let linkSaveFlow;
       const newPromise = new Promise(() => {});
       sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
         linkSaveFlow = this;
         return newPromise;
       });
-      const resultPromise = runtime.saveSubscription(
-          {request: {token: 'test'}});
+      const resultPromise = runtime.saveSubscription({token: 'test'});
       return runtime.documentParsed_.then(() => {
-        expect(linkSaveFlow.saveSubscriptionRequest_['request'])
-            .to.deep.equal({token: 'test'});
+        expect(linkSaveFlow.saveSubscriptionRequest_['token'])
+            .to.deep.equal('test');
+        expect(resultPromise).to.deep.equal(newPromise);
+      });
+    });
+
+    it('should start saveSubscriptionFlow with authCode', () => {
+      let linkSaveFlow;
+      const newPromise = new Promise(() => {});
+      sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
+        linkSaveFlow = this;
+        return newPromise;
+      });
+      const resultPromise = runtime.saveSubscription({authCode: 'testCode'});
+      return runtime.documentParsed_.then(() => {
+        expect(linkSaveFlow.saveSubscriptionRequest_['authCode'])
+            .to.deep.equal('testCode');
         expect(resultPromise).to.deep.equal(newPromise);
       });
     });
