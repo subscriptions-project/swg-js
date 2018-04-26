@@ -18,6 +18,9 @@ import {ActivityPorts} from 'web-activities/activity-ports';
 import {ButtonApi} from './button-api';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
+import {
+  DeferredAccountCreationResponse,
+} from '../api/deferred-account-creation';
 import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc, resolveDoc} from '../model/doc';
@@ -46,6 +49,7 @@ import {
 import {Preconnect} from '../utils/preconnect';
 import {Storage} from './storage';
 import {Subscriptions} from '../api/subscriptions';
+import {UserData} from '../api/user-data';
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
 
@@ -282,6 +286,12 @@ export class Runtime {
   subscribe(sku) {
     return this.configured_(true)
         .then(runtime => runtime.subscribe(sku));
+  }
+
+  /** @override */
+  completeDeferredAccountCreation(opt_options) {
+    return this.configured_(true)
+        .then(runtime => runtime.completeDeferredAccountCreation(opt_options));
   }
 
   /** @override */
@@ -538,6 +548,27 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  completeDeferredAccountCreation(opt_options) {
+    // TODO(dvoytenko): implement.
+    const entitlements = /** @type {!../api/entitlements.Entitlements} */ (
+        opt_options && opt_options.entitlements);
+    const userData = new UserData('FAKE_TOKEN', {
+      'sub': 'fake_user_id',
+      'email': 'fake_user@example.com',
+      'email_verified': true,
+      'name': 'Fake User',
+      'given_name': 'Fake',
+      'family_name': 'User',
+      'picture': '',
+    });
+    const completeHandler = () => Promise.resolve();
+    return Promise.resolve(new DeferredAccountCreationResponse(
+        entitlements,
+        userData,
+        completeHandler));
+  }
+
+  /** @override */
   setOnFlowStarted(callback) {
     this.callbacks_.setOnFlowStarted(callback);
   }
@@ -576,6 +607,8 @@ function createPublicRuntime(runtime) {
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
+    completeDeferredAccountCreation:
+        runtime.completeDeferredAccountCreation.bind(runtime),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
     setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
     setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
