@@ -219,30 +219,15 @@ export class LinkSaveFlow {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'isClosable': true,
     };
-    /** string */
-    const token = (() => {
-      if (this.request_) {
-        return this.request_['token'];
-      }
-      return null;
-    })();
 
-    /** string */
-    const authCode = (() => {
-      if (this.request_) {
-        return this.request_['authCode'];
-      }
-      return null;
-    })();
-
-    if (token) {
-      if (!authCode) {
-        iframeArgs['token'] = token;
+    if (this.request_.token) {
+      if (!this.request_.authCode) {
+        iframeArgs['token'] = this.request_.token;
       } else {
         throw new Error('Both authCode and token are available');
       }
-    } else if (authCode) {
-      iframeArgs['authCode'] = authCode;
+    } else if (this.request_.authCode) {
+      iframeArgs['authCode'] = this.request_.authCode;
     } else {
       throw new Error('Neither token or authCode is available');
     }

@@ -208,7 +208,6 @@ export let LoginRequest;
 /**
  * Properties:
  * - one and only one of "token" or "authCode" and
- * - corresponding value
  * @const {Object<string, string>}
  */
 export let SaveSubscriptionRequest;

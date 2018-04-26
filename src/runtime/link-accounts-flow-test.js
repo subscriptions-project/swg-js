@@ -337,27 +337,21 @@ describes.realWin('LinkSaveFlow', {}, env => {
     return linkSaveFlow.start();
   });
 
-  it('should throw error both token and authCode', () => {
+  it('should throw error both token and authCode', done => {
     linkSaveFlow = new LinkSaveFlow(
       runtime, {token: 'token', authCode: 'testCode'});
-    return linkSaveFlow.start().then(() => {
-      throw new Error('must have failed');
-    }, reason => {
-      expect(() => {
-        throw reason;
-      }).to.throw(/Both authCode and token are available/);
-    });
+    expect(() => {
+      linkSaveFlow.start();
+    }).to.throw(/Both authCode and token are available/);
+    done();
   });
 
-  it('should throw error no token or authCode', () => {
-    linkSaveFlow = new LinkSaveFlow(runtime);
-    return linkSaveFlow.start().then(() => {
-      throw new Error('must have failed');
-    }, reason => {
-      expect(() => {
-        throw reason;
-      }).to.throw(/Neither token or authCode is available/);
-    });
+  it('should throw error no token or authCode', done => {
+    linkSaveFlow = new LinkSaveFlow(runtime, {});
+    expect(() => {
+      linkSaveFlow.start();
+    }).to.throw(/Neither token or authCode is available/);
+    done();
   });
 
   it('should return false when cancelled', () => {
