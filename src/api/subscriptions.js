@@ -207,8 +207,11 @@ export let LoginRequest;
 
 /**
  * Properties:
- * - one and only one of "token" or "authCode" and
- * @const {Object<string, string>}
+ * - one and only one of "token" or "authCode"
+ * @typedef {{
+ *   token: (string|undefined),
+ *   authCode: (string|undefined),
+ * }}
  */
 export let SaveSubscriptionRequest;
 
