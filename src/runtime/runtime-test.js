@@ -1022,7 +1022,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
       const resultPromise = runtime.saveSubscription({token: 'test'});
       return runtime.documentParsed_.then(() => {
-        expect(linkSaveFlow.saveSubscriptionRequest_['token'])
+        expect(linkSaveFlow.request_['token'])
             .to.deep.equal('test');
         expect(resultPromise).to.deep.equal(newPromise);
       });
@@ -1037,7 +1037,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
       const resultPromise = runtime.saveSubscription({authCode: 'testCode'});
       return runtime.documentParsed_.then(() => {
-        expect(linkSaveFlow.saveSubscriptionRequest_['authCode'])
+        expect(linkSaveFlow.request_['authCode'])
             .to.deep.equal('testCode');
         expect(resultPromise).to.deep.equal(newPromise);
       });

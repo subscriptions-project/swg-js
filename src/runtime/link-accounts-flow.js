@@ -188,9 +188,9 @@ export class LinkSaveFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.SaveSubscriptionRequest} saveSubscriptionRequest
+   * @param {!../api/subscriptions.SaveSubscriptionRequest} request
    */
-  constructor(deps, saveSubscriptionRequest) {
+  constructor(deps, request) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -204,7 +204,7 @@ export class LinkSaveFlow {
     this.dialogManager_ = deps.dialogManager();
 
     /** @private {!../api/subscriptions.SaveSubscriptionRequest} */
-    this.saveSubscriptionRequest_ = saveSubscriptionRequest;
+    this.request_ = request;
 
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
@@ -221,16 +221,16 @@ export class LinkSaveFlow {
     };
     /** string */
     const token = (() => {
-      if (this.saveSubscriptionRequest_) {
-        return this.saveSubscriptionRequest_['token'];
+      if (this.request_) {
+        return this.request_['token'];
       }
       return null;
     })();
 
     /** string */
     const authCode = (() => {
-      if (this.saveSubscriptionRequest_) {
-        return this.saveSubscriptionRequest_['authCode'];
+      if (this.request_) {
+        return this.request_['authCode'];
       }
       return null;
     })();
