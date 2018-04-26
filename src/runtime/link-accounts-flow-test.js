@@ -344,7 +344,8 @@ describes.realWin('LinkSaveFlow', {}, env => {
       throw new Error('must have failed');
     }, reason => {
       expect(() => {
-        throw reason;}).to.throw(/Both authCode and token are available/);
+        throw reason;
+      }).to.throw(/Both authCode and token are available/);
     });
   });
 
@@ -354,7 +355,8 @@ describes.realWin('LinkSaveFlow', {}, env => {
       throw new Error('must have failed');
     }, reason => {
       expect(() => {
-        throw reason;}).to.throw(/Neither token or authCode is available/);
+        throw reason;
+      }).to.throw(/Neither token or authCode is available/);
     });
   });
 

@@ -239,7 +239,7 @@ export class LinkSaveFlow {
       if (!authCode) {
         iframeArgs['token'] = token;
       } else {
-        throw new Error('Both authCode and token is available');
+        throw new Error('Both authCode and token are available');
       }
     } else if (authCode) {
       iframeArgs['authCode'] = authCode;
