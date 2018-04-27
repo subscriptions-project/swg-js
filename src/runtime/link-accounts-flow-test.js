@@ -295,7 +295,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
-    linkSaveFlow = new LinkSaveFlow(runtime, {token: 'test'});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
@@ -308,7 +307,8 @@ describes.realWin('LinkSaveFlow', {}, env => {
     callbacksMock.verify();
   });
 
-  it('should have valid LinkSaveFlow constructed', () => {
+  it('should have valid LinkSaveFlow constructed with token', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, {token: 'test'});
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
@@ -322,7 +322,38 @@ describes.realWin('LinkSaveFlow', {}, env => {
     return linkSaveFlow.start();
   });
 
+  it('should have valid LinkSaveFlow constructed with authCode', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, {authCode: 'testCode'});
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          authCode: 'testCode',
+          isClosable: true,
+        })
+        .returns(Promise.resolve(port));
+    return linkSaveFlow.start();
+  });
+
+  it('should throw error both token and authCode', () => {
+    linkSaveFlow = new LinkSaveFlow(
+      runtime, {token: 'token', authCode: 'testCode'});
+    expect(() => {
+      linkSaveFlow.start();
+    }).to.throw(/Both authCode and token are available/);
+  });
+
+  it('should throw error no token or authCode', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, {});
+    expect(() => {
+      linkSaveFlow.start();
+    }).to.throw(/Neither token or authCode is available/);
+  });
+
   it('should return false when cancelled', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, {token: 'test'});
     port.acceptResult = () => Promise.reject(
         new DOMException('cancel', 'AbortError'));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -332,6 +363,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   });
 
   it('should return false when linking not accepted', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, {token: 'test'});
     const result = new ActivityResult(ActivityResultCode.OK,
       {'linked': false},
       'IFRAME', location.origin, true, true);
@@ -343,6 +375,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   });
 
   it('should return false if error occurs', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, {token: 'test'});
     port.acceptResult = () => Promise.reject(
         new Error('linking failed'));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -352,6 +385,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   });
 
   it('should return true when linking succeeds', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, {token: 'test'});
     const result = new ActivityResult(ActivityResultCode.OK,
       {'linked': true},
       'IFRAME', location.origin, true, true);

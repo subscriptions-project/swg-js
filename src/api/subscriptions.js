@@ -221,8 +221,13 @@ export let LoginRequest;
 
 
 /**
+ * Properties:
+ * - one and only one of "token" or "authCode"
+ * AuthCode reference: https://developers.google.com/actions/identity/oauth2-code-flow
+ * Token reference: https://developers.google.com/actions/identity/oauth2-implicit-flow
  * @typedef {{
- *   token: string,
+ *   token: (string|undefined),
+ *   authCode: (string|undefined),
  * }}
  */
 export let SaveSubscriptionRequest;
