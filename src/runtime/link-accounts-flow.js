@@ -188,9 +188,9 @@ export class LinkSaveFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.SaveSubscriptionRequest} saveSubscriptionRequest
+   * @param {!../api/subscriptions.SaveSubscriptionRequest} request
    */
-  constructor(deps, saveSubscriptionRequest) {
+  constructor(deps, request) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -203,12 +203,8 @@ export class LinkSaveFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** TODO(sohanirao): Default request only for test */
-    /** @type {!../api/subscriptions.SaveSubscriptionRequest} */
-    const defaultRequest = {token: 'test'};
-
     /** @private {!../api/subscriptions.SaveSubscriptionRequest} */
-    this.saveSubscriptionRequest_ = saveSubscriptionRequest || defaultRequest;
+    this.request_ = request;
 
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
@@ -219,15 +215,28 @@ export class LinkSaveFlow {
    * @return {!Promise}
    */
   start() {
+    const iframeArgs = {
+      'publicationId': this.deps_.pageConfig().getPublicationId(),
+      'isClosable': true,
+    };
+
+    if (this.request_.token) {
+      if (!this.request_.authCode) {
+        iframeArgs['token'] = this.request_.token;
+      } else {
+        throw new Error('Both authCode and token are available');
+      }
+    } else if (this.request_.authCode) {
+      iframeArgs['authCode'] = this.request_.authCode;
+    } else {
+      throw new Error('Neither token or authCode is available');
+    }
+
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       feUrl('/linksaveiframe'),
-      feArgs({
-        'publicationId': this.deps_.pageConfig().getPublicationId(),
-        'token': this.saveSubscriptionRequest_['token'],
-        'isClosable': true,
-      }),
+      feArgs(iframeArgs),
       /* shouldFadeBody */ false
     );
     /** {!Promise<boolean>} */
