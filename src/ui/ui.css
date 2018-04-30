@@ -19,10 +19,20 @@ body {
   margin: 0;
 }
 
+swg-container,
+swg-loading,
+swg-loading-animate,
+swg-loading-image {
+  display: block;
+}
+
 swg-loading-container {
-  position: absolute !important;
   width: 100% !important;
-  height: 148px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 148px !important;
+  height: 100% !important;
   bottom: 0 !important;
   margin-top: 5px !important;
   z-index: 2147483647 !important;
@@ -44,19 +54,7 @@ swg-loading-container {
   }
 }
 
-swg-container,
-swg-loading-container,
-swg-loading,
-swg-loading-animate,
-swg-loading-image {
-  display: block;
-}
-
 swg-loading {
-  position: absolute !important;
-  top: 40% !important;
-  left: 45% !important;
-  transform: translate(-50%, -50%) !important;
   z-index: 2147483647 !important;
   width: 36px;
   height: 36px;

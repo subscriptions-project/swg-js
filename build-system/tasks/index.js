@@ -15,6 +15,7 @@
  */
 'use strict';
 
+require('./assets');
 require('./babel-helpers');
 require('./builders');
 require('./changelog');

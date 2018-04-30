@@ -19,7 +19,7 @@ import {
   ActivityResult,
 } from 'web-activities/activity-ports';
 import {
-  acceptPortResult,
+  acceptPortResultData,
 } from './../utils/activity-utils';
 import {ConfiguredRuntime} from './runtime';
 import {
@@ -48,7 +48,7 @@ describes.realWin('OffersFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
-    offersFlow = new OffersFlow(runtime);
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
@@ -80,6 +80,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: false,
           list: 'default',
           skus: null,
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -104,6 +105,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: false,
           list: 'default',
           skus: null,
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -121,6 +123,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: false,
           list: 'other',
           skus: null,
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -138,6 +141,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: false,
           list: 'default',
           skus: ['sku1', 'sku2'],
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -155,6 +159,7 @@ describes.realWin('OffersFlow', {}, env => {
           showNative: true,
           list: 'default',
           skus: null,
+          isClosable: false,
         })
         .returns(Promise.resolve(port));
     offersFlow = new OffersFlow(runtime);
@@ -253,6 +258,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
           productId: 'pub1:label1',
           list: 'default',
           skus: null,
+          isClosable: true,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -276,6 +282,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
           productId: 'pub1:label1',
           list: 'default',
           skus: null,
+          isClosable: true,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -293,6 +300,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
           productId: 'pub1:label1',
           list: 'other',
           skus: ['sku1'],
+          isClosable: true,
         })
         .returns(Promise.resolve(port));
     return offersFlow.start();
@@ -377,6 +385,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
           list: 'default',
           skus: null,
           showNative: false,
+          isClosable: true,
         })
         .returns(Promise.resolve(port));
     return abbrvOfferFlow.start();
@@ -395,6 +404,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
           list: 'default',
           skus: null,
           showNative: true,
+          isClosable: true,
         })
         .returns(Promise.resolve(port));
     return abbrvOfferFlow.start();
@@ -419,6 +429,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
           list: 'default',
           skus: null,
           showNative: false,
+          isClosable: true,
         })
         .returns(Promise.resolve(port));
     return abbrvOfferFlow.start();
@@ -437,6 +448,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
           list: 'other',
           skus: ['sku1'],
           showNative: false,
+          isClosable: true,
         })
         .returns(Promise.resolve(port));
     return abbrvOfferFlow.start();
@@ -488,11 +500,12 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
       return Promise.reject(error);
     });
     return abbrvOfferFlow.start().then(() => {
-      return acceptPortResult(port, 'https://example.com', true, true).then(() => {
-        throw new Error('must have failed');
-      }, reason => {
-        expect(reason.name).to.equal('AbortError');
-      });
+      return acceptPortResultData(port, 'https://example.com', true, true)
+          .then(() => {
+            throw new Error('must have failed');
+          }, reason => {
+            expect(reason.name).to.equal('AbortError');
+          });
       expect(offersStartStub).to.not.be.called;
     });
   });

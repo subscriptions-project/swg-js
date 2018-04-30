@@ -166,7 +166,7 @@ export class Callbacks {
   }
 
   /**
-   * @param {function({flow: string})} callback
+   * @param {function({flow: string, data: !Object})} callback
    */
   setOnFlowStarted(callback) {
     this.setCallback_(CallbackId.FLOW_STARTED, callback);
@@ -174,14 +174,18 @@ export class Callbacks {
 
   /**
    * @param {string} flow
+   * @param {!Object=} opt_data
    * @return {boolean} Whether the callback has been found.
    */
-  triggerFlowStarted(flow) {
-    return this.trigger_(CallbackId.FLOW_STARTED, {flow});
+  triggerFlowStarted(flow, opt_data) {
+    return this.trigger_(CallbackId.FLOW_STARTED, {
+      flow,
+      data: opt_data || {},
+    });
   }
 
   /**
-   * @param {function({flow: string})} callback
+   * @param {function({flow: string, data: !Object})} callback
    */
   setOnFlowCanceled(callback) {
     this.setCallback_(CallbackId.FLOW_CANCELED, callback);
@@ -189,10 +193,14 @@ export class Callbacks {
 
   /**
    * @param {string} flow
+   * @param {!Object=} opt_data
    * @return {boolean} Whether the callback has been found.
    */
-  triggerFlowCanceled(flow) {
-    return this.trigger_(CallbackId.FLOW_CANCELED, {flow});
+  triggerFlowCanceled(flow, opt_data) {
+    return this.trigger_(CallbackId.FLOW_CANCELED, {
+      flow,
+      data: opt_data || {},
+    });
   }
 
   /**
