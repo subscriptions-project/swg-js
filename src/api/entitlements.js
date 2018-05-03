@@ -123,6 +123,22 @@ export class Entitlements {
   }
 
   /**
+   * @param {string} source
+   * @return {?Entitlement}
+   */
+  getEntitlementForSource(source) {
+    if (this.entitlements.length > 0) {
+      for (let i = 0; i < this.entitlements.length; i++) {
+        if (this.entitlements[i].subscriptionToken &&
+            (source == this.entitlements[i].source)) {
+          return this.entitlements[i];
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * A 3p site should call this method to acknowledge that it "saw" and
    * "understood" entitlements.
    */

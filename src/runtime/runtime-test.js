@@ -30,6 +30,7 @@ import {
   installRuntime,
   getRuntime,
 } from './runtime';
+import {DeferredAccountFlow} from './deferred-account-flow';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {Fetcher, XhrFetcher} from './fetcher';
@@ -892,11 +893,21 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should start "completeDeferredAccountCreation"', () => {
-    const request = {entitlements: 'ents'};
+    const ents = {};
+    const request = {entitlements: ents};
+    const resp = {};
+    let flow;
+    const startStub = sandbox.stub(
+        DeferredAccountFlow.prototype,
+        'start',
+        function() {
+          flow = this;
+          return Promise.resolve(resp);
+        });
     return runtime.completeDeferredAccountCreation(request).then(result => {
-      expect(result.entitlements).to.equal(request.entitlements);
-      expect(result.userData.email).to.equal('fake_user@example.com');
-      return result.complete();
+      expect(startStub).to.be.calledOnce.calledWithExactly();
+      expect(result).to.equal(resp);
+      expect(flow.options_.entitlements).to.equal(ents);
     });
   });
 

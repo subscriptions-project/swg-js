@@ -18,9 +18,7 @@ import {ActivityPorts} from 'web-activities/activity-ports';
 import {ButtonApi} from './button-api';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
-import {
-  DeferredAccountCreationResponse,
-} from '../api/deferred-account-creation';
+import {DeferredAccountFlow} from './deferred-account-flow';
 import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc, resolveDoc} from '../model/doc';
@@ -49,7 +47,6 @@ import {
 import {Preconnect} from '../utils/preconnect';
 import {Storage} from './storage';
 import {Subscriptions} from '../api/subscriptions';
-import {UserData} from '../api/user-data';
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
 
@@ -549,23 +546,9 @@ export class ConfiguredRuntime {
 
   /** @override */
   completeDeferredAccountCreation(opt_options) {
-    // TODO(dvoytenko): implement.
-    const entitlements = /** @type {!../api/entitlements.Entitlements} */ (
-        opt_options && opt_options.entitlements);
-    const userData = new UserData('FAKE_TOKEN', {
-      'sub': 'fake_user_id',
-      'email': 'fake_user@example.com',
-      'email_verified': true,
-      'name': 'Fake User',
-      'given_name': 'Fake',
-      'family_name': 'User',
-      'picture': '',
+    return this.documentParsed_.then(() => {
+      return new DeferredAccountFlow(this, opt_options || null).start();
     });
-    const completeHandler = () => Promise.resolve();
-    return Promise.resolve(new DeferredAccountCreationResponse(
-        entitlements,
-        userData,
-        completeHandler));
   }
 
   /** @override */
