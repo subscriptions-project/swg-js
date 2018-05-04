@@ -23,6 +23,7 @@ import {
 
 const NO_ANIMATE = false;
 const ANIMATE = true;
+const HIDDEN = true;
 
 
 describes.realWin('Dialog', {}, env => {
@@ -99,8 +100,34 @@ describes.realWin('Dialog', {}, env => {
       expect(graypaneStubs.show).to.not.be.called;
     });
 
+    it('should open dialog as hidden', function* () {
+      immediate();
+      dialog.open(ANIMATE, HIDDEN);
+      yield dialog.animating_;
+
+      expect(getStyle(dialog.getElement(), 'visibility'))
+          .to.equal('hidden');
+      expect(getStyle(dialog.getElement(), 'opacity'))
+          .to.equal('0');
+      expect(graypaneStubs.attach).to.be.calledOnce;
+      expect(graypaneStubs.show).to.not.be.called;
+    });
+
     it('should build the view', function* () {
       const openedDialog = yield dialog.open(NO_ANIMATE);
+      yield openedDialog.openView(view);
+      expect(computedStyle(win, element)['opacity']).to.equal('1');
+      expect(computedStyle(win, element)['max-height']).to.equal('100%');
+      expect(computedStyle(win, element)['max-width']).to.equal('100%');
+      expect(computedStyle(win, element)['min-height']).to.equal('100%');
+      expect(computedStyle(win, element)['min-width']).to.equal('100%');
+      expect(computedStyle(win, element)['height']).to.match(/px$/g);
+      expect(computedStyle(win, element)['width']).to.match(/px$/g);
+      expect(graypaneStubs.show).to.be.calledOnce.calledWith(ANIMATE);
+    });
+
+    it('should build the view and show hidden iframe', function* () {
+      const openedDialog = yield dialog.open(NO_ANIMATE, HIDDEN);
       yield openedDialog.openView(view);
       expect(computedStyle(win, element)['opacity']).to.equal('1');
       expect(computedStyle(win, element)['max-height']).to.equal('100%');

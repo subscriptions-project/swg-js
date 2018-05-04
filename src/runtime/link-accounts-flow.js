@@ -240,22 +240,23 @@ export class LinkSaveFlow {
       /* shouldFadeBody */ false
     );
     /** {!Promise<boolean>} */
-    return this.dialogManager_.openView(this.activityIframeView_).then(() => {
-      return this.activityIframeView_.port().then(port => {
-        return acceptPortResultData(
-            port,
-            feOrigin(),
-            /* requireOriginVerified */ true,
-            /* requireSecureChannel */ true);
-      }).then(result => {
-        return result['linked'];
-      }).catch(() => {
-        return false;
-      }).then(result => {
-        // The flow is complete.
-        this.dialogManager_.completeView(this.activityIframeView_);
-        return result;
-      });
-    });
+    return this.dialogManager_.openView(this.activityIframeView_,
+        /* animated */ true, /* hidden */ true).then(() => {
+          return this.activityIframeView_.port().then(port => {
+            return acceptPortResultData(
+                port,
+                feOrigin(),
+                /* requireOriginVerified */ true,
+                /* requireSecureChannel */ true);
+          }).then(result => {
+            return result['linked'];
+          }).catch(() => {
+            return false;
+          }).then(result => {
+            // The flow is complete.
+            this.dialogManager_.completeView(this.activityIframeView_);
+            return result;
+          });
+        });
   }
 }

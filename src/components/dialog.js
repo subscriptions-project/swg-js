@@ -120,14 +120,18 @@ export class Dialog {
 
     /** @private {?Promise} */
     this.animating_ = null;
+
+    /** @private {boolean} */
+    this.hidden_ = false;
   }
 
   /**
    * Opens the dialog and builds the iframe container.
    * @param {boolean=} animated
+   * @param {boolean=} hidden
    * @return {!Promise<!Dialog>}
    */
-  open(animated = true) {
+  open(animated = true, hidden = false) {
     const iframe = this.iframe_;
     if (iframe.isConnected()) {
       throw new Error('already opened');
@@ -136,16 +140,15 @@ export class Dialog {
     // Attach.
     this.doc_.getBody().appendChild(iframe.getElement());  // Fires onload.
     this.graypane_.attach();
+    this.hidden_ = hidden;
 
-    if (animated) {
-      this.animate_(() => {
-        setImportantStyles(iframe.getElement(), {
-          'transform': 'translateY(100%)',
-        });
-        return transition(iframe.getElement(), {
-          'transform': 'translateY(0)',
-        }, 300, 'ease-out');
+    if (hidden) {
+      setImportantStyles(iframe.getElement(), {
+        'visibility': 'hidden',
+        'opacity': 0,
       });
+    } else {
+      this.show_(/* showNow */ true);
     }
 
     return iframe.whenReady().then(() => {
@@ -261,15 +264,44 @@ export class Dialog {
     this.getContainer().appendChild(view.getElement());
 
     // If the current view should fade the parent document.
-    if (view.shouldFadeBody()) {
+    if (view.shouldFadeBody() && !this.hidden_) {
       this.graypane_.show(/* animate */ true);
     }
+
     return view.init(this).then(() => {
       setImportantStyles(view.getElement(), {
         'opacity': 1,
       });
+      if (this.hidden_ && view.shouldFadeBody()) {
+        this.graypane_.show(/* animated */ true);
+      }
+      this.show_();
+      this.hidden_ = false;
       this.setLoading(false);
     });
+  }
+
+  /**
+   * Show the iframe
+   * @private
+   * @param {boolean=} showNow
+   */
+  show_(showNow = this.hidden_) {
+    // TODO(sohanirao): How to display when animated = false?
+    if (showNow) {
+      this.animate_(() => {
+        setImportantStyles(this.getElement(), {
+          'transform': 'translateY(100%)',
+          'opactiy': 1,
+          'visibility': 'visible',
+        });
+        return transition(this.getElement(), {
+          'transform': 'translateY(0)',
+          'opacity': 1,
+          'visiblity': 'visible',
+        }, 300, 'ease-out');
+      });
+    }
   }
 
   /**
