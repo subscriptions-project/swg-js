@@ -86,6 +86,8 @@ export class Entitlements {
   }
 
   /**
+   * Whether these entitlements enable the specified product, optionally also
+   * restricting the source.
    * @param {?string} product
    * @param {string=} opt_source
    * @return {boolean}
@@ -98,6 +100,8 @@ export class Entitlements {
   }
 
   /**
+   * Returns the first matching entitlement for the current product,
+   * optionally also matching the specified source.
    * @param {string=} opt_source
    * @return {?Entitlement}
    */
@@ -106,6 +110,8 @@ export class Entitlements {
   }
 
   /**
+   * Returns the first matching entitlement for the specified product,
+   * optionally also matching the specified source.
    * @param {?string} product
    * @param {string=} opt_source
    * @return {?Entitlement}
@@ -123,6 +129,8 @@ export class Entitlements {
   }
 
   /**
+   * Returns the first matching entitlement for the specified source w/o
+   * matching any specific products.
    * @param {string} source
    * @return {?Entitlement}
    */
