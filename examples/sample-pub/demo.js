@@ -114,6 +114,10 @@ DemoPaywallController.prototype.completeDeferredAccountCreation_ = function(
     // Nothing needs to be completed.
     return;
   }
+  if (!entitlements.getEntitlementForSource('google')) {
+    // No Google entitlement.
+    return;
+  }
   log('start deferred account creation');
   return this.subscriptions.completeDeferredAccountCreation({
     entitlements: entitlements,

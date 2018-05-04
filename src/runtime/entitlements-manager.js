@@ -128,6 +128,46 @@ export class EntitlementsManager {
   }
 
   /**
+   * The JSON must either contain a "signedEntitlements" with JWT, or
+   * "entitlements" field with plain JSON object.
+   * @param {!Object} json
+   * @return {!Entitlements}
+   */
+  parseEntitlements(json) {
+    const ackHandler = this.ack_.bind(this);
+    const signedData = json['signedEntitlements'];
+    if (signedData) {
+      const jwt = this.jwtHelper_.decode(signedData);
+      const entitlementsClaim = jwt['entitlements'];
+      if (entitlementsClaim) {
+        return new Entitlements(
+            SERVICE_ID,
+            signedData,
+            Entitlement.parseListFromJson(entitlementsClaim),
+            this.config_.getProductId(),
+            ackHandler);
+      }
+    } else {
+      const plainEntitlements = json['entitlements'];
+      if (plainEntitlements) {
+        return new Entitlements(
+            SERVICE_ID,
+            '',
+            Entitlement.parseListFromJson(plainEntitlements),
+            this.config_.getProductId(),
+            ackHandler);
+      }
+    }
+    // Empty response.
+    return new Entitlements(
+        SERVICE_ID,
+        '',
+        [],
+        this.config_.getProductId(),
+        ackHandler);
+  }
+
+  /**
    * @return {!Promise<!Entitlements>}
    */
   getEntitlementsFlow_() {
@@ -212,38 +252,7 @@ export class EntitlementsManager {
         '/publication/' +
         encodeURIComponent(this.publicationId_) +
         '/entitlements');
-    return this.fetcher_.fetchCredentialedJson(url).then(json => {
-      const ackHandler = this.ack_.bind(this);
-      const signedData = json['signedEntitlements'];
-      if (signedData) {
-        const jwt = this.jwtHelper_.decode(signedData);
-        const entitlementsClaim = jwt['entitlements'];
-        if (entitlementsClaim) {
-          return new Entitlements(
-              SERVICE_ID,
-              signedData,
-              Entitlement.parseListFromJson(entitlementsClaim),
-              this.config_.getProductId(),
-              ackHandler);
-        }
-      } else {
-        const plainEntitlements = json['entitlements'];
-        if (plainEntitlements) {
-          return new Entitlements(
-              SERVICE_ID,
-              '',
-              Entitlement.parseListFromJson(plainEntitlements),
-              this.config_.getProductId(),
-              ackHandler);
-        }
-      }
-      // Empty response.
-      return new Entitlements(
-          SERVICE_ID,
-          '',
-          [],
-          this.config_.getProductId(),
-          ackHandler);
-    });
+    return this.fetcher_.fetchCredentialedJson(url)
+        .then(json => this.parseEntitlements(json));
   }
 }
