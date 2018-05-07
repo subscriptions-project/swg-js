@@ -130,7 +130,7 @@ export class Dialog {
    * @param {boolean=} hidden
    * @return {!Promise<!Dialog>}
    */
-  open(animated = true, hidden = false) {
+  open(hidden = false) {
     const iframe = this.iframe_;
     if (iframe.isConnected()) {
       throw new Error('already opened');
