@@ -90,3 +90,163 @@
 .swg-button-dark:active {
   background-color: #5f6368;
 }
+
+
+/**
+ * i18n bindings
+ */
+
+.swg-button:lang(de):after,
+.swg-button-light:lang(de):after {
+  background-image: url("i18n/b-de-lt.svg");
+}
+.swg-button-dark:lang(de):after {
+  background-image: url("i18n/b-de-dk.svg");
+}
+.swg-button:lang(es-latam):after,
+.swg-button-light:lang(es-latam):after {
+  background-image: url("i18n/b-es-latam-lt.svg");
+}
+.swg-button-dark:lang(es-latam):after {
+  background-image: url("i18n/b-es-latam-dk.svg");
+}
+.swg-button:lang(es-latn):after,
+.swg-button-light:lang(es-latn):after {
+  background-image: url("i18n/b-es-latam-lt.svg");
+}
+.swg-button-dark:lang(es-latn):after {
+  background-image: url("i18n/b-es-latam-dk.svg");
+}
+.swg-button:lang(es):after,
+.swg-button-light:lang(es):after {
+  background-image: url("i18n/b-es-lt.svg");
+}
+.swg-button-dark:lang(es):after {
+  background-image: url("i18n/b-es-dk.svg");
+}
+.swg-button:lang(fr):after,
+.swg-button-light:lang(fr):after {
+  background-image: url("i18n/b-fr-lt.svg");
+}
+.swg-button-dark:lang(fr):after {
+  background-image: url("i18n/b-fr-dk.svg");
+}
+.swg-button:lang(hi):after,
+.swg-button-light:lang(hi):after {
+  background-image: url("i18n/b-hi-lt.svg");
+}
+.swg-button-dark:lang(hi):after {
+  background-image: url("i18n/b-hi-dk.svg");
+}
+.swg-button:lang(id):after,
+.swg-button-light:lang(id):after {
+  background-image: url("i18n/b-id-lt.svg");
+}
+.swg-button-dark:lang(id):after {
+  background-image: url("i18n/b-id-dk.svg");
+}
+.swg-button:lang(it):after,
+.swg-button-light:lang(it):after {
+  background-image: url("i18n/b-it-lt.svg");
+}
+.swg-button-dark:lang(it):after {
+  background-image: url("i18n/b-it-dk.svg");
+}
+.swg-button:lang(jp):after,
+.swg-button-light:lang(jp):after {
+  background-image: url("i18n/b-jp-lt.svg");
+}
+.swg-button-dark:lang(jp):after {
+  background-image: url("i18n/b-jp-dk.svg");
+}
+.swg-button:lang(ko):after,
+.swg-button-light:lang(ko):after {
+  background-image: url("i18n/b-ko-lt.svg");
+}
+.swg-button-dark:lang(ko):after {
+  background-image: url("i18n/b-ko-dk.svg");
+}
+.swg-button:lang(ms):after,
+.swg-button-light:lang(ms):after {
+  background-image: url("i18n/b-ms-lt.svg");
+}
+.swg-button-dark:lang(ms):after {
+  background-image: url("i18n/b-ms-dk.svg");
+}
+.swg-button:lang(nl):after,
+.swg-button-light:lang(nl):after {
+  background-image: url("i18n/b-nl-lt.svg");
+}
+.swg-button-dark:lang(nl):after {
+  background-image: url("i18n/b-nl-dk.svg");
+}
+.swg-button:lang(no):after,
+.swg-button-light:lang(no):after {
+  background-image: url("i18n/b-no-lt.svg");
+}
+.swg-button-dark:lang(no):after {
+  background-image: url("i18n/b-no-dk.svg");
+}
+.swg-button:lang(pl):after,
+.swg-button-light:lang(pl):after {
+  background-image: url("i18n/b-pl-lt.svg");
+}
+.swg-button-dark:lang(pl):after {
+  background-image: url("i18n/b-pl-dk.svg");
+}
+.swg-button:lang(pt):after,
+.swg-button-light:lang(pt):after {
+  background-image: url("i18n/b-pt-lt.svg");
+}
+.swg-button-dark:lang(pt):after {
+  background-image: url("i18n/b-pt-dk.svg");
+}
+.swg-button:lang(pt-br):after,
+.swg-button-light:lang(pt-br):after {
+  background-image: url("i18n/b-pt-br-lt.svg");
+}
+.swg-button-dark:lang(pt-br):after {
+  background-image: url("i18n/b-pt-br-dk.svg");
+}
+.swg-button:lang(ru):after,
+.swg-button-light:lang(ru):after {
+  background-image: url("i18n/b-ru-lt.svg");
+}
+.swg-button-dark:lang(ru):after {
+  background-image: url("i18n/b-ru-dk.svg");
+}
+.swg-button:lang(se):after,
+.swg-button-light:lang(se):after {
+  background-image: url("i18n/b-se-lt.svg");
+}
+.swg-button-dark:lang(se):after {
+  background-image: url("i18n/b-se-dk.svg");
+}
+.swg-button:lang(th):after,
+.swg-button-light:lang(th):after {
+  background-image: url("i18n/b-th-lt.svg");
+}
+.swg-button-dark:lang(th):after {
+  background-image: url("i18n/b-th-dk.svg");
+}
+.swg-button:lang(tr):after,
+.swg-button-light:lang(tr):after {
+  background-image: url("i18n/b-tr-lt.svg");
+}
+.swg-button-dark:lang(tr):after {
+  background-image: url("i18n/b-tr-dk.svg");
+}
+.swg-button:lang(uk):after,
+.swg-button-light:lang(uk):after {
+  background-image: url("i18n/b-uk-lt.svg");
+}
+.swg-button-dark:lang(uk):after {
+  background-image: url("i18n/b-uk-dk.svg");
+}
+.swg-button:lang(zh-tw):after,
+.swg-button-light:lang(zh-tw):after {
+  background-image: url("i18n/b-zh-tw-lt.svg");
+}
+.swg-button-dark:lang(zh-tw):after {
+  background-image: url("i18n/b-zh-tw-dk.svg");
+}
