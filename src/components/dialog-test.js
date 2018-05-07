@@ -129,6 +129,7 @@ describes.realWin('Dialog', {}, env => {
     it('should build the view and show hidden iframe', function* () {
       const openedDialog = yield dialog.open(NO_ANIMATE, HIDDEN);
       yield openedDialog.openView(view);
+      expect(computedStyle(win, element)['visibility']).to.equal('visible');
       expect(computedStyle(win, element)['opacity']).to.equal('1');
       expect(computedStyle(win, element)['max-height']).to.equal('100%');
       expect(computedStyle(win, element)['max-width']).to.equal('100%');

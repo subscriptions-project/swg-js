@@ -241,7 +241,7 @@ export class LinkSaveFlow {
     );
     /** {!Promise<boolean>} */
     return this.dialogManager_.openView(this.activityIframeView_,
-        /* animated */ true, /* hidden */ true).then(() => {
+        /* hidden */ true).then(() => {
           return this.activityIframeView_.port().then(port => {
             return acceptPortResultData(
                 port,

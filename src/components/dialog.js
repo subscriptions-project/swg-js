@@ -127,7 +127,6 @@ export class Dialog {
 
   /**
    * Opens the dialog and builds the iframe container.
-   * @param {boolean=} animated
    * @param {boolean=} hidden
    * @return {!Promise<!Dialog>}
    */
@@ -140,15 +139,15 @@ export class Dialog {
     // Attach.
     this.doc_.getBody().appendChild(iframe.getElement());  // Fires onload.
     this.graypane_.attach();
-    this.hidden_ = hidden;
 
     if (hidden) {
       setImportantStyles(iframe.getElement(), {
         'visibility': 'hidden',
         'opacity': 0,
       });
+      this.hidden_ = hidden;
     } else {
-      this.show_(/* showNow */ true);
+      this.show_();
     }
 
     return iframe.whenReady().then(() => {
@@ -272,11 +271,12 @@ export class Dialog {
       setImportantStyles(view.getElement(), {
         'opacity': 1,
       });
-      if (this.hidden_ && view.shouldFadeBody()) {
-        this.graypane_.show(/* animated */ true);
+      if (this.hidden_) {
+        if (view.shouldFadeBody()) {
+          this.graypane_.show(/* animated */ true);
+        }
+        this.show_();
       }
-      this.show_();
-      this.hidden_ = false;
       this.setLoading(false);
     });
   }
@@ -284,24 +284,21 @@ export class Dialog {
   /**
    * Show the iframe
    * @private
-   * @param {boolean=} showNow
    */
-  show_(showNow = this.hidden_) {
-    // TODO(sohanirao): How to display when animated = false?
-    if (showNow) {
-      this.animate_(() => {
-        setImportantStyles(this.getElement(), {
-          'transform': 'translateY(100%)',
-          'opactiy': 1,
-          'visibility': 'visible',
-        });
-        return transition(this.getElement(), {
-          'transform': 'translateY(0)',
-          'opacity': 1,
-          'visiblity': 'visible',
-        }, 300, 'ease-out');
+  show_() {
+    this.animate_(() => {
+      setImportantStyles(this.getElement(), {
+        'transform': 'translateY(100%)',
+        'opactiy': 1,
+        'visibility': 'visible',
       });
-    }
+      return transition(this.getElement(), {
+        'transform': 'translateY(0)',
+        'opacity': 1,
+        'visiblity': 'visible',
+      }, 300, 'ease-out');
+    });
+    this.hidden_ = false;
   }
 
   /**

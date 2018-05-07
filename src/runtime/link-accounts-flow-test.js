@@ -27,7 +27,8 @@ import {
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
-
+import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
 
 describes.realWin('LinkbackFlow', {}, env => {
   let win;
@@ -288,6 +289,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   let pageConfig;
   let linkSaveFlow;
   let port;
+  let dialogManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -295,6 +297,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
@@ -305,6 +308,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
+    dialogManagerMock.verify();
   });
 
   it('should have valid LinkSaveFlow constructed with token', () => {
@@ -335,6 +339,15 @@ describes.realWin('LinkSaveFlow', {}, env => {
         })
         .returns(Promise.resolve(port));
     return linkSaveFlow.start();
+  });
+
+  it('should open dialog in hidden mode', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, {token: 'test'});
+    const dialogPromise = Promise.resolve(new Dialog(new GlobalDoc(win)));
+    dialogManagerMock.expects('openDialog')
+        .withExactArgs(/* hidden */true).returns(dialogPromise);
+    const openPromise = Promise.resolve(true);
+    expect(linkSaveFlow.start()).to.eventually.equal(openPromise);
   });
 
   it('should throw error both token and authCode', () => {
