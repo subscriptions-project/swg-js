@@ -346,8 +346,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     const dialogPromise = Promise.resolve(new Dialog(new GlobalDoc(win)));
     dialogManagerMock.expects('openDialog')
         .withExactArgs(/* hidden */true).returns(dialogPromise);
-    const openPromise = Promise.resolve(true);
-    expect(linkSaveFlow.start()).to.eventually.equal(openPromise);
+    expect(linkSaveFlow.start()).to.eventually.equal(true);
   });
 
   it('should throw error both token and authCode', () => {
