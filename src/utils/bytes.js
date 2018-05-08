@@ -26,7 +26,7 @@ const base64UrlDecodeSubs = {'-': '+', '_': '/', '.': '='};
  * Character mapping from base64 to base64url.
  * @const {!Object<string, string>}
  */
-const base64UrlEncodeSubs = {'+': '-', '/': '_', '=': '.'};
+const base64UrlEncodeSubs = {'+': '-', '/': '_'};
 
 
 /**
@@ -110,5 +110,5 @@ export function base64UrlDecodeToBytes(str) {
  */
 export function base64UrlEncodeFromBytes(bytes) {
   const str = bytesToString(bytes);
-  return btoa(str).replace(/[+/=]/g, ch => base64UrlEncodeSubs[ch]);
+  return btoa(str).replace(/[+/]/g, ch => base64UrlEncodeSubs[ch]);
 }

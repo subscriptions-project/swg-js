@@ -70,6 +70,24 @@ export class Storage {
       resolve();
     });
   }
+
+  /**
+   * @param {string} key
+   * @return {!Promise}
+   */
+  remove(key) {
+    delete this.values_[key];
+    return new Promise(resolve => {
+      if (this.win_.sessionStorage) {
+        try {
+          this.win_.sessionStorage.removeItem(storageKey(key));
+        } catch (e) {
+          // Ignore error.
+        }
+      }
+      resolve();
+    });
+  }
 }
 
 
