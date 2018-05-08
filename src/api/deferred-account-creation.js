@@ -15,6 +15,7 @@
  */
 
 import {Entitlements} from './entitlements';
+import {PurchaseData} from './subscribe-response';
 import {UserData} from './user-data';
 
 
@@ -39,13 +40,16 @@ export class DeferredAccountCreationResponse {
   /**
    * @param {!Entitlements} entitlements
    * @param {!UserData} userData
+   * @param {!PurchaseData} purchaseData
    * @param {function():!Promise} completeHandler
    */
-  constructor(entitlements, userData, completeHandler) {
+  constructor(entitlements, userData, purchaseData, completeHandler) {
     /** @const {!Entitlements} */
     this.entitlements = entitlements;
     /** @const {!UserData} */
     this.userData = userData;
+    /** @const {!PurchaseData} */
+    this.purchaseData = purchaseData;
     /** @private @const {function():!Promise} */
     this.completeHandler_ = completeHandler;
   }
@@ -57,6 +61,7 @@ export class DeferredAccountCreationResponse {
     return new DeferredAccountCreationResponse(
         this.entitlements,
         this.userData,
+        this.purchaseData,
         this.completeHandler_);
   }
 
@@ -67,6 +72,7 @@ export class DeferredAccountCreationResponse {
     return {
       'entitlements': this.entitlements.json(),
       'userData': this.userData.json(),
+      'purchaseData': this.purchaseData.json(),
     };
   }
 
