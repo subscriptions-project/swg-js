@@ -74,6 +74,15 @@ describes.realWin('DialogManager', {}, env => {
     });
   });
 
+  it('should open dialog as hidden', () => {
+    expect(dialogManager.dialog_).to.be.null;
+    return dialogManager.openDialog(/* hidden */true).then(dialog => {
+      expect(dialog).to.exist;
+      expect(dialogManager.dialog_).to.equal(dialog);
+      expect(dialogIfc.open).to.be.calledWithExactly(true);
+    });
+  });
+
   it('should re-open the same dialog', () => {
     return dialogManager.openDialog().then(dialog1 => {
       // Repeat.
@@ -88,6 +97,14 @@ describes.realWin('DialogManager', {}, env => {
   it('should open view', () => {
     return dialogManager.openView(initView).then(() => {
       expect(dialogIfc.open).to.be.calledOnce;
+      expect(dialogIfc.openView).to.be.calledOnce;
+      expect(dialogIfc.openView).to.be.calledWith(initView);
+    });
+  });
+
+  it('should open view as hidden', () => {
+    return dialogManager.openView(initView, false).then(() => {
+      expect(dialogIfc.open).to.be.calledWithExactly(false);
       expect(dialogIfc.openView).to.be.calledOnce;
       expect(dialogIfc.openView).to.be.calledWith(initView);
     });
