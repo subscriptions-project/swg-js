@@ -195,6 +195,13 @@ export class PayCompleteFlow {
           'loginHint': response.userData && response.userData.email,
         }),
         /* shouldFadeBody */ true);
+    this.activityIframeView_.onMessage(data => {
+      if (data['entitlements']) {
+        this.deps_.entitlementsManager().pushNextEntitlements(
+            /** @type {string} */ (data['entitlements']));
+        return;
+      }
+    });
     this.activityIframeView_.acceptResult().then(() => {
       // The flow is complete.
       this.dialogManager_.completeView(this.activityIframeView_);

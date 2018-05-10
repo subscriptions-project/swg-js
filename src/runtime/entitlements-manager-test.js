@@ -24,6 +24,10 @@ import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
+import {
+  base64UrlEncodeFromBytes,
+  utf8EncodeSync,
+} from '../utils/bytes';
 
 
 describes.realWin('EntitlementsManager', {}, env => {
@@ -62,7 +66,72 @@ describes.realWin('EntitlementsManager', {}, env => {
     jwtHelperMock.verify();
   });
 
+  function expectNoResponse() {
+    xhrMock.expects('fetch')
+        .returns(Promise.resolve({
+          json: () => Promise.resolve({}),
+        }))
+        .once();
+  }
+
+  function entitlementsResponse(entitlements, opt_options) {
+    function enc(obj) {
+      return base64UrlEncodeFromBytes(utf8EncodeSync(JSON.stringify(obj)));
+    }
+    const options = Object.assign({
+      exp: Math.floor(Date.now() / 1000) + 10,  // 10 seconds in the future.
+    }, opt_options || {});
+    const header = {};
+    const payload = {
+      'exp': options.exp,
+      'entitlements': entitlements,
+    };
+    return {
+      'signedEntitlements': enc(header) + '.' + enc(payload) + '.SIG',
+    };
+  }
+
+  function expectGoogleResponse(opt_options) {
+    const resp = entitlementsResponse({
+      source: 'google',
+      products: ['pub1:label1'],
+      subscriptionToken: 's1',
+    }, opt_options);
+    xhrMock.expects('fetch')
+        .returns(Promise.resolve({
+          json: () => Promise.resolve(resp),
+        }))
+        .once();
+    return resp;
+  }
+
+  function expectNonGoogleResponse(opt_options) {
+    const resp = entitlementsResponse({
+      source: 'pub1',
+      products: ['pub1:label1'],
+      subscriptionToken: 's2',
+    }, opt_options);
+    xhrMock.expects('fetch')
+        .returns(Promise.resolve({
+          json: () => Promise.resolve(resp),
+        }))
+        .once();
+    return resp;
+  }
+
   describe('fetching', () => {
+    beforeEach(() => {
+      // Expect empty cache.
+      storageMock.expects('get')
+          .withExactArgs('ents')
+          .returns(Promise.resolve(null))
+          .atLeast(0);
+      storageMock.expects('get')
+          .withExactArgs('toast')
+          .returns(Promise.resolve(null))
+          .atLeast(0);
+    });
+
     it('should fetch empty response', () => {
       xhrMock.expects('fetch').withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
@@ -164,9 +233,8 @@ describes.realWin('EntitlementsManager', {}, env => {
           .once();
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
-      const promise = manager.getEntitlements();
-      expect(manager.positiveRetries_).to.equal(0);
-      return promise.then(entitlements => {
+      return manager.getEntitlements().then(entitlements => {
+        expect(manager.positiveRetries_).to.equal(0);
         expect(entitlements.entitlements[0].subscriptionToken).to.equal('s1');
       });
     });
@@ -200,8 +268,8 @@ describes.realWin('EntitlementsManager', {}, env => {
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
       const promise = manager.getEntitlements();
-      expect(manager.positiveRetries_).to.equal(0);
       return promise.then(entitlements => {
+        expect(manager.positiveRetries_).to.equal(0);
         expect(entitlements.entitlements[0].subscriptionToken).to.equal('s1');
         expect(totalTime).to.be.greaterThan(499);
       });
@@ -226,8 +294,8 @@ describes.realWin('EntitlementsManager', {}, env => {
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
       const promise = manager.getEntitlements();
-      expect(manager.positiveRetries_).to.equal(0);
       return promise.then(entitlements => {
+        expect(manager.positiveRetries_).to.equal(0);
         expect(entitlements.entitlements).to.have.length(1);
         expect(entitlements.entitlements[0].subscriptionToken).to.equal('s2');
         expect(totalTime).to.be.greaterThan(999);
@@ -243,6 +311,14 @@ describes.realWin('EntitlementsManager', {}, env => {
       toastOpenStub = sandbox.stub(Toast.prototype, 'open', function() {
         toast = this;
       });
+      storageMock.expects('get')
+          .withExactArgs('ents')
+          .returns(Promise.resolve(null))
+          .atLeast(0);
+      storageMock.expects('set')
+          .withArgs('ents')
+          .returns(Promise.resolve())
+          .atLeast(0);
     });
 
     function expectToastShown(value) {
@@ -254,53 +330,23 @@ describes.realWin('EntitlementsManager', {}, env => {
       });
     }
 
-    function expectNoResponse() {
-      xhrMock.expects('fetch')
-          .returns(Promise.resolve({
-            json: () => Promise.resolve({}),
-          }))
-          .once();
-    }
-
-    function expectGoogleResponse() {
-      xhrMock.expects('fetch')
-          .returns(Promise.resolve({
-            json: () => Promise.resolve({
-              entitlements: {
-                source: 'google',
-                products: ['pub1:label1'],
-                subscriptionToken: 's1',
-              },
-            }),
-          }))
-          .once();
-    }
-
-    function expectNonGoogleResponse() {
-      xhrMock.expects('fetch')
-          .returns(Promise.resolve({
-            json: () => Promise.resolve({
-              entitlements: {
-                source: 'pub1',
-                products: ['pub1:label1'],
-                subscriptionToken: 's2',
-              },
-            }),
-          }))
-          .once();
-    }
-
     it('should set toast flag', () => {
+      storageMock.expects('set')
+          .withExactArgs('toast', '1')
+          .once();
       manager.setToastShown(true);
     });
 
     it('should unset toast flag', () => {
+      storageMock.expects('set')
+          .withExactArgs('toast', '0')
+          .once();
       manager.setToastShown(false);
     });
 
     it('should trigger entitlements event for empty response', () => {
-      storageMock.expects('get').never();
-      storageMock.expects('set').never();
+      storageMock.expects('get').withExactArgs('toast').never();
+      storageMock.expects('set').withArgs('toast').never();
       expectNoResponse();
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.false;
@@ -316,7 +362,7 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     it('should trigger entitlements event for Google response', () => {
       expectToastShown('0');
-      storageMock.expects('set').never();
+      storageMock.expects('set').withArgs('toast').never();
       expectGoogleResponse();
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.true;
@@ -333,6 +379,19 @@ describes.realWin('EntitlementsManager', {}, env => {
       });
     });
 
+    it('should tolerate expired response from server', () => {
+      expectToastShown('0');
+      storageMock.expects('set').withArgs('toast').never();
+      expectGoogleResponse({
+        exp: Date.now() / 1000 - 10000,  // Far back.
+      });
+      return manager.getEntitlements().then(entitlements => {
+        expect(entitlements.enablesAny()).to.be.true;
+        expect(entitlements.enablesThis()).to.be.true;
+        expect(entitlements.getEntitlementForThis().source).to.equal('google');
+      });
+    });
+
     it('should acknowledge and update the toast bit', () => {
       expectToastShown('0');
       storageMock.expects('set')
@@ -346,7 +405,7 @@ describes.realWin('EntitlementsManager', {}, env => {
     });
 
     it('should acknowledge and NOT update the toast bit', () => {
-      storageMock.expects('set').never();
+      storageMock.expects('set').withArgs('toast').never();
       expectNoResponse();
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesThis()).to.be.false;
@@ -398,13 +457,262 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     it('should NOT show toast if already shown', () => {
       expectToastShown('1');
-      storageMock.expects('set').never();
+      storageMock.expects('set').withArgs('toast').never();
       expectGoogleResponse();
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.getEntitlementForThis().source).to.equal('google');
       }).then(() => {
         expect(toastOpenStub).to.not.be.called;
       });
+    });
+  });
+
+  describe('flow with cache', () => {
+    beforeEach(() => {
+      sandbox.stub(Toast.prototype, 'open');
+      storageMock.expects('get')
+          .withArgs('toast')
+          .returns(Promise.resolve(null))
+          .atLeast(0);
+      storageMock.expects('set')
+          .withArgs('toast')
+          .returns(Promise.resolve(null))
+          .atLeast(0);
+    });
+
+    it('should not store empty response', () => {
+      expectNoResponse();
+      storageMock.expects('get')
+          .withExactArgs('ents')
+          .returns(Promise.resolve(null))
+          .once();
+      storageMock.expects('set')
+          .withExactArgs('ents')
+          .never();
+      return manager.getEntitlements().then(entitlements => {
+        expect(entitlements.enablesAny()).to.be.false;
+      });
+    });
+
+    it('should store non-empty Google response', () => {
+      const raw = expectGoogleResponse()['signedEntitlements'];
+      expect(raw).to.match(/e30\=\.eyJleHAiOjE1M/);
+      storageMock.expects('get')
+          .withExactArgs('ents')
+          .returns(Promise.resolve(null))
+          .once();
+      storageMock.expects('set')
+          .withExactArgs('ents', raw)
+          .returns(Promise.resolve())
+          .once();
+      return manager.getEntitlements().then(entitlements => {
+        expect(entitlements.enablesAny()).to.be.true;
+        expect(entitlements.enablesThis()).to.be.true;
+        expect(entitlements.getEntitlementForThis().source).to.equal('google');
+      });
+    });
+
+    it('should store non-empty non-Google response', () => {
+      const raw = expectNonGoogleResponse()['signedEntitlements'];
+      expect(raw).to.match(/e30\=\.eyJleHAiOjE1M/);
+      storageMock.expects('get')
+          .withExactArgs('ents')
+          .returns(Promise.resolve(null))
+          .once();
+      storageMock.expects('set')
+          .withExactArgs('ents', raw)
+          .returns(Promise.resolve())
+          .once();
+      return manager.getEntitlements().then(entitlements => {
+        expect(entitlements.enablesAny()).to.be.true;
+        expect(entitlements.enablesThis()).to.be.true;
+        expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
+      });
+    });
+
+    it('should retrieve a Google response from cache', () => {
+      const raw = entitlementsResponse({
+        source: 'google',
+        products: ['pub1:label1'],
+        subscriptionToken: 's1',
+      })['signedEntitlements'];
+      storageMock.expects('get')
+          .withExactArgs('ents')
+          .returns(Promise.resolve(raw))
+          .once();
+      storageMock.expects('set')
+          .withArgs('ents')
+          .never();
+      xhrMock.expects('fetch')
+          .never();
+      manager.reset(true);
+      return manager.getEntitlements().then(entitlements => {
+        expect(manager.positiveRetries_).to.equal(0);  // Retries are reset.
+        expect(entitlements.enablesAny()).to.be.true;
+        expect(entitlements.enablesThis()).to.be.true;
+        expect(entitlements.getEntitlementForThis().source).to.equal('google');
+      });
+    });
+
+    it('should retrieve a non-Google response from cache', () => {
+      const raw = entitlementsResponse({
+        source: 'pub1',
+        products: ['pub1:label1'],
+        subscriptionToken: 's2',
+      })['signedEntitlements'];
+      storageMock.expects('get')
+          .withExactArgs('ents')
+          .returns(Promise.resolve(raw))
+          .once();
+      storageMock.expects('set')
+          .withArgs('ents')
+          .never();
+      xhrMock.expects('fetch')
+          .never();
+      manager.reset(true);
+      return manager.getEntitlements().then(entitlements => {
+        expect(manager.positiveRetries_).to.equal(0);  // Retries are reset.
+        expect(entitlements.enablesAny()).to.be.true;
+        expect(entitlements.enablesThis()).to.be.true;
+        expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
+      });
+    });
+
+    it('should not accept expired response in cache', () => {
+      const raw = entitlementsResponse({
+        source: 'google',
+        products: ['pub1:label1'],
+        subscriptionToken: 's1',
+      }, {
+        exp: Date.now() / 1000 - 100000,  // Far back.
+      })['signedEntitlements'];
+      storageMock.expects('get')
+          .withExactArgs('ents')
+          .returns(Promise.resolve(raw))
+          .once();
+      storageMock.expects('set')
+          .withArgs('ents')
+          .once();
+      expectNonGoogleResponse();
+      return manager.getEntitlements().then(entitlements => {
+        // Cached response is from Google, but refresh response is from "pub1".
+        expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
+      });
+    });
+
+    it('should not accept response in cache for a different product', () => {
+      const raw = entitlementsResponse({
+        source: 'google',
+        products: ['pub1:other'],
+        subscriptionToken: 's1',
+      })['signedEntitlements'];
+      storageMock.expects('get')
+          .withExactArgs('ents')
+          .returns(Promise.resolve(raw))
+          .once();
+      storageMock.expects('set')
+          .withArgs('ents')
+          .once();
+      expectNonGoogleResponse();
+      return manager.getEntitlements().then(entitlements => {
+        // Cached response is from Google, but refresh response is from "pub1".
+        expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
+      });
+    });
+
+    it('should not accept empty response in cache', () => {
+      const raw = entitlementsResponse({})['signedEntitlements'];
+      storageMock.expects('get')
+          .withExactArgs('ents')
+          .returns(Promise.resolve(raw))
+          .once();
+      storageMock.expects('set')
+          .withArgs('ents')
+          .once();
+      expectNonGoogleResponse();
+      return manager.getEntitlements().then(entitlements => {
+        // Cached response is from Google, but refresh response is from "pub1".
+        expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
+      });
+    });
+
+    it('should tolerate malformed cache', () => {
+      storageMock.expects('get')
+          .withExactArgs('ents')
+          .returns(Promise.resolve('VeRy BroKen'))
+          .once();
+      storageMock.expects('set')
+          .withArgs('ents')
+          .once();
+      expectNonGoogleResponse();
+      return manager.getEntitlements().then(entitlements => {
+        // Cached response is from Google, but refresh response is from "pub1".
+        expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
+      });
+    });
+
+    it('should push entitlements', () => {
+      const raw = entitlementsResponse({
+        source: 'google',
+        products: ['pub1:label1'],
+        subscriptionToken: 's1',
+      })['signedEntitlements'];
+      storageMock.expects('set')
+          .withExactArgs('ents', raw)
+          .returns(Promise.resolve())
+          .once();
+      const res = manager.pushNextEntitlements(raw);
+      expect(res).to.be.true;
+      manager.reset(true);
+    });
+
+    it('should ignore expired pushed entitlements', () => {
+      const raw = entitlementsResponse({
+        source: 'google',
+        products: ['pub1:label1'],
+        subscriptionToken: 's1',
+      }, {
+        exp: Date.now() / 1000 - 10000,  // Far back.
+      })['signedEntitlements'];
+      storageMock.expects('set')
+          .withArgs('ents')
+          .never();
+      const res = manager.pushNextEntitlements(raw);
+      expect(res).to.be.false;
+    });
+
+    it('should ignore unrelated pushed entitlements', () => {
+      const raw = entitlementsResponse({
+        source: 'google',
+        products: ['pub1:other'],
+        subscriptionToken: 's1',
+      }, {
+      })['signedEntitlements'];
+      storageMock.expects('set')
+          .withArgs('ents')
+          .never();
+      const res = manager.pushNextEntitlements(raw);
+      expect(res).to.be.false;
+    });
+
+    it('should ignore malformed pushed entitlements', () => {
+      storageMock.expects('set')
+          .withArgs('ents')
+          .never();
+      const res = manager.pushNextEntitlements('VeRy BroKen');
+      expect(res).to.be.false;
+    });
+
+    it('should reset w/o clearing cache', () => {
+      storageMock.expects('remove').never();
+      manager.reset();
+    });
+
+    it('should reset and clearing cache', () => {
+      storageMock.expects('remove')
+          .withExactArgs('ents')
+          .once();
+      manager.reset(true);
     });
   });
 });
