@@ -96,12 +96,26 @@
  * i18n bindings
  */
 
+.swg-button:lang(ar):after,
+.swg-button-light:lang(ar):after {
+  background-image: url("i18n/b-ar-lt.svg");
+}
+.swg-button-dark:lang(ar):after {
+  background-image: url("i18n/b-ar-dk.svg");
+}
 .swg-button:lang(de):after,
 .swg-button-light:lang(de):after {
   background-image: url("i18n/b-de-lt.svg");
 }
 .swg-button-dark:lang(de):after {
   background-image: url("i18n/b-de-dk.svg");
+}
+.swg-button:lang(es):after,
+.swg-button-light:lang(es):after {
+  background-image: url("i18n/b-es-lt.svg");
+}
+.swg-button-dark:lang(es):after {
+  background-image: url("i18n/b-es-dk.svg");
 }
 .swg-button:lang(es-latam):after,
 .swg-button-light:lang(es-latam):after {
@@ -116,13 +130,6 @@
 }
 .swg-button-dark:lang(es-latn):after {
   background-image: url("i18n/b-es-latam-dk.svg");
-}
-.swg-button:lang(es):after,
-.swg-button-light:lang(es):after {
-  background-image: url("i18n/b-es-lt.svg");
-}
-.swg-button-dark:lang(es):after {
-  background-image: url("i18n/b-es-dk.svg");
 }
 .swg-button:lang(fr):after,
 .swg-button-light:lang(fr):after {
@@ -179,13 +186,6 @@
 }
 .swg-button-dark:lang(nl):after {
   background-image: url("i18n/b-nl-dk.svg");
-}
-.swg-button:lang(no):after,
-.swg-button-light:lang(no):after {
-  background-image: url("i18n/b-no-lt.svg");
-}
-.swg-button-dark:lang(no):after {
-  background-image: url("i18n/b-no-dk.svg");
 }
 .swg-button:lang(pl):after,
 .swg-button-light:lang(pl):after {
