@@ -15,6 +15,35 @@
  */
 
 import {createElement} from '../utils/dom';
+import {msg} from '../utils/i18n';
+
+/** @type {!Object<string, string>} */
+const TITLE_LANG_MAP = {
+  'en': 'Subscribe with Google',
+  'ar': 'الاشتراك عبر Google',
+  'de': 'Abonnieren mit Google',
+  'es': 'Suscríbete con Google',
+  'es-latam': 'Suscribirse con Google',
+  'es-latn': 'Suscribirse con Google',
+  'fr': 'S\'abonner avec Google',
+  'hi': 'Google की सदस्यता लें',
+  'id': 'Berlangganan dengan Google',
+  'it': 'Abbonati con Google',
+  'jp': 'Google で購読',
+  'ko': 'Google 을(를) 통해 구독',
+  'ms': 'Langgan dengan Google',
+  'nl': 'Abonneren met Google',
+  'no': 'Abonner med Google',
+  'pl': 'Subskrybuj z Google',
+  'pt': 'Subscrever com o Google',
+  'pt-br': 'Faça sua assinatura com Google',
+  'ru': 'Подпишитесь через Google',
+  'se': 'Prenumerera med Google',
+  'th': 'สมัครรับข้อมูลด้วย Google',
+  'tr': 'Google ile abone olun',
+  'uk': 'Підписатися через Google',
+  'zh-tw': '透過 Google 訂閱',
+};
 
 
 /**
@@ -83,8 +112,10 @@ export class ButtonApi {
     }
     button.classList.add(`swg-button-${theme}`);
     button.setAttribute('role', 'button');
-    // TODO(dvoytenko): i18n.
-    button.setAttribute('title', 'Subscribe with Google');
+    if (options && options['lang']) {
+      button.setAttribute('lang', options['lang']);
+    }
+    button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
     return button;
   }
