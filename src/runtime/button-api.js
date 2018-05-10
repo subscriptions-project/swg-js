@@ -69,9 +69,7 @@ export class ButtonApi {
       return;
     }
 
-    //QQQQQ
-    // const url = 'https://news.google.com/swg/js/v1/swg-button.css';
-    const url = '/assets/swg-button.css';
+    const url = 'https://news.google.com/swg/js/v1/swg-button.css';
     const existing = head.querySelector(`link[href="${url}"]`);
     if (existing) {
       return;
@@ -117,7 +115,7 @@ export class ButtonApi {
     if (options && options['lang']) {
       button.setAttribute('lang', options['lang']);
     }
-    button.setAttribute('title', msg(TITLE_LANG_MAP, button));
+    button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
     return button;
   }
