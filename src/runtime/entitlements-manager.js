@@ -22,6 +22,7 @@ import {feArgs, feUrl} from '../runtime/services';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
+const ENTS_STORAGE_KEY = 'ents';
 
 
 /**
@@ -73,6 +74,9 @@ export class EntitlementsManager {
     this.responsePromise_ = null;
     this.positiveRetries_ = Math.max(
         this.positiveRetries_, opt_expectPositive ? 3 : 0);
+    if (opt_expectPositive) {
+      this.storage_.remove(ENTS_STORAGE_KEY);
+    }
   }
 
   /**
@@ -86,9 +90,62 @@ export class EntitlementsManager {
   }
 
   /**
-   * @return {!Promise<!Entitlements>}
+   * @param {string} raw
+   * @return {boolean}
    */
-  fetchEntitlements() {
+  pushNextEntitlements(raw) {
+    const entitlements = this.getValidJwtEntitlements_(
+        raw, /* requireNonExpired */ true);
+    if (entitlements && entitlements.enablesThis()) {
+      this.storage_.set(ENTS_STORAGE_KEY, raw);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * @return {!Promise<!Entitlements>}
+   * @private
+   */
+  getEntitlementsFlow_() {
+    return this.fetchEntitlementsWithCaching_().then(entitlements => {
+      this.onEntitlementsFetched_(entitlements);
+      return entitlements;
+    });
+  }
+
+  /**
+   * @return {!Promise<!Entitlements>}
+   * @private
+   */
+  fetchEntitlementsWithCaching_() {
+    return this.storage_.get(ENTS_STORAGE_KEY).then(raw => {
+      // Try cache first.
+      if (raw) {
+        const cached = this.getValidJwtEntitlements_(
+            raw, /* requireNonExpired */ true);
+        if (cached && cached.enablesThis()) {
+          // Already have a positive response.
+          this.positiveRetries_ = 0;
+          return cached;
+        }
+      }
+      // If cache didn't match, perform fetch.
+      return this.fetchEntitlements_().then(ents => {
+        // If entitlements match the product, store them in cache.
+        if (ents && ents.enablesThis() && ents.raw) {
+          this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
+        }
+        return ents;
+      });
+    });
+  }
+
+  /**
+   * @return {!Promise<!Entitlements>}
+   * @private
+   */
+  fetchEntitlements_() {
     // TODO(dvoytenko): Replace retries with consistent fetch.
     let positiveRetries = this.positiveRetries_;
     this.positiveRetries_ = 0;
@@ -134,47 +191,62 @@ export class EntitlementsManager {
    * @return {!Entitlements}
    */
   parseEntitlements(json) {
-    const ackHandler = this.ack_.bind(this);
     const signedData = json['signedEntitlements'];
     if (signedData) {
-      const jwt = this.jwtHelper_.decode(signedData);
-      const entitlementsClaim = jwt['entitlements'];
-      if (entitlementsClaim) {
-        return new Entitlements(
-            SERVICE_ID,
-            signedData,
-            Entitlement.parseListFromJson(entitlementsClaim),
-            this.config_.getProductId(),
-            ackHandler);
+      const entitlements = this.getValidJwtEntitlements_(
+          signedData, /* requireNonExpired */ false);
+      if (entitlements) {
+        return entitlements;
       }
     } else {
       const plainEntitlements = json['entitlements'];
       if (plainEntitlements) {
-        return new Entitlements(
-            SERVICE_ID,
-            '',
-            Entitlement.parseListFromJson(plainEntitlements),
-            this.config_.getProductId(),
-            ackHandler);
+        return this.createEntitlements_('', plainEntitlements);
       }
     }
     // Empty response.
-    return new Entitlements(
-        SERVICE_ID,
-        '',
-        [],
-        this.config_.getProductId(),
-        ackHandler);
+    return this.createEntitlements_('', []);
   }
 
   /**
-   * @return {!Promise<!Entitlements>}
+   * @param {string} raw
+   * @param {boolean} requireNonExpired
+   * @return {?Entitlements}
+   * @private
    */
-  getEntitlementsFlow_() {
-    return this.fetchEntitlements().then(entitlements => {
-      this.onEntitlementsFetched_(entitlements);
-      return entitlements;
-    });
+  getValidJwtEntitlements_(raw, requireNonExpired) {
+    try {
+      const jwt = this.jwtHelper_.decode(raw);
+      if (requireNonExpired) {
+        const now = Date.now();
+        const exp = jwt['exp'];
+        if (parseFloat(exp) * 1000 < now) {
+          return null;
+        }
+      }
+      const entitlementsClaim = jwt['entitlements'];
+      return entitlementsClaim &&
+          this.createEntitlements_(raw, entitlementsClaim) || null;
+    } catch (e) {
+      // Ignore the error.
+      this.win_.setTimeout(() => {throw e;});
+    }
+    return null;
+  }
+
+  /**
+   * @param {string} raw
+   * @param {!Object|!Array<!Object>} json
+   * @return {!Entitlements}
+   * @private
+   */
+  createEntitlements_(raw, json) {
+    return new Entitlements(
+        SERVICE_ID,
+        raw,
+        Entitlement.parseListFromJson(json),
+        this.config_.getProductId(),
+        this.ack_.bind(this));
   }
 
   /**
