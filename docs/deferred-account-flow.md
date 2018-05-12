@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# Deferred account creation flow (not launched)
+# Deferred account creation flow
 
 This flow allows the publisher site to continue account creation process for deferred subscriptions - subscriptions that the publisher doesn't have related account information/consent on their side. These kind of subscriptions could be created on other partner platforms.
 
