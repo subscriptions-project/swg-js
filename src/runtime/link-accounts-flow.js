@@ -172,6 +172,9 @@ export class LinkCompleteFlow {
     this.entitlementsManager_.setToastShown(true);
     this.entitlementsManager_.unblockNextNotification();
     this.entitlementsManager_.reset(response && response['success'] || false);
+    if (response && response['entitlements']) {
+      this.entitlementsManager_.pushNextEntitlements(response['entitlements']);
+    }
     this.completeResolver_();
   }
 
@@ -240,22 +243,23 @@ export class LinkSaveFlow {
       /* shouldFadeBody */ false
     );
     /** {!Promise<boolean>} */
-    return this.dialogManager_.openView(this.activityIframeView_).then(() => {
-      return this.activityIframeView_.port().then(port => {
-        return acceptPortResultData(
-            port,
-            feOrigin(),
-            /* requireOriginVerified */ true,
-            /* requireSecureChannel */ true);
-      }).then(result => {
-        return result['linked'];
-      }).catch(() => {
-        return false;
-      }).then(result => {
-        // The flow is complete.
-        this.dialogManager_.completeView(this.activityIframeView_);
-        return result;
-      });
-    });
+    return this.dialogManager_.openView(this.activityIframeView_,
+        /* hidden */ true).then(() => {
+          return this.activityIframeView_.port().then(port => {
+            return acceptPortResultData(
+                port,
+                feOrigin(),
+                /* requireOriginVerified */ true,
+                /* requireSecureChannel */ true);
+          }).then(result => {
+            return result['linked'];
+          }).catch(() => {
+            return false;
+          }).then(result => {
+            // The flow is complete.
+            this.dialogManager_.completeView(this.activityIframeView_);
+            return result;
+          });
+        });
   }
 }

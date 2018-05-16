@@ -27,7 +27,8 @@ import {
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
-
+import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
 
 describes.realWin('LinkbackFlow', {}, env => {
   let win;
@@ -247,6 +248,69 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     });
   });
 
+  it('should push new entitlements when available', () => {
+    dialogManagerMock.expects('popupClosed').once();
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
+    let resultResolver;
+    const resultPromise = new Promise(resolve => {
+      resultResolver = resolve;
+    });
+    port.acceptResult = () => resultPromise;
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/u/1/swg/_/ui/v1/linkconfirmiframe?_=_',
+        {
+          '_client': 'SwG $internalRuntimeVersion$',
+          'productId': 'pub1:prod1',
+          'publicationId': 'pub1',
+        })
+        .returns(Promise.resolve(port))
+        .once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
+    const order = [];
+    entitlementsManagerMock.expects('reset')
+        .withExactArgs(sinon.match(arg => {
+          if (order.indexOf('reset') == -1) {
+            order.push('reset');
+          }
+          return arg === true;  // Expected positive.
+        }))
+        .once();
+    entitlementsManagerMock.expects('pushNextEntitlements')
+        .withExactArgs(sinon.match(arg => {
+          if (order.indexOf('pushNextEntitlements') == -1) {
+            order.push('pushNextEntitlements');
+          }
+          return arg === 'ENTITLEMENTS_JWT';
+        }))
+        .once();
+    entitlementsManagerMock.expects('unblockNextNotification')
+        .withExactArgs().once();
+    return linkCompleteFlow.start().then(() => {
+      expect(triggerLinkCompleteSpy).to.not.be.called;
+      const result = new ActivityResult(
+          ActivityResultCode.OK,
+          {
+            'success': true,
+            'entitlements': 'ENTITLEMENTS_JWT',
+          },
+          'IFRAME', location.origin, true, true);
+      resultResolver(result);
+      return linkCompleteFlow.whenComplete();
+    }).then(() => {
+      expect(triggerLinkCompleteSpy).to.be.calledOnce.calledWithExactly();
+      expect(triggerLinkProgressSpy).to.not.be.called;
+      // Order must be strict: first reset, then pushNextEntitlements.
+      expect(order).to.deep.equal([
+        'reset',
+        'pushNextEntitlements',
+      ]);
+    });
+  });
+
   it('should reset entitlements for unsuccessful response', () => {
     dialogManagerMock.expects('popupClosed').once();
     const port = new ActivityPort();
@@ -288,6 +352,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   let pageConfig;
   let linkSaveFlow;
   let port;
+  let dialogManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -295,6 +360,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
@@ -305,6 +371,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
+    dialogManagerMock.verify();
   });
 
   it('should have valid LinkSaveFlow constructed with token', () => {
@@ -335,6 +402,14 @@ describes.realWin('LinkSaveFlow', {}, env => {
         })
         .returns(Promise.resolve(port));
     return linkSaveFlow.start();
+  });
+
+  it('should open dialog in hidden mode', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, {token: 'test'});
+    const dialogPromise = Promise.resolve(new Dialog(new GlobalDoc(win)));
+    dialogManagerMock.expects('openDialog')
+        .withExactArgs(/* hidden */true).returns(dialogPromise);
+    expect(linkSaveFlow.start()).to.eventually.equal(true);
   });
 
   it('should throw error both token and authCode', () => {

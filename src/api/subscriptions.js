@@ -104,7 +104,6 @@ export class Subscriptions {
   subscribe(sku) {}
 
   /**
-   * (Not launched)
    * Starts the deferred account creation flow.
    * See `DeferredAccountCreationRequest` for more details.
    * @param {?DeferredAccountCreationRequest=} opt_options

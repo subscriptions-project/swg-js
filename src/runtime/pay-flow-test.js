@@ -137,6 +137,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
+    entitlementsManagerMock.verify();
   });
 
   it('should have valid flow constructed', () => {
@@ -177,6 +178,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock.expects('reset')
         .withExactArgs(true)  // Expected positive.
         .once();
+    entitlementsManagerMock.expects('pushNextEntitlements')
+        .never();
     entitlementsManagerMock.expects('setToastShown')
         .withExactArgs(true)
         .once();
@@ -188,6 +191,61 @@ describes.realWin('PayCompleteFlow', {}, env => {
       return flow.complete();
     }).then(() => {
       expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+    });
+  });
+
+  it('should accept consistent entitlements', () => {
+    const purchaseData = new PurchaseData();
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const response = new SubscribeResponse('RaW', purchaseData, userData);
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.message = () => {};
+    let messageHandler;
+    port.onMessage = handler => {
+      messageHandler = handler;
+    };
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve();
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const order = [];
+    entitlementsManagerMock.expects('reset')
+        .withExactArgs(sinon.match(arg => {
+          if (order.indexOf('reset') == -1) {
+            order.push('reset');
+          }
+          return arg === true;  // Expected positive.
+        }))
+        .once();
+    entitlementsManagerMock.expects('pushNextEntitlements')
+        .withExactArgs(sinon.match(arg => {
+          if (order.indexOf('pushNextEntitlements') == -1) {
+            order.push('pushNextEntitlements');
+          }
+          return arg === 'ENTITLEMENTS_JWT';
+        }))
+        .once();
+    entitlementsManagerMock.expects('setToastShown')
+        .withExactArgs(true)
+        .once();
+    entitlementsManagerMock.expects('unblockNextNotification')
+        .withExactArgs()
+        .once();
+    const messageStub = sandbox.stub(port, 'message');
+    return flow.start(response).then(() => {
+      messageHandler({
+        'entitlements': 'ENTITLEMENTS_JWT',
+      });
+      return flow.complete();
+    }).then(() => {
+      expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+      // Order must be strict: first reset, then pushNextEntitlements.
+      expect(order).to.deep.equal([
+        'reset',
+        'pushNextEntitlements',
+      ]);
     });
   });
 

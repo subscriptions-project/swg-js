@@ -40,6 +40,9 @@ function distSwgButton() {
   mkdirSync('dist');
   return compileCss('assets/swg-button.css', 'dist/swg-button.css', {
     sourceMap: false,
+  }).then(() => {
+    mkdirSync('dist/i18n');
+    fs.copySync('assets/i18n/', 'dist/i18n/', {overwrite: true});
   });
 }
 

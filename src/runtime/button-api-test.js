@@ -105,6 +105,12 @@ describes.realWin('ButtonApi', {}, env => {
     expect(button).to.not.have.class('swg-button-dark');
   });
 
+  it('should create button with lang', () => {
+    const button = buttonApi.create({lang: 'es'}, handler);
+    expect(button.lang).to.equal('es');
+    expect(button.getAttribute('title')).to.equal('Suscríbete con Google');
+  });
+
   it('should attach button with empty options', () => {
     const button = doc.createElement('button');
     button.className = 'button1';
@@ -141,5 +147,20 @@ describes.realWin('ButtonApi', {}, env => {
     expect(button).to.have.class('swg-button-light');
     expect(button).to.not.have.class('swg-button-dark');
     expect(button).to.have.class('button1');
+  });
+
+  it('should attach button with lang', () => {
+    const button = doc.createElement('button');
+    buttonApi.attach(button, {lang: 'es'}, handler);
+    expect(button.lang).to.equal('es');
+    expect(button.getAttribute('title')).to.equal('Suscríbete con Google');
+  });
+
+  it('should pick an existing lang', () => {
+    const button = doc.createElement('button');
+    button.setAttribute('lang', 'fr');
+    buttonApi.attach(button, {}, handler);
+    expect(button.lang).to.equal('fr');
+    expect(button.getAttribute('title')).to.equal('S\'abonner avec Google');
   });
 });

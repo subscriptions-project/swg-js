@@ -58,28 +58,30 @@ export class DialogManager {
   }
 
   /**
+   * @param {boolean=} hidden
    * @return {!Promise<!Dialog>}
    */
-  openDialog() {
+  openDialog(hidden = false) {
     if (!this.openPromise_) {
       this.dialog_ = new Dialog(this.doc_);
-      this.openPromise_ = this.dialog_.open();
+      this.openPromise_ = this.dialog_.open(hidden);
     }
     return this.openPromise_;
   }
 
   /**
    * @param {!./view.View} view
+   * @param {boolean=} hidden
    * @return {!Promise}
    */
-  openView(view) {
+  openView(view, hidden = false) {
     view.whenComplete().catch(reason => {
       if (isCancelError(reason)) {
         this.completeView(view);
       }
       throw (reason);
     });
-    return this.openDialog().then(dialog => {
+    return this.openDialog(hidden).then(dialog => {
       return dialog.openView(view);
     });
   }
