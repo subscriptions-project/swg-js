@@ -818,12 +818,10 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
   });
 
-  it('should inject button stylesheet', () => {
+  it('should NOT inject button stylesheet', () => {
     const el = win.document.head.querySelector(
         'link[href*="swg-button.css"]');
-    expect(el).to.exist;
-    expect(el.getAttribute('href'))
-        .to.equal('https://news.google.com/swg/js/v1/swg-button.css');
+    expect(el).to.not.exist;
   });
 
   it('should should initialize deps', () => {
