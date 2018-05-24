@@ -29,6 +29,8 @@ function runAllExportsToEs() {
     return exportToEs6('exports/config.js', 'dist/exports-config.js');
   }).then(() => {
     return exportToEs6('exports/swg.js', 'dist/exports-swg.js');
+  }).then(() => {
+    return exportCss('assets/swg-button.css', 'dist/exports-swg-button.css');
   });
 }
 
@@ -84,7 +86,29 @@ function exportToEs6(inputFile, outputFile) {
     // Save.
     fs.writeFileSync(outputFile, js);
   });
-};
+}
+
+
+/**
+ * @param {string} inputFile
+ * @param {string} outputFile
+ */
+function exportCss(inputFile, outputFile) {
+  mkdirSync('build');
+  mkdirSync('dist');
+  let css = fs.readFileSync(inputFile, 'utf8');
+  // 1. Resolve all URLs to absolute.
+  css = css.replace(/url\(([^)]*)\)/ig, (match, value) => {
+    if (value[0] == '"') {
+      value = value.substring(1, value.length - 1);
+    }
+    if (/(data|http|https):/i.test(value)) {
+      return match;
+    }
+    return `url("https://news.google.com/swg/js/v1/${value}")`;
+  });
+  fs.writeFileSync(outputFile, css);
+}
 
 
 function check(js, regex, message, file) {
