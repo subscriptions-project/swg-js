@@ -400,7 +400,6 @@ export class ConfiguredRuntime {
     PayStartFlow.preconnect(preconnect);
 
     injectStyleSheet(this.win_.document, SWG_DIALOG);
-    this.buttonApi_.init();  // Injects swg-button stylesheet.
   }
 
   /** @override */
