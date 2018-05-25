@@ -532,4 +532,25 @@ describes.realWin('LinkSaveFlow', {}, env => {
     });
   });
 
+  it('should callback promise rejected should close dialog', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, () => Promise.reject('no token'));
+    let messageCallback = undefined;
+    sandbox.stub(port, 'onMessage', cb => {
+      messageCallback = cb;
+    });
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    return linkSaveFlow.start().then(() => {
+      messageCallback({
+        'getLinkingInfo': true,
+      });
+      dialogManagerMock.expects('completeView').once();
+      return linkSaveFlow.requestPromise_;
+    }).then(() => {
+      throw new Error('must have failed');
+    }, reason => {
+      expect(() => {
+        throw reason;
+      }).to.throw(/no token/);
+    });
+  });
 });

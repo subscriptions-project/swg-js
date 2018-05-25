@@ -263,9 +263,14 @@ export class LinkSaveFlow {
             throw new Error('Neither token or authCode is available');
           }
           this.activityIframeView_.message(saveRequest);
+        }).catch(reason => {
+          // The flow is complete.
+          this.dialogManager_.completeView(this.activityIframeView_);
+          throw reason;
         });
       }
     });
+
     /** {!Promise<boolean>} */
     return this.dialogManager_.openView(this.activityIframeView_,
         /* hidden */ true).then(() => {
