@@ -185,15 +185,22 @@ export class LinkCompleteFlow {
 }
 
 /**
+ * Callback for retrieving subscription request
+ *
+ * @callback saveRequestCallback
+ * @return {!Promise<!SaveSbuscriptionRequest> | !SaveSubscriptionRequest}
+ */
+
+/**
  * The flow to save subscription information.
  */
 export class LinkSaveFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.SaveSubscriptionRequest} request
+   * @param {saveRequestCallback} callback
    */
-  constructor(deps, request) {
+  constructor(deps, callback) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -206,8 +213,8 @@ export class LinkSaveFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private {!../api/subscriptions.SaveSubscriptionRequest} */
-    this.request_ = request;
+    /** @private {!saveRequestCallback} */
+    this.callback_ = callback;
 
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
@@ -223,17 +230,13 @@ export class LinkSaveFlow {
       'isClosable': true,
     };
 
-    if (this.request_.token) {
-      if (!this.request_.authCode) {
-        iframeArgs['token'] = this.request_.token;
-      } else {
-        throw new Error('Both authCode and token are available');
-      }
-    } else if (this.request_.authCode) {
-      iframeArgs['authCode'] = this.request_.authCode;
-    } else {
-      throw new Error('Neither token or authCode is available');
-    }
+    /** {!Promise<../api/subscriptions.SaveSubscriptionRequest>} */
+    const requestPromise = new Promise(resolve => {
+      const request = resolve(this.callback_());
+      return request;
+    }).then(request => {
+      return request;
+    });
 
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
@@ -242,6 +245,32 @@ export class LinkSaveFlow {
       feArgs(iframeArgs),
       /* shouldFadeBody */ false
     );
+
+    this.activityIframeView_.onMessage(data => {
+      if (data['getLinkingInfo']) {
+        requestPromise.then(request => {
+          if (!request) {
+            throw new Error('Neither token or authCode is available');
+          }
+          /** {!../api/subscriptions.SaveSubscriptionRequest} */
+          let saveRequest;
+          if (request.token) {
+            if (!request.authCode) {
+              saveRequest = {token: request.token};
+            } else {
+              throw new Error('Both authCode and token are available');
+            }
+          } else if (request.authCode) {
+            saveRequest = {authCode: request.authCode};
+          } else {
+            throw new Error('Neither token or authCode is available');
+          }
+          return saveRequest;
+        }).then(request => {
+          this.activityIframeView_.message(request);
+        });
+      }
+    });
     /** {!Promise<boolean>} */
     return this.dialogManager_.openView(this.activityIframeView_,
         /* hidden */ true).then(() => {
