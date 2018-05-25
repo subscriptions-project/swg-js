@@ -441,7 +441,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
     });
   });
 
-  // DO NOT SUBMIT, this test fails
   it('should should fail if both token and authCode are present', () => {
     const reqPromise = new Promise(resolve => {
       resolve({token: 'test', authCode: 'test'});
@@ -456,18 +455,17 @@ describes.realWin('LinkSaveFlow', {}, env => {
       messageCallback({
         'getLinkingInfo': true,
       });
-      return Promise.resolve(reqPromise);
+      return linkSaveFlow.requestPromise_;
     }).then(() => {
       throw new Error('must have failed');
     }, reason => {
       expect(() => {
         throw reason;
-      }).to.throw(/Both authcode and token are available/);
+      }).to.throw(/Both authCode and token are available/);
       return Promise.resolve();
     });
   });
 
-  // DO NOT SUBMIT, this test fails
   it('should should fail if neither token nor authCode is present', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     let messageCallback = undefined;
@@ -479,14 +477,13 @@ describes.realWin('LinkSaveFlow', {}, env => {
       messageCallback({
         'getLinkingInfo': true,
       });
-      return Promise.resolve();
+      return linkSaveFlow.requestPromise_;
     }).then(() => {
       throw new Error('must have failed');
     }, reason => {
       expect(() => {
         throw reason;
-      }).to.throw(/Both authCode and token are available/);
-      return Promise.resolve();
+      }).to.throw(/Neither token or authCode is available/);
     });
   });
 
@@ -505,7 +502,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       messageCallback({
         'getLinkingInfo': true,
       });
-      return Promise.resolve(reqPromise);
+      return linkSaveFlow.requestPromise_;
     }).then(() => {
       expect(messageStub).to.be.calledOnce.calledWith(
         {token: 'test'});
@@ -527,7 +524,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       messageCallback({
         'getLinkingInfo': true,
       });
-      return Promise.resolve();
+      return linkSaveFlow.requestPromise_;
     }).then(() => {
       expect(messageStub).to.be.calledOnce.calledWith(
         {authCode: 'testCode'});

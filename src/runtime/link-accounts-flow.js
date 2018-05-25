@@ -216,6 +216,9 @@ export class LinkSaveFlow {
     /** @private {!saveRequestCallback} */
     this.callback_ = callback;
 
+    /** {?Promise<../api/subscriptions.SaveSubscriptionRequest>} */
+    this.requestPromise_ = null;
+
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
   }
@@ -230,14 +233,6 @@ export class LinkSaveFlow {
       'isClosable': true,
     };
 
-    /** {!Promise<../api/subscriptions.SaveSubscriptionRequest>} */
-    const requestPromise = new Promise(resolve => {
-      const request = resolve(this.callback_());
-      return request;
-    }).then(request => {
-      return request;
-    });
-
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
@@ -248,26 +243,26 @@ export class LinkSaveFlow {
 
     this.activityIframeView_.onMessage(data => {
       if (data['getLinkingInfo']) {
-        requestPromise.then(request => {
+        /** {!Promise<../api/subscriptions.SaveSubscriptionRequest>} */
+        this.requestPromise_ = new Promise(resolve => {
+          resolve(this.callback_());
+        }).then(request => {
           if (!request) {
             throw new Error('Neither token or authCode is available');
           }
-          /** {!../api/subscriptions.SaveSubscriptionRequest} */
           let saveRequest;
           if (request.token) {
             if (!request.authCode) {
-              saveRequest = {token: request.token};
+              saveRequest = {'token': request.token};
             } else {
               throw new Error('Both authCode and token are available');
             }
           } else if (request.authCode) {
-            saveRequest = {authCode: request.authCode};
+            saveRequest = {'authCode': request.authCode};
           } else {
             throw new Error('Neither token or authCode is available');
           }
-          return saveRequest;
-        }).then(request => {
-          this.activityIframeView_.message(request);
+          this.activityIframeView_.message(saveRequest);
         });
       }
     });
