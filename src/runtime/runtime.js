@@ -322,10 +322,10 @@ export class Runtime {
   }
 
   /** @override */
-  saveSubscription(saveSubscriptionRequest) {
+  saveSubscription(saveSubscriptionRequestCallback) {
     return this.configured_(true)
         .then(runtime => {
-          runtime.saveSubscription(saveSubscriptionRequest);
+          runtime.saveSubscription(saveSubscriptionRequestCallback);
         });
   }
 
@@ -521,9 +521,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  saveSubscription(saveSubscriptionRequest) {
+  saveSubscription(saveSubscriptionRequestCallback) {
     return this.documentParsed_.then(() => {
-      return new LinkSaveFlow(this, saveSubscriptionRequest).start();
+      return new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
     });
   }
 

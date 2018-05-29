@@ -441,7 +441,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     });
   });
 
-  it('should should fail if both token and authCode are present', () => {
+  it('should fail if both token and authCode are present', () => {
     const reqPromise = new Promise(resolve => {
       resolve({token: 'test', authCode: 'test'});
     });
@@ -455,18 +455,18 @@ describes.realWin('LinkSaveFlow', {}, env => {
       messageCallback({
         'getLinkingInfo': true,
       });
-      return linkSaveFlow.requestPromise_;
+      dialogManagerMock.expects('completeView').once();
+      return linkSaveFlow.getRequestPromise();
     }).then(() => {
       throw new Error('must have failed');
     }, reason => {
       expect(() => {
         throw reason;
       }).to.throw(/Both authCode and token are available/);
-      return Promise.resolve();
     });
   });
 
-  it('should should fail if neither token nor authCode is present', () => {
+  it('should fail if neither token nor authCode is present', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     let messageCallback = undefined;
     sandbox.stub(port, 'onMessage', cb => {
@@ -477,7 +477,8 @@ describes.realWin('LinkSaveFlow', {}, env => {
       messageCallback({
         'getLinkingInfo': true,
       });
-      return linkSaveFlow.requestPromise_;
+      dialogManagerMock.expects('completeView').once();
+      return linkSaveFlow.getRequestPromise();
     }).then(() => {
       throw new Error('must have failed');
     }, reason => {
@@ -506,7 +507,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
     }).then(() => {
       expect(messageStub).to.be.calledOnce.calledWith(
         {token: 'test'});
-      return Promise.resolve();
     });
   });
 
@@ -524,11 +524,10 @@ describes.realWin('LinkSaveFlow', {}, env => {
       messageCallback({
         'getLinkingInfo': true,
       });
-      return linkSaveFlow.requestPromise_;
+      return linkSaveFlow.getRequestPromise();
     }).then(() => {
       expect(messageStub).to.be.calledOnce.calledWith(
         {authCode: 'testCode'});
-      return Promise.resolve();
     });
   });
 
@@ -544,13 +543,37 @@ describes.realWin('LinkSaveFlow', {}, env => {
         'getLinkingInfo': true,
       });
       dialogManagerMock.expects('completeView').once();
-      return linkSaveFlow.requestPromise_;
+      return linkSaveFlow.getRequestPromise();
     }).then(() => {
       throw new Error('must have failed');
     }, reason => {
       expect(() => {
         throw reason;
       }).to.throw(/no token/);
+    });
+  });
+
+  it('should callback synchronous error should close dialog', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, () => {
+      throw new Error('callback failed');
+    });
+    let messageCallback = undefined;
+    sandbox.stub(port, 'onMessage', cb => {
+      messageCallback = cb;
+    });
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    return linkSaveFlow.start().then(() => {
+      messageCallback({
+        'getLinkingInfo': true,
+      });
+      dialogManagerMock.expects('completeView').once();
+      return linkSaveFlow.getRequestPromise();
+    }).then(() => {
+      throw new Error('must have failed');
+    }, reason => {
+      expect(() => {
+        throw reason;
+      }).to.throw(/callback failed/);
     });
   });
 });

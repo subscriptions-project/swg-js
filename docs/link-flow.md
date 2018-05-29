@@ -28,13 +28,22 @@ SwG supports two flavors of OAuth account linking:
 
 This flow is normally originated from the publisher and allows the reader to link publication's subscription to the reader's account.
 
-To start saving subscription link, provide a request containing a token corresponding to the reader's
-subscription, Eg:
+To start saving subscription link, provide a callback synchronously returning a token or authCode corresponding to the reader's
+subscription, or a Promise to return it asynchronously Eg:
 
 ```
-subscriptions.saveSubscription({token: 'THE TOKEN'});
+subscriptions.saveSubscription(() => {token: 'THE TOKEN'});
+```
+OR
+
+```
+const requestPromise = new Promise(resolve => {
+    // whenever available
+    resolve({authCode: 'THE CODE'});
+});
+subscriptions.saveSubscription(() => requestPromise));
 ```
 
-A list of user's accounts will be surfaced and the user can select the account to be linked to the provided token. Upon saving this link, a non-blocking confirmation will be shown to the user.
+A list of user's accounts will be surfaced in an iframe and the user can select the account to be linked and saved. At this point, the publisher will receive a message to retrieve the token or authCode using the callback. Once its available,  the iframe recieves it and saves it. Upon saving this link, a non-blocking confirmation will be shown to the user.
 
 

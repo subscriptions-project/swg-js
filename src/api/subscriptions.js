@@ -232,6 +232,14 @@ export let LoginRequest;
 export let SaveSubscriptionRequest;
 
 /**
+ * Callback for retrieving subscription request
+ *
+ * @callback SaveSubscriptionRequestCallback
+ * @return {!Promise<SaveSbuscriptionRequest> | !SaveSubscriptionRequest} request
+ */
+export let SaveSubscriptionRequestCallback;
+
+/**
  * Properties:
  * - theme: "light" or "dark". Default is "light".
  *
