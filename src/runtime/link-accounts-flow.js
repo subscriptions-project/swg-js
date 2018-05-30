@@ -216,7 +216,10 @@ export class LinkSaveFlow {
     this.activityIframeView_ = null;
   }
 
-  /** @return {?Promise<!../api/subscriptions.SaveSubscriptionRequest>} */
+  /**
+   * @return {?Promise<!../api/subscriptions.SaveSubscriptionRequest>}
+   * @package Visible for testing.
+   */
   getRequestPromise() {
     return this.requestPromise_;
   }
