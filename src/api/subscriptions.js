@@ -156,10 +156,10 @@ export class Subscriptions {
 
  /**
   * Starts the save subscriptions flow.
-  * @param {!SaveSubscriptionRequest} request
+  * @param {!SaveSubscriptionRequestCallback} requestCallback
   * @return {!Promise<boolean>} status or promise of status of request
   */
-  saveSubscription(request) {}
+  saveSubscription(requestCallback) {}
 
   /**
    * Creates an element with the SwG button style and the provided callback.
@@ -230,6 +230,14 @@ export let LoginRequest;
  * }}
  */
 export let SaveSubscriptionRequest;
+
+/**
+ * Callback for retrieving subscription request
+ *
+ * @callback SaveSubscriptionRequestCallback
+ * @return {!Promise<SaveSbuscriptionRequest> | !SaveSubscriptionRequest} request
+ */
+export let SaveSubscriptionRequestCallback;
 
 /**
  * Properties:
