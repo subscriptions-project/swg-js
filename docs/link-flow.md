@@ -44,6 +44,5 @@ const requestPromise = new Promise(resolve => {
 subscriptions.saveSubscription(() => requestPromise));
 ```
 
-A list of user's accounts will be surfaced in an iframe and the user can select the account to be linked and saved. At this point, the publisher will receive a message to retrieve the token or authCode using the callback. Once its available,  the iframe recieves it and saves it. Upon saving this link, a non-blocking confirmation will be shown to the user.
-
+The dialog will prompt the user to opt-in to save the subscription. If the user agrees, the provided callback will be called to resolve the token/authCode. The resulting promise will be resolved once the subscription has been saved. 
 
