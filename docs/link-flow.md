@@ -24,7 +24,7 @@ SwG supports two flavors of OAuth account linking:
  - [OAuth implicit flow](https://developers.google.com/actions/identity/oauth2-implicit-flow)
  - [OAuth authorization code flow](https://developers.google.com/actions/identity/oauth2-code-flow)
 
-# SwG Link Save flow (Not launched)
+# SwG Link Save flow
 
 This flow is normally originated from the publisher and allows the reader to link publication's subscription to the reader's account.
 
