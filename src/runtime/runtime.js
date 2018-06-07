@@ -322,10 +322,10 @@ export class Runtime {
   }
 
   /** @override */
-  saveSubscription(saveSubscriptionRequest) {
+  saveSubscription(saveSubscriptionRequestCallback) {
     return this.configured_(true)
         .then(runtime => {
-          runtime.saveSubscription(saveSubscriptionRequest);
+          runtime.saveSubscription(saveSubscriptionRequestCallback);
         });
   }
 
@@ -400,7 +400,6 @@ export class ConfiguredRuntime {
     PayStartFlow.preconnect(preconnect);
 
     injectStyleSheet(this.win_.document, SWG_DIALOG);
-    this.buttonApi_.init();  // Injects swg-button stylesheet.
   }
 
   /** @override */
@@ -521,9 +520,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  saveSubscription(saveSubscriptionRequest) {
+  saveSubscription(saveSubscriptionRequestCallback) {
     return this.documentParsed_.then(() => {
-      return new LinkSaveFlow(this, saveSubscriptionRequest).start();
+      return new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
     });
   }
 
