@@ -286,3 +286,52 @@ export class LinkSaveFlow {
         });
   }
 }
+
+export class AutoLoginFlow {
+  /**
+   * @param {!./deps.DepsDef} deps
+   * @param {!../api/subscriptions.AutoLoginRequestCallback} AutoLoginRequestCallback
+   */
+  constructor(deps, AutoLoginRequestCallback) {
+    /** @private @const {!Window} */
+    this.win_ = deps.win();
+
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    this.activityPorts_ = deps.activities();
+
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = deps.dialogManager();
+
+    /** @private {!../api/subscriptions.AutoLoginRequestCallback} */
+    this.autoLoginRequestCallback_ = autoLoginRequestCallback;
+
+    /** {!boolean} */
+    this.completed_ = false;
+
+    /** @private @const {!ActivityIframeView} */
+    this.activityIframeView_ = new ActivityIframeView(
+        this.win_,
+        this.activityPorts_,
+        feUrl('/autologiniframe'),
+        feArgs({
+          'publicationId': deps.pageConfig().getPublicationId(),
+          'productId': deps.pageConfig().getProductId(),
+          'loginHint': this.autoLoginRequestCallback_['loginHint'],
+        }),
+        /* shouldFadeBody */ false
+    );
+  }
+
+  /**
+   * Starts the Auto Login flow.
+   * @return {!Promise}
+   */
+  start() {
+    this.activityIframeView_.acceptResult().then(() => {
+      this.completed_ = true;
+      // The flow is complete.
+      return this.dialogManager_.completeView(this.activityIframeView_);
+    });
+    return this.dialogManager_.openView(this.activityIframeView_);
+  }
+}

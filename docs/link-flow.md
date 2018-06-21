@@ -28,7 +28,7 @@ SwG supports two flavors of OAuth account linking:
 
 This flow is normally originated from the publisher and allows the reader to link publication's subscription to the reader's account.
 
-To start saving subscription link, provide a callback synchronously returning a token or authCode corresponding to the reader's
+To start the saving subscription link, provide a callback synchronously returning a token or authCode corresponding to the reader's
 subscription, or a Promise to return it asynchronously Eg:
 
 ```
@@ -46,3 +46,8 @@ subscriptions.saveSubscription(() => requestPromise));
 
 The dialog will prompt the user to opt-in to save the subscription. If the user agrees, the provided callback will be called to resolve the token/authCode. The resulting promise will be resolved once the subscription has been saved. 
 
+# SwG Auto Login flow
+
+This is the flow that will automatically log the user in. It is initiated by the publisher when the publisher doesn't find a user's subscription but Google does find the subscription.
+
+To enable this flow, 

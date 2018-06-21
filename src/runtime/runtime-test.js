@@ -39,6 +39,7 @@ import {
   LinkCompleteFlow,
   LinkbackFlow,
   LinkSaveFlow,
+  AutoLoginFlow,
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -423,14 +424,14 @@ describes.realWin('Runtime', {}, env => {
       configuredRuntimeMock.verify();
     });
 
-    it('should should delegate "start"', () => {
+    it('should delegate "start"', () => {
       configuredRuntimeMock.expects('start').once();
       return runtime.start().then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(true);
       });
     });
 
-    it('should should delegate "getEntitlements"', () => {
+    it('should delegate "getEntitlements"', () => {
       const ents = {};
       configuredRuntimeMock.expects('getEntitlements')
           .returns(Promise.resolve(ents));
@@ -440,14 +441,14 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "reset"', () => {
+    it('should delegate "reset"', () => {
       configuredRuntimeMock.expects('reset').once();
       return runtime.reset().then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(true);
       });
     });
 
-    it('should should delegate "getOffers"', () => {
+    it('should delegate "getOffers"', () => {
       configuredRuntimeMock.expects('getOffers').withExactArgs(undefined)
           .once();
       return runtime.getOffers().then(() => {
@@ -455,7 +456,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "getOffers" with options', () => {
+    it('should delegate "getOffers" with options', () => {
       const opts = {productId: 'abc'};
       configuredRuntimeMock.expects('getOffers').withExactArgs(opts)
           .once();
@@ -464,7 +465,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "showOffers"', () => {
+    it('should delegate "showOffers"', () => {
       configuredRuntimeMock.expects('showOffers')
           .withExactArgs(undefined)
           .once();
@@ -473,7 +474,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "showOffers" with options', () => {
+    it('should delegate "showOffers" with options', () => {
       const options = {list: 'other'};
       configuredRuntimeMock.expects('showOffers')
           .withExactArgs(options)
@@ -483,7 +484,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "showSubscribeOption"', () => {
+    it('should delegate "showSubscribeOption"', () => {
       configuredRuntimeMock.expects('showSubscribeOption')
           .withExactArgs(undefined)
           .once();
@@ -492,7 +493,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "showSubscribeOption" with options', () => {
+    it('should delegate "showSubscribeOption" with options', () => {
       const options = {list: 'other'};
       configuredRuntimeMock.expects('showSubscribeOption')
           .withExactArgs(options)
@@ -521,7 +522,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "subscribe"', () => {
+    it('should delegate "subscribe"', () => {
       configuredRuntimeMock.expects('subscribe')
           .withExactArgs('sku1')
           .once();
@@ -530,7 +531,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "completeDeferredAccountCreation"', () => {
+    it('should delegate "completeDeferredAccountCreation"', () => {
       const request = {entitlements: 'ents'};
       const response = {};
       configuredRuntimeMock.expects('completeDeferredAccountCreation').once()
@@ -544,7 +545,7 @@ describes.realWin('Runtime', {}, env => {
           });
     });
 
-    it('should should delegate "setOnEntitlementsResponse"', () => {
+    it('should delegate "setOnEntitlementsResponse"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnEntitlementsResponse')
           .withExactArgs(callback)
@@ -554,7 +555,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnNativeSubscribeRequest"', () => {
+    it('should delegate "setOnNativeSubscribeRequest"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnNativeSubscribeRequest')
           .withExactArgs(callback)
@@ -564,7 +565,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnSubscribeResponse"', () => {
+    it('should delegate "setOnSubscribeResponse"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnSubscribeResponse')
           .withExactArgs(callback)
@@ -574,7 +575,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnLoginRequest"', () => {
+    it('should delegate "setOnLoginRequest"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnLoginRequest')
           .withExactArgs(callback)
@@ -584,7 +585,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnLinkComplete"', () => {
+    it('should delegate "setOnLinkComplete"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnLinkComplete')
           .withExactArgs(callback)
@@ -594,7 +595,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnFlowStarted"', () => {
+    it('should delegate "setOnFlowStarted"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnFlowStarted')
           .withExactArgs(callback)
@@ -604,7 +605,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnFlowCanceled"', () => {
+    it('should delegate "setOnFlowCanceled"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnFlowCanceled')
           .withExactArgs(callback)
@@ -614,7 +615,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "saveSubscricption" with token', () => {
+    it('should delegate "saveSubscricption" with token', () => {
       const newPromise = new Promise(() => {});
       const requestCallback = () => {
         return {token: 'test'};
@@ -629,7 +630,7 @@ describes.realWin('Runtime', {}, env => {
       return resultPromise;
     });
 
-    it('should should delegate "saveSubscricption" with authCode', () => {
+    it('should delegate "saveSubscricption" with authCode', () => {
       const newPromise = new Promise(() => {});
       const requestPromise = new Promise(resolve => {
         resolve({authCode: 'testCode'});
@@ -641,6 +642,26 @@ describes.realWin('Runtime', {}, env => {
           .then(() => {
             expect(configureStub).to.be.calledOnce.calledWith(true);
             expect(resultPromise).to.deep.equal(newPromise);
+          });
+      return resultPromise;
+    });
+
+    it('should delegate "autoLogin"', () => {
+      runtime.init('pub123');
+      const args = {
+        loginHint: 'hint123',
+        productId: 'pid123',
+      };
+
+      const newPromise = new Promise(() => {});
+      configuredRuntimeMock.expects('autoLogin').once();
+
+      const resultPromise = runtime.saveSubscription(args)
+          .then(result => {
+            expect(configureStub).to.be.calledOnce.calledWith(true);
+            expect(resultPromise).to.deep.equal(newPromise);
+            expect(result.pageConfig().getPublicationId()).to.equal('pub123');
+            expect(result.pageConfig().getProductId()).to.equal('pid123');
           });
       return resultPromise;
     });
@@ -831,7 +852,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(el).to.not.exist;
   });
 
-  it('should should initialize deps', () => {
+  it('should initialize deps', () => {
     expect(runtime.win()).to.equal(win);
     expect(runtime.doc().getWin()).to.equal(win);
     expect(runtime.doc().getRootNode()).to.equal(win.document);
@@ -1087,6 +1108,21 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(linkSaveFlow.callback_()).to.deep.equal({authCode: 'testCode'});
     });
     expect(resultPromise).to.deep.equal(newPromise);
+  });
+
+  it.only('should start autoLoginFlow', () => {
+    let autoLoginFlow;
+    const newPromise = new Promise(() => {});
+    sandbox.stub(AutoLoginFlow.prototype, 'start', function() {
+      autoLoginFlow = this;
+      return newPromise;
+    });
+    const resultPromise = runtime.autoLogin({token: 'test'});
+    return runtime.documentParsed_.then(() => {
+      expect(autoLoginFlow.autoLoginRequestCallback_['token'])
+          .to.deep.equal('test');
+      expect(resultPromise).to.deep.equal(newPromise);
+    });
   });
 
   it('should directly call "createButton"', () => {

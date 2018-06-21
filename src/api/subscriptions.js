@@ -117,6 +117,13 @@ export class Subscriptions {
   setOnLoginRequest(callback) {}
 
   /**
+   * Starts the auto login flow.
+   * @param {!AutoLoginRequestCallback} callback
+   * @return {!Promise}
+   */
+  autoLogin(callback) {}
+
+  /**
    * @param {function()} callback
    */
   setOnLinkComplete(callback) {}
@@ -217,6 +224,15 @@ export let OffersRequest;
  * }}
  */
 export let LoginRequest;
+
+
+/**
+ * @typedef {{
+ *   token: (string|undefined),
+ *   authCode: (string|undefined),
+ * }}
+ */
+export let AutoLoginRequestCallback;
 
 
 /**

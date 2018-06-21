@@ -25,6 +25,7 @@ import {Doc, resolveDoc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
 import {
+  AutoLoginFlow,
   LinkCompleteFlow,
   LinkbackFlow,
   LinkSaveFlow,
@@ -328,6 +329,14 @@ export class Runtime {
           runtime.saveSubscription(saveSubscriptionRequestCallback);
         });
   }
+  
+  /** @override */
+  autoLogin(autoLoginRequestCallback) {
+    return this.configured_(true)
+        .then(runtime => {
+          runtime.autoLogin(autoLoginRequestCallback);
+        });
+  }
 
   /** @override */
   createButton(optionsOrCallback, opt_callback) {
@@ -600,6 +609,7 @@ function createPublicRuntime(runtime) {
     setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),
     setOnFlowCanceled: runtime.setOnFlowCanceled.bind(runtime),
     saveSubscription: runtime.saveSubscription.bind(runtime),
+    autoLogin: runtime.autoLogin.bind(runtime),
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
   });
