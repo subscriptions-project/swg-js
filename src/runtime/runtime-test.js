@@ -646,10 +646,10 @@ describes.realWin('Runtime', {}, env => {
       return resultPromise;
     });
 
-    it('should delegate "loginPrompt"', () => {
+    it.only('should delegate "loginPrompt"', () => {
       runtime.init('pub123');
       const args = {
-        loginHint: 'hint123',
+        isConsentRequired: true,
         productId: 'pid123',
       };
 
@@ -662,6 +662,7 @@ describes.realWin('Runtime', {}, env => {
             expect(resultPromise).to.deep.equal(newPromise);
             expect(result.pageConfig().getPublicationId()).to.equal('pub123');
             expect(result.pageConfig().getProductId()).to.equal('pid123');
+            //todo: is consent required
           });
       return resultPromise;
     });
@@ -1110,7 +1111,8 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(resultPromise).to.deep.equal(newPromise);
   });
 
-  it.only('should start loginPromptFlow', () => {
+  // it.only('should start loginPromptFlow', () => {
+  it('should start loginPromptFlow', () => {
     let loginPromptFlow;
     const newPromise = new Promise(() => {});
     sandbox.stub(LoginPromptFlow.prototype, 'start', function() {

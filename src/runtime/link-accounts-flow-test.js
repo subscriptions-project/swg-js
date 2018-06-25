@@ -610,31 +610,9 @@ describes.realWin('LoginPromptFlow', {}, env => {
     dialogManagerMock.verify();
   });
 
-  /*
-  it('should default index to 0', () => {
-    dialogManagerMock.expects('popupClosed').once();
-    linkCompleteFlow = new LinkCompleteFlow(runtime, {});
-    const port = new ActivityPort();
-    port.onResizeRequest = () => {};
-    port.onMessage = () => {};
-    port.whenReady = () => Promise.resolve();
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
-        {
-          '_client': 'SwG $internalRuntimeVersion$',
-          'productId': 'pub1:prod1',
-          'publicationId': 'pub1',
-        })
-        .returns(Promise.resolve(port))
-        .once();
-  });
-  //*/
-
   it.only('should start correctly', () => {
     loginPromptFlow = new LoginPromptFlow(runtime, {'isConsentRequired': true});
-    activitiesMock.expects('open').withExactArgs(
-    // activitiesMock.expects('openIframe').withExactArgs(
+    activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/loginpromptiframe?_=_',
         {

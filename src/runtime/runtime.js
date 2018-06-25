@@ -329,12 +329,12 @@ export class Runtime {
           runtime.saveSubscription(saveSubscriptionRequestCallback);
         });
   }
-  
+
   /** @override */
   loginPrompt(loginPromptRequest) {
     return this.configured_(true)
         .then(runtime => {
-          runtime.loginPromptLogin(loginPromptRequest);
+          runtime.loginPrompt(loginPromptRequest);
         });
   }
 
