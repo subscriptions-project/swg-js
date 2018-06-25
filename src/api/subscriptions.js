@@ -118,7 +118,7 @@ export class Subscriptions {
 
   /**
    * Starts the auto login flow.
-   * @param {!AutoLoginRequestCallback} callback
+   * @param {!AutoLoginRequest} callback
    * @return {!Promise}
    */
   autoLogin(callback) {}
@@ -231,7 +231,7 @@ export let LoginRequest;
  *   autoLoginHint: (string|undefined),
  * }}
  */
-export let AutoLoginRequestCallback;
+export let AutoLoginRequest;
 
 
 /**
