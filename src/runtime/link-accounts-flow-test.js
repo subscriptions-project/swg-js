@@ -21,10 +21,10 @@ import {
 } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {
-  AutoLoginFlow,
   LinkCompleteFlow,
   LinkbackFlow,
   LinkSaveFlow,
+  LoginPromptFlow,
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
@@ -579,13 +579,13 @@ describes.realWin('LinkSaveFlow', {}, env => {
   });
 });
 
-describes.realWin('AutoLoginFlow', {}, env => {
+describes.realWin('LoginPromptFlow', {}, env => {
   let win;
   let runtime;
   let activitiesMock;
   let callbacksMock;
   let pageConfig;
-  let autoLoginFlow;
+  let loginPromptFlow;
   let port;
   let dialogManagerMock;
 
@@ -610,17 +610,40 @@ describes.realWin('AutoLoginFlow', {}, env => {
     dialogManagerMock.verify();
   });
 
-  it('should start correctly', () => {
-    autoLoginFlow = new AutoLoginFlow(runtime, () => {});
+  /*
+  it('should default index to 0', () => {
+    dialogManagerMock.expects('popupClosed').once();
+    linkCompleteFlow = new LinkCompleteFlow(runtime, {});
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/autologiniframe?_=_',
+        '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
+        {
+          '_client': 'SwG $internalRuntimeVersion$',
+          'productId': 'pub1:prod1',
+          'publicationId': 'pub1',
+        })
+        .returns(Promise.resolve(port))
+        .once();
+  });
+  //*/
+
+  it.only('should start correctly', () => {
+    loginPromptFlow = new LoginPromptFlow(runtime, {'isConsentRequired': true});
+    activitiesMock.expects('open').withExactArgs(
+    // activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/loginpromptiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
+          productId: 'pub1:prod1',
           publicationId: 'pub1',
-          isClosable: true,
+          isConsentRequired: true,
         })
         .returns(Promise.resolve(port));
-    return autoLoginFlow.start();
+    return loginPromptFlow.start();
   });
 });

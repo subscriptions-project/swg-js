@@ -287,12 +287,12 @@ export class LinkSaveFlow {
   }
 }
 
-export class AutoLoginFlow {
+export class LoginPromptFlow {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.AutoLoginRequest} AutoLoginRequest
+   * @param {!../api/subscriptions.LoginPromptRequest} loginPromptRequest
    */
-  constructor(deps, AutoLoginRequest) {
+  constructor(deps, loginPromptRequest) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -302,8 +302,8 @@ export class AutoLoginFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private {!../api/subscriptions.AutoLoginRequest} */
-    this.autoLoginRequest_ = autoLoginRequest;
+    /** @private {!../api/subscriptions.LoginPromptRequest} */
+    this.loginPromptRequest_ = loginPromptRequest;
 
     /** {!boolean} */
     this.completed_ = false;
@@ -312,11 +312,11 @@ export class AutoLoginFlow {
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        feUrl('/autologiniframe'),
+        feUrl('/loginpromptiframe'),
         feArgs({
-          'publicationId': deps.pageConfig().getPublicationId(),
-          'productId': deps.pageConfig().getProductId(),
-          'loginHint': this.autoLoginRequest_['loginHint'],
+          publicationId: deps.pageConfig().getPublicationId(),
+          productId: deps.pageConfig().getProductId(),
+          isConsentRequired: this.loginPromptRequest_['isConsentRequired'],
         }),
         /* shouldFadeBody */ false
     );

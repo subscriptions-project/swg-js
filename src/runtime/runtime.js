@@ -25,10 +25,10 @@ import {Doc, resolveDoc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
 import {
-  AutoLoginFlow,
   LinkCompleteFlow,
   LinkbackFlow,
   LinkSaveFlow,
+  LoginPromptFlow,
 } from './link-accounts-flow';
 import {OffersApi} from './offers-api';
 import {
@@ -331,10 +331,10 @@ export class Runtime {
   }
   
   /** @override */
-  autoLogin(autoLoginRequest) {
+  loginPrompt(loginPromptRequest) {
     return this.configured_(true)
         .then(runtime => {
-          runtime.autoLogin(autoLoginRequest);
+          runtime.loginPromptLogin(loginPromptRequest);
         });
   }
 
@@ -534,11 +534,11 @@ export class ConfiguredRuntime {
       return new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
     });
   }
-  
+
   /** @override */
-  autoLogin(autoLoginRequest) {
+  loginPrompt(loginPromptRequest) {
     return this.documentParsed_.then(() => {
-      return new AutoLoginFlow(this, autoLoginRequest).start();
+      return new LoginPromptFlow(this, loginPromptRequest).start();
     });
   }
 
@@ -600,6 +600,7 @@ function createPublicRuntime(runtime) {
     reset: runtime.reset.bind(runtime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
+    loginPrompt: runtime.loginPrompt.bind(runtime),
     getOffers: runtime.getOffers.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
@@ -616,7 +617,6 @@ function createPublicRuntime(runtime) {
     setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),
     setOnFlowCanceled: runtime.setOnFlowCanceled.bind(runtime),
     saveSubscription: runtime.saveSubscription.bind(runtime),
-    autoLogin: runtime.autoLogin.bind(runtime),
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
   });

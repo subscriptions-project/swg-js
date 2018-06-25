@@ -118,10 +118,10 @@ export class Subscriptions {
 
   /**
    * Starts the auto login flow.
-   * @param {!AutoLoginRequest} callback
+   * @param {!LoginPromptRequest} request
    * @return {!Promise}
    */
-  autoLogin(callback) {}
+  loginPrompt(request) {}
 
   /**
    * @param {function()} callback
@@ -228,10 +228,10 @@ export let LoginRequest;
 
 /**
  * @typedef {{
- *   autoLoginHint: (string|undefined),
+ *   isConsentRequired: boolean,
  * }}
  */
-export let AutoLoginRequest;
+export let loginPromptRequest;
 
 
 /**

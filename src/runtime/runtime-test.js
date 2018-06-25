@@ -39,7 +39,7 @@ import {
   LinkCompleteFlow,
   LinkbackFlow,
   LinkSaveFlow,
-  AutoLoginFlow,
+  LoginPromptFlow,
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -646,7 +646,7 @@ describes.realWin('Runtime', {}, env => {
       return resultPromise;
     });
 
-    it('should delegate "autoLogin"', () => {
+    it('should delegate "loginPrompt"', () => {
       runtime.init('pub123');
       const args = {
         loginHint: 'hint123',
@@ -654,9 +654,9 @@ describes.realWin('Runtime', {}, env => {
       };
 
       const newPromise = new Promise(() => {});
-      configuredRuntimeMock.expects('autoLogin').once();
+      configuredRuntimeMock.expects('loginPrompt').once();
 
-      const resultPromise = runtime.autoLogin(args)
+      const resultPromise = runtime.loginPrompt(args)
           .then(result => {
             expect(configureStub).to.be.calledOnce.calledWith(true);
             expect(resultPromise).to.deep.equal(newPromise);
@@ -1110,18 +1110,18 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(resultPromise).to.deep.equal(newPromise);
   });
 
-  it.only('should start autoLoginFlow', () => {
-    let autoLoginFlow;
+  it.only('should start loginPromptFlow', () => {
+    let loginPromptFlow;
     const newPromise = new Promise(() => {});
-    sandbox.stub(AutoLoginFlow.prototype, 'start', function() {
-      autoLoginFlow = this;
+    sandbox.stub(LoginPromptFlow.prototype, 'start', function() {
+      loginPromptFlow = this;
       return newPromise;
     });
-    const resultPromise = runtime.autoLogin(() => {
-      return {loginHint: 'test'};
+    const resultPromise = runtime.loginPrompt(() => {
+      return {isConsentRequired: true};
     });
     return runtime.documentParsed_.then(() => {
-      expect(autoLoginFlow.callback_()).to.deep.equal({authCode: 'testCode'});
+      expect(loginPromptFlow.callback_()).to.deep.equal({authCode: 'testCode'});
     });
     expect(resultPromise).to.deep.equal(newPromise);
   });
