@@ -331,10 +331,10 @@ export class Runtime {
   }
   
   /** @override */
-  autoLogin(autoLoginRequestCallback) {
+  autoLogin(autoLoginRequest) {
     return this.configured_(true)
         .then(runtime => {
-          runtime.autoLogin(autoLoginRequestCallback);
+          runtime.autoLogin(autoLoginRequest);
         });
   }
 
@@ -532,6 +532,13 @@ export class ConfiguredRuntime {
   saveSubscription(saveSubscriptionRequestCallback) {
     return this.documentParsed_.then(() => {
       return new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
+    });
+  }
+  
+  /** @override */
+  autoLogin(autoLoginRequest) {
+    return this.documentParsed_.then(() => {
+      return new AutoLoginFlow(this, autoLoginRequest).start();
     });
   }
 

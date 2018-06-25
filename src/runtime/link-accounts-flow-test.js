@@ -21,6 +21,7 @@ import {
 } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {
+  AutoLoginFlow,
   LinkCompleteFlow,
   LinkbackFlow,
   LinkSaveFlow,
@@ -575,5 +576,51 @@ describes.realWin('LinkSaveFlow', {}, env => {
         throw reason;
       }).to.throw(/callback failed/);
     });
+  });
+});
+
+describes.realWin('AutoLoginFlow', {}, env => {
+  let win;
+  let runtime;
+  let activitiesMock;
+  let callbacksMock;
+  let pageConfig;
+  let autoLoginFlow;
+  let port;
+  let dialogManagerMock;
+
+  beforeEach(() => {
+    win = env.win;
+    pageConfig = new PageConfig('pub1:label1');
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    activitiesMock = sandbox.mock(runtime.activities());
+    callbacksMock = sandbox.mock(runtime.callbacks());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    port = new ActivityPort();
+    port.message = () => {};
+    port.onResizeRequest = () => {};
+    port.onMessage = () => {};
+    port.acceptResult = () => Promise.resolve();
+    port.whenReady = () => Promise.resolve();
+  });
+
+  afterEach(() => {
+    activitiesMock.verify();
+    callbacksMock.verify();
+    dialogManagerMock.verify();
+  });
+
+  it('should start correctly', () => {
+    autoLoginFlow = new AutoLoginFlow(runtime, () => {});
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/autologiniframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          isClosable: true,
+        })
+        .returns(Promise.resolve(port));
+    return autoLoginFlow.start();
   });
 });

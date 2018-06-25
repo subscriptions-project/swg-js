@@ -290,9 +290,9 @@ export class LinkSaveFlow {
 export class AutoLoginFlow {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.AutoLoginRequestCallback} AutoLoginRequestCallback
+   * @param {!../api/subscriptions.AutoLoginRequest} AutoLoginRequest
    */
-  constructor(deps, AutoLoginRequestCallback) {
+  constructor(deps, AutoLoginRequest) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -302,8 +302,8 @@ export class AutoLoginFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private {!../api/subscriptions.AutoLoginRequestCallback} */
-    this.autoLoginRequestCallback_ = autoLoginRequestCallback;
+    /** @private {!../api/subscriptions.AutoLoginRequest} */
+    this.autoLoginRequest_ = autoLoginRequest;
 
     /** {!boolean} */
     this.completed_ = false;
@@ -316,7 +316,7 @@ export class AutoLoginFlow {
         feArgs({
           'publicationId': deps.pageConfig().getPublicationId(),
           'productId': deps.pageConfig().getProductId(),
-          'loginHint': this.autoLoginRequestCallback_['loginHint'],
+          'loginHint': this.autoLoginRequest_['loginHint'],
         }),
         /* shouldFadeBody */ false
     );

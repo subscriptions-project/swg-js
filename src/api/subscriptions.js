@@ -228,8 +228,7 @@ export let LoginRequest;
 
 /**
  * @typedef {{
- *   token: (string|undefined),
- *   authCode: (string|undefined),
+ *   autoLoginHint: (string|undefined),
  * }}
  */
 export let AutoLoginRequestCallback;

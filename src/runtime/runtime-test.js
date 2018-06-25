@@ -656,7 +656,7 @@ describes.realWin('Runtime', {}, env => {
       const newPromise = new Promise(() => {});
       configuredRuntimeMock.expects('autoLogin').once();
 
-      const resultPromise = runtime.saveSubscription(args)
+      const resultPromise = runtime.autoLogin(args)
           .then(result => {
             expect(configureStub).to.be.calledOnce.calledWith(true);
             expect(resultPromise).to.deep.equal(newPromise);
@@ -1117,12 +1117,13 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       autoLoginFlow = this;
       return newPromise;
     });
-    const resultPromise = runtime.autoLogin({token: 'test'});
-    return runtime.documentParsed_.then(() => {
-      expect(autoLoginFlow.autoLoginRequestCallback_['token'])
-          .to.deep.equal('test');
-      expect(resultPromise).to.deep.equal(newPromise);
+    const resultPromise = runtime.autoLogin(() => {
+      return {loginHint: 'test'};
     });
+    return runtime.documentParsed_.then(() => {
+      expect(autoLoginFlow.callback_()).to.deep.equal({authCode: 'testCode'});
+    });
+    expect(resultPromise).to.deep.equal(newPromise);
   });
 
   it('should directly call "createButton"', () => {
