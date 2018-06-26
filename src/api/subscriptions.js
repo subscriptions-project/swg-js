@@ -231,7 +231,7 @@ export let LoginRequest;
  *   isConsentRequired: boolean,
  * }}
  */
-export let loginPromptRequest;
+export let LoginPromptRequest;
 
 
 /**
