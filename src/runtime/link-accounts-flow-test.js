@@ -588,10 +588,12 @@ describes.realWin('LoginPromptFlow', {}, env => {
   let loginPromptFlow;
   let port;
   let dialogManagerMock;
+  const productId = 'pub1:label1';
+  const publicationId = 'pub1';
 
   beforeEach(() => {
     win = env.win;
-    pageConfig = new PageConfig('pub1:label1');
+    pageConfig = new PageConfig(productId);
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
@@ -610,18 +612,20 @@ describes.realWin('LoginPromptFlow', {}, env => {
     dialogManagerMock.verify();
   });
 
-  it.only('should start correctly', () => {
-    loginPromptFlow = new LoginPromptFlow(runtime, {'isConsentRequired': true});
+  it('should start correctly', () => {
+    loginPromptFlow = new LoginPromptFlow(runtime, {isConsentRequired: true});
+
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/loginpromptiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
-          productId: 'pub1:prod1',
-          publicationId: 'pub1',
           isConsentRequired: true,
+          publicationId,
+          productId,
         })
         .returns(Promise.resolve(port));
+
     return loginPromptFlow.start();
   });
 });

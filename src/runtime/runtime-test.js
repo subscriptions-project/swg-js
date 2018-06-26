@@ -646,25 +646,13 @@ describes.realWin('Runtime', {}, env => {
       return resultPromise;
     });
 
-    it.only('should delegate "loginPrompt"', () => {
-      runtime.init('pub123');
-      const args = {
+    it('should delegate "loginPrompt"', () => {
+      const requestArgs = {
         isConsentRequired: true,
-        productId: 'pid123',
       };
-
-      const newPromise = new Promise(() => {});
-      configuredRuntimeMock.expects('loginPrompt').once();
-
-      const resultPromise = runtime.loginPrompt(args)
-          .then(result => {
-            expect(configureStub).to.be.calledOnce.calledWith(true);
-            expect(resultPromise).to.deep.equal(newPromise);
-            expect(result.pageConfig().getPublicationId()).to.equal('pub123');
-            expect(result.pageConfig().getProductId()).to.equal('pid123');
-            //todo: is consent required
-          });
-      return resultPromise;
+      configuredRuntimeMock.expects('loginPrompt').once()
+          .withExactArgs(requestArgs);
+      return runtime.loginPrompt(requestArgs);
     });
 
     it('should directly call "createButton"', () => {
@@ -1111,21 +1099,17 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(resultPromise).to.deep.equal(newPromise);
   });
 
-  // it.only('should start loginPromptFlow', () => {
-  it('should start loginPromptFlow', () => {
-    let loginPromptFlow;
-    const newPromise = new Promise(() => {});
-    sandbox.stub(LoginPromptFlow.prototype, 'start', function() {
-      loginPromptFlow = this;
-      return newPromise;
+  it('should start LoginPromptFlow', () => {
+    const requestArgs = {
+      isConsentRequired: true,
+    };
+    const startStub = sandbox.stub(
+        LoginPromptFlow.prototype,
+        'start',
+        () => Promise.resolve());
+    return runtime.loginPrompt(requestArgs).then(() => {
+      expect(startStub).to.be.calledOnce;
     });
-    const resultPromise = runtime.loginPrompt(() => {
-      return {isConsentRequired: true};
-    });
-    return runtime.documentParsed_.then(() => {
-      expect(loginPromptFlow.callback_()).to.deep.equal({authCode: 'testCode'});
-    });
-    expect(resultPromise).to.deep.equal(newPromise);
   });
 
   it('should directly call "createButton"', () => {
