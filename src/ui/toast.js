@@ -113,7 +113,7 @@ export class Toast {
                   's normal forwards',
           });
           this.doc_.getWin().setTimeout(() => {
-            //this.close();
+            this.close();
           }, (toastDurationSeconds + 1) * 1000);
         });
   }
