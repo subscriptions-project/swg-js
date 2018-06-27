@@ -23,7 +23,6 @@ import {
 /** @const {!Object<string, string|number>} */
 export const toastImportantStyles = {
   'height': 0,
-  'max-height': '46px',
 };
 
 /** @typedef {{
