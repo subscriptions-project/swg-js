@@ -292,6 +292,9 @@ export class LoginPromptFlow {
    * @param {!./deps.DepsDef} deps
    */
   constructor(deps) {
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -301,8 +304,8 @@ export class LoginPromptFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** {!boolean} */
-    this.completed_ = false;
+    /** @private {?Promise} */
+    this.openViewPromise_ = null;
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -322,11 +325,23 @@ export class LoginPromptFlow {
    * @return {!Promise}
    */
   start() {
-    this.activityIframeView_.acceptResult().then(() => {
-      this.completed_ = true;
-      // The flow is complete.
-      return this.dialogManager_.completeView(this.activityIframeView_);
+    this.deps_.callbacks().triggerFlowStarted(
+        SubscriptionFlows.LOGIN_PROMPT_FLOW);
+
+    this.openViewPromise_ =
+      this.dialogManager_.openView(this.activityIframeView_);
+
+    return this.activityIframeView_.acceptResult().then(() => {
+      // The consent part is complete.
+      this.dialogManager_.completeView(this.activityIframeView_);
+    }, reason => {
+      if (isCancelError(reason)) {
+        this.deps_.callbacks().triggerFlowCanceled(
+            SubscriptionFlows.LOGIN_PROMPT_FLOW);
+      } else {
+        this.dialogManager_.completeView(this.activityIframeView_);
+      }
+      throw reason;
     });
-    return this.dialogManager_.openView(this.activityIframeView_);
   }
 }

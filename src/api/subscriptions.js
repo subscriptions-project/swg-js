@@ -197,6 +197,7 @@ export const SubscriptionFlows = {
   SUBSCRIBE: 'subscribe',
   COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',
+  LOGIN_PROMPT_FLOW: 'loginPrompt',
 };
 
 
@@ -223,6 +224,7 @@ export let OffersRequest;
  * }}
  */
 export let LoginRequest;
+
 
 /**
  * Properties:

@@ -647,8 +647,12 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "loginPrompt"', () => {
-      configuredRuntimeMock.expects('loginPrompt').once();
-      return runtime.loginPrompt();
+      const newPromise = new Promise(() => {});
+      configuredRuntimeMock.expects('loginPrompt').once().returns(newPromise);
+      const resultPromise = runtime.loginPrompt().then(() => {
+        expect(resultPromise).to.deep.equal(newPromise);
+      });
+      return resultPromise;
     });
 
     it('should directly call "createButton"', () => {
