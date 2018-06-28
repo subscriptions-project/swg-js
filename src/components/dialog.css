@@ -30,6 +30,14 @@
   background-color: rgba(255, 255, 255, 1) !important;
 }
 
+.swg-toast {
+  position: fixed !important;
+  bottom: 0 !important;
+  max-height: 46px !important;
+  z-index: 2147483647 !important;
+  border: none !important;
+}
+
 /**
  * The maximum width allowed for the dialog is 480 px when device width OR
  * height is less than 640px. The next rule overrides this rule when device
@@ -59,6 +67,10 @@
     margin-left: calc(100vw - 100vw / 2) !important;
     background-color: transparent !important;
     border: none !important;
+  }
+
+  .swg-toast {
+    left: 0 !important;
   }
 }
 
