@@ -22,12 +22,7 @@ import {
 
 /** @const {!Object<string, string|number>} */
 export const toastImportantStyles = {
-  'position': 'fixed',
-  'bottom': 0,
   'height': 0,
-  'max-height': '46px',
-  'z-index': '2147483647',
-  'border': 'none',
 };
 
 /** @typedef {{
