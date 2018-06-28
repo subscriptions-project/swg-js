@@ -51,3 +51,5 @@ The dialog will prompt the user to opt-in to save the subscription. If the user 
 This is the flow in which Google will ask the user for permission to log them in to the publisher's site. It is initiated by the publisher when the publisher doesn't find a user's subscription but Google does find the subscription.
 
 To enable this flow, 
+
+// TODO: chenshay finish this part.
