@@ -290,9 +290,8 @@ export class LinkSaveFlow {
 export class LoginPromptFlow {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.LoginPromptRequest} loginPromptRequest
    */
-  constructor(deps, loginPromptRequest) {
+  constructor(deps) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -301,9 +300,6 @@ export class LoginPromptFlow {
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
-
-    /** @private {!../api/subscriptions.LoginPromptRequest} */
-    this.loginPromptRequest_ = loginPromptRequest;
 
     /** {!boolean} */
     this.completed_ = false;
@@ -316,7 +312,6 @@ export class LoginPromptFlow {
         feArgs({
           publicationId: deps.pageConfig().getPublicationId(),
           productId: deps.pageConfig().getProductId(),
-          isConsentRequired: this.loginPromptRequest_['isConsentRequired'],
         }),
         /* shouldFadeBody */ false
     );

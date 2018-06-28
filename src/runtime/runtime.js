@@ -331,10 +331,10 @@ export class Runtime {
   }
 
   /** @override */
-  loginPrompt(loginPromptRequest) {
+  loginPrompt() {
     return this.configured_(true)
         .then(runtime => {
-          runtime.loginPrompt(loginPromptRequest);
+          runtime.loginPrompt();
         });
   }
 
@@ -536,9 +536,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  loginPrompt(loginPromptRequest) {
+  loginPrompt() {
     return this.documentParsed_.then(() => {
-      return new LoginPromptFlow(this, loginPromptRequest).start();
+      return new LoginPromptFlow(this).start();
     });
   }
 

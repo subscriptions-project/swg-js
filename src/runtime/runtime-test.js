@@ -647,12 +647,8 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "loginPrompt"', () => {
-      const requestArgs = {
-        isConsentRequired: true,
-      };
-      configuredRuntimeMock.expects('loginPrompt').once()
-          .withExactArgs(requestArgs);
-      return runtime.loginPrompt(requestArgs);
+      configuredRuntimeMock.expects('loginPrompt').once();
+      return runtime.loginPrompt();
     });
 
     it('should directly call "createButton"', () => {
@@ -1100,14 +1096,11 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should start LoginPromptFlow', () => {
-    const requestArgs = {
-      isConsentRequired: true,
-    };
     const startStub = sandbox.stub(
         LoginPromptFlow.prototype,
         'start',
         () => Promise.resolve());
-    return runtime.loginPrompt(requestArgs).then(() => {
+    return runtime.loginPrompt().then(() => {
       expect(startStub).to.be.calledOnce;
     });
   });

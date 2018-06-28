@@ -117,11 +117,10 @@ export class Subscriptions {
   setOnLoginRequest(callback) {}
 
   /**
-   * Starts the auto login flow.
-   * @param {!LoginPromptRequest} request
+   * Starts the LoginPrompt flow.
    * @return {!Promise}
    */
-  loginPrompt(request) {}
+  loginPrompt() {}
 
   /**
    * @param {function()} callback
@@ -224,15 +223,6 @@ export let OffersRequest;
  * }}
  */
 export let LoginRequest;
-
-
-/**
- * @typedef {{
- *   isConsentRequired: boolean,
- * }}
- */
-export let LoginPromptRequest;
-
 
 /**
  * Properties:
