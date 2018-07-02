@@ -24,13 +24,11 @@ import {
   LinkCompleteFlow,
   LinkbackFlow,
   LinkSaveFlow,
-  LoginPromptFlow,
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
-import {isCancelError} from '../utils/errors';
 
 describes.realWin('LinkbackFlow', {}, env => {
   let win;
@@ -576,90 +574,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
       expect(() => {
         throw reason;
       }).to.throw(/callback failed/);
-    });
-  });
-});
-
-describes.realWin('LoginPromptFlow', {}, env => {
-  let win;
-  let runtime;
-  let activitiesMock;
-  let callbacksMock;
-  let pageConfig;
-  let loginPromptFlow;
-  let resultResolver;
-  let port;
-  let dialogManagerMock;
-  const productId = 'pub1:label1';
-  const publicationId = 'pub1';
-
-  beforeEach(() => {
-    win = env.win;
-    pageConfig = new PageConfig(productId);
-    runtime = new ConfiguredRuntime(win, pageConfig);
-    activitiesMock = sandbox.mock(runtime.activities());
-    callbacksMock = sandbox.mock(runtime.callbacks());
-    dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    port = new ActivityPort();
-    port.message = () => {};
-    port.onResizeRequest = () => {};
-    port.onMessage = () => {};
-    port.whenReady = () => Promise.resolve();
-    loginPromptFlow = new LoginPromptFlow(runtime);
-    resultResolver = null;
-    const resultPromise = new Promise(resolve => {
-      resultResolver = resolve;
-    });
-    port.acceptResult = () => resultPromise;
-  });
-
-  afterEach(() => {
-    activitiesMock.verify();
-    callbacksMock.verify();
-    dialogManagerMock.verify();
-  });
-
-  it('should start the flow correctly', () => {
-    callbacksMock.expects('triggerFlowStarted').once();
-    callbacksMock.expects('triggerFlowCanceled').never();
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/loginpromptiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId,
-          productId,
-        })
-        .returns(Promise.resolve(port));
-
-    loginPromptFlow.start();
-    return loginPromptFlow.openViewPromise_;
-  });
-
-  it('should handle cancel', () => {
-    callbacksMock.expects('triggerFlowCanceled').once();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-
-    resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
-    dialogManagerMock.expects('completeView').once();
-    return loginPromptFlow.start().then(() => {
-      throw new Error('must have failed');
-    }, reason => {
-      expect(isCancelError(reason)).to.be.true;
-    });
-  });
-
-  it('should handle failure', () => {
-    callbacksMock.expects('triggerFlowCanceled').never();
-    activitiesMock.expects('openIframe')
-        .returns(Promise.resolve(port));
-    resultResolver(Promise.reject(new Error('broken')));
-    dialogManagerMock.expects('completeView').once();
-    const promise = loginPromptFlow.start();
-    return promise.then(() => {
-      throw new Error('must have failed');
-    }, reason => {
-      expect(() => {throw reason;}).to.throw(/broken/);
     });
   });
 });

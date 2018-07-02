@@ -28,8 +28,10 @@ import {
   LinkCompleteFlow,
   LinkbackFlow,
   LinkSaveFlow,
-  LoginPromptFlow,
 } from './link-accounts-flow';
+import {
+  LoginPromptFlow,
+} from './login-flow';
 import {OffersApi} from './offers-api';
 import {
   OffersFlow,
@@ -331,10 +333,10 @@ export class Runtime {
   }
 
   /** @override */
-  loginPrompt() {
+  showLoginPrompt() {
     return this.configured_(true)
         .then(runtime => {
-          runtime.loginPrompt();
+          runtime.showLoginPrompt();
         });
   }
 
@@ -536,7 +538,7 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  loginPrompt() {
+  showLoginPrompt() {
     return this.documentParsed_.then(() => {
       return new LoginPromptFlow(this).start();
     });
@@ -600,7 +602,7 @@ function createPublicRuntime(runtime) {
     reset: runtime.reset.bind(runtime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
-    loginPrompt: runtime.loginPrompt.bind(runtime),
+    showLoginPrompt: runtime.showLoginPrompt.bind(runtime),
     getOffers: runtime.getOffers.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),

@@ -117,10 +117,10 @@ export class Subscriptions {
   setOnLoginRequest(callback) {}
 
   /**
-   * Starts the LoginPrompt flow.
+   * Starts the SHOW_LOGIN_PROMPT flow.
    * @return {!Promise}
    */
-  loginPrompt() {}
+  showLoginPrompt() {}
 
   /**
    * @param {function()} callback
@@ -197,7 +197,12 @@ export const SubscriptionFlows = {
   SUBSCRIBE: 'subscribe',
   COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',
-  LOGIN_PROMPT_FLOW: 'loginPrompt',
+};
+
+
+/** @enum {string} */
+export const LoginFlows = {
+  SHOW_LOGIN_PROMPT: 'showLoginPrompt',
 };
 
 

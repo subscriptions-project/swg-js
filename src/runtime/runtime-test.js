@@ -39,8 +39,10 @@ import {
   LinkCompleteFlow,
   LinkbackFlow,
   LinkSaveFlow,
-  LoginPromptFlow,
 } from './link-accounts-flow';
+import {
+  LoginPromptFlow,
+} from './login-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {
@@ -646,10 +648,11 @@ describes.realWin('Runtime', {}, env => {
       return resultPromise;
     });
 
-    it('should delegate "loginPrompt"', () => {
+    it('should delegate "showLoginPrompt"', () => {
       const newPromise = new Promise(() => {});
-      configuredRuntimeMock.expects('loginPrompt').once().returns(newPromise);
-      const resultPromise = runtime.loginPrompt().then(() => {
+      configuredRuntimeMock
+          .expects('showLoginPrompt').once().returns(newPromise);
+      const resultPromise = runtime.showLoginPrompt().then(() => {
         expect(resultPromise).to.deep.equal(newPromise);
       });
       return resultPromise;
@@ -1104,7 +1107,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         LoginPromptFlow.prototype,
         'start',
         () => Promise.resolve());
-    return runtime.loginPrompt().then(() => {
+    return runtime.showLoginPrompt().then(() => {
       expect(startStub).to.be.calledOnce;
     });
   });
