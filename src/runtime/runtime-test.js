@@ -40,9 +40,13 @@ import {
   LinkbackFlow,
   LinkSaveFlow,
 } from './link-accounts-flow';
+<<<<<<< HEAD
 import {
   LoginPromptFlow,
 } from './login-flow';
+=======
+import {WaitingApi} from './waiting-api';
+>>>>>>> in progress - don't review
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {
@@ -678,6 +682,16 @@ describes.realWin('Runtime', {}, env => {
       expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
     });
 
+    it('should delegate "showWaitingIndicator"', () => {
+      const newPromise = new Promise(() => {});
+      configuredRuntimeMock
+          .expects('showWaitingIndicator').once().returns(newPromise);
+      const resultPromise = runtime.showWaitingIndicator().then(() => {
+        expect(resultPromise).to.deep.equal(newPromise);
+      });
+      return resultPromise;
+    });
+
     it('should directly call "attachButton"', () => {
       const options = {};
       const callback = () => {};
@@ -1154,6 +1168,16 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     const result = runtime.createButton(options, callback);
     expect(result).to.equal(button);
     expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
+  });
+
+  it('should start WaitingApi', () => {
+    const startStub = sandbox.stub(
+        WaitingApi.prototype,
+        'start',
+        () => Promise.resolve());
+    return runtime.showWaitingIndicator().then(() => {
+      expect(startStub).to.be.calledOnce;
+    });
   });
 
   it('should directly call "attachButton"', () => {
