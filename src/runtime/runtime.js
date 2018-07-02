@@ -32,6 +32,7 @@ import {
 import {
   LoginPromptFlow,
 } from './login-flow';
+import {WaitingApi} from './waiting-api';
 import {OffersApi} from './offers-api';
 import {
   OffersFlow,
@@ -278,6 +279,12 @@ export class Runtime {
   showAbbrvOffer(opt_options) {
     return this.configured_(true)
         .then(runtime => runtime.showAbbrvOffer(opt_options));
+  }
+
+  /** @override */
+  showWaitingIndicator(accountPromise) {
+    return this.configured_(true)
+        .then(runtime => runtime.showWaitingIndicator(accountPromise));
   }
 
   /** @override */
@@ -553,6 +560,14 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  showWaitingIndicator(accountPromise) {
+    return this.documentParsed_.then(() => {
+      const wait = new WaitingApi(this, accountPromise);
+      return wait.start();
+    });
+  }
+
+  /** @override */
   setOnLoginRequest(callback) {
     this.callbacks_.setOnLoginRequest(callback);
   }
@@ -647,6 +662,7 @@ function createPublicRuntime(runtime) {
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
+    showWaitingIndicator: runtime.showWaitingIndicator.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
     completeDeferredAccountCreation:
         runtime.completeDeferredAccountCreation.bind(runtime),

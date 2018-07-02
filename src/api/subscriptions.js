@@ -135,6 +135,13 @@ export class Subscriptions {
   setOnLinkComplete(callback) {}
 
   /**
+   * TODO(chenshay): Figure out what type the promise returns.
+   * @param {Promise} accountPromise Publisher's promise to lookup account.
+   * @return {!Promise}
+   */
+  showWaitingIndicator(accountPromise) {}
+
+  /**
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
    */
@@ -207,6 +214,7 @@ export const SubscriptionFlows = {
   SHOW_LOGIN_PROMPT: 'showLoginPrompt',
 };
 
+export const SHOW_WAITING_VIEW = 'showWaitingIndicator';
 
 /**
  * Configuration properties:
