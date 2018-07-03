@@ -72,6 +72,23 @@ describes.realWin('LinkbackFlow', {}, env => {
     expect(triggerFlowStartSpy).to.be.calledOnce
         .calledWithExactly('linkAccount');
   });
+
+  it('should force redirect mode', () => {
+    runtime.configure({windowOpenMode: 'redirect'});
+    dialogManagerMock.expects('popupOpened')
+        .withExactArgs(undefined)
+        .once();
+    activitiesMock.expects('open').withExactArgs(
+        'swg-link',
+        '$frontend$/swg/_/ui/v1/linkbackstart?_=_',
+        '_top', {
+          '_client': 'SwG $internalRuntimeVersion$',
+          'publicationId': 'pub1',
+        }, {})
+        .returns(undefined)
+        .once();
+    linkbackFlow.start();
+  });
 });
 
 

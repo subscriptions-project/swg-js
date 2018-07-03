@@ -37,6 +37,13 @@ export class Subscriptions {
   init(productOrPublicationId) {}
 
   /**
+   * Optionally configugures the runtime with non-default properties. See
+   * `Config` definition for details.
+   * @param {!Config} config
+   */
+  configure(config) {}
+
+  /**
    * Starts the entitlement flow.
    */
   start() {}
@@ -199,6 +206,39 @@ export const SubscriptionFlows = {
   LINK_ACCOUNT: 'linkAccount',
   SHOW_LOGIN_PROMPT: 'showLoginPrompt',
 };
+
+
+/**
+ * Configuration properties:
+ * - windowOpenMode - either "auto" or "redirect". The "redirect" value will
+ *   force redirect flow for any window.open operation, including payments.
+ *   The "auto" value either uses a redirect or a popup flow depending on
+ *   what's possible on a specific environment. Defaults to "auto".
+ *
+ * @typedef {{
+ *   windowOpenMode: (!WindowOpenMode|undefined),
+ * }}
+ */
+export let Config;
+
+
+/**
+ * @enum {string}
+ */
+export const WindowOpenMode = {
+  AUTO: 'auto',
+  REDIRECT: 'redirect',
+};
+
+
+/**
+ * @return {!Config}
+ */
+export function defaultConfig() {
+  return {
+    windowOpenMode: WindowOpenMode.AUTO,
+  };
+}
 
 
 /**

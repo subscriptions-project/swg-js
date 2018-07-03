@@ -20,7 +20,7 @@ import {
   PurchaseData,
   SubscribeResponse,
 } from '../api/subscribe-response';
-import {SubscriptionFlows} from '../api/subscriptions';
+import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {Xhr} from '../utils/xhr';
 import {feArgs, feCached, feUrl} from './services';
@@ -108,10 +108,12 @@ export class PayStartFlow {
     });
 
     // TODO(dvoytenko): switch to gpay async client.
+    const forceRedirect =
+        this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT;
     const opener = this.activityPorts_.open(
         PAY_REQUEST_ID,
         payUrl(),
-        '_blank',
+        forceRedirect ? '_top' : '_blank',
         feArgs({
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
