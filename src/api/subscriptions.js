@@ -217,7 +217,7 @@ export const SubscriptionFlows = {
 
 /** @enum {string} */
 export const WaitingViews = {
-  LOGIN_WAITING_VIEW: 'showOffers',
+  LOGIN_WAITING_VIEW: 'loginWaitingView',
 };
 
 

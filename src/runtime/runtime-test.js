@@ -40,13 +40,8 @@ import {
   LinkbackFlow,
   LinkSaveFlow,
 } from './link-accounts-flow';
-<<<<<<< HEAD
-import {
-  LoginPromptFlow,
-} from './login-flow';
-=======
+import {LoginPromptFlow} from './login-flow';
 import {WaitingApi} from './waiting-api';
->>>>>>> in progress - don't review
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {
@@ -683,12 +678,13 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "showWaitingIndicator"', () => {
+      const newPromise = new Promise(() => {});
       configuredRuntimeMock
-          .expects('showWaitingIndicator').once().returns(Promise.resolve());
-      return runtime.showWaitingIndicator().then(() => {
-        // TODO(chenshay): Add calledWith.
-        expect(configureStub).to.be.calledOnce;
+          .expects('showWaitingIndicator').once().returns(newPromise);
+      const resultPromise = runtime.showWaitingIndicator().then(() => {
+        expect(resultPromise).to.deep.equal(newPromise);
       });
+      return resultPromise;
     });
 
     it('should directly call "attachButton"', () => {
