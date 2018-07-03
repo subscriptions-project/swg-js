@@ -426,6 +426,15 @@ describes.realWin('Runtime', {}, env => {
       configuredRuntimeMock.verify();
     });
 
+    it('should delegate "configure"', () => {
+      configuredRuntimeMock.expects('configure')
+          .returns(Promise.resolve(11))
+          .once();
+      return runtime.configure().then(v => {
+        expect(v).to.equal(11);  // Ensure that the result is propagated back.
+      });
+    });
+
     it('should delegate "start"', () => {
       configuredRuntimeMock.expects('start').once();
       return runtime.start().then(() => {
@@ -827,6 +836,30 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       return promise.then(result => {
         expect(result).to.deep.equal({flow: 'flow1', data: {b: 2}});
       });
+    });
+  });
+
+  describe('config', () => {
+    it('should disallow unknown properties', () => {
+      expect(() => {
+        runtime.configure({unknown: 1});
+      }).to.throw(/Unknown config property/);
+    });
+
+    it('should configure windowOpenMode', () => {
+      expect(runtime.config().windowOpenMode).to.equal('auto');
+      runtime.configure({windowOpenMode: 'redirect'});
+      expect(runtime.config().windowOpenMode).to.equal('redirect');
+      runtime.configure({windowOpenMode: 'auto'});
+      expect(runtime.config().windowOpenMode).to.equal('auto');
+    });
+
+    it('should disallow unknown windowOpenMode values', () => {
+      expect(() => {
+        runtime.configure({windowOpenMode: 'unknown'});
+      }).to.throw(/Unknown windowOpenMode/);
+      // Value is unchanged.
+      expect(runtime.config().windowOpenMode).to.equal('auto');
     });
   });
 
