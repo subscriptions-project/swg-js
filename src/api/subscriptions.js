@@ -117,6 +117,12 @@ export class Subscriptions {
   setOnLoginRequest(callback) {}
 
   /**
+   * Starts the login flow.
+   * @return {!Promise}
+   */
+  showLoginPrompt() {}
+
+  /**
    * @param {function()} callback
    */
   setOnLinkComplete(callback) {}
@@ -191,6 +197,7 @@ export const SubscriptionFlows = {
   SUBSCRIBE: 'subscribe',
   COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',
+  SHOW_LOGIN_PROMPT: 'showLoginPrompt',
 };
 
 
