@@ -683,13 +683,12 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "showWaitingIndicator"', () => {
-      const newPromise = new Promise(() => {});
       configuredRuntimeMock
-          .expects('showWaitingIndicator').once().returns(newPromise);
-      const resultPromise = runtime.showWaitingIndicator().then(() => {
-        expect(resultPromise).to.deep.equal(newPromise);
+          .expects('showWaitingIndicator').once().returns(Promise.resolve());
+      return runtime.showWaitingIndicator().then(() => {
+        // TODO(chenshay): Add calledWith.
+        expect(configureStub).to.be.calledOnce;
       });
-      return resultPromise;
     });
 
     it('should directly call "attachButton"', () => {

@@ -214,7 +214,12 @@ export const SubscriptionFlows = {
   SHOW_LOGIN_PROMPT: 'showLoginPrompt',
 };
 
-export const SHOW_WAITING_VIEW = 'showWaitingIndicator';
+
+/** @enum {string} */
+export const WaitingViews = {
+  LOGIN_WAITING_VIEW: 'showOffers',
+};
+
 
 /**
  * Configuration properties:
