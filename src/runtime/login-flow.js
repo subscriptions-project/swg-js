@@ -15,9 +15,6 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {
-  DeferredAccountCreationResponse,
-} from '../api/deferred-account-creation';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
@@ -51,14 +48,14 @@ export class LoginPromptFlow {
         feArgs({
           publicationId: deps.pageConfig().getPublicationId(),
           productId: deps.pageConfig().getProductId(),
+          // TODO(chenshay): Pass entitlements value here.
         }),
         /* shouldFadeBody */ true
-        // TODO(chenshay): Pass entitlements value here.
     );
   }
 
   /**
-   * Starts the Auto Login flow.
+   * Continues the Login flow (after waiting).
    * @return {!Promise}
    */
   start() {

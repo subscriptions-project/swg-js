@@ -15,9 +15,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {
-  DeferredAccountCreationResponse,
-} from '../api/deferred-account-creation';
+import {DeferredAccountFlow} from './deferred-account-flow';
 import {WaitingViews} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
@@ -51,7 +49,7 @@ export class WaitingApi {
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        feUrl('/waitingiframe'),
+        feUrl('/loginWaitingiframe'),
         feArgs({
           publicationId: deps.pageConfig().getPublicationId(),
           productId: deps.pageConfig().getProductId(),
@@ -62,7 +60,7 @@ export class WaitingApi {
   }
 
   /**
-   * Starts the Auto Login flow.
+   * Starts the Login Flow.
    * @return {!Promise}
    */
   start() {
@@ -75,11 +73,10 @@ export class WaitingApi {
     this.accountPromise_.then(account => {
       // Account was found.
       this.dialogManager_.completeView(this.activityIframeView_);
-      return account;
-    }, reason => {
-      // TODO(chenshay): link to Deferred Account Creation.
+      return Promise.resolve(account);
+    }, () => {
       this.dialogManager_.completeView(this.activityIframeView_);
-      throw reason;
+      return new DeferredAccountFlow(this, null).start();
     });
   }
 }
