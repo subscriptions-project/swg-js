@@ -55,9 +55,9 @@ export class WaitingApi {
         feArgs({
           publicationId: deps.pageConfig().getPublicationId(),
           productId: deps.pageConfig().getProductId(),
+          accountPromise: this.accountPromise_,
         }),
         /* shouldFadeBody */ true
-        // TODO(chenshay): Pass the account promise here.
     );
   }
 
