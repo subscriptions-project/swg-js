@@ -18,15 +18,16 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   DeferredAccountCreationResponse,
 } from '../api/deferred-account-creation';
-import {LoginFlows} from '../api/subscriptions';
+import {WaitingViews} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 
 export class WaitingApi {
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {?Promise} accountPromise TODO(chenshay): Figure out what type the promise returns.
    */
-  constructor(deps) {
+  constructor(deps, accountPromise) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -42,6 +43,10 @@ export class WaitingApi {
     /** @private {?Promise} */
     this.openViewPromise_ = null;
 
+    // TODO(chenshay): Figure out what type the promise returns.
+    /** @private {?Promise} */
+    this.accountPromise_ = accountPromise || null;
+
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
@@ -52,7 +57,7 @@ export class WaitingApi {
           productId: deps.pageConfig().getProductId(),
         }),
         /* shouldFadeBody */ true
-        // TODO(chenshay): Pass entitlements value here.
+        // TODO(chenshay): Pass the account promise here.
     );
   }
 
@@ -62,15 +67,17 @@ export class WaitingApi {
    */
   start() {
     this.deps_.callbacks().triggerFlowStarted(
-        LoginFlows.SHOW_LOGIN_PROMPT);
+        WaitingViews.LOGIN_WAITING_VIEW);
 
-    this.openViewPromise_ =
-    this.dialogManager_.openView(this.activityIframeView_);
+    this.openViewPromise_ = this.dialogManager_.openView(
+        this.activityIframeView_);
 
-    return this.activityIframeView_.acceptResult().then(() => {
-      // The consent part is complete.
+    this.accountPromise_.then(account => {
+      // Account was found.
       this.dialogManager_.completeView(this.activityIframeView_);
+      return account;
     }, reason => {
+      // TODO(chenshay): link to Deferred Account Creation.
       this.dialogManager_.completeView(this.activityIframeView_);
       throw reason;
     });
