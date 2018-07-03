@@ -334,10 +334,9 @@ export class Runtime {
 
   /** @override */
   showLoginPrompt() {
-    return this.configured_(true)
-        .then(runtime => {
-          runtime.showLoginPrompt();
-        });
+    return this.configured_(true).then(runtime => {
+      return runtime.showLoginPrompt();
+    });
   }
 
   /** @override */

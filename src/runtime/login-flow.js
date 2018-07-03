@@ -18,7 +18,7 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   DeferredAccountCreationResponse,
 } from '../api/deferred-account-creation';
-import {LoginFlows} from '../api/subscriptions';
+import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 
@@ -63,10 +63,10 @@ export class LoginPromptFlow {
    */
   start() {
     this.deps_.callbacks().triggerFlowStarted(
-        LoginFlows.SHOW_LOGIN_PROMPT);
+        SubscriptionFlows.SHOW_LOGIN_PROMPT);
 
-    this.openViewPromise_ =
-    this.dialogManager_.openView(this.activityIframeView_);
+    this.openViewPromise_ = this.dialogManager_.openView(
+        this.activityIframeView_);
 
     return this.activityIframeView_.acceptResult().then(() => {
       // The consent part is complete.
@@ -74,7 +74,7 @@ export class LoginPromptFlow {
     }, reason => {
       if (isCancelError(reason)) {
         this.deps_.callbacks().triggerFlowCanceled(
-            LoginFlows.SHOW_LOGIN_PROMPT);
+            SubscriptionFlows.SHOW_LOGIN_PROMPT);
       } else {
         this.dialogManager_.completeView(this.activityIframeView_);
       }

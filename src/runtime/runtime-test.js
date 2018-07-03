@@ -648,14 +648,13 @@ describes.realWin('Runtime', {}, env => {
       return resultPromise;
     });
 
-    it('should delegate "showLoginPrompt"', () => {
-      const newPromise = new Promise(() => {});
-      configuredRuntimeMock
-          .expects('showLoginPrompt').once().returns(newPromise);
-      const resultPromise = runtime.showLoginPrompt().then(() => {
-        expect(resultPromise).to.deep.equal(newPromise);
+    it('should delegate "showLoginPrompt" and call the "start" method', () => {
+      configuredRuntimeMock.expects('showLoginPrompt').once()
+          .returns(Promise.resolve());
+
+      return runtime.showLoginPrompt().then(() => {
+        expect(configureStub).to.be.calledOnce;
       });
-      return resultPromise;
     });
 
     it('should directly call "createButton"', () => {
