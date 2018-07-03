@@ -29,6 +29,9 @@ import {
   LinkbackFlow,
   LinkSaveFlow,
 } from './link-accounts-flow';
+import {
+  LoginPromptFlow,
+} from './login-flow';
 import {OffersApi} from './offers-api';
 import {
   OffersFlow,
@@ -330,6 +333,13 @@ export class Runtime {
   }
 
   /** @override */
+  showLoginPrompt() {
+    return this.configured_(true).then(runtime => {
+      return runtime.showLoginPrompt();
+    });
+  }
+
+  /** @override */
   createButton(optionsOrCallback, opt_callback) {
     return this.buttonApi_.create(optionsOrCallback, opt_callback);
   }
@@ -527,6 +537,13 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  showLoginPrompt() {
+    return this.documentParsed_.then(() => {
+      return new LoginPromptFlow(this).start();
+    });
+  }
+
+  /** @override */
   setOnNativeSubscribeRequest(callback) {
     this.callbacks_.setOnSubscribeRequest(callback);
   }
@@ -584,6 +601,7 @@ function createPublicRuntime(runtime) {
     reset: runtime.reset.bind(runtime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
+    showLoginPrompt: runtime.showLoginPrompt.bind(runtime),
     getOffers: runtime.getOffers.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
