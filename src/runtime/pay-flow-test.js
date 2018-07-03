@@ -110,6 +110,32 @@ describes.realWin('PayStartFlow', {}, env => {
     const flowPromise = flow.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
+
+  it('should force redirect mode', () => {
+    runtime.configure({windowOpenMode: 'redirect'});
+    dialogManagerMock.expects('popupOpened')
+        .withExactArgs(undefined)
+        .once();
+    activitiesMock.expects('open').withExactArgs(
+        'swg-pay',
+        'PAY_ORIGIN/gp/p/ui/pay?_=_',
+        '_top',
+        {
+          '_client': 'SwG $internalRuntimeVersion$',
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            'publicationId': 'pub1',
+            'skuId': 'sku1',
+          },
+        },
+        {})
+        .returns(undefined)
+        .once();
+    flow.start();
+  });
 });
 
 

@@ -15,7 +15,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {SubscriptionFlows} from '../api/subscriptions';
+import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
@@ -51,10 +51,12 @@ export class LinkbackFlow {
    */
   start() {
     this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
+    const forceRedirect =
+        this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT;
     const opener = this.activityPorts_.open(
         LINK_REQUEST_ID,
         feUrl('/linkbackstart'),
-        '_blank',
+        forceRedirect ? '_top' : '_blank',
         feArgs({
           'publicationId': this.pageConfig_.getPublicationId(),
         }), {});
