@@ -1165,12 +1165,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should start WaitingApi', () => {
-    const startStub = sandbox.stub(
+    const accountResult = 'account result';
+    const accountPromise = Promise.resolve(accountResult);
+    const startSpy = sandbox.spy(
         WaitingApi.prototype,
-        'start',
-        () => Promise.resolve());
-    return runtime.showWaitingIndicator().then(() => {
-      expect(startStub).to.be.calledOnce;
+        'start');
+    return runtime.showWaitingIndicator(accountPromise).then(result => {
+      expect(startSpy).to.be.calledOnce;
+      expect(result).to.equal(accountResult);
     });
   });
 

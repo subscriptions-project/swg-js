@@ -65,7 +65,6 @@ describes.realWin('WaitingApi', {}, env => {
   });
 
   it('should start the flow correctly', () => {
-    callbacksMock.expects('triggerFlowStarted').once();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/loginwaitingiframe?_=_',
@@ -86,7 +85,7 @@ describes.realWin('WaitingApi', {}, env => {
     });
   });
 
-  it('it should start the Deferred Account Creation Flow on failure', () => {
+  it('it should fail correctly', () => {
     const noAccountFound = 'no account found';
     accountPromise = Promise.reject(noAccountFound);
     waitingApi = new WaitingApi(runtime, accountPromise);
