@@ -15,6 +15,9 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {
+  DeferredAccountCreationResponse,
+} from '../api/deferred-account-creation';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {WaitingViews} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
@@ -88,7 +91,7 @@ export class WaitingApi {
    * @return {!Promise<!DeferredAccountCreationResponse>}
    */
   createDeferredAccountFlowPromise() {
-    const deferredAccountFlow = new DeferredAccountFlow(this, null);
+    const deferredAccountFlow = new DeferredAccountFlow(this.deps_, null);
     return deferredAccountFlow.start();
   }
 }
