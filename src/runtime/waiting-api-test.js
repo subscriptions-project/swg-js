@@ -94,7 +94,7 @@ describes.realWin('WaitingApi', {}, env => {
     waitingApi = new WaitingApi(runtime, accountPromise);
     resultResolver(Promise.reject(new Error(noAccountFound)));
 
-    const deferredAccountFlowPromiseStub = sinon.stub(
+    const deferredAccountFlowPromiseStub = sandbox.stub(
         waitingApi,
         'createDeferredAccountFlowPromise');
 
