@@ -18,6 +18,7 @@ import {
     ActivityPort,
   } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
+import {DeferredAccountFlow} from './deferred-account-flow';
 import {WaitingApi} from './waiting-api';
 import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
@@ -49,9 +50,6 @@ describes.realWin('WaitingApi', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
-    // accountPromise = new Promise(resolve => {
-    //   return account;
-    // });
     accountPromise = Promise.resolve(account);
     waitingApi = new WaitingApi(runtime, accountPromise);
     resultResolver = null;
@@ -71,7 +69,7 @@ describes.realWin('WaitingApi', {}, env => {
     callbacksMock.expects('triggerFlowStarted').once();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/loginWaitingiframe?_=_',
+        '$frontend$/swg/_/ui/v1/loginwaitingiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
@@ -79,34 +77,34 @@ describes.realWin('WaitingApi', {}, env => {
           accountPromise,
         })
         .returns(Promise.resolve(port));
+    dialogManagerMock.expects('completeView').once();
     waitingApi.start();
     return waitingApi.openViewPromise_;
   });
 
-
-
-  it.only('should return the account on success', () => {
-    activitiesMock.expects('openIframe')
-        .returns(Promise.resolve(port));
-    // dialogManagerMock.expects('completeView').once();
-    const bla = waitingApi.start();
-    return bla.then(foundAccount => {
+  it('should return the account on success', () => {
+    return waitingApi.start().then(foundAccount => {
       expect(foundAccount).to.equal(account);
     });
   });
 
   it('it should start the Deferred Account Creation Flow on failure', () => {
     const noAccountFound = 'no account found';
-    callbacksMock.expects('triggerFlowCanceled').never();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    accountPromise = Promise.reject(noAccountFound);
+    waitingApi = new WaitingApi(runtime, accountPromise);
     resultResolver(Promise.reject(new Error(noAccountFound)));
+
+    const deferredAccountFlowPromiseStub = sinon.stub(
+        waitingApi,
+        'createDeferredAccountFlowPromise');
+
     dialogManagerMock.expects('completeView').once();
-    const promise = waitingApi.start();
-    return promise.then(foundAccount => {
-      throw new Error('test failed. ' + foundAccount + ' should not be found');
-    }, reason => {
-      expect(reason).to.equal(noAccountFound);
-      //TODO(chenshay): stub account creation flow here and make sure it was called.
+    return waitingApi.start().then(foundAccount => {
+      throw new Error(
+          'test failed. \"' + foundAccount + '\" should not be found');
+    }, exception => {
+      expect(exception.reason).to.equal(noAccountFound);
+      expect(deferredAccountFlowPromiseStub).to.be.calledOnce;
     });
   });
 });

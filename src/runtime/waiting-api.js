@@ -49,7 +49,7 @@ export class WaitingApi {
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        feUrl('/loginWaitingiframe'),
+        feUrl('/loginwaitingiframe'),
         feArgs({
           publicationId: deps.pageConfig().getPublicationId(),
           productId: deps.pageConfig().getProductId(),
@@ -70,13 +70,25 @@ export class WaitingApi {
     this.openViewPromise_ = this.dialogManager_.openView(
         this.activityIframeView_);
 
-    this.accountPromise_.then(account => {
+    return this.accountPromise_.then(account => {
       // Account was found.
       this.dialogManager_.completeView(this.activityIframeView_);
       return Promise.resolve(account);
     }, () => {
       this.dialogManager_.completeView(this.activityIframeView_);
-      return new DeferredAccountFlow(this, null).start();
+      return Promise.reject({
+        reason: 'no account found',
+        deferredAccountFlowPromise: this.createDeferredAccountFlowPromise(),
+      });
     });
+  }
+
+  /**
+   * Starts the deferred account flow.
+   * @return {!Promise<!DeferredAccountCreationResponse>}
+   */
+  createDeferredAccountFlowPromise() {
+    const deferredAccountFlow = new DeferredAccountFlow(this, null);
+    return deferredAccountFlow.start();
   }
 }
