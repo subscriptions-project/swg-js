@@ -18,7 +18,6 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   DeferredAccountCreationResponse,
 } from '../api/deferred-account-creation';
-import {LOGIN_WAITING_VIEW} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 
@@ -64,9 +63,6 @@ export class WaitingApi {
    * @return {!Promise}
    */
   start() {
-    this.deps_.callbacks().triggerFlowStarted(
-        LOGIN_WAITING_VIEW);
-
     this.openViewPromise_ = this.dialogManager_.openView(
         this.activityIframeView_);
 
@@ -74,9 +70,10 @@ export class WaitingApi {
       // Account was found.
       this.dialogManager_.completeView(this.activityIframeView_);
       return account;
-    }, () => {
+    }, reason => {
       this.dialogManager_.completeView(this.activityIframeView_);
-      return Promise.reject('no account found');
+      // return Promise.reject('no account found');
+      throw reason;
     });
   }
 }

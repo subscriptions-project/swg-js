@@ -214,10 +214,6 @@ export const SubscriptionFlows = {
 };
 
 
-/** @type {string} */
-export const LOGIN_WAITING_VIEW = 'loginWaitingView';
-
-
 /**
  * Configuration properties:
  * - windowOpenMode - either "auto" or "redirect". The "redirect" value will
