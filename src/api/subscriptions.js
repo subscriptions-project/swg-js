@@ -135,7 +135,6 @@ export class Subscriptions {
   setOnLinkComplete(callback) {}
 
   /**
-   * TODO(chenshay): Figure out what type the promise returns.
    * @param {!Promise} accountPromise Publisher's promise to lookup account.
    * @return {!Promise}
    */
