@@ -136,7 +136,7 @@ export class Subscriptions {
 
   /**
    * TODO(chenshay): Figure out what type the promise returns.
-   * @param {Promise} accountPromise Publisher's promise to lookup account.
+   * @param {!Promise} accountPromise Publisher's promise to lookup account.
    * @return {!Promise}
    */
   showWaitingIndicator(accountPromise) {}
@@ -215,10 +215,8 @@ export const SubscriptionFlows = {
 };
 
 
-/** @enum {string} */
-export const WaitingViews = {
-  LOGIN_WAITING_VIEW: 'loginWaitingView',
-};
+/** @type {string} */
+export const LOGIN_WAITING_VIEW = 'loginWaitingView';
 
 
 /**

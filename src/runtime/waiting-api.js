@@ -18,15 +18,14 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   DeferredAccountCreationResponse,
 } from '../api/deferred-account-creation';
-import {DeferredAccountFlow} from './deferred-account-flow';
-import {WaitingViews} from '../api/subscriptions';
+import {LOGIN_WAITING_VIEW} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 
 export class WaitingApi {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {?Promise} accountPromise TODO(chenshay): Figure out what type the promise returns.
+   * @param {?Promise} accountPromise
    */
   constructor(deps, accountPromise) {
     /** @private @const {!./deps.DepsDef} */
@@ -44,7 +43,6 @@ export class WaitingApi {
     /** @private {?Promise} */
     this.openViewPromise_ = null;
 
-    // TODO(chenshay): Figure out what type the promise returns.
     /** @private {?Promise} */
     this.accountPromise_ = accountPromise || null;
 
@@ -56,7 +54,6 @@ export class WaitingApi {
         feArgs({
           publicationId: deps.pageConfig().getPublicationId(),
           productId: deps.pageConfig().getProductId(),
-          accountPromise: this.accountPromise_,
         }),
         /* shouldFadeBody */ true
     );
@@ -68,7 +65,7 @@ export class WaitingApi {
    */
   start() {
     this.deps_.callbacks().triggerFlowStarted(
-        WaitingViews.LOGIN_WAITING_VIEW);
+        LOGIN_WAITING_VIEW);
 
     this.openViewPromise_ = this.dialogManager_.openView(
         this.activityIframeView_);
@@ -76,22 +73,10 @@ export class WaitingApi {
     return this.accountPromise_.then(account => {
       // Account was found.
       this.dialogManager_.completeView(this.activityIframeView_);
-      return Promise.resolve(account);
+      return account;
     }, () => {
       this.dialogManager_.completeView(this.activityIframeView_);
-      return Promise.reject({
-        reason: 'no account found',
-        deferredAccountFlowPromise: this.createDeferredAccountFlowPromise(),
-      });
+      return Promise.reject('no account found');
     });
-  }
-
-  /**
-   * Starts the deferred account flow.
-   * @return {!Promise<!DeferredAccountCreationResponse>}
-   */
-  createDeferredAccountFlowPromise() {
-    const deferredAccountFlow = new DeferredAccountFlow(this.deps_, null);
-    return deferredAccountFlow.start();
   }
 }

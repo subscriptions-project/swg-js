@@ -18,7 +18,6 @@ import {
     ActivityPort,
   } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
-import {DeferredAccountFlow} from './deferred-account-flow';
 import {WaitingApi} from './waiting-api';
 import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
@@ -74,7 +73,6 @@ describes.realWin('WaitingApi', {}, env => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
           productId,
-          accountPromise,
         })
         .returns(Promise.resolve(port));
     dialogManagerMock.expects('completeView').once();
@@ -94,17 +92,12 @@ describes.realWin('WaitingApi', {}, env => {
     waitingApi = new WaitingApi(runtime, accountPromise);
     resultResolver(Promise.reject(new Error(noAccountFound)));
 
-    const deferredAccountFlowPromiseStub = sandbox.stub(
-        waitingApi,
-        'createDeferredAccountFlowPromise');
-
     dialogManagerMock.expects('completeView').once();
     return waitingApi.start().then(foundAccount => {
       throw new Error(
           'test failed. \"' + foundAccount + '\" should not be found');
-    }, exception => {
-      expect(exception.reason).to.equal(noAccountFound);
-      expect(deferredAccountFlowPromiseStub).to.be.calledOnce;
+    }, reason => {
+      expect(reason).to.equal(noAccountFound);
     });
   });
 });
