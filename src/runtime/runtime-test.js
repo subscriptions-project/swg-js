@@ -42,7 +42,7 @@ import {
 } from './link-accounts-flow';
 import {LoginPromptFlow} from './login-flow';
 import {LoginNotificationApi} from './login-notification-api';
-import {WaitingApi} from './waiting-api';
+import {SubscriptionLookupWaitApi} from './subscription-lookup-wait-api';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {
@@ -678,11 +678,11 @@ describes.realWin('Runtime', {}, env => {
       expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
     });
 
-    it('should delegate "showWaitingIndicator"', () => {
-      configuredRuntimeMock.expects('showWaitingIndicator').once()
+    it('should delegate "showLookingForSubscription"', () => {
+      configuredRuntimeMock.expects('showLookingForSubscription').once()
           .returns(Promise.resolve());
 
-      return runtime.showWaitingIndicator().then(() => {
+      return runtime.showLookingForSubscription().then(() => {
         expect(configureStub).to.be.calledOnce;
       });
     });
@@ -1175,13 +1175,13 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
   });
 
-  it('should start WaitingApi', () => {
+  it('should start SubscriptionLookupWaitApi', () => {
     const accountResult = 'account result';
     const accountPromise = Promise.resolve(accountResult);
     const startSpy = sandbox.spy(
-        WaitingApi.prototype,
+        SubscriptionLookupWaitApi.prototype,
         'start');
-    return runtime.showWaitingIndicator(accountPromise).then(result => {
+    return runtime.showLookingForSubscription(accountPromise).then(result => {
       expect(startSpy).to.be.calledOnce;
       expect(result).to.equal(accountResult);
     });
