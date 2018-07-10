@@ -144,7 +144,7 @@ export class Subscriptions {
    * @param {!Promise} accountPromise Publisher's promise to lookup account.
    * @return {!Promise}
    */
-  showWaitingIndicator(accountPromise) {}
+  showLookingForSubscription(accountPromise) {}
 
   /**
    * Starts the Account linking flow.

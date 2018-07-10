@@ -18,11 +18,11 @@ import {
     ActivityPort,
   } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
-import {WaitingApi} from './waiting-api';
+import {SubscriptionLookupWaitApi} from './subscription-lookup-wait-api';
 import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
 
-describes.realWin('WaitingApi', {}, env => {
+describes.realWin('SubscriptionLookupWaitApi', {}, env => {
   let win;
   let runtime;
   let activitiesMock;
@@ -50,7 +50,7 @@ describes.realWin('WaitingApi', {}, env => {
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
     accountPromise = Promise.resolve(account);
-    waitingApi = new WaitingApi(runtime, accountPromise);
+    waitingApi = new SubscriptionLookupWaitApi(runtime, accountPromise);
     resultResolver = null;
     const resultPromise = new Promise(resolve => {
       resultResolver = resolve;
@@ -67,7 +67,7 @@ describes.realWin('WaitingApi', {}, env => {
   it('should start the flow correctly', () => {
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/loginwaitingiframe?_=_',
+        '$frontend$/swg/_/ui/v1/subscriptionlookupwaitiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
@@ -88,7 +88,7 @@ describes.realWin('WaitingApi', {}, env => {
   it('it should fail correctly', () => {
     const noAccountFound = 'no account found';
     accountPromise = Promise.reject(noAccountFound);
-    waitingApi = new WaitingApi(runtime, accountPromise);
+    waitingApi = new SubscriptionLookupWaitApi(runtime, accountPromise);
     resultResolver(Promise.reject(new Error(noAccountFound)));
 
     dialogManagerMock.expects('completeView').once();
