@@ -78,7 +78,6 @@ describes.realWin('LoginNotificationApi', {}, env => {
   });
 
   it('should handle failure', () => {
-    callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('openIframe')
         .returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
