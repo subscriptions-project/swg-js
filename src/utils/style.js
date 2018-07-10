@@ -147,7 +147,6 @@ export const defaultStyles = {
   'visibility': 'visible',
   'white-space': 'normal',
   'widows': '2',
-  'will-change': 'transform',
   'word-break': 'normal',
   'word-spacing': '0',
   'word-wrap': 'normal',

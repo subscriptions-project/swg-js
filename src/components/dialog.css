@@ -36,6 +36,7 @@
   max-height: 46px !important;
   z-index: 2147483647 !important;
   border: none !important;
+  will-change: transform;  /* Safari does not repaint on animation. */
 }
 
 /**
