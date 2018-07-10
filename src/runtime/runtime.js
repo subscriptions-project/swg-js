@@ -32,6 +32,7 @@ import {
 import {
   LoginPromptFlow,
 } from './login-flow';
+import {LoginNotificationApi} from './login-notification-api';
 import {WaitingApi} from './waiting-api';
 import {OffersApi} from './offers-api';
 import {
@@ -357,6 +358,13 @@ export class Runtime {
   }
 
   /** @override */
+  showLoginNotification() {
+    return this.configured_(true).then(runtime => {
+      return runtime.showLoginNotification();
+    });
+  }
+
+  /** @override */
   createButton(optionsOrCallback, opt_callback) {
     return this.buttonApi_.create(optionsOrCallback, opt_callback);
   }
@@ -599,6 +607,13 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  showLoginNotification() {
+    return this.documentParsed_.then(() => {
+      return new LoginNotificationApi(this).start();
+    });
+  }
+
+  /** @override */
   setOnNativeSubscribeRequest(callback) {
     this.callbacks_.setOnSubscribeRequest(callback);
   }
@@ -658,6 +673,7 @@ function createPublicRuntime(runtime) {
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
     showLoginPrompt: runtime.showLoginPrompt.bind(runtime),
+    showLoginNotification: runtime.showLoginNotification.bind(runtime),
     getOffers: runtime.getOffers.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),

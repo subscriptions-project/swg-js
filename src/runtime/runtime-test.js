@@ -41,6 +41,7 @@ import {
   LinkSaveFlow,
 } from './link-accounts-flow';
 import {LoginPromptFlow} from './login-flow';
+import {LoginNotificationApi} from './login-notification-api';
 import {WaitingApi} from './waiting-api';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -1148,6 +1149,16 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         'start',
         () => Promise.resolve());
     return runtime.showLoginPrompt().then(() => {
+      expect(startStub).to.be.calledOnce;
+    });
+  });
+
+  it('should start LoginNotificationApi', () => {
+    const startStub = sandbox.stub(
+        LoginNotificationApi.prototype,
+        'start',
+        () => Promise.resolve());
+    return runtime.showLoginNotification().then(() => {
       expect(startStub).to.be.calledOnce;
     });
   });
