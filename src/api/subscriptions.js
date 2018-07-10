@@ -135,6 +135,12 @@ export class Subscriptions {
   setOnLinkComplete(callback) {}
 
   /**
+   * @param {!Promise} accountPromise Publisher's promise to lookup account.
+   * @return {!Promise}
+   */
+  showWaitingIndicator(accountPromise) {}
+
+  /**
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
    */
