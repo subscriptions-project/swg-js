@@ -15,16 +15,18 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {SubscriptionFlows} from '../api/subscriptions';
+import {
+  DeferredAccountCreationResponse,
+} from '../api/deferred-account-creation';
 import {feArgs, feUrl} from './services';
-import {isCancelError} from '../utils/errors';
 
 
-export class LoginPromptFlow {
+export class WaitingApi {
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {?Promise} accountPromise
    */
-  constructor(deps) {
+  constructor(deps, accountPromise) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -40,41 +42,37 @@ export class LoginPromptFlow {
     /** @private {?Promise} */
     this.openViewPromise_ = null;
 
+    /** @private {?Promise} */
+    this.accountPromise_ = accountPromise || null;
+
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        feUrl('/loginpromptiframe'),
+        feUrl('/loginwaitingiframe'),
         feArgs({
           publicationId: deps.pageConfig().getPublicationId(),
           productId: deps.pageConfig().getProductId(),
-          // TODO(chenshay): Pass entitlements value here.
         }),
         /* shouldFadeBody */ true
     );
   }
 
   /**
-   * Continues the Login flow (after waiting).
+   * Starts the Login Flow.
    * @return {!Promise}
    */
   start() {
-    this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SHOW_LOGIN_PROMPT);
-
     this.openViewPromise_ = this.dialogManager_.openView(
         this.activityIframeView_);
 
-    return this.activityIframeView_.acceptResult().then(() => {
-      // The consent part is complete.
+    return this.accountPromise_.then(account => {
+      // Account was found.
       this.dialogManager_.completeView(this.activityIframeView_);
+      return account;
     }, reason => {
-      if (isCancelError(reason)) {
-        this.deps_.callbacks().triggerFlowCanceled(
-            SubscriptionFlows.SHOW_LOGIN_PROMPT);
-      } else {
-        this.dialogManager_.completeView(this.activityIframeView_);
-      }
+      this.dialogManager_.completeView(this.activityIframeView_);
+      // return Promise.reject('no account found');
       throw reason;
     });
   }
