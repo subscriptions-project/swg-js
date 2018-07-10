@@ -145,6 +145,7 @@ export const defaultStyles = {
   'vector-effect': 'none',
   'vertical-align': 'baseline',
   'visibility': 'visible',
+  'will-change': 'transform',
   'white-space': 'normal',
   'widows': '2',
   'word-break': 'normal',
