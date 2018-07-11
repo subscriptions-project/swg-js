@@ -42,7 +42,7 @@ import {
 } from './link-accounts-flow';
 import {LoginPromptFlow} from './login-flow';
 import {LoginNotificationApi} from './login-notification-api';
-import {SubscriptionLookupWaitApi} from './subscription-lookup-wait-api';
+import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {
@@ -678,11 +678,11 @@ describes.realWin('Runtime', {}, env => {
       expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
     });
 
-    it('should delegate "showLookingForSubscription"', () => {
-      configuredRuntimeMock.expects('showLookingForSubscription').once()
+    it('should delegate "showSubscriptionLookupProgress"', () => {
+      configuredRuntimeMock.expects('showSubscriptionLookupProgress').once()
           .returns(Promise.resolve());
 
-      return runtime.showLookingForSubscription().then(() => {
+      return runtime.showSubscriptionLookupProgress().then(() => {
         expect(configureStub).to.be.calledOnce;
       });
     });
@@ -1175,16 +1175,17 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
   });
 
-  it('should start SubscriptionLookupWaitApi', () => {
+  it('should start WaitForSubscriptionLookupApi', () => {
     const accountResult = 'account result';
     const accountPromise = Promise.resolve(accountResult);
     const startSpy = sandbox.spy(
-        SubscriptionLookupWaitApi.prototype,
+        WaitForSubscriptionLookupApi.prototype,
         'start');
-    return runtime.showLookingForSubscription(accountPromise).then(result => {
-      expect(startSpy).to.be.calledOnce;
-      expect(result).to.equal(accountResult);
-    });
+    return runtime.showSubscriptionLookupProgress(accountPromise).then(
+        result => {
+          expect(startSpy).to.be.calledOnce;
+          expect(result).to.equal(accountResult);
+        });
   });
 
   it('should directly call "attachButton"', () => {
