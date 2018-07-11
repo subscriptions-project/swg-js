@@ -33,7 +33,9 @@ import {
   LoginPromptFlow,
 } from './login-flow';
 import {LoginNotificationApi} from './login-notification-api';
-import {WaitingApi} from './waiting-api';
+import {
+  WaitForSubscriptionLookupApi,
+} from './wait-for-subscription-lookup-api';
 import {OffersApi} from './offers-api';
 import {
   OffersFlow,
@@ -283,9 +285,10 @@ export class Runtime {
   }
 
   /** @override */
-  showWaitingIndicator(accountPromise) {
+  showSubscriptionLookupProgress(accountPromise) {
     return this.configured_(true)
-        .then(runtime => runtime.showWaitingIndicator(accountPromise));
+        .then(runtime => runtime.showSubscriptionLookupProgress(
+            accountPromise));
   }
 
   /** @override */
@@ -568,9 +571,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  showWaitingIndicator(accountPromise) {
+  showSubscriptionLookupProgress(accountPromise) {
     return this.documentParsed_.then(() => {
-      const wait = new WaitingApi(this, accountPromise);
+      const wait = new WaitForSubscriptionLookupApi(this, accountPromise);
       return wait.start();
     });
   }
@@ -678,7 +681,8 @@ function createPublicRuntime(runtime) {
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
-    showWaitingIndicator: runtime.showWaitingIndicator.bind(runtime),
+    showSubscriptionLookupProgress:
+        runtime.showSubscriptionLookupProgress.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
     completeDeferredAccountCreation:
         runtime.completeDeferredAccountCreation.bind(runtime),

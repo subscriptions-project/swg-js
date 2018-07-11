@@ -21,7 +21,7 @@ import {
 import {feArgs, feUrl} from './services';
 
 
-export class WaitingApi {
+export class WaitForSubscriptionLookupApi {
   /**
    * @param {!./deps.DepsDef} deps
    * @param {?Promise} accountPromise
@@ -49,7 +49,7 @@ export class WaitingApi {
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        feUrl('/loginwaitingiframe'),
+        feUrl('/waitforsubscriptionlookupiframe'),
         feArgs({
           publicationId: deps.pageConfig().getPublicationId(),
           productId: deps.pageConfig().getProductId(),
@@ -72,7 +72,6 @@ export class WaitingApi {
       return account;
     }, reason => {
       this.dialogManager_.completeView(this.activityIframeView_);
-      // return Promise.reject('no account found');
       throw reason;
     });
   }
