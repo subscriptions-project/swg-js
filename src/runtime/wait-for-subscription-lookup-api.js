@@ -21,7 +21,7 @@ import {
 import {feArgs, feUrl} from './services';
 
 
-export class SubscriptionLookupWaitApi {
+export class WaitForSubscriptionLookupApi {
   /**
    * @param {!./deps.DepsDef} deps
    * @param {?Promise} accountPromise
@@ -49,7 +49,7 @@ export class SubscriptionLookupWaitApi {
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        feUrl('/subscriptionlookupwaitiframe'),
+        feUrl('/waitforsubscriptionlookupiframe'),
         feArgs({
           publicationId: deps.pageConfig().getPublicationId(),
           productId: deps.pageConfig().getProductId(),
