@@ -156,22 +156,17 @@ export class Toast {
    */
   close() {
     return this.animate_(() => {
-      transition(this.iframe_, {
+      // Remove the toast from the DOM after animation is complete.
+      this.doc_.getWin().setTimeout(() => {
+        this.doc_.getBody().removeChild(this.iframe_);
+        return Promise.resolve();
+      }, 500);
+
+      return transition(this.iframe_, {
         'transform': 'translateY(100%)',
         'opacity': 1,
         'visiblity': 'visible',
       }, 400, 'ease-out');
-
-      // Remove the toast from the DOM after animation is complete.
-      this.doc_.getWin().setTimeout(() => {
-        const removedIframe = this.doc_.getBody().removeChild(this.iframe_);
-
-        return (removedIframe &&
-          removedIframe.nodeName == 'IFRAME' &&
-          removedIframe.className == swgToastClass) ?
-          Promise.resolve() :
-          Promise.reject();
-      }, 500);
     });
   }
 }
