@@ -19,6 +19,7 @@ import {
   resetStyles,
   setImportantStyles,
 } from '../utils/style';
+import {transition} from '../utils/animation';
 
 /** @const {!Object<string, string|number>} */
 export const toastImportantStyles = {
@@ -63,6 +64,9 @@ export class Toast {
     /** @private @const {!Object<string, ?>} */
     this.args_ = args;
 
+    /** @private {?Promise} */
+    this.animating_ = null;
+
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ =
         /** @type {!HTMLIFrameElement} */ (
@@ -106,21 +110,60 @@ export class Toast {
           return port.whenReady();
         }).then(() => {
           resetStyles(this.iframe_, ['height']);
-          setImportantStyles(this.iframe_, {
-            'animation': 'swg-notify .3s ease-out normal backwards, '
-                  + 'swg-notify-hide .3s ease-out ' + toastDurationSeconds +
-                  's normal forwards',
+
+          this.animate_(() => {
+            setImportantStyles(this.iframe_, {
+              'transform': 'translateY(100%)',
+              'opactiy': 1,
+              'visibility': 'visible',
+            });
+            return transition(this.iframe_, {
+              'transform': 'translateY(0)',
+              'opacity': 1,
+              'visiblity': 'visible',
+            }, 400, 'ease-out');
           });
+
+          // Close the Toast after the specified duration.
           this.doc_.getWin().setTimeout(() => {
             this.close();
           }, (toastDurationSeconds + 1) * 1000);
         });
   }
 
+    /**
+   * @param {function():!Promise} callback
+   * @return {!Promise}
+   * @private
+   */
+  animate_(callback) {
+    const wait = this.animating_ || Promise.resolve();
+    return this.animating_ = wait.then(() => {
+      return callback();
+    }, () => {
+      // Ignore errors to make sure animations don't get stuck.
+    }).then(() => {
+      this.animating_ = null;
+    });
+  }
+
   /**
    * Closes the toast.
+   * @return {!Promise}
    */
   close() {
-    this.doc_.getBody().removeChild(this.iframe_);
+    return this.animate_(() => {
+      // Remove the toast from the DOM after animation is complete.
+      this.doc_.getWin().setTimeout(() => {
+        this.doc_.getBody().removeChild(this.iframe_);
+        return Promise.resolve();
+      }, 500);
+
+      return transition(this.iframe_, {
+        'transform': 'translateY(100%)',
+        'opacity': 1,
+        'visiblity': 'visible',
+      }, 400, 'ease-out');
+    });
   }
 }
