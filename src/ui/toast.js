@@ -33,14 +33,11 @@ export const toastImportantStyles = {
  */
 export let ToastSpecDef;
 
-/** @const {string} */
-const swgToastClass = 'swg-toast';
-
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
   'frameborder': '0',
   'scrolling': 'no',
-  'class': swgToastClass,
+  'class': 'swg-toast',
 };
 
 /**
