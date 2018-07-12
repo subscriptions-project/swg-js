@@ -120,7 +120,7 @@ export class Toast {
             return transition(this.iframe_, {
               'transform': 'translateY(0)',
               'opacity': 1,
-              'visiblity': 'visible',
+              'visibility': 'visible',
             }, 400, 'ease-out');
           });
 
@@ -162,7 +162,7 @@ export class Toast {
       return transition(this.iframe_, {
         'transform': 'translateY(100%)',
         'opacity': 1,
-        'visiblity': 'visible',
+        'visibility': 'visible',
       }, 400, 'ease-out');
     });
   }

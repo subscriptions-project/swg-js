@@ -295,7 +295,7 @@ export class Dialog {
       return transition(this.getElement(), {
         'transform': 'translateY(0)',
         'opacity': 1,
-        'visiblity': 'visible',
+        'visibility': 'visible',
       }, 300, 'ease-out');
     });
     this.hidden_ = false;
