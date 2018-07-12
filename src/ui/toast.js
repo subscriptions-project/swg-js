@@ -33,11 +33,14 @@ export const toastImportantStyles = {
  */
 export let ToastSpecDef;
 
+/** @const {string} */
+const swgToastClass = 'swg-toast';
+
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
   'frameborder': '0',
   'scrolling': 'no',
-  'class': 'swg-toast',
+  'class': swgToastClass,
 };
 
 /**
@@ -117,7 +120,7 @@ export class Toast {
               'opactiy': 1,
               'visibility': 'visible',
             });
-            transition(this.iframe_, {
+            return transition(this.iframe_, {
               'transform': 'translateY(0)',
               'opacity': 1,
               'visiblity': 'visible',
@@ -149,19 +152,26 @@ export class Toast {
 
   /**
    * Closes the toast.
+   * @return {!Promise}
    */
   close() {
-    this.animate_(() => {
+    return this.animate_(() => {
       transition(this.iframe_, {
         'transform': 'translateY(100%)',
         'opacity': 1,
         'visiblity': 'visible',
       }, 400, 'ease-out');
-    });
 
-    // Remove the toast from the DOM after animation is complete.
-    this.doc_.getWin().setTimeout(() => {
-      this.doc_.getBody().removeChild(this.iframe_);
-    }, 500);
+      // Remove the toast from the DOM after animation is complete.
+      this.doc_.getWin().setTimeout(() => {
+        const removedIframe = this.doc_.getBody().removeChild(this.iframe_);
+
+        return (removedIframe &&
+          removedIframe.nodeName == 'IFRAME' &&
+          removedIframe.className == swgToastClass) ?
+          Promise.resolve() :
+          Promise.reject();
+      }, 500);
+    });
   }
 }
