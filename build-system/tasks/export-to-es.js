@@ -70,7 +70,7 @@ function exportToEs6(inputFile, outputFile) {
       }
       js = js.substring(0, start) + js.substring(end);
     }
-    js = `${license}\n /** Version: ${version} */\n'use strict';\n${js}`;
+    js = `${license}\n/** Version: ${version} */\n'use strict';\n${js}`;
 
     // 2. Replace vars.
     const replacements = resolveConfig();

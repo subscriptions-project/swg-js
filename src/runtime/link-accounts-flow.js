@@ -75,6 +75,10 @@ export class LinkCompleteFlow {
    * @param {!./deps.DepsDef} deps
    */
   static configurePending(deps) {
+    /**
+     * Handler function.
+     * @param {!web-activities/activity-ports.ActivityPort} port
+     */
     function handler(port) {
       deps.entitlementsManager().blockNextNotification();
       deps.callbacks().triggerLinkProgress();
@@ -236,11 +240,11 @@ export class LinkSaveFlow {
     };
 
     this.activityIframeView_ = new ActivityIframeView(
-      this.win_,
-      this.activityPorts_,
-      feUrl('/linksaveiframe'),
-      feArgs(iframeArgs),
-      /* shouldFadeBody */ false
+        this.win_,
+        this.activityPorts_,
+        feUrl('/linksaveiframe'),
+        feArgs(iframeArgs),
+        /* shouldFadeBody */ false
     );
     this.activityIframeView_.onMessage(data => {
       if (data['getLinkingInfo']) {

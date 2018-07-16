@@ -131,7 +131,7 @@ export class Toast {
         });
   }
 
-    /**
+  /**
    * @param {function():!Promise} callback
    * @return {!Promise}
    * @private

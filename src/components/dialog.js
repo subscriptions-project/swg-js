@@ -413,7 +413,7 @@ export class Dialog {
 
   /**
    * Removes previouly added bottom padding from the document.
-   * @private`
+   * @private
    */
   removePaddingToHtml_() {
     this.doc_.getRootElement().style.removeProperty('padding-bottom');

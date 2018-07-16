@@ -17,9 +17,9 @@
 /**
  * @param  {...*} var_args [description]
  */
- export function log(var_args) {
-   console.log.apply(console, arguments);
- }
+export function log(var_args) {
+  console.log.apply(console, arguments);
+}
 
 /**
  * Throws an error if the first argument isn't trueish.
@@ -40,48 +40,48 @@
  * @return {T} The value of shouldBeTrueish.
  * @template T
  */
- export function assert(shouldBeTrueish, opt_message, var_args) {
-   let firstElement;
-   if (!shouldBeTrueish) {
-     const message = opt_message || 'Assertion failed';
-     const splitMessage = message.split('%s');
-     const first = splitMessage.shift();
-     let formatted = first;
-     const messageArray = [];
-     pushIfNonEmpty(messageArray, first);
-     for (let i = 2; i < arguments.length; i++) {
-       const val = arguments[i];
-       if (val && val.tagName) {
-         firstElement = val;
-       }
-       const nextConstant = splitMessage.shift();
-       messageArray.push(val);
-       pushIfNonEmpty(messageArray, nextConstant.trim());
-       formatted += toString(val) + nextConstant;
-     }
-     const e = new Error(formatted);
-     e.fromAssert = true;
-     e.associatedElement = firstElement;
-     e.messageArray = messageArray;
-     throw e;
-   }
-   return shouldBeTrueish;
- }
+export function assert(shouldBeTrueish, opt_message, var_args) {
+  let firstElement;
+  if (!shouldBeTrueish) {
+    const message = opt_message || 'Assertion failed';
+    const splitMessage = message.split('%s');
+    const first = splitMessage.shift();
+    let formatted = first;
+    const messageArray = [];
+    pushIfNonEmpty(messageArray, first);
+    for (let i = 2; i < arguments.length; i++) {
+      const val = arguments[i];
+      if (val && val.tagName) {
+        firstElement = val;
+      }
+      const nextConstant = splitMessage.shift();
+      messageArray.push(val);
+      pushIfNonEmpty(messageArray, nextConstant.trim());
+      formatted += toString(val) + nextConstant;
+    }
+    const e = new Error(formatted);
+    e.fromAssert = true;
+    e.associatedElement = firstElement;
+    e.messageArray = messageArray;
+    throw e;
+  }
+  return shouldBeTrueish;
+}
 
 /**
  * @param {!Array} array
  * @param {*} val
  */
- function pushIfNonEmpty(array, val) {
-   if (val != '') {
-     array.push(val);
-   }
- }
+function pushIfNonEmpty(array, val) {
+  if (val != '') {
+    array.push(val);
+  }
+}
 
- function toString(val) {
-  // Do check equivalent to `val instanceof Element` without cross-window bug
-   if (val && val.nodeType == 1) {
-     return val.tagName.toLowerCase() + (val.id ? '#' + val.id : '');
-   }
-   return /** @type {string} */ (val);
- }
+function toString(val) {
+// Do check equivalent to `val instanceof Element` without cross-window bug
+  if (val && val.nodeType == 1) {
+    return val.tagName.toLowerCase() + (val.id ? '#' + val.id : '');
+  }
+  return /** @type {string} */ (val);
+}
