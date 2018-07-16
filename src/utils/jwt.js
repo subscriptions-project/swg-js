@@ -33,7 +33,9 @@ let JwtTokenInternalDef;
  * Provides helper methods to decode and verify JWT tokens.
  */
 export class JwtHelper {
-
+  /**
+   * Constructor to create instance.
+   */
   constructor() {
   }
 
@@ -53,6 +55,9 @@ export class JwtHelper {
    */
   decodeInternal_(encodedToken) {
     // See https://jwt.io/introduction/
+    /**
+     * Throws error about invalid token.
+     */
     function invalidToken() {
       throw new Error(`Invalid token: "${encodedToken}"`);
     }

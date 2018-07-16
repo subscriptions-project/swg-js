@@ -48,9 +48,10 @@ export class View {
     // Do nothing by default. Override if needed.
   }
 
-  /*
+  /**
    * Accept the result.
    * @return {!Promise}
+   * @abstract
    */
   whenComplete() {}
 
