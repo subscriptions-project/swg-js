@@ -26,7 +26,7 @@ export class UserData {
   constructor(idToken, data) {
     /** @const {string} */
     this.idToken = idToken;
-    /** @private @const {!Object} */
+    /** @const {!Object} */
     this.data = data;
 
     /** @const {string} */

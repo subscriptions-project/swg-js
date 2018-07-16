@@ -397,6 +397,7 @@ export function resetStyles(element, properties) {
 /**
  * Resets all the styles of an element to a given value. Defaults to null.
  * The valid values are 'inherit', 'initial', 'unset' or null.
+ * @param {!Element} element
  */
 export function resetAllStyles(element) {
   setImportantStyles(element, defaultStyles);

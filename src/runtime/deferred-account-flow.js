@@ -150,7 +150,7 @@ export class DeferredAccountFlow {
         purchaseData,
         userData,
         () => Promise.resolve()  // completeHandler doesn't matter in this case
-        ));
+    ));
     return response;
   }
 }

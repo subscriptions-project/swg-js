@@ -81,9 +81,6 @@ export class PayStartFlow {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
-
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
@@ -173,9 +170,6 @@ export class PayCompleteFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private @const {!../runtime/callbacks.Callbacks} */
-    this.callbacks_ = deps.callbacks();
-
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
 
@@ -236,7 +230,7 @@ export class PayCompleteFlow {
 
 
 /**
-  *@param {!Window} win
+ * @param {!Window} win
  * @param {!web-activities/activity-ports.ActivityPort} port
  * @param {function():!Promise} completeHandler
  * @return {!Promise<!SubscribeResponse>}
