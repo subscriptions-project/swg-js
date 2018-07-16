@@ -26,8 +26,8 @@ export class UserData {
   constructor(idToken, data) {
     /** @const {string} */
     this.idToken = idToken;
-    /** @private @const {!Object} */
-    this.data_ = data;
+    /** @const {!Object} */
+    this.data = data;
 
     /** @const {string} */
     this.id = data['sub'];
@@ -49,7 +49,7 @@ export class UserData {
    * @return {!UserData}
    */
   clone() {
-    return new UserData(this.idToken, this.data_);
+    return new UserData(this.idToken, this.data);
   }
 
   /**
