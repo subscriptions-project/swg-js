@@ -44,10 +44,12 @@ export class LoginPromptApi {
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        feUrl('/loginpromptiframe'),
+        feUrl('/loginiframe'),
         feArgs({
           publicationId: deps.pageConfig().getPublicationId(),
           productId: deps.pageConfig().getProductId(),
+          // First ask the user if they want us to log them in.
+          userConsent: true,
           // TODO(chenshay): Pass entitlements value here.
         }),
         /* shouldFadeBody */ true

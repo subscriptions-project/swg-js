@@ -67,11 +67,12 @@ describes.realWin('LoginPromptApi', {}, env => {
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/loginpromptiframe?_=_',
+        '$frontend$/swg/_/ui/v1/loginiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
           productId,
+          userConsent: true,
         })
         .returns(Promise.resolve(port));
 
