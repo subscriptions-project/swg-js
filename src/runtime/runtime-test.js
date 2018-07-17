@@ -40,7 +40,7 @@ import {
   LinkbackFlow,
   LinkSaveFlow,
 } from './link-accounts-flow';
-import {LoginPromptFlow} from './login-flow';
+import {LoginPromptApi} from './login-prompt-api';
 import {LoginNotificationApi} from './login-notification-api';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {PageConfig} from '../model/page-config';
@@ -1143,9 +1143,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(resultPromise).to.deep.equal(newPromise);
   });
 
-  it('should start LoginPromptFlow', () => {
+  it('should start LoginPromptApi', () => {
     const startStub = sandbox.stub(
-        LoginPromptFlow.prototype,
+        LoginPromptApi.prototype,
         'start',
         () => Promise.resolve());
     return runtime.showLoginPrompt().then(() => {

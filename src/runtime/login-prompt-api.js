@@ -20,7 +20,7 @@ import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 
 
-export class LoginPromptFlow {
+export class LoginPromptApi {
   /**
    * @param {!./deps.DepsDef} deps
    */
@@ -55,7 +55,7 @@ export class LoginPromptFlow {
   }
 
   /**
-   * Continues the Login flow (after waiting).
+   * Prompts the user to login.
    * @return {!Promise}
    */
   start() {
