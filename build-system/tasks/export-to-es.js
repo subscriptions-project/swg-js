@@ -46,9 +46,7 @@ function exportToEs6(inputFile, outputFile) {
   let js;
   return exec(
       './node_modules/rollup/bin/rollup' +
-      ' "' + inputFile + '"' +
-      ' --f es' +
-      ' --o build/rollup.js'
+      ' --config rollup.config.js'
   ).then(() => {
     js = fs.readFileSync('build/rollup.js', 'utf8');
     // 1. Rearrange one license on top.
