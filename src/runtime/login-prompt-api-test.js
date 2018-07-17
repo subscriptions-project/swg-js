@@ -18,18 +18,18 @@ import {
     ActivityPort,
   } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
-import {LoginPromptFlow} from './login-flow';
+import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {isCancelError} from '../utils/errors';
 import * as sinon from 'sinon';
 
-describes.realWin('LoginPromptFlow', {}, env => {
+describes.realWin('LoginPromptApi', {}, env => {
   let win;
   let runtime;
   let activitiesMock;
   let callbacksMock;
   let pageConfig;
-  let loginPromptFlow;
+  let loginPromptApi;
   let resultResolver;
   let port;
   let dialogManagerMock;
@@ -48,7 +48,7 @@ describes.realWin('LoginPromptFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
-    loginPromptFlow = new LoginPromptFlow(runtime);
+    loginPromptApi = new LoginPromptApi(runtime);
     resultResolver = null;
     const resultPromise = new Promise(resolve => {
       resultResolver = resolve;
@@ -75,8 +75,8 @@ describes.realWin('LoginPromptFlow', {}, env => {
         })
         .returns(Promise.resolve(port));
 
-    loginPromptFlow.start();
-    return loginPromptFlow.openViewPromise_;
+    loginPromptApi.start();
+    return loginPromptApi.openViewPromise_;
   });
 
   it('should handle cancel', () => {
@@ -85,7 +85,7 @@ describes.realWin('LoginPromptFlow', {}, env => {
 
     resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
     dialogManagerMock.expects('completeView').once();
-    return loginPromptFlow.start().then(() => {
+    return loginPromptApi.start().then(() => {
       throw new Error('must have failed');
     }, reason => {
       expect(isCancelError(reason)).to.be.true;
@@ -98,7 +98,7 @@ describes.realWin('LoginPromptFlow', {}, env => {
         .returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
-    const promise = loginPromptFlow.start();
+    const promise = loginPromptApi.start();
     return promise.then(() => {
       throw new Error('must have failed');
     }, reason => {
