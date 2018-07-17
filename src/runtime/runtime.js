@@ -30,8 +30,8 @@ import {
   LinkSaveFlow,
 } from './link-accounts-flow';
 import {
-  LoginPromptFlow,
-} from './login-flow';
+  LoginPromptApi,
+} from './login-prompt-api';
 import {LoginNotificationApi} from './login-notification-api';
 import {
   WaitForSubscriptionLookupApi,
@@ -605,7 +605,7 @@ export class ConfiguredRuntime {
   /** @override */
   showLoginPrompt() {
     return this.documentParsed_.then(() => {
-      return new LoginPromptFlow(this).start();
+      return new LoginPromptApi(this).start();
     });
   }
 
