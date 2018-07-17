@@ -43,10 +43,12 @@ export class LoginNotificationApi {
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
-        feUrl('/loginnotificationiframe'),
+        feUrl('/loginiframe'),
         feArgs({
           publicationId: deps.pageConfig().getPublicationId(),
           productId: deps.pageConfig().getProductId(),
+          // No need to ask the user. Just tell them you're logging them in.
+          userConsent: false,
           // TODO(chenshay): Pass entitlements value here.
         }),
         /* shouldFadeBody */ true

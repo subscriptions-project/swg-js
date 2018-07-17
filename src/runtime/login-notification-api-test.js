@@ -65,11 +65,12 @@ describes.realWin('LoginNotificationApi', {}, env => {
     callbacksMock.expects('triggerFlowStarted').once();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/loginnotificationiframe?_=_',
+        '$frontend$/swg/_/ui/v1/loginiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
           productId,
+          userConsent: false,
         })
         .returns(Promise.resolve(port));
 
