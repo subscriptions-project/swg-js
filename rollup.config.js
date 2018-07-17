@@ -26,27 +26,3 @@ export default {
     compiler(),
   ],
 };
-
-// export default commandLineArgs => {
-//   return {
-//     input: commandLineArgs.input,
-//     output: {
-//       file: 'build/rollup.js',
-//       format: 'esm',
-//     },
-//     // plugins: [
-//     //   compiler(),
-//     // ],
-//   };
-// };
-
-
-
-// // rollup.config.js
-// import defaultConfig from './rollup.default.config.js';
-// import debugConfig from './rollup.debug.config.js';
-
-//   if (commandLineArgs.configDebug === true) {
-//     return debugConfig;
-//   }
-//   return defaultConfig;
