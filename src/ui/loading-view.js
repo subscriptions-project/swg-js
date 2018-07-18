@@ -32,6 +32,7 @@ export class LoadingView {
     /** @private @const {!Document} */
     this.doc_ = doc;
 
+    /** @private @const {!Element} */
     this.loadingContainer_ =
         createElement(this.doc_, 'swg-loading-container', {});
 
@@ -53,21 +54,21 @@ export class LoadingView {
     return this.loadingContainer_;
   }
 
-  /*
+  /**
    * Shows the loading indicator within the container element.
    */
   show() {
     this.loadingContainer_.style.removeProperty('display');
   }
 
-  /*
+  /**
    * Hides the loading indicator within the container element.
    */
   hide() {
     this.loadingContainer_.style.setProperty('display', 'none', 'important');
   }
 
-  /*
+  /**
    * Populates the loading indivicator. The populated element
    * can be added in any view, when required.
    * @private

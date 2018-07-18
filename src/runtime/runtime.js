@@ -29,6 +29,13 @@ import {
   LinkbackFlow,
   LinkSaveFlow,
 } from './link-accounts-flow';
+import {
+  LoginPromptApi,
+} from './login-prompt-api';
+import {LoginNotificationApi} from './login-notification-api';
+import {
+  WaitForSubscriptionLookupApi,
+} from './wait-for-subscription-lookup-api';
 import {OffersApi} from './offers-api';
 import {
   OffersFlow,
@@ -46,7 +53,11 @@ import {
 } from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
 import {Storage} from './storage';
-import {Subscriptions} from '../api/subscriptions';
+import {
+  Subscriptions,
+  WindowOpenMode,
+  defaultConfig,
+} from '../api/subscriptions';
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
 
@@ -220,6 +231,12 @@ export class Runtime {
   }
 
   /** @override */
+  configure(config) {
+    return this.configured_(false)
+        .then(runtime => runtime.configure(config));
+  }
+
+  /** @override */
   start() {
     return this.configured_(true)
         .then(runtime => runtime.start());
@@ -265,6 +282,13 @@ export class Runtime {
   showAbbrvOffer(opt_options) {
     return this.configured_(true)
         .then(runtime => runtime.showAbbrvOffer(opt_options));
+  }
+
+  /** @override */
+  showSubscriptionLookupProgress(accountPromise) {
+    return this.configured_(true)
+        .then(runtime => runtime.showSubscriptionLookupProgress(
+            accountPromise));
   }
 
   /** @override */
@@ -330,6 +354,20 @@ export class Runtime {
   }
 
   /** @override */
+  showLoginPrompt() {
+    return this.configured_(true).then(runtime => {
+      return runtime.showLoginPrompt();
+    });
+  }
+
+  /** @override */
+  showLoginNotification() {
+    return this.configured_(true).then(runtime => {
+      return runtime.showLoginNotification();
+    });
+  }
+
+  /** @override */
   createButton(optionsOrCallback, opt_callback) {
     return this.buttonApi_.create(optionsOrCallback, opt_callback);
   }
@@ -349,20 +387,23 @@ export class ConfiguredRuntime {
 
   /**
    * @param {!Window|!Document|!Doc} winOrDoc
-   * @param {!../model/page-config.PageConfig} config
+   * @param {!../model/page-config.PageConfig} pageConfig
    * @param {{
    *     fetcher: (!Fetcher|undefined),
    *   }=} opt_integr
    */
-  constructor(winOrDoc, config, opt_integr) {
+  constructor(winOrDoc, pageConfig, opt_integr) {
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
 
     /** @private @const {!Window} */
     this.win_ = this.doc_.getWin();
 
+    /** @private @const {!../api/subscriptions.Config} */
+    this.config_ = defaultConfig();
+
     /** @private @const {!../model/page-config.PageConfig} */
-    this.config_ = config;
+    this.pageConfig_ = pageConfig;
 
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
@@ -384,11 +425,11 @@ export class ConfiguredRuntime {
     this.callbacks_ = new Callbacks();
 
     /** @private @const {!EntitlementsManager} */
-    this.entitlementsManager_ =
-        new EntitlementsManager(this.win_, this.config_, this.fetcher_, this);
+    this.entitlementsManager_ = new EntitlementsManager(
+        this.win_, this.pageConfig_, this.fetcher_, this);
 
     /** @private @const {!OffersApi} */
-    this.offersApi_ = new OffersApi(this.config_, this.fetcher_);
+    this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
@@ -414,7 +455,7 @@ export class ConfiguredRuntime {
 
   /** @override */
   pageConfig() {
-    return this.config_;
+    return this.pageConfig_;
   }
 
   /** @override */
@@ -448,6 +489,33 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  configure(config) {
+    // Validate first.
+    let error = null;
+    for (const k in config) {
+      const v = config[k];
+      if (k == 'windowOpenMode') {
+        if (v != WindowOpenMode.AUTO &&
+            v != WindowOpenMode.REDIRECT) {
+          error = 'Unknown windowOpenMode: ' + v;
+        }
+      } else {
+        error = 'Unknown config property: ' + k;
+      }
+    }
+    if (error) {
+      throw new Error(error);
+    }
+    // Assign.
+    Object.assign(this.config_, config);
+  }
+
+  /** @override */
+  config() {
+    return this.config_;
+  }
+
+  /** @override */
   reset() {
     this.entitlementsManager_.reset();
     this.dialogManager_.completeAll();
@@ -456,7 +524,7 @@ export class ConfiguredRuntime {
   /** @override */
   start() {
     // No need to run entitlements without a product or for an unlocked page.
-    if (!this.config_.getProductId() || !this.config_.isLocked()) {
+    if (!this.pageConfig_.getProductId() || !this.pageConfig_.isLocked()) {
       return Promise.resolve();
     }
     this.getEntitlements();
@@ -503,6 +571,14 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  showSubscriptionLookupProgress(accountPromise) {
+    return this.documentParsed_.then(() => {
+      const wait = new WaitForSubscriptionLookupApi(this, accountPromise);
+      return wait.start();
+    });
+  }
+
+  /** @override */
   setOnLoginRequest(callback) {
     this.callbacks_.setOnLoginRequest(callback);
   }
@@ -523,6 +599,20 @@ export class ConfiguredRuntime {
   saveSubscription(saveSubscriptionRequestCallback) {
     return this.documentParsed_.then(() => {
       return new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
+    });
+  }
+
+  /** @override */
+  showLoginPrompt() {
+    return this.documentParsed_.then(() => {
+      return new LoginPromptApi(this).start();
+    });
+  }
+
+  /** @override */
+  showLoginNotification() {
+    return this.documentParsed_.then(() => {
+      return new LoginNotificationApi(this).start();
     });
   }
 
@@ -580,14 +670,19 @@ export class ConfiguredRuntime {
 function createPublicRuntime(runtime) {
   return /** @type {!Subscriptions} */ ({
     init: runtime.init.bind(runtime),
+    configure: runtime.configure.bind(runtime),
     start: runtime.start.bind(runtime),
     reset: runtime.reset.bind(runtime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
+    showLoginPrompt: runtime.showLoginPrompt.bind(runtime),
+    showLoginNotification: runtime.showLoginNotification.bind(runtime),
     getOffers: runtime.getOffers.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
+    showSubscriptionLookupProgress:
+        runtime.showSubscriptionLookupProgress.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
     completeDeferredAccountCreation:
         runtime.completeDeferredAccountCreation.bind(runtime),

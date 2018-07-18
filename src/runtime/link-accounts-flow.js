@@ -15,7 +15,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {SubscriptionFlows} from '../api/subscriptions';
+import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
@@ -51,10 +51,12 @@ export class LinkbackFlow {
    */
   start() {
     this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
+    const forceRedirect =
+        this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT;
     const opener = this.activityPorts_.open(
         LINK_REQUEST_ID,
         feUrl('/linkbackstart'),
-        '_blank',
+        forceRedirect ? '_top' : '_blank',
         feArgs({
           'publicationId': this.pageConfig_.getPublicationId(),
         }), {});
@@ -73,6 +75,10 @@ export class LinkCompleteFlow {
    * @param {!./deps.DepsDef} deps
    */
   static configurePending(deps) {
+    /**
+     * Handler function.
+     * @param {!web-activities/activity-ports.ActivityPort} port
+     */
     function handler(port) {
       deps.entitlementsManager().blockNextNotification();
       deps.callbacks().triggerLinkProgress();
@@ -234,11 +240,11 @@ export class LinkSaveFlow {
     };
 
     this.activityIframeView_ = new ActivityIframeView(
-      this.win_,
-      this.activityPorts_,
-      feUrl('/linksaveiframe'),
-      feArgs(iframeArgs),
-      /* shouldFadeBody */ false
+        this.win_,
+        this.activityPorts_,
+        feUrl('/linksaveiframe'),
+        feArgs(iframeArgs),
+        /* shouldFadeBody */ false
     );
     this.activityIframeView_.onMessage(data => {
       if (data['getLinkingInfo']) {

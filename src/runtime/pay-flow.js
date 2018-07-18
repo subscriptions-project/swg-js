@@ -20,7 +20,7 @@ import {
   PurchaseData,
   SubscribeResponse,
 } from '../api/subscribe-response';
-import {SubscriptionFlows} from '../api/subscriptions';
+import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {Xhr} from '../utils/xhr';
 import {feArgs, feCached, feUrl} from './services';
@@ -65,6 +65,12 @@ export class PayStartFlow {
    */
   static preconnect(pre) {
     pre.prefetch(payUrl());
+    pre.prefetch(
+        'https://payments.google.com/payments/v4/js/integrator.js?ss=md');
+    pre.prefetch('https://clients2.google.com/gr/gr_full_2.0.6.js');
+    pre.preconnect('https://www.gstatic.com/');
+    pre.preconnect('https://fonts.googleapis.com/');
+    pre.preconnect('https://www.google.com/');
   }
 
   /**
@@ -74,9 +80,6 @@ export class PayStartFlow {
   constructor(deps, sku) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
-
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
@@ -102,10 +105,12 @@ export class PayStartFlow {
     });
 
     // TODO(dvoytenko): switch to gpay async client.
+    const forceRedirect =
+        this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT;
     const opener = this.activityPorts_.open(
         PAY_REQUEST_ID,
         payUrl(),
-        '_blank',
+        forceRedirect ? '_top' : '_blank',
         feArgs({
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
@@ -164,9 +169,6 @@ export class PayCompleteFlow {
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
-
-    /** @private @const {!../runtime/callbacks.Callbacks} */
-    this.callbacks_ = deps.callbacks();
 
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
@@ -228,7 +230,7 @@ export class PayCompleteFlow {
 
 
 /**
-  *@param {!Window} win
+ * @param {!Window} win
  * @param {!web-activities/activity-ports.ActivityPort} port
  * @param {function():!Promise} completeHandler
  * @return {!Promise<!SubscribeResponse>}
