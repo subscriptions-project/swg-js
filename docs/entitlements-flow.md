@@ -16,7 +16,7 @@ limitations under the License.
 
 # SwG Entitlements Flow
 
-This flow would notify the publication site when SwG believes that the reader is entitled to read the content, e.g. due to previously pruchased subscription. See [Subscriptions APIs](./core-apis.md).
+This flow would notify the publication site when SwG believes that the reader is entitled to read the content, e.g. due to previously purchased subscription. See [Subscriptions APIs](./core-apis.md).
 
 It's recommended that the site install entitlements listener as early as practical using `setOnEntitlementsResponse` method.
 
