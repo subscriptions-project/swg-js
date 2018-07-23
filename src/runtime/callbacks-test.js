@@ -148,7 +148,16 @@ describes.sandboxed('Callbacks', {}, () => {
     callbacks.setOnFlowStarted(spy);
     expect(callbacks.triggerFlowStarted('flow1')).to.be.true;
     return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1'});
+      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {}});
+    });
+  });
+
+  it('should trigger and execute flowStarted with data', () => {
+    const spy = sandbox.spy();
+    callbacks.setOnFlowStarted(spy);
+    callbacks.triggerFlowStarted('flow1', {a: 1});
+    return skipMicro().then(() => {
+      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {a: 1}});
     });
   });
 
@@ -158,7 +167,16 @@ describes.sandboxed('Callbacks', {}, () => {
     callbacks.setOnFlowCanceled(spy);
     expect(callbacks.triggerFlowCanceled('flow1')).to.be.true;
     return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1'});
+      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {}});
+    });
+  });
+
+  it('should trigger and execute flowCanceled with data', () => {
+    const spy = sandbox.spy();
+    callbacks.setOnFlowCanceled(spy);
+    callbacks.triggerFlowCanceled('flow1', {a: 1});
+    return skipMicro().then(() => {
+      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {a: 1}});
     });
   });
 });

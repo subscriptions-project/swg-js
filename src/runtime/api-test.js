@@ -15,6 +15,9 @@
  */
 
 import {
+  DeferredAccountCreationResponse,
+} from '../api/deferred-account-creation';
+import {
   Entitlement,
   Entitlements,
 } from '../api/entitlements';
@@ -52,8 +55,8 @@ describes.sandboxed('Entitlements', {}, () => {
 
   it('should test products', () => {
     const list = [
-      new Entitlement('', ['product1', 'product2'], 'token1'),
-      new Entitlement('', ['product2', 'product3'], 'token2'),
+      new Entitlement('source1', ['product1', 'product2'], 'token1'),
+      new Entitlement('source2', ['product2', 'product3'], 'token2'),
     ];
     const ents = new Entitlements('service1', 'RaW', list, 'product1', ackSpy);
     expect(ents.enablesAny()).to.be.true;
@@ -67,6 +70,42 @@ describes.sandboxed('Entitlements', {}, () => {
     expect(ents.getEntitlementFor('product3')).to.equal(list[1]);
     expect(ents.getEntitlementFor('product4')).to.be.null;
     expect(ents.getEntitlementForThis()).to.equal(list[0]);
+
+    expect(ents.enablesAny('source1')).to.be.true;
+    expect(ents.enablesAny('source2')).to.be.true;
+    expect(ents.enablesAny('source3')).to.be.false;  // Unknown source.
+    expect(ents.enablesThis('source1')).to.be.true;
+    expect(ents.enablesThis('source2')).to.be.false;  // No "product1".
+    expect(ents.enablesThis('source3')).to.be.false;  // Unknown source.
+    expect(ents.enables('product1', 'source1')).to.be.true;
+    expect(ents.enables('product1', 'source2')).to.be.false;  // No "product1"
+    expect(ents.enables('product2', 'source1')).to.be.true;
+    expect(ents.enables('product2', 'source2')).to.be.true;
+    expect(ents.enables('product3', 'source1')).to.be.false;  // No "product3"
+    expect(ents.enables('product3', 'source2')).to.be.true;
+    expect(ents.enables('product4', 'source1')).to.be.false;  // No "product4".
+    expect(ents.enables('product4', 'source2')).to.be.false;  // No "product4".
+    expect(ents.getEntitlementFor('product1', 'source1')).to.equal(list[0]);
+    expect(ents.getEntitlementFor('product1', 'source2')).to.be.null;
+    expect(ents.getEntitlementFor('product2', 'source1')).to.equal(list[0]);
+    expect(ents.getEntitlementFor('product2', 'source2')).to.equal(list[1]);
+    expect(ents.getEntitlementFor('product3', 'source1')).to.be.null;
+    expect(ents.getEntitlementFor('product3', 'source2')).to.equal(list[1]);
+    expect(ents.getEntitlementFor('product4', 'source1')).to.be.null;
+    expect(ents.getEntitlementFor('product4', 'source2')).to.be.null;
+    expect(ents.getEntitlementForThis('source1')).to.equal(list[0]);
+    expect(ents.getEntitlementForThis('source2')).to.be.null;  // No "product1".
+    expect(ents.getEntitlementForThis('source3')).to.be.null;  // No source.
+
+    // Change current product.
+    ents.product_ = 'product2';
+    expect(ents.getEntitlementForThis('source1')).to.equal(list[0]);
+    expect(ents.getEntitlementForThis('source2')).to.equal(list[1]);
+
+    // Just source.
+    expect(ents.getEntitlementForSource('source1')).to.equal(list[0]);
+    expect(ents.getEntitlementForSource('source2')).to.equal(list[1]);
+    expect(ents.getEntitlementForSource('source3')).to.be.null;  // No source.
   });
 
   it('should clone', () => {
@@ -196,7 +235,10 @@ describe('PurchaseData', () => {
   });
 
   it('should export json', () => {
-    expect(pd.json()).to.deep.equal({});
+    expect(pd.json()).to.deep.equal({
+      'data': 'RAW',
+      'signature': 'SIG',
+    });
   });
 });
 
@@ -289,6 +331,47 @@ describe('UserData', () => {
       'givenName': 'Id',
       'familyName': 'One',
       'pictureUrl': 'https://example.org/avatar/test',
+    });
+  });
+});
+
+
+describes.sandboxed('DeferredAccountCreationResponse', {}, () => {
+  let ents, dacr, pd, ud, complete, promise;
+
+  beforeEach(() => {
+    ents = new Entitlements('service1', 'RaW', [
+      new Entitlement('source1', ['product1', 'product2'], 'token1'),
+    ], 'product1', () => {});
+    pd = new PurchaseData('PD_RAW', 'PD_SIG');
+    ud = new UserData('ID_TOKEN', {sub: '1234'});
+    promise = Promise.resolve();
+    complete = () => promise;
+    dacr = new DeferredAccountCreationResponse(ents, ud, pd, complete);
+  });
+
+  it('should initialize correctly', () => {
+    expect(dacr.entitlements).to.equal(ents);
+    expect(dacr.userData).to.equal(ud);
+    expect(dacr.purchaseData).to.equal(pd);
+    expect(dacr.complete()).to.equal(promise);
+  });
+
+  it('should clone', () => {
+    const clone = dacr.clone();
+    expect(clone).to.not.equal(dacr);
+    expect(clone).to.deep.equal(dacr);
+    expect(clone.entitlements).to.equal(ents);
+    expect(clone.purchaseData).to.equal(pd);
+    expect(clone.userData).to.equal(ud);
+    expect(clone.complete()).to.equal(promise);
+  });
+
+  it('should export json', () => {
+    expect(dacr.json()).to.deep.equal({
+      'entitlements': ents.json(),
+      'userData': ud.json(),
+      'purchaseData': pd.json(),
     });
   });
 });

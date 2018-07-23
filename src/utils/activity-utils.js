@@ -22,7 +22,7 @@
  * @param {boolean} requireSecureChannel
  * @return {!Promise<!Object>}
  */
-export function acceptPortResult(
+export function acceptPortResultData(
     port,
     requireOrigin,
     requireOriginVerified,

@@ -30,6 +30,7 @@ import {
   installRuntime,
   getRuntime,
 } from './runtime';
+import {DeferredAccountFlow} from './deferred-account-flow';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {Fetcher, XhrFetcher} from './fetcher';
@@ -39,6 +40,9 @@ import {
   LinkbackFlow,
   LinkSaveFlow,
 } from './link-accounts-flow';
+import {LoginPromptApi} from './login-prompt-api';
+import {LoginNotificationApi} from './login-notification-api';
+import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {
@@ -422,14 +426,23 @@ describes.realWin('Runtime', {}, env => {
       configuredRuntimeMock.verify();
     });
 
-    it('should should delegate "start"', () => {
+    it('should delegate "configure"', () => {
+      configuredRuntimeMock.expects('configure')
+          .returns(Promise.resolve(11))
+          .once();
+      return runtime.configure().then(v => {
+        expect(v).to.equal(11);  // Ensure that the result is propagated back.
+      });
+    });
+
+    it('should delegate "start"', () => {
       configuredRuntimeMock.expects('start').once();
       return runtime.start().then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(true);
       });
     });
 
-    it('should should delegate "getEntitlements"', () => {
+    it('should delegate "getEntitlements"', () => {
       const ents = {};
       configuredRuntimeMock.expects('getEntitlements')
           .returns(Promise.resolve(ents));
@@ -439,14 +452,14 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "reset"', () => {
+    it('should delegate "reset"', () => {
       configuredRuntimeMock.expects('reset').once();
       return runtime.reset().then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(true);
       });
     });
 
-    it('should should delegate "getOffers"', () => {
+    it('should delegate "getOffers"', () => {
       configuredRuntimeMock.expects('getOffers').withExactArgs(undefined)
           .once();
       return runtime.getOffers().then(() => {
@@ -454,7 +467,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "getOffers" with options', () => {
+    it('should delegate "getOffers" with options', () => {
       const opts = {productId: 'abc'};
       configuredRuntimeMock.expects('getOffers').withExactArgs(opts)
           .once();
@@ -463,7 +476,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "showOffers"', () => {
+    it('should delegate "showOffers"', () => {
       configuredRuntimeMock.expects('showOffers')
           .withExactArgs(undefined)
           .once();
@@ -472,7 +485,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "showOffers" with options', () => {
+    it('should delegate "showOffers" with options', () => {
       const options = {list: 'other'};
       configuredRuntimeMock.expects('showOffers')
           .withExactArgs(options)
@@ -482,7 +495,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "showSubscribeOption"', () => {
+    it('should delegate "showSubscribeOption"', () => {
       configuredRuntimeMock.expects('showSubscribeOption')
           .withExactArgs(undefined)
           .once();
@@ -491,7 +504,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "showSubscribeOption" with options', () => {
+    it('should delegate "showSubscribeOption" with options', () => {
       const options = {list: 'other'};
       configuredRuntimeMock.expects('showSubscribeOption')
           .withExactArgs(options)
@@ -520,7 +533,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "subscribe"', () => {
+    it('should delegate "subscribe"', () => {
       configuredRuntimeMock.expects('subscribe')
           .withExactArgs('sku1')
           .once();
@@ -529,7 +542,21 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnEntitlementsResponse"', () => {
+    it('should delegate "completeDeferredAccountCreation"', () => {
+      const request = {entitlements: 'ents'};
+      const response = {};
+      configuredRuntimeMock.expects('completeDeferredAccountCreation').once()
+          .withExactArgs(request)
+          .returns(Promise.resolve(response))
+          .once();
+      return runtime.completeDeferredAccountCreation(request)
+          .then(result => {
+            expect(configureStub).to.be.calledOnce.calledWith(true);
+            expect(result).to.equal(response);
+          });
+    });
+
+    it('should delegate "setOnEntitlementsResponse"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnEntitlementsResponse')
           .withExactArgs(callback)
@@ -539,7 +566,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnNativeSubscribeRequest"', () => {
+    it('should delegate "setOnNativeSubscribeRequest"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnNativeSubscribeRequest')
           .withExactArgs(callback)
@@ -549,7 +576,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnSubscribeResponse"', () => {
+    it('should delegate "setOnSubscribeResponse"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnSubscribeResponse')
           .withExactArgs(callback)
@@ -559,7 +586,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnLoginRequest"', () => {
+    it('should delegate "setOnLoginRequest"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnLoginRequest')
           .withExactArgs(callback)
@@ -569,7 +596,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnLinkComplete"', () => {
+    it('should delegate "setOnLinkComplete"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnLinkComplete')
           .withExactArgs(callback)
@@ -579,7 +606,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnFlowStarted"', () => {
+    it('should delegate "setOnFlowStarted"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnFlowStarted')
           .withExactArgs(callback)
@@ -589,7 +616,7 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "setOnFlowCanceled"', () => {
+    it('should delegate "setOnFlowCanceled"', () => {
       const callback = function() {};
       configuredRuntimeMock.expects('setOnFlowCanceled')
           .withExactArgs(callback)
@@ -599,16 +626,75 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should should delegate "saveSubscricption"', () => {
+    it('should delegate "saveSubscricption" with token', () => {
       const newPromise = new Promise(() => {});
+      const requestCallback = () => {
+        return {token: 'test'};
+      };
       configuredRuntimeMock.expects('saveSubscription').once()
-          .withExactArgs({token: 'test'}).returns(newPromise);
-      const resultPromise = runtime.saveSubscription({token: 'test'})
+          .withExactArgs(requestCallback).returns(newPromise);
+      const resultPromise = runtime.saveSubscription(requestCallback)
           .then(() => {
             expect(configureStub).to.be.calledOnce.calledWith(true);
             expect(resultPromise).to.deep.equal(newPromise);
           });
       return resultPromise;
+    });
+
+    it('should delegate "saveSubscricption" with authCode', () => {
+      const newPromise = new Promise(() => {});
+      const requestPromise = new Promise(resolve => {
+        resolve({authCode: 'testCode'});
+      });
+      const requestCallback = () => requestPromise;
+      configuredRuntimeMock.expects('saveSubscription').once()
+          .withExactArgs(requestCallback).returns(newPromise);
+      const resultPromise = runtime.saveSubscription(requestCallback)
+          .then(() => {
+            expect(configureStub).to.be.calledOnce.calledWith(true);
+            expect(resultPromise).to.deep.equal(newPromise);
+          });
+      return resultPromise;
+    });
+
+    it('should delegate "showLoginPrompt" and call the "start" method', () => {
+      configuredRuntimeMock.expects('showLoginPrompt').once()
+          .returns(Promise.resolve());
+
+      return runtime.showLoginPrompt().then(() => {
+        expect(configureStub).to.be.calledOnce;
+      });
+    });
+
+    it('should directly call "createButton"', () => {
+      const options = {};
+      const callback = () => {};
+      const button = win.document.createElement('button');
+      const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
+        return button;
+      });
+      const result = runtime.createButton(options, callback);
+      expect(result).to.equal(button);
+      expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
+    });
+
+    it('should delegate "showSubscriptionLookupProgress"', () => {
+      configuredRuntimeMock.expects('showSubscriptionLookupProgress').once()
+          .returns(Promise.resolve());
+
+      return runtime.showSubscriptionLookupProgress().then(() => {
+        expect(configureStub).to.be.calledOnce;
+      });
+    });
+
+    it('should directly call "attachButton"', () => {
+      const options = {};
+      const callback = () => {};
+      const button = win.document.createElement('button');
+      const stub = sandbox.stub(runtime.buttonApi_, 'attach');
+      runtime.attachButton(button, options, callback);
+      expect(stub).to.be.calledOnce
+          .calledWithExactly(button, options, callback);
     });
 
     it('should use default fetcher', () => {
@@ -692,6 +778,100 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
   }
 
+  describe('callbacks', () => {
+    it('should trigger entitlements callback', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnEntitlementsResponse(resolve);
+      });
+      runtime.callbacks().triggerEntitlementsResponse(
+          Promise.resolve(new Entitlements('', 'RaW', [], null, () => {})));
+      return promise.then(result => {
+        expect(result.raw).to.equal('RaW');
+      });
+    });
+
+    it('should trigger native subscribe request', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnNativeSubscribeRequest(resolve);
+      });
+      runtime.callbacks().triggerSubscribeRequest();
+      return promise;
+    });
+
+    it('should trigger subscribe response', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnSubscribeResponse(resolve);
+      });
+      runtime.callbacks().triggerSubscribeResponse(Promise.resolve(
+          new SubscribeResponse('RaW')));
+      return promise.then(result => {
+        expect(result.raw).to.equal('RaW');
+      });
+    });
+
+    it('should trigger login request', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnLoginRequest(resolve);
+      });
+      runtime.callbacks().triggerLoginRequest({linkRequested: true});
+      return promise.then(result => {
+        expect(result.linkRequested).to.be.true;
+      });
+    });
+
+    it('should trigger link complete', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnLinkComplete(resolve);
+      });
+      runtime.callbacks().triggerLinkComplete();
+      return promise;
+    });
+
+    it('should trigger flow started callback', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnFlowStarted(resolve);
+      });
+      runtime.callbacks().triggerFlowStarted('flow1', {a: 1});
+      return promise.then(result => {
+        expect(result).to.deep.equal({flow: 'flow1', data: {a: 1}});
+      });
+    });
+
+    it('should trigger flow canceled callback', () => {
+      const promise = new Promise(resolve => {
+        runtime.setOnFlowCanceled(resolve);
+      });
+      runtime.callbacks().triggerFlowCanceled('flow1', {b: 2});
+      return promise.then(result => {
+        expect(result).to.deep.equal({flow: 'flow1', data: {b: 2}});
+      });
+    });
+  });
+
+  describe('config', () => {
+    it('should disallow unknown properties', () => {
+      expect(() => {
+        runtime.configure({unknown: 1});
+      }).to.throw(/Unknown config property/);
+    });
+
+    it('should configure windowOpenMode', () => {
+      expect(runtime.config().windowOpenMode).to.equal('auto');
+      runtime.configure({windowOpenMode: 'redirect'});
+      expect(runtime.config().windowOpenMode).to.equal('redirect');
+      runtime.configure({windowOpenMode: 'auto'});
+      expect(runtime.config().windowOpenMode).to.equal('auto');
+    });
+
+    it('should disallow unknown windowOpenMode values', () => {
+      expect(() => {
+        runtime.configure({windowOpenMode: 'unknown'});
+      }).to.throw(/Unknown windowOpenMode/);
+      // Value is unchanged.
+      expect(runtime.config().windowOpenMode).to.equal('auto');
+    });
+  });
+
   it('should prefetch payments', () => {
     const el = win.document.head.querySelector(
         'link[rel="preconnect prefetch"][href*="/pay?"]');
@@ -699,7 +879,13 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
   });
 
-  it('should should initialize deps', () => {
+  it('should NOT inject button stylesheet', () => {
+    const el = win.document.head.querySelector(
+        'link[href*="swg-button.css"]');
+    expect(el).to.not.exist;
+  });
+
+  it('should initialize deps', () => {
     expect(runtime.win()).to.equal(win);
     expect(runtime.doc().getWin()).to.equal(win);
     expect(runtime.doc().getRootNode()).to.equal(win.document);
@@ -777,6 +963,25 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(runtime.getOffers({productId: 'p1'})).to.equal(p);
   });
 
+  it('should start "completeDeferredAccountCreation"', () => {
+    const ents = {};
+    const request = {entitlements: ents};
+    const resp = {};
+    let flow;
+    const startStub = sandbox.stub(
+        DeferredAccountFlow.prototype,
+        'start',
+        function() {
+          flow = this;
+          return Promise.resolve(resp);
+        });
+    return runtime.completeDeferredAccountCreation(request).then(result => {
+      expect(startStub).to.be.calledOnce.calledWithExactly();
+      expect(result).to.equal(resp);
+      expect(flow.options_.entitlements).to.equal(ents);
+    });
+  });
+
   it('should call "showOffers"', () => {
     let offersFlow;
     sandbox.stub(OffersFlow.prototype, 'start', function() {
@@ -809,7 +1014,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
     runtime.showAbbrvOffer();
     return runtime.documentParsed_.then(() => {
-      expect(offersFlow.options_).to.be.undefined;
+      expect(offersFlow.options_).to.deep.equal({});
     });
   });
 
@@ -902,88 +1107,94 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
   });
 
-  describe('callbacks', () => {
-    it('should trigger entitlements callback', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnEntitlementsResponse(resolve);
-      });
-      runtime.callbacks().triggerEntitlementsResponse(
-          Promise.resolve(new Entitlements('', 'RaW', [], null, () => {})));
-      return promise.then(result => {
-        expect(result.raw).to.equal('RaW');
+  it('should start saveSubscriptionFlow with callback for token', () => {
+    let linkSaveFlow;
+    const newPromise = new Promise(() => {});
+    sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
+      linkSaveFlow = this;
+      return newPromise;
+    });
+    const requestPromise = new Promise(resolve => {
+      resolve({token: 'test'});
+    });
+    const resultPromise = runtime.saveSubscription(() => requestPromise);
+    return runtime.documentParsed_.then(() => {
+      expect(linkSaveFlow.callback_()).to.equal.requestPromise;
+      return linkSaveFlow.callback_().then(request => {
+        expect(request).to.deep.equal({token: 'test'});
       });
     });
+    expect(resultPromise).to.deep.equal(newPromise);
+  });
 
-    it('should trigger native subscribe request', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnNativeSubscribeRequest(resolve);
-      });
-      runtime.callbacks().triggerSubscribeRequest();
-      return promise;
+  it('should start saveSubscriptionFlow with callback for authcode', () => {
+    let linkSaveFlow;
+    const newPromise = new Promise(() => {});
+    sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
+      linkSaveFlow = this;
+      return newPromise;
     });
+    const resultPromise = runtime.saveSubscription(() => {
+      return {authCode: 'testCode'};
+    });
+    return runtime.documentParsed_.then(() => {
+      expect(linkSaveFlow.callback_()).to.deep.equal({authCode: 'testCode'});
+    });
+    expect(resultPromise).to.deep.equal(newPromise);
+  });
 
-    it('should trigger subscribe response', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnSubscribeResponse(resolve);
-      });
-      runtime.callbacks().triggerSubscribeResponse(Promise.resolve(
-          new SubscribeResponse('RaW')));
-      return promise.then(result => {
-        expect(result.raw).to.equal('RaW');
-      });
+  it('should start LoginPromptApi', () => {
+    const startStub = sandbox.stub(
+        LoginPromptApi.prototype,
+        'start',
+        () => Promise.resolve());
+    return runtime.showLoginPrompt().then(() => {
+      expect(startStub).to.be.calledOnce;
     });
+  });
 
-    it('should trigger login request', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnLoginRequest(resolve);
-      });
-      runtime.callbacks().triggerLoginRequest({linkRequested: true});
-      return promise.then(result => {
-        expect(result.linkRequested).to.be.true;
-      });
+  it('should start LoginNotificationApi', () => {
+    const startStub = sandbox.stub(
+        LoginNotificationApi.prototype,
+        'start',
+        () => Promise.resolve());
+    return runtime.showLoginNotification().then(() => {
+      expect(startStub).to.be.calledOnce;
     });
+  });
 
-    it('should trigger link complete', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnLinkComplete(resolve);
-      });
-      runtime.callbacks().triggerLinkComplete();
-      return promise;
+  it('should directly call "createButton"', () => {
+    const options = {};
+    const callback = () => {};
+    const button = win.document.createElement('button');
+    const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
+      return button;
     });
+    const result = runtime.createButton(options, callback);
+    expect(result).to.equal(button);
+    expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
+  });
 
-    it('should trigger flow started callback', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnFlowStarted(resolve);
-      });
-      runtime.callbacks().triggerFlowStarted('flow1');
-      return promise.then(result => {
-        expect(result).to.deep.equal({flow: 'flow1'});
-      });
-    });
+  it('should start WaitForSubscriptionLookupApi', () => {
+    const accountResult = 'account result';
+    const accountPromise = Promise.resolve(accountResult);
+    const startSpy = sandbox.spy(
+        WaitForSubscriptionLookupApi.prototype,
+        'start');
+    return runtime.showSubscriptionLookupProgress(accountPromise).then(
+        result => {
+          expect(startSpy).to.be.calledOnce;
+          expect(result).to.equal(accountResult);
+        });
+  });
 
-    it('should trigger flow canceled callback', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnFlowCanceled(resolve);
-      });
-      runtime.callbacks().triggerFlowCanceled('flow1');
-      return promise.then(result => {
-        expect(result).to.deep.equal({flow: 'flow1'});
-      });
-    });
-
-    it('should start saveSubscriptionFlow', () => {
-      let linkSaveFlow;
-      const newPromise = new Promise(() => {});
-      sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
-        linkSaveFlow = this;
-        return newPromise;
-      });
-      const resultPromise = runtime.saveSubscription({token: 'test'});
-      return runtime.documentParsed_.then(() => {
-        expect(linkSaveFlow.saveSubscriptionRequest_['token'])
-            .to.deep.equal('test');
-        expect(resultPromise).to.deep.equal(newPromise);
-      });
-    });
+  it('should directly call "attachButton"', () => {
+    const options = {};
+    const callback = () => {};
+    const button = win.document.createElement('button');
+    const stub = sandbox.stub(runtime.buttonApi_, 'attach');
+    runtime.attachButton(button, options, callback);
+    expect(stub).to.be.calledOnce
+        .calledWithExactly(button, options, callback);
   });
 });

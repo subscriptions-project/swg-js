@@ -1,0 +1,223 @@
+/**
+ * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {
+  ActivityPort,
+} from 'web-activities/activity-ports';
+import {ConfiguredRuntime} from './runtime';
+import {
+  DeferredAccountCreationResponse,
+} from '../api/deferred-account-creation';
+import {DeferredAccountFlow} from './deferred-account-flow';
+import {Entitlement, Entitlements} from '../api/entitlements';
+import {PageConfig} from '../model/page-config';
+import {
+  PayCompleteFlow,
+} from './pay-flow';
+import {isCancelError} from '../utils/errors';
+import * as sinon from 'sinon';
+
+const EMPTY_ID_TOK = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9' +
+    '.eyJzdWIiOiJJRF9UT0sifQ.SIG';
+
+
+describes.realWin('DeferredAccountFlow', {}, env => {
+  const ack = function() {};
+  let win;
+  let pageConfig;
+  let runtime;
+  let activitiesMock;
+  let dialogManagerMock;
+  let callbacksMock;
+  let entitlementsManagerMock;
+  let ents;
+  let port;
+  let resultResolver;
+  let flow;
+
+  beforeEach(() => {
+    win = env.win;
+    pageConfig = new PageConfig('pub1:product1');
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    activitiesMock = sandbox.mock(runtime.activities());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    callbacksMock = sandbox.mock(runtime.callbacks());
+    entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
+
+    ents = new Entitlements('subscribe.google.com', 'RaW', [
+      new Entitlement('source2', ['product2', 'product3'], 'token2'),
+      new Entitlement('google', ['product1', 'product2'], 'G_SUB_TOKEN'),
+    ], 'pub1:product1', ack);
+    flow = new DeferredAccountFlow(runtime, {
+      entitlements: ents,
+    });
+
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
+    resultResolver = null;
+    const resultPromise = new Promise(resolve => {
+      resultResolver = resolve;
+    });
+    port.acceptResult = () => resultPromise;
+  });
+
+  afterEach(() => {
+    activitiesMock.verify();
+    dialogManagerMock.verify();
+    callbacksMock.verify();
+    entitlementsManagerMock.verify();
+  });
+
+  it('should initialize options', () => {
+    expect(flow.options_.entitlements).to.equal(ents);
+    expect(flow.options_.consent).to.be.true;
+  });
+
+  it('should override consent option to false', () => {
+    flow = new DeferredAccountFlow(runtime, {
+      entitlements: ents,
+      consent: false,
+    });
+    expect(flow.options_.consent).to.be.false;
+    expect(flow.options_.entitlements).to.equal(ents);
+  });
+
+  it('should disallow no entitlement', () => {
+    flow = new DeferredAccountFlow(runtime);
+    expect(() => {
+      flow.start();
+    }).to.throw(/\"google\" source/);
+  });
+
+  it('should disallow empty entitlement', () => {
+    ents = new Entitlements('subscribe.google.com', 'RaW',
+        [], 'pub1:product1', ack);
+    flow = new DeferredAccountFlow(runtime, {
+      entitlements: ents,
+    });
+    expect(() => {
+      flow.start();
+    }).to.throw(/\"google\" source/);
+  });
+
+  it('should require "google" entitlement', () => {
+    ents = new Entitlements('subscribe.google.com', 'RaW', [
+      new Entitlement('other', ['product1', 'product2'], 'SUB_TOKEN'),
+    ], 'pub1:product1', ack);
+    flow = new DeferredAccountFlow(runtime, {
+      entitlements: ents,
+    });
+    expect(() => {
+      flow.start();
+    }).to.throw(/\"google\" source/);
+  });
+
+  it('should start flow', () => {
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('completeDeferredAccountCreation')
+        .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/recoveriframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:product1',
+          entitlements: 'RaW',
+          consent: true,
+        })
+        .returns(Promise.resolve(port));
+    flow.start();
+    return flow.openPromise_;
+  });
+
+  it('should handle cancel', () => {
+    callbacksMock.expects('triggerFlowCanceled')
+        .withExactArgs('completeDeferredAccountCreation')
+        .once();
+    activitiesMock.expects('openIframe')
+        .returns(Promise.resolve(port));
+    resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
+    dialogManagerMock.expects('completeView').once();
+    const promise = flow.start();
+    return promise.then(() => {
+      throw new Error('must have failed');
+    }, reason => {
+      expect(isCancelError(reason)).to.be.true;
+    });
+  });
+
+  it('should handle failure', () => {
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock.expects('openIframe')
+        .returns(Promise.resolve(port));
+    resultResolver(Promise.reject(new Error('broken')));
+    dialogManagerMock.expects('completeView').once();
+    const promise = flow.start();
+    return promise.then(() => {
+      throw new Error('must have failed');
+    }, reason => {
+      expect(() => {throw reason;}).to.throw(/broken/);
+    });
+  });
+
+  it('should continue with confirmation flow', () => {
+    const outputEnts = new Entitlements('subscribe.google.com', 'RaW', [
+      new Entitlement('google', ['product1', 'product2'], 'G_SUB_TOKEN'),
+    ], 'pub1:product1', ack);
+    activitiesMock.expects('openIframe')
+        .returns(Promise.resolve(port));
+    entitlementsManagerMock.expects('blockNextNotification')
+        .once();
+    entitlementsManagerMock.expects('parseEntitlements')
+        .withExactArgs({signedEntitlements: 'OUTPUT_JWT'})
+        .returns(outputEnts)
+        .once();
+    const confirmStartStub = sandbox.stub(
+        PayCompleteFlow.prototype,
+        'start');
+    const confirmCompleteStub = sandbox.stub(
+        PayCompleteFlow.prototype,
+        'complete',
+        () => Promise.resolve());
+    resultResolver({data: {
+      entitlements: 'OUTPUT_JWT',
+      idToken: EMPTY_ID_TOK,
+      purchaseData: 'PURCHASE_DATA',
+      purchaseDataSignature: 'SIG(PURCHASE_DATA)',
+    }});
+    return flow.start().then(response => {
+      expect(response.entitlements).to.equal(outputEnts);
+      expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+      expect(response.userData.id).to.equal('ID_TOK');
+      expect(response.purchaseData.raw).to.equal('PURCHASE_DATA');
+      expect(response.purchaseData.signature).to.equal('SIG(PURCHASE_DATA)');
+
+      expect(confirmStartStub).to.be.calledOnce;
+      const confirmRequest = confirmStartStub.args[0][0];
+      expect(confirmRequest.userData).to.equal(response.userData);
+      expect(confirmRequest.purchaseData).to.equal(response.purchaseData);
+
+      expect(confirmCompleteStub).to.not.be.called;
+      const completePromise = response.complete();
+      expect(confirmCompleteStub).to.be.calledOnce;
+      return completePromise;
+    });
+  });
+});

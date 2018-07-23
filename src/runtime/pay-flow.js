@@ -20,10 +20,9 @@ import {
   PurchaseData,
   SubscribeResponse,
 } from '../api/subscribe-response';
-import {SubscriptionFlows} from '../api/subscriptions';
+import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {Xhr} from '../utils/xhr';
-import {acceptPortResult} from '../utils/activity-utils';
 import {feArgs, feCached, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseJson} from '../utils/json';
@@ -66,6 +65,12 @@ export class PayStartFlow {
    */
   static preconnect(pre) {
     pre.prefetch(payUrl());
+    pre.prefetch(
+        'https://payments.google.com/payments/v4/js/integrator.js?ss=md');
+    pre.prefetch('https://clients2.google.com/gr/gr_full_2.0.6.js');
+    pre.preconnect('https://www.gstatic.com/');
+    pre.preconnect('https://fonts.googleapis.com/');
+    pre.preconnect('https://www.google.com/');
   }
 
   /**
@@ -75,9 +80,6 @@ export class PayStartFlow {
   constructor(deps, sku) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
-
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
@@ -98,13 +100,17 @@ export class PayStartFlow {
    */
   start() {
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE);
+    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, {
+      'sku': this.sku_,
+    });
 
     // TODO(dvoytenko): switch to gpay async client.
+    const forceRedirect =
+        this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT;
     const opener = this.activityPorts_.open(
         PAY_REQUEST_ID,
         payUrl(),
-        '_blank',
+        forceRedirect ? '_top' : '_blank',
         feArgs({
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
@@ -164,9 +170,6 @@ export class PayCompleteFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private @const {!../runtime/callbacks.Callbacks} */
-    this.callbacks_ = deps.callbacks();
-
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
 
@@ -194,6 +197,13 @@ export class PayCompleteFlow {
           'loginHint': response.userData && response.userData.email,
         }),
         /* shouldFadeBody */ true);
+    this.activityIframeView_.onMessage(data => {
+      if (data['entitlements']) {
+        this.deps_.entitlementsManager().pushNextEntitlements(
+            /** @type {string} */ (data['entitlements']));
+        return;
+      }
+    });
     this.activityIframeView_.acceptResult().then(() => {
       // The flow is complete.
       this.dialogManager_.completeView(this.activityIframeView_);
@@ -220,35 +230,38 @@ export class PayCompleteFlow {
 
 
 /**
-  *@param {!Window} win
+ * @param {!Window} win
  * @param {!web-activities/activity-ports.ActivityPort} port
  * @param {function():!Promise} completeHandler
  * @return {!Promise<!SubscribeResponse>}
  * @package Visible for testing only.
  */
 export function validatePayResponse(win, port, completeHandler) {
-  return acceptPortResult(
-      port,
-      payOrigin(),
-      // TODO(dvoytenko): support payload decryption.
-      /* requireOriginVerified */ false,
-      /* requireSecureChannel */ false)
-      .then(data => {
-        if (data['redirectEncryptedCallbackData']) {
-          const xhr = new Xhr(win);
-          const url = payDecryptUrl();
-          const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-            method: 'post',
-            headers: {'Accept': 'text/plain, application/json'},
-            credentials: 'include',
-            body: data['redirectEncryptedCallbackData'],
-            mode: 'cors',
-          });
-          return xhr.fetch(url, init).then(response => response.json());
-        }
-        // TODO(dvoytenko): prohibit this branch in case of redirect.
-        return data;
-      }).then(data => parseSubscriptionResponse(data, completeHandler));
+  // Do not require security immediately: it will be checked below.
+  return port.acceptResult().then(result => {
+    if (result.origin != payOrigin()) {
+      throw new Error('channel mismatch');
+    }
+    const data = /** @type {!Object} */ (result.data);
+    if (data['redirectEncryptedCallbackData']) {
+      // Data is supplied as an encrypted blob.
+      const xhr = new Xhr(win);
+      const url = payDecryptUrl();
+      const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+        method: 'post',
+        headers: {'Accept': 'text/plain, application/json'},
+        credentials: 'include',
+        body: data['redirectEncryptedCallbackData'],
+        mode: 'cors',
+      });
+      return xhr.fetch(url, init).then(response => response.json());
+    }
+    // Data is supplied directly: must be a verified and secure channel.
+    if (result.originVerified && result.secureChannel) {
+      return data;
+    }
+    throw new Error('channel mismatch');
+  }).then(data => parseSubscriptionResponse(data, completeHandler));
 }
 
 

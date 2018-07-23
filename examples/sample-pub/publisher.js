@@ -103,6 +103,35 @@ function startFlowAuto() {
     });
     return;
   }
+  if (flow == 'button') {
+    whenReady(function(subscriptions) {
+      whenDemoReady(function() {
+        var button1 = subscriptions.createButton(function() {
+          log('SwG button clicked!');
+        });
+        document.body.appendChild(button1);
+
+        var button2 = document.createElement('button');
+        document.body.appendChild(button2);
+        subscriptions.attachButton(button2, {theme: 'dark'}, function() {
+          log('SwG button2 clicked!');
+        });
+
+        var button3 = subscriptions.createButton({lang: 'pt-br'}, function() {
+          log('SwG button clicked!');
+        });
+        document.body.appendChild(button3);
+
+        var button4 = document.createElement('button');
+        button4.setAttribute('lang', 'jp');
+        document.body.appendChild(button4);
+        subscriptions.attachButton(button4, {theme: 'dark'}, function() {
+          log('SwG button4 clicked!');
+        });
+      });
+    });
+    return;
+  }
   startFlow(flow);
 }
 

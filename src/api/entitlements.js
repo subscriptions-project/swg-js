@@ -64,18 +64,21 @@ export class Entitlements {
   }
 
   /**
+   * @param {string=} opt_source
    * @return {boolean}
    */
-  enablesThis() {
-    return this.enables(this.product_);
+  enablesThis(opt_source) {
+    return this.enables(this.product_, opt_source);
   }
 
   /**
+   * @param {string=} opt_source
    * @return {boolean}
    */
-  enablesAny() {
+  enablesAny(opt_source) {
     for (let i = 0; i < this.entitlements.length; i++) {
-      if (this.entitlements[i].products.length > 0) {
+      if (this.entitlements[i].products.length > 0 &&
+          (!opt_source || opt_source == this.entitlements[i].source)) {
         return true;
       }
     }
@@ -83,31 +86,59 @@ export class Entitlements {
   }
 
   /**
+   * Whether these entitlements enable the specified product, optionally also
+   * restricting the source.
    * @param {?string} product
+   * @param {string=} opt_source
    * @return {boolean}
    */
-  enables(product) {
+  enables(product, opt_source) {
     if (!product) {
       return false;
     }
-    return !!this.getEntitlementFor(product);
+    return !!this.getEntitlementFor(product, opt_source);
   }
 
   /**
+   * Returns the first matching entitlement for the current product,
+   * optionally also matching the specified source.
+   * @param {string=} opt_source
    * @return {?Entitlement}
    */
-  getEntitlementForThis() {
-    return this.getEntitlementFor(this.product_);
+  getEntitlementForThis(opt_source) {
+    return this.getEntitlementFor(this.product_, opt_source);
   }
 
   /**
+   * Returns the first matching entitlement for the specified product,
+   * optionally also matching the specified source.
    * @param {?string} product
+   * @param {string=} opt_source
    * @return {?Entitlement}
    */
-  getEntitlementFor(product) {
+  getEntitlementFor(product, opt_source) {
     if (product && this.entitlements.length > 0) {
       for (let i = 0; i < this.entitlements.length; i++) {
-        if (this.entitlements[i].enables(product)) {
+        if (this.entitlements[i].enables(product) &&
+            (!opt_source || opt_source == this.entitlements[i].source)) {
+          return this.entitlements[i];
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns the first matching entitlement for the specified source w/o
+   * matching any specific products.
+   * @param {string} source
+   * @return {?Entitlement}
+   */
+  getEntitlementForSource(source) {
+    if (this.entitlements.length > 0) {
+      for (let i = 0; i < this.entitlements.length; i++) {
+        if (this.entitlements[i].subscriptionToken &&
+            (source == this.entitlements[i].source)) {
           return this.entitlements[i];
         }
       }

@@ -86,7 +86,7 @@ describes.realWin('PayStartFlow', {}, env => {
         .withExactArgs(popupWin)
         .once();
     callbacksMock.expects('triggerFlowStarted')
-        .withExactArgs('subscribe')
+        .withExactArgs('subscribe', {sku: 'sku1'})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('open').withExactArgs(
@@ -109,6 +109,32 @@ describes.realWin('PayStartFlow', {}, env => {
         .once();
     const flowPromise = flow.start();
     return expect(flowPromise).to.eventually.be.undefined;
+  });
+
+  it('should force redirect mode', () => {
+    runtime.configure({windowOpenMode: 'redirect'});
+    dialogManagerMock.expects('popupOpened')
+        .withExactArgs(undefined)
+        .once();
+    activitiesMock.expects('open').withExactArgs(
+        'swg-pay',
+        'PAY_ORIGIN/gp/p/ui/pay?_=_',
+        '_top',
+        {
+          '_client': 'SwG $internalRuntimeVersion$',
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            'publicationId': 'pub1',
+            'skuId': 'sku1',
+          },
+        },
+        {})
+        .returns(undefined)
+        .once();
+    flow.start();
   });
 });
 
@@ -137,6 +163,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
+    entitlementsManagerMock.verify();
   });
 
   it('should have valid flow constructed', () => {
@@ -177,6 +204,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock.expects('reset')
         .withExactArgs(true)  // Expected positive.
         .once();
+    entitlementsManagerMock.expects('pushNextEntitlements')
+        .never();
     entitlementsManagerMock.expects('setToastShown')
         .withExactArgs(true)
         .once();
@@ -188,6 +217,61 @@ describes.realWin('PayCompleteFlow', {}, env => {
       return flow.complete();
     }).then(() => {
       expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+    });
+  });
+
+  it('should accept consistent entitlements', () => {
+    const purchaseData = new PurchaseData();
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const response = new SubscribeResponse('RaW', purchaseData, userData);
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.message = () => {};
+    let messageHandler;
+    port.onMessage = handler => {
+      messageHandler = handler;
+    };
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve();
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const order = [];
+    entitlementsManagerMock.expects('reset')
+        .withExactArgs(sinon.match(arg => {
+          if (order.indexOf('reset') == -1) {
+            order.push('reset');
+          }
+          return arg === true;  // Expected positive.
+        }))
+        .once();
+    entitlementsManagerMock.expects('pushNextEntitlements')
+        .withExactArgs(sinon.match(arg => {
+          if (order.indexOf('pushNextEntitlements') == -1) {
+            order.push('pushNextEntitlements');
+          }
+          return arg === 'ENTITLEMENTS_JWT';
+        }))
+        .once();
+    entitlementsManagerMock.expects('setToastShown')
+        .withExactArgs(true)
+        .once();
+    entitlementsManagerMock.expects('unblockNextNotification')
+        .withExactArgs()
+        .once();
+    const messageStub = sandbox.stub(port, 'message');
+    return flow.start(response).then(() => {
+      messageHandler({
+        'entitlements': 'ENTITLEMENTS_JWT',
+      });
+      return flow.complete();
+    }).then(() => {
+      expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+      // Order must be strict: first reset, then pushNextEntitlements.
+      expect(order).to.deep.equal([
+        'reset',
+        'pushNextEntitlements',
+      ]);
     });
   });
 
@@ -236,10 +320,26 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
     });
 
-    // TODO(dvoytenko): support payload decryption.
-    it.skip('should require channel security', () => {
+    it('should require secure channel for unencrypted payload', () => {
       const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
           'REDIRECT', 'PAY_ORIGIN', true, false);
+      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
+      PayCompleteFlow.configurePending(runtime);
+      return startCallback(port).then(() => {
+        throw new Error('must have failed');
+      }, reason => {
+        expect(() => {throw reason;}).to.throw(/channel mismatch/);
+        return triggerPromise.then(() => {
+          throw new Error('must have failed');
+        }, reason => {
+          expect(() => {throw reason;}).to.throw(/channel mismatch/);
+        });
+      });
+    });
+
+    it('should require secure channel for unverified payload', () => {
+      const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
+          'REDIRECT', 'PAY_ORIGIN', false, true);
       sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       PayCompleteFlow.configurePending(runtime);
       return startCallback(port).then(() => {

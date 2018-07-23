@@ -16,6 +16,10 @@
 
 import {Entitlements} from './entitlements';
 import {Offer} from './offer';
+import {
+  DeferredAccountCreationRequest,
+  DeferredAccountCreationResponse,
+} from './deferred-account-creation';
 import {SubscribeResponse} from './subscribe-response';
 
 
@@ -31,6 +35,13 @@ export class Subscriptions {
    * @param {string} productOrPublicationId
    */
   init(productOrPublicationId) {}
+
+  /**
+   * Optionally configugures the runtime with non-default properties. See
+   * `Config` definition for details.
+   * @param {!Config} config
+   */
+  configure(config) {}
 
   /**
    * Starts the entitlement flow.
@@ -64,19 +75,19 @@ export class Subscriptions {
 
   /**
    * Starts the Offers flow.
-   * @param {!OptionsRequest=} opt_options
+   * @param {!OffersRequest=} opt_options
    */
   showOffers(opt_options) {}
 
   /**
    * Show subscription option.
-   * @param {!OptionsRequest=} opt_options
+   * @param {!OffersRequest=} opt_options
    */
   showSubscribeOption(opt_options) {}
 
   /**
    * Show abbreviated offers.
-   * @param {!OptionsRequest=} opt_options
+   * @param {!OffersRequest=} opt_options
    */
   showAbbrvOffer(opt_options) {}
 
@@ -100,14 +111,40 @@ export class Subscriptions {
   subscribe(sku) {}
 
   /**
+   * Starts the deferred account creation flow.
+   * See `DeferredAccountCreationRequest` for more details.
+   * @param {?DeferredAccountCreationRequest=} opt_options
+   * @return {!Promise<!DeferredAccountCreationResponse>}
+   */
+  completeDeferredAccountCreation(opt_options) {}
+
+  /**
    * @param {function(!LoginRequest)} callback
    */
   setOnLoginRequest(callback) {}
 
   /**
+   * Starts the login prompt flow.
+   * @return {!Promise}
+   */
+  showLoginPrompt() {}
+
+  /**
+   * Starts the login notification flow.
+   * @return {!Promise}
+   */
+  showLoginNotification() {}
+
+  /**
    * @param {function()} callback
    */
   setOnLinkComplete(callback) {}
+
+  /**
+   * @param {!Promise} accountPromise Publisher's promise to lookup account.
+   * @return {!Promise}
+   */
+  showSubscriptionLookupProgress(accountPromise) {}
 
   /**
    * Starts the Account linking flow.
@@ -123,7 +160,7 @@ export class Subscriptions {
    *
    * Also see `setOnFlowCanceled` method.
    *
-   * @param {function({flow: string})} callback
+   * @param {function({flow: string, data: !Object})} callback
    */
   setOnFlowStarted(callback) {}
 
@@ -138,27 +175,76 @@ export class Subscriptions {
    *
    * Also see `setOnFlowStarted` method.
    *
-   * @param {function({flow: string})} callback
+   * @param {function({flow: string, data: !Object})} callback
    */
   setOnFlowCanceled(callback) {}
 
  /**
   * Starts the save subscriptions flow.
-  * @param {!SaveSubscriptionRequest} request
-  * @return {!Promise}
-  */
-  saveSubscription(request) {}
+   * Creates an element with the SwG button style and the provided callback.
+   * The default theme is "light".
+   *
+   * @param {!ButtonOptions|function()} optionsOrCallback
+   * @param {function()=} opt_callback
+   * @return {!Element}
+   */
+  createButton(optionsOrCallback, opt_callback) {}
+
+  /**
+   * Attaches the SwG button style and the provided callback to an existing
+   * DOM element. The default theme is "light".
+   *
+   * @param {!Element} button
+   * @param {!ButtonOptions|function()} optionsOrCallback
+   * @param {function()=} opt_callback
+   */
+  attachButton(button, optionsOrCallback, opt_callback) {}
 }
 
 
 /** @enum {string} */
 export const SubscriptionFlows = {
   SHOW_OFFERS: 'showOffers',
-  SHOW_SUBSCRIBE_OPTION: 'showSubscribeOption',
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
   SUBSCRIBE: 'subscribe',
+  COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',
+  SHOW_LOGIN_PROMPT: 'showLoginPrompt',
+  SHOW_LOGIN_NOTIFICATION: 'showLoginNotification',
 };
+
+
+/**
+ * Configuration properties:
+ * - windowOpenMode - either "auto" or "redirect". The "redirect" value will
+ *   force redirect flow for any window.open operation, including payments.
+ *   The "auto" value either uses a redirect or a popup flow depending on
+ *   what's possible on a specific environment. Defaults to "auto".
+ *
+ * @typedef {{
+ *   windowOpenMode: (!WindowOpenMode|undefined),
+ * }}
+ */
+export let Config;
+
+
+/**
+ * @enum {string}
+ */
+export const WindowOpenMode = {
+  AUTO: 'auto',
+  REDIRECT: 'redirect',
+};
+
+
+/**
+ * @return {!Config}
+ */
+export function defaultConfig() {
+  return {
+    windowOpenMode: WindowOpenMode.AUTO,
+  };
+}
 
 
 /**
@@ -167,13 +253,15 @@ export const SubscriptionFlows = {
  *   order is preserved.
  * - list - a predefined list of SKUs. Use of this property is uncommon.
  *   Possible values are "default" and "amp". Default is "default".
+ * - isClosable - a boolean value to determine whether the view is closable.
  *
  * @typedef {{
  *   skus: (!Array<string>|undefined),
  *   list: (string|undefined),
+ *   isClosable: (boolean|undefined),
  * }}
  */
-export let OptionsRequest;
+export let OffersRequest;
 
 
 /**
@@ -183,10 +271,33 @@ export let OptionsRequest;
  */
 export let LoginRequest;
 
+
 /**
+ * Properties:
+ * - one and only one of "token" or "authCode"
+ * AuthCode reference: https://developers.google.com/actions/identity/oauth2-code-flow
+ * Token reference: https://developers.google.com/actions/identity/oauth2-implicit-flow
  * @typedef {{
- *   token: string,
+ *   token: (string|undefined),
+ *   authCode: (string|undefined),
  * }}
  */
 export let SaveSubscriptionRequest;
 
+/**
+ * Callback for retrieving subscription request
+ *
+ * @callback SaveSubscriptionRequestCallback
+ * @return {!Promise<SaveSbuscriptionRequest> | !SaveSubscriptionRequest} request
+ */
+export let SaveSubscriptionRequestCallback;
+
+/**
+ * Properties:
+ * - theme: "light" or "dark". Default is "light".
+ *
+ * @typedef {{
+ *   theme: string,
+ * }}
+ */
+export let ButtonOptions;

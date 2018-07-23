@@ -29,6 +29,11 @@ export class DepsDef {
   win() {}
 
   /**
+   * @return {!../api/subscriptions.Config}
+   */
+  config() {}
+
+  /**
    * @return {!../model/page-config.PageConfig}
    */
   pageConfig() {}

@@ -106,4 +106,42 @@ describes.realWin('Storage', {}, env => {
       return expect(storage.get('a')).to.be.eventually.equal('one');
     });
   });
+
+  it('should remove a value', () => {
+    storage.set('a', 'one');
+    sessionStorageMock.expects('getItem')
+        .withExactArgs('subscribe.google.com:a')
+        .returns(null)
+        .once();
+    sessionStorageMock.expects('removeItem')
+        .withExactArgs('subscribe.google.com:a')
+        .once();
+    return storage.remove('a').then(() => {
+      return expect(storage.get('a')).to.be.eventually.be.null;
+    });
+  });
+
+  it('should remove a value with no storage', () => {
+    sessionStorageMock.expects('getItem').never();
+    sessionStorageMock.expects('removeItem').never();
+    Object.defineProperty(win, 'sessionStorage', {value: null});
+    storage.set('a', 'one');
+    storage.remove('a');
+    return expect(storage.get('a')).to.be.eventually.null;
+  });
+
+  it('should remove a value with failing storage', () => {
+    sessionStorageMock.expects('removeItem')
+        .withExactArgs('subscribe.google.com:a')
+        .throws(new Error('intentional'))
+        .once();
+    sessionStorageMock.expects('getItem')
+        .withExactArgs('subscribe.google.com:a')
+        .returns(null)
+        .once();
+    storage.set('a', 'one');
+    return storage.remove('a').then(() => {
+      return expect(storage.get('a')).to.be.eventually.null;
+    });
+  });
 });

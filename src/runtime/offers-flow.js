@@ -20,6 +20,11 @@ import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
+/**
+ * Offers view is closable when request was originated from 'AbbrvOfferFlow'
+ * or from 'SubscribeOptionFlow'.
+ */
+const OFFERS_VIEW_CLOSABLE = true;
 
 /**
  * The class for Offers flow.
@@ -28,7 +33,7 @@ export class OffersFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.OptionsRequest|undefined} options
+   * @param {!../api/subscriptions.OffersRequest|undefined} options
    */
   constructor(deps, options) {
     /** @private @const {!./deps.DepsDef} */
@@ -43,6 +48,11 @@ export class OffersFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
+    let isClosable = options && options.isClosable;
+    if (isClosable == undefined) {
+      isClosable = false;  // Default is to hide Close button.
+    }
+
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
@@ -54,6 +64,7 @@ export class OffersFlow {
           'showNative': deps.callbacks().hasSubscribeRequestCallback(),
           'list': options && options.list || 'default',
           'skus': options && options.skus || null,
+          'isClosable': isClosable,
         }),
         /* shouldFadeBody */ true);
   }
@@ -104,14 +115,14 @@ export class SubscribeOptionFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.OptionsRequest|undefined} options
+   * @param {!../api/subscriptions.OffersRequest|undefined} options
    */
   constructor(deps, options) {
 
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!../api/subscriptions.OptionsRequest|undefined} */
+    /** @private @const {!../api/subscriptions.OffersRequest|undefined} */
     this.options_ = options;
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
@@ -130,6 +141,7 @@ export class SubscribeOptionFlow {
           'productId': deps.pageConfig().getProductId(),
           'list': options && options.list || 'default',
           'skus': options && options.skus || null,
+          'isClosable': true,
         }),
         /* shouldFadeBody */ false);
   }
@@ -165,7 +177,11 @@ export class SubscribeOptionFlow {
    */
   maybeOpenOffersFlow_(data) {
     if (data && data['subscribe']) {
-      new OffersFlow(this.deps_, this.options_).start();
+      const options = this.options_ || {};
+      if (options.isClosable == undefined) {
+        options.isClosable = OFFERS_VIEW_CLOSABLE;
+      }
+      new OffersFlow(this.deps_, options).start();
     }
   }
 }
@@ -179,14 +195,14 @@ export class AbbrvOfferFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.OptionsRequest|undefined} options
+   * @param {!../api/subscriptions.OffersRequest=} options
    */
-  constructor(deps, options) {
+  constructor(deps, options = {}) {
 
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!../api/subscriptions.OptionsRequest|undefined} */
+    /** @private @const {!../api/subscriptions.OffersRequest|undefined} */
     this.options_ = options;
 
     /** @private @const {!Window} */
@@ -209,6 +225,7 @@ export class AbbrvOfferFlow {
           'showNative': deps.callbacks().hasSubscribeRequestCallback(),
           'list': options && options.list || 'default',
           'skus': options && options.skus || null,
+          'isClosable': true,
         }),
         /* shouldFadeBody */ false);
   }
@@ -238,7 +255,11 @@ export class AbbrvOfferFlow {
     // If result is due to requesting offers, redirect to offers flow
     this.activityIframeView_.acceptResult().then(result => {
       if (result.data['viewOffers']) {
-        new OffersFlow(this.deps_, this.options_).start();
+        const options = this.options_ || {};
+        if (options.isClosable == undefined) {
+          options.isClosable = OFFERS_VIEW_CLOSABLE;
+        }
+        new OffersFlow(this.deps_, options).start();
         return;
       }
       if (result.data['native']) {
@@ -252,4 +273,3 @@ export class AbbrvOfferFlow {
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 }
-

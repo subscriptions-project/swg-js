@@ -15,8 +15,8 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {SubscriptionFlows} from '../api/subscriptions';
-import {acceptPortResult} from '../utils/activity-utils';
+import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
+import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 
@@ -51,10 +51,12 @@ export class LinkbackFlow {
    */
   start() {
     this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
+    const forceRedirect =
+        this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT;
     const opener = this.activityPorts_.open(
         LINK_REQUEST_ID,
         feUrl('/linkbackstart'),
-        '_blank',
+        forceRedirect ? '_top' : '_blank',
         feArgs({
           'publicationId': this.pageConfig_.getPublicationId(),
         }), {});
@@ -73,11 +75,15 @@ export class LinkCompleteFlow {
    * @param {!./deps.DepsDef} deps
    */
   static configurePending(deps) {
+    /**
+     * Handler function.
+     * @param {!web-activities/activity-ports.ActivityPort} port
+     */
     function handler(port) {
       deps.entitlementsManager().blockNextNotification();
       deps.callbacks().triggerLinkProgress();
       deps.dialogManager().popupClosed();
-      const promise = acceptPortResult(
+      const promise = acceptPortResultData(
           port,
           feOrigin(),
           /* requireOriginVerified */ false,
@@ -142,7 +148,7 @@ export class LinkCompleteFlow {
    */
   start() {
     const promise = this.activityIframeView_.port().then(port => {
-      return acceptPortResult(
+      return acceptPortResultData(
           port,
           feOrigin(),
           /* requireOriginVerified */ true,
@@ -172,6 +178,9 @@ export class LinkCompleteFlow {
     this.entitlementsManager_.setToastShown(true);
     this.entitlementsManager_.unblockNextNotification();
     this.entitlementsManager_.reset(response && response['success'] || false);
+    if (response && response['entitlements']) {
+      this.entitlementsManager_.pushNextEntitlements(response['entitlements']);
+    }
     this.completeResolver_();
   }
 
@@ -188,11 +197,14 @@ export class LinkSaveFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.SaveSubscriptionRequest} saveSubscriptionRequest
+   * @param {!../api/subscriptions.SaveSubscriptionRequestCallback} callback
    */
-  constructor(deps, saveSubscriptionRequest) {
+  constructor(deps, callback) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
+
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = deps.activities();
@@ -200,35 +212,83 @@ export class LinkSaveFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private {!../api/subscriptions.SaveSubscriptionRequest} */
-    this.saveSubscriptionRequest_ = saveSubscriptionRequest;
+    /** @private {!../api/subscriptions.SaveSubscriptionRequestCallback} */
+    this.callback_ = callback;
 
-    /** {!boolean} */
-    this.completed_ = false;
+    /** @private {?Promise<!../api/subscriptions.SaveSubscriptionRequest>} */
+    this.requestPromise_ = null;
 
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl('/linksaveiframe'),
-        feArgs({
-          'publicationId': deps.pageConfig().getPublicationId(),
-          'token': this.saveSubscriptionRequest_['token'],
-        }),
-        /* shouldFadeBody */ false
-    );
+    /** @private {?ActivityIframeView} */
+    this.activityIframeView_ = null;
   }
 
+  /**
+   * @return {?Promise<!../api/subscriptions.SaveSubscriptionRequest>}
+   * @package Visible for testing.
+   */
+  getRequestPromise() {
+    return this.requestPromise_;
+  }
   /**
    * Starts the save subscription
    * @return {!Promise}
    */
   start() {
-    this.activityIframeView_.acceptResult().then(() => {
-      this.completed_ = true;
-      // The flow is complete.
-      return this.dialogManager_.completeView(this.activityIframeView_);
+    const iframeArgs = {
+      'publicationId': this.deps_.pageConfig().getPublicationId(),
+      'isClosable': true,
+    };
+
+    this.activityIframeView_ = new ActivityIframeView(
+        this.win_,
+        this.activityPorts_,
+        feUrl('/linksaveiframe'),
+        feArgs(iframeArgs),
+        /* shouldFadeBody */ false
+    );
+    this.activityIframeView_.onMessage(data => {
+      if (data['getLinkingInfo']) {
+        this.requestPromise_ = new Promise(resolve => {
+          resolve(this.callback_());
+        }).then(request => {
+          let saveRequest;
+          if (request && request.token) {
+            if (request.authCode) {
+              throw new Error('Both authCode and token are available');
+            } else {
+              saveRequest = {'token': request.token};
+            }
+          } else if (request && request.authCode) {
+            saveRequest = {'authCode': request.authCode};
+          } else {
+            throw new Error('Neither token or authCode is available');
+          }
+          this.activityIframeView_.message(saveRequest);
+        }).catch(reason => {
+          // The flow is complete.
+          this.dialogManager_.completeView(this.activityIframeView_);
+          throw reason;
+        });
+      }
     });
-    return this.dialogManager_.openView(this.activityIframeView_);
+    /** {!Promise<boolean>} */
+    return this.dialogManager_.openView(this.activityIframeView_,
+        /* hidden */ true).then(() => {
+          return this.activityIframeView_.port().then(port => {
+            return acceptPortResultData(
+                port,
+                feOrigin(),
+                /* requireOriginVerified */ true,
+                /* requireSecureChannel */ true);
+          }).then(result => {
+            return result['linked'];
+          }).catch(() => {
+            return false;
+          }).then(result => {
+            // The flow is complete.
+            this.dialogManager_.completeView(this.activityIframeView_);
+            return result;
+          });
+        });
   }
 }

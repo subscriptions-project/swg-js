@@ -104,6 +104,9 @@ export class PurchaseData {
    * @return {!Object}
    */
   json() {
-    return {};
+    return {
+      'data': this.raw,
+      'signature': this.signature,
+    };
   }
 }
