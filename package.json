@@ -5,7 +5,7 @@
   "description": "Subscribe with Google",
   "main": "index.js",
   "engines": {
-    "node": ">=6",
+    "node": ">=8",
     "yarn": ">=1.0.2"
   },
   "author": "Subscribe with Google Authors",
@@ -110,7 +110,10 @@
     "postcss-import": "9.1.0",
     "request": "2.73.0",
     "rimraf": "2.5.1",
-    "rollup": "0.56.0",
+    "rollup": "0.62.0",
+    "rollup-plugin-cleanup": "3.0.0",
+    "rollup-plugin-commonjs": "9.1.3",
+    "rollup-plugin-node-resolve": "3.3.0",
     "shuffle-seed": "1.1.6",
     "sinon": "1.17.7",
     "sinon-chai": "2.8.0",
