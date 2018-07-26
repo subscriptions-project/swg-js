@@ -40,8 +40,9 @@ describes.sandboxed('transition', {}, () => {
     }, 100, 'ease-in');
     clock.tick(1);
     expect(getStyle(el, 'transform')).to.equal('translateY(11px)');
-    expect(getStyle(el, 'transition'))
-        .to.equal('transform 100ms ease-in, opacity 100ms ease-in');
+    const transitionStyle = getStyle(el, 'transition');
+    expect(transitionStyle.includes('transform 100ms ease-in')).to.be.true;
+    expect(transitionStyle.includes('opacity 100ms ease-in')).to.be.true;
     clock.tick(100);
     return promise.then(() => {
       expect(getStyle(el, 'transition')).to.equal('');
