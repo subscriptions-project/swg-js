@@ -22,7 +22,16 @@ const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
 const resolveConfig = require('./compile-config').resolveConfig;
 const version = require('./internal-version').VERSION;
+const rollup = require('rollup');
+const resolveNodeModules = require('rollup-plugin-node-resolve');
+const commonJS = require('rollup-plugin-commonjs');
+const util = require('util');
+const cleanup = require('rollup-plugin-cleanup');
 
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
+const exists = util.promisify(fs.exists);
+const mkdir = util.promisify(fs.mkdir);
 
 function runAllExportsToEs() {
   return Promise.resolve().then(() => {
@@ -34,70 +43,53 @@ function runAllExportsToEs() {
   });
 }
 
-
 /**
  * @param {string} inputFile
  * @param {string} outputFile
  * @return {!Promise}
  */
-function exportToEs6(inputFile, outputFile) {
-  mkdirSync('build');
-  mkdirSync('dist');
-  let js;
-  return exec(
-      './node_modules/rollup/bin/rollup' +
-      ' "' + inputFile + '"' +
-      ' --f es' +
-      ' --o build/rollup.js'
-  ).then(() => {
-    js = fs.readFileSync('build/rollup.js', 'utf8');
-    // 1. Rearrange one license on top.
-    const license = fs.readFileSync(
-        'build-system/tasks/license-header.txt', 'utf8').trim();
-    while (true) {
-      let start = js.indexOf('Licensed under the');
-      if (start == -1) {
-        break;
-      }
-      for (; start >= 0; start--) {
-        if (js.substring(start, start + 2) == '/*') {
-          break;
-        }
-      }
-      let end = js.indexOf('*/', start) + 2;
-      if (js.substring(end) == '\n') {
-        end++;
-      }
-      js = js.substring(0, start) + js.substring(end);
-    }
-    js = `${license}\n/** Version: ${version} */\n'use strict';\n${js}`;
+async function exportToEs6(inputFile, outputFile) {
+  await mkdirs(['build', 'dist']);
 
-    // 2. Replace vars.
-    const replacements = resolveConfig();
-    for (const k in replacements) {
-      js = js.replace(new RegExp('\\$' + k + '\\$', 'g'), replacements[k]);
-    }
-
-    // 3. Change the export format.
-    js = js.replace(/module.exports\s*\=\s*\{/g, 'export {');
-
-    return js;
-  }).then(js => {
-    // Save.
-    fs.writeFileSync(outputFile, js);
+  const license = (await
+    readFile('build-system/tasks/license-header.txt', 'utf8')).trim();
+  const bundle = await rollup.rollup({
+    input: inputFile,
+    plugins: [
+      resolveNodeModules(),
+      commonJS(),
+      cleanup({comments:'none'}),
+    ],
   });
-}
+  const {code} = await bundle.generate({
+    format: 'es',
+    sourcemap: true,
+  });
 
+  let output = `${license}\n/** Version: ${version} */\n${code}`;
+  // Replacements (TBD Rollup Plugin replacements instead)
+  const replacements = resolveConfig();
+  for (const k in replacements) {
+    output = output.replace(
+        new RegExp('\\$' + k + '\\$', 'g'), replacements[k]
+    );
+  }
+
+  // Change the export format.	
+  output = output.replace(/module.exports\s*\=\s*\{/g, 'export {');
+
+  return writeFile(outputFile, output);
+}
 
 /**
  * @param {string} inputFile
  * @param {string} outputFile
  */
-function exportCss(inputFile, outputFile) {
-  mkdirSync('build');
-  mkdirSync('dist');
-  let css = fs.readFileSync(inputFile, 'utf8');
-  // 1. Resolve all URLs to absolute.
+async function exportCss(inputFile, outputFile) {
+  await mkdirs(['build', 'dist']);
+
+  let css = (await readFile(inputFile, 'utf8'));
+  // Resolve all URLs to absolute paths.
   css = css.replace(/url\(([^)]*)\)/ig, (match, value) => {
     if (value[0] == '"') {
       value = value.substring(1, value.length - 1);
@@ -107,20 +99,17 @@ function exportCss(inputFile, outputFile) {
     }
     return `url("https://news.google.com/swg/js/v1/${value}")`;
   });
-  fs.writeFileSync(outputFile, css);
+
+  return writeFile(outputFile, css);
 }
 
+async function mkdirs(paths) {
+  for (const path in paths) {
+    const pathExists = await exists(path);
 
-function check(js, regex, message, file) {
-  if (regex.test(js)) {
-    throw new Error(file + ': ' + message + ': ' + regex.exec(js)[0]);
-  }
-}
-
-
-function mkdirSync(path) {
-  if (!fs.existsSync(path)) {
-    fs.mkdirSync(path);
+    if (!pathExists) {
+      await mkdir(path);
+    }
   }
 }
 
