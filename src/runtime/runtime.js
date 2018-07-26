@@ -349,7 +349,7 @@ export class Runtime {
   saveSubscription(saveSubscriptionRequestCallback) {
     return this.configured_(true)
         .then(runtime => {
-          runtime.saveSubscription(saveSubscriptionRequestCallback);
+          return runtime.saveSubscription(saveSubscriptionRequestCallback);
         });
   }
 
