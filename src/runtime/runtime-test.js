@@ -631,10 +631,11 @@ describes.realWin('Runtime', {}, env => {
         return {token: 'test'};
       };
       configuredRuntimeMock.expects('saveSubscription').once()
-          .withExactArgs(requestCallback);
+          .withExactArgs(requestCallback).returns(Promise.resolve(true));
       return runtime.saveSubscription(requestCallback)
-          .then(() => {
+          .then(value => {
             expect(configureStub).to.be.calledOnce.calledWith(true);
+            expect(value).to.be.true;
           });
     });
 
@@ -644,10 +645,11 @@ describes.realWin('Runtime', {}, env => {
       });
       const requestCallback = () => requestPromise;
       configuredRuntimeMock.expects('saveSubscription').once()
-          .withExactArgs(requestCallback);
+          .withExactArgs(requestCallback).returns(Promise.resolve(true));
       return runtime.saveSubscription(requestCallback)
-          .then(() => {
+          .then(value => {
             expect(configureStub).to.be.calledOnce.calledWith(true);
+            expect(value).to.be.true;
           });
     });
 
