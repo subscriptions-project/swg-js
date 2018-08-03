@@ -15,10 +15,55 @@ limitations under the License.
 -->
 
 
-# SwG Login flow (NOT LAUNCHED)
+# SwG Login Prompt flow (NOT YET LAUNCHED)
 
 This is the flow in which Google will ask the user for permission to log them in to the publisher's site. It is initiated by the publisher when the publisher doesn't find a user's subscription but Google does find the subscription.
 
-To enable this flow, 
+Here is an example of what this flow can look like:
 
-// TODO(chenshay): finish this part.
+```
+// Publisher is looking up the user.
+const  accountPromise = new Promise( … ); 
+
+// Notify the user that their account is being looked up.
+SwG.waitforsubscriptionlookup(accountPromise).then(account => {
+    
+    // Account was found.
+    if(account) {
+
+        // Option 1 - let the user read. 
+        // Publisher does their thing to show content.
+        
+
+        // Option 2 - notify the user that they're being logged in with Google.
+        SwG.LoginNotification().then(response => {
+            // Publisher shows content.
+        }
+
+        // Option 3 - get user permission to login with Google.
+        SwG.showLoginPrompt().then(response => {
+
+            // User clicked 'Yes' and we logged them in.
+            // Publisher shows content so they can read.
+
+        }, reason => {
+
+            // Publisher can decide how to handle the following situations:
+
+            // User clicked 'No' so we didn't log them in.
+            if(response == 'no') someHandlerForThisSituation();
+
+            // Error.
+            if(response == 'error') someHandlerForThisOtherSituation();
+
+        });
+
+  } else {
+
+    // Account was not found. Let's create a new one.
+    // Go to docs/deferred-account-flow.md for full documentation.
+    SwG.completeDeferredAccountCreation({entitlements});
+
+  }
+});
+```
