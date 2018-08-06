@@ -26,7 +26,7 @@ Here is an example of what this flow can look like:
 const  accountPromise = new Promise( … ); 
 
 // Notify the user that their account is being looked up.
-SwG.waitforsubscriptionlookup(accountPromise).then(account => {
+SwG.waitForSubscriptionLookup(accountPromise).then(account => {
     
     // Account was found.
     if(account) {
