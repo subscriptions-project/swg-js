@@ -43,14 +43,14 @@ subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
         // Option 3 - get user permission to login with Google.
         subscriptions.showLoginPrompt().then(response => {
 
-            // User clicked 'Yes' and we logged them in.
+            // User clicked 'Yes'.
             // Publisher shows content so they can read.
 
         }, reason => {
 
             // Publisher can decide how to handle the following situations:
 
-            // User clicked 'No' so we didn't log them in.
+            // User clicked 'No' they are not logged in.
             if(response == 'no') someHandlerForThisSituation();
 
             // Error.
