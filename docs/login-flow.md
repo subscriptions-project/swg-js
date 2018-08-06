@@ -26,7 +26,7 @@ Here is an example of what this flow can look like:
 const  accountPromise = new Promise( … ); 
 
 // Notify the user that their account is being looked up.
-SwG.waitForSubscriptionLookup(accountPromise).then(account => {
+subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
     
     // Account was found.
     if(account) {
@@ -36,12 +36,12 @@ SwG.waitForSubscriptionLookup(accountPromise).then(account => {
         
 
         // Option 2 - notify the user that they're being logged in with Google.
-        SwG.LoginNotification().then(response => {
+        subscriptions.loginNotification().then(response => {
             // Publisher shows content.
         }
 
         // Option 3 - get user permission to login with Google.
-        SwG.showLoginPrompt().then(response => {
+        subscriptions.showLoginPrompt().then(response => {
 
             // User clicked 'Yes' and we logged them in.
             // Publisher shows content so they can read.
@@ -62,7 +62,7 @@ SwG.waitForSubscriptionLookup(accountPromise).then(account => {
 
     // Account was not found. Let's create a new one.
     // Go to docs/deferred-account-flow.md for full documentation.
-    SwG.completeDeferredAccountCreation({entitlements});
+    subscriptions.completeDeferredAccountCreation({entitlements});
 
   }
 });
