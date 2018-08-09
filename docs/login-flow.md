@@ -88,11 +88,13 @@ The above methods coincide with the following views:
 
 * `waitForSubscriptionLookup()`
 <br/>
-<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/wait.png" height="170px"></img>
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/wait.png" height="160px"></img>
+<br/>
 
 * `loginNotification()`
 <br/>
 <img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification.png" height="200px"></img>
+<br/>
 
 * `showLoginPrompt()`
 <br/>
