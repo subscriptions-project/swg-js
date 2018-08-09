@@ -285,9 +285,9 @@ export class Runtime {
   }
 
   /** @override */
-  showSubscriptionLookupProgress(accountPromise) {
+  waitForSubscriptionLookup(accountPromise) {
     return this.configured_(true)
-        .then(runtime => runtime.showSubscriptionLookupProgress(
+        .then(runtime => runtime.waitForSubscriptionLookup(
             accountPromise));
   }
 
@@ -571,7 +571,7 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  showSubscriptionLookupProgress(accountPromise) {
+  waitForSubscriptionLookup(accountPromise) {
     return this.documentParsed_.then(() => {
       const wait = new WaitForSubscriptionLookupApi(this, accountPromise);
       return wait.start();
@@ -681,8 +681,8 @@ function createPublicRuntime(runtime) {
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
-    showSubscriptionLookupProgress:
-        runtime.showSubscriptionLookupProgress.bind(runtime),
+    waitForSubscriptionLookup:
+        runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
     completeDeferredAccountCreation:
         runtime.completeDeferredAccountCreation.bind(runtime),
