@@ -19,6 +19,19 @@ limitations under the License.
 
 This is the flow in which Google will ask the user for permission to log them in to the publisher's site. It is initiated by the publisher when the publisher doesn't find a user's subscription but Google does find the subscription.
 
+
+There are 2 ways in which this flow can be implemented as shown below:
+
+
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification_flow.png" height="300px"></img>
+
+
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt_flow.png" height="300px"></img>
+
+
+The publisher is responsible for deciding if they want to notify the user that they're being logged in (first flow) or prompt the user to login (second flow). 
+
+
 Here is an example of what this flow can look like:
 
 ```
