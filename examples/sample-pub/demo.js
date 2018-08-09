@@ -40,6 +40,35 @@ DemoPaywallController.prototype.start = function() {
   this.subscriptions.start();
 };
 
+class Account {
+  constructor(name, email, consent) {
+    this.name = name;
+    this.email = email;
+  }
+}
+
+handleLoginNotification = function(consentRequired) {
+  console.log('handleNotificatoin: found account');
+  const accountPromise = new Promise();
+  if (!consentRequired) {
+    this.subscriptions.loginNotification().then(response => {
+      return Promise.resolve(true);         
+    }, reason => {
+      return Promise.reject(reason);
+    });
+  } else {
+    subscriptions.showLoginPromise().then(consent => {
+      if (consent) {
+        return Promise.resolve(true);
+      } else {
+        return Promise.reject('no consent');
+      }
+    }, reason => {
+      return Promise.reject(reason);
+    });
+  }  
+}
+
 /** @private */
 DemoPaywallController.prototype.onEntitlements_ = function(entitlementsPromise) {
   entitlementsPromise.then((function(entitlements) {
@@ -47,14 +76,33 @@ DemoPaywallController.prototype.onEntitlements_ = function(entitlementsPromise) 
     if (this.completeDeferredAccountCreation_(entitlements)) {
       return;
     }
-    if (entitlements && entitlements.enablesThis()) {
-      // Entitlements available: open access.
-      this.openPaywall_();
-      entitlements.ack();
-    } else {
+    console.log('check if user has an account');
+    const accountPromise = new Promise(resolve => {
+      const account = new Account('Sohani Rao', 'sohanirao@google.com', false);
+      resolve(account);
+    });
+    /*if (entitlements && entitlements.enablesThis()) {*/
+      this.subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
+        if (account) {
+            handleLoginNotification(true).then(result => {
+              if (result) {
+                // Entitlements available: open access.
+                this.openPaywall_();
+                entitlements.ack();
+              }
+            }, reason => {
+              throw reason;
+            });
+        } else {
+          this.completeDeferredAccountCreation_(entitlements);
+        }
+      }, reason => {
+        console.log('subscription look up failed:', reason);
+      });
+    /*} else {
       // In a simplest case, just launch offers flow.
       this.subscriptions.showOffers();
-    }
+    }*/
   }).bind(this), function(reason) {
     log('entitlements failed: ', reason);
     throw reason;
@@ -108,12 +156,15 @@ DemoPaywallController.prototype.subscribeResponse_ = function(promise) {
  */
 DemoPaywallController.prototype.completeDeferredAccountCreation_ = function(
     entitlements) {
+  console.log('Demo: createDeferredAccountCreation ', this.knownAccount, entitlements);
   // TODO(dvoytenko): decide when completion is needed for demo.
   var accountFound = this.knownAccount || true;
+  console.log('accountFound ? ', accountFound);
   if (accountFound) {
     // Nothing needs to be completed.
     return;
   }
+  console.log('returned line 118 ', accountFound);
   if (!entitlements.getEntitlementForSource('google')) {
     // No Google entitlement.
     return;
