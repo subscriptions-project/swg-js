@@ -20,15 +20,15 @@ limitations under the License.
 This is the flow in which Google will ask the user for permission to log them in to the publisher's site. It is initiated by the publisher when the publisher doesn't find a user's subscription but Google does find the subscription.
 
 
-There are 2 ways in which this flow can be implemented as shown below:
+There are two ways to implement this flow:
 
 
-1. 
-<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification_flow.png" height="240px" border="1px solid #ddd"></img>
+1. Wait message (left), then notify the user they're being logged in (right).
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification_flow.png" height="200px"></img>
 
 
-2. 
-<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt_flow.png" height="300px" border="1px solid #ddd"></img>
+2. Wait message (left), then prompt the user to log in (right). 
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt_flow.png" height="250px"></img>
 
 
 The publisher is responsible for deciding if they want to notify the user that they're being logged in (first flow) or prompt the user to login (second flow). 
@@ -37,7 +37,7 @@ The publisher is responsible for deciding if they want to notify the user that t
 Here is an example of what this flow can look like:
 
 ```
-// Publisher is looking up the user.
+// You, the Publisher, go to look up the user. Resolve the promise with an account (if it was found).
 const  accountPromise = new Promise( … ); 
 
 // Notify the user that their account is being looked up.
