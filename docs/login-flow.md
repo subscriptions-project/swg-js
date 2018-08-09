@@ -41,7 +41,7 @@ Here is an example of what this flow can look like:
 const  accountPromise = new Promise( … ); 
 
 // We notify the user that their account is being looked up.
-subscriptions.[waitForSubscriptionLookup](https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/wait.png)(accountPromise).then(account => {
+subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
     
     // Account was found.
     if(account) {
@@ -82,3 +82,16 @@ subscriptions.[waitForSubscriptionLookup](https://raw.githubusercontent.com/subs
   }
 });
 ```
+
+
+The above methods coincide with the following views:
+
+* `waitForSubscriptionLookup()`
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/wait.png" height="200px"></img>
+
+* `loginNotification()`
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification.png" height="200px"></img>
+
+* `showLoginPrompt()`
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt.png" height="200px"></img>
+
