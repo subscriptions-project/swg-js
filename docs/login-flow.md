@@ -23,10 +23,12 @@ This is the flow in which Google will ask the user for permission to log them in
 There are 2 ways in which this flow can be implemented as shown below:
 
 
-1. <img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification_flow.png" height="240px"></img>
+1. 
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification_flow.png" height="240px" border="1px solid #ddd"></img>
 
 
-2. <img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt_flow.png" height="300px"></img>
+2. 
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt_flow.png" height="300px" border="1px solid #ddd"></img>
 
 
 The publisher is responsible for deciding if they want to notify the user that they're being logged in (first flow) or prompt the user to login (second flow). 
@@ -45,7 +47,7 @@ subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
     if(account) {
 
         // Option 1 - let the user read. 
-        // Publisher does their thing to show content.
+        // Publisher shows content.
         
 
         // Option 2 - notify the user that they're being logged in with Google.
