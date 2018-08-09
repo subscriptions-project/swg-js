@@ -40,8 +40,8 @@ Here is an example of what this flow can look like:
 // You, the Publisher, go to look up the user. Resolve the promise with an account (if it was found).
 const  accountPromise = new Promise( … ); 
 
-// Notify the user that their account is being looked up.
-subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
+// We notify the user that their account is being looked up.
+subscriptions.[waitForSubscriptionLookup](https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/wait.png)(accountPromise).then(account => {
     
     // Account was found.
     if(account) {
