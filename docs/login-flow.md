@@ -86,17 +86,17 @@ subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
 
 The above methods coincide with the following views:
 
-* `waitForSubscriptionLookup()`
+`waitForSubscriptionLookup()`
 <br/>
 <img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/wait.png" height="160px"></img>
 <br/>
 
-* `loginNotification()`
+`loginNotification()`
 <br/>
 <img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification.png" height="200px"></img>
 <br/>
 
-* `showLoginPrompt()`
+`showLoginPrompt()`
 <br/>
 <img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt.png" height="250px"></img>
 
