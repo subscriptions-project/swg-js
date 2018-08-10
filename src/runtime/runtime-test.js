@@ -674,11 +674,11 @@ describes.realWin('Runtime', {}, env => {
       expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
     });
 
-    it('should delegate "showSubscriptionLookupProgress"', () => {
-      configuredRuntimeMock.expects('showSubscriptionLookupProgress').once()
+    it('should delegate "waitForSubscriptionLookup"', () => {
+      configuredRuntimeMock.expects('waitForSubscriptionLookup').once()
           .returns(Promise.resolve());
 
-      return runtime.showSubscriptionLookupProgress().then(() => {
+      return runtime.waitForSubscriptionLookup().then(() => {
         expect(configureStub).to.be.calledOnce;
       });
     });
@@ -1177,7 +1177,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     const startSpy = sandbox.spy(
         WaitForSubscriptionLookupApi.prototype,
         'start');
-    return runtime.showSubscriptionLookupProgress(accountPromise).then(
+    return runtime.waitForSubscriptionLookup(accountPromise).then(
         result => {
           expect(startSpy).to.be.calledOnce;
           expect(result).to.equal(accountResult);
