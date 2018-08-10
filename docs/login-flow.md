@@ -86,20 +86,17 @@ subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
 
 The above methods coincide with the following views:
 
-`waitForSubscriptionLookup(accountPromise)`
-This method takes a Promise as input. The Promise is that you (the publisher) are looking up the account, and will resolve the Promise with the actual account.
+`waitForSubscriptionLookup(accountPromise)` - takes a Promise as input. The Promise is that you (the publisher) are looking up the account, and will resolve the Promise with the actual account.
 <br/>
 <img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/wait.png" height="160px"></img>
 <br/>
 
-`loginNotification()`
-This method returns a Promise. The View will time out after 2 seconds.
+`loginNotification()` - returns a Promise. The View will time out after 2 seconds.
 <br/>
 <img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification.png" height="200px"></img>
 <br/>
 
-`showLoginPrompt()`
-This method returns a Promise that resolves when a user clicks "Yes". Otherwise, it will throw an error.
+`showLoginPrompt()` - returns a Promise that resolves when a user clicks "Yes". Otherwise, it will throw an error.
 <br/>
 <img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt.png" height="250px"></img>
 
