@@ -69,7 +69,6 @@ export class Entitlements {
    * @return {boolean}
    */
   enablesThis(opt_source) {
-    console.log('enables this ', opt_source);
     return this.enables(this.product_, opt_source);
   }
 
@@ -95,8 +94,6 @@ export class Entitlements {
    * @return {boolean}
    */
   enables(product, opt_source) {
-    console.log('enables with product ', product);
-    console.log('optional source ', opt_source);
     if (!product) {
       return false;
     }
@@ -121,8 +118,6 @@ export class Entitlements {
    * @return {?Entitlement}
    */
   getEntitlementFor(product, opt_source) {
-    console.log('get entitlement for ', product);
-    console.log('entitlement.length ', this.entitlements.length);
     if (product && this.entitlements.length > 0) {
       for (let i = 0; i < this.entitlements.length; i++) {
         if (this.entitlements[i].enables(product) &&
