@@ -34,7 +34,7 @@ There are two ways to implement this flow:
 The publisher is responsible for deciding which flow they prefer.
 
 
-Here is an example of what this flow can look like:
+Here is an example of what the code for these flows can look like:
 
 ```
 // You, the Publisher, go to look up the user. Resolve the promise with an account (if it was found).
