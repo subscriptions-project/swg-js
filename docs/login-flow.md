@@ -20,18 +20,22 @@ limitations under the License.
 This is the flow in which Google will ask the user for permission to log them in to the publisher's site. It is initiated by the publisher when the publisher doesn't find a user's subscription but Google does find the subscription.
 
 
-There are two ways to implement this flow:
+There are three ways to implement this flow:
 
 
-1. Wait message (left), then notify the user they're being logged in (right).
+1. Wait message, then let the user read.
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/wait.png" height="280px"></img>
+
+
+2. Wait message (left), then notify the user they're being logged in (right), then let the user read.
 <img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification_flow.png" height="200px"></img>
 
 
-2. Wait message (left), then prompt the user to log in (center), then notify the user they're being logged in (right). 
-<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt_flow_2.png" height="250px"></img>
+3. Wait message (left), then prompt the user to log in (center), then notify the user they're being logged in (right), then let the user read.
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt_flow_2.png" height="280px"></img>
 
 
-The publisher is responsible for deciding if they want to notify the user that they're being logged in (first flow) or prompt the user to login (second flow). 
+The publisher is responsible for deciding which flow they prefer.
 
 
 Here is an example of what this flow can look like:
@@ -59,17 +63,15 @@ subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
         subscriptions.showLoginPrompt().then(response => {
 
             // User clicked 'Yes'.
-            // Publisher shows content so they can read.
+            // Notify the user that they're being logged in with Google.
+            subscriptions.loginNotification().then(response => {
+                // Publisher shows content.
+            }
 
         }, reason => {
 
-            // Publisher can decide how to handle the following situations:
-
-            // User clicked 'No' they are not logged in.
-            if(response == 'no') someHandlerForThisSituation();
-
-            // Error.
-            if(response == 'error') someHandlerForThisOtherSituation();
+            // User clicked 'No'. Publisher can decide how to handle this situation.
+            handleCancellation();
 
         });
 
