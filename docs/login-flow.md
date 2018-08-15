@@ -27,8 +27,8 @@ There are two ways to implement this flow:
 <img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification_flow.png" height="200px"></img>
 
 
-2. Wait message (left), then prompt the user to log in (right). 
-<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt_flow.png" height="250px"></img>
+2. Wait message (left), then prompt the user to log in (center), then notify the user they're being logged in (right). 
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt_flow_2.png" height="250px"></img>
 
 
 The publisher is responsible for deciding if they want to notify the user that they're being logged in (first flow) or prompt the user to login (second flow). 
