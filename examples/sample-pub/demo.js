@@ -75,7 +75,7 @@ DemoPaywallController.prototype.onEntitlements_ = function(entitlementsPromise) 
       }, 5000)
     });
     /*if (entitlements && entitlements.enablesThis()) {*/
-      this.subscriptions.showSubscriptionLookupProgress(accountPromise).then(account => {
+      this.subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
         if (account) {
             handleLoginNotification(this.subscriptions, this.consentRequired).then(result => {
               console.log('handle Login notification result: ', result);
