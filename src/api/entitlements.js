@@ -32,7 +32,6 @@ export class Entitlements {
     this.service = service;
     /** @const {string} */
     this.raw = raw;
-    console.log('entitlements constructed with ', entitlements)
     /** @const {!Array<!Entitlement>} */
     this.entitlements = entitlements;
 

@@ -235,9 +235,14 @@ export class Dialog {
    */
   setLoading(isLoading) {
     if (isLoading) {
-      this.loadingView_.show();
+/*      if (!this.prevView_.hasProgress()) {
+        console.log('show loading view');*/
+        this.loadingView_.show();
+      //}
+      this.hasLoading_ = true;
     } else {
       this.loadingView_.hide();
+      //this.hasLoading_ = false;
     }
   }
 
@@ -256,6 +261,7 @@ export class Dialog {
       // TODO(dparikh): Maybe I need to keep it until the new one is ready.
       removeChildren(this.getContainer());
     }
+    //this.prevView_ = this.view_;
     this.view_ = view;
 
     setImportantStyles(view.getElement(), resetViewStyles);
@@ -278,6 +284,7 @@ export class Dialog {
         this.show_();
       }
       this.setLoading(false);
+      //this.prevView_ = null;
     });
   }
 

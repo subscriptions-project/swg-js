@@ -59,7 +59,7 @@ handleLoginNotification = function(subscriptions, consentRequired) {
     return subscriptions.showLoginNotification();
   });
 }
- 
+
 /** @private */
 DemoPaywallController.prototype.onEntitlements_ = function(entitlementsPromise) {
   entitlementsPromise.then((function(entitlements) {
@@ -67,7 +67,6 @@ DemoPaywallController.prototype.onEntitlements_ = function(entitlementsPromise) 
     if (this.completeDeferredAccountCreation_(entitlements)) {
       return;
     }
-    console.log('check if user has an account');
     const account = new Account('Sohani Rao', 'sohanirao@google.com', this.consentRequired);
     const accountPromise = new Promise(resolve => {
       setTimeout(() => {
@@ -152,15 +151,12 @@ DemoPaywallController.prototype.subscribeResponse_ = function(promise) {
  */
 DemoPaywallController.prototype.completeDeferredAccountCreation_ = function(
     entitlements) {
-  console.log('Demo: createDeferredAccountCreation ', this.knownAccount, entitlements);
   // TODO(dvoytenko): decide when completion is needed for demo.
   var accountFound = this.knownAccount || true;
-  console.log('accountFound ? ', accountFound);
   if (accountFound) {
     // Nothing needs to be completed.
     return;
   }
-  console.log('returned line 118 ', accountFound);
   if (!entitlements.getEntitlementForSource('google')) {
     // No Google entitlement.
     return;
