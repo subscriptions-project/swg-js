@@ -19,9 +19,10 @@
  * Demo paywall controller to demonstrate some key features.
  * @param {!Subscriptions} subscriptions
  */
-function DemoPaywallController(subscriptions) {
+function DemoPaywallController(subscriptions, opt_data) {
   /** @const {!Subscriptions} */
   this.subscriptions = subscriptions;
+  this.consentRequired = opt_data && opt_data['consentRequired'] == 'true' ? true : false;
 
   this.subscriptions.setOnEntitlementsResponse(
       this.onEntitlements_.bind(this));
@@ -40,6 +41,25 @@ DemoPaywallController.prototype.start = function() {
   this.subscriptions.start();
 };
 
+class Account {
+  constructor(name, email, consent) {
+    this.name = name;
+    this.email = email;
+  }
+}
+ 
+handleLoginNotification = function(subscriptions, consentRequired) {
+  var loginPromise;
+  if (!consentRequired) {
+    loginPromise = Promise.resolve();
+  } else {
+    loginPromise = subscriptions.showLoginPrompt();
+  }
+  return loginPromise.then(() => {
+    return subscriptions.showLoginNotification();
+  });
+}
+
 /** @private */
 DemoPaywallController.prototype.onEntitlements_ = function(entitlementsPromise) {
   entitlementsPromise.then((function(entitlements) {
@@ -47,14 +67,36 @@ DemoPaywallController.prototype.onEntitlements_ = function(entitlementsPromise) 
     if (this.completeDeferredAccountCreation_(entitlements)) {
       return;
     }
-    if (entitlements && entitlements.enablesThis()) {
+    const account = new Account('Sohani Rao', 'sohanirao@google.com');
+    const accountPromise = new Promise(resolve => {
+      setTimeout(() => {
+        resolve(account);
+      }, 5000);
+    });
+    //if (entitlements && entitlements.enablesThis()) {
       // Entitlements available: open access.
-      this.openPaywall_();
-      entitlements.ack();
-    } else {
+      this.subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
+        if (account) {
+            handleLoginNotification(this.subscriptions, this.consentRequired).then(result => {
+              if (result) {
+                // Entitlements available: open access.
+                this.openPaywall_();
+                entitlements.ack();
+              }
+            }, reason => {
+              console.log('handle login notification error ', reason);
+              throw reason;
+            });
+        } else {
+          this.completeDeferredAccountCreation_(entitlements);
+        }
+      }, reason => {
+        console.log('subscription look up failed:', reason);
+      });
+    /*} else {
       // In a simplest case, just launch offers flow.
       this.subscriptions.showOffers();
-    }
+    }*/
   }).bind(this), function(reason) {
     log('entitlements failed: ', reason);
     throw reason;
