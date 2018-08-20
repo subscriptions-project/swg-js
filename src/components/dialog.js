@@ -123,6 +123,9 @@ export class Dialog {
 
     /** @private {boolean} */
     this.hidden_ = false;
+
+    /** @private {?./view.View} */
+    this.previousView_ = null;
   }
 
   /**
@@ -230,15 +233,45 @@ export class Dialog {
   }
 
   /**
-   * Whether to display loading indicator.
-   * @param {boolean} isLoading
+   * Transitions to the next view
+   * @param {!./view.View} view
    */
-  setLoading(isLoading) {
-    if (isLoading) {
+  entryTransitionToNextView(view) {
+    // Temporarily cache the old view
+    this.previousView_ = this.view_;
+    var noloadingIndicatorPresent = !this.previousView_
+        || (this.previousView_
+            && !this.previousView_.hasLoadingIndicator());
+    // If previous view did not display loading indicator,
+    // remove contents of old view if present
+    if (noloadingIndicatorPresent) {
+      removeChildren(this.getContainer());
+    }
+    setImportantStyles(view.getElement(), resetViewStyles);
+    if (noloadingIndicatorPresent) {
+      // When loading indicator was not displayed in the previous view,
+      // loading indicator must be displayed while transitioning to new view.      
       this.loadingView_.show();
-    } else {
+      // Keep track of whether or not a view shows loading indicator
+      view.setLoadingIndicator(true);   
+    }
+  }
+
+   /**
+   * Transition out of an old view
+   * @param {boolean} hideLoadingView 
+   */
+  exitTransitionFromOldView(hideLoadingView) {
+    if (hideLoadingView) {
+      //When a loading indicator is present, hide it.
       this.loadingView_.hide();
     }
+    // If previous view displayed a loading indicator, this view
+    // did not, hence remove previous element instead.
+    if (this.previousView_ && this.previousView_.hasLoadingIndicator()) {
+      this.getContainer().removeChild(this.previousView_.getElement());
+    }
+    this.previousView_ = null;
   }
 
   /** @return {?./view.View} */
@@ -252,14 +285,9 @@ export class Dialog {
    * @return {!Promise}
    */
   openView(view) {
-    if (this.view_) {
-      // TODO(dparikh): Maybe I need to keep it until the new one is ready.
-      removeChildren(this.getContainer());
-    }
-    this.view_ = view;
+    this.entryTransitionToNextView(view);
 
-    setImportantStyles(view.getElement(), resetViewStyles);
-    this.setLoading(true);
+    this.view_ = view;
     this.getContainer().appendChild(view.getElement());
 
     // If the current view should fade the parent document.
@@ -277,7 +305,7 @@ export class Dialog {
         }
         this.show_();
       }
-      this.setLoading(false);
+      this.exitTransitionFromOldView(view.hasLoadingIndicator());
     });
   }
 
