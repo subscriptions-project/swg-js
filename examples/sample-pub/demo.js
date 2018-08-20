@@ -13,32 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
+ 
+ 
 /**
  * Demo paywall controller to demonstrate some key features.
  * @param {!Subscriptions} subscriptions
  */
-function DemoPaywallController(subscriptions) {
+function DemoPaywallController(subscriptions, opt_data) {
   /** @const {!Subscriptions} */
   this.subscriptions = subscriptions;
-
+  this.consentRequired = opt_data && opt_data['consentRequired'] == 'true' ? true : false;
   this.subscriptions.setOnEntitlementsResponse(
       this.onEntitlements_.bind(this));
   this.subscriptions.setOnLoginRequest(this.loginRequest_.bind(this));
   this.subscriptions.setOnLinkComplete(this.linkComplete_.bind(this));
   this.subscriptions.setOnSubscribeResponse(
       this.subscribeResponse_.bind(this));
-
+ 
   /** @const {?Entitlements} */
   this.entitlements = null;
 };
-
+ 
 /** */
 DemoPaywallController.prototype.start = function() {
   log('DemoPaywallController started');
   this.subscriptions.start();
 };
+ 
+class Account {
+  constructor(name, email, consent) {
+    this.name = name;
+    this.email = email;
+  }
+}
+ 
+handleLoginNotification = function(subscriptions, consentRequired) {
+  console.log('handleNotification: consentRequired ', consentRequired);
+  var loginPromise;
+  if (!consentRequired) {
+    loginPromise = Promise.resolve();
+  } else {
+    loginPromise = subscriptions.showLoginPrompt();
+  }
+  return loginPromise.then(() => {
+    return subscriptions.showLoginNotification();
+  });
+}
 
 /** @private */
 DemoPaywallController.prototype.onEntitlements_ = function(entitlementsPromise) {
@@ -47,20 +67,43 @@ DemoPaywallController.prototype.onEntitlements_ = function(entitlementsPromise) 
     if (this.completeDeferredAccountCreation_(entitlements)) {
       return;
     }
-    if (entitlements && entitlements.enablesThis()) {
-      // Entitlements available: open access.
-      this.openPaywall_();
-      entitlements.ack();
-    } else {
+    const account = new Account('Sohani Rao', 'sohanirao@google.com', this.consentRequired);
+    const accountPromise = new Promise(resolve => {
+      setTimeout(() => {
+        console.log('resolving account');
+        resolve(account);
+      }, 5000)
+    });
+    /*if (entitlements && entitlements.enablesThis()) {*/
+      this.subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
+        if (account) {
+            handleLoginNotification(this.subscriptions, this.consentRequired).then(result => {
+              console.log('handle Login notification result: ', result);
+              if (result) {
+                // Entitlements available: open access.
+                this.openPaywall_();
+                entitlements.ack();
+              }
+            }, reason => {
+              console.log('handle login notification error ', reason);
+              throw reason;
+            });
+        } else {
+          this.completeDeferredAccountCreation_(entitlements);
+        }
+      }, reason => {
+        console.log('subscription look up failed:', reason);
+      });
+    /*} else {
       // In a simplest case, just launch offers flow.
       this.subscriptions.showOffers();
-    }
+    }*/
   }).bind(this), function(reason) {
     log('entitlements failed: ', reason);
     throw reason;
   });
 };
-
+ 
 /**
  * The simplest possible implementation: they paywall is now open. A more
  * sophisticated implementation could fetch more data, or set cookies and
@@ -71,7 +114,7 @@ DemoPaywallController.prototype.openPaywall_ = function() {
   log('open paywall');
   document.documentElement.classList.add('open-paywall');
 };
-
+ 
 /**
  * The subscription has been complete.
  * @param {!Promise<!SubscribeResponse>} promise
@@ -100,7 +143,7 @@ DemoPaywallController.prototype.subscribeResponse_ = function(promise) {
     throw reason;
   });
 };
-
+ 
 /**
  * @param {!Entitlements} entitlements
  * @return {!Promise|undefined}
@@ -141,7 +184,7 @@ DemoPaywallController.prototype.completeDeferredAccountCreation_ = function(
     }).bind(this), 3000);
   }).bind(this));
 };
-
+ 
 /**
  * Login requested. This sample starts linking flow.
  * @private
@@ -150,7 +193,7 @@ DemoPaywallController.prototype.loginRequest_ = function() {
   log('login request');
   this.subscriptions.linkAccount();
 };
-
+ 
 /**
  * Linking has been complete. Possibly we have permissions now.
  * @private

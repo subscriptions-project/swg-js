@@ -91,6 +91,21 @@ function startFlow(flow, var_args) {
  */
 function startFlowAuto() {
   var flow = (window.location.search || '').split('?')[1] || 'demo';
+  if (flow.indexOf('loginPrompt') >= 0) {
+    flowArgs = flow.split('&')[1].split('=');
+    flowData = {};
+    for(i = 0; i < flowArgs.length; i++) {
+      flowData[flowArgs[i]] = flowArgs[i+1];
+      i++;
+    }
+    whenReady(function(subscriptions) {
+      whenDemoReady(function() {
+        var controller = new DemoPaywallController(subscriptions, flowData);
+        controller.start();
+      });
+    });
+    return;
+  }
   if (flow == 'none') {
     return;
   }

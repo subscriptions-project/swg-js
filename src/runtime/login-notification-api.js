@@ -66,10 +66,12 @@ export class LoginNotificationApi {
     this.openViewPromise_ = this.dialogManager_.openView(
         this.activityIframeView_);
 
-    return this.activityIframeView_.acceptResult().then(() => {
+    return this.activityIframeView_.acceptResult().then(result => {
+      console.log('show Login notification ', result);
       // The consent part is complete.
       this.dialogManager_.completeView(this.activityIframeView_);
     }, reason => {
+      console.log('show login notificaiton error ', reason);
       this.dialogManager_.completeView(this.activityIframeView_);
       throw reason;
     });

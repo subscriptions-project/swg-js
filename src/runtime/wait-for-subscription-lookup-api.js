@@ -65,8 +65,20 @@ export class WaitForSubscriptionLookupApi {
   start() {
     this.openViewPromise_ = this.dialogManager_.openView(
         this.activityIframeView_);
-
+    this.activityIframeView_.acceptResult().then(result => {
+      console.log('result from wait for subscription look up:', result);
+        // The flow is complete.
+        this.dialogManager_.completeView(this.activityIframeView_);
+    }, reason => {
+      console.log('result error from wait for subscription look up:', reason);
+    });
+    this.activityIframeView_.onMessage(data => {
+      console.log('message from wait for subscription look up: ', data);
+    }, reason => {
+      console.log('error from wait for subscription look up: ', reason);
+    })
     return this.accountPromise_.then(account => {
+      console.log('account was found from wait for subscription look up:', account);
       // Account was found.
       this.dialogManager_.completeView(this.activityIframeView_);
       return account;
