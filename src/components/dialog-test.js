@@ -20,7 +20,6 @@ import {
   computedStyle,
   getStyle,
 } from '../utils/style';
-import { View } from './view';
 
 const NO_ANIMATE = false;
 const ANIMATE = true;
