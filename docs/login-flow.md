@@ -15,7 +15,7 @@ limitations under the License.
 -->
 
 
-# SwG Login Prompt flow (NOT YET LAUNCHED)
+# SwG Login Prompt flow
 
 This is the flow in which Google will ask the user for permission to log them in to the publisher's site. It is initiated by the publisher when the publisher doesn't find a user's subscription but Google does find the subscription.
 
