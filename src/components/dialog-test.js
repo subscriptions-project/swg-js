@@ -20,6 +20,7 @@ import {
   computedStyle,
   getStyle,
 } from '../utils/style';
+import { View } from './view';
 
 const NO_ANIMATE = false;
 const ANIMATE = true;
@@ -43,6 +44,7 @@ describes.realWin('Dialog', {}, env => {
 
     element = doc.createElement('div');
     view = {
+      set: false,
       getElement: function() {
         return element;
       },
@@ -55,6 +57,13 @@ describes.realWin('Dialog', {}, env => {
       shouldFadeBody: function() {
         return true;
       },
+      setLoadingIndicator: function(on) {
+        this.set = on;
+        return;
+      },
+      hasLoadingIndicator: function() {
+        return this.set;
+      }
     };
   });
 
@@ -251,5 +260,64 @@ describes.realWin('Dialog', {}, env => {
 
       expect(loadingView.children.length).to.equal(1);
     });
+
+    it('should display loading view', function* () {
+      const openedDialog = yield dialog.open();
+      const iframeDoc = openedDialog.getIframe().getDocument();
+      const loadingContainer = iframeDoc.querySelector('swg-loading-container');
+      view.init = () => {
+        expect(loadingContainer.getAttribute('style')).to.equal('');
+        return Promise.resolve(dialog);
+      };
+      expect(view.hasLoadingIndicator()).to.be.false;
+      yield openedDialog.openView(view);
+      expect(view.hasLoadingIndicator()).to.be.true;
+      expect(loadingContainer.getAttribute('style')).to.equal('display: none !important;');
+    });
+
+    it('should not display loading view if previous view did', function* () {
+      const openedDialog = yield dialog.open();
+      const iframeDoc = openedDialog.getIframe().getDocument();
+      const loadingContainer = iframeDoc.querySelector('swg-loading-container');
+      view.init = () => {
+        expect(loadingContainer.getAttribute('style')).to.equal('');
+        return Promise.resolve(dialog);
+      };
+      expect(view.hasLoadingIndicator()).to.be.false;
+      yield openedDialog.openView(view);
+      expect(view.hasLoadingIndicator()).to.be.true;
+      expect(loadingContainer.getAttribute('style')).to.equal('display: none !important;');
+      view.setLoadingIndicator(true);
+      yield dialog.close();
+      view2 = {
+        set: false,
+        getElement: function() {
+          return element;
+        },
+        init: function(dialog) {
+          return Promise.resolve(dialog);
+        },
+        resized: function() {
+          return;
+        },
+        shouldFadeBody: function() {
+          return true;
+        },
+        setLoadingIndicator: function(on) {
+          this.set = on;
+          return;
+        },
+        hasLoadingIndicator: function() {
+          return this.set;
+        }
+      };
+      view2.init = () => {
+        expect(loadingContainer.getAttribute('style')).to.equal('display: none !important;');
+        return Promise.resolve(dialog);
+      };
+      yield openedDialog.openView(view2);
+      expect(view2.hasLoadingIndicator()).to.be.false;
+    });
   });
+
 });
