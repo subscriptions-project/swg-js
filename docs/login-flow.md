@@ -58,7 +58,7 @@ subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
             // Notify the user that they're being logged in with Google.
             subscriptions.loginNotification().then(response => {
                 // Publisher shows content.
-            }
+            });
 
         }, reason => {
 
