@@ -286,7 +286,6 @@ describes.realWin('Dialog', {}, env => {
       yield openedDialog.openView(view);
       expect(view.hasLoadingIndicator()).to.be.true;
       expect(loadingContainer.getAttribute('style')).to.equal('display: none !important;');
-      view.setLoadingIndicator(true);
       yield dialog.close();
       view2 = {
         set: false,
