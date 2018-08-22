@@ -70,7 +70,7 @@ export class ActivityIframeView extends View {
     /** @private @const {boolean} */
     this.shouldFadeBody_ = shouldFadeBody;
 
-    /** @private @const {boolean} */
+    /** @private {boolean} */
     this.hasLoadingIndicator_ = hasLoadingIndicator;
 
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
