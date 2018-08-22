@@ -133,8 +133,9 @@ describes.realWin('ActivityIframeView', {}, env => {
 
     it('should cache loading indicator', function* () {
       expect(activityIframeView.hasLoadingIndicator()).to.be.false;
-      activityIframeView.setLoadingIndicator(true);
-      expect(activityIframeView.hasLoadingIndicator()).to.be.true;     
+      activityIframeView2 =
+      new ActivityIframeView(win, activityPorts, src, activityArgs, false, true);
+      expect(activityIframeView2.hasLoadingIndicator()).to.be.true;
     });
   });
 });

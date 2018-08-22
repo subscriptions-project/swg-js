@@ -70,7 +70,7 @@ export class ActivityIframeView extends View {
     /** @private @const {boolean} */
     this.shouldFadeBody_ = shouldFadeBody;
 
-    /** @private {boolean} */
+    /** @private @const {boolean} */
     this.hasLoadingIndicator_ = hasLoadingIndicator;
 
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
@@ -116,13 +116,6 @@ export class ActivityIframeView extends View {
    */
   hasLoadingIndicator() {
     return this.hasLoadingIndicator_;
-  }
-   /**
-   * Sets the loading indicator for this view
-   * @param {boolean} display
-   */
-  setLoadingIndicator(display) {
-    this.hasLoadingIndicator_ = display;
   }
   
   /**
