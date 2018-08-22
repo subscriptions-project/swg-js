@@ -260,10 +260,9 @@ export class Dialog {
 
    /**
    * Transition out of an old view
-   * @param {boolean} hideLoadingView
    * @private
    */
-  exitTransitionFromOldView_(hideLoadingView) {
+  exitTransitionFromOldView_() {
     //When a loading indicator is present, hide it.
     this.loadingView_.hide();
     // If previous view is still around, remove it
@@ -305,7 +304,7 @@ export class Dialog {
         }
         this.show_();
       }
-      this.exitTransitionFromOldView_(view.hasLoadingIndicator());
+      this.exitTransitionFromOldView_();
     });
   }
 
