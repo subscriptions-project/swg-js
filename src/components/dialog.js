@@ -235,26 +235,18 @@ export class Dialog {
 
   /**
    * Transitions to the next view
-   * @param {!./view.View} view
    * @private
    */
-  entryTransitionToNextView_(view) {
-    const loadingIndicatorPresent = this.view_
-        && this.view_.hasLoadingIndicator();
-    if (loadingIndicatorPresent) {
+  entryTransitionToNextView_() {
+    if (this.view_ && this.view_.hasLoadingIndicator()) {
       // Temporarily cache the old view
       this.previousProgressView_ = this.view_;
     } else {
       // Since loading indicator will be shown, remove contents of old view
       removeChildren(this.getContainer());
-    }
-    setImportantStyles(view.getElement(), resetViewStyles);
-    if (!loadingIndicatorPresent) {
       // When loading indicator was not displayed in the previous view,
       // loading indicator must be displayed while transitioning to new view.      
       this.loadingView_.show();
-      // Keep track of whether or not a view shows loading indicator
-      view.setLoadingIndicator(true);   
     }
   }
 
@@ -266,11 +258,12 @@ export class Dialog {
     //When a loading indicator is present, hide it.
     this.loadingView_.hide();
     // If previous view is still around, remove it
-    if (this.previousProgressView_ &&
-        this.previousProgressView_.getElement().parentNode) {
+    if (this.previousProgressView_) {
       removeElement(this.previousProgressView_.getElement());
+      this.previousProgressView_ = null;
+    } else {
+      this.loadingView_.hide();
     }
-    this.previousProgressView_ = null;
   }
 
   /** @return {?./view.View} */
@@ -284,7 +277,8 @@ export class Dialog {
    * @return {!Promise}
    */
   openView(view) {
-    this.entryTransitionToNextView_(view);
+    setImportantStyles(view.getElement(), resetViewStyles);
+    this.entryTransitionToNextView_();
 
     this.view_ = view;
     this.getContainer().appendChild(view.getElement());
