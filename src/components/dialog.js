@@ -255,8 +255,6 @@ export class Dialog {
    * @private
    */
   exitTransitionFromOldView_() {
-    //When a loading indicator is present, hide it.
-    this.loadingView_.hide();
     // If previous view is still around, remove it
     if (this.previousProgressView_) {
       removeElement(this.previousProgressView_.getElement());
