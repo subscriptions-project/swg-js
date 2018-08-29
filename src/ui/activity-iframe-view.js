@@ -117,7 +117,7 @@ export class ActivityIframeView extends View {
   hasLoadingIndicator() {
     return this.hasLoadingIndicator_;
   }
-  
+
   /**
    * @param {!web-activities/activity-ports.ActivityIframePort} port
    * @param {!../components/dialog.Dialog} dialog

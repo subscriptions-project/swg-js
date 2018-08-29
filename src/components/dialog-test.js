@@ -293,11 +293,11 @@ describes.realWin('Dialog', {}, env => {
         hasLoadingIndicator: function() {
           return false;
         },
-      };   
+      };
       view2.init = () => {
         const iframeDoc = openedDialog.getIframe().getDocument();
         const loadingContainer = iframeDoc.querySelector(
-            'swg-loading-container');           
+            'swg-loading-container');
         expect(loadingContainer.getAttribute('style')).to.equal(
             'display: none !important;');
         return Promise.resolve(dialog);
