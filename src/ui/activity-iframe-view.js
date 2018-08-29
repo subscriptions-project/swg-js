@@ -36,13 +36,15 @@ export class ActivityIframeView extends View {
    * @param {string} src
    * @param {!Object<string, ?>=} args
    * @param {boolean=} shouldFadeBody
+   * @param {boolean=} hasLoadingIndicator
    */
   constructor(
       win,
       activityPorts,
       src,
       args,
-      shouldFadeBody = false) {
+      shouldFadeBody = false,
+      hasLoadingIndicator = false) {
     super();
 
     /** @private @const {!Window} */
@@ -67,6 +69,9 @@ export class ActivityIframeView extends View {
 
     /** @private @const {boolean} */
     this.shouldFadeBody_ = shouldFadeBody;
+
+    /** @private @const {boolean} */
+    this.hasLoadingIndicator_ = hasLoadingIndicator;
 
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
     this.port_ = null;
@@ -103,6 +108,14 @@ export class ActivityIframeView extends View {
    */
   shouldFadeBody() {
     return this.shouldFadeBody_;
+  }
+
+  /**
+   * Returns if the view shows loading indicator
+   * @return {boolean}
+   */
+  hasLoadingIndicator() {
+    return this.hasLoadingIndicator_;
   }
 
   /**
