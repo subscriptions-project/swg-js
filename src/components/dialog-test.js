@@ -57,7 +57,7 @@ describes.realWin('Dialog', {}, env => {
       },
       hasLoadingIndicator: function() {
         return false;
-      }
+      },
     };
   });
 
@@ -267,7 +267,8 @@ describes.realWin('Dialog', {}, env => {
         return true;
       };
       yield openedDialog.openView(view);
-      expect(loadingContainer.getAttribute('style')).to.equal('display: none !important;');
+      expect(loadingContainer.getAttribute('style')).to.equal(
+          'display: none !important;');
     });
 
     it('should not display loading view if previous view did', function* () {
@@ -276,7 +277,7 @@ describes.realWin('Dialog', {}, env => {
         return true;
       };
       yield openedDialog.openView(view);
-      view2 = {
+      const view2 = {
         getElement: function() {
           return element;
         },
@@ -291,12 +292,14 @@ describes.realWin('Dialog', {}, env => {
         },
         hasLoadingIndicator: function() {
           return false;
-        }
+        },
       };   
       view2.init = () => {
         const iframeDoc = openedDialog.getIframe().getDocument();
-        const loadingContainer = iframeDoc.querySelector('swg-loading-container');           
-        expect(loadingContainer.getAttribute('style')).to.equal('display: none !important;');
+        const loadingContainer = iframeDoc.querySelector(
+            'swg-loading-container');           
+        expect(loadingContainer.getAttribute('style')).to.equal(
+            'display: none !important;');
         return Promise.resolve(dialog);
       };
       yield openedDialog.openView(view2);

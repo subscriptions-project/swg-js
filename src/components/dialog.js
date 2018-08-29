@@ -245,8 +245,8 @@ export class Dialog {
       // Since loading indicator will be shown, remove contents of old view
       removeChildren(this.getContainer());
       // When loading indicator was not displayed in the previous view,
-      // loading indicator must be displayed while transitioning to new view.      
-      this.loadingView_.show();
+      // loading indicator must be displayed while transitioning to new view.
+ \     this.loadingView_.show();
     }
   }
 
