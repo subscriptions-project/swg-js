@@ -130,5 +130,12 @@ describes.realWin('ActivityIframeView', {}, env => {
       activityIframeView.init(dialog);
       return cancelPromise;
     });
+
+    it('should cache loading indicator', function* () {
+      expect(activityIframeView.hasLoadingIndicator()).to.be.false;
+      const activityIframeView2 = new ActivityIframeView(
+          win, activityPorts, src, activityArgs, false, true);
+      expect(activityIframeView2.hasLoadingIndicator()).to.be.true;
+    });
   });
 });

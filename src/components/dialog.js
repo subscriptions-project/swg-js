@@ -21,6 +21,7 @@ import {
   createElement,
   injectStyleSheet,
   removeChildren,
+  removeElement,
 } from '../utils/dom';
 import {
   setStyles,
@@ -123,6 +124,9 @@ export class Dialog {
 
     /** @private {boolean} */
     this.hidden_ = false;
+
+    /** @private {?./view.View} */
+    this.previousProgressView_ = null;
   }
 
   /**
@@ -230,12 +234,31 @@ export class Dialog {
   }
 
   /**
-   * Whether to display loading indicator.
-   * @param {boolean} isLoading
+   * Transitions to the next view
+   * @private
    */
-  setLoading(isLoading) {
-    if (isLoading) {
+  entryTransitionToNextView_() {
+    if (this.view_ && this.view_.hasLoadingIndicator()) {
+      // Temporarily cache the old view
+      this.previousProgressView_ = this.view_;
+    } else {
+      // Since loading indicator will be shown, remove contents of old view
+      removeChildren(this.getContainer());
+      // When loading indicator was not displayed in the previous view,
+      // loading indicator must be displayed while transitioning to new view.
       this.loadingView_.show();
+    }
+  }
+
+   /**
+   * Transition out of an old view
+   * @private
+   */
+  exitTransitionFromOldView_() {
+    // If previous view is still around, remove it
+    if (this.previousProgressView_) {
+      removeElement(this.previousProgressView_.getElement());
+      this.previousProgressView_ = null;
     } else {
       this.loadingView_.hide();
     }
@@ -252,14 +275,10 @@ export class Dialog {
    * @return {!Promise}
    */
   openView(view) {
-    if (this.view_) {
-      // TODO(dparikh): Maybe I need to keep it until the new one is ready.
-      removeChildren(this.getContainer());
-    }
-    this.view_ = view;
-
     setImportantStyles(view.getElement(), resetViewStyles);
-    this.setLoading(true);
+    this.entryTransitionToNextView_();
+
+    this.view_ = view;
     this.getContainer().appendChild(view.getElement());
 
     // If the current view should fade the parent document.
@@ -277,7 +296,7 @@ export class Dialog {
         }
         this.show_();
       }
-      this.setLoading(false);
+      this.exitTransitionFromOldView_();
     });
   }
 
