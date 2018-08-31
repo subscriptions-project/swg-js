@@ -111,7 +111,7 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * Returns if the view shows loading indicator
+   * Returns if the view shows loading indicator.
    * @return {boolean}
    */
   hasLoadingIndicator() {

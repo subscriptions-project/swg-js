@@ -234,15 +234,15 @@ export class Dialog {
   }
 
   /**
-   * Transitions to the next view
+   * Transitions to the next view.
    * @private
    */
   entryTransitionToNextView_() {
     if (this.view_ && this.view_.hasLoadingIndicator()) {
-      // Temporarily cache the old view
+      // Temporarily cache the old view.
       this.previousProgressView_ = this.view_;
     } else {
-      // Since loading indicator will be shown, remove contents of old view
+      // Since loading indicator will be shown, remove contents of old view.
       removeChildren(this.getContainer());
       // When loading indicator was not displayed in the previous view,
       // loading indicator must be displayed while transitioning to new view.
@@ -251,11 +251,11 @@ export class Dialog {
   }
 
    /**
-   * Transition out of an old view
+   * Transition out of an old view.
    * @private
    */
   exitTransitionFromOldView_() {
-    // If previous view is still around, remove it
+    // If previous view is still around, remove it.
     if (this.previousProgressView_) {
       removeElement(this.previousProgressView_.getElement());
       this.previousProgressView_ = null;
@@ -301,7 +301,7 @@ export class Dialog {
   }
 
   /**
-   * Show the iframe
+   * Show the iframe.
    * @private
    */
   show_() {
