@@ -55,6 +55,9 @@ describes.realWin('Dialog', {}, env => {
       shouldFadeBody: function() {
         return true;
       },
+      hasLoadingIndicator: function() {
+        return false;
+      },
     };
   });
 
@@ -251,5 +254,56 @@ describes.realWin('Dialog', {}, env => {
 
       expect(loadingView.children.length).to.equal(1);
     });
+
+    it('should display loading view', function* () {
+      const openedDialog = yield dialog.open();
+      const iframeDoc = openedDialog.getIframe().getDocument();
+      const loadingContainer = iframeDoc.querySelector('swg-loading-container');
+      view.init = () => {
+        expect(loadingContainer.getAttribute('style')).to.equal('');
+        return Promise.resolve(dialog);
+      };
+      view.hasLoadingIndicator = () => {
+        return true;
+      };
+      yield openedDialog.openView(view);
+      expect(loadingContainer.getAttribute('style')).to.equal(
+          'display: none !important;');
+    });
+
+    it('should not display loading view if previous view did', function* () {
+      const openedDialog = yield dialog.open();
+      view.hasLoadingIndicator = () => {
+        return true;
+      };
+      yield openedDialog.openView(view);
+      const view2 = {
+        getElement: function() {
+          return element;
+        },
+        init: function(dialog) {
+          return Promise.resolve(dialog);
+        },
+        resized: function() {
+          return;
+        },
+        shouldFadeBody: function() {
+          return true;
+        },
+        hasLoadingIndicator: function() {
+          return false;
+        },
+      };
+      view2.init = () => {
+        const iframeDoc = openedDialog.getIframe().getDocument();
+        const loadingContainer = iframeDoc.querySelector(
+            'swg-loading-container');
+        expect(loadingContainer.getAttribute('style')).to.equal(
+            'display: none !important;');
+        return Promise.resolve(dialog);
+      };
+      yield openedDialog.openView(view2);
+    });
   });
+
 });
