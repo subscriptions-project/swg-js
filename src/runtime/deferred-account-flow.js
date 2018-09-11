@@ -149,7 +149,7 @@ export class DeferredAccountFlow {
         '',  // raw field doesn't matter in this case
         purchaseData,
         userData,
-        entitlements,//QQQ: test
+        entitlements,
         () => Promise.resolve()  // completeHandler doesn't matter in this case
     ));
     return response;
