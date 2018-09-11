@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Entitlements} from './entitlements';
 import {UserData} from './user-data';
 
 
@@ -25,15 +26,18 @@ export class SubscribeResponse {
    * @param {string} raw
    * @param {!PurchaseData} purchaseData
    * @param {?UserData} userData
+   * @param {?Entitlements} entitlements
    * @param {function():!Promise} completeHandler
    */
-  constructor(raw, purchaseData, userData, completeHandler) {
+  constructor(raw, purchaseData, userData, entitlements, completeHandler) {
     /** @const {string} */
     this.raw = raw;
     /** @const {!PurchaseData} */
     this.purchaseData = purchaseData;
     /** @const {?UserData} */
     this.userData = userData;
+    /** @const {?Entitlements} */
+    this.entitlements = entitlements;
     /** @private @const {function():!Promise} */
     this.completeHandler_ = completeHandler;
   }
@@ -46,6 +50,7 @@ export class SubscribeResponse {
         this.raw,
         this.purchaseData,
         this.userData,
+        this.entitlements,
         this.completeHandler_);
   }
 
@@ -56,6 +61,7 @@ export class SubscribeResponse {
     return {
       'purchaseData': this.purchaseData.json(),
       'userData': this.userData ? this.userData.json() : null,
+      'entitlements': this.entitlements ? this.entitlements.json() : null,
     };
   }
 

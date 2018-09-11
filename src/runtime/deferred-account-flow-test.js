@@ -211,6 +211,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
 
       expect(confirmStartStub).to.be.calledOnce;
       const confirmRequest = confirmStartStub.args[0][0];
+      expect(confirmRequest.entitlements).to.equal(response.entitlements);
       expect(confirmRequest.userData).to.equal(response.userData);
       expect(confirmRequest.purchaseData).to.equal(response.purchaseData);
 
