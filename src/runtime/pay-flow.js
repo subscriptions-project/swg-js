@@ -140,8 +140,7 @@ export class PayCompleteFlow {
       deps.dialogManager().popupClosed();
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
-      const promise = validatePayResponse(
-          deps.win(), port, flow.complete.bind(flow));
+      const promise = validatePayResponse(deps, port, flow.complete.bind(flow));
       deps.callbacks().triggerSubscribeResponse(promise);
       return promise.then(response => {
         flow.start(response);
@@ -188,14 +187,22 @@ export class PayCompleteFlow {
   start(response) {
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
+    const args = {
+      'publicationId': this.deps_.pageConfig().getPublicationId(),
+    };
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    if (response.userData && response.entitlements) {
+      args['idToken'] = response.userData.idToken;
+      this.deps_.entitlementsManager().pushNextEntitlements(
+          response.entitlements.raw);
+    } else {
+      args['loginHint'] = response.userData && response.userData.email;
+    }
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
         feUrl('/payconfirmiframe'),
-        feArgs({
-          'publicationId': this.deps_.pageConfig().getPublicationId(),
-          'loginHint': response.userData && response.userData.email,
-        }),
+        feArgs(args),
         /* shouldFadeBody */ true);
     this.activityIframeView_.onMessage(data => {
       if (data['entitlements']) {
@@ -230,13 +237,12 @@ export class PayCompleteFlow {
 
 
 /**
- * @param {!Window} win
+ * @param {!./deps.DepsDef} deps
  * @param {!web-activities/activity-ports.ActivityPort} port
  * @param {function():!Promise} completeHandler
  * @return {!Promise<!SubscribeResponse>}
- * @package Visible for testing only.
  */
-export function validatePayResponse(win, port, completeHandler) {
+function validatePayResponse(deps, port, completeHandler) {
   // Do not require security immediately: it will be checked below.
   return port.acceptResult().then(result => {
     if (result.origin != payOrigin()) {
@@ -245,7 +251,7 @@ export function validatePayResponse(win, port, completeHandler) {
     const data = /** @type {!Object} */ (result.data);
     if (data['redirectEncryptedCallbackData']) {
       // Data is supplied as an encrypted blob.
-      const xhr = new Xhr(win);
+      const xhr = new Xhr(deps.win());
       const url = payDecryptUrl();
       const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
         method: 'post',
@@ -261,16 +267,17 @@ export function validatePayResponse(win, port, completeHandler) {
       return data;
     }
     throw new Error('channel mismatch');
-  }).then(data => parseSubscriptionResponse(data, completeHandler));
+  }).then(data => parseSubscriptionResponse(deps, data, completeHandler));
 }
 
 
 /**
+ * @param {!./deps.DepsDef} deps
  * @param {*} data
  * @param {function():!Promise} completeHandler
  * @return {!SubscribeResponse}
  */
-export function parseSubscriptionResponse(data, completeHandler) {
+export function parseSubscriptionResponse(deps, data, completeHandler) {
   let swgData = null;
   let raw = null;
   if (data) {
@@ -302,6 +309,7 @@ export function parseSubscriptionResponse(data, completeHandler) {
       raw,
       parsePurchaseData(swgData),
       parseUserData(swgData),
+      parseEntitlements(deps, swgData),
       completeHandler);
 }
 
@@ -329,4 +337,18 @@ export function parseUserData(swgData) {
   }
   const jwt = /** @type {!Object} */ (new JwtHelper().decode(idToken));
   return new UserData(idToken, jwt);
+}
+
+
+/**
+ * @param {!./deps.DepsDef} deps
+ * @param {!Object} swgData
+ * @return {?../api/entitlements.Entitlements}
+ * @package Visible for testing.
+ */
+export function parseEntitlements(deps, swgData) {
+  if (swgData['signedEntitlements']) {
+    return deps.entitlementsManager().parseEntitlements(swgData);
+  }
+  return null;
 }

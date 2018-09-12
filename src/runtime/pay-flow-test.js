@@ -20,10 +20,12 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
+import {Entitlements} from '../api/entitlements';
 import {PageConfig} from '../model/page-config';
 import {
   PayStartFlow,
   PayCompleteFlow,
+  parseEntitlements,
   parseSubscriptionResponse,
   parseUserData,
 } from './pay-flow';
@@ -37,16 +39,40 @@ const INTEGR_DATA_STRING =
     'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
     'JERVJcIn0iLCJwdXJjaGFzZURhdGFTaWduYXR1cmUiOiJQRF9TSUciLCJpZFRva2VuIjoi' +
     'ZXlKaGJHY2lPaUpTVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnpkV0lpT2lKSlJGOV' +
+    'VUMHNpZlEuU0lHIiwic2lnbmVkRW50aXRsZW1lbnRzIjoiZXlKaGJHY2lPaUpJVXpJMU5p' +
+    'SXNJblI1Y0NJNklrcFhWQ0o5LmV5SmxiblJwZEd4bGJXVnVkSE1pT2x0N0luTnZkWEpqWl' +
+    'NJNklsUkZVMVFpZlYxOS5TSUcifX0=';
+
+const INTEGR_DATA_STRING_NO_ENTITLEMENTS =
+    'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
+    'JERVJcIn0iLCJwdXJjaGFzZURhdGFTaWduYXR1cmUiOiJQRF9TSUciLCJpZFRva2VuIjoi' +
+    'ZXlKaGJHY2lPaUpTVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnpkV0lpT2lKSlJGOV' +
     'VUMHNpZlEuU0lHIn19';
 
 const EMPTY_ID_TOK = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9' +
     '.eyJzdWIiOiJJRF9UT0sifQ.SIG';
 
+const ENTITLEMENTS_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9' +
+    '.eyJlbnRpdGxlbWVudHMiOlt7InNvdXJjZSI6IlRFU1QifV19.SIG';
+
 const INTEGR_DATA_OBJ = {
   'integratorClientCallbackData': INTEGR_DATA_STRING,
 };
 
+const INTEGR_DATA_OBJ_NO_ENTITLEMENTS = {
+  'integratorClientCallbackData': INTEGR_DATA_STRING_NO_ENTITLEMENTS,
+};
+
 const INTEGR_DATA_OBJ_DECODED = {
+  'swgCallbackData': {
+    'purchaseData': '{"orderId":"ORDER"}',
+    'purchaseDataSignature': 'PD_SIG',
+    'idToken': EMPTY_ID_TOK,
+    'signedEntitlements': ENTITLEMENTS_JWT,
+  },
+};
+
+const INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS = {
   'swgCallbackData': {
     'purchaseData': '{"orderId":"ORDER"}',
     'purchaseDataSignature': 'PD_SIG',
@@ -171,7 +197,37 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
     });
-    const response = new SubscribeResponse('RaW', purchaseData, userData);
+    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, entitlements);
+    entitlementsManagerMock.expects('pushNextEntitlements')
+        .withExactArgs(sinon.match(arg => {
+          return arg === 'RaW';
+        }))
+        .once();
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          idToken: 'ID_TOK',
+        })
+        .returns(Promise.resolve(port));
+    return flow.start(response);
+  });
+
+  it('should have valid flow constructed w/o entitlements', () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    const purchaseData = new PurchaseData();
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const response = new SubscribeResponse('RaW', purchaseData, userData, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
@@ -193,7 +249,45 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
     });
-    const response = new SubscribeResponse('RaW', purchaseData, userData);
+    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, entitlements);
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.message = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve();
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    entitlementsManagerMock.expects('reset')
+        .withExactArgs(true)  // Expected positive.
+        .once();
+    entitlementsManagerMock.expects('pushNextEntitlements')
+        .withExactArgs(sinon.match(arg => {
+          return arg === 'RaW';
+        }))
+        .once();
+    entitlementsManagerMock.expects('setToastShown')
+        .withExactArgs(true)
+        .once();
+    entitlementsManagerMock.expects('unblockNextNotification')
+        .withExactArgs()
+        .once();
+    const messageStub = sandbox.stub(port, 'message');
+    return flow.start(response).then(() => {
+      return flow.complete();
+    }).then(() => {
+      expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+    });
+  });
+
+  it('should complete the flow w/o entitlements', () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    const purchaseData = new PurchaseData();
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const response = new SubscribeResponse('RaW', purchaseData, userData, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};
@@ -220,12 +314,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
   });
 
-  it('should accept consistent entitlements', () => {
+  it('should accept consistent entitlements via messaging', () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     const purchaseData = new PurchaseData();
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
     });
-    const response = new SubscribeResponse('RaW', purchaseData, userData);
+    const response = new SubscribeResponse('RaW', purchaseData, userData, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};
@@ -381,6 +476,36 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
     });
 
+    it('should start flow on correct payment response w/o entitlements', () => {
+      // TODO(dvoytenko, #400): cleanup once entitlements is launched.
+      callbacksMock.expects('triggerFlowCanceled').never();
+      dialogManagerMock.expects('popupClosed').once();
+      entitlementsManagerMock.expects('blockNextNotification').once();
+      const result = new ActivityResult(ActivityResultCode.OK,
+          INTEGR_DATA_OBJ_NO_ENTITLEMENTS,
+          'POPUP', 'PAY_ORIGIN', true, true);
+      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
+      const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
+      PayCompleteFlow.configurePending(runtime);
+      return startCallback(port).then(() => {
+        expect(startStub).to.be.calledOnce;
+        expect(startStub.args[0][0]).to.be.instanceof(SubscribeResponse);
+        expect(triggerPromise).to.exist;
+        return triggerPromise;
+      }).then(response => {
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+        expect(response.purchaseData.signature).to.equal('PD_SIG');
+        expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+        expect(JSON.parse(response.raw)).to.deep
+            .equal(JSON.parse(
+                atob(INTEGR_DATA_STRING_NO_ENTITLEMENTS))['swgCallbackData']);
+        expect(completeStub).to.not.be.called;
+        response.complete();
+        expect(completeStub).to.be.calledOnce;
+      });
+    });
+
     it('should start flow on correct payment response as decoded obj', () => {
       const result = new ActivityResult(ActivityResultCode.OK,
           INTEGR_DATA_OBJ_DECODED,
@@ -399,6 +524,32 @@ describes.realWin('PayCompleteFlow', {}, env => {
         expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
         expect(JSON.parse(response.raw)).to.deep
             .equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
+        expect(completeStub).to.not.be.called;
+        response.complete();
+        expect(completeStub).to.be.calledOnce;
+      });
+    });
+
+    it('should start flow on decoded response w/o entitlements', () => {
+      // TODO(dvoytenko, #400): cleanup once entitlements is launched.
+      const result = new ActivityResult(ActivityResultCode.OK,
+          INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS,
+          'POPUP', 'PAY_ORIGIN', true, true);
+      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
+      const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
+      PayCompleteFlow.configurePending(runtime);
+      return startCallback(port).then(() => {
+        expect(startStub).to.be.calledOnce;
+        expect(triggerPromise).to.exist;
+        return triggerPromise;
+      }).then(response => {
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+        expect(response.purchaseData.signature).to.equal('PD_SIG');
+        expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+        expect(JSON.parse(response.raw)).to.deep
+            .equal(JSON.parse(
+                atob(INTEGR_DATA_STRING_NO_ENTITLEMENTS))['swgCallbackData']);
         expect(completeStub).to.not.be.called;
         response.complete();
         expect(completeStub).to.be.calledOnce;
@@ -512,39 +663,98 @@ describes.realWin('PayCompleteFlow', {}, env => {
 });
 
 
-describes.sandboxed('parseSubscriptionResponse', {}, () => {
+describes.realWin('parseSubscriptionResponse', {}, env => {
+  let pageConfig;
+  let runtime;
+
+  beforeEach(() => {
+    pageConfig = new PageConfig('pub1');
+    runtime = new ConfiguredRuntime(env.win, pageConfig);
+  });
+
   it('should pass through the callback', () => {
     const complete = sandbox.spy();
-    const sr = parseSubscriptionResponse(INTEGR_DATA_STRING, complete);
+    const sr = parseSubscriptionResponse(runtime, INTEGR_DATA_STRING, complete);
+    sr.complete();
+    expect(complete).to.be.calledOnce;
+  });
+
+  it('should pass through the callback w/o entitlements', () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    const complete = sandbox.spy();
+    const sr = parseSubscriptionResponse(
+        runtime, INTEGR_DATA_STRING_NO_ENTITLEMENTS, complete);
     sr.complete();
     expect(complete).to.be.calledOnce;
   });
 
   it('should parse a string response', () => {
-    const sr = parseSubscriptionResponse(INTEGR_DATA_STRING);
+    const sr = parseSubscriptionResponse(runtime, INTEGR_DATA_STRING);
     expect(JSON.parse(sr.raw))
         .to.deep.equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
     expect(sr.purchaseData.raw).to.equal('{\"orderId\":\"ORDER\"}');
     expect(sr.purchaseData.signature).to.equal('PD_SIG');
     expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
+    expect(sr.entitlements.raw).to.equal(ENTITLEMENTS_JWT);
+  });
+
+  it('should parse a string response w/o entitlements', () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    const sr = parseSubscriptionResponse(
+        runtime, INTEGR_DATA_STRING_NO_ENTITLEMENTS);
+    expect(JSON.parse(sr.raw))
+        .to.deep.equal(JSON.parse(
+            atob(INTEGR_DATA_STRING_NO_ENTITLEMENTS))['swgCallbackData']);
+    expect(sr.purchaseData.raw).to.equal('{\"orderId\":\"ORDER\"}');
+    expect(sr.purchaseData.signature).to.equal('PD_SIG');
+    expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
+    expect(sr.entitlements).to.be.null;
   });
 
   it('should parse a json response', () => {
-    const sr = parseSubscriptionResponse(INTEGR_DATA_OBJ);
+    const sr = parseSubscriptionResponse(runtime, INTEGR_DATA_OBJ);
     expect(JSON.parse(sr.raw))
         .to.deep.equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
     expect(sr.purchaseData.raw).to.equal('{\"orderId\":\"ORDER\"}');
     expect(sr.purchaseData.signature).to.equal('PD_SIG');
     expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
+    expect(sr.entitlements.raw).to.equal(ENTITLEMENTS_JWT);
+  });
+
+  it('should parse a json response w/o entitlements', () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    const sr = parseSubscriptionResponse(
+        runtime, INTEGR_DATA_OBJ_NO_ENTITLEMENTS);
+    expect(JSON.parse(sr.raw))
+        .to.deep.equal(JSON.parse(
+            atob(INTEGR_DATA_STRING_NO_ENTITLEMENTS))['swgCallbackData']);
+    expect(sr.purchaseData.raw).to.equal('{\"orderId\":\"ORDER\"}');
+    expect(sr.purchaseData.signature).to.equal('PD_SIG');
+    expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
+    expect(sr.entitlements).to.be.null;
   });
 
   it('should parse a decoded json response', () => {
-    const sr = parseSubscriptionResponse(INTEGR_DATA_OBJ_DECODED);
+    const sr = parseSubscriptionResponse(runtime, INTEGR_DATA_OBJ_DECODED);
     expect(JSON.parse(sr.raw))
         .to.deep.equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
     expect(sr.purchaseData.raw).to.equal('{\"orderId\":\"ORDER\"}');
     expect(sr.purchaseData.signature).to.equal('PD_SIG');
     expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
+    expect(sr.entitlements.raw).to.equal(ENTITLEMENTS_JWT);
+  });
+
+  it('should parse a decoded json response w/o entitlements', () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    const sr = parseSubscriptionResponse(
+        runtime, INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS);
+    expect(JSON.parse(sr.raw))
+        .to.deep.equal(JSON.parse(
+            atob(INTEGR_DATA_STRING_NO_ENTITLEMENTS))['swgCallbackData']);
+    expect(sr.purchaseData.raw).to.equal('{\"orderId\":\"ORDER\"}');
+    expect(sr.purchaseData.signature).to.equal('PD_SIG');
+    expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
+    expect(sr.entitlements).to.be.null;
   });
 
   it('should parse complete idToken', () => {
@@ -562,5 +772,17 @@ describes.sandboxed('parseSubscriptionResponse', {}, () => {
     expect(ud.givenName).to.equal('Test');
     expect(ud.familyName).to.equal('One');
     expect(ud.pictureUrl).to.equal('https://example.org/avatar/test');
+  });
+
+  it('should parse absent entitlements', () => {
+    expect(parseEntitlements(runtime, {})).to.be.null;
+  });
+
+  it('should parse complete entitlements', () => {
+    const ent = parseEntitlements(runtime, {
+      'signedEntitlements': ENTITLEMENTS_JWT,
+    });
+    expect(ent.raw).to.equal(ENTITLEMENTS_JWT);
+    expect(ent.entitlements[0].source).to.equal('TEST');
   });
 });

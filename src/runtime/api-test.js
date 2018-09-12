@@ -244,20 +244,35 @@ describe('PurchaseData', () => {
 
 
 describes.sandboxed('SubscribeResponse', {}, () => {
-  let sr, pd, ud, complete, promise;
+  let sr, pd, ud, entitlements, complete, promise;
 
   beforeEach(() => {
     pd = new PurchaseData('PD_RAW', 'PD_SIG');
     ud = new UserData('ID_TOKEN', {sub: '1234'});
+    entitlements = new Entitlements('service1', 'RaW', [], null, function() {});
     promise = Promise.resolve();
     complete = () => promise;
-    sr = new SubscribeResponse('SR_RAW', pd, ud, complete);
+    sr = new SubscribeResponse('SR_RAW', pd, ud, entitlements, complete);
+  });
+
+  it('should still support absent entitlements', () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    sr = new SubscribeResponse('SR_RAW', pd, ud, null, complete);
+    expect(sr.entitlements).to.be.null;
+    expect(sr.clone().entitlements).to.be.null;
+    expect(sr.json()).to.deep.equal({
+      'purchaseData': pd.json(),
+      'userData': ud.json(),
+      'entitlements': null,
+    });
+    expect(sr.complete()).to.equal(promise);
   });
 
   it('should initialize correctly', () => {
     expect(sr.raw).to.equal('SR_RAW');
     expect(sr.purchaseData).to.equal(pd);
     expect(sr.userData).to.equal(ud);
+    expect(sr.entitlements).to.equal(entitlements);
     expect(sr.complete()).to.equal(promise);
   });
 
@@ -268,6 +283,7 @@ describes.sandboxed('SubscribeResponse', {}, () => {
     expect(clone.raw).to.equal('SR_RAW');
     expect(clone.purchaseData).to.equal(pd);
     expect(clone.userData).to.equal(ud);
+    expect(clone.entitlements).to.equal(entitlements);
     expect(clone.complete()).to.equal(promise);
   });
 
@@ -275,6 +291,7 @@ describes.sandboxed('SubscribeResponse', {}, () => {
     expect(sr.json()).to.deep.equal({
       'purchaseData': pd.json(),
       'userData': ud.json(),
+      'entitlements': entitlements.json(),
     });
   });
 });
