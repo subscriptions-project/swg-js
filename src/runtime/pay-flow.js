@@ -64,7 +64,6 @@ export class PayStartFlow {
    * @param {!../utils/preconnect.Preconnect} pre
    */
   static preconnect(pre) {
-    pre.prefetch(payUrl());
     pre.prefetch(
         'https://payments.google.com/payments/v4/js/integrator.js?ss=md');
     pre.prefetch('https://clients2.google.com/gr/gr_full_2.0.6.js');
