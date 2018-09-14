@@ -58,21 +58,4 @@ describes.sandboxed('services', {}, () => {
       expect(cacheParam('unknown')).to.equal('1520624744987');
     });
   });
-
-  describe('feArgs', () => {
-    it('should create extended feArgs object', () => {
-      const args = {
-        'publicationId': 'com.appspot.scenic-2017-test',
-        'productId': 'com.appspot.scenic-2017-test:news',
-        'showNative': true,
-        'isClosable': false,
-      };
-      const generatedArgs = feArgs(args);
-      expect(generatedArgs['publicationId'])
-          .to.equal('com.appspot.scenic-2017-test');
-      expect(generatedArgs['_client']).to.not.undefined;
-      expect(generatedArgs['_transactionid']).to.not.undefined;
-      expect(Object.keys(generatedArgs).length).to.equal(6);
-    });
-  });
 });

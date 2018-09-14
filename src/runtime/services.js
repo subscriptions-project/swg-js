@@ -15,7 +15,6 @@
  */
 
 import {addQueryParam, parseUrl} from '../utils/url';
-import {uuidFast} from '../../third_party/random_uuid/uuid.swg';
 
 /**
  * Have to put these in the map to avoid compiler optimization. Due to
@@ -74,8 +73,6 @@ export function feCached(url) {
 export function feArgs(args) {
   return Object.assign(args, {
     '_client': 'SwG $internalRuntimeVersion$',
-  }, {
-    '_transactionid': uuidFast(),
   });
 }
 
