@@ -16,12 +16,11 @@
 
 import {
   ActivityPort,
-  ActivityResult,
-  ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {PageConfig} from '../model/page-config';
+import {PayClient} from './pay-client';
 import {
   PayStartFlow,
   PayCompleteFlow,
@@ -31,7 +30,6 @@ import {
 } from './pay-flow';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
-import {Xhr} from '../utils/xhr';
 import * as sinon from 'sinon';
 
 
@@ -85,7 +83,7 @@ describes.realWin('PayStartFlow', {}, env => {
   let win;
   let pageConfig;
   let runtime;
-  let activitiesMock;
+  let payClientMock;
   let dialogManagerMock;
   let callbacksMock;
   let flow;
@@ -94,14 +92,14 @@ describes.realWin('PayStartFlow', {}, env => {
     win = env.win;
     pageConfig = new PageConfig('pub1');
     runtime = new ConfiguredRuntime(win, pageConfig);
-    activitiesMock = sandbox.mock(runtime.activities());
+    payClientMock = sandbox.mock(runtime.payClient());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     callbacksMock = sandbox.mock(runtime.callbacks());
     flow = new PayStartFlow(runtime, 'sku1');
   });
 
   afterEach(() => {
-    activitiesMock.verify();
+    payClientMock.verify();
     dialogManagerMock.verify();
     callbacksMock.verify();
   });
@@ -115,12 +113,8 @@ describes.realWin('PayStartFlow', {}, env => {
         .withExactArgs('subscribe', {sku: 'sku1'})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
-    activitiesMock.expects('open').withExactArgs(
-        'swg-pay',
-        'PAY_ORIGIN/gp/p/ui/pay?_=_',
-        '_blank',
+    payClientMock.expects('start').withExactArgs(
         {
-          '_client': 'SwG $internalRuntimeVersion$',
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
@@ -130,8 +124,10 @@ describes.realWin('PayStartFlow', {}, env => {
             'skuId': 'sku1',
           },
         },
-        {})
-        .returns({targetWin: popupWin})
+        {
+          forceRedirect: false,
+        })
+        .returns(popupWin)
         .once();
     const flowPromise = flow.start();
     return expect(flowPromise).to.eventually.be.undefined;
@@ -140,14 +136,10 @@ describes.realWin('PayStartFlow', {}, env => {
   it('should force redirect mode', () => {
     runtime.configure({windowOpenMode: 'redirect'});
     dialogManagerMock.expects('popupOpened')
-        .withExactArgs(undefined)
+        .withExactArgs(null)
         .once();
-    activitiesMock.expects('open').withExactArgs(
-        'swg-pay',
-        'PAY_ORIGIN/gp/p/ui/pay?_=_',
-        '_top',
+    payClientMock.expects('start').withExactArgs(
         {
-          '_client': 'SwG $internalRuntimeVersion$',
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
@@ -157,8 +149,10 @@ describes.realWin('PayStartFlow', {}, env => {
             'skuId': 'sku1',
           },
         },
-        {})
-        .returns(undefined)
+        {
+          forceRedirect: true,
+        })
+        .returns(null)
         .once();
     flow.start();
   });
@@ -173,11 +167,19 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let callbacksMock;
   let entitlementsManagerMock;
   let dialogManagerMock;
+  let responseCallback;
   let flow;
 
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1');
+    responseCallback = null;
+    sandbox.stub(PayClient.prototype, 'onResponse', callback => {
+      if (responseCallback) {
+        throw new Error('duplicated onResponse');
+      }
+      responseCallback = callback;
+    });
     runtime = new ConfiguredRuntime(win, pageConfig);
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     activitiesMock = sandbox.mock(runtime.activities());
@@ -372,20 +374,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
 
   describe('payments response', () => {
     let startStub;
-    let startCallback;
     let triggerPromise;
-    let port;
 
     beforeEach(() => {
       startStub = sandbox.stub(PayCompleteFlow.prototype, 'start');
-      startCallback = undefined;
-      activitiesMock.expects('onResult').withExactArgs(
-          'swg-pay',
-          sinon.match(arg => {
-            startCallback = arg;
-            return true;
-          }))
-          .once();
       triggerPromise = undefined;
       callbacksMock.expects('triggerSubscribeResponse')
           .withExactArgs(sinon.match(arg => {
@@ -393,72 +385,30 @@ describes.realWin('PayCompleteFlow', {}, env => {
             return true;
           }))
           .once();
-      port = new ActivityPort();
     });
 
-    it('should NOT start flow on incorrect payments response', () => {
+    it('should NOT start flow on a response failure', () => {
       dialogManagerMock.expects('popupClosed').once();
-      PayCompleteFlow.configurePending(runtime);
-      const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ);
-      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
-      return startCallback(port).then(() => {
+      return responseCallback(Promise.reject('intentional')).then(() => {
         throw new Error('must have failed');
       }, reason => {
-        expect(() => {throw reason;}).to.throw(/channel mismatch/);
+        expect(() => {throw reason;}).to.throw(/intentional/);
         expect(startStub).to.not.be.called;
         expect(triggerPromise).to.exist;
         return triggerPromise.then(() => {
           throw new Error('must have failed');
         }, reason => {
-          expect(() => {throw reason;}).to.throw(/channel mismatch/);
+          expect(() => {throw reason;}).to.throw(/intentional/);
         });
       });
     });
 
-    it('should require secure channel for unencrypted payload', () => {
-      const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
-          'REDIRECT', 'PAY_ORIGIN', true, false);
-      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
-      PayCompleteFlow.configurePending(runtime);
-      return startCallback(port).then(() => {
-        throw new Error('must have failed');
-      }, reason => {
-        expect(() => {throw reason;}).to.throw(/channel mismatch/);
-        return triggerPromise.then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(() => {throw reason;}).to.throw(/channel mismatch/);
-        });
-      });
-    });
-
-    it('should require secure channel for unverified payload', () => {
-      const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
-          'REDIRECT', 'PAY_ORIGIN', false, true);
-      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
-      PayCompleteFlow.configurePending(runtime);
-      return startCallback(port).then(() => {
-        throw new Error('must have failed');
-      }, reason => {
-        expect(() => {throw reason;}).to.throw(/channel mismatch/);
-        return triggerPromise.then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(() => {throw reason;}).to.throw(/channel mismatch/);
-        });
-      });
-    });
-
-    it('should start flow on correct payment response', () => {
+    it('should start flow on a correct payment response', () => {
       callbacksMock.expects('triggerFlowCanceled').never();
       dialogManagerMock.expects('popupClosed').once();
       entitlementsManagerMock.expects('blockNextNotification').once();
-      const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
-          'POPUP', 'PAY_ORIGIN', true, true);
-      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
-      PayCompleteFlow.configurePending(runtime);
-      return startCallback(port).then(() => {
+      return responseCallback(Promise.resolve(INTEGR_DATA_OBJ)).then(() => {
         expect(startStub).to.be.calledOnce;
         expect(startStub.args[0][0]).to.be.instanceof(SubscribeResponse);
         expect(triggerPromise).to.exist;
@@ -481,13 +431,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       callbacksMock.expects('triggerFlowCanceled').never();
       dialogManagerMock.expects('popupClosed').once();
       entitlementsManagerMock.expects('blockNextNotification').once();
-      const result = new ActivityResult(ActivityResultCode.OK,
-          INTEGR_DATA_OBJ_NO_ENTITLEMENTS,
-          'POPUP', 'PAY_ORIGIN', true, true);
-      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
-      PayCompleteFlow.configurePending(runtime);
-      return startCallback(port).then(() => {
+      const result = INTEGR_DATA_OBJ_NO_ENTITLEMENTS;
+      return responseCallback(Promise.resolve(result)).then(() => {
         expect(startStub).to.be.calledOnce;
         expect(startStub.args[0][0]).to.be.instanceof(SubscribeResponse);
         expect(triggerPromise).to.exist;
@@ -507,13 +453,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should start flow on correct payment response as decoded obj', () => {
-      const result = new ActivityResult(ActivityResultCode.OK,
-          INTEGR_DATA_OBJ_DECODED,
-          'POPUP', 'PAY_ORIGIN', true, true);
-      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
-      PayCompleteFlow.configurePending(runtime);
-      return startCallback(port).then(() => {
+      const result = INTEGR_DATA_OBJ_DECODED;
+      return responseCallback(Promise.resolve(result)).then(() => {
         expect(startStub).to.be.calledOnce;
         expect(triggerPromise).to.exist;
         return triggerPromise;
@@ -532,13 +474,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
 
     it('should start flow on decoded response w/o entitlements', () => {
       // TODO(dvoytenko, #400): cleanup once entitlements is launched.
-      const result = new ActivityResult(ActivityResultCode.OK,
-          INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS,
-          'POPUP', 'PAY_ORIGIN', true, true);
-      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
-      PayCompleteFlow.configurePending(runtime);
-      return startCallback(port).then(() => {
+      const result = INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS;
+      return responseCallback(Promise.resolve(result)).then(() => {
         expect(startStub).to.be.calledOnce;
         expect(triggerPromise).to.exist;
         return triggerPromise;
@@ -556,102 +494,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
     });
 
-    it('should start flow on correct payment response as encrypted obj' +
-       ' in PRODUCTION', () => {
-      const encryptedData = 'ENCRYPTED';
-      const encryptedResponse = {
-        redirectEncryptedCallbackData: encryptedData,
-        environment: 'PRODUCTION',
-      };
-      const result = new ActivityResult(ActivityResultCode.OK,
-          encryptedResponse,
-          'POPUP', 'PAY_ORIGIN', true, true);
-      const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
-          () => Promise.resolve(
-          {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
-      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
-      const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
-      PayCompleteFlow.configurePending(runtime);
-      return startCallback(port).then(() => {
-        expect(startStub).to.be.calledOnce;
-        expect(triggerPromise).to.exist;
-        return triggerPromise;
-      }).then(response => {
-        expect(response).to.be.instanceof(SubscribeResponse);
-        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-        expect(response.purchaseData.signature).to.equal('PD_SIG');
-        expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
-        expect(JSON.parse(response.raw)).to.deep
-            .equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
-        expect(completeStub).to.not.be.called;
-        response.complete();
-        expect(completeStub).to.be.calledOnce;
-
-        // Verify xhr call
-        expect(xhrFetchStub).to.be.calledOnce;
-        expect(xhrFetchStub).to.be.calledWith(
-            'PAY_ORIGIN/gp/p/apis/buyflow/process', ({
-              method: 'post',
-              headers: {'Accept': 'text/plain, application/json'},
-              credentials: 'include',
-              body: encryptedData,
-              mode: 'cors',
-            }));
-      });
-    });
-
-    it('should start flow on correct payment response as encrypted obj' +
-      ' in SANDBOX', () => {
-      const encryptedData = 'ENCRYPTED';
-      const encryptedResponse = {
-        redirectEncryptedCallbackData: encryptedData,
-        environment: 'SANDBOX',
-      };
-      const result = new ActivityResult(ActivityResultCode.OK,
-          encryptedResponse,
-          'POPUP', 'PAY_ORIGIN', true, true);
-      const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
-          () => Promise.resolve(
-            {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
-      sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
-      const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
-      PayCompleteFlow.configurePending(runtime);
-      return startCallback(port).then(() => {
-        expect(startStub).to.be.calledOnce;
-        expect(triggerPromise).to.exist;
-        return triggerPromise;
-      }).then(response => {
-        expect(response).to.be.instanceof(SubscribeResponse);
-        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-        expect(response.purchaseData.signature).to.equal('PD_SIG');
-        expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
-        expect(JSON.parse(response.raw)).to.deep
-            .equal(JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']);
-        expect(completeStub).to.not.be.called;
-        response.complete();
-        expect(completeStub).to.be.calledOnce;
-
-        // Verify xhr call
-        expect(xhrFetchStub).to.be.calledOnce;
-        expect(xhrFetchStub).to.be.calledWith(
-            'PAY_ORIGIN/gp/p/apis/buyflow/process', ({
-              method: 'post',
-              headers: {'Accept': 'text/plain, application/json'},
-              credentials: 'include',
-              body: encryptedData,
-              mode: 'cors',
-            }));
-      });
-    });
-
     it('should NOT start flow on cancelation', () => {
       callbacksMock.expects('triggerFlowCanceled')
           .withExactArgs('subscribe')
           .once();
-      sandbox.stub(port, 'acceptResult', () => Promise.reject(
-          new DOMException('cancel', 'AbortError')));
-      PayCompleteFlow.configurePending(runtime);
-      startCallback(port);
+      dialogManagerMock.expects('popupClosed').once();
+      const cancel = new DOMException('cancel', 'AbortError');
+      responseCallback(Promise.reject(cancel));
       return Promise.resolve().then(() => {
         // Skip microtask.
         return Promise.resolve();
