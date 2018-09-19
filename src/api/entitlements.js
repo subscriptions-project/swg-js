@@ -26,14 +26,20 @@ export class Entitlements {
    * @param {!Array<!Entitlement>} entitlements
    * @param {?string} currentProduct
    * @param {function(!Entitlements)} ackHandler
+   * @param {boolean=} opt_isReadyToPay
    */
-  constructor(service, raw, entitlements, currentProduct, ackHandler) {
+  constructor(
+    service, raw, entitlements, currentProduct, ackHandler, opt_isReadyToPay) {
+
     /** @const {string} */
     this.service = service;
     /** @const {string} */
     this.raw = raw;
     /** @const {!Array<!Entitlement>} */
     this.entitlements = entitlements;
+
+    /** @const {boolean|undefined} */
+    this.isReadyToPay = opt_isReadyToPay;
 
     /** @private @const {?string} */
     this.product_ = currentProduct;
