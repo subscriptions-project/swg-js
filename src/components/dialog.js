@@ -29,6 +29,8 @@ import {
 } from '../utils/style';
 import {transition} from '../utils/animation';
 import {FriendlyIframe} from './friendly-iframe';
+import {Storage} from '../runtime/storage';
+import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
 
 const Z_INDEX = 2147483647;
 
@@ -100,6 +102,11 @@ export class Dialog {
     this.iframe_ = new FriendlyIframe(
         doc.getWin().document, {'class': 'swg-dialog'});
 
+    this.storage_ = new Storage(doc.getWin());
+
+    /** @private {?string} */
+    this.transactionId_ = null;
+
     /** @private @const {!Graypane} */
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);
 
@@ -130,6 +137,13 @@ export class Dialog {
   }
 
   /**
+   * @return {string}
+   */
+  getTransactionId() {
+    return this.transactionId_;
+  }
+
+  /**
    * Opens the dialog and builds the iframe container.
    * @param {boolean=} hidden
    * @return {!Promise<!Dialog>}
@@ -156,8 +170,17 @@ export class Dialog {
 
     return iframe.whenReady().then(() => {
       this.buildIframe_();
+      this.transactionId_ = uuidFast();
+      this.setTransactionIdToSession(this.transactionId_);
       return this;
     });
+  }
+
+  /**
+   * @param {string} transactionId
+   */
+  setTransactionIdToSession(transactionId) {
+    this.storage_.set('transactionid', transactionId);
   }
 
   /**

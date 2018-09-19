@@ -98,6 +98,8 @@ export class ActivityIframeView extends View {
 
   /** @override */
   init(dialog) {
+    // Add the transactionId for each iframe.
+    Object.assign(this.args_ , {'transactionId': dialog.getTransactionId()});
     return this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
         .then(port => this.onOpenIframeResponse_(port, dialog));
   }
