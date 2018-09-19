@@ -33,6 +33,7 @@ import {
   LoginPromptApi,
 } from './login-prompt-api';
 import {LoginNotificationApi} from './login-notification-api';
+import {PayClient} from './pay-client';
 import {
   WaitForSubscriptionLookupApi,
 } from './wait-for-subscription-lookup-api';
@@ -421,6 +422,9 @@ export class ConfiguredRuntime {
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(this.win_);
 
+    /** @private @const {!PayClient} */
+    this.payClient_ = new PayClient(this.win_, this.activityPorts_);
+
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
@@ -438,7 +442,7 @@ export class ConfiguredRuntime {
 
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
-    PayStartFlow.preconnect(preconnect);
+    this.payClient_.preconnect(preconnect);
 
     injectStyleSheet(this.win_.document, SWG_DIALOG);
   }
@@ -461,6 +465,11 @@ export class ConfiguredRuntime {
   /** @override */
   activities() {
     return this.activityPorts_;
+  }
+
+  /** @override */
+  payClient() {
+    return this.payClient_;
   }
 
   /** @override */

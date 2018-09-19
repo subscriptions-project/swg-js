@@ -44,6 +44,11 @@ export class DepsDef {
   activities() {}
 
   /**
+   * @return {!./pay-client.PayClient}
+   */
+  payClient() {}
+
+  /**
    * @return {!../components/dialog-manager.DialogManager}
    */
   dialogManager() {}
