@@ -26,10 +26,10 @@ export class Entitlements {
    * @param {!Array<!Entitlement>} entitlements
    * @param {?string} currentProduct
    * @param {function(!Entitlements)} ackHandler
-   * @param {boolean=} opt_isReadyToPay
+   * @param {boolean} isReadyToPay
    */
-  constructor(
-    service, raw, entitlements, currentProduct, ackHandler, opt_isReadyToPay) {
+  constructor(service, raw, entitlements, currentProduct, ackHandler,
+    isReadyToPay = false) {
 
     /** @const {string} */
     this.service = service;
@@ -38,8 +38,8 @@ export class Entitlements {
     /** @const {!Array<!Entitlement>} */
     this.entitlements = entitlements;
 
-    /** @const {boolean|undefined} */
-    this.isReadyToPay = opt_isReadyToPay;
+    /** @const {boolean} */
+    this.isReadyToPay = isReadyToPay;
 
     /** @private @const {?string} */
     this.product_ = currentProduct;
@@ -56,7 +56,8 @@ export class Entitlements {
         this.raw,
         this.entitlements.map(ent => ent.clone()),
         this.product_,
-        this.ackHandler_);
+        this.ackHandler_,
+        this.isReadyToPay);
   }
 
   /**
@@ -66,6 +67,7 @@ export class Entitlements {
     return {
       'service': this.service,
       'entitlements': this.entitlements.map(item => item.json()),
+      'isReadyToPay': this.isReadyToPay,
     };
   }
 
