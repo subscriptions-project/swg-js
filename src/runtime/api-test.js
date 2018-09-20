@@ -130,6 +130,7 @@ describes.sandboxed('Entitlements', {}, () => {
           subscriptionToken: 'token2',
         },
       ],
+      isReadyToPay: false,
     });
   });
 
