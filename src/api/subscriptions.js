@@ -181,12 +181,6 @@ export class Subscriptions {
 
  /**
   * Starts the save subscriptions flow.
-  * @param {!SaveSubscriptionRequestCallback} requestCallback
-  * @return {!Promise<boolean>} status or promise of status of request
-  */
-  saveSubscription(requestCallback) {}
-
-  /**
    * Creates an element with the SwG button style and the provided callback.
    * The default theme is "light".
    *
@@ -211,7 +205,6 @@ export class Subscriptions {
 /** @enum {string} */
 export const SubscriptionFlows = {
   SHOW_OFFERS: 'showOffers',
-  SHOW_SUBSCRIBE_OPTION: 'showSubscribeOption',
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
   SUBSCRIBE: 'subscribe',
   COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
