@@ -58,7 +58,10 @@ async function exportToEs6(inputFile, outputFile) {
     plugins: [
       resolveNodeModules(),
       commonJS(),
-      cleanup({comments:'none'}),
+      // #TODO create externs file to make closure compiler happy
+      // during AMP build
+      // Commented out per kbax to allow AMP to build.
+      // cleanup({comments:'none'}),
     ],
   });
   const {code} = await bundle.generate({

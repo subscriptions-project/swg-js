@@ -19,7 +19,7 @@ import '../third_party/babel/custom-babel-helpers';
 import '../src/polyfills';
 import * as describes from '../test/describes';
 import {CACHE_KEYS} from '../src/runtime/services';
-import {PAY_ORIGIN} from '../src/runtime/pay-flow';
+import {PAY_ORIGIN} from '../src/runtime/pay-client';
 import {installYieldIt} from '../test/yield';
 import stringify from 'json-stable-stringify';
 

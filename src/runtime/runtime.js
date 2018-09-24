@@ -33,6 +33,7 @@ import {
   LoginPromptApi,
 } from './login-prompt-api';
 import {LoginNotificationApi} from './login-notification-api';
+import {PayClient} from './pay-client';
 import {
   WaitForSubscriptionLookupApi,
 } from './wait-for-subscription-lookup-api';
@@ -285,9 +286,9 @@ export class Runtime {
   }
 
   /** @override */
-  showSubscriptionLookupProgress(accountPromise) {
+  waitForSubscriptionLookup(accountPromise) {
     return this.configured_(true)
-        .then(runtime => runtime.showSubscriptionLookupProgress(
+        .then(runtime => runtime.waitForSubscriptionLookup(
             accountPromise));
   }
 
@@ -349,7 +350,7 @@ export class Runtime {
   saveSubscription(saveSubscriptionRequestCallback) {
     return this.configured_(true)
         .then(runtime => {
-          runtime.saveSubscription(saveSubscriptionRequestCallback);
+          return runtime.saveSubscription(saveSubscriptionRequestCallback);
         });
   }
 
@@ -421,6 +422,9 @@ export class ConfiguredRuntime {
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(this.win_);
 
+    /** @private @const {!PayClient} */
+    this.payClient_ = new PayClient(this.win_, this.activityPorts_);
+
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
@@ -438,7 +442,7 @@ export class ConfiguredRuntime {
 
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
-    PayStartFlow.preconnect(preconnect);
+    this.payClient_.preconnect(preconnect);
 
     injectStyleSheet(this.win_.document, SWG_DIALOG);
   }
@@ -461,6 +465,11 @@ export class ConfiguredRuntime {
   /** @override */
   activities() {
     return this.activityPorts_;
+  }
+
+  /** @override */
+  payClient() {
+    return this.payClient_;
   }
 
   /** @override */
@@ -571,7 +580,7 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  showSubscriptionLookupProgress(accountPromise) {
+  waitForSubscriptionLookup(accountPromise) {
     return this.documentParsed_.then(() => {
       const wait = new WaitForSubscriptionLookupApi(this, accountPromise);
       return wait.start();
@@ -681,8 +690,8 @@ function createPublicRuntime(runtime) {
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
-    showSubscriptionLookupProgress:
-        runtime.showSubscriptionLookupProgress.bind(runtime),
+    waitForSubscriptionLookup:
+        runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
     completeDeferredAccountCreation:
         runtime.completeDeferredAccountCreation.bind(runtime),

@@ -22,57 +22,15 @@ import {
 } from '../api/subscribe-response';
 import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
-import {Xhr} from '../utils/xhr';
-import {feArgs, feCached, feUrl} from './services';
+import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseJson} from '../utils/json';
-
-const PAY_REQUEST_ID = 'swg-pay';
-
-/**
- * @const {!Object<string, string>}
- * @package Visible for testing only.
- */
-export const PAY_ORIGIN = {
-  'PRODUCTION': 'https://pay.google.com',
-  'SANDBOX': 'https://pay.sandbox.google.com',
-};
-
-
-/** @return {string} */
-function payOrigin() {
-  return PAY_ORIGIN['$payEnvironment$'];
-}
-
-/** @return {string} */
-function payUrl() {
-  return feCached(PAY_ORIGIN['$payEnvironment$'] + '/gp/p/ui/pay');
-}
-
-/** @return {string} */
-function payDecryptUrl() {
-  return PAY_ORIGIN['$payEnvironment$'] + '/gp/p/apis/buyflow/process';
-}
 
 
 /**
  * The flow to initiate payment process.
  */
 export class PayStartFlow {
-
-  /**
-   * @param {!../utils/preconnect.Preconnect} pre
-   */
-  static preconnect(pre) {
-    pre.prefetch(payUrl());
-    pre.prefetch(
-        'https://payments.google.com/payments/v4/js/integrator.js?ss=md');
-    pre.prefetch('https://clients2.google.com/gr/gr_full_2.0.6.js');
-    pre.preconnect('https://www.gstatic.com/');
-    pre.preconnect('https://fonts.googleapis.com/');
-    pre.preconnect('https://www.google.com/');
-  }
-
   /**
    * @param {!./deps.DepsDef} deps
    * @param {string} sku
@@ -81,8 +39,8 @@ export class PayStartFlow {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+    /** @private @const {!./pay-client.PayClient} */
+    this.payClient_ = deps.payClient();
 
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = deps.pageConfig();
@@ -104,24 +62,20 @@ export class PayStartFlow {
       'sku': this.sku_,
     });
 
-    // TODO(dvoytenko): switch to gpay async client.
-    const forceRedirect =
-        this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT;
-    const opener = this.activityPorts_.open(
-        PAY_REQUEST_ID,
-        payUrl(),
-        forceRedirect ? '_top' : '_blank',
-        feArgs({
-          'apiVersion': 1,
-          'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
-          'swg': {
-            'publicationId': this.pageConfig_.getPublicationId(),
-            'skuId': this.sku_,
-          },
-        }), {});
-    this.dialogManager_.popupOpened(opener && opener.targetWin);
+    const opener = this.payClient_.start({
+      'apiVersion': 1,
+      'allowedPaymentMethods': ['CARD'],
+      'environment': '$payEnvironment$',
+      'playEnvironment': '$playEnvironment$',
+      'swg': {
+        'publicationId': this.pageConfig_.getPublicationId(),
+        'skuId': this.sku_,
+      },
+    }, {
+      forceRedirect:
+          this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT,
+    });
+    this.dialogManager_.popupOpened(opener);
     return Promise.resolve();
   }
 }
@@ -136,12 +90,12 @@ export class PayCompleteFlow {
    * @param {!./deps.DepsDef} deps
    */
   static configurePending(deps) {
-    deps.activities().onResult(PAY_REQUEST_ID, port => {
+    deps.payClient().onResponse(payPromise => {
       deps.dialogManager().popupClosed();
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
-      const promise = validatePayResponse(
-          deps.win(), port, flow.complete.bind(flow));
+      const promise =
+          validatePayResponse(deps, payPromise, flow.complete.bind(flow));
       deps.callbacks().triggerSubscribeResponse(promise);
       return promise.then(response => {
         flow.start(response);
@@ -188,14 +142,22 @@ export class PayCompleteFlow {
   start(response) {
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
+    const args = {
+      'publicationId': this.deps_.pageConfig().getPublicationId(),
+    };
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    if (response.userData && response.entitlements) {
+      args['idToken'] = response.userData.idToken;
+      this.deps_.entitlementsManager().pushNextEntitlements(
+          response.entitlements.raw);
+    } else {
+      args['loginHint'] = response.userData && response.userData.email;
+    }
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.activityPorts_,
         feUrl('/payconfirmiframe'),
-        feArgs({
-          'publicationId': this.deps_.pageConfig().getPublicationId(),
-          'loginHint': response.userData && response.userData.email,
-        }),
+        feArgs(args),
         /* shouldFadeBody */ true);
     this.activityIframeView_.onMessage(data => {
       if (data['entitlements']) {
@@ -230,47 +192,24 @@ export class PayCompleteFlow {
 
 
 /**
- * @param {!Window} win
- * @param {!web-activities/activity-ports.ActivityPort} port
+ * @param {!./deps.DepsDef} deps
+ * @param {!Promise<!Object>} payPromise
  * @param {function():!Promise} completeHandler
  * @return {!Promise<!SubscribeResponse>}
- * @package Visible for testing only.
  */
-export function validatePayResponse(win, port, completeHandler) {
-  // Do not require security immediately: it will be checked below.
-  return port.acceptResult().then(result => {
-    if (result.origin != payOrigin()) {
-      throw new Error('channel mismatch');
-    }
-    const data = /** @type {!Object} */ (result.data);
-    if (data['redirectEncryptedCallbackData']) {
-      // Data is supplied as an encrypted blob.
-      const xhr = new Xhr(win);
-      const url = payDecryptUrl();
-      const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-        method: 'post',
-        headers: {'Accept': 'text/plain, application/json'},
-        credentials: 'include',
-        body: data['redirectEncryptedCallbackData'],
-        mode: 'cors',
-      });
-      return xhr.fetch(url, init).then(response => response.json());
-    }
-    // Data is supplied directly: must be a verified and secure channel.
-    if (result.originVerified && result.secureChannel) {
-      return data;
-    }
-    throw new Error('channel mismatch');
-  }).then(data => parseSubscriptionResponse(data, completeHandler));
+function validatePayResponse(deps, payPromise, completeHandler) {
+  return payPromise.then(data =>
+      parseSubscriptionResponse(deps, data, completeHandler));
 }
 
 
 /**
+ * @param {!./deps.DepsDef} deps
  * @param {*} data
  * @param {function():!Promise} completeHandler
  * @return {!SubscribeResponse}
  */
-export function parseSubscriptionResponse(data, completeHandler) {
+export function parseSubscriptionResponse(deps, data, completeHandler) {
   let swgData = null;
   let raw = null;
   if (data) {
@@ -302,6 +241,7 @@ export function parseSubscriptionResponse(data, completeHandler) {
       raw,
       parsePurchaseData(swgData),
       parseUserData(swgData),
+      parseEntitlements(deps, swgData),
       completeHandler);
 }
 
@@ -329,4 +269,18 @@ export function parseUserData(swgData) {
   }
   const jwt = /** @type {!Object} */ (new JwtHelper().decode(idToken));
   return new UserData(idToken, jwt);
+}
+
+
+/**
+ * @param {!./deps.DepsDef} deps
+ * @param {!Object} swgData
+ * @return {?../api/entitlements.Entitlements}
+ * @package Visible for testing.
+ */
+export function parseEntitlements(deps, swgData) {
+  if (swgData['signedEntitlements']) {
+    return deps.entitlementsManager().parseEntitlements(swgData);
+  }
+  return null;
 }

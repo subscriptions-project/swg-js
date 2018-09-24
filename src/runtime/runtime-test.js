@@ -626,35 +626,31 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should delegate "saveSubscricption" with token', () => {
-      const newPromise = new Promise(() => {});
+    it('should delegate "saveSubscription" with token', () => {
       const requestCallback = () => {
         return {token: 'test'};
       };
       configuredRuntimeMock.expects('saveSubscription').once()
-          .withExactArgs(requestCallback).returns(newPromise);
-      const resultPromise = runtime.saveSubscription(requestCallback)
-          .then(() => {
+          .withExactArgs(requestCallback).returns(Promise.resolve(true));
+      return runtime.saveSubscription(requestCallback)
+          .then(value => {
             expect(configureStub).to.be.calledOnce.calledWith(true);
-            expect(resultPromise).to.deep.equal(newPromise);
+            expect(value).to.be.true;
           });
-      return resultPromise;
     });
 
-    it('should delegate "saveSubscricption" with authCode', () => {
-      const newPromise = new Promise(() => {});
+    it('should delegate "saveSubscription" with authCode', () => {
       const requestPromise = new Promise(resolve => {
         resolve({authCode: 'testCode'});
       });
       const requestCallback = () => requestPromise;
       configuredRuntimeMock.expects('saveSubscription').once()
-          .withExactArgs(requestCallback).returns(newPromise);
-      const resultPromise = runtime.saveSubscription(requestCallback)
-          .then(() => {
+          .withExactArgs(requestCallback).returns(Promise.resolve(true));
+      return runtime.saveSubscription(requestCallback)
+          .then(value => {
             expect(configureStub).to.be.calledOnce.calledWith(true);
-            expect(resultPromise).to.deep.equal(newPromise);
+            expect(value).to.be.true;
           });
-      return resultPromise;
     });
 
     it('should delegate "showLoginPrompt" and call the "start" method', () => {
@@ -678,11 +674,11 @@ describes.realWin('Runtime', {}, env => {
       expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
     });
 
-    it('should delegate "showSubscriptionLookupProgress"', () => {
-      configuredRuntimeMock.expects('showSubscriptionLookupProgress').once()
+    it('should delegate "waitForSubscriptionLookup"', () => {
+      configuredRuntimeMock.expects('waitForSubscriptionLookup').once()
           .returns(Promise.resolve());
 
-      return runtime.showSubscriptionLookupProgress().then(() => {
+      return runtime.waitForSubscriptionLookup().then(() => {
         expect(configureStub).to.be.calledOnce;
       });
     });
@@ -1181,7 +1177,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     const startSpy = sandbox.spy(
         WaitForSubscriptionLookupApi.prototype,
         'start');
-    return runtime.showSubscriptionLookupProgress(accountPromise).then(
+    return runtime.waitForSubscriptionLookup(accountPromise).then(
         result => {
           expect(startSpy).to.be.calledOnce;
           expect(result).to.equal(accountResult);
