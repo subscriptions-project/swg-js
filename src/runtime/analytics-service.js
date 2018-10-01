@@ -105,9 +105,11 @@ export class AnalyticsService {
   }
 
   open_() {
+    console.log('creating iframe');
     // Attach.
     this.doc_.getBody().appendChild(this.friendlyIframe_.getElement());  // Fires onload.
     return this.friendlyIframe_.whenReady().then(() => {
+      console.log('iframe ready');
       this.container_ = this.buildIframe_();
     });
   }
@@ -116,9 +118,13 @@ export class AnalyticsService {
    * @return {!Promise}
    */
   init_() {
+    console.log('opening iframe');
     this.container_.appendChild(this.getElement());
     return this.activityPorts_.openIframe(this.iframe_, this.src_,
-        this.args_).then(port => this.onOpenIframeResponse_(port));
+        this.args_).then(port => {
+          console.log('init done');
+          return this.onOpenIframeResponse_(port)
+        });
   }
 
   /**
@@ -148,6 +154,7 @@ export class AnalyticsService {
       this.close_();
       throw reason;
     }); */
+    console.log('analytics service started');
     return this.open_().then(() => {
       return this.init_();
     });
@@ -164,7 +171,9 @@ export class AnalyticsService {
    * @param {!Object} data
    */
   message(data) {
+    console.log('sending message ', data);
     this.port().then(port => {
+      console.log('sent message ', data);
       port.message(data);
     });
   }
