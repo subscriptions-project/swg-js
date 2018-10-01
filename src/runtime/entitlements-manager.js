@@ -91,11 +91,12 @@ export class EntitlementsManager {
 
   /**
    * @param {string} raw
+   * @param {string} isReadyToPay
    * @return {boolean}
    */
-  pushNextEntitlements(raw) {
+  pushNextEntitlements(raw, isReadyToPay) {
     const entitlements = this.getValidJwtEntitlements_(
-        raw, /* requireNonExpired */ true);
+        raw, /* requireNonExpired */ true, isReadyToPay);
     if (entitlements && entitlements.enablesThis()) {
       this.storage_.set(ENTS_STORAGE_KEY, raw);
       return true;
@@ -191,30 +192,32 @@ export class EntitlementsManager {
    * @return {!Entitlements}
    */
   parseEntitlements(json) {
+    const isReadyToPay = json['isReadyToPay'];
     const signedData = json['signedEntitlements'];
     if (signedData) {
       const entitlements = this.getValidJwtEntitlements_(
-          signedData, /* requireNonExpired */ false);
+          signedData, /* requireNonExpired */ false, isReadyToPay);
       if (entitlements) {
         return entitlements;
       }
     } else {
       const plainEntitlements = json['entitlements'];
       if (plainEntitlements) {
-        return this.createEntitlements_('', plainEntitlements);
+        return this.createEntitlements_('', plainEntitlements, isReadyToPay);
       }
     }
     // Empty response.
-    return this.createEntitlements_('', []);
+    return this.createEntitlements_('', [], isReadyToPay);
   }
 
   /**
    * @param {string} raw
    * @param {boolean} requireNonExpired
+   * @param {string} isReadyToPay
    * @return {?Entitlements}
    * @private
    */
-  getValidJwtEntitlements_(raw, requireNonExpired) {
+  getValidJwtEntitlements_(raw, requireNonExpired, isReadyToPay) {
     try {
       const jwt = this.jwtHelper_.decode(raw);
       if (requireNonExpired) {
@@ -225,8 +228,8 @@ export class EntitlementsManager {
         }
       }
       const entitlementsClaim = jwt['entitlements'];
-      return entitlementsClaim &&
-          this.createEntitlements_(raw, entitlementsClaim) || null;
+      return entitlementsClaim && this.createEntitlements_(
+          raw, entitlementsClaim, isReadyToPay) || null;
     } catch (e) {
       // Ignore the error.
       this.win_.setTimeout(() => {throw e;});
@@ -237,16 +240,18 @@ export class EntitlementsManager {
   /**
    * @param {string} raw
    * @param {!Object|!Array<!Object>} json
+   * @param {string} isReadyToPay
    * @return {!Entitlements}
    * @private
    */
-  createEntitlements_(raw, json) {
+  createEntitlements_(raw, json, isReadyToPay) {
     return new Entitlements(
         SERVICE_ID,
         raw,
         Entitlement.parseListFromJson(json),
         this.config_.getProductId(),
-        this.ack_.bind(this));
+        this.ack_.bind(this),
+        /** @type {boolean} */ (isReadyToPay));
   }
 
   /**
