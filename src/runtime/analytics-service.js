@@ -96,6 +96,7 @@ export class AnalyticsService {
 
   /**
    * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+   * @private
    */
   port_() {
     return this.portPromise_;
