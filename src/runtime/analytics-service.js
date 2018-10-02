@@ -103,9 +103,11 @@ export class AnalyticsService {
   /**
    * @param {!Object} data
    */
-  message(data) {
+  logEvent(event) {
+    console.log('log event request ', event);
     this.port().then(port => {
-      port.message(data);
+      console.log('sent message to port ', port);
+      port.message(event);
     });
   }
 
