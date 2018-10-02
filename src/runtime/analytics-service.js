@@ -101,13 +101,17 @@ export class AnalyticsService {
   }
 
   /**
+   * TODO(sohanirao): Replace with AnalyticsEvent
    * @param {!Object} data
    */
-  message(data) {
+  logEvent(event) {
     this.port().then(port => {
-      port.message(data);
+      return port.whenReady().then(() => {
+        /** TODO(sohanirao): Build AnalyticsRequest */
+        port.message(event);
+      });
     });
-  }
+   }
 
   /**
    * Handles the message received by the port.

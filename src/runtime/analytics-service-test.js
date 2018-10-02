@@ -51,6 +51,10 @@ describes.realWin('AnalyticsService', {}, env => {
         'openIframe',
         () => Promise.resolve(activityIframePort));
 
+    sandbox.stub(
+        activityIframePort,
+        'whenReady',
+        () => Promise.resolve(true));
   });
 
   describe('AnalyticsService', () => {
@@ -93,14 +97,16 @@ describes.realWin('AnalyticsService', {}, env => {
       });
     });
 
-    it('should pass on message to port', () => {
+    it('should pass on message to port when ready', () => {
       sandbox.stub(
           activityIframePort,
           'message'
       );
       const startPromise = analyticsService.start();
-      analyticsService.message({'something': 'important'});
       return startPromise.then(() => {
+        analyticsService.logEvent({'something': 'important'});
+        return activityIframePort.whenReady();
+      }).then(() => {
         expect(activityIframePort.message).to.be.calledOnce;
         const firstArgument = activityIframePort.message.getCall(0).args[0];
         expect(firstArgument).to.deep.equal({'something': 'important'});
