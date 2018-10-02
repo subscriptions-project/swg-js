@@ -91,12 +91,12 @@ export class EntitlementsManager {
 
   /**
    * @param {string} raw
-   * @param {?boolean|undefined} isReadyToPay
+   * @param {?boolean|undefined=} opt_isReadyToPay
    * @return {boolean}
    */
-  pushNextEntitlements(raw, isReadyToPay) {
+  pushNextEntitlements(raw, opt_isReadyToPay) {
     const entitlements = this.getValidJwtEntitlements_(
-        raw, /* requireNonExpired */ true, isReadyToPay);
+        raw, /* requireNonExpired */ true, opt_isReadyToPay);
     if (entitlements && entitlements.enablesThis()) {
       this.storage_.set(ENTS_STORAGE_KEY, raw);
       return true;
@@ -213,11 +213,11 @@ export class EntitlementsManager {
   /**
    * @param {string} raw
    * @param {boolean} requireNonExpired
-   * @param {?boolean|undefined} isReadyToPay
+   * @param {?boolean|undefined=} opt_isReadyToPay
    * @return {?Entitlements}
    * @private
    */
-  getValidJwtEntitlements_(raw, requireNonExpired, isReadyToPay) {
+  getValidJwtEntitlements_(raw, requireNonExpired, opt_isReadyToPay) {
     try {
       const jwt = this.jwtHelper_.decode(raw);
       if (requireNonExpired) {
@@ -229,7 +229,7 @@ export class EntitlementsManager {
       }
       const entitlementsClaim = jwt['entitlements'];
       return entitlementsClaim && this.createEntitlements_(
-          raw, entitlementsClaim, isReadyToPay) || null;
+          raw, entitlementsClaim, opt_isReadyToPay) || null;
     } catch (e) {
       // Ignore the error.
       this.win_.setTimeout(() => {throw e;});
@@ -240,18 +240,18 @@ export class EntitlementsManager {
   /**
    * @param {string} raw
    * @param {!Object|!Array<!Object>} json
-   * @param {?boolean|undefined} isReadyToPay
+   * @param {?boolean|undefined=} opt_isReadyToPay
    * @return {!Entitlements}
    * @private
    */
-  createEntitlements_(raw, json, isReadyToPay) {
+  createEntitlements_(raw, json, opt_isReadyToPay) {
     return new Entitlements(
         SERVICE_ID,
         raw,
         Entitlement.parseListFromJson(json),
         this.config_.getProductId(),
         this.ack_.bind(this),
-        isReadyToPay);
+        opt_isReadyToPay);
   }
 
   /**
