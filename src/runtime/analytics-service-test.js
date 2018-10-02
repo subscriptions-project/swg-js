@@ -47,11 +47,6 @@ describes.realWin('AnalyticsService', {}, env => {
         feUrl(src), activityPorts);
 
     sandbox.stub(
-        activityIframePort,
-        'whenReady',
-        () => Promise.resolve(true));
-
-    sandbox.stub(
         activityPorts,
         'openIframe',
         () => Promise.resolve(activityIframePort));
