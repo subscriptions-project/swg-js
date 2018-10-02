@@ -149,7 +149,7 @@ export class PayCompleteFlow {
     if (response.userData && response.entitlements) {
       args['idToken'] = response.userData.idToken;
       this.deps_.entitlementsManager().pushNextEntitlements(
-          response.entitlements.raw, response.isReadyToPay);
+          response.entitlements.raw);
     } else {
       args['loginHint'] = response.userData && response.userData.email;
     }
@@ -162,8 +162,7 @@ export class PayCompleteFlow {
     this.activityIframeView_.onMessage(data => {
       if (data['entitlements']) {
         this.deps_.entitlementsManager().pushNextEntitlements(
-            /** @type {string} */ (data['entitlements']),
-            data['isReadyToPay']);
+            /** @type {string} */ (data['entitlements']));
         return;
       }
     });

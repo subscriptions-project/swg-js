@@ -179,8 +179,7 @@ export class LinkCompleteFlow {
     this.entitlementsManager_.unblockNextNotification();
     this.entitlementsManager_.reset(response && response['success'] || false);
     if (response && response['entitlements']) {
-      this.entitlementsManager_.pushNextEntitlements(
-          response['entitlements'], response['isReadyToPay']);
+      this.entitlementsManager_.pushNextEntitlements(response['entitlements']);
     }
     this.completeResolver_();
   }

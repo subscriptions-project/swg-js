@@ -91,7 +91,7 @@ export class EntitlementsManager {
 
   /**
    * @param {string} raw
-   * @param {string} isReadyToPay
+   * @param {?boolean|undefined} isReadyToPay
    * @return {boolean}
    */
   pushNextEntitlements(raw, isReadyToPay) {
@@ -213,7 +213,7 @@ export class EntitlementsManager {
   /**
    * @param {string} raw
    * @param {boolean} requireNonExpired
-   * @param {string} isReadyToPay
+   * @param {?boolean|undefined} isReadyToPay
    * @return {?Entitlements}
    * @private
    */
@@ -240,7 +240,7 @@ export class EntitlementsManager {
   /**
    * @param {string} raw
    * @param {!Object|!Array<!Object>} json
-   * @param {string} isReadyToPay
+   * @param {?boolean|undefined} isReadyToPay
    * @return {!Entitlements}
    * @private
    */
@@ -251,7 +251,7 @@ export class EntitlementsManager {
         Entitlement.parseListFromJson(json),
         this.config_.getProductId(),
         this.ack_.bind(this),
-        /** @type {boolean} */ (isReadyToPay));
+        isReadyToPay);
   }
 
   /**
