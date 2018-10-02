@@ -106,8 +106,11 @@ export class AnalyticsService {
   logEvent(event) {
     console.log('log event request ', event);
     this.port().then(port => {
-      console.log('sent message to port ', port);
-      port.message(event);
+      console.log('wait for port ready');
+      return port.whenReady().then(() => {
+        console.log('sent message to port ', port);
+        port.message(event);
+      });
     });
   }
 
