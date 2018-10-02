@@ -74,7 +74,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         .once();
   }
 
-  function entitlementsResponse(entitlements, opt_options) {
+  function entitlementsResponse(entitlements, opt_options, opt_isReadyToPay) {
     function enc(obj) {
       return base64UrlEncodeFromBytes(utf8EncodeSync(JSON.stringify(obj)));
     }
@@ -86,17 +86,23 @@ describes.realWin('EntitlementsManager', {}, env => {
       'exp': options.exp,
       'entitlements': entitlements,
     };
+    if (opt_isReadyToPay != undefined) {
+      return {
+        'signedEntitlements': enc(header) + '.' + enc(payload) + '.SIG',
+        'isReadyToPay': !!opt_isReadyToPay,
+      };
+    }
     return {
       'signedEntitlements': enc(header) + '.' + enc(payload) + '.SIG',
     };
   }
 
-  function expectGoogleResponse(opt_options) {
+  function expectGoogleResponse(opt_options, opt_isReadyToPay) {
     const resp = entitlementsResponse({
       source: 'google',
       products: ['pub1:label1'],
       subscriptionToken: 's1',
-    }, opt_options);
+    }, opt_options, opt_isReadyToPay);
     xhrMock.expects('fetch')
         .returns(Promise.resolve({
           json: () => Promise.resolve(resp),
@@ -105,12 +111,12 @@ describes.realWin('EntitlementsManager', {}, env => {
     return resp;
   }
 
-  function expectNonGoogleResponse(opt_options) {
+  function expectNonGoogleResponse(opt_options, opt_isReadyToPay) {
     const resp = entitlementsResponse({
       source: 'pub1',
       products: ['pub1:label1'],
       subscriptionToken: 's2',
-    }, opt_options);
+    }, opt_options, opt_isReadyToPay);
     xhrMock.expects('fetch')
         .returns(Promise.resolve({
           json: () => Promise.resolve(resp),
@@ -376,6 +382,33 @@ describes.realWin('EntitlementsManager', {}, env => {
         expect(entitlements.getEntitlementForThis().source).to.equal('google');
         expect(toastOpenStub).to.be.calledOnce;
         expect(toast.args_.source).to.equal('google');
+      });
+    });
+
+    it.only('should trigger entitlements event with readyToPay true', () => {
+      expectToastShown('0');
+      storageMock.expects('set').withArgs('toast').never();
+      expectGoogleResponse(undefined, /* isReadyToPay */ true);
+      return manager.getEntitlements().then(entitlements => {
+        expect(entitlements.isReadyToPay).to.be.true;
+      });
+    });
+
+    it('should trigger entitlements event with readyToPay false', () => {
+      expectToastShown('0');
+      storageMock.expects('set').withArgs('toast').never();
+      expectGoogleResponse(undefined, /* isReadyToPay */ false);
+      return manager.getEntitlements().then(entitlements => {
+        expect(entitlements.isReadyToPay).to.be.false;
+      });
+    });
+
+    it('should trigger entitlements with default readyToPay = false', () => {
+      expectToastShown('0');
+      storageMock.expects('set').withArgs('toast').never();
+      expectGoogleResponse();
+      return manager.getEntitlements().then(entitlements => {
+        expect(entitlements.isReadyToPay).to.be.false;
       });
     });
 
