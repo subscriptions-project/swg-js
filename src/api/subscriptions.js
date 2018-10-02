@@ -243,6 +243,14 @@ export const WindowOpenMode = {
   REDIRECT: 'redirect',
 };
 
+/**
+ * @enum {string}
+ */
+export const TransactionType = {
+  'SUBSCRIPTION': 'SUBSCRIPTION',
+  'CONTRIBUTION': 'CONTRIBUTION',
+};
+
 
 /**
  * @return {!Config}
