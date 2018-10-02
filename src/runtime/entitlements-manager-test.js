@@ -388,7 +388,7 @@ describes.realWin('EntitlementsManager', {}, env => {
     it('should trigger entitlements event with readyToPay true', () => {
       expectToastShown('0');
       storageMock.expects('set').withArgs('toast').never();
-      expectGoogleResponse(undefined, /* isReadyToPay */ true);
+      expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
@@ -397,7 +397,7 @@ describes.realWin('EntitlementsManager', {}, env => {
     it('should trigger entitlements event with readyToPay false', () => {
       expectToastShown('0');
       storageMock.expects('set').withArgs('toast').never();
-      expectGoogleResponse(undefined, /* isReadyToPay */ false);
+      expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ false);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.false;
       });
