@@ -239,7 +239,6 @@ export class Runtime {
 
   /** @override */
   start() {
-    console.log('Sohani here');
     return this.configured_(true)
         .then(runtime => runtime.start());
   }
@@ -533,13 +532,10 @@ export class ConfiguredRuntime {
 
   /** @override */
   start() {
-    console.log('Sohani start');
     // No need to run entitlements without a product or for an unlocked page.
     if (!this.pageConfig_.getProductId() || !this.pageConfig_.isLocked()) {
-      console.log('no config');
       return Promise.resolve();
     }
-    console.log('get entitlements request for Sohani');
     this.getEntitlements();
   }
 

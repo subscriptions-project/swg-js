@@ -19,8 +19,6 @@ import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
 import {feArgs, feUrl} from '../runtime/services';
-import {AnalyticsService} from './analytics-service';
-import {GlobalDoc} from '../model/doc';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -85,19 +83,9 @@ export class EntitlementsManager {
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements() {
-    console.log('manager requests entitlements');
     if (!this.responsePromise_) {
       this.responsePromise_ = this.getEntitlementsFlow_();
     }
-    console.log('manager contacts analytics');
-    const analyticsService = new AnalyticsService(
-      new GlobalDoc(this.win_), this.deps_.activities(), {publication: this.publicationId_});
-    analyticsService.start().then(() => {
-      console.log('send message to it');
-      //analyticsService.message({event: 'get entitlements requested'});
-    }, reason => {
-      console.log('failed looks like', reason);
-    });
     return this.responsePromise_;
   }
 

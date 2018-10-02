@@ -16,22 +16,19 @@
 
 import {feArgs, feUrl} from './services';
 import {createElement} from '../utils/dom';
-import {isCancelError} from '../utils/errors';
-import {FriendlyIframe} from '../components/friendly-iframe';
 
 /** @const {!Object<string, string>} */
-const iframeAttributes = {
-  'visibility': 'hidden',
-  'opacity': 0,
+const iframeStyles = {
+  display: 'none',
 };
 
 export class AnalyticsService {
   /**
    * @param {!../model/doc.Doc} doc
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
-   * @param {!Object<string, ?>=} args
+   * @param {!../model/page-config.PageConfig} config
    */
-  constructor(doc, activityPorts, args) {
+  constructor(doc, activityPorts, config) {
 
     /** @private @const {!Doc} */
     this.doc_ = doc;
@@ -42,17 +39,18 @@ export class AnalyticsService {
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ =
         /** @type {!HTMLIFrameElement} */ (createElement(
-            this.doc_.getWin().document, 'iframe', iframeAttributes));
+            this.doc_.getWin().document, 'iframe', iframeStyles));
 
     /** @private @const {string} */
     this.src_ = feUrl('/serviceiframe');
 
+    /** @private @const {string} */
+    this.publicationId_ = config.getPublicationId();
+
     this.args_ = feArgs({
-      publicationId: args['publicationId'],
+      publicationId: this.publicationId_,
       // TODO(sohanirao): Add analytics context here
     });
-    /** @private {?web-activities/activity-ports.ActivityIframePort} */
-    this.port_ = null;
 
     /**
      * @private
@@ -68,13 +66,6 @@ export class AnalyticsService {
       this.portResolver_ = resolve;
     });
 
-    /**
-     * @private @constant
-     * {!FriendlyIframe}
-     */
-    this.friendlyIframe_ = new FriendlyIframe(this.doc_.getWin().document,
-        {'visibility': 'hidden'});
-
     this.container_ = null;
   }
 
@@ -86,78 +77,20 @@ export class AnalyticsService {
   }
 
   /**
-   * Build the iframe with the styling after iframe is loaded.
-   * @private
-   */
-  buildIframe_() {
-    const iframeBody = this.friendlyIframe_.getBody();
-    const iframeDoc =
-        /** @type {!HTMLDocument} */ (this.friendlyIframe_.getDocument());
-    // Container for all dynamic content, including 3P iframe.
-    const container = createElement(iframeDoc, 'swg-container',
-        {'visibility': 'hidden'});
-    iframeBody.appendChild(container);
-    return container;
-  }
-
-  getIframe() {
-    return this.friendlyIframe_;
-  }
-
-  open_() {
-    console.log('creating iframe');
-    // Attach.
-    this.doc_.getBody().appendChild(this.friendlyIframe_.getElement());  // Fires onload.
-    return this.friendlyIframe_.whenReady().then(() => {
-      console.log('iframe ready');
-      this.container_ = this.buildIframe_();
-    });
-  }
-
-  /**
    * @return {!Promise}
    */
-  init_() {
-    console.log('opening iframe');
-    this.container_.appendChild(this.getElement());
+  start() {
+    this.doc_.getBody().appendChild(this.getElement());
     return this.activityPorts_.openIframe(this.iframe_, this.src_,
         this.args_).then(port => {
-          console.log('init done');
-          return this.onOpenIframeResponse_(port)
+          this.portResolver_(port);
         });
-  }
-
-  /**
-   * @param {!web-activities/activity-ports.ActivityIframePort} port
-   * @return {!Promise}
-   */
-  onOpenIframeResponse_(port) {
-    this.port_ = port;
-    this.portResolver_(port);
-    return this.port_.whenReady();
   }
 
   /**
    */
   close() {
-    this.doc_.getBody().removeChild(this.iframe_.getElement());
-  }
-
-  /**
-   * @return {!Promise}
-   */
-  start() {
-    /* TODO(sohanirao): Determine if completion must be handled and how.
-    this.whenComplete().then(() => {
-      this.close_();
-    }, reason => {
-      this.close_();
-      throw reason;
-    }); */
-    console.log('analytics service started');
-    return this.open_().then(() => {
-      return this.init_();
-    });
+    this.doc_.getBody().removeChild(this.getElement());
   }
 
   /**
@@ -171,9 +104,7 @@ export class AnalyticsService {
    * @param {!Object} data
    */
   message(data) {
-    console.log('sending message ', data);
     this.port().then(port => {
-      console.log('sent message ', data);
       port.message(data);
     });
   }
@@ -185,26 +116,6 @@ export class AnalyticsService {
   onMessage(callback) {
     this.port().then(port => {
       port.onMessage(callback);
-    });
-  }
-
-  /**
-   * Accepts results from the caller.
-   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
-   */
-  acceptResult() {
-    return this.port().then(port => port.acceptResult());
-  }
-
-  /**
-   * @param {function()} callback
-   */
-  onCancel(callback) {
-    this.acceptResult().catch(reason => {
-      if (isCancelError(reason)) {
-        callback();
-      }
-      throw reason;
     });
   }
 }

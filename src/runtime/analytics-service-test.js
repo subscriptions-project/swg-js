@@ -17,10 +17,11 @@
 import {AnalyticsService} from './analytics-service';
 import {GlobalDoc} from '../model/doc';
 import {feArgs, feUrl} from './services';
+import {PageConfig} from '../model/page-config';
+
 import {
   ActivityPorts,
   ActivityIframePort,
-  ActivityResult,
 } from 'web-activities/activity-ports';
 
 describes.realWin('AnalyticsService', {}, env => {
@@ -30,18 +31,19 @@ describes.realWin('AnalyticsService', {}, env => {
   let activityPorts;
   let activityIframePort;
   let analyticsService;
-  const activityArgs = {
-    'publicationId': 'pub1',
-  };
+  let pageConfig;
+  const productId = 'pub1:label1';
+
   beforeEach(() => {
     win = env.win;
     doc = new GlobalDoc(win);
     activityPorts = new ActivityPorts(win);
     src = '/serviceiframe';
+    pageConfig = new PageConfig(productId);
     analyticsService =
-        new AnalyticsService(doc, activityPorts, activityArgs);
+        new AnalyticsService(doc, activityPorts, pageConfig);
     activityIframePort = new ActivityIframePort(
-        analyticsService.getIframe().getElement(),
+        analyticsService.getElement(),
         feUrl(src), activityPorts);
 
     sandbox.stub(
@@ -61,12 +63,11 @@ describes.realWin('AnalyticsService', {}, env => {
       const activityIframe = analyticsService.getElement();
       expect(activityIframe.nodeType).to.equal(1);
       expect(activityIframe.nodeName).to.equal('IFRAME');
-      expect(activityIframe.getAttribute('visibility')).to.equal('hidden');
+      expect(activityIframe.getAttribute('display')).to.equal('none');
     });
 
-    it('should start analytics service', function* () {
+    it('should start analytics service', () => {
       const startPromise = analyticsService.start();
-      yield analyticsService.getIframe().whenReady();
       return startPromise.then(() => {
         expect(activityPorts.openIframe).to.have.been.calledOnce;
         const firstArgument = activityPorts.openIframe.getCall(0).args[0];
@@ -75,45 +76,13 @@ describes.realWin('AnalyticsService', {}, env => {
         const secondArgument = activityPorts.openIframe.getCall(0).args[1];
         expect(secondArgument).to.equal(feUrl(src));
         const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
-        expect(thirdArgument).to.deep.equal(feArgs(activityArgs));
+        expect(thirdArgument).to.deep.equal(feArgs({
+          publicationId: pageConfig.getPublicationId(),
+        }));
       });
     });
 
-    it('should accept port and result', function* () {
-      const result = new ActivityResult('OK');
-      sandbox.stub(
-          activityIframePort,
-          'acceptResult',
-          () => Promise.resolve(result));
-
-      const startPromise = analyticsService.start();
-      yield analyticsService.getIframe().whenReady();
-      return startPromise.then(() => {
-        expect(activityIframePort.whenReady).to.have.been.calledOnce;
-        return analyticsService.port().then(actualPort => {
-          expect(actualPort).to.equal(activityIframePort);
-          return analyticsService.acceptResult().then(actualResult => {
-            expect(actualResult).to.equal(result);
-          });
-        });
-      });
-    });
-
-    it('should yield cancel callback', function* () {
-      sandbox.stub(
-          activityIframePort,
-          'acceptResult',
-          () => Promise.reject(new DOMException('cancel', 'AbortError')));
-      const startPromise = analyticsService.start();
-      yield analyticsService.getIframe().whenReady();
-      return startPromise.then(() => {
-        return new Promise(resolve => {
-          analyticsService.onCancel(resolve);
-        });
-      });
-    });
-
-    it('should yield onMessage callback', function* () {
+    it('should yield onMessage callback', () => {
       let messageCallback = undefined;
       sandbox.stub(activityIframePort, 'onMessage', cb => {
         messageCallback = cb;
@@ -123,20 +92,18 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.onMessage(data => {
         messageReceived = data;
       });
-      yield analyticsService.getIframe().whenReady();
       return startPromise.then(() => {
-        messageCallback({'sku': 'basic'});
-        expect(messageReceived).to.deep.equal({'sku': 'basic'});
+        messageCallback({'someting': 'irrelevant'});
+        expect(messageReceived).to.deep.equal({'someting': 'irrelevant'});
       });
     });
 
-    it('should pass on message to port', function* () {
+    it('should pass on message to port', () => {
       sandbox.stub(
           activityIframePort,
           'message'
       );
       const startPromise = analyticsService.start();
-      yield analyticsService.getIframe().whenReady();
       analyticsService.message({'something': 'important'});
       return startPromise.then(() => {
         expect(activityIframePort.message).to.be.calledOnce;
