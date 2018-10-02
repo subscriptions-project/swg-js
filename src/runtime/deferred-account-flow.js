@@ -124,9 +124,8 @@ export class DeferredAccountFlow {
     // Parse the response.
     const entitlementsJwt = data['entitlements'];
     const idToken = data['idToken'];
-    const entitlements = this.deps_.entitlementsManager().parseEntitlements({
-      'signedEntitlements': entitlementsJwt,
-      'isReadyToPay': data['isReadyToPay']});
+    const entitlements = this.deps_.entitlementsManager()
+        .parseEntitlements({'signedEntitlements': entitlementsJwt});
     const userData = new UserData(
         idToken,
         /** @type {!Object} */ (new JwtHelper().decode(idToken)));
