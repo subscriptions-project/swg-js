@@ -26,7 +26,7 @@ export class Entitlements {
    * @param {!Array<!Entitlement>} entitlements
    * @param {?string} currentProduct
    * @param {function(!Entitlements)} ackHandler
-   * @param {?boolean|undefined=} isReadyToPay
+   * @param {?boolean=} isReadyToPay
    */
   constructor(service, raw, entitlements, currentProduct, ackHandler,
     isReadyToPay) {

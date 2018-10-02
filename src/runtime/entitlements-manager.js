@@ -91,7 +91,7 @@ export class EntitlementsManager {
 
   /**
    * @param {string} raw
-   * @param {?boolean|undefined=} opt_isReadyToPay
+   * @param {?boolean=} opt_isReadyToPay
    * @return {boolean}
    */
   pushNextEntitlements(raw, opt_isReadyToPay) {
@@ -213,7 +213,7 @@ export class EntitlementsManager {
   /**
    * @param {string} raw
    * @param {boolean} requireNonExpired
-   * @param {?boolean|undefined=} opt_isReadyToPay
+   * @param {?boolean=} opt_isReadyToPay
    * @return {?Entitlements}
    * @private
    */
@@ -240,7 +240,7 @@ export class EntitlementsManager {
   /**
    * @param {string} raw
    * @param {!Object|!Array<!Object>} json
-   * @param {?boolean|undefined=} opt_isReadyToPay
+   * @param {?boolean=} opt_isReadyToPay
    * @return {!Entitlements}
    * @private
    */
