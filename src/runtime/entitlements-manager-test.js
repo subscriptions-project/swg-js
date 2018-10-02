@@ -385,7 +385,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       });
     });
 
-    it.only('should trigger entitlements event with readyToPay true', () => {
+    it('should trigger entitlements event with readyToPay true', () => {
       expectToastShown('0');
       storageMock.expects('set').withArgs('toast').never();
       expectGoogleResponse(undefined, /* isReadyToPay */ true);
