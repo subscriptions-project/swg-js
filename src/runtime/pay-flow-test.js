@@ -113,7 +113,7 @@ describes.realWin('PayStartFlow', {}, env => {
         .withExactArgs('subscribe', {sku: 'sku1'})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
-    payClientMock.expects('start').withExactArgs(
+    payClientMock.expects('start').withArgs(
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
@@ -122,6 +122,9 @@ describes.realWin('PayStartFlow', {}, env => {
           'swg': {
             'publicationId': 'pub1',
             'skuId': 'sku1',
+          },
+          'i': {
+            'startTimeMs': sinon.match.any,
           },
         },
         {
@@ -138,7 +141,7 @@ describes.realWin('PayStartFlow', {}, env => {
     dialogManagerMock.expects('popupOpened')
         .withExactArgs(null)
         .once();
-    payClientMock.expects('start').withExactArgs(
+    payClientMock.expects('start').withArgs(
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
@@ -147,6 +150,9 @@ describes.realWin('PayStartFlow', {}, env => {
           'swg': {
             'publicationId': 'pub1',
             'skuId': 'sku1',
+          },
+          'i': {
+            'startTimeMs': sinon.match.any,
           },
         },
         {
