@@ -18,6 +18,7 @@ import {AnalyticsService} from './analytics-service';
 import {GlobalDoc} from '../model/doc';
 import {feArgs, feUrl} from './services';
 import {PageConfig} from '../model/page-config';
+import {getStyle} from '../utils/style';
 
 import {
   ActivityPorts,
@@ -51,6 +52,10 @@ describes.realWin('AnalyticsService', {}, env => {
         'openIframe',
         () => Promise.resolve(activityIframePort));
 
+    sandbox.stub(
+        activityIframePort,
+        'whenReady',
+        () => Promise.resolve(true));
   });
 
   describe('AnalyticsService', () => {
@@ -58,7 +63,7 @@ describes.realWin('AnalyticsService', {}, env => {
       const activityIframe = analyticsService.getElement();
       expect(activityIframe.nodeType).to.equal(1);
       expect(activityIframe.nodeName).to.equal('IFRAME');
-      expect(activityIframe.getAttribute('display')).to.equal('none');
+      expect(getStyle(activityIframe, 'display')).to.equal('none');
     });
 
     it('should start analytics service', () => {
@@ -93,14 +98,16 @@ describes.realWin('AnalyticsService', {}, env => {
       });
     });
 
-    it('should pass on message to port', () => {
+    it('should pass on message to port when ready', () => {
       sandbox.stub(
           activityIframePort,
           'message'
       );
       const startPromise = analyticsService.start();
-      analyticsService.message({'something': 'important'});
       return startPromise.then(() => {
+        analyticsService.logEvent({'something': 'important'});
+        return activityIframePort.whenReady();
+      }).then(() => {
         expect(activityIframePort.message).to.be.calledOnce;
         const firstArgument = activityIframePort.message.getCall(0).args[0];
         expect(firstArgument).to.deep.equal({'something': 'important'});

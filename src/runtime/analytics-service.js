@@ -16,6 +16,7 @@
 
 import {feArgs, feUrl} from './services';
 import {createElement} from '../utils/dom';
+import {setImportantStyles} from '../utils/style';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -39,7 +40,9 @@ export class AnalyticsService {
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ =
         /** @type {!HTMLIFrameElement} */ (createElement(
-            this.doc_.getWin().document, 'iframe', iframeStyles));
+            this.doc_.getWin().document, 'iframe', {}));
+
+    setImportantStyles(this.iframe_, iframeStyles);
 
     /** @private @const {string} */
     this.src_ = feUrl('/serviceiframe');
@@ -65,8 +68,6 @@ export class AnalyticsService {
     this.portPromise_ = new Promise(resolve => {
       this.portResolver_ = resolve;
     });
-
-    this.container_ = null;
   }
 
   /**
@@ -95,20 +96,20 @@ export class AnalyticsService {
 
   /**
    * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+   * @private
    */
-  port() {
+  port_() {
     return this.portPromise_;
   }
 
   /**
+   * TODO(sohanirao): Replace with AnalyticsEvent
    * @param {!Object} data
    */
   logEvent(event) {
-    console.log('log event request ', event);
-    this.port().then(port => {
-      console.log('wait for port ready');
+    this.port_().then(port => {
       return port.whenReady().then(() => {
-        console.log('sent message to port ', port);
+        /** TODO(sohanirao): Build AnalyticsRequest */
         port.message(event);
       });
     });
@@ -119,7 +120,7 @@ export class AnalyticsService {
    * @param {function(!Object<string, string|boolean>)} callback
    */
   onMessage(callback) {
-    this.port().then(port => {
+    this.port_().then(port => {
       port.onMessage(callback);
     });
   }
