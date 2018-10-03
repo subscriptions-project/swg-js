@@ -113,7 +113,7 @@ describes.realWin('PayStartFlow', {}, env => {
         .withExactArgs('subscribe', {sku: 'sku1'})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
-    payClientMock.expects('start').withArgs(
+    payClientMock.expects('start').withExactArgs(
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
@@ -141,7 +141,7 @@ describes.realWin('PayStartFlow', {}, env => {
     dialogManagerMock.expects('popupOpened')
         .withExactArgs(null)
         .once();
-    payClientMock.expects('start').withArgs(
+    payClientMock.expects('start').withExactArgs(
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
