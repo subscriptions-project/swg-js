@@ -86,14 +86,9 @@ describes.realWin('EntitlementsManager', {}, env => {
       'exp': options.exp,
       'entitlements': entitlements,
     };
-    if (opt_isReadyToPay != undefined) {
-      return {
-        'signedEntitlements': enc(header) + '.' + enc(payload) + '.SIG',
-        'isReadyToPay': !!opt_isReadyToPay,
-      };
-    }
     return {
       'signedEntitlements': enc(header) + '.' + enc(payload) + '.SIG',
+      'isReadyToPay': !!opt_isReadyToPay,
     };
   }
 
