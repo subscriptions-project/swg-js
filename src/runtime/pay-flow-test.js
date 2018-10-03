@@ -123,6 +123,9 @@ describes.realWin('PayStartFlow', {}, env => {
             'publicationId': 'pub1',
             'skuId': 'sku1',
           },
+          'i': {
+            'startTimeMs': sinon.match.any,
+          },
         },
         {
           forceRedirect: false,
@@ -147,6 +150,9 @@ describes.realWin('PayStartFlow', {}, env => {
           'swg': {
             'publicationId': 'pub1',
             'skuId': 'sku1',
+          },
+          'i': {
+            'startTimeMs': sinon.match.any,
           },
         },
         {
