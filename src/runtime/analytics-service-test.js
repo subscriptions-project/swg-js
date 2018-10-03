@@ -33,6 +33,7 @@ describes.realWin('AnalyticsService', {}, env => {
   let activityIframePort;
   let analyticsService;
   let pageConfig;
+  let messageCallback;
   const productId = 'pub1:label1';
 
   beforeEach(() => {
@@ -56,6 +57,13 @@ describes.realWin('AnalyticsService', {}, env => {
         activityIframePort,
         'whenReady',
         () => Promise.resolve(true));
+
+    sandbox.stub(
+        activityIframePort,
+        'onMessage',
+        cb => {
+          messageCallback = cb;
+        });
   });
 
   describe('AnalyticsService', () => {
@@ -83,18 +91,16 @@ describes.realWin('AnalyticsService', {}, env => {
     });
 
     it('should yield onMessage callback', () => {
-      let messageCallback = undefined;
-      sandbox.stub(activityIframePort, 'onMessage', cb => {
-        messageCallback = cb;
-      });
       const startPromise = analyticsService.start();
       let messageReceived;
       analyticsService.onMessage(data => {
         messageReceived = data;
       });
       return startPromise.then(() => {
-        messageCallback({'someting': 'irrelevant'});
-        expect(messageReceived).to.deep.equal({'someting': 'irrelevant'});
+        messageCallback({'something': 'irrelevant'});
+        return activityIframePort.whenReady();
+      }).then(() => {
+        expect(messageReceived).to.deep.equal({'something': 'irrelevant'});
       });
     });
 
