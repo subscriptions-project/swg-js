@@ -47,16 +47,16 @@ subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
     if(account) {        
 
         // Option 1 - notify the user that they're being logged in with Google.
-        subscriptions.loginNotification().then(response => {
+        subscriptions.showLoginNotification().then(() => {
             // Publisher shows content.
         }
 
         // Option 2 - get user permission to login with Google.
-        subscriptions.showLoginPrompt().then(response => {
+        subscriptions.showLoginPrompt().then(() => {
 
             // User clicked 'Yes'.
             // Notify the user that they're being logged in with Google.
-            subscriptions.loginNotification().then(response => {
+            subscriptions.showLoginNotification().then(() => {
                 // Publisher shows content.
             });
 
