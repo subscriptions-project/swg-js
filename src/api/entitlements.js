@@ -26,10 +26,10 @@ export class Entitlements {
    * @param {!Array<!Entitlement>} entitlements
    * @param {?string} currentProduct
    * @param {function(!Entitlements)} ackHandler
-   * @param {boolean} isReadyToPay
+   * @param {?boolean|undefined} isReadyToPay
    */
   constructor(service, raw, entitlements, currentProduct, ackHandler,
-    isReadyToPay = false) {
+    isReadyToPay) {
 
     /** @const {string} */
     this.service = service;
@@ -37,9 +37,8 @@ export class Entitlements {
     this.raw = raw;
     /** @const {!Array<!Entitlement>} */
     this.entitlements = entitlements;
-
     /** @const {boolean} */
-    this.isReadyToPay = isReadyToPay;
+    this.isReadyToPay = isReadyToPay || false;
 
     /** @private @const {?string} */
     this.product_ = currentProduct;
