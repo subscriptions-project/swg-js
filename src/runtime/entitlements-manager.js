@@ -23,6 +23,7 @@ import {feArgs, feUrl} from '../runtime/services';
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
 const ENTS_STORAGE_KEY = 'ents';
+const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
 
 
 /**
@@ -76,6 +77,7 @@ export class EntitlementsManager {
         this.positiveRetries_, opt_expectPositive ? 3 : 0);
     if (opt_expectPositive) {
       this.storage_.remove(ENTS_STORAGE_KEY);
+      this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
     }
   }
 
@@ -110,6 +112,7 @@ export class EntitlementsManager {
    */
   getEntitlementsFlow_() {
     return this.fetchEntitlementsWithCaching_().then(entitlements => {
+      console.log('entitlements:', entitlements);
       this.onEntitlementsFetched_(entitlements);
       return entitlements;
     });
@@ -123,13 +126,15 @@ export class EntitlementsManager {
     return this.storage_.get(ENTS_STORAGE_KEY).then(raw => {
       // Try cache first.
       if (raw) {
-        const cached = this.getValidJwtEntitlements_(
-            raw, /* requireNonExpired */ true);
-        if (cached && cached.enablesThis()) {
-          // Already have a positive response.
-          this.positiveRetries_ = 0;
-          return cached;
-        }
+        return this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY).then(irtp => {
+          const cached = this.getValidJwtEntitlements_(
+              raw, /* requireNonExpired */ true, irtp);
+          if (cached && cached.enablesThis()) {
+            // Already have a positive response.
+            this.positiveRetries_ = 0;
+            return cached;
+          }
+        });
       }
       // If cache didn't match, perform fetch.
       return this.fetchEntitlements_().then(ents => {
@@ -192,7 +197,11 @@ export class EntitlementsManager {
    * @return {!Entitlements}
    */
   parseEntitlements(json) {
-    const isReadyToPay = json['isReadyToPay'];
+    const isReadyToPay = /** @type {boolean} */ (json['isReadyToPay']);
+    if (json['isReadyToPay']) {
+      this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, json['isReadyToPay']);
+    }
+
     const signedData = json['signedEntitlements'];
     if (signedData) {
       const entitlements = this.getValidJwtEntitlements_(
