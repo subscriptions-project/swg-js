@@ -212,7 +212,7 @@ class PayClientBindingSwg {
  *   verifier: string,
  * }}
  */
-let RedirectVerifierPair;
+let RedirectVerifierPairDef;
 
 
 /**
@@ -236,10 +236,10 @@ export class RedirectVerifierHelper {
     /** @private {boolean} */
     this.pairCreated_ = false;
 
-    /** @private {?RedirectVerifierPair} */
+    /** @private {?RedirectVerifierPairDef} */
     this.pair_ = null;
 
-    /** @private {?Promise<?RedirectVerifierPair>} */
+    /** @private {?Promise<?RedirectVerifierPairDef>} */
     this.pairPromise_ = null;
   }
 
@@ -301,7 +301,7 @@ export class RedirectVerifierHelper {
   }
 
   /**
-   * @param {function(?RedirectVerifierPair)} callback
+   * @param {function(?RedirectVerifierPairDef)} callback
    * @return {?Promise}
    * @private
    */
@@ -349,7 +349,8 @@ export class RedirectVerifierHelper {
         // 3. Create a hash.
         crypto.subtle.digest({name: 'SHA-384'}, stringToBytes(key))
             .then(buffer => {
-              const verifier = btoa(bytesToString(new Uint8Array(buffer)));
+              const verifier = btoa(bytesToString(new Uint8Array(
+                  /** @type {!ArrayBuffer} */ (buffer))));
               resolve({key, verifier});
             }, reason => {
               reject(reason);

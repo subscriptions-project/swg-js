@@ -256,8 +256,8 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 
 
 describes.sandboxed('RedirectVerifierHelper', {}, () => {
-  const SAMPLE_KEY = 'AQIDBAUGBwgJCgsMDQ4PEA==';
-  const SAMPLE_VERIFIER = 'QlJKRUNCVkhDeGhLRGh0TkVSNVFGQj4+';
+  const TEST_KEY = 'AQIDBAUGBwgJCgsMDQ4PEA==';
+  const TEST_VERIFIER = 'QlJKRUNCVkhDeGhLRGh0TkVSNVFGQj4+';
 
   let win;
   let localStorage, storageMap;
@@ -289,7 +289,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
           bytes[i] = i + 1;
         }
       },
-    },
+    };
 
     win = {
       crypto,
@@ -314,15 +314,15 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
 
   it('should create key/verifier pair', () => {
     return useVerifierPromise().then(verifier => {
-      expect(verifier).to.equal(SAMPLE_VERIFIER);
-      expect(helper.restoreKey()).to.equal(SAMPLE_KEY);
+      expect(verifier).to.equal(TEST_VERIFIER);
+      expect(helper.restoreKey()).to.equal(TEST_KEY);
     });
   });
 
   it('should resolve verifier sync after prepare', () => {
     return helper.prepare().then(() => {
-      expect(useVerifierSync()).to.equal(SAMPLE_VERIFIER);
-      expect(helper.restoreKey()).to.equal(SAMPLE_KEY);
+      expect(useVerifierSync()).to.equal(TEST_VERIFIER);
+      expect(helper.restoreKey()).to.equal(TEST_KEY);
     });
   });
 
