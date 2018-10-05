@@ -20,7 +20,7 @@ import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {PayClient} from './pay-client';
+import {PayClient, RedirectVerifierHelper} from './pay-client';
 import {Xhr} from '../utils/xhr';
 
 
@@ -250,6 +250,139 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       throw new Error('must have failed');
     }, reason => {
       expect(() => {throw reason;}).to.throw(/intentional/);
+    });
+  });
+});
+
+
+describe('RedirectVerifierHelper', () => {
+  const SAMPLE_KEY = 'AQIDBAUGBwgJCgsMDQ4PEA==';
+  const SAMPLE_VERIFIER = 'QlJKRUNCVkhDeGhLRGh0TkVSNVFGQj4+';
+
+  let win;
+  let localStorage, storageMap;
+  let subtle, crypto;
+  let helper;
+
+  beforeEach(() => {
+
+    storageMap = {};
+    localStorage = {
+      getItem: key => storageMap[key],
+      setItem: (key, value) => {storageMap[key] = value;},
+    };
+
+    subtle = {
+      digest: (options, bytes) => {
+        const hash = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) {
+          hash[i] = bytes[i] + 1;
+        }
+        return Promise.resolve(hash);
+      },
+    };
+
+    crypto = {
+      subtle,
+      getRandomValues: bytes => {
+        for (let i = 0; i < bytes.length; i++) {
+          bytes[i] = i + 1;
+        }
+      },
+    },
+
+    win = {
+      crypto,
+      localStorage,
+    };
+    helper = new RedirectVerifierHelper(win);
+  });
+
+  function useVerifierPromise() {
+    return new Promise(resolve => {
+      helper.useVerifier(resolve);
+    });
+  }
+
+  function useVerifierSync() {
+    let verifier;
+    helper.useVerifier(v => {
+      verifier = v;
+    });
+    return verifier;
+  }
+
+  it('should create key/verifier pair', () => {
+    return useVerifierPromise().then(verifier => {
+      expect(verifier).toEqual(SAMPLE_VERIFIER);
+      expect(helper.restoreKey()).toEqual(SAMPLE_KEY);
+    });
+  });
+
+  it('should resolve verifier sync after prepare', () => {
+    return helper.prepare().then(() => {
+      expect(useVerifierSync()).toEqual(SAMPLE_VERIFIER);
+      expect(helper.restoreKey()).toEqual(SAMPLE_KEY);
+    });
+  });
+
+  it('should tolerate storage failures', () => {
+    spyOn(localStorage, 'setItem')
+        .and.throwError(new Error('intentional'));
+    return useVerifierPromise().then(verifier => {
+      expect(verifier).toBeNull();
+      expect(helper.restoreKey()).toBeNull();
+    });
+  });
+
+  it('should tolerate random values failures', () => {
+    spyOn(crypto, 'getRandomValues')
+        .and.throwError(new Error('intentional'));
+    return useVerifierPromise().then(verifier => {
+      expect(verifier).toBeNull();
+      expect(helper.restoreKey()).toBeNull();
+    });
+  });
+
+  it('should tolerate hashing failures', () => {
+    spyOn(subtle, 'digest')
+        .and.returnValue(Promise.reject('intentional'));
+    return useVerifierPromise().then(verifier => {
+      expect(verifier).toBeNull();
+      expect(helper.restoreKey()).toBeNull();
+    });
+  });
+
+  it('should tolerate storage retrieval failures', () => {
+    spyOn(localStorage, 'getItem')
+        .and.throwError(new Error('intentional'));
+    expect(helper.restoreKey()).toBeNull();
+  });
+
+  describe('not supported', () => {
+    it('should default to null if crypto not supported', () => {
+      delete win.crypto;
+      expect(useVerifierSync()).toBeNull();
+    });
+
+    it('should default to null if subtle not supported', () => {
+      delete crypto.subtle;
+      expect(useVerifierSync()).toBeNull();
+    });
+
+    it('should default to null if digest not supported', () => {
+      delete subtle.digest;
+      expect(useVerifierSync()).toBeNull();
+    });
+
+    it('should default to null if crypto random not supported', () => {
+      delete crypto.getRandomValues;
+      expect(useVerifierSync()).toBeNull();
+    });
+
+    it('should default to null if storage not supported', () => {
+      delete win.localStorage;
+      expect(useVerifierSync()).toBeNull();
     });
   });
 });
