@@ -71,7 +71,7 @@ module.exports = {
     '!**/*.extern.js',
     '!exports/*.js',  // Exports only.
     '!src/api/*.js',  // Avoid "unused" prefixes in APIs.
-    '!src/protos/*.js', // Auto generated code,
+    '!src/proto/*.js', // Auto generated code,
     '!{node_modules,build,dist,third_party,build-system}/**/*.*',
     '!{testing,examples}/**/*.*',
     '!test/describes.js',
