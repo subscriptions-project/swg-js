@@ -19,7 +19,7 @@ import {GlobalDoc} from '../model/doc';
 import {feArgs, feUrl} from './services';
 import {PageConfig} from '../model/page-config';
 import {getStyle} from '../utils/style';
-import {AnalyticsEvent, AnalyticsRequest} from '../utils/api_messages';
+import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
 
 import {
   ActivityPorts,

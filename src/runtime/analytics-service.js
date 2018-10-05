@@ -18,7 +18,7 @@ import {feArgs, feUrl} from './services';
 import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
 import {AnalyticsRequest,
-        AnalyticsContext} from '../utils/api_messages';
+        AnalyticsContext} from '../proto/api_messages';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
