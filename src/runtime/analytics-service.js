@@ -17,6 +17,8 @@
 import {feArgs, feUrl} from './services';
 import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
+import {AnalyticsRequest,
+        AnalyticsContext} from '../proto/api_messages';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -68,6 +70,11 @@ export class AnalyticsService {
     this.portPromise_ = new Promise(resolve => {
       this.portResolver_ = resolve;
     });
+
+    /**
+     * @private @const {!AnalyticsContext}
+     */
+    this.context_ = new AnalyticsContext();
   }
 
   /**
@@ -82,6 +89,7 @@ export class AnalyticsService {
    */
   start() {
     this.doc_.getBody().appendChild(this.getElement());
+    // TODO(sohanirao): setup analyticsContext
     return this.activityPorts_.openIframe(this.iframe_, this.src_,
         this.args_).then(port => {
           this.portResolver_(port);
@@ -103,14 +111,24 @@ export class AnalyticsService {
   }
 
   /**
-   * TODO(sohanirao): Replace with AnalyticsEvent
-   * @param {!Object} data
+   * @param {!AnalyticsEvent} event
+   * @return {!AnalyticsRequest}
+   */
+  createLogRequest_(event) {
+    const /* {!AnalyticsRequest} */ request = new AnalyticsRequest();
+    request.setEvent(event);
+    request.setContext(this.context_);
+    return request;
+  }
+
+  /**
+   * @param {!AnalyticsEvent} event
    */
   logEvent(event) {
     this.port_().then(port => {
       return port.whenReady().then(() => {
         /** TODO(sohanirao): Build AnalyticsRequest */
-        port.message(event);
+        port.message({'buf': this.createLogRequest_(event).toArray()});
       });
     });
   }
