@@ -459,6 +459,13 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should delegate "clear"', () => {
+      configuredRuntimeMock.expects('clear').once();
+      return runtime.clear().then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
     it('should delegate "getOffers"', () => {
       configuredRuntimeMock.expects('getOffers').withExactArgs(undefined)
           .once();
@@ -896,6 +903,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     dialogManagerMock.expects('completeAll').once();
     entitlementsManagerMock.expects('reset').once();
     runtime.reset();
+  });
+
+  it('should clear entitlements', () => {
+    dialogManagerMock.expects('completeAll').once();
+    entitlementsManagerMock.expects('clear').once();
+    runtime.clear();
   });
 
   it('should not start entitlements flow without product', () => {
