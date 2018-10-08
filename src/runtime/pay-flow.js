@@ -62,7 +62,7 @@ export class PayStartFlow {
       'sku': this.sku_,
     });
 
-    const opener = this.payClient_.start({
+    this.payClient_.start({
       'apiVersion': 1,
       'allowedPaymentMethods': ['CARD'],
       'environment': '$payEnvironment$',

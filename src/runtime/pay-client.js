@@ -68,10 +68,8 @@ export class PayClient {
    * @param {!../components/dialog-manager.DialogManager} dialogManager
    */
   constructor(win, activityPorts, dialogManager) {
-    //QQQQQ
     // TODO(dvoytenko, #406): Support GPay API.
-    // this.binding_ = new PayClientBindingSwg(win, activityPorts, dialogManager);
-    this.binding_ = new PayClientBindingPayjs(win, activityPorts);
+    this.binding_ = new PayClientBindingSwg(win, activityPorts, dialogManager);
   }
 
   /**
@@ -216,8 +214,9 @@ class PayClientBindingSwg {
 /**
  * Binding based on the https://github.com/google/payjs.
  * @implements {PayClientBindingDef}
+ * @package Visible for testing only.
  */
-class PayClientBindingPayjs {
+export class PayClientBindingPayjs {
   /**
    * @param {!Window} win
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
@@ -240,7 +239,7 @@ class PayClientBindingPayjs {
     // TODO(dvoytenko): Pass activities instance.
     // TODO(dvoytenko): Pass redirect verifier key.
     /** @private @const {!PaymentsAsyncClient} */
-    this.client_ = new PaymentsAsyncClient({
+    this.client_ = this.createClient_({
       environment: '$payEnvironment$',
       'i': {
         'redirectKey': this.redirectVerifierHelper_.restoreKey(),
@@ -249,6 +248,16 @@ class PayClientBindingPayjs {
 
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
+  }
+
+  /**
+   * @param {!Object} options
+   * @param {function(!Promise<!Object>)} handler
+   * @return {!PaymentsAsyncClient}
+   * @private
+   */
+  createClient_(options, handler) {
+    return new PaymentsAsyncClient(options, handler);
   }
 
   /** @override */
@@ -478,4 +487,10 @@ export class RedirectVerifierHelper {
       this.pair_ = null;
     }
   }
+}
+
+
+// TODO(dvoytenko, #406): Remove once GPay API is supported.
+export function getPayjsBindingForTesting() {
+  return PayClientBindingPayjs;
 }
