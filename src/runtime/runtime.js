@@ -429,7 +429,8 @@ export class ConfiguredRuntime {
     this.activityPorts_ = new ActivityPorts(this.win_);
 
     /** @private @const {!PayClient} */
-    this.payClient_ = new PayClient(this.win_, this.activityPorts_);
+    this.payClient_ = new PayClient(
+        this.win_, this.activityPorts_, this.dialogManager_);
 
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();

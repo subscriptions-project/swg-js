@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Xhr} from '../utils/xhr';
 import {
   bytesToString,
   stringToBytes,
 } from '../utils/bytes';
+import {createCancelError} from '../utils/errors';
 import {feArgs, feCached} from './services';
 
 const PAY_REQUEST_ID = 'swg-pay';
@@ -63,10 +65,13 @@ export class PayClient {
   /**
    * @param {!Window} win
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
+   * @param {!../components/dialog-manager.DialogManager} dialogManager
    */
-  constructor(win, activityPorts) {
+  constructor(win, activityPorts, dialogManager) {
+    //QQQQQ
     // TODO(dvoytenko, #406): Support GPay API.
-    this.binding_ = new PayClientBindingSwg(win, activityPorts);
+    // this.binding_ = new PayClientBindingSwg(win, activityPorts, dialogManager);
+    this.binding_ = new PayClientBindingPayjs(win, activityPorts);
   }
 
   /**
@@ -93,10 +98,9 @@ export class PayClient {
   /**
    * @param {!Object} paymentRequest
    * @param {!PayOptionsDef=} options
-   * @return {?Window}  popup window, if any.
    */
   start(paymentRequest, options = {}) {
-    return this.binding_.start(paymentRequest, options);
+    this.binding_.start(paymentRequest, options);
   }
 
   /**
@@ -122,7 +126,6 @@ class PayClientBindingDef {
   /**
    * @param {!Object} unusedPaymentRequest
    * @param {!PayOptionsDef} unusedOptions
-   * @return {?Window}  popup window, if any.
    */
   start(unusedPaymentRequest, unusedOptions) {}
 
@@ -140,12 +143,15 @@ class PayClientBindingSwg {
   /**
    * @param {!Window} win
    * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
+   * @param {!../components/dialog-manager.DialogManager} dialogManager
    */
-  constructor(win, activityPorts) {
+  constructor(win, activityPorts, dialogManager) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = activityPorts;
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = dialogManager;
   }
 
   /** @override */
@@ -161,12 +167,13 @@ class PayClientBindingSwg {
         options.forceRedirect ? '_top' : '_blank',
         feArgs(paymentRequest),
         {});
-    return opener && opener.targetWin || null;
+    this.dialogManager_.popupOpened(opener && opener.targetWin || null);
   }
 
   /** @override */
   onResponse(callback) {
     this.activityPorts_.onResult(PAY_REQUEST_ID, port => {
+      this.dialogManager_.popupClosed();
       callback(this.validatePayResponse_(port));
     });
   }
@@ -201,6 +208,107 @@ class PayClientBindingSwg {
         return data;
       }
       throw new Error('channel mismatch');
+    });
+  }
+}
+
+
+/**
+ * Binding based on the https://github.com/google/payjs.
+ * @implements {PayClientBindingDef}
+ */
+class PayClientBindingPayjs {
+  /**
+   * @param {!Window} win
+   * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
+   */
+  constructor(win, activityPorts) {
+    /** @private @const {!Window} */
+    this.win_ = win;
+    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    this.activityPorts_ = activityPorts;
+
+    /** @private {?function(!Promise<!Object>)} */
+    this.responseCallback_ = null;
+
+    /** @private {?Promise<!Object>} */
+    this.response_ = null;
+
+    /** @private @const {!RedirectVerifierHelper} */
+    this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
+
+    // TODO(dvoytenko): Pass activities instance.
+    // TODO(dvoytenko): Pass redirect verifier key.
+    /** @private @const {!PaymentsAsyncClient} */
+    this.client_ = new PaymentsAsyncClient({
+      environment: '$payEnvironment$',
+      'i': {
+        'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+      },
+    }, this.handleResponse_.bind(this));
+
+    // Prepare new verifier pair.
+    this.redirectVerifierHelper_.prepare();
+  }
+
+  /** @override */
+  getType() {
+    return 'PAYJS';
+  }
+
+  /** @override */
+  start(paymentRequest, options) {
+    if (options.forceRedirect) {
+      paymentRequest = Object.assign(paymentRequest, {
+        'forceRedirect': options.forceRedirect || false,
+      });
+    }
+    // Notice that the callback for verifier may execute asynchronously.
+    this.redirectVerifierHelper_.useVerifier(verifier => {
+      if (verifier) {
+        paymentRequest['i'] = Object.assign(
+            paymentRequest['i'] || {},
+            {'redirectVerifier': verifier});
+      }
+      this.client_.loadPaymentData(paymentRequest);
+    });
+  }
+
+  /** @override */
+  onResponse(callback) {
+    this.responseCallback_ = callback;
+    const response = this.response_;
+    if (response) {
+      Promise.resolve().then(() => {
+        if (response) {
+          callback(this.convertResponse_(response));
+        }
+      });
+    }
+  }
+
+  /**
+   * @param {!Promise<!Object>} responsePromise
+   * @private
+   */
+  handleResponse_(responsePromise) {
+    this.response_ = responsePromise;
+    if (this.responseCallback_) {
+      this.responseCallback_(this.convertResponse_(this.response_));
+    }
+  }
+
+  /**
+   * @param {!Promise<!Object>} response
+   * @return {!Promise<!Object>}
+   * @private
+   */
+  convertResponse_(response) {
+    return response.catch(reason => {
+      if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
+        return Promise.reject(createCancelError(this.win_));
+      }
+      return Promise.reject(reason);
     });
   }
 }

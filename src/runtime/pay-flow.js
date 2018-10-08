@@ -78,7 +78,6 @@ export class PayStartFlow {
       forceRedirect:
           this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT,
     });
-    this.dialogManager_.popupOpened(opener);
     return Promise.resolve();
   }
 }
@@ -94,7 +93,6 @@ export class PayCompleteFlow {
    */
   static configurePending(deps) {
     deps.payClient().onResponse(payPromise => {
-      deps.dialogManager().popupClosed();
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
       const promise =
