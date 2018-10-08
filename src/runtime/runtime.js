@@ -250,6 +250,12 @@ export class Runtime {
   }
 
   /** @override */
+  clear() {
+    return this.configured_(true)
+        .then(runtime => runtime.clear());
+  }
+
+  /** @override */
   getEntitlements() {
     return this.configured_(true)
         .then(runtime => runtime.getEntitlements());
@@ -531,6 +537,12 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  clear() {
+    this.entitlementsManager_.clear();
+    this.dialogManager_.completeAll();
+  }
+
+  /** @override */
   start() {
     // No need to run entitlements without a product or for an unlocked page.
     if (!this.pageConfig_.getProductId() || !this.pageConfig_.isLocked()) {
@@ -682,6 +694,7 @@ function createPublicRuntime(runtime) {
     configure: runtime.configure.bind(runtime),
     start: runtime.start.bind(runtime),
     reset: runtime.reset.bind(runtime),
+    clear: runtime.clear.bind(runtime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
     showLoginPrompt: runtime.showLoginPrompt.bind(runtime),
