@@ -54,6 +54,11 @@ export class Subscriptions {
   reset() {}
 
   /**
+   * Resets the entitlements and clears all of the caches.
+   */
+  clear() {}
+
+  /**
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements() {}
