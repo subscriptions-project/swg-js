@@ -15,36 +15,35 @@
  */
 
 import {AnalyticsService} from './analytics-service';
-import {GlobalDoc} from '../model/doc';
 import {feArgs, feUrl} from './services';
 import {PageConfig} from '../model/page-config';
 import {getStyle} from '../utils/style';
 import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
+import {ConfiguredRuntime} from './runtime';
+import {TransactionId} from './transaction-id';
 
 import {
-  ActivityPorts,
   ActivityIframePort,
 } from 'web-activities/activity-ports';
 
 describes.realWin('AnalyticsService', {}, env => {
   let win;
   let src;
-  let doc;
   let activityPorts;
   let activityIframePort;
   let analyticsService;
   let pageConfig;
   let messageCallback;
+  let runtime;
   const productId = 'pub1:label1';
 
   beforeEach(() => {
     win = env.win;
-    doc = new GlobalDoc(win);
-    activityPorts = new ActivityPorts(win);
     src = '/serviceiframe';
     pageConfig = new PageConfig(productId);
-    analyticsService =
-        new AnalyticsService(doc, activityPorts, pageConfig);
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    activityPorts = runtime.activities();
+    analyticsService = new AnalyticsService(runtime);
     activityIframePort = new ActivityIframePort(
         analyticsService.getElement(),
         feUrl(src), activityPorts);
@@ -119,8 +118,46 @@ describes.realWin('AnalyticsService', {}, env => {
         const firstArgument = activityIframePort.message.getCall(0).args[0];
         expect(firstArgument['buf']).to.not.be.null;
         const /* {?AnalyticsRequest} */ request =
+          new AnalyticsRequest(firstArgument['buf']);
+        expect(request.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
+      });
+    });
+
+    it('should create correct context for logging', () => {
+      sandbox.stub(
+          activityIframePort,
+          'message'
+      );
+      AnalyticsService.prototype.getQueryString_ = () => {
+        return '?utm_source=scenic&utm_medium=email&utm_name=campaign';
+      };
+      AnalyticsService.prototype.getReferrer_ = () => {
+        return 'https://scenic-2017.appspot.com/landing.html';
+      };
+      sandbox.stub(TransactionId.prototype,
+          'get',
+          () => Promise.resolve('google-transaction-0'));
+      const startPromise = analyticsService.start();
+      return startPromise.then(() => {
+        analyticsService.logEvent(AnalyticsEvent.UNKNOWN);
+        analyticsService.setSku('basic');
+        return activityIframePort.whenReady();
+      }).then(() => {
+        expect(activityIframePort.message).to.be.calledOnce;
+        const firstArgument = activityIframePort.message.getCall(0).args[0];
+        expect(firstArgument['buf']).to.not.be.null;
+        const /* {?AnalyticsRequest} */ request =
             new AnalyticsRequest(firstArgument['buf']);
         expect(request.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
+        expect(request.getContext()).to.not.be.null;
+        expect(request.getContext().getReferringOrigin()).to.equal(
+            'https://scenic-2017.appspot.com');
+        expect(request.getContext().getUtmMedium()).to.equal('email');
+        expect(request.getContext().getUtmSource()).to.equal('scenic');
+        expect(request.getContext().getUtmName()).to.equal('campaign');
+        expect(request.getContext().getTransactionId()).to.equal(
+            'google-transaction-0');
+        expect(request.getContext().getSku()).to.equal('basic');
       });
     });
   });
