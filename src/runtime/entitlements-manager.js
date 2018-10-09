@@ -86,6 +86,17 @@ export class EntitlementsManager {
   }
 
   /**
+   * Clears all of the entitlements state and cache.
+   */
+  clear() {
+    this.responsePromise_ = null;
+    this.positiveRetries_ = 0;
+    this.unblockNextNotification();
+    this.storage_.remove(ENTS_STORAGE_KEY);
+    this.storage_.remove(TOAST_STORAGE_KEY);
+  }
+
+  /**
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements() {
@@ -101,11 +112,12 @@ export class EntitlementsManager {
 
   /**
    * @param {string} raw
+   * @param {boolean=} opt_isReadyToPay
    * @return {boolean}
    */
-  pushNextEntitlements(raw) {
+  pushNextEntitlements(raw, opt_isReadyToPay) {
     const entitlements = this.getValidJwtEntitlements_(
-        raw, /* requireNonExpired */ true);
+        raw, /* requireNonExpired */ true, opt_isReadyToPay);
     if (entitlements && entitlements.enablesThis()) {
       this.storage_.set(ENTS_STORAGE_KEY, raw);
       return true;
@@ -201,30 +213,32 @@ export class EntitlementsManager {
    * @return {!Entitlements}
    */
   parseEntitlements(json) {
+    const isReadyToPay = json['isReadyToPay'];
     const signedData = json['signedEntitlements'];
     if (signedData) {
       const entitlements = this.getValidJwtEntitlements_(
-          signedData, /* requireNonExpired */ false);
+          signedData, /* requireNonExpired */ false, isReadyToPay);
       if (entitlements) {
         return entitlements;
       }
     } else {
       const plainEntitlements = json['entitlements'];
       if (plainEntitlements) {
-        return this.createEntitlements_('', plainEntitlements);
+        return this.createEntitlements_('', plainEntitlements, isReadyToPay);
       }
     }
     // Empty response.
-    return this.createEntitlements_('', []);
+    return this.createEntitlements_('', [], isReadyToPay);
   }
 
   /**
    * @param {string} raw
    * @param {boolean} requireNonExpired
+   * @param {boolean=} opt_isReadyToPay
    * @return {?Entitlements}
    * @private
    */
-  getValidJwtEntitlements_(raw, requireNonExpired) {
+  getValidJwtEntitlements_(raw, requireNonExpired, opt_isReadyToPay) {
     try {
       const jwt = this.jwtHelper_.decode(raw);
       if (requireNonExpired) {
@@ -235,8 +249,8 @@ export class EntitlementsManager {
         }
       }
       const entitlementsClaim = jwt['entitlements'];
-      return entitlementsClaim &&
-          this.createEntitlements_(raw, entitlementsClaim) || null;
+      return entitlementsClaim && this.createEntitlements_(
+          raw, entitlementsClaim, opt_isReadyToPay) || null;
     } catch (e) {
       // Ignore the error.
       this.win_.setTimeout(() => {throw e;});
@@ -247,16 +261,18 @@ export class EntitlementsManager {
   /**
    * @param {string} raw
    * @param {!Object|!Array<!Object>} json
+   * @param {boolean=} opt_isReadyToPay
    * @return {!Entitlements}
    * @private
    */
-  createEntitlements_(raw, json) {
+  createEntitlements_(raw, json, opt_isReadyToPay) {
     return new Entitlements(
         SERVICE_ID,
         raw,
         Entitlement.parseListFromJson(json),
         this.config_.getProductId(),
-        this.ack_.bind(this));
+        this.ack_.bind(this),
+        opt_isReadyToPay);
   }
 
   /**

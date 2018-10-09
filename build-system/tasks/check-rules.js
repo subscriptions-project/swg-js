@@ -105,6 +105,7 @@ const forbiddenTerms = {
   'localStorage': {
     message: requiresReviewPrivacy,
     whitelist: [
+      'src/runtime/pay-client.js',
     ],
   },
   'sessionStorage': {

@@ -130,8 +130,8 @@ export class DeferredAccountFlow {
         idToken,
         /** @type {!Object} */ (new JwtHelper().decode(idToken)));
     const purchaseData = new PurchaseData(
-        data['purchaseData'],
-        data['purchaseDataSignature']);
+        data['purchaseData']['data'],
+        data['purchaseData']['signature']);
 
     // For now, we'll use the `PayCompleteFlow` as a "creating account" flow.
     // But this can be eventually implemented by the same iframe.

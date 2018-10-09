@@ -19,6 +19,7 @@ import {GlobalDoc} from '../model/doc';
 import {feArgs, feUrl} from './services';
 import {PageConfig} from '../model/page-config';
 import {getStyle} from '../utils/style';
+import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
 
 import {
   ActivityPorts,
@@ -111,12 +112,15 @@ describes.realWin('AnalyticsService', {}, env => {
       );
       const startPromise = analyticsService.start();
       return startPromise.then(() => {
-        analyticsService.logEvent({'something': 'important'});
+        analyticsService.logEvent(AnalyticsEvent.UNKNOWN);
         return activityIframePort.whenReady();
       }).then(() => {
         expect(activityIframePort.message).to.be.calledOnce;
         const firstArgument = activityIframePort.message.getCall(0).args[0];
-        expect(firstArgument).to.deep.equal({'something': 'important'});
+        expect(firstArgument['buf']).to.not.be.null;
+        const /* {?AnalyticsRequest} */ request =
+            new AnalyticsRequest(firstArgument['buf']);
+        expect(request.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
       });
     });
   });
