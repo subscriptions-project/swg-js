@@ -122,26 +122,29 @@ export class EntitlementsManager {
    * @private
    */
   fetchEntitlementsWithCaching_() {
-    return this.storage_.get(ENTS_STORAGE_KEY).then(raw => {
-      return this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY).then(irtp => {
-        // Try cache first.
-        if (raw) {
-          const cached = this.getValidJwtEntitlements_(
-              raw, /* requireNonExpired */ true, !!irtp);
-          if (cached && cached.enablesThis()) {
-            // Already have a positive response.
-            this.positiveRetries_ = 0;
-            return cached;
-          }
+    return Promise.all([
+      this.storage_.get(ENTS_STORAGE_KEY),
+      this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY),
+    ]).then(cachedValues => {
+      const raw = cachedValues[0];
+      const irtp = cachedValues[1];
+      // Try cache first.
+      if (raw) {
+        const cached = this.getValidJwtEntitlements_(
+            raw, /* requireNonExpired */ true, !!irtp);
+        if (cached && cached.enablesThis()) {
+          // Already have a positive response.
+          this.positiveRetries_ = 0;
+          return cached;
         }
-        // If cache didn't match, perform fetch.
-        return this.fetchEntitlements_().then(ents => {
-          // If entitlements match the product, store them in cache.
-          if (ents && ents.enablesThis() && ents.raw) {
-            this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
-          }
-          return ents;
-        });
+      }
+      // If cache didn't match, perform fetch.
+      return this.fetchEntitlements_().then(ents => {
+        // If entitlements match the product, store them in cache.
+        if (ents && ents.enablesThis() && ents.raw) {
+          this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
+        }
+        return ents;
       });
     });
   }
