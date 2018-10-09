@@ -17,30 +17,29 @@
 import {feArgs, feUrl} from './services';
 import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
-<<<<<<< HEAD
-=======
 import {AnalyticsRequest,
         AnalyticsContext} from '../proto/api_messages';
->>>>>>> master
+import {TransactionId} from './transaction-id';
+import {parseQueryString} from '../utils/url';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
   display: 'none',
 };
 
+
 export class AnalyticsService {
   /**
-   * @param {!../model/doc.Doc} doc
-   * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
-   * @param {!../model/page-config.PageConfig} config
+   * @param {!./deps.DepsDef} deps
+   * @param {!TransactionId} xid
    */
-  constructor(doc, activityPorts, config) {
+  constructor(deps, xid) {
 
     /** @private @const {!Doc} */
-    this.doc_ = doc;
+    this.doc_ = deps.doc();
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = activityPorts;
+    this.activityPorts_ = deps.activities();
 
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ =
@@ -53,11 +52,10 @@ export class AnalyticsService {
     this.src_ = feUrl('/serviceiframe');
 
     /** @private @const {string} */
-    this.publicationId_ = config.getPublicationId();
+    this.publicationId_ = deps.pageConfig().getPublicationId();
 
     this.args_ = feArgs({
       publicationId: this.publicationId_,
-      // TODO(sohanirao): Add analytics context here
     });
 
     /**
@@ -78,6 +76,18 @@ export class AnalyticsService {
      * @private @const {!AnalyticsContext}
      */
     this.context_ = new AnalyticsContext();
+
+    /**
+     * @private @const {!TransactionId}
+     */
+    this.xid_ = xid;
+  }
+
+  /**
+   * @param {string} sku
+   */
+  setSku(sku) {
+    this.context_.setSku(sku);
   }
 
   /**
@@ -88,23 +98,62 @@ export class AnalyticsService {
   }
 
   /**
+   * @return {!string}
+   * @private
+   */
+  getQueryString_() {
+    return this.doc_.getWin().location.search.split('?')[1];
+  }
+
+  /**
+   * @return {!string}
+   * @private
+   */
+  getReferrer_() {
+    return this.doc_.getWin().document.referrer;
+  }
+
+  /**
+   * @return {!Promise}
+   */
+  setContext_() {
+    const utmParams = parseQueryString(this.getQueryString_());
+    this.context_.setTransactionId(this.xid_.get());
+    this.context_.setReferringOrigin(this.getReferrer_());
+    const name = utmParams['utm_name'];
+    const medium = utmParams['utm_medium'];
+    const source = utmParams['utm_source'];
+    if (name) {
+      this.context_.setUtmName(name);
+    }
+    if (medium) {
+      this.context_.setUtmMedium(medium);
+    }
+    if (source) {
+      this.context_.setUtmSource(source);
+    }
+    return this.xid_.get().then(id => {
+      this.context_.setTransactionId(id);
+    });
+  }
+
+  /**
    * @return {!Promise}
    */
   start() {
     this.doc_.getBody().appendChild(this.getElement());
-<<<<<<< HEAD
-=======
-    // TODO(sohanirao): setup analyticsContext
->>>>>>> master
     return this.activityPorts_.openIframe(this.iframe_, this.src_,
         this.args_).then(port => {
           this.portResolver_(port);
+          return this.setContext_();
         });
   }
 
   /**
    */
   close() {
+    // Clean up context
+    this.context_ = new AnalyticsContext();
     this.doc_.getBody().removeChild(this.getElement());
   }
 
@@ -133,7 +182,6 @@ export class AnalyticsService {
   logEvent(event) {
     this.port_().then(port => {
       return port.whenReady().then(() => {
-        /** TODO(sohanirao): Build AnalyticsRequest */
         port.message({'buf': this.createLogRequest_(event).toArray()});
       });
     });
