@@ -14,14 +14,30 @@
  * limitations under the License.
  */
 
+import {
+  createAbortError,
+  isAbortError,
+} from 'web-activities/activity-ports';
+
 
 /**
+ * Whether the specified error is an AbortError type.
+ * See https://heycam.github.io/webidl/#aborterror.
  * @param {*} error
  * @return {boolean}
  */
 export function isCancelError(error) {
-  if (!error || typeof error != 'object') {
-    return false;
-  }
-  return (error['name'] === 'AbortError');
+  return isAbortError(error);
+}
+
+
+/**
+ * Creates or emulates a DOMException of AbortError type.
+ * See https://heycam.github.io/webidl/#aborterror.
+ * @param {!Window} win
+ * @param {string=} opt_message
+ * @return {!DOMException}
+ */
+export function createCancelError(win, opt_message) {
+  return createAbortError(win, opt_message);
 }

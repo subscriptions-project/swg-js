@@ -37,3 +37,11 @@ Some of the main types are:
 - [UserData](../src/api/user-data.js)
 
 For details on how these types and related APIs are used, see see [Subscriptions flows](./flows.md).
+
+
+## Clear and reset APIs
+
+The `swg.reset()` API can be called to reset entitlements if the parent applicatio believes that the entitlements have changed and would like to refetch them again.
+
+The `swg.clear()` API can be called to clear the SwG state, including caches.
+

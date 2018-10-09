@@ -199,8 +199,10 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     resultResolver({data: {
       entitlements: 'OUTPUT_JWT',
       idToken: EMPTY_ID_TOK,
-      purchaseData: 'PURCHASE_DATA',
-      purchaseDataSignature: 'SIG(PURCHASE_DATA)',
+      purchaseData: {
+        data: 'PURCHASE_DATA',
+        signature: 'SIG(PURCHASE_DATA)',
+      },
     }});
     return flow.start().then(response => {
       expect(response.entitlements).to.equal(outputEnts);
