@@ -120,6 +120,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       // Not sure what these files are, but they seem to duplicate code
       // one level below and confuse the compiler.
       '!node_modules/core-js/modules/library/**.js',
+      'third_party/random_uuid/uuid-swg.js',
       // Don't include tests.
       '!**-test.js',
       '!**_test.js',
