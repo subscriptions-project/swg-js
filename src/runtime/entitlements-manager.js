@@ -20,7 +20,8 @@ import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
 import {feArgs, feUrl} from '../runtime/services';
 import {AnalyticsService} from './analytics-service';
-import {GlobalDoc} from '../model/doc';
+import {AnalyticsEvent} from '../proto/api_messages';
+import {TransactionId} from './transaction-id';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -69,8 +70,7 @@ export class EntitlementsManager {
     this.storage_ = deps.storage();
 
     /** @private @const {!AnalyticsService} */
-    this.analyticsService_ = new AnalyticsService(new GlobalDoc(this.win_),
-        this.deps_.activities(), this.config_);
+    this.analyticsService_ = new AnalyticsService(deps, new TransactionId(deps));
   }
 
   /**
@@ -103,11 +103,15 @@ export class EntitlementsManager {
     if (!this.responsePromise_) {
       this.responsePromise_ = this.getEntitlementsFlow_();
     }
-    this.analyticsService_.start().then(() => {
-      console.log('sohani started analytics service');
-      this.analyticsService_.logEvent('got entitlements');
+    return this.responsePromise_.then(response => {
+      // TODO(chenshay): check if config allows logging impressions
+      if (response.isReadyToPay) {
+        this.analyticsService_.start().then(() => {
+          this.analyticsService_.logEvent(AnalyticsEvent.IS_READY_TO_PAY);
+        });
+      }
+      return response;
     });
-    return this.responsePromise_;
   }
 
   /**

@@ -16,6 +16,8 @@
 /** @enum {number} */
 const AnalyticsEvent = {
   UNKNOWN: 0,
+  IS_READY_TO_PAY: 1,
+  SUBSCRIBE: 2,
 };
 
 class AnalyticsContext {
