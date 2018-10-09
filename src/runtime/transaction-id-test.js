@@ -14,90 +14,90 @@
  * limitations under the License.
  */
 
-import { TransactionId } from './transaction-id';
+import {TransactionId} from './transaction-id';
 import {PageConfig} from '../model/page-config';
 import {ConfiguredRuntime} from './runtime';
-import * as Uuid from '../../third_party/random_uuid/uuid-swg'
+import * as Uuid from '../../third_party/random_uuid/uuid-swg';
 
 describes.realWin('TransactionId', {}, env => {
 
-    let storageMock;
-    let transactionId;
-    let pageConfig;
-    let runtime;
-    let win;
- 
-    beforeEach(() => {
-      win = env.win;
-      pageConfig = new PageConfig('pub1');
-      runtime = new ConfiguredRuntime(win, pageConfig);
-      storageMock = sandbox.mock(runtime.storage());
-    });
-  
-    afterEach(() => {
-      storageMock.verify();
-      sandbox.reset();
-    });
+  let storageMock;
+  let transactionId;
+  let pageConfig;
+  let runtime;
+  let win;
 
-    it('should generate new transaction id first time', () => {
-        transactionId = new TransactionId(runtime);
-        storageMock.expects('get')
-            .withExactArgs('transaction_id')
-            .once().returns(Promise.resolve(null));
-        sandbox.stub(Uuid, 'uuidFast', () => {
-            return 'google-transaction-0';
-          });
-        storageMock.expects('set')
-          .withExactArgs('transaction_id', 'google-transaction-0')
-          .once();        
-        return transactionId.get().then(id => {          
-          expect(id).to.equal('google-transaction-0');
-        });        
-    });
+  beforeEach(() => {
+    win = env.win;
+    pageConfig = new PageConfig('pub1');
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    storageMock = sandbox.mock(runtime.storage());
+  });
 
-    it('should not generate new transaction id if already available', () => {
-        transactionId = new TransactionId(runtime);
-        storageMock.expects('get')
-            .withExactArgs('transaction_id')
-            .once().returns(Promise.resolve(null));
-        sandbox.stub(Uuid, 'uuidFast', () => {
-            return 'google-transaction-0';
-          });            
-        return transactionId.get().then(id => {
-          expect(id).to.equal('google-transaction-0');
-          storageMock.expects('get')
-            .withExactArgs('transaction_id')
-            .once().returns(Promise.resolve('google-transaction-0'));        
-          return transactionId.get();
-        }).then(id_prime => {
-          expect(id_prime).to.equal('google-transaction-0');
-        });  
-    });
+  afterEach(() => {
+    storageMock.verify();
+    sandbox.reset();
+  });
 
-    it('should reset transaction id', () => {
-        transactionId = new TransactionId(runtime);
-        storageMock.expects('get')
-            .withExactArgs('transaction_id')
-            .once().returns(Promise.resolve('google-transaction-0'));
-        storageMock.expects('remove')
-            .withExactArgs('transaction_id')
-            .once().returns(Promise.resolve());
-        sandbox.stub(Uuid, 'uuidFast', () => {
-            return 'google-transaction-1';
-          });             
-        return transactionId.get().then(id => {
-          expect(id).to.equal('google-transaction-0');
-          storageMock.expects('get')
-            .withExactArgs('transaction_id')
-            .once().returns(Promise.resolve(null));                    
-          return transactionId.reset();
-        }).then(() => {
-          storageMock.expects('set')
-            .withExactArgs('transaction_id', 'google-transaction-1')
-            .once();                 
-          return transactionId.get();
-        }).then(id_prime => {
-          expect(id_prime).to.equal('google-transaction-1');
-        });            
+  it('should generate new transaction id first time', () => {
+    transactionId = new TransactionId(runtime);
+    storageMock.expects('get')
+        .withExactArgs('transaction_id')
+        .once().returns(Promise.resolve(null));
+    sandbox.stub(Uuid, 'uuidFast', () => {
+      return 'google-transaction-0';
     });
+    storageMock.expects('set')
+        .withExactArgs('transaction_id', 'google-transaction-0')
+        .once();
+    return transactionId.get().then(id => {
+      expect(id).to.equal('google-transaction-0');
+    });
+  });
+
+  it('should not generate new transaction id if already available', () => {
+    transactionId = new TransactionId(runtime);
+    storageMock.expects('get')
+        .withExactArgs('transaction_id')
+        .once().returns(Promise.resolve(null));
+    sandbox.stub(Uuid, 'uuidFast', () => {
+      return 'google-transaction-0';
+    });
+    return transactionId.get().then(id => {
+      expect(id).to.equal('google-transaction-0');
+      storageMock.expects('get')
+          .withExactArgs('transaction_id')
+          .once().returns(Promise.resolve('google-transaction-0'));
+      return transactionId.get();
+    }).then(idPrime => {
+      expect(idPrime).to.equal('google-transaction-0');
+    });
+  });
+
+  it('should reset transaction id', () => {
+    transactionId = new TransactionId(runtime);
+    storageMock.expects('get')
+        .withExactArgs('transaction_id')
+        .once().returns(Promise.resolve('google-transaction-0'));
+    storageMock.expects('remove')
+        .withExactArgs('transaction_id')
+        .once().returns(Promise.resolve());
+    sandbox.stub(Uuid, 'uuidFast', () => {
+      return 'google-transaction-1';
+    });
+    return transactionId.get().then(id => {
+      expect(id).to.equal('google-transaction-0');
+      storageMock.expects('get')
+          .withExactArgs('transaction_id')
+          .once().returns(Promise.resolve(null));
+      return transactionId.reset();
+    }).then(() => {
+      storageMock.expects('set')
+          .withExactArgs('transaction_id', 'google-transaction-1')
+          .once();
+      return transactionId.get();
+    }).then(idPrime => {
+      expect(idPrime).to.equal('google-transaction-1');
+    });
+  });
 });

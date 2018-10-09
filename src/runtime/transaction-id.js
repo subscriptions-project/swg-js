@@ -16,7 +16,7 @@
 /**
  * Helper with all things Timer.
  */
-import {uuidFast} from '../../third_party/random_uuid/uuid-swg'
+import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
 
 export class TransactionId {
   /**
