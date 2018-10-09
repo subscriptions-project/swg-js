@@ -20,7 +20,7 @@ import {setImportantStyles} from '../utils/style';
 import {AnalyticsRequest,
         AnalyticsContext} from '../proto/api_messages';
 import {TransactionId} from './transaction-id';
-import {parseQueryString} from '../utils/url';
+import {parseQueryString, parseUrl} from '../utils/url';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -98,19 +98,19 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!string}
+   * @return {string}
    * @private
    */
   getQueryString_() {
-    return this.doc_.getWin().location.search.split('?')[1];
+    return this.doc_.getWin().location.search.slice(1);
   }
 
   /**
-   * @return {!string}
+   * @return {string}
    * @private
    */
   getReferrer_() {
-    return this.doc_.getWin().document.referrer;
+    return parseUrl(this.doc_.getWin().document.referrer).origin;
   }
 
   /**
@@ -152,8 +152,7 @@ export class AnalyticsService {
   /**
    */
   close() {
-    // Clean up context
-    this.context_ = new AnalyticsContext();
+    // TODO(sohanirao): Clean up context?
     this.doc_.getBody().removeChild(this.getElement());
   }
 
