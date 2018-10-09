@@ -151,7 +151,7 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(request.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
         expect(request.getContext()).to.not.be.null;
         expect(request.getContext().getReferringOrigin()).to.equal(
-            'https://scenic-2017.appspot.com/landing.html');
+            'https://scenic-2017.appspot.com');
         expect(request.getContext().getUtmMedium()).to.equal('email');
         expect(request.getContext().getUtmSource()).to.equal('scenic');
         expect(request.getContext().getUtmName()).to.equal('campaign');

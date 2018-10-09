@@ -101,7 +101,7 @@ export class AnalyticsService {
    * @private
    */
   getQueryString_() {
-    return this.doc_.getWin().location.search.slice(1);
+    return this.doc_.getWin().location.search;
   }
 
   /**
@@ -109,7 +109,7 @@ export class AnalyticsService {
    * @private
    */
   getReferrer_() {
-    return parseUrl(this.doc_.getWin().document.referrer).origin;
+    return this.doc_.getWin().document.referrer;
   }
 
   /**
@@ -118,7 +118,7 @@ export class AnalyticsService {
   setContext_() {
     const utmParams = parseQueryString(this.getQueryString_());
     this.context_.setTransactionId(this.xid_.get());
-    this.context_.setReferringOrigin(this.getReferrer_());
+    this.context_.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     const name = utmParams['utm_name'];
     const medium = utmParams['utm_medium'];
     const source = utmParams['utm_source'];
@@ -151,7 +151,6 @@ export class AnalyticsService {
   /**
    */
   close() {
-    // TODO(sohanirao): Clean up context?
     this.doc_.getBody().removeChild(this.getElement());
   }
 
