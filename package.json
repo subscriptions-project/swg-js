@@ -31,7 +31,7 @@
   "devDependencies": {
     "@google-cloud/nodejs-repo-tools": "1.4.17",
     "ansi-colors": "1.1.0",
-    "atob": "2.0.3",
+    "atob": "2.1.0",
     "autoprefixer": "6.7.0",
     "ava": "0.15.2",
     "babel-core": "5.8.35",
@@ -100,7 +100,7 @@
     "lazypipe": "1.0.1",
     "lolex": "1.4.0",
     "markdown-link-check": "^3.0.3",
-    "minimatch": "3.0.0",
+    "minimatch": "3.0.2",
     "minimist": "1.2.0",
     "mocha": "2.5.3",
     "morgan": "1.7.0",
