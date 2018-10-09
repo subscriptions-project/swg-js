@@ -31,9 +31,8 @@ const iframeStyles = {
 export class AnalyticsService {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!TransactionId} xid
    */
-  constructor(deps, xid) {
+  constructor(deps) {
 
     /** @private @const {!Doc} */
     this.doc_ = deps.doc();
@@ -80,7 +79,7 @@ export class AnalyticsService {
     /**
      * @private @const {!TransactionId}
      */
-    this.xid_ = xid;
+    this.xid_ = new TransactionId(deps);
   }
 
   /**
