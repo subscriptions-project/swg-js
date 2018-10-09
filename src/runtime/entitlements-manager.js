@@ -82,6 +82,17 @@ export class EntitlementsManager {
   }
 
   /**
+   * Clears all of the entitlements state and cache.
+   */
+  clear() {
+    this.responsePromise_ = null;
+    this.positiveRetries_ = 0;
+    this.unblockNextNotification();
+    this.storage_.remove(ENTS_STORAGE_KEY);
+    this.storage_.remove(TOAST_STORAGE_KEY);
+  }
+
+  /**
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements() {

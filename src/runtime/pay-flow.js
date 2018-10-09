@@ -71,6 +71,9 @@ export class PayStartFlow {
         'publicationId': this.pageConfig_.getPublicationId(),
         'skuId': this.sku_,
       },
+      'i': {
+        'startTimeMs': Date.now(),
+      },
     }, {
       forceRedirect:
           this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT,

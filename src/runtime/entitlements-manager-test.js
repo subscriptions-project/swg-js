@@ -306,6 +306,34 @@ describes.realWin('EntitlementsManager', {}, env => {
         expect(totalTime).to.be.greaterThan(999);
       });
     });
+
+    it('should re-fetch after clear', () => {
+      xhrMock.expects('fetch')
+          .returns(Promise.resolve({
+            json: () => Promise.resolve({}),
+          }))
+          .twice();
+      return manager.getEntitlements().then(() => {
+        manager.clear();
+        return manager.getEntitlements();
+      });
+    });
+
+    it('should clear all state and cache', () => {
+      manager.reset(true);
+      manager.blockNextNotification();
+      manager.responsePromise_ = Promise.reject();
+      expect(manager.positiveRetries_).to.equal(3);
+      expect(manager.blockNextNotification_).to.be.true;
+
+      storageMock.expects('remove').withExactArgs('ents').once();
+      storageMock.expects('remove').withExactArgs('toast').once();
+
+      manager.clear();
+      expect(manager.positiveRetries_).to.equal(0);
+      expect(manager.blockNextNotification_).to.be.false;
+      expect(manager.responsePromise_).to.be.null;
+    });
   });
 
   describe('flow', () => {
