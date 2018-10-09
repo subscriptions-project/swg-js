@@ -114,6 +114,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       'src/**/*.js',
       '!src/*-babel.js',
       '!third_party/babel/custom-babel-helpers.js',
+      'third_party/gpay/**/*.js',
       'node_modules/promise-pjs/promise.js',
       'node_modules/web-activities/activity-ports.js',
       //'node_modules/core-js/modules/**.js',
@@ -198,6 +199,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
         hide_warnings_for: [
           'src/polyfills/',
           'node_modules/',
+          'third_party/',
         ],
         jscomp_error: [],
       },

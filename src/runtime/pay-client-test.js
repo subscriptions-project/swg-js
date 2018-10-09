@@ -20,8 +20,16 @@ import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {PayClient, RedirectVerifierHelper} from './pay-client';
+import {DialogManager} from '../components/dialog-manager';
+import {GlobalDoc} from '../model/doc';
+import {
+  PayClient,
+  PayClientBindingPayjs,
+  RedirectVerifierHelper,
+} from './pay-client';
+import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Xhr} from '../utils/xhr';
+import {isCancelError} from '../utils/errors';
 
 
 const INTEGR_DATA_STRING =
@@ -51,6 +59,7 @@ const INTEGR_DATA_OBJ_DECODED = {
 describes.realWin('PayClientBindingSwg', {}, env => {
   let win;
   let activityPorts, activitiesMock, port;
+  let dialogManagerMock;
   let resultCallback, resultStub;
   let payClient;
 
@@ -64,13 +73,16 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     };
     port = new ActivityPort();
     activitiesMock = sandbox.mock(activityPorts);
-    payClient = new PayClient(win, activityPorts);
+    const dialogManager = new DialogManager(new GlobalDoc(win));
+    dialogManagerMock = sandbox.mock(dialogManager);
+    payClient = new PayClient(win, activityPorts, dialogManager);
     resultStub = sandbox.stub();
     payClient.onResponse(resultStub);
   });
 
   afterEach(() => {
     activitiesMock.verify();
+    dialogManagerMock.verify();
   });
 
   /**
@@ -90,6 +102,9 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 
   it('should have valid flow constructed', () => {
     const popupWin = {};
+    dialogManagerMock.expects('popupOpened')
+        .withExactArgs(popupWin)
+        .once();
     activitiesMock.expects('open').withExactArgs(
         'swg-pay',
         'PAY_ORIGIN/gp/p/ui/pay?_=_',
@@ -101,13 +116,15 @@ describes.realWin('PayClientBindingSwg', {}, env => {
         {})
         .returns({targetWin: popupWin})
         .once();
-    const opener = payClient.start({
+    payClient.start({
       'paymentArgs': {'a': 1},
     });
-    expect(opener).to.equal(popupWin);
   });
 
   it('should force redirect mode', () => {
+    dialogManagerMock.expects('popupOpened')
+        .withExactArgs(null)
+        .once();
     activitiesMock.expects('open').withExactArgs(
         'swg-pay',
         'PAY_ORIGIN/gp/p/ui/pay?_=_',
@@ -119,15 +136,15 @@ describes.realWin('PayClientBindingSwg', {}, env => {
         {})
         .returns(undefined)
         .once();
-    const opener = payClient.start({
+    payClient.start({
       'paymentArgs': {'a': 1},
     }, {
       forceRedirect: true,
     });
-    expect(opener).to.be.null;
   });
 
   it('should catch mismatching channel', () => {
+    dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ);
     return withResult(result).then(() => {
       throw new Error('must have failed');
@@ -137,6 +154,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
   });
 
   it('should require secure channel for unencrypted payload', () => {
+    dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
         'REDIRECT', 'PAY_ORIGIN', true, false);
     return withResult(result).then(() => {
@@ -147,6 +165,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
   });
 
   it('should require secure channel for unverified payload', () => {
+    dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
         'REDIRECT', 'PAY_ORIGIN', false, true);
     return withResult(result).then(() => {
@@ -157,6 +176,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
   });
 
   it('should accept a correct payment response', () => {
+    dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
         'POPUP', 'PAY_ORIGIN', true, true);
     return withResult(result).then(data => {
@@ -165,6 +185,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
   });
 
   it('should accept a correct payment response as decoded obj', () => {
+    dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(ActivityResultCode.OK,
         INTEGR_DATA_OBJ_DECODED,
         'POPUP', 'PAY_ORIGIN', true, true);
@@ -175,6 +196,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 
   it('should accept a correct payment response as encrypted obj' +
      ' in PRODUCTION', () => {
+    dialogManagerMock.expects('popupClosed').once();
     const encryptedData = 'ENCRYPTED';
     const encryptedResponse = {
       redirectEncryptedCallbackData: encryptedData,
@@ -203,6 +225,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 
   it('should accept a correct payment response as encrypted obj' +
     ' in SANDBOX', () => {
+    dialogManagerMock.expects('popupClosed').once();
     const encryptedData = 'ENCRYPTED';
     const encryptedResponse = {
       redirectEncryptedCallbackData: encryptedData,
@@ -230,6 +253,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
   });
 
   it('should propagate cancelation', () => {
+    dialogManagerMock.expects('popupClosed').once();
     sandbox.stub(port, 'acceptResult', () => Promise.reject(
         new DOMException('cancel', 'AbortError')));
     resultCallback(port);
@@ -242,6 +266,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
   });
 
   it('should propagate an error', () => {
+    dialogManagerMock.expects('popupClosed').once();
     sandbox.stub(port, 'acceptResult', () => Promise.reject(
         new Error('intentional')));
     resultCallback(port);
@@ -250,6 +275,134 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       throw new Error('must have failed');
     }, reason => {
       expect(() => {throw reason;}).to.throw(/intentional/);
+    });
+  });
+});
+
+
+describes.realWin('PayClientBindingPayjs', {}, env => {
+  let win;
+  let resultStub;
+  let payClient;
+  let payClientStubs;
+  let redirectVerifierHelperStubs, redirectVerifierHelperResults;
+  let responseHandler;
+
+  beforeEach(() => {
+    win = env.win;
+    const activityPorts = new ActivityPorts(win);
+    redirectVerifierHelperResults = {
+      restoreKey: 'test_restore_key',
+      verifier: 'test_verifier',
+    };
+    redirectVerifierHelperStubs = {
+      restoreKey: sandbox.stub(RedirectVerifierHelper.prototype, 'restoreKey',
+          () => redirectVerifierHelperResults.restoreKey),
+      prepare: sandbox.stub(RedirectVerifierHelper.prototype, 'prepare'),
+      useVerifier: sandbox.stub(RedirectVerifierHelper.prototype, 'useVerifier',
+          callback => {
+            callback(redirectVerifierHelperResults.verifier);
+          }),
+    };
+    payClientStubs = {
+      create: sandbox.stub(PayClientBindingPayjs.prototype,
+          'createClient_',
+          (options, handler) => {
+            responseHandler = handler;
+            return new PaymentsAsyncClient({});
+          }),
+      loadPaymentData: sandbox.stub(PaymentsAsyncClient.prototype,
+          'loadPaymentData'),
+    };
+    payClient = new PayClientBindingPayjs(win, activityPorts);
+    resultStub = sandbox.stub();
+    payClient.onResponse(resultStub);
+  });
+
+  /**
+   * @param {!Promise<!Object>} result
+   * @return {!Promise<!Object>}
+   */
+  function withResult(result) {
+    responseHandler(result);
+    expect(resultStub).to.be.calledOnce;
+    return resultStub.args[0][0];
+  }
+
+  it('should select the right binding', () => {
+    expect(payClient.getType()).to.equal('PAYJS');
+  });
+
+  it('should initalize correctly', () => {
+    expect(payClientStubs.create).to.be.calledOnce.calledWith({
+      'environment': '$payEnvironment$',
+      'i': {
+        'redirectKey': 'test_restore_key',
+      },
+    });
+    expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
+    expect(redirectVerifierHelperStubs.prepare).to.be.calledOnce;
+  });
+
+  it('should have valid flow constructed', () => {
+    payClient.start({
+      'paymentArgs': {'a': 1},
+    }, {});
+    expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
+    expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+      'paymentArgs': {'a': 1},
+      'i': {
+        'redirectVerifier': redirectVerifierHelperResults.verifier,
+      },
+    });
+  });
+
+  it('should force redirect mode', () => {
+    payClient.start({
+      'paymentArgs': {'a': 1},
+    }, {
+      forceRedirect: true,
+    });
+    expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
+    expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+      'paymentArgs': {'a': 1},
+      'forceRedirect': true,
+      'i': {
+        'redirectVerifier': redirectVerifierHelperResults.verifier,
+      },
+    });
+  });
+
+  it('should accept a correct payment response', () => {
+    return withResult(Promise.resolve(INTEGR_DATA_OBJ)).then(data => {
+      expect(data).to.deep.equal(INTEGR_DATA_OBJ);
+    });
+  });
+
+  it('should accept a cancel signal', () => {
+    return withResult(Promise.reject({'statusCode': 'CANCELED'})).then(() => {
+      throw new Error('must have failed');
+    }, reason => {
+      expect(isCancelError(reason)).to.be.true;
+    });
+  });
+
+  it('should accept other errors', () => {
+    return withResult(Promise.reject('intentional')).then(() => {
+      throw new Error('must have failed');
+    }, reason => {
+      expect(() => {throw reason;}).to.throw(/intentional/);
+    });
+  });
+
+  it('should return response on initialization', () => {
+    return withResult(Promise.resolve(INTEGR_DATA_OBJ)).then(data => {
+      expect(data).to.deep.equal(INTEGR_DATA_OBJ);
+      return new Promise(resolve => {
+        payClient.onResponse(resolve);
+      });
+    }).then(data => {
+      expect(data).to.deep.equal(INTEGR_DATA_OBJ);
     });
   });
 });
