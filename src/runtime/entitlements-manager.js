@@ -90,6 +90,7 @@ export class EntitlementsManager {
     this.unblockNextNotification();
     this.storage_.remove(ENTS_STORAGE_KEY);
     this.storage_.remove(TOAST_STORAGE_KEY);
+    this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
   }
 
   /**
@@ -142,7 +143,8 @@ export class EntitlementsManager {
       // Try cache first.
       if (raw) {
         const cached = this.getValidJwtEntitlements_(
-            raw, /* requireNonExpired */ true, !!irtp);
+            raw, /* requireNonExpired */ true,
+            /** @type {boolean|undefined} */ (irtp));
         if (cached && cached.enablesThis()) {
           // Already have a positive response.
           this.positiveRetries_ = 0;
@@ -210,10 +212,10 @@ export class EntitlementsManager {
    * @return {!Entitlements}
    */
   parseEntitlements(json) {
-    const isReadyToPay = /** @type {boolean} */ (json['isReadyToPay']);
-    if (json['isReadyToPay']) {
-      this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, json['isReadyToPay']);
-    }
+    const isReadyToPay =
+        /** @type {boolean|undefined} */ (json['isReadyToPay']);
+    this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, json['isReadyToPay']);
+
 
     const signedData = json['signedEntitlements'];
     if (signedData) {
