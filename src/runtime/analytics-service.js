@@ -31,9 +31,8 @@ const iframeStyles = {
 export class AnalyticsService {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!TransactionId} xid
    */
-  constructor(deps, xid) {
+  constructor(deps) {
 
     /** @private @const {!Doc} */
     this.doc_ = deps.doc();
@@ -80,7 +79,7 @@ export class AnalyticsService {
     /**
      * @private @const {!TransactionId}
      */
-    this.xid_ = xid;
+    this.xid_ = new TransactionId(deps);
   }
 
   /**
@@ -102,7 +101,7 @@ export class AnalyticsService {
    * @private
    */
   getQueryString_() {
-    return this.doc_.getWin().location.search.slice(1);
+    return this.doc_.getWin().location.search;
   }
 
   /**
@@ -110,7 +109,7 @@ export class AnalyticsService {
    * @private
    */
   getReferrer_() {
-    return parseUrl(this.doc_.getWin().document.referrer).origin;
+    return this.doc_.getWin().document.referrer;
   }
 
   /**
@@ -119,7 +118,7 @@ export class AnalyticsService {
   setContext_() {
     const utmParams = parseQueryString(this.getQueryString_());
     this.context_.setTransactionId(this.xid_.get());
-    this.context_.setReferringOrigin(this.getReferrer_());
+    this.context_.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     const name = utmParams['utm_name'];
     const medium = utmParams['utm_medium'];
     const source = utmParams['utm_source'];

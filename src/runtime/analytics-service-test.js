@@ -34,7 +34,6 @@ describes.realWin('AnalyticsService', {}, env => {
   let analyticsService;
   let pageConfig;
   let messageCallback;
-  let xid;
   let runtime;
   const productId = 'pub1:label1';
 
@@ -44,8 +43,7 @@ describes.realWin('AnalyticsService', {}, env => {
     pageConfig = new PageConfig(productId);
     runtime = new ConfiguredRuntime(win, pageConfig);
     activityPorts = runtime.activities();
-    xid = new TransactionId(runtime);
-    analyticsService = new AnalyticsService(runtime, xid);
+    analyticsService = new AnalyticsService(runtime);
     activityIframePort = new ActivityIframePort(
         analyticsService.getElement(),
         feUrl(src), activityPorts);
@@ -141,6 +139,9 @@ describes.realWin('AnalyticsService', {}, env => {
       AnalyticsService.prototype.getReferrer_ = () => {
         return 'https://scenic-2017.appspot.com/landing.html';
       };
+      sandbox.stub(TransactionId.prototype,
+          'get',
+          () => Promise.resolve('google-transaction-0'));
       const startPromise = analyticsService.start();
       return startPromise.then(() => {
         analyticsService.logEvent(AnalyticsEvent.UNKNOWN);
@@ -155,7 +156,7 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(request.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
         expect(request.getContext()).to.not.be.null;
         expect(request.getContext().getReferringOrigin()).to.equal(
-            'https://scenic-2017.appspot.com/landing.html');
+            'https://scenic-2017.appspot.com');
         expect(request.getContext().getUtmMedium()).to.equal('email');
         expect(request.getContext().getUtmSource()).to.equal('scenic');
         expect(request.getContext().getUtmName()).to.equal('campaign');

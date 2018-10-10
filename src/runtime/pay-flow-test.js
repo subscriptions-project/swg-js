@@ -105,10 +105,6 @@ describes.realWin('PayStartFlow', {}, env => {
   });
 
   it('should have valid flow constructed', () => {
-    const popupWin = {};
-    dialogManagerMock.expects('popupOpened')
-        .withExactArgs(popupWin)
-        .once();
     callbacksMock.expects('triggerFlowStarted')
         .withExactArgs('subscribe', {sku: 'sku1'})
         .once();
@@ -130,7 +126,6 @@ describes.realWin('PayStartFlow', {}, env => {
         {
           forceRedirect: false,
         })
-        .returns(popupWin)
         .once();
     const flowPromise = flow.start();
     return expect(flowPromise).to.eventually.be.undefined;
@@ -138,9 +133,6 @@ describes.realWin('PayStartFlow', {}, env => {
 
   it('should force redirect mode', () => {
     runtime.configure({windowOpenMode: 'redirect'});
-    dialogManagerMock.expects('popupOpened')
-        .withExactArgs(null)
-        .once();
     payClientMock.expects('start').withExactArgs(
         {
           'apiVersion': 1,
@@ -158,7 +150,6 @@ describes.realWin('PayStartFlow', {}, env => {
         {
           forceRedirect: true,
         })
-        .returns(null)
         .once();
     flow.start();
   });
@@ -172,7 +163,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let activitiesMock;
   let callbacksMock;
   let entitlementsManagerMock;
-  let dialogManagerMock;
   let responseCallback;
   let flow;
 
@@ -190,7 +180,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
-    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     flow = new PayCompleteFlow(runtime);
   });
 
@@ -394,7 +383,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should NOT start flow on a response failure', () => {
-      dialogManagerMock.expects('popupClosed').once();
       return responseCallback(Promise.reject('intentional')).then(() => {
         throw new Error('must have failed');
       }, reason => {
@@ -411,7 +399,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
 
     it('should start flow on a correct payment response', () => {
       callbacksMock.expects('triggerFlowCanceled').never();
-      dialogManagerMock.expects('popupClosed').once();
       entitlementsManagerMock.expects('blockNextNotification').once();
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       return responseCallback(Promise.resolve(INTEGR_DATA_OBJ)).then(() => {
@@ -435,7 +422,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     it('should start flow on correct payment response w/o entitlements', () => {
       // TODO(dvoytenko, #400): cleanup once entitlements is launched.
       callbacksMock.expects('triggerFlowCanceled').never();
-      dialogManagerMock.expects('popupClosed').once();
       entitlementsManagerMock.expects('blockNextNotification').once();
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       const result = INTEGR_DATA_OBJ_NO_ENTITLEMENTS;
@@ -504,7 +490,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       callbacksMock.expects('triggerFlowCanceled')
           .withExactArgs('subscribe')
           .once();
-      dialogManagerMock.expects('popupClosed').once();
       const cancel = new DOMException('cancel', 'AbortError');
       responseCallback(Promise.reject(cancel));
       return Promise.resolve().then(() => {
