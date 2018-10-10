@@ -144,7 +144,7 @@ export class EntitlementsManager {
       if (raw) {
         const cached = this.getValidJwtEntitlements_(
             raw, /* requireNonExpired */ true,
-            /** @type {boolean|undefined} */ (irtp));
+            this.irtpStringToBoolean_(irtp));
         if (cached && cached.enablesThis()) {
           // Already have a positive response.
           this.positiveRetries_ = 0;
@@ -212,9 +212,12 @@ export class EntitlementsManager {
    * @return {!Entitlements}
    */
   parseEntitlements(json) {
-    this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, json['isReadyToPay']);
-    const isReadyToPay =
-        /** @type {boolean|undefined} */ (json['isReadyToPay']);
+    const isReadyToPay = this.irtpStringToBoolean_(json['isReadyToPay']);
+    if (isReadyToPay == undefined) {
+      this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
+    } else {
+      this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, String(isReadyToPay));
+    }
     const signedData = json['signedEntitlements'];
     if (signedData) {
       const entitlements = this.getValidJwtEntitlements_(
@@ -353,5 +356,23 @@ export class EntitlementsManager {
         '/entitlements');
     return this.fetcher_.fetchCredentialedJson(url)
         .then(json => this.parseEntitlements(json));
+  }
+
+  /**
+   * Convert String value of isReadyToPay
+   * (from JSON or Cache) to a boolean value.
+   * @param {string} value
+   * @return {boolean|undefined}
+   * @private
+   */
+  irtpStringToBoolean_(value) {
+    switch (value) {
+      case 'true':
+        return true;
+      case 'false':
+        return false;
+      default:
+        return undefined;
+    }
   }
 }
