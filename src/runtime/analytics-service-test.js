@@ -64,11 +64,6 @@ describes.realWin('AnalyticsService', {}, env => {
         cb => {
           messageCallback = cb;
         });
-    sandbox.stub(
-        xid,
-        'get',
-        () => Promise.resolve('google-transaction-0')
-    );
   });
 
   describe('AnalyticsService', () => {

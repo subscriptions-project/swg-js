@@ -151,7 +151,6 @@ export class AnalyticsService {
   /**
    */
   close() {
-    // TODO(sohanirao): Clean up context?
     this.doc_.getBody().removeChild(this.getElement());
   }
 
