@@ -907,6 +907,13 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
   });
 
+  it('should prefetch loading indicator', () => {
+    const el = win.document.head.querySelector(
+        'link[rel="preconnect prefetch"][href*="/loader.svg"]');
+    expect(el).to.exist;
+    expect(el.getAttribute('href')).to.equal('$assets$/loader.svg');
+  });
+
   it('should prefetch payments', () => {
     const el = win.document.head.querySelector(
         'link[rel="preconnect prefetch"][href*="/pay?"]');
