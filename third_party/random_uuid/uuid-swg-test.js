@@ -16,9 +16,25 @@
 
 import {uuidFast} from './uuid-swg';
 
-describe('stringToBytes', function() {
-  it('should map a sample string appropriately', () => {
+describe('uuidFast', function() {
+  it('should generate a uuid', () => {
     const uuid = uuidFast();
+    console.log('uuid:', uuid);
+    const uuidArray = uuid.split('-');
+    expect(uuidArray.length).to.equal(5);
+    expect(uuidArray[0].length).to.equal(8);
+    expect(uuidArray[1].length).to.equal(4);
     expect(uuid).to.not.be.undefined;
+    expect(uuid.length).to.equal(36);
+    const uuid2 = uuidFast();
+    expect(uuid2).to.not.be.undefined;
+    expect(uuid2.length).to.equal(36);
+    expect(uuid2).to.not.equal(uuid);
+    const uuid3 = uuidFast();
+    expect(uuid3).to.not.be.undefined;
+    expect(uuid3.length).to.equal(36);
+    expect(uuid3).to.not.equal(uuid2);
+    expect(uuid3).to.not.equal(uuid);
+
   });
 });
