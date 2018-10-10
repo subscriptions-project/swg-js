@@ -31,6 +31,7 @@ module.exports = {
   preprocessors: {
     'src/**/*.js': ['browserify'],
     'test/**/*.js': ['browserify'],
+    'third_party/random_uuid/*.js': ['browserify'],
   },
 
   browserify: {
