@@ -212,9 +212,9 @@ export class EntitlementsManager {
    * @return {!Entitlements}
    */
   parseEntitlements(json) {
+    this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, json['isReadyToPay']);
     const isReadyToPay =
         /** @type {boolean|undefined} */ (json['isReadyToPay']);
-    this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, json['isReadyToPay']);
     const signedData = json['signedEntitlements'];
     if (signedData) {
       const entitlements = this.getValidJwtEntitlements_(
