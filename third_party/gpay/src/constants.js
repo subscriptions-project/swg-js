@@ -25,6 +25,7 @@ const Constants = {};
  * @enum {string}
  */
 Constants.Environment = {
+  LOCAL: 'LOCAL',
   PREPROD: 'PREPROD',
   PRODUCTION: 'PRODUCTION',
   SANDBOX: 'SANDBOX',
@@ -115,10 +116,6 @@ Constants.IS_READY_TO_PAY_RESULT_KEY =
 Constants.UPI_CAN_MAKE_PAYMENT_CACHE_KEY =
     Constants.STORAGE_KEY_PREFIX + '.upi.canMakePaymentCache';
 
-/** @const {string} */
-Constants.REDIRECT_STORAGE_KEY =
-    Constants.STORAGE_KEY_PREFIX + '.redirect.key';
-
 
 Constants.CLASS_PREFIX = 'google-payments-';
 Constants.IFRAME_ACTIVE_CONTAINER_CLASS =
@@ -147,6 +144,13 @@ Constants.IFRAME_STYLE = `
     -webkit-appearance: none;
     left: 0;
 }
+@media (min-width: 480px) {
+  .${Constants.IFRAME_STYLE_CLASS}{
+    width: 480px !important;
+    left: -240px !important;
+    margin-left: calc(100vw - 100vw / 2) !important;
+  }
+}
 .${Constants.IFRAME_CONTAINER_CLASS} {
   background-color: rgba(0,0,0,0.26);
   bottom: 0;
@@ -157,16 +161,6 @@ Constants.IFRAME_STYLE = `
 }
 .iframeContainer {
   -webkit-overflow-scrolling: touch;
-}
-`;
-
-Constants.IFRAME_STYLE_BOTTOM = `
-@media (min-width: 480px) {
-  .${Constants.IFRAME_STYLE_CLASS}{
-    width: 480px !important;
-    left: -240px !important;
-    margin-left: calc(100vw - 100vw / 2) !important;
-  }
 }
 `;
 
@@ -199,6 +193,9 @@ Constants.IFRAME_STYLE_CENTER = `
 }
 `;
 
+Constants.GPAY_BUTTON_WITH_CARD_INFO_IMAGE =
+    'background-image: url(https://pay.google.com/gp/p/generate_gpay_btn_img);';
+
 Constants.BUTTON_LOCALE_TO_MIN_WIDTH = {
   'en': 152,
   'bg': 163,
@@ -222,6 +219,13 @@ Constants.BUTTON_LOCALE_TO_MIN_WIDTH = {
   'uk': 207,
   'zh': 156,
 };
+
+/**
+ * Name of the graypane.
+ *
+ * @const {string}
+ */
+Constants.GPAY_GRAYPANE = 'gpay-graypane';
 
 /**
  * Class used for the gpay button.
@@ -288,6 +292,42 @@ Constants.BUTTON_STYLE = `
   background-color: #f8f8f8;
 }
 `;
+
+/**
+ * Class used for the new gpay button with card info (last 4 digits, card net).
+ *
+ * @const {string}
+ */
+Constants.GPAY_BUTTON_CARD_INFO_CLASS = 'gpay-card-info-btn';
+
+Constants.GPAY_BUTTON_CARD_INFO_BUTTON_STYLE = `
+  .${Constants.GPAY_BUTTON_CARD_INFO_CLASS} {
+    background-origin: content-box;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    border: 0px;
+    border-radius: 4px;
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 1px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    cursor: pointer;
+    height: 40px;
+    min-height: 40px;
+    padding: 11px 24px;
+    background-color: #000;
+    box-shadow: none;
+    padding: 9px 24px 10px;
+    min-width: 190px;
+    width: 240px;
+  }
+
+  .${Constants.GPAY_BUTTON_CARD_INFO_CLASS}.active {
+    background-color: #5f6368;
+  }
+
+  .${Constants.GPAY_BUTTON_CARD_INFO_CLASS}.hover {
+    background-color: #3c4043;
+  }
+  `;
 
 /**
  * Trusted domain for secure context validation
