@@ -31,21 +31,18 @@ describes.realWin('ButtonApi', {}, env => {
 
   it('should inject stylesheet', () => {
     buttonApi.init();
-    const links = doc.querySelectorAll(
-        'link[href="https://news.google.com/swg/js/v1/swg-button.css"]');
+    const links = doc.querySelectorAll('link[href="$assets$/swg-button.css"]');
     expect(links).to.have.length(1);
     const link = links[0];
     expect(link.getAttribute('rel')).to.equal('stylesheet');
     expect(link.getAttribute('type')).to.equal('text/css');
-    expect(link.getAttribute('href'))
-        .to.equal('https://news.google.com/swg/js/v1/swg-button.css');
+    expect(link.getAttribute('href')).to.equal('$assets$/swg-button.css');
   });
 
   it('should inject stylesheet only once', () => {
     new ButtonApi(resolveDoc(doc)).init();
     buttonApi.init();
-    const links = doc.querySelectorAll(
-        'link[href="https://news.google.com/swg/js/v1/swg-button.css"]');
+    const links = doc.querySelectorAll('link[href="$assets$/swg-button.css"]');
     expect(links).to.have.length(1);
   });
 
