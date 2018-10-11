@@ -54,6 +54,7 @@ cat "$WORK_DIR_PROJ"/src/payments_web_activity_delegate.js \
 
 # Remove button renderer.
 cat "$WORK_DIR_PROJ"/src/payjs_async.js \
+    | sed "s/\.\.\/third_party\/web_activities\/activity-ports.js/web-activities\/activity-ports/" \
     | sed "s/import {createButtonHelper} from '.\/button.js';//" \
     | sed "s/createButtonHelper(options)/null/" \
     > "$IMPORT_DIR"/src/payjs_async.js

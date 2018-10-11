@@ -1,5 +1,6 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * @license
+ * Copyright 2018 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +15,16 @@
  * limitations under the License.
  */
 
+import uuid from '../third_party/random_uuid/Random.uuid.js';
 
 /**
- * @enum {string}
+ * Returns a google transaction id.
+ *
+ * @param {string} environment
+ * @return {string}
  */
-export const ExperimentFlags = {
-  /**
-   * Enables GPay API in SwG.
-   * Cleanup issue: #406.
-   */
-  GPAY_API: 'gpay-api',
+function createGoogleTransactionId(environment) {
+  return uuid.uuidFast() + '.' + environment;
+}
 
-  /**
-   * Enables GPay native support.
-   * Cleanup issue: #441.
-   */
-  GPAY_NATIVE: 'gpay-native',
-};
+export {createGoogleTransactionId};

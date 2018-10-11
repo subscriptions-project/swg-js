@@ -94,8 +94,9 @@ class PayFrameHelper {
    *
    * @param {string} env
    * @param {string} googleTransactionId
+   * @param {string|null=} merchantId
    */
-  static load(env, googleTransactionId) {
+  static load(env, googleTransactionId, merchantId) {
     if (iframe) {
       return;
     }
@@ -105,7 +106,8 @@ class PayFrameHelper {
     // certain cases
     // Can be replaced by iframe.src=... in non Google context.
     iframe.src = PayFrameHelper.getIframeUrl_(
-            window.location.origin, Date.now(), googleTransactionId);
+            window.location.origin, Date.now(), googleTransactionId,
+            merchantId);
     iframe.height = '0';
     iframe.width = '0';
     iframe.style.display = 'none';
@@ -272,14 +274,16 @@ class PayFrameHelper {
    * @param {number} initializeTimeMs The time the payframe was initialized.
    * @param {string} googleTransactionId The transaction id for
    * this payments client.
+   * @param {string|null=} merchantId The merchant id.
    * @return {string}
    * @private
    */
-  static getIframeUrl_(origin, initializeTimeMs, googleTransactionId) {
+  static getIframeUrl_(
+      origin, initializeTimeMs, googleTransactionId, merchantId) {
     // TrustedResourceUrl header needs to start with https or '//'.
     const iframeUrl = `https://pay${environment == Constants.Environment.PREPROD ?
              '-preprod.sandbox' :
-             environment == Constants.Environment.SANDBOX ? '.sandbox' : ''}.google.com/gp/p/ui/payframe?origin=${origin}&t=${initializeTimeMs}&gTxnId=${googleTransactionId}`;
+             environment == Constants.Environment.SANDBOX ? '.sandbox' : ''}.google.com/gp/p/ui/payframe?origin=${origin}&t=${initializeTimeMs}&gTxnId=%{googleTransactionId}&mid=%{merchantId}`;
     return iframeUrl;
   }
 }

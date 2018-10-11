@@ -218,6 +218,7 @@ var SwgParameters;
  *   userIndex: (string|undefined),
  *   renderContainerCenter: (boolean|undefined),
  *   redirectVerifier: (string|undefined),
+ *   redirectKey: (string|undefined),
  * }}
  *
  * @property {(string|undefined)} ampMerchantOrigin The origin of an amp page.
@@ -233,7 +234,10 @@ var SwgParameters;
  * @property {(boolean|undefined)} renderContainerCenter The flag to decide
  *     whether he PayJS container should be vertically centered or loaded from
  *     the bottom.
- * @property {(string|undefined)} redirectVerifier The redirect verifier.
+ * @property {(string|undefined)} redirectVerifier The redirect verifier. Can
+ *     only be used for a payment request.
+ * @property {(string|undefined)} redirectKey The redirect verifier. Can only
+ *     be used for the payment client initialization.
  */
 var InternalParameters;
 
