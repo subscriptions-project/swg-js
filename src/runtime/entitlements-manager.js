@@ -39,7 +39,6 @@ export class EntitlementsManager {
    * @param {!./deps.DepsDef} deps
    */
   constructor(win, config, fetcher, deps) {
-    console.log('sohani constructor here ', config);
     /** @private @const {!Window} */
     this.win_ = win;
 
