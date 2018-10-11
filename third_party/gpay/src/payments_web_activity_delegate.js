@@ -16,8 +16,8 @@
  */
 
 import {Constants} from './constants.js';
+import {Graypane} from './graypane.js';
 import {PaymentsClientDelegateInterface} from './payments_client_delegate_interface.js';
-import {RedirectVerifierHelper} from './redirect_verifier_helper.js';
 import {ActivityPort, ActivityPorts, ActivityIframePort} from 'web-activities/activity-ports';
 import {BuyFlowActivityMode, PayFrameHelper, PostMessageEventType} from './pay_frame_helper.js';
 import {doesMerchantSupportOnlyTokenizedCards} from './validator.js';
@@ -63,16 +63,19 @@ class PaymentsWebActivityDelegate {
    * @param {string} environment
    * @param {string} googleTransactionId
    * @param {boolean=} opt_useIframe
+   * @param {!ActivityPorts=} opt_activities Can be used to provide a shared
+   *   activities manager. By default, the new manager is created.
+   * @param {?string=} opt_redirectKey The redirect key used for redirect mode.
    */
-  constructor(environment, googleTransactionId, opt_useIframe) {
+  constructor(environment, googleTransactionId, opt_useIframe,
+             opt_activities, opt_redirectKey) {
     this.environment_ = environment;
     /** @private @const {boolean} */
     
-    this.activities = new ActivityPorts(window);
-    // TODO: Make non-null and const once the
-    // "enable_redirect_verifier" experiment is launched.
-    /** @private {?RedirectVerifierHelper} */
-    this.redirectVerifierHelper_ = null;
+    /** @const {!ActivityPorts} */
+    this.activities = opt_activities || new ActivityPorts(window);
+    /** @const @private {!Graypane} */
+    this.graypane_ = new Graypane(window.document);
     /** @private {?function(!Promise<!PaymentData>)} */
     this.callback_ = null;
     /**
@@ -91,6 +94,8 @@ class PaymentsWebActivityDelegate {
     this.dismissPromiseResolver_ = null;
     /** @const @private {string} */
     this.googleTransactionId_ = googleTransactionId;
+    /** @const @private {?string} */
+    this.redirectKey_ = opt_redirectKey || null;
 
     /**
      * @private {?ResizePayload}
@@ -102,15 +107,7 @@ class PaymentsWebActivityDelegate {
       injectStyleSheet(Constants.IFRAME_STYLE);
       if (null) {
         injectStyleSheet(Constants.IFRAME_STYLE_CENTER);
-      } else {
-        injectStyleSheet(Constants.IFRAME_STYLE_BOTTOM);
       }
-    }
-
-    if (null) {
-      // Prepare the redirect verifier to avoid popup blockers.
-      this.redirectVerifierHelper_ = new RedirectVerifierHelper(window);
-      this.redirectVerifierHelper_.prepare();
     }
   }
 
@@ -122,10 +119,6 @@ class PaymentsWebActivityDelegate {
     this.callback_ = callback;
     this.activities.onResult(GPAY_ACTIVITY_REQUEST,
                              this.onActivityResult_.bind(this));
-    // TODO: Remove once the GPAY_ACTIVITY_REQUEST is fully
-    // deployed.
-    this.activities.onResult('request1',
-                             this.onActivityResult_.bind(this));
   }
 
   /**
@@ -133,22 +126,35 @@ class PaymentsWebActivityDelegate {
    * @private
    */
   onActivityResult_(port) {
+    // Hide the graypane.
+    this.graypane_.hide();
     // Only verified origins are allowed.
     this.callback_(port.acceptResult().then(
         (result) => {
+          if (null) {
+            // Origin must always match: popup, iframe or redirect.
+            if (result.origin != this.getOrigin_()) {
+              throw new Error('channel mismatch');
+            }
+          }
           const data = /** @type {!PaymentData} */ (result.data);
           if (data['redirectEncryptedCallbackData']) {
             PayFrameHelper.setBuyFlowActivityMode(
                 BuyFlowActivityMode.REDIRECT);
-            return fetch(this.getDecryptionUrl_(), {
-                     method: 'post',
-                     credentials: 'include',
-                     mode: 'cors',
-                     body: data['redirectEncryptedCallbackData'],
-                   })
-                .then((response) => {
-                  return response.json();
+            return this.fetchRedirectResponse_(
+                data['redirectEncryptedCallbackData'])
+                .then((decrypedJson) => {
+                  // Merge other non-encrypted fields into the final response.
+                  const clone = Object.assign({}, data);
+                  delete clone['redirectEncryptedCallbackData'];
+                  return Object.assign(clone, decrypedJson);
                 });
+          }
+          if (null) {
+            // Unencrypted data supplied: must be a verified and secure channel.
+            if (!result.originVerified || !result.secureChannel) {
+              throw new Error('channel mismatch');
+            }
           }
           return data;
         },
@@ -175,11 +181,56 @@ class PaymentsWebActivityDelegate {
               'statusCode': 'CANCELED',
             };
           }
-          console.log(
-              'Google Pay request failed, error:\n' +
-              JSON.stringify(inferredError));
           return Promise.reject(inferredError);
         }));
+  }
+
+  /**
+   * @param {string} redirectEncryptedCallbackData
+   * @return {!PaymentData}
+   * @private
+   */
+  fetchRedirectResponse_(redirectEncryptedCallbackData) {
+    // This method has to rely on the legacy XHR API because the redirect
+    // functionality is, in part, aimed at older browsers.
+    return new Promise((resolve, reject) => {
+      const url = this.getDecryptionUrl_();
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', url, true);
+      if ('withCredentials' in xhr) {
+        // It's fine to proceed in a non-redirect mode because redirectVerifier
+        // plays the part of CORS propagation.
+        xhr.withCredentials = true;
+      }
+
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState < /* STATUS_RECEIVED */ 2) {
+          return;
+        }
+        if (xhr.status < 100 || xhr.status > 599) {
+          xhr.onreadystatechange = null;
+          reject(new Error(`Unknown HTTP status ${xhr.status}`));
+          return;
+        }
+        if (xhr.readyState == /* COMPLETE */ 4) {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch (e) {
+            // JSON parsing error is expected here.
+            reject(e);
+          }
+        }
+      };
+      xhr.onerror = () => {
+        reject(new Error('Network failure'));
+      };
+      xhr.onabort = () => {
+        reject(new Error('Request aborted'));
+      };
+
+      // Send POST.
+      xhr.send(redirectEncryptedCallbackData);
+    });
   }
 
   /** @override */
@@ -288,29 +339,11 @@ class PaymentsWebActivityDelegate {
     PayFrameHelper.setBuyFlowActivityMode(
         paymentDataRequest['forceRedirect'] ? BuyFlowActivityMode.REDIRECT :
                                               BuyFlowActivityMode.POPUP);
-    if (null) {
-      // Notice that the callback for verifier may execute asynchronously.
-      this.redirectVerifierHelper_.useVerifier(verifier => {
-        if (verifier) {
-          paymentDataRequest['i'] = Object.assign(
-              paymentDataRequest['i'] || {},
-              {'redirectVerifier': verifier});
-        }
-        this.activities.open(
-            GPAY_ACTIVITY_REQUEST,
-            this.getHostingPageUrl_(),
-            this.getRenderMode_(paymentDataRequest),
-            paymentDataRequest,
-            {'width': 600, 'height': 600});
-      });
-    } else {
-      this.activities.open(
-          GPAY_ACTIVITY_REQUEST,
-          this.getHostingPageUrl_(),
-          this.getRenderMode_(paymentDataRequest),
-          paymentDataRequest,
-          {'width': 600, 'height': 600});
-    }
+    const opener = this.activities.open(
+        GPAY_ACTIVITY_REQUEST, this.getHostingPageUrl_(),
+        this.getRenderMode_(paymentDataRequest), paymentDataRequest,
+        {'width': 600, 'height': 600});
+    this.graypane_.show(opener && opener.targetWin);
   }
 
   /**
@@ -327,12 +360,16 @@ class PaymentsWebActivityDelegate {
   }
 
   /**
-   * Returns the base path based on the environment.
+   * Returns the server origin based on the environment.
    *
    * @private
-   * @return {string} The base path
+   * @return {string}
    */
-  getBasePath_() {
+  getOrigin_() {
+    if (this.environment_ == Constants.Environment.LOCAL) {
+      return '';
+    }
+
     var baseDomain;
     if (this.environment_ == Constants.Environment.PREPROD) {
       baseDomain = 'pay-preprod.sandbox';
@@ -341,7 +378,17 @@ class PaymentsWebActivityDelegate {
     } else {
       baseDomain = 'pay';
     }
-    return 'https://' + baseDomain + '.google.com/gp/p';
+    return 'https://' + baseDomain + '.google.com';
+  }
+
+  /**
+   * Returns the base path based on the environment.
+   *
+   * @private
+   * @return {string} The base path
+   */
+  getBasePath_() {
+    return this.getOrigin_() + '/gp/p';
   }
 
   /**
@@ -352,11 +399,8 @@ class PaymentsWebActivityDelegate {
    */
   getDecryptionUrl_() {
     let url = this.getBasePath_() + '/apis/buyflow/process';
-    if (null) {
-      const redirectKey = this.redirectVerifierHelper_.restoreKey();
-      if (redirectKey) {
-        url += '?rk=' + encodeURIComponent(redirectKey);
-      }
+    if (this.redirectKey_) {
+      url += '?rk=' + encodeURIComponent(this.redirectKey_);
     }
     return url;
   }
