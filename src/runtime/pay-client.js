@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Xhr} from '../utils/xhr';
 import {
@@ -22,6 +23,7 @@ import {
 } from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feArgs, feCached} from './services';
+import {isExperimentOn} from './experiments';
 
 const PAY_REQUEST_ID = 'swg-pay';
 
@@ -272,12 +274,16 @@ export class PayClientBindingPayjs {
         'forceRedirect': options.forceRedirect || false,
       });
     }
+    setInternalParam(paymentRequest, 'disableNative',
+        // The page cannot be iframed at this time. May be relaxed later
+        // for AMP and similar contexts.
+        this.win_ != this.top_() ||
+        // Experiment must be enabled.
+        !isExperimentOn(this.win_, ExperimentFlags.GPAY_NATIVE));
     // Notice that the callback for verifier may execute asynchronously.
     this.redirectVerifierHelper_.useVerifier(verifier => {
       if (verifier) {
-        paymentRequest['i'] = Object.assign(
-            paymentRequest['i'] || {},
-            {'redirectVerifier': verifier});
+        setInternalParam(paymentRequest, 'redirectVerifier', verifier);
       }
       this.client_.loadPaymentData(paymentRequest);
     });
@@ -319,6 +325,15 @@ export class PayClientBindingPayjs {
       }
       return Promise.reject(reason);
     });
+  }
+
+  /**
+   * @return {!Window}
+   * @private
+   */
+  top_() {
+    // Only exists for testing since it's not possible to override `window.top`.
+    return this.win_.top;
   }
 }
 
@@ -487,6 +502,18 @@ export class RedirectVerifierHelper {
       this.pair_ = null;
     }
   }
+}
+
+
+/**
+ * @param {!Object} paymentRequest
+ * @param {string} param
+ * @param {*} value
+ */
+function setInternalParam(paymentRequest, param, value) {
+  paymentRequest['i'] = Object.assign(
+      paymentRequest['i'] || {},
+      {[param]: value});
 }
 
 

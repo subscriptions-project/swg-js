@@ -21,6 +21,7 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {DialogManager} from '../components/dialog-manager';
+import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
 import {
   PayClient,
@@ -30,6 +31,10 @@ import {
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Xhr} from '../utils/xhr';
 import {isCancelError} from '../utils/errors';
+import {
+  setExperiment,
+  setExperimentsStringForTesting,
+} from './experiments';
 
 
 const INTEGR_DATA_STRING =
@@ -319,6 +324,10 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     payClient.onResponse(resultStub);
   });
 
+  afterEach(() => {
+    setExperimentsStringForTesting('');
+  });
+
   /**
    * @param {!Promise<!Object>} result
    * @return {!Promise<!Object>}
@@ -353,6 +362,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       'paymentArgs': {'a': 1},
       'i': {
         'redirectVerifier': redirectVerifierHelperResults.verifier,
+        'disableNative': true,
       },
     });
   });
@@ -369,6 +379,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       'forceRedirect': true,
       'i': {
         'redirectVerifier': redirectVerifierHelperResults.verifier,
+        'disableNative': true,
       },
     });
   });
@@ -403,6 +414,48 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       });
     }).then(data => {
       expect(data).to.deep.equal(INTEGR_DATA_OBJ);
+    });
+  });
+
+  describe('native support', () => {
+    let top;
+
+    beforeEach(() => {
+      top = win;
+      sandbox.stub(payClient, 'top_', () => top);
+      setExperiment(win, ExperimentFlags.GPAY_NATIVE, true);
+    });
+
+    it('should enable native mode', () => {
+      payClient.start({}, {});
+      expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+        'i': {
+          'redirectVerifier': redirectVerifierHelperResults.verifier,
+          'disableNative': false,
+        },
+      });
+    });
+
+    it('should disable native mode for iframes', () => {
+      top = {};
+      payClient.start({}, {});
+      expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+        'i': {
+          'redirectVerifier': redirectVerifierHelperResults.verifier,
+          'disableNative': true,
+        },
+      });
+    });
+
+    it('should disable native mode w/o experiment', () => {
+      setExperiment(win, ExperimentFlags.GPAY_NATIVE, false);
+      payClient.start({}, {});
+      expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+        'i': {
+          'redirectVerifier': redirectVerifierHelperResults.verifier,
+          'disableNative': true,
+        },
+      });
     });
   });
 });
