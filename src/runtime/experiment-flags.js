@@ -24,4 +24,10 @@ export const ExperimentFlags = {
    * Cleanup issue: #406.
    */
   GPAY_API: 'gpay-api',
+
+  /**
+   * Enables GPay native support.
+   * Cleanup issue: #441.
+   */
+  GPAY_NATIVE: 'gpay-native',
 };
