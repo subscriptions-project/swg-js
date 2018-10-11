@@ -34,7 +34,7 @@ export class AnalyticsService {
    */
   constructor(deps) {
 
-    /** @private @const {!Doc} */
+    /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
@@ -80,6 +80,9 @@ export class AnalyticsService {
      * @private @const {!TransactionId}
      */
     this.xid_ = new TransactionId(deps);
+
+    /** @private {?Promise} */
+    this.serviceReady_ = null;
   }
 
   /**
@@ -117,7 +120,6 @@ export class AnalyticsService {
    */
   setContext_() {
     const utmParams = parseQueryString(this.getQueryString_());
-    this.context_.setTransactionId(this.xid_.get());
     this.context_.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     const name = utmParams['utm_name'];
     const medium = utmParams['utm_medium'];
@@ -140,12 +142,22 @@ export class AnalyticsService {
    * @return {!Promise}
    */
   start() {
-    this.doc_.getBody().appendChild(this.getElement());
-    return this.activityPorts_.openIframe(this.iframe_, this.src_,
-        this.args_).then(port => {
-          this.portResolver_(port);
-          return this.setContext_();
-        });
+    if (!this.serviceReady_) {
+      this.doc_.getBody().appendChild(this.getElement());
+      this.serviceReady_ = this.activityPorts_.openIframe(
+          this.iframe_, this.src_, this.args_).then(port => {
+            this.portResolver_(port);
+            return this.setContext_();
+          });
+    }
+    return this.serviceReady_;
+  }
+
+  /**
+   * @param {boolean} isReadyToPay
+   */
+  setReadyToPay(isReadyToPay) {
+    this.context_.setReadyToPay(isReadyToPay);
   }
 
   /**
@@ -163,7 +175,7 @@ export class AnalyticsService {
   }
 
   /**
-   * @param {!AnalyticsEvent} event
+   * @param {!../proto/api_messages.AnalyticsEvent} event
    * @return {!AnalyticsRequest}
    */
   createLogRequest_(event) {
@@ -174,7 +186,7 @@ export class AnalyticsService {
   }
 
   /**
-   * @param {!AnalyticsEvent} event
+   * @param {!../proto/api_messages.AnalyticsEvent} event
    */
   logEvent(event) {
     this.port_().then(port => {

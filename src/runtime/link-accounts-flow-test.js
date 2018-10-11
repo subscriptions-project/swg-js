@@ -371,7 +371,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   let port;
   let dialogManagerMock;
 
-  beforeEach(() => {
+beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
