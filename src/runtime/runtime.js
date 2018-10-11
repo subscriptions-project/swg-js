@@ -61,6 +61,7 @@ import {
 } from '../api/subscriptions';
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
+import {setExperiment} from './experiments';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -146,6 +147,9 @@ export class Runtime {
     /** @private {?string} */
     this.productOrPublicationId_ = null;
 
+    /** @private @const {!../api/subscriptions.Config} */
+    this.config_ = {};
+
     /** @private {boolean} */
     this.committed_ = false;
 
@@ -181,21 +185,25 @@ export class Runtime {
     if (!this.committed_ && commit) {
       this.committed_ = true;
       /** @type {!Promise<!PageConfig>} */
-      let configPromise;
+      let pageConfigPromise;
       if (this.productOrPublicationId_) {
-        configPromise = Promise.resolve(new PageConfig(
+        pageConfigPromise = Promise.resolve(new PageConfig(
             this.productOrPublicationId_,
             /* locked */ false));
       } else {
         this.pageConfigResolver_ = new PageConfigResolver(this.doc_);
-        configPromise = this.pageConfigResolver_.resolveConfig()
+        pageConfigPromise = this.pageConfigResolver_.resolveConfig()
             .then(config => {
               this.pageConfigResolver_ = null;
               return config;
             });
       }
-      configPromise.then(config => {
-        this.configuredResolver_(new ConfiguredRuntime(this.doc_, config));
+      pageConfigPromise.then(pageConfig => {
+        this.configuredResolver_(new ConfiguredRuntime(
+            this.doc_,
+            pageConfig,
+            /* opt_integr */ undefined,
+            this.config_));
         this.configuredResolver_ = null;
       }, reason => {
         this.configuredResolver_(Promise.reject(reason));
@@ -233,6 +241,8 @@ export class Runtime {
 
   /** @override */
   configure(config) {
+    // Accumulate config for startup.
+    Object.assign(this.config_, config);
     return this.configured_(false)
         .then(runtime => runtime.configure(config));
   }
@@ -398,8 +408,9 @@ export class ConfiguredRuntime {
    * @param {{
    *     fetcher: (!Fetcher|undefined),
    *   }=} opt_integr
+   * @param {!../api/subscriptions.Config=} opt_config
    */
-  constructor(winOrDoc, pageConfig, opt_integr) {
+  constructor(winOrDoc, pageConfig, opt_integr, opt_config) {
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
 
@@ -408,6 +419,9 @@ export class ConfiguredRuntime {
 
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
+    if (opt_config) {
+      this.configure_(opt_config);
+    }
 
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
@@ -506,6 +520,15 @@ export class ConfiguredRuntime {
 
   /** @override */
   configure(config) {
+    // Indirected for constructor testing.
+    this.configure_(config);
+  }
+
+  /**
+   * @param {!../api/subscriptions.Config} config
+   * @private
+   */
+  configure_(config) {
     // Validate first.
     let error = null;
     for (const k in config) {
@@ -515,6 +538,8 @@ export class ConfiguredRuntime {
             v != WindowOpenMode.REDIRECT) {
           error = 'Unknown windowOpenMode: ' + v;
         }
+      } else if (k == 'experiments') {
+        v.forEach(experiment => setExperiment(this.win_, experiment, true));
       } else {
         error = 'Unknown config property: ' + k;
       }
