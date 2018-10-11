@@ -23,7 +23,7 @@ let experimentsString = '$experiments$';
 
 /**
  * A parsed map of experiments.
- * @type {!Object<string, boolean>}
+ * @type {?Object<string, boolean>}
  */
 let experimentMap = null;
 
@@ -44,9 +44,9 @@ export function setExperimentsStringForTesting(s) {
  * @return {!Object<string, boolean>}
  */
 function getExperiments(unusedWin) {
-  // TODO(dvoytenko): implement persistent experiments.
+  // TODO(dvoytenko): implement sticky and fractional experiments.
   if (!experimentMap) {
-    experimentMap = [];
+    experimentMap = {};
     experimentsString.split(',').forEach(s => {
       if (s) {
         experimentMap[s] = true;

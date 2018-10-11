@@ -51,6 +51,11 @@ import {
 import {SubscribeResponse} from '../api/subscribe-response';
 import {Subscriptions} from '../api/subscriptions';
 import {createElement} from '../utils/dom';
+import {
+  isExperimentOn,
+  setExperiment,
+  setExperimentsStringForTesting,
+} from './experiments';
 
 
 describes.realWin('installRuntime', {}, env => {
@@ -404,6 +409,15 @@ describes.realWin('Runtime', {}, env => {
         throw new Error('must have failed');
       }, reason => {
         expect(() => {throw reason;}).to.throw(/config broken/);
+      });
+    });
+
+    it('should propagate construction config', () => {
+      sandbox.stub(ConfiguredRuntime.prototype, 'configure', () => {});
+      runtime.configure({windowOpenMode: 'redirect'});
+      runtime.init('pub2');
+      return runtime.configured_(true).then(cr => {
+        expect(cr.config().windowOpenMode).to.equal('redirect');
       });
     });
   });
@@ -764,6 +778,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     dialogManagerMock.verify();
     entitlementsManagerMock.verify();
     offersApiMock.verify();
+    setExperimentsStringForTesting('');
   });
 
   function returnActivity(requestId, code, opt_dataOrError, opt_origin) {
@@ -872,6 +887,24 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       }).to.throw(/Unknown windowOpenMode/);
       // Value is unchanged.
       expect(runtime.config().windowOpenMode).to.equal('auto');
+    });
+
+    it('should set experiments', () => {
+      runtime.configure({experiments: ['exp1', 'exp2']});
+      expect(isExperimentOn(win, 'exp1')).to.be.true;
+      expect(isExperimentOn(win, 'exp2')).to.be.true;
+      expect(isExperimentOn(win, 'exp3')).to.be.false;
+    });
+
+    it('should set experiments after initialization', () => {
+      expect(isExperimentOn(win, 'exp1')).to.be.false;
+      expect(isExperimentOn(win, 'exp2')).to.be.false;
+      expect(isExperimentOn(win, 'exp3')).to.be.false;
+
+      runtime.configure({experiments: ['exp1', 'exp2']});
+      expect(isExperimentOn(win, 'exp1')).to.be.true;
+      expect(isExperimentOn(win, 'exp2')).to.be.true;
+      expect(isExperimentOn(win, 'exp3')).to.be.false;
     });
   });
 
