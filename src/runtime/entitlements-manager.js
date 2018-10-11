@@ -21,7 +21,6 @@ import {serviceUrl} from './services';
 import {feArgs, feUrl} from '../runtime/services';
 import {AnalyticsService} from './analytics-service';
 import {AnalyticsEvent} from '../proto/api_messages';
-import {TransactionId} from './transaction-id';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -39,6 +38,7 @@ export class EntitlementsManager {
    * @param {!./deps.DepsDef} deps
    */
   constructor(win, config, fetcher, deps) {
+    console.log('sohani constructor here ', config);
     /** @private @const {!Window} */
     this.win_ = win;
 
@@ -70,7 +70,7 @@ export class EntitlementsManager {
     this.storage_ = deps.storage();
 
     /** @private @const {!AnalyticsService} */
-    this.analyticsService_ = new AnalyticsService(deps, new TransactionId(deps));
+    this.analyticsService_ = new AnalyticsService(deps);
   }
 
   /**
@@ -97,6 +97,16 @@ export class EntitlementsManager {
   }
 
   /**
+   * @private
+   */
+  logPaywallImpression_() {
+    // Sends event to logging service asynchronously
+    this.analyticsService_.start().then(() => {
+      this.analyticsService_.logEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
+    });
+  }
+
+  /**
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements() {
@@ -104,12 +114,11 @@ export class EntitlementsManager {
       this.responsePromise_ = this.getEntitlementsFlow_();
     }
     return this.responsePromise_.then(response => {
-      // TODO(chenshay): check if config allows logging impressions
-      if (response.isReadyToPay) {
-        this.analyticsService_.start().then(() => {
-          this.analyticsService_.logEvent(AnalyticsEvent.IS_READY_TO_PAY);
-        });
+      if (response.isReadyToPay != null) {
+        this.analyticsService_.setReadyToPay(response.isReadyToPay);
       }
+      // TODO(chenshay): check configuration here
+      this.logPaywallImpression_();
       return response;
     });
   }

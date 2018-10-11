@@ -90,6 +90,23 @@ describes.realWin('AnalyticsService', {}, env => {
       });
     });
 
+    it('should openIframe only once with multiple starts', () => {
+      return analyticsService.start().then(() => {
+        return analyticsService.start();
+      }).then(() => {
+        expect(activityPorts.openIframe).to.have.been.calledOnce;
+        const firstArgument = activityPorts.openIframe.getCall(0).args[0];
+        expect(activityPorts.openIframe).to.have.been.calledOnce;
+        expect(firstArgument.nodeName).to.equal('IFRAME');
+        const secondArgument = activityPorts.openIframe.getCall(0).args[1];
+        expect(secondArgument).to.equal(feUrl(src));
+        const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
+        expect(thirdArgument).to.deep.equal(feArgs({
+          publicationId: pageConfig.getPublicationId(),
+        }));
+      });
+    });
+
     it('should yield onMessage callback', () => {
       const startPromise = analyticsService.start();
       let messageReceived;
@@ -141,6 +158,7 @@ describes.realWin('AnalyticsService', {}, env => {
       return startPromise.then(() => {
         analyticsService.logEvent(AnalyticsEvent.UNKNOWN);
         analyticsService.setSku('basic');
+        analyticsService.setReadyToPay(true);
         return activityIframePort.whenReady();
       }).then(() => {
         expect(activityIframePort.message).to.be.calledOnce;
@@ -158,6 +176,7 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(request.getContext().getTransactionId()).to.equal(
             'google-transaction-0');
         expect(request.getContext().getSku()).to.equal('basic');
+        expect(request.getContext().getReadyToPay()).to.be.true;
       });
     });
   });
