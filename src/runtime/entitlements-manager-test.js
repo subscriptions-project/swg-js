@@ -133,17 +133,14 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs('toast')
           .returns(Promise.resolve(null))
           .atLeast(0);
-<<<<<<< HEAD
       sandbox.stub(AnalyticsService.prototype,
-          'start', () => Promise.resolve());
+          'start_', () => Promise.resolve());
       sandbox.stub(AnalyticsService.prototype,
           'setContext_', () => Promise.resolve());
-=======
       storageMock.expects('get')
           .withExactArgs('isreadytopay')
           .returns(Promise.resolve(null))
           .atLeast(0);
->>>>>>> master
     });
 
     it('should fetch empty response', () => {
@@ -363,7 +360,7 @@ describes.realWin('EntitlementsManager', {}, env => {
           .returns(Promise.resolve())
           .atLeast(0);
       sandbox.stub(AnalyticsService.prototype,
-          'start', () => Promise.resolve());
+          'start_', () => Promise.resolve());
       sandbox.stub(AnalyticsService.prototype,
           'setContext_', () => Promise.resolve());
     });
@@ -447,7 +444,8 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     it('should log paywall impression event with readyToPay true', () => {
       expectToastShown('0');
-      storageMock.expects('set').withArgs('toast').never();
+      storageMock.expects('set').withArgs('isreadytopay', 'true').once();
+      expectGetIsReadyToPayToBeCalled('true');
       expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
       let capturedReadyToPay = undefined;
       sandbox.stub(AnalyticsService.prototype, 'setReadyToPay',
@@ -589,7 +587,7 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('toast')
           .returns(Promise.resolve(null))
           .atLeast(0);
-      sandbox.stub(AnalyticsService.prototype, 'start',
+      sandbox.stub(AnalyticsService.prototype, 'start_',
           () => Promise.resolve());
       sandbox.stub(AnalyticsService.prototype, 'setContext_',
           () => Promise.resolve());

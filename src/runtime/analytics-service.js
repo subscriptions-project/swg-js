@@ -83,6 +83,9 @@ export class AnalyticsService {
 
     /** @private {?Promise} */
     this.serviceReady_ = null;
+
+    /** {?Promise} */
+    this.lastAction = null;
   }
 
   /**
@@ -139,9 +142,9 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise}
+   * @private
    */
-  start() {
+  start_() {
     if (!this.serviceReady_) {
       this.doc_.getBody().appendChild(this.getElement());
       this.serviceReady_ = this.activityPorts_.openIframe(
@@ -189,7 +192,9 @@ export class AnalyticsService {
    * @param {!../proto/api_messages.AnalyticsEvent} event
    */
   logEvent(event) {
-    this.port_().then(port => {
+    this.lastAction = this.start_().then(() => {
+      return this.port_();
+    }).then(port => {
       return port.whenReady().then(() => {
         port.message({'buf': this.createLogRequest_(event).toArray()});
       });
@@ -201,7 +206,9 @@ export class AnalyticsService {
    * @param {function(!Object<string, string|boolean>)} callback
    */
   onMessage(callback) {
-    this.port_().then(port => {
+    this.lastAction = this.start_().then(() => {
+      return this.port_();
+    }).then(port => {
       port.onMessage(callback);
     });
   }

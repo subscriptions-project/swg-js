@@ -104,9 +104,7 @@ export class EntitlementsManager {
    */
   logPaywallImpression_() {
     // Sends event to logging service asynchronously
-    this.analyticsService_.start().then(() => {
-      this.analyticsService_.logEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
-    });
+    this.analyticsService_.logEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
   }
 
   /**
