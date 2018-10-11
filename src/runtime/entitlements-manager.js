@@ -25,6 +25,7 @@ import {AnalyticsEvent} from '../proto/api_messages';
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
 const ENTS_STORAGE_KEY = 'ents';
+const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
 
 
 /**
@@ -82,6 +83,7 @@ export class EntitlementsManager {
         this.positiveRetries_, opt_expectPositive ? 3 : 0);
     if (opt_expectPositive) {
       this.storage_.remove(ENTS_STORAGE_KEY);
+      this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
     }
   }
 
@@ -94,6 +96,7 @@ export class EntitlementsManager {
     this.unblockNextNotification();
     this.storage_.remove(ENTS_STORAGE_KEY);
     this.storage_.remove(TOAST_STORAGE_KEY);
+    this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
   }
 
   /**
@@ -154,11 +157,17 @@ export class EntitlementsManager {
    * @private
    */
   fetchEntitlementsWithCaching_() {
-    return this.storage_.get(ENTS_STORAGE_KEY).then(raw => {
+    return Promise.all([
+      this.storage_.get(ENTS_STORAGE_KEY),
+      this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY),
+    ]).then(cachedValues => {
+      const raw = cachedValues[0];
+      const irtp = cachedValues[1];
       // Try cache first.
       if (raw) {
         const cached = this.getValidJwtEntitlements_(
-            raw, /* requireNonExpired */ true);
+            raw, /* requireNonExpired */ true,
+            irtpStringToBoolean(irtp));
         if (cached && cached.enablesThis()) {
           // Already have a positive response.
           this.positiveRetries_ = 0;
@@ -227,6 +236,11 @@ export class EntitlementsManager {
    */
   parseEntitlements(json) {
     const isReadyToPay = json['isReadyToPay'];
+    if (isReadyToPay == null) {
+      this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
+    } else {
+      this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, String(isReadyToPay));
+    }
     const signedData = json['signedEntitlements'];
     if (signedData) {
       const entitlements = this.getValidJwtEntitlements_(
@@ -365,5 +379,23 @@ export class EntitlementsManager {
         '/entitlements');
     return this.fetcher_.fetchCredentialedJson(url)
         .then(json => this.parseEntitlements(json));
+  }
+}
+
+/**
+ * Convert String value of isReadyToPay
+ * (from JSON or Cache) to a boolean value.
+ * @param {string} value
+ * @return {boolean|undefined}
+ * @private
+ */
+function irtpStringToBoolean(value) {
+  switch (value) {
+    case 'true':
+      return true;
+    case 'false':
+      return false;
+    default:
+      return undefined;
   }
 }
