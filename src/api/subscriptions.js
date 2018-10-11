@@ -234,6 +234,7 @@ export const SubscriptionFlows = {
  *   what's possible on a specific environment. Defaults to "auto".
  *
  * @typedef {{
+ *   experiments: (!Array<string>|undefined),
  *   windowOpenMode: (!WindowOpenMode|undefined),
  * }}
  */
