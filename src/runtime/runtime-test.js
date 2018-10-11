@@ -53,7 +53,6 @@ import {Subscriptions} from '../api/subscriptions';
 import {createElement} from '../utils/dom';
 import {
   isExperimentOn,
-  setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
 
