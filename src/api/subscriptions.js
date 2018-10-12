@@ -236,10 +236,18 @@ export const SubscriptionFlows = {
  * @typedef {{
  *   experiments: (!Array<string>|undefined),
  *   windowOpenMode: (!WindowOpenMode|undefined),
+ *   analyticsMode: (!AnaltyicsMode|undefined),
  * }}
  */
 export let Config;
 
+/**
+ * @enum {number}
+ */
+export const AnalyticsMode = {
+  DEFAULT: 0,
+  IMPRESSIONS: 1,
+};
 
 /**
  * @enum {string}
@@ -256,6 +264,7 @@ export const WindowOpenMode = {
 export function defaultConfig() {
   return {
     windowOpenMode: WindowOpenMode.AUTO,
+    analyticsMode: AnalyticsMode.IMPRESSIONS,
   };
 }
 
