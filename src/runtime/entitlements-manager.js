@@ -115,7 +115,7 @@ export class EntitlementsManager {
     }
     return this.responsePromise_.then(response => {
       if (response.isReadyToPay != null) {
-        this.analyticsService_.setReadyToPay(true);
+        this.analyticsService_.setReadyToPay(response.isReadyToPay);
       }
       // TODO(chenshay): check configuration here and call
       // this.logPaywallImpression_();
