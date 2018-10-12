@@ -71,6 +71,9 @@ export class AnalyticsService {
       this.portResolver_ = resolve;
     });
 
+    /** @private {?web-activities/activity-ports.ActivityIframePort} */
+    this.port_ = null;
+
     /**
      * @private @const {!AnalyticsContext}
      */
@@ -142,10 +145,12 @@ export class AnalyticsService {
   }
 
   /**
+   * @return {!Promise}
    * @private
    */
-  start_() {
+  init_() {
     if (!this.serviceReady_) {
+      // TODO(sohanirao): Potentially do this even earlier
       this.doc_.getBody().appendChild(this.getElement());
       this.serviceReady_ = this.activityPorts_.openIframe(
           this.iframe_, this.src_, this.args_).then(port => {
@@ -154,6 +159,23 @@ export class AnalyticsService {
           });
     }
     return this.serviceReady_;
+  }
+
+  /**
+   * @return {!Promise}
+   * @private
+   */
+  start_() {
+    return this.init_().then(() => {
+      if (!this.port_) {
+        return this.portReady_().then(port => {
+          this.port_ = port;
+        });
+      }
+      return Promise.resolve();
+    }).then(() => {
+      return this.port_.whenReady();
+    });
   }
 
   /**
@@ -173,7 +195,7 @@ export class AnalyticsService {
    * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
    * @private
    */
-  port_() {
+  portReady_() {
     return this.portPromise_;
   }
 
@@ -193,11 +215,7 @@ export class AnalyticsService {
    */
   logEvent(event) {
     this.lastAction = this.start_().then(() => {
-      return this.port_();
-    }).then(port => {
-      return port.whenReady().then(() => {
-        port.message({'buf': this.createLogRequest_(event).toArray()});
-      });
+      this.port_.message({'buf': this.createLogRequest_(event).toArray()});
     });
   }
 
@@ -207,9 +225,7 @@ export class AnalyticsService {
    */
   onMessage(callback) {
     this.lastAction = this.start_().then(() => {
-      return this.port_();
-    }).then(port => {
-      port.onMessage(callback);
+      this.port_.onMessage(callback);
     });
   }
 }

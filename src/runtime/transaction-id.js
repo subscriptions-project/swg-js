@@ -23,7 +23,7 @@ export class TransactionId {
    * @param {!./deps.DepsDef} deps
    */
   constructor(deps) {
-    /** @private @const {!Storage} */
+    /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
   }
 

@@ -115,10 +115,10 @@ export class EntitlementsManager {
     }
     return this.responsePromise_.then(response => {
       if (response.isReadyToPay != null) {
-        this.analyticsService_.setReadyToPay(response.isReadyToPay);
+        this.analyticsService_.setReadyToPay(true);
       }
-      // TODO(chenshay): check configuration here
-      this.logPaywallImpression_();
+      // TODO(chenshay): check configuration here and call
+      // this.logPaywallImpression_();
       return response;
     });
   }
