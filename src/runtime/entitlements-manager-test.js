@@ -457,12 +457,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       let capturedReadyToPay = undefined;
       sandbox.stub(AnalyticsService.prototype, 'setReadyToPay',
           isReadyToPay => {
-            console.log('isReadytoPay', isReadyToPay);
             capturedReadyToPay = isReadyToPay;
           });
       let capturedEvent = undefined;
       sandbox.stub(AnalyticsService.prototype, 'logEvent', event => {
-        console.log('captured event ', event);
         capturedEvent = event;
       });
       return manager.getEntitlements().then(entitlements => {

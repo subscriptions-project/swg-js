@@ -236,7 +236,7 @@ export const SubscriptionFlows = {
  * @typedef {{
  *   experiments: (!Array<string>|undefined),
  *   windowOpenMode: (!WindowOpenMode|undefined),
- *   analyticsMode: (!AnaltyicsMode|undefined),
+ *   analyticsMode: (!AnalyticsMode|undefined),
  * }}
  */
 export let Config;
