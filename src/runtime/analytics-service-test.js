@@ -173,5 +173,30 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(request.getContext().getReadyToPay()).to.be.true;
       });
     });
+
+    it('should create correct analytics context', () => {
+      AnalyticsService.prototype.getQueryString_ = () => {
+        return '?utm_source=scenic&utm_medium=email&utm_name=campaign';
+      };
+      AnalyticsService.prototype.getReferrer_ = () => {
+        return 'https://scenic-2017.appspot.com/landing.html';
+      };
+      sandbox.stub(TransactionId.prototype,
+          'get',
+          () => Promise.resolve('google-transaction-0'));
+      analyticsService.setReadyToPay(false);
+      analyticsService.setSku('basic');
+      return analyticsService.getContext().then(context => {
+        expect(context.getReferringOrigin()).to.equal(
+            'https://scenic-2017.appspot.com');
+        expect(context.getUtmMedium()).to.equal('email');
+        expect(context.getUtmSource()).to.equal('scenic');
+        expect(context.getUtmName()).to.equal('campaign');
+        expect(context.getTransactionId()).to.equal(
+            'google-transaction-0');
+        expect(context.getSku()).to.equal('basic');
+        expect(context.getReadyToPay()).to.be.false;
+      });
+    });
   });
 });
