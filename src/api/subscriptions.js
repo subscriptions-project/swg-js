@@ -264,7 +264,7 @@ export const WindowOpenMode = {
 export function defaultConfig() {
   return {
     windowOpenMode: WindowOpenMode.AUTO,
-    analyticsMode: AnalyticsMode.IMPRESSIONS,
+    analyticsMode: AnalyticsMode.DEFAULT,
   };
 }
 
