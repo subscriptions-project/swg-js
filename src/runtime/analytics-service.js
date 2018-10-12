@@ -67,11 +67,11 @@ export class AnalyticsService {
      */
     this.xid_ = new TransactionId(deps);
 
-    /** @private {?Promise} */
+    /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;
 
-    /** {?Promise} */
-    this.lastAction = null;
+    /** @private {?Promise} */
+    this.lastAction_ = null;
   }
 
   /**
@@ -128,7 +128,7 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise}
+   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
    * @private
    */
   start_() {
@@ -172,7 +172,7 @@ export class AnalyticsService {
    * @param {!../proto/api_messages.AnalyticsEvent} event
    */
   logEvent(event) {
-    this.lastAction = this.start_().then(port => {
+    this.lastAction_ = this.start_().then(port => {
       port.message({'buf': this.createLogRequest_(event).toArray()});
     });
   }
@@ -182,7 +182,7 @@ export class AnalyticsService {
    * @param {function(!Object<string, string|boolean>)} callback
    */
   onMessage(callback) {
-    this.lastAction = this.start_().then(port => {
+    this.lastAction_ = this.start_().then(port => {
       port.onMessage(callback);
     });
   }
