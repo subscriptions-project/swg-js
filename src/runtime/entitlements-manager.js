@@ -19,6 +19,8 @@ import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
 import {feArgs, feUrl} from '../runtime/services';
+import {AnalyticsService} from './analytics-service';
+import {AnalyticsEvent} from '../proto/api_messages';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -66,6 +68,9 @@ export class EntitlementsManager {
 
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
+
+    /** @private @const {!AnalyticsService} */
+    this.analyticsService_ = new AnalyticsService(deps);
   }
 
   /**
@@ -94,13 +99,28 @@ export class EntitlementsManager {
   }
 
   /**
+   * @private
+   */
+  logPaywallImpression_() {
+    // Sends event to logging service asynchronously
+    this.analyticsService_.logEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
+  }
+
+  /**
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements() {
     if (!this.responsePromise_) {
       this.responsePromise_ = this.getEntitlementsFlow_();
     }
-    return this.responsePromise_;
+    return this.responsePromise_.then(response => {
+      if (response.isReadyToPay != null) {
+        this.analyticsService_.setReadyToPay(response.isReadyToPay);
+      }
+      // TODO(chenshay): check configuration here and call
+      // this.logPaywallImpression_();
+      return response;
+    });
   }
 
   /**

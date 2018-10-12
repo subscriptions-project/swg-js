@@ -34,7 +34,7 @@ export class AnalyticsService {
    */
   constructor(deps) {
 
-    /** @private @const {!Doc} */
+    /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
@@ -58,20 +58,6 @@ export class AnalyticsService {
     });
 
     /**
-     * @private
-     * {?function<!web-activities/activity-ports.ActivityIframePort|!Promise>}
-     */
-    this.portResolver_ = null;
-
-    /**
-     * @private @const
-     * {!Promise<!web-activities/activity-ports.ActivityIframePort>}
-     */
-    this.portPromise_ = new Promise(resolve => {
-      this.portResolver_ = resolve;
-    });
-
-    /**
      * @private @const {!AnalyticsContext}
      */
     this.context_ = new AnalyticsContext();
@@ -80,6 +66,12 @@ export class AnalyticsService {
      * @private @const {!TransactionId}
      */
     this.xid_ = new TransactionId(deps);
+
+    /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
+    this.serviceReady_ = null;
+
+    /** @private {?Promise} */
+    this.lastAction_ = null;
   }
 
   /**
@@ -117,7 +109,6 @@ export class AnalyticsService {
    */
   setContext_() {
     const utmParams = parseQueryString(this.getQueryString_());
-    this.context_.setTransactionId(this.xid_.get());
     this.context_.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     const name = utmParams['utm_name'];
     const medium = utmParams['utm_medium'];
@@ -137,15 +128,27 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise}
+   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+   * @private
    */
-  start() {
-    this.doc_.getBody().appendChild(this.getElement());
-    return this.activityPorts_.openIframe(this.iframe_, this.src_,
-        this.args_).then(port => {
-          this.portResolver_(port);
-          return this.setContext_();
-        });
+  start_() {
+    if (!this.serviceReady_) {
+      // TODO(sohanirao): Potentially do this even earlier
+      this.doc_.getBody().appendChild(this.getElement());
+      this.serviceReady_ = this.activityPorts_.openIframe(
+          this.iframe_, this.src_, this.args_).then(port => {
+            this.setContext_();
+            return port.whenReady().then(() => port);
+          });
+    }
+    return this.serviceReady_;
+  }
+
+  /**
+   * @param {boolean} isReadyToPay
+   */
+  setReadyToPay(isReadyToPay) {
+    this.context_.setReadyToPay(isReadyToPay);
   }
 
   /**
@@ -155,15 +158,7 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
-   * @private
-   */
-  port_() {
-    return this.portPromise_;
-  }
-
-  /**
-   * @param {!AnalyticsEvent} event
+   * @param {!../proto/api_messages.AnalyticsEvent} event
    * @return {!AnalyticsRequest}
    */
   createLogRequest_(event) {
@@ -174,13 +169,11 @@ export class AnalyticsService {
   }
 
   /**
-   * @param {!AnalyticsEvent} event
+   * @param {!../proto/api_messages.AnalyticsEvent} event
    */
   logEvent(event) {
-    this.port_().then(port => {
-      return port.whenReady().then(() => {
-        port.message({'buf': this.createLogRequest_(event).toArray()});
-      });
+    this.lastAction_ = this.start_().then(port => {
+      port.message({'buf': this.createLogRequest_(event).toArray()});
     });
   }
 
@@ -189,7 +182,7 @@ export class AnalyticsService {
    * @param {function(!Object<string, string|boolean>)} callback
    */
   onMessage(callback) {
-    this.port_().then(port => {
+    this.lastAction_ = this.start_().then(port => {
       port.onMessage(callback);
     });
   }

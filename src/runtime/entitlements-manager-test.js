@@ -28,7 +28,7 @@ import {
   base64UrlEncodeFromBytes,
   utf8EncodeSync,
 } from '../utils/bytes';
-
+import {AnalyticsService} from './analytics-service';
 
 describes.realWin('EntitlementsManager', {}, env => {
   let win;
@@ -55,6 +55,7 @@ describes.realWin('EntitlementsManager', {}, env => {
     const storage = new Storage(win);
     storageMock = sandbox.mock(storage);
     sandbox.stub(deps, 'storage', () => storage);
+    sandbox.stub(deps, 'pageConfig', () => config);
 
     manager = new EntitlementsManager(win, config, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
@@ -131,6 +132,12 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs('toast')
           .returns(Promise.resolve(null))
           .atLeast(0);
+      sandbox.stub(AnalyticsService.prototype,
+          'start_', () => Promise.resolve());
+      sandbox.stub(AnalyticsService.prototype,
+          'setContext_', () => Promise.resolve());
+      sandbox.stub(AnalyticsService.prototype, 'logEvent',
+          () => {});
       storageMock.expects('get')
           .withExactArgs('isreadytopay')
           .returns(Promise.resolve(null))
@@ -353,6 +360,12 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('ents')
           .returns(Promise.resolve())
           .atLeast(0);
+      sandbox.stub(AnalyticsService.prototype,
+          'start_', () => Promise.resolve());
+      sandbox.stub(AnalyticsService.prototype,
+          'setContext_', () => Promise.resolve());
+      sandbox.stub(AnalyticsService.prototype, 'logEvent',
+          () => {});
     });
 
     function expectToastShown(value) {
@@ -431,6 +444,32 @@ describes.realWin('EntitlementsManager', {}, env => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
     });
+
+    // TODO(chenshay): Enable testing paywall impression
+    /*
+    it('should log paywall impression event with readyToPay true', () => {
+      expectToastShown('0');
+      storageMock.expects('set').withArgs('isreadytopay', 'true').once();
+      expectGetIsReadyToPayToBeCalled('true');
+      expectGoogleResponse(undefined, true);
+      let capturedReadyToPay = undefined;
+      sandbox.stub(AnalyticsService.prototype, 'setReadyToPay',
+          isReadyToPay => {
+            console.log('isReadytoPay', isReadyToPay);
+            capturedReadyToPay = isReadyToPay;
+          });
+      let capturedEvent = undefined;
+      sandbox.stub(AnalyticsService.prototype, 'logEvent', event => {
+        console.log('captured event ', event);
+        capturedEvent = event;
+      });
+      return manager.getEntitlements().then(entitlements => {
+        expect(entitlements.isReadyToPay).to.be.true;
+        expect(capturedEvent).to.equal(AnalyticsEvent.IMPRESSION_PAYWALL);
+        expect(capturedReadyToPay).to.be.true;
+      });
+    });
+    */
 
     it('should trigger entitlements event with readyToPay false', () => {
       expectToastShown('0');
@@ -556,6 +595,12 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('toast')
           .returns(Promise.resolve(null))
           .atLeast(0);
+      sandbox.stub(AnalyticsService.prototype, 'start_',
+          () => Promise.resolve());
+      sandbox.stub(AnalyticsService.prototype, 'setContext_',
+          () => Promise.resolve());
+      sandbox.stub(AnalyticsService.prototype, 'logEvent',
+          () => {});
     });
 
     function expectGetIsReadyToPayToBeCalled(value) {

@@ -199,6 +199,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
         define: [],
         hide_warnings_for: [
           'src/polyfills/',
+          'src/proto/',          
           'node_modules/',
           'third_party/',
         ],

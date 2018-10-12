@@ -16,6 +16,8 @@
 /** @enum {number} */
 const AnalyticsEvent = {
   UNKNOWN: 0,
+  IMPRESSION_PAYWALL: 1,
+  ACTION_SUBSCRIBE: 1000,
 };
 
 class AnalyticsContext {
@@ -44,6 +46,9 @@ class AnalyticsContext {
 
     /** @private {?string} */
     this.sku_ = (data[7] == null) ? null : data[7];
+
+    /** @private {?boolean} */
+    this.readyToPay_ = (data[8] == null) ? null : data[8];
   }
 
   /**
@@ -145,6 +150,20 @@ class AnalyticsContext {
   }
 
   /**
+   * @return {?boolean}
+   */
+  getReadyToPay() {
+    return this.readyToPay_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setReadyToPay(value) {
+    this.readyToPay_ = value;
+  }
+
+  /**
    * @return {!Array<(string|boolean|number|null|!Array<(string|boolean|number|null)>)>}
    */
   toArray() {
@@ -157,6 +176,7 @@ class AnalyticsContext {
       this.utmName_,  // field 5 - utm_name
       this.utmMedium_,  // field 6 - utm_medium
       this.sku_,  // field 7 - sku
+      this.readyToPay_,  // field 8 - ready_to_pay
     ];
   }
 }

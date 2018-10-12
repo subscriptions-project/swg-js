@@ -74,9 +74,13 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(getStyle(activityIframe, 'display')).to.equal('none');
     });
 
-    it('should start analytics service', () => {
-      const startPromise = analyticsService.start();
-      return startPromise.then(() => {
+    it('should yield onMessage callback and call openIframe', () => {
+      let messageReceived;
+      analyticsService.onMessage(data => {
+        messageReceived = data;
+      });
+      return analyticsService.lastAction_.then(() => {
+        messageCallback({'something': 'irrelevant'});
         expect(activityPorts.openIframe).to.have.been.calledOnce;
         const firstArgument = activityPorts.openIframe.getCall(0).args[0];
         expect(activityPorts.openIframe).to.have.been.calledOnce;
@@ -87,31 +91,19 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(thirdArgument).to.deep.equal(feArgs({
           publicationId: pageConfig.getPublicationId(),
         }));
-      });
-    });
-
-    it('should yield onMessage callback', () => {
-      const startPromise = analyticsService.start();
-      let messageReceived;
-      analyticsService.onMessage(data => {
-        messageReceived = data;
-      });
-      return startPromise.then(() => {
-        messageCallback({'something': 'irrelevant'});
         return activityIframePort.whenReady();
       }).then(() => {
         expect(messageReceived).to.deep.equal({'something': 'irrelevant'});
       });
     });
 
-    it('should pass on message to port when ready', () => {
+    it('should send message on port and openIframe called only once', () => {
       sandbox.stub(
           activityIframePort,
           'message'
       );
-      const startPromise = analyticsService.start();
-      return startPromise.then(() => {
-        analyticsService.logEvent(AnalyticsEvent.UNKNOWN);
+      analyticsService.logEvent(AnalyticsEvent.UNKNOWN);
+      return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
         expect(activityIframePort.message).to.be.calledOnce;
@@ -120,6 +112,25 @@ describes.realWin('AnalyticsService', {}, env => {
         const /* {?AnalyticsRequest} */ request =
           new AnalyticsRequest(firstArgument['buf']);
         expect(request.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
+        analyticsService.logEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
+        return analyticsService.lastAction_;
+      }).then(() => {
+        expect(activityPorts.openIframe).to.have.been.calledOnce;
+        const firstArgument = activityPorts.openIframe.getCall(0).args[0];
+        expect(activityPorts.openIframe).to.have.been.calledOnce;
+        expect(firstArgument.nodeName).to.equal('IFRAME');
+        const secondArgument = activityPorts.openIframe.getCall(0).args[1];
+        expect(secondArgument).to.equal(feUrl(src));
+        const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
+        expect(thirdArgument).to.deep.equal(feArgs({
+          publicationId: pageConfig.getPublicationId(),
+        }));
+        const messageArgument = activityIframePort.message.getCall(1).args[0];
+        expect(messageArgument['buf']).to.not.be.null;
+        const /* {?AnalyticsRequest} */ request =
+          new AnalyticsRequest(messageArgument['buf']);
+        expect(request.getEvent()).to.deep.equal(
+            AnalyticsEvent.IMPRESSION_PAYWALL);
       });
     });
 
@@ -137,10 +148,10 @@ describes.realWin('AnalyticsService', {}, env => {
       sandbox.stub(TransactionId.prototype,
           'get',
           () => Promise.resolve('google-transaction-0'));
-      const startPromise = analyticsService.start();
-      return startPromise.then(() => {
-        analyticsService.logEvent(AnalyticsEvent.UNKNOWN);
-        analyticsService.setSku('basic');
+      analyticsService.setReadyToPay(true);
+      analyticsService.setSku('basic');
+      analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+      return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
         expect(activityIframePort.message).to.be.calledOnce;
@@ -148,7 +159,8 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(firstArgument['buf']).to.not.be.null;
         const /* {?AnalyticsRequest} */ request =
             new AnalyticsRequest(firstArgument['buf']);
-        expect(request.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
+        expect(request.getEvent()).to.deep.equal(
+            AnalyticsEvent.ACTION_SUBSCRIBE);
         expect(request.getContext()).to.not.be.null;
         expect(request.getContext().getReferringOrigin()).to.equal(
             'https://scenic-2017.appspot.com');
@@ -158,6 +170,7 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(request.getContext().getTransactionId()).to.equal(
             'google-transaction-0');
         expect(request.getContext().getSku()).to.equal('basic');
+        expect(request.getContext().getReadyToPay()).to.be.true;
       });
     });
   });
