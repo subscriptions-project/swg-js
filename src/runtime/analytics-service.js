@@ -58,9 +58,9 @@ export class AnalyticsService {
     });
 
     /**
-     * @private @const {!AnalyticsContext}
+     * @private {?AnalyticsContext}
      */
-    this.context_ = new AnalyticsContext();
+    this.context_ = null;
 
     /**
      * @private @const {!TransactionId}
@@ -72,13 +72,19 @@ export class AnalyticsService {
 
     /** @private {?Promise} */
     this.lastAction_ = null;
+
+    /** @private {?boolean} */
+    this.isReadyToPay_ = null;
+
+    /** @private {?string} */
+    this.sku_ = null;
   }
 
   /**
    * @param {string} sku
    */
   setSku(sku) {
-    this.context_.setSku(sku);
+    this.sku_ = sku;
   }
 
   /**
@@ -105,25 +111,45 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise}
+   * @private
    */
   setContext_() {
+    if (!this.context_) {
+      this.getContext().then(context => {
+        // clone into member variable
+        this.context_ = new AnalyticsContext(context.toArray());
+      });
+    }
+  }
+
+  /**
+   * @return {!Promise<!AnalyticsContext>}
+   */
+  getContext() {
+    const /* {!AnalyticsContext} */ context = new AnalyticsContext();
+    context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     const utmParams = parseQueryString(this.getQueryString_());
-    this.context_.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     const name = utmParams['utm_name'];
     const medium = utmParams['utm_medium'];
     const source = utmParams['utm_source'];
     if (name) {
-      this.context_.setUtmName(name);
+      context.setUtmName(name);
     }
     if (medium) {
-      this.context_.setUtmMedium(medium);
+      context.setUtmMedium(medium);
     }
     if (source) {
-      this.context_.setUtmSource(source);
+      context.setUtmSource(source);
+    }
+    if (this.isReadyToPay_ != null) {
+      context.setReadyToPay(this.isReadyToPay_);
+    }
+    if (this.sku_) {
+      context.setSku(this.sku_);
     }
     return this.xid_.get().then(id => {
-      this.context_.setTransactionId(id);
+      context.setTransactionId(id);
+      return context;
     });
   }
 
@@ -148,7 +174,7 @@ export class AnalyticsService {
    * @param {boolean} isReadyToPay
    */
   setReadyToPay(isReadyToPay) {
-    this.context_.setReadyToPay(isReadyToPay);
+    this.isReadyToPay_ = isReadyToPay;
   }
 
   /**
@@ -159,21 +185,14 @@ export class AnalyticsService {
 
   /**
    * @param {!../proto/api_messages.AnalyticsEvent} event
-   * @return {!AnalyticsRequest}
-   */
-  createLogRequest_(event) {
-    const /* {!AnalyticsRequest} */ request = new AnalyticsRequest();
-    request.setEvent(event);
-    request.setContext(this.context_);
-    return request;
-  }
-
-  /**
-   * @param {!../proto/api_messages.AnalyticsEvent} event
    */
   logEvent(event) {
     this.lastAction_ = this.start_().then(port => {
-      port.message({'buf': this.createLogRequest_(event).toArray()});
+      const /* {!AnalyticsRequest} */ request = new AnalyticsRequest();
+      request.setEvent(event);
+      // Context is guaranteed to be created by now
+      request.setContext(this.context_);
+      port.message({'buf': request.toArray()});
     });
   }
 
