@@ -58,23 +58,6 @@ export class AnalyticsService {
     });
 
     /**
-     * @private
-     * {?function<!web-activities/activity-ports.ActivityIframePort|!Promise>}
-     */
-    this.portResolver_ = null;
-
-    /**
-     * @private @const
-     * {!Promise<!web-activities/activity-ports.ActivityIframePort>}
-     */
-    this.portPromise_ = new Promise(resolve => {
-      this.portResolver_ = resolve;
-    });
-
-    /** @private {?web-activities/activity-ports.ActivityIframePort} */
-    this.port_ = null;
-
-    /**
      * @private @const {!AnalyticsContext}
      */
     this.context_ = new AnalyticsContext();
@@ -148,34 +131,17 @@ export class AnalyticsService {
    * @return {!Promise}
    * @private
    */
-  init_() {
+  start_() {
     if (!this.serviceReady_) {
       // TODO(sohanirao): Potentially do this even earlier
       this.doc_.getBody().appendChild(this.getElement());
       this.serviceReady_ = this.activityPorts_.openIframe(
           this.iframe_, this.src_, this.args_).then(port => {
-            this.portResolver_(port);
-            return this.setContext_();
+            this.setContext_();
+            return port.whenReady().then(() => port);
           });
     }
     return this.serviceReady_;
-  }
-
-  /**
-   * @return {!Promise}
-   * @private
-   */
-  start_() {
-    return this.init_().then(() => {
-      if (!this.port_) {
-        return this.portReady_().then(port => {
-          this.port_ = port;
-        });
-      }
-      return Promise.resolve();
-    }).then(() => {
-      return this.port_.whenReady();
-    });
   }
 
   /**
@@ -189,14 +155,6 @@ export class AnalyticsService {
    */
   close() {
     this.doc_.getBody().removeChild(this.getElement());
-  }
-
-  /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
-   * @private
-   */
-  portReady_() {
-    return this.portPromise_;
   }
 
   /**
@@ -214,8 +172,8 @@ export class AnalyticsService {
    * @param {!../proto/api_messages.AnalyticsEvent} event
    */
   logEvent(event) {
-    this.lastAction = this.start_().then(() => {
-      this.port_.message({'buf': this.createLogRequest_(event).toArray()});
+    this.lastAction = this.start_().then(port => {
+      port.message({'buf': this.createLogRequest_(event).toArray()});
     });
   }
 
@@ -224,8 +182,8 @@ export class AnalyticsService {
    * @param {function(!Object<string, string|boolean>)} callback
    */
   onMessage(callback) {
-    this.lastAction = this.start_().then(() => {
-      this.port_.onMessage(callback);
+    this.lastAction = this.start_().then(port => {
+      port.onMessage(callback);
     });
   }
 }
