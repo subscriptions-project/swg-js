@@ -35,16 +35,16 @@ export class EntitlementsManager {
 
   /**
    * @param {!Window} win
-   * @param {!../model/page-config.PageConfig} config
+   * @param {!../model/page-config.PageConfig} pageConfig
    * @param {!./fetcher.Fetcher} fetcher
    * @param {!./deps.DepsDef} deps
    */
-  constructor(win, config, fetcher, deps) {
+  constructor(win, pageConfig, fetcher, deps) {
     /** @private @const {!Window} */
     this.win_ = win;
 
     /** @private @const {!../model/page-config.PageConfig} */
-    this.pageConfig_ = config;
+    this.pageConfig_ = pageConfig;
 
     /** @private @const {string} */
     this.publicationId_ = this.pageConfig_.getPublicationId();
