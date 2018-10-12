@@ -79,7 +79,7 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.onMessage(data => {
         messageReceived = data;
       });
-      return analyticsService.lastAction.then(() => {
+      return analyticsService.lastAction_.then(() => {
         messageCallback({'something': 'irrelevant'});
         expect(activityPorts.openIframe).to.have.been.calledOnce;
         const firstArgument = activityPorts.openIframe.getCall(0).args[0];
@@ -103,7 +103,7 @@ describes.realWin('AnalyticsService', {}, env => {
           'message'
       );
       analyticsService.logEvent(AnalyticsEvent.UNKNOWN);
-      return analyticsService.lastAction.then(() => {
+      return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
         expect(activityIframePort.message).to.be.calledOnce;
@@ -113,7 +113,7 @@ describes.realWin('AnalyticsService', {}, env => {
           new AnalyticsRequest(firstArgument['buf']);
         expect(request.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
         analyticsService.logEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
-        return analyticsService.lastAction;
+        return analyticsService.lastAction_;
       }).then(() => {
         expect(activityPorts.openIframe).to.have.been.calledOnce;
         const firstArgument = activityPorts.openIframe.getCall(0).args[0];
@@ -151,7 +151,7 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.setReadyToPay(true);
       analyticsService.setSku('basic');
       analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
-      return analyticsService.lastAction.then(() => {
+      return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
         expect(activityIframePort.message).to.be.calledOnce;
