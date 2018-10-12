@@ -142,8 +142,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           'start_', () => Promise.resolve());
       sandbox.stub(AnalyticsService.prototype,
           'setContext_', () => Promise.resolve());
-      sandbox.stub(AnalyticsService.prototype, 'init_',
-          () => Promise.resolve());
       sandbox.stub(AnalyticsService.prototype, 'logEvent',
           () => {});
       storageMock.expects('get')
@@ -372,8 +370,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           'start_', () => Promise.resolve());
       sandbox.stub(AnalyticsService.prototype,
           'setContext_', () => Promise.resolve());
-      sandbox.stub(AnalyticsService.prototype, 'init_',
-          () => Promise.resolve());
     });
 
     function expectToastShown(value) {
@@ -603,8 +599,6 @@ describes.realWin('EntitlementsManager', {}, env => {
       sandbox.stub(AnalyticsService.prototype, 'start_',
           () => Promise.resolve());
       sandbox.stub(AnalyticsService.prototype, 'setContext_',
-          () => Promise.resolve());
-      sandbox.stub(AnalyticsService.prototype, 'init_',
           () => Promise.resolve());
       sandbox.stub(AnalyticsService.prototype, 'logEvent',
           () => {});
