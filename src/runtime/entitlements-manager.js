@@ -21,6 +21,7 @@ import {serviceUrl} from './services';
 import {feArgs, feUrl} from '../runtime/services';
 import {AnalyticsService} from './analytics-service';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsMode} from '../api/subscriptions';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -34,19 +35,19 @@ export class EntitlementsManager {
 
   /**
    * @param {!Window} win
-   * @param {!../model/page-config.PageConfig} config
+   * @param {!../model/page-config.PageConfig} pageConfig
    * @param {!./fetcher.Fetcher} fetcher
    * @param {!./deps.DepsDef} deps
    */
-  constructor(win, config, fetcher, deps) {
+  constructor(win, pageConfig, fetcher, deps) {
     /** @private @const {!Window} */
     this.win_ = win;
 
     /** @private @const {!../model/page-config.PageConfig} */
-    this.config_ = config;
+    this.pageConfig_ = pageConfig;
 
     /** @private @const {string} */
-    this.publicationId_ = this.config_.getPublicationId();
+    this.publicationId_ = this.pageConfig_.getPublicationId();
 
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
@@ -71,6 +72,9 @@ export class EntitlementsManager {
 
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(deps);
+
+    /** @private @const {!../api/subscriptions.Config} */
+    this.config_ = deps.config();
   }
 
   /**
@@ -117,8 +121,9 @@ export class EntitlementsManager {
       if (response.isReadyToPay != null) {
         this.analyticsService_.setReadyToPay(response.isReadyToPay);
       }
-      // TODO(chenshay): check configuration here and call
-      // this.logPaywallImpression_();
+      if (this.config_.analyticsMode == AnalyticsMode.IMPRESSIONS) {
+        this.logPaywallImpression_();
+      }
       return response;
     });
   }
@@ -294,7 +299,7 @@ export class EntitlementsManager {
         SERVICE_ID,
         raw,
         Entitlement.parseListFromJson(json),
-        this.config_.getProductId(),
+        this.pageConfig_.getProductId(),
         this.ack_.bind(this),
         opt_isReadyToPay);
   }
