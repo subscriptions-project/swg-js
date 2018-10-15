@@ -288,6 +288,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 describes.realWin('PayClientBindingPayjs', {}, env => {
   let win;
   let resultStub;
+  let activityPorts;
   let payClient;
   let payClientStubs;
   let redirectVerifierHelperStubs, redirectVerifierHelperResults;
@@ -295,7 +296,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
 
   beforeEach(() => {
     win = env.win;
-    const activityPorts = new ActivityPorts(win);
+    activityPorts = new ActivityPorts(win);
     redirectVerifierHelperResults = {
       restoreKey: 'test_restore_key',
       verifier: 'test_verifier',
@@ -340,6 +341,8 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
 
   it('should select the right binding', () => {
     expect(payClient.getType()).to.equal('PAYJS');
+    setExperiment(win, ExperimentFlags.GPAY_API, true);
+    expect(new PayClient(win, activityPorts).getType()).to.equal('PAYJS');
   });
 
   it('should initalize correctly', () => {
