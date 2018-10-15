@@ -101,6 +101,10 @@ async function exportToEs6(inputFile, outputFile) {
     );
   }
 
+  // Replace module-based types in comments.
+  // TODO(dvoytenko): Remove once AMP figures out 3p compilation story.
+  output = output.replace(/(!|\?)\.[^>)}]*/g, '*');
+
   // Change the export format.
   output = output.replace(/module.exports\s*\=\s*\{/g, 'export {');
 
