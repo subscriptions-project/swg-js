@@ -38,6 +38,7 @@ const argv = require('minimist')(process.argv.slice(2));
 
 function distAssets() {
   mkdirSync('dist');
+  fs.copySync('assets/loader.svg', 'dist/loader.svg', {overwrite: true});
   return compileCss('assets/swg-button.css', 'dist/swg-button.css', {
     sourceMap: false,
   }).then(() => {
