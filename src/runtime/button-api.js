@@ -48,7 +48,7 @@ const TITLE_LANG_MAP = {
 
 /**
  * The button stylesheet can be found in the `/assets/swg-button.css`.
- * It's produced by the `assets:swg-button` gulp task and deployed to
+ * It's produced by the `gulp assets` task and deployed to
  * `https://news.google.com/swg/js/v1/swg-button.css`.
  */
 export class ButtonApi {
@@ -69,7 +69,7 @@ export class ButtonApi {
       return;
     }
 
-    const url = 'https://news.google.com/swg/js/v1/swg-button.css';
+    const url = '$assets$/swg-button.css';
     const existing = head.querySelector(`link[href="${url}"]`);
     if (existing) {
       return;
