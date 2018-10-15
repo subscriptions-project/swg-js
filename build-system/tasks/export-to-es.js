@@ -27,19 +27,42 @@ const resolveNodeModules = require('rollup-plugin-node-resolve');
 const commonJS = require('rollup-plugin-commonjs');
 const util = require('util');
 const cleanup = require('rollup-plugin-cleanup');
+const overrideConfig = require('./compile-config').overrideConfig;
 
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
 
-function runAllExportsToEs() {
+function runAllExportsToEs(opt_config, opt_outputs) {
+  if (opt_config) {
+    overrideConfig(opt_config);
+  }
+  const outputs = Object.assign({
+    config: 'dist/exports-config.js',
+    swg: 'dist/exports-swg.js',
+    button: 'dist/exports-swg-button.css',
+  }, opt_outputs || {});
   return Promise.resolve().then(() => {
-    return exportToEs6('exports/config.js', 'dist/exports-config.js');
+    return exportToEs6('exports/config.js', outputs.config);
   }).then(() => {
-    return exportToEs6('exports/swg.js', 'dist/exports-swg.js');
+    return exportToEs6('exports/swg.js', outputs.swg);
   }).then(() => {
-    return exportCss('assets/swg-button.css', 'dist/exports-swg-button.css');
+    return exportCss('assets/swg-button.css', outputs.button);
+  });
+}
+
+function runAllExportsToAmp() {
+  return runAllExportsToEs({
+    'frontend': 'https://news.google.com',
+    'frontendCache': 'hr1',
+    'assets': 'https://news.google.com/swg/js/v1',
+    'payEnvironment': 'PRODUCTION',
+    'playEnvironment': 'PROD',
+  }, {
+    config: 'dist/amp/config.js',
+    swg: 'dist/amp/swg.js',
+    button: 'dist/amp/swg-button.css',
   });
 }
 
@@ -49,7 +72,7 @@ function runAllExportsToEs() {
  * @return {!Promise}
  */
 async function exportToEs6(inputFile, outputFile) {
-  await mkdirs(['build', 'dist']);
+  await mkdirs(['build', 'dist', 'dist/amp']);
 
   const license = (await
     readFile('build-system/tasks/license-header.txt', 'utf8')).trim();
@@ -78,7 +101,7 @@ async function exportToEs6(inputFile, outputFile) {
     );
   }
 
-  // Change the export format.	
+  // Change the export format.
   output = output.replace(/module.exports\s*\=\s*\{/g, 'export {');
 
   return writeFile(outputFile, output);
@@ -107,7 +130,7 @@ async function exportCss(inputFile, outputFile) {
 }
 
 async function mkdirs(paths) {
-  for (const path in paths) {
+  for (const path of paths) {
     const pathExists = await exists(path);
 
     if (!pathExists) {
@@ -118,3 +141,4 @@ async function mkdirs(paths) {
 
 
 gulp.task('export-to-es-all', 'All exports to ES', runAllExportsToEs);
+gulp.task('export-to-amp', 'All exports to AMP', runAllExportsToAmp);

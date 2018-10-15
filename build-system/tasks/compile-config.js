@@ -18,23 +18,38 @@
 const argv = require('minimist')(process.argv.slice(2));
 const internalRuntimeVersion = require('./internal-version').VERSION;
 
+const ASSETS = '/assets';
 const FRONTEND = 'https://subscribe-qual.sandbox.google.com';
 const FRONTEND_CACHE = 'nocache';
 const PAY_ENVIRONMENT = 'SANDBOX';
 const PLAY_ENVIRONMENT = 'STAGING';
 const EXPERIMENTS = '';
 
+const overrides = {};
+
 
 /**
  * @return {!Object<string, string>}
  */
 exports.resolveConfig = function() {
-  return {
+  const config = {
     'internalRuntimeVersion': internalRuntimeVersion,
     'frontend': argv.frontend || FRONTEND,
     'frontendCache': argv.frontendCache || FRONTEND_CACHE,
+    'assets': argv.assets || ASSETS,
     'payEnvironment': argv.payEnvironment || PAY_ENVIRONMENT,
     'playEnvironment': argv.playEnvironment || PLAY_ENVIRONMENT,
     'experiments': argv.experiments || EXPERIMENTS,
   };
+  return Object.assign(config, overrides);
+}
+
+
+/**
+ * @param {!Object<string, string>} config
+ */
+exports.overrideConfig = function(config) {
+  for (const k in config) {
+    overrides[k] = config[k];
+  }
 }

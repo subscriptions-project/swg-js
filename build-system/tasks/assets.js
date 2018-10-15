@@ -36,7 +36,7 @@ const internalRuntimeVersion = require('./internal-version').VERSION;
 const argv = require('minimist')(process.argv.slice(2));
 
 
-function distSwgButton() {
+function distAssets() {
   mkdirSync('dist');
   return compileCss('assets/swg-button.css', 'dist/swg-button.css', {
     sourceMap: false,
@@ -113,4 +113,6 @@ function mkdirSync(path) {
 }
 
 
-gulp.task('assets:swg-button', 'Prepare button assets', distSwgButton);
+gulp.task('assets', 'Prepare assets', distAssets);
+// TODO(dvoytenko): remove after it cycles to prod.
+gulp.task('assets:swg-button', 'Prepare button assets', distAssets);
