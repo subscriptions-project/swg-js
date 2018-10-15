@@ -70,8 +70,11 @@ export class PayClient {
    * @param {!../components/dialog-manager.DialogManager} dialogManager
    */
   constructor(win, activityPorts, dialogManager) {
-    // TODO(dvoytenko, #406): Support GPay API.
-    this.binding_ = new PayClientBindingSwg(win, activityPorts, dialogManager);
+    /** @const @private {!PayClientBindingDef} */
+    this.binding_ =
+        isExperimentOn(win, ExperimentFlags.GPAY_API) ?
+        new PayClientBindingPayjs(win, activityPorts) :
+        new PayClientBindingSwg(win, activityPorts, dialogManager);
   }
 
   /**
