@@ -49,13 +49,13 @@ import {
   PayStartFlow,
 } from './pay-flow';
 import {SubscribeResponse} from '../api/subscribe-response';
-import {Subscriptions} from '../api/subscriptions';
+import {Subscriptions, AnalyticsMode} from '../api/subscriptions';
 import {createElement} from '../utils/dom';
 import {
   isExperimentOn,
   setExperimentsStringForTesting,
 } from './experiments';
-
+import {AnalyticsService} from './analytics-service';
 
 describes.realWin('installRuntime', {}, env => {
   let win;
@@ -426,17 +426,20 @@ describes.realWin('Runtime', {}, env => {
     let configureStub;
     let configuredRuntime;
     let configuredRuntimeMock;
+    let analyticsMock;
 
     beforeEach(() => {
       config = new PageConfig('pub1');
       configuredRuntime = new ConfiguredRuntime(new GlobalDoc(win), config);
       configuredRuntimeMock = sandbox.mock(configuredRuntime);
+      analyticsMock = sandbox.mock(configuredRuntime.analytics());
       configureStub = sandbox.stub(runtime, 'configured_',
           () => Promise.resolve(configuredRuntime));
     });
 
     afterEach(() => {
       configuredRuntimeMock.verify();
+      analyticsMock.verify();
     });
 
     it('should delegate "configure"', () => {
@@ -753,6 +756,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   let runtime;
   let entitlementsManagerMock;
   let dialogManagerMock;
+  let analyticsMock;
   let activityResultCallbacks;
   let offersApiMock;
 
@@ -770,11 +774,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     runtime = new ConfiguredRuntime(win, config);
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager_);
     dialogManagerMock = sandbox.mock(runtime.dialogManager_);
+    analyticsMock = sandbox.mock(runtime.analytics());
+
     offersApiMock = sandbox.mock(runtime.offersApi_);
   });
 
   afterEach(() => {
     dialogManagerMock.verify();
+    analyticsMock.verify();
     entitlementsManagerMock.verify();
     offersApiMock.verify();
     setExperimentsStringForTesting('');
@@ -880,6 +887,16 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(runtime.config().windowOpenMode).to.equal('auto');
     });
 
+    it('should configure analytics mode to track impressions', () => {
+      expect(runtime.config().analyticsMode).to.equal(AnalyticsMode.DEFAULT);
+      runtime.configure({analyticsMode: AnalyticsMode.IMPRESSIONS});
+      expect(runtime.config().analyticsMode).to.equal(
+          AnalyticsMode.IMPRESSIONS);
+      runtime.configure({analyticsMode: AnalyticsMode.DEFAULT});
+      expect(runtime.config().analyticsMode).to.equal(
+          AnalyticsMode.DEFAULT);
+    });
+
     it('should disallow unknown windowOpenMode values', () => {
       expect(() => {
         runtime.configure({windowOpenMode: 'unknown'});
@@ -936,6 +953,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(runtime.dialogManager()).to.be.instanceof(DialogManager);
     expect(runtime.dialogManager().doc_).to.equal(runtime.doc());
     expect(runtime.entitlementsManager().blockNextNotification_).to.be.false;
+    expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
   });
 
   it('should reset entitlements', () => {

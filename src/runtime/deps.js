@@ -67,4 +67,9 @@ export class DepsDef {
    * @return {!../runtime/storage.Storage}
    */
   storage() {}
+
+  /**
+   * @return {!../runtime/analytics-service.AnalyticsService}
+   */
+  analytics() {}
 }

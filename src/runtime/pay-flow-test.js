@@ -177,6 +177,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let entitlementsManagerMock;
   let responseCallback;
   let flow;
+  let analyticsMock;
 
   beforeEach(() => {
     win = env.win;
@@ -189,6 +190,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       responseCallback = callback;
     });
     runtime = new ConfiguredRuntime(win, pageConfig);
+    analyticsMock = sandbox.mock(runtime.analytics());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
@@ -199,6 +201,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock.verify();
     callbacksMock.verify();
     entitlementsManagerMock.verify();
+    analyticsMock.verify();
   });
 
   it('should have valid flow constructed', () => {

@@ -62,6 +62,8 @@ import {
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
 import {setExperiment} from './experiments';
+import {AnalyticsService} from './analytics-service';
+import {AnalyticsMode} from '../api/subscriptions';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -449,6 +451,9 @@ export class ConfiguredRuntime {
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
+    /** @private @const {!AnalyticsService} */
+    this.analyticsService_ = new AnalyticsService(this);
+
     /** @private @const {!EntitlementsManager} */
     this.entitlementsManager_ = new EntitlementsManager(
         this.win_, this.pageConfig_, this.fetcher_, this);
@@ -515,6 +520,11 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  analytics() {
+    return this.analyticsService_;
+  }
+
+  /** @override */
   init() {
     // Implemented by the `Runtime` class.
   }
@@ -541,6 +551,11 @@ export class ConfiguredRuntime {
         }
       } else if (k == 'experiments') {
         v.forEach(experiment => setExperiment(this.win_, experiment, true));
+      } else if (k == 'analyticsMode') {
+        if (v != AnalyticsMode.DEFAULT &&
+            v != AnalyticsMode.IMPRESSIONS) {
+          error = 'Unknown analytics mode: ' + v;
+        }
       } else {
         error = 'Unknown config property: ' + k;
       }

@@ -42,6 +42,7 @@ describes.realWin('EntitlementsManager', {}, env => {
   let callbacks;
   let storageMock;
   let config;
+  let analyticsMock;
 
   beforeEach(() => {
     win = env.win;
@@ -62,6 +63,9 @@ describes.realWin('EntitlementsManager', {}, env => {
     sandbox.stub(deps, 'storage', () => storage);
     sandbox.stub(deps, 'pageConfig', () => pageConfig);
     sandbox.stub(deps, 'config', () => config);
+    const analyticsService = new AnalyticsService(deps);
+    analyticsMock = sandbox.mock(analyticsService);
+    sandbox.stub(deps, 'analytics', () => analyticsService);
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
@@ -138,12 +142,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs('toast')
           .returns(Promise.resolve(null))
           .atLeast(0);
-      sandbox.stub(AnalyticsService.prototype,
-          'start_', () => Promise.resolve());
-      sandbox.stub(AnalyticsService.prototype,
-          'setContext_', () => Promise.resolve());
-      sandbox.stub(AnalyticsService.prototype, 'logEvent',
-          () => {});
       storageMock.expects('get')
           .withExactArgs('isreadytopay')
           .returns(Promise.resolve(null))
@@ -160,6 +158,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           }).returns(Promise.resolve({
             json: () => Promise.resolve({}),
           }));
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false).once();
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).once();
       return manager.getEntitlements().then(ents => {
         expect(ents.service).to.equal('subscribe.google.com');
         expect(ents.raw).to.equal('');
@@ -190,6 +192,10 @@ describes.realWin('EntitlementsManager', {}, env => {
               signedEntitlements: 'SIGNED_DATA',
             }),
           }));
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false).once();
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).once();
       return manager.getEntitlements().then(ents => {
         expect(ents.service).to.equal('subscribe.google.com');
         expect(ents.raw).to.equal('SIGNED_DATA');
@@ -210,6 +216,10 @@ describes.realWin('EntitlementsManager', {}, env => {
             json: () => Promise.resolve({}),
           }))
           .once();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false).twice();
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).twice();
       return manager.getEntitlements().then(() => {
         return manager.getEntitlements();
       });
@@ -221,6 +231,10 @@ describes.realWin('EntitlementsManager', {}, env => {
             json: () => Promise.resolve({}),
           }))
           .twice();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false).twice();
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).twice();
       return manager.getEntitlements().then(() => {
         manager.reset();
         return manager.getEntitlements();
@@ -251,6 +265,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           .once();
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false).once();
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).once();
       return manager.getEntitlements().then(entitlements => {
         expect(manager.positiveRetries_).to.equal(0);
         expect(entitlements.entitlements[0].subscriptionToken).to.equal('s1');
@@ -285,6 +303,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           .once();
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false).once();
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).once();
       const promise = manager.getEntitlements();
       return promise.then(entitlements => {
         expect(manager.positiveRetries_).to.equal(0);
@@ -311,6 +333,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           .thrice();
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false).once();
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).once();
       const promise = manager.getEntitlements();
       return promise.then(entitlements => {
         expect(manager.positiveRetries_).to.equal(0);
@@ -326,6 +352,10 @@ describes.realWin('EntitlementsManager', {}, env => {
             json: () => Promise.resolve({}),
           }))
           .twice();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false).twice();
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).twice();
       return manager.getEntitlements().then(() => {
         manager.clear();
         return manager.getEntitlements();
@@ -366,10 +396,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('ents')
           .returns(Promise.resolve())
           .atLeast(0);
-      sandbox.stub(AnalyticsService.prototype,
-          'start_', () => Promise.resolve());
-      sandbox.stub(AnalyticsService.prototype,
-          'setContext_', () => Promise.resolve());
     });
 
     function expectToastShown(value) {
@@ -407,6 +433,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       storageMock.expects('set').withArgs('toast').never();
       expectGetIsReadyToPayToBeCalled(null);
       expectNoResponse();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.false;
         expect(callbacks.hasEntitlementsResponsePending()).to.be.true;
@@ -424,6 +454,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       storageMock.expects('set').withArgs('toast').never();
       expectGetIsReadyToPayToBeCalled(null);
       expectGoogleResponse();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
@@ -444,6 +478,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       storageMock.expects('set').withArgs('isreadytopay', 'true').once();
       expectGetIsReadyToPayToBeCalled('true');
       expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(true);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
@@ -454,19 +492,12 @@ describes.realWin('EntitlementsManager', {}, env => {
       storageMock.expects('set').withArgs('isreadytopay', 'true').once();
       expectGetIsReadyToPayToBeCalled('true');
       expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
-      let capturedReadyToPay = undefined;
-      sandbox.stub(AnalyticsService.prototype, 'setReadyToPay',
-          isReadyToPay => {
-            capturedReadyToPay = isReadyToPay;
-          });
-      let capturedEvent = undefined;
-      sandbox.stub(AnalyticsService.prototype, 'logEvent', event => {
-        capturedEvent = event;
-      });
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(true);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
-        expect(capturedEvent).to.equal(AnalyticsEvent.IMPRESSION_PAYWALL);
-        expect(capturedReadyToPay).to.be.true;
       });
     });
 
@@ -475,6 +506,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       storageMock.expects('set').withArgs('isreadytopay', 'false').once();
       expectGetIsReadyToPayToBeCalled('false');
       expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ false);
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.false;
       });
@@ -484,6 +519,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       expectToastShown('0');
       expectGetIsReadyToPayToBeCalled(null);
       expectGoogleResponse();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.false;
       });
@@ -496,6 +535,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       expectGoogleResponse({
         exp: Date.now() / 1000 - 10000,  // Far back.
       });
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
@@ -510,6 +553,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs('toast', '1')
           .once();
       expectGoogleResponse();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesThis()).to.be.true;
         entitlements.ack();
@@ -520,6 +567,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       storageMock.expects('set').withArgs('toast').never();
       expectGetIsReadyToPayToBeCalled(null);
       expectNoResponse();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesThis()).to.be.false;
         entitlements.ack();
@@ -533,6 +584,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs('toast', '1')
           .once();
       expectNonGoogleResponse();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
@@ -555,6 +610,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       expectGoogleResponse();
       expectGetIsReadyToPayToBeCalled(null);
       manager.blockNextNotification();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(manager.blockNextNotification_).to.be.false;  // Reset.
         expect(entitlements.enablesThis()).to.be.true;
@@ -575,6 +634,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       expectGetIsReadyToPayToBeCalled(null);
       storageMock.expects('set').withArgs('toast').never();
       expectGoogleResponse();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.getEntitlementForThis().source).to.equal('google');
       }).then(() => {
@@ -594,12 +657,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('toast')
           .returns(Promise.resolve(null))
           .atLeast(0);
-      sandbox.stub(AnalyticsService.prototype, 'start_',
-          () => Promise.resolve());
-      sandbox.stub(AnalyticsService.prototype, 'setContext_',
-          () => Promise.resolve());
-      sandbox.stub(AnalyticsService.prototype, 'logEvent',
-          () => {});
     });
 
     function expectGetIsReadyToPayToBeCalled(value) {
@@ -619,6 +676,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       storageMock.expects('set')
           .withExactArgs('ents')
           .never();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.false;
       });
@@ -636,6 +697,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs('ents', raw)
           .returns(Promise.resolve())
           .once();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
@@ -655,6 +720,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs('ents', raw)
           .returns(Promise.resolve())
           .once();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
@@ -679,6 +748,8 @@ describes.realWin('EntitlementsManager', {}, env => {
       xhrMock.expects('fetch')
           .never();
       manager.reset(true);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(manager.positiveRetries_).to.equal(0);  // Retries are reset.
         expect(entitlements.enablesAny()).to.be.true;
@@ -705,6 +776,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       xhrMock.expects('fetch')
           .never();
       manager.reset(true);
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(true);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
@@ -727,6 +802,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       xhrMock.expects('fetch')
           .never();
       manager.reset(true);
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.false;
       });
@@ -749,6 +828,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       xhrMock.expects('fetch')
           .never();
       manager.reset(true);
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         expect(manager.positiveRetries_).to.equal(0);  // Retries are reset.
         expect(entitlements.enablesAny()).to.be.true;
@@ -775,6 +858,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('ents')
           .once();
       expectNonGoogleResponse();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         // Cached response is from Google, but refresh response is from "pub1".
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
@@ -796,6 +883,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('ents')
           .once();
       expectNonGoogleResponse();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         // Cached response is from Google, but refresh response is from "pub1".
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
@@ -813,6 +904,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('ents')
           .once();
       expectNonGoogleResponse();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         // Cached response is from Google, but refresh response is from "pub1".
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
@@ -829,6 +924,10 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('ents')
           .once();
       expectNonGoogleResponse();
+      analyticsMock.expects('setReadyToPay')
+          .withExactArgs(false);
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL);
       return manager.getEntitlements().then(entitlements => {
         // Cached response is from Google, but refresh response is from "pub1".
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
