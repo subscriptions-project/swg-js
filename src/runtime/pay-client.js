@@ -204,7 +204,12 @@ class PayClientBindingSwg {
           body: data['redirectEncryptedCallbackData'],
           mode: 'cors',
         });
-        return xhr.fetch(url, init).then(response => response.json());
+        return xhr.fetch(url, init).then(response => response.json())
+            .then(response => {
+              const dataClone = Object.assign({}, data);
+              delete dataClone['redirectEncryptedCallbackData'];
+              return Object.assign(dataClone, response);
+            });
       }
       // Data is supplied directly: must be a verified and secure channel.
       if (result.originVerified && result.secureChannel) {
