@@ -67,7 +67,6 @@ export class PayStartFlow {
     });
     this.analyticsService_.setSku(this.sku_);
     this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
-    console.log('here we go');
     this.payClient_.start({
       'apiVersion': 1,
       'allowedPaymentMethods': ['CARD'],

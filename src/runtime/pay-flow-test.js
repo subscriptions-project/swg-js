@@ -107,7 +107,6 @@ describes.realWin('PayStartFlow', {}, env => {
   });
 
   it('should have valid flow constructed', () => {
-    console.log('test started');
     callbacksMock.expects('triggerFlowStarted')
         .withExactArgs('subscribe', {sku: 'sku1'})
         .once();
@@ -136,7 +135,7 @@ describes.realWin('PayStartFlow', {}, env => {
     sandbox.stub(AnalyticsService.prototype, 'logEvent', event => {
       analyticsEvent = event;
     });
-    
+
     return flow.start().then(args => {
       expect(args).to.be.undefined;
       expect(sku).to.equal('sku1');
