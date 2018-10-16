@@ -206,6 +206,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     const encryptedResponse = {
       redirectEncryptedCallbackData: encryptedData,
       environment: 'PRODUCTION',
+      other: 'OTHER',
     };
     const result = new ActivityResult(ActivityResultCode.OK,
         encryptedResponse,
@@ -214,7 +215,10 @@ describes.realWin('PayClientBindingSwg', {}, env => {
         () => Promise.resolve(
         {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
     return withResult(result).then(data => {
-      expect(data).to.deep.equal(INTEGR_DATA_OBJ_DECODED);
+      expect(data.swgCallbackData)
+          .to.deep.equal(INTEGR_DATA_OBJ_DECODED.swgCallbackData);
+      expect(data.environment).to.equal('PRODUCTION');
+      expect(data.other).to.equal('OTHER');
       // Verify xhr call.
       expect(xhrFetchStub).to.be.calledOnce;
       expect(xhrFetchStub).to.be.calledWith(
@@ -243,7 +247,9 @@ describes.realWin('PayClientBindingSwg', {}, env => {
         () => Promise.resolve(
           {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
     return withResult(result).then(data => {
-      expect(data).to.deep.equal(INTEGR_DATA_OBJ_DECODED);
+      expect(data.swgCallbackData)
+          .to.deep.equal(INTEGR_DATA_OBJ_DECODED.swgCallbackData);
+      expect(data.environment).to.equal('SANDBOX');
       // Verify xhr call.
       expect(xhrFetchStub).to.be.calledOnce;
       expect(xhrFetchStub).to.be.calledWith(
