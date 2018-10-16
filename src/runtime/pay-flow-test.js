@@ -31,7 +31,8 @@ import {
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import * as sinon from 'sinon';
-
+import {AnalyticsService} from './analytics-service';
+import {AnalyticsEvent} from '../proto/api_messages';
 
 const INTEGR_DATA_STRING =
     'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -78,7 +79,6 @@ const INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS = {
   },
 };
 
-
 describes.realWin('PayStartFlow', {}, env => {
   let win;
   let pageConfig;
@@ -87,6 +87,8 @@ describes.realWin('PayStartFlow', {}, env => {
   let dialogManagerMock;
   let callbacksMock;
   let flow;
+  let sku;
+  let analyticsEvent;
 
   beforeEach(() => {
     win = env.win;
@@ -105,6 +107,7 @@ describes.realWin('PayStartFlow', {}, env => {
   });
 
   it('should have valid flow constructed', () => {
+    console.log('test started');
     callbacksMock.expects('triggerFlowStarted')
         .withExactArgs('subscribe', {sku: 'sku1'})
         .once();
@@ -127,8 +130,18 @@ describes.realWin('PayStartFlow', {}, env => {
           forceRedirect: false,
         })
         .once();
-    const flowPromise = flow.start();
-    return expect(flowPromise).to.eventually.be.undefined;
+    sandbox.stub(AnalyticsService.prototype, 'setSku', skuArg => {
+      sku = skuArg;
+    });
+    sandbox.stub(AnalyticsService.prototype, 'logEvent', event => {
+      analyticsEvent = event;
+    });
+    
+    return flow.start().then(args => {
+      expect(args).to.be.undefined;
+      expect(sku).to.equal('sku1');
+      expect(analyticsEvent).to.equal(AnalyticsEvent.ACTION_SUBSCRIBE);
+    });
   });
 
   it('should force redirect mode', () => {
