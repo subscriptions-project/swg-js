@@ -117,7 +117,7 @@ export class EntitlementsManager {
       this.responsePromise_ = this.getEntitlementsFlow_();
     }
     return this.responsePromise_.then(response => {
-      if (!(response.isReadyToPay == null)) {
+      if (response.isReadyToPay != null) {
         this.analyticsService_.setReadyToPay(response.isReadyToPay);
       }
       if (this.config_.analyticsMode == AnalyticsMode.IMPRESSIONS) {
