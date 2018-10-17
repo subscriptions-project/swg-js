@@ -57,9 +57,6 @@ export class AnalyticsService {
       publicationId: this.publicationId_,
     });
 
-    /** @private {string} */
-    this.transactionId_ = uuidFast();
-
     /**
      * @private @const {!AnalyticsContext}
      */
@@ -138,7 +135,8 @@ export class AnalyticsService {
     if (source) {
       this.context_.setUtmSource(source);
     }
-    this.context_.setTransactionId(this.getTransactionId());
+    this.context_.setTransactionId(
+        /** @type {string} */ (this.getTransactionId()));
   }
 
   /**
