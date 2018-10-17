@@ -72,6 +72,9 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(activityIframe.nodeType).to.equal(1);
       expect(activityIframe.nodeName).to.equal('IFRAME');
       expect(getStyle(activityIframe, 'display')).to.equal('none');
+      const txId = 'tx-id-101';
+      analyticsService.setTransactionId(txId);
+      expect(analyticsService.getTransactionId()).to.equal(txId);
     });
 
     it('should yield onMessage callback and call openIframe', () => {
