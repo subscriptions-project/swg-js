@@ -210,12 +210,81 @@ describes.realWin('DeferredAccountFlow', {}, env => {
       expect(response.userData.id).to.equal('ID_TOK');
       expect(response.purchaseData.raw).to.equal('PURCHASE_DATA');
       expect(response.purchaseData.signature).to.equal('SIG(PURCHASE_DATA)');
+      expect(response.purchaseDataList).to.have.length(1);
+      expect(response.purchaseDataList[0].raw)
+          .to.equal('PURCHASE_DATA');
+      expect(response.purchaseDataList[0].signature)
+          .to.equal('SIG(PURCHASE_DATA)');
 
       expect(confirmStartStub).to.be.calledOnce;
       const confirmRequest = confirmStartStub.args[0][0];
       expect(confirmRequest.entitlements).to.equal(response.entitlements);
       expect(confirmRequest.userData).to.equal(response.userData);
-      expect(confirmRequest.purchaseData).to.equal(response.purchaseData);
+      expect(confirmRequest.purchaseData)
+          .to.equal(response.purchaseDataList[0]);
+
+      expect(confirmCompleteStub).to.not.be.called;
+      const completePromise = response.complete();
+      expect(confirmCompleteStub).to.be.calledOnce;
+      return completePromise;
+    });
+  });
+
+  it('should accept purchase data list', () => {
+    const outputEnts = new Entitlements('subscribe.google.com', 'RaW', [
+      new Entitlement('google', ['product1', 'product2'], 'G_SUB_TOKEN'),
+    ], 'pub1:product1', ack);
+    activitiesMock.expects('openIframe')
+        .returns(Promise.resolve(port));
+    entitlementsManagerMock.expects('blockNextNotification')
+        .once();
+    entitlementsManagerMock.expects('parseEntitlements')
+        .withExactArgs({signedEntitlements: 'OUTPUT_JWT'})
+        .returns(outputEnts)
+        .once();
+    const confirmStartStub = sandbox.stub(
+        PayCompleteFlow.prototype,
+        'start');
+    const confirmCompleteStub = sandbox.stub(
+        PayCompleteFlow.prototype,
+        'complete',
+        () => Promise.resolve());
+    resultResolver({data: {
+      entitlements: 'OUTPUT_JWT',
+      idToken: EMPTY_ID_TOK,
+      purchaseDataList: [
+        {
+          data: 'PURCHASE_DATA1',
+          signature: 'SIG(PURCHASE_DATA1)',
+        },
+        {
+          data: 'PURCHASE_DATA2',
+          signature: 'SIG(PURCHASE_DATA2)',
+        },
+      ],
+    }});
+    return flow.start().then(response => {
+      expect(response.entitlements).to.equal(outputEnts);
+      expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+      expect(response.userData.id).to.equal('ID_TOK');
+      expect(response.purchaseData.raw).to.equal('PURCHASE_DATA1');
+      expect(response.purchaseData.signature).to.equal('SIG(PURCHASE_DATA1)');
+      expect(response.purchaseDataList).to.have.length(2);
+      expect(response.purchaseDataList[0].raw)
+          .to.equal('PURCHASE_DATA1');
+      expect(response.purchaseDataList[0].signature)
+          .to.equal('SIG(PURCHASE_DATA1)');
+      expect(response.purchaseDataList[1].raw)
+          .to.equal('PURCHASE_DATA2');
+      expect(response.purchaseDataList[1].signature)
+          .to.equal('SIG(PURCHASE_DATA2)');
+
+      expect(confirmStartStub).to.be.calledOnce;
+      const confirmRequest = confirmStartStub.args[0][0];
+      expect(confirmRequest.entitlements).to.equal(response.entitlements);
+      expect(confirmRequest.userData).to.equal(response.userData);
+      expect(confirmRequest.purchaseData)
+          .to.equal(response.purchaseDataList[0]);
 
       expect(confirmCompleteStub).to.not.be.called;
       const completePromise = response.complete();
