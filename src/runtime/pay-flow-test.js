@@ -31,7 +31,7 @@ import {
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import * as sinon from 'sinon';
-
+import {AnalyticsEvent} from '../proto/api_messages';
 
 const INTEGR_DATA_STRING =
     'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -78,7 +78,6 @@ const INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS = {
   },
 };
 
-
 describes.realWin('PayStartFlow', {}, env => {
   let win;
   let pageConfig;
@@ -87,6 +86,7 @@ describes.realWin('PayStartFlow', {}, env => {
   let dialogManagerMock;
   let callbacksMock;
   let flow;
+  let analyticsMock;
 
   beforeEach(() => {
     win = env.win;
@@ -95,6 +95,7 @@ describes.realWin('PayStartFlow', {}, env => {
     payClientMock = sandbox.mock(runtime.payClient());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     callbacksMock = sandbox.mock(runtime.callbacks());
+    analyticsMock = sandbox.mock(runtime.analytics());
     flow = new PayStartFlow(runtime, 'sku1');
   });
 
@@ -102,6 +103,7 @@ describes.realWin('PayStartFlow', {}, env => {
     payClientMock.verify();
     dialogManagerMock.verify();
     callbacksMock.verify();
+    analyticsMock.verify();
   });
 
   it('should have valid flow constructed', () => {
@@ -127,6 +129,9 @@ describes.realWin('PayStartFlow', {}, env => {
           forceRedirect: false,
         })
         .once();
+    analyticsMock.expects('setSku').withExactArgs('sku1');
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_SUBSCRIBE);
     const flowPromise = flow.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -165,6 +170,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let entitlementsManagerMock;
   let responseCallback;
   let flow;
+  let analyticsMock;
 
   beforeEach(() => {
     win = env.win;
@@ -177,6 +183,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       responseCallback = callback;
     });
     runtime = new ConfiguredRuntime(win, pageConfig);
+    analyticsMock = sandbox.mock(runtime.analytics());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
@@ -187,6 +194,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock.verify();
     callbacksMock.verify();
     entitlementsManagerMock.verify();
+    analyticsMock.verify();
   });
 
   it('should have valid flow constructed', () => {
