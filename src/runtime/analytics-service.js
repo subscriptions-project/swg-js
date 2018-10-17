@@ -53,7 +53,7 @@ export class AnalyticsService {
     /** @private @const {string} */
     this.publicationId_ = deps.pageConfig().getPublicationId();
 
-    /** @private {?string} */
+    /** @private {string} */
     this.transactionId_ = uuidFast();
 
     this.args_ = feArgs({
