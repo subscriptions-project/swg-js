@@ -21,6 +21,7 @@ import {AnalyticsRequest,
         AnalyticsContext} from '../proto/api_messages';
 import {TransactionId} from './transaction-id';
 import {parseQueryString, parseUrl} from '../utils/url';
+import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -53,6 +54,9 @@ export class AnalyticsService {
     /** @private @const {string} */
     this.publicationId_ = deps.pageConfig().getPublicationId();
 
+    /** @private {?string} */
+    this.transactionId_ = uuidFast();
+
     this.args_ = feArgs({
       publicationId: this.publicationId_,
     });
@@ -64,6 +68,7 @@ export class AnalyticsService {
 
     /**
      * @private @const {!TransactionId}
+     * TODO(diparikh): Remove once replaced by transactionId().
      */
     this.xid_ = new TransactionId(deps);
 
@@ -72,6 +77,25 @@ export class AnalyticsService {
 
     /** @private {?Promise} */
     this.lastAction_ = null;
+  }
+
+  /**
+   * @param {boolean=} override
+   */
+  setTransactionId(override = false) {
+    if (override) {
+      this.transactionId_ = uuidFast();
+    }
+  }
+
+  /**
+   * return {string}
+   */
+  getTransactionId() {
+    if (!this.transactionId_) {
+      throw Error('TransactionId is not set!');
+    }
+    return this.transactionId_;
   }
 
   /**

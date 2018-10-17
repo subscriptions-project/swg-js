@@ -21,6 +21,7 @@ import {getStyle} from '../utils/style';
 import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {TransactionId} from './transaction-id';
+import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
 
 import {
   ActivityIframePort,
@@ -69,6 +70,7 @@ describes.realWin('AnalyticsService', {}, env => {
   describe('AnalyticsService', () => {
     it('should have analyticsService constructed', () => {
       const activityIframe = analyticsService.getElement();
+      expect(analyticsService.getTransactionId()).to.not.undefined;
       expect(activityIframe.nodeType).to.equal(1);
       expect(activityIframe.nodeName).to.equal('IFRAME');
       expect(getStyle(activityIframe, 'display')).to.equal('none');
