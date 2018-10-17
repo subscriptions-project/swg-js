@@ -137,7 +137,7 @@ export class DeferredAccountFlow {
           // TODO(dvoytenko): cleanup/deprecate.
           new PurchaseData(
               data['purchaseData']['data'],
-              data['purchaseData']['signature'])
+              data['purchaseData']['signature']),
         ];
 
     // For now, we'll use the `PayCompleteFlow` as a "creating account" flow.
