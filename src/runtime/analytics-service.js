@@ -62,6 +62,8 @@ export class AnalyticsService {
      */
     this.context_ = new AnalyticsContext();
 
+    this.context_.setTransactionId(uuidFast());
+
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;
 
@@ -77,14 +79,10 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {?string}
+   * @return {string}
    */
   getTransactionId() {
-    if (!this.context_.getTransactionId()) {
-      const transactionId = uuidFast();
-      this.context_.setTransactionId(transactionId);
-    }
-    return this.context_.getTransactionId();
+    return /** @type {string} */ (this.context_.getTransactionId());
   }
 
   /**
@@ -135,8 +133,6 @@ export class AnalyticsService {
     if (source) {
       this.context_.setUtmSource(source);
     }
-    this.context_.setTransactionId(
-        /** @type {string} */ (this.getTransactionId()));
   }
 
   /**
