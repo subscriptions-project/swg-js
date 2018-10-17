@@ -20,7 +20,6 @@ import {PageConfig} from '../model/page-config';
 import {getStyle} from '../utils/style';
 import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
-import {TransactionId} from './transaction-id';
 
 import {
   ActivityIframePort,
@@ -69,9 +68,16 @@ describes.realWin('AnalyticsService', {}, env => {
   describe('AnalyticsService', () => {
     it('should have analyticsService constructed', () => {
       const activityIframe = analyticsService.getElement();
+      const transactionId = analyticsService.getTransactionId();
+      expect(analyticsService.getTransactionId()).to.equal(transactionId);
+      expect(analyticsService.getTransactionId())
+          .to.match(/^.{8}-.{4}-.{4}-.{4}-.{12}$/g);
       expect(activityIframe.nodeType).to.equal(1);
       expect(activityIframe.nodeName).to.equal('IFRAME');
       expect(getStyle(activityIframe, 'display')).to.equal('none');
+      const txId = 'tx-id-101';
+      analyticsService.setTransactionId(txId);
+      expect(analyticsService.getTransactionId()).to.equal(txId);
     });
 
     it('should yield onMessage callback and call openIframe', () => {
@@ -145,9 +151,6 @@ describes.realWin('AnalyticsService', {}, env => {
       AnalyticsService.prototype.getReferrer_ = () => {
         return 'https://scenic-2017.appspot.com/landing.html';
       };
-      sandbox.stub(TransactionId.prototype,
-          'get',
-          () => Promise.resolve('google-transaction-0'));
       analyticsService.setReadyToPay(true);
       analyticsService.setSku('basic');
       analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
@@ -167,8 +170,8 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(request.getContext().getUtmMedium()).to.equal('email');
         expect(request.getContext().getUtmSource()).to.equal('scenic');
         expect(request.getContext().getUtmName()).to.equal('campaign');
-        expect(request.getContext().getTransactionId()).to.equal(
-            'google-transaction-0');
+        expect(request.getContext().getTransactionId())
+            .to.match(/^.{8}-.{4}-.{4}-.{4}-.{12}$/g);
         expect(request.getContext().getSku()).to.equal('basic');
         expect(request.getContext().getReadyToPay()).to.be.true;
       });
