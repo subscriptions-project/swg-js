@@ -57,6 +57,9 @@ export class AnalyticsService {
       publicationId: this.publicationId_,
     });
 
+    /** @private {string} */
+    this.transactionId_ = uuidFast();
+
     /**
      * @private @const {!AnalyticsContext}
      */
@@ -81,7 +84,8 @@ export class AnalyticsService {
    */
   getTransactionId() {
     if (!this.context_.getTransactionId()) {
-      this.context_.setTransactionId(uuidFast());
+      const transactionId = uuidFast();
+      this.context_.setTransactionId(transactionId);
     }
     return this.context_.getTransactionId();
   }
@@ -134,7 +138,7 @@ export class AnalyticsService {
     if (source) {
       this.context_.setUtmSource(source);
     }
-    this.context_.setTransactionId(uuidFast());
+    this.context_.setTransactionId(this.getTransactionId());
   }
 
   /**

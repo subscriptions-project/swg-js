@@ -68,7 +68,10 @@ describes.realWin('AnalyticsService', {}, env => {
   describe('AnalyticsService', () => {
     it('should have analyticsService constructed', () => {
       const activityIframe = analyticsService.getElement();
-      expect(analyticsService.getTransactionId()).to.not.undefined;
+      const transactionId = analyticsService.getTransactionId();
+      expect(analyticsService.getTransactionId()).to.equal(transactionId);
+      expect(analyticsService.getTransactionId())
+          .to.match(/^.{8}-.{4}-.{4}-.{4}-.{12}$/g);
       expect(activityIframe.nodeType).to.equal(1);
       expect(activityIframe.nodeName).to.equal('IFRAME');
       expect(getStyle(activityIframe, 'display')).to.equal('none');
@@ -167,7 +170,8 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(request.getContext().getUtmMedium()).to.equal('email');
         expect(request.getContext().getUtmSource()).to.equal('scenic');
         expect(request.getContext().getUtmName()).to.equal('campaign');
-        expect(request.getContext().getTransactionId()).to.be.not.undefined;
+        expect(request.getContext().getTransactionId())
+            .to.match(/^.{8}-.{4}-.{4}-.{4}-.{12}$/g);
         expect(request.getContext().getSku()).to.equal('basic');
         expect(request.getContext().getReadyToPay()).to.be.true;
       });
