@@ -53,9 +53,6 @@ export class AnalyticsService {
     /** @private @const {string} */
     this.publicationId_ = deps.pageConfig().getPublicationId();
 
-    /** @private {string} */
-    this.transactionId_ = uuidFast();
-
     this.args_ = feArgs({
       publicationId: this.publicationId_,
     });
@@ -74,19 +71,16 @@ export class AnalyticsService {
 
   /**
    * @param {string} transactionId
-   * @param {boolean=} override
    */
-  setTransactionId(transactionId, override = false) {
-    if (override) {
-      this.transactionId_ = transactionId;
-    }
+  setTransactionId(transactionId) {
+    this.context_.setTransactionId(transactionId);
   }
 
   /**
-   * @return {string}
+   * @return {?string}
    */
   getTransactionId() {
-    return this.transactionId_;
+    return this.context_.getTransactionId();
   }
 
   /**
@@ -119,6 +113,9 @@ export class AnalyticsService {
     return this.doc_.getWin().document.referrer;
   }
 
+  /**
+   * @private
+   */
   setContext_() {
     const utmParams = parseQueryString(this.getQueryString_());
     this.context_.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
@@ -134,7 +131,7 @@ export class AnalyticsService {
     if (source) {
       this.context_.setUtmSource(source);
     }
-    this.context_.setTransactionId(this.getTransactionId());
+    this.context_.setTransactionId(uuidFast());
   }
 
   /**
