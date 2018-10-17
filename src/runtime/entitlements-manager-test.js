@@ -618,8 +618,6 @@ describes.realWin('EntitlementsManager', {}, env => {
       storageMock.expects('set')
           .withExactArgs('ents')
           .never();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.false;
       });
@@ -637,8 +635,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs('ents', raw)
           .returns(Promise.resolve())
           .once();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
@@ -658,8 +654,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs('ents', raw)
           .returns(Promise.resolve())
           .once();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
@@ -683,7 +677,7 @@ describes.realWin('EntitlementsManager', {}, env => {
           .never();
       xhrMock.expects('fetch')
           .never();
-      manager.reset(true);
+      manager.reset(true);    
       return manager.getEntitlements().then(entitlements => {
         expect(manager.positiveRetries_).to.equal(0);  // Retries are reset.
         expect(entitlements.enablesAny()).to.be.true;
@@ -758,8 +752,6 @@ describes.realWin('EntitlementsManager', {}, env => {
       xhrMock.expects('fetch')
           .never();
       manager.reset(true);
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         expect(manager.positiveRetries_).to.equal(0);  // Retries are reset.
         expect(entitlements.enablesAny()).to.be.true;
@@ -786,8 +778,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('ents')
           .once();
       expectNonGoogleResponse();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         // Cached response is from Google, but refresh response is from "pub1".
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
@@ -809,8 +799,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('ents')
           .once();
       expectNonGoogleResponse();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         // Cached response is from Google, but refresh response is from "pub1".
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
@@ -828,8 +816,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('ents')
           .once();
       expectNonGoogleResponse();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         // Cached response is from Google, but refresh response is from "pub1".
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
@@ -846,8 +832,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withArgs('ents')
           .once();
       expectNonGoogleResponse();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         // Cached response is from Google, but refresh response is from "pub1".
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
