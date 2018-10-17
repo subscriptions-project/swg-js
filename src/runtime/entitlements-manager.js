@@ -19,7 +19,6 @@ import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
 import {feArgs, feUrl} from '../runtime/services';
-import {AnalyticsService} from './analytics-service';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AnalyticsMode} from '../api/subscriptions';
 
@@ -70,8 +69,8 @@ export class EntitlementsManager {
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
 
-    /** @private @const {!AnalyticsService} */
-    this.analyticsService_ = new AnalyticsService(deps);
+    /** @private @const {!../runtime/analytics-service.AnalyticsService} */
+    this.analyticsService_ = deps.analytics();
 
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = deps.config();

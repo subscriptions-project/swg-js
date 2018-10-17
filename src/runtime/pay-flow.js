@@ -25,7 +25,7 @@ import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseJson} from '../utils/json';
-
+import {AnalyticsEvent} from '../proto/api_messages';
 
 /**
  * The flow to initiate payment process.
@@ -50,6 +50,9 @@ export class PayStartFlow {
 
     /** @private @const {string} */
     this.sku_ = sku;
+
+    /** @private @const {!../runtime/analytics-service.AnalyticsService} */
+    this.analyticsService_ = deps.analytics();
   }
 
   /**
@@ -61,7 +64,8 @@ export class PayStartFlow {
     this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, {
       'sku': this.sku_,
     });
-
+    this.analyticsService_.setSku(this.sku_);
+    this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
     this.payClient_.start({
       'apiVersion': 1,
       'allowedPaymentMethods': ['CARD'],
