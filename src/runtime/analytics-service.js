@@ -19,7 +19,6 @@ import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
 import {AnalyticsRequest,
         AnalyticsContext} from '../proto/api_messages';
-import {TransactionId} from './transaction-id';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
 
@@ -66,12 +65,6 @@ export class AnalyticsService {
      */
     this.context_ = new AnalyticsContext();
 
-    /**
-     * @private @const {!TransactionId}
-     * TODO(diparikh): Remove once replaced by transactionId().
-     */
-    this.xid_ = new TransactionId(deps);
-
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;
 
@@ -80,21 +73,19 @@ export class AnalyticsService {
   }
 
   /**
+   * @param {string} transactionId
    * @param {boolean=} override
    */
-  setTransactionId(override = false) {
+  setTransactionId(transactionId, override = false) {
     if (override) {
-      this.transactionId_ = uuidFast();
+      this.transactionId_ = transactionId;
     }
   }
 
   /**
-   * return {string}
+   * @return {string}
    */
   getTransactionId() {
-    if (!this.transactionId_) {
-      throw Error('TransactionId is not set!');
-    }
     return this.transactionId_;
   }
 
@@ -128,9 +119,6 @@ export class AnalyticsService {
     return this.doc_.getWin().document.referrer;
   }
 
-  /**
-   * @return {!Promise}
-   */
   setContext_() {
     const utmParams = parseQueryString(this.getQueryString_());
     this.context_.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
@@ -146,9 +134,7 @@ export class AnalyticsService {
     if (source) {
       this.context_.setUtmSource(source);
     }
-    return this.xid_.get().then(id => {
-      this.context_.setTransactionId(id);
-    });
+    this.context_.setTransactionId(this.getTransactionId());
   }
 
   /**
