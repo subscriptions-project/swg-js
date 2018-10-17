@@ -25,7 +25,6 @@ import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseJson} from '../utils/json';
-import {AnalyticsService} from './analytics-service';
 import {AnalyticsEvent} from '../proto/api_messages';
 
 /**
@@ -52,8 +51,8 @@ export class PayStartFlow {
     /** @private @const {string} */
     this.sku_ = sku;
 
-    /** @private @const {!AnalyticsService} */
-    this.analyticsService_ = new AnalyticsService(deps);
+    /** @private @const {!../runtime/analytics-service.AnalyticsService} */
+    this.analyticsService_ = deps.analytics();
   }
 
   /**

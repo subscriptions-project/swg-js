@@ -31,7 +31,6 @@ import {
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import * as sinon from 'sinon';
-import {AnalyticsService} from './analytics-service';
 import {AnalyticsEvent} from '../proto/api_messages';
 
 const INTEGR_DATA_STRING =
@@ -87,8 +86,7 @@ describes.realWin('PayStartFlow', {}, env => {
   let dialogManagerMock;
   let callbacksMock;
   let flow;
-  let sku;
-  let analyticsEvent;
+  let analyticsMock;
 
   beforeEach(() => {
     win = env.win;
@@ -97,6 +95,7 @@ describes.realWin('PayStartFlow', {}, env => {
     payClientMock = sandbox.mock(runtime.payClient());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     callbacksMock = sandbox.mock(runtime.callbacks());
+    analyticsMock = sandbox.mock(runtime.analytics());
     flow = new PayStartFlow(runtime, 'sku1');
   });
 
@@ -104,6 +103,7 @@ describes.realWin('PayStartFlow', {}, env => {
     payClientMock.verify();
     dialogManagerMock.verify();
     callbacksMock.verify();
+    analyticsMock.verify();
   });
 
   it('should have valid flow constructed', () => {
@@ -129,18 +129,11 @@ describes.realWin('PayStartFlow', {}, env => {
           forceRedirect: false,
         })
         .once();
-    sandbox.stub(AnalyticsService.prototype, 'setSku', skuArg => {
-      sku = skuArg;
-    });
-    sandbox.stub(AnalyticsService.prototype, 'logEvent', event => {
-      analyticsEvent = event;
-    });
-
-    return flow.start().then(args => {
-      expect(args).to.be.undefined;
-      expect(sku).to.equal('sku1');
-      expect(analyticsEvent).to.equal(AnalyticsEvent.ACTION_SUBSCRIBE);
-    });
+    analyticsMock.expects('setSku').withExactArgs('sku1');
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_SUBSCRIBE);
+    const flowPromise = flow.start();
+    return expect(flowPromise).to.eventually.be.undefined;
   });
 
   it('should force redirect mode', () => {
