@@ -532,8 +532,6 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs('toast', '1')
           .once();
       expectNonGoogleResponse();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
@@ -556,8 +554,6 @@ describes.realWin('EntitlementsManager', {}, env => {
       expectGoogleResponse();
       expectGetIsReadyToPayToBeCalled(null);
       manager.blockNextNotification();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         expect(manager.blockNextNotification_).to.be.false;  // Reset.
         expect(entitlements.enablesThis()).to.be.true;
@@ -578,8 +574,6 @@ describes.realWin('EntitlementsManager', {}, env => {
       expectGetIsReadyToPayToBeCalled(null);
       storageMock.expects('set').withArgs('toast').never();
       expectGoogleResponse();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.getEntitlementForThis().source).to.equal('google');
       }).then(() => {
@@ -677,7 +671,7 @@ describes.realWin('EntitlementsManager', {}, env => {
           .never();
       xhrMock.expects('fetch')
           .never();
-      manager.reset(true);    
+      manager.reset(true);
       return manager.getEntitlements().then(entitlements => {
         expect(manager.positiveRetries_).to.equal(0);  // Retries are reset.
         expect(entitlements.enablesAny()).to.be.true;
