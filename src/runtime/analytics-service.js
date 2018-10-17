@@ -80,6 +80,9 @@ export class AnalyticsService {
    * @return {?string}
    */
   getTransactionId() {
+    if (!this.context_.getTransactionId()) {
+      this.context_.setTransactionId(uuidFast());
+    }
     return this.context_.getTransactionId();
   }
 
