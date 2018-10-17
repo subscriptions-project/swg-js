@@ -46,7 +46,7 @@ function onEntitlement(entitlements) {
 ```
 
 Once you receive deferred account response:
- 1. You can process the subscription. For instance you can create a new account based on the `userData` and `purchaseData` in the response.
+ 1. You can process the subscription. For instance you can create a new account based on the `userData` and `purchaseDataList` in the response.
  2. Once subscription is processed, call `response.complete()`. This method will signal to SwG that your site has accepted the subscription. It will return a promise that will be resolved once the user has acknowledged subscription.
  3. Once the `response.complete()` promise is resolved, you can unblock content, show additional UI to the user or perform any actions you see fit.
 
