@@ -87,7 +87,7 @@ describes.realWin('PayStartFlow', {}, env => {
   let callbacksMock;
   let flow;
   let analyticsMock;
-  let transactionIdRegex = /^.{8}-.{4}-.{4}-.{4}-.{12}$/;
+  const transactionIdRegex = /^.{8}-.{4}-.{4}-.{4}-.{12}$/;
 
   beforeEach(() => {
     win = env.win;
