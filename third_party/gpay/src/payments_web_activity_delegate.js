@@ -131,11 +131,9 @@ class PaymentsWebActivityDelegate {
     // Only verified origins are allowed.
     this.callback_(port.acceptResult().then(
         (result) => {
-          if (null) {
-            // Origin must always match: popup, iframe or redirect.
-            if (result.origin != this.getOrigin_()) {
-              throw new Error('channel mismatch');
-            }
+          // Origin must always match: popup, iframe or redirect.
+          if (result.origin != this.getOrigin_()) {
+            throw new Error('channel mismatch');
           }
           const data = /** @type {!PaymentData} */ (result.data);
           if (data['redirectEncryptedCallbackData']) {
@@ -150,11 +148,9 @@ class PaymentsWebActivityDelegate {
                   return Object.assign(clone, decrypedJson);
                 });
           }
-          if (null) {
-            // Unencrypted data supplied: must be a verified and secure channel.
-            if (!result.originVerified || !result.secureChannel) {
-              throw new Error('channel mismatch');
-            }
+          // Unencrypted data supplied: must be a verified and secure channel.
+          if (!result.originVerified || !result.secureChannel) {
+            throw new Error('channel mismatch');
           }
           return data;
         },

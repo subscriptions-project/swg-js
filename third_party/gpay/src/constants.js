@@ -145,7 +145,7 @@ Constants.IFRAME_STYLE = `
     left: 0;
 }
 @media (min-width: 480px) {
-  .${Constants.IFRAME_STYLE_CLASS}{
+  .${Constants.IFRAME_STYLE_CLASS} {
     width: 480px !important;
     left: -240px !important;
     margin-left: calc(100vw - 100vw / 2) !important;
@@ -178,7 +178,7 @@ Constants.IFRAME_STYLE_CENTER = `
   left: -240px;
   letter-spacing: normal;
   margin-left: calc(100vw - 100vw / 2) !important;
-  max-height: 600px;
+  max-height: 90%;
   overflow: visible;
   position: absolute;
   top: 100%;
@@ -186,6 +186,11 @@ Constants.IFRAME_STYLE_CENTER = `
   width: 480px;
   z-index: ${MAX_Z_INDEX};
   -webkit-appearance: none;
+}
+@media (min-height: 667px) {
+  .${Constants.IFRAME_STYLE_CENTER_CLASS} {
+    max-height: 600px;
+  }
 }
 .${Constants.IFRAME_ACTIVE_CONTAINER_CLASS} {
   top: 50%;

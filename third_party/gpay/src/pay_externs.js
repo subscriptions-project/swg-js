@@ -87,6 +87,7 @@ var IsReadyToPayRequest = {};
  *   shippingAddressRequirements: (?ShippingAddressRequirements|undefined),
  *   transactionInfo: (?TransactionInfo|undefined),
  *   swg: (?SwgParameters|undefined),
+ *   i: (?InternalParameters|undefined),
  * }}
  *
  * @property {string} merchantId The obfuscated merchant gaia id.
@@ -356,3 +357,13 @@ var PaymentData = {};
  * }}
  */
 var UserAddress = {};
+
+/**
+ * Offer details for pre-notification. Description for the offer should not
+ * exceed 30 characters.
+ *
+ * @typedef {{
+ *   description: string
+ * }}
+ */
+var PreNotificationOfferDetails = {};
