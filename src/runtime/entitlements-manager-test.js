@@ -477,12 +477,10 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     it('should trigger entitlements with default readyToPay', () => {
       expectToastShown('0');
-      expectGetIsReadyToPayToBeCalled(null);
+      expectGetIsReadyToPayToBeCalled(undefined);
       expectGoogleResponse();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false).once();
       return manager.getEntitlements().then(entitlements => {
-        expect(entitlements.isReadyToPay).to.be.false;
+        expect(entitlements.isReadyToPay).to.be.undefined;
       });
     });
 
@@ -517,8 +515,6 @@ describes.realWin('EntitlementsManager', {}, env => {
       storageMock.expects('set').withArgs('toast').never();
       expectGetIsReadyToPayToBeCalled(null);
       expectNoResponse();
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(false);
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesThis()).to.be.false;
         entitlements.ack();
@@ -677,7 +673,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
         expect(entitlements.getEntitlementForThis().source).to.equal('google');
-        expect(entitlements.isReadyToPay).to.be.false;
+        expect(entitlements.isReadyToPay).to.be.undefined;
       });
     });
 
@@ -751,7 +747,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
-        expect(entitlements.isReadyToPay).to.be.false;
+        expect(entitlements.isReadyToPay).to.be.undefined;
       });
     });
 

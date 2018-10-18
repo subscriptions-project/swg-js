@@ -37,8 +37,8 @@ export class Entitlements {
     this.raw = raw;
     /** @const {!Array<!Entitlement>} */
     this.entitlements = entitlements;
-    /** @const {boolean} */
-    this.isReadyToPay = isReadyToPay || false;
+    /** @const {?boolean|undefined} */
+    this.isReadyToPay = isReadyToPay;
 
     /** @private @const {?string} */
     this.product_ = currentProduct;

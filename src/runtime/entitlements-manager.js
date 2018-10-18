@@ -237,7 +237,7 @@ export class EntitlementsManager {
    */
   parseEntitlements(json) {
     const isReadyToPay = json['isReadyToPay'];
-    if (isReadyToPay == null) {
+    if (isReadyToPay == null || isReadyToPay == undefined) {
       this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
     } else {
       this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, String(isReadyToPay));
