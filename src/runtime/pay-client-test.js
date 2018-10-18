@@ -67,13 +67,16 @@ describes.realWin('PayClientBindingSwg', {}, env => {
   let dialogManagerMock;
   let resultCallback, resultStub;
   let payClient;
+  let resultIdsAttached;
 
   beforeEach(() => {
     win = env.win;
+    resultIdsAttached = [];
     activityPorts = new ActivityPorts(win);
     activityPorts.onResult = (requestId, callback) => {
-      if (requestId == 'swg-pay') {
+      if (requestId == 'swg-pay' || requestId == 'GPAY') {
         resultCallback = callback;
+        resultIdsAttached.push(requestId);
       }
     };
     port = new ActivityPort();
@@ -101,6 +104,11 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     return resultStub.args[0][0];
   }
 
+  it('should support SwG and GPay result IDs', () => {
+    expect(resultIdsAttached).to.contain('swg-pay');
+    expect(resultIdsAttached).to.contain('GPAY');
+  });
+
   it('should select the right binding', () => {
     expect(payClient.getType()).to.equal('SWG');
   });
@@ -111,7 +119,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
         .withExactArgs(popupWin)
         .once();
     activitiesMock.expects('open').withExactArgs(
-        'swg-pay',
+        'GPAY',
         'PAY_ORIGIN/gp/p/ui/pay?_=_',
         '_blank',
         {
@@ -131,7 +139,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
         .withExactArgs(null)
         .once();
     activitiesMock.expects('open').withExactArgs(
-        'swg-pay',
+        'GPAY',
         'PAY_ORIGIN/gp/p/ui/pay?_=_',
         '_top',
         {

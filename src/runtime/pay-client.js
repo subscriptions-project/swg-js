@@ -26,6 +26,7 @@ import {feArgs, feCached} from './services';
 import {isExperimentOn} from './experiments';
 
 const PAY_REQUEST_ID = 'swg-pay';
+const GPAY_ACTIVITY_REQUEST = 'GPAY';
 
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
@@ -165,7 +166,7 @@ class PayClientBindingSwg {
   /** @override */
   start(paymentRequest, options) {
     const opener = this.activityPorts_.open(
-        PAY_REQUEST_ID,
+        GPAY_ACTIVITY_REQUEST,
         payUrl(),
         options.forceRedirect ? '_top' : '_blank',
         feArgs(paymentRequest),
@@ -175,10 +176,12 @@ class PayClientBindingSwg {
 
   /** @override */
   onResponse(callback) {
-    this.activityPorts_.onResult(PAY_REQUEST_ID, port => {
+    const responseCallback = port => {
       this.dialogManager_.popupClosed();
       callback(this.validatePayResponse_(port));
-    });
+    };
+    this.activityPorts_.onResult(GPAY_ACTIVITY_REQUEST, responseCallback);
+    this.activityPorts_.onResult(PAY_REQUEST_ID, responseCallback);
   }
 
   /**
