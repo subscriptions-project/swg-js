@@ -77,6 +77,7 @@ export class PayStartFlow {
       },
       'i': {
         'startTimeMs': Date.now(),
+        'googleTransactionId': this.analyticsService_.getTransactionId(),
       },
     }, {
       forceRedirect:

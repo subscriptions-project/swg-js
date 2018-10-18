@@ -123,6 +123,7 @@ describes.realWin('PayStartFlow', {}, env => {
           },
           'i': {
             'startTimeMs': sinon.match.any,
+            'googleTransactionId': sinon.match.any,
           },
         },
         {
@@ -150,6 +151,7 @@ describes.realWin('PayStartFlow', {}, env => {
           },
           'i': {
             'startTimeMs': sinon.match.any,
+            'googleTransactionId': sinon.match.any,
           },
         },
         {
