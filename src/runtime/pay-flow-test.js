@@ -87,6 +87,7 @@ describes.realWin('PayStartFlow', {}, env => {
   let callbacksMock;
   let flow;
   let analyticsMock;
+  let transactionIdRegex = /^.{8}-.{4}-.{4}-.{4}-.{12}$/;
 
   beforeEach(() => {
     win = env.win;
@@ -123,7 +124,7 @@ describes.realWin('PayStartFlow', {}, env => {
           },
           'i': {
             'startTimeMs': sinon.match.any,
-            'googleTransactionId': sinon.match.any,
+            'googleTransactionId': sinon.match(transactionIdRegex),
           },
         },
         {
@@ -151,7 +152,7 @@ describes.realWin('PayStartFlow', {}, env => {
           },
           'i': {
             'startTimeMs': sinon.match.any,
-            'googleTransactionId': sinon.match.any,
+            'googleTransactionId': sinon.match(transactionIdRegex),
           },
         },
         {
