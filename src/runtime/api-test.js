@@ -355,22 +355,24 @@ describe('UserData', () => {
 
 
 describes.sandboxed('DeferredAccountCreationResponse', {}, () => {
-  let ents, dacr, pd, ud, complete, promise;
+  let ents, dacr, pd, pd2, ud, complete, promise;
 
   beforeEach(() => {
     ents = new Entitlements('service1', 'RaW', [
       new Entitlement('source1', ['product1', 'product2'], 'token1'),
     ], 'product1', () => {});
     pd = new PurchaseData('PD_RAW', 'PD_SIG');
+    pd2 = new PurchaseData('PD_RAW2', 'PD_SIG2');
     ud = new UserData('ID_TOKEN', {sub: '1234'});
     promise = Promise.resolve();
     complete = () => promise;
-    dacr = new DeferredAccountCreationResponse(ents, ud, pd, complete);
+    dacr = new DeferredAccountCreationResponse(ents, ud, [pd, pd2], complete);
   });
 
   it('should initialize correctly', () => {
     expect(dacr.entitlements).to.equal(ents);
     expect(dacr.userData).to.equal(ud);
+    expect(dacr.purchaseDataList).to.deep.equal([pd, pd2]);
     expect(dacr.purchaseData).to.equal(pd);
     expect(dacr.complete()).to.equal(promise);
   });
@@ -380,6 +382,7 @@ describes.sandboxed('DeferredAccountCreationResponse', {}, () => {
     expect(clone).to.not.equal(dacr);
     expect(clone).to.deep.equal(dacr);
     expect(clone.entitlements).to.equal(ents);
+    expect(clone.purchaseDataList).to.deep.equal([pd, pd2]);
     expect(clone.purchaseData).to.equal(pd);
     expect(clone.userData).to.equal(ud);
     expect(clone.complete()).to.equal(promise);
@@ -389,6 +392,7 @@ describes.sandboxed('DeferredAccountCreationResponse', {}, () => {
     expect(dacr.json()).to.deep.equal({
       'entitlements': ents.json(),
       'userData': ud.json(),
+      'purchaseDataList': [pd.json(), pd2.json()],
       'purchaseData': pd.json(),
     });
   });

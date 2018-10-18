@@ -40,16 +40,19 @@ export class DeferredAccountCreationResponse {
   /**
    * @param {!Entitlements} entitlements
    * @param {!UserData} userData
-   * @param {!PurchaseData} purchaseData
+   * @param {!Array<!PurchaseData>} purchaseDataList
    * @param {function():!Promise} completeHandler
    */
-  constructor(entitlements, userData, purchaseData, completeHandler) {
+  constructor(entitlements, userData, purchaseDataList, completeHandler) {
     /** @const {!Entitlements} */
     this.entitlements = entitlements;
     /** @const {!UserData} */
     this.userData = userData;
+    /** @const {!Array<!PurchaseData>} */
+    this.purchaseDataList = purchaseDataList;
+    // TODO(dvoytenko): deprecate.
     /** @const {!PurchaseData} */
-    this.purchaseData = purchaseData;
+    this.purchaseData = purchaseDataList[0];
     /** @private @const {function():!Promise} */
     this.completeHandler_ = completeHandler;
   }
@@ -61,7 +64,7 @@ export class DeferredAccountCreationResponse {
     return new DeferredAccountCreationResponse(
         this.entitlements,
         this.userData,
-        this.purchaseData,
+        this.purchaseDataList,
         this.completeHandler_);
   }
 
@@ -72,6 +75,8 @@ export class DeferredAccountCreationResponse {
     return {
       'entitlements': this.entitlements.json(),
       'userData': this.userData.json(),
+      'purchaseDataList': this.purchaseDataList.map(pd => pd.json()),
+      // TODO(dvoytenko): deprecate.
       'purchaseData': this.purchaseData.json(),
     };
   }

@@ -19,8 +19,8 @@ import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
 import {AnalyticsRequest,
         AnalyticsContext} from '../proto/api_messages';
-import {TransactionId} from './transaction-id';
 import {parseQueryString, parseUrl} from '../utils/url';
+import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -62,16 +62,27 @@ export class AnalyticsService {
      */
     this.context_ = new AnalyticsContext();
 
-    /**
-     * @private @const {!TransactionId}
-     */
-    this.xid_ = new TransactionId(deps);
+    this.context_.setTransactionId(uuidFast());
 
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;
 
     /** @private {?Promise} */
     this.lastAction_ = null;
+  }
+
+  /**
+   * @param {string} transactionId
+   */
+  setTransactionId(transactionId) {
+    this.context_.setTransactionId(transactionId);
+  }
+
+  /**
+   * @return {string}
+   */
+  getTransactionId() {
+    return /** @type {string} */ (this.context_.getTransactionId());
   }
 
   /**
@@ -105,7 +116,7 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise}
+   * @private
    */
   setContext_() {
     const utmParams = parseQueryString(this.getQueryString_());
@@ -122,9 +133,6 @@ export class AnalyticsService {
     if (source) {
       this.context_.setUtmSource(source);
     }
-    return this.xid_.get().then(id => {
-      this.context_.setTransactionId(id);
-    });
   }
 
   /**
