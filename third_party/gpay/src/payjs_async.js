@@ -81,10 +81,8 @@ class PaymentsAsyncClient {
 
     /** @private @const {!PaymentsClientDelegateInterface} */
     this.webActivityDelegate_ = new PaymentsWebActivityDelegate(
-        this.environment_,
-        PaymentsAsyncClient.googleTransactionId_,
-        opt_useIframe,
-        opt_activities,
+        this.environment_, PaymentsAsyncClient.googleTransactionId_,
+        opt_useIframe, opt_activities,
         paymentOptions['i'] && paymentOptions['i']['redirectKey']);
 
     const paymentRequestSupported = chromeSupportsPaymentRequest();
@@ -100,10 +98,6 @@ class PaymentsAsyncClient {
     this.webActivityDelegate_.onResult(this.onResult_.bind(this));
     this.delegate_.onResult(this.onResult_.bind(this));
 
-    PayFrameHelper.load(
-        this.environment_, PaymentsAsyncClient.googleTransactionId_,
-        this.paymentOptions_.merchantInfo &&
-            this.paymentOptions_.merchantInfo.merchantId);
     // If web delegate is used anyway then this is overridden in the web
     // activity delegate when load payment data is called.
     if (chromeSupportsPaymentHandler()) {
@@ -112,6 +106,13 @@ class PaymentsAsyncClient {
     } else if (paymentRequestSupported) {
       PayFrameHelper.setBuyFlowActivityMode(BuyFlowActivityMode.ANDROID_NATIVE);
     }
+
+    PayFrameHelper.setGoogleTransactionId(
+        PaymentsAsyncClient.googleTransactionId_);
+    PayFrameHelper.postMessage({
+      'eventType': PostMessageEventType.LOG_INITIALIZE_PAYMENTS_CLIENT,
+      'clientLatencyStartMs': Date.now(),
+    });
 
     window.addEventListener(
         'message', event => this.handleMessageEvent_(event));
