@@ -77,6 +77,7 @@ export class PayStartFlow {
       },
       'i': {
         'startTimeMs': Date.now(),
+        // TODO(dparikh): Accept it back from the payments response.
         'googleTransactionId': this.analyticsService_.getTransactionId(),
       },
     }, {
