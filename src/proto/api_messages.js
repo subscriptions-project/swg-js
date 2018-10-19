@@ -18,6 +18,9 @@ const AnalyticsEvent = {
   UNKNOWN: 0,
   IMPRESSION_PAYWALL: 1,
   ACTION_SUBSCRIBE: 1000,
+  ACTION_PAYMENT_COMPLETE: 1001,
+  ACTION_ACCOUNT_CREATED: 1002,
+  ACTION_ACCOUNT_ACKNOWLEDGED: 1003,
 };
 
 class AnalyticsContext {
@@ -49,6 +52,9 @@ class AnalyticsContext {
 
     /** @private {?boolean} */
     this.readyToPay_ = (data[8] == null) ? null : data[8];
+
+    /** @private {!Array<string>} */
+    this.label_ = data[9] || [];
   }
 
   /**
@@ -164,6 +170,20 @@ class AnalyticsContext {
   }
 
   /**
+   * @return {!Array<string>}
+   */
+  getLabel() {
+    return this.label_;
+  }
+
+  /**
+   * @param {!Array<string>} value
+   */
+  setLabel(value) {
+    this.label_ = value;
+  }
+
+  /**
    * @return {!Array<(string|boolean|number|null|!Array<(string|boolean|number|null)>)>}
    */
   toArray() {
@@ -177,6 +197,7 @@ class AnalyticsContext {
       this.utmMedium_,  // field 6 - utm_medium
       this.sku_,  // field 7 - sku
       this.readyToPay_,  // field 8 - ready_to_pay
+      this.label_,  // field 9 - label
     ];
   }
 }
