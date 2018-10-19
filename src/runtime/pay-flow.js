@@ -205,8 +205,12 @@ export class PayCompleteFlow {
  * @return {!Promise<!SubscribeResponse>}
  */
 function validatePayResponse(deps, payPromise, completeHandler) {
-  return payPromise.then(data =>
-      parseSubscriptionResponse(deps, data, completeHandler));
+  return payPromise.then(data => {
+    if (typeof data == 'object' && data['googleTransactionId']) {
+      deps.analytics().setTransactionId(data['googleTransactionId']);
+    }
+    return parseSubscriptionResponse(deps, data, completeHandler);
+  });
 }
 
 
