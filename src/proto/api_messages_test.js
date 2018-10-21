@@ -68,6 +68,7 @@ describe('api_messages', () => {
       analyticscontext.setUtmMedium();
       analyticscontext.setSku();
       analyticscontext.setReadyToPay(false);
+      analyticscontext.setLabel([]);
       const analyticscontextSerialized = analyticscontext.toArray();
       const analyticscontextDeserialized = deserialize(
           analyticscontextSerialized);
@@ -89,6 +90,7 @@ describe('api_messages', () => {
       analyticscontext.setUtmMedium();
       analyticscontext.setSku();
       analyticscontext.setReadyToPay(false);
+      analyticscontext.setLabel([]);
       analyticsrequest.setContext(analyticscontext);
       analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
       const analyticsrequestSerialized = analyticsrequest.toArray();
@@ -100,4 +102,3 @@ describe('api_messages', () => {
     });
   });
 });
-
