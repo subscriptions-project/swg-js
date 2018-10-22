@@ -95,6 +95,7 @@ describes.realWin('EntitlementsManager', {}, env => {
     }, opt_options || {});
     const header = {};
     const payload = {
+      'iss': 'google.com',
       'exp': options.exp,
       'entitlements': entitlements,
     };
@@ -619,7 +620,7 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     it('should store non-empty Google response', () => {
       const raw = expectGoogleResponse()['signedEntitlements'];
-      expect(raw).to.match(/e30\=\.eyJleHAiOjE1M/);
+      expect(raw).to.match(/e30\=\.eyJpc3MiOiJnb/);
       expectGetIsReadyToPayToBeCalled(null);
       storageMock.expects('get')
           .withExactArgs('ents')
@@ -638,7 +639,7 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     it('should store non-empty non-Google response', () => {
       const raw = expectNonGoogleResponse()['signedEntitlements'];
-      expect(raw).to.match(/e30\=\.eyJleHAiOjE1M/);
+      expect(raw).to.match(/e30\=\.eyJpc3MiOiJnb/);
       expectGetIsReadyToPayToBeCalled(null);
       storageMock.expects('get')
           .withExactArgs('ents')
