@@ -394,6 +394,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should NOT start flow on a response failure', () => {
+      analyticsMock.expects('setTransactionId').never();
       return responseCallback(Promise.reject('intentional')).then(() => {
         throw new Error('must have failed');
       }, reason => {
@@ -409,6 +410,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should start flow on a correct payment response', () => {
+      analyticsMock.expects('setTransactionId').never();
       callbacksMock.expects('triggerFlowCanceled').never();
       entitlementsManagerMock.expects('blockNextNotification').once();
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
@@ -427,6 +429,20 @@ describes.realWin('PayCompleteFlow', {}, env => {
         expect(completeStub).to.not.be.called;
         response.complete();
         expect(completeStub).to.be.calledOnce;
+      });
+    });
+
+    it('should start flow with a transaction id', () => {
+      analyticsMock.expects('setTransactionId')
+          .withExactArgs('NEW_TRANSACTION_ID')
+          .once();
+      const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+      data['googleTransactionId'] = 'NEW_TRANSACTION_ID';
+      return responseCallback(Promise.resolve(data)).then(() => {
+        return triggerPromise;
+      }).then(response => {
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
       });
     });
 
@@ -456,6 +472,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should start flow on correct payment response as decoded obj', () => {
+      analyticsMock.expects('setTransactionId').never();
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       const result = INTEGR_DATA_OBJ_DECODED;
       return responseCallback(Promise.resolve(result)).then(() => {
@@ -498,6 +515,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should NOT start flow on cancelation', () => {
+      analyticsMock.expects('setTransactionId').never();
       callbacksMock.expects('triggerFlowCanceled')
           .withExactArgs('subscribe')
           .once();
