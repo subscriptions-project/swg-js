@@ -15,6 +15,7 @@
  */
 
 import {
+  getOnExperiments,
   isExperimentOn,
   setExperiment,
   setExperimentsStringForTesting,
@@ -33,20 +34,25 @@ describes.realWin('experiments', {}, env => {
   });
 
   it('should default experiments to "off"', () => {
+    setExperimentsStringForTesting('');
     expect(isExperimentOn(win, 'experiment-A')).to.be.false;
     expect(isExperimentOn(win, 'experiment-B')).to.be.false;
+    expect(getOnExperiments(win)).to.deep.equal([]);
   });
 
   it('should parse a single experiment', () => {
     setExperimentsStringForTesting('experiment-A');
     expect(isExperimentOn(win, 'experiment-A')).to.be.true;
     expect(isExperimentOn(win, 'experiment-B')).to.be.false;
+    expect(getOnExperiments(win)).to.deep.equal(['experiment-A']);
   });
 
   it('should parse a set of experiments', () => {
     setExperimentsStringForTesting('experiment-A,experiment-B,');
     expect(isExperimentOn(win, 'experiment-A')).to.be.true;
     expect(isExperimentOn(win, 'experiment-B')).to.be.true;
+    expect(getOnExperiments(win))
+        .to.deep.equal(['experiment-A', 'experiment-B']);
   });
 
   it('should update an experiment', () => {
@@ -56,12 +62,16 @@ describes.realWin('experiments', {}, env => {
     expect(isExperimentOn(win, 'experiment-A')).to.be.false;
     expect(isExperimentOn(win, 'experiment-B')).to.be.true;
     expect(isExperimentOn(win, 'experiment-C')).to.be.true;
+    expect(getOnExperiments(win))
+        .to.deep.equal(['experiment-B', 'experiment-C']);
   });
 
   it('should parse duplicate experiments', () => {
     setExperimentsStringForTesting('experiment-A,experiment-A,');
     expect(isExperimentOn(win, 'experiment-A')).to.be.true;
+    expect(getOnExperiments(win)).to.deep.equal(['experiment-A']);
     setExperiment(win, 'experiment-A', false);
     expect(isExperimentOn(win, 'experiment-A')).to.be.false;
+    expect(getOnExperiments(win)).to.deep.equal([]);
   });
 });
