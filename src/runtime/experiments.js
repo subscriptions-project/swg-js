@@ -78,3 +78,18 @@ export function isExperimentOn(win, experimentId) {
 export function setExperiment(win, experimentId, on) {
   getExperiments(win)[experimentId] = on;
 }
+
+
+/**
+ * @return {!Array<string>}
+ */
+export function getOnExperiments(win) {
+  const experimentMap = getExperiments(win);
+  const experiments = [];
+  for (const experiment in experimentMap) {
+    if (experimentMap[experiment]) {
+      experiments.push(experiment);
+    }
+  }
+  return experiments;
+}

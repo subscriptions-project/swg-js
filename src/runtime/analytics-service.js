@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-import {feArgs, feUrl} from './services';
+import {
+  AnalyticsRequest,
+  AnalyticsContext,
+} from '../proto/api_messages';
 import {createElement} from '../utils/dom';
-import {setImportantStyles} from '../utils/style';
-import {AnalyticsRequest,
-        AnalyticsContext} from '../proto/api_messages';
+import {feArgs, feUrl} from './services';
+import {getOnExperiments} from './experiments';
 import {parseQueryString, parseUrl} from '../utils/url';
+import {setImportantStyles} from '../utils/style';
 import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
 
 /** @const {!Object<string, string>} */
@@ -133,6 +136,7 @@ export class AnalyticsService {
     if (source) {
       this.context_.setUtmSource(source);
     }
+    this.context_.setLabel(getOnExperiments(this.doc_.getWin()));
   }
 
   /**
