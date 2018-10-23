@@ -12,6 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The Flow goes like this:
+ * a. Start Payments
+ * b. Complete Payments
+ * c. Create Account
+ * d. Acknowledge Account
+ *
+ * In other words, Flow = Payments + Account Creation.
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
@@ -138,6 +146,9 @@ export class PayCompleteFlow {
 
     /** @private {?Promise} */
     this.readyPromise_ = null;
+
+    /** @private @const {!../runtime/analytics-service.AnalyticsService} */
+    this.analyticsService_ = deps.analytics();
   }
 
   /**
@@ -146,6 +157,7 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   start(response) {
+    this.analyticsService_.logEvent(AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
     const args = {
@@ -184,6 +196,7 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   complete() {
+    this.analyticsService_.logEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
       this.activityIframeView_.message({'complete': true});
@@ -191,6 +204,8 @@ export class PayCompleteFlow {
     return this.activityIframeView_.acceptResult().catch(() => {
       // Ignore errors.
     }).then(() => {
+      this.analyticsService_.logEvent(
+          AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
       this.deps_.entitlementsManager().setToastShown(true);
     });
   }
