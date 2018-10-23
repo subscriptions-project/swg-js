@@ -217,6 +217,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
@@ -240,6 +242,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
@@ -281,6 +285,12 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock.expects('unblockNextNotification')
         .withExactArgs()
         .once();
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_ACCOUNT_CREATED);
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
     const messageStub = sandbox.stub(port, 'message');
     return flow.start(response).then(() => {
       return flow.complete();
@@ -314,6 +324,12 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock.expects('unblockNextNotification')
         .withExactArgs()
         .once();
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_ACCOUNT_CREATED);
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
     const messageStub = sandbox.stub(port, 'message');
     return flow.start(response).then(() => {
       return flow.complete();
@@ -362,6 +378,12 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock.expects('unblockNextNotification')
         .withExactArgs()
         .once();
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_ACCOUNT_CREATED);
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
     const messageStub = sandbox.stub(port, 'message');
     return flow.start(response).then(() => {
       messageHandler({
