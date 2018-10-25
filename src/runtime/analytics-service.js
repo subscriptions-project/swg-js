@@ -89,10 +89,32 @@ export class AnalyticsService {
   }
 
   /**
+   * @return {?string}
+   */
+  getSku() {
+    return this.context_.getSku();
+  }
+
+  /**
    * @param {string} sku
    */
   setSku(sku) {
     this.context_.setSku(sku);
+  }
+
+  /**
+   * @param {!Array<string>} labels
+   */
+  addLabels(labels) {
+    if (labels && labels.length > 0) {
+      const newLabels = [].concat(this.context_.getLabel());
+      labels.forEach(label => {
+        if (newLabels.indexOf(label) == -1) {
+          newLabels.push(label);
+        }
+      });
+      this.context_.setLabel(newLabels);
+    }
   }
 
   /**
@@ -136,7 +158,7 @@ export class AnalyticsService {
     if (source) {
       this.context_.setUtmSource(source);
     }
-    this.context_.setLabel(getOnExperiments(this.doc_.getWin()));
+    this.addLabels(getOnExperiments(this.doc_.getWin()));
   }
 
   /**
@@ -174,7 +196,7 @@ export class AnalyticsService {
    * @return {!AnalyticsRequest}
    */
   createLogRequest_(event) {
-    const /* {!AnalyticsRequest} */ request = new AnalyticsRequest();
+    const request = new AnalyticsRequest();
     request.setEvent(event);
     request.setContext(this.context_);
     return request;
