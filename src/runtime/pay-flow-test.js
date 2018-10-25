@@ -109,7 +109,8 @@ describes.realWin('PayStartFlow', {}, env => {
 
   it('should have valid flow constructed', () => {
     callbacksMock.expects('triggerFlowStarted')
-        .withExactArgs('subscribe', {sku: 'sku1'})
+        .withExactArgs('subscribe',
+          {sku: 'sku1', oldSku: null, prorationMode: null})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     payClientMock.expects('start').withExactArgs(
@@ -121,6 +122,8 @@ describes.realWin('PayStartFlow', {}, env => {
           'swg': {
             'publicationId': 'pub1',
             'skuId': 'sku1',
+            'oldSkuId': null,
+            'replaceSkuProrationMode': null,
           },
           'i': {
             'startTimeMs': sinon.match.any,
@@ -138,6 +141,78 @@ describes.realWin('PayStartFlow', {}, env => {
     return expect(flowPromise).to.eventually.be.undefined;
   });
 
+  it('should have valid replace flow constructed', () => {
+    const replaceFlow = new PayStartFlow(
+        runtime, 'newSku', 'oldSku', 'prorationMode');
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('subscribe',
+          {sku: 'newSku', oldSku: 'oldSku', prorationMode: 'prorationMode'})
+        .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    payClientMock.expects('start').withExactArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            'publicationId': 'pub1',
+            'skuId': 'newSku',
+            'oldSkuId': 'oldSku',
+            'replaceSkuProrationMode': 'prorationMode',
+          },
+          'i': {
+            'startTimeMs': sinon.match.any,
+            'googleTransactionId': sinon.match(transactionIdRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+        })
+        .once();
+    analyticsMock.expects('setSku').withExactArgs('newSku');
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_SUBSCRIBE);
+    const flowPromise = replaceFlow.start();
+    return expect(flowPromise).to.eventually.be.undefined;
+  });
+
+  it('should have valid replace flow constructed (no proration mode)', () => {
+    const replaceFlowNoProrationMode = new PayStartFlow(
+        runtime, 'newSku', 'oldSku');
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('subscribe',
+          {sku: 'newSku', oldSku: 'oldSku', prorationMode: null})
+        .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    payClientMock.expects('start').withExactArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            'publicationId': 'pub1',
+            'skuId': 'newSku',
+            'oldSkuId': 'oldSku',
+            'replaceSkuProrationMode': null,
+          },
+          'i': {
+            'startTimeMs': sinon.match.any,
+            'googleTransactionId': sinon.match(transactionIdRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+        })
+        .once();
+    analyticsMock.expects('setSku').withExactArgs('newSku');
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_SUBSCRIBE);
+    const flowPromise = replaceFlowNoProrationMode.start();
+    return expect(flowPromise).to.eventually.be.undefined;
+  });
+
   it('should force redirect mode', () => {
     runtime.configure({windowOpenMode: 'redirect'});
     payClientMock.expects('start').withExactArgs(
@@ -149,6 +224,8 @@ describes.realWin('PayStartFlow', {}, env => {
           'swg': {
             'publicationId': 'pub1',
             'skuId': 'sku1',
+            'oldSkuId': null,
+            'replaceSkuProrationMode': null,
           },
           'i': {
             'startTimeMs': sinon.match.any,

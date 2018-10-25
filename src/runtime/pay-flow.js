@@ -42,8 +42,10 @@ export class PayStartFlow {
   /**
    * @param {!./deps.DepsDef} deps
    * @param {string} sku
+   * @param {string=} opt_oldSkuId
+   * @param {string=} opt_replaceSkuProrationMode
    */
-  constructor(deps, sku) {
+  constructor(deps, sku, opt_oldSkuId, opt_replaceSkuProrationMode) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -59,6 +61,12 @@ export class PayStartFlow {
     /** @private @const {string} */
     this.sku_ = sku;
 
+    /** @private @const {string=} */
+    this.oldSku_ = opt_oldSkuId || null;
+
+    /** @private @const {string=} */
+    this.replaceSkuProrationMode_ = opt_replaceSkuProrationMode || null;
+
     /** @private @const {!../runtime/analytics-service.AnalyticsService} */
     this.analyticsService_ = deps.analytics();
   }
@@ -71,6 +79,8 @@ export class PayStartFlow {
     // Start/cancel events.
     this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, {
       'sku': this.sku_,
+      'oldSku': this.oldSku_,
+      'prorationMode': this.replaceSkuProrationMode_,
     });
     this.analyticsService_.setSku(this.sku_);
     this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
@@ -82,6 +92,8 @@ export class PayStartFlow {
       'swg': {
         'publicationId': this.pageConfig_.getPublicationId(),
         'skuId': this.sku_,
+        'oldSkuId': this.oldSku_,
+        'replaceSkuProrationMode': this.replaceSkuProrationMode_,
       },
       'i': {
         'startTimeMs': Date.now(),
