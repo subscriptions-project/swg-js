@@ -42,8 +42,8 @@ export class PayStartFlow {
   /**
    * @param {!./deps.DepsDef} deps
    * @param {string} sku
-   * @param {string=} opt_oldSkuId
-   * @param {string=} opt_replaceSkuProrationMode
+   * @param {?string|undefined} opt_oldSkuId
+   * @param {?string|undefined} opt_replaceSkuProrationMode
    */
   constructor(deps, sku, opt_oldSkuId, opt_replaceSkuProrationMode) {
     /** @private @const {!./deps.DepsDef} */
@@ -61,10 +61,10 @@ export class PayStartFlow {
     /** @private @const {string} */
     this.sku_ = sku;
 
-    /** @private @const {string=} */
+    /** @private @const {?string|undefined} */
     this.oldSku_ = opt_oldSkuId || null;
 
-    /** @private @const {string=} */
+    /** @private @const {?string|undefined} */
     this.replaceSkuProrationMode_ = opt_replaceSkuProrationMode || null;
 
     /** @private @const {!../runtime/analytics-service.AnalyticsService} */
