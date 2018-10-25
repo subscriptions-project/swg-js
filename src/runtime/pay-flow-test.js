@@ -78,6 +78,7 @@ const INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS = {
   },
 };
 
+
 describes.realWin('PayStartFlow', {}, env => {
   let win;
   let pageConfig;
@@ -398,6 +399,60 @@ describes.realWin('PayCompleteFlow', {}, env => {
         'pushNextEntitlements',
       ]);
     });
+  });
+
+  it('should restore a SKU for redirect', () => {
+    const purchaseData = new PurchaseData(
+        '{"orderId":"ORDER", "productId":"SKU"}',
+        'SIG');
+    analyticsMock.expects('setSku')
+        .withExactArgs('SKU')
+        .once();
+    analyticsMock.expects('addLabels')
+        .withExactArgs(['redirect'])
+        .once();
+
+    const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
+    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, entitlements);
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.message = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve();
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    analyticsMock.expects('logEvent')
+        .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE)
+        .once();
+    sandbox.stub(port, 'message');
+    return flow.start(response);
+  });
+
+  it('should tolerate unparseable purchase data', () => {
+    const purchaseData = new PurchaseData('unparseable', 'SIG');
+    analyticsMock.expects('setSku').never();
+    analyticsMock.expects('addLabels')
+        .withExactArgs(['redirect'])
+        .once();
+
+    const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
+    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, entitlements);
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.message = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve();
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    analyticsMock.expects('logEvent')
+        .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE)
+        .once();
+    sandbox.stub(port, 'message');
+    return flow.start(response);
   });
 
   describe('payments response', () => {

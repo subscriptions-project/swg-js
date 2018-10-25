@@ -32,7 +32,10 @@ import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
-import {parseJson} from '../utils/json';
+import {
+  parseJson,
+  tryParseJson,
+} from '../utils/json';
 import {AnalyticsEvent} from '../proto/api_messages';
 
 /**
@@ -157,6 +160,14 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   start(response) {
+    if (!this.analyticsService_.getSku()) {
+      // This is a redirect response. Extract the SKU if possible.
+      this.analyticsService_.addLabels(['redirect']);
+      const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
+      if (sku) {
+        this.analyticsService_.setSku(sku);
+      }
+    }
     this.analyticsService_.logEvent(AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
@@ -308,4 +319,14 @@ export function parseEntitlements(deps, swgData) {
     return deps.entitlementsManager().parseEntitlements(swgData);
   }
   return null;
+}
+
+
+/**
+ * @param {!PurchaseData} purchaseData
+ * @return {?string}
+ */
+function parseSkuFromPurchaseDataSafe(purchaseData) {
+  const json = tryParseJson(purchaseData.raw);
+  return json && json['productId'] || null;
 }
