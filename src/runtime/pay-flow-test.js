@@ -16,6 +16,7 @@
 
 import {
   ActivityPort,
+  ActivityPorts,
 } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
@@ -169,6 +170,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let win;
   let pageConfig;
   let runtime;
+  let redirectErrorHandler;
   let activitiesMock;
   let callbacksMock;
   let entitlementsManagerMock;
@@ -185,6 +187,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
         throw new Error('duplicated onResponse');
       }
       responseCallback = callback;
+    });
+    redirectErrorHandler = null;
+    sandbox.stub(ActivityPorts.prototype, 'onRedirectError', handler => {
+      redirectErrorHandler = handler;
     });
     runtime = new ConfiguredRuntime(win, pageConfig);
     analyticsMock = sandbox.mock(runtime.analytics());
@@ -455,6 +461,16 @@ describes.realWin('PayCompleteFlow', {}, env => {
     return flow.start(response);
   });
 
+  it('should report the redirect failure', () => {
+    analyticsMock.expects('addLabels')
+        .withExactArgs(['redirect'])
+        .once();
+    analyticsMock.expects('logEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
+        .once();
+    redirectErrorHandler(new Error('intentional'));
+  });
+
   describe('payments response', () => {
     let startStub;
     let triggerPromise;
@@ -472,6 +488,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
 
     it('should NOT start flow on a response failure', () => {
       analyticsMock.expects('setTransactionId').never();
+      analyticsMock.expects('addLabels').never();
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
+          .once();
       return responseCallback(Promise.reject('intentional')).then(() => {
         throw new Error('must have failed');
       }, reason => {
