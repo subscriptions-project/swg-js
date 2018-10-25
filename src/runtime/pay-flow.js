@@ -82,6 +82,7 @@ export class PayStartFlow {
       'oldSku': this.oldSku_,
       'prorationMode': this.replaceSkuProrationMode_,
     });
+    // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.sku_);
     this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
     this.payClient_.start({
