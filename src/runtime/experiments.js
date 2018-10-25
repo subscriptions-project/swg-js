@@ -17,12 +17,38 @@
 import {ErrorUtils} from '../utils/errors';
 import {parseQueryString} from '../utils/url';
 
+/**
+ * @fileoverview
+ *
+ * Client-side experiments in SwG.
+ *
+ * The experiments can be set in a few different ways:
+ *  1. By gulp build rules using `--experiments=${experimentsString}` argument.
+ *  2. By `#swg.experiments=${experimentsString}` parameter in the URL's
+ *     fragment.
+ *  3. By `swg.configure({experiments: [array]})` call.
+ *
+ * The `${experimentsString}` is defined as following:
+ *  - experimentString = (experimentSpec,)*
+ *  - experimentSpec = experimentId | experimentId '=' num100 ('c')?
+ *
+ * Some examples:
+ *  - `A,B` - defines two experiments "A" and "B" that will be turned on.
+ *  - `A:100,B:100` - the same: "A" and "B" will be turned on.
+ *  - `A:0` - the experiment "A" will be disabled.
+ *  - `A:1` - enable the experiment "A" in 1% of impressions.
+ *  - `A:10c` - enable the experiment "A" in 10% of impressions with 10%
+ *    control. In this case, 20% of the impressions will be split into two
+ *    categories: experiment and control. Notice, a control can be requested
+ *    only for the fraction under 20%.
+ */
+
 
 /**
  * @enum {string}
  */
 const Selection = {
-  EXPRIMENT: 'e',
+  EXPERIMENT: 'e',
   CONTROL: 'c',
 };
 
@@ -141,7 +167,7 @@ function parseSetExperiment(win, experimentMap, spec) {
         // Is experiment/control range?
         if (win.Math.random() * 100 <= fraction * (control ? 2 : 1)) {
           const inExperiment = control ? win.Math.random() <= 0.5 : true;
-          selection = inExperiment ? Selection.EXPRIMENT : Selection.CONTROL;
+          selection = inExperiment ? Selection.EXPERIMENT : Selection.CONTROL;
           win.sessionStorage.setItem(storageKey, selection);
         }
       }
@@ -168,7 +194,7 @@ function parseSetExperiment(win, experimentMap, spec) {
  */
 function parseSelection(s) {
   // Do a simple if-then to inline the whole Selection enum.
-  return s == Selection.EXPRIMENT ? Selection.EXPRIMENT :
+  return s == Selection.EXPERIMENT ? Selection.EXPERIMENT :
       s == Selection.CONTROL ? Selection.CONTROL : null;
 }
 
