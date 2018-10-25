@@ -124,7 +124,7 @@ function parseSetExperiment(win, experimentMap, spec) {
   // - experimentSpec = experimentId | experimentId '=' num100 ('c')?
   let experimentId;
   let fraction;
-  let control;
+  let control = false;
   const eq = spec.indexOf(':');
   if (eq == -1) {
     experimentId = spec;
