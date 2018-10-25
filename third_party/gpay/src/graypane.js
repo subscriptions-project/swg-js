@@ -75,10 +75,15 @@ class Graypane {
 
   /**
    * Hides the graypane.
-   * @return {!Promise}
+   * @return {!Promise|undefined}
    */
   hide() {
     this.popupWindow_ = null;
+    if (!this.element_.parentElement) {
+      // Has already been removed or haven't been even added to DOM.
+      // This could be possible after redirect.
+      return;
+    }
     return transition(this.element_, {
       'opacity': 0,
     }, 300, 'ease-out').then(() => {

@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-import {AnalyticsService} from './analytics-service';
-import {feArgs, feUrl} from './services';
-import {PageConfig} from '../model/page-config';
-import {getStyle} from '../utils/style';
+import {ActivityIframePort} from 'web-activities/activity-ports';
 import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
+import {AnalyticsService} from './analytics-service';
 import {ConfiguredRuntime} from './runtime';
+import {PageConfig} from '../model/page-config';
+import {feArgs, feUrl} from './services';
+import {getStyle} from '../utils/style';
+import {setExperimentsStringForTesting} from './experiments';
 
-import {
-  ActivityIframePort,
-} from 'web-activities/activity-ports';
 
 describes.realWin('AnalyticsService', {}, env => {
   let win;
@@ -63,6 +62,10 @@ describes.realWin('AnalyticsService', {}, env => {
         cb => {
           messageCallback = cb;
         });
+  });
+
+  afterEach(() => {
+    setExperimentsStringForTesting('');
   });
 
   describe('AnalyticsService', () => {
@@ -174,6 +177,45 @@ describes.realWin('AnalyticsService', {}, env => {
             .to.match(/^.{8}-.{4}-.{4}-.{4}-.{12}$/g);
         expect(request.getContext().getSku()).to.equal('basic');
         expect(request.getContext().getReadyToPay()).to.be.true;
+      });
+    });
+
+    it('should set context for empty experiments', () => {
+      setExperimentsStringForTesting('');
+      sandbox.stub(
+          activityIframePort,
+          'message'
+      );
+      analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+      return analyticsService.lastAction_.then(() => {
+        return activityIframePort.whenReady();
+      }).then(() => {
+        expect(activityIframePort.message).to.be.calledOnce;
+        const firstArgument = activityIframePort.message.getCall(0).args[0];
+        expect(firstArgument['buf']).to.not.be.null;
+        const /* {?AnalyticsRequest} */ request =
+            new AnalyticsRequest(firstArgument['buf']);
+        expect(request.getContext().getLabel()).to.deep.equal([]);
+      });
+    });
+
+    it('should set context for non-empty experiments', () => {
+      setExperimentsStringForTesting('experiment-A,experiment-B');
+      sandbox.stub(
+          activityIframePort,
+          'message'
+      );
+      analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+      return analyticsService.lastAction_.then(() => {
+        return activityIframePort.whenReady();
+      }).then(() => {
+        expect(activityIframePort.message).to.be.calledOnce;
+        const firstArgument = activityIframePort.message.getCall(0).args[0];
+        expect(firstArgument['buf']).to.not.be.null;
+        const /* {?AnalyticsRequest} */ request =
+            new AnalyticsRequest(firstArgument['buf']);
+        expect(request.getContext().getLabel())
+            .to.deep.equal(['experiment-A', 'experiment-B']);
       });
     });
   });
