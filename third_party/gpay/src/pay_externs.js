@@ -303,13 +303,16 @@ PaymentResponse.prototype.complete = function(result) {};
  * @typedef {{
  *   buttonColor: (?string|undefined),
  *   buttonType: (?string|undefined),
- *   onClick: (?function():void|undefined)
+ *   onClick: (?function():void|undefined),
+ *   hasOffers: (?boolean|undefined),
  * }}
  *
  * @property {string} buttonColor Color theme: black; white; default.
  *     The default value currently maps to black.
  * @property {string} buttonType Either short or long (default: long).
  * @property {function()} onClick Callback on clicking the button.
+ * @property {boolean} hasOffers When set to true, the Google Pay button will
+ *     indicate that an offer is available for the user.
  */
 var ButtonOptions = {};
 
