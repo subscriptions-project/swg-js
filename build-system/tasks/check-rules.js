@@ -111,6 +111,7 @@ const forbiddenTerms = {
   'sessionStorage': {
     message: requiresReviewPrivacy,
     whitelist: [
+      'src/runtime/experiments.js',
       'src/runtime/storage.js',
     ],
   },
