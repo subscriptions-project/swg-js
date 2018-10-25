@@ -41,3 +41,18 @@ export function isCancelError(error) {
 export function createCancelError(win, opt_message) {
   return createAbortError(win, opt_message);
 }
+
+
+/**
+ * A set of error utilities combined in a class to allow easy stubbing in tests.
+ */
+export class ErrorUtils {
+  /**
+   * @param {!Error} error
+   */
+  static throwAsync(error) {
+    setTimeout(() => {
+      throw error;
+    });
+  }
+}
