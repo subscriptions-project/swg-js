@@ -119,9 +119,15 @@ export class PayCompleteFlow {
       }, reason => {
         if (isCancelError(reason)) {
           deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
+        } else {
+          deps.analytics().logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
         }
         throw reason;
       });
+    });
+    deps.activities().onRedirectError(() => {
+      deps.analytics().addLabels(['redirect']);
+      deps.analytics().logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
     });
   }
 
