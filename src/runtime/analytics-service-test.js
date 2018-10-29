@@ -218,5 +218,41 @@ describes.realWin('AnalyticsService', {}, env => {
             .to.deep.equal(['experiment-A', 'experiment-B']);
       });
     });
+
+    it('should add additional labels to experiments', () => {
+      analyticsService.addLabels(['L1', 'L2']);
+      setExperimentsStringForTesting('E1,E2');
+      sandbox.stub(
+          activityIframePort,
+          'message'
+      );
+      analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+      return analyticsService.lastAction_.then(() => {
+        return activityIframePort.whenReady();
+      }).then(() => {
+        const firstArgument = activityIframePort.message.getCall(0).args[0];
+        const request = new AnalyticsRequest(firstArgument['buf']);
+        expect(request.getContext().getLabel())
+            .to.deep.equal(['L1', 'L2', 'E1', 'E2']);
+
+        analyticsService.addLabels(['L3', 'L4']);
+        analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+        return analyticsService.lastAction_;
+      }).then(() => {
+        const firstArgument = activityIframePort.message.getCall(1).args[0];
+        const request = new AnalyticsRequest(firstArgument['buf']);
+        expect(request.getContext().getLabel())
+            .to.deep.equal(['L1', 'L2', 'E1', 'E2', 'L3', 'L4']);
+      });
+    });
+
+    it('should dedupe duplicate labels', () => {
+      analyticsService.addLabels(['L1', 'L2', 'L1', 'L2']);
+      expect(analyticsService.context_.getLabel())
+          .to.deep.equal(['L1', 'L2']);
+      analyticsService.addLabels(['L1', 'L2', 'L3']);
+      expect(analyticsService.context_.getLabel())
+          .to.deep.equal(['L1', 'L2', 'L3']);
+    });
   });
 });
