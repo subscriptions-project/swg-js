@@ -1160,6 +1160,41 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
   });
 
+  it('should start PayStartFlow for replaceSubscription ' +
+  '(no proration mode)', () => {
+    let flowInstance;
+    const startStub = sandbox.stub(
+        PayStartFlow.prototype,
+        'start',
+        function() {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+    return runtime.replaceSubscription('newSku', 'oldSku').then(() => {
+      expect(startStub).to.be.calledOnce;
+      expect(flowInstance.sku_).to.equal('newSku');
+      expect(flowInstance.oldSku_).to.equal('oldSku');
+      expect(flowInstance.replaceSkuProrationMode_).to.be.null;
+    });
+  });
+
+  it('should start PayStartFlow for replaceSubscription', () => {
+    let flowInstance;
+    const startStub = sandbox.stub(
+        PayStartFlow.prototype,
+        'start',
+        function() {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+    return runtime.replaceSubscription('newSku', 'oldSku', 'mode').then(() => {
+      expect(startStub).to.be.calledOnce;
+      expect(flowInstance.sku_).to.equal('newSku');
+      expect(flowInstance.oldSku_).to.equal('oldSku');
+      expect(flowInstance.replaceSkuProrationMode_).to.equal('mode');
+    });
+  });
+
   it('should configure and start PayCompleteFlow', () => {
     expect(activityResultCallbacks['swg-pay']).to.exist;
     const stub = sandbox.stub(
