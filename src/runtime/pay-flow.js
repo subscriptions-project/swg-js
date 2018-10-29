@@ -84,19 +84,20 @@ export class PayStartFlow {
       'sku': this.sku_,
     };
 
-    const swgKeys = {
+    const swgPaymentRequest = {
       'publicationId': this.pageConfig_.getPublicationId(),
       'skuId': this.sku_,
     };
 
-    if (!!this.oldSku_) {
+    if (this.oldSku_) {
       triggerFlowKeys['oldSku'] = this.oldSku_;
-      swgKeys['oldSkuId'] = this.oldSku_;
+      swgPaymentRequest['oldSkuId'] = this.oldSku_;
     }
 
-    if (!!this.replaceSkuProrationMode_) {
+    if (this.replaceSkuProrationMode_) {
       triggerFlowKeys['prorationMode'] = this.replaceSkuProrationMode_;
-      swgKeys['replaceSkuProrationMode'] = this.replaceSkuProrationMode_;
+      swgPaymentRequest['replaceSkuProrationMode'] =
+          this.replaceSkuProrationMode_;
     }
 
     // Start/cancel events.
@@ -110,7 +111,7 @@ export class PayStartFlow {
       'allowedPaymentMethods': ['CARD'],
       'environment': '$payEnvironment$',
       'playEnvironment': '$playEnvironment$',
-      'swg': swgKeys,
+      'swg': swgPaymentRequest,
       'i': {
         'startTimeMs': Date.now(),
         'googleTransactionId': this.analyticsService_.getTransactionId(),
