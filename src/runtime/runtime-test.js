@@ -49,7 +49,11 @@ import {
   PayStartFlow,
 } from './pay-flow';
 import {SubscribeResponse} from '../api/subscribe-response';
-import {Subscriptions, AnalyticsMode} from '../api/subscriptions';
+import {
+  AnalyticsMode,
+  ReplaceSkuProrationMode,
+  Subscriptions,
+} from '../api/subscriptions';
 import {createElement} from '../utils/dom';
 import {
   isExperimentOn,
@@ -1187,12 +1191,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
           flowInstance = this;
           return Promise.resolve();
         });
-    return runtime.replaceSubscription('newSku', 'oldSku', 'mode').then(() => {
-      expect(startStub).to.be.calledOnce;
-      expect(flowInstance.sku_).to.equal('newSku');
-      expect(flowInstance.oldSku_).to.equal('oldSku');
-      expect(flowInstance.replaceSkuProrationMode_).to.equal('mode');
-    });
+    return runtime.replaceSubscription('newSku', 'oldSku',
+        ReplaceSkuProrationMode.UNKNOWN).then(() => {
+          expect(startStub).to.be.calledOnce;
+          expect(flowInstance.sku_).to.equal('newSku');
+          expect(flowInstance.oldSku_).to.equal('oldSku');
+          expect(flowInstance.replaceSkuProrationMode_).to.equal(
+              ReplaceSkuProrationMode.UNKNOWN);
+        });
   });
 
   it('should configure and start PayCompleteFlow', () => {
