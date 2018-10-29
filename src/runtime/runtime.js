@@ -55,6 +55,7 @@ import {
 import {Preconnect} from '../utils/preconnect';
 import {Storage} from './storage';
 import {
+  ReplaceSkuProrationMode,
   Subscriptions,
   WindowOpenMode,
   defaultConfig,
@@ -296,7 +297,7 @@ export class Runtime {
    *
    * @param {string} newSku
    * @param {string} oldSku
-   * @param {?string|undefined} opt_prorationMode
+   * @param {?ReplaceSkuProrationMode|undefined} opt_prorationMode
    * @return {Promise}
    *
    * TODO(chenshay): move the method definition/docs to Subscriptions interface
@@ -680,7 +681,7 @@ export class ConfiguredRuntime {
    *
    * @param {string} newSku
    * @param {string} oldSku
-   * @param {?string|undefined} opt_prorationMode
+   * @param {?ReplaceSkuProrationMode|undefined} opt_prorationMode
    * @return {Promise}
    *
    * TODO(chenshay): move the method definition/docs to Subscriptions interface

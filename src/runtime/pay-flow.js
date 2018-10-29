@@ -28,7 +28,11 @@ import {
   PurchaseData,
   SubscribeResponse,
 } from '../api/subscribe-response';
-import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
+import {
+  ReplaceSkuProrationMode,
+  SubscriptionFlows,
+  WindowOpenMode,
+} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
@@ -46,7 +50,7 @@ export class PayStartFlow {
    * @param {!./deps.DepsDef} deps
    * @param {string} sku
    * @param {?string|undefined} opt_oldSkuId
-   * @param {?string|undefined} opt_replaceSkuProrationMode
+   * @param {?ReplaceSkuProrationMode|undefined} opt_replaceSkuProrationMode
    */
   constructor(deps, sku, opt_oldSkuId = null,
       opt_replaceSkuProrationMode = null) {
@@ -68,7 +72,7 @@ export class PayStartFlow {
     /** @private @const {?string} */
     this.oldSku_ = opt_oldSkuId;
 
-    /** @private @const {?string} */
+    /** @private @const {?ReplaceSkuProrationMode} */
     this.replaceSkuProrationMode_ = opt_replaceSkuProrationMode;
 
     /** @private @const {!../runtime/analytics-service.AnalyticsService} */

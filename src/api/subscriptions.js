@@ -257,6 +257,13 @@ export const WindowOpenMode = {
   REDIRECT: 'redirect',
 };
 
+/**
+ * @enum {string}
+ */
+export const ReplaceSkuProrationMode = {
+  UNKNOWN: '0',
+};
+
 
 /**
  * @return {!Config}
