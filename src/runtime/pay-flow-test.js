@@ -16,6 +16,7 @@
 
 import {
   ActivityPort,
+  ActivityPorts,
 } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
@@ -77,6 +78,7 @@ const INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS = {
     'idToken': EMPTY_ID_TOK,
   },
 };
+
 
 describes.realWin('PayStartFlow', {}, env => {
   let win;
@@ -245,6 +247,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let win;
   let pageConfig;
   let runtime;
+  let redirectErrorHandler;
   let activitiesMock;
   let callbacksMock;
   let entitlementsManagerMock;
@@ -261,6 +264,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
         throw new Error('duplicated onResponse');
       }
       responseCallback = callback;
+    });
+    redirectErrorHandler = null;
+    sandbox.stub(ActivityPorts.prototype, 'onRedirectError', handler => {
+      redirectErrorHandler = handler;
     });
     runtime = new ConfiguredRuntime(win, pageConfig);
     analyticsMock = sandbox.mock(runtime.analytics());
@@ -477,6 +484,70 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
   });
 
+  it('should restore a SKU for redirect', () => {
+    const purchaseData = new PurchaseData(
+        '{"orderId":"ORDER", "productId":"SKU"}',
+        'SIG');
+    analyticsMock.expects('setSku')
+        .withExactArgs('SKU')
+        .once();
+    analyticsMock.expects('addLabels')
+        .withExactArgs(['redirect'])
+        .once();
+
+    const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
+    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, entitlements);
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.message = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve();
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    analyticsMock.expects('logEvent')
+        .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE)
+        .once();
+    sandbox.stub(port, 'message');
+    return flow.start(response);
+  });
+
+  it('should tolerate unparseable purchase data', () => {
+    const purchaseData = new PurchaseData('unparseable', 'SIG');
+    analyticsMock.expects('setSku').never();
+    analyticsMock.expects('addLabels')
+        .withExactArgs(['redirect'])
+        .once();
+
+    const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
+    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, entitlements);
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.message = () => {};
+    port.onMessage = () => {};
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve();
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    analyticsMock.expects('logEvent')
+        .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE)
+        .once();
+    sandbox.stub(port, 'message');
+    return flow.start(response);
+  });
+
+  it('should report the redirect failure', () => {
+    analyticsMock.expects('addLabels')
+        .withExactArgs(['redirect'])
+        .once();
+    analyticsMock.expects('logEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
+        .once();
+    redirectErrorHandler(new Error('intentional'));
+  });
+
   describe('payments response', () => {
     let startStub;
     let triggerPromise;
@@ -494,6 +565,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
 
     it('should NOT start flow on a response failure', () => {
       analyticsMock.expects('setTransactionId').never();
+      analyticsMock.expects('addLabels').never();
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
+          .once();
       return responseCallback(Promise.reject('intentional')).then(() => {
         throw new Error('must have failed');
       }, reason => {
