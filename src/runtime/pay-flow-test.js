@@ -111,8 +111,7 @@ describes.realWin('PayStartFlow', {}, env => {
 
   it('should have valid flow constructed', () => {
     callbacksMock.expects('triggerFlowStarted')
-        .withExactArgs('subscribe',
-          {sku: 'sku1', oldSku: null, prorationMode: null})
+        .withExactArgs('subscribe', {sku: 'sku1'})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     payClientMock.expects('start').withExactArgs(
@@ -124,8 +123,6 @@ describes.realWin('PayStartFlow', {}, env => {
           'swg': {
             'publicationId': 'pub1',
             'skuId': 'sku1',
-            'oldSkuId': null,
-            'replaceSkuProrationMode': null,
           },
           'i': {
             'startTimeMs': sinon.match.any,
@@ -183,8 +180,7 @@ describes.realWin('PayStartFlow', {}, env => {
     const replaceFlowNoProrationMode = new PayStartFlow(
         runtime, 'newSku', 'oldSku');
     callbacksMock.expects('triggerFlowStarted')
-        .withExactArgs('subscribe',
-          {sku: 'newSku', oldSku: 'oldSku', prorationMode: null})
+        .withExactArgs('subscribe', {sku: 'newSku', oldSku: 'oldSku'})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     payClientMock.expects('start').withExactArgs(
@@ -197,7 +193,6 @@ describes.realWin('PayStartFlow', {}, env => {
             'publicationId': 'pub1',
             'skuId': 'newSku',
             'oldSkuId': 'oldSku',
-            'replaceSkuProrationMode': null,
           },
           'i': {
             'startTimeMs': sinon.match.any,
@@ -226,8 +221,6 @@ describes.realWin('PayStartFlow', {}, env => {
           'swg': {
             'publicationId': 'pub1',
             'skuId': 'sku1',
-            'oldSkuId': null,
-            'replaceSkuProrationMode': null,
           },
           'i': {
             'startTimeMs': sinon.match.any,
