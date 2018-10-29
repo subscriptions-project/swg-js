@@ -80,12 +80,28 @@ export class PayStartFlow {
    * @return {!Promise}
    */
   start() {
-    // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, {
+    const triggerFlowKeys = {
       'sku': this.sku_,
-      'oldSku': this.oldSku_,
-      'prorationMode': this.replaceSkuProrationMode_,
-    });
+    };
+
+    const swgKeys = {
+      'publicationId': this.pageConfig_.getPublicationId(),
+      'skuId': this.sku_,
+    };
+
+    if (!!this.oldSku_) {
+      triggerFlowKeys['oldSku'] = this.oldSku_;
+      swgKeys['oldSkuId'] = this.oldSku_;
+    }
+
+    if (!!this.replaceSkuProrationMode_) {
+      triggerFlowKeys['prorationMode'] = this.replaceSkuProrationMode_;
+      swgKeys['replaceSkuProrationMode'] = this.replaceSkuProrationMode_;
+    }
+
+    // Start/cancel events.
+    this.deps_.callbacks().triggerFlowStarted(
+        SubscriptionFlows.SUBSCRIBE, triggerFlowKeys);
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.sku_);
     this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
@@ -94,12 +110,7 @@ export class PayStartFlow {
       'allowedPaymentMethods': ['CARD'],
       'environment': '$payEnvironment$',
       'playEnvironment': '$playEnvironment$',
-      'swg': {
-        'publicationId': this.pageConfig_.getPublicationId(),
-        'skuId': this.sku_,
-        'oldSkuId': this.oldSku_,
-        'replaceSkuProrationMode': this.replaceSkuProrationMode_,
-      },
+      'swg': swgKeys,
       'i': {
         'startTimeMs': Date.now(),
         'googleTransactionId': this.analyticsService_.getTransactionId(),
