@@ -64,7 +64,7 @@ describe('api_messages', () => {
       analyticscontext.setTransactionId();
       analyticscontext.setReferringOrigin();
       analyticscontext.setUtmSource();
-      analyticscontext.setUtmName();
+      analyticscontext.setUtmCampaign();
       analyticscontext.setUtmMedium();
       analyticscontext.setSku();
       analyticscontext.setReadyToPay(false);
@@ -86,7 +86,7 @@ describe('api_messages', () => {
       analyticscontext.setTransactionId();
       analyticscontext.setReferringOrigin();
       analyticscontext.setUtmSource();
-      analyticscontext.setUtmName();
+      analyticscontext.setUtmCampaign();
       analyticscontext.setUtmMedium();
       analyticscontext.setSku();
       analyticscontext.setReadyToPay(false);
