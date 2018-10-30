@@ -149,7 +149,7 @@ describes.realWin('AnalyticsService', {}, env => {
           'message'
       );
       AnalyticsService.prototype.getQueryString_ = () => {
-        return '?utm_source=scenic&utm_medium=email&utm_name=campaign';
+        return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
       };
       AnalyticsService.prototype.getReferrer_ = () => {
         return 'https://scenic-2017.appspot.com/landing.html';
