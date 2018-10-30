@@ -146,11 +146,11 @@ export class AnalyticsService {
   setContext_() {
     const utmParams = parseQueryString(this.getQueryString_());
     this.context_.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
-    const name = utmParams['utm_name'];
+    const campaign = utmParams['utm_campaign'];
     const medium = utmParams['utm_medium'];
     const source = utmParams['utm_source'];
-    if (name) {
-      this.context_.setUtmName(name);
+    if (campaign) {
+      this.context_.setUtmName(campaign);
     }
     if (medium) {
       this.context_.setUtmMedium(medium);
