@@ -150,7 +150,7 @@ export class AnalyticsService {
     const medium = utmParams['utm_medium'];
     const source = utmParams['utm_source'];
     if (campaign) {
-      this.context_.setUtmName(campaign);
+      this.context_.setUtmCampaign(campaign);
     }
     if (medium) {
       this.context_.setUtmMedium(medium);

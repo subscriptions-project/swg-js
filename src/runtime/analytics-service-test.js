@@ -172,7 +172,7 @@ describes.realWin('AnalyticsService', {}, env => {
             'https://scenic-2017.appspot.com');
         expect(request.getContext().getUtmMedium()).to.equal('email');
         expect(request.getContext().getUtmSource()).to.equal('scenic');
-        expect(request.getContext().getUtmName()).to.equal('campaign');
+        expect(request.getContext().getUtmCampaign()).to.equal('campaign');
         expect(request.getContext().getTransactionId())
             .to.match(/^.{8}-.{4}-.{4}-.{4}-.{12}$/g);
         expect(request.getContext().getSku()).to.equal('basic');
