@@ -249,8 +249,6 @@ export class PayClientBindingPayjs {
     /** @private @const {!RedirectVerifierHelper} */
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
 
-    // TODO(dvoytenko): Pass activities instance.
-    // TODO(dvoytenko): Pass redirect verifier key.
     /** @private @const {!PaymentsAsyncClient} */
     this.client_ = this.createClient_({
       environment: '$payEnvironment$',
@@ -270,7 +268,11 @@ export class PayClientBindingPayjs {
    * @private
    */
   createClient_(options, handler) {
-    return new PaymentsAsyncClient(options, handler);
+    return new PaymentsAsyncClient(
+        options,
+        handler,
+        /* useIframe */ false,
+        this.activityPorts_);
   }
 
   /** @override */
