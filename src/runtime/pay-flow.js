@@ -47,12 +47,9 @@ import {AnalyticsEvent} from '../proto/api_messages';
 export class PayStartFlow {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {string} sku
-   * @param {?string|undefined} opt_oldSkuId
-   * @param {?../api/subscriptions.ReplaceSkuProrationMode|undefined} opt_replaceSkuProrationMode
+   * @param {string|../api/subscriptions.SubscriptionRequest} skuOrSubscriptionRequest
    */
-  constructor(deps, sku, opt_oldSkuId = null,
-      opt_replaceSkuProrationMode = null) {
+  constructor(deps, skuOrSubscriptionRequest) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -65,14 +62,10 @@ export class PayStartFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private @const {string} */
-    this.sku_ = sku;
-
-    /** @private @const {?string} */
-    this.oldSku_ = opt_oldSkuId;
-
-    /** @private @const {?../api/subscriptions.ReplaceSkuProrationMode} */
-    this.replaceSkuProrationMode_ = opt_replaceSkuProrationMode;
+    /** @private @const {!../api/subscriptions.SubscriptionRequest} */
+    this.subscriptionRequestKeys_ =
+        typeof skuOrSubscriptionRequest == 'string' ?
+            {'skuId': skuOrSubscriptionRequest} : skuOrSubscriptionRequest;
 
     /** @private @const {!../runtime/analytics-service.AnalyticsService} */
     this.analyticsService_ = deps.analytics();
@@ -83,31 +76,16 @@ export class PayStartFlow {
    * @return {!Promise}
    */
   start() {
-    const triggerFlowKeys = {
-      'sku': this.sku_,
-    };
-
-    const swgPaymentRequest = {
-      'publicationId': this.pageConfig_.getPublicationId(),
-      'skuId': this.sku_,
-    };
-
-    if (this.oldSku_) {
-      triggerFlowKeys['oldSku'] = this.oldSku_;
-      swgPaymentRequest['oldSkuId'] = this.oldSku_;
-    }
-
-    if (this.replaceSkuProrationMode_) {
-      triggerFlowKeys['prorationMode'] = this.replaceSkuProrationMode_;
-      swgPaymentRequest['replaceSkuProrationMode'] =
-          this.replaceSkuProrationMode_;
-    }
+    // Add the 'publicationId' key to the subscriptionRequestKeys_ object.
+    const swgPaymentRequest =
+        Object.assign({}, this.subscriptionRequestKeys_, {
+          'publicationId': this.pageConfig_.getPublicationId()});
 
     // Start/cancel events.
     this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SUBSCRIBE, triggerFlowKeys);
+        SubscriptionFlows.SUBSCRIBE, this.subscriptionRequestKeys_);
     // TODO(chenshay): Create analytics for 'replace subscription'.
-    this.analyticsService_.setSku(this.sku_);
+    this.analyticsService_.setSku(this.subscriptionRequestKeys_.skuId);
     this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
     this.payClient_.start({
       'apiVersion': 1,

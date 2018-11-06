@@ -111,9 +111,9 @@ export class Subscriptions {
 
   /**
    * Starts subscription purchase flow.
-   * @param {string} sku
+   * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
    */
-  subscribe(sku) {}
+  subscribe(skuOrSubscriptionRequest) {}
 
   /**
    * Starts the deferred account creation flow.
@@ -261,7 +261,10 @@ export const WindowOpenMode = {
  * @enum {string}
  */
 export const ReplaceSkuProrationMode = {
-  UNKNOWN: '0',
+  // The replacement takes effect immediately, and the remaining time will
+  // be prorated and credited to the user. This is the current default
+  // behavior.
+  IMMEDIATE_WITH_TIME_PRORATION: '1',
 };
 
 
@@ -330,3 +333,20 @@ export let SaveSubscriptionRequestCallback;
  * }}
  */
 export let ButtonOptions;
+
+/**
+ * Properties:
+ * - sku: Required. Sku to add to the user's subscriptions.
+ * - oldSku: Optional. This is if you want to replace one sku with another. For
+ *  example, if a user wants to upgrade or downgrade their current subscription.
+ * - prorationMode: Optional. When replacing a subscription you can decide on a
+ *  specific proration mode to charge the user.
+ *  The default is IMMEDIATE_WITH_TIME_PRORATION.
+ * 
+ *  @typedef {{
+ *    skuId: string,
+ *    oldSkuId: (string|undefined),
+ *    replaceSkuProrationMode: (ReplaceSkuProrationMode|undefined),
+ * }}
+ */
+export let SubscriptionRequest;

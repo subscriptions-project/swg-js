@@ -1160,7 +1160,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
     return runtime.subscribe('sku1').then(() => {
       expect(startStub).to.be.calledOnce;
-      expect(flowInstance.sku_).to.equal('sku1');
+      expect(flowInstance.subscriptionRequestKeys_.skuId).to.equal('sku1');
     });
   });
 
@@ -1174,11 +1174,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
           flowInstance = this;
           return Promise.resolve();
         });
-    return runtime.replaceSubscription('newSku', 'oldSku').then(() => {
+    return runtime.subscribe({skuId: 'newSku', oldSkuId: 'oldSku'}).then(() => {
       expect(startStub).to.be.calledOnce;
-      expect(flowInstance.sku_).to.equal('newSku');
-      expect(flowInstance.oldSku_).to.equal('oldSku');
-      expect(flowInstance.replaceSkuProrationMode_).to.be.null;
+      expect(flowInstance.subscriptionRequestKeys_.skuId).to.equal('newSku');
+      expect(flowInstance.subscriptionRequestKeys_.oldSkuId).to.equal('oldSku');
+      expect(flowInstance.subscriptionRequestKeys_.ReplaceSkuProrationMode)
+          .to.be.undefined;
     });
   });
 
@@ -1191,14 +1192,18 @@ describes.realWin('ConfiguredRuntime', {}, env => {
           flowInstance = this;
           return Promise.resolve();
         });
-    return runtime.replaceSubscription('newSku', 'oldSku',
-        ReplaceSkuProrationMode.UNKNOWN).then(() => {
-          expect(startStub).to.be.calledOnce;
-          expect(flowInstance.sku_).to.equal('newSku');
-          expect(flowInstance.oldSku_).to.equal('oldSku');
-          expect(flowInstance.replaceSkuProrationMode_).to.equal(
-              ReplaceSkuProrationMode.UNKNOWN);
-        });
+    return runtime.subscribe({skuId: 'newSku', oldSkuId: 'oldSku',
+      replaceSkuProrationMode: ReplaceSkuProrationMode
+          .IMMEDIATE_WITH_TIME_PRORATION}).then(() => {
+            expect(startStub).to.be.calledOnce;
+            expect(flowInstance.subscriptionRequestKeys_.skuId).to.equal(
+                'newSku');
+            expect(flowInstance.subscriptionRequestKeys_.oldSkuId).to.equal(
+                'oldSku');
+            expect(flowInstance.subscriptionRequestKeys_
+                .replaceSkuProrationMode).to.equal(
+                ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
+          });
   });
 
   it('should configure and start PayCompleteFlow', () => {
