@@ -33,6 +33,7 @@ import {
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
+import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
 import {GlobalDoc} from '../model/doc';
 import {
@@ -49,10 +50,15 @@ import {
   PayStartFlow,
 } from './pay-flow';
 import {SubscribeResponse} from '../api/subscribe-response';
-import {Subscriptions, AnalyticsMode} from '../api/subscriptions';
+import {
+  AnalyticsMode,
+  ReplaceSkuProrationMode,
+  Subscriptions,
+} from '../api/subscriptions';
 import {createElement} from '../utils/dom';
 import {
   isExperimentOn,
+  setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
 import {AnalyticsService} from './analytics-service';
@@ -1156,8 +1162,52 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
     return runtime.subscribe('sku1').then(() => {
       expect(startStub).to.be.calledOnce;
-      expect(flowInstance.sku_).to.equal('sku1');
+      expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
     });
+  });
+
+  it('should start PayStartFlow for replaceSubscription ' +
+  '(no proration mode)', () => {
+    setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+    let flowInstance;
+    const startStub = sandbox.stub(
+        PayStartFlow.prototype,
+        'start',
+        function() {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+    return runtime.subscribe({skuId: 'newSku', oldSkuId: 'oldSku'}).then(() => {
+      expect(startStub).to.be.calledOnce;
+      expect(flowInstance.subscriptionRequest_.skuId).to.equal('newSku');
+      expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal('oldSku');
+      expect(flowInstance.subscriptionRequest_.ReplaceSkuProrationMode)
+          .to.be.undefined;
+    });
+  });
+
+  it('should start PayStartFlow for replaceSubscription', () => {
+    setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+    let flowInstance;
+    const startStub = sandbox.stub(
+        PayStartFlow.prototype,
+        'start',
+        function() {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+    return runtime.subscribe({skuId: 'newSku', oldSkuId: 'oldSku',
+      replaceSkuProrationMode: ReplaceSkuProrationMode
+          .IMMEDIATE_WITH_TIME_PRORATION}).then(() => {
+            expect(startStub).to.be.calledOnce;
+            expect(flowInstance.subscriptionRequest_.skuId).to.equal(
+                'newSku');
+            expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal(
+                'oldSku');
+            expect(flowInstance.subscriptionRequest_
+                .replaceSkuProrationMode).to.equal(
+                ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
+          });
   });
 
   it('should configure and start PayCompleteFlow', () => {
