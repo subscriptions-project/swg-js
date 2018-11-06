@@ -267,17 +267,6 @@ export const ReplaceSkuProrationMode = {
   IMMEDIATE_WITH_TIME_PRORATION: 'IMMEDIATE_WITH_TIME_PRORATION',
 };
 
-/**
- * String values input by the publisher are mapped to the number values.
- * @enum {number}
- */
-export const ReplaceSkuProrationModeMapping = {
-  // The replacement takes effect immediately, and the remaining time will
-  // be prorated and credited to the user. This is the current default
-  // behavior.
-  IMMEDIATE_WITH_TIME_PRORATION: 1,
-};
-
 
 /**
  * @return {!Config}
