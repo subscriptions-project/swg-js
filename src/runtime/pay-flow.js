@@ -29,7 +29,6 @@ import {
   SubscribeResponse,
 } from '../api/subscribe-response';
 import {
-  ReplaceSkuProrationModeMapping,
   SubscriptionFlows,
   WindowOpenMode,
 } from '../api/subscriptions';
@@ -41,6 +40,19 @@ import {
   tryParseJson,
 } from '../utils/json';
 import {AnalyticsEvent} from '../proto/api_messages';
+
+
+/**
+ * String values input by the publisher are mapped to the number values.
+ * @enum {number}
+ */
+export const ReplaceSkuProrationModeMapping = {
+  // The replacement takes effect immediately, and the remaining time will
+  // be prorated and credited to the user. This is the current default
+  // behavior.
+  IMMEDIATE_WITH_TIME_PRORATION: 1,
+};
+
 
 /**
  * The flow to initiate payment process.

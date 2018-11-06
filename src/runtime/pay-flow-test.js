@@ -22,13 +22,13 @@ import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {
   ReplaceSkuProrationMode,
-  ReplaceSkuProrationModeMapping,
 } from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {PayClient} from './pay-client';
 import {
   PayStartFlow,
   PayCompleteFlow,
+  ReplaceSkuProrationModeMapping,
   parseEntitlements,
   parseSubscriptionResponse,
   parseUserData,
