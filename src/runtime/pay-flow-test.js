@@ -20,6 +20,10 @@ import {
 } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
+import {
+  ReplaceSkuProrationMode,
+  ReplaceSkuProrationModeMapping,
+} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {PayClient} from './pay-client';
 import {
@@ -142,11 +146,13 @@ describes.realWin('PayStartFlow', {}, env => {
 
   it('should have valid replace flow constructed', () => {
     const subscriptionRequest = {'skuId': 'newSku', 'oldSkuId': 'oldSku',
-      'replaceSkuProrationMode': 'prorationMode'};
+      'replaceSkuProrationMode':
+      ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION};
     const replaceFlow = new PayStartFlow(runtime, subscriptionRequest);
     callbacksMock.expects('triggerFlowStarted')
         .withExactArgs('subscribe', {skuId: 'newSku', oldSkuId: 'oldSku',
-          replaceSkuProrationMode: 'prorationMode'})
+          replaceSkuProrationMode: ReplaceSkuProrationModeMapping
+              .IMMEDIATE_WITH_TIME_PRORATION})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     payClientMock.expects('start').withExactArgs(
@@ -159,7 +165,8 @@ describes.realWin('PayStartFlow', {}, env => {
             'publicationId': 'pub1',
             'skuId': 'newSku',
             'oldSkuId': 'oldSku',
-            'replaceSkuProrationMode': 'prorationMode',
+            'replaceSkuProrationMode': ReplaceSkuProrationModeMapping
+                .IMMEDIATE_WITH_TIME_PRORATION,
           },
           'i': {
             'startTimeMs': sinon.match.any,

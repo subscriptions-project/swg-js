@@ -29,6 +29,7 @@ import {
   SubscribeResponse,
 } from '../api/subscribe-response';
 import {
+  ReplaceSkuProrationModeMapping,
   SubscriptionFlows,
   WindowOpenMode,
 } from '../api/subscriptions';
@@ -63,7 +64,7 @@ export class PayStartFlow {
     this.dialogManager_ = deps.dialogManager();
 
     /** @private @const {!../api/subscriptions.SubscriptionRequest} */
-    this.subscriptionRequestKeys_ =
+    this.subscriptionRequest_ =
         typeof skuOrSubscriptionRequest == 'string' ?
             {'skuId': skuOrSubscriptionRequest} : skuOrSubscriptionRequest;
 
@@ -76,16 +77,23 @@ export class PayStartFlow {
    * @return {!Promise}
    */
   start() {
-    // Add the 'publicationId' key to the subscriptionRequestKeys_ object.
+    // Map the proration mode to the enum value (if proration exists).
+    const prorationMode = this.subscriptionRequest_.replaceSkuProrationMode;
+    if (prorationMode) {
+      this.subscriptionRequest_.replaceSkuProrationMode =
+          ReplaceSkuProrationModeMapping[prorationMode];
+    }
+
+    // Add the 'publicationId' key to the subscriptionRequest_ object.
     const swgPaymentRequest =
-        Object.assign({}, this.subscriptionRequestKeys_, {
+        Object.assign({}, this.subscriptionRequest_, {
           'publicationId': this.pageConfig_.getPublicationId()});
 
     // Start/cancel events.
     this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SUBSCRIBE, this.subscriptionRequestKeys_);
+        SubscriptionFlows.SUBSCRIBE, this.subscriptionRequest_);
     // TODO(chenshay): Create analytics for 'replace subscription'.
-    this.analyticsService_.setSku(this.subscriptionRequestKeys_.skuId);
+    this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
     this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
     this.payClient_.start({
       'apiVersion': 1,
