@@ -211,6 +211,12 @@ export class Entitlement {
     if (!product) {
       return false;
     }
+    // Wildcard allows this product.
+    const eq = product.indexOf(':');
+    if (eq != -1 &&
+        this.products.includes(product.substring(0, eq + 1) + '*')) {
+      return true;
+    }
     return this.products.includes(product);
   }
 
