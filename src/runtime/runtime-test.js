@@ -33,6 +33,7 @@ import {
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
+import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
 import {GlobalDoc} from '../model/doc';
 import {
@@ -57,6 +58,7 @@ import {
 import {createElement} from '../utils/dom';
 import {
   isExperimentOn,
+  setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
 import {AnalyticsService} from './analytics-service';
@@ -1166,6 +1168,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
   it('should start PayStartFlow for replaceSubscription ' +
   '(no proration mode)', () => {
+    setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
     let flowInstance;
     const startStub = sandbox.stub(
         PayStartFlow.prototype,
@@ -1184,6 +1187,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should start PayStartFlow for replaceSubscription', () => {
+    setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
     let flowInstance;
     const startStub = sandbox.stub(
         PayStartFlow.prototype,
