@@ -77,21 +77,21 @@ export class PayStartFlow {
    * @return {!Promise}
    */
   start() {
-    // Map the proration mode to the enum value (if proration exists).
-    const prorationMode = this.subscriptionRequest_.replaceSkuProrationMode;
-    if (prorationMode) {
-      this.subscriptionRequest_.replaceSkuProrationMode =
-          ReplaceSkuProrationModeMapping[prorationMode];
-    }
-
     // Add the 'publicationId' key to the subscriptionRequest_ object.
     const swgPaymentRequest =
         Object.assign({}, this.subscriptionRequest_, {
           'publicationId': this.pageConfig_.getPublicationId()});
 
+    // Map the proration mode to the enum value (if proration exists).
+    const prorationMode = this.subscriptionRequest_.replaceSkuProrationMode;
+    if (prorationMode) {
+      swgPaymentRequest.replaceSkuProrationMode =
+          ReplaceSkuProrationModeMapping[prorationMode];
+    }
+
     // Start/cancel events.
     this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SUBSCRIBE, this.subscriptionRequest_);
+        SubscriptionFlows.SUBSCRIBE, swgPaymentRequest);
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
     this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
