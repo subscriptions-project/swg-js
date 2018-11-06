@@ -103,7 +103,7 @@ export class PayStartFlow {
 
     // Start/cancel events.
     this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SUBSCRIBE, swgPaymentRequest);
+        SubscriptionFlows.SUBSCRIBE, this.subscriptionRequest_);
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
     this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
