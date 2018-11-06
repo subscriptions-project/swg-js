@@ -20,11 +20,15 @@ import {
 } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
+import {
+  ReplaceSkuProrationMode,
+} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {PayClient} from './pay-client';
 import {
   PayStartFlow,
   PayCompleteFlow,
+  ReplaceSkuProrationModeMapping,
   parseEntitlements,
   parseSubscriptionResponse,
   parseUserData,
@@ -110,8 +114,9 @@ describes.realWin('PayStartFlow', {}, env => {
   });
 
   it('should have valid flow constructed', () => {
+    const subscribeRequest = {skuId: 'sku1', publicationId: 'pub1'};
     callbacksMock.expects('triggerFlowStarted')
-        .withExactArgs('subscribe', {sku: 'sku1'})
+        .withExactArgs('subscribe', {skuId: 'sku1'})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     payClientMock.expects('start').withExactArgs(
@@ -120,10 +125,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
-          'swg': {
-            'publicationId': 'pub1',
-            'skuId': 'sku1',
-          },
+          'swg': subscribeRequest,
           'i': {
             'startTimeMs': sinon.match.any,
             'googleTransactionId': sinon.match(transactionIdRegex),
@@ -137,6 +139,76 @@ describes.realWin('PayStartFlow', {}, env => {
     analyticsMock.expects('logEvent').withExactArgs(
         AnalyticsEvent.ACTION_SUBSCRIBE);
     const flowPromise = flow.start();
+    return expect(flowPromise).to.eventually.be.undefined;
+  });
+
+  it('should have valid replace flow constructed', () => {
+    const subscriptionRequest = {skuId: 'newSku', oldSkuId: 'oldSku',
+      publicationId: 'pub1', replaceSkuProrationMode:
+      ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION};
+    const replaceFlow = new PayStartFlow(runtime, subscriptionRequest);
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('subscribe', subscriptionRequest)
+        .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    payClientMock.expects('start').withExactArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            skuId: 'newSku',
+            oldSkuId: 'oldSku',
+            publicationId: 'pub1',
+            replaceSkuProrationMode: ReplaceSkuProrationModeMapping
+                .IMMEDIATE_WITH_TIME_PRORATION,
+          },
+          'i': {
+            'startTimeMs': sinon.match.any,
+            'googleTransactionId': sinon.match(transactionIdRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+        })
+        .once();
+    analyticsMock.expects('setSku').withExactArgs('newSku');
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_SUBSCRIBE);
+    const flowPromise = replaceFlow.start();
+    return expect(flowPromise).to.eventually.be.undefined;
+  });
+
+  it('should have valid replace flow constructed (no proration mode)', () => {
+    const subscriptionRequest =
+        {skuId: 'newSku', oldSkuId: 'oldSku', publicationId: 'pub1'};
+    const replaceFlowNoProrationMode =
+        new PayStartFlow(runtime, subscriptionRequest);
+    callbacksMock.expects('triggerFlowStarted')
+        .withExactArgs('subscribe', subscriptionRequest)
+        .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    payClientMock.expects('start').withExactArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': subscriptionRequest,
+          'i': {
+            'startTimeMs': sinon.match.any,
+            'googleTransactionId': sinon.match(transactionIdRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+        })
+        .once();
+    analyticsMock.expects('setSku').withExactArgs('newSku');
+    analyticsMock.expects('logEvent').withExactArgs(
+        AnalyticsEvent.ACTION_SUBSCRIBE);
+    const flowPromise = replaceFlowNoProrationMode.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
 

@@ -23,6 +23,7 @@ import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc, resolveDoc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
+import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
 import {
   LinkCompleteFlow,
@@ -61,6 +62,7 @@ import {
 } from '../api/subscriptions';
 import {injectStyleSheet} from '../utils/dom';
 import {isArray} from '../utils/types';
+import {isExperimentOn} from './experiments';
 import {setExperiment} from './experiments';
 import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
@@ -323,9 +325,9 @@ export class Runtime {
   }
 
   /** @override */
-  subscribe(sku) {
+  subscribe(skuOrSubscriptionRequest) {
     return this.configured_(true)
-        .then(runtime => runtime.subscribe(sku));
+        .then(runtime => runtime.subscribe(skuOrSubscriptionRequest));
   }
 
   /** @override */
@@ -690,9 +692,13 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  subscribe(sku) {
+  subscribe(skuOrSubscriptionRequest) {
+    if (typeof skuOrSubscriptionRequest != 'string' &&
+        !isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)) {
+      throw new Error('Not yet launched!');
+    }
     return this.documentParsed_.then(() => {
-      return new PayStartFlow(this, sku).start();
+      return new PayStartFlow(this, skuOrSubscriptionRequest).start();
     });
   }
 
