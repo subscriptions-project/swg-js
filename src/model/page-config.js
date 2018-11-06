@@ -31,6 +31,9 @@ export class PageConfig {
       productId = productOrPublicationId;
       publicationId = productId.substring(0, div);
       label = productId.substring(div + 1);
+      if (label == '*') {
+        throw new Error('wildcard disallowed');
+      }
     } else {
       // The argument is a publication id.
       publicationId = productOrPublicationId;
