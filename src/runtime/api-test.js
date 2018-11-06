@@ -108,6 +108,30 @@ describes.sandboxed('Entitlements', {}, () => {
     expect(ents.getEntitlementForSource('source3')).to.be.null;  // No source.
   });
 
+  it('should match products by wildcard', () => {
+    const list = [
+      new Entitlement('source1', ['pub:*'], 'token1'),
+    ];
+    const ents = new Entitlements('service1', 'RaW', list, 'pub:product1',
+        ackSpy);
+    expect(ents.enablesAny()).to.be.true;
+    expect(ents.enablesThis()).to.be.true;
+    expect(ents.enables('pub:product1')).to.be.true;
+    expect(ents.enables('pub:product2')).to.be.true;
+    expect(ents.enables('product3')).to.be.false;  // Empty publication.
+    expect(ents.enables('otr:product4')).to.be.false;  // Different publication.
+    expect(ents.getEntitlementFor('pub:product1')).to.equal(list[0]);
+    expect(ents.getEntitlementFor('pub:product2')).to.equal(list[0]);
+    expect(ents.getEntitlementFor('product3')).to.be.null;
+    expect(ents.getEntitlementFor('otr:product4')).to.be.null;
+    expect(ents.getEntitlementForThis()).to.equal(list[0]);
+
+    expect(ents.enablesAny('source1')).to.be.true;
+    expect(ents.enablesAny('source2')).to.be.false;  // Unknown source.
+    expect(ents.enablesThis('source1')).to.be.true;
+    expect(ents.enablesThis('source2')).to.be.false;  // Unknown source.
+  });
+
   it('should clone', () => {
     const list = [
       new Entitlement('source1', ['product1', 'product2'], 'token1'),
