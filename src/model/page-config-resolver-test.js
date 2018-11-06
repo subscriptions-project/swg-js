@@ -547,7 +547,7 @@ describes.sandboxed('PageConfig', {}, () => {
 
   it('should disallow wildcard in product id', () => {
     expect(() => {
-      new PageConfig('a.b.c.pub1:*')
+      new PageConfig('a.b.c.pub1:*');
     }).to.throw('wildcard');
   });
 
