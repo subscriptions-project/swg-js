@@ -291,23 +291,6 @@ export class Runtime {
         .then(runtime => runtime.showOffers(opt_options));
   }
 
-  /**
-   * Replaces an existing subscription with a different one.
-   *
-   * @param {string} newSku
-   * @param {string} oldSku
-   * @param {?../api/subscriptions.ReplaceSkuProrationMode|undefined} opt_prorationMode
-   * @return {Promise}
-   *
-   * TODO(chenshay): move the method definition/docs to Subscriptions interface
-   * and set this method here to at-override.
-   */
-  replaceSubscription(newSku, oldSku, opt_prorationMode) {
-    return this.configured_(true)
-        .then(runtime => runtime.replaceSubscription(
-            newSku, oldSku, opt_prorationMode));
-  }
-
   /** @override */
   showSubscribeOption(opt_options) {
     return this.configured_(true)
@@ -340,9 +323,9 @@ export class Runtime {
   }
 
   /** @override */
-  subscribe(sku) {
+  subscribe(skuOrSubscriptionRequest) {
     return this.configured_(true)
-        .then(runtime => runtime.subscribe(sku));
+        .then(runtime => runtime.subscribe(skuOrSubscriptionRequest));
   }
 
   /** @override */
@@ -675,23 +658,6 @@ export class ConfiguredRuntime {
     });
   }
 
-  /**
-   * Replaces an existing subscription with a different one.
-   *
-   * @param {string} newSku
-   * @param {string} oldSku
-   * @param {?../api/subscriptions.ReplaceSkuProrationMode|undefined} opt_prorationMode
-   * @return {Promise}
-   *
-   * TODO(chenshay): move the method definition/docs to Subscriptions interface
-   * and set this method here to at-override.
-   */
-  replaceSubscription(newSku, oldSku, opt_prorationMode) {
-    return this.documentParsed_.then(() => {
-      return new PayStartFlow(this, newSku, oldSku, opt_prorationMode).start();
-    });
-  }
-
   /** @override */
   saveSubscription(saveSubscriptionRequestCallback) {
     return this.documentParsed_.then(() => {
@@ -724,9 +690,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  subscribe(sku) {
+  subscribe(skuOrSubscriptionRequest) {
     return this.documentParsed_.then(() => {
-      return new PayStartFlow(this, sku).start();
+      return new PayStartFlow(this, skuOrSubscriptionRequest).start();
     });
   }
 
@@ -776,7 +742,6 @@ function createPublicRuntime(runtime) {
     showLoginPrompt: runtime.showLoginPrompt.bind(runtime),
     showLoginNotification: runtime.showLoginNotification.bind(runtime),
     getOffers: runtime.getOffers.bind(runtime),
-    // TODO(chenshay): runtime.replaceSubscription.bind(runtime)
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),

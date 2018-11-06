@@ -111,7 +111,7 @@ describes.realWin('PayStartFlow', {}, env => {
 
   it('should have valid flow constructed', () => {
     callbacksMock.expects('triggerFlowStarted')
-        .withExactArgs('subscribe', {sku: 'sku1'})
+        .withExactArgs('subscribe', {skuId: 'sku1'})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     payClientMock.expects('start').withExactArgs(
@@ -141,11 +141,12 @@ describes.realWin('PayStartFlow', {}, env => {
   });
 
   it('should have valid replace flow constructed', () => {
-    const replaceFlow = new PayStartFlow(
-        runtime, 'newSku', 'oldSku', 'prorationMode');
+    const subscriptionRequest = {'skuId': 'newSku', 'oldSkuId': 'oldSku',
+      'replaceSkuProrationMode': 'prorationMode'};
+    const replaceFlow = new PayStartFlow(runtime, subscriptionRequest);
     callbacksMock.expects('triggerFlowStarted')
-        .withExactArgs('subscribe',
-          {sku: 'newSku', oldSku: 'oldSku', prorationMode: 'prorationMode'})
+        .withExactArgs('subscribe', {skuId: 'newSku', oldSkuId: 'oldSku',
+          replaceSkuProrationMode: 'prorationMode'})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     payClientMock.expects('start').withExactArgs(
@@ -177,10 +178,11 @@ describes.realWin('PayStartFlow', {}, env => {
   });
 
   it('should have valid replace flow constructed (no proration mode)', () => {
+    const subscriptionRequest = {'skuId': 'newSku', 'oldSkuId': 'oldSku'};
     const replaceFlowNoProrationMode = new PayStartFlow(
-        runtime, 'newSku', 'oldSku');
+        runtime, subscriptionRequest);
     callbacksMock.expects('triggerFlowStarted')
-        .withExactArgs('subscribe', {sku: 'newSku', oldSku: 'oldSku'})
+        .withExactArgs('subscribe', {skuId: 'newSku', oldSkuId: 'oldSku'})
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     payClientMock.expects('start').withExactArgs(
