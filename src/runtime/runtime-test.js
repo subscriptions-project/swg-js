@@ -24,6 +24,7 @@ import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
+import {AnalyticsService} from './analytics-service';
 import {
   ConfiguredRuntime,
   Runtime,
@@ -35,6 +36,7 @@ import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {JsError} from './jserror';
 import {GlobalDoc} from '../model/doc';
 import {
   LinkCompleteFlow,
@@ -61,7 +63,6 @@ import {
   setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
-import {AnalyticsService} from './analytics-service';
 
 describes.realWin('installRuntime', {}, env => {
   let win;
@@ -960,6 +961,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(runtime.dialogManager().doc_).to.equal(runtime.doc());
     expect(runtime.entitlementsManager().blockNextNotification_).to.be.false;
     expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
+    expect(runtime.jserror()).to.be.instanceOf(JsError);
   });
 
   it('should reset entitlements', () => {

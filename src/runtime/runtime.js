@@ -25,6 +25,7 @@ import {Doc, resolveDoc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {JsError} from './jserror';
 import {
   LinkCompleteFlow,
   LinkbackFlow,
@@ -433,6 +434,9 @@ export class ConfiguredRuntime {
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
 
+    /** @private @const {!JsError} */
+    this.jserror_ = new JsError(this.doc_);
+
     /** @private @const {!Fetcher} */
     this.fetcher_ = opt_integr && opt_integr.fetcher ||
         new XhrFetcher(this.win_);
@@ -489,6 +493,11 @@ export class ConfiguredRuntime {
   /** @override */
   pageConfig() {
     return this.pageConfig_;
+  }
+
+  /** @override */
+  jserror() {
+    return this.jserror_;
   }
 
   /** @override */
