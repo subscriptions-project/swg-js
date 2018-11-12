@@ -79,7 +79,7 @@ describes.realWin('JsError', {}, env => {
     });
   });
 
-  it('should create an error if not provided', () => {
+  it('should create an error if one not provided', () => {
     return jsError.error('A', 'B').then(() => {
       expect(elements).to.have.length(1);
       expect(elements[0].name).to.equal('img');
