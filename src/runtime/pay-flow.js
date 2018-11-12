@@ -60,7 +60,7 @@ export const ReplaceSkuProrationModeMapping = {
 export class PayStartFlow {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {string|../api/subscriptions.SubscriptionRequest} skuOrSubscriptionRequest
+   * @param {!../api/subscriptions.SubscriptionRequest|string} skuOrSubscriptionRequest
    */
   constructor(deps, skuOrSubscriptionRequest) {
     /** @private @const {!./deps.DepsDef} */
