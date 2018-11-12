@@ -16,8 +16,8 @@
 
 import {
   ActivityPort,
-  ActivityPorts,
 } from 'web-activities/activity-ports';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {
@@ -36,7 +36,6 @@ import {
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import * as sinon from 'sinon';
-import {AnalyticsEvent} from '../proto/api_messages';
 
 const INTEGR_DATA_STRING =
     'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -242,13 +241,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let win;
   let pageConfig;
   let runtime;
-  let redirectErrorHandler;
   let activitiesMock;
   let callbacksMock;
   let entitlementsManagerMock;
   let responseCallback;
   let flow;
   let analyticsMock;
+  let jserrorMock;
 
   beforeEach(() => {
     win = env.win;
@@ -260,12 +259,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       }
       responseCallback = callback;
     });
-    redirectErrorHandler = null;
-    sandbox.stub(ActivityPorts.prototype, 'onRedirectError', handler => {
-      redirectErrorHandler = handler;
-    });
     runtime = new ConfiguredRuntime(win, pageConfig);
     analyticsMock = sandbox.mock(runtime.analytics());
+    jserrorMock = sandbox.mock(runtime.jserror());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
@@ -277,6 +273,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     callbacksMock.verify();
     entitlementsManagerMock.verify();
     analyticsMock.verify();
+    jserrorMock.verify();
   });
 
   it('should have valid flow constructed', () => {
@@ -533,16 +530,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     return flow.start(response);
   });
 
-  it('should report the redirect failure', () => {
-    analyticsMock.expects('addLabels')
-        .withExactArgs(['redirect'])
-        .once();
-    analyticsMock.expects('logEvent')
-        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
-        .once();
-    redirectErrorHandler(new Error('intentional'));
-  });
-
   describe('payments response', () => {
     let startStub;
     let triggerPromise;
@@ -559,12 +546,16 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     it('should NOT start flow on a response failure', () => {
+      const error = new Error('intentional');
       analyticsMock.expects('setTransactionId').never();
       analyticsMock.expects('addLabels').never();
       analyticsMock.expects('logEvent')
           .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
           .once();
-      return responseCallback(Promise.reject('intentional')).then(() => {
+      jserrorMock.expects('error')
+          .withExactArgs('Pay failed', error)
+          .once();
+      return responseCallback(Promise.reject(error)).then(() => {
         throw new Error('must have failed');
       }, reason => {
         expect(() => {throw reason;}).to.throw(/intentional/);

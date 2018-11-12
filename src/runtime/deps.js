@@ -72,4 +72,9 @@ export class DepsDef {
    * @return {!../runtime/analytics-service.AnalyticsService}
    */
   analytics() {}
+
+  /**
+   * @return {!../runtime/jserror.JsError}
+   */
+  jserror() {}
 }
