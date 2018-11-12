@@ -24,6 +24,7 @@ import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {
   ConfiguredRuntime,
@@ -764,12 +765,15 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   let entitlementsManagerMock;
   let dialogManagerMock;
   let analyticsMock;
+  let jserrorMock;
   let activityResultCallbacks;
   let offersApiMock;
+  let redirectErrorHandler;
 
   beforeEach(() => {
     win = env.win;
     activityResultCallbacks = {};
+    redirectErrorHandler = null;
     sandbox.stub(ActivityPorts.prototype, 'onResult',
         function(requestId, callback) {
           if (activityResultCallbacks[requestId]) {
@@ -777,18 +781,23 @@ describes.realWin('ConfiguredRuntime', {}, env => {
           }
           activityResultCallbacks[requestId] = callback;
         });
+    sandbox.stub(ActivityPorts.prototype, 'onRedirectError',
+        function(handler) {
+          redirectErrorHandler = handler;
+        });
     config = new PageConfig('pub1:label1', true);
     runtime = new ConfiguredRuntime(win, config);
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager_);
     dialogManagerMock = sandbox.mock(runtime.dialogManager_);
     analyticsMock = sandbox.mock(runtime.analytics());
-
+    jserrorMock = sandbox.mock(runtime.jserror());
     offersApiMock = sandbox.mock(runtime.offersApi_);
   });
 
   afterEach(() => {
     dialogManagerMock.verify();
     analyticsMock.verify();
+    jserrorMock.verify();
     entitlementsManagerMock.verify();
     offersApiMock.verify();
     setExperimentsStringForTesting('');
@@ -962,6 +971,20 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(runtime.entitlementsManager().blockNextNotification_).to.be.false;
     expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
     expect(runtime.jserror()).to.be.instanceOf(JsError);
+  });
+
+  it('should report the redirect failure', () => {
+    const error = new Error('intentional');
+    analyticsMock.expects('addLabels')
+        .withExactArgs(['redirect'])
+        .once();
+    analyticsMock.expects('logEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
+        .once();
+    jserrorMock.expects('error')
+        .withExactArgs('Redirect error', error)
+        .once();
+    redirectErrorHandler(error);
   });
 
   it('should reset entitlements', () => {

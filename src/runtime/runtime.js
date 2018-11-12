@@ -15,6 +15,7 @@
  */
 
 import {ActivityPorts} from 'web-activities/activity-ports';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {ButtonApi} from './button-api';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
@@ -478,6 +479,13 @@ export class ConfiguredRuntime {
     this.payClient_.preconnect(preconnect);
 
     injectStyleSheet(this.win_.document, SWG_DIALOG);
+
+    // Report redirect errors if any.
+    this.activityPorts_.onRedirectError(error => {
+      this.analyticsService_.addLabels(['redirect']);
+      this.analyticsService_.logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
+      this.jserror_.error('Redirect error', error);
+    });
   }
 
   /** @override */
