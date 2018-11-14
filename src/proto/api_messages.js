@@ -173,14 +173,14 @@ class AnalyticsContext {
   /**
    * @return {!Array<string>}
    */
-  getLabel() {
+  getLabelList() {
     return this.label_;
   }
 
   /**
    * @param {!Array<string>} value
    */
-  setLabel(value) {
+  setLabelList(value) {
     this.label_ = value;
   }
 
