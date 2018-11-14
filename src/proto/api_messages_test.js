@@ -27,31 +27,31 @@ import {
  * @return {boolean}
  */
 function isEqual(thisArray, otherArray) {
- if (!otherArray || !thisArray) {
-   return false;
- }
- for (let i = 0; i < otherArray.length; i++) {
-   if (Array.isArray(thisArray[i])) {
-     if (!Array.isArray(otherArray[i])) {
-       return false;
-     }
-     const arr = thisArray[i];
-     const otherArr = otherArray[i];
-     if (arr.length != otherArr.length) {
-       return false;
-     }
-     for (let j = 0; j < arr.length; j++) {
-       if (arr[j] != otherArr[j]) {
-         return false;
-       }
-     }
-   } else {
-     if (thisArray[i] != otherArray[i]) {
-       return false;
-     }
-   }
- }
- return true;
+  if (!otherArray || !thisArray) {
+    return false;
+  }
+  for (let i = 0; i < otherArray.length; i++) {
+    if (Array.isArray(thisArray[i])) {
+      if (!Array.isArray(otherArray[i])) {
+        return false;
+      }
+      const arr = thisArray[i];
+      const otherArr = otherArray[i];
+      if (arr.length != otherArr.length) {
+        return false;
+      }
+      for (let j = 0; j < arr.length; j++) {
+        if (arr[j] != otherArr[j]) {
+          return false;
+        }
+      }
+    } else {
+      if (thisArray[i] != otherArray[i]) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 
