@@ -21,14 +21,14 @@ limitations under the License.
 The SwG client is available as a JavaScript library distributed at this URL:
 
 ```
-https://$TODO$/swg.js
+https://news.google.com/swg/js/v1/swg.js
 ```
 
-To include the SwG client on a page, simply include a `<script>` tag as
-following (notice the `async` attribute):
+To include the SwG client on a page, include a `<script>` tag as
+follows (notice the `async` attribute):
 
 ```
-<script async src="https://$TODO$/swg.js"></script>
+<script async src="https://news.google.com/swg/js/v1/swg.js"></script>
 ```
 
 ## Client ready callback
@@ -41,7 +41,7 @@ To get a callback when SwG client is ready, use the following code:
 });
 ```
 
-This callback provides `subscriptions` object. See [Subscriptions API](./core-apis.md#subscriptions-api) for more details.
+This callback provides a `subscriptions` object. See [Subscriptions API](./core-apis.md#subscriptions-api) for more details.
 
 ## Client initialization
 
@@ -50,7 +50,7 @@ initialize the client: auto and manual.
 
 ### Auto-initialization
 
-SwG client can initialize itself automatically when the
+SwG client can initialize itself automatically when
 [Subscriptions markup](./page-markup.md) is present on the page. By default
 the SwG client will attempt to auto-initialize. This is the recommended method
 for content pages (articles).
@@ -60,10 +60,10 @@ for content pages (articles).
 To initialize the client manually, first set the `subscriptions-control="manual"` flag on the script:
 
 ```
-<script async subscriptions-control="manual" src="https://$TODO$/swg.js"></script>
+<script async subscriptions-control="manual" src="https://news.google.com/swg/js/v1/swg.js"></script>
 ```
 
-And then initialize using API:
+Then initialize using the API:
 
 ```
 (self.SWG = self.SWG || []).push(function(subscriptions) {
