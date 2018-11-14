@@ -68,7 +68,7 @@ describe('api_messages', () => {
       analyticscontext.setUtmMedium();
       analyticscontext.setSku();
       analyticscontext.setReadyToPay(false);
-      analyticscontext.setLabel([]);
+      analyticscontext.setLabelList([]);
       const analyticscontextSerialized = analyticscontext.toArray();
       const analyticscontextDeserialized = deserialize(
           analyticscontextSerialized);
@@ -90,7 +90,7 @@ describe('api_messages', () => {
       analyticscontext.setUtmMedium();
       analyticscontext.setSku();
       analyticscontext.setReadyToPay(false);
-      analyticscontext.setLabel([]);
+      analyticscontext.setLabelList([]);
       analyticsrequest.setContext(analyticscontext);
       analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
       const analyticsrequestSerialized = analyticsrequest.toArray();

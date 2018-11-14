@@ -195,7 +195,7 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(firstArgument['buf']).to.not.be.null;
         const /* {?AnalyticsRequest} */ request =
             new AnalyticsRequest(firstArgument['buf']);
-        expect(request.getContext().getLabel()).to.deep.equal([]);
+        expect(request.getContext().getLabelList()).to.deep.equal([]);
       });
     });
 
@@ -214,7 +214,7 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(firstArgument['buf']).to.not.be.null;
         const /* {?AnalyticsRequest} */ request =
             new AnalyticsRequest(firstArgument['buf']);
-        expect(request.getContext().getLabel())
+        expect(request.getContext().getLabelList())
             .to.deep.equal(['experiment-A', 'experiment-B']);
       });
     });
@@ -232,7 +232,7 @@ describes.realWin('AnalyticsService', {}, env => {
       }).then(() => {
         const firstArgument = activityIframePort.message.getCall(0).args[0];
         const request = new AnalyticsRequest(firstArgument['buf']);
-        expect(request.getContext().getLabel())
+        expect(request.getContext().getLabelList())
             .to.deep.equal(['L1', 'L2', 'E1', 'E2']);
 
         analyticsService.addLabels(['L3', 'L4']);
@@ -241,17 +241,17 @@ describes.realWin('AnalyticsService', {}, env => {
       }).then(() => {
         const firstArgument = activityIframePort.message.getCall(1).args[0];
         const request = new AnalyticsRequest(firstArgument['buf']);
-        expect(request.getContext().getLabel())
+        expect(request.getContext().getLabelList())
             .to.deep.equal(['L1', 'L2', 'E1', 'E2', 'L3', 'L4']);
       });
     });
 
     it('should dedupe duplicate labels', () => {
       analyticsService.addLabels(['L1', 'L2', 'L1', 'L2']);
-      expect(analyticsService.context_.getLabel())
+      expect(analyticsService.context_.getLabelList())
           .to.deep.equal(['L1', 'L2']);
       analyticsService.addLabels(['L1', 'L2', 'L3']);
-      expect(analyticsService.context_.getLabel())
+      expect(analyticsService.context_.getLabelList())
           .to.deep.equal(['L1', 'L2', 'L3']);
     });
   });
