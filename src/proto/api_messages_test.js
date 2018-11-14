@@ -15,10 +15,10 @@
  */
 
 import {
-  AnalyticsContext,
-  AnalyticsRequest,
-  AnalyticsEvent,
-  deserialize} from './api_messages';
+    AnalyticsContext,
+    AnalyticsRequest,
+    AnalyticsEvent,
+    deserialize} from './api_messages';
 
 /**
  * Compare two protos
