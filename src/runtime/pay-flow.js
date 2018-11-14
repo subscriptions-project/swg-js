@@ -23,6 +23,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
 import {
   PurchaseData,
@@ -39,7 +40,6 @@ import {
   parseJson,
   tryParseJson,
 } from '../utils/json';
-import {AnalyticsEvent} from '../proto/api_messages';
 
 
 /**
@@ -60,7 +60,7 @@ export const ReplaceSkuProrationModeMapping = {
 export class PayStartFlow {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {string|../api/subscriptions.SubscriptionRequest} skuOrSubscriptionRequest
+   * @param {!../api/subscriptions.SubscriptionRequest|string} skuOrSubscriptionRequest
    */
   constructor(deps, skuOrSubscriptionRequest) {
     /** @private @const {!./deps.DepsDef} */
@@ -148,13 +148,10 @@ export class PayCompleteFlow {
           deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
         } else {
           deps.analytics().logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
+          deps.jserror().error('Pay failed', reason);
         }
         throw reason;
       });
-    });
-    deps.activities().onRedirectError(() => {
-      deps.analytics().addLabels(['redirect']);
-      deps.analytics().logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
     });
   }
 
