@@ -271,24 +271,38 @@ export class LinkSaveFlow {
         });
       }
     });
+    let linkConfirm = null;
     /** {!Promise<boolean>} */
     return this.dialogManager_.openView(this.activityIframeView_,
         /* hidden */ true).then(() => {
-          return this.activityIframeView_.port().then(port => {
-            return acceptPortResultData(
-                port,
-                feOrigin(),
-                /* requireOriginVerified */ true,
-                /* requireSecureChannel */ true);
-          }).then(result => {
-            return result['linked'];
-          }).catch(() => {
-            return false;
-          }).then(result => {
-            // The flow is complete.
-            this.dialogManager_.completeView(this.activityIframeView_);
-            return result;
+        return this.activityIframeView_.port().then(port => {
+          return acceptPortResultData(
+              port,
+              feOrigin(),
+              /* requireOriginVerified */ true,
+              /* requireSecureChannel */ true);
+        }).then(result => {
+          // The flow is complete.
+          if (!result['linked']) {
+            throw new Error('save subscription failed');
+          }
+          return this.dialogManager_.completeView(this.activityIframeView_);
+        }).then(() => {
+          this.deps_.dialogManager().popupClosed();
+          linkConfirm = new LinkCompleteFlow(this.deps_);
+          this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
+          return linkConfirm.start(); 
+        }).then(() => {
+          this.deps_.callbacks().triggerLinkProgress();
+          return linkConfirm.whenComplete().then(() => {
+            this.deps_.callbacks().triggerLinkComplete();
+            this.deps_.callbacks().resetLinkProgress();
+            return true;
+          }, reason => {
+            this.deps_.callbacks().triggerFlowCanceled(SubscriptionFows.LINK_ACCOUNT);
+            throw reason;
           });
         });
+      });
   }
 }
