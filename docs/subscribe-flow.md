@@ -50,4 +50,81 @@ Another way to trigger the subscribe flow is by starting [Offers flow](./offers-
 
 The `setOnSubscribeResponse` callback will be called once the subscription is complete, or when the previously executed subscription is recovered.
 
-The response returned by the `setOnSubscribeResponse` callback is the [`SubscribeResponse`](./core-apis.md) object. It includes purchase details, as well as user data.
+## Subscribe response
+The response returned by the `setOnSubscribeResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data.
+## Structure
+The SubscriptionResponse object has the following structure:
+```
+{
+  "raw": "",
+  "purchaseData" : {
+    "raw": "",
+    "signature": "",
+  },
+  "userData": {
+    "idToken" : "...",
+    "data": { ... },
+    "id": "",
+    "email": "",
+    "emailVerified": true,
+    "name": "",
+    "givenName": "",
+    "familyName": "",
+    "pictureUrl": ""
+}
+```
+### `purchaseData` properties
+| Name | Data type | Related In-app Billing purchase request field | Description |
+| ---- | --------- | --------------------------------------------- | ----------- |
+| raw | String | [IN_APP_PURCHASE_DATA](https://developer.android.com/google/play/billing/billing_reference#purchase-data-table) | A string in JSON format that contains details about the purchase order. |
+| signature | String | [IN_APP_DATA_SIGNATURE](https://developer.android.com/google/play/billing/billing_reference#purchase-pendingintent-response-table)  | String containing the signature of the purchase data that was signed with the private key of the developer. The data signature uses the RSASSA-PKCS1-v1_5 scheme. |
+The `purchaseData.raw` fields are identical to the fields from an Android In-App Billing [IN_APP_PURCHASE_DATA](https://developer.android.com/google/play/billing/billing_reference#purchase-data-table) object.
+### `userData` properties
+| Name | Data type | Description |
+| ---- | ---- | ----------- |
+| idToken | String | The Google Sign-in ID Token. For more information, see [Google Sign-in for Websites - Authenticate with a Backend Server](https://developers.google.com/identity/sign-in/web/backend-auth#calling-the-tokeninfo-endpoint). |
+| data | Object | The information contained within the ID Token. |
+| id | String | The user’s Google Sign-in ID. This corresponds to the sub field of the idToken. |
+| email | String | The user’s email address. <blockquote><b>Note:</b> A Google account's email address can change, so don't use it to identify a user. Instead, use the account's ID, which you can get on the client with getBasicProfile().getId() , and on the backend from the sub claim of the ID token.</blockquote> |
+| emailVerified | Boolean | Returns true if the email address is verified by Google. |
+| name | String | Full name, including given and family name. |
+| givenName | String | The user's first name. |
+| familyName | String | The user's last name. |
+| pictureUrl | String | The user's profile picture. |
+### Example response
+```
+{
+  "raw": "... raw delimited JSON String ...",
+  "purchaseData": {
+    "raw":       "{\"orderId\":\"GNS.XXXX-XXXX-XXXX-XXXXX\",\"packageName\":\"com.norcal-tribune.android\",\"productId\":\"basic_monthly\",\"purchaseTime\":1535389694143,\"purchaseState\":0,\"purchaseToken\":\"...\",\"autoRenewing\":true}",
+    "signature": "..."
+  },
+  "userData": {
+    "idToken": "...",
+    "data": {
+      "iss": "https://accounts.google.com",
+      "sub": "000000000000000000000",
+      "azp": "xxx.apps.googleusercontent.com",
+      "aud": "xxx.apps.googleusercontent.com",
+      "iat": 0000000000,
+      "exp": 0000000000,
+      "nbf": 0000000000,
+      "hd": "google.com",
+      "jti": "...",
+      "email": "...@gmail.com",
+      "email_verified": true,
+      "name": "GivenName FamilyName",
+      "given_name": "GivenName",
+      "family_name": "FamilyName"
+      "picture": "https://...jpg",
+    },
+    "id": "000000000000000000000",
+    "email": "...@gmail.com",
+    "emailVerified": true,
+    "name": "GivenName FamilyName",
+    "givenName": "GivenName",
+    "familyName": "FamilyName",
+    "pictureUrl": "https://...jpg"
+  }
+}
+```
