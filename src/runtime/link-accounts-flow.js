@@ -244,7 +244,8 @@ export class LinkSaveFlow {
         this.activityPorts_,
         feUrl('/linksaveiframe'),
         feArgs(iframeArgs),
-        /* shouldFadeBody */ false
+        /* shouldFadeBody */ false,
+        /* hasLoadingIndicator */ true
     );
     this.activityIframeView_.onMessage(data => {
       if (data['getLinkingInfo']) {
@@ -275,33 +276,34 @@ export class LinkSaveFlow {
     /** {!Promise<boolean>} */
     return this.dialogManager_.openView(this.activityIframeView_,
         /* hidden */ true).then(() => {
-        return this.activityIframeView_.port().then(port => {
-          return acceptPortResultData(
-              port,
-              feOrigin(),
-              /* requireOriginVerified */ true,
-              /* requireSecureChannel */ true);
-        }).then(result => {
-          // The flow is complete.
-          if (!result['linked']) {
-            throw new Error('save subscription failed');
+        return this.activityIframeView_.port();
+      }).then(port => {
+        return acceptPortResultData(
+            port,
+            feOrigin(),
+            /* requireOriginVerified */ true,
+            /* requireSecureChannel */ true);
+      }).then(result => {
+        // The flow is complete.
+        this.dialogManager_.completeView(this.activityIframeView_);
+        if (!result['linked']) {
+          return false;
+        }
+        this.deps_.dialogManager().popupClosed();
+        this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
+        linkConfirm = new LinkCompleteFlow(this.deps_, result);
+        return linkConfirm.start(); 
+      }).then(() => {
+        this.deps_.callbacks().triggerLinkProgress();        
+        return linkConfirm.whenComplete().then(() => {
+          return true;
+        },  reason => {
+          if (isCancelError(reason)) {
+            this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
           }
-          return this.dialogManager_.completeView(this.activityIframeView_);
-        }).then(() => {
-          this.deps_.dialogManager().popupClosed();
-          linkConfirm = new LinkCompleteFlow(this.deps_);
-          this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
-          return linkConfirm.start(); 
-        }).then(() => {
-          this.deps_.callbacks().triggerLinkProgress();
-          return linkConfirm.whenComplete().then(() => {
-            this.deps_.callbacks().triggerLinkComplete();
-            this.deps_.callbacks().resetLinkProgress();
-            return true;
-          }, reason => {
-            this.deps_.callbacks().triggerFlowCanceled(SubscriptionFows.LINK_ACCOUNT);
-            throw reason;
-          });
+          throw reason;
+        }).catch(() => {
+          return false;
         });
       });
   }
