@@ -50,6 +50,7 @@ subscriptions.getEntitlements().then(function(entitlements) {
 | source | String | <ul><li>When provided by google: `"google"`</li><li>When provided by the publisher: the `publicationID` </li></ul> |
 products | Array of strings | Subscribe with Google Product IDs the user can access. |
 subscriptionToken | String  | <ul><li> When provided by Google this is a quoted string that represents an [IN_APP_PURCHASE_DATA](https://developer.android.com/google/play/billing/billing_reference#purchase-data-table) JSON object </li><li> When provided by the publisher: this is an opaque string the publisher provided to Google during the account linking process.The publisher should use this string to lookup the subscription on their backend </li><li> If you're going to provide JSON in your subscriptionToken, be sure to escape it properly (example below) </li></ul> |
+
 An example response:
 ```
 {
