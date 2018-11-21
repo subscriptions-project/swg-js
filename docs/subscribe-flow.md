@@ -78,6 +78,7 @@ The SubscriptionResponse object has the following structure:
 | ---- | --------- | --------------------------------------------- | ----------- |
 | raw | String | [IN_APP_PURCHASE_DATA](https://developer.android.com/google/play/billing/billing_reference#purchase-data-table) | A string in JSON format that contains details about the purchase order. |
 | signature | String | [IN_APP_DATA_SIGNATURE](https://developer.android.com/google/play/billing/billing_reference#purchase-pendingintent-response-table)  | String containing the signature of the purchase data that was signed with the private key of the developer. The data signature uses the RSASSA-PKCS1-v1_5 scheme. |
+
 The `purchaseData.raw` fields are identical to the fields from an Android In-App Billing [IN_APP_PURCHASE_DATA](https://developer.android.com/google/play/billing/billing_reference#purchase-data-table) object.
 ### `userData` properties
 | Name | Data type | Description |
