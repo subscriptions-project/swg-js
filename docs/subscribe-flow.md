@@ -52,7 +52,7 @@ The `setOnSubscribeResponse` callback will be called once the subscription is co
 
 ## Subscribe response
 The response returned by the `setOnSubscribeResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data.
-## Structure
+### Structure
 The SubscriptionResponse object has the following structure:
 ```
 {
