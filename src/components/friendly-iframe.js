@@ -16,6 +16,7 @@
 
 import {
   createElement,
+  isConnected,
 } from '../utils/dom';
 import {resetAllStyles} from '../utils/style';
 
@@ -97,9 +98,6 @@ export class FriendlyIframe {
    * @return {boolean}
    */
   isConnected() {
-    if (!this.getElement().ownerDocument) {
-      return false;
-    }
-    return this.getElement().ownerDocument.contains(this.iframe_);
+    return isConnected(this.getElement());
   }
 }
