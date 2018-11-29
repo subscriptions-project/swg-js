@@ -248,10 +248,12 @@ export class LinkSaveFlow {
         /* hasLoadingIndicator */ true
     );
     this.activityIframeView_.onMessage(data => {
+      console.log('message received ', data);
       if (data['getLinkingInfo']) {
         this.requestPromise_ = new Promise(resolve => {
           resolve(this.callback_());
         }).then(request => {
+          console.log('request recieved ', request);
           let saveRequest;
           if (request && request.token) {
             if (request.authCode) {
@@ -276,8 +278,10 @@ export class LinkSaveFlow {
     /** {!Promise<boolean>} */
     return this.dialogManager_.openView(this.activityIframeView_,
         /* hidden */ true).then(() => {
+        console.log('view opened');
         return this.activityIframeView_.port();
       }).then(port => {
+        console.log('port resolved');
         return acceptPortResultData(
             port,
             feOrigin(),
@@ -285,6 +289,7 @@ export class LinkSaveFlow {
             /* requireSecureChannel */ true);
       }).then(result => {
         // The flow is complete.
+        console.log('result received ', result);
         this.dialogManager_.completeView(this.activityIframeView_);
         if (!result['linked']) {
           return false;
@@ -294,6 +299,7 @@ export class LinkSaveFlow {
         linkConfirm = new LinkCompleteFlow(this.deps_, result);
         return linkConfirm.start(); 
       }).then(() => {
+        console.log('link confirm started');
         this.deps_.callbacks().triggerLinkProgress();        
         return linkConfirm.whenComplete().then(() => {
           return true;
@@ -301,9 +307,7 @@ export class LinkSaveFlow {
           if (isCancelError(reason)) {
             this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
           }
-          throw reason;
-        }).catch(() => {
-          return false;
+          throw reason;  
         });
       });
   }
