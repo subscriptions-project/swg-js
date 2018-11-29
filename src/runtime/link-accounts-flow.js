@@ -18,7 +18,7 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
-import {isCancelError} from '../utils/errors';
+import {isCancelError, createCancelError} from '../utils/errors';
 
 const LINK_REQUEST_ID = 'swg-link';
 
@@ -218,6 +218,12 @@ export class LinkSaveFlow {
     /** @private {?Promise<!../api/subscriptions.SaveSubscriptionRequest>} */
     this.requestPromise_ = null;
 
+    /** @private {?Promise} */
+    this.linkedPromise_ = null;
+
+    /** @private {?Promise} */
+    this.confirmPromise_ = null;
+
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
   }
@@ -229,6 +235,24 @@ export class LinkSaveFlow {
   getRequestPromise() {
     return this.requestPromise_;
   }
+
+  /**
+   * @return {?Promise}
+   */
+  whenLinked() {
+    return this.linkedPromise_;
+  }
+
+  /**
+   * @return {?Promise<boolean>}
+   */
+  whenConfirmed() {
+    return this.confirmPromise_;
+  }
+
+  /**
+   * @return {?Promise}
+   */
   /**
    * Starts the save subscription
    * @return {!Promise}
@@ -274,41 +298,43 @@ export class LinkSaveFlow {
         });
       }
     });
-    let linkConfirm = null;
-    /** {!Promise<boolean>} */
-    return this.dialogManager_.openView(this.activityIframeView_,
-        /* hidden */ true).then(() => {
-        console.log('view opened');
-        return this.activityIframeView_.port();
-      }).then(port => {
+    
+    this.linkedPromise_ = this.activityIframeView_.port().then(port => {
         console.log('port resolved');
         return acceptPortResultData(
             port,
             feOrigin(),
             /* requireOriginVerified */ true,
             /* requireSecureChannel */ true);
-      }).then(result => {
-        // The flow is complete.
-        console.log('result received ', result);
+      });
+    
+    let linkConfirm = null;
+    this.confirmPromise_ = this.linkedPromise_.then(result => {
         this.dialogManager_.completeView(this.activityIframeView_);
-        if (!result['linked']) {
-          return false;
+        if (result['linked']) {
+          this.dialogManager_.popupClosed();
+          this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
+          linkConfirm = new LinkCompleteFlow(this.deps_, result);
+          return linkConfirm.start();
         }
-        this.deps_.dialogManager().popupClosed();
-        this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
-        linkConfirm = new LinkCompleteFlow(this.deps_, result);
-        return linkConfirm.start(); 
+        return Promise.reject(createCancelError(this.win_, 'not linked'));
       }).then(() => {
         console.log('link confirm started');
         this.deps_.callbacks().triggerLinkProgress();        
-        return linkConfirm.whenComplete().then(() => {
+        return linkConfirm.whenComplete()
+      }).then(() => {
           return true;
-        },  reason => {
-          if (isCancelError(reason)) {
-            this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
-          }
-          throw reason;  
-        });
+      }).catch(reason => {
+        console.log('reason ', reason);
+        if (isCancelError(reason)) {
+          this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
+          return false;
+        }
+        throw reason;  
       });
+    
+    /** {!Promise<boolean>} */
+    return this.dialogManager_.openView(this.activityIframeView_,
+        /* hidden */ true);
   }
 }
