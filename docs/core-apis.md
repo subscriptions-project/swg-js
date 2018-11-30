@@ -39,8 +39,8 @@ Some of the main types are:
 For details on how these types and related APIs are used, see see [Subscriptions flows](./flows.md).
 
 
-## Clear and reset APIs
+## Clear and reset
 
-The `swg.reset()` API can be called to reset entitlements if the parent application believes that the entitlements have changed and would like to refetch them again.
+If the parent application believes that entitlements have changed `subscriptions.reset()` can be called to refetch entitlements.
 
-The `swg.clear()` API can be called to clear the SwG state, including caches.
+Calling `subscriptions.clear()` will clear the SwG state, including caches.
