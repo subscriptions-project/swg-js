@@ -44,13 +44,41 @@ subscriptions.getEntitlements().then(function(entitlements) {
   // Handle the entitlements.
 });
 ```
+## Entitlement response
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| source | String | <ul><li>When provided by google: `"google"`</li><li>When provided by the publisher: the `publicationID` </li></ul> |
+products | Array of strings | Subscribe with Google Product IDs the user can access. |
+subscriptionToken | String  | <ul><li> When provided by Google this is a quoted string that represents an [IN_APP_PURCHASE_DATA](https://developer.android.com/google/play/billing/billing_reference#purchase-data-table) JSON object </li><li> When provided by the publisher: this is an opaque string the publisher provided to Google during the account linking process.The publisher should use this string to lookup the subscription on their backend </li><li> If you're going to provide JSON in your subscriptionToken, be sure to escape it properly (example below) </li></ul> |
+
+An example response:
+```
+{
+  service: "subscribe.google.com",
+  entitlements: [
+    {
+      source: "google",
+      products: ["example.com:entitlement_label1"],
+      subscriptionToken: "{purchaseData - see above}",
+      detail: "sku_description"
+    },
+    {
+      source: "example.com",
+      products: ["example.com:entitlement_label2"],
+      subscriptionToken: "subscription token from example.com",
+      detail: "sku_description"
+    }
+  ],
+  isReadyToPay: false
+}
+```
+See the [Entitlements](../src/api/entitlements.js) object for more detail.
 
 ## Entitlement acknowledgement
 
 The successful entitlements object should be acknowledge by the publication site to stop it from showing the notification. This is done by calling the `entitlements.ack()` method.
 
 For instance:
-
 ```
 subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
   entitlementsPromise.then(function(entitlements) {
@@ -58,4 +86,64 @@ subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
     entitlements.ack();
   });
 })
+```
+## Sample code
+This example is a skeleton for the following:
+1) Checking if the user has entitlements to the product linked to the content,
+2) Checking if the user's subscription is recognized by the publisher,
+3) Using the login flow functions if so,
+4) Initiating the Deferred Account Creation Flow if not,
+5) Remove the "Subscribed with ... [publication] [Manage Link]" bottom toast.
+```
+subscriptions.setOnEntitlementsResponse(entitlementsPromise => {
+  entitlementsPromise.then(entitlements => {
+    // Handle the entitlements.
+    if (entitlements.enablesThis()) {
+      // Entitlements grant access to the product linked to this content.
+       // Look up the user. Resolve the promise with an account (if it was found).
+      const accountPromise = new Promise(...);
+       // Notify the user that their account is being looked up. It will resolve
+      // when accountPromise resolves.
+      subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
+        if (account) {
+          // Account was found.
+          // Option 1 - notify the user that they're being automatically signed-in.
+          subscriptions.showLoginNotification().then(() => {
+            // Publisher shows content.
+          });
+           // Option 2 - prompt the user to sign in.
+          subscriptions.showLoginPrompt().then(() => {
+            // User clicked 'Yes'.
+            // Notify the user that they're being logged in with Google.
+            subscriptions.showLoginNotification().then(() => {
+              // Publisher shows content.
+            });
+          }, reason => {
+            // User clicked 'No'. Publisher can decide how to handle this
+            // situation.
+            handleCancellation();
+          });
+        } else {
+          // Account was not found, or existing account has no subscription.
+          // Let's create a new one or link to the existing publisher account.
+          subscriptions.completeDeferredAccountCreation({
+            entitlements: entitlements,
+            consent: true
+          }).then(response => {
+            // 1. The user has consented to account creation. Create account
+            // based on the response.
+             // 2. Signal that the account creation is complete.
+            response.complete().then(() => {
+              // 3. The flow is complete.
+            });
+          });
+        }
+      });
+       // Remove the "Subscribed with... Manage" bottom toast.
+      entitlements.ack();
+    } else {
+      // No access; Your logic here: i.e. meter, show a paywall, etc.
+    }
+  });
+});
 ```
