@@ -441,6 +441,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
         'IFRAME', location.origin, true, true);
     port.acceptResult = () => Promise.resolve(result);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    dialogManagerMock.expects('completeView').once();
     return linkSaveFlow.start().then(() => {
       return linkSaveFlow.whenConfirmed();
     }).then(result => {
@@ -455,6 +456,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     port.acceptResult = () => Promise.reject(
         createCancelError('linking failed'));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    dialogManagerMock.expects('completeView').once();
     return linkSaveFlow.start().then(() => {
       return linkSaveFlow.whenConfirmed();
     }).then(result => {
@@ -473,6 +475,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
         {'index': 1, 'linked': true},
         'IFRAME', location.origin, true, true);
       resultResolver(result);
+      dialogManagerMock.expects('completeView').once();
       return linkSaveFlow.whenLinked();
     }).then(result => {
       expect(result['linked']).to.be.true;
@@ -494,6 +497,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
         'getLinkingInfo': true,
       });
     }).then(() => {
+      dialogManagerMock.expects('completeView').once();
       return linkSaveFlow.getRequestPromise();
     }).then(() => {
       throw new Error('must have failed');
@@ -512,6 +516,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
         'getLinkingInfo': true,
       });
     }).then(() => {
+      dialogManagerMock.expects('completeView').once();
       return linkSaveFlow.getRequestPromise();
     }).then(() => {
       throw new Error('must have failed');
@@ -618,6 +623,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
           },
           'IFRAME', location.origin, true, true);
       resultResolver(result);
+      dialogManagerMock.expects('completeView').once();
       return linkSaveFlow.whenLinked();
     }).then(result => {
       expect(result['linked']).to.be.true;
@@ -652,6 +658,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
           },
           'IFRAME', location.origin, true, true);
       resultResolver(result);
+      dialogManagerMock.expects('completeView').once();
       return linkSaveFlow.whenLinked();
     }).then(result => {
       expect(result['linked']).to.be.true;
@@ -687,6 +694,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
           },
           'IFRAME', location.origin, true, true);
       resultResolver(result);
+      dialogManagerMock.expects('completeView').once();
       return linkSaveFlow.whenLinked();
     }).then(result => {
       expect(result['linked']).to.be.true;
