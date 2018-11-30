@@ -373,6 +373,9 @@ describes.realWin('LinkSaveFlow', {}, env => {
   let dialogManagerMock;
   let resultResolver;
   let messageCallback;
+  let triggerFlowStartSpy;
+  let triggerFlowCanceledSpy;
+  let triggerLinkProgressSpy;
 
   beforeEach(() => {
     win = env.win;
@@ -381,6 +384,12 @@ describes.realWin('LinkSaveFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    triggerFlowStartSpy = sandbox.stub(
+        runtime.callbacks(), 'triggerFlowStarted');
+    triggerFlowCanceledSpy = sandbox.stub(
+        runtime.callbacks(), 'triggerFlowCanceled');
+    triggerLinkProgressSpy = sandbox.stub(
+        runtime.callbacks(), 'triggerLinkProgress');
     port = new ActivityPort();
     port.message = () => {};
     port.onResizeRequest = () => {};
@@ -404,8 +413,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
 
   it('should have constructed valid LinkSaveFlow', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
-    LinkCompleteFlow.prototype.start = () => Promise.resolve();
-    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
@@ -415,18 +422,10 @@ describes.realWin('LinkSaveFlow', {}, env => {
           isClosable: true,
         })
         .returns(Promise.resolve(port));
-    const result = new ActivityResult(
-        ActivityResultCode.OK,
-        {
-          'index': 1,
-          'linked': true,
-        },
-        'IFRAME', location.origin, true, true);
-    resultResolver(result);
     return linkSaveFlow.start();
   });
 
-  it('should open dialog in hidden mode', function*() {
+  it('should open dialog in hidden mode', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     const dialog = new Dialog(new GlobalDoc(win));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -438,14 +437,16 @@ describes.realWin('LinkSaveFlow', {}, env => {
   it('should return false when linking not accepted', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     const result = new ActivityResult(ActivityResultCode.OK,
-      {'linked': false},
-      'IFRAME', location.origin, true, true);
+        {'linked': false},
+        'IFRAME', location.origin, true, true);
     port.acceptResult = () => Promise.resolve(result);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return linkSaveFlow.start().then(() => {
       return linkSaveFlow.whenConfirmed();
     }).then(result => {
       expect(result).to.be.false;
+      expect(triggerFlowStartSpy.notCalled).to.be.true;
+      expect(triggerFlowCanceledSpy.called).to.be.true;
     });
   });
 
@@ -458,29 +459,34 @@ describes.realWin('LinkSaveFlow', {}, env => {
       return linkSaveFlow.whenConfirmed();
     }).then(result => {
       expect(result).to.be.false;
+      expect(triggerFlowStartSpy.notCalled).to.be.true;
+      expect(triggerFlowCanceledSpy.called).to.be.true;
     });
   });
 
   it('should test linking success', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
-    LinkCompleteFlow.prototype.start = () => Promise.resolve();
-    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
-    const result = new ActivityResult(ActivityResultCode.OK,
-      {'index': 1, 'linked': true},
-      'IFRAME', location.origin, true, true);
-    resultResolver(result);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    LinkCompleteFlow.prototype.start = () => Promise.resolve();
     return linkSaveFlow.start().then(() => {
+      const result = new ActivityResult(ActivityResultCode.OK,
+        {'index': 1, 'linked': true},
+        'IFRAME', location.origin, true, true);
+      resultResolver(result);
+      return linkSaveFlow.whenLinked();
+    }).then(result => {
+      expect(result['linked']).to.be.true;
+      expect(triggerFlowStartSpy.calledOnce).to.be.true;
+      LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
       return linkSaveFlow.whenConfirmed();
     }).then(result => {
       expect(result).to.be.true;
+      expect(triggerLinkProgressSpy.called).to.be.true;
     });
   });
 
   it('should fail if both token and authCode are present', () => {
     const reqPromise = Promise.resolve({token: 'test', authCode: 'test'});
-    LinkCompleteFlow.prototype.start = () => Promise.resolve();
-    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return linkSaveFlow.start().then(() => {
@@ -499,8 +505,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
   });
 
   it('should fail if neither token nor authCode is present', () => {
-    LinkCompleteFlow.prototype.start = () => Promise.resolve();
-    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return linkSaveFlow.start().then(() => {
@@ -589,6 +593,109 @@ describes.realWin('LinkSaveFlow', {}, env => {
       expect(() => {
         throw reason;
       }).to.throw(/callback failed/);
+    });
+  });
+
+  it('should test link complete flow start', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, () => {});
+    LinkCompleteFlow.prototype.start = () => Promise.resolve();
+    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          isClosable: true,
+        })
+        .returns(Promise.resolve(port));
+    return linkSaveFlow.start().then(() => {
+      const result = new ActivityResult(
+          ActivityResultCode.OK,
+          {
+            'index': 1,
+            'linked': true,
+          },
+          'IFRAME', location.origin, true, true);
+      resultResolver(result);
+      return linkSaveFlow.whenLinked();
+    }).then(result => {
+      expect(result['linked']).to.be.true;
+      expect(result['index']).to.equal(1);
+      expect(triggerFlowStartSpy.calledOnce).to.be.true;
+      return linkSaveFlow.whenConfirmed();
+    }).then(result => {
+      expect(triggerLinkProgressSpy.called).to.be.true;
+      expect(result).to.be.true;
+    });
+  });
+
+  it('should test link complete flow start failure', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, () => {});
+    LinkCompleteFlow.prototype.start = () => Promise.reject(
+        createCancelError('unable to open iframe'));
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          isClosable: true,
+        })
+        .returns(Promise.resolve(port));
+    return linkSaveFlow.start().then(() => {
+      const result = new ActivityResult(
+          ActivityResultCode.OK,
+          {
+            'index': 1,
+            'linked': true,
+          },
+          'IFRAME', location.origin, true, true);
+      resultResolver(result);
+      return linkSaveFlow.whenLinked();
+    }).then(result => {
+      expect(result['linked']).to.be.true;
+      expect(result['index']).to.equal(1);
+      expect(triggerFlowStartSpy.calledOnce).to.be.true;
+      return linkSaveFlow.whenConfirmed();
+    }).then(result => {
+      expect(triggerFlowCanceledSpy.called).to.be.true;
+      expect(result).to.be.false;
+    });
+  });
+
+  it('should test link complete flow completion failure', () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, () => {});
+    LinkCompleteFlow.prototype.start = () => Promise.resolve();
+    LinkCompleteFlow.prototype.whenComplete = () => Promise.reject(
+        createCancelError('unable to open iframe'));
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          isClosable: true,
+        })
+        .returns(Promise.resolve(port));
+    return linkSaveFlow.start().then(() => {
+      const result = new ActivityResult(
+          ActivityResultCode.OK,
+          {
+            'index': 1,
+            'linked': true,
+          },
+          'IFRAME', location.origin, true, true);
+      resultResolver(result);
+      return linkSaveFlow.whenLinked();
+    }).then(result => {
+      expect(result['linked']).to.be.true;
+      expect(result['index']).to.equal(1);
+      expect(triggerFlowStartSpy.calledOnce).to.be.true;
+      return linkSaveFlow.whenConfirmed();
+    }).then(result => {
+      expect(triggerFlowCanceledSpy.called).to.be.true;
+      expect(result).to.be.false;
     });
   });
 });
