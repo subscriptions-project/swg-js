@@ -21,6 +21,7 @@ import {serviceUrl} from './services';
 import {feArgs, feUrl} from '../runtime/services';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AnalyticsMode} from '../api/subscriptions';
+import {parseQueryString} from '../utils/url';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -110,6 +111,24 @@ export class EntitlementsManager {
   }
 
   /**
+   * @return {string}
+   * @private
+   */
+  getQueryString_() {
+    return this.win_.location.search;
+  }
+
+  /**
+   * @private
+   * @return boolean true if UTM source is google
+   */
+  isGoogleUtmSource_() {
+    // TODO(sohanirao): b/120294106
+    const utmParams = parseQueryString(this.getQueryString_());
+    return (utmParams['utm_source'] == 'google');
+  }
+
+  /**
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements() {
@@ -120,7 +139,8 @@ export class EntitlementsManager {
       if (response.isReadyToPay != null) {
         this.analyticsService_.setReadyToPay(response.isReadyToPay);
       }
-      if (this.config_.analyticsMode == AnalyticsMode.IMPRESSIONS) {
+      if (this.config_.analyticsMode == AnalyticsMode.IMPRESSIONS ||
+            this.isGoogleUtmSource_()) {
         this.logPaywallImpression_();
       }
       return response;
