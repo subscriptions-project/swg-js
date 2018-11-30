@@ -29,7 +29,6 @@ import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
-import { doesNotReject } from 'assert';
 import {createCancelError} from '../utils/errors';
 
 describes.realWin('LinkbackFlow', {}, env => {
@@ -388,7 +387,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
     port.onMessage = () => {};
     messageCallback = undefined;
     sandbox.stub(port, 'onMessage', callback => {
-      console.log('attaching a callback', callback);
       messageCallback = callback;
     });
     const resultPromise = new Promise(resolve => {
@@ -407,7 +405,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   it('should have constructed valid LinkSaveFlow', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     LinkCompleteFlow.prototype.start = () => Promise.resolve();
-    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();   
+    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
@@ -416,8 +414,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
           publicationId: 'pub1',
           isClosable: true,
         })
-        .returns(Promise.resolve(port));    
-    console.log('link save flow started');
+        .returns(Promise.resolve(port));
     const result = new ActivityResult(
         ActivityResultCode.OK,
         {
@@ -425,17 +422,16 @@ describes.realWin('LinkSaveFlow', {}, env => {
           'linked': true,
         },
         'IFRAME', location.origin, true, true);
-    resultResolver(result);          
+    resultResolver(result);
     return linkSaveFlow.start();
   });
 
-  it('should open dialog in hidden mode', () => {
+  it('should open dialog in hidden mode', function*() {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
-    LinkCompleteFlow.prototype.start = () => Promise.resolve();
-    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve(); 
-    const dialogPromise = Promise.resolve(new Dialog(new GlobalDoc(win)));
+    const dialog = new Dialog(new GlobalDoc(win));
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     dialogManagerMock.expects('openDialog')
-        .withExactArgs(/* hidden */true).returns(dialogPromise);
+        .withExactArgs(/* hidden */true).returns(dialog.open());
     return linkSaveFlow.start();
   });
 
@@ -468,11 +464,11 @@ describes.realWin('LinkSaveFlow', {}, env => {
   it('should test linking success', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     LinkCompleteFlow.prototype.start = () => Promise.resolve();
-    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();      
+    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
     const result = new ActivityResult(ActivityResultCode.OK,
       {'index': 1, 'linked': true},
       'IFRAME', location.origin, true, true);
-    resultResolver(result); 
+    resultResolver(result);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return linkSaveFlow.start().then(() => {
       return linkSaveFlow.whenConfirmed();
@@ -484,13 +480,13 @@ describes.realWin('LinkSaveFlow', {}, env => {
   it('should fail if both token and authCode are present', () => {
     const reqPromise = Promise.resolve({token: 'test', authCode: 'test'});
     LinkCompleteFlow.prototype.start = () => Promise.resolve();
-    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();       
+    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return linkSaveFlow.start().then(() => {
       messageCallback({
         'getLinkingInfo': true,
-      });     
+      });
     }).then(() => {
       return linkSaveFlow.getRequestPromise();
     }).then(() => {
@@ -504,13 +500,13 @@ describes.realWin('LinkSaveFlow', {}, env => {
 
   it('should fail if neither token nor authCode is present', () => {
     LinkCompleteFlow.prototype.start = () => Promise.resolve();
-    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();       
+    LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return linkSaveFlow.start().then(() => {
       messageCallback({
         'getLinkingInfo': true,
-      });     
+      });
     }).then(() => {
       return linkSaveFlow.getRequestPromise();
     }).then(() => {

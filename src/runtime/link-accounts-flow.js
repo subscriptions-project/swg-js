@@ -224,6 +224,9 @@ export class LinkSaveFlow {
     /** @private {?Promise} */
     this.confirmPromise_ = null;
 
+    /** @private {?Promise} */
+    this.completePromise_ = null;
+
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
   }
@@ -238,6 +241,7 @@ export class LinkSaveFlow {
 
   /**
    * @return {?Promise}
+   * @package Visible for testing.
    */
   whenLinked() {
     return this.linkedPromise_;
@@ -245,11 +249,21 @@ export class LinkSaveFlow {
 
   /**
    * @return {?Promise<boolean>}
+   * @package Visible for testing.
    */
   whenConfirmed() {
     return this.confirmPromise_;
   }
 
+  /**
+   * @private
+   */
+  complete_() {
+    if (!this.completePromise_) {
+      this.dialogManager_.completeView(this.activityIframeView_);
+      this.completePromise_ = Promise.resolve();
+    }
+  }
   /**
    * @return {?Promise}
    */
@@ -272,12 +286,10 @@ export class LinkSaveFlow {
         /* hasLoadingIndicator */ true
     );
     this.activityIframeView_.onMessage(data => {
-      console.log('message received ', data);
       if (data['getLinkingInfo']) {
         this.requestPromise_ = new Promise(resolve => {
           resolve(this.callback_());
         }).then(request => {
-          console.log('request recieved ', request);
           let saveRequest;
           if (request && request.token) {
             if (request.authCode) {
@@ -293,46 +305,48 @@ export class LinkSaveFlow {
           this.activityIframeView_.message(saveRequest);
         }).catch(reason => {
           // The flow is complete.
-          this.dialogManager_.completeView(this.activityIframeView_);
+          this.complete_();
           throw reason;
         });
       }
     });
-    
+
     this.linkedPromise_ = this.activityIframeView_.port().then(port => {
-        console.log('port resolved');
-        return acceptPortResultData(
-            port,
-            feOrigin(),
-            /* requireOriginVerified */ true,
-            /* requireSecureChannel */ true);
-      });
-    
+      return acceptPortResultData(
+          port,
+          feOrigin(),
+          /* requireOriginVerified */ true,
+          /* requireSecureChannel */ true);
+    });
+
     let linkConfirm = null;
     this.confirmPromise_ = this.linkedPromise_.then(result => {
-        this.dialogManager_.completeView(this.activityIframeView_);
-        if (result['linked']) {
-          this.dialogManager_.popupClosed();
-          this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
-          linkConfirm = new LinkCompleteFlow(this.deps_, result);
-          return linkConfirm.start();
-        }
-        return Promise.reject(createCancelError(this.win_, 'not linked'));
-      }).then(() => {
-        console.log('link confirm started');
-        this.deps_.callbacks().triggerLinkProgress();        
-        return linkConfirm.whenComplete()
-      }).then(() => {
-          return true;
-      }).catch(reason => {
-        console.log('reason ', reason);
-        if (isCancelError(reason)) {
-          this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
-          return false;
-        }
-        throw reason;  
-      });
-    
+      // This flow is complete
+      this.complete_();
+      if (result['linked']) {
+        this.dialogManager_.popupClosed();
+        this.deps_.callbacks().triggerFlowStarted(
+            SubscriptionFlows.LINK_ACCOUNT);
+        linkConfirm = new LinkCompleteFlow(this.deps_, result);
+        return linkConfirm.start();
+      }
+      return Promise.reject(createCancelError(this.win_, 'not linked'));
+    }).then(() => {
+      this.deps_.callbacks().triggerLinkProgress();
+      return linkConfirm.whenComplete();
+    }).then(() => {
+      return true;
+    }).catch(reason => {
+      if (isCancelError(reason)) {
+        this.deps_.callbacks().triggerFlowCanceled(
+            SubscriptionFlows.LINK_ACCOUNT);
+        return false;
+      }
+      // In case this flow wasn't complete, complete it here
+      this.complete_();
+      throw reason;
+    });
+
     /** {!Promise<boolean>} */
     return this.dialogManager_.openView(this.activityIframeView_,
         /* hidden */ true);
