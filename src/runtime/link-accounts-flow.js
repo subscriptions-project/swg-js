@@ -218,14 +218,11 @@ export class LinkSaveFlow {
     /** @private {?Promise<!../api/subscriptions.SaveSubscriptionRequest>} */
     this.requestPromise_ = null;
 
-    /** @private {?Promise} */
+    /** @private {?Promise<!Object>} */
     this.linkedPromise_ = null;
 
-    /** @private {?Promise} */
+    /** @private {?Promise<boolean>} */
     this.confirmPromise_ = null;
-
-    /** @private {?Promise} */
-    this.completePromise_ = null;
 
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
@@ -259,11 +256,9 @@ export class LinkSaveFlow {
    * @private
    */
   complete_() {
-    if (!this.completePromise_) {
-      this.dialogManager_.completeView(this.activityIframeView_);
-      this.completePromise_ = Promise.resolve();
-    }
+    this.dialogManager_.completeView(this.activityIframeView_);
   }
+
   /**
    * @return {?Promise}
    */
