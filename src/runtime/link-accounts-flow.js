@@ -18,7 +18,7 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
-import {isCancelError} from '../utils/errors';
+import {isCancelError, createCancelError} from '../utils/errors';
 
 const LINK_REQUEST_ID = 'swg-link';
 
@@ -218,6 +218,12 @@ export class LinkSaveFlow {
     /** @private {?Promise<!../api/subscriptions.SaveSubscriptionRequest>} */
     this.requestPromise_ = null;
 
+    /** @private {?Promise<!Object>} */
+    this.linkedPromise_ = null;
+
+    /** @private {?Promise<boolean>} */
+    this.confirmPromise_ = null;
+
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
   }
@@ -229,6 +235,33 @@ export class LinkSaveFlow {
   getRequestPromise() {
     return this.requestPromise_;
   }
+
+  /**
+   * @return {?Promise}
+   * @package Visible for testing.
+   */
+  whenLinked() {
+    return this.linkedPromise_;
+  }
+
+  /**
+   * @return {?Promise<boolean>}
+   * @package Visible for testing.
+   */
+  whenConfirmed() {
+    return this.confirmPromise_;
+  }
+
+  /**
+   * @private
+   */
+  complete_() {
+    this.dialogManager_.completeView(this.activityIframeView_);
+  }
+
+  /**
+   * @return {?Promise}
+   */
   /**
    * Starts the save subscription
    * @return {!Promise}
@@ -244,7 +277,8 @@ export class LinkSaveFlow {
         this.activityPorts_,
         feUrl('/linksaveiframe'),
         feArgs(iframeArgs),
-        /* shouldFadeBody */ false
+        /* shouldFadeBody */ false,
+        /* hasLoadingIndicator */ true
     );
     this.activityIframeView_.onMessage(data => {
       if (data['getLinkingInfo']) {
@@ -266,29 +300,50 @@ export class LinkSaveFlow {
           this.activityIframeView_.message(saveRequest);
         }).catch(reason => {
           // The flow is complete.
-          this.dialogManager_.completeView(this.activityIframeView_);
+          this.complete_();
           throw reason;
         });
       }
     });
+
+    this.linkedPromise_ = this.activityIframeView_.port().then(port => {
+      return acceptPortResultData(
+          port,
+          feOrigin(),
+          /* requireOriginVerified */ true,
+          /* requireSecureChannel */ true);
+    });
+
+    let linkConfirm = null;
+    this.confirmPromise_ = this.linkedPromise_.then(result => {
+      // This flow is complete
+      this.complete_();
+      if (result['linked']) {
+        this.dialogManager_.popupClosed();
+        this.deps_.callbacks().triggerFlowStarted(
+            SubscriptionFlows.LINK_ACCOUNT);
+        linkConfirm = new LinkCompleteFlow(this.deps_, result);
+        return linkConfirm.start();
+      }
+      return Promise.reject(createCancelError(this.win_, 'not linked'));
+    }).then(() => {
+      this.deps_.callbacks().triggerLinkProgress();
+      return linkConfirm.whenComplete();
+    }).then(() => {
+      return true;
+    }).catch(reason => {
+      if (isCancelError(reason)) {
+        this.deps_.callbacks().triggerFlowCanceled(
+            SubscriptionFlows.LINK_ACCOUNT);
+        return false;
+      }
+      // In case this flow wasn't complete, complete it here
+      this.complete_();
+      throw reason;
+    });
+
     /** {!Promise<boolean>} */
     return this.dialogManager_.openView(this.activityIframeView_,
-        /* hidden */ true).then(() => {
-          return this.activityIframeView_.port().then(port => {
-            return acceptPortResultData(
-                port,
-                feOrigin(),
-                /* requireOriginVerified */ true,
-                /* requireSecureChannel */ true);
-          }).then(result => {
-            return result['linked'];
-          }).catch(() => {
-            return false;
-          }).then(result => {
-            // The flow is complete.
-            this.dialogManager_.completeView(this.activityIframeView_);
-            return result;
-          });
-        });
+        /* hidden */ true);
   }
 }
