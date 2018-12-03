@@ -44,4 +44,4 @@ const requestPromise = new Promise(resolve => {
 subscriptions.saveSubscription(() => requestPromise));
 ```
 
-The dialog will prompt the user to opt-in to save the subscription. If the user agrees, the provided callback will be called to resolve the token/authCode. The resulting promise will be resolved once the subscription has been saved.
+The dialog will prompt the user to opt-in to save the subscription. If the user agrees, the provided callback will be called to resolve the token/authCode. Once the subscription is saved, the user will see a progress indicator and a confirmation window that subscription is saved.

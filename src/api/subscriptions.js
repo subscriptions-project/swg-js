@@ -187,7 +187,7 @@ export class Subscriptions {
  /**
   * Starts the save subscriptions flow.
   * @param {!SaveSubscriptionRequestCallback} requestCallback
-  * @return {!Promise<boolean>} status or promise of status of request
+  * @return {!Promise} a promise indicating flow is started
   */
   saveSubscription(requestCallback) {}
 
@@ -342,7 +342,7 @@ export let ButtonOptions;
  * - prorationMode: Optional. When replacing a subscription you can decide on a
  *  specific proration mode to charge the user.
  *  The default is IMMEDIATE_WITH_TIME_PRORATION.
- * 
+ *
  *  @typedef {{
  *    skuId: string,
  *    oldSkuId: (string|undefined),
