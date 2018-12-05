@@ -60,13 +60,13 @@ describe('api_messages', () => {
   describe('test_AnalyticsContext', () => {
     it('should deserialize correctly', () => {
       const /** !AnalyticsContext  */ analyticscontext = new AnalyticsContext();
-      analyticscontext.setEmbedderOrigin('iframe');
-      analyticscontext.setTransactionId('ABCD');
-      analyticscontext.setReferringOrigin('www.google.com');
-      analyticscontext.setUtmSource('google');
-      analyticscontext.setUtmCampaign('promo');
-      analyticscontext.setUtmMedium('email');
-      analyticscontext.setSku('basic');
+      analyticscontext.setEmbedderOrigin('');
+      analyticscontext.setTransactionId('');
+      analyticscontext.setReferringOrigin('');
+      analyticscontext.setUtmSource('');
+      analyticscontext.setUtmCampaign('');
+      analyticscontext.setUtmMedium('');
+      analyticscontext.setSku('');
       analyticscontext.setReadyToPay(false);
       analyticscontext.setLabelList([]);
       const analyticscontextSerialized = analyticscontext.toArray();
@@ -82,13 +82,13 @@ describe('api_messages', () => {
     it('should deserialize correctly', () => {
       const /** !AnalyticsRequest  */ analyticsrequest = new AnalyticsRequest();
       const /** !AnalyticsContext  */ analyticscontext = new AnalyticsContext();
-      analyticscontext.setEmbedderOrigin('iframe');
-      analyticscontext.setTransactionId('ABCD');
-      analyticscontext.setReferringOrigin('www.google.com');
-      analyticscontext.setUtmSource('google');
-      analyticscontext.setUtmCampaign('promo');
-      analyticscontext.setUtmMedium('email');
-      analyticscontext.setSku('basic');
+      analyticscontext.setEmbedderOrigin('');
+      analyticscontext.setTransactionId('');
+      analyticscontext.setReferringOrigin('');
+      analyticscontext.setUtmSource('');
+      analyticscontext.setUtmCampaign('');
+      analyticscontext.setUtmMedium('');
+      analyticscontext.setSku('');
       analyticscontext.setReadyToPay(false);
       analyticscontext.setLabelList([]);
       analyticsrequest.setContext(analyticscontext);
