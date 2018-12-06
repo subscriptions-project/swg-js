@@ -154,3 +154,13 @@ export function isConnected(node) {
   const root = node.ownerDocument && node.ownerDocument.documentElement;
   return root && root.contains(node) || false;
 }
+
+
+/**
+ * @param {!Window} win
+ * @return {boolean}
+ */
+export function isEdgeBrowser(win) {
+  const nav = win.navigator;
+  return /Edge/i.test(nav && nav.userAgent);
+}
