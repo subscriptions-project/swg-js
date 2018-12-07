@@ -108,7 +108,7 @@ export function removeChildren(parent) {
  * @return {!Element}
  */
 export function injectStyleSheet(doc, styleText) {
-  const styleElement = createElement(doc.getRootNode(), 'style', {
+  const styleElement = createElement(doc.getWin().document, 'style', {
     'type': styleType,
   });
   styleElement.textContent = styleText;
