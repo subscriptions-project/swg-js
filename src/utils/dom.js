@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Doc} from '../model/doc';
 import {assert} from './log';
 import {setStyles} from './style';
 
@@ -102,16 +103,16 @@ export function removeChildren(parent) {
 
 /**
  * Injects the provided styles in the HEAD section of the document.
- * @param {!Document} doc The document object.
+ * @param {!Doc} doc The document object.
  * @param {string} styleText The style string.
  * @return {!Element}
  */
 export function injectStyleSheet(doc, styleText) {
-  const styleElement = createElement(doc, 'style', {
+  const styleElement = createElement(doc.getRootNode(), 'style', {
     'type': styleType,
   });
   styleElement.textContent = styleText;
-  doc.head.appendChild(styleElement);
+  doc.getHead().appendChild(styleElement);
   return styleElement;
 }
 
