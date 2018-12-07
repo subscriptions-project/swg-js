@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {resolveDoc} from '../model/doc';
 import * as dom from './dom';
 
 
@@ -31,7 +32,7 @@ describes.realWin('Dom', {}, env => {
       const existingStylesCount =
              doc.querySelectorAll(query).length;
       const styles = 'body{padding:0;margin:0}';
-      dom.injectStyleSheet(doc, styles);
+      dom.injectStyleSheet(resolveDoc(doc), styles);
       const newStylesCount =
              doc.querySelectorAll(query).length;
       expect(newStylesCount).to.equal(existingStylesCount + 1);
