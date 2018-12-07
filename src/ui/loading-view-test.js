@@ -15,6 +15,7 @@
  */
 
 import {injectStyleSheet} from '../utils/dom';
+import {resolveDoc} from '../model/doc';
 import {LoadingView} from './loading-view';
 import {CSS as LOADING_VIEW_CSS} from '../../build/css/ui/ui.css';
 
@@ -34,7 +35,7 @@ describes.realWin('LoadingView', {}, env => {
     body.appendChild(loadingView.getElement());
 
     // TO test the injected styles have been applied.
-    injectStyleSheet(doc, LOADING_VIEW_CSS);
+    injectStyleSheet(resolveDoc(doc), LOADING_VIEW_CSS);
     loadingContainer = body.querySelector('swg-loading-container');
   });
 
