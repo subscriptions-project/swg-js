@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {Doc} from '../model/doc';
 import {assert} from './log';
 import {setStyles} from './style';
 
@@ -103,7 +102,7 @@ export function removeChildren(parent) {
 
 /**
  * Injects the provided styles in the HEAD section of the document.
- * @param {!Doc} doc The document object.
+ * @param {!../model/doc.Doc} doc The document object.
  * @param {string} styleText The style string.
  * @return {!Element}
  */
