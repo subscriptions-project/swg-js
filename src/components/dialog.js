@@ -15,6 +15,7 @@
  */
 
 import {CSS as DIALOG_CSS} from '../../build/css/ui/ui.css';
+import {resolveDoc} from '../model/doc';
 import {Graypane} from './graypane';
 import {LoadingView} from '../ui/loading-view';
 import {
@@ -170,7 +171,7 @@ export class Dialog {
     const iframeDoc = /** @type {!HTMLDocument} */ (this.iframe_.getDocument());
 
     // Inject Google fonts in <HEAD> section of the iframe.
-    injectStyleSheet(iframeDoc, DIALOG_CSS);
+    injectStyleSheet(resolveDoc(iframeDoc), DIALOG_CSS);
 
     // Add Loading indicator.
     this.loadingView_ = new LoadingView(iframeDoc);
