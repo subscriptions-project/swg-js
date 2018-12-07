@@ -62,7 +62,7 @@ import {
   WindowOpenMode,
   defaultConfig,
 } from '../api/subscriptions';
-import {injectStyleSheet} from '../utils/dom';
+import {injectStyleSheet, isEdgeBrowser} from '../utils/dom';
 import {isArray} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {setExperiment} from './experiments';
@@ -425,6 +425,11 @@ export class ConfiguredRuntime {
 
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
+    if (isEdgeBrowser(this.win_)) {
+      // TODO(dvoytenko, b/120607343): Find a way to remove this restriction
+      // or move it to Web Activities.
+      this.config_.windowOpenMode = WindowOpenMode.REDIRECT;
+    }
     if (opt_config) {
       this.configure_(opt_config);
     }
