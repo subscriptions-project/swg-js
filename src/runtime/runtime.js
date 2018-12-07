@@ -478,7 +478,7 @@ export class ConfiguredRuntime {
     PayCompleteFlow.configurePending(this);
     this.payClient_.preconnect(preconnect);
 
-    injectStyleSheet(this.win_.document, SWG_DIALOG);
+    injectStyleSheet(this.doc_, SWG_DIALOG);
 
     // Report redirect errors if any.
     this.activityPorts_.onRedirectError(error => {
