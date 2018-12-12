@@ -88,22 +88,22 @@ subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
 })
 ```
 ## Validate entitlements
-To verify the entitlements from Google are valid and authorised, you should check the validity of the JWT representation of the entitlements.
+To verify the entitlements from Google are valid and authorised, check the validity of the JWT representation of the entitlements.
 
 The following registered claims are used:
 
 | Claim | Value | Description |
 | ----- | ----- | ----------- |
-| `exp` | Unix timestamp (e.g. `1543596936` ) | When the token expires |
-| `iat` | Unix timestamp (e.g. `1543595136` ) | When the token was issued |
+| `exp` | [NumericDate](https://tools.ietf.org/html/rfc7519#page-6) (e.g. `1543596936` ) | When the token expires |
+| `iat` | [NumericDate](https://tools.ietf.org/html/rfc7519#page-6) (e.g. `1543595136` ) | When the token was issued |
 | `iss` | `subscribewithgoogle@system.gserviceaccount.com` | Issuer of the token |
-| `aud` | URL (e.g. `https://norcal-tribune.com` ) | Audience of the token which will be the publisher's URL |
+| `aud` | URL (e.g. `https://example.com` ) | Audience of the token which will be the publisher's URL |
 
-To validate the signature, you can use the keys found here:
+To validate the signature, use the keys found here:
 https://www.googleapis.com/robot/v1/metadata/x509/subscribewithgoogle@system.gserviceaccount.com
 https://www.googleapis.com/robot/v1/metadata/jwk/subscribewithgoogle@system.gserviceaccount.com
 
-> __Note:__ They keys do rotate, so we recommend checking against each one
+> __Note:__ The keys rotate, so make sure to check against each one
 
 ## Sample code
 This example is a skeleton for the following:
