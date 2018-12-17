@@ -43,10 +43,7 @@ export class ContributionsFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    let isClosable = options && options.isClosable;
-    if (isClosable == undefined) {
-      isClosable = true;  // Default is to show the Close button.
-    }
+    const isClosable = (options && options.isClosable) || true;
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
