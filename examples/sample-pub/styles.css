@@ -81,6 +81,18 @@ body {
   line-height: 21px;
 }
 
+.contribute {
+  margin-top: 14px;
+}
+.contribute-link {
+  flex: 1;
+  color: #fff;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 21px;
+  text-decoration: none;
+}
+
 .nav-header {
   flex: 0 0 48px;
   display: flex;
