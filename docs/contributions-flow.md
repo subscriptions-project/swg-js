@@ -16,7 +16,7 @@ limitations under the License.
 
 # SwG Contributions Flow
 
-This flow allows the publication site to display a flow to contribute to
+This flow allows the publication site to display a flow where users can contribute money to
 the publisher. See [Subscriptions APIs](./core-apis.md).
 
 *Important!* Please ensure you set up the `setOnSubscribeResponse` on any page where you accept purchases, not just before you call `subscribe` or `showContributions`. SwG client ensures it can recover contributions even when browsers unload pages. See [Subscribe flow](./subscribe-flow.md) for more details.
@@ -43,7 +43,7 @@ If a user elects for a presented offer, SwG will run the [Subscribe flow](./subs
 
 ## Contribution options
 
-The contributions API (`showContributions`) accept a list of SKUs to be displayed.
+The contributions API (`showContributions`) accepts a list of SKUs to be displayed.
 
 For instance:
 
