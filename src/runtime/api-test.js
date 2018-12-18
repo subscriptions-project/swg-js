@@ -248,6 +248,7 @@ describe('PurchaseData', () => {
 
   it('should correctly initialize', () => {
     expect(pd.raw).to.equal('RAW');
+    expect(pd.data).to.equal('RAW');
     expect(pd.signature).to.equal('SIG');
   });
 
@@ -256,6 +257,7 @@ describe('PurchaseData', () => {
     expect(clone).to.not.equal(pd);
     expect(clone).to.deep.equal(pd);
     expect(clone.raw).to.equal('RAW');
+    expect(clone.data).to.equal('RAW');
     expect(clone.signature).to.equal('SIG');
   });
 
