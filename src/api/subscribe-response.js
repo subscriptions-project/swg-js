@@ -96,6 +96,8 @@ export class PurchaseData {
     /** @const {string} */
     this.raw = raw;
     /** @const {string} */
+    this.data = raw;
+    /** @const {string} */
     this.signature = signature;
   }
 
