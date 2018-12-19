@@ -46,9 +46,6 @@ import {
   SubscribeOptionFlow,
   AbbrvOfferFlow,
 } from './offers-flow';
-import {
-  ContributionsFlow,
-} from './contributions-flow';
 import {PageConfig} from '../model/page-config';
 import {
   PageConfigResolver,
@@ -308,12 +305,6 @@ export class Runtime {
   showAbbrvOffer(opt_options) {
     return this.configured_(true)
         .then(runtime => runtime.showAbbrvOffer(opt_options));
-  }
-
-  /** @override */
-  showContributions(opt_options) {
-    return this.configured_(true)
-        .then(runtime => runtime.showContributions(opt_options));
   }
 
   /** @override */
@@ -667,14 +658,6 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  showContributions(opt_options) {
-    return this.documentParsed_.then(() => {
-      const flow = new ContributionsFlow(this, opt_options);
-      return flow.start();
-    });
-  }
-
-  /** @override */
   waitForSubscriptionLookup(accountPromise) {
     return this.documentParsed_.then(() => {
       const wait = new WaitForSubscriptionLookupApi(this, accountPromise);
@@ -790,7 +773,6 @@ function createPublicRuntime(runtime) {
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
-    showContributions: runtime.showContributions.bind(runtime),
     waitForSubscriptionLookup:
         runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),

@@ -116,12 +116,6 @@ export class Subscriptions {
   subscribe(skuOrSubscriptionRequest) {}
 
   /**
-   * Starts the Contributions flow.
-   * @param {!OffersRequest=} opt_options
-   */
-  showContributions(opt_options) {}
-
-  /**
    * Starts the deferred account creation flow.
    * See `DeferredAccountCreationRequest` for more details.
    * @param {?DeferredAccountCreationRequest=} opt_options
@@ -225,7 +219,6 @@ export const SubscriptionFlows = {
   SHOW_SUBSCRIBE_OPTION: 'showSubscribeOption',
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
   SUBSCRIBE: 'subscribe',
-  SHOW_CONTRIBUTIONS: 'showContributions',
   COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',
   SHOW_LOGIN_PROMPT: 'showLoginPrompt',

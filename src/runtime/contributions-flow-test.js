@@ -57,50 +57,6 @@ describes.realWin('ContributionsFlow', {}, env => {
     callbacksMock.verify();
   });
 
-  it('should have valid ContributionsFlow constructed', () => {
-    callbacksMock.expects('triggerFlowStarted')
-        .withExactArgs('showContributions')
-        .once();
-    callbacksMock.expects('triggerFlowCanceled').never();
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
-          list: 'default',
-          skus: null,
-          isClosable: true,
-        })
-        .returns(Promise.resolve(port));
-    return contributionsFlow.start();
-  });
-
-  it('should trigger on cancel', () => {
-    callbacksMock.expects('triggerFlowStarted')
-        .withExactArgs('showContributions')
-        .once();
-    callbacksMock.expects('triggerFlowCanceled')
-        .withExactArgs('showContributions')
-        .once();
-    port.acceptResult = () => Promise.reject(
-        new DOMException('cancel', 'AbortError'));
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
-          list: 'default',
-          skus: null,
-          isClosable: true,
-        })
-        .returns(Promise.resolve(port));
-    return contributionsFlow.start();
-  });
-
   it('should have valid ContributionsFlow constructed with a list', () => {
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     activitiesMock.expects('openIframe').withExactArgs(
