@@ -1209,6 +1209,30 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should start PayStartFlow for replaceSubscription ' +
+  '(with us figuring out what the oldSku is)', () => {
+    setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+    let flowInstance;
+    const startStub = sandbox.stub(
+        PayStartFlow.prototype,
+        'start',
+        function() {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+    return runtime.subscribe({skuId: 'newSku',
+      replaceSkuProrationMode: ReplaceSkuProrationMode
+          .IMMEDIATE_WITH_TIME_PRORATION}).then(() => {
+            expect(startStub).to.be.calledOnce;
+            expect(flowInstance.subscriptionRequest_.skuId).to.equal('newSku');
+            expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal(
+                'pub1:label1');
+            expect(flowInstance.subscriptionRequest_
+                .replaceSkuProrationMode).to.equal(
+                ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
+          });
+  });
+
+  it('should start PayStartFlow for replaceSubscription ' +
   '(no proration mode)', () => {
     setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
     let flowInstance;

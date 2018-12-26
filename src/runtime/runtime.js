@@ -715,9 +715,14 @@ export class ConfiguredRuntime {
 
   /** @override */
   subscribe(skuOrSubscriptionRequest) {
-    if (typeof skuOrSubscriptionRequest != 'string' &&
-        !isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)) {
-      throw new Error('Not yet launched!');
+    if (typeof skuOrSubscriptionRequest != 'string') {
+      if (!isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)) {
+        throw new Error('Not yet launched!');
+      }
+      const currentSkuId = this.pageConfig_.getProductId();
+      if (currentSkuId) {
+        skuOrSubscriptionRequest.oldSkuId = currentSkuId;
+      }
     }
     return this.documentParsed_.then(() => {
       return new PayStartFlow(this, skuOrSubscriptionRequest).start();
