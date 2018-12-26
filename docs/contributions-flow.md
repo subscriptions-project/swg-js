@@ -19,7 +19,6 @@ limitations under the License.
 This flow allows the publication site to display a flow where users can contribute money to
 the publisher. See [Subscriptions APIs](./core-apis.md).
 
-*Important!* Please ensure you set up the `setOnSubscribeResponse` on any page where you accept purchases, not just before you call `subscribe` or `showContributions`. SwG client ensures it can recover contributions even when browsers unload pages. See [Subscribe flow](./subscribe-flow.md) for more details.
 
 The contribution flow will first present a set of amounts user can contribute to.
 A user will get a choice to either select one of the offers, or try request login to claim an existing contribution.
@@ -50,3 +49,5 @@ For instance:
 ```
 subscriptions.showContributions({skus: ['sku1', 'sku2']});
 ```
+
+*Important!* Please ensure you set up the `setOnSubscribeResponse` on any page where you accept purchases, not just before you call `subscribe` or `showContributions`. SwG client ensures it can recover contributions even when browsers unload pages. See [Subscribe flow](./subscribe-flow.md) for more details.
