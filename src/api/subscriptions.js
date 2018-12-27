@@ -102,7 +102,7 @@ export class Subscriptions {
    * User can select the amount to contribute to from available options
    * to the publisher. These options are based on the SKUs defined in the Play
    * console for a given publication.
-   * Each SKU has Amount, Period and SKUId and other attributes.
+   * Each SKU has Amount, Period, SKUId and other attributes.
    * @param {!OffersRequest=} opt_options
    */
   showContributionOptions(opt_options) {}
