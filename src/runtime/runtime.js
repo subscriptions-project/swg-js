@@ -720,7 +720,7 @@ export class ConfiguredRuntime {
         throw new Error('Not yet launched!');
       }
       const currentSkuId = this.pageConfig_.getProductId();
-      if (currentSkuId) {
+      if (currentSkuId && !skuOrSubscriptionRequest.oldSkuId) {
         skuOrSubscriptionRequest.oldSkuId = currentSkuId;
       }
     }
