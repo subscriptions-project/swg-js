@@ -39,7 +39,6 @@ export const ExperimentFlags = {
 
   /**
    * Enables the contributions feature.
-   * More details at: go/swg-contrib-dd
    */
   CONTRIBUTIONS: 'contributions',
 };
