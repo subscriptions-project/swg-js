@@ -97,6 +97,12 @@ export class Subscriptions {
   showAbbrvOffer(opt_options) {}
 
   /**
+   * Show contribution options.
+   * @param {!OffersRequest=} opt_options
+   */
+  showContributionOptions(opt_options) {}
+
+  /**
    * Set the callback for the native subscribe request. Setting this callback
    * triggers the "native" option in the offers flow.
    * @param {function()} callback
@@ -218,6 +224,7 @@ export const SubscriptionFlows = {
   SHOW_OFFERS: 'showOffers',
   SHOW_SUBSCRIBE_OPTION: 'showSubscribeOption',
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
+  SHOW_CONTRIBUTION_OPTIONS: 'showContributionOptions',
   SUBSCRIBE: 'subscribe',
   COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',

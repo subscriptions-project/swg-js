@@ -32,6 +32,9 @@ import {
   installRuntime,
   getRuntime,
 } from './runtime';
+import {
+  ContributionsFlow,
+} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
@@ -1165,6 +1168,20 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     runtime.showSubscribeOption({list: 'other'});
     return runtime.documentParsed_.then(() => {
       expect(offersFlow.options_).to.deep.equal({list: 'other'});
+    });
+  });
+
+  it('should call "showContrinutionOptions" with options', () => {
+    setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
+    let contributionFlow;
+    sandbox.stub(ContributionsFlow.prototype, 'start', function() {
+      contributionFlow = this;
+      return new Promise(() => {});
+    });
+    runtime.showContributionOptions({list: 'other', skus: ['sku1', 'sku2']});
+    return runtime.documentParsed_.then(() => {
+      expect(contributionFlow.options_).to.deep
+          .equal({list: 'other', skus: ['sku1', 'sku2']});
     });
   });
 

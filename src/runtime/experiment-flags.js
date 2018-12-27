@@ -36,4 +36,10 @@ export const ExperimentFlags = {
    * for another in the subscribe() API.
    */
   REPLACE_SUBSCRIPTION: 'replace-subscription',
+
+  /**
+   * Enables the contributions feature.
+   * More details at: go/swg-contrib-dd
+   */
+  CONTRIBUTIONS: 'contributions',
 };
