@@ -97,7 +97,11 @@ export class Subscriptions {
   showAbbrvOffer(opt_options) {}
 
   /**
-   * Show contribution options.
+   * Show contribution options for the users to select from.
+   * The options are grouped togather by periods (Weekly, Monthly, etc.).
+   * User can select the amount to contribute to from available options
+   * to the publisher. These options are based on the SKUs defined in the Play
+   * console for a given publication.
    * @param {!OffersRequest=} opt_options
    */
   showContributionOptions(opt_options) {}

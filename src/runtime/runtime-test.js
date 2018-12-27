@@ -1171,7 +1171,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
   });
 
-  it('should call "showContrinutionOptions" with options', () => {
+  it('should call "showContributionOptions" with options', () => {
     setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
     let contributionFlow;
     sandbox.stub(ContributionsFlow.prototype, 'start', function() {
