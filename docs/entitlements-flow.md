@@ -76,7 +76,7 @@ See the [Entitlements](../src/api/entitlements.js) object for more detail.
 
 ## Entitlement acknowledgement
 
-The successful entitlements object should be acknowledge by the publication site to stop it from showing the notification. This is done by calling the `entitlements.ack()` method.
+The successful entitlements object should be acknowledged by the publication site to stop it from showing the notification. This is done by calling the `entitlements.ack()` method.
 
 For instance:
 ```
