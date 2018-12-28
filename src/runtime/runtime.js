@@ -58,6 +58,7 @@ import {
 import {Preconnect} from '../utils/preconnect';
 import {Storage} from './storage';
 import {
+  ReplaceSkuProrationMode,
   Subscriptions,
   WindowOpenMode,
   defaultConfig,
@@ -720,8 +721,16 @@ export class ConfiguredRuntime {
         throw new Error('Not yet launched!');
       }
       const currentSkuId = this.pageConfig_.getProductId();
+      // A current subscription exists that we need to replace.
+      // Set the old sku if one was not specified.
       if (currentSkuId && !skuOrSubscriptionRequest.oldSkuId) {
         skuOrSubscriptionRequest.oldSkuId = currentSkuId;
+      }
+      // A current subscription exists that we need to replace.
+      // Set a default proration mode if one was not specified.
+      if (currentSkuId && !skuOrSubscriptionRequest.replaceSkuProrationMode) {
+        skuOrSubscriptionRequest.replaceSkuProrationMode =
+          ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION;
       }
     }
     return this.documentParsed_.then(() => {

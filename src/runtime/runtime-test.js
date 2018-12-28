@@ -1247,8 +1247,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(startStub).to.be.calledOnce;
       expect(flowInstance.subscriptionRequest_.skuId).to.equal('newSku');
       expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal('oldSku');
-      expect(flowInstance.subscriptionRequest_.ReplaceSkuProrationMode)
-          .to.be.undefined;
+      expect(flowInstance.subscriptionRequest_
+          .replaceSkuProrationMode).to.equal(
+          ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
     });
   });
 
