@@ -34,6 +34,9 @@ export class ContributionsFlow {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
+    /** @private @const {!../api/subscriptions.OffersRequest|undefined} */
+    this.options_ = options;
+
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -67,10 +70,10 @@ export class ContributionsFlow {
   start() {
     // Start/cancel events.
     this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SHOW_CONTRIBUTIONS);
+        SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     this.activityIframeView_.onCancel(() => {
       this.deps_.callbacks().triggerFlowCanceled(
-          SubscriptionFlows.SHOW_CONTRIBUTIONS);
+          SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     });
 
     // If result is due to OfferSelection, redirect to payments.

@@ -97,6 +97,17 @@ export class Subscriptions {
   showAbbrvOffer(opt_options) {}
 
   /**
+   * Show contribution options for the users to select from.
+   * The options are grouped together by periods (Weekly, Monthly, etc.).
+   * User can select the amount to contribute to from available options
+   * to the publisher. These options are based on the SKUs defined in the Play
+   * console for a given publication.
+   * Each SKU has Amount, Period, SKUId and other attributes.
+   * @param {!OffersRequest=} opt_options
+   */
+  showContributionOptions(opt_options) {}
+
+  /**
    * Set the callback for the native subscribe request. Setting this callback
    * triggers the "native" option in the offers flow.
    * @param {function()} callback
@@ -218,6 +229,7 @@ export const SubscriptionFlows = {
   SHOW_OFFERS: 'showOffers',
   SHOW_SUBSCRIBE_OPTION: 'showSubscribeOption',
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
+  SHOW_CONTRIBUTION_OPTIONS: 'showContributionOptions',
   SUBSCRIBE: 'subscribe',
   COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',

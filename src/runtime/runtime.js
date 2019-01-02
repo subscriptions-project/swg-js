@@ -19,6 +19,9 @@ import {AnalyticsEvent} from '../proto/api_messages';
 import {ButtonApi} from './button-api';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
+import {
+  ContributionsFlow,
+} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
@@ -305,6 +308,12 @@ export class Runtime {
   showAbbrvOffer(opt_options) {
     return this.configured_(true)
         .then(runtime => runtime.showAbbrvOffer(opt_options));
+  }
+
+  /** @override */
+  showContributionOptions(opt_options) {
+    return this.configured_(true)
+        .then(runtime => runtime.showContributionOptions(opt_options));
   }
 
   /** @override */
@@ -658,6 +667,17 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  showContributionOptions(opt_options) {
+    if (!isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS)) {
+      throw new Error('Not yet launched!');
+    }
+    return this.documentParsed_.then(() => {
+      const flow = new ContributionsFlow(this, opt_options);
+      return flow.start();
+    });
+  }
+
+  /** @override */
   waitForSubscriptionLookup(accountPromise) {
     return this.documentParsed_.then(() => {
       const wait = new WaitForSubscriptionLookupApi(this, accountPromise);
@@ -773,6 +793,7 @@ function createPublicRuntime(runtime) {
     showOffers: runtime.showOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
+    showContributionOptions: runtime.showContributionOptions.bind(runtime),
     waitForSubscriptionLookup:
         runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
