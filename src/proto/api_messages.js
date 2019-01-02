@@ -26,7 +26,7 @@ const AnalyticsEvent = {
 
 class AnalyticsContext {
  /**
-  * @param {!Array<(string|boolean|number|null|!Array<(string|boolean|number|null)>)>=} data
+  * @param {!Array=} data
   */
   constructor(data = []) {
 
@@ -185,7 +185,7 @@ class AnalyticsContext {
   }
 
   /**
-   * @return {!Array<(string|boolean|number|null|!Array<(string|boolean|number|null)>)>}
+   * @return {!Array}
    */
   toArray() {
     return [
@@ -206,7 +206,7 @@ class AnalyticsContext {
 
 class AnalyticsRequest {
  /**
-  * @param {!Array<(string|boolean|number|null|!Array<(string|boolean|number|null)>)>=} data
+  * @param {!Array=} data
   */
   constructor(data = []) {
 
@@ -247,7 +247,7 @@ class AnalyticsRequest {
   }
 
   /**
-   * @return {!Array<(string|boolean|number|null|!Array<(string|boolean|number|null)>)>}
+   * @return {!Array}
    */
   toArray() {
     return [
@@ -266,7 +266,7 @@ const PROTO_MAP = {
 
 /**
  * Utility to deserialize a buffer
- * @param {!Array<(string|boolean|number|null|!Array<(string|boolean|number|null)>)>} data
+ * @param {!Array} data
  * @return {?Object}
  */
 function deserialize(data) {
