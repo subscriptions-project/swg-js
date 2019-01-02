@@ -22,8 +22,8 @@ import {
 
 /**
  * Compare two protos
- * @param {!Array<(string|boolean|number|null|!Array<(string|boolean|number|null)>)>} thisArray
- * @param {!Array<(string|boolean|number|null|!Array<(string|boolean|number|null)>)>} otherArray
+ * @param {!Array} thisArray
+ * @param {!Array} otherArray
  * @return {boolean}
  */
 function isEqual(thisArray, otherArray) {
