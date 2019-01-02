@@ -16,7 +16,7 @@ limitations under the License.
 
 # SwG Entitlements Flow
 
-This flow would notify the publication site when SwG believes that the reader is entitled to read the content, e.g. due to previously pruchased subscription. See [Subscriptions APIs](./core-apis.md).
+This flow would notify the publication site when SwG believes that the reader is entitled to read the content, e.g. due to previously purchased subscription. See [Subscriptions APIs](./core-apis.md).
 
 It's recommended that the site install entitlements listener as early as practical using `setOnEntitlementsResponse` method.
 
@@ -76,7 +76,7 @@ See the [Entitlements](../src/api/entitlements.js) object for more detail.
 
 ## Entitlement acknowledgement
 
-The successful entitlements object should be acknowledge by the publication site to stop it from showing the notification. This is done by calling the `entitlements.ack()` method.
+The successful entitlements object should be acknowledged by the publication site to stop it from showing the notification. This is done by calling the `entitlements.ack()` method.
 
 For instance:
 ```
