@@ -18,8 +18,6 @@ limitations under the License.
 
 This flow allows the publication site to display numerous flow to purchase the subscription. See [Subscriptions APIs](./core-apis.md).
 
-*Important!* Please ensure you set up the `setOnSubscribeResponse` on any page where you accept purchases, not just before you call `subscribe` or `showOffers`. SwG client ensures it can recover subscriptions even when browsers unload pages. See [Subscribe flow](./subscribe-flow.md) for more details.
-
 The offers flow will first present a set of offers know to SwG. A user will get a choice to either select one of the offers, or try request login to claim an existing subscription.
 
 To display offers:
@@ -81,3 +79,5 @@ For instance:
 ```
 subscriptions.showOffers({skus: ['sku1', 'sku2']});
 ```
+
+*Important!* Please ensure you set up the `setOnSubscribeResponse` on any page where you accept purchases, not just before you call `subscribe` or `showOffers`. SwG client ensures it can recover subscriptions even when browsers unload pages. See [Subscribe flow](./subscribe-flow.md) for more details.
