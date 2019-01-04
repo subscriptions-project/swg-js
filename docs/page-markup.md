@@ -60,7 +60,7 @@ Using Microdata, the markup could look like this:
   <meta itemprop="isAccessibleForFree" content="false"/>
   <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
     <meta itemprop="name" content="The Norcal Tribune"/>
-    <meta itemprop="productID" content="norcal_tribute.com:basic"/>
+    <meta itemprop="productID" content="norcal_tribune.com:basic"/>
   </div>
 </div>
 ```
