@@ -16,9 +16,9 @@ limitations under the License.
 
 # SwG Offers Flow
 
-This flow allows the publication site to display numerous flow to purchase the subscription. See [Subscriptions APIs](./core-apis.md).
+This flow allows the publication site to display numerous flows to purchase the subscription. See [Subscriptions APIs](./core-apis.md).
 
-The offers flow will first present a set of offers know to SwG. A user will get a choice to either select one of the offers, or try request login to claim an existing subscription.
+The offers flow will first present a set of offers known to SwG. A user will get a choice to either select one of the offers, or try request login to claim an existing subscription.
 
 To display offers:
 
