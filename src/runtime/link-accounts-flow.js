@@ -147,13 +147,10 @@ export class LinkCompleteFlow {
    * @return {!Promise}
    */
   start() {
-    const promise = this.activityIframeView_.port().then(port => {
-      return acceptPortResultData(
-          port,
-          feOrigin(),
-          /* requireOriginVerified */ true,
-          /* requireSecureChannel */ true);
-    });
+    const promise = this.activityIframeView_.acceptResultAndVerify(
+        feOrigin(),
+        /* requireOriginVerified */ true,
+        /* requireSecureChannel */ true);
     promise.then(response => {
       this.complete_(response);
     }).catch(reason => {
@@ -319,25 +316,23 @@ export class LinkSaveFlow {
 
     this.openPromise_ = this.dialogManager_.openView(this.activityIframeView_,
         /* hidden */ true);
-    /** {!Promise<boolean>} */
-    return this.activityIframeView_.port().then(port => {
-      return acceptPortResultData(
-          port,
-          feOrigin(),
-          /* requireOriginVerified */ true,
-          /* requireSecureChannel */ true);
-    }).then(result => {
-      return this.handleLinkSaveResponse_(result);
-    }).catch(reason => {
-      // In case this flow wasn't complete, complete it here
-      this.complete_();
-      // Handle cancellation from user, link confirm start or completion here
-      if (isCancelError(reason)) {
-        this.deps_.callbacks().triggerFlowCanceled(
-            SubscriptionFlows.LINK_ACCOUNT);
-        return false;
-      }
-      throw reason;
-    });
+        /** {!Promise<boolean>} */
+    return this.activityIframeView_.acceptResultAndVerify(
+        feOrigin(),
+        /* requireOriginVerified */ true,
+        /* requireSecureChannel */ true
+      ).then(result => {
+        return this.handleLinkSaveResponse_(result);
+      }).catch(reason => {
+        // In case this flow wasn't complete, complete it here
+        this.complete_();
+        // Handle cancellation from user, link confirm start or completion here
+        if (isCancelError(reason)) {
+          this.deps_.callbacks().triggerFlowCanceled(
+              SubscriptionFlows.LINK_ACCOUNT);
+          return false;
+        }
+        throw reason;
+      });
   }
 }
