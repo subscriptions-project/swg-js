@@ -71,6 +71,9 @@ import {isExperimentOn} from './experiments';
 import {setExperiment} from './experiments';
 import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
+import {
+  SwgOffersFlow,
+} from './swg-offers-flow';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -645,8 +648,13 @@ export class ConfiguredRuntime {
   /** @override */
   showOffers(opt_options) {
     return this.documentParsed_.then(() => {
-      const flow = new OffersFlow(this, opt_options);
-      return flow.start();
+      if (!isExperimentOn(this.win_, ExperimentFlags.PROTO_LITE_OFFERS)) {
+        const flow = new OffersFlow(this, opt_options);
+        return flow.start();
+      } else {
+        const flow = new SwgOffersFlow(this, opt_options);
+        return flow.start();
+      }
     });
   }
 

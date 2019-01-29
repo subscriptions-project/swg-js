@@ -41,4 +41,9 @@ export const ExperimentFlags = {
    * Enables the contributions feature.
    */
   CONTRIBUTIONS: 'contributions',
+
+  /**
+   * Enables using Protobufs to complete Offers Flow
+   */
+  PROTO_LITE_OFFERS: 'proto-lite-offers'
 };

@@ -20,6 +20,9 @@ import {
   SubscribeOptionFlow,
 } from './offers-flow';
 import {
+  SwgOffersFlow,
+} from './swg-offers-flow';
+import {
   ActivityPorts,
   ActivityResult,
   ActivityResultCode,
@@ -1114,6 +1117,32 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   it('should call "showOffers" with options', () => {
     let offersFlow;
     sandbox.stub(OffersFlow.prototype, 'start', function() {
+      offersFlow = this;
+      return new Promise(() => {});
+    });
+    runtime.showOffers({list: 'other'});
+    return runtime.documentParsed_.then(() => {
+      expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+    });
+  });
+
+  it('should call "swg-showOffers"', () => {
+    let offersFlow;
+    setExperiment(win, ExperimentFlags.PROTO_LITE_OFFERS, true);
+    sandbox.stub(SwgOffersFlow.prototype, 'start', function() {
+      offersFlow = this;
+      return new Promise(() => {});
+    });
+    runtime.showOffers();
+    return runtime.documentParsed_.then(() => {
+      expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
+    });
+  });
+
+  it('should call "swg-showOffers" with options', () => {
+    let offersFlow;
+    setExperiment(win, ExperimentFlags.PROTO_LITE_OFFERS, true);
+    sandbox.stub(SwgOffersFlow.prototype, 'start', function() {
       offersFlow = this;
       return new Promise(() => {});
     });
