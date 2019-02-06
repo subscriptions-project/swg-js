@@ -75,7 +75,7 @@ export class ActivityIframeView extends View {
     this.hasLoadingIndicator_ = hasLoadingIndicator;
 
     /** @private {?web-activities/activity-ports.ActivityIframePort} */
-    this.portResolved_ = null;
+    this.port_ = null;
 
     /**
      * @private
@@ -125,21 +125,21 @@ export class ActivityIframeView extends View {
    * @return {!Promise}
    */
   onOpenIframeResponse_(port, dialog) {
-    this.portResolved_ = port;
+    this.port_ = port;
     this.portResolver_(port);
 
-    this.portResolved_.onResizeRequest(height => {
+    this.port_.onResizeRequest(height => {
       dialog.resizeView(this, height);
     });
 
-    return this.portResolved_.whenReady();
+    return this.port_.whenReady();
   }
 
   /**
    * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
    * @private
    */
-  port_() {
+  getPortPromise_() {
     return this.portPromise_;
   }
 
@@ -147,7 +147,7 @@ export class ActivityIframeView extends View {
    * @param {!Object} data
    */
   message(data) {
-    this.port_().then(port => {
+    this.getPortPromise_().then(port => {
       port.message(data);
     });
   }
@@ -157,7 +157,7 @@ export class ActivityIframeView extends View {
    * @param {function(!Object<string, string|boolean>)} callback
    */
   onMessage(callback) {
-    this.port_().then(port => {
+    this.getPortPromise_().then(port => {
       port.onMessage(callback);
     });
   }
@@ -167,7 +167,7 @@ export class ActivityIframeView extends View {
    * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
    */
   acceptResult() {
-    return this.port_().then(port => port.acceptResult());
+    return this.getPortPromise_().then(port => port.acceptResult());
   }
 
   /**
@@ -181,7 +181,7 @@ export class ActivityIframeView extends View {
     requireOrigin,
     requireOriginVerified,
     requireSecureChannel) {
-    return this.port_().then(port => {
+    return this.getPortPromise_().then(port => {
       return acceptPortResultData(port, requireOrigin,
           requireOriginVerified, requireSecureChannel);
     });
@@ -209,8 +209,8 @@ export class ActivityIframeView extends View {
 
   /** @override */
   resized() {
-    if (this.portResolved_) {
-      this.portResolved_.resized();
+    if (this.port_) {
+      this.port_.resized();
     }
   }
 }

@@ -112,7 +112,7 @@ describes.realWin('ActivityIframeView', {}, env => {
       yield activityIframeView.init(dialog);
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
 
-      const actualPort = yield activityIframeView.port_();
+      const actualPort = yield activityIframeView.getPortPromise_();
       const actualResult = yield activityIframeView.acceptResult();
       expect(actualPort).to.equal(activityIframePort);
       expect(actualResult).to.equal(result);
@@ -131,7 +131,7 @@ describes.realWin('ActivityIframeView', {}, env => {
       yield activityIframeView.init(dialog);
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
 
-      const actualPort = yield activityIframeView.port_();
+      const actualPort = yield activityIframeView.getPortPromise_();
       const actualResult = yield activityIframeView.acceptResultAndVerify(
           ORIGIN, VERIFIED, SECURE);
       expect(actualPort).to.equal(activityIframePort);
