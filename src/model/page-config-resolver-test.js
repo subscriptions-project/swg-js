@@ -177,6 +177,22 @@ describes.realWin('PageConfigResolver', {}, env => {
           .to.equal('pub1:basic');
     });
 
+    it('should allow alternate LD Types', () => {
+      schema['@type'] = ['CreativeWork'];
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(gd).check().getProductId())
+          .to.equal('pub1:basic');
+    });
+
+    it('should allow work with multiple LD types', () => {
+      schema['@type'] = ['NewsArticle', 'Person'];
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(gd).check().getProductId())
+          .to.equal('pub1:basic');
+    });
+
     it('should allow full namespace for LD type', () => {
       schema['@type'] = ['http://schema.org/NewsArticle'];
       addJsonLd(schema);
@@ -283,6 +299,27 @@ describes.realWin('PageConfigResolver', {}, env => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
           '<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other"> \
+            <meta itemprop="isAccessibleForFree" content="True"/> \
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
+              <meta itemprop="name" content="New York Times"/> \
+              <meta itemprop="productID" content="pub1:premium"/> \
+            </div> \
+            <div itemprop="articleBody" class="paywalled-section"> \
+              Paid content possibly. \
+            </div> \
+          </div>';
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      return resolver.resolveConfig().then(config => {
+        expect(config.isLocked()).to.be.false;
+        expect(config.getProductId()).to.equal('pub1:premium');
+      });
+    });
+
+    it('should handle alternate item types', () => {
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+          '<div itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Other"> \
             <meta itemprop="isAccessibleForFree" content="True"/> \
             <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
               <meta itemprop="name" content="New York Times"/> \
