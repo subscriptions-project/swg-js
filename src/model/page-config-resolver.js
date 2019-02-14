@@ -292,9 +292,13 @@ class JsonLdParser {
       return false;
     }
 
-    return typeArray.find(candidateType => expectedTypes.includes(
-        candidateType.replace(/^http:\/\/schema.org\//i,'')
-    )) !== undefined;
+    let found = false;
+    typeArray.forEach(candidateType => {
+      found = found || expectedTypes.includes(
+          candidateType.replace(/^http:\/\/schema.org\//i,'')
+      );
+    });
+    return found;
   }
 }
 
@@ -422,7 +426,7 @@ class MicrodataParser {
     }
 
     // Grab all the nodes with an itemtype and filter for our allowed types
-    const nodeList = Array.from(
+    const nodeList = Array.prototype.slice.call(
         this.doc_.getRootNode().querySelectorAll('[itemscope][itemtype]')
     ).filter(
         node => this.checkType_(node.getAttribute('itemtype'), ALLOWED_TYPES)
@@ -442,7 +446,7 @@ class MicrodataParser {
   }
 
   /**
-   * @param {?String} itemtype
+   * @param {?string} itemtype
    * @param {Array<string>} expectedTypes
    * @return {boolean}
    */
@@ -452,9 +456,13 @@ class MicrodataParser {
     }
     const typeArray = itemtype.split(/\s+/);
 
-    return typeArray.find(candidateType => expectedTypes.includes(
-        candidateType.replace(/^http:\/\/schema.org\//i,'')
-    )) !== undefined;
+    let found = false;
+    typeArray.forEach(candidateType => {
+      found = found || expectedTypes.includes(
+          candidateType.replace(/^http:\/\/schema.org\//i,'')
+      );
+    });
+    return found;
   }
 
   /**
