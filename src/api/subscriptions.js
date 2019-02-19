@@ -21,6 +21,7 @@ import {
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
 import {SubscribeResponse} from './subscribe-response';
+import {PropensityApi} from './propensity-api';
 
 
 /**
@@ -221,6 +222,13 @@ export class Subscriptions {
    * @param {function()=} opt_callback
    */
   attachButton(button, optionsOrCallback, opt_callback) {}
+
+  /**
+   * Retrieves the experimental propensity module that provides APIs to
+   * get propensity scores based on user state and events
+   * @return {!PropensityApi}
+   */
+  getExperimentalPropensityModule() {}
 }
 
 

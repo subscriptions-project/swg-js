@@ -67,6 +67,7 @@ import {
   setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
+import {Propensity} from './propensity';
 
 const EDGE_USER_AGENT =
     'Mozilla/5.0 (Windows NT 10.0)' +
@@ -447,6 +448,15 @@ describes.realWin('Runtime', {}, env => {
         expect(cr.config().windowOpenMode).to.equal('redirect');
       });
     });
+
+    it('should not return Propensity module when config not available', () => {
+      configPromise = Promise.reject('config not available');
+      return runtime.getExperimentalPropensityModule().then(() => {
+        throw new Error('must have failed');
+      }, reason => {
+        expect(() => {throw reason;}).to.throw(/config not available/);
+      });
+    });
   });
 
   describe('configured', () => {
@@ -773,6 +783,19 @@ describes.realWin('Runtime', {}, env => {
         expect(fetchStub).to.be.calledOnce;
         expect(xhrFetchStub).to.not.be.called;
       });
+    });
+
+    it('should return propensity module', () => {
+      const fetcher = new Fetcher();
+      const propensity = new Propensity(win, config, fetcher);
+      configuredRuntimeMock.expects('getExperimentalPropensityModule')
+          .once()
+          .returns(propensity);
+      return runtime.getExperimentalPropensityModule()
+          .then(propensityModule => {
+            expect(configureStub).to.be.calledOnce.calledWith(true);
+            expect(propensityModule).to.equal(propensity);
+          });
     });
   });
 });
@@ -1371,5 +1394,29 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     runtime.attachButton(button, options, callback);
     expect(stub).to.be.calledOnce
         .calledWithExactly(button, options, callback);
+  });
+
+  it('should invoke propensity APIs', () => {
+    const initSessionStub = sandbox.stub(
+        Propensity.prototype,
+        'initSession');
+    const eventStub = sandbox.stub(
+        Propensity.prototype,
+        'event');
+    const getPropensityStub = sandbox.stub(
+        Propensity.prototype,
+        'getPropensity',
+        () => {
+          return Promise.resolve(0.0);
+        });
+    const propensity = runtime.getExperimentalPropensityModule();
+    propensity.initSession('na');
+    propensity.event('expired');
+    propensity.getPropensity().then(score => {
+      expect(score).to.equal(0.0);
+    });
+    expect(initSessionStub).to.be.calledWithExactly('na');
+    expect(eventStub).to.be.calledWithExactly('expired');
+    expect(getPropensityStub).to.be.calledOnce;
   });
 });
