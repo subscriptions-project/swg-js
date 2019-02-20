@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-export const SubscriptionStates = {
+/**
+ * @enum {string}
+ */
+export const SubscriptionState = {
   // user's subscription state not known
   UNKNOWN: 'na',
   // user is not a subscriber
@@ -23,9 +26,12 @@ export const SubscriptionStates = {
   SUBSCRIBER: 'yes',
   // user subscription has expired
   PAST_SUBSCRIBER: 'ex',
-};
+}
 
-export const Events = {
+/**
+ * @enum {string}
+ */
+export const Event = {
   // user hits a paywall
   IMPRESSION_PAYWALL: 'paywall',
   // user has subscribed
@@ -33,25 +39,30 @@ export const Events = {
   // user's subscription has expired
   IMPRESSION_EXPIRED: 'expired',
   // user has seen an ad
-  IMPRESSION_AD: 'ad_impression',
+  IMPRESSION_AD: 'ad_shown',
   // user has been shown a list of available offers
-  IMPRESSION_OFFER: 'offer_impression',
+  IMPRESSION_OFFER: 'offers_shown',
   // user has selected an offer
-  ACTION_OFFER_SELECTION: 'offer_selection',
+  ACTION_OFFER_SELECTION: 'offer_selected',
   // user has started payment flow, before redirect to checkout page
-  ACTION_PAY: 'checkout',
+  ACTION_SUBSCRIBE: 'checkout',
   // user registration with a new account creation
   ACTION_ACCOUNT_CREATED: 'create_account',
   // user login before redirect
   ACTION_LOGIN: 'login',
-  // user subscription cancelation
+  // user subscription has been cancelled
   ACTION_CANCELLED: 'cancelled',
   // custom event
   EVENT_CUSTOM: 'custom',
-};
+}
 
+/**
+ * @enum {string}
+ */
 export const PropensityType = {
+  // Propensity score for a user to subscribe to a publication
   GENERAL: 'general',
+  // Propensity score when blocked access to content by paywall
   PAYWALL: 'paywall',
 }
 
@@ -62,20 +73,25 @@ export class PropensityApi {
 
    /**
    * Provide user subscription state upon discovery
-   * @param {string} state
+   * The state should be a valid string from SubscriptionState
+   * @param {SubscriptionState} state
    */
   initSession(state) {}
 
    /**
    * Returns the propensity of a user to subscribe
-   * @param {string=} type
+   * The string should be a valid string from PropensityType
+   * If no type is provided, generic score is provided
+   * @param {?PropensityType=} type
    * @return {?Promise<number>}
    */
   getPropensity(type) {}
 
    /**
    * Send user events to the DRX server
-   * @param {string} userEvent
+   * Event should be valid string in Events
+   * Additional context can be provided in JSON object format
+   * @param {Event} userEvent
    * @param {?Object} jsonParams
    */
    event(userEvent, jsonParams) {}

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as PropensityApi from '../api/propensity-api';
 /**
  * @implements {PropensityApi}
  */
@@ -31,6 +32,9 @@ export class Propensity {
 
   /** @override */
   initSession(state) {
+    if (!Object.values(PropensityApi.SubscriptionState).includes(state)) {
+      throw new Error('Invalid subscription state provided');
+    }
     this.state_ = state;
     // TODO(sohanirao): inform server of subscription state
   }
@@ -38,12 +42,18 @@ export class Propensity {
   /** @override */
   getPropensity(type) {
     const propensityToSubscribe = undefined;
+    if (type && !Object.values(PropensityApi.PropensityType).includes(type)) {
+      throw new Error('Invalid propensity type requested');
+    }
     // TODO(sohanirao): request propensity from server
     return Promise.resolve(propensityToSubscribe);
   }
 
   /** @override */
   event(userEvent, jsonParams) {
+    if (!Object.values(PropensityApi.Event).includes(userEvent)) {
+      throw new Error('Invalid user event provided');
+    }
     // TODO(sohanirao): send event and params if necessary
     // TODO(sohanirao): determine if event updates subscription
     //                  state and inform server of new state
