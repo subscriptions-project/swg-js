@@ -226,7 +226,7 @@ export class Subscriptions {
   /**
    * Retrieves the experimental propensity module that provides APIs to
    * get propensity scores based on user state and events
-   * @return {!PropensityApi}
+   * @return {!PropensityApi|!Promise<PropensityApi>}
    */
   getExperimentalPropensityModule() {}
 }

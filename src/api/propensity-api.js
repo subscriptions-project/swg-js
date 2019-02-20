@@ -14,13 +14,46 @@
  * limitations under the License.
  */
 
-export const SubscriptionStates = ['na', 'no', 'yes', 'ex'];
+export const SubscriptionStates = {
+  // user's subscription state not known
+  UNKNOWN: 'na',
+  // user is not a subscriber
+  NON_SUBSCRIBER: 'no',
+  // user is a subscriber
+  SUBSCRIBER: 'yes',
+  // user subscription has expired
+  PAST_SUBSCRIBER: 'ex',
+};
 
-export const Events = [
-  'paywall', 'subscribed', 'expired', 'cancelled', 'ad_shown', 'offer_shown', 'custom',
-];
+export const Events = {
+  // user hits a paywall
+  IMPRESSION_PAYWALL: 'paywall',
+  // user has subscribed
+  IMPRESSION_SUBSCRIBED: 'subscribed',
+  // user's subscription has expired
+  IMPRESSION_EXPIRED: 'expired',
+  // user has seen an ad
+  IMPRESSION_AD: 'ad_impression',
+  // user has been shown a list of available offers
+  IMPRESSION_OFFER: 'offer_impression',
+  // user has selected an offer
+  ACTION_OFFER_SELECTION: 'offer_selection',
+  // user has started payment flow, before redirect to checkout page
+  ACTION_PAY: 'checkout',
+  // user registration with a new account creation
+  ACTION_ACCOUNT_CREATED: 'create_account',
+  // user login before redirect
+  ACTION_LOGIN: 'login',
+  // user subscription cancelation
+  ACTION_CANCELLED: 'cancelled',
+  // custom event
+  EVENT_CUSTOM: 'custom',
+};
 
-export const PropensityType = ['general', 'paywall'];
+export const PropensityType = {
+  GENERAL: 'general',
+  PAYWALL: 'paywall',
+}
 
 /**
  * @interface
