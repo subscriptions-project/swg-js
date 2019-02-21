@@ -21,7 +21,7 @@ export const SubscriptionState = {
   // user's subscription state not known
   UNKNOWN: 'na',
   // user is not a subscriber
-  NON_SUBSCRIBER: 'no',
+  NON_SUBSCRIBER: 'na',
   // user is a subscriber
   SUBSCRIBER: 'yes',
   // user subscription has expired
@@ -74,9 +74,11 @@ export class PropensityApi {
    /**
    * Provide user subscription state upon discovery
    * The state should be a valid string from SubscriptionState
+   * A concatenated list of products the user is entitled
    * @param {SubscriptionState} state
+   * @param {?string=} entitlements
    */
-  initSession(state) {}
+  initSession(state, entitlements) {}
 
    /**
    * Returns the propensity of a user to subscribe

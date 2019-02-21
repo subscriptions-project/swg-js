@@ -31,9 +31,12 @@ export class Propensity {
   }
 
   /** @override */
-  initSession(state) {
+  initSession(state, entitlements) {
     if (!Object.values(PropensityApi.SubscriptionState).includes(state)) {
       throw new Error('Invalid subscription state provided');
+    }
+    if (PropensityApi.SubscriptionState.SUBSCRIBER == state && !entitlements) {
+      throw new Error('Entitlements not provided for subscribed users')
     }
     this.state_ = state;
     // TODO(sohanirao): inform server of subscription state

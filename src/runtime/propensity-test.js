@@ -18,7 +18,7 @@ import * as PropensityApi from '../api/propensity-api';
 import {Fetcher} from './fetcher';
 import {PageConfig} from '../model/page-config';
 
-describes.realWin('PayStartFlow', {}, env => {
+describes.realWin('Propensity', {}, env => {
   let win;
   let fetcher;
   let config;
@@ -38,6 +38,16 @@ describes.realWin('PayStartFlow', {}, env => {
     expect(() => {
       propensity.initSession('past');
     }).to.throw('Invalid subscription state provided');
+  });
+
+  it('should provide entitlements for subscribed users', () => {
+    expect(() => {
+      propensity.initSession(PropensityApi.SubscriptionState.SUBSCRIBER);
+    }).to.throw('Entitlements not provided for subscribed users');
+    expect(() => {
+      propensity.initSession(PropensityApi.SubscriptionState.SUBSCRIBER,
+          'basic');
+    }).not.throw('Entitlements not provided for subscribed users');
   });
 
   it('should provide valid event', () => {
