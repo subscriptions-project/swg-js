@@ -104,6 +104,60 @@ export class PageConfigResolver {
   }
 }
 
+class TypeChecker {
+  constructor() {
+  }
+
+  /**
+   * Check value from json
+   * @param {?Array|string} value
+   * @param {Array<string>} expectedTypes
+   * @return {boolean}
+   */
+  checkValue(value, expectedTypes) {
+    if (!value) {
+      return false;
+    }
+    return this.checkArray(this.toArray_(value), expectedTypes);
+  }
+
+  /**
+   * Checks space delimited list of types
+   * @param {?string} itemtype
+   * @param {Array<string>} expectedTypes
+   * @return {boolean}
+   */
+  checkString(itemtype, expectedTypes) {
+    if (!itemtype) {
+      return false;
+    }
+    return this.checkArray(itemtype.split(/\s+/), expectedTypes);
+  }
+
+  /**
+   * @param {Array<?string>} typeArray
+   * @param {Array<string>} expectedTypes
+   * @return {boolean}
+   */
+  checkArray(typeArray, expectedTypes) {
+    let found = false;
+    typeArray.forEach(candidateType => {
+      found = found || expectedTypes.includes(
+          candidateType.replace(/^http:\/\/schema.org\//i,'')
+      );
+    });
+    return found;
+  }
+
+  /*
+   * @param {?Array|string} value
+   * @return {Array}
+   * @private
+   */
+  toArray_(value) {
+    return isArray(value) ? value : [value];
+  }
+}
 
 class MetaParser {
   /**
@@ -148,6 +202,8 @@ class JsonLdParser {
   constructor(doc) {
     /** @private @const {!Doc} */
     this.doc_ = doc;
+    /** @private @const @function */
+    this.checkType_ = new TypeChecker();
   }
 
   /**
@@ -194,7 +250,7 @@ class JsonLdParser {
     }
 
     // Must be an ALLOWED_TYPE
-    if (!this.checkType_(json, ALLOWED_TYPES)) {
+    if (!this.checkType_.checkValue(json['@type'], ALLOWED_TYPES)) {
       return null;
     }
 
@@ -251,7 +307,7 @@ class JsonLdParser {
    */
   discoverProductId_(json) {
     // Must have type `Product`.
-    if (!this.checkType_(json, ['Product'])) {
+    if (!this.checkType_.checkValue(json['@type'], ['Product'])) {
       return null;
     }
     return /** @type {?string} */ (this.singleValue_(json, 'productID'));
@@ -280,26 +336,6 @@ class JsonLdParser {
     const value = valueArray && valueArray[0];
     return (value == null || value === '') ? null : value;
   }
-
-  /**
-   * @param {!Object} json
-   * @param {Array<string>} expectedTypes
-   * @return {boolean}
-   */
-  checkType_(json, expectedTypes) {
-    const typeArray = this.valueArray_(json, '@type');
-    if (!typeArray) {
-      return false;
-    }
-
-    let found = false;
-    typeArray.forEach(candidateType => {
-      found = found || expectedTypes.includes(
-          candidateType.replace(/^http:\/\/schema.org\//i,'')
-      );
-    });
-    return found;
-  }
 }
 
 class MicrodataParser {
@@ -313,6 +349,8 @@ class MicrodataParser {
     this.access_ = null;
     /** @private {?string} */
     this.productId_ = null;
+    /** @private @const @function */
+    this.checkType_ = new TypeChecker();
   }
 
   /**
@@ -359,11 +397,11 @@ class MicrodataParser {
     for (let node = current;
         node && !node[alreadySeen]; node = node.parentNode) {
       node[alreadySeen] = true;
-      // document notdes don't have hasAttribute
+      // document nodes don't have hasAttribute
       if (node.hasAttribute && node.hasAttribute('itemscope')) {
         /**{?string} */
         const type = node.getAttribute('itemtype');
-        return this.checkType_(type, ALLOWED_TYPES);
+        return this.checkType_.checkString(type, ALLOWED_TYPES);
       }
     }
     return false;
@@ -429,7 +467,8 @@ class MicrodataParser {
     const nodeList = Array.prototype.slice.call(
         this.doc_.getRootNode().querySelectorAll('[itemscope][itemtype]')
     ).filter(
-        node => this.checkType_(node.getAttribute('itemtype'), ALLOWED_TYPES)
+        node => this.checkType_.checkString(
+            node.getAttribute('itemtype'), ALLOWED_TYPES)
     );
 
     for (let i = 0; nodeList[i] && config == null; i++) {
@@ -443,26 +482,6 @@ class MicrodataParser {
       config = this.getPageConfig_();
     }
     return config;
-  }
-
-  /**
-   * @param {?string} itemtype
-   * @param {Array<string>} expectedTypes
-   * @return {boolean}
-   */
-  checkType_(itemtype, expectedTypes) {
-    if (!itemtype) {
-      return false;
-    }
-    const typeArray = itemtype.split(/\s+/);
-
-    let found = false;
-    typeArray.forEach(candidateType => {
-      found = found || expectedTypes.includes(
-          candidateType.replace(/^http:\/\/schema.org\//i,'')
-      );
-    });
-    return found;
   }
 
   /**
