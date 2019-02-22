@@ -53,7 +53,7 @@ export const Event = {
   // user subscription has been cancelled
   ACTION_CANCELLED: 'cancelled',
   // custom publisher event
-  EVENT_CUSTOM: 'pub_custom',
+  EVENT_CUSTOM: 'custom',
 }
 
 /**

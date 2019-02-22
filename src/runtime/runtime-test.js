@@ -1415,6 +1415,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
           return Promise.resolve(0.0);
         });
     const propensity = runtime.getPropensityModule();
+    expect(propensity).to.not.be.null;
     propensity.initSession('na');
     propensity.event('expired');
     propensity.getPropensity().then(score => {

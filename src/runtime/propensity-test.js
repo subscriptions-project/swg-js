@@ -59,7 +59,7 @@ describes.realWin('Propensity', {}, env => {
     }).to.throw('Invalid user event provided');
   });
 
-  it('should provide request propensity type', () => {
+  it('should request valid propensity type', () => {
     expect(() => {
       propensity.getPropensity(PropensityApi.PropensityType.GENERAL);
     }).to.not.throw(/Invalid propensity type requested/);
