@@ -21,7 +21,7 @@ export const SubscriptionState = {
   // user's subscription state not known
   UNKNOWN: 'na',
   // user is not a subscriber
-  NON_SUBSCRIBER: 'na',
+  NON_SUBSCRIBER: 'no',
   // user is a subscriber
   SUBSCRIBER: 'yes',
   // user subscription has expired
