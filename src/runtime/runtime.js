@@ -411,9 +411,9 @@ export class Runtime {
   }
 
   /** @override */
-  getExperimentalPropensityModule() {
+  getPropensityModule() {
     return this.configured_(true).then(runtime => {
-      return runtime.getExperimentalPropensityModule();
+      return runtime.getPropensityModule();
     });
   }
 }
@@ -785,7 +785,10 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getExperimentalPropensityModule() {
+  getPropensityModule() {
+    if (!isExperimentOn(this.win_, ExperimentFlags.PROPENSITY)) {
+      throw new Error('Not yet launched!');
+    }
     return this.propensityModule_;
   }
 }
@@ -826,8 +829,8 @@ function createPublicRuntime(runtime) {
     saveSubscription: runtime.saveSubscription.bind(runtime),
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
-    getExperimentalPropensityModule: runtime
-        .getExperimentalPropensityModule.bind(runtime),
+    getPropensityModule: runtime
+        .getPropensityModule.bind(runtime),
   });
 }
 

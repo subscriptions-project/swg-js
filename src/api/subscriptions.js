@@ -224,11 +224,11 @@ export class Subscriptions {
   attachButton(button, optionsOrCallback, opt_callback) {}
 
   /**
-   * Retrieves the experimental propensity module that provides APIs to
+   * Retrieves the propensity module that provides APIs to
    * get propensity scores based on user state and events
    * @return {!PropensityApi|!Promise<PropensityApi>}
    */
-  getExperimentalPropensityModule() {}
+  getPropensityModule() {}
 }
 
 

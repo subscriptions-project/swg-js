@@ -451,7 +451,7 @@ describes.realWin('Runtime', {}, env => {
 
     it('should not return Propensity module when config not available', () => {
       configPromise = Promise.reject('config not available');
-      return runtime.getExperimentalPropensityModule().then(() => {
+      return runtime.getPropensityModule().then(() => {
         throw new Error('must have failed');
       }, reason => {
         expect(() => {throw reason;}).to.throw(/config not available/);
@@ -788,10 +788,10 @@ describes.realWin('Runtime', {}, env => {
     it('should return propensity module', () => {
       const fetcher = new Fetcher();
       const propensity = new Propensity(win, config, fetcher);
-      configuredRuntimeMock.expects('getExperimentalPropensityModule')
+      configuredRuntimeMock.expects('getPropensityModule')
           .once()
           .returns(propensity);
-      return runtime.getExperimentalPropensityModule()
+      return runtime.getPropensityModule()
           .then(propensityModule => {
             expect(configureStub).to.be.calledOnce.calledWith(true);
             expect(propensityModule).to.equal(propensity);
@@ -1396,7 +1396,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .calledWithExactly(button, options, callback);
   });
 
+  it('should not return propensity module', () => {
+    expect(() => runtime.getPropensityModule()).to.throw(/Not yet launched!/);
+  });
+
   it('should invoke propensity APIs', () => {
+    setExperiment(win, ExperimentFlags.PROPENSITY, true);
     const initSessionStub = sandbox.stub(
         Propensity.prototype,
         'initSession');
@@ -1409,7 +1414,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         () => {
           return Promise.resolve(0.0);
         });
-    const propensity = runtime.getExperimentalPropensityModule();
+    const propensity = runtime.getPropensityModule();
     propensity.initSession('na');
     propensity.event('expired');
     propensity.getPropensity().then(score => {
