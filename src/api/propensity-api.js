@@ -48,12 +48,12 @@ export const Event = {
   ACTION_SUBSCRIBE: 'checkout',
   // user registration with a new account creation
   ACTION_ACCOUNT_CREATED: 'create_account',
-  // user login before redirect
+  // user logs in to the publisher site
   ACTION_LOGIN: 'login',
   // user subscription has been cancelled
   ACTION_CANCELLED: 'cancelled',
-  // custom event
-  EVENT_CUSTOM: 'custom',
+  // custom publisher event
+  EVENT_CUSTOM: 'pub_custom',
 }
 
 /**
@@ -74,7 +74,7 @@ export class PropensityApi {
    /**
    * Provide user subscription state upon discovery
    * The state should be a valid string from SubscriptionState
-   * A concatenated list of products the user is entitled
+   * A concatenated list of products the user is entitled to
    * @param {SubscriptionState} state
    * @param {?string=} entitlements
    */
@@ -84,10 +84,13 @@ export class PropensityApi {
    * Returns the propensity of a user to subscribe
    * The string should be a valid string from PropensityType
    * If no type is provided, generic score is provided
+   * An optional list of products may be provided for which
+   * the propensity score is requested
    * @param {?PropensityType=} type
+   * @param {?Array<!string>} products
    * @return {?Promise<number>}
    */
-  getPropensity(type) {}
+  getPropensity(type, products) {}
 
    /**
    * Send user events to the DRX server
@@ -97,4 +100,10 @@ export class PropensityApi {
    * @param {?Object} jsonParams
    */
    event(userEvent, jsonParams) {}
+
+   /**
+    * Provide user consent to enable ad personalization
+    * @param {boolean} userConsent
+    */
+   enablePersonalization() {}
 }

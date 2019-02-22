@@ -28,6 +28,8 @@ export class Propensity {
     this.win_ = win;
     /** @private {?string} */
     this.state_ = null;
+    /** @private {boolean} */
+    this.userConsent_ = false;
   }
 
   /** @override */
@@ -36,14 +38,14 @@ export class Propensity {
       throw new Error('Invalid subscription state provided');
     }
     if (PropensityApi.SubscriptionState.SUBSCRIBER == state && !entitlements) {
-      throw new Error('Entitlements not provided for subscribed users')
+      throw new Error('Entitlements not provided for subscribed users');
     }
     this.state_ = state;
     // TODO(sohanirao): inform server of subscription state
   }
 
   /** @override */
-  getPropensity(type) {
+  getPropensity(type, products) {
     const propensityToSubscribe = undefined;
     if (type && !Object.values(PropensityApi.PropensityType).includes(type)) {
       throw new Error('Invalid propensity type requested');
@@ -60,5 +62,12 @@ export class Propensity {
     // TODO(sohanirao): send event and params if necessary
     // TODO(sohanirao): determine if event updates subscription
     //                  state and inform server of new state
+  }
+
+  /** @override */
+  enablePersonalization(userConsent) {
+    if (userConsent) {
+      this.userConsent_ = userConsent;
+    }
   }
 }
