@@ -52,10 +52,10 @@ export const Event = {
   // the json block can provide the product selected
   // for example; {'product': 'basic-monthly'}
   ACTION_PURCHASE_FLOW_STARTED: 'payment_flow_start',
-  // user subscription has been cancelled
-  // the json block can provide the reason for failure
-  // for example; {'reason': 'user_exit'}
-  ACTION_PURCHASE_FLOW_CANCELLED: 'payment_flow_cancelled',
+  // user has made the payment for a subscription
+  // the json block can provide the product user paid for
+  // for example; {'product': 'basic-monthly'}
+  ACTION_PAYMENT_COMPLETED: 'payment_complete',
   // custom publisher event
   // the json block can provide the event name for the custom event
   // for example; {'name': 'email_signup'}

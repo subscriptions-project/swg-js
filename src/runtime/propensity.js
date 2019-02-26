@@ -26,8 +26,6 @@ export class Propensity {
     this.fetcher_ = fetcher;
     /** @private @const {!Window} */
     this.win_ = win;
-    /** @private {?string} */
-    this.state_ = null;
     /** @private {boolean} */
     this.userConsent_ = false;
   }
@@ -41,7 +39,6 @@ export class Propensity {
         && !jsonEntitlements) {
       throw new Error('Entitlements not provided for subscribed users');
     }
-    this.state_ = state;
     // TODO(sohanirao): inform server of subscription state
   }
 
