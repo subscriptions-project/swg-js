@@ -45,8 +45,10 @@ describes.realWin('Propensity', {}, env => {
       propensity.initSession(PropensityApi.SubscriptionState.SUBSCRIBER);
     }).to.throw('Entitlements not provided for subscribed users');
     expect(() => {
+      const entitlements = {};
+      entitlements['product'] = 'basic-monthly';
       propensity.initSession(PropensityApi.SubscriptionState.SUBSCRIBER,
-          'basic');
+          entitlements);
     }).not.throw('Entitlements not provided for subscribed users');
   });
 

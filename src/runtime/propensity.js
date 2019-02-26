@@ -15,7 +15,7 @@
  */
 import * as PropensityApi from '../api/propensity-api';
 /**
- * @implements {PropensityApi}
+ * @implements {PropensityApi.PropensityApi}
  */
 export class Propensity {
 
@@ -33,11 +33,12 @@ export class Propensity {
   }
 
   /** @override */
-  initSession(state, entitlements) {
+  initSession(state, jsonEntitlements) {
     if (!Object.values(PropensityApi.SubscriptionState).includes(state)) {
       throw new Error('Invalid subscription state provided');
     }
-    if (PropensityApi.SubscriptionState.SUBSCRIBER == state && !entitlements) {
+    if (PropensityApi.SubscriptionState.SUBSCRIBER == state
+        && !jsonEntitlements) {
       throw new Error('Entitlements not provided for subscribed users');
     }
     this.state_ = state;
@@ -45,7 +46,7 @@ export class Propensity {
   }
 
   /** @override */
-  getPropensity(type, products) {
+  getPropensity(type) {
     const propensityToSubscribe = undefined;
     if (type && !Object.values(PropensityApi.PropensityType).includes(type)) {
       throw new Error('Invalid propensity type requested');
@@ -59,9 +60,11 @@ export class Propensity {
     if (!Object.values(PropensityApi.Event).includes(userEvent)) {
       throw new Error('Invalid user event provided');
     }
+    if (PropensityApi.Event.IMPRESSION_PAYWALL != event && jsonParams == null) {
+      // TODO(sohanirao): remove this, this check is just to avoid unused params
+      throw new Error('Provide additional parameters for your event:', event);
+    }
     // TODO(sohanirao): send event and params if necessary
-    // TODO(sohanirao): determine if event updates subscription
-    //                  state and inform server of new state
   }
 
   /** @override */

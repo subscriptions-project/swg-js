@@ -34,25 +34,31 @@ export const SubscriptionState = {
 export const Event = {
   // user hits a paywall
   IMPRESSION_PAYWALL: 'paywall',
-  // user has subscribed
-  IMPRESSION_SUBSCRIBED: 'subscribed',
-  // user's subscription has expired
-  IMPRESSION_EXPIRED: 'expired',
   // user has seen an ad
+  // the json block can provide the name of the ad campaign
+  // for example; {'name': 'fall_ad'}
   IMPRESSION_AD: 'ad_shown',
   // user has been shown a list of available offers
-  IMPRESSION_OFFER: 'offers_shown',
+  // the json block will provide a list of skus/products displayed
+  // and the source, indicating why the user was shown the offer
+  // for example; {'offers'; ['basic-monthly', 'premium-weekly'],
+  //               'source': 'paywall'}
+  IMPRESSION_OFFERS: 'offers_shown',
   // user has selected an offer
+  // the json block can provide the product selected
+  // for example; {'product': 'basic-monthly'}
   ACTION_OFFER_SELECTION: 'offer_selected',
-  // user has started payment flow, before redirect to checkout page
-  ACTION_SUBSCRIBE: 'checkout',
-  // user registration with a new account creation
-  ACTION_ACCOUNT_CREATED: 'create_account',
-  // user logs in to the publisher site
-  ACTION_LOGIN: 'login',
+  // user has started payment flow
+  // the json block can provide the product selected
+  // for example; {'product': 'basic-monthly'}
+  ACTION_PURCHASE_FLOW_STARTED: 'payment_flow_start',
   // user subscription has been cancelled
-  ACTION_CANCELLED: 'cancelled',
+  // the json block can provide the reason for failure
+  // for example; {'reason': 'user_exit'}
+  ACTION_PURCHASE_FLOW_CANCELLED: 'payment_flow_cancelled',
   // custom publisher event
+  // the json block can provide the event name for the custom event
+  // for example; {'name': 'email_signup'}
   EVENT_CUSTOM: 'custom',
 }
 
@@ -74,28 +80,27 @@ export class PropensityApi {
    /**
    * Provide user subscription state upon discovery
    * The state should be a valid string from SubscriptionState
-   * A concatenated list of products the user is entitled to
+   * A json object of depth '1' must be provided if the user is
+   * a subscriber indicating what they paid for. For example;
+   * {'product': ['basic-monthly', 'audio-weekly']}
    * @param {SubscriptionState} state
-   * @param {?string=} entitlements
+   * @param {?Object} jsonEntitlements
    */
-  initSession(state, entitlements) {}
+  initSession(state, jsonEntitlements) {}
 
    /**
    * Returns the propensity of a user to subscribe
    * The string should be a valid string from PropensityType
-   * If no type is provided, generic score is provided
-   * An optional list of products may be provided for which
-   * the propensity score is requested
+   * If no type is provided, generic score is returned
    * @param {?PropensityType=} type
-   * @param {?Array<!string>} products
    * @return {?Promise<number>}
    */
-  getPropensity(type, products) {}
+  getPropensity(type) {}
 
    /**
    * Send user events to the DRX server
    * Event should be valid string in Events
-   * Additional context can be provided in JSON object format
+   * JSON block of depth '1' provides event parameters
    * @param {Event} userEvent
    * @param {?Object} jsonParams
    */
@@ -105,5 +110,5 @@ export class PropensityApi {
     * Provide user consent to enable ad personalization
     * @param {boolean} userConsent
     */
-   enablePersonalization() {}
+   enablePersonalization(userConsent) {}
 }
