@@ -93,6 +93,7 @@ describes.realWin('PayStartFlow', {}, env => {
   let flow;
   let analyticsMock;
   const transactionIdRegex = /^.{8}-.{4}-.{4}-.{4}-.{12}$/;
+  const productTypeRegex = /^(SUBSCRIPTION|UI_CONTRIBUTION)$/;
 
   beforeEach(() => {
     win = env.win;
@@ -128,6 +129,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'i': {
             'startTimeMs': sinon.match.any,
             'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {
@@ -166,6 +168,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'i': {
             'startTimeMs': sinon.match.any,
             'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {
@@ -198,6 +201,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'i': {
             'startTimeMs': sinon.match.any,
             'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {
@@ -226,6 +230,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'i': {
             'startTimeMs': sinon.match.any,
             'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {

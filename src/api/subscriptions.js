@@ -126,6 +126,12 @@ export class Subscriptions {
    */
   subscribe(skuOrSubscriptionRequest) {}
 
+   /**
+   * Starts contributions purchase flow.
+   * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
+   */
+  contribute(skuOrSubscriptionRequest) {}
+
   /**
    * Starts the deferred account creation flow.
    * See `DeferredAccountCreationRequest` for more details.
@@ -279,6 +285,16 @@ export const ReplaceSkuProrationMode = {
   IMMEDIATE_WITH_TIME_PRORATION: 'IMMEDIATE_WITH_TIME_PRORATION',
 };
 
+/**
+ * The product type. The Offers UI is rendered differently based on the
+ * ProductType and 'product_type' parameter is passed to Payments flow to render
+ * the GPay content accordingly. ProductType Defaults to 'SUBSCRIPTION'.
+ * @enum {string}
+ */
+export const ProductType = {
+  SUBSCRIPTION: 'SUBSCRIPTION',
+  UI_CONTRIBUTION: 'UI_CONTRIBUTION',
+};
 
 /**
  * @return {!Config}
