@@ -1296,7 +1296,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
     return runtime.contribute('sku1').then(() => {
       expect(startStub).to.be.calledOnce;
-      console.log(flowInstance.productType_);
       expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
       expect(flowInstance.productType_).to.equal(ProductType.UI_CONTRIBUTION);
     });
