@@ -65,6 +65,7 @@ import {
   WindowOpenMode,
   defaultConfig,
 } from '../api/subscriptions';
+import {debugLog} from '../utils/log';
 import {injectStyleSheet, isEdgeBrowser} from '../utils/dom';
 import {isArray} from '../utils/types';
 import {isExperimentOn} from './experiments';
@@ -233,6 +234,7 @@ export class Runtime {
    */
   startSubscriptionsFlowIfNeeded() {
     const control = getControlFlag(this.win_.document);
+    debugLog(control, 'mode');
     if (control == 'manual') {
       // "Skipping automatic start because control flag is set to "manual".
       return null;
