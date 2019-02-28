@@ -14,7 +14,40 @@
  * limitations under the License.
  */
 
-import {assert} from './log';
+import * as sinon from 'sinon';
+import {assert, debugLog} from './log';
+
+describes.realWin('debug log', {}, () => {
+  const sandbox = sinon.sandbox.create();
+  let log;
+
+  beforeEach(() => {
+    log = sandbox.spy(console, 'log');
+  });
+
+  afterEach(() => {
+    log.restore();
+  });
+
+  it('should log if swg.dbg=1', () => {
+    self.location.hash = 'swg.dbg=1';
+    debugLog('Hello World');
+    expect(console.log.calledWith('Subscriptions:', 'Hello World')).to.be.true;
+  });
+
+  it('should handle multiple arguments', () => {
+    self.location.hash = 'swg.dbg=1';
+    debugLog('Hello', 'World');
+    expect(console.log.calledWith('Subscriptions:', 'Hello', 'World'))
+        .to.be.true;
+  });
+
+  it('should not log if swg.dbg=1 is not present', () => {
+    self.location.hash = '';
+    debugLog('Hello World');
+    expect(console.log.notCalled).to.be.true;
+  });
+});
 
 describes.realWin('asserts', {}, env => {
   let win;

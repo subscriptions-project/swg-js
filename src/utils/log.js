@@ -14,6 +14,20 @@
  * limitations under the License.
  */
 
+ /**
+  * Debug logger, only log message if #swg.log=1
+  * @param {...*} var_args [decription]
+  */
+export function debugLog(var_args) {
+  if (/swg.dbg=1/.test(self.location.hash)) {
+    const logArgs = ['[Subscriptions]'];
+    for (let i = 0; i < arguments.length; i++) {
+      logArgs.push(arguments[i]);
+    }
+    log.apply(log, logArgs);
+  }
+}
+
 /**
  * @param  {...*} var_args [description]
  */
