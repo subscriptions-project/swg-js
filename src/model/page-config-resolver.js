@@ -16,6 +16,7 @@
 
 import {Doc, resolveDoc} from './doc';
 import {PageConfig} from './page-config';
+import {debugLog} from '../utils/log';
 import {hasNextNodeInDocumentOrder} from '../utils/dom';
 import {isArray} from '../utils/types';
 import {tryParseJson} from '../utils/json';
@@ -100,6 +101,7 @@ export class PageConfigResolver {
           new Error('No config could be discovered in the page')));
       this.configResolver_ = null;
     }
+    debugLog(config);
     return config;
   }
 }
