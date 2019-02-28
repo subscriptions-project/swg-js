@@ -29,20 +29,20 @@ describes.realWin('debug log', {}, () => {
     log.restore();
   });
 
-  it('should log if swg.dbg=1', () => {
-    self.location.hash = 'swg.dbg=1';
+  it('should log if swg.debug=1', () => {
+    self.location.hash = 'swg.debug=1';
     debugLog('Hello World');
     expect(console.log.calledWith('[Subscriptions]', 'Hello World')).to.be.true;
   });
 
   it('should handle multiple arguments', () => {
-    self.location.hash = 'swg.dbg=1';
+    self.location.hash = 'swg.debug=1';
     debugLog('Hello', 'World');
     expect(console.log.calledWith('[Subscriptions]', 'Hello', 'World'))
         .to.be.true;
   });
 
-  it('should not log if swg.dbg=1 is not present', () => {
+  it('should not log if swg.debug=1 is not present', () => {
     self.location.hash = '';
     debugLog('Hello World');
     expect(console.log.notCalled).to.be.true;
