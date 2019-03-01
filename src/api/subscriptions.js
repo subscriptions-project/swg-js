@@ -37,7 +37,7 @@ export class Subscriptions {
   init(productOrPublicationId) {}
 
   /**
-   * Optionally configugures the runtime with non-default properties. See
+   * Optionally configures the runtime with non-default properties. See
    * `Config` definition for details.
    * @param {!Config} config
    */
@@ -332,7 +332,7 @@ export let SaveSubscriptionRequest;
  * Callback for retrieving subscription request
  *
  * @callback SaveSubscriptionRequestCallback
- * @return {!Promise<SaveSbuscriptionRequest> | !SaveSubscriptionRequest} request
+ * @return {!Promise<SaveSubscriptionRequest> | !SaveSubscriptionRequest} request
  */
 export let SaveSubscriptionRequestCallback;
 
