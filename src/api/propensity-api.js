@@ -93,7 +93,7 @@ export const Event = {
    * selected
    * for example; {'product': 'basic-monthly'}
    */
-  ACTION_OFFER_SELECTION: 'offer_selected',
+  ACTION_OFFER_SELECTED: 'offer_selected',
   /**
    * user has started payment flow
    * the json block can provide the product selected
