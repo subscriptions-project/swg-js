@@ -30,6 +30,7 @@ import {
   SubscribeResponse,
 } from '../api/subscribe-response';
 import {
+  ProductType,
   SubscriptionFlows,
   WindowOpenMode,
 } from '../api/subscriptions';
@@ -61,8 +62,12 @@ export class PayStartFlow {
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.SubscriptionRequest|string} skuOrSubscriptionRequest
+   * @param {!../api/subscriptions.ProductType} productType
    */
-  constructor(deps, skuOrSubscriptionRequest) {
+  constructor(
+        deps,
+        skuOrSubscriptionRequest,
+        productType = ProductType.SUBSCRIPTION) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -79,6 +84,9 @@ export class PayStartFlow {
     this.subscriptionRequest_ =
         typeof skuOrSubscriptionRequest == 'string' ?
             {'skuId': skuOrSubscriptionRequest} : skuOrSubscriptionRequest;
+
+    /**@private @const {!ProductType} */
+    this.productType_ = productType;
 
     /** @private @const {!../runtime/analytics-service.AnalyticsService} */
     this.analyticsService_ = deps.analytics();
@@ -116,6 +124,7 @@ export class PayStartFlow {
       'i': {
         'startTimeMs': Date.now(),
         'googleTransactionId': this.analyticsService_.getTransactionId(),
+        'productType': this.productType_,
       },
     }, {
       forceRedirect:

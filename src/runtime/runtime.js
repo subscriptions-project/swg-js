@@ -64,6 +64,7 @@ import {
   Subscriptions,
   WindowOpenMode,
   defaultConfig,
+  ProductType,
 } from '../api/subscriptions';
 import {debugLog} from '../utils/log';
 import {injectStyleSheet, isEdgeBrowser} from '../utils/dom';
@@ -341,6 +342,12 @@ export class Runtime {
   subscribe(skuOrSubscriptionRequest) {
     return this.configured_(true)
         .then(runtime => runtime.subscribe(skuOrSubscriptionRequest));
+  }
+
+  /** @override */
+  contribute(skuOrSubscriptionRequest) {
+    return this.configured_(true)
+        .then(runtime => runtime.contribute(skuOrSubscriptionRequest));
   }
 
   /** @override */
@@ -747,6 +754,18 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  contribute(skuOrSubscriptionRequest) {
+    if (!isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS)) {
+      throw new Error('Not yet launched!');
+    }
+
+    return this.documentParsed_.then(() => {
+      return new PayStartFlow(
+          this, skuOrSubscriptionRequest, ProductType.UI_CONTRIBUTION).start();
+    });
+  }
+
+  /** @override */
   completeDeferredAccountCreation(opt_options) {
     return this.documentParsed_.then(() => {
       return new DeferredAccountFlow(this, opt_options || null).start();
@@ -799,6 +818,7 @@ function createPublicRuntime(runtime) {
     waitForSubscriptionLookup:
         runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
+    contribute: runtime.contribute.bind(runtime),
     completeDeferredAccountCreation:
         runtime.completeDeferredAccountCreation.bind(runtime),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
