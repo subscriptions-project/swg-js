@@ -58,19 +58,26 @@ export const Event = {
    *               'source': 'ad-click',
                   ‘is_ative’: true}
    * for example; {‘offers’: [‘basic-monthly’, ‘premium-weekly’],
-   *              ‘source’: ‘navigate_to_offers_page’,
+   *              ‘source’: ‘navigate-to-offers-page’,
    *              ‘is_active’: true }
    * If the user was shown the offers as a result of paywall metering
    * expiration, it is considered a passive impression.
    * for example; {‘offers’: [‘basic-monthly’],
    *               ‘source’: ‘paywall-metering-expired’,
-   *             ‘is_active’: false}
+   *               ‘is_active’: false}
    * If the user navigated to a landing page that was not a part of
    * the funnel related to subscribing to the publisher’s content,
    * then the impression of offers shown on the landing page is
    * considered passive.
    * for example; {‘offers’: [‘basic-weekly’, ‘premium-annually’],
    *               ‘source’: ‘landing-page’,
+   *               ‘is_active’: false}
+   * If the user navigated to a subscriptions landing page that is
+   * a part of the funnel related to subscribing to the publisher’s
+   * content, then the impression of offers shown on this landing
+   * page is considered active.
+   * for example; {‘offers’: [‘basic-weekly’, ‘premium-annually’],
+   *               ‘source’: ‘subscriptions-landing-page’,
    *               ‘is_active’: false}
    */
   IMPRESSION_OFFERS: 'offers_shown',
@@ -79,19 +86,30 @@ export const Event = {
    * to a landing page. The landing page must satisfy one of the
    * following conditions and hence be a part of the funnel to get
    * the user to subscribe:
-   * - have a button to navigate the user to an offers page, or
-   * - show offers the user can select, or
-   * - provide a way to start the payment flow for a specific offer
+   * - have a button to navigate the user to an offers page, (in
+   *   this case, the next event will be IMPRESSION_OFFERS, with
+   *   parameter 'source' as subscriptions-landing-page and
+   *   'is_active' will be set to true)
+   * - show offers the user can select, (in this case, the next
+   *   event will be IMPRESSION_OFFERS, with a parameter 'source'
+   *   as navigate-to-offers-page and 'is_active' set to true)
+   * - provide a way to start the payment flow for a specific offer.
+   *   (in this case, the next event will be ACTION_OFFER_SELECTED
+   *   or ACTION_PAYMENT_FLOW_STARTED depending on if that button
+   *   took the user to a checkout page on the publishers site or
+   *   directly started the payment flow)
    * The json block with this event can provide additional information
    * such as the source, indicating what caused the user to navigate
    * to this page.
    * for example; {‘source’: ‘marketing_via_email’}
    */
- ACTION_LANDING_PAGE: 'landing_page',
+  ACTION_SUBSCRIPTIONS_LANDING_PAGE: 'subscriptions_anding_page',
   /**
-   * user has selected an offer the json block can provide the product
-   * selected
+   * user has selected an offer the json block can provide the
+   * product selected.
    * for example; {'product': 'basic-monthly'}
+   * When offer selection starts the payment flow directly,
+   * use the next event ACTION_PAYMENT_FLOW_STARTED instead.
    */
   ACTION_OFFER_SELECTED: 'offer_selected',
   /**
@@ -124,42 +142,67 @@ export const PropensityType = {
 }
 
 /**
+ * Properties:
+ * - score: Required. Provides the propensity score of the requested type
+ *       [0-100], a number indicating the likelihood of a user to subscribe
+ *       -1, no score available, see errorsIfAny for possible explanation
+ * - errorsIfAny: Optional. If there are any errors which prevented the server
+ *       from having a valid score, the string will provide the error message.
+ *
+ *  @typedef {{
+ *    score: number,
+ *    errorsIfAny: (string|undefined),
+ * }}
+ */
+export let PropensityScore;
+
+/**
  * @interface
  */
 export class PropensityApi {
 
   /**
-   * Provide user subscription state upon discovery
-   * The state should be a valid string from SubscriptionState
-   * A json object of depth '1' must be provided if the user is
-   * a subscriber indicating what they paid for. For example;
-   * {'product': ['basic-monthly', 'audio-weekly']}
+   * Provide user consent to enable ad personalization
+   * when consent is available. When user consent is not
+   * provided, we assume no user consent and hence we will
+   * not be able to pass information to the DRX server
+   * that enables personalized score for the user.
+   */
+  enablePersonalization() {}
+
+  /**
+   * Provide user subscription state upon initial discovery
+   * A user may have active subscriptions to some products
+   * and expired subscriptions to others. Make one API call
+   * per subscription state and provide a corresponding
+   * list of products with a json object of depth 1.
+   * For example:
+   *     {'product': ['basic-monthly', 'audio-weekly']}
+   * Each call to this API should have the first argument
+   * as a valid string from the enum SubscriptionState.
    * @param {SubscriptionState} state
    * @param {?Object} jsonEntitlements
    */
-  initSession(state, jsonEntitlements) {}
+  sendSubscriptionState(state, jsonEntitlements) {}
 
   /**
-   * Returns the propensity of a user to subscribe
-   * The string should be a valid string from PropensityType
-   * If no type is provided, generic score is returned
-   * @param {?PropensityType=} type
-   * @return {?Promise<number>}
-   */
-  getPropensity(type) {}
-
-  /**
-   * Send user events to the DRX server
+   * Send a single user event to the DRX server
    * Event should be valid string in Events
-   * JSON block of depth '1' provides event parameters
+   * JSON block of depth '1' provides event parameters.
+   * The guideline to create this JSON block that describes
+   * the event is provided against each enum listed in
+   * the Event space.
    * @param {Event} userEvent
    * @param {?Object} jsonParams
    */
-   event(userEvent, jsonParams) {}
+   sendEvent(userEvent, jsonParams) {}
 
   /**
-   * Provide user consent to enable ad personalization
-   * @param {boolean} userConsent
+   * Returns the propensity of a user to subscribe as JSON.
+   * The argument should be a valid string from PropensityType
+   * If no type is provided, generic score is returned.
+   * @param {?PropensityType=} type
+   * @return {?Promise<!PropensityScore>}
    */
-   enablePersonalization(userConsent) {}
+  getPropensity(type) {}
 }

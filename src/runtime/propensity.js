@@ -19,11 +19,13 @@ import * as PropensityApi from '../api/propensity-api';
  */
 export class Propensity {
 
-  constructor(win, pageConfig, fetcher) {
+  /**
+   * @param {!Window} win
+   * @param {!../model/page-config.PageConfig} pageConfig
+   */
+  constructor(win, pageConfig) {
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
-    /** @private @const {!./fetcher.Fetcher} */
-    this.fetcher_ = fetcher;
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private {boolean} */
@@ -31,7 +33,7 @@ export class Propensity {
   }
 
   /** @override */
-  initSession(state, jsonEntitlements) {
+  sendSubscriptionState(state, jsonEntitlements) {
     if (!Object.values(PropensityApi.SubscriptionState).includes(state)) {
       throw new Error('Invalid subscription state provided');
     }
@@ -53,7 +55,7 @@ export class Propensity {
   }
 
   /** @override */
-  event(userEvent, jsonParams) {
+  sendEvent(userEvent, jsonParams) {
     if (!Object.values(PropensityApi.Event).includes(userEvent)) {
       throw new Error('Invalid user event provided');
     }
@@ -65,9 +67,7 @@ export class Propensity {
   }
 
   /** @override */
-  enablePersonalization(userConsent) {
-    if (userConsent) {
-      this.userConsent_ = userConsent;
-    }
+  enablePersonalization() {
+    this.userConsent_ = true;
   }
 }

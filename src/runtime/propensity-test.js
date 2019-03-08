@@ -15,49 +15,47 @@
  */
 import {Propensity} from './propensity';
 import * as PropensityApi from '../api/propensity-api';
-import {Fetcher} from './fetcher';
 import {PageConfig} from '../model/page-config';
 
 describes.realWin('Propensity', {}, env => {
   let win;
-  let fetcher;
   let config;
   let propensity;
 
   beforeEach(() => {
     win = env.win;
-    fetcher = new Fetcher();
     config = new PageConfig('pub1', true);
-    propensity = new Propensity(win, fetcher, config);
+    propensity = new Propensity(win, config);
   });
 
   it('should provide valid subscription state', () => {
     expect(() => {
-      propensity.initSession(PropensityApi.SubscriptionState.UNKNOWN);
+      propensity.sendSubscriptionState(PropensityApi.SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
     expect(() => {
-      propensity.initSession('past');
+      propensity.sendSubscriptionState('past');
     }).to.throw('Invalid subscription state provided');
   });
 
   it('should provide entitlements for subscribed users', () => {
     expect(() => {
-      propensity.initSession(PropensityApi.SubscriptionState.SUBSCRIBER);
+      propensity.sendSubscriptionState(
+          PropensityApi.SubscriptionState.SUBSCRIBER);
     }).to.throw('Entitlements not provided for subscribed users');
     expect(() => {
       const entitlements = {};
       entitlements['product'] = 'basic-monthly';
-      propensity.initSession(PropensityApi.SubscriptionState.SUBSCRIBER,
-          entitlements);
+      propensity.sendSubscriptionState(
+          PropensityApi.SubscriptionState.SUBSCRIBER, entitlements);
     }).not.throw('Entitlements not provided for subscribed users');
   });
 
   it('should provide valid event', () => {
     expect(() => {
-      propensity.event(PropensityApi.Event.IMPRESSION_PAYWALL);
+      propensity.sendEvent(PropensityApi.Event.IMPRESSION_PAYWALL);
     }).to.not.throw('Invalid user event provided');
     expect(() => {
-      propensity.event('user-redirect');
+      propensity.sendEvent('user-redirect');
     }).to.throw('Invalid user event provided');
   });
 

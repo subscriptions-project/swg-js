@@ -786,8 +786,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should return propensity module', () => {
-      const fetcher = new Fetcher();
-      const propensity = new Propensity(win, config, fetcher);
+      const propensity = new Propensity(win, config);
       configuredRuntimeMock.expects('getPropensityModule')
           .once()
           .returns(propensity);
@@ -1402,12 +1401,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
   it('should invoke propensity APIs', () => {
     setExperiment(win, ExperimentFlags.PROPENSITY, true);
-    const initSessionStub = sandbox.stub(
+    const sendSubscriptionStateStub = sandbox.stub(
         Propensity.prototype,
-        'initSession');
+        'sendSubscriptionState');
     const eventStub = sandbox.stub(
         Propensity.prototype,
-        'event');
+        'sendEvent');
     const getPropensityStub = sandbox.stub(
         Propensity.prototype,
         'getPropensity',
@@ -1416,13 +1415,16 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
     const propensity = runtime.getPropensityModule();
     expect(propensity).to.not.be.null;
-    propensity.initSession('na');
-    propensity.event('expired');
+    expect(propensity.userConsent_).to.be.false;
+    propensity.enablePersonalization();
+    propensity.sendSubscriptionState('na');
+    propensity.sendEvent('expired');
     propensity.getPropensity().then(score => {
       expect(score).to.equal(0.0);
     });
-    expect(initSessionStub).to.be.calledWithExactly('na');
+    expect(sendSubscriptionStateStub).to.be.calledWithExactly('na');
     expect(eventStub).to.be.calledWithExactly('expired');
     expect(getPropensityStub).to.be.calledOnce;
+    expect(propensity.userConsent_).to.be.true;
   });
 });
