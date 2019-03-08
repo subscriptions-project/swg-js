@@ -54,7 +54,8 @@ export class Propensity {
     if (type && !Object.values(PropensityApi.PropensityType).includes(type)) {
       throw new Error('Invalid propensity type requested');
     }
-    return this.propensityServer_.getPropensity(type, this.win_.document.referrer);
+    return this.propensityServer_.getPropensity(
+        type, this.win_.document.referrer);
   }
 
   /** @override */

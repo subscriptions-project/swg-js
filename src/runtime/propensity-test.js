@@ -71,9 +71,9 @@ describes.realWin('Propensity', {}, env => {
   it('should send subscription state', () => {
     let subscriptionState = null;
     sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState',
-      state => {
-        subscriptionState = state;
-      });
+        state => {
+          subscriptionState = state;
+        });
     expect(() => {
       propensity.initSession(PropensityApi.SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
@@ -82,9 +82,9 @@ describes.realWin('Propensity', {}, env => {
 
   it('should send report server errors', () => {
     sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState',
-      () => {
-        throw new Error('publisher not whitelisted');
-      });
+        () => {
+          throw new Error('publisher not whitelisted');
+        });
     expect(() => {
       propensity.initSession(PropensityApi.SubscriptionState.UNKNOWN);
     }).to.throw('publisher not whitelisted');
@@ -95,10 +95,10 @@ describes.realWin('Propensity', {}, env => {
     let paramsSent = null;
     const eventParams = {'source': 'user-action'};
     sandbox.stub(PropensityServer.prototype, 'sendEvent',
-      (event, params) => {
-        eventSent = event;
-        paramsSent = params;
-      });
+        (event, params) => {
+          eventSent = event;
+          paramsSent = params;
+        });
     propensity.event(PropensityApi.Event.IMPRESSION_OFFERS,
         eventParams);
     expect(eventSent).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);

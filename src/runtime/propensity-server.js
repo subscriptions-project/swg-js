@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Xhr} from '../utils/xhr';
 
 /**
  * @interface
@@ -29,7 +28,7 @@ export class PropensityServerInterface {
    * @param {string} event
    * @param {string=} context
    */
-  sentEvent(event, context) {}
+  sendEvent(event, context) {}
 
   /**
    * @param {string=} type
@@ -65,8 +64,6 @@ export class PropensityServer {
     this.product_ = null;
     /** @private {boolean} */
     this.userConsent_ = false;
-    /** @pirvate @const {Xhr} */
-    this.xhr_ = new Xhr(this.win_);
     /** @private @const {boolean}*/
     this.TEST_SERVERS_ = true;
   }
@@ -117,7 +114,7 @@ export class PropensityServer {
     let url = this.getUrl_() + '/subopt/data?states=' + this.publicationId_
         + ':' + state;
     if (this.product_) {
-      url = url + ':' + this.product_
+      url = url + ':' + this.product_;
     }
     if (cookie) {
       url = url + '&cookie=' + cookie;
@@ -147,7 +144,7 @@ export class PropensityServer {
     const responsePromise = new Promise((resolve, reject) => {
       responseResolver = resolve;
       responseFailure = reject;
-    })
+    });
     if (init.credentials == 'include') {
       xhr.withCredentials = true;
     }
@@ -156,13 +153,13 @@ export class PropensityServer {
         return;
       }
       if (xhr.readyState == /* COMPLETE */ 4) {
-        let response = new Response();
+        const response = new Response();
         response.status = xhr.status;
         response.ok = xhr.status >= 200 && xhr.status < 300;
         response.statusText = xhr.statusText;
         response.responseText = xhr.responseText;
         response.url = xhr.responseURL;
-        response.headers  = xhr.getAllResponseHeaders();
+        response.headers = xhr.getAllResponseHeaders();
         responseResolver(response);
       }
     };
@@ -207,7 +204,8 @@ export class PropensityServer {
       return Promise.reject(new Error(response.statusText));
     }
     if (response.ok && response.status == 200) {
-      const result = /** @type {!Promise<!JsonObject>} */ (response.responseText)
+      const result = /** @type {!Promise<!JsonObject>} */
+          (response.responseText);
       return Promise.resolve(result);
     }
   }
