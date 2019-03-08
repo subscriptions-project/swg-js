@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 import * as PropensityApi from '../api/propensity-api';
+import {PropensityServer} from './propensity-server';
+
 /**
  * @implements {PropensityApi.PropensityApi}
  */
 export class Propensity {
 
-  constructor(win, pageConfig, fetcher) {
-    /** @private @const {!../model/page-config.PageConfig} */
-    this.pageConfig_ = pageConfig;
-    /** @private @const {!./fetcher.Fetcher} */
-    this.fetcher_ = fetcher;
+  /**
+   *
+   * @param {!Window} win
+   * @param {../model/page-config.PageConfig} pageConfig
+   */
+  constructor(win, pageConfig) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private {boolean} */
     this.userConsent_ = false;
+    /** @private {PropensityServer} */
+    this.propensityServer_ = new PropensityServer(win,
+        pageConfig.getPublicationId());
   }
 
   /** @override */
@@ -39,17 +45,16 @@ export class Propensity {
         && !jsonEntitlements) {
       throw new Error('Entitlements not provided for subscribed users');
     }
-    // TODO(sohanirao): inform server of subscription state
+    const entitlements = jsonEntitlements && JSON.stringify(jsonEntitlements);
+    this.propensityServer_.sendSubscriptionState(state, entitlements);
   }
 
   /** @override */
   getPropensity(type) {
-    const propensityToSubscribe = undefined;
     if (type && !Object.values(PropensityApi.PropensityType).includes(type)) {
       throw new Error('Invalid propensity type requested');
     }
-    // TODO(sohanirao): request propensity from server
-    return Promise.resolve(propensityToSubscribe);
+    return this.propensityServer_.getPropensity(type, this.win_.document.referrer);
   }
 
   /** @override */
@@ -57,17 +62,15 @@ export class Propensity {
     if (!Object.values(PropensityApi.Event).includes(userEvent)) {
       throw new Error('Invalid user event provided');
     }
-    if (PropensityApi.Event.IMPRESSION_PAYWALL != event && jsonParams == null) {
-      // TODO(sohanirao): remove this, this check is just to avoid unused params
-      throw new Error('Provide additional parameters for your event:', event);
-    }
-    // TODO(sohanirao): send event and params if necessary
+    const paramString = jsonParams && JSON.stringify(jsonParams);
+    this.propensityServer_.sendEvent(userEvent, paramString);
   }
 
   /** @override */
   enablePersonalization(userConsent) {
     if (userConsent) {
       this.userConsent_ = userConsent;
+      this.propensityServer_.setUserConsent(userConsent);
     }
   }
 }

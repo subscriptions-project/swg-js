@@ -786,8 +786,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should return propensity module', () => {
-      const fetcher = new Fetcher();
-      const propensity = new Propensity(win, config, fetcher);
+      const propensity = new Propensity(win, config);
       configuredRuntimeMock.expects('getPropensityModule')
           .once()
           .returns(propensity);

@@ -15,20 +15,18 @@
  */
 import {Propensity} from './propensity';
 import * as PropensityApi from '../api/propensity-api';
-import {Fetcher} from './fetcher';
 import {PageConfig} from '../model/page-config';
+import {PropensityServer} from './propensity-server';
 
 describes.realWin('Propensity', {}, env => {
   let win;
-  let fetcher;
   let config;
   let propensity;
 
   beforeEach(() => {
     win = env.win;
-    fetcher = new Fetcher();
     config = new PageConfig('pub1', true);
-    propensity = new Propensity(win, fetcher, config);
+    propensity = new Propensity(win, config);
   });
 
   it('should provide valid subscription state', () => {
@@ -68,5 +66,56 @@ describes.realWin('Propensity', {}, env => {
     expect(() => {
       propensity.getPropensity('paywall-specific');
     }).to.throw(/Invalid propensity type requested/);
+  });
+
+  it('should send subscription state', () => {
+    let subscriptionState = null;
+    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState',
+      state => {
+        subscriptionState = state;
+      });
+    expect(() => {
+      propensity.initSession(PropensityApi.SubscriptionState.UNKNOWN);
+    }).to.not.throw('Invalid subscription state provided');
+    expect(subscriptionState).to.equal(PropensityApi.SubscriptionState.UNKNOWN);
+  });
+
+  it('should send report server errors', () => {
+    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState',
+      () => {
+        throw new Error('publisher not whitelisted');
+      });
+    expect(() => {
+      propensity.initSession(PropensityApi.SubscriptionState.UNKNOWN);
+    }).to.throw('publisher not whitelisted');
+  });
+
+  it('should send event params to server', () => {
+    let eventSent = null;
+    let paramsSent = null;
+    const eventParams = {'source': 'user-action'};
+    sandbox.stub(PropensityServer.prototype, 'sendEvent',
+      (event, params) => {
+        eventSent = event;
+        paramsSent = params;
+      });
+    propensity.event(PropensityApi.Event.IMPRESSION_OFFERS,
+        eventParams);
+    expect(eventSent).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
+    expect(JSON.stringify(eventParams)).to.equal(paramsSent);
+  });
+
+  it('should return propensity score from server', () => {
+    sandbox.stub(PropensityServer.prototype, 'getPropensity',
+        () => {
+          return new Promise(resolve => {
+            setTimeout(() => {
+              resolve(0.5);
+            }, 10);
+          });
+        });
+    return propensity.getPropensity().then(score => {
+      expect(score).to.equal(0.5);
+    });
   });
 });
