@@ -204,6 +204,7 @@ export class PropensityServer {
     if (!response.ok) {
       return Promise.reject(new Error(response.statusText));
     }
+    console.log('response was', response);
     if (response.ok && response.status == 200) {
       return Promise.resolve(response.responseText);
     }
@@ -255,6 +256,9 @@ export class PropensityServer {
       console.log('get Propensity response', response);
       return this.processResponse_(response);
     }).then(scores => {
+      if (!scores) {
+        scores = JSON.stringify({'values': [-1]});
+      }
       return JSON.parse(scores);
     }).catch(reason => {
       // Rethrow async.
