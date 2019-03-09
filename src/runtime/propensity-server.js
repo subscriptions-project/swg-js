@@ -33,7 +33,7 @@ export class PropensityServerInterface {
   /**
    * @param {string=} type
    * @param {string=} referrer
-   * @return {?Promise<number>}
+   * @return {?Promise<JsonObject>}
    */
   getPropensity(type, referrer) {}
 
@@ -157,6 +157,7 @@ export class PropensityServer {
         response.status = xhr.status;
         response.ok = xhr.status >= 200 && xhr.status < 300;
         response.statusText = xhr.statusText;
+        xhr.bodyUsed = true;
         response.responseText = xhr.responseText;
         response.url = xhr.responseURL;
         response.headers = xhr.getAllResponseHeaders();
@@ -204,9 +205,7 @@ export class PropensityServer {
       return Promise.reject(new Error(response.statusText));
     }
     if (response.ok && response.status == 200) {
-      const result = /** @type {!Promise<!JsonObject>} */
-          (response.responseText);
-      return Promise.resolve(result);
+      return Promise.resolve(response.responseText);
     }
   }
 

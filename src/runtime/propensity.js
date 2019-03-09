@@ -22,22 +22,19 @@ import {PropensityServer} from './propensity-server';
 export class Propensity {
 
   /**
-   *
    * @param {!Window} win
-   * @param {../model/page-config.PageConfig} pageConfig
+   * @param {!../model/page-config.PageConfig} pageConfig
    */
   constructor(win, pageConfig) {
     /** @private @const {!Window} */
     this.win_ = win;
-    /** @private {boolean} */
-    this.userConsent_ = false;
     /** @private {PropensityServer} */
     this.propensityServer_ = new PropensityServer(win,
         pageConfig.getPublicationId());
   }
 
   /** @override */
-  initSession(state, jsonEntitlements) {
+  sendSubscriptionState(state, jsonEntitlements) {
     if (!Object.values(PropensityApi.SubscriptionState).includes(state)) {
       throw new Error('Invalid subscription state provided');
     }
@@ -55,11 +52,15 @@ export class Propensity {
       throw new Error('Invalid propensity type requested');
     }
     return this.propensityServer_.getPropensity(
-        type, this.win_.document.referrer);
+        type, this.win_.document.referrer).then(result => {
+          // TODO(sohanirao): Match HTTP interface
+          const propensityScore = {'score': result.values[0]};
+          return propensityScore;
+        });
   }
 
   /** @override */
-  event(userEvent, jsonParams) {
+  sendEvent(userEvent, jsonParams) {
     if (!Object.values(PropensityApi.Event).includes(userEvent)) {
       throw new Error('Invalid user event provided');
     }
@@ -68,10 +69,7 @@ export class Propensity {
   }
 
   /** @override */
-  enablePersonalization(userConsent) {
-    if (userConsent) {
-      this.userConsent_ = userConsent;
-      this.propensityServer_.setUserConsent(userConsent);
-    }
+  enablePersonalization() {
+    this.propensityServer_.setUserConsent(true);
   }
 }

@@ -31,31 +31,32 @@ describes.realWin('Propensity', {}, env => {
 
   it('should provide valid subscription state', () => {
     expect(() => {
-      propensity.initSession(PropensityApi.SubscriptionState.UNKNOWN);
+      propensity.sendSubscriptionState(PropensityApi.SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
     expect(() => {
-      propensity.initSession('past');
+      propensity.sendSubscriptionState('past');
     }).to.throw('Invalid subscription state provided');
   });
 
   it('should provide entitlements for subscribed users', () => {
     expect(() => {
-      propensity.initSession(PropensityApi.SubscriptionState.SUBSCRIBER);
+      propensity.sendSubscriptionState(
+          PropensityApi.SubscriptionState.SUBSCRIBER);
     }).to.throw('Entitlements not provided for subscribed users');
     expect(() => {
       const entitlements = {};
       entitlements['product'] = 'basic-monthly';
-      propensity.initSession(PropensityApi.SubscriptionState.SUBSCRIBER,
-          entitlements);
+      propensity.sendSubscriptionState(
+          PropensityApi.SubscriptionState.SUBSCRIBER, entitlements);
     }).not.throw('Entitlements not provided for subscribed users');
   });
 
   it('should provide valid event', () => {
     expect(() => {
-      propensity.event(PropensityApi.Event.IMPRESSION_PAYWALL);
+      propensity.sendEvent(PropensityApi.Event.IMPRESSION_PAYWALL);
     }).to.not.throw('Invalid user event provided');
     expect(() => {
-      propensity.event('user-redirect');
+      propensity.sendEvent('user-redirect');
     }).to.throw('Invalid user event provided');
   });
 
@@ -75,31 +76,31 @@ describes.realWin('Propensity', {}, env => {
           subscriptionState = state;
         });
     expect(() => {
-      propensity.initSession(PropensityApi.SubscriptionState.UNKNOWN);
+      propensity.sendSubscriptionState(PropensityApi.SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
     expect(subscriptionState).to.equal(PropensityApi.SubscriptionState.UNKNOWN);
   });
 
-  it('should send report server errors', () => {
+  it('should report server errors', () => {
     sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState',
         () => {
           throw new Error('publisher not whitelisted');
         });
     expect(() => {
-      propensity.initSession(PropensityApi.SubscriptionState.UNKNOWN);
+      propensity.sendSubscriptionState(PropensityApi.SubscriptionState.UNKNOWN);
     }).to.throw('publisher not whitelisted');
   });
 
   it('should send event params to server', () => {
     let eventSent = null;
     let paramsSent = null;
-    const eventParams = {'source': 'user-action'};
+    const eventParams = JSON.stringify({'source': 'user-action'});
     sandbox.stub(PropensityServer.prototype, 'sendEvent',
         (event, params) => {
           eventSent = event;
           paramsSent = params;
         });
-    propensity.event(PropensityApi.Event.IMPRESSION_OFFERS,
+    propensity.sendEvent(PropensityApi.Event.IMPRESSION_OFFERS,
         eventParams);
     expect(eventSent).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     expect(JSON.stringify(eventParams)).to.equal(paramsSent);
@@ -110,12 +111,12 @@ describes.realWin('Propensity', {}, env => {
         () => {
           return new Promise(resolve => {
             setTimeout(() => {
-              resolve(0.5);
+              resolve({'values': [42]});
             }, 10);
           });
         });
-    return propensity.getPropensity().then(score => {
-      expect(score).to.equal(0.5);
+    return propensity.getPropensity().then(propensityScore => {
+      expect(propensityScore.score).to.equal(42);
     });
   });
 });
