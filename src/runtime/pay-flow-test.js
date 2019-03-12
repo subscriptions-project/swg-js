@@ -506,8 +506,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
     const entitlements = new Entitlements('service1', 'RaW', [], null);
     const response = new SubscribeResponse(
-        'RaW', purchaseData, userData, entitlements,
-        ProductType.SUBSCRIPTION, null);
+        'RaW', purchaseData, userData, entitlements);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};
