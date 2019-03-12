@@ -21,6 +21,7 @@ import {AnalyticsEvent} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {
+  ProductType,
   ReplaceSkuProrationMode,
 } from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
@@ -113,8 +114,11 @@ describes.realWin('PayStartFlow', {}, env => {
     analyticsMock.verify();
   });
 
-  it('should have valid flow constructed', () => {
-    const subscribeRequest = {skuId: 'sku1', publicationId: 'pub1'};
+  it('should have valid flow constructed in payStartFlow', () => {
+    const subscribeRequest = {
+      skuId: 'sku1',
+      publicationId: 'pub1',
+    };
     callbacksMock.expects('triggerFlowStarted')
         .withExactArgs('subscribe', {skuId: 'sku1'})
         .once();
@@ -281,14 +285,15 @@ describes.realWin('PayCompleteFlow', {}, env => {
     jserrorMock.verify();
   });
 
-  it('should have valid flow constructed', () => {
+  it('should have valid flow constructed ******', () => {
     const purchaseData = new PurchaseData();
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
     });
     const entitlements = new Entitlements('service1', 'RaW', [], null);
     const response = new SubscribeResponse(
-        'RaW', purchaseData, userData, entitlements);
+        'RaW', purchaseData, userData, entitlements,
+        ProductType.SUBSCRIPTION, entitlements);
     entitlementsManagerMock.expects('pushNextEntitlements')
         .withExactArgs(sinon.match(arg => {
           return arg === 'RaW';
@@ -307,6 +312,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           idToken: 'ID_TOK',
+          productType: ProductType.SUBSCRIPTION,
         })
         .returns(Promise.resolve(port));
     return flow.start(response);
@@ -332,6 +338,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           loginHint: 'test@example.org',
+          productType: undefined,
         })
         .returns(Promise.resolve(port));
     return flow.start(response);
