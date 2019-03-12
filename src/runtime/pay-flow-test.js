@@ -285,7 +285,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     jserrorMock.verify();
   });
 
-  it('should have valid flow constructed ******', () => {
+  it('should have valid flow constructed', () => {
     const purchaseData = new PurchaseData();
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
@@ -293,7 +293,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const entitlements = new Entitlements('service1', 'RaW', [], null);
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, entitlements,
-        ProductType.SUBSCRIPTION, entitlements);
+        ProductType.SUBSCRIPTION, null);
     entitlementsManagerMock.expects('pushNextEntitlements')
         .withExactArgs(sinon.match(arg => {
           return arg === 'RaW';
@@ -324,7 +324,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
     });
-    const response = new SubscribeResponse('RaW', purchaseData, userData, null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
@@ -338,7 +339,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           loginHint: 'test@example.org',
-          productType: undefined,
+          productType: ProductType.SUBSCRIPTION,
         })
         .returns(Promise.resolve(port));
     return flow.start(response);
@@ -351,7 +352,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
     const entitlements = new Entitlements('service1', 'RaW', [], null);
     const response = new SubscribeResponse(
-        'RaW', purchaseData, userData, entitlements);
+      'RaW', purchaseData, userData, entitlements,
+      ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};
@@ -393,7 +395,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
     });
-    const response = new SubscribeResponse('RaW', purchaseData, userData, null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};
@@ -432,7 +435,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
     });
-    const response = new SubscribeResponse('RaW', purchaseData, userData, null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};
@@ -502,7 +506,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
     const entitlements = new Entitlements('service1', 'RaW', [], null);
     const response = new SubscribeResponse(
-        'RaW', purchaseData, userData, entitlements);
+        'RaW', purchaseData, userData, entitlements,
+        ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};
@@ -527,7 +532,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
     const entitlements = new Entitlements('service1', 'RaW', [], null);
     const response = new SubscribeResponse(
-        'RaW', purchaseData, userData, entitlements);
+        'RaW', purchaseData, userData, entitlements,
+        ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};
