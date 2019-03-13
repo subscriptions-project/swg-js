@@ -258,6 +258,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let analyticsMock;
   let jserrorMock;
 
+  const TOKEN_HEADER = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+  const TOKEN_PAYLOAD =
+      'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4g4K-1' +
+      'WuWKoOSFjOCoh-KYjsOIypjYut6dIiwiYWRtaW4iOnRydWV9';
+  const TOKEN_SIG = 'TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ';
+  const TOKEN = `${TOKEN_HEADER}.${TOKEN_PAYLOAD}.${TOKEN_SIG}`;
+
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1');
@@ -504,7 +511,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .once();
 
     const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
-    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const entitlements = new Entitlements('service1', TOKEN, [], null);
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, entitlements);
     const port = new ActivityPort();
@@ -529,7 +536,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .once();
 
     const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
-    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const entitlements = new Entitlements('service1', TOKEN, [], null);
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, entitlements,
         ProductType.SUBSCRIPTION, null);
