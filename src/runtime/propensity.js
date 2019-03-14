@@ -38,9 +38,11 @@ export class Propensity {
     if (!Object.values(PropensityApi.SubscriptionState).includes(state)) {
       throw new Error('Invalid subscription state provided');
     }
-    if (PropensityApi.SubscriptionState.SUBSCRIBER == state
+    if ((PropensityApi.SubscriptionState.SUBSCRIBER == state ||
+         PropensityApi.SubscriptionState.PAST_SUBSCRIBER == state)
         && !jsonEntitlements) {
-      throw new Error('Entitlements not provided for subscribed users');
+      throw new Error('Entitlements must be provided for users with'
+          + ' active or expired subscriptions');
     }
     const entitlements = jsonEntitlements && JSON.stringify(jsonEntitlements);
     this.propensityServer_.sendSubscriptionState(state, entitlements);
@@ -51,8 +53,11 @@ export class Propensity {
     if (type && !Object.values(PropensityApi.PropensityType).includes(type)) {
       throw new Error('Invalid propensity type requested');
     }
-    return this.propensityServer_.getPropensity(
-        type, this.win_.document.referrer).then(result => {
+    if (!type) {
+      type = PropensityApi.PropensityType.GENERAL;
+    }
+    return this.propensityServer_.getPropensity(this.win_.document.referrer,
+        type).then(result => {
           // TODO(sohanirao): Match HTTP interface
           const propensityScore = {'score': result.values[0]};
           return propensityScore;
@@ -64,6 +69,8 @@ export class Propensity {
     if (!Object.values(PropensityApi.Event).includes(userEvent)) {
       throw new Error('Invalid user event provided');
     }
+    // TODO(sohanirao): drop the params for some events?
+    // TODO(sohanirao) : verify parameters for some events
     const paramString = jsonParams && JSON.stringify(jsonParams);
     this.propensityServer_.sendEvent(userEvent, paramString);
   }

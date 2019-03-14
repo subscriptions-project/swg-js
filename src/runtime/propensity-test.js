@@ -42,14 +42,29 @@ describes.realWin('Propensity', {}, env => {
     expect(() => {
       propensity.sendSubscriptionState(
           PropensityApi.SubscriptionState.SUBSCRIBER);
-    }).to.throw('Entitlements not provided for subscribed users');
+    }).to.throw('Entitlements must be provided for users with'
+        + ' active or expired subscriptions');
+    expect(() => {
+      propensity.sendSubscriptionState(
+          PropensityApi.SubscriptionState.PAST_SUBSCRIBER);
+    }).to.throw('Entitlements must be provided for users with'
+        + ' active or expired subscriptions');
     expect(() => {
       const entitlements = {};
       entitlements['product'] = 'basic-monthly';
       propensity.sendSubscriptionState(
           PropensityApi.SubscriptionState.SUBSCRIBER, entitlements);
-    }).not.throw('Entitlements not provided for subscribed users');
+    }).not.throw('Entitlements must be provided for users with'
+        + ' active or expired subscriptions');
+    expect(() => {
+      const entitlements = {};
+      entitlements['product'] = 'basic-monthly';
+      propensity.sendSubscriptionState(
+          PropensityApi.SubscriptionState.PAST_SUBSCRIBER, entitlements);
+    }).not.throw('Entitlements must be provided for users with'
+        + ' active or expired subscriptions');
   });
+
 
   it('should provide valid event', () => {
     expect(() => {
@@ -94,7 +109,8 @@ describes.realWin('Propensity', {}, env => {
   it('should send event params to server', () => {
     let eventSent = null;
     let paramsSent = null;
-    const eventParams = JSON.stringify({'source': 'user-action'});
+    const params = /** @type {JsonObject} */ ({'source': 'user-action'});
+    const eventParams = JSON.stringify(params);
     sandbox.stub(PropensityServer.prototype, 'sendEvent',
         (event, params) => {
           eventSent = event;

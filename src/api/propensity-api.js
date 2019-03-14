@@ -181,19 +181,19 @@ export class PropensityApi {
    * Each call to this API should have the first argument
    * as a valid string from the enum SubscriptionState.
    * @param {SubscriptionState} state
-   * @param {?Object} jsonEntitlements
+   * @param {?JsonObject} jsonEntitlements
    */
   sendSubscriptionState(state, jsonEntitlements) {}
 
   /**
    * Send a single user event to the DRX server
-   * Event should be valid string in Events
+   * Event should be valid string in enum Events.
    * JSON block of depth '1' provides event parameters.
    * The guideline to create this JSON block that describes
    * the event is provided against each enum listed in
    * the Event space.
    * @param {Event} userEvent
-   * @param {?Object} jsonParams
+   * @param {?JsonObject} jsonParams
    */
    sendEvent(userEvent, jsonParams) {}
 

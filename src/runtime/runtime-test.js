@@ -1411,20 +1411,17 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         Propensity.prototype,
         'getPropensity',
         () => {
-          return Promise.resolve(0.0);
+          return Promise.resolve({score: 42});
         });
     const propensity = runtime.getPropensityModule();
     expect(propensity).to.not.be.null;
-    expect(propensity.userConsent_).to.be.false;
-    propensity.enablePersonalization();
     propensity.sendSubscriptionState('na');
     propensity.sendEvent('expired');
-    propensity.getPropensity().then(score => {
-      expect(score).to.equal(0.0);
+    propensity.getPropensity().then(result => {
+      expect(result.score).to.equal(42);
     });
     expect(sendSubscriptionStateStub).to.be.calledWithExactly('na');
     expect(eventStub).to.be.calledWithExactly('expired');
     expect(getPropensityStub).to.be.calledOnce;
-    expect(propensity.userConsent_).to.be.true;
   });
 });

@@ -13,38 +13,99 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * @interface
- */
-export class PropensityServerInterface {
-  /**
-   * @param {string} state
-   * @param {string=} entitlements
-   */
-  sendSubscriptionState(state, entitlements) {}
+import {parseJson} from '../utils/json';
+export class XhrInterface {
 
   /**
-   * @param {string} event
-   * @param {string=} context
+   * Map of error code to error message
+   * @param {!Object.<number, string>} errorMap
    */
-  sendEvent(event, context) {}
+  constructor(errorMap) {
+    this.errorMap_ = errorMap;
+  }
 
   /**
-   * @param {string=} type
-   * @param {string=} referrer
-   * @return {?Promise<JsonObject>}
+   * Send request
+   * @param {string} url
+   * @param {!../utils/xhr.FetchInitDef} init
+   * @return {!Promise<!Response>}
    */
-  getPropensity(type, referrer) {}
+  sendRequest(url, init) {
+    return new Promise((resolve, reject) => {
+      /** @type {XMLHttpRequest} */
+      const xhr = new XMLHttpRequest();
+      const method = init.method || 'GET';
+      xhr.open(method, url, true);
+      if (init.headers) {
+        Object.keys(init.headers).forEach(function(header) {
+          xhr.setRequestHeader(header, init.headers[header]);
+        });
+      }
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState < /* STATUS_RECEIVED */ 2) {
+          return;
+        }
+        if (xhr.readyState == /* COMPLETE */ 4) {
+          if (xhr.status in this.errorMap_) {
+            let errorMessage = xhr.status + ':' + this.errorMap_[xhr.status];
+            if (xhr.statusText) {
+              errorMessage = errorMessage + ' ' + xhr.statusText;
+            }
+            reject(new Error(errorMessage));
+          } else if (xhr.status < 200 || xhr.status > 300) {
+            const errorMessage = xhr.status + ':' + xhr.statusText;
+            reject(new Error(errorMessage));
+          } else {
+            const response = new Response();
+            response.status = xhr.status;
+            response.ok = true;
+            response.statusText = xhr.statusText;
+            xhr.bodyUsed = true;
+            response.responseText = xhr.responseText;
+            response.url = xhr.responseURL;
+            response.headers = this.getResponseHeader_(
+                xhr.getAllResponseHeaders());
+            resolve(response);
+          }
+        }
+      };
+      xhr.onerror = () => {
+        reject(new Error('Network failure'));
+      };
+      xhr.onabort = () => {
+        reject(new Error('Request aborted'));
+      };
+      if (init.method == 'POST') {
+        xhr.send(init.body);
+      } else {
+        xhr.send();
+      }
+    });
+  }
 
   /**
-   * @param {boolean} userConsent
+   * Creates header from XHR header
+   * @param {?string} responseHeaders
+   * @return {!Headers}
    */
-  setUserConsent(userConsent) {}
+  getResponseHeader_(responseHeaders) {
+    const headerMap = new Headers();
+    if (!responseHeaders) {
+      return headerMap;
+    }
+    const arr = responseHeaders.trim().split(/[/r/n]+/);
+    arr.forEach(function(line) {
+      const parts = line.split(': ');
+      const header = parts.shift();
+      const value = parts.join(': ');
+      headerMap[header] = value;
+    });
+    return headerMap;
+  }
 }
 
 /**
- * @implements {PropensityServerInterface}
+ * Implements interface to Propensity server
  */
 export class PropensityServer {
   /**
@@ -66,6 +127,15 @@ export class PropensityServer {
     this.userConsent_ = false;
     /** @private @const {boolean}*/
     this.TEST_SERVERS_ = true;
+    /** {!Object.<number, string>} */
+    const errorMap = {
+      404: 'Publisher not whitelisted',
+      403: 'Not sent from allowed origin',
+      400: 'Invalid request',
+      500: 'Server not available',
+    };
+    /** @private @const {!XhrInterface} */
+    this.xhrInterface_ = new XhrInterface(errorMap);
   }
 
   /**
@@ -80,6 +150,17 @@ export class PropensityServer {
   }
 
   /**
+   * @return {?string}
+   */
+  getGads_() {
+    let gads = null;
+    const gadsmatch = this.win_.document.cookie.match(
+        '(^|;)\\s*__gads\\s*=\\s*([^;]+)');
+    gads = gadsmatch && encodeURIComponent(gadsmatch.pop());
+    return gads;
+  }
+
+  /**
    * Returns the client ID to be used
    * @return {?string}
    * @private
@@ -89,20 +170,23 @@ export class PropensityServer {
       if (!this.userConsent_) {
         this.clientId_ = 'noConsent';
       } else {
-        const gadsmatch = this.win_.document.cookie.match(
-            '(^|;)\\s*__gads\\s*=\\s*([^;]+)');
-        this.clientId_ = gadsmatch && encodeURIComponent(gadsmatch.pop());
+        this.clientId_ = this.getGads_();
       }
     }
     return this.clientId_;
   }
 
-  /** @override */
-  setUserConsent(consent) {
-    this.userConsent_ = consent;
+  /**
+   * @param {boolean} userConsent
+   */
+  setUserConsent(userConsent) {
+    this.userConsent_ = userConsent;
   }
 
-  /** @override */
+  /**
+   * @param {string} state
+   * @param {?string} entitlements
+   */
   sendSubscriptionState(state, entitlements) {
     this.product_ = entitlements;
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
@@ -110,161 +194,66 @@ export class PropensityServer {
       credentials: 'include',
       headers: {'Accept': 'text/plain, application/json'},
     });
-    const cookie = this.getClientId_();
+    const clientId = this.getClientId_();
     let url = this.getUrl_() + '/subopt/data?states=' + this.publicationId_
         + ':' + state;
     if (this.product_) {
       url = url + ':' + this.product_;
     }
-    if (cookie) {
-      url = url + '&cookie=' + cookie;
+    if (clientId) {
+      url = url + '&cookie=' + clientId;
     }
     url = url + '&u_tz=240';
-    this.sendRequest_(url, init).then(response => {
-      console.log('subscription state response', response);
-      return this.processResponse_(response);
-    }).catch(reason => {
-      // Rethrow async.
-      setTimeout(() => {
-        throw reason;
-      });
-    });
+    return this.xhrInterface_.sendRequest(url, init);
   }
 
   /**
-   * Send request
-   * @param {string} url
-   * @param {!../utils/xhr.FetchInitDef} init
-   * @return {!Promise<!Response>}
+   * @param {string} event
+   * @param {?string} context
    */
-  sendRequest_(url, init) {
-    const xhr = new XMLHttpRequest();
-    let responseResolver = null;
-    let responseFailure = null;
-    const responsePromise = new Promise((resolve, reject) => {
-      responseResolver = resolve;
-      responseFailure = reject;
-    });
-    if (init.credentials == 'include') {
-      xhr.withCredentials = true;
-    }
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState < /* STATUS_RECEIVED */ 2) {
-        return;
-      }
-      if (xhr.readyState == /* COMPLETE */ 4) {
-        const response = new Response();
-        response.status = xhr.status;
-        response.ok = xhr.status >= 200 && xhr.status < 300;
-        response.statusText = xhr.statusText;
-        xhr.bodyUsed = true;
-        response.responseText = xhr.responseText;
-        response.url = xhr.responseURL;
-        response.headers = xhr.getAllResponseHeaders();
-        responseResolver(response);
-      }
-    };
-    xhr.onerror = () => {
-      responseFailure(new Error('Network failure'));
-    };
-    xhr.onabort = () => {
-      responseFailure(new Error('Request aborted'));
-    };
-    xhr.open(init.method, url, true);
-    Object.keys(init.headers).forEach(function(header) {
-      xhr.setRequestHeader(header, init.headers[header]);
-    });
-    if (init.method == 'POST') {
-      xhr.send(init.body);
-    } else {
-      xhr.send();
-    }
-    return responsePromise;
-  }
-
-  /**
-   * Translate status code to error message
-   * @param {!Object} response
-   * @return {!Promise}
-   */
-  processResponse_(response) {
-    const status = response.status;
-    if (status == 404) {
-      return Promise.reject(new Error('Publisher not whitelisted'));
-    }
-    if (status == 403) {
-      return Promise.reject(new Error('Not sent from allowed origin'));
-    }
-    if (status == 400) {
-      return Promise.reject(new Error('Invalid request sent'));
-    }
-    if (status == 500) {
-      return Promise.reject(new Error('Server not available'));
-    }
-    if (!response.ok) {
-      return Promise.reject(new Error(response.statusText));
-    }
-    console.log('response was', response);
-    if (response.ok && response.status == 200) {
-      return Promise.resolve(response.responseText);
-    }
-  }
-
-  /** @override */
   sendEvent(event, context) {
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
       headers: {'Accept': 'text/plain, application/json'},
     });
-    const cookie = this.getClientId_();
+    const clientId = this.getClientId_();
     let url = this.getUrl_() + '/subopt/data?events=' + this.publicationId_
         + ':' + event;
     if (context) {
-      url = url + ':' + context;
+      url = url + ':' + JSON.stringify(context);
     }
-    if (cookie) {
-      url = url + '&cookie=' + cookie;
+    if (clientId) {
+      url = url + '&cookie=' + clientId;
     }
     url = url + '&u_tz=240';
-    this.sendRequest_(url, init).then(response => {
-      console.log('send event response', response);
-      return this.processResponse_(response);
-    }).catch(reason => {
-      // Rethrow async.
-      setTimeout(() => {
-        throw reason;
-      });
-    });
+    return this.xhrInterface_.sendRequest(url, init);
   }
 
-  /** @override */
-  getPropensity(type, referrer) {
+  /**
+   * @param {string} referrer
+   * @param {string} type
+   * @return {?Promise<JsonObject>}
+   */
+  getPropensity(referrer, type) {
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
       headers: {'Accept': 'text/plain, application/json'},
     });
-    const cookie = this.getClientId_();
+    const clientId = this.getClientId_();
     let url = this.getUrl_() + '/subopt/pts?products=' + this.publicationId_
-        + '&ref=' + referrer + '&type=' + type + '&u_tz=240';
-    if (cookie) {
-      url = url + '&cookie=' + cookie;
+        + '&type=' + type + '&u_tz=240';
+    url = url + '&ref=' + referrer;
+    if (clientId) {
+      url = url + '&cookie=' + clientId;
     }
-    console.log('url ', url);
-    return this.sendRequest_(url, init).then(response => {
-      console.log('get Propensity response', response);
-      return this.processResponse_(response);
-    }).then(scores => {
-      if (!scores) {
-        scores = JSON.stringify({'values': [-1]});
+    return this.xhrInterface_.sendRequest(url, init).then(response => {
+      let score = response && response.responseText;
+      if (!score) {
+        score = "{'values': [-1]}";
       }
-      return JSON.parse(scores);
-    }).catch(reason => {
-      // Rethrow async.
-      setTimeout(() => {
-        throw reason;
-      });
+      return parseJson(score);
     });
   }
 }
