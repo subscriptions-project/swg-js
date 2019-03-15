@@ -55,6 +55,7 @@ whenReady(function(subscriptions) {
   subscriptions.setOnLinkComplete(eventCallback('link-complete'));
   subscriptions.setOnLoginRequest(eventCallback('login-request'));
   subscriptions.setOnSubscribeResponse(eventCallback('subscribe'));
+  subscriptions.setOnContributionResponse(eventCallback('contribute'));
 });
 
 /**
