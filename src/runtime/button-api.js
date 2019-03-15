@@ -17,6 +17,9 @@
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 
+/**
+ * The button title should match that of button's SVG.
+ */
 /** @type {!Object<string, string>} */
 const TITLE_LANG_MAP = {
   'en': 'Subscribe with Google',
