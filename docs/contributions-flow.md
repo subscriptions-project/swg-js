@@ -32,7 +32,7 @@ subscriptions.setOnContributionResponse(function(subscriptionPromise) {
 });
 ```
 
-Once you receive contribution response:
+Once you receive the contribution response:
  1. You can process the contribution. For instance you can create a new account based on the `userData` info and save contribution for this account.
  2. Once contribution is processed, call `response.complete()`. This method will signal to SwG that your site has accepted the contribution. It will return a promise that will be resolved once the user has acknowledged contribution.
  3. Once the `response.complete()` promise is resolved, you can unblock content, show additional UI to the user or perform any actions you see fit.
