@@ -49,24 +49,27 @@ Another way to trigger the contributions flow is by first present a dialog with 
 
 A user will get a choice to either select one of the amounts to contribute to, or try request login to claim an existing contribution. This feature may not be available initially.
 
-To display contributions:
-
-```
-subscriptions.showContributionOptions();
-```
-
-If a user elects for a presented contribution options, publisher calls `showContributions` where The contributions API (`showContributionOptions`) accepts a list of SKUs to be displayed. The list of SKUs should be of type type `UI_CONTRIBUTIONS` (configuration).
-
-```
-subscriptions.showContributions({skus: ['sku1', 'sku2']});
-```
-
 To handle the login request:
 
 ```
 subscriptions.setOnLoginRequest(function() {
   // Handle login request.
 });
+
+To display contributions:
+
+```
+subscriptions.showContributionOptions();
+```
+
+The above mentioned API `showContributionsOptions` accepts a list of SKUs to be displayed. The list of SKUs should be of type type `UI_CONTRIBUTIONS` (publisher configuration).
+
+```
+subscriptions.showContributions({skus: ['sku1', 'sku2']});
+```
+
+The `setOnContributionResponse` callback will be called once the contribution is complete, or when the previously executed contribution is recovered.
+
 ```
 
 ## Contribution response
@@ -96,4 +99,4 @@ The SubscriptionResponse object has the following structure:
 For details, please refer to [Subscription flow](./subscribe-flow.md)
 
 
-*Important!* Please ensure you set up the `setOnContributionResponse` on any page where you accept purchases, not just before you call `subscribe` or `showContributions`. SwG client ensures it can recover contributions even when browsers unload pages.
+*Important!* Please ensure you set up the `setOnContributionResponse` on any page where you accept purchases, not just before you call `subscribe` or `showContributions`. The SwG client ensures it can recover contributions even when browsers unload pages.

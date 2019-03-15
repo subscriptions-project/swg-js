@@ -294,9 +294,9 @@ export const ReplaceSkuProrationMode = {
 
 /**
  * The Offers/Contributions UI is rendered differently based on the
- * ProductType. The ProductType parameter also passed to Payments flow to be
- * passed back to Payments confirmation page to render messages/text based on
- * the ProductType.
+ * ProductType. The ProductType parameter is passed to the Payments flow, and
+ * then passed back to the Payments confirmation page to render messages/text
+ * based on the ProductType.
  * @enum {string}
  */
 export const ProductType = {
