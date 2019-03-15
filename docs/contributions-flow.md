@@ -35,7 +35,7 @@ subscriptions.setOnContributionResponse(function(subscriptionPromise) {
 Once you receive the contribution response:
  1. You can process the contribution. For instance you can create a new account based on the `userData` info and save contribution for this account.
  2. Once contribution is processed, call `response.complete()`. This method will signal to SwG that your site has accepted the contribution. It will return a promise that will be resolved once the user has acknowledged contribution.
- 3. Once the `response.complete()` promise is resolved, you can unblock content, show additional UI to the user or perform any actions you see fit.
+ 3. Once the `response.complete()` promise is resolved, you can unblock your content, show additional UI to the user or perform any actions you see fit.
 
 To activate contribution flow itself, call the `contribute` method with the desired SKU:
 
@@ -45,8 +45,7 @@ subscriptions.contribute(sku);
 
 The `setOnContributionResponse` callback will be called once the contribution is complete, or when the previously executed contribution is recovered.
 
-Another way to trigger the contributions flow is by first present a dialog with a set of amounts presented to the user to contribute to.
-
+Another way to trigger the contributions flow is by first presenting a dialog with a set of amounts user can contribute to.
 A user will get a choice to either select one of the amounts to contribute to, or try request login to claim an existing contribution. This feature may not be available initially.
 
 To handle the login request:
