@@ -17,30 +17,33 @@
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 
+/**
+ * The button title should match that of button's SVG.
+ */
 /** @type {!Object<string, string>} */
 const TITLE_LANG_MAP = {
   'en': 'Subscribe with Google',
-  'ar': 'الاشتراك عبر Google',
+  'ar': 'Google اشترك مع',
   'de': 'Abonnieren mit Google',
   'es': 'Suscríbete con Google',
   'es-latam': 'Suscríbete con Google',
   'es-latn': 'Suscríbete con Google',
   'fr': 'S\'abonner avec Google',
-  'hi': 'Google की सदस्यता लें',
+  'hi': 'Google के ज़रिये सदस्यता',
   'id': 'Berlangganan dengan Google',
   'it': 'Abbonati con Google',
   'jp': 'Google で購読',
-  'ko': 'Google 을(를) 통해 구독',
+  'ko': 'Google 을 통한구독',
   'ms': 'Langgan dengan Google',
-  'nl': 'Abonneren met Google',
+  'nl': 'Abonneren via Google',
   'no': 'Abonner med Google',
   'pl': 'Subskrybuj z Google',
   'pt': 'Subscrever com o Google',
-  'pt-br': 'Faça sua assinatura com Google',
-  'ru': 'Подпишитесь через Google',
+  'pt-br': 'Assine com o Google',
+  'ru': 'Подпиcka через Google',
   'se': 'Prenumerera med Google',
-  'th': 'สมัครรับข้อมูลด้วย Google',
-  'tr': 'Google ile abone olun',
+  'th': 'สมัครฟาน Google',
+  'tr': 'Google ile Abone Ol',
   'uk': 'Підписатися через Google',
   'zh-tw': '透過 Google 訂閱',
 };
