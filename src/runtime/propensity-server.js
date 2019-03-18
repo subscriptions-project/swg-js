@@ -41,6 +41,9 @@ export class XhrInterface {
           xhr.setRequestHeader(header, init.headers[header]);
         });
       }
+      if (init.credentials) {
+        xhr.withCredentials = true;
+      }
       xhr.onreadystatechange = () => {
         if (xhr.readyState < /* STATUS_RECEIVED */ 2) {
           return;
