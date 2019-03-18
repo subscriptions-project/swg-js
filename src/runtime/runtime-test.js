@@ -60,6 +60,7 @@ import {
   AnalyticsMode,
   ReplaceSkuProrationMode,
   Subscriptions,
+  ProductType,
 } from '../api/subscriptions';
 import {createElement} from '../utils/dom';
 import {
@@ -1232,7 +1233,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
   });
 
-  it('should start PayStartFlow', () => {
+  it('should start PayStartFlow for subscription', () => {
     let flowInstance;
     const startStub = sandbox.stub(
         PayStartFlow.prototype,
@@ -1244,6 +1245,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     return runtime.subscribe('sku1').then(() => {
       expect(startStub).to.be.calledOnce;
       expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
+      expect(flowInstance.productType_).to.equal(ProductType.SUBSCRIPTION);
     });
   });
 
@@ -1302,6 +1304,23 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .then(() => {
           expect(stub).to.be.calledOnce;
         });
+  });
+
+  it('should start PayStartFlow for contribution', () => {
+    setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
+    let flowInstance;
+    const startStub = sandbox.stub(
+        PayStartFlow.prototype,
+        'start',
+        function() {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+    return runtime.contribute('sku1').then(() => {
+      expect(startStub).to.be.calledOnce;
+      expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
+      expect(flowInstance.productType_).to.equal(ProductType.UI_CONTRIBUTION);
+    });
   });
 
   it('should start saveSubscriptionFlow with callback for token', () => {

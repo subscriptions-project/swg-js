@@ -64,7 +64,9 @@ import {
   Subscriptions,
   WindowOpenMode,
   defaultConfig,
+  ProductType,
 } from '../api/subscriptions';
+import {debugLog} from '../utils/log';
 import {injectStyleSheet, isEdgeBrowser} from '../utils/dom';
 import {isArray} from '../utils/types';
 import {isExperimentOn} from './experiments';
@@ -234,6 +236,7 @@ export class Runtime {
    */
   startSubscriptionsFlowIfNeeded() {
     const control = getControlFlag(this.win_.document);
+    debugLog(control, 'mode');
     if (control == 'manual') {
       // "Skipping automatic start because control flag is set to "manual".
       return null;
@@ -340,6 +343,18 @@ export class Runtime {
   subscribe(skuOrSubscriptionRequest) {
     return this.configured_(true)
         .then(runtime => runtime.subscribe(skuOrSubscriptionRequest));
+  }
+
+  /** @override */
+  setOnContributionResponse(callback) {
+    return this.configured_(false)
+        .then(runtime => runtime.setOnContributionResponse(callback));
+  }
+
+  /** @override */
+  contribute(skuOrSubscriptionRequest) {
+    return this.configured_(true)
+        .then(runtime => runtime.contribute(skuOrSubscriptionRequest));
   }
 
   /** @override */
@@ -756,6 +771,23 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  setOnContributionResponse(callback) {
+    this.callbacks_.setOnContributionResponse(callback);
+  }
+
+  /** @override */
+  contribute(skuOrSubscriptionRequest) {
+    if (!isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS)) {
+      throw new Error('Not yet launched!');
+    }
+
+    return this.documentParsed_.then(() => {
+      return new PayStartFlow(
+          this, skuOrSubscriptionRequest, ProductType.UI_CONTRIBUTION).start();
+    });
+  }
+
+  /** @override */
   completeDeferredAccountCreation(opt_options) {
     return this.documentParsed_.then(() => {
       return new DeferredAccountFlow(this, opt_options || null).start();
@@ -816,6 +848,7 @@ function createPublicRuntime(runtime) {
     waitForSubscriptionLookup:
         runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
+    contribute: runtime.contribute.bind(runtime),
     completeDeferredAccountCreation:
         runtime.completeDeferredAccountCreation.bind(runtime),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
@@ -824,6 +857,7 @@ function createPublicRuntime(runtime) {
     setOnNativeSubscribeRequest:
         runtime.setOnNativeSubscribeRequest.bind(runtime),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
+    setOnContributionResponse: runtime.setOnContributionResponse.bind(runtime),
     setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),
     setOnFlowCanceled: runtime.setOnFlowCanceled.bind(runtime),
     saveSubscription: runtime.saveSubscription.bind(runtime),
