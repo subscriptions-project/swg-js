@@ -65,9 +65,4 @@ export class Propensity {
     }
     // TODO(sohanirao): send event and params if necessary
   }
-
-  /** @override */
-  enablePersonalization() {
-    this.userConsent_ = true;
-  }
 }
