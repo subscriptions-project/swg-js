@@ -59,7 +59,19 @@ export class Propensity {
     return this.propensityServer_.getPropensity(this.win_.document.referrer,
         type).then(result => {
           // TODO(sohanirao): Match HTTP interface
-          const propensityScore = {'score': result.values[0]};
+          let propensityScore = undefined;
+          const score = result && result['values'];
+          if (!score) {
+            propensityScore = {
+              header: {ok: false},
+              body: {result: 'no score available'},
+            };
+          } else {
+            propensityScore = {
+              header: {ok: true},
+              body: {result: score[0]},
+            };
+          }
           return propensityScore;
         });
   }
@@ -73,10 +85,5 @@ export class Propensity {
     // TODO(sohanirao) : verify parameters for some events
     const paramString = jsonParams && JSON.stringify(jsonParams);
     this.propensityServer_.sendEvent(userEvent, paramString);
-  }
-
-  /** @override */
-  enablePersonalization() {
-    this.propensityServer_.setUserConsent(true);
   }
 }

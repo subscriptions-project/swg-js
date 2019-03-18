@@ -821,7 +821,7 @@ export class ConfiguredRuntime {
     if (!isExperimentOn(this.win_, ExperimentFlags.PROPENSITY)) {
       throw new Error('Not yet launched!');
     }
-    return this.propensityModule_;
+    return Promise.resolve(this.propensityModule_);
   }
 }
 

@@ -1350,13 +1350,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       linkSaveFlow = this;
       return newPromise;
     });
-    const resultPromise = runtime.saveSubscription(() => {
+    runtime.saveSubscription(() => {
       return {authCode: 'testCode'};
     });
     return runtime.documentParsed_.then(() => {
       expect(linkSaveFlow.callback_()).to.deep.equal({authCode: 'testCode'});
     });
-    expect(resultPromise).to.deep.equal(newPromise);
   });
 
   it('should start LoginPromptApi', () => {
@@ -1420,6 +1419,10 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
   it('should invoke propensity APIs', () => {
     setExperiment(win, ExperimentFlags.PROPENSITY, true);
+    const propensityResponse = {
+      header: {ok: true},
+      body: {result: 42},
+    };
     const sendSubscriptionStateStub = sandbox.stub(
         Propensity.prototype,
         'sendSubscriptionState');
@@ -1429,18 +1432,21 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     const getPropensityStub = sandbox.stub(
         Propensity.prototype,
         'getPropensity',
-        () => {
-          return Promise.resolve({score: 42});
-        });
-    const propensity = runtime.getPropensityModule();
-    expect(propensity).to.not.be.null;
-    propensity.sendSubscriptionState('na');
-    propensity.sendEvent('expired');
-    propensity.getPropensity().then(result => {
-      expect(result.score).to.equal(42);
+        () => Promise.resolve(propensityResponse));
+    return runtime.getPropensityModule().then(propensity => {
+      expect(propensity).to.not.be.null;
+      propensity.sendSubscriptionState('na');
+      propensity.sendEvent('expired');
+      expect(sendSubscriptionStateStub).to.be.calledWithExactly('na');
+      expect(eventStub).to.be.calledWithExactly('expired');
+      return propensity.getPropensity().then(score => {
+        expect(score).to.not.be.null;
+        expect(score.header).to.not.be.null;
+        expect(score.header.ok).to.be.true;
+        expect(score.body).to.not.be.null;
+        expect(score.body.result).to.equal(42);
+        expect(getPropensityStub).to.be.calledOnce;
+      });
     });
-    expect(sendSubscriptionStateStub).to.be.calledWithExactly('na');
-    expect(eventStub).to.be.calledWithExactly('expired');
-    expect(getPropensityStub).to.be.calledOnce;
   });
 });

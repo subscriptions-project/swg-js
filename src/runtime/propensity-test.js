@@ -132,7 +132,11 @@ describes.realWin('Propensity', {}, env => {
           });
         });
     return propensity.getPropensity().then(propensityScore => {
-      expect(propensityScore.score).to.equal(42);
+      expect(propensityScore).to.not.be.null;
+      expect(propensityScore.header).to.not.be.null;
+      expect(propensityScore.header.ok).to.be.true;
+      expect(propensityScore.body).to.not.be.null;
+      expect(propensityScore.body.result).to.equal(42);
     });
   });
 });
