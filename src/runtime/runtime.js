@@ -345,6 +345,12 @@ export class Runtime {
   }
 
   /** @override */
+  setOnContributionResponse(callback) {
+    return this.configured_(false)
+        .then(runtime => runtime.setOnContributionResponse(callback));
+  }
+
+  /** @override */
   contribute(skuOrSubscriptionRequest) {
     return this.configured_(true)
         .then(runtime => runtime.contribute(skuOrSubscriptionRequest));
@@ -754,6 +760,11 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  setOnContributionResponse(callback) {
+    this.callbacks_.setOnContributionResponse(callback);
+  }
+
+  /** @override */
   contribute(skuOrSubscriptionRequest) {
     if (!isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS)) {
       throw new Error('Not yet launched!');
@@ -827,6 +838,7 @@ function createPublicRuntime(runtime) {
     setOnNativeSubscribeRequest:
         runtime.setOnNativeSubscribeRequest.bind(runtime),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
+    setOnContributionResponse: runtime.setOnContributionResponse.bind(runtime),
     setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),
     setOnFlowCanceled: runtime.setOnFlowCanceled.bind(runtime),
     saveSubscription: runtime.saveSubscription.bind(runtime),
