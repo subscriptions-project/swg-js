@@ -29,6 +29,7 @@ import {
 } from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
+import {ProductType} from '../api/subscriptions';
 import * as sinon from 'sinon';
 
 
@@ -78,6 +79,7 @@ describes.realWin('OffersFlow', {}, env => {
           publicationId: 'pub1',
           productId: 'pub1:label1',
           showNative: false,
+          productType: ProductType.SUBSCRIPTION,
           list: 'default',
           skus: null,
           isClosable: false,
@@ -103,6 +105,7 @@ describes.realWin('OffersFlow', {}, env => {
           publicationId: 'pub1',
           productId: 'pub1:label1',
           showNative: false,
+          productType: ProductType.SUBSCRIPTION,
           list: 'default',
           skus: null,
           isClosable: false,
@@ -121,6 +124,7 @@ describes.realWin('OffersFlow', {}, env => {
           publicationId: 'pub1',
           productId: 'pub1:label1',
           showNative: false,
+          productType: ProductType.SUBSCRIPTION,
           list: 'other',
           skus: null,
           isClosable: false,
@@ -139,6 +143,7 @@ describes.realWin('OffersFlow', {}, env => {
           publicationId: 'pub1',
           productId: 'pub1:label1',
           showNative: false,
+          productType: ProductType.SUBSCRIPTION,
           list: 'default',
           skus: ['sku1', 'sku2'],
           isClosable: false,
@@ -157,6 +162,7 @@ describes.realWin('OffersFlow', {}, env => {
           publicationId: 'pub1',
           productId: 'pub1:label1',
           showNative: true,
+          productType: ProductType.SUBSCRIPTION,
           list: 'default',
           skus: null,
           isClosable: false,
