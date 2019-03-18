@@ -21,6 +21,7 @@ import {AnalyticsEvent} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {
+  ProductType,
   ReplaceSkuProrationMode,
 } from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
@@ -93,6 +94,7 @@ describes.realWin('PayStartFlow', {}, env => {
   let flow;
   let analyticsMock;
   const transactionIdRegex = /^.{8}-.{4}-.{4}-.{4}-.{12}$/;
+  const productTypeRegex = /^(SUBSCRIPTION|UI_CONTRIBUTION)$/;
 
   beforeEach(() => {
     win = env.win;
@@ -112,8 +114,11 @@ describes.realWin('PayStartFlow', {}, env => {
     analyticsMock.verify();
   });
 
-  it('should have valid flow constructed', () => {
-    const subscribeRequest = {skuId: 'sku1', publicationId: 'pub1'};
+  it('should have valid flow constructed in payStartFlow', () => {
+    const subscribeRequest = {
+      skuId: 'sku1',
+      publicationId: 'pub1',
+    };
     callbacksMock.expects('triggerFlowStarted')
         .withExactArgs('subscribe', {skuId: 'sku1'})
         .once();
@@ -128,6 +133,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'i': {
             'startTimeMs': sinon.match.any,
             'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {
@@ -166,6 +172,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'i': {
             'startTimeMs': sinon.match.any,
             'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {
@@ -198,6 +205,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'i': {
             'startTimeMs': sinon.match.any,
             'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {
@@ -226,6 +234,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'i': {
             'startTimeMs': sinon.match.any,
             'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {
@@ -248,6 +257,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let flow;
   let analyticsMock;
   let jserrorMock;
+
+  const TOKEN_HEADER = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+  const TOKEN_PAYLOAD =
+      'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4g4K-1' +
+      'WuWKoOSFjOCoh-KYjsOIypjYut6dIiwiYWRtaW4iOnRydWV9';
+  const TOKEN_SIG = 'TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ';
+  const TOKEN = `${TOKEN_HEADER}.${TOKEN_PAYLOAD}.${TOKEN_SIG}`;
 
   beforeEach(() => {
     win = env.win;
@@ -283,7 +299,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
     const entitlements = new Entitlements('service1', 'RaW', [], null);
     const response = new SubscribeResponse(
-        'RaW', purchaseData, userData, entitlements);
+        'RaW', purchaseData, userData, entitlements,
+        ProductType.SUBSCRIPTION, null);
     entitlementsManagerMock.expects('pushNextEntitlements')
         .withExactArgs(sinon.match(arg => {
           return arg === 'RaW';
@@ -302,6 +319,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           idToken: 'ID_TOK',
+          productType: ProductType.SUBSCRIPTION,
         })
         .returns(Promise.resolve(port));
     return flow.start(response);
@@ -313,7 +331,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
     });
-    const response = new SubscribeResponse('RaW', purchaseData, userData, null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
@@ -327,6 +346,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           loginHint: 'test@example.org',
+          productType: ProductType.SUBSCRIPTION,
         })
         .returns(Promise.resolve(port));
     return flow.start(response);
@@ -339,7 +359,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
     const entitlements = new Entitlements('service1', 'RaW', [], null);
     const response = new SubscribeResponse(
-        'RaW', purchaseData, userData, entitlements);
+      'RaW', purchaseData, userData, entitlements,
+      ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};
@@ -381,7 +402,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
     });
-    const response = new SubscribeResponse('RaW', purchaseData, userData, null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};
@@ -420,7 +442,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
     });
-    const response = new SubscribeResponse('RaW', purchaseData, userData, null);
+    const response = new SubscribeResponse(
+        'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};
@@ -488,7 +511,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .once();
 
     const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
-    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const entitlements = new Entitlements('service1', TOKEN, [], null);
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, entitlements);
     const port = new ActivityPort();
@@ -513,9 +536,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .once();
 
     const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
-    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const entitlements = new Entitlements('service1', TOKEN, [], null);
     const response = new SubscribeResponse(
-        'RaW', purchaseData, userData, entitlements);
+        'RaW', purchaseData, userData, entitlements,
+        ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.message = () => {};

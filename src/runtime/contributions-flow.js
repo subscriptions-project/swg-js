@@ -17,7 +17,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows} from '../api/subscriptions';
+import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 
@@ -87,7 +87,8 @@ export class ContributionsFlow {
       if (result['sku']) {
         new PayStartFlow(
             this.deps_,
-            /** @type {string} */ (result['sku']))
+            /** @type {string} */ (result['sku']),
+            ProductType.UI_CONTRIBUTION)
             .start();
         return;
       }

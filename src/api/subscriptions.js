@@ -38,7 +38,7 @@ export class Subscriptions {
   init(productOrPublicationId) {}
 
   /**
-   * Optionally configugures the runtime with non-default properties. See
+   * Optionally configures the runtime with non-default properties. See
    * `Config` definition for details.
    * @param {!Config} config
    */
@@ -126,6 +126,18 @@ export class Subscriptions {
    * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
    */
   subscribe(skuOrSubscriptionRequest) {}
+
+  /**
+   * Set the contribution complete callback.
+   * @param {function(!Promise<!SubscribeResponse>)} callback
+   */
+  setOnContributionResponse(callback) {}
+
+   /**
+   * Starts contributions purchase flow.
+   * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
+   */
+  contribute(skuOrSubscriptionRequest) {}
 
   /**
    * Starts the deferred account creation flow.
@@ -239,6 +251,7 @@ export const SubscriptionFlows = {
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
   SHOW_CONTRIBUTION_OPTIONS: 'showContributionOptions',
   SUBSCRIBE: 'subscribe',
+  CONTRIBUTE: 'contribute',
   COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',
   SHOW_LOGIN_PROMPT: 'showLoginPrompt',
@@ -287,6 +300,17 @@ export const ReplaceSkuProrationMode = {
   IMMEDIATE_WITH_TIME_PRORATION: 'IMMEDIATE_WITH_TIME_PRORATION',
 };
 
+/**
+ * The Offers/Contributions UI is rendered differently based on the
+ * ProductType. The ProductType parameter is passed to the Payments flow, and
+ * then passed back to the Payments confirmation page to render messages/text
+ * based on the ProductType.
+ * @enum {string}
+ */
+export const ProductType = {
+  SUBSCRIPTION: 'SUBSCRIPTION',
+  UI_CONTRIBUTION: 'UI_CONTRIBUTION',
+};
 
 /**
  * @return {!Config}
@@ -340,7 +364,7 @@ export let SaveSubscriptionRequest;
  * Callback for retrieving subscription request
  *
  * @callback SaveSubscriptionRequestCallback
- * @return {!Promise<SaveSbuscriptionRequest> | !SaveSubscriptionRequest} request
+ * @return {!Promise<SaveSubscriptionRequest> | !SaveSubscriptionRequest} request
  */
 export let SaveSubscriptionRequestCallback;
 

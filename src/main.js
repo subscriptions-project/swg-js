@@ -22,6 +22,6 @@
 import './polyfills';
 import {installRuntime} from './runtime/runtime';
 
-installRuntime(self);
-
 console.info('Subscriptions Runtime: $internalRuntimeVersion$');
+
+installRuntime(self);
