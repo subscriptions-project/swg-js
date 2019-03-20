@@ -56,6 +56,7 @@ export class ContributionsFlow {
         feArgs({
           'productId': deps.pageConfig().getProductId(),
           'publicationId': deps.pageConfig().getPublicationId(),
+          'productType': ProductType.UI_CONTRIBUTION,
           'list': options && options.list || 'default',
           'skus': options && options.skus || null,
           'isClosable': isClosable,
