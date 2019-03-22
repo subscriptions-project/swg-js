@@ -143,7 +143,7 @@ export const PropensityType = {
 }
 
 /**
- * The Body field of the Propensity Score
+ * The Body field of the Propensity Score.
  * Properties:
  * - result: Required. When available, provides the propensity score of the
  *       requested type with a number in the range [0-100], indicating the
@@ -159,7 +159,7 @@ export const PropensityType = {
 export let Body;
 
 /**
- * The Header of the Propensity Score
+ * The Header of the Propensity Score.
  * Properties:
  * - ok: Required. true, if propensity score is available, false otherwise.
  *
