@@ -51,7 +51,7 @@ export const Event = {
    * User has been shown a subscription ad.
    * Every impression should be qualified as active or passive.
    * The JSON block can provide the name of the subscription ad
-   * campaign. Ad impressions are usually passive.
+   * creative or campaign. Ad impressions are usually passive.
    * For example; {'name': 'fall_ad', 'is_active': false }
    */
   IMPRESSION_AD: 'ad_shown',
@@ -66,7 +66,7 @@ export const Event = {
    * and therefore considered active impression.
    * For example; {'offers': ['basic-monthly', 'premium-weekly'],
    *               'source': 'ad-click',
-                  ‘is_ative’: true}
+                  ‘is_active’: true}
    * For example; {‘offers’: [‘basic-monthly’, ‘premium-weekly’],
    *              ‘source’: ‘navigate-to-offers-page’,
    *              ‘is_active’: true }
@@ -143,6 +143,7 @@ export const PropensityType = {
 }
 
 /**
+ * The Body field of the Propensity Score
  * Properties:
  * - result: Required. When available, provides the propensity score of the
  *       requested type with a number in the range [0-100], indicating the
@@ -158,6 +159,7 @@ export const PropensityType = {
 export let Body;
 
 /**
+ * The Header of the Propensity Score
  * Properties:
  * - ok: Required. true, if propensity score is available, false otherwise.
  *
