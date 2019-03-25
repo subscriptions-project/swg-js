@@ -29,11 +29,10 @@ export const SubscriptionState = {
 }
 
 /**
- * Subscription related events. A JSON block of depth 1 describing
- * the event can be sent as a parameter in the sendEvent() API call
- * to provide more context about the event. Listed below are enum
- * strings to specify events and corresponding JSON keys to
- * populate as parameters when an event is sent in the API.
+ * Subscription related events. Listed below are enum strings that
+ * represent events related to Subscription flow. Event parameters
+ * that provide more context about the event are sent as a JSON
+ * block of depth 1 in the sendEvent() API call.
  * @enum {string}
  */
 export const Event = {
@@ -52,7 +51,7 @@ export const Event = {
    * Every impression should be qualified as active or passive.
    * The JSON block can provide the name of the subscription ad
    * creative or campaign. Ad impressions are usually passive.
-   * For example; {'name': 'fall_ad', 'is_active': false }
+   * For example; {'name': 'fall_ad', 'is_active': false}
    */
   IMPRESSION_AD: 'ad_shown',
   /**
@@ -69,7 +68,7 @@ export const Event = {
                   ‘is_active’: true}
    * For example; {‘offers’: [‘basic-monthly’, ‘premium-weekly’],
    *              ‘source’: ‘navigate-to-offers-page’,
-   *              ‘is_active’: true }
+   *              ‘is_active’: true}
    * If the user was shown the offers as a result of paywall metering
    * expiration, it is considered a passive impression.
    * For example; {‘offers’: [‘basic-monthly’],
@@ -86,7 +85,7 @@ export const Event = {
    * - have a button to navigate the user to an offers page, (in
    *   this case, the next event will be IMPRESSION_OFFERS, with
    *   parameter 'source' as subscriptions-landing-page and
-   *   'is_active' will be set to true),
+   *   'is_active' set to true),
    * - show offers the user can select, (in this case, the next
    *   event will be IMPRESSION_OFFERS, with a parameter 'source'
    *   as navigate-to-offers-page and 'is_active' set to true),
@@ -113,7 +112,7 @@ export const Event = {
   /**
    * ACTION_PAYMENT_FLOW_STARTED event.
    * User has started payment flow.
-   * The JSON block can provide the product selected
+   * The JSON block can provide the product selected.
    * For example; {'product': 'basic-monthly'}
    */
   ACTION_PAYMENT_FLOW_STARTED: 'payment_flow_start',
@@ -170,6 +169,7 @@ export let Body;
 export let Header;
 
 /**
+ * The Propensity Score.
  * Properties:
  * - header: Required. Provides the header of the Score response.
  * - body: Required. Provides the body of the Score response.
