@@ -41,4 +41,9 @@ export const ExperimentFlags = {
    * Enables the contributions feature.
    */
   CONTRIBUTIONS: 'contributions',
+
+  /**
+   * Enables the Propensity feature
+   */
+  PROPENSITY: 'propensity',
 };
