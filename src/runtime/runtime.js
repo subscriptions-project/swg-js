@@ -73,6 +73,7 @@ import {isExperimentOn} from './experiments';
 import {setExperiment} from './experiments';
 import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
+import {Propensity} from './propensity';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -423,8 +424,14 @@ export class Runtime {
   attachButton(button, optionsOrCallback, opt_callback) {
     return this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
   }
-}
 
+  /** @override */
+  getPropensityModule() {
+    return this.configured_(true).then(runtime => {
+      return runtime.getPropensityModule();
+    });
+  }
+}
 
 /**
  * @implements {DepsDef}
@@ -499,6 +506,10 @@ export class ConfiguredRuntime {
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
+
+    /** @private @const {!Propensity} */
+    this.propensityModule_ = new Propensity(this.win_,
+      this.pageConfig_);
 
     const preconnect = new Preconnect(this.win_.document);
 
@@ -804,6 +815,14 @@ export class ConfiguredRuntime {
     // This is a minor duplication to allow this code to be sync.
     this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
   }
+
+  /** @override */
+  getPropensityModule() {
+    if (!isExperimentOn(this.win_, ExperimentFlags.PROPENSITY)) {
+      throw new Error('Not yet launched!');
+    }
+    return Promise.resolve(this.propensityModule_);
+  }
 }
 
 /**
@@ -844,6 +863,8 @@ function createPublicRuntime(runtime) {
     saveSubscription: runtime.saveSubscription.bind(runtime),
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
+    getPropensityModule: runtime
+        .getPropensityModule.bind(runtime),
   });
 }
 
