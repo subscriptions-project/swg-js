@@ -17,7 +17,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows} from '../api/subscriptions';
+import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 
@@ -56,6 +56,7 @@ export class ContributionsFlow {
         feArgs({
           'productId': deps.pageConfig().getProductId(),
           'publicationId': deps.pageConfig().getPublicationId(),
+          'productType': ProductType.UI_CONTRIBUTION,
           'list': options && options.list || 'default',
           'skus': options && options.skus || null,
           'isClosable': isClosable,
@@ -87,7 +88,8 @@ export class ContributionsFlow {
       if (result['sku']) {
         new PayStartFlow(
             this.deps_,
-            /** @type {string} */ (result['sku']))
+            /** @type {string} */ (result['sku']),
+            ProductType.UI_CONTRIBUTION)
             .start();
         return;
       }

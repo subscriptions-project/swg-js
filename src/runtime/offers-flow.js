@@ -17,7 +17,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows} from '../api/subscriptions';
+import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 /**
@@ -62,6 +62,7 @@ export class OffersFlow {
           'productId': deps.pageConfig().getProductId(),
           'publicationId': deps.pageConfig().getPublicationId(),
           'showNative': deps.callbacks().hasSubscribeRequestCallback(),
+          'productType': ProductType.SUBSCRIPTION,
           'list': options && options.list || 'default',
           'skus': options && options.skus || null,
           'isClosable': isClosable,

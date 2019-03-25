@@ -61,6 +61,7 @@ The SubscriptionResponse object has the following structure:
     "raw": "",
     "signature": "",
   },
+  "productType": "SUBSCRIPTION",
   "userData": {
     "idToken" : "...",
     "data": { ... },
