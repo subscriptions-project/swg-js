@@ -196,7 +196,7 @@ export class PropensityApi {
    * Each call to this API should have the first argument
    * as a valid string from the enum SubscriptionState.
    * @param {SubscriptionState} state
-   * @param {?Object} jsonEntitlements
+   * @param {?JsonObject} jsonEntitlements
    */
   sendSubscriptionState(state, jsonEntitlements) {}
 
@@ -208,7 +208,7 @@ export class PropensityApi {
    * the event is provided against each enum listed in
    * the Event enum above.
    * @param {Event} userEvent
-   * @param {?Object} jsonParams
+   * @param {?JsonObject} jsonParams
    */
    sendEvent(userEvent, jsonParams) {}
 
