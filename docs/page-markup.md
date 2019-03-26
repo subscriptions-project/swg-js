@@ -14,17 +14,43 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# Subscriptions Page Markup
+# SwG Structured Data Markup
 
-SwG requires configuring two main properties:
- 1. The product ID that the user must be granted to view the content.
- 2. Whether this content requires this product at this time.
+SwG uses [schema.org](https://schema.org) structured data markup for content authorization purposes.  SwG markup specifies a `productID` associated with a content page, and if the user must have entitlement to the `productID` to view the content.
 
-SwG uses Schema.org markup. The JSON-LD and Microdata formats are supported.
+## SwG markup requirements
+
+Type must include [`CreativeWork`](https://schema.org/CreativeWork) or one of the following more specific types of `CreativeWork`:
+ - [`Article`](https://schema.org/Article)
+ - [`NewsArticle`](https://schema.org/NewsArticle)
+ - [`Blog`](https://schema.org/Blog)
+ - [`Comment`](https://schema.org/Comment)
+ - [`Course`](https://schema.org/Course)
+ - [`HowTo`](https://schema.org/HowTo)
+ - [`Message`](https://schema.org/Message)
+ - [`Review`](https://schema.org/Review)
+ - [`WebPage`](https://schema.org/WebPage)
+
+Multiple types can be used.  See the type value for [`isPartOf`](https://schema.org/isPartOf) in the examples below.
+
+[`isAccessibleForFree`](https://schema.org/isAccessibleForFree) must be specified.  Use `true` to indicate content is available for free.
+
+`isPartOf` must be specified and include:
+ - the [`name`](https://schema.org/name) of the publication, and
+ - the `productID` associated with the content page.
+
+Media objects on a content page must be marked as [`associatedMedia`](https://schema.org/associatedMedia).
+
+## Markup placement
+The SwG configuration is resolved as soon as `productID` and `isAccessibleForFree` are found. It is, therefore, advised to place structured data markup as high in the DOM tree as possible.
+
+## Supported formats
+
+JSON-LD and Microdata formats are supported; JSON-LD is preferred.
 
 ## JSON-LD markup
 
-Using JSON-LD, the markup would look like:
+Using JSON-LD, the markup for a publication `The Norcal Tribune` with a productID `norcal_tribune.com:basic` could look like:
 
 ```
 <script type="application/ld+json">
@@ -46,14 +72,9 @@ Using JSON-LD, the markup would look like:
 </script>
 ```
 
-Thus, notice that:
- 1. The product ID is "norcal_tribune.com:basic" (`"productID": "norcal_tribune.com:basic"`).
- 2. This document is currently locked (`"isAccessibleForFree": false`)
-
-
 ## Microdata markup
 
-Using Microdata, the markup could look like this:
+The corresponding markup in Microdata format could look like:
 
 ```
 <div itemscope itemtype="http://schema.org/NewsArticle">
@@ -64,13 +85,3 @@ Using Microdata, the markup could look like this:
   </div>
 </div>
 ```
-
-A usable configuration will provide `NewsArticle` typed item with `isAccessibleForFree` property and a
-subitem of type `Product` that specifies the `productID`.
-
-In this example:
- 1. The product ID is "norcal_tribune.com:basic" (`"productID": "norcal_tribune.com:basic"`).
- 2. This document is currently locked (`"isAccessibleForFree": false`)
-
-The configuration is resolved as soon as `productID` and `isAccessibleForFree` are found. It is, therefore,
-advised to place the configuration as high up in the DOM tree as possible.
