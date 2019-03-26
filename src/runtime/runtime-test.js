@@ -63,6 +63,7 @@ import {
   AnalyticsMode,
   ReplaceSkuProrationMode,
   Subscriptions,
+  ProductType,
 } from '../api/subscriptions';
 import {createElement} from '../utils/dom';
 import {
@@ -70,6 +71,7 @@ import {
   setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
+import {Propensity} from './propensity';
 
 const EDGE_USER_AGENT =
     'Mozilla/5.0 (Windows NT 10.0)' +
@@ -450,6 +452,15 @@ describes.realWin('Runtime', {}, env => {
         expect(cr.config().windowOpenMode).to.equal('redirect');
       });
     });
+
+    it('should not return Propensity module when config not available', () => {
+      configPromise = Promise.reject('config not available');
+      return runtime.getPropensityModule().then(() => {
+        throw new Error('must have failed');
+      }, reason => {
+        expect(() => {throw reason;}).to.throw(/config not available/);
+      });
+    });
   });
 
   describe('configured', () => {
@@ -776,6 +787,18 @@ describes.realWin('Runtime', {}, env => {
         expect(fetchStub).to.be.calledOnce;
         expect(xhrFetchStub).to.not.be.called;
       });
+    });
+
+    it('should return propensity module', () => {
+      const propensity = new Propensity(win, config);
+      configuredRuntimeMock.expects('getPropensityModule')
+          .once()
+          .returns(propensity);
+      return runtime.getPropensityModule()
+          .then(propensityModule => {
+            expect(configureStub).to.be.calledOnce.calledWith(true);
+            expect(propensityModule).to.equal(propensity);
+          });
     });
   });
 });
@@ -1239,7 +1262,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
   });
 
-  it('should start PayStartFlow', () => {
+  it('should start PayStartFlow for subscription', () => {
     let flowInstance;
     const startStub = sandbox.stub(
         PayStartFlow.prototype,
@@ -1251,6 +1274,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     return runtime.subscribe('sku1').then(() => {
       expect(startStub).to.be.calledOnce;
       expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
+      expect(flowInstance.productType_).to.equal(ProductType.SUBSCRIPTION);
     });
   });
 
@@ -1311,6 +1335,23 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
   });
 
+  it('should start PayStartFlow for contribution', () => {
+    setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
+    let flowInstance;
+    const startStub = sandbox.stub(
+        PayStartFlow.prototype,
+        'start',
+        function() {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+    return runtime.contribute('sku1').then(() => {
+      expect(startStub).to.be.calledOnce;
+      expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
+      expect(flowInstance.productType_).to.equal(ProductType.UI_CONTRIBUTION);
+    });
+  });
+
   it('should start saveSubscriptionFlow with callback for token', () => {
     let linkSaveFlow;
     const newPromise = new Promise(() => {});
@@ -1338,13 +1379,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       linkSaveFlow = this;
       return newPromise;
     });
-    const resultPromise = runtime.saveSubscription(() => {
+    runtime.saveSubscription(() => {
       return {authCode: 'testCode'};
     });
     return runtime.documentParsed_.then(() => {
       expect(linkSaveFlow.callback_()).to.deep.equal({authCode: 'testCode'});
     });
-    expect(resultPromise).to.deep.equal(newPromise);
   });
 
   it('should start LoginPromptApi', () => {
@@ -1400,5 +1440,42 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     runtime.attachButton(button, options, callback);
     expect(stub).to.be.calledOnce
         .calledWithExactly(button, options, callback);
+  });
+
+  it('should not return propensity module', () => {
+    expect(() => runtime.getPropensityModule()).to.throw(/Not yet launched!/);
+  });
+
+  it('should invoke propensity APIs', () => {
+    setExperiment(win, ExperimentFlags.PROPENSITY, true);
+    const propensityResponse = {
+      header: {ok: true},
+      body: {result: 42},
+    };
+    const sendSubscriptionStateStub = sandbox.stub(
+        Propensity.prototype,
+        'sendSubscriptionState');
+    const eventStub = sandbox.stub(
+        Propensity.prototype,
+        'sendEvent');
+    const getPropensityStub = sandbox.stub(
+        Propensity.prototype,
+        'getPropensity',
+        () => Promise.resolve(propensityResponse));
+    return runtime.getPropensityModule().then(propensity => {
+      expect(propensity).to.not.be.null;
+      propensity.sendSubscriptionState('na');
+      propensity.sendEvent('expired');
+      expect(sendSubscriptionStateStub).to.be.calledWithExactly('na');
+      expect(eventStub).to.be.calledWithExactly('expired');
+      return propensity.getPropensity().then(score => {
+        expect(score).to.not.be.null;
+        expect(score.header).to.not.be.null;
+        expect(score.header.ok).to.be.true;
+        expect(score.body).to.not.be.null;
+        expect(score.body.result).to.equal(42);
+        expect(getPropensityStub).to.be.calledOnce;
+      });
+    });
   });
 });

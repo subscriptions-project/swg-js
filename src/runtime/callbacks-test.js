@@ -130,6 +130,21 @@ describes.sandboxed('Callbacks', {}, () => {
     });
   });
 
+  it('should trigger and execute ContributionResponse', () => {
+    const spy = sandbox.spy();
+    const p = Promise.resolve();
+    callbacks.setOnLinkComplete(spy);  // Make sure there's no ID conflict.
+    callbacks.setOnContributionResponse(spy);
+    expect(callbacks.hasLinkCompletePending()).to.be.false;
+    expect(callbacks.hasSubscribeResponsePending()).to.be.false;
+    expect(callbacks.triggerContributionResponse(p)).to.be.true;
+    expect(callbacks.hasContributionResponsePending()).to.be.true;
+    return skipMicro().then(() => {
+      expect(spy).to.be.calledOnce.calledWith(p);
+      expect(callbacks.hasContributionResponsePending()).to.be.false;
+    });
+  });
+
   it('should trigger and execute entitlementsResponse', () => {
     const spy = sandbox.spy();
     const p = Promise.resolve();

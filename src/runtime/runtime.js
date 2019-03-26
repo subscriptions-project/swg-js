@@ -64,7 +64,9 @@ import {
   Subscriptions,
   WindowOpenMode,
   defaultConfig,
+  ProductType,
 } from '../api/subscriptions';
+import {debugLog} from '../utils/log';
 import {injectStyleSheet, isEdgeBrowser} from '../utils/dom';
 import {isArray} from '../utils/types';
 import {isExperimentOn} from './experiments';
@@ -74,6 +76,7 @@ import {AnalyticsMode} from '../api/subscriptions';
 import {
   SwgOffersFlow,
 } from './swg-offers-flow';
+import {Propensity} from './propensity';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -236,6 +239,7 @@ export class Runtime {
    */
   startSubscriptionsFlowIfNeeded() {
     const control = getControlFlag(this.win_.document);
+    debugLog(control, 'mode');
     if (control == 'manual') {
       // "Skipping automatic start because control flag is set to "manual".
       return null;
@@ -345,6 +349,18 @@ export class Runtime {
   }
 
   /** @override */
+  setOnContributionResponse(callback) {
+    return this.configured_(false)
+        .then(runtime => runtime.setOnContributionResponse(callback));
+  }
+
+  /** @override */
+  contribute(skuOrSubscriptionRequest) {
+    return this.configured_(true)
+        .then(runtime => runtime.contribute(skuOrSubscriptionRequest));
+  }
+
+  /** @override */
   completeDeferredAccountCreation(opt_options) {
     return this.configured_(true)
         .then(runtime => runtime.completeDeferredAccountCreation(opt_options));
@@ -411,8 +427,14 @@ export class Runtime {
   attachButton(button, optionsOrCallback, opt_callback) {
     return this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
   }
-}
 
+  /** @override */
+  getPropensityModule() {
+    return this.configured_(true).then(runtime => {
+      return runtime.getPropensityModule();
+    });
+  }
+}
 
 /**
  * @implements {DepsDef}
@@ -487,6 +509,10 @@ export class ConfiguredRuntime {
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
+
+    /** @private @const {!Propensity} */
+    this.propensityModule_ = new Propensity(this.win_,
+      this.pageConfig_);
 
     const preconnect = new Preconnect(this.win_.document);
 
@@ -753,6 +779,23 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  setOnContributionResponse(callback) {
+    this.callbacks_.setOnContributionResponse(callback);
+  }
+
+  /** @override */
+  contribute(skuOrSubscriptionRequest) {
+    if (!isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS)) {
+      throw new Error('Not yet launched!');
+    }
+
+    return this.documentParsed_.then(() => {
+      return new PayStartFlow(
+          this, skuOrSubscriptionRequest, ProductType.UI_CONTRIBUTION).start();
+    });
+  }
+
+  /** @override */
   completeDeferredAccountCreation(opt_options) {
     return this.documentParsed_.then(() => {
       return new DeferredAccountFlow(this, opt_options || null).start();
@@ -780,6 +823,14 @@ export class ConfiguredRuntime {
     // This is a minor duplication to allow this code to be sync.
     this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
   }
+
+  /** @override */
+  getPropensityModule() {
+    if (!isExperimentOn(this.win_, ExperimentFlags.PROPENSITY)) {
+      throw new Error('Not yet launched!');
+    }
+    return Promise.resolve(this.propensityModule_);
+  }
 }
 
 /**
@@ -805,6 +856,7 @@ function createPublicRuntime(runtime) {
     waitForSubscriptionLookup:
         runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
+    contribute: runtime.contribute.bind(runtime),
     completeDeferredAccountCreation:
         runtime.completeDeferredAccountCreation.bind(runtime),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
@@ -813,11 +865,14 @@ function createPublicRuntime(runtime) {
     setOnNativeSubscribeRequest:
         runtime.setOnNativeSubscribeRequest.bind(runtime),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
+    setOnContributionResponse: runtime.setOnContributionResponse.bind(runtime),
     setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),
     setOnFlowCanceled: runtime.setOnFlowCanceled.bind(runtime),
     saveSubscription: runtime.saveSubscription.bind(runtime),
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
+    getPropensityModule: runtime
+        .getPropensityModule.bind(runtime),
   });
 }
 

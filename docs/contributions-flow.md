@@ -14,20 +14,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# SwG Contributions Flow
+# SwG Contributions Flow (Experiments ONLY)
 
-This flow allows the publication site to display a flow where users can contribute money to
-the publisher. See [Subscriptions APIs](./core-apis.md).
+This flow allows the publication site to display a flow where users can contribute money to the publisher. See [Contributions APIs](./core-apis.md).
 
-
-The contribution flow will first present a set of amounts user can contribute to.
-A user will get a choice to either select one of the offers, or try request login to claim an existing contribution.
-
-To display contributions:
+First, please setup the contribution response callback via `setOnContributionResponse`:
 
 ```
-subscriptions.showContributions();
+subscriptions.setOnContributionResponse(function(subscriptionPromise) {
+  subscriptionPromise.then(function(response) {
+    // 1. Handle contribution response.
+    // 2. Once contribution is processed (account created):
+    response.complete().then(function() {
+      // 3. The contribution is fully processed.
+    });
+  });
+});
 ```
+
+Once you receive the contribution response:
+ 1. You can process the contribution. For instance you can create a new account based on the `userData` info and save contribution for this account.
+ 2. Once contribution is processed, call `response.complete()`. This method will signal to SwG that your site has accepted the contribution. It will return a promise that will be resolved once the user has acknowledged contribution.
+ 3. Once the `response.complete()` promise is resolved, you can unblock your content, show additional UI to the user or perform any actions you see fit.
+
+To activate contribution flow itself, call the `contribute` method with the desired SKU:
+
+```
+subscriptions.contribute(sku);
+```
+
+The `setOnContributionResponse` callback will be called once the contribution is complete, or when the previously executed contribution is recovered.
+
+Another way to trigger the contributions flow is by first presenting a dialog with a set of amounts user can contribute to.
+A user will get a choice to either select one of the amounts to contribute to, or try request login to claim an existing contribution. This feature may not be available initially.
 
 To handle the login request:
 
@@ -35,19 +54,48 @@ To handle the login request:
 subscriptions.setOnLoginRequest(function() {
   // Handle login request.
 });
+
+To display contributions:
+
+```
+subscriptions.showContributionOptions();
 ```
 
-If a user elects for a presented offer, SwG will run the [Subscribe flow](./subscribe-flow.md).
-
-
-## Contribution options
-
-The contributions API (`showContributions`) accepts a list of SKUs to be displayed.
-
-For instance:
+The above mentioned API `showContributionsOptions` accepts a list of SKUs to be displayed. The list of SKUs should be of type type `UI_CONTRIBUTIONS` (publisher configuration).
 
 ```
 subscriptions.showContributions({skus: ['sku1', 'sku2']});
 ```
 
-*Important!* Please ensure you set up the `setOnSubscribeResponse` on any page where you accept purchases, not just before you call `subscribe` or `showContributions`. SwG client ensures it can recover contributions even when browsers unload pages. See [Subscribe flow](./subscribe-flow.md) for more details.
+The `setOnContributionResponse` callback will be called once the contribution is complete, or when the previously executed contribution is recovered.
+
+```
+
+## Contribution response
+The response returned by the `setOnContributionResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data.
+### Structure
+The SubscriptionResponse object has the following structure:
+```
+{
+  "raw": "",
+  "purchaseData" : {
+    "raw": "",
+    "signature": "",
+  },
+  "productType": "UI_CONTRIBUTION",
+  "userData": {
+    "idToken" : "...",
+    "data": { ... },
+    "id": "",
+    "email": "",
+    "emailVerified": true,
+    "name": "",
+    "givenName": "",
+    "familyName": "",
+    "pictureUrl": ""
+}
+```
+For details, please refer to [Subscription flow](./subscribe-flow.md)
+
+
+*Important!* Please ensure you set up the `setOnContributionResponse` on any page where you accept purchases, not just before you call `subscribe` or `showContributions`. The SwG client ensures it can recover contributions even when browsers unload pages.

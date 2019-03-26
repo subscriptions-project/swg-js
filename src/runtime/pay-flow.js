@@ -30,6 +30,7 @@ import {
   SubscribeResponse,
 } from '../api/subscribe-response';
 import {
+  ProductType,
   SubscriptionFlows,
   WindowOpenMode,
 } from '../api/subscriptions';
@@ -61,8 +62,12 @@ export class PayStartFlow {
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.SubscriptionRequest|string} skuOrSubscriptionRequest
+   * @param {!../api/subscriptions.ProductType} productType
    */
-  constructor(deps, skuOrSubscriptionRequest) {
+  constructor(
+        deps,
+        skuOrSubscriptionRequest,
+        productType = ProductType.SUBSCRIPTION) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -79,6 +84,9 @@ export class PayStartFlow {
     this.subscriptionRequest_ =
         typeof skuOrSubscriptionRequest == 'string' ?
             {'skuId': skuOrSubscriptionRequest} : skuOrSubscriptionRequest;
+
+    /**@private @const {!ProductType} */
+    this.productType_ = productType;
 
     /** @private @const {!../runtime/analytics-service.AnalyticsService} */
     this.analyticsService_ = deps.analytics();
@@ -116,6 +124,7 @@ export class PayStartFlow {
       'i': {
         'startTimeMs': Date.now(),
         'googleTransactionId': this.analyticsService_.getTransactionId(),
+        'productType': this.productType_,
       },
     }, {
       forceRedirect:
@@ -203,6 +212,7 @@ export class PayCompleteFlow {
     this.response_ = response;
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
+      'productType': this.response_['productType'],
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
@@ -278,6 +288,7 @@ function validatePayResponse(deps, payPromise, completeHandler) {
 export function parseSubscriptionResponse(deps, data, completeHandler) {
   let swgData = null;
   let raw = null;
+  let productType = null;
   if (data) {
     if (typeof data == 'string') {
       raw = /** @type {string} */ (data);
@@ -285,12 +296,18 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
       // Assume it's a json object in the format:
       // `{integratorClientCallbackData: "..."}` or `{swgCallbackData: "..."}`.
       const json = /** @type {!Object} */ (data);
+      if ('productType' in data) {
+        productType = data['productType'];
+      }
       if ('swgCallbackData' in json) {
         swgData = /** @type {!Object} */ (json['swgCallbackData']);
       } else if ('integratorClientCallbackData' in json) {
         raw = json['integratorClientCallbackData'];
       }
     }
+  }
+  if (!productType) {
+    productType = ProductType.SUBSCRIPTION;
   }
   if (raw && !swgData) {
     raw = atob(raw);
@@ -308,6 +325,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
       parsePurchaseData(swgData),
       parseUserData(swgData),
       parseEntitlements(deps, swgData),
+      productType,
       completeHandler);
 }
 

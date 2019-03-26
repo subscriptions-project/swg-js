@@ -43,7 +43,12 @@ export const ExperimentFlags = {
   CONTRIBUTIONS: 'contributions',
 
   /**
+   * Enables the Propensity feature
+   */
+  PROPENSITY: 'propensity',
+
+  /**
    * Enables using Protobufs to complete Offers Flow
    */
-  PROTO_LITE_OFFERS: 'proto-lite-offers'
+  PROTO_LITE_OFFERS: 'proto-lite-offers',
 };

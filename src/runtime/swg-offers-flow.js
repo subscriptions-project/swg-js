@@ -21,12 +21,6 @@ import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 /**
- * Offers view is closable when request was originated from 'AbbrvOfferFlow'
- * or from 'SubscribeOptionFlow'.
- */
-const OFFERS_VIEW_CLOSABLE = true;
-
-/**
  * The class for Offers flow.
  */
 export class SwgOffersFlow {
