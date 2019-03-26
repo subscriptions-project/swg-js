@@ -21,8 +21,8 @@ This flow is normally originated from another surface and allows the reader to l
 The link flow would normally be executed by a 3p surface to let a user to claim an existing subscription. However, SwG client provides `linkAccount` and `setOnLinkComplete` APIs for testing purposes.
 
 SwG supports two flavors of OAuth account linking:
- - [OAuth implicit flow](https://developers.google.com/actions/identity/oauth2-implicit-flow)
- - [OAuth authorization code flow](https://developers.google.com/actions/identity/oauth2-code-flow)
+ - [OAuth implicit flow](https://developers.google.com/actions/identity/oauth2)
+ - [OAuth authorization code flow](https://developers.google.com/actions/identity/oauth2?oauth=code)
 
 # SwG Link Save flow
 
