@@ -14,150 +14,9 @@
  * limitations under the License.
  */
 import {PropensityServer} from './propensity-server';
-import {XhrInterface} from './propensity-server';
+import {Xhr} from '../utils/xhr';
 import * as PropensityApi from '../api/propensity-api';
 import {parseQueryString} from '../utils/url';
-import * as sinon from 'sinon';
-import {parseJson} from '../utils/json';
-
-describes.realWin('XhrInterface', {}, () => {
-  let errorMap;
-  let xhrInterface;
-  const url = '/hello';
-  const init = {
-    method: 'GET',
-    credentials: 'include',
-    headers: {'Accept': 'text/plain, application/json'},
-  };
-  let server;
-
-  beforeEach(() => {
-    errorMap = {
-      404: 'Publisher not whitelisted',
-      403: 'Invalid origin',
-      400: 'Invalid request',
-      500: 'Server not available',
-    };
-    server = sinon.fakeServer.create();
-    xhrInterface = new XhrInterface(errorMap);
-  });
-
-  afterEach(() => {
-    server.restore();
-  });
-
-  it('should return publisher not whitelisted error', function(done) {
-    const errorResponse = [404, {
-      'Content-type': 'application/json',
-    }, JSON.stringify({error: 404, message: 'Not found'})];
-    server.respondWith('GET', url, errorResponse);
-    xhrInterface.sendRequest(url, init).then(() => {
-      throw new Error('must have failed');
-    }).catch(reason => {
-      expect(() => {throw reason;}).to.throw(/Publisher not whitelisted/);
-    });
-    server.respond();
-    done();
-  });
-
-  it('should return invalid origin error', function(done) {
-    const errorResponse = [403, {
-      'Content-type': 'application/json',
-    }, JSON.stringify({error: 403, message: 'Invalid origin'})];
-    server.respondWith('GET', url, errorResponse);
-    xhrInterface.sendRequest(url, init).then(() => {
-      throw new Error('must have failed');
-    }).catch(reason => {
-      expect(() => {throw reason;}).to.throw(/Invalid origin/);
-    });
-    server.respond();
-    done();
-  });
-
-  it('should return invalid request error', function(done) {
-    const errorResponse = [400, {
-      'Content-type': 'application/json',
-    }, JSON.stringify({error: 400, message: 'Invalid request'})];
-    server.respondWith('GET', url, errorResponse);
-    xhrInterface.sendRequest(url, init).then(() => {
-      throw new Error('must have failed');
-    }).catch(reason => {
-      expect(() => {throw reason;}).to.throw(/Invalid request/);
-    });
-    server.respond();
-    done();
-  });
-
-  it('should return server unavailable error', function(done) {
-    const errorResponse = [500, {
-      'Content-type': 'application/json',
-    }, JSON.stringify({error: 500, message: 'Server not available'})];
-    server.respondWith('GET', url, errorResponse);
-    xhrInterface.sendRequest(url, init).then(() => {
-      throw new Error('must have failed');
-    }).catch(reason => {
-      expect(() => {throw reason;}).to.throw(/Server not available/);
-    });
-    server.respond();
-    done();
-  });
-
-  it('should return server unavailable error', function(done) {
-    const errorResponse = [500, {
-      'Content-type': 'application/json',
-    }, JSON.stringify({error: 500, message: 'Server not available'})];
-    server.respondWith('GET', url, errorResponse);
-    xhrInterface.sendRequest(url, init).then(() => {
-      throw new Error('must have failed');
-    }).catch(reason => {
-      expect(() => {throw reason;}).to.throw(/Server not available/);
-    });
-    server.respond();
-    done();
-  });
-
-  it('should return server unavailable error', function(done) {
-    const errorResponse = [500, {
-      'Content-type': 'application/json',
-    }, JSON.stringify({error: 500, message: 'Server not available'})];
-    server.respondWith('GET', url, errorResponse);
-    xhrInterface.sendRequest(url, init).then(() => {
-      throw new Error('must have failed');
-    }).catch(reason => {
-      expect(() => {throw reason;}).to.throw(/Server not available/);
-    });
-    server.respond();
-    done();
-  });
-
-  it('should return propensity score', function(done) {
-    const propensityResonponse = [200, {
-      'Content-type': 'text/plain',
-    }, JSON.stringify({'values': [42]})];
-    server.respondWith('GET', url, propensityResonponse);
-    xhrInterface.sendRequest(url, init).then(response => {
-      expect(response).to.not.be.null;
-      const score = parseJson(response.responseText);
-      expect(score.values == null).to.be.false;
-      expect(score.values[0]).to.equal(42);
-    });
-    server.respond();
-    done();
-  });
-
-  it('should provide ok response', function(done) {
-    const okResonponse = [204, {
-      'Content-type': 'text/plain',
-    }, ''];
-    server.respondWith('GET', url, okResonponse);
-    xhrInterface.sendRequest(url, init).then(response => {
-      expect(response).to.not.be.null;
-      expect(response.ok).to.be.true;
-    });
-    server.respond();
-    done();
-  });
-});
 
 describes.realWin('PropensityServer', {}, env => {
   let win;
@@ -171,7 +30,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test sending subscription state', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(XhrInterface.prototype, 'sendRequest',
+    sandbox.stub(Xhr.prototype, 'fetch',
         (url, init) => {
           capturedUrl = url;
           capturedRequest = init;
@@ -197,7 +56,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test sending event', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(XhrInterface.prototype, 'sendRequest',
+    sandbox.stub(Xhr.prototype, 'fetch',
         (url, init) => {
           capturedUrl = url;
           capturedRequest = init;
@@ -228,7 +87,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test get propensity request failure', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(XhrInterface.prototype, 'sendRequest',
+    sandbox.stub(Xhr.prototype, 'fetch',
         (url, init) => {
           capturedUrl = url;
           capturedRequest = init;
@@ -254,10 +113,11 @@ describes.realWin('PropensityServer', {}, env => {
   });
 
   it('should test get propensity', () => {
+    const score = {'values': [42]};
     const response = new Response();
-    response.ok = true;
-    response.responseText = JSON.stringify({'values': [42]});
-    sandbox.stub(XhrInterface.prototype, 'sendRequest',
+    const mockResponse = sandbox.mock(response);
+    mockResponse.expects('json').returns(Promise.resolve(score)).once();
+    sandbox.stub(Xhr.prototype, 'fetch',
         () => {
           return Promise.resolve(response);
         });
@@ -272,7 +132,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test getting right clientID with user consent', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(XhrInterface.prototype, 'sendRequest',
+    sandbox.stub(Xhr.prototype, 'fetch',
         (url, init) => {
           capturedUrl = url;
           capturedRequest = init;
@@ -304,7 +164,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test getting right clientID without cookie', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(XhrInterface.prototype, 'sendRequest',
+    sandbox.stub(Xhr.prototype, 'fetch',
         (url, init) => {
           capturedUrl = url;
           capturedRequest = init;
@@ -321,7 +181,6 @@ describes.realWin('PropensityServer', {}, env => {
           const queryString = capturedUrl.split('?')[1];
           const queries = parseQueryString(queryString);
           expect(queries).to.not.be.null;
-          console.log('queries', queries);
           expect('cookie' in queries).to.be.false;
           expect('products' in queries).to.be.true;
           expect(queries['products']).to.equal('pub1');

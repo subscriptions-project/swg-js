@@ -13,99 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {parseJson} from '../utils/json';
-export class XhrInterface {
-
-  /**
-   * Map of error code to error message
-   * @param {!Object.<number, string>} errorMap
-   */
-  constructor(errorMap) {
-    this.errorMap_ = errorMap;
-  }
-
-  /**
-   * Send request
-   * @param {string} url
-   * @param {!../utils/xhr.FetchInitDef} init
-   * @return {!Promise<!Response>}
-   */
-  sendRequest(url, init) {
-    return new Promise((resolve, reject) => {
-      /** @type {XMLHttpRequest} */
-      const xhr = new XMLHttpRequest();
-      const method = init.method || 'GET';
-      xhr.open(method, url, true);
-      if (init.headers) {
-        Object.keys(init.headers).forEach(function(header) {
-          xhr.setRequestHeader(header, init.headers[header]);
-        });
-      }
-      if (init.credentials) {
-        xhr.withCredentials = true;
-      }
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState < /* STATUS_RECEIVED */ 2) {
-          return;
-        }
-        if (xhr.readyState == /* COMPLETE */ 4) {
-          if (xhr.status in this.errorMap_) {
-            let errorMessage = xhr.status + ':' + this.errorMap_[xhr.status];
-            if (xhr.statusText) {
-              errorMessage = errorMessage + ' ' + xhr.statusText;
-            }
-            reject(new Error(errorMessage));
-          } else if (xhr.status < 200 || xhr.status > 300) {
-            const errorMessage = xhr.status + ':' + xhr.statusText;
-            reject(new Error(errorMessage));
-          } else {
-            const response = new Response();
-            response.status = xhr.status;
-            response.ok = true;
-            response.statusText = xhr.statusText;
-            xhr.bodyUsed = true;
-            response.responseText = xhr.responseText;
-            response.url = xhr.responseURL;
-            response.headers = this.getResponseHeader_(
-                xhr.getAllResponseHeaders());
-            resolve(response);
-          }
-        }
-      };
-      xhr.onerror = () => {
-        reject(new Error('Network failure'));
-      };
-      xhr.onabort = () => {
-        reject(new Error('Request aborted'));
-      };
-      if (init.method == 'POST') {
-        xhr.send(init.body);
-      } else {
-        xhr.send();
-      }
-    });
-  }
-
-  /**
-   * Creates header from XHR header
-   * @param {?string} responseHeaders
-   * @return {!Headers}
-   */
-  getResponseHeader_(responseHeaders) {
-    const headerMap = new Headers();
-    if (!responseHeaders) {
-      return headerMap;
-    }
-    const arr = responseHeaders.trim().split(/[/r/n]+/);
-    arr.forEach(function(line) {
-      const parts = line.split(': ');
-      const header = parts.shift();
-      const value = parts.join(': ');
-      headerMap[header] = value;
-    });
-    return headerMap;
-  }
-}
+import {Xhr} from '../utils/xhr';
 
 /**
  * Implements interface to Propensity server
@@ -124,24 +32,16 @@ export class PropensityServer {
     this.publicationId_ = publicationId;
     /** @private {?string} */
     this.clientId_ = null;
-    /** @private {?string} */
-    this.product_ = null;
     /** @private {boolean} */
     this.userConsent_ = false;
     /** @private @const {boolean}*/
     this.TEST_SERVERS_ = true;
-    /** {!Object.<number, string>} */
-    const errorMap = {
-      404: 'Publisher not whitelisted',
-      403: 'Not sent from allowed origin',
-      400: 'Invalid request',
-      500: 'Server not available',
-    };
-    /** @private @const {!XhrInterface} */
-    this.xhrInterface_ = new XhrInterface(errorMap);
+    /** @private @const {!Xhr} */
+    this.xhr_ = new Xhr(win);
   }
 
   /**
+   * @private
    * @return {string}
    */
   getUrl_() {
@@ -153,6 +53,7 @@ export class PropensityServer {
   }
 
   /**
+   * @private
    * @return {?string}
    */
   getGads_() {
@@ -191,23 +92,21 @@ export class PropensityServer {
    * @param {?string} entitlements
    */
   sendSubscriptionState(state, entitlements) {
-    this.product_ = entitlements;
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
-      headers: {'Accept': 'text/plain, application/json'},
     });
     const clientId = this.getClientId_();
     let url = this.getUrl_() + '/subopt/data?states=' + this.publicationId_
         + ':' + state;
-    if (this.product_) {
-      url = url + ':' + this.product_;
+    if (entitlements) {
+      url = url + ':' + entitlements;
     }
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
     url = url + '&u_tz=240';
-    return this.xhrInterface_.sendRequest(url, init);
+    return this.xhr_.fetch(url, init);
   }
 
   /**
@@ -218,7 +117,6 @@ export class PropensityServer {
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
-      headers: {'Accept': 'text/plain, application/json'},
     });
     const clientId = this.getClientId_();
     let url = this.getUrl_() + '/subopt/data?events=' + this.publicationId_
@@ -230,7 +128,7 @@ export class PropensityServer {
       url = url + '&cookie=' + clientId;
     }
     url = url + '&u_tz=240';
-    return this.xhrInterface_.sendRequest(url, init);
+    return this.xhr_.fetch(url, init);
   }
 
   /**
@@ -239,24 +137,23 @@ export class PropensityServer {
    * @return {?Promise<JsonObject>}
    */
   getPropensity(referrer, type) {
+    const clientId = this.getClientId_();
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
-      headers: {'Accept': 'text/plain, application/json'},
     });
-    const clientId = this.getClientId_();
     let url = this.getUrl_() + '/subopt/pts?products=' + this.publicationId_
         + '&type=' + type + '&u_tz=240';
     url = url + '&ref=' + referrer;
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
-    return this.xhrInterface_.sendRequest(url, init).then(response => {
-      let score = response && response.responseText;
-      if (!score) {
-        score = "{'values': [-1]}";
-      }
-      return parseJson(score);
-    });
+    return this.xhr_.fetch(url, init).then(result => result.json())
+        .then(score => {
+          if (!score) {
+            score = "{'values': [-1]}";
+          }
+          return score;
+        });
   }
 }
