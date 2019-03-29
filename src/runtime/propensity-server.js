@@ -53,15 +53,16 @@ export class PropensityServer {
   }
 
   /**
-   * @private
+   * Get the first party cookie for Google Ads
    * @return {?string}
    */
   getGads_() {
-    let gads = null;
+    // Match '__gads' (name of the cookie) dropped by Ads Tag
     const gadsmatch = this.win_.document.cookie.match(
         '(^|;)\\s*__gads\\s*=\\s*([^;]+)');
-    gads = gadsmatch && encodeURIComponent(gadsmatch.pop());
-    return gads;
+    // cookie will be consumed using decodeURIComponent()
+    // hence, use encodeURIComponent() here to match
+    return gadsmatch && encodeURIComponent(gadsmatch.pop());
   }
 
   /**
@@ -70,12 +71,13 @@ export class PropensityServer {
    * @private
    */
   getClientId_() {
+    // No cookie is sent when user consent is not available
+    if (!this.userConsent_) {
+      return 'noConsent';
+    }
+    // When user consent is available, get Gads cookie
     if (!this.clientId_) {
-      if (!this.userConsent_) {
-        this.clientId_ = 'noConsent';
-      } else {
-        this.clientId_ = this.getGads_();
-      }
+      this.clientId_ = this.getGads_();
     }
     return this.clientId_;
   }
@@ -143,8 +145,8 @@ export class PropensityServer {
       credentials: 'include',
     });
     let url = this.getUrl_() + '/subopt/pts?products=' + this.publicationId_
-        + '&type=' + type + '&u_tz=240';
-    url = url + '&ref=' + referrer;
+        + '&type=' + type + '&u_tz=240'
+        + '&ref=' + referrer;
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
