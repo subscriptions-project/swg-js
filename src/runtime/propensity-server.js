@@ -15,7 +15,7 @@
  */
 import {parseJson} from '../utils/json';
 export class XhrInterface {
-
+  // TODO(sohanirao): Remove this class when productionalizing
   /**
    * Map of error code to error message
    * @param {!Object.<number, string>} errorMap
@@ -124,8 +124,6 @@ export class PropensityServer {
     this.publicationId_ = publicationId;
     /** @private {?string} */
     this.clientId_ = null;
-    /** @private {?string} */
-    this.product_ = null;
     /** @private {boolean} */
     this.userConsent_ = false;
     /** @private @const {boolean}*/
@@ -153,14 +151,16 @@ export class PropensityServer {
   }
 
   /**
+   * Get the first party cookie for Google Ads
    * @return {?string}
    */
   getGads_() {
-    let gads = null;
+    // Match '__gads' (name of the cookie) dropped by Ads Tag
     const gadsmatch = this.win_.document.cookie.match(
         '(^|;)\\s*__gads\\s*=\\s*([^;]+)');
-    gads = gadsmatch && encodeURIComponent(gadsmatch.pop());
-    return gads;
+    // cookie will be consumed using decodeURIComponent()
+    // hence, use encodeURIComponent() here to match
+    return gadsmatch && encodeURIComponent(gadsmatch.pop());
   }
 
   /**
@@ -169,12 +169,13 @@ export class PropensityServer {
    * @private
    */
   getClientId_() {
+    // No cookie is sent when user consent is not available
+    if (!this.userConsent_) {
+      return 'noConsent';
+    }
+    // When user consent is available, get Gads cookie
     if (!this.clientId_) {
-      if (!this.userConsent_) {
-        this.clientId_ = 'noConsent';
-      } else {
-        this.clientId_ = this.getGads_();
-      }
+      this.clientId_ = this.getGads_();
     }
     return this.clientId_;
   }
@@ -191,7 +192,6 @@ export class PropensityServer {
    * @param {?string} entitlements
    */
   sendSubscriptionState(state, entitlements) {
-    this.product_ = entitlements;
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
@@ -200,8 +200,8 @@ export class PropensityServer {
     const clientId = this.getClientId_();
     let url = this.getUrl_() + '/subopt/data?states=' + this.publicationId_
         + ':' + state;
-    if (this.product_) {
-      url = url + ':' + this.product_;
+    if (entitlements) {
+      url = url + ':' + entitlements;
     }
     if (clientId) {
       url = url + '&cookie=' + clientId;
@@ -246,8 +246,8 @@ export class PropensityServer {
     });
     const clientId = this.getClientId_();
     let url = this.getUrl_() + '/subopt/pts?products=' + this.publicationId_
-        + '&type=' + type + '&u_tz=240';
-    url = url + '&ref=' + referrer;
+        + '&type=' + type + '&u_tz=240'
+        + '&ref=' + referrer;
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
