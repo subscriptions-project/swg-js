@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -321,7 +321,6 @@ describes.realWin('PropensityServer', {}, env => {
           const queryString = capturedUrl.split('?')[1];
           const queries = parseQueryString(queryString);
           expect(queries).to.not.be.null;
-          console.log('queries', queries);
           expect('cookie' in queries).to.be.false;
           expect('products' in queries).to.be.true;
           expect(queries['products']).to.equal('pub1');
