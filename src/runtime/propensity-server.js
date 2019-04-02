@@ -155,12 +155,8 @@ export class PropensityServer {
    * @return {?string}
    */
   getGads_() {
-    // Match '__gads' (name of the cookie) dropped by Ads Tag
-    const gadsmatch = this.win_.document.cookie.match(
-        '(^|;)\\s*__gads\\s*=\\s*([^;]+)');
-    // cookie will be consumed using decodeURIComponent()
-    // hence, use encodeURIComponent() here to match
-    return gadsmatch && encodeURIComponent(gadsmatch.pop());
+    // TODO(sohanirao): get cookie from cache
+    return null;
   }
 
   /**
