@@ -48,7 +48,7 @@ export class PropensityServer {
     if (this.TEST_SERVERS_) {
       return 'http://sohanirao.mtv.corp.google.com:8080';
     } else {
-      return 'https://pubads.g.doubleclick.net/gampad/adx';
+      return 'https://pubads.g.doubleclick.net';
     }
   }
 
