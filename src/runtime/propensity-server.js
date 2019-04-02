@@ -99,11 +99,12 @@ export class PropensityServer {
       credentials: 'include',
     });
     const clientId = this.getClientId_();
-    let url = this.getUrl_() + '/subopt/data?states=' + this.publicationId_
-        + ':' + state;
+    let userState = this.publicationId_ + ':' + state;
     if (entitlements) {
-      url = url + ':' + entitlements;
+      userState = userState + ':' + encodeURIComponent(entitlements);
     }
+    let url = this.getUrl_() + '/subopt/data?states='
+        + encodeURIComponent(userState);
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
@@ -121,11 +122,12 @@ export class PropensityServer {
       credentials: 'include',
     });
     const clientId = this.getClientId_();
-    let url = this.getUrl_() + '/subopt/data?events=' + this.publicationId_
-        + ':' + event;
+    let eventInfo = this.publicationId_ + ':' + event;
     if (context) {
-      url = url + ':' + JSON.stringify(context);
+      eventInfo = eventInfo + ':' + encodeURIComponent(context);
     }
+    let url = this.getUrl_() + '/subopt/data?events='
+        + encodeURIComponent(eventInfo);
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }

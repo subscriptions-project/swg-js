@@ -36,8 +36,10 @@ describes.realWin('PropensityServer', {}, env => {
           capturedRequest = init;
           return Promise.reject(new Error('Publisher not whitelisted'));
         });
+    const entitlements = {'product': ['a', 'b', 'c']};
     return propensityServer.sendSubscriptionState(
-        PropensityApi.SubscriptionState.UNKNOWN).then(() => {
+        PropensityApi.SubscriptionState.SUBSCRIBER,
+        JSON.stringify(entitlements)).then(() => {
           throw new Error('must have failed');
         }).catch(reason => {
           const queryString = capturedUrl.split('?')[1];
@@ -46,7 +48,10 @@ describes.realWin('PropensityServer', {}, env => {
           expect('cookie' in queries).to.be.true;
           expect(queries['cookie']).to.equal('noConsent');
           expect('states' in queries).to.be.true;
-          expect(queries['states']).to.equal('pub1:na');
+          const userState = 'pub1:' + queries['states'].split(':')[1];
+          expect(userState).to.equal('pub1:yes');
+          const products = decodeURIComponent(queries['states'].split(':')[2]);
+          expect(products).to.equal(JSON.stringify(entitlements));
           expect(capturedRequest.credentials).to.equal('include');
           expect(capturedRequest.method).to.equal('GET');
           expect(() => {throw reason;}).to.throw(/Publisher not whitelisted/);
@@ -62,9 +67,10 @@ describes.realWin('PropensityServer', {}, env => {
           capturedRequest = init;
           return Promise.reject(new Error('Not sent from allowed origin'));
         });
+    const eventParam = {'is_active': false, 'offers_shown': ['a', 'b', 'c']};
     return propensityServer.sendEvent(
         PropensityApi.Event.IMPRESSION_PAYWALL,
-        {'is_active': false}
+        JSON.stringify(eventParam)
       ).then(() => {
         throw new Error('must have failed');
       }).catch(reason => {
@@ -74,8 +80,8 @@ describes.realWin('PropensityServer', {}, env => {
         expect('cookie' in queries).to.be.true;
         expect(queries['cookie']).to.equal('noConsent');
         expect('events' in queries).to.be.true;
-        const eventParam = JSON.stringify({'is_active': false});
-        expect(queries['events']).to.equal('pub1:paywall:' + eventParam);
+        const events = decodeURIComponent(queries['events'].split(':')[2]);
+        expect(events).to.equal(JSON.stringify(eventParam));
         expect(capturedRequest.credentials).to.equal('include');
         expect(capturedRequest.method).to.equal('GET');
         expect(() => {
