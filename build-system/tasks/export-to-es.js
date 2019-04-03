@@ -59,6 +59,7 @@ function runAllExportsToAmp() {
     'assets': 'https://news.google.com/swg/js/v1',
     'payEnvironment': 'PRODUCTION',
     'playEnvironment': 'PROD',
+    'adsServer': 'https://pubads.g.doubleclick.net',
   }, {
     config: 'dist/amp/config.js',
     swg: 'dist/amp/swg.js',

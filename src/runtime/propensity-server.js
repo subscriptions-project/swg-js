@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import {Xhr} from '../utils/xhr';
+import * as ServiceUrl from './services';
 
 /**
  * Implements interface to Propensity server
@@ -34,8 +35,6 @@ export class PropensityServer {
     this.clientId_ = null;
     /** @private {boolean} */
     this.userConsent_ = false;
-    /** @private @const {boolean}*/
-    this.TEST_SERVERS_ = true;
     /** @private @const {!Xhr} */
     this.xhr_ = new Xhr(win);
   }
@@ -44,40 +43,29 @@ export class PropensityServer {
    * @private
    * @return {string}
    */
-  getUrl_() {
-    if (this.TEST_SERVERS_) {
-      return 'http://sohanirao.mtv.corp.google.com:8080';
-    } else {
-      return 'https://pubads.g.doubleclick.net';
-    }
+  getDocumentCookie_() {
+    return this.win_.document.cookie;
   }
 
   /**
-   * Get the first party cookie for Google Ads
-   * @return {?string}
-   */
-  getGads_() {
-    // Match '__gads' (name of the cookie) dropped by Ads Tag
-    const gadsmatch = this.win_.document.cookie.match(
-        '(^|;)\\s*__gads\\s*=\\s*([^;]+)');
-    // cookie will be consumed using decodeURIComponent()
-    // hence, use encodeURIComponent() here to match
-    return gadsmatch && encodeURIComponent(gadsmatch.pop());
-  }
-
-  /**
-   * Returns the client ID to be used
+   * Returns the client ID to be used.
    * @return {?string}
    * @private
    */
   getClientId_() {
-    // No cookie is sent when user consent is not available
+    // No cookie is sent when user consent is not available.
     if (!this.userConsent_) {
       return 'noConsent';
     }
-    // When user consent is available, get Gads cookie
+    // When user consent is available, get the first party cookie
+    // for Google Ads.
     if (!this.clientId_) {
-      this.clientId_ = this.getGads_();
+      // Match '__gads' (name of the cookie) dropped by Ads Tag.
+      const gadsmatch = this.getDocumentCookie_().match(
+          '(^|;)\\s*__gads\\s*=\\s*([^;]+)');
+      // Since the cookie will be consumed using decodeURIComponent(),
+      // use encodeURIComponent() here to match.
+      this.clientId_ = gadsmatch && encodeURIComponent(gadsmatch.pop());
     }
     return this.clientId_;
   }
@@ -103,7 +91,7 @@ export class PropensityServer {
     if (entitlements) {
       userState = userState + ':' + encodeURIComponent(entitlements);
     }
-    let url = this.getUrl_() + '/subopt/data?states='
+    let url = ServiceUrl.adsUrl('/subopt/data?states=')
         + encodeURIComponent(userState);
     if (clientId) {
       url = url + '&cookie=' + clientId;
@@ -126,7 +114,7 @@ export class PropensityServer {
     if (context) {
       eventInfo = eventInfo + ':' + encodeURIComponent(context);
     }
-    let url = this.getUrl_() + '/subopt/data?events='
+    let url = ServiceUrl.adsUrl('/subopt/data?events=')
         + encodeURIComponent(eventInfo);
     if (clientId) {
       url = url + '&cookie=' + clientId;
@@ -146,7 +134,7 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    let url = this.getUrl_() + '/subopt/pts?products=' + this.publicationId_
+    let url = ServiceUrl.adsUrl('/subopt/pts?products=') + this.publicationId_
         + '&type=' + type + '&u_tz=240'
         + '&ref=' + referrer;
     if (clientId) {

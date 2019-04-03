@@ -17,14 +17,17 @@ import {PropensityServer} from './propensity-server';
 import {Xhr} from '../utils/xhr';
 import * as PropensityApi from '../api/propensity-api';
 import {parseQueryString} from '../utils/url';
+import * as ServiceUrl from './services';
 
 describes.realWin('PropensityServer', {}, env => {
   let win;
   let propensityServer;
+  const serverUrl = 'http://localhost:31862';
 
   beforeEach(() => {
     win = env.win;
     propensityServer = new PropensityServer(win, 'pub1');
+    sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
   });
 
   it('should test sending subscription state', () => {
@@ -42,6 +45,8 @@ describes.realWin('PropensityServer', {}, env => {
         JSON.stringify(entitlements)).then(() => {
           throw new Error('must have failed');
         }).catch(reason => {
+          const path = new URL(capturedUrl);
+          expect(path.pathname).to.equal('/subopt/data');
           const queryString = capturedUrl.split('?')[1];
           const queries = parseQueryString(queryString);
           expect(queries).to.not.be.null;
@@ -74,6 +79,8 @@ describes.realWin('PropensityServer', {}, env => {
       ).then(() => {
         throw new Error('must have failed');
       }).catch(reason => {
+        const path = new URL(capturedUrl);
+        expect(path.pathname).to.equal('/subopt/data');
         const queryString = capturedUrl.split('?')[1];
         const queries = parseQueryString(queryString);
         expect(queries).to.not.be.null;
@@ -144,8 +151,8 @@ describes.realWin('PropensityServer', {}, env => {
           capturedRequest = init;
           return Promise.reject(new Error('Invalid request'));
         });
-    PropensityServer.prototype.getGads_ = () => {
-      return 'aaaaaa';
+    PropensityServer.prototype.getDocumentCookie_ = () => {
+      return '__gads=aaaaaa';
     };
     propensityServer.setUserConsent(true);
     return propensityServer.getPropensity(
@@ -176,14 +183,16 @@ describes.realWin('PropensityServer', {}, env => {
           capturedRequest = init;
           return Promise.reject(new Error('Invalid request'));
         });
-    PropensityServer.prototype.getGads_ = () => {
-      return null;
+    PropensityServer.prototype.getDocumentCookie_ = () => {
+      return '__someonelsescookie=abcd';
     };
     propensityServer.setUserConsent(true);
     return propensityServer.getPropensity(
         '/hello', PropensityApi.PropensityType.GENERAL).then(() => {
           throw new Error('must have failed');
         }).catch(reason => {
+          const path = new URL(capturedUrl);
+          expect(path.pathname).to.equal('/subopt/pts');
           const queryString = capturedUrl.split('?')[1];
           const queries = parseQueryString(queryString);
           expect(queries).to.not.be.null;

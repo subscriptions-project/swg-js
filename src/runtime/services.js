@@ -46,6 +46,13 @@ export function serviceUrl(url) {
   return '$frontend$/swg/_/api/v1' + url;
 }
 
+/**
+ * @param {string} url  Relative URL, e.g. "/service1".
+ * @return {string} The complete URL.
+ */
+export function adsUrl(url) {
+  return '$adsServer$' + url;
+}
 
 /**
  * @param {string} url Relative URL, e.g. "/offersiframe".
