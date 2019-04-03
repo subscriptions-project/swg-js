@@ -22,7 +22,7 @@ This flow shows the payment form, accepts payment, records subscription and upda
 
 First, please setup the subscription response callback via `setOnSubscribeResponse`:
 
-```
+```js
 subscriptions.setOnSubscribeResponse(function(subscriptionPromise) {
   subscriptionPromise.then(function(response) {
     // 1. Handle subscription response.
@@ -42,7 +42,7 @@ Once you receive subscription response:
 
 To activate subscription flow itself, call the `subscribe` method with the desired SKU:
 
-```
+```js
 subscriptions.subscribe(sku);
 ```
 
@@ -54,7 +54,7 @@ The `setOnSubscribeResponse` callback will be called once the subscription is co
 The response returned by the `setOnSubscribeResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data.
 ### Structure
 The SubscriptionResponse object has the following structure:
-```
+```json
 {
   "raw": "",
   "purchaseData" : {
@@ -94,7 +94,7 @@ The `purchaseData.raw` fields are identical to the fields from an Android In-App
 | familyName | String | The user's last name. |
 | pictureUrl | String | The user's profile picture. |
 ### Example response
-```
+```json
 {
   "raw": "... raw delimited JSON String ...",
   "purchaseData": {
