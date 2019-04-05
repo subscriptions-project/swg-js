@@ -85,6 +85,7 @@ const forbiddenTerms = {
       'examples/sample-pub/sample-pub-app.js',
       'examples/sample-pub/service/sample-pub-oauth-app.js',
       'examples/sample-pub/service/authorization-app.js',
+      'src/runtime/propensity-server.js',
     ],
   },
   'getCookie\\W': {
@@ -201,7 +202,7 @@ const forbiddenTermsSrcInclusive = {
 
 // Terms that must appear in a source file.
 const requiredTerms = {
-  'Copyright 20(17|18) The Subscribe with Google Authors\\.':
+  'Copyright 20(17|18|19) The Subscribe with Google Authors\\.':
       dedicatedCopyrightNoteSources,
   'Licensed under the Apache License, Version 2\\.0':
       dedicatedCopyrightNoteSources,

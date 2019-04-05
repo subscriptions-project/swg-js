@@ -25,6 +25,7 @@ const CallbackId = {
   LINK_COMPLETE: 6,
   FLOW_STARTED: 7,
   FLOW_CANCELED: 8,
+  CONTRIBUTION_RESPONSE: 9,
 };
 
 
@@ -149,6 +150,13 @@ export class Callbacks {
   }
 
   /**
+   * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
+   */
+  setOnContributionResponse(callback) {
+    this.setCallback_(CallbackId.CONTRIBUTION_RESPONSE, callback);
+  }
+
+  /**
    * @param {!Promise<!../api/subscribe-response.SubscribeResponse>} responsePromise
    * @return {boolean} Whether the callback has been found.
    */
@@ -159,10 +167,27 @@ export class Callbacks {
   }
 
   /**
+   * @param {!Promise<!../api/subscribe-response.SubscribeResponse>} responsePromise
+   * @return {boolean} Whether the callback has been found.
+   */
+  triggerContributionResponse(responsePromise) {
+    return this.trigger_(
+        CallbackId.CONTRIBUTION_RESPONSE,
+        responsePromise.then(res => res.clone()));
+  }
+
+  /**
    * @return {boolean}
    */
   hasSubscribeResponsePending() {
     return !!this.resultBuffer_[CallbackId.SUBSCRIBE_RESPONSE];
+  }
+
+  /**
+   * @return {boolean}
+   */
+  hasContributionResponsePending() {
+    return !!this.resultBuffer_[CallbackId.CONTRIBUTION_RESPONSE];
   }
 
   /**

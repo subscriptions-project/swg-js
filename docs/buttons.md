@@ -26,7 +26,11 @@ It's also possible to create a SwG button manually.
 
 Both APIs are very similar - the only difference is the `createButton` creates a new DOM element, while the `attachButton` decorates an existing one.
 
-Both APIs require a callback and accept an optional `options` object. The only aspect that is currently can be customized via `options` argument is the `theme` ("light" or "dark"). The default theme is "light".
+Both APIs require a callback and accept an optional `options` object. The configurable options are:
+
+ - `theme`  : Button theme can be `light` (default) or `dark`.
+
+ - `lang`: Sets the button SVG and title.  English is default language.  See [Button API](../src/runtime/button-api.js) for `lang` values.
 
 The API call without options:
 
@@ -39,7 +43,7 @@ subscriptions.createButton(function() {
 The API call with options:
 
 ```
-subscriptions.createButton({theme: 'dark'}, function() {
+subscriptions.createButton({theme: 'dark', lang:'pt-br'}, function() {
   // Handle the action.
 });
 ```

@@ -21,6 +21,7 @@ import {
 } from './contributions-flow';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
+import {ProductType} from '../api/subscriptions';
 import * as sinon from 'sinon';
 
 
@@ -66,6 +67,7 @@ describes.realWin('ContributionsFlow', {}, env => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           productId: 'pub1:label1',
+          'productType': ProductType.UI_CONTRIBUTION,
           list: 'other',
           skus: null,
           isClosable: true,
@@ -84,6 +86,7 @@ describes.realWin('ContributionsFlow', {}, env => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           productId: 'pub1:label1',
+          'productType': ProductType.UI_CONTRIBUTION,
           list: 'default',
           skus: ['sku1', 'sku2'],
           isClosable: true,

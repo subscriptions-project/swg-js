@@ -21,6 +21,7 @@ import {
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
 import {SubscribeResponse} from './subscribe-response';
+import {PropensityApi} from './propensity-api';
 
 
 /**
@@ -127,6 +128,12 @@ export class Subscriptions {
    */
   subscribe(skuOrSubscriptionRequest) {}
 
+  /**
+   * Set the contribution complete callback.
+   * @param {function(!Promise<!SubscribeResponse>)} callback
+   */
+  setOnContributionResponse(callback) {}
+
    /**
    * Starts contributions purchase flow.
    * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
@@ -228,6 +235,13 @@ export class Subscriptions {
    * @param {function()=} opt_callback
    */
   attachButton(button, optionsOrCallback, opt_callback) {}
+
+  /**
+   * Retrieves the propensity module that provides APIs to
+   * get propensity scores based on user state and events
+   * @return {!Promise<PropensityApi>}
+   */
+  getPropensityModule() {}
 }
 
 
@@ -238,6 +252,7 @@ export const SubscriptionFlows = {
   SHOW_ABBRV_OFFER: 'showAbbrvOffer',
   SHOW_CONTRIBUTION_OPTIONS: 'showContributionOptions',
   SUBSCRIBE: 'subscribe',
+  CONTRIBUTE: 'contribute',
   COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',
   SHOW_LOGIN_PROMPT: 'showLoginPrompt',
@@ -287,9 +302,10 @@ export const ReplaceSkuProrationMode = {
 };
 
 /**
- * The product type. The Offers UI is rendered differently based on the
- * ProductType and 'product_type' parameter is passed to Payments flow to render
- * the GPay content accordingly. ProductType Defaults to 'SUBSCRIPTION'.
+ * The Offers/Contributions UI is rendered differently based on the
+ * ProductType. The ProductType parameter is passed to the Payments flow, and
+ * then passed back to the Payments confirmation page to render messages/text
+ * based on the ProductType.
  * @enum {string}
  */
 export const ProductType = {
