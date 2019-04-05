@@ -497,6 +497,18 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should delegate "getEntitlements" with encryptedDocumentKey', () => {
+      const ents = {};
+      const encryptedDocumentKey = '{\"accessRequirements\": ' +
+          '[\"norcal.com:premium\"], \"key\":\"aBcDef781-2-4/sjfdi\"}';
+      configuredRuntimeMock.expects('getEntitlements')
+          .returns(Promise.resolve(ents));
+      return runtime.getEntitlements(encryptedDocumentKey).then(value => {
+        expect(value).to.equal(ents);
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
     it('should delegate "reset"', () => {
       configuredRuntimeMock.expects('reset').once();
       return runtime.reset().then(() => {
