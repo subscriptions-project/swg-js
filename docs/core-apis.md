@@ -29,6 +29,10 @@ For key uses of these APIs see [Subscriptions flows](./flows.md).
 For SwG buttons see [SwG buttons](./buttons.md).
 
 
+## Contributions API
+For Contribution APIs see [Contributions flow](./contributions-flow.md)
+
+
 ## Types used within the Subscriptions API
 
 Some of the main types are:
