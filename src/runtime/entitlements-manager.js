@@ -410,7 +410,8 @@ export class EntitlementsManager {
         encodeURIComponent(this.publicationId_) +
         '/entitlements';
     if (opt_encryptedDocumentKey) {
-      url = url + '/crypt/' + opt_encryptedDocumentKey;
+      //TODO(chenshay): Make this a 'Post'.
+      url += '?crypt=' + encodeURIComponent(opt_encryptedDocumentKey);
     }
     return this.fetcher_.fetchCredentialedJson(serviceUrl(url))
         .then(json => this.parseEntitlements(json));

@@ -1059,7 +1059,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         'product1',
         () => {});
     entitlementsManagerMock.expects('getEntitlements')
-        .withExactArgs()
+        .withExactArgs(undefined)
         .returns(Promise.resolve(entitlements))
         .once();
     return runtime.start();
@@ -1068,7 +1068,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   it('should start entitlements flow with failure', () => {
     const error = new Error('broken');
     entitlementsManagerMock.expects('getEntitlements')
-        .withExactArgs()
+        .withExactArgs(undefined)
         .returns(Promise.reject(error))
         .once();
     return runtime.start();

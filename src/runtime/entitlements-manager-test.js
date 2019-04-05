@@ -45,7 +45,6 @@ describes.realWin('EntitlementsManager', {}, env => {
   let analyticsMock;
   let deps;
   let encryptedDocumentKey;
-  let decryptedDocumentKey;
 
   beforeEach(() => {
     win = env.win;
@@ -71,9 +70,8 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
-    encryptedDocumentKey = '{\"accessRequirements\": [\"norcal.com:premium\"],'
-        + ' \"key\":\"aBcDef781-2-4/sjfdi\"}';
-    decryptedDocumentKey = 'decryptedKey';
+    encryptedDocumentKey = '{\"accessRequirements\": ' +
+        '[\"norcal.com:premium\"], \"key\":\"aBcDef781-2-4/sjfdi\"}';
   });
 
   afterEach(() => {
@@ -176,9 +174,8 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     it('should accept encrypted document key', () => {
       xhrMock.expects('fetch').withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements/crypt/' +
-          '{"accessRequirements": ["norcal.com:premium"], ' +
-          '"key":"aBcDef781-2-4/sjfdi"}',
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+          encodeURIComponent(encryptedDocumentKey),
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
