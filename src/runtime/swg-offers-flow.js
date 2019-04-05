@@ -15,10 +15,15 @@
  */
 
 
-import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {SwgActivityIframeView} from '../ui/swg-activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
+import {
+  OfferSelected,
+  NativeFlow,
+  UserSubscribed,
+} from '../proto/api_messages';
 
 /**
  * The class for Offers flow.
@@ -47,8 +52,8 @@ export class SwgOffersFlow {
       isClosable = false;  // Default is to hide Close button.
     }
 
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
+    /** @private @const {!SwgActivityIframeView} */
+    this.activityIframeView_ = new SwgActivityIframeView(
         this.win_,
         this.activityPorts_,
         feUrl('/offersiframe'),
@@ -64,6 +69,36 @@ export class SwgOffersFlow {
   }
 
   /**
+   * @param {UserSubscribed} user_subscribed
+   */
+  handleUserSubscribed(user_subscribed) {
+    if(user_subscribed.getAlreadySubscribed()) {
+      this.deps_.callbacks().triggerLoginRequest({
+        linkRequested: user_subscribed.getLinkRequested()
+      });
+    }
+  }
+
+  /**
+   * @param {OfferSelected} offer_selected
+   */
+  startPaymentFlow(offer_selected) {
+    const sku = offer_selected.getSku();
+    if (sku) {
+      new PayStartFlow(this.deps_, sku);
+    }
+  }
+
+  /**
+   * @param {NativeFlow} native_flow
+   */
+  startNativeFlow(native_flow) {
+    if (native_flow.getNative()) {
+      this.deps_.callbacks().triggerSubscribeRequest();
+    }
+  }
+
+  /**
    * Starts the offers flow or alreadySubscribed flow.
    * @return {!Promise}
    */
@@ -76,26 +111,12 @@ export class SwgOffersFlow {
           SubscriptionFlows.SHOW_OFFERS);
     });
 
+    // If the user is already subscribed, trigger a login flow by publisher
+    this.activityIframeView_.on('UserSubscribed', this.handleUserSubscribed.bind(this));
     // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.onMessage(result => {
-      if (result['alreadySubscribed']) {
-        this.deps_.callbacks().triggerLoginRequest({
-          linkRequested: !!result['linkRequested'],
-        });
-        return;
-      }
-      if (result['sku']) {
-        new PayStartFlow(
-            this.deps_,
-            /** @type {string} */ (result['sku']))
-            .start();
-        return;
-      }
-      if (result['native']) {
-        this.deps_.callbacks().triggerSubscribeRequest();
-        return;
-      }
-    });
+    this.activityIframeView_.on('OfferSelected', this.startPaymentFlow.bind(this));
+    // If native flow is enabled, trigger native buy flow
+    this.activityIframeView_.on('NativeFlow', this.startNativeFlow.bind(this));
 
     return this.dialogManager_.openView(this.activityIframeView_);
   }

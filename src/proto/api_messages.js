@@ -259,9 +259,138 @@ class AnalyticsRequest {
 }
 
 
+class NativeFlow {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.native_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getNative() {
+    return this.native_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setNative(value) {
+    this.native_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   */
+  toArray() {
+    return [
+      'NativeFlow',  // message type
+      this.native_,  // field 1 - native
+    ];
+  }
+}
+
+
+class OfferSelected {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?string} */
+    this.sku_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getSku() {
+    return this.sku_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSku(value) {
+    this.sku_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   */
+  toArray() {
+    return [
+      'OfferSelected',  // message type
+      this.sku_,  // field 1 - sku
+    ];
+  }
+}
+
+
+class UserSubscribed {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.alreadySubscribed_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?boolean} */
+    this.linkRequested_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getAlreadySubscribed() {
+    return this.alreadySubscribed_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setAlreadySubscribed(value) {
+    this.alreadySubscribed_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getLinkRequested() {
+    return this.linkRequested_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setLinkRequested(value) {
+    this.linkRequested_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   */
+  toArray() {
+    return [
+      'UserSubscribed',  // message type
+      this.alreadySubscribed_,  // field 1 - already_subscribed
+      this.linkRequested_,  // field 2 - link_requested
+    ];
+  }
+}
+
+
 const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsRequest': AnalyticsRequest,
+  'NativeFlow': NativeFlow,
+  'OfferSelected': OfferSelected,
+  'UserSubscribed': UserSubscribed,
 };
 
 /**
@@ -284,6 +413,9 @@ function deserialize(data) {
 export {
   AnalyticsContext,
   AnalyticsRequest,
+  NativeFlow,
+  OfferSelected,
+  UserSubscribed,
   AnalyticsEvent,
   deserialize,
 };
