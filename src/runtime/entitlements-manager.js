@@ -192,7 +192,6 @@ export class EntitlementsManager {
       const raw = cachedValues[0];
       const irtp = cachedValues[1];
       // Try cache first.
-      //todo(chenshay)
       if (raw && !opt_encryptedDocumentKey) {
         const cached = this.getValidJwtEntitlements_(
             raw, /* requireNonExpired */ true,
