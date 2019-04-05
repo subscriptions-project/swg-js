@@ -912,21 +912,6 @@ describes.realWin('EntitlementsManager', {}, env => {
       manager.reset(true);
     });
 
-    it('should push entitlements with decrypted doc key', () => {
-      const raw = entitlementsResponse({
-        source: 'google',
-        products: ['pub1:label1'],
-        subscriptionToken: 's1',
-      })['signedEntitlements'];
-      storageMock.expects('set')
-          .withExactArgs('ents', raw)
-          .returns(Promise.resolve())
-          .once();
-      const res = manager.pushNextEntitlements(raw, null, decryptedDocumentKey);
-      expect(res).to.be.true;
-      manager.reset(true);
-    });
-
     it('should ignore expired pushed entitlements', () => {
       const raw = entitlementsResponse({
         source: 'google',
