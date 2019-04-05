@@ -129,11 +129,13 @@ export class EntitlementsManager {
   }
 
   /**
+   * @param {?string} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements() {
+  getEntitlements(opt_encryptedDocumentKey) {
     if (!this.responsePromise_) {
-      this.responsePromise_ = this.getEntitlementsFlow_();
+      this.responsePromise_ = this.getEntitlementsFlow_(
+          opt_encryptedDocumentKey);
     }
     return this.responsePromise_.then(response => {
       if (response.isReadyToPay != null) {
@@ -150,11 +152,13 @@ export class EntitlementsManager {
   /**
    * @param {string} raw
    * @param {boolean=} opt_isReadyToPay
+   * @param {?string} opt_decryptedDocumentKey
    * @return {boolean}
    */
-  pushNextEntitlements(raw, opt_isReadyToPay) {
+  pushNextEntitlements(raw, opt_isReadyToPay, opt_decryptedDocumentKey) {
     const entitlements = this.getValidJwtEntitlements_(
-        raw, /* requireNonExpired */ true, opt_isReadyToPay);
+        raw, /* requireNonExpired */ true, opt_isReadyToPay,
+        opt_decryptedDocumentKey);
     if (entitlements && entitlements.enablesThis()) {
       this.storage_.set(ENTS_STORAGE_KEY, raw);
       return true;
@@ -163,21 +167,24 @@ export class EntitlementsManager {
   }
 
   /**
+   * @param {?string} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  getEntitlementsFlow_() {
-    return this.fetchEntitlementsWithCaching_().then(entitlements => {
-      this.onEntitlementsFetched_(entitlements);
-      return entitlements;
-    });
+  getEntitlementsFlow_(opt_encryptedDocumentKey) {
+    return this.fetchEntitlementsWithCaching_(opt_encryptedDocumentKey).then(
+        entitlements => {
+          this.onEntitlementsFetched_(entitlements);
+          return entitlements;
+        });
   }
 
   /**
+   * @param {?string} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetchEntitlementsWithCaching_() {
+  fetchEntitlementsWithCaching_(opt_encryptedDocumentKey) {
     return Promise.all([
       this.storage_.get(ENTS_STORAGE_KEY),
       this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY),
@@ -185,7 +192,8 @@ export class EntitlementsManager {
       const raw = cachedValues[0];
       const irtp = cachedValues[1];
       // Try cache first.
-      if (raw) {
+      //todo(chenshay)
+      if (raw && !opt_encryptedDocumentKey) {
         const cached = this.getValidJwtEntitlements_(
             raw, /* requireNonExpired */ true,
             irtpStringToBoolean(irtp));
@@ -196,7 +204,7 @@ export class EntitlementsManager {
         }
       }
       // If cache didn't match, perform fetch.
-      return this.fetchEntitlements_().then(ents => {
+      return this.fetchEntitlements_(opt_encryptedDocumentKey).then(ents => {
         // If entitlements match the product, store them in cache.
         if (ents && ents.enablesThis() && ents.raw) {
           this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
@@ -207,16 +215,17 @@ export class EntitlementsManager {
   }
 
   /**
+   * @param {?string} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetchEntitlements_() {
+  fetchEntitlements_(opt_encryptedDocumentKey) {
     // TODO(dvoytenko): Replace retries with consistent fetch.
     let positiveRetries = this.positiveRetries_;
     this.positiveRetries_ = 0;
     const attempt = () => {
       positiveRetries--;
-      return this.fetch_().then(entitlements => {
+      return this.fetch_(opt_encryptedDocumentKey).then(entitlements => {
         if (entitlements.enablesThis() || positiveRetries <= 0) {
           return entitlements;
         }
@@ -283,10 +292,12 @@ export class EntitlementsManager {
    * @param {string} raw
    * @param {boolean} requireNonExpired
    * @param {boolean=} opt_isReadyToPay
+   * @param {?string} opt_decryptedDocumentKey
    * @return {?Entitlements}
    * @private
    */
-  getValidJwtEntitlements_(raw, requireNonExpired, opt_isReadyToPay) {
+  getValidJwtEntitlements_(raw, requireNonExpired, opt_isReadyToPay,
+    opt_decryptedDocumentKey) {
     try {
       const jwt = this.jwtHelper_.decode(raw);
       if (requireNonExpired) {
@@ -298,7 +309,8 @@ export class EntitlementsManager {
       }
       const entitlementsClaim = jwt['entitlements'];
       return entitlementsClaim && this.createEntitlements_(
-          raw, entitlementsClaim, opt_isReadyToPay) || null;
+          raw, entitlementsClaim, opt_isReadyToPay, opt_decryptedDocumentKey)
+          || null;
     } catch (e) {
       // Ignore the error.
       this.win_.setTimeout(() => {throw e;});
@@ -310,17 +322,19 @@ export class EntitlementsManager {
    * @param {string} raw
    * @param {!Object|!Array<!Object>} json
    * @param {boolean=} opt_isReadyToPay
+   * @param {?string} opt_decryptedDocumentKey
    * @return {!Entitlements}
    * @private
    */
-  createEntitlements_(raw, json, opt_isReadyToPay) {
+  createEntitlements_(raw, json, opt_isReadyToPay, opt_decryptedDocumentKey) {
     return new Entitlements(
         SERVICE_ID,
         raw,
         Entitlement.parseListFromJson(json),
         this.pageConfig_.getProductId(),
         this.ack_.bind(this),
-        opt_isReadyToPay);
+        opt_isReadyToPay,
+        opt_decryptedDocumentKey);
   }
 
   /**
@@ -390,15 +404,18 @@ export class EntitlementsManager {
   }
 
   /**
+   * @param {?string} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetch_() {
-    const url = serviceUrl(
-        '/publication/' +
-        encodeURIComponent(this.publicationId_) +
-        '/entitlements');
-    return this.fetcher_.fetchCredentialedJson(url)
+  fetch_(opt_encryptedDocumentKey) {
+    let url = '/publication/' +
+    encodeURIComponent(this.publicationId_) +
+    '/entitlements';
+    if (opt_encryptedDocumentKey) {
+      url = url + '/crypt/' + opt_encryptedDocumentKey;
+    }
+    return this.fetcher_.fetchCredentialedJson(serviceUrl(url))
         .then(json => this.parseEntitlements(json));
   }
 }
