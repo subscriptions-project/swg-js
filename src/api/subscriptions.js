@@ -59,7 +59,7 @@ export class Subscriptions {
   clear() {}
 
   /**
-   * @param {?string} opt_encryptedDocumentKey
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements(opt_encryptedDocumentKey) {}

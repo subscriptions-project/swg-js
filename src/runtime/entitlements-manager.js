@@ -129,7 +129,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string} opt_encryptedDocumentKey
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements(opt_encryptedDocumentKey) {
@@ -152,13 +152,11 @@ export class EntitlementsManager {
   /**
    * @param {string} raw
    * @param {boolean=} opt_isReadyToPay
-   * @param {?string} opt_decryptedDocumentKey
    * @return {boolean}
    */
-  pushNextEntitlements(raw, opt_isReadyToPay, opt_decryptedDocumentKey) {
+  pushNextEntitlements(raw, opt_isReadyToPay) {
     const entitlements = this.getValidJwtEntitlements_(
-        raw, /* requireNonExpired */ true, opt_isReadyToPay,
-        opt_decryptedDocumentKey);
+        raw, /* requireNonExpired */ true, opt_isReadyToPay);
     if (entitlements && entitlements.enablesThis()) {
       this.storage_.set(ENTS_STORAGE_KEY, raw);
       return true;
@@ -167,7 +165,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string} opt_encryptedDocumentKey
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
@@ -180,7 +178,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string} opt_encryptedDocumentKey
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
@@ -214,7 +212,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string} opt_encryptedDocumentKey
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
@@ -403,14 +401,14 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string} opt_encryptedDocumentKey
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
   fetch_(opt_encryptedDocumentKey) {
     let url = '/publication/' +
-    encodeURIComponent(this.publicationId_) +
-    '/entitlements';
+        encodeURIComponent(this.publicationId_) +
+        '/entitlements';
     if (opt_encryptedDocumentKey) {
       url = url + '/crypt/' + opt_encryptedDocumentKey;
     }
