@@ -44,6 +44,8 @@ describes.realWin('EntitlementsManager', {}, env => {
   let config;
   let analyticsMock;
   let deps;
+  let encryptedDocumentKey;
+  let decryptedDocumentKey;
 
   beforeEach(() => {
     win = env.win;
@@ -69,6 +71,9 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
+    encryptedDocumentKey = '{\"accessRequirements\": [\"norcal.com:premium\"],'
+        + ' \"key\":\"aBcDef781-2-4/sjfdi\"}';
+    decryptedDocumentKey = 'decryptedKey';
   });
 
   afterEach(() => {
@@ -161,6 +166,27 @@ describes.realWin('EntitlementsManager', {}, env => {
             json: () => Promise.resolve({}),
           }));
       return manager.getEntitlements().then(ents => {
+        expect(ents.service).to.equal('subscribe.google.com');
+        expect(ents.raw).to.equal('');
+        expect(ents.entitlements).to.deep.equal([]);
+        expect(ents.product_).to.equal('pub1:label1');
+        expect(ents.enablesThis()).to.be.false;
+      });
+    });
+
+    it('should accept encrypted document key', () => {
+      xhrMock.expects('fetch').withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements/crypt/' +
+          '{"accessRequirements": ["norcal.com:premium"], ' +
+          '"key":"aBcDef781-2-4/sjfdi"}',
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }).returns(Promise.resolve({
+            json: () => Promise.resolve({}),
+          }));
+      return manager.getEntitlements(encryptedDocumentKey).then(ents => {
         expect(ents.service).to.equal('subscribe.google.com');
         expect(ents.raw).to.equal('');
         expect(ents.entitlements).to.deep.equal([]);
@@ -882,6 +908,21 @@ describes.realWin('EntitlementsManager', {}, env => {
           .returns(Promise.resolve())
           .once();
       const res = manager.pushNextEntitlements(raw);
+      expect(res).to.be.true;
+      manager.reset(true);
+    });
+
+    it('should push entitlements with decrypted doc key', () => {
+      const raw = entitlementsResponse({
+        source: 'google',
+        products: ['pub1:label1'],
+        subscriptionToken: 's1',
+      })['signedEntitlements'];
+      storageMock.expects('set')
+          .withExactArgs('ents', raw)
+          .returns(Promise.resolve())
+          .once();
+      const res = manager.pushNextEntitlements(raw, null, decryptedDocumentKey);
       expect(res).to.be.true;
       manager.reset(true);
     });
