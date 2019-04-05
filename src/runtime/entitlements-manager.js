@@ -289,7 +289,7 @@ export class EntitlementsManager {
    * @param {string} raw
    * @param {boolean} requireNonExpired
    * @param {boolean=} opt_isReadyToPay
-   * @param {?string} opt_decryptedDocumentKey
+   * @param {?string=} opt_decryptedDocumentKey
    * @return {?Entitlements}
    * @private
    */
@@ -319,7 +319,7 @@ export class EntitlementsManager {
    * @param {string} raw
    * @param {!Object|!Array<!Object>} json
    * @param {boolean=} opt_isReadyToPay
-   * @param {?string} opt_decryptedDocumentKey
+   * @param {?string=} opt_decryptedDocumentKey
    * @return {!Entitlements}
    * @private
    */
