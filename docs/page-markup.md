@@ -26,7 +26,7 @@ SwG uses Schema.org markup. The JSON-LD and Microdata formats are supported.
 
 Using JSON-LD, the markup would look like:
 
-```
+```html
 <script type="application/ld+json">
 {
   "@context": "http://schema.org",
@@ -55,7 +55,7 @@ Thus, notice that:
 
 Using Microdata, the markup could look like this:
 
-```
+```html
 <div itemscope itemtype="http://schema.org/NewsArticle">
   <meta itemprop="isAccessibleForFree" content="false"/>
   <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">

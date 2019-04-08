@@ -279,9 +279,9 @@ export class Runtime {
   }
 
   /** @override */
-  getEntitlements() {
+  getEntitlements(opt_encryptedDocumentKey) {
     return this.configured_(true)
-        .then(runtime => runtime.getEntitlements());
+        .then(runtime => runtime.getEntitlements(opt_encryptedDocumentKey));
   }
 
   /** @override */
@@ -653,8 +653,8 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getEntitlements() {
-    return this.entitlementsManager_.getEntitlements()
+  getEntitlements(opt_encryptedDocumentKey) {
+    return this.entitlementsManager_.getEntitlements(opt_encryptedDocumentKey)
         .then(entitlements => entitlements.clone());
   }
 
