@@ -127,7 +127,10 @@ describes.realWin('Propensity', {}, env => {
         () => {
           return new Promise(resolve => {
             setTimeout(() => {
-              resolve({'values': [42]});
+              resolve({
+                'header': {'ok': true},
+                'body': {'result': 42},
+              });
             }, 10);
           });
         });
