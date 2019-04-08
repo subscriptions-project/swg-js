@@ -22,13 +22,13 @@ The offers flow will first present a set of offers known to SwG. A user will get
 
 To display offers:
 
-```
+```js
 subscriptions.showOffers();
 ```
 
 To handle the login request:
 
-```
+```js
 subscriptions.setOnLoginRequest(function() {
   // Handle login request.
 });
@@ -41,7 +41,7 @@ If a user elects for a presented offer, SwG will run the [Subscribe flow](./subs
 
 There's a mode when showing SwG Offers that will give the user an option to see more offers on the publisher's side. To enable this option, you simply need to declare the `setOnNativeSubscribeRequest` callback:
 
-```
+```js
 subscriptions.setOnNativeSubscribeRequest(function() {
   // Proceed to the publisher's own offers UX.
 });
@@ -54,7 +54,7 @@ A small variation of `subscriptions.showOffers` is the `subscriptions.showSubscr
 
 To activate:
 
-```
+```js
 subscriptions.showSubscribeOption();
 ```
 
@@ -65,7 +65,7 @@ Another small variation of `subscriptions.showOffers` is the `subscriptions.show
 
 To activate:
 
-```
+```js
 subscriptions.showAbbrvOffer();
 ```
 
@@ -76,7 +76,7 @@ All offers APIs (`showOffers`, `showSubscribeOption`, and `showAbbrvOffer`) acce
 
 For instance:
 
-```
+```js
 subscriptions.showOffers({skus: ['sku1', 'sku2']});
 ```
 

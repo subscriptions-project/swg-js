@@ -31,12 +31,12 @@ This flow is normally originated from the publisher and allows the reader to lin
 To start the saving subscription link, provide a callback synchronously returning a token or authCode corresponding to the reader's
 subscription, or a Promise to return it asynchronously Eg:
 
-```
+```js
 subscriptions.saveSubscription(() => {return {token: 'THE TOKEN'}});
 ```
 OR
 
-```
+```js
 const requestPromise = new Promise(resolve => {
     // whenever available
     resolve({authCode: 'THE CODE'});
