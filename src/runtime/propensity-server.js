@@ -37,6 +37,8 @@ export class PropensityServer {
     this.userConsent_ = false;
     /** @private @const {!Xhr} */
     this.xhr_ = new Xhr(win);
+    /** @private @const {number} */
+    this.version_ = 1;
   }
 
   /**
@@ -92,11 +94,11 @@ export class PropensityServer {
       userState = userState + ':' + encodeURIComponent(entitlements);
     }
     let url = ServiceUrl.adsUrl('/subopt/data?states=')
-        + encodeURIComponent(userState);
+        + encodeURIComponent(userState) + '&u_tz=240'
+        + '&v=' + this.version_;
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
-    url = url + '&u_tz=240';
     return this.xhr_.fetch(url, init);
   }
 
@@ -115,18 +117,71 @@ export class PropensityServer {
       eventInfo = eventInfo + ':' + encodeURIComponent(context);
     }
     let url = ServiceUrl.adsUrl('/subopt/data?events=')
-        + encodeURIComponent(eventInfo);
+        + encodeURIComponent(eventInfo) + '&u_tz=240'
+        + '&v=' + this.version_;
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
-    url = url + '&u_tz=240';
     return this.xhr_.fetch(url, init);
   }
 
   /**
+   * @param {JsonObject} response
+   * @return {!../api/propensity-api.PropensityScore}
+   */
+  parsePropensityResponse_(response) {
+    let defaultScore =
+        /** @type {!../api/propensity-api.PropensityScore} */ ({});
+    if (!response['header']) {
+      defaultScore =
+        /** @type {!../api/propensity-api.PropensityScore} */ ({
+          header: {ok: false},
+          body: {result: 'No valid response'},
+        });
+    }
+    const status = response['header'];
+    if (status['ok']) {
+      const scores = response['scores'];
+      let found = false;
+      for (let i = 0; i < scores.length; i++) {
+        const result = scores[i];
+        if (result['product'] == this.publicationId_) {
+          found = true;
+          const scoreStatus = !!result['score'];
+          let value = undefined;
+          if (scoreStatus) {
+            value = result['score'];
+          } else {
+            value = result['error_message'];
+          }
+          defaultScore =
+            /** @type {!../api/propensity-api.PropensityScore} */ ({
+              header: {ok: scoreStatus},
+              body: {result: value},
+            });
+          break;
+        }
+      }
+      if (!found) {
+        const errorMessage = 'No score available for ' + this.publicationId_;
+        defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
+          header: {ok: false},
+          body: {result: errorMessage},
+        });
+      }
+    } else {
+      const errorMessage = response['error'];
+      defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
+        header: {ok: false},
+        body: {result: errorMessage},
+      });
+    }
+    return defaultScore;
+  }
+  /**
    * @param {string} referrer
    * @param {string} type
-   * @return {?Promise<JsonObject>}
+   * @return {?Promise<../api/propensity-api.PropensityScore>}
    */
   getPropensity(referrer, type) {
     const clientId = this.getClientId_();
@@ -136,16 +191,14 @@ export class PropensityServer {
     });
     let url = ServiceUrl.adsUrl('/subopt/pts?products=') + this.publicationId_
         + '&type=' + type + '&u_tz=240'
-        + '&ref=' + referrer;
+        + '&ref=' + referrer
+        + '&v=' + this.version_;
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
     return this.xhr_.fetch(url, init).then(result => result.json())
-        .then(score => {
-          if (!score) {
-            score = "{'values': [-1]}";
-          }
-          return score;
+        .then(response => {
+          return this.parsePropensityResponse_(response);
         });
   }
 }

@@ -1447,9 +1447,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         () => Promise.resolve(propensityResponse));
     return runtime.getPropensityModule().then(propensity => {
       expect(propensity).to.not.be.null;
-      propensity.sendSubscriptionState('na');
+      propensity.sendSubscriptionState('unknown');
       propensity.sendEvent('expired');
-      expect(sendSubscriptionStateStub).to.be.calledWithExactly('na');
+      expect(sendSubscriptionStateStub).to.be.calledWithExactly('unknown');
       expect(eventStub).to.be.calledWithExactly('expired');
       return propensity.getPropensity().then(score => {
         expect(score).to.not.be.null;
