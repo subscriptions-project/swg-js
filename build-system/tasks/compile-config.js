@@ -23,6 +23,7 @@ const FRONTEND = 'https://subscribe-qual.sandbox.google.com';
 const FRONTEND_CACHE = 'nocache';
 const PAY_ENVIRONMENT = 'SANDBOX';
 const PLAY_ENVIRONMENT = 'STAGING';
+const ADS_SERVER = 'https://pubads.g.doubleclick.net';
 const EXPERIMENTS = '';
 
 const overrides = {};
@@ -40,6 +41,7 @@ exports.resolveConfig = function() {
     'payEnvironment': argv.payEnvironment || PAY_ENVIRONMENT,
     'playEnvironment': argv.playEnvironment || PLAY_ENVIRONMENT,
     'experiments': argv.experiments || EXPERIMENTS,
+    'adsServer': argv.adsServer || ADS_SERVER,
   };
   return Object.assign(config, overrides);
 }

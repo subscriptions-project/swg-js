@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import * as PropensityApi from '../api/propensity-api';
+import {PropensityServer} from './propensity-server';
+
 /**
  * @implements {PropensityApi.PropensityApi}
  */
@@ -24,12 +26,11 @@ export class Propensity {
    * @param {!../model/page-config.PageConfig} pageConfig
    */
   constructor(win, pageConfig) {
-    /** @private @const {!../model/page-config.PageConfig} */
-    this.pageConfig_ = pageConfig;
     /** @private @const {!Window} */
     this.win_ = win;
-    /** @private {boolean} */
-    this.userConsent_ = false;
+    /** @private {PropensityServer} */
+    this.propensityServer_ = new PropensityServer(win,
+        pageConfig.getPublicationId());
   }
 
   /** @override */
@@ -37,21 +38,26 @@ export class Propensity {
     if (!Object.values(PropensityApi.SubscriptionState).includes(state)) {
       throw new Error('Invalid subscription state provided');
     }
-    if (PropensityApi.SubscriptionState.SUBSCRIBER == state
+    if ((PropensityApi.SubscriptionState.SUBSCRIBER == state ||
+         PropensityApi.SubscriptionState.PAST_SUBSCRIBER == state)
         && !jsonEntitlements) {
-      throw new Error('Entitlements not provided for subscribed users');
+      throw new Error('Entitlements must be provided for users with'
+          + ' active or expired subscriptions');
     }
-    // TODO(sohanirao): inform server of subscription state
+    const entitlements = jsonEntitlements && JSON.stringify(jsonEntitlements);
+    this.propensityServer_.sendSubscriptionState(state, entitlements);
   }
 
   /** @override */
   getPropensity(type) {
-    const propensityToSubscribe = undefined;
     if (type && !Object.values(PropensityApi.PropensityType).includes(type)) {
       throw new Error('Invalid propensity type requested');
     }
-    // TODO(sohanirao): request propensity from server
-    return Promise.resolve(propensityToSubscribe);
+    if (!type) {
+      type = PropensityApi.PropensityType.GENERAL;
+    }
+    return this.propensityServer_.getPropensity(this.win_.document.referrer,
+        type);
   }
 
   /** @override */
@@ -59,10 +65,9 @@ export class Propensity {
     if (!Object.values(PropensityApi.Event).includes(userEvent)) {
       throw new Error('Invalid user event provided');
     }
-    if (PropensityApi.Event.IMPRESSION_PAYWALL != event && jsonParams == null) {
-      // TODO(sohanirao): remove this, this check is just to avoid unused params
-      throw new Error('Provide additional parameters for your event:', event);
-    }
-    // TODO(sohanirao): send event and params if necessary
+    // TODO(sohanirao): drop the params for some events?
+    // TODO(sohanirao) : verify parameters for some events
+    const paramString = jsonParams && JSON.stringify(jsonParams);
+    this.propensityServer_.sendEvent(userEvent, paramString);
   }
 }

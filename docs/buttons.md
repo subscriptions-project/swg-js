@@ -34,7 +34,7 @@ Both APIs require a callback and accept an optional `options` object. The config
 
 The API call without options:
 
-```
+```js
 subscriptions.createButton(function() {
   // Handle the action.
 });
@@ -42,7 +42,7 @@ subscriptions.createButton(function() {
 
 The API call with options:
 
-```
+```js
 subscriptions.createButton({theme: 'dark', lang:'pt-br'}, function() {
   // Handle the action.
 });
@@ -52,7 +52,7 @@ subscriptions.createButton({theme: 'dark', lang:'pt-br'}, function() {
 
 The SwG button styles are available in the SwG stylesheet:
 
-```
+```html
 <link rel="stylesheet" href="https://news.google.com/swg/js/v1/swg-button.css">
 ```
 
@@ -62,6 +62,6 @@ Using this stylesheet, it's easy to decorate a button as a SwG button using `swg
 
 For instance:
 
-```
+```html
 <button class="swg-button-light"></button>
 ```
