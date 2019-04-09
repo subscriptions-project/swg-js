@@ -52,9 +52,12 @@ describes.realWin('PropensityServer', {}, env => {
           expect(queries).to.not.be.null;
           expect('cookie' in queries).to.be.true;
           expect(queries['cookie']).to.equal('noConsent');
+          expect('v' in queries).to.be.true;
+          expect(parseInt(queries['v'], 10)).to.equal(
+              propensityServer.version_);
           expect('states' in queries).to.be.true;
           const userState = 'pub1:' + queries['states'].split(':')[1];
-          expect(userState).to.equal('pub1:yes');
+          expect(userState).to.equal('pub1:subscriber');
           const products = decodeURIComponent(queries['states'].split(':')[2]);
           expect(products).to.equal(JSON.stringify(entitlements));
           expect(capturedRequest.credentials).to.equal('include');
@@ -86,6 +89,8 @@ describes.realWin('PropensityServer', {}, env => {
         expect(queries).to.not.be.null;
         expect('cookie' in queries).to.be.true;
         expect(queries['cookie']).to.equal('noConsent');
+        expect('v' in queries).to.be.true;
+        expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
         expect('events' in queries).to.be.true;
         const events = decodeURIComponent(queries['events'].split(':')[2]);
         expect(events).to.equal(JSON.stringify(eventParam));
@@ -115,6 +120,9 @@ describes.realWin('PropensityServer', {}, env => {
           expect(queries).to.not.be.null;
           expect('cookie' in queries).to.be.true;
           expect(queries['cookie']).to.equal('noConsent');
+          expect('v' in queries).to.be.true;
+          expect(parseInt(queries['v'], 10)).to.equal(
+              propensityServer.version_);
           expect('products' in queries).to.be.true;
           expect(queries['products']).to.equal('pub1');
           expect('type' in queries).to.be.true;
@@ -126,10 +134,23 @@ describes.realWin('PropensityServer', {}, env => {
   });
 
   it('should test get propensity', () => {
-    const score = {'values': [42]};
+    const propensityResponse = {
+      'header': {'ok': true},
+      'scores': [
+        {
+          'product': 'pub1',
+          'score': 90,
+        },
+        {
+          'product': 'pub1:premium',
+          'error_message': 'not available',
+        },
+      ],
+    };
     const response = new Response();
     const mockResponse = sandbox.mock(response);
-    mockResponse.expects('json').returns(Promise.resolve(score)).once();
+    mockResponse.expects('json').returns(
+        Promise.resolve(propensityResponse)).once();
     sandbox.stub(Xhr.prototype, 'fetch',
         () => {
           return Promise.resolve(response);
@@ -137,8 +158,71 @@ describes.realWin('PropensityServer', {}, env => {
     return propensityServer.getPropensity('/hello',
         PropensityApi.PropensityType.GENERAL).then(response => {
           expect(response).to.not.be.null;
-          expect('values' in response).to.be.true;
-          expect(response.values[0]).to.equal(42);
+          const header = response['header'];
+          expect(header).to.not.be.null;
+          expect(header['ok']).to.be.true;
+          const body = response['body'];
+          expect(body).to.not.be.null;
+          expect(body['result']).to.equal(90);
+        });
+  });
+
+  it('should test only get propensity score for pub', () => {
+    const propensityResponse = {
+      'header': {'ok': true},
+      'scores': [
+        {
+          'product': 'pub2',
+          'score': 90,
+        },
+        {
+          'product': 'pub1:premium',
+          'error_message': 'not available',
+        },
+      ],
+    };
+    const response = new Response();
+    const mockResponse = sandbox.mock(response);
+    mockResponse.expects('json').returns(
+        Promise.resolve(propensityResponse)).once();
+    sandbox.stub(Xhr.prototype, 'fetch',
+        () => {
+          return Promise.resolve(response);
+        });
+    return propensityServer.getPropensity('/hello',
+        PropensityApi.PropensityType.GENERAL).then(response => {
+          expect(response).to.not.be.null;
+          const header = response['header'];
+          expect(header).to.not.be.null;
+          expect(header['ok']).to.be.false;
+          const body = response['body'];
+          expect(body).to.not.be.null;
+          expect(body['result']).to.equal('No score available for pub1');
+        });
+  });
+
+  it('should test no propensity score available', () => {
+    const propensityResponse = {
+      'header': {'ok': false},
+      'error': 'Service not available',
+    };
+    const response = new Response();
+    const mockResponse = sandbox.mock(response);
+    mockResponse.expects('json').returns(
+        Promise.resolve(propensityResponse)).once();
+    sandbox.stub(Xhr.prototype, 'fetch',
+        () => {
+          return Promise.resolve(response);
+        });
+    return propensityServer.getPropensity('/hello',
+        PropensityApi.PropensityType.GENERAL).then(response => {
+          expect(response).to.not.be.null;
+          const header = response['header'];
+          expect(header).to.not.be.null;
+          expect(header['ok']).to.be.false;
+          const body = response['body'];
+          expect(body).to.not.be.null;
+          expect(body['result']).to.equal('Service not available');
         });
   });
 
@@ -164,6 +248,9 @@ describes.realWin('PropensityServer', {}, env => {
           expect(queries).to.not.be.null;
           expect('cookie' in queries).to.be.true;
           expect(queries['cookie']).to.equal('aaaaaa');
+          expect('v' in queries).to.be.true;
+          expect(parseInt(queries['v'], 10)).to.equal(
+              propensityServer.version_);
           expect('products' in queries).to.be.true;
           expect(queries['products']).to.equal('pub1');
           expect('type' in queries).to.be.true;
@@ -197,6 +284,9 @@ describes.realWin('PropensityServer', {}, env => {
           const queries = parseQueryString(queryString);
           expect(queries).to.not.be.null;
           expect('cookie' in queries).to.be.false;
+          expect('v' in queries).to.be.true;
+          expect(parseInt(queries['v'], 10)).to.equal(
+              propensityServer.version_);
           expect('products' in queries).to.be.true;
           expect(queries['products']).to.equal('pub1');
           expect('type' in queries).to.be.true;

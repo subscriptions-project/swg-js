@@ -19,13 +19,13 @@
  */
 export const SubscriptionState = {
   // user's subscription state not known.
-  UNKNOWN: 'na',
+  UNKNOWN: 'unknown',
   // user is not a subscriber.
-  NON_SUBSCRIBER: 'no',
+  NON_SUBSCRIBER: 'non_subscriber',
   // user is a subscriber.
-  SUBSCRIBER: 'yes',
+  SUBSCRIBER: 'subscriber',
   // user's subscription has expired.
-  PAST_SUBSCRIBER: 'ex',
+  PAST_SUBSCRIBER: 'past_subscriber',
 }
 
 /**

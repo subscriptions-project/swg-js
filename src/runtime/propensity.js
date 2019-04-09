@@ -57,23 +57,7 @@ export class Propensity {
       type = PropensityApi.PropensityType.GENERAL;
     }
     return this.propensityServer_.getPropensity(this.win_.document.referrer,
-        type).then(result => {
-          // TODO(sohanirao): Match HTTP interface
-          let propensityScore = undefined;
-          const score = result && result['values'];
-          if (!score) {
-            propensityScore = {
-              header: {ok: false},
-              body: {result: 'no score available'},
-            };
-          } else {
-            propensityScore = {
-              header: {ok: true},
-              body: {result: score[0]},
-            };
-          }
-          return propensityScore;
-        });
+        type);
   }
 
   /** @override */
