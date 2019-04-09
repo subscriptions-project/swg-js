@@ -22,7 +22,7 @@ This flow shows the user their existing subscription information, prompts for th
 
 Typically, the publisher's site can initiate deferred account creation when it receives the entitlements data, e.g. via `setOnEntitlementsResponse` callback. Thus the possible code could look like this:
 
-```
+```js
 // Publisher function to create a new user account or link subscription to an existing account
 const createOrUpdateAccountPromise = new Promise(...);
 function onEntitlement(entitlements) {
@@ -61,7 +61,7 @@ Once you receive deferred account response:
 
 To activate subscription flow itself, call the `completeDeferredAccountCreation` method with the known entitlements and consent request:
 
-```
+```js
 subscriptions.completeDeferredAccountCreation({
   entitlements: receivedEntitlements,
   consent: true,

@@ -27,9 +27,10 @@ export class Entitlements {
    * @param {?string} currentProduct
    * @param {function(!Entitlements)} ackHandler
    * @param {?boolean|undefined} isReadyToPay
+   * @param {?string|undefined} decryptedDocumentKey
    */
   constructor(service, raw, entitlements, currentProduct, ackHandler,
-    isReadyToPay) {
+    isReadyToPay, decryptedDocumentKey) {
 
     /** @const {string} */
     this.service = service;
@@ -39,6 +40,8 @@ export class Entitlements {
     this.entitlements = entitlements;
     /** @const {boolean} */
     this.isReadyToPay = isReadyToPay || false;
+    /** @const {?string} */
+    this.decryptedDocumentKey = decryptedDocumentKey || null;
 
     /** @private @const {?string} */
     this.product_ = currentProduct;
@@ -56,7 +59,8 @@ export class Entitlements {
         this.entitlements.map(ent => ent.clone()),
         this.product_,
         this.ackHandler_,
-        this.isReadyToPay);
+        this.isReadyToPay,
+        this.decryptedDocumentKey);
   }
 
   /**
