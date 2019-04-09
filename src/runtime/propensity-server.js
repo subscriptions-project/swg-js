@@ -141,8 +141,7 @@ export class PropensityServer {
     }
     const status = response['header'];
     if (status['ok']) {
-      // TODO(sohanirao): fix it when server updates
-      const scores = response['scores']['score'];
+      const scores = response['scores'];
       let found = false;
       for (let i = 0; i < scores.length; i++) {
         const result = scores[i];

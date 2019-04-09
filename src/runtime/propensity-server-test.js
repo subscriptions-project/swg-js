@@ -136,8 +136,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test get propensity', () => {
     const propensityResponse = {
       'header': {'ok': true},
-      // TODO(sohanirao): fix soon
-      'scores': {'score': [
+      'scores': [
         {
           'product': 'pub1',
           'score': 90,
@@ -146,7 +145,7 @@ describes.realWin('PropensityServer', {}, env => {
           'product': 'pub1:premium',
           'error_message': 'not available',
         },
-      ]},
+      ],
     };
     const response = new Response();
     const mockResponse = sandbox.mock(response);
@@ -171,8 +170,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test only get propensity score for pub', () => {
     const propensityResponse = {
       'header': {'ok': true},
-      // TODO(sohanirao): fix soon
-      'scores': {'score': [
+      'scores': [
         {
           'product': 'pub2',
           'score': 90,
@@ -181,7 +179,7 @@ describes.realWin('PropensityServer', {}, env => {
           'product': 'pub1:premium',
           'error_message': 'not available',
         },
-      ]},
+      ],
     };
     const response = new Response();
     const mockResponse = sandbox.mock(response);
