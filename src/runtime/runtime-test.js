@@ -507,6 +507,18 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should delegate "getEntitlements" with encryptedDocumentKey', () => {
+      const ents = {};
+      const encryptedDocumentKey = '{\"accessRequirements\": ' +
+          '[\"norcal.com:premium\"], \"key\":\"aBcDef781-2-4/sjfdi\"}';
+      configuredRuntimeMock.expects('getEntitlements')
+          .returns(Promise.resolve(ents));
+      return runtime.getEntitlements(encryptedDocumentKey).then(value => {
+        expect(value).to.equal(ents);
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
     it('should delegate "reset"', () => {
       configuredRuntimeMock.expects('reset').once();
       return runtime.reset().then(() => {
@@ -1069,7 +1081,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         'product1',
         () => {});
     entitlementsManagerMock.expects('getEntitlements')
-        .withExactArgs()
+        .withExactArgs(undefined)
         .returns(Promise.resolve(entitlements))
         .once();
     return runtime.start();
@@ -1078,7 +1090,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   it('should start entitlements flow with failure', () => {
     const error = new Error('broken');
     entitlementsManagerMock.expects('getEntitlements')
-        .withExactArgs()
+        .withExactArgs(undefined)
         .returns(Promise.reject(error))
         .once();
     return runtime.start();
