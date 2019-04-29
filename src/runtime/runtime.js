@@ -838,8 +838,6 @@ export class ConfiguredRuntime {
       return this.getEntitlements().then(entitlements => {
         if (entitlements && entitlements.entitlements.length == 0) {
           return;
-        } else {
-          // TODO: Make container DIV height:0; OR display: none;
         }
         const isReadyToPay = entitlements && entitlements.isReadyToPay || false;
         return new SmartSubscriptionButtonFlow(
