@@ -17,8 +17,7 @@
 import {View} from '../components/view';
 import {createElement} from '../utils/dom';
 import {isCancelError} from '../utils/errors';
-import {acceptPortResultData} from '../utils/activity-utils';
-import {deserialize} from '../proto/api_messages';
+import {SwGActivityPorts} from './swg-activity-ports';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
@@ -60,8 +59,8 @@ export class SwgActivityIframeView extends View {
         /** @type {!HTMLIFrameElement} */ (
             createElement(this.doc_, 'iframe', iframeAttributes));
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = activityPorts;
+    /** @private @const {!SwGActivityPorts} */
+    this.activityPorts_ = new SwGActivityPorts(activityPorts);
 
     /** @private @const {string} */
     this.src_ = src;
@@ -75,25 +74,22 @@ export class SwgActivityIframeView extends View {
     /** @private @const {boolean} */
     this.hasLoadingIndicator_ = hasLoadingIndicator;
 
-    /** @private {?web-activities/activity-ports.ActivityIframePort} */
+    /** @private {?./swg-activity-ports.SwgActivityIframePort} */
     this.port_ = null;
 
     /**
      * @private
-     * {?function<!web-activities/activity-ports.ActivityIframePort|!Promise>}
+     * {?function<!./swg-activity-ports.SwgActivityIframePort|!Promise>}
      */
     this.portResolver_ = null;
 
     /**
      * @private @const
-     * {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+     * {!Promise<./swg-activity-ports.SwgActivityIframePort>}
      */
     this.portPromise_ = new Promise(resolve => {
       this.portResolver_ = resolve;
     });
-
-    /** @private @const {!Object<string, function(!{Object})>} */
-    this.callbackMap_ = {};
   }
 
   /** @override */
@@ -104,7 +100,9 @@ export class SwgActivityIframeView extends View {
   /** @override */
   init(dialog) {
     return this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
-        .then(port => this.onOpenIframeResponse_(port, dialog));
+        .then(port => {
+          return this.onOpenIframeResponse_(port, dialog);
+        });
   }
 
   /**
@@ -140,7 +138,7 @@ export class SwgActivityIframeView extends View {
   }
 
   /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+   * @return {!Promise<!./swg-activity-ports.SwgActivityIframePort>}
    * @private
    */
   getPortPromise_() {
@@ -153,7 +151,7 @@ export class SwgActivityIframeView extends View {
    */
   execute(request) {
     this.getPortPromise_().then(port => {
-        port.message({'REQ': request.toArray()});
+        port.execute(request);
     });
   }
 
@@ -163,60 +161,35 @@ export class SwgActivityIframeView extends View {
    * @template T
    */
    on(type, callback) {
-     this.callbackMap_[type] = callback;
      this.getPortPromise_().then(port => {
-       port.onMessage(data => {
-         const response = data && data['RESPONSE'];
-         if (!response) {
-           return;
-         }
-         console.log(response);
-         const cb = this.callbackMap_[response[0]];
-         if (cb) {
-           cb(deserialize(response));
-         }
-       });
+       port.on(type, callback);
      });
    }
-
-  /**
-   * Accepts results from the caller.
-   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
-   */
-  acceptResult() {
-    return this.getPortPromise_().then(port => port.acceptResult());
-  }
-
-  /**
-   * Accepts results from the caller and verifies origin.
-   * @param {string} requireOrigin
-   * @param {boolean} requireOriginVerified
-   * @param {boolean} requireSecureChannel
-   * @return {!Promise<!Object>}
-   */
-  acceptResultAndVerify(
-    requireOrigin,
-    requireOriginVerified,
-    requireSecureChannel) {
-    return this.getPortPromise_().then(port => {
-      return acceptPortResultData(port, requireOrigin,
-          requireOriginVerified, requireSecureChannel);
-    });
-  }
 
   /**
    * Completes the flow.
    * @return {!Promise}
    */
   whenComplete() {
-    return this.acceptResult();
+    return this.getPortPromise_().then(port => port.whenComplete());
+  }
+
+  /**
+   * @param {string} type
+   * @param {function(T, string, boolean, boolean)} callback
+   * @template T
+   */
+  onResult(type, callback) {
+    this.getPortPromise_().then(port => {
+      port.onResult(type, callback);
+    });
   }
 
   /**
    * @param {function()} callback
    */
   onCancel(callback) {
-    this.acceptResult().catch(reason => {
+    this.whenComplete().catch(reason => {
       if (isCancelError(reason)) {
         callback();
       }

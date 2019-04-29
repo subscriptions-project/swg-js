@@ -85,7 +85,7 @@ export class SwgOffersFlow {
   startPaymentFlow(offer_selected) {
     const sku = offer_selected.getSku();
     if (sku) {
-      new PayStartFlow(this.deps_, sku);
+      new PayStartFlow(this.deps_, sku).start();
     }
   }
 
