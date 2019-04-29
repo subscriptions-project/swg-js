@@ -237,6 +237,16 @@ export class Subscriptions {
   attachButton(button, optionsOrCallback, opt_callback) {}
 
   /**
+   * Creates smartButton element and the provided callback.
+   * The default theme is "light".
+   *
+   * @param {!Element} container
+   * @param {!ButtonOptions=} opt_options
+   * @return {!Element}
+   */
+  createSubscriptionButton(container, opt_options) {}
+
+  /**
    * Retrieves the propensity module that provides APIs to
    * get propensity scores based on user state and events
    * @return {!Promise<PropensityApi>}
@@ -257,6 +267,7 @@ export const SubscriptionFlows = {
   LINK_ACCOUNT: 'linkAccount',
   SHOW_LOGIN_PROMPT: 'showLoginPrompt',
   SHOW_LOGIN_NOTIFICATION: 'showLoginNotification',
+  SMART_SUBSCRIPTION_BUTTON: 'showSmartSubscriptionButton',
 };
 
 
@@ -375,6 +386,8 @@ export let SaveSubscriptionRequestCallback;
  *
  * @typedef {{
  *   theme: string,
+ *   lang: (string|undefined),
+ *   isClosable: (boolean|undefined),
  * }}
  */
 export let ButtonOptions;

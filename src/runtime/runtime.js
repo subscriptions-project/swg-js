@@ -16,7 +16,7 @@
 
 import {ActivityPorts} from 'web-activities/activity-ports';
 import {AnalyticsEvent} from '../proto/api_messages';
-import {ButtonApi} from './button-api';
+import {ButtonApi, Theme} from './button-api';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
 import {
@@ -59,8 +59,10 @@ import {
   PayCompleteFlow,
 } from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
+import {SmartSubscriptionButtonFlow} from './smart-button-flow';
 import {Storage} from './storage';
 import {
+  ButtonOptions,
   Subscriptions,
   WindowOpenMode,
   defaultConfig,
@@ -418,6 +420,12 @@ export class Runtime {
   /** @override */
   createButton(optionsOrCallback, opt_callback) {
     return this.buttonApi_.create(optionsOrCallback, opt_callback);
+  }
+
+  /** @override */
+  createSubscriptionButton(container, opt_options) {
+    return this.configured_(true).then(
+        runtime => runtime.createSubscriptionButton(container, opt_options));
   }
 
   /** @override */
@@ -817,6 +825,31 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  createSubscriptionButton(container, options) {
+    const opts = /** @type {!ButtonOptions} */
+        (Object.assign(options || {}, {theme: Theme.LIGHT}));
+    if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
+      throw new Error('Not yet launched!');
+    }
+    if (!container) {
+      throw new Error('No element found to render Smart button!');
+    }
+    return this.documentParsed_.then(() => {
+      return this.getEntitlements().then(entitlements => {
+        if (entitlements && entitlements.entitlements.length == 0) {
+          return;
+        } else {
+          // TODO: Make container DIV height:0; OR display: none;
+        }
+        const isReadyToPay = entitlements && entitlements.isReadyToPay || false;
+        return new SmartSubscriptionButtonFlow(
+            this, container, /* isReadyToPay */ isReadyToPay, opts)
+            .start();
+      });
+    });
+  }
+
+  /** @override */
   getPropensityModule() {
     if (!isExperimentOn(this.win_, ExperimentFlags.PROPENSITY)) {
       throw new Error('Not yet launched!');
@@ -863,6 +896,7 @@ function createPublicRuntime(runtime) {
     saveSubscription: runtime.saveSubscription.bind(runtime),
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
+    createSubscriptionButton: runtime.createSubscriptionButton.bind(runtime),
     getPropensityModule: runtime
         .getPropensityModule.bind(runtime),
   });

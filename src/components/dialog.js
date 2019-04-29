@@ -273,14 +273,20 @@ export class Dialog {
   /**
    * Opens the given view and removes existing view from the DOM if any.
    * @param {!./view.View} view
+   * @param {?Element=} elem
    * @return {!Promise}
    */
-  openView(view) {
+  openView(view, elem) {
     setImportantStyles(view.getElement(), resetViewStyles);
     this.entryTransitionToNextView_();
 
     this.view_ = view;
-    this.getContainer().appendChild(view.getElement());
+    // TODO: For testing only. Do not Submit.
+    if (elem) {
+      elem.appendChild(view.getElement());
+    } else {
+      this.getContainer().appendChild(view.getElement());
+    }
 
     // If the current view should fade the parent document.
     if (view.shouldFadeBody() && !this.hidden_) {

@@ -46,4 +46,9 @@ export const ExperimentFlags = {
    * Enables the Propensity feature
    */
   PROPENSITY: 'propensity',
+
+  /**
+   * Enables the Smartbox feature.
+   */
+  SMARTBOX: 'smartbox',
 };

@@ -18,6 +18,14 @@ import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 
 /**
+ * @enum {string}
+ */
+export const Theme = {
+  'LIGHT': 'light',
+  'DARK': 'dark',
+};
+
+/**
  * The button title should match that of button's SVG.
  */
 /** @type {!Object<string, string>} */
@@ -110,8 +118,8 @@ export class ButtonApi {
         (typeof optionsOrCallback == 'function' ? optionsOrCallback : null) ||
             opt_callback);
     let theme = options && options['theme'];
-    if (theme !== 'light' && theme !== 'dark') {
-      theme = 'light';
+    if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
+      theme = Theme.LIGHT;
     }
     button.classList.add(`swg-button-${theme}`);
     button.setAttribute('role', 'button');

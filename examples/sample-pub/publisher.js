@@ -104,6 +104,18 @@ function startFlowAuto() {
     });
     return;
   }
+
+  if (flow == 'smartbutton') {
+    whenReady(function(subsciptions) {
+      whenDemoReady(function() {
+        var smartButtonContainerDiv = document.querySelector('#swgId');
+        subsciptions.createSubscriptionButton(
+            smartButtonContainerDiv, {theme: 'light', lang: 'en'});
+      });
+    });
+    return;
+  }
+
   if (flow == 'button') {
     whenReady(function(subscriptions) {
       whenDemoReady(function() {

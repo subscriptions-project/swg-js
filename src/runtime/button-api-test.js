@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ButtonApi} from './button-api';
+import {Theme, ButtonApi} from './button-api';
 import {resolveDoc} from '../model/doc';
 
 
