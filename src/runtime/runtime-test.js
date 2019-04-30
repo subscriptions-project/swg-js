@@ -1425,8 +1425,28 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .calledWithExactly(button, options, callback);
   });
 
-  it('should not return propensity module', () => {
-    expect(() => runtime.getPropensityModule()).to.throw(/Not yet launched!/);
+  it('should not expoose getPropensity API', () => {
+    const sendSubscriptionStateStub = sandbox.stub(
+        Propensity.prototype,
+        'sendSubscriptionState');
+    const eventStub = sandbox.stub(
+        Propensity.prototype,
+        'sendEvent');
+    return runtime.getPropensityModule().then(propensity => {
+      expect(propensity).to.not.be.null;
+      propensity.sendSubscriptionState('unknown');
+      const event = {
+        name: 'ad_shown',
+        active: false,
+        data: {
+          campaign: 'fall',
+        },
+      };
+      propensity.sendEvent(event);
+      expect(sendSubscriptionStateStub).to.be.calledWithExactly('unknown');
+      expect(eventStub).to.be.calledWithExactly(event);
+      expect(() => propensity.getPropensity()).to.throw(/Not yet launched/);
+    });
   });
 
   it('should invoke propensity APIs', () => {
@@ -1448,9 +1468,16 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     return runtime.getPropensityModule().then(propensity => {
       expect(propensity).to.not.be.null;
       propensity.sendSubscriptionState('unknown');
-      propensity.sendEvent('expired');
+      const event = {
+        name: 'ad_shown',
+        active: false,
+        data: {
+          campaign: 'fall',
+        },
+      };
+      propensity.sendEvent(event);
       expect(sendSubscriptionStateStub).to.be.calledWithExactly('unknown');
-      expect(eventStub).to.be.calledWithExactly('expired');
+      expect(eventStub).to.be.calledWithExactly(event);
       return propensity.getPropensity().then(score => {
         expect(score).to.not.be.null;
         expect(score.header).to.not.be.null;
