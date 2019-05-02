@@ -59,10 +59,9 @@ import {
   PayCompleteFlow,
 } from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
-import {SmartSubscriptionButtonFlow} from './smart-button-flow';
+import {SmartSubscriptionButtonApi} from './smart-button-api';
 import {Storage} from './storage';
 import {
-  ButtonOptions,
   Subscriptions,
   WindowOpenMode,
   defaultConfig,
@@ -423,9 +422,10 @@ export class Runtime {
   }
 
   /** @override */
-  createSubscriptionButton(container, opt_options) {
+  renderSmartButton(container, opt_options, callback) {
     return this.configured_(true).then(
-        runtime => runtime.createSubscriptionButton(container, opt_options));
+        runtime =>
+        runtime.renderSmartButton(container, opt_options, callback));
   }
 
   /** @override */
@@ -825,9 +825,10 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  createSubscriptionButton(container, options) {
-    const opts = /** @type {!ButtonOptions} */
-        (Object.assign(options || {}, {theme: Theme.LIGHT}));
+  renderSmartButton(container, options, callback) {
+    if (!options) {
+      Object.assign({}, {theme: Theme.LIGHT, lang: 'en'});
+    }
     if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
       throw new Error('Not yet launched!');
     }
@@ -835,15 +836,8 @@ export class ConfiguredRuntime {
       throw new Error('No element found to render Smart button!');
     }
     return this.documentParsed_.then(() => {
-      return this.getEntitlements().then(entitlements => {
-        if (entitlements && entitlements.entitlements.length == 0) {
-          return;
-        }
-        const isReadyToPay = entitlements && entitlements.isReadyToPay || false;
-        return new SmartSubscriptionButtonFlow(
-            this, container, /* isReadyToPay */ isReadyToPay, opts)
-            .start();
-      });
+      return new SmartSubscriptionButtonApi(this, container, options, callback)
+          .start();
     });
   }
 
@@ -894,7 +888,7 @@ function createPublicRuntime(runtime) {
     saveSubscription: runtime.saveSubscription.bind(runtime),
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
-    createSubscriptionButton: runtime.createSubscriptionButton.bind(runtime),
+    renderSmartButton: runtime.renderSmartButton.bind(runtime),
     getPropensityModule: runtime
         .getPropensityModule.bind(runtime),
   });

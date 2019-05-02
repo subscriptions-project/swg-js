@@ -41,6 +41,13 @@ export class View {
    */
   init(unusedDialog) {}
 
+
+  /**
+   * @return {!Promise}
+   * @abstract
+   */
+  initContainer() {}
+
   /**
    * Resizes the content.
    */

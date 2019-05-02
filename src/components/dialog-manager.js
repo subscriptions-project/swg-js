@@ -72,10 +72,9 @@ export class DialogManager {
   /**
    * @param {!./view.View} view
    * @param {boolean=} hidden
-   * @param {?Element=} elem
    * @return {!Promise}
    */
-  openView(view, hidden = false, elem) {
+  openView(view, hidden = false) {
     view.whenComplete().catch(reason => {
       if (isCancelError(reason)) {
         this.completeView(view);
@@ -83,8 +82,7 @@ export class DialogManager {
       throw (reason);
     });
     return this.openDialog(hidden).then(dialog => {
-      // For testing only. Do not Submit.
-      return dialog.openView(view, elem);
+      return dialog.openView(view);
     });
   }
 

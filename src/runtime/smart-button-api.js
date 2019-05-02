@@ -17,23 +17,23 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {Theme} from './button-api';
-import {OffersFlow} from './offers-flow';
-import {SubscriptionFlows} from '../api/subscriptions';
+//import {SubscriptionFlows} from '../api/subscriptions';
+import {setImportantStyles} from '../utils/style';
 import {feArgs, feUrl} from './services';
 
 
 /**
- * The class for Offers flow.
+ * The class for Smart button Api.
  */
-export class SmartSubscriptionButtonFlow {
+export class SmartSubscriptionButtonApi {
 
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!Element} container
-   * @param {boolean} isReadyToPay
    * @param {!../api/subscriptions.ButtonOptions|undefined} options
+   * @param {function()=} callback
    */
-  constructor(deps, container, isReadyToPay, options) {
+  constructor(deps, container, options, callback) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -49,8 +49,8 @@ export class SmartSubscriptionButtonFlow {
     /** @private @const {!Element} */
     this.container_ = container;
 
-    /** @private @const {boolean} */
-    this.isReadyToPay_ = isReadyToPay;
+    /** @private const {?function()=} */
+    this.callback_ = callback;
 
     /** @private @const {string} */
     this.theme_ = options && options.theme || Theme.LIGHT;
@@ -69,7 +69,6 @@ export class SmartSubscriptionButtonFlow {
         feArgs({
           'productId': deps.pageConfig().getProductId(),
           'publicationId': deps.pageConfig().getPublicationId(),
-          'isReadyToPay': this.isReadyToPay_,
           'theme': this.theme_,
           'lang': options && options.lang || 'en',
         }),
@@ -78,49 +77,37 @@ export class SmartSubscriptionButtonFlow {
 
   /**
    * Starts the smart button subscription button flow.
-   * @return {!Promise}
    */
   start() {
-    this.setContainerStyle();
-
-    // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SMART_SUBSCRIPTION_BUTTON);
-    this.activityIframeView_.onCancel(() => {
-      this.deps_.callbacks().triggerFlowCanceled(
-          SubscriptionFlows.SMART_SUBSCRIPTION_BUTTON);
-    });
-
-    // If result is due to OfferSelection, redirect to payments.
+    // If smart button was clicked, execute callback.
     this.activityIframeView_.onMessage(result => {
-      if (result['viewOffers']) {  // TODO: Change attribute name.
-        const options = {
-          isClosable: this.isClosable_,
-        };
-        new OffersFlow(this.deps_, options).start();
+      if (result['clicked']) {
+        if (!this.callback_) {
+          throw new Error('No callback!');
+        }
+        this.callback_();
         return;
       }
     });
-    /**
-     * TODO
-     * ----
-     * Add the newly created "this.activityIframeView_" to "this.container_"
-     * Also, need to fetch and pass "isReadyToPay" and "signedIn" flags.
-     */
-
-    // Rendering this only for demo/test purpose. This iframe should be rendered
-    // directly within "this.container_".
-    return this.dialogManager_.openView(
-        this.activityIframeView_, /* hidden */ true, this.container_);
+    this.buildContent_();
   }
 
   /**
-   *
+   * @private
    */
-  setContainerStyle() {
+  buildContent_() {
+    this.container_.appendChild(this.activityIframeView_.getElement());
 
-    // TODO: For testing purpose only.
-    this.container_.style.cssText =
-        'height:120px;width:100%;background-color: #fff;position:relative';
+    setImportantStyles(this.container_, {
+      'height': '126px',
+    });
+
+    this.activityIframeView_.initContainer().then(() => {
+      setImportantStyles(this.activityIframeView_.getElement(), {
+        'opacity': 1,
+        'height': '100%',
+      });
+    });
+
   }
 }

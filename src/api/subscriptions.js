@@ -242,9 +242,10 @@ export class Subscriptions {
    *
    * @param {!Element} container
    * @param {!ButtonOptions=} opt_options
-   * @return {!Element}
+   * @param {function()=} opt_callback
+   * @return {!Promise}
    */
-  createSubscriptionButton(container, opt_options) {}
+  renderSmartButton(container, opt_options, opt_callback) {}
 
   /**
    * Retrieves the propensity module that provides APIs to
@@ -387,7 +388,6 @@ export let SaveSubscriptionRequestCallback;
  * @typedef {{
  *   theme: string,
  *   lang: (string|undefined),
- *   isClosable: (boolean|undefined),
  * }}
  */
 export let ButtonOptions;

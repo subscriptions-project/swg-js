@@ -103,6 +103,11 @@ export class ActivityIframeView extends View {
         .then(port => this.onOpenIframeResponse_(port, dialog));
   }
 
+  /** @override */
+  initContainer() {
+    return this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_);
+  }
+
   /**
    * Returns if document should fade for this view.
    * @return {boolean}

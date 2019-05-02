@@ -107,10 +107,15 @@ function startFlowAuto() {
 
   if (flow == 'smartbutton') {
     whenReady(function(subsciptions) {
+      var subs = subsciptions;
       whenDemoReady(function() {
         var smartButtonContainerDiv = document.querySelector('#swgId');
-        subsciptions.createSubscriptionButton(
-            smartButtonContainerDiv, {theme: 'light', lang: 'en'});
+        subs.renderSmartButton(
+            smartButtonContainerDiv,
+            {theme: 'light', lang: 'en'},
+            function() {
+              subs.showOffers({isClosable: true});
+            });
       });
     });
     return;

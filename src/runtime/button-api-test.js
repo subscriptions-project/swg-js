@@ -97,7 +97,7 @@ describes.realWin('ButtonApi', {}, env => {
   });
 
   it('should create button as light', () => {
-    const button = buttonApi.create({theme: 'light'}, handler);
+    const button = buttonApi.create({theme: Theme.LIGHT}, handler);
     expect(button).to.have.class('swg-button-light');
     expect(button).to.not.have.class('swg-button-dark');
   });
@@ -125,7 +125,7 @@ describes.realWin('ButtonApi', {}, env => {
   it('should attach button with options', () => {
     const button = doc.createElement('button');
     button.className = 'button1';
-    buttonApi.attach(button, {theme: 'dark'}, handler);
+    buttonApi.attach(button, {theme: Theme.DARK}, handler);
     expect(button).to.have.class('swg-button-dark');
     expect(button).to.not.have.class('swg-button-light');
     expect(button).to.have.class('button1');
@@ -140,7 +140,7 @@ describes.realWin('ButtonApi', {}, env => {
   it('should attach button as light', () => {
     const button = doc.createElement('button');
     button.className = 'button1';
-    buttonApi.attach(button, {theme: 'light'}, handler);
+    buttonApi.attach(button, {theme: Theme.LIGHT}, handler);
     expect(button).to.have.class('swg-button-light');
     expect(button).to.not.have.class('swg-button-dark');
     expect(button).to.have.class('button1');
