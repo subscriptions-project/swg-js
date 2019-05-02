@@ -13,6 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * @interface
+ */
+class Message {
+  /**
+   * @return {string}
+   */
+  label() {}
+
+  /**
+   * @return {!Array}
+   */
+  toArray() {}
+}
+
 /** @enum {number} */
 const AnalyticsEvent = {
   UNKNOWN: 0,
@@ -24,6 +39,9 @@ const AnalyticsEvent = {
   EVENT_PAYMENT_FAILED: 2000,
 };
 
+/**
+ * @implements {Message}
+ */
 class AnalyticsContext {
  /**
   * @param {!Array=} data
@@ -186,10 +204,11 @@ class AnalyticsContext {
 
   /**
    * @return {!Array}
+   * @override
    */
   toArray() {
     return [
-      'AnalyticsContext',  // message type
+      this.label(),  // message label
       this.embedderOrigin_,  // field 1 - embedder_origin
       this.transactionId_,  // field 2 - transaction_id
       this.referringOrigin_,  // field 3 - referring_origin
@@ -201,9 +220,19 @@ class AnalyticsContext {
       this.label_,  // field 9 - label
     ];
   }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AnalyticsContext';
+  }
 }
 
-
+/**
+ * @implements {Message}
+ */
 class AnalyticsRequest {
  /**
   * @param {!Array=} data
@@ -248,16 +277,24 @@ class AnalyticsRequest {
 
   /**
    * @return {!Array}
+   * @override
    */
   toArray() {
     return [
-      'AnalyticsRequest',  // message type
+      this.label(),  // message label
       this.context_ ? this.context_.toArray() : [], // field 1 - context
       this.event_,  // field 2 - event
     ];
   }
-}
 
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AnalyticsRequest';
+  }
+}
 
 const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
@@ -267,7 +304,7 @@ const PROTO_MAP = {
 /**
  * Utility to deserialize a buffer
  * @param {!Array} data
- * @return {?Object}
+ * @return {!Message}
  */
 function deserialize(data) {
   /** {?string} */
@@ -286,4 +323,5 @@ export {
   AnalyticsRequest,
   AnalyticsEvent,
   deserialize,
+  Message,
 };
