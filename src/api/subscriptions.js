@@ -243,7 +243,6 @@ export class Subscriptions {
    * @param {!Element} container
    * @param {!ButtonOptions=} opt_options
    * @param {function()=} opt_callback
-   * @return {!Promise}
    */
   renderSmartButton(container, opt_options, opt_callback) {}
 
@@ -268,7 +267,6 @@ export const SubscriptionFlows = {
   LINK_ACCOUNT: 'linkAccount',
   SHOW_LOGIN_PROMPT: 'showLoginPrompt',
   SHOW_LOGIN_NOTIFICATION: 'showLoginNotification',
-  SMART_SUBSCRIPTION_BUTTON: 'showSmartSubscriptionButton',
 };
 
 

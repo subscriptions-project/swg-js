@@ -836,7 +836,7 @@ export class ConfiguredRuntime {
       throw new Error('No element found to render Smart button!');
     }
     return this.documentParsed_.then(() => {
-      return new SmartSubscriptionButtonApi(this, container, options, callback)
+      new SmartSubscriptionButtonApi(this, container, options, callback)
           .start();
     });
   }

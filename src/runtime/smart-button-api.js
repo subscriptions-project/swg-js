@@ -17,7 +17,6 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {Theme} from './button-api';
-//import {SubscriptionFlows} from '../api/subscriptions';
 import {setImportantStyles} from '../utils/style';
 import {feArgs, feUrl} from './services';
 
@@ -55,12 +54,6 @@ export class SmartSubscriptionButtonApi {
     /** @private @const {string} */
     this.theme_ = options && options.theme || Theme.LIGHT;
 
-    /** @private {boolean} */
-    this.isClosable_ = options && options.isClosable || false;
-    if (this.isClosable_ == undefined) {
-      this.isClosable_ = false;  // Default is to hide Close button.
-    }
-
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
@@ -76,7 +69,7 @@ export class SmartSubscriptionButtonApi {
   }
 
   /**
-   * Starts the smart button subscription button flow.
+   * Make a call to build button content and listens for the message.
    */
   start() {
     // If smart button was clicked, execute callback.
@@ -98,14 +91,10 @@ export class SmartSubscriptionButtonApi {
   buildContent_() {
     this.container_.appendChild(this.activityIframeView_.getElement());
 
-    setImportantStyles(this.container_, {
-      'height': '126px',
-    });
-
     this.activityIframeView_.initContainer().then(() => {
       setImportantStyles(this.activityIframeView_.getElement(), {
         'opacity': 1,
-        'height': '100%',
+        'height': '126px',
       });
     });
 

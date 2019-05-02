@@ -21,8 +21,8 @@ import {msg} from '../utils/i18n';
  * @enum {string}
  */
 export const Theme = {
-  'LIGHT': 'light',
-  'DARK': 'dark',
+  LIGHT: 'light',
+  DARK: 'dark',
 };
 
 /**
