@@ -15,10 +15,6 @@
  */
 import * as PropensityApi from '../api/propensity-api';
 import {PropensityServer} from './propensity-server';
-import {
-  isExperimentOn,
-} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 
 /**
  * @implements {PropensityApi.PropensityApi}
@@ -54,9 +50,6 @@ export class Propensity {
 
   /** @override */
   getPropensity(type) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.PROPENSITY)) {
-      throw new Error('Not yet launched!');
-    }
     if (type && !Object.values(PropensityApi.PropensityType).includes(type)) {
       throw new Error('Invalid propensity type requested');
     }

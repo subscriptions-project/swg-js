@@ -17,10 +17,6 @@ import {Propensity} from './propensity';
 import * as PropensityApi from '../api/propensity-api';
 import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
-import {
-  setExperiment,
-} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 
 describes.realWin('Propensity', {}, env => {
   let win;
@@ -87,7 +83,6 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should request valid propensity type', () => {
-    setExperiment(win, ExperimentFlags.PROPENSITY, true);
     expect(() => {
       propensity.getPropensity(PropensityApi.PropensityType.GENERAL);
     }).to.not.throw(/Invalid propensity type requested/);
@@ -139,7 +134,6 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should return propensity score from server', () => {
-    setExperiment(win, ExperimentFlags.PROPENSITY, true);
     sandbox.stub(PropensityServer.prototype, 'getPropensity',
         () => {
           return new Promise(resolve => {
@@ -158,10 +152,5 @@ describes.realWin('Propensity', {}, env => {
       expect(propensityScore.body).to.not.be.null;
       expect(propensityScore.body.result).to.equal(42);
     });
-  });
-
-  it('should not allow getPropensity call', () => {
-    setExperiment(win, ExperimentFlags.PROPENSITY, false);
-    expect(() => propensity.getPropensity()).to.throw(/Not yet launched/);
   });
 });
