@@ -15,6 +15,7 @@
  */
 import * as PropensityApi from '../api/propensity-api';
 import {PropensityServer} from './propensity-server';
+import {isObject} from '../utils/types';
 
 /**
  * @implements {PropensityApi.PropensityApi}
@@ -44,7 +45,13 @@ export class Propensity {
       throw new Error('Entitlements must be provided for users with'
           + ' active or expired subscriptions');
     }
-    const entitlements = jsonEntitlements && JSON.stringify(jsonEntitlements);
+    if (jsonEntitlements && !isObject(jsonEntitlements)) {
+      throw new Error('Entitlements should be in JSON format');
+    }
+    let entitlements = null;
+    if (jsonEntitlements) {
+      entitlements = JSON.stringify(jsonEntitlements);
+    }
     this.propensityServer_.sendSubscriptionState(state, entitlements);
   }
 
@@ -65,9 +72,15 @@ export class Propensity {
     if (!Object.values(PropensityApi.Event).includes(userEvent.name)) {
       throw new Error('Invalid user event provided');
     }
+    if (userEvent.data && !isObject(userEvent.data)) {
+      throw new Error('Event param should be a JSON');
+    }
     // TODO(sohanirao, mborof): Idenfity the new interface with event
     // manager and update the lines below to adhere to that interface
-    const paramString = userEvent.data && JSON.stringify(userEvent.data);
+    let paramString = null;
+    if (userEvent.data) {
+      paramString = JSON.stringify(userEvent.data);
+    }
     this.propensityServer_.sendEvent(userEvent.name, paramString);
   }
 }

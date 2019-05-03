@@ -63,6 +63,11 @@ describes.realWin('Propensity', {}, env => {
           PropensityApi.SubscriptionState.PAST_SUBSCRIBER, entitlements);
     }).not.throw('Entitlements must be provided for users with'
         + ' active or expired subscriptions');
+    expect(() => {
+      const entitlements = ['basic-monthly'];
+      propensity.sendSubscriptionState(
+          PropensityApi.SubscriptionState.SUBSCRIBER, entitlements);
+    }).throw(/Entitlements should be in JSON format/);
   });
 
 
@@ -80,6 +85,14 @@ describes.realWin('Propensity', {}, env => {
     expect(() => {
       propensity.sendEvent(incorrectEvent);
     }).to.throw('Invalid user event provided');
+    const incorrectEventParam = {
+      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      active: true,
+      data: 'all_offers',
+    };
+    expect(() => {
+      propensity.sendEvent(incorrectEventParam);
+    }).to.throw(/Event param should be a JSON/);
   });
 
   it('should request valid propensity type', () => {
