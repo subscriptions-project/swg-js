@@ -17,6 +17,8 @@
 import {
     AnalyticsContext,
     AnalyticsRequest,
+    LinkRequestedAction,
+    SkuSelectionResponse,
     AnalyticsEvent,
     deserialize} from './api_messages';
 
@@ -99,6 +101,33 @@ describe('api_messages', () => {
       expect(analyticsrequestDeserialized).to.not.be.null;
       expect(isEqual(analyticsrequest.toArray(),
           analyticsrequestDeserialized.toArray())).to.be.true;
+    });
+  });
+
+  describe('test_LinkRequestedAction', () => {
+    it('should deserialize correctly', () => {
+      const /** !LinkRequestedAction  */ linkrequestedaction = new LinkRequestedAction();
+      linkrequestedaction.setSubscriberOrMember(false);
+      linkrequestedaction.setLinkRequested(false);
+      const linkrequestedactionSerialized = linkrequestedaction.toArray();
+      const linkrequestedactionDeserialized = deserialize(
+          linkrequestedactionSerialized);
+      expect(linkrequestedactionDeserialized).to.not.be.null;
+      expect(isEqual(linkrequestedaction.toArray(),
+          linkrequestedactionDeserialized.toArray())).to.be.true;
+    });
+  });
+
+  describe('test_SkuSelectionResponse', () => {
+    it('should deserialize correctly', () => {
+      const /** !SkuSelectionResponse  */ skuselectionresponse = new SkuSelectionResponse();
+      skuselectionresponse.setSku('');
+      const skuselectionresponseSerialized = skuselectionresponse.toArray();
+      const skuselectionresponseDeserialized = deserialize(
+          skuselectionresponseSerialized);
+      expect(skuselectionresponseDeserialized).to.not.be.null;
+      expect(isEqual(skuselectionresponse.toArray(),
+          skuselectionresponseDeserialized.toArray())).to.be.true;
     });
   });
 });

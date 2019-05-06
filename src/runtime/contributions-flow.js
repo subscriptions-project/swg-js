@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-
-import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {SwgActivityIframeView} from '../ui/swg-activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
-
+import {
+  SkuSelectionResponse,
+  LinkRequestedAction,
+} from '../proto/api_messages';
 
 /**
  * The class for Contributions flow.
@@ -48,8 +50,8 @@ export class ContributionsFlow {
 
     const isClosable = (options && options.isClosable) || true;
 
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
+    /** @private @const {!SwgActivityIframeView} */
+    this.activityIframeView_ = new SwgActivityIframeView(
         this.win_,
         this.activityPorts_,
         feUrl('/contributionsiframe'),
@@ -62,6 +64,34 @@ export class ContributionsFlow {
           'isClosable': isClosable,
         }),
         /* shouldFadeBody */ true);
+  }
+
+  /**
+   * @param {LinkRequestedAction} request
+   * @private
+   */
+  triggerLoginRequest_(request) {
+    if (!!request.getSubscriberOrMember()) {
+      this.deps_.callbacks().triggerLoginRequest({
+        linkRequested: !!request.getLinkRequested(),
+      });
+      return;
+    }
+  }
+
+  /**
+   * @param {SkuSelectionResponse} response
+   * @private
+   */
+  startPaymentFlow_(response) {
+    const sku = response.getSku();
+    if (!sku) {
+      return;
+    }
+    new PayStartFlow(
+        this.deps_,
+        sku,
+        ProductType.UI_CONTRIBUTION).start();
   }
 
   /**
@@ -78,23 +108,8 @@ export class ContributionsFlow {
     });
 
     // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.onMessage(result => {
-      if (result['alreadyMember']) {
-        this.deps_.callbacks().triggerLoginRequest({
-          linkRequested: !!result['linkRequested'],
-        });
-        return;
-      }
-      if (result['sku']) {
-        new PayStartFlow(
-            this.deps_,
-            /** @type {string} */ (result['sku']),
-            ProductType.UI_CONTRIBUTION)
-            .start();
-        return;
-      }
-    });
-
+    this.activityIframeView_.on(LinkRequestedAction, this.triggerLoginRequest_.bind(this));
+    this.activityIframeView_.on(SkuSelectionResponse, this.startPaymentFlow_.bind(this));
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 }

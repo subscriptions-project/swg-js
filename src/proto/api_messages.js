@@ -13,6 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * @interface
+ */
+class Message {
+  /**
+   * @return {string}
+   */
+  label() {}
+
+  /**
+   * @return {!Array}
+   */
+  toArray() {}
+}
+
 /** @enum {number} */
 const AnalyticsEvent = {
   UNKNOWN: 0,
@@ -24,6 +39,9 @@ const AnalyticsEvent = {
   EVENT_PAYMENT_FAILED: 2000,
 };
 
+/**
+ * @implements {Message}
+ */
 class AnalyticsContext {
  /**
   * @param {!Array=} data
@@ -186,10 +204,11 @@ class AnalyticsContext {
 
   /**
    * @return {!Array}
+   * @override
    */
   toArray() {
     return [
-      'AnalyticsContext',  // message type
+      this.label(),  // message label
       this.embedderOrigin_,  // field 1 - embedder_origin
       this.transactionId_,  // field 2 - transaction_id
       this.referringOrigin_,  // field 3 - referring_origin
@@ -201,9 +220,19 @@ class AnalyticsContext {
       this.label_,  // field 9 - label
     ];
   }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AnalyticsContext';
+  }
 }
 
-
+/**
+ * @implements {Message}
+ */
 class AnalyticsRequest {
  /**
   * @param {!Array=} data
@@ -248,26 +277,148 @@ class AnalyticsRequest {
 
   /**
    * @return {!Array}
+   * @override
    */
   toArray() {
     return [
-      'AnalyticsRequest',  // message type
+      this.label(),  // message label
       this.context_ ? this.context_.toArray() : [], // field 1 - context
       this.event_,  // field 2 - event
     ];
   }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AnalyticsRequest';
+  }
 }
 
+/**
+ * @implements {Message}
+ */
+class LinkRequestedAction {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.subscriberOrMember_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?boolean} */
+    this.linkRequested_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getSubscriberOrMember() {
+    return this.subscriberOrMember_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setSubscriberOrMember(value) {
+    this.subscriberOrMember_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getLinkRequested() {
+    return this.linkRequested_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setLinkRequested(value) {
+    this.linkRequested_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.subscriberOrMember_,  // field 1 - subscriber_or_member
+      this.linkRequested_,  // field 2 - link_requested
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'LinkRequestedAction';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SkuSelectionResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?string} */
+    this.sku_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getSku() {
+    return this.sku_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSku(value) {
+    this.sku_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.sku_,  // field 1 - sku
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SkuSelectionResponse';
+  }
+}
 
 const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsRequest': AnalyticsRequest,
+  'LinkRequestedAction': LinkRequestedAction,
+  'SkuSelectionResponse': SkuSelectionResponse,
 };
 
 /**
  * Utility to deserialize a buffer
  * @param {!Array} data
- * @return {?Object}
+ * @return {!Message}
  */
 function deserialize(data) {
   /** {?string} */
@@ -284,6 +435,9 @@ function deserialize(data) {
 export {
   AnalyticsContext,
   AnalyticsRequest,
+  LinkRequestedAction,
+  SkuSelectionResponse,
   AnalyticsEvent,
   deserialize,
+  Message,
 };
