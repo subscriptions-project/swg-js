@@ -17,7 +17,7 @@ import {
     ActivityOpenOptions,
     ActivityPort
   } from 'web-activities/activity-ports';
-  import {deserialize} from '../proto/api_messages';
+  import {deserialize, Message} from '../proto/api_messages';
 
    export class SwgActivityIframePort {
     /**
@@ -36,7 +36,18 @@ import {
      * @return {!Promise}
      */
     whenReady() {
-      return this.iframePort_.whenReady();
+      return this.iframePort_.whenReady().then(() => {
+        this.iframePort_.onMessage(data => {
+          const response = data && data['RESPONSE'];
+          if (!response) {
+            return;
+           }
+          const cb = this.callbackMap_[response[0]];
+          if (cb) {
+            cb(deserialize(response));
+          }
+        });
+      });
     }
 
      /**
@@ -49,30 +60,21 @@ import {
     }
 
      /**
-     * @template T
-     * @param {T} request
-     */
+      * @param {Message} request
+      */
     execute(request) {
       this.iframePort_.message({'REQ': request.toArray()});
     }
 
      /**
-     * @param {string} type
-     * @param {function(T)} callback
-     * @template T
+     * @param {!Message} message
+     * @param {function(!Message)} callback
      */
-    on(type, callback) {
-      this.callbackMap_[type] = callback;
-      this.iframePort_.onMessage(data => {
-        const response = data && data['RESPONSE'];
-        if (!response) {
-          return;
-         }
-        const cb = this.callbackMap_[response[0]];
-        if (cb) {
-          cb(deserialize(response));
-        }
-      });
+    on(message, callback) {
+      if (this.callbackMap_[message.label()]) {
+          throw new Error('duplicate callbacks not allowed');
+      }
+      this.callbackMap_[message.label()] = callback;
     }
 
      /**

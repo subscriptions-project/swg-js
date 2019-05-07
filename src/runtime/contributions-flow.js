@@ -107,9 +107,10 @@ export class ContributionsFlow {
           SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     });
 
-    // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.on(LinkRequestedAction, this.triggerLoginRequest_.bind(this));
-    this.activityIframeView_.on(SkuSelectionResponse, this.startPaymentFlow_.bind(this));
+    // If already a subscriber or member, handle login request
+    this.activityIframeView_.on(new LinkRequestedAction(), this.triggerLoginRequest_.bind(this));
+    // If offer is selected, redirect to payments.
+    this.activityIframeView_.on(new SkuSelectionResponse(), this.startPaymentFlow_.bind(this));
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 }
