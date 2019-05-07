@@ -839,9 +839,6 @@ export class ConfiguredRuntime {
 
   /** @override */
   getPropensityModule() {
-    if (!isExperimentOn(this.win_, ExperimentFlags.PROPENSITY)) {
-      throw new Error('Not yet launched!');
-    }
     return Promise.resolve(this.propensityModule_);
   }
 }
