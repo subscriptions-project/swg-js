@@ -257,3 +257,17 @@
 .swg-button-dark:lang(zh-tw):after {
   background-image: url("i18n/b-zh-tw-dk.svg");
 }
+
+.swg-smart-button {
+  border: none;
+  padding: 0;
+  background: transparent;
+  min-height: 126px;
+  position: relative;
+  width: 300px;
+  border-radius: 0;
+}
+
+.swg-smart-button:focus {
+  outline: none;
+}

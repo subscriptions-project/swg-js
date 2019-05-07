@@ -16,7 +16,7 @@
 
 import {ActivityPorts} from 'web-activities/activity-ports';
 import {AnalyticsEvent} from '../proto/api_messages';
-import {ButtonApi, Theme} from './button-api';
+import {ButtonApi} from './button-api';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
 import {
@@ -59,7 +59,6 @@ import {
   PayCompleteFlow,
 } from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
-import {SmartSubscriptionButtonApi} from './smart-button-api';
 import {Storage} from './storage';
 import {
   Subscriptions,
@@ -422,10 +421,10 @@ export class Runtime {
   }
 
   /** @override */
-  renderSmartButton(container, opt_options, callback) {
+  attachSmartButton(container, opt_options, callback) {
     return this.configured_(true).then(
         runtime =>
-        runtime.renderSmartButton(container, opt_options, callback));
+        runtime.attachSmartButton(container, opt_options, callback));
   }
 
   /** @override */
@@ -825,19 +824,16 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  renderSmartButton(container, options, callback) {
-    if (!options) {
-      Object.assign({}, {theme: Theme.LIGHT, lang: 'en'});
-    }
+  attachSmartButton(container, optionsOrCallback, opt_callback) {
     if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
       throw new Error('Not yet launched!');
     }
     if (!container) {
-      throw new Error('No element found to render Smart button!');
+      throw new Error('No container element found to render Smart button!');
     }
-    return this.documentParsed_.then(() => {
-      new SmartSubscriptionButtonApi(this, container, options, callback)
-          .start();
+    this.documentParsed_.then(() => {
+      this.buttonApi_.attachSmartButton(
+          this, container, optionsOrCallback, opt_callback);
     });
   }
 
@@ -888,7 +884,7 @@ function createPublicRuntime(runtime) {
     saveSubscription: runtime.saveSubscription.bind(runtime),
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
-    renderSmartButton: runtime.renderSmartButton.bind(runtime),
+    attachSmartButton: runtime.attachSmartButton.bind(runtime),
     getPropensityModule: runtime
         .getPropensityModule.bind(runtime),
   });

@@ -109,8 +109,9 @@ function startFlowAuto() {
     whenReady(function(subsciptions) {
       var subs = subsciptions;
       whenDemoReady(function() {
-        var smartButtonContainerDiv = document.querySelector('#swgId');
-        subs.renderSmartButton(
+        var smartButtonContainerDiv =
+            document.querySelector('.swg-smart-button');
+        subs.attachSmartButton(
             smartButtonContainerDiv,
             {theme: 'light', lang: 'en'},
             function() {

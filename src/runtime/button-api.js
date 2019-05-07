@@ -16,14 +16,8 @@
 
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
+import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
 
-/**
- * @enum {string}
- */
-export const Theme = {
-  LIGHT: 'light',
-  DARK: 'dark',
-};
 
 /**
  * The button title should match that of button's SVG.
@@ -95,7 +89,7 @@ export class ButtonApi {
   }
 
   /**
-   * @param {!Object|function()} optionsOrCallback
+   * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}
    */
@@ -106,17 +100,14 @@ export class ButtonApi {
 
   /**
    * @param {!Element} button
-   * @param {!Object|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
+   * @param {function():null=} opt_callback
    * @return {!Element}
    */
   attach(button, optionsOrCallback, opt_callback) {
-    const options =
-        typeof optionsOrCallback != 'function' ?
-        optionsOrCallback : null;
-    const callback = /** @type {function()} */ (
-        (typeof optionsOrCallback == 'function' ? optionsOrCallback : null) ||
-            opt_callback);
+    const options = this.getOptions_(optionsOrCallback);
+    const callback = /** @type {function(Event):boolean} */
+        (this.getCallback_(optionsOrCallback, opt_callback));
     let theme = options && options['theme'];
     if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
       theme = Theme.LIGHT;
@@ -130,4 +121,51 @@ export class ButtonApi {
     button.addEventListener('click', callback);
     return button;
   }
+
+  /**
+   *
+   * @param {!../api/subscriptions.ButtonOptions|function():null} optionsOrCallback
+   * @return {!../api/subscriptions.ButtonOptions}
+   * @private
+   */
+  getOptions_(optionsOrCallback) {
+    const options = /** @type {?../api/subscriptions.ButtonOptions} */
+        (typeof optionsOrCallback != 'function' ?
+        optionsOrCallback : null);
+    return options || {'theme': Theme.LIGHT, 'lang': 'en'};
+  }
+
+  /**
+   *
+   * @param {?../api/subscriptions.ButtonOptions|function():null} optionsOrCallback
+   * @param {function():null=} opt_callback
+   * @return {function():null|function(Event):boolean}
+   * @private
+   */
+  getCallback_(optionsOrCallback, opt_callback) {
+    const callback = /** @type {function():null|function(Event):boolean} */ (
+      (typeof optionsOrCallback == 'function' ? optionsOrCallback : null) ||
+          opt_callback);
+    return callback;
+  }
+
+  /**
+   * @param {!./deps.DepsDef} deps
+   * @param {!Element} button
+   * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
+   * @param {function():null=} opt_callback
+   * @return {!Element}
+   */
+  attachSmartButton(deps, button, optionsOrCallback, opt_callback) {
+    const options = this.getOptions_(optionsOrCallback);
+    const callback = /** @type {function():null} */
+        (this.getCallback_(optionsOrCallback, opt_callback));
+    let theme = options && options['theme'];
+    if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
+      theme = Theme.LIGHT;
+    }
+    return new SmartSubscriptionButtonApi(
+        deps, button, options, callback).start();
+  }
+
 }

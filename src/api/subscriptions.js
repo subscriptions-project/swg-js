@@ -241,10 +241,10 @@ export class Subscriptions {
    * The default theme is "light".
    *
    * @param {!Element} container
-   * @param {!ButtonOptions=} opt_options
+   * @param {!ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    */
-  renderSmartButton(container, opt_options, opt_callback) {}
+  attachSmartButton(container, optionsOrCallback, opt_callback) {}
 
   /**
    * Retrieves the propensity module that provides APIs to
