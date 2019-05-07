@@ -15,6 +15,7 @@
  */
 import * as PropensityApi from '../api/propensity-api';
 import {PropensityServer} from './propensity-server';
+import {isObject} from '../utils/types';
 
 /**
  * @implements {PropensityApi.PropensityApi}
@@ -44,7 +45,13 @@ export class Propensity {
       throw new Error('Entitlements must be provided for users with'
           + ' active or expired subscriptions');
     }
-    const entitlements = jsonEntitlements && JSON.stringify(jsonEntitlements);
+    if (jsonEntitlements && !isObject(jsonEntitlements)) {
+      throw new Error('Entitlements should be in JSON format');
+    }
+    let entitlements = null;
+    if (jsonEntitlements) {
+      entitlements = JSON.stringify(jsonEntitlements);
+    }
     this.propensityServer_.sendSubscriptionState(state, entitlements);
   }
 
@@ -61,13 +68,19 @@ export class Propensity {
   }
 
   /** @override */
-  sendEvent(userEvent, jsonParams) {
-    if (!Object.values(PropensityApi.Event).includes(userEvent)) {
+  sendEvent(userEvent) {
+    if (!Object.values(PropensityApi.Event).includes(userEvent.name)) {
       throw new Error('Invalid user event provided');
     }
-    // TODO(sohanirao): drop the params for some events?
-    // TODO(sohanirao) : verify parameters for some events
-    const paramString = jsonParams && JSON.stringify(jsonParams);
-    this.propensityServer_.sendEvent(userEvent, paramString);
+    if (userEvent.data && !isObject(userEvent.data)) {
+      throw new Error('Event param should be a JSON');
+    }
+    // TODO(sohanirao, mborof): Idenfity the new interface with event
+    // manager and update the lines below to adhere to that interface
+    let paramString = null;
+    if (userEvent.data) {
+      paramString = JSON.stringify(userEvent.data);
+    }
+    this.propensityServer_.sendEvent(userEvent.name, paramString);
   }
 }
