@@ -824,17 +824,12 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  attachSmartButton(container, optionsOrCallback, opt_callback) {
+  attachSmartButton(button, optionsOrCallback, opt_callback) {
     if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
       throw new Error('Not yet launched!');
     }
-    if (!container) {
-      throw new Error('No container element found to render Smart button!');
-    }
-    this.documentParsed_.then(() => {
-      this.buttonApi_.attachSmartButton(
-          this, container, optionsOrCallback, opt_callback);
-    });
+    this.buttonApi_.attachSmartButton(
+        this, button, optionsOrCallback, opt_callback);
   }
 
   /** @override */

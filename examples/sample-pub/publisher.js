@@ -109,10 +109,10 @@ function startFlowAuto() {
     whenReady(function(subsciptions) {
       var subs = subsciptions;
       whenDemoReady(function() {
-        var smartButtonContainerDiv =
+        var smartButton =
             document.querySelector('.swg-smart-button');
         subs.attachSmartButton(
-            smartButtonContainerDiv,
+            smartButton,
             {theme: 'light', lang: 'en'},
             function() {
               subs.showOffers({isClosable: true});

@@ -40,11 +40,11 @@ export const Theme = {
 export class SmartSubscriptionButtonApi {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!Element} container
+   * @param {!Element} button
    * @param {!../api/subscriptions.ButtonOptions|undefined} options
    * @param {function()=} callback
    */
-  constructor(deps, container, options, callback) {
+  constructor(deps, button, options, callback) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -63,7 +63,7 @@ export class SmartSubscriptionButtonApi {
         createElement(this.doc_, 'iframe', iframeAttributes));
 
     /** @private @const {!Element} */
-    this.container_ = container;
+    this.button_ = button;
 
     /** @private {!../api/subscriptions.ButtonOptions|undefined} */
     this.options_ = options;
@@ -84,18 +84,17 @@ export class SmartSubscriptionButtonApi {
   }
 
   /**
-   * @return {!HTMLIFrameElement}
-   */
-  getElement() {
-    return this.iframe_;
-  }
-
-  /**
    * Make a call to build button content and listens for the 'click' message.
    * @return {!Element}
    */
   start() {
-    setImportantStyles(this.getElement(), {
+    /**
+     * Add a callback to the button itself, so if user tabs to the button and
+     * press enter, should work.
+     */
+    this.button_.addEventListener('click', this.callback_);
+
+    setImportantStyles(this.iframe_, {
       'opacity': 1,
       'position': 'absolute',
       'top': 0,
@@ -105,8 +104,8 @@ export class SmartSubscriptionButtonApi {
       'right': 0,
       'width': '100%',
     });
-    this.container_.appendChild(this.getElement());
-    this.activityPorts_.openIframe(this.getElement(), this.src_, this.args_)
+    this.button_.appendChild(this.iframe_);
+    this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
         .then(port => {
           port.onMessage(result => {
             if (result['clicked']) {
@@ -118,6 +117,6 @@ export class SmartSubscriptionButtonApi {
             }
           });
         });
-    return this.getElement();
+    return this.iframe_;
   }
 }
