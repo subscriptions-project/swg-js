@@ -46,7 +46,7 @@ export class Propensity {
           + ' active or expired subscriptions');
     }
     if (jsonEntitlements && !isObject(jsonEntitlements)) {
-      throw new Error('Entitlements should be in JSON format');
+      throw new Error('Entitlements must be an Object');
     }
     let entitlements = null;
     if (jsonEntitlements) {
@@ -73,7 +73,7 @@ export class Propensity {
       throw new Error('Invalid user event provided');
     }
     if (userEvent.data && !isObject(userEvent.data)) {
-      throw new Error('Event param should be a JSON');
+      throw new Error('Event data must be an Object');
     }
     // TODO(sohanirao, mborof): Idenfity the new interface with event
     // manager and update the lines below to adhere to that interface

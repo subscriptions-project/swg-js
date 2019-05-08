@@ -67,7 +67,7 @@ describes.realWin('Propensity', {}, env => {
       const entitlements = ['basic-monthly'];
       propensity.sendSubscriptionState(
           PropensityApi.SubscriptionState.SUBSCRIBER, entitlements);
-    }).throw(/Entitlements should be in JSON format/);
+    }).throw(/Entitlements must be an Object/);
   });
 
 
@@ -92,7 +92,7 @@ describes.realWin('Propensity', {}, env => {
     };
     expect(() => {
       propensity.sendEvent(incorrectEventParam);
-    }).to.throw(/Event param should be a JSON/);
+    }).to.throw(/Event data must be an Object/);
   });
 
   it('should request valid propensity type', () => {
