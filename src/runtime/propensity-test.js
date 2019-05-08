@@ -63,16 +63,36 @@ describes.realWin('Propensity', {}, env => {
           PropensityApi.SubscriptionState.PAST_SUBSCRIBER, entitlements);
     }).not.throw('Entitlements must be provided for users with'
         + ' active or expired subscriptions');
+    expect(() => {
+      const entitlements = ['basic-monthly'];
+      propensity.sendSubscriptionState(
+          PropensityApi.SubscriptionState.SUBSCRIBER, entitlements);
+    }).throw(/Entitlements must be an Object/);
   });
 
 
   it('should provide valid event', () => {
+    const correctEvent = {
+      name: PropensityApi.Event.IMPRESSION_PAYWALL,
+      active: false,
+    };
     expect(() => {
-      propensity.sendEvent(PropensityApi.Event.IMPRESSION_PAYWALL);
+      propensity.sendEvent(correctEvent);
     }).to.not.throw('Invalid user event provided');
+    const incorrectEvent = {
+      name: 'user-redirect',
+    };
     expect(() => {
-      propensity.sendEvent('user-redirect');
+      propensity.sendEvent(incorrectEvent);
     }).to.throw('Invalid user event provided');
+    const incorrectEventParam = {
+      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      active: true,
+      data: 'all_offers',
+    };
+    expect(() => {
+      propensity.sendEvent(incorrectEventParam);
+    }).to.throw(/Event data must be an Object/);
   });
 
   it('should request valid propensity type', () => {
@@ -111,15 +131,19 @@ describes.realWin('Propensity', {}, env => {
     let paramsSent = null;
     const params = /** @type {JsonObject} */ ({'source': 'user-action'});
     const eventParams = JSON.stringify(params);
+    const propensityEvent = {
+      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      active: false,
+      data: params,
+    };
     sandbox.stub(PropensityServer.prototype, 'sendEvent',
         (event, params) => {
           eventSent = event;
           paramsSent = params;
         });
-    propensity.sendEvent(PropensityApi.Event.IMPRESSION_OFFERS,
-        eventParams);
-    expect(eventSent).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
-    expect(JSON.stringify(eventParams)).to.equal(paramsSent);
+    propensity.sendEvent(propensityEvent);
+    expect(eventSent).to.deep.equal(propensityEvent.name);
+    expect(eventParams).to.equal(paramsSent);
   });
 
   it('should return propensity score from server', () => {
