@@ -60,82 +60,50 @@ export class SwgClientEvent {
   }
 
   /**Returns true if the passed value is a JSON object
-   * @param {Object|null} object
+   * @param {?Object} object
    * @private
    */
   static isValidObject_(object) {
     return object && object.constructor === {}.constructor;
   }
 
-  /**A helper function for handling invalid argument errors.  If isValid is
-   * true, this function will return true.  Otherwise an error will be
-   * generated if throwError is true.  Name and value are used to describe the
-   * cause of the error.
-   * @param {boolean} isValid
-   * @param {boolean} throwError
-   * @param {string} name
-   * @param {*} value
-   * @private
-   */
-  static maybeAssert_(isValid, throwError, name, value) {
-    if (isValid) {
-      return true;
-    }
-    if (!throwError) {
-      return false;
-    }
-    throw new Error('Invalid argument provided to SwgClientEventManager: ' +
-        name + '=' + value);
-  }
-
   /**Helper function for checking whether the passed value is an event type.
    * @param {*} value
-   * @param {boolean} throwError
    * @private
    */
-  static isValidType_(value, throwError) {
-    return SwgClientEvent.maybeAssert_(
-        SwgClientEvent.isValidEnumValue_(AnalyticsEvent, value), throwError,
-        'eventType', value);
+  static isValidType_(value) {
+    return SwgClientEvent.isValidEnumValue_(AnalyticsEvent, value);
   }
 
   /**Helper function for checking whether the passed value is a client type.
    * @param {*} value
-   * @param {boolean} throwError
    * @private
    */
-  static isValidClient_(value, throwError) {
-    return SwgClientEvent.maybeAssert_(
-        SwgClientEvent.isValidEnumValue_(EventOriginator, value), throwError,
-        'eventOrigin', value);
+  static isValidOriginator_(value) {
+    return SwgClientEvent.isValidEnumValue_(EventOriginator, value);
   }
 
   /**Helper function for ensuring the additional parameters value is valid.
    * @param {Object|null} value
-   * @param {boolean} throwError
    * @private
    */
-  static isValidAdditionalParameters_(value, throwError) {
-    return SwgClientEvent.maybeAssert_(SwgClientEvent.isValidObject_(value),
-        throwError, 'additionalParameters', value);
+  static isValidAdditionalParameters_(value) {
+    return SwgClientEvent.isValidObject_(value);
   }
 
   /**Helper function for ensuring the isFromUserAction field is valid.
    * @param {*} value
-   * @param {boolean} throwError
    * @private
    */
-  static isValidIsFromUserAction_(value, throwError) {
-    return SwgClientEvent.maybeAssert_(
-        value === null || value === true || value === false, throwError,
-        'isFromUserAction', value);
+  static isValidIsFromUserAction_(value) {
+    return value === null || value === true || value === false;
   }
 
   /**
    * @returns {!SwgClientEvent}
    */
   copy() {
-    const event = new SwgClientEvent(this.eventType_, this.eventOrigin_,
+    const event = new SwgClientEvent(this.eventType_, this.eventOriginator_,
         this.getAdditionalParameters());
     event.setIsFromUserAction(this.getIsFromUserAction());
     return event;
@@ -143,21 +111,20 @@ export class SwgClientEvent {
 
   /**
    * @param {!AnalyticsEvent} eventType
-   * @param {!EventOriginator} eventOrigin
+   * @param {!EventOriginator} eventOriginator
    * @param {?Object} additionalParameters
    */
-  constructor(eventType, eventOrigin, additionalParameters) {
+  constructor(eventType, eventOriginator, additionalParameters) {
     /**@private {AnalyticsEvent} */
     this.eventType_ = eventType;
 
     /** @private {EventOriginator} */
-    this.eventOrigin_ = eventOrigin;
+    this.eventOriginator_ = eventOriginator;
 
     /** @private {?boolean} */
     this.isFromUserAction_ = null;
 
-    if (!SwgClientEvent.isValidAdditionalParameters_(
-        additionalParameters, false)) {
+    if (!SwgClientEvent.isValidAdditionalParameters_(additionalParameters)) {
       additionalParameters = {};
     }
     /** @private {?Object} */
@@ -168,17 +135,18 @@ export class SwgClientEvent {
   /**
    * @returns {!EventOriginator}
    */
-  getEventOrigin() {
-    return this.eventOrigin_;
+  getEventOriginator() {
+    return this.eventOriginator_;
   }
 
   /**
    * @param {!EventOriginator} value
    */
-  setEventOrigin(value) {
-    SwgClientEvent.isValidClient_(value, true);
-    /** @private */
-    this.eventOrigin_ = value;
+  setEventOriginator(value) {
+    assert(SwgClientEvent.isValidOriginator_(value),
+        'Invalid orginator in SwgClientEvent (' + value + ')');
+
+    this.eventOriginator_ = value;
   }
 
   /**
@@ -192,8 +160,8 @@ export class SwgClientEvent {
    * @param {AnalyticsEvent} value
    */
   setEventType(value) {
-    SwgClientEvent.isValidType_(value, true);
-    /** @private */
+    assert(SwgClientEvent.isValidType_(value),
+        'Invalid event type in SwgClientEvent (' + value + ')');
     this.eventType_ = value;
   }
 
@@ -211,7 +179,8 @@ export class SwgClientEvent {
    * @param {boolean|null} value
    */
   setIsFromUserAction(value) {
-    SwgClientEvent.isValidIsFromUserAction_(value, true);
+    assert(SwgClientEvent.isValidIsFromUserAction_(value),
+        'Invalid isFromUserAction in SwgClientEvent (' + value + ')');
     this.isFromUserAction_ = value;
   }
 
@@ -229,7 +198,8 @@ export class SwgClientEvent {
    * @param {Object} value
    */
   setAdditionalParameters(value) {
-    SwgClientEvent.isValidAdditionalParameters_(value, true);
+    assert(SwgClientEvent.isValidAdditionalParameters_(value),
+        'Invalid additionalParameters in SwgClientEvent (' + value + ')');
     this.additionalParameters_ = value;
   }
 
@@ -238,19 +208,48 @@ export class SwgClientEvent {
    * @param {boolean} createError
    */
   isValid(createError) {
-    if (!SwgClientEvent.isValidType_(this.eventType_, createError)
-        || !SwgClientEvent.isValidClient_(this.eventOrigin_, createError)
-        || !SwgClientEvent.isValidIsFromUserAction_(
-            this.isFromUserAction_, createError)
-        || !SwgClientEvent.isValidAdditionalParameters_(
-            this.additionalParameters_, createError)) {
-      return false;
+    if (!SwgClientEvent.isValidType_(this.eventType_)) {
+      if (!createError) {
+        return false;
+      }
+      throw new Error('Invalid event type in SwgClientEvent (' +
+          this.eventType_ + ')');
+    }
+    if (!SwgClientEvent.isValidOriginator_(this.eventOriginator_)) {
+      if (!createError) {
+        return false;
+      }
+      throw new Error('Invalid event originator in SwgClientEvent (' +
+          this.eventOriginator_ + ')');
+    }
+    if (!SwgClientEvent.isValidIsFromUserAction_(this.isFromUserAction_)) {
+      if (!createError) {
+        return false;
+      }
+      throw new Error('Invalid isFromUserAction in SwgClientEvent (' +
+          this.isFromUserAction_ + ')');
+    }
+    if (!SwgClientEvent.isValidAdditionalParameters_(
+        this.additionalParameters_)) {
+      if (!createError) {
+        return false;
+      }
+      throw new Error('Invalid additional parameters in SwgClientEvent (' +
+          this.additionalParameters_ + ')');
     }
     return true;
   }
 }
 
 export class SwgClientEventManager {
+
+  /**True if the value is a function
+   * @param {*} value
+   * @private
+   */
+  static isFunction_(value) {
+    return typeof value === 'function';
+  }
 
   constructor() {
     /** @type {!CallBackArray} @private */
@@ -274,6 +273,8 @@ export class SwgClientEventManager {
    * @public
    */
   addListener(callback) {
+    assert(SwgClientEventManager.isFunction_(callback),
+        'Invalid callback in SwgClientEventManager.addListener');
     this.listeners_.push(callback);
   }
 
@@ -284,6 +285,8 @@ export class SwgClientEventManager {
    * @public
    */
   addFilterer(callback) {
+    assert(SwgClientEventManager.isFunction_(callback),
+        'Invalid callback in SwgClientEventManager.addFilterer');
     this.filterers_.push(callback);
   }
 

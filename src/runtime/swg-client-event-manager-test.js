@@ -31,16 +31,16 @@ describes.sandboxed('SwgClientEvent', {}, () => {
   it('should respect properties that have been set', () => {
     const event = new SwgClientEvent(DEFAULT_TYPE, DEFAULT_ORIGIN);
     expect(event.getEventType()).to.equal(DEFAULT_TYPE);
-    expect(event.getEventOrigin()).to.equal(DEFAULT_ORIGIN);
+    expect(event.getEventOriginator()).to.equal(DEFAULT_ORIGIN);
     expect(event.getIsFromUserAction()).to.be.null;
 
     event.setEventType(OTHER_TYPE);
-    event.setEventOrigin(OTHER_ORIGIN);
+    event.setEventOriginator(OTHER_ORIGIN);
     event.setIsFromUserAction(true);
     event.setAdditionalParameters({aValue: 45});
 
     expect(event.getEventType()).to.equal(OTHER_TYPE);
-    expect(event.getEventOrigin()).to.equal(OTHER_ORIGIN);
+    expect(event.getEventOriginator()).to.equal(OTHER_ORIGIN);
     expect(event.getIsFromUserAction()).to.be.true;
     expect(event.getAdditionalParameters().aValue).to.equal(45);
 
@@ -56,21 +56,21 @@ describes.sandboxed('SwgClientEvent', {}, () => {
     //ensure copy works
     const event2 = event.copy();
     expect(event2.getEventType()).to.equal(DEFAULT_TYPE);
-    expect(event2.getEventOrigin()).to.equal(DEFAULT_ORIGIN);
+    expect(event2.getEventOriginator()).to.equal(DEFAULT_ORIGIN);
     expect(event2.getIsFromUserAction()).to.be.true;
     expect(event2.getAdditionalParameters().aValue).to.equal(45);
 
     //ensure it is a different object
     event.setEventType(OTHER_TYPE);
-    event.setEventOrigin(OTHER_ORIGIN);
+    event.setEventOriginator(OTHER_ORIGIN);
     event.setIsFromUserAction(false);
     event.setAdditionalParameters({aValue: 46});
 
     expect(event.getEventType()).to.equal(OTHER_TYPE);
-    expect(event.getEventOrigin()).to.equal(OTHER_ORIGIN);
+    expect(event.getEventOriginator()).to.equal(OTHER_ORIGIN);
     expect(event.getIsFromUserAction()).to.be.false;
     expect(event2.getEventType()).to.equal(DEFAULT_TYPE);
-    expect(event2.getEventOrigin()).to.equal(DEFAULT_ORIGIN);
+    expect(event2.getEventOriginator()).to.equal(DEFAULT_ORIGIN);
     expect(event2.getIsFromUserAction()).to.be.true;
 
     //ensure the references to additional parameters are different
@@ -91,7 +91,7 @@ describes.sandboxed('SwgClientEvent', {}, () => {
     tryIt(() => new SwgClientEvent(DEFAULT_TYPE, BAD_VALUE));
     const event = DEFAULT_EVENT.copy();
     tryIt(() => event.setEventType(BAD_VALUE));
-    tryIt(() => event.setEventOrigin(BAD_VALUE));
+    tryIt(() => event.setEventOriginator(BAD_VALUE));
     tryIt(() => event.setIsFromUserAction(BAD_VALUE));
     tryIt(() => event.setAdditionalParameters(null));
     tryIt(() => event.setAdditionalParameters(BAD_VALUE));
@@ -121,8 +121,9 @@ describes.sandboxed('EventManager', {}, () => {
     const callback = () => receivedEventsCount++;
 
     //filter out the default origin
-    EventManager.addFilterer(event => event.getEventOrigin() === DEFAULT_ORIGIN
-        ? ShouldFilter.STOP_EXECUTING : ShouldFilter.CONTINUE_EXECUTING
+    EventManager.addFilterer(event => event.getEventOriginator()
+        === DEFAULT_ORIGIN ?
+        ShouldFilter.STOP_EXECUTING : ShouldFilter.CONTINUE_EXECUTING
     );
     EventManager.addListener(callback);
     EventManager.logEvent(DEFAULT_EVENT);
@@ -147,13 +148,13 @@ describes.sandboxed('EventManager', {}, () => {
       }
     };
 
-    sentEvent.eventOrigin_ = BAD_VALUE;
+    sentEvent.eventOriginator_ = BAD_VALUE;
     tryIt(() => EventManager.logEvent(sentEvent));
-    sentEvent.setEventOrigin(DEFAULT_ORIGIN);
+    sentEvent.setEventOriginator(DEFAULT_ORIGIN);
 
     sentEvent.eventType_ = BAD_VALUE;
     tryIt(() => EventManager.logEvent(sentEvent));
-    sentEvent.setEventOrigin(DEFAULT_ORIGIN);
+    sentEvent.setEventOriginator(DEFAULT_ORIGIN);
     expect(errorCount).to.equal(2);
 
   });
