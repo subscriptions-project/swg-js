@@ -101,20 +101,18 @@ export class ButtonApi {
   /**
    * @param {!Element} button
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
-   * @param {function():null=} opt_callback
+   * @param {function()=} opt_callback
    * @return {!Element}
    */
   attach(button, optionsOrCallback, opt_callback) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = /** @type {function(Event):boolean} */
         (this.getCallback_(optionsOrCallback, opt_callback));
-    let theme = options && options['theme'];
-    if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
-      theme = Theme.LIGHT;
-    }
+
+    const theme = options['theme'];
     button.classList.add(`swg-button-${theme}`);
     button.setAttribute('role', 'button');
-    if (options && options['lang']) {
+    if (options['lang']) {
       button.setAttribute('lang', options['lang']);
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
@@ -124,26 +122,31 @@ export class ButtonApi {
 
   /**
    *
-   * @param {!../api/subscriptions.ButtonOptions|function():null} optionsOrCallback
+   * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @return {!../api/subscriptions.ButtonOptions}
    * @private
    */
   getOptions_(optionsOrCallback) {
-    const options = /** @type {?../api/subscriptions.ButtonOptions} */
+    const options = /** @type {!../api/subscriptions.ButtonOptions} */
         (typeof optionsOrCallback != 'function' ?
-        optionsOrCallback : null);
-    return options || {'theme': Theme.LIGHT, 'lang': 'en'};
+        optionsOrCallback : {'theme': Theme.LIGHT});
+
+    const theme = options && options['theme'];
+    if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
+      options['theme'] = Theme.LIGHT;
+    }
+    return options;
   }
 
   /**
    *
-   * @param {?../api/subscriptions.ButtonOptions|function():null} optionsOrCallback
-   * @param {function():null=} opt_callback
-   * @return {function():null|function(Event):boolean}
+   * @param {?../api/subscriptions.ButtonOptions|function()} optionsOrCallback
+   * @param {function()=} opt_callback
+   * @return {function()|function(Event):boolean}
    * @private
    */
   getCallback_(optionsOrCallback, opt_callback) {
-    const callback = /** @type {function():null|function(Event):boolean} */ (
+    const callback = /** @type {function()|function(Event):boolean} */ (
       (typeof optionsOrCallback == 'function' ? optionsOrCallback : null) ||
           opt_callback);
     return callback;
@@ -153,12 +156,12 @@ export class ButtonApi {
    * @param {!./deps.DepsDef} deps
    * @param {!Element} button
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
-   * @param {function():null=} opt_callback
+   * @param {function()=} opt_callback
    * @return {!Element}
    */
   attachSmartButton(deps, button, optionsOrCallback, opt_callback) {
     const options = this.getOptions_(optionsOrCallback);
-    const callback = /** @type {function():null} */
+    const callback = /** @type {function()} */
         (this.getCallback_(optionsOrCallback, opt_callback));
     let theme = options && options['theme'];
     if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
@@ -167,5 +170,4 @@ export class ButtonApi {
     return new SmartSubscriptionButtonApi(
         deps, button, options, callback).start();
   }
-
 }

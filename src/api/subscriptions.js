@@ -237,7 +237,7 @@ export class Subscriptions {
   attachButton(button, optionsOrCallback, opt_callback) {}
 
   /**
-   * Creates smartButton element and the provided callback.
+   * Attaches smartButton element and the provided callback.
    * The default theme is "light".
    *
    * @param {!Element} container

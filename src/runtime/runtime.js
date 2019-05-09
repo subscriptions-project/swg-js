@@ -421,10 +421,10 @@ export class Runtime {
   }
 
   /** @override */
-  attachSmartButton(container, opt_options, callback) {
+  attachSmartButton(button, optionsOrCallback, opt_callback) {
     return this.configured_(true).then(
         runtime =>
-        runtime.attachSmartButton(container, opt_options, callback));
+        runtime.attachSmartButton(button, optionsOrCallback, opt_callback));
   }
 
   /** @override */
