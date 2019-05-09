@@ -17,11 +17,23 @@
 const AnalyticsEvent = {
   UNKNOWN: 0,
   IMPRESSION_PAYWALL: 1,
+  IMPRESSION_AD: 2,
+  IMPRESSION_OFFERS: 3,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
   ACTION_ACCOUNT_ACKNOWLEDGED: 1003,
+  ACTION_SUBSCRIPTIONS_LANDING_PAGE: 1004,
+  ACTION_PAYMENT_FLOW_STARTED: 1005,
   EVENT_PAYMENT_FAILED: 2000,
+  EVENT_CUSTOM: 2001,
+};
+/** @enum {number} */
+const EventOriginator = {
+  UNKNOWN_CLIENT: 0,
+  SWG_CLIENT: 1,
+  AMP_CLIENT: 2,
+  PROPENSITY_CLIENT: 3,
 };
 
 class AnalyticsContext {
@@ -204,6 +216,60 @@ class AnalyticsContext {
 }
 
 
+class AnalyticsEventMeta {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?EventOriginator} */
+    this.eventOriginator_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?boolean} */
+    this.isFromUserAction_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?EventOriginator}
+   */
+  getEventOriginator() {
+    return this.eventOriginator_;
+  }
+
+  /**
+   * @param {!EventOriginator} value
+   */
+  setEventOriginator(value) {
+    this.eventOriginator_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getIsFromUserAction() {
+    return this.isFromUserAction_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setIsFromUserAction(value) {
+    this.isFromUserAction_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   */
+  toArray() {
+    return [
+      'AnalyticsEventMeta',  // message type
+      this.eventOriginator_,  // field 1 - event_originator
+      this.isFromUserAction_,  // field 2 - is_from_user_action
+    ];
+  }
+}
+
+
 class AnalyticsRequest {
  /**
   * @param {!Array=} data
@@ -216,6 +282,10 @@ class AnalyticsRequest {
 
     /** @private {?AnalyticsEvent} */
     this.event_ = (data[2] == null) ? null : data[2];
+
+    /** @private {?AnalyticsEventMeta} */
+    this.meta_ = (data[3] == null || data[3] == undefined) ? null : new
+        AnalyticsEventMeta(data[3]);
   }
 
   /**
@@ -247,6 +317,20 @@ class AnalyticsRequest {
   }
 
   /**
+   * @return {?AnalyticsEventMeta}
+   */
+  getMeta() {
+    return this.meta_;
+  }
+
+  /**
+   * @param {!AnalyticsEventMeta} value
+   */
+  setMeta(value) {
+    this.meta_ = value;
+  }
+
+  /**
    * @return {!Array}
    */
   toArray() {
@@ -254,6 +338,7 @@ class AnalyticsRequest {
       'AnalyticsRequest',  // message type
       this.context_ ? this.context_.toArray() : [], // field 1 - context
       this.event_,  // field 2 - event
+      this.meta_ ? this.meta_.toArray() : [], // field 3 - meta
     ];
   }
 }
@@ -261,6 +346,7 @@ class AnalyticsRequest {
 
 const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
+  'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
 };
 
@@ -283,7 +369,9 @@ function deserialize(data) {
 
 export {
   AnalyticsContext,
+  AnalyticsEventMeta,
   AnalyticsRequest,
   AnalyticsEvent,
+  EventOriginator,
   deserialize,
 };
