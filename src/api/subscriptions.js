@@ -240,11 +240,11 @@ export class Subscriptions {
    * Attaches smartButton element and the provided callback.
    * The default theme is "light".
    *
-   * @param {!Element} container
+   * @param {!Element} button
    * @param {!ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    */
-  attachSmartButton(container, optionsOrCallback, opt_callback) {}
+  attachSmartButton(button, optionsOrCallback, opt_callback) {}
 
   /**
    * Retrieves the propensity module that provides APIs to

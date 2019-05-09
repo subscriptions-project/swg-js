@@ -41,7 +41,7 @@ export class SmartSubscriptionButtonApi {
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!Element} button
-   * @param {!../api/subscriptions.ButtonOptions|undefined} options
+   * @param {!../api/subscriptions.ButtonOptions} options
    * @param {function()=} callback
    */
   constructor(deps, button, options, callback) {
@@ -65,10 +65,10 @@ export class SmartSubscriptionButtonApi {
     /** @private @const {!Element} */
     this.button_ = button;
 
-    /** @private {!../api/subscriptions.ButtonOptions|undefined} */
+    /** @private {!../api/subscriptions.ButtonOptions} */
     this.options_ = options;
 
-    /** @private const {?function()=} */
+    /** @private const {function()=} */
     this.callback_ = callback;
 
     /** @private @const {string} */
@@ -92,6 +92,9 @@ export class SmartSubscriptionButtonApi {
      * Add a callback to the button itself to fire the iframe click action when
      * user tabs to the button and hits enter.
      */
+    this.button_.addEventListener('click', () => {
+      this.callback_();
+    });
     this.button_.addEventListener('click', this.callback_);
 
     setImportantStyles(this.iframe_, {

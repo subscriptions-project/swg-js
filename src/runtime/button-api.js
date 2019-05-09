@@ -106,8 +106,7 @@ export class ButtonApi {
    */
   attach(button, optionsOrCallback, opt_callback) {
     const options = this.getOptions_(optionsOrCallback);
-    const callback = /** @type {function(Event):boolean} */
-        (this.getCallback_(optionsOrCallback, opt_callback));
+    const callback = this.getCallback_(optionsOrCallback, opt_callback);
 
     const theme = options['theme'];
     button.classList.add(`swg-button-${theme}`);
@@ -131,7 +130,7 @@ export class ButtonApi {
         (typeof optionsOrCallback != 'function' ?
         optionsOrCallback : {'theme': Theme.LIGHT});
 
-    const theme = options && options['theme'];
+    const theme = options['theme'];
     if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
       options['theme'] = Theme.LIGHT;
     }
@@ -163,10 +162,7 @@ export class ButtonApi {
     const options = this.getOptions_(optionsOrCallback);
     const callback = /** @type {function()} */
         (this.getCallback_(optionsOrCallback, opt_callback));
-    let theme = options && options['theme'];
-    if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
-      theme = Theme.LIGHT;
-    }
+
     return new SmartSubscriptionButtonApi(
         deps, button, options, callback).start();
   }
