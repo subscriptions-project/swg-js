@@ -271,6 +271,11 @@ export class PayCompleteFlow {
  */
 function validatePayResponse(deps, payPromise, completeHandler) {
   return payPromise.then(data => {
+    // If there was a redirect, we may have lost our stored transaction
+    // ID. Pay service is supposed to send back the transaction ID that
+    // was sent in the request and so, ideally it should be the same.
+    // In any case, we must remember and use this transaction ID going
+    // forward and assume whatever memory we had before redirect is lost.
     if (typeof data == 'object' && data['googleTransactionId']) {
       deps.analytics().setTransactionId(data['googleTransactionId']);
     }

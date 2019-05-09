@@ -182,6 +182,25 @@ export let Header;
 export let PropensityScore;
 
 /**
+ * Propensity Event
+ * Properties:
+ * - name: Required. Name should be valid string in Event.
+ * - active: Required. A boolean that indicates whether the
+ *         user took some action to participate in the flow
+ *         that generated this event. For impression event,
+ *         this is set to true if is_active field would be
+ *         set to true, as described in documentation for
+ *         enum Event. Otherwise, set this field to false.
+ *         For action events, this field must always be set
+ *         to true. The caller must always set this field.
+ * - data: Optional. JSON block of depth '1' provides event
+ *         parameters. The guideline to create this JSON block
+ *         that describes the event is provided against each
+ *         enum listed in the Event enum above.
+ */
+export let PropensityEvent;
+
+/**
  * @interface
  */
 export class PropensityApi {
@@ -202,15 +221,9 @@ export class PropensityApi {
 
   /**
    * Send a single user event.
-   * Event should be valid string in Event.
-   * JSON block of depth '1' provides event parameters.
-   * The guideline to create this JSON block that describes
-   * the event is provided against each enum listed in
-   * the Event enum above.
-   * @param {Event} userEvent
-   * @param {?JsonObject} jsonParams
+   * @param {PropensityEvent} userEvent
    */
-   sendEvent(userEvent, jsonParams) {}
+   sendEvent(userEvent) {}
 
   /**
    * Get the propensity of a user to subscribe based on the type.
