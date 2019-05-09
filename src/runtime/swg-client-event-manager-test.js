@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent,Client} from '../proto/api_messages';
+import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 import {
   SwgClientEvent, SwgClientEventManager, ShouldFilter,
 } from './swg-client-event-manager';
 
 const DEFAULT_TYPE = AnalyticsEvent.IMPRESSION_AD;
-const DEFAULT_ORIGIN = Client.SWG_CLIENT;
+const DEFAULT_ORIGIN = EventOriginator.SWG_CLIENT;
 const DEFAULT_EVENT = new SwgClientEvent(DEFAULT_TYPE, DEFAULT_ORIGIN);
 const OTHER_TYPE = AnalyticsEvent.ACTION_PAYMENT_COMPLETE;
-const OTHER_ORIGIN = Client.AMP_CLIENT;
+const OTHER_ORIGIN = EventOriginator.AMP_CLIENT;
 const BAD_VALUE = 'I should throw an error';
 const EventManager = new SwgClientEventManager();
 

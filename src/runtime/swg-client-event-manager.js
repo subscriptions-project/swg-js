@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent,Client} from '../proto/api_messages';
+import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 
 /**
  * The callback used to notify registered listeners about new client events.
@@ -106,7 +106,7 @@ export class SwgClientEvent {
    */
   static isValidClient_(value, throwError) {
     return SwgClientEvent.maybeAssert_(
-        SwgClientEvent.isValidEnumValue_(Client, value), throwError,
+        SwgClientEvent.isValidEnumValue_(EventOriginator, value), throwError,
         'eventOrigin', value);
   }
 
@@ -143,40 +143,37 @@ export class SwgClientEvent {
 
   /**
    * @param {!AnalyticsEvent} eventType
-   * @param {!Client} eventOrigin
+   * @param {!EventOriginator} eventOrigin
    * @param {?Object} additionalParameters
    */
   constructor(eventType, eventOrigin, additionalParameters) {
     /**@private {AnalyticsEvent} */
     this.eventType_ = eventType;
 
-    /** @private {Client} */
+    /** @private {EventOriginator} */
     this.eventOrigin_ = eventOrigin;
 
     /** @private {?boolean} */
     this.isFromUserAction_ = null;
 
-    /** @private {?Object} */
-    this.additionalParameters_ = additionalParameters;
-    this.setEventType(eventType);
-    this.setEventOrigin(eventOrigin);
-    this.setIsFromUserAction(null);
     if (!SwgClientEvent.isValidAdditionalParameters_(
         additionalParameters, false)) {
       additionalParameters = {};
     }
-    this.setAdditionalParameters(additionalParameters);
+    /** @private {?Object} */
+    this.additionalParameters_ = additionalParameters;
+    this.isValid(true);
   }
 
   /**
-   * @returns {?Client}
+   * @returns {!EventOriginator}
    */
   getEventOrigin() {
     return this.eventOrigin_;
   }
 
   /**
-   * @param {Client} value
+   * @param {!EventOriginator} value
    */
   setEventOrigin(value) {
     SwgClientEvent.isValidClient_(value, true);
@@ -236,6 +233,10 @@ export class SwgClientEvent {
     this.additionalParameters_ = value;
   }
 
+  /**Returns true if the object is valid.  Otherwise it throws an error if you
+   * pass true and returns false if you don't.
+   * @param {boolean} createError
+   */
   isValid(createError) {
     if (!SwgClientEvent.isValidType_(this.eventType_, createError)
         || !SwgClientEvent.isValidClient_(this.eventOrigin_, createError)
