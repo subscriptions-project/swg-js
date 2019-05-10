@@ -25,7 +25,6 @@ const DEFAULT_EVENT = new SwgClientEvent(DEFAULT_TYPE, DEFAULT_ORIGIN);
 const OTHER_TYPE = AnalyticsEvent.ACTION_PAYMENT_COMPLETE;
 const OTHER_ORIGIN = EventOriginator.AMP_CLIENT;
 const BAD_VALUE = 'I should throw an error';
-const EventManager = new SwgClientEventManager();
 
 describes.sandboxed('SwgClientEvent', {}, () => {
   it('should respect properties that have been set', () => {
@@ -105,15 +104,15 @@ describes.sandboxed('EventManager', {}, () => {
     const callback = () => receivedEventsCount++;
 
     //verify it can listen to 1
-    EventManager.addListener(callback);
-    EventManager.logEvent(DEFAULT_EVENT);
+    SwgClientEventManager.addListener(callback);
+    SwgClientEventManager.logEvent(DEFAULT_EVENT);
     expect(receivedEventsCount).to.equal(1);
 
     //verify it can listen to 2 at the same time
-    EventManager.addListener(callback);
-    EventManager.logEvent(DEFAULT_EVENT);
+    SwgClientEventManager.addListener(callback);
+    SwgClientEventManager.logEvent(DEFAULT_EVENT);
     expect(receivedEventsCount).to.equal(3);
-    EventManager.clear();
+    SwgClientEventManager.clear();
   });
 
   it('should be able to filter out some events', () => {
@@ -121,20 +120,20 @@ describes.sandboxed('EventManager', {}, () => {
     const callback = () => receivedEventsCount++;
 
     //filter out the default origin
-    EventManager.addFilterer(event => event.getEventOriginator()
+    SwgClientEventManager.addFilterer(event => event.getEventOriginator()
         === DEFAULT_ORIGIN ?
         ShouldFilter.STOP_EXECUTING : ShouldFilter.CONTINUE_EXECUTING
     );
-    EventManager.addListener(callback);
-    EventManager.logEvent(DEFAULT_EVENT);
+    SwgClientEventManager.addListener(callback);
+    SwgClientEventManager.logEvent(DEFAULT_EVENT);
     //ensure the filtering is respected
     expect(receivedEventsCount).to.equal(0);
 
     //ensure it passes through the filter
-    EventManager.logEvent(
+    SwgClientEventManager.logEvent(
         new SwgClientEvent(DEFAULT_TYPE, OTHER_ORIGIN));
     expect(receivedEventsCount).to.equal(1);
-    EventManager.clear();
+    SwgClientEventManager.clear();
   });
 
   it('should not allow you to pass in bad values', () => {
@@ -149,11 +148,11 @@ describes.sandboxed('EventManager', {}, () => {
     };
 
     sentEvent.eventOriginator_ = BAD_VALUE;
-    tryIt(() => EventManager.logEvent(sentEvent));
+    tryIt(() => SwgClientEventManager.logEvent(sentEvent));
     sentEvent.setEventOriginator(DEFAULT_ORIGIN);
 
     sentEvent.eventType_ = BAD_VALUE;
-    tryIt(() => EventManager.logEvent(sentEvent));
+    tryIt(() => SwgClientEventManager.logEvent(sentEvent));
     sentEvent.setEventOriginator(DEFAULT_ORIGIN);
     expect(errorCount).to.equal(2);
 

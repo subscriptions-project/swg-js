@@ -37,11 +37,6 @@ export let SwgEventManagerFilterer;
  */
 export let CallBack;
 
-/** An array of callback functions
- * @typedef {Array<CallBack>} CallBackArray
- */
-export let CallBackArray;
-
 export const ShouldFilter = {
   CONTINUE_EXECUTING: 0,
   STOP_EXECUTING: 1,
@@ -241,6 +236,12 @@ export class SwgClientEvent {
   }
 }
 
+/** @private {Array<CallBack>}} */
+const listeners = [];
+
+/** @private {Array<CallBack>}} */
+const filterers = [];
+
 export class SwgClientEventManager {
 
   /**True if the value is a function
@@ -251,19 +252,11 @@ export class SwgClientEventManager {
     return typeof value === 'function';
   }
 
-  constructor() {
-    /** @type {!CallBackArray} @private */
-    this.listeners_ = [];
-
-    /** @type {!CallBackArray} @private */
-    this.filterers_ = [];
-  }
-
   /**Remove all existing filterers and listeners
    */
-  clear() {
-    this.listeners_ = [];
-    this.filterers_ = [];
+  static clear() {
+    listeners.length = 0;
+    filterers.length = 0;
   }
 
   /**
@@ -272,10 +265,10 @@ export class SwgClientEventManager {
    * @param {!SwgEventManagerListener} callback
    * @public
    */
-  addListener(callback) {
+  static addListener(callback) {
     assert(SwgClientEventManager.isFunction_(callback),
         'Invalid callback in SwgClientEventManager.addListener');
-    this.listeners_.push(callback);
+    listeners.push(callback);
   }
 
   /**
@@ -284,10 +277,10 @@ export class SwgClientEventManager {
    * @param {!SwgEventManagerFilterer} callback
    * @public
    */
-  addFilterer(callback) {
+  static addFilterer(callback) {
     assert(SwgClientEventManager.isFunction_(callback),
         'Invalid callback in SwgClientEventManager.addFilterer');
-    this.filterers_.push(callback);
+    filterers.push(callback);
   }
 
   /**Call this function to inform all listeners that a client event has
@@ -295,17 +288,15 @@ export class SwgClientEventManager {
    * @param {!SwgClientEvent} event
    * @public
    */
-  logEvent(event) {
+  static logEvent(event) {
     event.isValid(true);
-    let callbacks = this.filterers_;
-    for (let callbackNum = 0; callbackNum < callbacks.length; callbackNum++) {
-      if (callbacks[callbackNum](event) === ShouldFilter.STOP_EXECUTING) {
+    for (let callbackNum = 0; callbackNum < filterers.length; callbackNum++) {
+      if (filterers[callbackNum](event) === ShouldFilter.STOP_EXECUTING) {
         return false;
       }
     }
-    callbacks = this.listeners_;
-    for (let callbackNum = 0; callbackNum < callbacks.length; callbackNum++) {
-      callbacks[callbackNum](event);
+    for (let callbackNum = 0; callbackNum < listeners.length; callbackNum++) {
+      listeners[callbackNum](event);
     }
     return true;
   }

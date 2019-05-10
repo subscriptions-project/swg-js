@@ -27,7 +27,7 @@ const AnalyticsEvent = {
   ACTION_PAYMENT_FLOW_STARTED: 1005,
   ACTION_OFFER_SELECTED: 1006,
   EVENT_PAYMENT_FAILED: 2000,
-  EVENT_CUSTOM: 2001,
+  EVENT_CUSTOM: 3000,
 };
 /** @enum {number} */
 const EventOriginator = {
