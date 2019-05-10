@@ -89,13 +89,12 @@ export class SmartSubscriptionButtonApi {
    */
   start() {
     /**
-     * Add a callback to the button itself to fire the iframe click action when
-     * user tabs to the button and hits enter.
+     * Add a callback to the button itself to fire the iframe's button click
+     * action when user tabs to the container button and hits enter.
      */
     this.button_.addEventListener('click', () => {
       this.callback_();
     });
-    this.button_.addEventListener('click', this.callback_);
 
     setImportantStyles(this.iframe_, {
       'opacity': 1,
