@@ -15,90 +15,103 @@
  */
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
-import {
-  SwgClientEvent, SwgClientEventManager, FilterResult,
-} from './swg-client-event-manager';
+import {SwgClientEventManager, FilterResult} from './swg-client-event-manager';
 
 const DEFAULT_TYPE = AnalyticsEvent.IMPRESSION_AD;
 const DEFAULT_ORIGIN = EventOriginator.SWG_CLIENT;
-const DEFAULT_EVENT = new SwgClientEvent(DEFAULT_TYPE, DEFAULT_ORIGIN);
 const OTHER_TYPE = AnalyticsEvent.ACTION_PAYMENT_COMPLETE;
 const OTHER_ORIGIN = EventOriginator.AMP_CLIENT;
 const BAD_VALUE = 'I should throw an error';
 
+/** @type {SwgClientEvent} */
+const DEFAULT_EVENT = {
+  eventType: DEFAULT_TYPE,
+  eventOriginator: DEFAULT_ORIGIN,
+  isFromUserAction: null,
+  additionalParameters: {},
+};
+
+
 describes.sandboxed('SwgClientEvent', {}, () => {
-  it('should respect properties that have been set', () => {
-    const event = new SwgClientEvent(DEFAULT_TYPE, DEFAULT_ORIGIN);
-    expect(event.getEventType()).to.equal(DEFAULT_TYPE);
-    expect(event.getEventOriginator()).to.equal(DEFAULT_ORIGIN);
-    expect(event.getIsFromUserAction()).to.be.null;
-
-    event.setEventType(OTHER_TYPE);
-    event.setEventOriginator(OTHER_ORIGIN);
-    event.setIsFromUserAction(true);
-    event.setAdditionalParameters({aValue: 45});
-
-    expect(event.getEventType()).to.equal(OTHER_TYPE);
-    expect(event.getEventOriginator()).to.equal(OTHER_ORIGIN);
-    expect(event.getIsFromUserAction()).to.be.true;
-    expect(event.getAdditionalParameters().aValue).to.equal(45);
-
-    event.setIsFromUserAction(null);
-    expect(event.getIsFromUserAction()).to.be.null;
-  });
-
-  it('should have a working copy constructor', () => {
-    const event =
-        new SwgClientEvent(DEFAULT_TYPE, DEFAULT_ORIGIN, {aValue: 45});
-    event.setIsFromUserAction(true);
-
-    //ensure copy works
-    const event2 = event.copy();
-    expect(event2.getEventType()).to.equal(DEFAULT_TYPE);
-    expect(event2.getEventOriginator()).to.equal(DEFAULT_ORIGIN);
-    expect(event2.getIsFromUserAction()).to.be.true;
-    expect(event2.getAdditionalParameters().aValue).to.equal(45);
-
-    //ensure it is a different object
-    event.setEventType(OTHER_TYPE);
-    event.setEventOriginator(OTHER_ORIGIN);
-    event.setIsFromUserAction(false);
-    event.setAdditionalParameters({aValue: 46});
-
-    expect(event.getEventType()).to.equal(OTHER_TYPE);
-    expect(event.getEventOriginator()).to.equal(OTHER_ORIGIN);
-    expect(event.getIsFromUserAction()).to.be.false;
-    expect(event2.getEventType()).to.equal(DEFAULT_TYPE);
-    expect(event2.getEventOriginator()).to.equal(DEFAULT_ORIGIN);
-    expect(event2.getIsFromUserAction()).to.be.true;
-
-    //ensure the references to additional parameters are different
-    expect(event.getAdditionalParameters().aValue).to.equal(46);
-    expect(event2.getAdditionalParameters().aValue).to.equal(45);
-  });
-
-  it('should not let you set bad values', () => {
+  it('should properly validate events', () => {
+    /** @type {SwgClientEvent} */
+    const event = {
+      eventType: DEFAULT_TYPE,
+      eventOriginator: DEFAULT_ORIGIN,
+      isFromUserAction: null,
+      additionalParameters: {},
+    };
     let errorCount = 0;
-    const tryIt = callback => {
+    const tryIt = () => {
       try {
-        callback();
+        SwgClientEventManager.validateEvent(event);
       } catch (e) {
         errorCount++;
       }
     };
-    tryIt(() => new SwgClientEvent(BAD_VALUE, DEFAULT_ORIGIN));
-    tryIt(() => new SwgClientEvent(DEFAULT_TYPE, BAD_VALUE));
-    const event = DEFAULT_EVENT.copy();
-    tryIt(() => event.setEventType(BAD_VALUE));
-    tryIt(() => event.setEventOriginator(BAD_VALUE));
-    tryIt(() => event.setIsFromUserAction(BAD_VALUE));
-    tryIt(() => event.setAdditionalParameters(null));
-    tryIt(() => event.setAdditionalParameters(BAD_VALUE));
-    expect(errorCount).to.equal(7);
+    tryIt();
+    expect(errorCount).to.equal(0);
+
+    //validate event type
+    event.eventType = BAD_VALUE;
+    tryIt();
+    expect(errorCount).to.equal(1);
+    event.eventType = null;
+    tryIt();
+    expect(errorCount).to.equal(2);
+    event.eventType = OTHER_TYPE;
+    tryIt();
+    expect(errorCount).to.equal(2);
+
+    //validate event originator
+    errorCount = 0;
+    event.eventOriginator = BAD_VALUE;
+    tryIt();
+    expect(errorCount).to.equal(1);
+    event.eventOriginator = null;
+    tryIt();
+    expect(errorCount).to.equal(2);
+    event.eventOriginator = OTHER_ORIGIN;
+    tryIt();
+    expect(errorCount).to.equal(2);
+
+    //validate isFromUserAction
+    errorCount = 0;
+    event.isFromUserAction = BAD_VALUE;
+    tryIt();
+    expect(errorCount).to.equal(1);
+    event.isFromUserAction = true;
+    tryIt();
+    expect(errorCount).to.equal(1);
+    event.isFromUserAction = false;
+    tryIt();
+    expect(errorCount).to.equal(1);
+
+    //validate additionalParameters
+    errorCount = 0;
+    event.additionalParameters = BAD_VALUE;
+    tryIt();
+    expect(errorCount).to.equal(1);
+    event.additionalParameters = null;
+    tryIt();
+    expect(errorCount).to.equal(1);
+    event.additionalParameters = {IAmValid: 5};
+    tryIt();
+    expect(errorCount).to.equal(1);
   });
 });
 
 describes.sandboxed('EventManager', {}, () => {
+  it('should not allow invalid events', () => {
+    try {
+      SwgClientEventManager.logEvent({});
+    } catch (e) {
+      return;
+    }
+    //throwing an error above is the expected result so this always fails:
+    expect(5).to.be.null;
+  });
+
   it('should be able to listen for events', () => {
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
@@ -120,7 +133,7 @@ describes.sandboxed('EventManager', {}, () => {
     const callback = () => receivedEventsCount++;
 
     //filter out the default origin
-    SwgClientEventManager.addFilterer(event => event.getEventOriginator()
+    SwgClientEventManager.addFilterer(event => event.eventOriginator
         === DEFAULT_ORIGIN ?
         FilterResult.STOP_EXECUTING : FilterResult.CONTINUE_EXECUTING
     );
@@ -130,31 +143,10 @@ describes.sandboxed('EventManager', {}, () => {
     expect(receivedEventsCount).to.equal(0);
 
     //ensure it passes through the filter
-    SwgClientEventManager.logEvent(
-        new SwgClientEvent(DEFAULT_TYPE, OTHER_ORIGIN));
+    DEFAULT_EVENT.eventOriginator = OTHER_ORIGIN;
+    SwgClientEventManager.logEvent(DEFAULT_EVENT);
     expect(receivedEventsCount).to.equal(1);
+    DEFAULT_EVENT.eventOriginator = DEFAULT_ORIGIN;
     SwgClientEventManager.clear();
-  });
-
-  it('should not allow you to pass in bad values', () => {
-    const sentEvent = DEFAULT_EVENT.copy();
-    let errorCount = 0;
-    const tryIt = callback => {
-      try {
-        callback();
-      } catch (e) {
-        errorCount++;
-      }
-    };
-
-    sentEvent.eventOriginator_ = BAD_VALUE;
-    tryIt(() => SwgClientEventManager.logEvent(sentEvent));
-    sentEvent.setEventOriginator(DEFAULT_ORIGIN);
-
-    sentEvent.eventType_ = BAD_VALUE;
-    tryIt(() => SwgClientEventManager.logEvent(sentEvent));
-    sentEvent.setEventOriginator(DEFAULT_ORIGIN);
-    expect(errorCount).to.equal(2);
-
   });
 });
