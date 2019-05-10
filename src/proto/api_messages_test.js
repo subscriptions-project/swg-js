@@ -23,11 +23,11 @@ import {
   deserialize} from './api_messages';
 
 /**
-* Compare two protos
-* @param {!Array} thisArray
-* @param {!Array} otherArray
-* @return {boolean}
-*/
+ * Compare two protos
+ * @param {!Array} thisArray
+ * @param {!Array} otherArray
+ * @return {boolean}
+ */
 function isEqual(thisArray, otherArray) {
   if (!otherArray || !thisArray) {
     return false;
