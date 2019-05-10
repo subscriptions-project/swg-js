@@ -16,7 +16,7 @@
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 import {
-  SwgClientEvent, SwgClientEventManager, ShouldFilter,
+  SwgClientEvent, SwgClientEventManager, FilterResult,
 } from './swg-client-event-manager';
 
 const DEFAULT_TYPE = AnalyticsEvent.IMPRESSION_AD;
@@ -122,7 +122,7 @@ describes.sandboxed('EventManager', {}, () => {
     //filter out the default origin
     SwgClientEventManager.addFilterer(event => event.getEventOriginator()
         === DEFAULT_ORIGIN ?
-        ShouldFilter.STOP_EXECUTING : ShouldFilter.CONTINUE_EXECUTING
+        FilterResult.STOP_EXECUTING : FilterResult.CONTINUE_EXECUTING
     );
     SwgClientEventManager.addListener(callback);
     SwgClientEventManager.logEvent(DEFAULT_EVENT);

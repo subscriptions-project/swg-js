@@ -97,3 +97,9 @@ export function isEnumValue(enumObj, s) {
   }
   return false;
 }
+/**True if the value is a function
+ * @param {*} value
+ */
+export function isFunction(value) {
+  return value !== null && typeof value === 'function';
+}
