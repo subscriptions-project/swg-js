@@ -65,6 +65,7 @@ describes.sandboxed('EventManager', {}, () => {
     event.eventType = OTHER_TYPE;
     tryIt();
     expect(errorCount).to.equal(2);
+    event.eventType = DEFAULT_TYPE;
 
     //validate event originator
     errorCount = 0;
@@ -77,6 +78,7 @@ describes.sandboxed('EventManager', {}, () => {
     event.eventOriginator = OTHER_ORIGIN;
     tryIt();
     expect(errorCount).to.equal(2);
+    event.eventOriginator = DEFAULT_ORIGIN;
 
     //validate isFromUserAction
     errorCount = 0;
@@ -89,6 +91,7 @@ describes.sandboxed('EventManager', {}, () => {
     event.isFromUserAction = false;
     tryIt();
     expect(errorCount).to.equal(1);
+    event.isFromUserAction = null;
 
     //validate additionalParameters
     errorCount = 0;
@@ -101,7 +104,9 @@ describes.sandboxed('EventManager', {}, () => {
     event.additionalParameters = {IAmValid: 5};
     tryIt();
     expect(errorCount).to.equal(1);
+    event.additionalParameters = {};
 
+    //validate null object
     errorCount = 0;
     event = null;
     tryIt();
@@ -128,6 +133,7 @@ describes.sandboxed('EventManager', {}, () => {
     const eventMan = new SwgClientEventManager();
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
+    eventMan.addListener(callback);
 
     //filter out the default origin
     eventMan.addFilterer(event =>
@@ -135,12 +141,12 @@ describes.sandboxed('EventManager', {}, () => {
           EventManagerApi.FilterResult.STOP_EXECUTING :
           EventManagerApi.FilterResult.CONTINUE_EXECUTING
     );
-    eventMan.addListener(callback);
+
+    //ensure the default origin is filtered out
     yield eventMan.logEvent(DEFAULT_EVENT);
-    //ensure the filtering is respected
     expect(receivedEventsCount).to.equal(0);
 
-    //ensure it passes through the filter
+    //ensure the other origin is not filtered out
     DEFAULT_EVENT.eventOriginator = OTHER_ORIGIN;
     yield eventMan.logEvent(DEFAULT_EVENT);
     expect(receivedEventsCount).to.equal(1);
