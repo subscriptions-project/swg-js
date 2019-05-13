@@ -16,12 +16,12 @@
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 import {isObject, isFunction, isEnumValue} from '../utils/types';
-import {FilterResult} from '../api/swg-client-event-manager-api';
+import * as Api from '../api/swg-client-event-manager-api';
 
 const EVENT_ERROR = 'An SwgClientEvent has an invalid ';
 
 /**Throws an error if the event is invalid.
- * @param {!../api/swg-client-event-manager-api.SwgClientEvent} event
+ * @param {!Api.SwgClientEvent} event
  * @returns {!Promise}
  */
 function validateEvent(event) {
@@ -49,20 +49,20 @@ function validateEvent(event) {
   return Promise.resolve();
 }
 
-/** @implements {../api/swg-client-event-manager-api.SwgClientEventManagerApi} */
+/** @implements {Api.SwgClientEventManagerApi} */
 export class SwgClientEventManager {
   constructor() {
-    /** @private {Array<function(!../api/swg-client-event-manager-api.SwgClientEvent)>}} */
+    /** @private {Array<function(!Api.SwgClientEvent)>}} */
     this.listeners_ = [];
 
-    /** @private {Array<function(!../api/swg-client-event-manager-api.SwgClientEvent):!../api/swg-client-event-manager-api.FilterResult>}} */
+    /** @private {Array<function(!Api.SwgClientEvent):!Api.FilterResult>}} */
     this.filterers_ = [];
   }
 
   /**
    * Ensures the callback function is notified anytime one of the passed
    * events occurs unless a filterer returns false.
-   * @param {!function(!../api/swg-client-event-manager-api.SwgClientEvent)} callback
+   * @param {!function(!Api.SwgClientEvent)} callback
    * @overrides
    */
   addListener(callback) {
@@ -76,7 +76,7 @@ export class SwgClientEventManager {
    * Register a filterer for events if you need to potentially cancel an event
    * before the listeners are called.  A filterer should return
    * FilterResult.STOP_EXECUTING to cancel an event.
-   * @param {!function(!../api/swg-client-event-manager-api.SwgClientEvent):!../api/swg-client-event-manager-api.FilterResult} callback
+   * @param {!function(!Api.SwgClientEvent):!Api.FilterResult} callback
    * @overrides
    */
   addFilterer(callback) {
@@ -89,7 +89,7 @@ export class SwgClientEventManager {
   /**Call this function to log an event.  The registered listeners will be
    * invoked unless the event is filtered.  Returns false if the event was
    * filtered and throws an error if the event is invalid.
-   * @param {!../api/swg-client-event-manager-api.SwgClientEvent} event
+   * @param {!Api.SwgClientEvent} event
    * @returns {!Promise}
    * @overrides
    */
@@ -98,8 +98,8 @@ export class SwgClientEventManager {
       let callbackNum;
       for (callbackNum = 0; callbackNum < this.filterers_.length; callbackNum++)
       {
-        if (this.filterers_[callbackNum](event) === FilterResult.STOP_EXECUTING)
-        {
+        if (this.filterers_[callbackNum](event)
+            === Api.FilterResult.STOP_EXECUTING) {
           return;
         }
       }
