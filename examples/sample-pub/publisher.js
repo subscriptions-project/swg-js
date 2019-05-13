@@ -109,12 +109,13 @@ function startFlowAuto() {
     whenReady(function(subsciptions) {
       var subs = subsciptions;
       whenDemoReady(function() {
-        var smartButton = document.querySelector('button.swg-smart-button');
+        var smartButton = document.querySelector('button#mySmartButton');
         if (!smartButton) {
           console.log(
-              '***Add <button class="swg-smart-button"></button> to this page');
+              'A <button id="smartButton"> is required to render smartbox');
           return;
         }
+
         subs.attachSmartButton(
             smartButton,
             {theme: 'light', lang: 'en'},
