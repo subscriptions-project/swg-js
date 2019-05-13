@@ -15,7 +15,7 @@
  */
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
-import * as Api from '../api/swg-client-event-manager-api';
+import * as EventManagerApi from '../api/swg-client-event-manager-api';
 import {SwgClientEventManager} from './swg-client-event-manager';
 
 const DEFAULT_TYPE = AnalyticsEvent.IMPRESSION_AD;
@@ -24,7 +24,7 @@ const OTHER_TYPE = AnalyticsEvent.ACTION_PAYMENT_COMPLETE;
 const OTHER_ORIGIN = EventOriginator.AMP_CLIENT;
 const BAD_VALUE = 'I should throw an error';
 
-/** @type {!Api.SwgClientEvent} */
+/** @type {!EventManagerApi.SwgClientEvent} */
 const DEFAULT_EVENT = {
   eventType: DEFAULT_TYPE,
   eventOriginator: DEFAULT_ORIGIN,
@@ -34,7 +34,7 @@ const DEFAULT_EVENT = {
 
 describes.sandboxed('EventManager', {}, () => {
   it('should throw an error for invalid events', () => {
-    /** @type {!Api.SwgClientEvent} */
+    /** @type {!EventManagerApi.SwgClientEvent} */
     let event = {
       eventType: DEFAULT_TYPE,
       eventOriginator: DEFAULT_ORIGIN,
@@ -132,7 +132,8 @@ describes.sandboxed('EventManager', {}, () => {
     //filter out the default origin
     eventMan.addFilterer(event =>
       event.eventOriginator === DEFAULT_ORIGIN ?
-      Api.FilterResult.STOP_EXECUTING : Api.FilterResult.CONTINUE_EXECUTING
+          EventManagerApi.FilterResult.STOP_EXECUTING :
+          EventManagerApi.FilterResult.CONTINUE_EXECUTING
     );
     eventMan.addListener(callback);
     yield eventMan.logEvent(DEFAULT_EVENT);
