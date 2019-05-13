@@ -18,7 +18,15 @@ import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 import {isObject, isFunction, isEnumValue} from '../utils/types';
 import * as EventManagerApi from '../api/swg-client-event-manager-api';
 
-const EVENT_ERROR = 'An SwgClientEvent has an invalid ';
+/**
+ * Returns a standard string used to describe an issue with an event object
+ * @param {!string} valueName
+ * @param {?*} value
+ * @returns {!string}
+ */
+function getEventError(valueName, value) {
+  return 'An SwgClientEvent has an invalid ' + valueName + '(' + value + ')';
+}
 
 /**Throws an error if the event is invalid.
  * @param {!EventManagerApi.SwgClientEvent} event
@@ -30,21 +38,22 @@ function validateEvent(event) {
   }
 
   if (!isEnumValue(AnalyticsEvent, event.eventType)) {
-    throw new Error(EVENT_ERROR + 'eventType');
+    throw new Error(getEventError('eventType', event.eventType));
   }
   if (!isEnumValue(EventOriginator, event.eventOriginator)) {
-    throw new Error(EVENT_ERROR + 'eventOrginator');
+    throw new Error(getEventError('eventOriginator', event.eventOriginator));
   }
   if (!event.additionalParameters) {
     event.additionalParameters = {};
   }
   if (!isObject(event.additionalParameters)) {
-    throw new Error(EVENT_ERROR + 'additionalParameters');
+    throw new Error(
+        getEventError('additionalParameters', event.additionalParameters));
   }
   if (event.isFromUserAction !== null
       && event.isFromUserAction !== true
       && event.isFromUserAction !== false) {
-    throw new Error(EVENT_ERROR + 'isFromUserAction');
+    throw new Error(getEventError('isFromUserAction', event.isFromUserAction));
   }
   return Promise.resolve();
 }
@@ -52,7 +61,7 @@ function validateEvent(event) {
 /** @implements {EventManagerApi.SwgClientEventManagerApi} */
 export class SwgClientEventManager {
   constructor() {
-    /** @private {!Array<function<!EventManagerApi.SwgClientEvent>>} */
+    /** @private {!Array<function(!EventManagerApi.SwgClientEvent)>} */
     this.listeners_ = [];
 
     /** @private {!Array<function(!EventManagerApi.SwgClientEvent):!EventManagerApi.FilterResult>} */
