@@ -15,10 +15,12 @@
  */
 
 import {
-    AnalyticsContext,
-    AnalyticsRequest,
-    AnalyticsEvent,
-    deserialize} from './api_messages';
+  AnalyticsContext,
+  AnalyticsEventMeta,
+  AnalyticsRequest,
+  AnalyticsEvent,
+  EventOriginator,
+  deserialize} from './api_messages';
 
 /**
  * Compare two protos
@@ -78,6 +80,20 @@ describe('api_messages', () => {
     });
   });
 
+  describe('test_AnalyticsEventMeta', () => {
+    it('should deserialize correctly', () => {
+      const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
+      analyticseventmeta.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
+      analyticseventmeta.setIsFromUserAction(false);
+      const analyticseventmetaSerialized = analyticseventmeta.toArray();
+      const analyticseventmetaDeserialized = deserialize(
+          analyticseventmetaSerialized);
+      expect(analyticseventmetaDeserialized).to.not.be.null;
+      expect(isEqual(analyticseventmeta.toArray(),
+          analyticseventmetaDeserialized.toArray())).to.be.true;
+    });
+  });
+
   describe('test_AnalyticsRequest', () => {
     it('should deserialize correctly', () => {
       const /** !AnalyticsRequest  */ analyticsrequest = new AnalyticsRequest();
@@ -93,6 +109,10 @@ describe('api_messages', () => {
       analyticscontext.setLabelList([]);
       analyticsrequest.setContext(analyticscontext);
       analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
+      const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
+      analyticseventmeta.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
+      analyticseventmeta.setIsFromUserAction(false);
+      analyticsrequest.setMeta(analyticseventmeta);
       const analyticsrequestSerialized = analyticsrequest.toArray();
       const analyticsrequestDeserialized = deserialize(
           analyticsrequestSerialized);
