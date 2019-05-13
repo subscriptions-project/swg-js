@@ -65,3 +65,43 @@ For instance:
 ```html
 <button class="swg-button-light"></button>
 ```
+
+#
+
+## Smart Button
+
+
+`SmartButton` renders the button with a contextual message underneath the button.
+To attach a smart button, call the `attachSmartButton` API by passing the existing
+button element available in the page to render the `SmartButton` within.
+
+
+```js
+subscriptions.attachSmartButton(
+  buttonElement,
+  {theme: 'light', lang: 'en'},
+  function() {
+      // Callback to attach the action on button click event.
+      // i.e. To Launch Offers flow:
+      // subscriptions.showOffers({isClosable: true});
+});
+```
+
+   OR
+
+```js
+subscriptions.attachSmartButton(
+  buttonElement,
+  function() {
+      // Callback to attach the action on button click event.
+      // i.e. To Launch Offers flow:
+      // subscriptions.showOffers({isClosable: true});
+});
+```
+
+### Parameters:
+
+- `buttonElement` (Required): HTML button element where smartButton is rendered.
+- `options` (Optional): Accepts JSON object with `theme` attribute.\
+                        i.e.: `{theme: 'dark'|'light'}` (Default is `light`)
+- `callback` (Required): Callback to provide action on click of `button`.
