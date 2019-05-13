@@ -78,7 +78,7 @@ export class SmartSubscriptionButtonApi {
     this.args_ = feArgs({
       'productId': this.deps_.pageConfig().getProductId(),
       'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'theme': options && options.theme || 'light',
+      'theme': this.options_ && this.options_.theme || 'light',
       'lang': this.options_ && this.options_.lang || 'en',
     });
   }

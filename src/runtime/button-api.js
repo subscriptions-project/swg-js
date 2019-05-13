@@ -164,9 +164,7 @@ export class ButtonApi {
         (this.getCallback_(optionsOrCallback, opt_callback));
 
     // Add required CSS class, if missing.
-    if (!button.classList.contains('swg-smart-button')) {
-      button.classList.add('swg-smart-button');
-    }
+    button.classList.add('swg-smart-button');
 
     return new SmartSubscriptionButtonApi(
         deps, button, options, callback).start();

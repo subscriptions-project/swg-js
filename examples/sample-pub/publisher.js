@@ -109,7 +109,7 @@ function startFlowAuto() {
     whenReady(function(subsciptions) {
       var subs = subsciptions;
       whenDemoReady(function() {
-        var smartButton = document.querySelector('button#mySmartButton');
+        var smartButton = document.querySelector('button#smartButton');
         if (!smartButton) {
           console.log(
               'A <button id="smartButton"> is required to render smartbox');
