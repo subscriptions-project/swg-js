@@ -22,6 +22,7 @@ import {
 } from './deferred-account-creation';
 import {SubscribeResponse} from './subscribe-response';
 import {PropensityApi} from './propensity-api';
+import {SwgClientEventManager} from '../runtime/swg-client-event-manager';
 
 
 /**
@@ -242,6 +243,11 @@ export class Subscriptions {
    * @return {!Promise<PropensityApi>}
    */
   getPropensityModule() {}
+
+  /**Returns the SwgClientEventManager used for logging client events.
+   * @return {!SwgClientEventManager}
+   */
+  getEventManager() {}
 }
 
 

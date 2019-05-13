@@ -16,113 +16,97 @@
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 import {isObject, isFunction, isEnumValue} from '../utils/types';
+import {FilterResult} from '../api/swg-client-event-manager-api';
 
 const EVENT_ERROR = 'An SwgClientEvent has an invalid ';
 
-/** @enum {number}  */
-export const FilterResult = {
-  CONTINUE_EXECUTING: 0,
-  STOP_EXECUTING: 1,
-};
-
-/**
- * Defines a client event in SwG
- * Properties:
- * - eventType: Required. The AnalyticsEvent type that occurred.
- * - eventOriginator: Required.  The codebase that initiated the event.
- * - additionalParameters: Optional.  A JSON object to store generic data.
- * - isFromUserAction: Optional.  True if the user took an action to generate
- *   the event.
- *
- *  @typedef {{
- *    eventType: (!AnalyticsEvent),
- *    eventOriginator: (!EventOriginator),
- *    additionalParameters: (?Object),
- *    isFromUserAction: (?boolean),
- * }}
+/**Throws an error if the event is invalid.
+ * @param {!../api/swg-client-event-manager-api.SwgClientEvent} event
+ * @returns {!Promise}
  */
-export let SwgClientEvent;
-
-/** @private {Array<function(!SwgClientEvent)>}} */
-const listeners = [];
-
-/** @private {Array<function(!SwgClientEvent):FilterResult>}} */
-const filterers = [];
-
-export class SwgClientEventManager {
-
-  /**Remove all existing filterers and listeners
-   * @package Used by testing code only
-   */
-  static clear() {
-    listeners.length = 0;
-    filterers.length = 0;
+function validateEvent(event) {
+  if (!event) {
+    throw new Error('SwgClientEventManager cannot log a null event');
   }
 
-  /**Throws an error if the event is invalid.
-   * @param {SwgClientEvent} event
-   */
-  static validateEvent(event) {
-    if (!isEnumValue(AnalyticsEvent, event.eventType)) {
-      throw new Error(EVENT_ERROR + 'eventType');
-    }
-    if (!isEnumValue(EventOriginator, event.eventOriginator)) {
-      throw new Error(EVENT_ERROR + 'eventOrginator');
-    }
-    if (!event.additionalParameters) {
-      event.additionalParameters = {};
-    }
-    if (!isObject(event.additionalParameters)) {
-      throw new Error(EVENT_ERROR + 'additionalParameters');
-    }
-    if (event.isFromUserAction !== null
-        && event.isFromUserAction !== true
-        && event.isFromUserAction !== false) {
-      throw new Error(EVENT_ERROR + 'isFromUserAction');
-    }
+  if (!isEnumValue(AnalyticsEvent, event.eventType)) {
+    throw new Error(EVENT_ERROR + 'eventType');
+  }
+  if (!isEnumValue(EventOriginator, event.eventOriginator)) {
+    throw new Error(EVENT_ERROR + 'eventOrginator');
+  }
+  if (!event.additionalParameters) {
+    event.additionalParameters = {};
+  }
+  if (!isObject(event.additionalParameters)) {
+    throw new Error(EVENT_ERROR + 'additionalParameters');
+  }
+  if (event.isFromUserAction !== null
+      && event.isFromUserAction !== true
+      && event.isFromUserAction !== false) {
+    throw new Error(EVENT_ERROR + 'isFromUserAction');
+  }
+  return Promise.resolve();
+}
+
+/** @implements {../api/swg-client-event-manager-api.SwgClientEventManagerApi} */
+export class SwgClientEventManager {
+  constructor() {
+    /** @private {Array<function(!../api/swg-client-event-manager-api.SwgClientEvent)>}} */
+    this.listeners_ = [];
+
+    /** @private {Array<function(!../api/swg-client-event-manager-api.SwgClientEvent):!../api/swg-client-event-manager-api.FilterResult>}} */
+    this.filterers_ = [];
   }
 
   /**
    * Ensures the callback function is notified anytime one of the passed
    * events occurs unless a filterer returns false.
-   * @param {!function(!SwgClientEvent)} callback
+   * @param {!function(!../api/swg-client-event-manager-api.SwgClientEvent)} callback
+   * @overrides
    */
-  static addListener(callback) {
+  addListener(callback) {
     if (!isFunction(callback)) {
       throw new Error('Event manager listeners must be a function');
     }
-    listeners.push(callback);
+    this.listeners_.push(callback);
   }
 
   /**
    * Register a filterer for events if you need to potentially cancel an event
    * before the listeners are called.  A filterer should return
    * FilterResult.STOP_EXECUTING to cancel an event.
-   * @param {!function(!SwgClientEvent):FilterResult} callback
+   * @param {!function(!../api/swg-client-event-manager-api.SwgClientEvent):!../api/swg-client-event-manager-api.FilterResult} callback
+   * @overrides
    */
-  static addFilterer(callback) {
+  addFilterer(callback) {
     if (!isFunction(callback)) {
       throw new Error('Event manager filterers must be a function');
     }
-    filterers.push(callback);
+    this.filterers_.push(callback);
   }
 
   /**Call this function to log an event.  The registered listeners will be
    * invoked unless the event is filtered.  Returns false if the event was
-   * filtered.
-   * @param {!SwgClientEvent} event
-   * @return {boolean}
+   * filtered and throws an error if the event is invalid.
+   * @param {!../api/swg-client-event-manager-api.SwgClientEvent} event
+   * @returns {!Promise}
+   * @overrides
    */
-  static logEvent(event) {
-    SwgClientEventManager.validateEvent(event);
-    for (let callbackNum = 0; callbackNum < filterers.length; callbackNum++) {
-      if (filterers[callbackNum](event) === FilterResult.STOP_EXECUTING) {
-        return false;
+  logEvent(event) {
+    return validateEvent(event).then(() => {
+      let callbackNum;
+      for (callbackNum = 0; callbackNum < this.filterers_.length; callbackNum++)
+      {
+        if (this.filterers_[callbackNum](event) === FilterResult.STOP_EXECUTING)
+        {
+          return;
+        }
       }
-    }
-    for (let callbackNum = 0; callbackNum < listeners.length; callbackNum++) {
-      listeners[callbackNum](event);
-    }
-    return true;
+      for (callbackNum = 0; callbackNum < this.listeners_.length; callbackNum++)
+      {
+        this.listeners_[callbackNum](event);
+      }
+    });
   }
 }

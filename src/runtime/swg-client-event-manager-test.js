@@ -15,7 +15,8 @@
  */
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
-import {SwgClientEventManager, FilterResult} from './swg-client-event-manager';
+import {FilterResult} from '../api/swg-client-event-manager-api';
+import {SwgClientEventManager} from './swg-client-event-manager';
 
 const DEFAULT_TYPE = AnalyticsEvent.IMPRESSION_AD;
 const DEFAULT_ORIGIN = EventOriginator.SWG_CLIENT;
@@ -23,7 +24,7 @@ const OTHER_TYPE = AnalyticsEvent.ACTION_PAYMENT_COMPLETE;
 const OTHER_ORIGIN = EventOriginator.AMP_CLIENT;
 const BAD_VALUE = 'I should throw an error';
 
-/** @type {SwgClientEvent} */
+/** @type {!../api/swg-client-event-manager-api.SwgClientEvent} */
 const DEFAULT_EVENT = {
   eventType: DEFAULT_TYPE,
   eventOriginator: DEFAULT_ORIGIN,
@@ -31,24 +32,26 @@ const DEFAULT_EVENT = {
   additionalParameters: {},
 };
 
-
-describes.sandboxed('SwgClientEvent', {}, () => {
-  it('should properly validate events', () => {
-    /** @type {SwgClientEvent} */
-    const event = {
+describes.sandboxed('EventManager', {}, () => {
+  it('should throw an error for invalid events', () => {
+    /** @type {!../api/swg-client-event-manager-api.SwgClientEvent} */
+    let event = {
       eventType: DEFAULT_TYPE,
       eventOriginator: DEFAULT_ORIGIN,
       isFromUserAction: null,
       additionalParameters: {},
     };
+    const eventMan = new SwgClientEventManager();
+
     let errorCount = 0;
     const tryIt = () => {
       try {
-        SwgClientEventManager.validateEvent(event);
+        eventMan.logEvent(event);
       } catch (e) {
         errorCount++;
       }
     };
+
     tryIt();
     expect(errorCount).to.equal(0);
 
@@ -98,55 +101,48 @@ describes.sandboxed('SwgClientEvent', {}, () => {
     event.additionalParameters = {IAmValid: 5};
     tryIt();
     expect(errorCount).to.equal(1);
-  });
-});
 
-describes.sandboxed('EventManager', {}, () => {
-  it('should not allow invalid events', () => {
-    try {
-      SwgClientEventManager.logEvent({});
-    } catch (e) {
-      return;
-    }
-    //throwing an error above is the expected result so this always fails:
-    expect(5).to.be.null;
+    errorCount = 0;
+    event = null;
+    tryIt();
+    expect(errorCount).to.equal(1);
   });
 
-  it('should be able to listen for events', () => {
+  it('should be able to listen for events', function*() {
+    const eventMan = new SwgClientEventManager();
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
 
     //verify it can listen to 1
-    SwgClientEventManager.addListener(callback);
-    SwgClientEventManager.logEvent(DEFAULT_EVENT);
-    expect(receivedEventsCount).to.equal(1);
+    eventMan.addListener(callback);
+    yield eventMan.logEvent(DEFAULT_EVENT);
 
+    expect(receivedEventsCount).to.equal(1);
     //verify it can listen to 2 at the same time
-    SwgClientEventManager.addListener(callback);
-    SwgClientEventManager.logEvent(DEFAULT_EVENT);
+    eventMan.addListener(callback);
+    yield eventMan.logEvent(DEFAULT_EVENT);
     expect(receivedEventsCount).to.equal(3);
-    SwgClientEventManager.clear();
   });
 
-  it('should be able to filter out some events', () => {
+  it('should be able to filter out some events', function*() {
+    const eventMan = new SwgClientEventManager();
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
 
     //filter out the default origin
-    SwgClientEventManager.addFilterer(event => event.eventOriginator
-        === DEFAULT_ORIGIN ?
-        FilterResult.STOP_EXECUTING : FilterResult.CONTINUE_EXECUTING
+    eventMan.addFilterer(event =>
+      event.eventOriginator === DEFAULT_ORIGIN ?
+      FilterResult.STOP_EXECUTING : FilterResult.CONTINUE_EXECUTING
     );
-    SwgClientEventManager.addListener(callback);
-    SwgClientEventManager.logEvent(DEFAULT_EVENT);
+    eventMan.addListener(callback);
+    yield eventMan.logEvent(DEFAULT_EVENT);
     //ensure the filtering is respected
     expect(receivedEventsCount).to.equal(0);
 
     //ensure it passes through the filter
     DEFAULT_EVENT.eventOriginator = OTHER_ORIGIN;
-    SwgClientEventManager.logEvent(DEFAULT_EVENT);
+    yield eventMan.logEvent(DEFAULT_EVENT);
     expect(receivedEventsCount).to.equal(1);
-    DEFAULT_EVENT.eventOriginator = DEFAULT_ORIGIN;
-    SwgClientEventManager.clear();
+    eventMan.eventOriginator = DEFAULT_ORIGIN;
   });
 });
