@@ -110,6 +110,11 @@ function startFlowAuto() {
       var subs = subsciptions;
       whenDemoReady(function() {
         var smartButton = document.querySelector('button.swg-smart-button');
+        if (!smartButton) {
+          console.log(
+              '***Add <button class="swg-smart-button"></button> to this page');
+          return;
+        }
         subs.attachSmartButton(
             smartButton,
             {theme: 'light', lang: 'en'},
