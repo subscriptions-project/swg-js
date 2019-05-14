@@ -31,6 +31,7 @@ import {
 import {AnalyticsService} from './analytics-service';
 import {defaultConfig, AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {ConfiguredRuntime} from '../runtime/runtime';
 
 describes.realWin('EntitlementsManager', {}, env => {
   let win;
@@ -43,8 +44,8 @@ describes.realWin('EntitlementsManager', {}, env => {
   let storageMock;
   let config;
   let analyticsMock;
-  let deps;
   let encryptedDocumentKey;
+  let runtime;
 
   beforeEach(() => {
     win = env.win;
@@ -52,23 +53,22 @@ describes.realWin('EntitlementsManager', {}, env => {
     fetcher = new XhrFetcher(win);
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
-
-    deps = new DepsDef();
-    sandbox.stub(deps, 'win', () => win);
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    sandbox.stub(runtime, 'win', () => win);
     const globalDoc = new GlobalDoc(win);
-    sandbox.stub(deps, 'doc', () => globalDoc);
+    sandbox.stub(runtime, 'doc', () => globalDoc);
     callbacks = new Callbacks();
-    sandbox.stub(deps, 'callbacks', () => callbacks);
+    sandbox.stub(runtime, 'callbacks', () => callbacks);
     const storage = new Storage(win);
     storageMock = sandbox.mock(storage);
-    sandbox.stub(deps, 'storage', () => storage);
-    sandbox.stub(deps, 'pageConfig', () => pageConfig);
-    sandbox.stub(deps, 'config', () => config);
-    const analyticsService = new AnalyticsService(deps);
+    sandbox.stub(runtime, 'storage', () => storage);
+    sandbox.stub(runtime, 'pageConfig', () => pageConfig);
+    sandbox.stub(runtime, 'config', () => config);
+    const analyticsService = new AnalyticsService(runtime);
     analyticsMock = sandbox.mock(analyticsService);
-    sandbox.stub(deps, 'analytics', () => analyticsService);
+    sandbox.stub(runtime, 'analytics', () => analyticsService);
 
-    manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
+    manager = new EntitlementsManager(win, pageConfig, fetcher, runtime);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
     encryptedDocumentKey = '{\"accessRequirements\": ' +
         '[\"norcal.com:premium\"], \"key\":\"aBcDef781-2-4/sjfdi\"}';
@@ -481,7 +481,7 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).once();
       config.analyticsMode = AnalyticsMode.IMPRESSIONS;
       const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-        win, pageConfig, fetcher, deps);
+        win, pageConfig, fetcher, runtime);
       return newMgr.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
@@ -500,7 +500,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         return '?utm_source=google&utm_medium=email&utm_campaign=campaign';
       };
       const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-        win, pageConfig, fetcher, deps);
+        win, pageConfig, fetcher, runtime);
       return newMgr.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
@@ -519,7 +519,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
       };
       const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-        win, pageConfig, fetcher, deps);
+        win, pageConfig, fetcher, runtime);
       return newMgr.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
