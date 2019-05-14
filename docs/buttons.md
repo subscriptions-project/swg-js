@@ -65,3 +65,91 @@ For instance:
 ```html
 <button class="swg-button-light"></button>
 ```
+
+#
+
+## Smart Button
+
+
+`SmartButton` renders the button with a contextual message underneath the button.
+To attach a smart button, call the `attachSmartButton` API by passing the existing
+button element available in the page to render the `SmartButton` within.
+
+
+```js
+subscriptions.attachSmartButton(
+  buttonElement,
+  {theme: 'light', lang: 'en'},
+  function() {
+      // Callback to attach the action on button click event.
+      // i.e. To Launch Offers flow:
+      // subscriptions.showOffers({isClosable: true});
+});
+```
+
+   OR
+
+```js
+subscriptions.attachSmartButton(
+  buttonElement,
+  function() {
+      // Callback to attach the action on button click event.
+      // i.e. To Launch Offers flow:
+      // subscriptions.showOffers({isClosable: true});
+});
+```
+
+### Parameters:
+
+- `buttonElement` (Required): HTML button element where smartButton is rendered.
+- `options` (Optional): Accepts JSON object with `theme` attribute.\
+                        i.e.: `{theme: 'dark'|'light'}` (Default is `light`) \
+                        `dark` theme renders the button with dark background and\
+                        light/white text.\
+                        `light` theme renders the button with light/white background \
+                        and dark text.
+- `callback` (Required): Callback to provide action on click of `button`.
+
+
+### Button container sizing:
+The `SmartButton` is rendered with following CSS specifications to render
+`button` and the `message` within:
+
+```css
+  min-height: 126px;
+  min-width: 300px;
+  width: 300px;
+  background: transparent;
+
+```
+
+
+User can specify `width` and `height` to be higher than `min-width` and `min-height`
+CSS properties to align within the existing layout/style.
+
+For instance:
+
+```html
+
+<button style="width: 500px; height: 200px;"></button>
+
+```
+
+
+
+# Sample buttons:
+
+`Button` with `light` theme\
+![Button with `theme: 'light'`](./img/swg-button-light.png)
+
+
+`Button` with `dark` theme\
+![Button with `theme: 'dark'`](./img/swg-button-dark.png)
+
+`SmartButton` with `light` theme\
+![Button with `theme: 'light'`](./img/swg-smart-button-light.png)
+
+
+`SmartButton` with `dark` theme\
+![Button with `theme: 'dark'`](./img/swg-smart-button-dark.png)
+
