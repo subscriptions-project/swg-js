@@ -422,6 +422,13 @@ export class Runtime {
   }
 
   /** @override */
+  attachSmartButton(button, optionsOrCallback, opt_callback) {
+    return this.configured_(true).then(
+        runtime =>
+        runtime.attachSmartButton(button, optionsOrCallback, opt_callback));
+  }
+
+  /** @override */
   attachButton(button, optionsOrCallback, opt_callback) {
     return this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
   }
@@ -826,6 +833,15 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  attachSmartButton(button, optionsOrCallback, opt_callback) {
+    if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
+      throw new Error('Not yet launched!');
+    }
+    this.buttonApi_.attachSmartButton(
+        this, button, optionsOrCallback, opt_callback);
+  }
+
+  /** @override */
   getPropensityModule() {
     return Promise.resolve(this.propensityModule_);
   }
@@ -876,6 +892,7 @@ function createPublicRuntime(runtime) {
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
     getPropensityModule: runtime.getPropensityModule.bind(runtime),
+    attachSmartButton: runtime.attachSmartButton.bind(runtime),
     getEventManager: runtime.getEventManager.bind(runtime),
   });
 }

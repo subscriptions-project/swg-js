@@ -104,6 +104,29 @@ function startFlowAuto() {
     });
     return;
   }
+
+  if (flow == 'smartbutton') {
+    whenReady(function(subsciptions) {
+      var subs = subsciptions;
+      whenDemoReady(function() {
+        var smartButton = document.querySelector('button#smartButton');
+        if (!smartButton) {
+          console.log(
+              'A <button id="smartButton"> is required to render smartbox');
+          return;
+        }
+
+        subs.attachSmartButton(
+            smartButton,
+            {theme: 'light', lang: 'en'},
+            function() {
+              subs.showOffers({isClosable: true});
+            });
+      });
+    });
+    return;
+  }
+
   if (flow == 'button') {
     whenReady(function(subscriptions) {
       whenDemoReady(function() {
