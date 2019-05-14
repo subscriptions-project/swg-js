@@ -18,7 +18,9 @@ import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 
 /** @enum {number}  */
 export const FilterResult = {
+  /** the event is allowed to proceed to the listeners */
   CONTINUE_EXECUTING: 0,
+  /** the event is canceled and the listeners are not informed about it */
   STOP_EXECUTING: 1,
 };
 
@@ -33,8 +35,8 @@ export const FilterResult = {
  *
  *  @typedef {{
  *    eventType: (!AnalyticsEvent),
- *    eventOriginator: (!EventOriginator),
  *    additionalParameters: (?Object),
+ *    eventOriginator: (!EventOriginator),
  *    isFromUserAction: (?boolean),
  * }}
  */
@@ -45,21 +47,23 @@ export let SwgClientEvent;
  */
 export class SwgClientEventManagerApi {
   /**
-   * Ensures the callback function is notified anytime one of the passed
-   * events occurs unless a filterer returns false.
+   * Call this function to log an event. The registered listeners will be
+   * invoked unless the event is filtered.
    * @param {!function(!SwgClientEvent)} callback
    */
-  addListener(callback) { }
+  registerEventListener(callback) { }
 
   /**
-   * Register a filterer for events if you need to potentially cancel an event
-   * before the listeners are called.  A filterer should return
-   * FilterResultApi.STOP_EXECUTING to cancel an event.
+   * Register a filterer for events if you need to potentially prevent the
+   * listeners from hearing about it.  A filterer should return
+   * FilterResult.STOP_EXECUTING to prevent listeners from hearing about the
+   * event.
    * @param {!function(!SwgClientEvent):FilterResult} callback
    */
-  addFilterer(callback) { }
+  registerEventFilterer(callback) { }
 
-  /**Call this function to log an event.  The registered listeners will be
+  /**
+   * Call this function to log an event.  The registered listeners will be
    * invoked unless the event is filtered.  Returns false if the event was
    * filtered and throws an error if the event is invalid.
    * @param {!SwgClientEvent} event

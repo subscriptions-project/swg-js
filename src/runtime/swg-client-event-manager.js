@@ -19,16 +19,17 @@ import {isObject, isFunction, isEnumValue} from '../utils/types';
 import * as EventManagerApi from '../api/swg-client-event-manager-api';
 
 /**
- * Returns a standard string used to describe an issue with an event object
+ * Helper function to describe an issue with an event object
  * @param {!string} valueName
  * @param {?*} value
  * @returns {!string}
  */
-function getEventError(valueName, value) {
+function createEventErrorMessage(valueName, value) {
   return 'An SwgClientEvent has an invalid ' + valueName + '(' + value + ')';
 }
 
-/**Throws an error if the event is invalid.
+/**
+ * Throws an error if the event is invalid.
  * @param {!EventManagerApi.SwgClientEvent} event
  * @returns {!Promise}
  */
@@ -38,22 +39,24 @@ function validateEvent(event) {
   }
 
   if (!isEnumValue(AnalyticsEvent, event.eventType)) {
-    throw new Error(getEventError('eventType', event.eventType));
+    throw new Error(createEventErrorMessage('eventType', event.eventType));
   }
   if (!isEnumValue(EventOriginator, event.eventOriginator)) {
-    throw new Error(getEventError('eventOriginator', event.eventOriginator));
+    throw new Error(createEventErrorMessage('eventOriginator',
+        event.eventOriginator));
   }
   if (!event.additionalParameters) {
     event.additionalParameters = {};
   }
   if (!isObject(event.additionalParameters)) {
-    throw new Error(
-        getEventError('additionalParameters', event.additionalParameters));
+    throw new Error(createEventErrorMessage('additionalParameters',
+        event.additionalParameters));
   }
   if (event.isFromUserAction !== null
       && event.isFromUserAction !== true
       && event.isFromUserAction !== false) {
-    throw new Error(getEventError('isFromUserAction', event.isFromUserAction));
+    throw new Error(createEventErrorMessage('isFromUserAction',
+        event.isFromUserAction));
   }
   return Promise.resolve();
 }
@@ -74,7 +77,7 @@ export class SwgClientEventManager {
    * @param {!function(!EventManagerApi.SwgClientEvent)} callback
    * @overrides
    */
-  addListener(callback) {
+  registerEventListener(callback) {
     if (!isFunction(callback)) {
       throw new Error('Event manager listeners must be a function');
     }
@@ -88,14 +91,15 @@ export class SwgClientEventManager {
    * @param {!function(!EventManagerApi.SwgClientEvent):!EventManagerApi.FilterResult} callback
    * @overrides
    */
-  addFilterer(callback) {
+  registerEventFilterer(callback) {
     if (!isFunction(callback)) {
       throw new Error('Event manager filterers must be a function');
     }
     this.filterers_.push(callback);
   }
 
-  /**Call this function to log an event.  The registered listeners will be
+  /**
+   * Call this function to log an event.  The registered listeners will be
    * invoked unless the event is filtered.  Returns false if the event was
    * filtered and throws an error if the event is invalid.
    * @param {!EventManagerApi.SwgClientEvent} event
