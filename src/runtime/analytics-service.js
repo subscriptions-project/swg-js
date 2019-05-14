@@ -17,23 +17,43 @@
 import {
   AnalyticsRequest,
   AnalyticsContext,
+  AnalyticsEvent,
+  AnalyticsEventMeta,
+  EventOriginator,
 } from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
-import {getOnExperiments} from './experiments';
+import {getOnExperiments,isExperimentOn} from './experiments';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
+import {ExperimentFlags} from './experiment-flags';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
   display: 'none',
 };
 
+/** @const {!Object<number,boolean>} */
+const eventsToLog = {
+  [AnalyticsEvent.UNKNOWN]: false,
+  [AnalyticsEvent.IMPRESSION_PAYWALL]: true,
+  [AnalyticsEvent.IMPRESSION_AD]: false,
+  [AnalyticsEvent.IMPRESSION_OFFERS]: true,
+  [AnalyticsEvent.ACTION_SUBSCRIBE]: true,
+  [AnalyticsEvent.ACTION_PAYMENT_COMPLETE]: true,
+  [AnalyticsEvent.ACTION_ACCOUNT_CREATED]: true,
+  [AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED]: true,
+  [AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE]: true,
+  [AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED]: true,
+  [AnalyticsEvent.EVENT_PAYMENT_FAILED]: true,
+  [AnalyticsEvent.EVENT_CUSTOM]: false,
+};
+
 
 export class AnalyticsService {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./runtime.ConfiguredRuntime} deps
    */
   constructor(deps) {
 
@@ -72,6 +92,14 @@ export class AnalyticsService {
 
     /** @private {?Promise} */
     this.lastAction_ = null;
+
+    /** @private @const {!Promise<../api/swg-client-event-manager-api.SwgClientEventManagerApi>} */
+    this.eventManager_ = deps.getEventManager();
+    this.eventManager_.then(man => man.addListener(this.listener_.bind(this)));
+
+    /** @private {!boolean} */
+    this.logPropensityEvents_ = isExperimentOn(deps.win(),
+        ExperimentFlags.LOG_PROPENSITY_TO_ANALYTICS);
   }
 
   /**
@@ -192,23 +220,68 @@ export class AnalyticsService {
   }
 
   /**
-   * @param {!../proto/api_messages.AnalyticsEvent} event
+   * @param {!../api/swg-client-event-manager-api.SwgClientEvent} event
    * @return {!AnalyticsRequest}
    */
   createLogRequest_(event) {
+    const meta = new AnalyticsEventMeta();
+    meta.setEventOriginator(event.eventOriginator);
+    meta.setIsFromUserAction(event.isFromUserAction);
+
     const request = new AnalyticsRequest();
-    request.setEvent(event);
+    request.setEvent(event.eventType);
     request.setContext(this.context_);
+    request.setMeta(meta);
+
     return request;
   }
 
   /**
-   * @param {!../proto/api_messages.AnalyticsEvent} event
+   * @param {!AnalyticsEvent} eventType
+   * @returns {Promise}
    */
-  logEvent(event) {
-    this.lastAction_ = this.start_().then(port => {
-      port.message({'buf': this.createLogRequest_(event).toArray()});
-    });
+  logEvent(eventType) {
+    return this.logEvent2(eventType, null);
+  }
+
+  /**
+   * @param {!AnalyticsEvent} analyticsEventType
+   * @param {?boolean} eventIsFromUserAction
+   * @returns {Promise}
+   */
+  logEvent2(analyticsEventType, eventIsFromUserAction) {
+    return this.eventManager_.then(em => em.logEvent({
+      eventType: analyticsEventType,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: eventIsFromUserAction,
+      additionalParameters: null,
+    }));
+  }
+
+  /**
+   *
+   * @param {!../api/swg-client-event-manager-api.SwgClientEvent} event
+   * @private
+   */
+  listener_(event) {
+    if (event.eventOriginator === EventOriginator.PROPENSITY_CLIENT
+        && this.logPropensityEvents_ === false) {
+      return;
+    }
+    if (eventsToLog[event.eventType] !== true) {
+      return;
+    }
+    this.sendLog_(this.createLogRequest_(event));
+  }
+
+  /**Sends an analytics request to the server for logging
+   * @param {!AnalyticsRequest} request
+   * @private
+   */
+  sendLog_(request) {
+    this.lastAction_ = this.start_().then(
+        port => port.message({'buf': request.toArray()})
+    );
   }
 
   /**
