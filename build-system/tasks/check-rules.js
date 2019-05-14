@@ -134,7 +134,6 @@ const forbiddenTerms = {
     message: 'SVG data images must use charset=utf-8: ' +
         '"data:image/svg+xml;charset=utf-8,..."',
   },
-  '(AMP|Amp|amp-|\\Wamp\\W)': 'Illegal AMP dependency',
 };
 
 const bannedTermsHelpString = 'Please review viewport service for helper ' +
