@@ -68,8 +68,9 @@ For instance:
 
 #
 
-## Smart Button
+## Smart Button*
 
+***NOTE: This feature is a Work-In-Progress and might change.**
 
 `SmartButton` renders the button with a contextual message underneath the button.
 To attach a smart button, call the `attachSmartButton` API by passing the existing
@@ -139,17 +140,20 @@ For instance:
 
 # Sample buttons:
 
-`Button` with `light` theme\
+`Button` with `light` theme:
+
 ![Button with `theme: 'light'`](./img/swg-button-light.png)
 
+`Button` with `dark` theme:
 
-`Button` with `dark` theme\
 ![Button with `theme: 'dark'`](./img/swg-button-dark.png)
 
-`SmartButton` with `light` theme\
+`SmartButton` with `light` theme:
+
 ![Button with `theme: 'light'`](./img/swg-smart-button-light.png)
 
 
-`SmartButton` with `dark` theme\
+`SmartButton` with `dark` theme:
+
 ![Button with `theme: 'dark'`](./img/swg-smart-button-dark.png)
 
