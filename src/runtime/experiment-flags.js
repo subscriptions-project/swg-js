@@ -51,4 +51,10 @@ export const ExperimentFlags = {
    * Enables the Smartbox feature.
    */
   SMARTBOX: 'smartbox',
+
+  /**
+   * Causes events declared using the Propensity API to be logged to the
+   * analytics server.
+   */
+  LOG_PROPENSITY_TO_ANALYTICS: 'log_propensity_to_analytics',
 };
