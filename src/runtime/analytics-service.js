@@ -95,7 +95,8 @@ export class AnalyticsService {
 
     /** @private @const {!Promise<../api/swg-client-event-manager-api.SwgClientEventManagerApi>} */
     this.eventManager_ = deps.getEventManager();
-    this.eventManager_.then(man => man.addListener(this.listener_.bind(this)));
+    this.eventManager_.then(man =>
+        man.registerEventListener(this.listener_.bind(this)));
 
     /** @private {!boolean} */
     this.logPropensityEvents_ = isExperimentOn(deps.win(),
