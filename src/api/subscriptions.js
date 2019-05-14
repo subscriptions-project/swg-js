@@ -254,7 +254,8 @@ export class Subscriptions {
    */
   getPropensityModule() {}
 
-  /**Returns the SwgClientEventManager used for logging client events.
+  /**
+   * Returns the SwgClientEventManager used for logging client events.
    * @return {!Promise<SwgClientEventManagerApi>}
    */
   getEventManager() {}

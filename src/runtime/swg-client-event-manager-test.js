@@ -32,6 +32,16 @@ const DEFAULT_EVENT = {
   additionalParameters: {},
 };
 
+/**
+ * Returns a standard string used to describe an issue with an event object
+ * @param {!string} valueName
+ * @param {?*} value
+ * @returns {!string}
+ */
+function createEventErrorMessage(valueName, value) {
+  return 'An SwgClientEvent has an invalid ' + valueName + '(' + value + ')';
+}
+
 describes.sandboxed('EventManager', {}, () => {
   it('should throw an error for invalid events', () => {
     /** @type {!EventManagerApi.SwgClientEvent} */
@@ -44,24 +54,34 @@ describes.sandboxed('EventManager', {}, () => {
     const eventMan = new SwgClientEventManager();
 
     let errorCount = 0;
+    let matchedExpected = 0;
+    let expected;
     const tryIt = () => {
       try {
         eventMan.logEvent(event);
       } catch (e) {
         errorCount++;
+        if (e.message === expected) {
+          matchedExpected++;
+        }
       }
     };
 
     tryIt();
     expect(errorCount).to.equal(0);
+    expect(matchedExpected).to.equal(0);
 
     //validate event type
     event.eventType = BAD_VALUE;
+    expected = createEventErrorMessage('eventType', BAD_VALUE);
     tryIt();
     expect(errorCount).to.equal(1);
+    expect(matchedExpected).to.equal(1);
     event.eventType = null;
+    expected = createEventErrorMessage('eventType', null);
     tryIt();
     expect(errorCount).to.equal(2);
+    expect(matchedExpected).to.equal(2);
     event.eventType = OTHER_TYPE;
     tryIt();
     expect(errorCount).to.equal(2);
@@ -69,48 +89,68 @@ describes.sandboxed('EventManager', {}, () => {
 
     //validate event originator
     errorCount = 0;
+    matchedExpected = 0;
     event.eventOriginator = BAD_VALUE;
+    expected = createEventErrorMessage('eventOriginator', BAD_VALUE);
     tryIt();
     expect(errorCount).to.equal(1);
+    expect(matchedExpected).to.equal(1);
     event.eventOriginator = null;
+    expected = createEventErrorMessage('eventOriginator', null);
     tryIt();
     expect(errorCount).to.equal(2);
+    expect(matchedExpected).to.equal(2);
     event.eventOriginator = OTHER_ORIGIN;
     tryIt();
     expect(errorCount).to.equal(2);
+    expect(matchedExpected).to.equal(2);
     event.eventOriginator = DEFAULT_ORIGIN;
 
     //validate isFromUserAction
     errorCount = 0;
+    matchedExpected = 0;
     event.isFromUserAction = BAD_VALUE;
+    expected = createEventErrorMessage('isFromUserAction', BAD_VALUE);
     tryIt();
     expect(errorCount).to.equal(1);
+    expect(matchedExpected).to.equal(1);
     event.isFromUserAction = true;
     tryIt();
     expect(errorCount).to.equal(1);
+    expect(matchedExpected).to.equal(1);
     event.isFromUserAction = false;
     tryIt();
     expect(errorCount).to.equal(1);
+    expect(matchedExpected).to.equal(1);
     event.isFromUserAction = null;
 
     //validate additionalParameters
     errorCount = 0;
+    matchedExpected = 0;
     event.additionalParameters = BAD_VALUE;
+    expected = createEventErrorMessage('additionalParameters', BAD_VALUE);
     tryIt();
     expect(errorCount).to.equal(1);
+    expect(matchedExpected).to.equal(1);
     event.additionalParameters = null;
+    expected = createEventErrorMessage('additionalParameters', null);
     tryIt();
     expect(errorCount).to.equal(1);
+    expect(matchedExpected).to.equal(1);
     event.additionalParameters = {IAmValid: 5};
     tryIt();
     expect(errorCount).to.equal(1);
+    expect(matchedExpected).to.equal(1);
     event.additionalParameters = {};
 
     //validate null object
     errorCount = 0;
+    matchedExpected = 0;
     event = null;
+    expected = 'SwgClientEventManager cannot log a null event';
     tryIt();
     expect(errorCount).to.equal(1);
+    expect(matchedExpected).to.equal(1);
   });
 
   it('should be able to listen for events', function*() {
@@ -119,12 +159,12 @@ describes.sandboxed('EventManager', {}, () => {
     const callback = () => receivedEventsCount++;
 
     //verify it can listen to 1
-    eventMan.addListener(callback);
+    eventMan.registerEventListener(callback);
     yield eventMan.logEvent(DEFAULT_EVENT);
-
     expect(receivedEventsCount).to.equal(1);
+
     //verify it can listen to 2 at the same time
-    eventMan.addListener(callback);
+    eventMan.registerEventListener(callback);
     yield eventMan.logEvent(DEFAULT_EVENT);
     expect(receivedEventsCount).to.equal(3);
   });
@@ -133,10 +173,10 @@ describes.sandboxed('EventManager', {}, () => {
     const eventMan = new SwgClientEventManager();
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
-    eventMan.addListener(callback);
+    eventMan.registerEventListener(callback);
 
     //filter out the default origin
-    eventMan.addFilterer(event =>
+    eventMan.registerEventFilterer(event =>
       event.eventOriginator === DEFAULT_ORIGIN ?
           EventManagerApi.FilterResult.STOP_EXECUTING :
           EventManagerApi.FilterResult.CONTINUE_EXECUTING
