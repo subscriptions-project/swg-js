@@ -77,4 +77,9 @@ export class DepsDef {
    * @return {!../runtime/jserror.JsError}
    */
   jserror() {}
+
+  /**
+   * @return {!../api/swg-client-event-manager-api.SwgClientEventManagerApi}
+   */
+  eventManager() {}
 }

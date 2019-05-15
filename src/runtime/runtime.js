@@ -74,6 +74,7 @@ import {setExperiment} from './experiments';
 import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
+import {SwgClientEventManager} from './swg-client-event-manager';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -533,6 +534,9 @@ export class ConfiguredRuntime {
       this.analyticsService_.logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
       this.jserror_.error('Redirect error', error);
     });
+
+    /** @private @const {!SwgClientEventManager} */
+    this.eventManager_ = new SwgClientEventManager();
   }
 
   /** @override */
@@ -836,6 +840,11 @@ export class ConfiguredRuntime {
   getPropensityModule() {
     return Promise.resolve(this.propensityModule_);
   }
+
+  /** @override */
+  eventManager() {
+    return this.eventManager_;
+  }
 }
 
 /**
@@ -877,8 +886,7 @@ function createPublicRuntime(runtime) {
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
-    getPropensityModule: runtime
-        .getPropensityModule.bind(runtime),
+    getPropensityModule: runtime.getPropensityModule.bind(runtime),
   });
 }
 
