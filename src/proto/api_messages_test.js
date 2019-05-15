@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  AnalyticsContext,
-  AnalyticsEventMeta,
-  AnalyticsRequest,
-  AnalyticsEvent,
-  EventOriginator,
-  deserialize} from './api_messages';
+import {AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, deserialize, EventOriginator, EventParams} from './api_messages';
 
 /**
  * Compare two protos
@@ -113,12 +107,27 @@ describe('api_messages', () => {
       analyticseventmeta.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
       analyticseventmeta.setIsFromUserAction(false);
       analyticsrequest.setMeta(analyticseventmeta);
+      const /** !EventParams  */ eventparams = new EventParams();
+      eventparams.setSmartboxMessage('');
+      analyticsrequest.setParams(eventparams);
       const analyticsrequestSerialized = analyticsrequest.toArray();
       const analyticsrequestDeserialized = deserialize(
           analyticsrequestSerialized);
       expect(analyticsrequestDeserialized).to.not.be.null;
       expect(isEqual(analyticsrequest.toArray(),
           analyticsrequestDeserialized.toArray())).to.be.true;
+    });
+  });
+
+  describe('test_EventParams', () => {
+    it('should deserialize correctly', () => {
+      const /** !EventParams  */ eventparams = new EventParams();
+      eventparams.setSmartboxMessage('');
+      const eventparamsSerialized = eventparams.toArray();
+      const eventparamsDeserialized = deserialize(eventparamsSerialized);
+      expect(eventparamsDeserialized).to.not.be.null;
+      expect(isEqual(eventparams.toArray(), eventparamsDeserialized.toArray()))
+          .to.be.true;
     });
   });
 });
