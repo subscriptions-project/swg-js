@@ -1467,6 +1467,5 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
   it('should return events manager', () => {
     expect(runtime.eventManager()).to.deep.equal(new SwgClientEventManager());
-    runtime.eventManager().logEvent();
   });
 });
