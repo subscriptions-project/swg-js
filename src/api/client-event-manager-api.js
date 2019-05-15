@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,22 +34,22 @@ export const FilterResult = {
  *   the event.
  *
  *  @typedef {{
- *    eventType: (!AnalyticsEvent),
- *    eventOriginator: (!EventOriginator),
- *    isFromUserAction: (?boolean),
- *    additionalParameters: (?Object),
+ *    eventType: !AnalyticsEvent,
+ *    eventOriginator: !EventOriginator,
+ *    isFromUserAction: ?boolean,
+ *    additionalParameters: ?Object,
  * }}
  */
-export let SwgClientEvent;
+export let ClientEvent;
 
 /**
  * @interface
  */
-export class SwgClientEventManagerApi {
+export class ClientEventManagerApi {
   /**
    * Call this function to log an event. The registered listeners will be
    * invoked unless the event is filtered.
-   * @param {!function(!SwgClientEvent)} callback
+   * @param {!function(!ClientEvent)} callback
    */
   registerEventListener(callback) { }
 
@@ -58,15 +58,15 @@ export class SwgClientEventManagerApi {
    * listeners from hearing about it.  A filterer should return
    * FilterResult.CANCEL_EVENT to prevent listeners from hearing about the
    * event.
-   * @param {!function(!SwgClientEvent):FilterResult} callback
+   * @param {!function(!ClientEvent):FilterResult} callback
    */
   registerEventFilterer(callback) { }
 
   /**
    * Call this function to log an event.  The registered listeners will be
-   * invoked unless the event is filtered.  Returns false if the event was
-   * filtered and throws an error if the event is invalid.
-   * @param {!SwgClientEvent} event
+   * invoked unless the event is filtered out.  Returns a promise to call the
+   * filterers and listeners (unless it is filtered out).
+   * @param {!ClientEvent} event
    * @returns {!Promise}
    */
   logEvent(event) { }
