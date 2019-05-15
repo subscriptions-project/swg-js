@@ -891,8 +891,8 @@ function createPublicRuntime(runtime) {
     saveSubscription: runtime.saveSubscription.bind(runtime),
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
-    getPropensityModule: runtime.getPropensityModule.bind(runtime),
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
+    getPropensityModule: runtime.getPropensityModule.bind(runtime),
     getEventManager: runtime.getEventManager.bind(runtime),
   });
 }

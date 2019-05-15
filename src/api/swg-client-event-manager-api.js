@@ -35,9 +35,9 @@ export const FilterResult = {
  *
  *  @typedef {{
  *    eventType: (!AnalyticsEvent),
- *    additionalParameters: (?Object),
  *    eventOriginator: (!EventOriginator),
  *    isFromUserAction: (?boolean),
+ *    additionalParameters: (?Object),
  * }}
  */
 export let SwgClientEvent;

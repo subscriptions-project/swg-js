@@ -15,8 +15,9 @@
  */
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
-import {isObject, isFunction, isEnumValue} from '../utils/types';
+import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
 import * as EventManagerApi from '../api/swg-client-event-manager-api';
+import { isUndefined } from 'util';
 
 /**
  * Helper function to describe an issue with an event object
@@ -25,7 +26,7 @@ import * as EventManagerApi from '../api/swg-client-event-manager-api';
  * @returns {!string}
  */
 function createEventErrorMessage(valueName, value) {
-  return 'An SwgClientEvent has an invalid ' + valueName + '(' + value + ')';
+  return 'Event has an invalid ' + valueName + '(' + value + ')';
 }
 
 /**
@@ -34,8 +35,8 @@ function createEventErrorMessage(valueName, value) {
  * @returns {!Promise}
  */
 function validateEvent(event) {
-  if (!event) {
-    throw new Error('SwgClientEventManager cannot log a null event');
+  if (!isObject(event)) {
+    throw new Error('Event must be a valid object');
   }
 
   if (!isEnumValue(AnalyticsEvent, event.eventType)) {
@@ -45,16 +46,15 @@ function validateEvent(event) {
     throw new Error(createEventErrorMessage('eventOriginator',
         event.eventOriginator));
   }
-  if (!event.additionalParameters) {
-    event.additionalParameters = {};
+  if (!isObject(event.additionalParameters)
+      && event.additionalParameters !== null) {
+    if (!isUndefined(event.additionalParameters)) {
+      throw new Error(createEventErrorMessage('additionalParameters',
+          event.additionalParameters));
+    }
+    event.additionalParameters = null;
   }
-  if (!isObject(event.additionalParameters)) {
-    throw new Error(createEventErrorMessage('additionalParameters',
-        event.additionalParameters));
-  }
-  if (event.isFromUserAction !== null
-      && event.isFromUserAction !== true
-      && event.isFromUserAction !== false) {
+  if (event.isFromUserAction !== null && !isBoolean(event.isFromUserAction)) {
     throw new Error(createEventErrorMessage('isFromUserAction',
         event.isFromUserAction));
   }

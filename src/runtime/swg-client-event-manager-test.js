@@ -39,7 +39,7 @@ const DEFAULT_EVENT = {
  * @returns {!string}
  */
 function createEventErrorMessage(valueName, value) {
-  return 'An SwgClientEvent has an invalid ' + valueName + '(' + value + ')';
+  return 'Event has an invalid ' + valueName + '(' + value + ')';
 }
 
 describes.sandboxed('EventManager', {}, () => {
@@ -147,7 +147,7 @@ describes.sandboxed('EventManager', {}, () => {
     errorCount = 0;
     matchedExpected = 0;
     event = null;
-    expected = 'SwgClientEventManager cannot log a null event';
+    expected = 'Event must be a valid object';
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);
