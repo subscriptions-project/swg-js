@@ -35,9 +35,9 @@ describes.realWin('ButtonApi', {}, env => {
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
-    buttonApi = new ButtonApi(resolveDoc(doc));
     pageConfig = new PageConfig('pub1:label1', false);
     runtime = new ConfiguredRuntime(win, pageConfig);
+    buttonApi = new ButtonApi(resolveDoc(doc), runtime);
     activitiesMock = sandbox.mock(runtime.activities());
     port = new ActivityPort();
     handler = sandbox.spy();
@@ -58,7 +58,7 @@ describes.realWin('ButtonApi', {}, env => {
   });
 
   it('should inject stylesheet only once', () => {
-    new ButtonApi(resolveDoc(doc)).init();
+    new ButtonApi(resolveDoc(doc), runtime).init();
     buttonApi.init();
     const links = doc.querySelectorAll('link[href="$assets$/swg-button.css"]');
     expect(links).to.have.length(1);
