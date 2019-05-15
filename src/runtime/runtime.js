@@ -439,11 +439,6 @@ export class Runtime {
       return runtime.getPropensityModule();
     });
   }
-
-  /** @override */
-  getEventManager() {
-    return this.configured_(true).then(runtime => runtime.getEventManager());
-  }
 }
 
 /**
@@ -846,9 +841,8 @@ export class ConfiguredRuntime {
     return Promise.resolve(this.propensityModule_);
   }
 
-  /** @override */
   getEventManager() {
-    return Promise.resolve(this.eventManager_);
+    return this.eventManager_;
   }
 
 }
