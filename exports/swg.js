@@ -24,6 +24,7 @@ import {SubscribeResponse} from '../src/api/subscribe-response';
 import {SwgClientEventManagerApi}
     from '../src/api/swg-client-event-manager-api';
 
+
 module.exports = {
   ConfiguredRuntime,
   Entitlements,
