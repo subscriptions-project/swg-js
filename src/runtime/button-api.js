@@ -60,10 +60,14 @@ export class ButtonApi {
 
   /**
    * @param {!../model/doc.Doc} doc
+   * @param {!./deps.DepsDef} deps
    */
-  constructor(doc) {
+  constructor(doc, deps) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
+
+    /** @priavte @const {!./deps.DepsDef} */
+    this.deps_ = deps;
   }
 
   /**
@@ -152,13 +156,12 @@ export class ButtonApi {
   }
 
   /**
-   * @param {!./deps.DepsDef} deps
    * @param {!Element} button
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}
    */
-  attachSmartButton(deps, button, optionsOrCallback, opt_callback) {
+  attachSmartButton(button, optionsOrCallback, opt_callback) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = /** @type {function()} */
         (this.getCallback_(optionsOrCallback, opt_callback));
@@ -167,6 +170,6 @@ export class ButtonApi {
     button.classList.add('swg-smart-button');
 
     return new SmartSubscriptionButtonApi(
-        deps, button, options, callback).start();
+        this.deps_, button, options, callback).start();
   }
 }
