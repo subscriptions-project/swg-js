@@ -74,7 +74,7 @@ import {setExperiment} from './experiments';
 import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
-import {SwgClientEventManager} from './swg-client-event-manager';
+import {ClientEventManager} from './client-event-manager';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -535,8 +535,8 @@ export class ConfiguredRuntime {
       this.jserror_.error('Redirect error', error);
     });
 
-    /** @private @const {!SwgClientEventManager} */
-    this.eventManager_ = new SwgClientEventManager();
+    /** @private @const {!ClientEventManager} */
+    this.eventManager_ = new ClientEventManager();
   }
 
   /** @override */

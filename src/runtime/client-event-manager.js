@@ -14,44 +14,32 @@
  * limitations under the License.
  */
 
-import * as EventApi from '../api/swg-client-event-manager-api';
+import {FilterResult} from '../api/client-event-manager-api';
 
-/** @implements {EventApi.SwgClientEventManagerApi}*/
-export class SwgClientEventManager {
+/** @implements {../api/client-event-manager-api.ClientEventManagerApi}*/
+export class ClientEventManager {
   constructor() {
   }
 
   /**
-   * Ensures the callback function is notified anytime one of the passed
-   * events occurs unless a filterer returns false.
-   * @param {!function(!EventApi.SwgClientEvent)} unusedCallback
    * @overrides
    */
   registerEventListener(unusedCallback) {
   }
 
   /**
-   * Register a filterer for events if you need to potentially cancel an event
-   * before the listeners are called.  A filterer should return
-   * FilterResult.STOP_EXECUTING to cancel an event.
-   * @param {!function(!EventApi.SwgClientEvent):!EventApi.FilterResult} unusedCallback
    * @overrides
    */
   registerEventFilterer(unusedCallback) {
   }
 
   /**
-   * Call this function to log an event.  The registered listeners will be
-   * invoked unless the event is filtered.  Returns false if the event was
-   * filtered and throws an error if the event is invalid.
-   * @param {!EventApi.SwgClientEvent} event
-   * @returns {!Promise}
    * @overrides
    */
   logEvent(event) {
     //TODO(mborof) the API must be used somewhere or presubmit fails.
     //  remove this line once all code is implemented
-    if (event === EventApi.FilterResult.CANCEL_EVENT) {
+    if (event === FilterResult.CANCEL_EVENT) {
       return Promise.resolve();
     }
     return Promise.resolve();

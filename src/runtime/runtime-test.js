@@ -69,7 +69,7 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 import {Propensity} from './propensity';
-import {SwgClientEventManager} from './swg-client-event-manager';
+import {ClientEventManager} from './client-event-manager';
 
 const EDGE_USER_AGENT =
     'Mozilla/5.0 (Windows NT 10.0)' +
@@ -1466,6 +1466,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should return events manager', () => {
-    expect(runtime.eventManager()).to.deep.equal(new SwgClientEventManager());
+    expect(runtime.eventManager()).to.deep.equal(new ClientEventManager());
   });
 });
