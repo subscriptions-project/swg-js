@@ -79,7 +79,7 @@ export class DepsDef {
   jserror() {}
 
   /**
-   * @return {!../api/swg-client-event-manager-api.ClientEventManagerApi}
+   * @return {!../api/client-event-manager-api.ClientEventManagerApi}
    */
   eventManager() {}
 }
