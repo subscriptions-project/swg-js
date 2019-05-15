@@ -886,8 +886,8 @@ function createPublicRuntime(runtime) {
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
-    getPropensityModule:
-        runtime.getPropensityModule.bind(runtime),
+    getPropensityModule: runtime
+        .getPropensityModule.bind(runtime),
   });
 }
 
