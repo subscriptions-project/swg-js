@@ -17,7 +17,6 @@
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
 import * as EventManagerApi from '../api/swg-client-event-manager-api';
-import { isUndefined } from 'util';
 
 /**
  * Helper function to describe an issue with an event object
@@ -48,7 +47,7 @@ function validateEvent(event) {
   }
   if (!isObject(event.additionalParameters)
       && event.additionalParameters !== null) {
-    if (!isUndefined(event.additionalParameters)) {
+    if (event.additionalParameters !== undefined) {
       throw new Error(createEventErrorMessage('additionalParameters',
           event.additionalParameters));
     }
