@@ -15,8 +15,8 @@
  */
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
-import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
-import * as EventManagerApi from '../api/client-event-manager-api';
+import {isObject, isFunction, isEnumValue} from '../utils/types';
+import * as API from '../api/client-event-manager-api';
 
 /**
  * Helper function to describe an issue with an event object
@@ -30,7 +30,7 @@ function createEventErrorMessage(valueName, value) {
 
 /**
  * Throws an error if the event is invalid.
- * @param {!EventManagerApi.ClientEvent} event
+ * @param {!API.ClientEvent} event
  * @returns {!Promise}
  */
 function validateEvent(event) {
@@ -41,10 +41,12 @@ function validateEvent(event) {
   if (!isEnumValue(AnalyticsEvent, event.eventType)) {
     throw new Error(createEventErrorMessage('eventType', event.eventType));
   }
+
   if (!isEnumValue(EventOriginator, event.eventOriginator)) {
     throw new Error(createEventErrorMessage('eventOriginator',
         event.eventOriginator));
   }
+
   if (!isObject(event.additionalParameters)
       && event.additionalParameters !== null) {
     if (event.additionalParameters !== undefined) {
@@ -53,20 +55,22 @@ function validateEvent(event) {
     }
     event.additionalParameters = null;
   }
+
+  /*
   if (event.isFromUserAction !== null && !isBoolean(event.isFromUserAction)) {
     throw new Error(createEventErrorMessage('isFromUserAction',
         event.isFromUserAction));
-  }
+  }*/
   return Promise.resolve();
 }
 
-/** @implements {EventManagerApi.ClientEventManagerApi} */
+/** @implements {../api/client-event-manager-api.ClientEventManagerApi} */
 export class ClientEventManager {
   constructor() {
-    /** @private {!Array<function(!EventManagerApi.ClientEvent)>} */
+    /** @private {!Array<function(!API.ClientEvent)>} */
     this.listeners_ = [];
 
-    /** @private {!Array<function(!EventManagerApi.ClientEvent):!EventManagerApi.FilterResult>} */
+    /** @private {!Array<function(!API.ClientEvent):!API.FilterResult>} */
     this.filterers_ = [];
 
     /** @private {?Promise} */
@@ -102,7 +106,7 @@ export class ClientEventManager {
       for (callbackNum = 0; callbackNum < this.filterers_.length; callbackNum++)
       {
         if (this.filterers_[callbackNum](event)
-            === EventManagerApi.FilterResult.CANCEL_EVENT) {
+            === API.FilterResult.CANCEL_EVENT) {
           return;
         }
       }
