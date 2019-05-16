@@ -21,6 +21,8 @@ import {
 } from '../src/api/entitlements';
 import {Fetcher} from '../src/runtime/fetcher';
 import {SubscribeResponse} from '../src/api/subscribe-response';
+import {ClientEventManagerApi,ClientEvent,FilterResult}
+    from '../src/api/client-event-manager-api';
 
 
 module.exports = {
@@ -29,4 +31,7 @@ module.exports = {
   Entitlement,
   Fetcher,
   SubscribeResponse,
+  ClientEventManagerApi,
+  ClientEvent,
+  FilterResult,
 };
