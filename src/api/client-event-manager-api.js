@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 
 /** @enum {number}  */
 export const FilterResult = {
-  /** the event is allowed to proceed to the listeners */
-  CONTINUE_EXECUTING: 0,
-  /** the event is canceled and the listeners are not informed about it */
-  STOP_EXECUTING: 1,
+  /** The event is allowed to proceed to the listeners. */
+  PROCESS_EVENT: 0,
+  /** The event is canceled and the listeners are not informed about it. */
+  CANCEL_EVENT: 1,
 };
 
 /**
@@ -34,40 +34,40 @@ export const FilterResult = {
  *   the event.
  *
  *  @typedef {{
- *    eventType: (!AnalyticsEvent),
- *    eventOriginator: (!EventOriginator),
- *    isFromUserAction: (?boolean),
- *    additionalParameters: (?Object),
+ *    eventType: !AnalyticsEvent,
+ *    eventOriginator: !EventOriginator,
+ *    isFromUserAction: ?boolean,
+ *    additionalParameters: ?Object,
  * }}
  */
-export let SwgClientEvent;
+export let ClientEvent;
 
 /**
  * @interface
  */
-export class SwgClientEventManagerApi {
+export class ClientEventManagerApi {
   /**
    * Call this function to log an event. The registered listeners will be
    * invoked unless the event is filtered.
-   * @param {!function(!SwgClientEvent)} callback
+   * @param {!function(!ClientEvent)} listener
    */
-  registerEventListener(callback) { }
+  registerEventListener(listener) { }
 
   /**
    * Register a filterer for events if you need to potentially prevent the
    * listeners from hearing about it.  A filterer should return
-   * FilterResult.STOP_EXECUTING to prevent listeners from hearing about the
+   * FilterResult.CANCEL_EVENT to prevent listeners from hearing about the
    * event.
-   * @param {!function(!SwgClientEvent):FilterResult} callback
+   * @param {!function(!ClientEvent):FilterResult} filterer
    */
-  registerEventFilterer(callback) { }
+  registerEventFilterer(filterer) { }
 
   /**
-   * Call this function to log an event.  The registered listeners will be
-   * invoked unless the event is filtered.  Returns false if the event was
-   * filtered and throws an error if the event is invalid.
-   * @param {!SwgClientEvent} event
-   * @returns {!Promise}
+   * Call this function to log an event.  It will immediately throw an error if
+   * the event is invalid.  It will then asynchronously call the filterers and
+   * stop the event if a filterer cancels it.  After that, it will call each
+   * listener asynchronously.
+   * @param {!ClientEvent} event
    */
   logEvent(event) { }
 }

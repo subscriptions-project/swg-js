@@ -93,11 +93,6 @@ export class AnalyticsService {
     /** @private {?Promise} */
     this.lastAction_ = null;
 
-    /** @private @const {!Promise<../api/swg-client-event-manager-api.SwgClientEventManagerApi>} */
-    this.eventManager_ = deps.getEventManager();
-    this.eventManager_.then(man =>
-        man.registerEventListener(this.listener_.bind(this)));
-
     /** @private {!boolean} */
     this.logPropensityEvents_ = isExperimentOn(deps.win(),
         ExperimentFlags.LOG_PROPENSITY_TO_ANALYTICS);
@@ -221,7 +216,7 @@ export class AnalyticsService {
   }
 
   /**
-   * @param {!../api/swg-client-event-manager-api.SwgClientEvent} event
+   * @param {!../api/client-event-manager-api.ClientEvent} event
    * @return {!AnalyticsRequest}
    */
   createLogRequest_(event) {
@@ -239,29 +234,27 @@ export class AnalyticsService {
 
   /**
    * @param {!AnalyticsEvent} eventType
-   * @returns {Promise}
    */
   logEvent(eventType) {
-    return this.logEvent2(eventType, null);
+    this.logEvent2(eventType, null);
   }
 
   /**
    * @param {!AnalyticsEvent} analyticsEventType
    * @param {?boolean} eventIsFromUserAction
-   * @returns {Promise}
    */
   logEvent2(analyticsEventType, eventIsFromUserAction) {
-    return this.eventManager_.then(em => em.logEvent({
+    this.listener_({
       eventType: analyticsEventType,
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction: eventIsFromUserAction,
       additionalParameters: null,
-    }));
+    });
   }
 
   /**
    *
-   * @param {!../api/swg-client-event-manager-api.SwgClientEvent} event
+   * @param {!../api/client-event-manager-api.ClientEvent} event
    * @private
    */
   listener_(event) {

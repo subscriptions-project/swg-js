@@ -22,7 +22,7 @@ import {PageConfig} from '../model/page-config';
 import {feArgs, feUrl} from './services';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting} from './experiments';
-import {SwgClientEventManager} from './swg-client-event-manager';
+import {ClientEventManager} from './client-event-manager';
 import {EventOriginator} from '../proto/api_messages';
 import {ExperimentFlags} from './experiment-flags';
 
@@ -53,10 +53,10 @@ describes.realWin('AnalyticsService', {}, env => {
     activityPorts = runtime.activities();
 
 
-    eventManagerMock = sandbox.mock(new SwgClientEventManager());
+    eventManagerMock = sandbox.mock(new ClientEventManager());
     sandbox.stub(
         runtime,
-        'getEventManager',
+        'eventManager',
         () => Promise.resolve(eventManagerMock));
 
     analyticsService = new AnalyticsService(runtime);

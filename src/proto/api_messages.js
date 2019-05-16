@@ -19,6 +19,8 @@ const AnalyticsEvent = {
   IMPRESSION_PAYWALL: 1,
   IMPRESSION_AD: 2,
   IMPRESSION_OFFERS: 3,
+  IMPRESSION_SUBSCRIBE_BUTTON: 4,
+  IMPRESSION_SMARTBOX: 5,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -35,6 +37,7 @@ const EventOriginator = {
   SWG_CLIENT: 1,
   AMP_CLIENT: 2,
   PROPENSITY_CLIENT: 3,
+  SWG_SERVER: 4,
 };
 
 class AnalyticsContext {
@@ -287,6 +290,11 @@ class AnalyticsRequest {
     /** @private {?AnalyticsEventMeta} */
     this.meta_ = (data[3] == null || data[3] == undefined) ? null : new
         AnalyticsEventMeta(data[3]);
+
+    /** @private {?EventParams} */
+    this.params_ = (data[4] == null || data[4] == undefined) ?
+        null :
+        new EventParams(data[4]);
   }
 
   /**
@@ -332,14 +340,64 @@ class AnalyticsRequest {
   }
 
   /**
+   * @return {?EventParams}
+   */
+  getParams() {
+    return this.params_;
+  }
+
+  /**
+   * @param {!EventParams} value
+   */
+  setParams(value) {
+    this.params_ = value;
+  }
+
+  /**
    * @return {!Array}
    */
   toArray() {
     return [
-      'AnalyticsRequest',  // message type
-      this.context_ ? this.context_.toArray() : [], // field 1 - context
-      this.event_,  // field 2 - event
-      this.meta_ ? this.meta_.toArray() : [], // field 3 - meta
+      'AnalyticsRequest',                            // message type
+      this.context_ ? this.context_.toArray() : [],  // field 1 - context
+      this.event_,                                   // field 2 - event
+      this.meta_ ? this.meta_.toArray() : [],        // field 3 - meta
+      this.params_ ? this.params_.toArray() : [],    // field 4 - params
+    ];
+  }
+}
+
+
+class EventParams {
+  /**
+   * @param {!Array=} data
+   */
+  constructor(data = []) {
+    /** @private {?string} */
+    this.smartboxMessage_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getSmartboxMessage() {
+    return this.smartboxMessage_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSmartboxMessage(value) {
+    this.smartboxMessage_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   */
+  toArray() {
+    return [
+      'EventParams',          // message type
+      this.smartboxMessage_,  // field 1 - smartbox_message
     ];
   }
 }
@@ -349,6 +407,7 @@ const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
+  'EventParams': EventParams,
 };
 
 /**
@@ -372,6 +431,7 @@ export {
   AnalyticsContext,
   AnalyticsEventMeta,
   AnalyticsRequest,
+  EventParams,
   AnalyticsEvent,
   EventOriginator,
   deserialize,

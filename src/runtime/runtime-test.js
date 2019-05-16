@@ -69,7 +69,7 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 import {Propensity} from './propensity';
-import {SwgClientEventManager} from './swg-client-event-manager';
+import {ClientEventManager} from './client-event-manager';
 
 const EDGE_USER_AGENT =
     'Mozilla/5.0 (Windows NT 10.0)' +
@@ -819,18 +819,6 @@ describes.realWin('Runtime', {}, env => {
             expect(propensityModule).to.equal(propensity);
           });
     });
-
-    it('should return events manager', () => {
-      const eventMan = new SwgClientEventManager();
-      configuredRuntimeMock.expects('getEventManager')
-          .once()
-          .returns(eventMan);
-      return runtime.getEventManager()
-          .then(eventManager => {
-            expect(configureStub).to.be.calledOnce.calledWith(true);
-            expect(eventManager).to.equal(eventMan);
-          });
-    });
   });
 });
 
@@ -1484,5 +1472,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         expect(getPropensityStub).to.be.calledOnce;
       });
     });
+  });
+
+  it('should return events manager', () => {
+    expect(runtime.eventManager()).to.deep.equal(new ClientEventManager());
   });
 });

@@ -16,7 +16,7 @@
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
-import * as EventManagerApi from '../api/swg-client-event-manager-api';
+import * as EventManagerApi from '../api/client-event-manager-api';
 
 /**
  * Helper function to describe an issue with an event object
@@ -30,7 +30,7 @@ function createEventErrorMessage(valueName, value) {
 
 /**
  * Throws an error if the event is invalid.
- * @param {!EventManagerApi.SwgClientEvent} event
+ * @param {!EventManagerApi.ClientEvent} event
  * @returns {!Promise}
  */
 function validateEvent(event) {
@@ -60,20 +60,20 @@ function validateEvent(event) {
   return Promise.resolve();
 }
 
-/** @implements {EventManagerApi.SwgClientEventManagerApi} */
+/** @implements {EventManagerApi.ClientEventManagerApi} */
 export class SwgClientEventManager {
   constructor() {
-    /** @private {!Array<function(!EventManagerApi.SwgClientEvent)>} */
+    /** @private {!Array<function(!EventManagerApi.ClientEvent)>} */
     this.listeners_ = [];
 
-    /** @private {!Array<function(!EventManagerApi.SwgClientEvent):!EventManagerApi.FilterResult>} */
+    /** @private {!Array<function(!EventManagerApi.ClientEvent):!EventManagerApi.FilterResult>} */
     this.filterers_ = [];
   }
 
   /**
    * Ensures the callback function is notified anytime one of the passed
    * events occurs unless a filterer returns false.
-   * @param {!function(!EventManagerApi.SwgClientEvent)} callback
+   * @param {!function(!EventManagerApi.ClientEvent)} callback
    * @overrides
    */
   registerEventListener(callback) {
@@ -87,7 +87,7 @@ export class SwgClientEventManager {
    * Register a filterer for events if you need to potentially cancel an event
    * before the listeners are called.  A filterer should return
    * FilterResult.STOP_EXECUTING to cancel an event.
-   * @param {!function(!EventManagerApi.SwgClientEvent):!EventManagerApi.FilterResult} callback
+   * @param {!function(!EventManagerApi.ClientEvent):!EventManagerApi.FilterResult} callback
    * @overrides
    */
   registerEventFilterer(callback) {
@@ -101,7 +101,7 @@ export class SwgClientEventManager {
    * Call this function to log an event.  The registered listeners will be
    * invoked unless the event is filtered.  Returns false if the event was
    * filtered and throws an error if the event is invalid.
-   * @param {!EventManagerApi.SwgClientEvent} event
+   * @param {!EventManagerApi.ClientEvent} event
    * @returns {!Promise}
    * @overrides
    */

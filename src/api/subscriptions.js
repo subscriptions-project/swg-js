@@ -22,7 +22,6 @@ import {
 } from './deferred-account-creation';
 import {SubscribeResponse} from './subscribe-response';
 import {PropensityApi} from './propensity-api';
-import {SwgClientEventManagerApi} from './swg-client-event-manager-api';
 
 
 /**

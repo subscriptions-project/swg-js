@@ -15,8 +15,8 @@
  */
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
-import * as EventManagerApi from '../api/swg-client-event-manager-api';
-import {SwgClientEventManager} from './swg-client-event-manager';
+import * as EventManagerApi from '../api/client-event-manager-api';
+import {ClientEventManager} from './client-event-manager';
 
 const DEFAULT_TYPE = AnalyticsEvent.IMPRESSION_AD;
 const DEFAULT_ORIGIN = EventOriginator.SWG_CLIENT;
@@ -24,7 +24,7 @@ const OTHER_TYPE = AnalyticsEvent.ACTION_PAYMENT_COMPLETE;
 const OTHER_ORIGIN = EventOriginator.AMP_CLIENT;
 const BAD_VALUE = 'I should throw an error';
 
-/** @type {!EventManagerApi.SwgClientEvent} */
+/** @type {!EventManagerApi.ClientEvent} */
 const DEFAULT_EVENT = {
   eventType: DEFAULT_TYPE,
   eventOriginator: DEFAULT_ORIGIN,
@@ -44,14 +44,14 @@ function createEventErrorMessage(valueName, value) {
 
 describes.sandboxed('EventManager', {}, () => {
   it('should throw an error for invalid events', () => {
-    /** @type {!EventManagerApi.SwgClientEvent} */
+    /** @type {!EventManagerApi.ClientEvent} */
     let event = {
       eventType: DEFAULT_TYPE,
       eventOriginator: DEFAULT_ORIGIN,
       isFromUserAction: null,
       additionalParameters: {},
     };
-    const eventMan = new SwgClientEventManager();
+    const eventMan = new ClientEventManager();
 
     let errorCount = 0;
     let matchedExpected = 0;
@@ -154,7 +154,7 @@ describes.sandboxed('EventManager', {}, () => {
   });
 
   it('should be able to listen for events', function*() {
-    const eventMan = new SwgClientEventManager();
+    const eventMan = new ClientEventManager();
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
 
@@ -170,7 +170,7 @@ describes.sandboxed('EventManager', {}, () => {
   });
 
   it('should be able to filter out some events', function*() {
-    const eventMan = new SwgClientEventManager();
+    const eventMan = new ClientEventManager();
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
     eventMan.registerEventListener(callback);

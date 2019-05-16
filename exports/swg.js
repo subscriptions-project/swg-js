@@ -21,8 +21,9 @@ import {
 } from '../src/api/entitlements';
 import {Fetcher} from '../src/runtime/fetcher';
 import {SubscribeResponse} from '../src/api/subscribe-response';
-import {SwgClientEventManagerApi}
-    from '../src/api/swg-client-event-manager-api';
+import {ClientEventManagerApi,ClientEvent,FilterResult}
+    from '../src/api/client-event-manager-api';
+
 
 module.exports = {
   ConfiguredRuntime,
@@ -30,5 +31,7 @@ module.exports = {
   Entitlement,
   Fetcher,
   SubscribeResponse,
-  SwgClientEventManagerApi,
+  ClientEventManagerApi,
+  ClientEvent,
+  FilterResult,
 };
