@@ -18,9 +18,9 @@ import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 
 /** @enum {number}  */
 export const FilterResult = {
-  /** the event is allowed to proceed to the listeners */
+  /** The event is allowed to proceed to the listeners. */
   PROCESS_EVENT: 0,
-  /** the event is canceled and the listeners are not informed about it */
+  /** The event is canceled and the listeners are not informed about it. */
   CANCEL_EVENT: 1,
 };
 
