@@ -15,7 +15,7 @@
  */
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
-import {isObject, isFunction, isEnumValue} from '../utils/types';
+import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
 import * as API from '../api/client-event-manager-api';
 
 /**
@@ -56,11 +56,11 @@ function validateEvent(event) {
     event.additionalParameters = null;
   }
 
-  /*
+
   if (event.isFromUserAction !== null && !isBoolean(event.isFromUserAction)) {
     throw new Error(createEventErrorMessage('isFromUserAction',
         event.isFromUserAction));
-  }*/
+  }
   return Promise.resolve();
 }
 
