@@ -14,23 +14,30 @@
  * limitations under the License.
  */
 
-import {FilterResult} from '../api/client-event-manager-api';
+import * as EventApi from '../api/client-event-manager-api';
 
 /** @implements {../api/client-event-manager-api.ClientEventManagerApi}*/
 export class ClientEventManager {
   constructor() {
+    /** @private {Array<function(EventApi.SwgClientEvent)>} */
+    this.listeners_ = [];
+
+    /** @private {Array<function(EventApi.SwgClientEvent):EventApi.FilterResult>} */
+    this.filterers_ = [];
   }
 
   /**
    * @overrides
    */
-  registerEventListener(unusedCallback) {
+  registerEventListener(listener) {
+    this.listeners_.push(listener);
   }
 
   /**
    * @overrides
    */
-  registerEventFilterer(unusedCallback) {
+  registerEventFilterer(filterer) {
+    this.filterers_.push(filterer);
   }
 
   /**
