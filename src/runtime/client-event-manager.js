@@ -40,8 +40,8 @@ export class ClientEventManager {
     //TODO(mborof) the API must be used somewhere or presubmit fails.
     //  remove this line once all code is implemented
     if (event === FilterResult.CANCEL_EVENT) {
-      return Promise.resolve();
+      return;
     }
-    return Promise.resolve();
+    return;
   }
 }
