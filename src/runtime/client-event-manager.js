@@ -37,8 +37,8 @@ export class ClientEventManager {
    * @overrides
    */
   logEvent(event) {
-    //TODO(mborof) the API must be used somewhere or presubmit fails.
-    //  remove this line once all code is implemented
+    //TODO(mborof): the API must be used somewhere or presubmit fails.
+    //              Remove this line once all code is implemented
     if (event === FilterResult.CANCEL_EVENT) {
       return;
     }
