@@ -49,25 +49,25 @@ export class ClientEventManagerApi {
   /**
    * Call this function to log an event. The registered listeners will be
    * invoked unless the event is filtered.
-   * @param {!function(!ClientEvent)} callback
+   * @param {!function(!ClientEvent)} listener
    */
-  registerEventListener(callback) { }
+  registerEventListener(listener) { }
 
   /**
    * Register a filterer for events if you need to potentially prevent the
    * listeners from hearing about it.  A filterer should return
    * FilterResult.CANCEL_EVENT to prevent listeners from hearing about the
    * event.
-   * @param {!function(!ClientEvent):FilterResult} callback
+   * @param {!function(!ClientEvent):FilterResult} filterer
    */
-  registerEventFilterer(callback) { }
+  registerEventFilterer(filterer) { }
 
   /**
-   * Call this function to log an event.  The registered listeners will be
-   * invoked unless the event is filtered out.  Returns a promise to call the
-   * filterers and listeners (unless it is filtered out).
+   * Call this function to log an event.  It will immediately throw an error if
+   * the event is invalid.  It will then asynchronously call the filterers and
+   * stop the event if a filterer cancels it.  After that, it will call each
+   * listener asynchronously.
    * @param {!ClientEvent} event
-   * @returns {!Promise}
    */
   logEvent(event) { }
 }
