@@ -178,8 +178,8 @@ describes.sandboxed('EventManager', {}, () => {
     //filter out the default origin
     eventMan.registerEventFilterer(event =>
       event.eventOriginator === DEFAULT_ORIGIN ?
-          EventManagerApi.FilterResult.STOP_EXECUTING :
-          EventManagerApi.FilterResult.CONTINUE_EXECUTING
+          EventManagerApi.FilterResult.CANCEL_EVENT :
+          EventManagerApi.FilterResult.PROCESS_EVENT
     );
 
     //ensure the default origin is filtered out

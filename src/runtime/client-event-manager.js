@@ -14,34 +14,111 @@
  * limitations under the License.
  */
 
-import {FilterResult} from '../api/client-event-manager-api';
+import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
+import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
+import * as EventManagerApi from '../api/client-event-manager-api';
 
-/** @implements {../api/client-event-manager-api.ClientEventManagerApi}*/
+/**
+ * Helper function to describe an issue with an event object
+ * @param {!string} valueName
+ * @param {?*} value
+ * @returns {!string}
+ */
+function createEventErrorMessage(valueName, value) {
+  return 'Event has an invalid ' + valueName + '(' + value + ')';
+}
+
+/**
+ * Throws an error if the event is invalid.
+ * @param {!EventManagerApi.ClientEvent} event
+ * @returns {!Promise}
+ */
+function validateEvent(event) {
+  if (!isObject(event)) {
+    throw new Error('Event must be a valid object');
+  }
+
+  if (!isEnumValue(AnalyticsEvent, event.eventType)) {
+    throw new Error(createEventErrorMessage('eventType', event.eventType));
+  }
+  if (!isEnumValue(EventOriginator, event.eventOriginator)) {
+    throw new Error(createEventErrorMessage('eventOriginator',
+        event.eventOriginator));
+  }
+  if (!isObject(event.additionalParameters)
+      && event.additionalParameters !== null) {
+    if (event.additionalParameters !== undefined) {
+      throw new Error(createEventErrorMessage('additionalParameters',
+          event.additionalParameters));
+    }
+    event.additionalParameters = null;
+  }
+  if (event.isFromUserAction !== null && !isBoolean(event.isFromUserAction)) {
+    throw new Error(createEventErrorMessage('isFromUserAction',
+        event.isFromUserAction));
+  }
+  return Promise.resolve();
+}
+
+/** @implements {EventManagerApi.ClientEventManagerApi} */
 export class ClientEventManager {
   constructor() {
+    /** @private {!Array<function(!EventManagerApi.ClientEvent)>} */
+    this.listeners_ = [];
+
+    /** @private {!Array<function(!EventManagerApi.ClientEvent):!EventManagerApi.FilterResult>} */
+    this.filterers_ = [];
   }
 
   /**
+   * Ensures the callback function is notified anytime one of the passed
+   * events occurs unless a filterer returns false.
+   * @param {!function(!EventManagerApi.ClientEvent)} callback
    * @overrides
    */
-  registerEventListener(unusedCallback) {
+  registerEventListener(callback) {
+    if (!isFunction(callback)) {
+      throw new Error('Event manager listeners must be a function');
+    }
+    this.listeners_.push(callback);
   }
 
   /**
+   * Register a filterer for events if you need to potentially cancel an event
+   * before the listeners are called.  A filterer should return
+   * FilterResult.STOP_EXECUTING to cancel an event.
+   * @param {!function(!EventManagerApi.ClientEvent):!EventManagerApi.FilterResult} callback
    * @overrides
    */
-  registerEventFilterer(unusedCallback) {
+  registerEventFilterer(callback) {
+    if (!isFunction(callback)) {
+      throw new Error('Event manager filterers must be a function');
+    }
+    this.filterers_.push(callback);
   }
 
   /**
+   * Call this function to log an event.  The registered listeners will be
+   * invoked unless the event is filtered.  Returns false if the event was
+   * filtered and throws an error if the event is invalid.
+   * @param {!EventManagerApi.ClientEvent} event
+   * @returns {!Promise}
    * @overrides
    */
   logEvent(event) {
-    //TODO(mborof): the API must be used somewhere or presubmit fails.
-    //              Remove this line once all code is implemented
-    if (event === FilterResult.CANCEL_EVENT) {
-      return;
-    }
-    return;
+    return validateEvent(event).then(() => {
+      let callbackNum;
+      for (callbackNum = 0; callbackNum < this.filterers_.length; callbackNum++)
+      {
+        if (this.filterers_[callbackNum](event)
+            === EventManagerApi.FilterResult.CANCEL_EVENT) {
+          return;
+        }
+      }
+      for (callbackNum = 0; callbackNum < this.listeners_.length; callbackNum++)
+      {
+        this.listeners_[callbackNum](event);
+      }
+    });
   }
 }
