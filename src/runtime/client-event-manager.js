@@ -16,8 +16,7 @@
 
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
-import * as EventManagerApi from '../api/swg-client-event-manager-api';
-import { isUndefined } from 'util';
+import * as EventManagerApi from '../api/client-event-manager-api';
 
 /**
  * Helper function to describe an issue with an event object
@@ -31,7 +30,7 @@ function createEventErrorMessage(valueName, value) {
 
 /**
  * Throws an error if the event is invalid.
- * @param {!EventManagerApi.SwgClientEvent} event
+ * @param {!EventManagerApi.ClientEvent} event
  * @returns {!Promise}
  */
 function validateEvent(event) {
@@ -48,7 +47,7 @@ function validateEvent(event) {
   }
   if (!isObject(event.additionalParameters)
       && event.additionalParameters !== null) {
-    if (!isUndefined(event.additionalParameters)) {
+    if (event.additionalParameters !== undefined) {
       throw new Error(createEventErrorMessage('additionalParameters',
           event.additionalParameters));
     }
@@ -61,14 +60,17 @@ function validateEvent(event) {
   return Promise.resolve();
 }
 
-/** @implements {EventManagerApi.SwgClientEventManagerApi} */
-export class SwgClientEventManager {
+/** @implements {EventManagerApi.ClientEventManagerApi} */
+export class ClientEventManager {
   constructor() {
-    /** @private {!Array<function(!EventManagerApi.SwgClientEvent)>} */
+    /** @private {!Array<function(!EventManagerApi.ClientEvent)>} */
     this.listeners_ = [];
 
-    /** @private {!Array<function(!EventManagerApi.SwgClientEvent):!EventManagerApi.FilterResult>} */
+    /** @private {!Array<function(!EventManagerApi.ClientEvent):!EventManagerApi.FilterResult>} */
     this.filterers_ = [];
+
+    /** @private {?Promise} */
+    this.lastAction_ = null;
   }
 
   /**
@@ -95,13 +97,12 @@ export class SwgClientEventManager {
    * @overrides
    */
   logEvent(event) {
-    /** @private {Promise} */
     this.lastAction_ = validateEvent(event).then(() => {
       let callbackNum;
       for (callbackNum = 0; callbackNum < this.filterers_.length; callbackNum++)
       {
         if (this.filterers_[callbackNum](event)
-            === EventManagerApi.FilterResult.STOP_EXECUTING) {
+            === EventManagerApi.FilterResult.CANCEL_EVENT) {
           return;
         }
       }
