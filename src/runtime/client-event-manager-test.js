@@ -178,17 +178,19 @@ describes.sandboxed('EventManager', {}, () => {
     //filter out the default origin
     eventMan.registerEventFilterer(event =>
       event.eventOriginator === DEFAULT_ORIGIN ?
-          EventManagerApi.FilterResult.STOP_EXECUTING :
-          EventManagerApi.FilterResult.CONTINUE_EXECUTING
+          EventManagerApi.FilterResult.CANCEL_EVENT :
+          EventManagerApi.FilterResult.PROCESS_EVENT
     );
 
     //ensure the default origin is filtered out
-    yield eventMan.logEvent(DEFAULT_EVENT);
+    eventMan.logEvent(DEFAULT_EVENT);
+    yield eventMan.lastAction_;
     expect(receivedEventsCount).to.equal(0);
 
     //ensure the other origin is not filtered out
     DEFAULT_EVENT.eventOriginator = OTHER_ORIGIN;
-    yield eventMan.logEvent(DEFAULT_EVENT);
+    eventMan.logEvent(DEFAULT_EVENT);
+    yield eventMan.lastAction_;
     expect(receivedEventsCount).to.equal(1);
     eventMan.eventOriginator = DEFAULT_ORIGIN;
   });
