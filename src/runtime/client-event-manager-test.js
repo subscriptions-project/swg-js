@@ -169,7 +169,7 @@ describes.sandboxed('EventManager', {}, () => {
     expect(receivedEventsCount).to.equal(3);
   });
 
-  it('should be able to filter out some events', function*() {
+  it('should be able to filter out some events', function*(done) {
     const eventMan = new ClientEventManager();
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
@@ -184,7 +184,7 @@ describes.sandboxed('EventManager', {}, () => {
 
     //ensure the default origin is filtered out
     eventMan.logEvent(DEFAULT_EVENT);
-    yield eventMan.lastAction_;
+    yield this.lastAction_;
     expect(receivedEventsCount).to.equal(0);
 
     //ensure the other origin is not filtered out
