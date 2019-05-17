@@ -116,4 +116,18 @@ export class ClientEventManager {
       }
     });
   }
+
+  /**
+   * This function exists for the sole purpose of allowing the code to be
+   * presubmitted.  It can be removed once there is code generating a real
+   * event object somewhere.
+   */
+  useValidateEventForCompilationPurposes() {
+    validateEvent({
+      eventType: AnalyticsEvent.UNKNOWN,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: {},
+    });
+  }
 }
