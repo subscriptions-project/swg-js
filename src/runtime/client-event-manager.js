@@ -68,7 +68,7 @@ export class ClientEventManager {
     /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent)>} */
     this.listeners_ = [];
 
-    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent):!../api/client-event-manager-api.FilterResult>} */
+    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent):!FilterResult>} */
     this.filterers_ = [];
 
     /** @private {?Promise} */
@@ -104,7 +104,7 @@ export class ClientEventManager {
     //listener is called.  This only guarantees the listener returned, it
     //does not guarantee the listener finished anything it might have done
     //asynchronously.
-    this.lastAction_ = new Promise((resolve) => {
+    this.lastAction_ = new Promise(resolve => {
       for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
         if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
           resolve();
@@ -112,13 +112,13 @@ export class ClientEventManager {
         }
       }
 
-      let promises = [];
-      listenerNum = 0;
+      const promises = [];
+      let listenerNum = 0;
       //builds an array of 1 promise per listener
       //each promise calls the next listener, increments the shared counter
       //and then resolves
       for (let builder = 0; builder < this.listeners_.length; builder++) {
-        promises.push(new Promise((resolve) => {
+        promises.push(new Promise(resolve => {
           try {
             this.listeners_[listenerNum++](event);
           } catch (e) { }
@@ -127,7 +127,7 @@ export class ClientEventManager {
       }
 
       //the first promise is resolve once every listener is called
-      Promise.all(promises).then(()=>resolve());
+      Promise.all(promises).then(() => resolve());
     });
   }
 
