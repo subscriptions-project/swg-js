@@ -17,6 +17,8 @@
 import {
   AnalyticsRequest,
   AnalyticsContext,
+  EventOriginator,
+  AnalyticsEventMeta,
 } from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
@@ -24,7 +26,6 @@ import {getOnExperiments} from './experiments';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
-import * as EventApi from '../api/client-event-manager-api';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -74,7 +75,7 @@ export class AnalyticsService {
     /** @private {?Promise} */
     this.lastAction_ = null;
 
-    /** @private {!EventApi.ClientEventManagerApi} */
+    /** @private {!../api/client-event-manager-api.ClientEventManagerApi} */
     this.eventManager_ = deps.eventManager();
     this.eventManager_.registerEventListener(this.listener_.bind(this));
   }
@@ -197,13 +198,18 @@ export class AnalyticsService {
   }
 
   /**
-   * @param {!../proto/api_messages.AnalyticsEvent} event
+   * @param {!../api/client-event-manager-api.ClientEvent} event
    * @return {!AnalyticsRequest}
    */
   createLogRequest_(event) {
+    const meta = new AnalyticsEventMeta();
+    meta.setEventOriginator(event.eventOriginator);
+    meta.setIsFromUserAction(event.isFromUserAction);
+
     const request = new AnalyticsRequest();
     request.setEvent(event);
     request.setContext(this.context_);
+    request.setMeta(meta);
     return request;
   }
 
@@ -211,8 +217,11 @@ export class AnalyticsService {
    * @param {!../proto/api_messages.AnalyticsEvent} event
    */
   logEvent(event) {
-    this.lastAction_ = this.start_().then(port => {
-      port.message({'buf': this.createLogRequest_(event).toArray()});
+    this.eventManager_.logEvent({
+      eventType: event,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: {},
     });
   }
 
@@ -228,12 +237,11 @@ export class AnalyticsService {
 
   /**
    *  Listens for new events from the events manager and handles logging
-   * @param {!EventApi.ClientEvent} event
+   * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   listener_(event) {
-    if (event === EventApi.FilterResult) {
-      return;
-    }
-    this.logEvent(event.eventType);
+    this.lastAction_ = this.start_().then(port => {
+      port.message({'buf': this.createLogRequest_(event).toArray()});
+    });
   }
 }
