@@ -78,21 +78,21 @@ export class ClientEventManager {
   /**
    * @overrides
    */
-  registerEventListener(callback) {
-    if (!isFunction(callback)) {
+  registerEventListener(listener) {
+    if (!isFunction(listener)) {
       throw new Error('Event manager listeners must be a function');
     }
-    this.listeners_.push(callback);
+    this.listeners_.push(listener);
   }
 
   /**
    * @overrides
    */
-  registerEventFilterer(callback) {
-    if (!isFunction(callback)) {
+  registerEventFilterer(filterer) {
+    if (!isFunction(filterer)) {
       throw new Error('Event manager filterers must be a function');
     }
-    this.filterers_.push(callback);
+    this.filterers_.push(filterer);
   }
 
   /**
