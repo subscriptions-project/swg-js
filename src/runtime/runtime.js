@@ -456,6 +456,9 @@ export class ConfiguredRuntime {
    * @param {!../api/subscriptions.Config=} opt_config
    */
   constructor(winOrDoc, pageConfig, opt_integr, opt_config) {
+    /** @private @const {!ClientEventManager} */
+    this.eventManager_ = new ClientEventManager();
+
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
 
@@ -534,9 +537,6 @@ export class ConfiguredRuntime {
       this.analyticsService_.logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
       this.jserror_.error('Redirect error', error);
     });
-
-    /** @private @const {!ClientEventManager} */
-    this.eventManager_ = new ClientEventManager();
   }
 
   /** @override */
