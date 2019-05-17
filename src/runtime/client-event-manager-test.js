@@ -169,7 +169,7 @@ describes.sandboxed('EventManager', {}, () => {
     expect(receivedEventsCount).to.equal(3);
   });
 
-  it('should be able to filter out some events', function*(done) {
+  it('should be able to filter out some events', function*() {
     const eventMan = new ClientEventManager();
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
