@@ -29,7 +29,6 @@ export const FilterResult = {
  * Properties:
  * - eventType: Required. The AnalyticsEvent type that occurred.
  * - eventOriginator: Required.  The codebase that initiated the event.
- * - isDum: Required.  IsDum
  * - isFromUserAction: Optional.  True if the user took an action to generate
  *   the event.
  * - additionalParameters: Optional.  A JSON object to store generic data.

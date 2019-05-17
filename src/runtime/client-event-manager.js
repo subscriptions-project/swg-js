@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import {FilterResult} from '../api/client-event-manager-api';
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
-import * as API from '../api/client-event-manager-api';
 
 /**
  * Helper function to describe an issue with an event object
@@ -30,7 +30,7 @@ function createEventErrorMessage(valueName, value) {
 
 /**
  * Throws an error if the event is invalid.
- * @param {!API.ClientEvent} event
+ * @param {!../api/client-event-manager-api.ClientEvent} event
  * @returns {!Promise}
  */
 function validateEvent(event) {
@@ -67,10 +67,10 @@ function validateEvent(event) {
 /** @implements {../api/client-event-manager-api.ClientEventManagerApi} */
 export class ClientEventManager {
   constructor() {
-    /** @private {!Array<function(!API.ClientEvent)>} */
+    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent)>} */
     this.listeners_ = [];
 
-    /** @private {!Array<function(!API.ClientEvent):!API.FilterResult>} */
+    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent):!../api/client-event-manager-api.FilterResult>} */
     this.filterers_ = [];
 
     /** @private {?Promise} */
@@ -106,7 +106,7 @@ export class ClientEventManager {
       for (callbackNum = 0; callbackNum < this.filterers_.length; callbackNum++)
       {
         if (this.filterers_[callbackNum](event)
-            === API.FilterResult.CANCEL_EVENT) {
+            === FilterResult.CANCEL_EVENT) {
           return;
         }
       }
