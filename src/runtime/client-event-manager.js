@@ -31,7 +31,6 @@ function createEventErrorMessage(valueName, value) {
 /**
  * Throws an error if the event is invalid.
  * @param {!../api/client-event-manager-api.ClientEvent} event
- * @returns {!Promise}
  */
 function validateEvent(event) {
   if (!isObject(event)) {
@@ -61,7 +60,6 @@ function validateEvent(event) {
     throw new Error(createEventErrorMessage('isFromUserAction',
         event.isFromUserAction));
   }
-  return Promise.resolve();
 }
 
 /** @implements {../api/client-event-manager-api.ClientEventManagerApi} */
@@ -101,19 +99,35 @@ export class ClientEventManager {
    * @overrides
    */
   logEvent(event) {
-    this.lastAction_ = validateEvent(event).then(() => {
-      let callbackNum;
-      for (callbackNum = 0; callbackNum < this.filterers_.length; callbackNum++)
-      {
-        if (this.filterers_[callbackNum](event)
-            === FilterResult.CANCEL_EVENT) {
+    validateEvent(event);
+    //this will either resolve once the event is filtered out or once every
+    //listener is called.  This only guarantees the listener returned, it
+    //does not guarantee the listener finished anything it might have done
+    //asynchronously.
+    this.lastAction_ = new Promise((resolve) => {
+      for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
+        if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
+          resolve();
           return;
         }
       }
-      for (callbackNum = 0; callbackNum < this.listeners_.length; callbackNum++)
-      {
-        this.listeners_[callbackNum](event);
+
+      let promises = [];
+      listenerNum = 0;
+      //builds an array of 1 promise per listener
+      //each promise calls the next listener, increments the shared counter
+      //and then resolves
+      for (let builder = 0; builder < this.listeners_.length; builder++) {
+        promises.push(new Promise((resolve) => {
+          try {
+            this.listeners_[listenerNum++](event);
+          } catch (e) { }
+          resolve();
+        }));
       }
+
+      //the first promise is resolve once every listener is called
+      Promise.all(promises).then(()=>resolve());
     });
   }
 
