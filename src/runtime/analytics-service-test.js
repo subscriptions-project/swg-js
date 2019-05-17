@@ -15,7 +15,9 @@
  */
 
 import {ActivityIframePort} from 'web-activities/activity-ports';
-import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
+import {AnalyticsEvent,
+    AnalyticsRequest,
+    EventOriginator} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
@@ -111,7 +113,12 @@ describes.realWin('AnalyticsService', {}, env => {
           activityIframePort,
           'message'
       );
-      analyticsService.logEvent(AnalyticsEvent.UNKNOWN);
+      analyticsService.listener_({
+        eventType: AnalyticsEvent.UNKNOWN,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: {},
+      });
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
