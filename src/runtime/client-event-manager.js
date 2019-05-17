@@ -126,7 +126,7 @@ export class ClientEventManager {
         }));
       }
 
-      //the first promise is resolve once every listener is called
+      //the first promise is resolved once every listener is called
       Promise.all(promises).then(() => resolve());
     });
   }
