@@ -24,6 +24,7 @@ import {getOnExperiments} from './experiments';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
+import * as EventApi from '../api/client-event-manager-api';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -72,6 +73,10 @@ export class AnalyticsService {
 
     /** @private {?Promise} */
     this.lastAction_ = null;
+
+    /** @private {!EventApi.ClientEventManagerApi} */
+    this.eventManager_ = deps.eventManager();
+    this.eventManager_.registerEventListener(this.listener_.bind(this));
   }
 
   /**
@@ -219,5 +224,16 @@ export class AnalyticsService {
     this.lastAction_ = this.start_().then(port => {
       port.onMessage(callback);
     });
+  }
+
+  /**
+   *  Listens for new events from the events manager and handles logging
+   * @param {!EventApi.ClientEvent} event
+   */
+  listener_(event) {
+    if (event === EventApi.FilterResult) {
+      return;
+    }
+    this.logEvent(event.eventType);
   }
 }

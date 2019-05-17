@@ -31,6 +31,7 @@ import {
 import {AnalyticsService} from './analytics-service';
 import {defaultConfig, AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {ClientEventManager} from './client-event-manager';
 
 describes.realWin('EntitlementsManager', {}, env => {
   let win;
@@ -45,14 +46,15 @@ describes.realWin('EntitlementsManager', {}, env => {
   let analyticsMock;
   let deps;
   let encryptedDocumentKey;
+  let eventManager;
 
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
     fetcher = new XhrFetcher(win);
+    eventManager = new ClientEventManager();
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
-
     deps = new DepsDef();
     sandbox.stub(deps, 'win', () => win);
     const globalDoc = new GlobalDoc(win);
@@ -64,6 +66,7 @@ describes.realWin('EntitlementsManager', {}, env => {
     sandbox.stub(deps, 'storage', () => storage);
     sandbox.stub(deps, 'pageConfig', () => pageConfig);
     sandbox.stub(deps, 'config', () => config);
+    sandbox.stub(deps, 'eventManager', () => eventManager);
     const analyticsService = new AnalyticsService(deps);
     analyticsMock = sandbox.mock(analyticsService);
     sandbox.stub(deps, 'analytics', () => analyticsService);
