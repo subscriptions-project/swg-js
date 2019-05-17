@@ -17,6 +17,7 @@ import {Propensity} from './propensity';
 import * as PropensityApi from '../api/propensity-api';
 import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
+import {ClientEventManager} from './client-event-manager';
 
 describes.realWin('Propensity', {}, env => {
   let win;
@@ -26,7 +27,7 @@ describes.realWin('Propensity', {}, env => {
   beforeEach(() => {
     win = env.win;
     config = new PageConfig('pub1', true);
-    propensity = new Propensity(win, config);
+    propensity = new Propensity(win, config, new ClientEventManager());
   });
 
   it('should provide valid subscription state', () => {
@@ -129,7 +130,10 @@ describes.realWin('Propensity', {}, env => {
   it('should send event params to server', () => {
     let eventSent = null;
     let paramsSent = null;
-    const params = /** @type {JsonObject} */ ({'source': 'user-action'});
+    const params = /** @type {JsonObject} */ ({
+      'source': 'user-action',
+      'is_active': false,
+    });
     const eventParams = JSON.stringify(params);
     const propensityEvent = {
       name: PropensityApi.Event.IMPRESSION_OFFERS,

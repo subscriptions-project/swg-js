@@ -18,15 +18,18 @@ import {Xhr} from '../utils/xhr';
 import * as PropensityApi from '../api/propensity-api';
 import {parseQueryString} from '../utils/url';
 import * as ServiceUrl from './services';
+import {ClientEventManager} from './client-event-manager';
 
 describes.realWin('PropensityServer', {}, env => {
   let win;
   let propensityServer;
+  let eventManager;
   const serverUrl = 'http://localhost:31862';
 
   beforeEach(() => {
     win = env.win;
-    propensityServer = new PropensityServer(win, 'pub1');
+    eventManager = new ClientEventManager();
+    propensityServer = new PropensityServer(win, 'pub1', eventManager);
     sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
   });
 

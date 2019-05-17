@@ -15,7 +15,23 @@
  */
 import * as PropensityApi from '../api/propensity-api';
 import {PropensityServer} from './propensity-server';
-import {isObject} from '../utils/types';
+import {isObject,isEnumValue} from '../utils/types';
+import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
+import {Event} from '../api/propensity-api';
+
+/** @private @const {!Object<string,AnalyticsEvent>} */
+const PropensityEventToAnalyticsEvent = {
+  [Event.IMPRESSION_PAYWALL]: AnalyticsEvent.IMPRESSION_PAYWALL,
+  [Event.IMPRESSION_AD]: AnalyticsEvent.IMPRESSION_AD,
+  [Event.IMPRESSION_OFFERS]: AnalyticsEvent.IMPRESSION_OFFERS,
+  [Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE]:
+      AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
+  [Event.ACTION_OFFER_SELECTED]: AnalyticsEvent.ACTION_OFFER_SELECTED,
+  [Event.ACTION_PAYMENT_FLOW_STARTED]:
+      AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+  [Event.ACTION_PAYMENT_COMPLETED]: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+  [Event.EVENT_CUSTOM]: AnalyticsEvent.EVENT_CUSTOM,
+};
 
 /**
  * @implements {PropensityApi.PropensityApi}
@@ -25,13 +41,17 @@ export class Propensity {
   /**
    * @param {!Window} win
    * @param {!../model/page-config.PageConfig} pageConfig
+   * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
    */
-  constructor(win, pageConfig) {
+  constructor(win, pageConfig, eventManager) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private {PropensityServer} */
     this.propensityServer_ = new PropensityServer(win,
-        pageConfig.getPublicationId());
+        pageConfig.getPublicationId(), eventManager);
+
+    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
+    this.eventManager_ = eventManager;
   }
 
   /** @override */
@@ -69,18 +89,19 @@ export class Propensity {
 
   /** @override */
   sendEvent(userEvent) {
-    if (!Object.values(PropensityApi.Event).includes(userEvent.name)) {
+    if (!isEnumValue(PropensityApi.Event, userEvent.name)
+        || !PropensityEventToAnalyticsEvent[userEvent.name]) {
       throw new Error('Invalid user event provided');
     }
     if (userEvent.data && !isObject(userEvent.data)) {
       throw new Error('Event data must be an Object');
     }
-    // TODO(sohanirao, mborof): Idenfity the new interface with event
-    // manager and update the lines below to adhere to that interface
-    let paramString = null;
-    if (userEvent.data) {
-      paramString = JSON.stringify(userEvent.data);
-    }
-    this.propensityServer_.sendEvent(userEvent.name, paramString);
+
+    this.eventManager_.logEvent({
+      eventType: PropensityEventToAnalyticsEvent[userEvent.name],
+      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      isFromUserAction: userEvent.active,
+      additionalParameters: userEvent.data,
+    });
   }
 }
