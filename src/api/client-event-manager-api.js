@@ -37,7 +37,7 @@ export const FilterResult = {
  *  @typedef {{
  *    eventType: !AnalyticsEvent,
  *    eventOriginator: !EventOriginator,
- *    isFromUserAction: boolean,
+ *    isFromUserAction: ?boolean,
  *    additionalParameters: ?Object,
  * }}
  */
