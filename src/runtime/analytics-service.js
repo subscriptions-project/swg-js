@@ -195,10 +195,11 @@ export class AnalyticsService {
    * @param {!../proto/api_messages.AnalyticsEvent} event
    * @return {!AnalyticsRequest}
    */
-  createLogRequest_(event) {
+  createLogRequest(event) {
     const request = new AnalyticsRequest();
     request.setEvent(event);
     request.setContext(this.context_);
+    console.log('Logging Request proto: ', request);
     return request;
   }
 
@@ -207,7 +208,7 @@ export class AnalyticsService {
    */
   logEvent(event) {
     this.lastAction_ = this.start_().then(port => {
-      port.message({'buf': this.createLogRequest_(event).toArray()});
+      port.message({'buf': this.createLogRequest(event).toArray()});
     });
   }
 
