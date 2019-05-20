@@ -736,16 +736,14 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should directly call "createButton"', () => {
+    it('should delegate "createButton"', () => {
       const options = {};
       const callback = () => {};
-      const button = win.document.createElement('button');
-      const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
-        return button;
+      configuredRuntimeMock.expects('createButton').once()
+          .withExactArgs(options, callback).returns(Promise.resolve());
+      return runtime.createButton(options, callback).then(() => {
+        expect(configureStub).to.be.calledOnce;
       });
-      const result = runtime.createButton(options, callback);
-      expect(result).to.equal(button);
-      expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
     });
 
     it('should delegate "waitForSubscriptionLookup"', () => {
@@ -757,14 +755,15 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should directly call "attachButton"', () => {
+    it('should delegate "attachButton"', () => {
       const options = {};
       const callback = () => {};
       const button = win.document.createElement('button');
-      const stub = sandbox.stub(runtime.buttonApi_, 'attach');
-      runtime.attachButton(button, options, callback);
-      expect(stub).to.be.calledOnce
-          .calledWithExactly(button, options, callback);
+      configuredRuntimeMock.expects('attachButton').once()
+          .withExactArgs(button, options, callback).returns(Promise.resolve());
+      return runtime.attachButton(button, options, callback).then(() => {
+        expect(configureStub).to.be.calledOnce;
+      });
     });
 
     it('should use default fetcher', () => {
@@ -1009,10 +1008,10 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
   });
 
-  it('should NOT inject button stylesheet', () => {
+  it('should inject button stylesheet', () => {
     const el = win.document.head.querySelector(
         'link[href*="swg-button.css"]');
-    expect(el).to.not.exist;
+    expect(el).to.exist;
   });
 
   it('should initialize deps', () => {
@@ -1399,7 +1398,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
     const result = runtime.createButton(options, callback);
     expect(result).to.equal(button);
-    expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
+    expect(stub).to.be.calledOnce.calledWithExactly(runtime, options, callback);
   });
 
   it('should start WaitForSubscriptionLookupApi', () => {
@@ -1422,7 +1421,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     const stub = sandbox.stub(runtime.buttonApi_, 'attach');
     runtime.attachButton(button, options, callback);
     expect(stub).to.be.calledOnce
-        .calledWithExactly(button, options, callback);
+        .calledWithExactly(button, runtime, options, callback);
   });
 
   it('should invoke propensity APIs', () => {

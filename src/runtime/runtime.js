@@ -175,10 +175,6 @@ export class Runtime {
 
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
-
-    /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this, this.doc_);
-    this.buttonApi_.init();  // Injects swg-button stylesheet.
   }
 
   /**
@@ -417,7 +413,9 @@ export class Runtime {
 
   /** @override */
   createButton(optionsOrCallback, opt_callback) {
-    return this.buttonApi_.create(optionsOrCallback, opt_callback);
+    return this.configured_(true).then(
+      runtime =>
+      runtime.createButton(optionsOrCallback, opt_callback));
   }
 
   /** @override */
@@ -429,7 +427,9 @@ export class Runtime {
 
   /** @override */
   attachButton(button, optionsOrCallback, opt_callback) {
-    return this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
+    return this.configured_(true).then(
+      runtime =>
+      runtime.attachButton(button, optionsOrCallback, opt_callback));
   }
 
   /** @override */
@@ -512,7 +512,8 @@ export class ConfiguredRuntime {
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_, this);
+    this.buttonApi_ = new ButtonApi(this.doc_);
+    this.buttonApi_.init();
 
     /** @private @const {!Propensity} */
     this.propensityModule_ = new Propensity(this.win_,
@@ -814,13 +815,13 @@ export class ConfiguredRuntime {
   /** @override */
   createButton(optionsOrCallback, opt_callback) {
     // This is a minor duplication to allow this code to be sync.
-    return this.buttonApi_.create(optionsOrCallback, opt_callback);
+    return this.buttonApi_.create(this, optionsOrCallback, opt_callback);
   }
 
   /** @override */
   attachButton(button, optionsOrCallback, opt_callback) {
     // This is a minor duplication to allow this code to be sync.
-    this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
+    this.buttonApi_.attach(button, this, optionsOrCallback, opt_callback);
   }
 
   /** @override */
@@ -829,7 +830,7 @@ export class ConfiguredRuntime {
       throw new Error('Not yet launched!');
     }
     this.buttonApi_.attachSmartButton(
-        this, button, optionsOrCallback, opt_callback);
+      button, this, optionsOrCallback, opt_callback);
   }
 
   /** @override */

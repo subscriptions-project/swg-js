@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
+import { AnalyticsMode } from '../api/subscriptions';
 
 
 /**
@@ -60,14 +62,10 @@ export class ButtonApi {
 
   /**
    * @param {!../model/doc.Doc} doc
-   * @param {!./deps.DepsDef} deps
    */
-  constructor(doc, deps) {
+  constructor(doc) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
-
-    /** @priavte @const {!./deps.DepsDef} */
-    this.deps_ = deps;
   }
 
   /**
@@ -93,22 +91,24 @@ export class ButtonApi {
   }
 
   /**
+   * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}
    */
-  create(optionsOrCallback, opt_callback) {
+  create(deps, optionsOrCallback, opt_callback) {
     const button = createElement(this.doc_.getWin().document, 'button', {});
-    return this.attach(button, optionsOrCallback, opt_callback);
+    return this.attach(button, deps, optionsOrCallback, opt_callback);
   }
 
   /**
    * @param {!Element} button
+   * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
-   * @return {!Element}
+   * @return {!Element}s
    */
-  attach(button, optionsOrCallback, opt_callback) {
+  attach(button, deps, optionsOrCallback, opt_callback) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = this.getCallback_(optionsOrCallback, opt_callback);
 
@@ -120,6 +120,12 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
+    if (deps.config().analyticsMode == AnalyticsMode.IMPRESSIONS) { 
+      deps.getEntitlements().then(entitlements => {
+        deps.analytics().setReadyToPay(entitlements.isReadyToPay);
+        deps.analytics().logEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
+      }, () => {console.log('Entitlements Failed.')});
+    }
     return button;
   }
 
@@ -157,11 +163,12 @@ export class ButtonApi {
 
   /**
    * @param {!Element} button
+   * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}
    */
-  attachSmartButton(button, optionsOrCallback, opt_callback) {
+  attachSmartButton(button, deps, optionsOrCallback, opt_callback) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = /** @type {function()} */
         (this.getCallback_(optionsOrCallback, opt_callback));
@@ -169,7 +176,13 @@ export class ButtonApi {
     // Add required CSS class, if missing.
     button.classList.add('swg-smart-button');
 
+    let analyticsRequest = null;
+    if (deps.config().analyticsMode == AnalyticsMode.IMPRESSIONS) { 
+      analyticsRequest = deps.analytics().createLogRequest(
+          AnalyticsEvent.IMPRESSION_SMARTBOX).toArray();
+    }
+    console.log('analyticsRequest: ', analyticsRequest);
     return new SmartSubscriptionButtonApi(
-        this.deps_, button, options, callback).start();
+        deps, button, options, callback, analyticsRequest).start();
   }
 }
