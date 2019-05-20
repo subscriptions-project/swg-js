@@ -95,15 +95,12 @@ export class ClientEventManager {
     this.filterers_.push(filterer);
   }
 
+
   /**
    * @overrides
    */
   logEvent(event) {
     validateEvent(event);
-    //this will either resolve once the event is filtered out or once every
-    //listener is called.  This only guarantees the listener returned, it
-    //does not guarantee the listener finished anything it might have done
-    //asynchronously.
     this.lastAction_ = new Promise(resolve => {
       for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
         if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
@@ -111,23 +108,10 @@ export class ClientEventManager {
           return;
         }
       }
-
-      const promises = [];
-      let listenerNum = 0;
-      //builds an array of 1 promise per listener
-      //each promise calls the next listener, increments the shared counter
-      //and then resolves
-      for (let builder = 0; builder < this.listeners_.length; builder++) {
-        promises.push(new Promise(resolve => {
-          try {
-            this.listeners_[listenerNum++](event);
-          } catch (e) { }
-          resolve();
-        }));
+      for (let listener = 0; listener < this.listeners_.length; listener++) {
+        this.listeners_[listener](event);
       }
-
-      //the first promise is resolved once every listener is called
-      Promise.all(promises).then(() => resolve());
+      resolve();
     });
   }
 
