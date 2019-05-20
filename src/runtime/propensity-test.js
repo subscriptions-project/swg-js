@@ -18,6 +18,7 @@ import * as PropensityApi from '../api/propensity-api';
 import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 
 describes.realWin('Propensity', {}, env => {
   let win;
@@ -127,27 +128,28 @@ describes.realWin('Propensity', {}, env => {
     }).to.throw('publisher not whitelisted');
   });
 
-  it('should send event params to server', () => {
+  it('should send events to event manager', () => {
     let eventSent = null;
-    let paramsSent = null;
     const params = /** @type {JsonObject} */ ({
       'source': 'user-action',
       'is_active': false,
     });
-    const eventParams = JSON.stringify(params);
-    const propensityEvent = {
+    sandbox.stub(ClientEventManager.prototype, 'logEvent',
+        (event) => eventSent = event);
+    propensity.sendEvent({
       name: PropensityApi.Event.IMPRESSION_OFFERS,
       active: false,
       data: params,
-    };
-    sandbox.stub(PropensityServer.prototype, 'sendEvent',
-        (event, params) => {
-          eventSent = event;
-          paramsSent = params;
-        });
-    propensity.sendEvent(propensityEvent);
-    expect(eventSent).to.deep.equal(propensityEvent.name);
-    expect(eventParams).to.equal(paramsSent);
+    });
+    expect(eventSent).to.deep.equal({
+      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      isFromUserAction: false,
+      additionalParameters: {
+        'source': 'user-action',
+        'is_active': false,
+      },
+    });
   });
 
   it('should return propensity score from server', () => {

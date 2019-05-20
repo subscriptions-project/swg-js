@@ -18,6 +18,8 @@ import {adsUrl} from './services';
 import {Event} from '../api/propensity-api';
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 import {isObject,isBoolean} from '../utils/types';
+import {ExperimentFlags} from './experiment-flags';
+import {isExperimentOn} from './experiments';
 
 /** @private @const {!Object<number,string>} */
 const AnalyticsEventToPropensityEvent = {
@@ -67,6 +69,10 @@ export class PropensityServer {
     this.version_ = 1;
 
     eventManager.registerEventListener(this.eventListener_.bind(this));
+
+    /** @private @const {!boolean} */
+    this.logSwgEvents_ = isExperimentOn(win,
+        ExperimentFlags.LOG_SWG_TO_PROPENSITY);
   }
 
   /**
@@ -162,7 +168,8 @@ export class PropensityServer {
     if (propEvent == null) {
       return;
     }
-    if (event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT) {
+    if (!this.logSwgEvents_
+        && event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT) {
       return;
     }
     const additionalParameters = isObject(event.additionalParameters) ?
