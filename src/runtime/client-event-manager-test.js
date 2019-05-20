@@ -160,12 +160,14 @@ describes.sandboxed('EventManager', {}, () => {
 
     //verify it can listen to 1
     eventMan.registerEventListener(callback);
-    yield eventMan.logEvent(DEFAULT_EVENT);
+    eventMan.logEvent(DEFAULT_EVENT);
+    yield eventMan.lastAction_;
     expect(receivedEventsCount).to.equal(1);
 
     //verify it can listen to 2 at the same time
     eventMan.registerEventListener(callback);
-    yield eventMan.logEvent(DEFAULT_EVENT);
+    eventMan.logEvent(DEFAULT_EVENT);
+    yield eventMan.lastAction_;
     expect(receivedEventsCount).to.equal(3);
   });
 
@@ -184,7 +186,7 @@ describes.sandboxed('EventManager', {}, () => {
 
     //ensure the default origin is filtered out
     eventMan.logEvent(DEFAULT_EVENT);
-    yield this.lastAction_;
+    yield eventMan.lastAction_;
     expect(receivedEventsCount).to.equal(0);
 
     //ensure the other origin is not filtered out
