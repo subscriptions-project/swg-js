@@ -77,7 +77,7 @@ export class AnalyticsService {
 
     /** @private {!../api/client-event-manager-api.ClientEventManagerApi} */
     this.eventManager_ = deps.eventManager();
-    this.eventManager_.registerEventListener(this.listener_.bind(this));
+    this.eventManager_.registerEventListener(event => this.listener_(event));
   }
 
   /**
