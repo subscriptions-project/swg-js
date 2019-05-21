@@ -830,7 +830,7 @@ export class ConfiguredRuntime {
       throw new Error('Not yet launched!');
     }
     this.buttonApi_.attachSmartButton(
-      button, optionsOrCallback, opt_callback);
+        button, optionsOrCallback, opt_callback);
   }
 
   /** @override */

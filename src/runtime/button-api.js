@@ -18,7 +18,7 @@ import {AnalyticsEvent} from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
-import { AnalyticsMode } from '../api/subscriptions';
+import {AnalyticsMode} from '../api/subscriptions';
 
 
 /**
@@ -125,11 +125,12 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
-    if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) { 
+    if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) {
       this.deps_.getEntitlements().then(entitlements => {
         this.analyticsService_.setReadyToPay(entitlements.isReadyToPay);
-        this.analyticsService_.logEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
-      }, () => {console.log('Entitlements Failed.')});
+        this.analyticsService_.logEvent(
+            AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
+      }, () => {console.log('Entitlements Failed.');});
     }
     return button;
   }
@@ -181,9 +182,9 @@ export class ButtonApi {
     button.classList.add('swg-smart-button');
 
     let analyticsRequest = null;
-    if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) { 
+    if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) {
       analyticsRequest = this.analyticsService_.createLogRequest(
-        AnalyticsEvent.IMPRESSION_SMARTBOX).toArray();
+          AnalyticsEvent.IMPRESSION_SMARTBOX).toArray();
     }
     return new SmartSubscriptionButtonApi(
       this.deps_, button, options, analyticsRequest, callback).start();

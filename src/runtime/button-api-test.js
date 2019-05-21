@@ -16,16 +16,11 @@
 
 import {ActivityPort} from 'web-activities/activity-ports';
 import {ButtonApi} from './button-api';
-import {Callbacks} from './callbacks';
 import {ConfiguredRuntime} from './runtime';
-import {DepsDef} from './deps';
-import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
-import {Storage} from './storage';
 import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
 import * as sinon from 'sinon';
-import {AnalyticsService} from './analytics-service';
 import {defaultConfig, AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
 
@@ -38,7 +33,6 @@ describes.realWin('ButtonApi', {}, env => {
   let config;
   let activitiesMock;
   let analyticsMock;
-  let deps;
   let buttonApi;
   let handler;
 
@@ -301,15 +295,15 @@ describes.realWin('ButtonApi', {}, env => {
     runtime.configure(config);
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
-            '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
-            {
-              _client: 'SwG $internalRuntimeVersion$',
-              publicationId: 'pub1',
-              productId: 'pub1:label1',
-              theme: 'light',
-              lang: 'en',
-            })
-            .returns(Promise.resolve(port));
+        '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          theme: 'light',
+          lang: 'en',
+        })
+        .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(button, {}, handler);
     expect(handler).to.not.be.called;
     button.click();
