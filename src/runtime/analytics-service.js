@@ -22,10 +22,11 @@ import {
 } from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
-import {getOnExperiments} from './experiments';
+import {getOnExperiments, isExperimentOn} from './experiments';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
+import {ExperimentFlags} from './experiment-flags';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -75,9 +76,13 @@ export class AnalyticsService {
     /** @private {?Promise} */
     this.lastAction_ = null;
 
-    /** @private {!../api/client-event-manager-api.ClientEventManagerApi} */
+    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
     this.eventManager_ = deps.eventManager();
     this.eventManager_.registerEventListener(event => this.listener_(event));
+
+    /** @private @const {!boolean} */
+    this.logPropensityEvents_ = isExperimentOn(deps.win(),
+        ExperimentFlags.LOG_PROPENSITY_TO_SWG);
   }
 
   /**
@@ -202,12 +207,13 @@ export class AnalyticsService {
    * @return {!AnalyticsRequest}
    */
   createLogRequest_(event) {
+    //ignore event.additionalParameters.  It may have data we shouldn't log
     const meta = new AnalyticsEventMeta();
     meta.setEventOriginator(event.eventOriginator);
     meta.setIsFromUserAction(event.isFromUserAction);
 
     const request = new AnalyticsRequest();
-    request.setEvent(event);
+    request.setEvent(event.eventType);
     request.setContext(this.context_);
     request.setMeta(meta);
     return request;
@@ -240,6 +246,10 @@ export class AnalyticsService {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   listener_(event) {
+    if (!this.logPropensityEvents_
+        && event.eventOriginator === EventOriginator.PROPENSITY_CLIENT) {
+      return;
+    }
     this.lastAction_ = this.start_().then(port => {
       port.message({'buf': this.createLogRequest_(event).toArray()});
     });
