@@ -68,7 +68,7 @@ export class PropensityServer {
     /** @private @const {number} */
     this.version_ = 1;
 
-    eventManager.registerEventListener(this.eventListener_.bind(this));
+    eventManager.registerEventListener(this.eventListener_);
 
     /** @private @const {!boolean} */
     this.logSwgEvents_ = isExperimentOn(win,
@@ -177,9 +177,8 @@ export class PropensityServer {
     if (isBoolean(event.isFromUserAction)) {
       additionalParameters['is_active'] = event.isFromUserAction;
     }
-    const context =
-        JSON.stringify(/** @type {!JsonObject} */ (additionalParameters));
-    this.sendEvent(propEvent, context);
+    this.sendEvent(propEvent,
+        JSON.stringify(/** @type {!JsonObject} */ (additionalParameters)));
   }
 
   /**

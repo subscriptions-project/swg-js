@@ -19,17 +19,29 @@ import * as PropensityApi from '../api/propensity-api';
 import {parseQueryString} from '../utils/url';
 import * as ServiceUrl from './services';
 import {ClientEventManager} from './client-event-manager';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {setExperiment} from './experiments';
+import {ExperimentFlags} from './experiment-flags';
 
 describes.realWin('PropensityServer', {}, env => {
   let win;
   let propensityServer;
   let eventManager;
   const serverUrl = 'http://localhost:31862';
+  const pubId = 'pub1';
+  const defaultEvent = {
+    eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+    eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+    isFromUserAction: null,
+    additionalParameters: {
+      'custom' : 'value',
+    }
+  };
 
   beforeEach(() => {
     win = env.win;
     eventManager = new ClientEventManager();
-    propensityServer = new PropensityServer(win, 'pub1', eventManager);
+    propensityServer = new PropensityServer(win, pubId, eventManager);
     sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
   });
 
@@ -298,5 +310,74 @@ describes.realWin('PropensityServer', {}, env => {
           expect(capturedRequest.method).to.equal('GET');
           expect(() => {throw reason;}).to.throw(/Invalid request/);
         });
+  });
+
+  it('should listen for events from event manager',
+      function*() {
+    //event registration happens during initialization so we need to stub it
+    //and then create a new propensity server
+    const eventMan = new ClientEventManager();
+    let receivedEvent = null;
+    sandbox.stub(PropensityServer.prototype, 'eventListener_', (event) => {
+      receivedEvent = event;
+    });
+    new PropensityServer(win, pubId, eventMan);
+    eventMan.logEvent(defaultEvent);
+    yield eventMan.lastAction_;
+    expect(defaultEvent === receivedEvent).to.be.true;
+  });
+
+  it('should convert analytics events to propensity events',
+      () => {
+    let receivedType = null;
+    let receivedContext = null;
+    sandbox.stub(PropensityServer.prototype, 'sendEvent',
+        (eventType, context) => {
+      receivedType = eventType;
+      receivedContext = context;
+    });
+    propensityServer.eventListener_(defaultEvent);
+    expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
+    const str = JSON.stringify(defaultEvent.additionalParameters);
+    expect(receivedContext).to.equal(str);
+  });
+
+  it('should respect the experiment flag for non-propensity originated events',
+      () => {
+    let receivedType = null;
+    let receivedContext = null;
+    sandbox.stub(PropensityServer.prototype, 'sendEvent',
+        (eventType, context) => {
+      receivedType = eventType;
+      receivedContext = context;
+    });
+
+    //no experiment set: expect all nulls
+    defaultEvent.eventOriginator = EventOriginator.SWG_CLIENT;
+    propensityServer.eventListener_(defaultEvent);
+    expect(receivedType).to.be.null;
+    expect(receivedContext).to.be.null;
+
+    defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
+    propensityServer.eventListener_(defaultEvent);
+    expect(receivedType).to.be.null;
+    expect(receivedContext).to.be.null;
+
+    //now ensure it does attempt to log these
+    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
+    propensityServer = new PropensityServer(win, pubId, eventManager);
+    propensityServer.eventListener_(defaultEvent);
+    expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
+    expect(receivedContext).to.equal(
+        JSON.stringify(defaultEvent.additionalParameters));
+
+    receivedType = null;
+    receivedContext = null;
+    defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
+    propensityServer.eventListener_(defaultEvent);
+    expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
+    expect(receivedContext).to.equal(
+        JSON.stringify(defaultEvent.additionalParameters));
+    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
   });
 });
