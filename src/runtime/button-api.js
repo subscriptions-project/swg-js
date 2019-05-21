@@ -111,7 +111,7 @@ export class ButtonApi {
    * @param {!Element} button
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
-   * @return {!Element}s
+   * @return {!Element}
    */
   attach(button, optionsOrCallback, opt_callback) {
     const options = this.getOptions_(optionsOrCallback);
