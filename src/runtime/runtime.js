@@ -74,6 +74,7 @@ import {setExperiment} from './experiments';
 import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
+import {ClientEventManager} from './client-event-manager';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -534,6 +535,9 @@ export class ConfiguredRuntime {
       this.analyticsService_.logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
       this.jserror_.error('Redirect error', error);
     });
+
+    /** @private @const {!ClientEventManager} */
+    this.eventManager_ = new ClientEventManager();
   }
 
   /** @override */
@@ -836,6 +840,11 @@ export class ConfiguredRuntime {
   /** @override */
   getPropensityModule() {
     return Promise.resolve(this.propensityModule_);
+  }
+
+  /** @override */
+  eventManager() {
+    return this.eventManager_;
   }
 }
 
