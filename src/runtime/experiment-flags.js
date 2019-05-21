@@ -51,4 +51,10 @@ export const ExperimentFlags = {
    * Enables the Smartbox feature.
    */
   SMARTBOX: 'smartbox',
+
+  /**
+   * Enables logging events logged through the propensity API to the analytics
+   * server.
+   */
+  LOG_PROPENSITY_TO_SWG: 'log-propensity-to-swg',
 };
