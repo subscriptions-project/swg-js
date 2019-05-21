@@ -42,7 +42,7 @@ export class SmartSubscriptionButtonApi {
    * @param {!./deps.DepsDef} deps
    * @param {!Element} button
    * @param {!../api/subscriptions.ButtonOptions} options
-   * @param {?Array<../proto/api_messages/AnalyticsRequest>} analyticsRequest
+   * @param {?Array<../proto/api_messages.AnalyticsRequest>} analyticsRequest
    * @param {function()=} callback
    */
   constructor(deps, button, options, analyticsRequest, callback) {

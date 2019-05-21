@@ -512,7 +512,7 @@ export class ConfiguredRuntime {
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_, this);
+    this.buttonApi_ = new ButtonApi(this);
     this.buttonApi_.init();
 
     /** @private @const {!Propensity} */
