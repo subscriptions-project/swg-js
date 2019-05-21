@@ -122,6 +122,15 @@ function startFlowAuto() {
             function() {
               subs.showOffers({isClosable: true});
             });
+
+        var swgButton = document.querySelector('button#swgButton');
+        if (!swgButton) {
+          console.log('A <button id="swgButton"> is required to render swg button');
+          return;
+        }
+
+        subs.attachButton(swgButton, function() {subs.showOffers({isClosable: true});
+        });
       });
     });
     return;

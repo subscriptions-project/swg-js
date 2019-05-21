@@ -414,8 +414,8 @@ export class Runtime {
   /** @override */
   createButton(optionsOrCallback, opt_callback) {
     return this.configured_(true).then(
-      runtime =>
-      runtime.createButton(optionsOrCallback, opt_callback));
+        runtime =>
+        runtime.createButton(optionsOrCallback, opt_callback));
   }
 
   /** @override */
@@ -428,8 +428,8 @@ export class Runtime {
   /** @override */
   attachButton(button, optionsOrCallback, opt_callback) {
     return this.configured_(true).then(
-      runtime =>
-      runtime.attachButton(button, optionsOrCallback, opt_callback));
+        runtime =>
+        runtime.attachButton(button, optionsOrCallback, opt_callback));
   }
 
   /** @override */
@@ -821,6 +821,7 @@ export class ConfiguredRuntime {
   /** @override */
   attachButton(button, optionsOrCallback, opt_callback) {
     // This is a minor duplication to allow this code to be sync.
+    console.log('attaching button');
     this.buttonApi_.attach(button, this, optionsOrCallback, opt_callback);
   }
 
@@ -829,6 +830,7 @@ export class ConfiguredRuntime {
     if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
       throw new Error('Not yet launched!');
     }
+    console.log('attaching smart button');
     this.buttonApi_.attachSmartButton(
       button, this, optionsOrCallback, opt_callback);
   }

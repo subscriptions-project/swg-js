@@ -126,6 +126,7 @@ export class ButtonApi {
         deps.analytics().logEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
       }, () => {console.log('Entitlements Failed.')});
     }
+    console.log('Adding button');
     return button;
   }
 
