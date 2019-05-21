@@ -24,8 +24,8 @@ import {PageConfig} from '../model/page-config';
 import {feArgs, feUrl} from './services';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting, setExperiment} from './experiments';
-import { ClientEventManager } from './client-event-manager';
-import { ExperimentFlags } from './experiment-flags';
+import {ClientEventManager} from './client-event-manager';
+import {ExperimentFlags} from './experiment-flags';
 
 
 describes.realWin('AnalyticsService', {}, env => {
