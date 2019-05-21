@@ -61,12 +61,11 @@ const TITLE_LANG_MAP = {
 export class ButtonApi {
 
   /**
-   * @param {!../model/doc.Doc} doc
    * @param {!./deps.DepsDef} deps
    */
-  constructor(doc, deps) {
+  constructor(deps) {
     /** @private @const {!../model/doc.Doc} */
-    this.doc_ = doc;
+    this.doc_ = deps.doc();
 
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;

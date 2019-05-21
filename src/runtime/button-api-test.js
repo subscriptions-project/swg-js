@@ -19,7 +19,6 @@ import {ButtonApi} from './button-api';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
-import {resolveDoc} from '../model/doc';
 import * as sinon from 'sinon';
 import {defaultConfig, AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
@@ -44,7 +43,7 @@ describes.realWin('ButtonApi', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig, config);
     analyticsMock = sandbox.mock(runtime.analytics());
     activitiesMock = sandbox.mock(runtime.activities());
-    buttonApi = new ButtonApi(resolveDoc(doc), runtime);
+    buttonApi = new ButtonApi(runtime);
     port = new ActivityPort();
     handler = sandbox.spy();
   });
@@ -65,7 +64,7 @@ describes.realWin('ButtonApi', {}, env => {
   });
 
   it('should inject stylesheet only once', () => {
-    new ButtonApi(resolveDoc(doc), runtime).init();
+    new ButtonApi(runtime).init();
     buttonApi.init();
     const links = doc.querySelectorAll('link[href="$assets$/swg-button.css"]');
     expect(links).to.have.length(1);
@@ -200,6 +199,7 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'light',
           lang: 'en',
+          analyticsRequest: null,
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(button, {}, handler);
@@ -223,6 +223,7 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'light',
           lang: 'en',
+          analyticsRequest: null,
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(button, handler);
@@ -246,6 +247,7 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'dark',
           lang: 'fr',
+          analyticsRequest: null,
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(
@@ -271,6 +273,7 @@ describes.realWin('ButtonApi', {}, env => {
               productId: 'pub1:label1',
               theme: 'light',
               lang: 'en',
+              analyticsRequest: null,
             })
             .returns(Promise.resolve(port));
         buttonApi.attachSmartButton(
@@ -302,6 +305,7 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'light',
           lang: 'en',
+          analyticsRequest: expAnalyticsRequest.toArray(),
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(button, {}, handler);
