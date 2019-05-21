@@ -108,6 +108,7 @@ function startFlowAuto() {
   if (flow == 'smartbutton') {
     whenReady(function(subsciptions) {
       var subs = subsciptions;
+      subs.configure({analyticsMode: 1});
       whenDemoReady(function() {
         var smartButton = document.querySelector('button#smartButton');
         if (!smartButton) {

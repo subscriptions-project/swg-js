@@ -62,10 +62,17 @@ export class ButtonApi {
 
   /**
    * @param {!../model/doc.Doc} doc
+   * @param {!./deps.DepsDef} deps
    */
-  constructor(doc) {
+  constructor(doc, deps) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
+
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
+    /** @private @const {!../runtime/analytics-service.AnalyticsService} */
+    this.analyticsService_ = deps.analytics();
   }
 
   /**
@@ -91,24 +98,22 @@ export class ButtonApi {
   }
 
   /**
-   * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}
    */
-  create(deps, optionsOrCallback, opt_callback) {
+  create(optionsOrCallback, opt_callback) {
     const button = createElement(this.doc_.getWin().document, 'button', {});
-    return this.attach(button, deps, optionsOrCallback, opt_callback);
+    return this.attach(button, optionsOrCallback, opt_callback);
   }
 
   /**
    * @param {!Element} button
-   * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}s
    */
-  attach(button, deps, optionsOrCallback, opt_callback) {
+  attach(button, optionsOrCallback, opt_callback) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = this.getCallback_(optionsOrCallback, opt_callback);
 
@@ -120,13 +125,12 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
-    if (deps.config().analyticsMode == AnalyticsMode.IMPRESSIONS) { 
-      deps.getEntitlements().then(entitlements => {
-        deps.analytics().setReadyToPay(entitlements.isReadyToPay);
-        deps.analytics().logEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
+    if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) { 
+      this.deps_.getEntitlements().then(entitlements => {
+        this.analyticsService_.setReadyToPay(entitlements.isReadyToPay);
+        this.analyticsService_.logEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
       }, () => {console.log('Entitlements Failed.')});
     }
-    console.log('Adding button');
     return button;
   }
 
@@ -164,12 +168,11 @@ export class ButtonApi {
 
   /**
    * @param {!Element} button
-   * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}
    */
-  attachSmartButton(button, deps, optionsOrCallback, opt_callback) {
+  attachSmartButton(button, optionsOrCallback, opt_callback) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = /** @type {function()} */
         (this.getCallback_(optionsOrCallback, opt_callback));
@@ -178,12 +181,11 @@ export class ButtonApi {
     button.classList.add('swg-smart-button');
 
     let analyticsRequest = null;
-    if (deps.config().analyticsMode == AnalyticsMode.IMPRESSIONS) { 
-      analyticsRequest = deps.analytics().createLogRequest(
-          AnalyticsEvent.IMPRESSION_SMARTBOX).toArray();
+    if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) { 
+      analyticsRequest = this.analyticsService_.createLogRequest(
+        AnalyticsEvent.IMPRESSION_SMARTBOX).toArray();
     }
-    console.log('analyticsRequest: ', analyticsRequest);
     return new SmartSubscriptionButtonApi(
-        deps, button, options, callback, analyticsRequest).start();
+      this.deps_, button, options, analyticsRequest, callback).start();
   }
 }

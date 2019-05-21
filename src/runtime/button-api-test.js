@@ -45,12 +45,12 @@ describes.realWin('ButtonApi', {}, env => {
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
-    buttonApi = new ButtonApi(resolveDoc(doc));
     pageConfig = new PageConfig('pub1:label1', false);
     config = defaultConfig();
     runtime = new ConfiguredRuntime(win, pageConfig, config);
     analyticsMock = sandbox.mock(runtime.analytics());
     activitiesMock = sandbox.mock(runtime.activities());
+    buttonApi = new ButtonApi(resolveDoc(doc), runtime);
     port = new ActivityPort();
     handler = sandbox.spy();
   });
@@ -71,14 +71,14 @@ describes.realWin('ButtonApi', {}, env => {
   });
 
   it('should inject stylesheet only once', () => {
-    new ButtonApi(resolveDoc(doc)).init();
+    new ButtonApi(resolveDoc(doc), runtime).init();
     buttonApi.init();
     const links = doc.querySelectorAll('link[href="$assets$/swg-button.css"]');
     expect(links).to.have.length(1);
   });
 
   it('should create button w/o options', () => {
-    const button = buttonApi.create(runtime, handler);
+    const button = buttonApi.create(handler);
     expect(button.nodeType).to.equal(1);
     expect(button.tagName).to.equal('BUTTON');
     expect(button.ownerDocument).to.equal(doc);
@@ -94,7 +94,7 @@ describes.realWin('ButtonApi', {}, env => {
   it('should attach button w/o options', () => {
     const button = doc.createElement('button');
     button.className = 'button1';
-    buttonApi.attach(button, runtime, handler);
+    buttonApi.attach(button, handler);
     expect(button).to.have.class('swg-button-light');  // Default.
     expect(button.getAttribute('role')).to.equal('button');
     expect(button.getAttribute('title')).to.equal('Subscribe with Google');
@@ -105,7 +105,7 @@ describes.realWin('ButtonApi', {}, env => {
   });
 
   it('should create button with empty options', () => {
-    const button = buttonApi.create(runtime, {}, handler);
+    const button = buttonApi.create({}, handler);
     expect(button).to.have.class('swg-button-light');
     expect(button.getAttribute('role')).to.equal('button');
     expect(button.getAttribute('title')).to.equal('Subscribe with Google');
@@ -116,7 +116,7 @@ describes.realWin('ButtonApi', {}, env => {
   });
 
   it('should create button with options', () => {
-    const button = buttonApi.create(runtime, {theme: 'dark'}, handler);
+    const button = buttonApi.create({theme: 'dark'}, handler);
     expect(button).to.have.class('swg-button-dark');
     expect(button).to.not.have.class('swg-button-light');
     expect(button.getAttribute('role')).to.equal('button');
@@ -128,13 +128,13 @@ describes.realWin('ButtonApi', {}, env => {
   });
 
   it('should create button as light', () => {
-    const button = buttonApi.create(runtime, {theme: Theme.LIGHT}, handler);
+    const button = buttonApi.create({theme: Theme.LIGHT}, handler);
     expect(button).to.have.class('swg-button-light');
     expect(button).to.not.have.class('swg-button-dark');
   });
 
   it('should create button with lang', () => {
-    const button = buttonApi.create(runtime, {lang: 'es'}, handler);
+    const button = buttonApi.create({lang: 'es'}, handler);
     expect(button.lang).to.equal('es');
     expect(button.getAttribute('title')).to.equal('Suscríbete con Google');
   });
@@ -142,7 +142,7 @@ describes.realWin('ButtonApi', {}, env => {
   it('should attach button with empty options', () => {
     const button = doc.createElement('button');
     button.className = 'button1';
-    buttonApi.attach(button, runtime, {}, handler);
+    buttonApi.attach(button, {}, handler);
     expect(button).to.have.class('swg-button-light');
     expect(button).to.have.class('button1');
     expect(button.getAttribute('role')).to.equal('button');
@@ -156,7 +156,7 @@ describes.realWin('ButtonApi', {}, env => {
   it('should attach button with options', () => {
     const button = doc.createElement('button');
     button.className = 'button1';
-    buttonApi.attach(button, runtime, {theme: Theme.DARK}, handler);
+    buttonApi.attach(button, {theme: Theme.DARK}, handler);
     expect(button).to.have.class('swg-button-dark');
     expect(button).to.not.have.class('swg-button-light');
     expect(button).to.have.class('button1');
@@ -171,7 +171,7 @@ describes.realWin('ButtonApi', {}, env => {
   it('should attach button as light', () => {
     const button = doc.createElement('button');
     button.className = 'button1';
-    buttonApi.attach(button, runtime, {theme: Theme.LIGHT}, handler);
+    buttonApi.attach(button, {theme: Theme.LIGHT}, handler);
     expect(button).to.have.class('swg-button-light');
     expect(button).to.not.have.class('swg-button-dark');
     expect(button).to.have.class('button1');
@@ -179,7 +179,7 @@ describes.realWin('ButtonApi', {}, env => {
 
   it('should attach button with lang', () => {
     const button = doc.createElement('button');
-    buttonApi.attach(button, runtime, {lang: 'es'}, handler);
+    buttonApi.attach(button, {lang: 'es'}, handler);
     expect(button.lang).to.equal('es');
     expect(button.getAttribute('title')).to.equal('Suscríbete con Google');
   });
@@ -187,7 +187,7 @@ describes.realWin('ButtonApi', {}, env => {
   it('should pick an existing lang', () => {
     const button = doc.createElement('button');
     button.setAttribute('lang', 'fr');
-    buttonApi.attach(button, runtime, {}, handler);
+    buttonApi.attach(button, {}, handler);
     expect(button.lang).to.equal('fr');
     expect(button.getAttribute('title')).to.equal('S\'abonner avec Google');
   });
@@ -208,7 +208,7 @@ describes.realWin('ButtonApi', {}, env => {
           lang: 'en',
         })
         .returns(Promise.resolve(port));
-    buttonApi.attachSmartButton(button, runtime, {}, handler);
+    buttonApi.attachSmartButton(button, {}, handler);
     expect(handler).to.not.be.called;
     button.click();
     expect(handler).to.be.calledOnce;
@@ -231,7 +231,7 @@ describes.realWin('ButtonApi', {}, env => {
           lang: 'en',
         })
         .returns(Promise.resolve(port));
-    buttonApi.attachSmartButton(button, runtime, handler);
+    buttonApi.attachSmartButton(button, handler);
     expect(handler).to.not.be.called;
     button.click();
     expect(handler).to.be.calledOnce;
@@ -255,7 +255,7 @@ describes.realWin('ButtonApi', {}, env => {
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(
-        button, runtime, {theme: 'dark', lang: 'fr'}, handler);
+        button, {theme: 'dark', lang: 'fr'}, handler);
     expect(handler).to.not.be.called;
     button.click();
     expect(handler).to.be.calledOnce;
@@ -280,7 +280,7 @@ describes.realWin('ButtonApi', {}, env => {
             })
             .returns(Promise.resolve(port));
         buttonApi.attachSmartButton(
-            button, runtime, {theme: 'INVALID'}, handler);
+            button, {theme: 'INVALID'}, handler);
         expect(handler).to.not.be.called;
         button.click();
         expect(handler).to.be.calledOnce;
@@ -310,7 +310,7 @@ describes.realWin('ButtonApi', {}, env => {
               lang: 'en',
             })
             .returns(Promise.resolve(port));
-    buttonApi.attachSmartButton(button, runtime, {}, handler);
+    buttonApi.attachSmartButton(button, {}, handler);
     expect(handler).to.not.be.called;
     button.click();
     expect(handler).to.be.calledOnce;

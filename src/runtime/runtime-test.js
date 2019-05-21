@@ -1398,7 +1398,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
     const result = runtime.createButton(options, callback);
     expect(result).to.equal(button);
-    expect(stub).to.be.calledOnce.calledWithExactly(runtime, options, callback);
+    expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
   });
 
   it('should start WaitForSubscriptionLookupApi', () => {
@@ -1421,7 +1421,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     const stub = sandbox.stub(runtime.buttonApi_, 'attach');
     runtime.attachButton(button, options, callback);
     expect(stub).to.be.calledOnce
-        .calledWithExactly(button, runtime, options, callback);
+        .calledWithExactly(button, options, callback);
   });
 
   it('should invoke propensity APIs', () => {
