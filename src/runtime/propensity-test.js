@@ -135,7 +135,7 @@ describes.realWin('Propensity', {}, env => {
       'is_active': false,
     });
     sandbox.stub(ClientEventManager.prototype, 'logEvent',
-        (event) => eventSent = event);
+        event => eventSent = event);
     propensity.sendEvent({
       name: PropensityApi.Event.IMPRESSION_OFFERS,
       active: false,

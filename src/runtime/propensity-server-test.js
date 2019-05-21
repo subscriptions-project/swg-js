@@ -34,8 +34,8 @@ describes.realWin('PropensityServer', {}, env => {
     eventOriginator: EventOriginator.PROPENSITY_CLIENT,
     isFromUserAction: null,
     additionalParameters: {
-      'custom' : 'value',
-    }
+      'custom': 'value',
+    },
   };
 
   beforeEach(() => {
@@ -312,13 +312,12 @@ describes.realWin('PropensityServer', {}, env => {
         });
   });
 
-  it('should listen for events from event manager',
-      function*() {
+  it('should listen for events from event manager', function*() {
     //event registration happens during initialization so we need to stub it
     //and then create a new propensity server
     const eventMan = new ClientEventManager();
     let receivedEvent = null;
-    sandbox.stub(PropensityServer.prototype, 'eventListener_', (event) => {
+    sandbox.stub(PropensityServer.prototype, 'sendClientEvent_', event => {
       receivedEvent = event;
     });
     new PropensityServer(win, pubId, eventMan);
@@ -327,46 +326,44 @@ describes.realWin('PropensityServer', {}, env => {
     expect(defaultEvent === receivedEvent).to.be.true;
   });
 
-  it('should convert analytics events to propensity events',
-      () => {
+  it('should convert analytics events to propensity events', () => {
     let receivedType = null;
     let receivedContext = null;
     sandbox.stub(PropensityServer.prototype, 'sendEvent',
         (eventType, context) => {
-      receivedType = eventType;
-      receivedContext = context;
-    });
-    propensityServer.eventListener_(defaultEvent);
+          receivedType = eventType;
+          receivedContext = context;
+        });
+    propensityServer.sendClientEvent_(defaultEvent);
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     const str = JSON.stringify(defaultEvent.additionalParameters);
     expect(receivedContext).to.equal(str);
   });
 
-  it('should respect the experiment flag for non-propensity originated events',
-      () => {
+  it('should respect the SwG logging experiment flag', () => {
     let receivedType = null;
     let receivedContext = null;
     sandbox.stub(PropensityServer.prototype, 'sendEvent',
         (eventType, context) => {
-      receivedType = eventType;
-      receivedContext = context;
-    });
+          receivedType = eventType;
+          receivedContext = context;
+        });
 
     //no experiment set: expect all nulls
     defaultEvent.eventOriginator = EventOriginator.SWG_CLIENT;
-    propensityServer.eventListener_(defaultEvent);
+    propensityServer.sendClientEvent_(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
     defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
-    propensityServer.eventListener_(defaultEvent);
+    propensityServer.sendClientEvent_(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
     //now ensure it does attempt to log these
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
     propensityServer = new PropensityServer(win, pubId, eventManager);
-    propensityServer.eventListener_(defaultEvent);
+    propensityServer.sendClientEvent_(defaultEvent);
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.equal(
         JSON.stringify(defaultEvent.additionalParameters));
@@ -374,7 +371,7 @@ describes.realWin('PropensityServer', {}, env => {
     receivedType = null;
     receivedContext = null;
     defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
-    propensityServer.eventListener_(defaultEvent);
+    propensityServer.sendClientEvent_(defaultEvent);
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.equal(
         JSON.stringify(defaultEvent.additionalParameters));
