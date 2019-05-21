@@ -137,12 +137,12 @@ describes.realWin('Propensity', {}, env => {
     sandbox.stub(ClientEventManager.prototype, 'logEvent',
         event => eventSent = event);
     propensity.sendEvent({
-      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      name: PropensityApi.Event.IMPRESSION_PAYWALL,
       active: false,
       data: params,
     });
     expect(eventSent).to.deep.equal({
-      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: false,
       additionalParameters: {
