@@ -199,7 +199,7 @@ export class AnalyticsService {
     const request = new AnalyticsRequest();
     request.setEvent(event);
     request.setContext(this.context_);
-    console.log('Logging Request proto: ', request);
+    console.log('AnalyticsRequest: ', request);
     return request;
   }
 
