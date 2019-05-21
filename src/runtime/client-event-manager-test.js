@@ -63,12 +63,12 @@ describes.sandboxed('EventManager', {}, () => {
 
     //validate event type
     event.eventType = BAD_VALUE;
-    expected = 'Event has an invalid eventType (' + BAD_VALUE + ')';
+    expected = 'Event has an invalid eventType(' + BAD_VALUE + ')';
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);
     event.eventType = null;
-    expected = 'Event has an invalid eventType (' + null + ')';
+    expected = 'Event has an invalid eventType(' + null + ')';
     tryIt();
     expect(errorCount).to.equal(2);
     expect(matchedExpected).to.equal(2);
@@ -81,12 +81,12 @@ describes.sandboxed('EventManager', {}, () => {
     errorCount = 0;
     matchedExpected = 0;
     event.eventOriginator = BAD_VALUE;
-    expected = 'Event has an invalid eventOriginator (' + BAD_VALUE + ')';
+    expected = 'Event has an invalid eventOriginator(' + BAD_VALUE + ')';
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);
     event.eventOriginator = null;
-    expected = 'Event has an invalid eventOriginator (' + null + ')';
+    expected = 'Event has an invalid eventOriginator(' + null + ')';
     tryIt();
     expect(errorCount).to.equal(2);
     expect(matchedExpected).to.equal(2);
@@ -100,7 +100,7 @@ describes.sandboxed('EventManager', {}, () => {
     errorCount = 0;
     matchedExpected = 0;
     event.isFromUserAction = BAD_VALUE;
-    expected = 'Event has an invalid isFromUserAction (' + BAD_VALUE + ')';
+    expected = 'Event has an invalid isFromUserAction(' + BAD_VALUE + ')';
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);
@@ -118,12 +118,12 @@ describes.sandboxed('EventManager', {}, () => {
     errorCount = 0;
     matchedExpected = 0;
     event.additionalParameters = BAD_VALUE;
-    expected = 'Event has an invalid additionalParameters (' + BAD_VALUE + ')';
+    expected = 'Event has an invalid additionalParameters(' + BAD_VALUE + ')';
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);
     event.additionalParameters = null;
-    expected = 'Event has an invalid additionalParameters (' + null + ')';
+    expected = 'Event has an invalid additionalParameters(' + null + ')';
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);
