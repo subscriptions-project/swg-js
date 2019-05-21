@@ -108,7 +108,6 @@ function startFlowAuto() {
   if (flow == 'smartbutton') {
     whenReady(function(subsciptions) {
       var subs = subsciptions;
-      subs.configure({analyticsMode: 1});
       whenDemoReady(function() {
         var smartButton = document.querySelector('button#smartButton');
         if (!smartButton) {
@@ -123,15 +122,6 @@ function startFlowAuto() {
             function() {
               subs.showOffers({isClosable: true});
             });
-
-        var swgButton = document.querySelector('button#swgButton');
-        if (!swgButton) {
-          console.log('A <button id="swgButton"> is required to render swg button');
-          return;
-        }
-
-        subs.attachButton(swgButton, function() {subs.showOffers({isClosable: true});
-        });
       });
     });
     return;

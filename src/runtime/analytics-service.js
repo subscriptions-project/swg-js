@@ -196,11 +196,9 @@ export class AnalyticsService {
    * @return {!AnalyticsRequest}
    */
   createLogRequest(event) {
-    console.log('AnalyticsEvent: ', event);
     const request = new AnalyticsRequest();
     request.setEvent(event);
     request.setContext(this.context_);
-    console.log('AnalyticsRequest: ', request);
     return request;
   }
 
