@@ -69,6 +69,7 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 import {Propensity} from './propensity';
+import {ClientEventManager} from './client-event-manager';
 
 const EDGE_USER_AGENT =
     'Mozilla/5.0 (Windows NT 10.0)' +
@@ -1461,5 +1462,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         expect(getPropensityStub).to.be.calledOnce;
       });
     });
+  });
+
+  it('should return events manager', () => {
+    expect(runtime.eventManager()).to.deep.equal(new ClientEventManager());
   });
 });

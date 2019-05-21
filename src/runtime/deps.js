@@ -77,4 +77,9 @@ export class DepsDef {
    * @return {!../runtime/jserror.JsError}
    */
   jserror() {}
+
+  /**
+   * @return {!../api/client-event-manager-api.ClientEventManagerApi}
+   */
+  eventManager() {}
 }
