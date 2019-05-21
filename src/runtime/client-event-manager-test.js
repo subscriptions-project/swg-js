@@ -32,16 +32,6 @@ const DEFAULT_EVENT = {
   additionalParameters: {},
 };
 
-/**
- * Returns a standard string used to describe an issue with an event object
- * @param {!string} valueName
- * @param {?*} value
- * @returns {!string}
- */
-function createEventErrorMessage(valueName, value) {
-  return 'Event has an invalid ' + valueName + '(' + value + ')';
-}
-
 describes.sandboxed('EventManager', {}, () => {
   it('should throw an error for invalid events', () => {
     /** @type {!EventManagerApi.ClientEvent} */
@@ -73,12 +63,12 @@ describes.sandboxed('EventManager', {}, () => {
 
     //validate event type
     event.eventType = BAD_VALUE;
-    expected = createEventErrorMessage('eventType', BAD_VALUE);
+    expected = 'Event has an invalid eventType (' + BAD_VALUE + ')';
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);
     event.eventType = null;
-    expected = createEventErrorMessage('eventType', null);
+    expected = 'Event has an invalid eventType (' + null + ')';
     tryIt();
     expect(errorCount).to.equal(2);
     expect(matchedExpected).to.equal(2);
@@ -91,12 +81,12 @@ describes.sandboxed('EventManager', {}, () => {
     errorCount = 0;
     matchedExpected = 0;
     event.eventOriginator = BAD_VALUE;
-    expected = createEventErrorMessage('eventOriginator', BAD_VALUE);
+    expected = 'Event has an invalid eventOriginator (' + BAD_VALUE + ')';
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);
     event.eventOriginator = null;
-    expected = createEventErrorMessage('eventOriginator', null);
+    expected = 'Event has an invalid eventOriginator (' + null + ')';
     tryIt();
     expect(errorCount).to.equal(2);
     expect(matchedExpected).to.equal(2);
@@ -110,7 +100,7 @@ describes.sandboxed('EventManager', {}, () => {
     errorCount = 0;
     matchedExpected = 0;
     event.isFromUserAction = BAD_VALUE;
-    expected = createEventErrorMessage('isFromUserAction', BAD_VALUE);
+    expected = 'Event has an invalid isFromUserAction (' + BAD_VALUE + ')';
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);
@@ -128,12 +118,12 @@ describes.sandboxed('EventManager', {}, () => {
     errorCount = 0;
     matchedExpected = 0;
     event.additionalParameters = BAD_VALUE;
-    expected = createEventErrorMessage('additionalParameters', BAD_VALUE);
+    expected = 'Event has an invalid additionalParameters (' + BAD_VALUE + ')';
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);
     event.additionalParameters = null;
-    expected = createEventErrorMessage('additionalParameters', null);
+    expected = 'Event has an invalid additionalParameters (' + null + ')';
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);
@@ -158,13 +148,13 @@ describes.sandboxed('EventManager', {}, () => {
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
 
-    //verify it can listen to 1
+    //verify it supports 1 listener
     eventMan.registerEventListener(callback);
     eventMan.logEvent(DEFAULT_EVENT);
     yield eventMan.lastAction_;
     expect(receivedEventsCount).to.equal(1);
 
-    //verify it can listen to 2 at the same time
+    //verify it supports multiple listeners
     eventMan.registerEventListener(callback);
     eventMan.logEvent(DEFAULT_EVENT);
     yield eventMan.lastAction_;
