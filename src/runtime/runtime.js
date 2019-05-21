@@ -512,7 +512,7 @@ export class ConfiguredRuntime {
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_);
+    this.buttonApi_ = new ButtonApi(this.doc_, this);
     this.buttonApi_.init();
 
     /** @private @const {!Propensity} */
@@ -815,14 +815,13 @@ export class ConfiguredRuntime {
   /** @override */
   createButton(optionsOrCallback, opt_callback) {
     // This is a minor duplication to allow this code to be sync.
-    return this.buttonApi_.create(this, optionsOrCallback, opt_callback);
+    return this.buttonApi_.create(optionsOrCallback, opt_callback);
   }
 
   /** @override */
   attachButton(button, optionsOrCallback, opt_callback) {
     // This is a minor duplication to allow this code to be sync.
-    console.log('attaching button');
-    this.buttonApi_.attach(button, this, optionsOrCallback, opt_callback);
+    this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
   }
 
   /** @override */
@@ -830,9 +829,8 @@ export class ConfiguredRuntime {
     if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
       throw new Error('Not yet launched!');
     }
-    console.log('attaching smart button');
     this.buttonApi_.attachSmartButton(
-      button, this, optionsOrCallback, opt_callback);
+      button, optionsOrCallback, opt_callback);
   }
 
   /** @override */

@@ -42,9 +42,10 @@ export class SmartSubscriptionButtonApi {
    * @param {!./deps.DepsDef} deps
    * @param {!Element} button
    * @param {!../api/subscriptions.ButtonOptions} options
+   * @param {?Array<../proto/api_messages/AnalyticsRequest>} analyticsRequest
    * @param {function()=} callback
    */
-  constructor(deps, button, options, callback) {
+  constructor(deps, button, options, analyticsRequest, callback) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -80,6 +81,7 @@ export class SmartSubscriptionButtonApi {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'theme': this.options_ && this.options_.theme || 'light',
       'lang': this.options_ && this.options_.lang || 'en',
+      'analyticsRequest': analyticsRequest,
     });
   }
 
