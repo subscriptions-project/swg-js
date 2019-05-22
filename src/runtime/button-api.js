@@ -16,6 +16,7 @@
 
 import {AnalyticsEvent} from '../proto/api_messages';
 import {createElement} from '../utils/dom';
+import {debugLog} from '../utils/log';
 import {msg} from '../utils/i18n';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
 import {AnalyticsMode} from '../api/subscriptions';
@@ -125,11 +126,11 @@ export class ButtonApi {
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
     if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) {
-      this.deps_.getEntitlements().then(entitlements => {
+      this.deps_.entitlementsManager().getEntitlements().then(entitlements => {
         this.analyticsService_.setReadyToPay(entitlements.isReadyToPay);
         this.analyticsService_.logEvent(
             AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
-      }, () => {console.log('Entitlements Failed.');});
+      }, () => {debugLog('Entitlements Failed.');});
     }
     return button;
   }
