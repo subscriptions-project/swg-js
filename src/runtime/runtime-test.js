@@ -1466,6 +1466,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should return events manager', () => {
-    expect(runtime.eventManager()).to.deep.equal(new ClientEventManager());
+    expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
   });
 });

@@ -15,33 +15,114 @@
  */
 
 import {FilterResult} from '../api/client-event-manager-api';
+import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
+import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
 
-/** @implements {../api/client-event-manager-api.ClientEventManagerApi}*/
+/**
+ * Helper function to describe an issue with an event object
+ * @param {!string} valueName
+ * @param {?*} value
+ * @returns {!string}
+ */
+function createEventErrorMessage(valueName, value) {
+  return 'Event has an invalid ' + valueName + '(' + value + ')';
+}
+
+/**
+ * Throws an error if the event is invalid.
+ * @param {!../api/client-event-manager-api.ClientEvent} event
+ */
+function validateEvent(event) {
+  if (!isObject(event)) {
+    throw new Error('Event must be a valid object');
+  }
+
+  if (!isEnumValue(AnalyticsEvent, event.eventType)) {
+    throw new Error(createEventErrorMessage('eventType', event.eventType));
+  }
+
+  if (!isEnumValue(EventOriginator, event.eventOriginator)) {
+    throw new Error(createEventErrorMessage('eventOriginator',
+        event.eventOriginator));
+  }
+
+  if (!isObject(event.additionalParameters)
+      && event.additionalParameters !== null) {
+    throw new Error(createEventErrorMessage('additionalParameters',
+        event.additionalParameters));
+  }
+
+
+  if (event.isFromUserAction !== null && !isBoolean(event.isFromUserAction)) {
+    throw new Error(createEventErrorMessage('isFromUserAction',
+        event.isFromUserAction));
+  }
+}
+
+/** @implements {../api/client-event-manager-api.ClientEventManagerApi} */
 export class ClientEventManager {
   constructor() {
+    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent)>} */
+    this.listeners_ = [];
+
+    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent):!FilterResult>} */
+    this.filterers_ = [];
+
+    /** @private {?Promise} */
+    this.lastAction_ = null;
   }
 
   /**
    * @overrides
    */
-  registerEventListener(unusedCallback) {
+  registerEventListener(listener) {
+    if (!isFunction(listener)) {
+      throw new Error('Event manager listeners must be a function');
+    }
+    this.listeners_.push(listener);
   }
 
   /**
    * @overrides
    */
-  registerEventFilterer(unusedCallback) {
+  registerEventFilterer(filterer) {
+    if (!isFunction(filterer)) {
+      throw new Error('Event manager filterers must be a function');
+    }
+    this.filterers_.push(filterer);
   }
+
 
   /**
    * @overrides
    */
   logEvent(event) {
-    //TODO(mborof): the API must be used somewhere or presubmit fails.
-    //              Remove this line once all code is implemented
-    if (event === FilterResult.CANCEL_EVENT) {
-      return;
-    }
-    return;
+    validateEvent(event);
+    this.lastAction_ = new Promise(resolve => {
+      for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
+        if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
+          resolve();
+          return;
+        }
+      }
+      for (let listener = 0; listener < this.listeners_.length; listener++) {
+        this.listeners_[listener](event);
+      }
+      resolve();
+    });
+  }
+
+  /**
+   * This function exists for the sole purpose of allowing the code to be
+   * presubmitted.  It can be removed once there is code generating a real
+   * event object somewhere.
+   */
+  useValidateEventForCompilationPurposes() {
+    validateEvent({
+      eventType: AnalyticsEvent.UNKNOWN,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: {},
+    });
   }
 }
