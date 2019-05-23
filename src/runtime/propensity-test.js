@@ -172,4 +172,60 @@ describes.realWin('Propensity', {}, env => {
       expect(propensityScore.body.result).to.equal(42);
     });
   });
+
+  it('should convert all propensity events to analytics events', () => {
+    let eventSent = null;
+    const params = /** @type {JsonObject} */ ({
+      'source': 'user-action',
+      'is_active': false,
+    });
+    sandbox.stub(ClientEventManager.prototype, 'logEvent',
+        event => eventSent = event);
+
+    for (const k in PropensityApi.Event) {
+      const propEvent = PropensityApi.Event[k];
+      eventSent = null;
+      propensity.sendEvent({
+        name: propEvent,
+        active: false,
+        data: params,
+      });
+      expect(eventSent).to.not.be.null;
+      expect(eventSent.eventType).to.not.be.null;
+      let expected = null;
+
+      switch (propEvent) {
+        case PropensityApi.Event.IMPRESSION_PAYWALL:
+          expected = AnalyticsEvent.IMPRESSION_PAYWALL;
+          break;
+        case PropensityApi.Event.IMPRESSION_AD:
+          expected = AnalyticsEvent.IMPRESSION_AD;
+          break;
+        case PropensityApi.Event.IMPRESSION_OFFERS:
+          expected = AnalyticsEvent.IMPRESSION_OFFERS;
+          break;
+        case PropensityApi.Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE:
+          expected = AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE;
+          break;
+        case PropensityApi.Event.ACTION_OFFER_SELECTED:
+          expected = AnalyticsEvent.ACTION_OFFER_SELECTED;
+          break;
+        case PropensityApi.Event.ACTION_PAYMENT_FLOW_STARTED:
+          expected = AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED;
+          break;
+        case PropensityApi.Event.ACTION_PAYMENT_COMPLETED:
+          expected = AnalyticsEvent.ACTION_PAYMENT_COMPLETE;
+          break;
+        case PropensityApi.Event.EVENT_CUSTOM:
+          expected = AnalyticsEvent.EVENT_CUSTOM;
+          break;
+        default:
+          expect(false).to.be.true; //add your event type above
+          break;
+      }
+      if (expected !== null) {
+        expect(eventSent.eventType).to.equal(expected);
+      }
+    }
+  });
 });
