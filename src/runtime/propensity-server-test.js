@@ -43,6 +43,7 @@ describes.realWin('PropensityServer', {}, env => {
     eventManager = new ClientEventManager();
     propensityServer = new PropensityServer(win, pubId, eventManager);
     sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
+    defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
   });
 
   it('should test sending subscription state', () => {
@@ -338,6 +339,68 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     const str = JSON.stringify(defaultEvent.additionalParameters);
     expect(receivedContext).to.equal(str);
+
+    //now ensure it properly converts each analytics event it receives into
+    //an appropriate propensity event (or suppresses the event entirely if it)
+    //isn't a propensity event.
+    for (const k in AnalyticsEvent) {
+      defaultEvent.eventType = AnalyticsEvent[k];
+      receivedType = null;
+      propensityServer.sendClientEvent_(defaultEvent);
+      switch (defaultEvent.eventType) {
+        case AnalyticsEvent.UNKNOWN:
+          expect(receivedType).to.equal(null);
+          break;
+        case AnalyticsEvent.IMPRESSION_PAYWALL:
+          expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_PAYWALL);
+          break;
+        case AnalyticsEvent.IMPRESSION_AD:
+          expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_AD);
+          break;
+        case AnalyticsEvent.IMPRESSION_OFFERS:
+          expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
+          break;
+        case AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON:
+          expect(receivedType).to.equal(null);
+          break;
+        case AnalyticsEvent.IMPRESSION_SMARTBOX:
+          expect(receivedType).to.equal(null);
+          break;
+        case AnalyticsEvent.ACTION_SUBSCRIBE:
+          expect(receivedType).to.equal(null);
+          break;
+        case AnalyticsEvent.ACTION_PAYMENT_COMPLETE:
+          expect(receivedType).to
+              .equal(PropensityApi.Event.ACTION_PAYMENT_COMPLETED);
+          break;
+        case AnalyticsEvent.ACTION_ACCOUNT_CREATED:
+          expect(receivedType).to.equal(null);
+          break;
+        case AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED:
+          expect(receivedType).to.equal(null);
+          break;
+        case AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE:
+          expect(receivedType).to
+              .equal(PropensityApi.Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE);
+          break;
+        case AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED:
+          expect(receivedType).to
+              .equal(PropensityApi.Event.ACTION_PAYMENT_FLOW_STARTED);
+          break;
+        case AnalyticsEvent.ACTION_OFFER_SELECTED:
+          expect(receivedType).to
+              .equal(PropensityApi.Event.ACTION_OFFER_SELECTED);
+          break;
+        case AnalyticsEvent.EVENT_PAYMENT_FAILED:
+          expect(receivedType).to.equal(null);
+          break;
+        case AnalyticsEvent.EVENT_CUSTOM:
+          expect(receivedType).to.equal(PropensityApi.Event.EVENT_CUSTOM);
+          break;
+        default:
+          expect(false).to.be.true; //add new analytics event to the switch
+      }
+    }
   });
 
   it('should respect the SwG logging experiment flag', () => {
