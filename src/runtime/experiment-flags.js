@@ -43,7 +43,7 @@ export const ExperimentFlags = {
   CONTRIBUTIONS: 'contributions',
 
   /**
-   * Enables the Propensity feature.
+   * Enables the Propensity feature
    */
   PROPENSITY: 'propensity',
 
