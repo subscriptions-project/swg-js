@@ -174,8 +174,7 @@ describes.realWin('Propensity', {}, env => {
   it('should convert all propensity events to analytics events', () => {
     let eventSent = null;
     const params = /** @type {JsonObject} */ ({
-      'source': 'user-action',
-      'is_active': false,
+      'source': 'email',
     });
     sandbox.stub(ClientEventManager.prototype, 'logEvent',
         event => eventSent = event);
