@@ -131,8 +131,7 @@ describes.realWin('Propensity', {}, env => {
   it('should send events to event manager', () => {
     let eventSent = null;
     const params = /** @type {JsonObject} */ ({
-      'source': 'user-action',
-      'is_active': false,
+      'source': 'email',
     });
     sandbox.stub(ClientEventManager.prototype, 'logEvent',
         event => eventSent = event);
@@ -146,8 +145,7 @@ describes.realWin('Propensity', {}, env => {
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: false,
       additionalParameters: {
-        'source': 'user-action',
-        'is_active': false,
+        'source': 'email',
       },
     });
   });
