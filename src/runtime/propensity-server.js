@@ -68,8 +68,9 @@ export class PropensityServer {
     /** @private @const {number} */
     this.version_ = 1;
 
-    eventManager.registerEventListener(event => this.sendClientEvent_(event));
+    eventManager.registerEventListener(event => this.handleClientEvent_(event));
 
+    // TODO(mborof): b/133519525
     /** @private @const {!boolean} */
     this.logSwgEventsExperiment_ = isExperimentOn(win,
         ExperimentFlags.LOG_SWG_TO_PROPENSITY);
@@ -166,7 +167,7 @@ export class PropensityServer {
    *
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
-  sendClientEvent_(event) {
+  handleClientEvent_(event) {
     const propEvent = AnalyticsEventToPropensityEvent[event.eventType];
     if (propEvent == null) {
       return;
