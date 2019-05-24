@@ -71,8 +71,11 @@ export class PropensityServer {
     eventManager.registerEventListener(event => this.sendClientEvent_(event));
 
     /** @private @const {!boolean} */
-    this.logSwgEvents_ = isExperimentOn(win,
+    this.logSwgEventsExperiment_ = isExperimentOn(win,
         ExperimentFlags.LOG_SWG_TO_PROPENSITY);
+
+    /** @private {!boolean} */
+    this.logSwgEventsConfig_ = false;
   }
 
   /**
@@ -168,7 +171,7 @@ export class PropensityServer {
     if (propEvent == null) {
       return;
     }
-    if (!this.logSwgEvents_
+    if (!(this.logSwgEventsExperiment_ && this.logSwgEventsConfig_)
         && event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT) {
       return;
     }
@@ -256,5 +259,9 @@ export class PropensityServer {
         .then(response => {
           return this.parsePropensityResponse_(response);
         });
+  }
+
+  enableLoggingGoogleEvents() {
+    this.logSwgEventsConfig_ = true;
   }
 }
