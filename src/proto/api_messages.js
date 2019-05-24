@@ -13,6 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * @interface
+ */
+class Message {
+  /**
+   * @return {string}
+   */
+  label() {}
+
+  /**
+   * @return {!Array}
+   */
+  toArray() {}
+}
+
 /** @enum {number} */
 const AnalyticsEvent = {
   UNKNOWN: 0,
@@ -40,6 +55,9 @@ const EventOriginator = {
   SWG_SERVER: 4,
 };
 
+/**
+ * @implements {Message}
+ */
 class AnalyticsContext {
  /**
   * @param {!Array=} data
@@ -202,10 +220,11 @@ class AnalyticsContext {
 
   /**
    * @return {!Array}
+   * @override
    */
   toArray() {
     return [
-      'AnalyticsContext',  // message type
+      this.label(),  // message label
       this.embedderOrigin_,  // field 1 - embedder_origin
       this.transactionId_,  // field 2 - transaction_id
       this.referringOrigin_,  // field 3 - referring_origin
@@ -217,9 +236,19 @@ class AnalyticsContext {
       this.label_,  // field 9 - label
     ];
   }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AnalyticsContext';
+  }
 }
 
-
+/**
+ * @implements {Message}
+ */
 class AnalyticsEventMeta {
  /**
   * @param {!Array=} data
@@ -263,17 +292,28 @@ class AnalyticsEventMeta {
 
   /**
    * @return {!Array}
+   * @override
    */
   toArray() {
     return [
-      'AnalyticsEventMeta',  // message type
+      this.label(),  // message label
       this.eventOriginator_,  // field 1 - event_originator
       this.isFromUserAction_,  // field 2 - is_from_user_action
     ];
   }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AnalyticsEventMeta';
+  }
 }
 
-
+/**
+ * @implements {Message}
+ */
 class AnalyticsRequest {
  /**
   * @param {!Array=} data
@@ -292,9 +332,8 @@ class AnalyticsRequest {
         AnalyticsEventMeta(data[3]);
 
     /** @private {?EventParams} */
-    this.params_ = (data[4] == null || data[4] == undefined) ?
-        null :
-        new EventParams(data[4]);
+    this.params_ = (data[4] == null || data[4] == undefined) ? null : new
+        EventParams(data[4]);
   }
 
   /**
@@ -355,24 +394,36 @@ class AnalyticsRequest {
 
   /**
    * @return {!Array}
+   * @override
    */
   toArray() {
     return [
-      'AnalyticsRequest',                            // message type
-      this.context_ ? this.context_.toArray() : [],  // field 1 - context
-      this.event_,                                   // field 2 - event
-      this.meta_ ? this.meta_.toArray() : [],        // field 3 - meta
-      this.params_ ? this.params_.toArray() : [],    // field 4 - params
+      this.label(),  // message label
+      this.context_ ? this.context_.toArray() : [], // field 1 - context
+      this.event_,  // field 2 - event
+      this.meta_ ? this.meta_.toArray() : [], // field 3 - meta
+      this.params_ ? this.params_.toArray() : [], // field 4 - params
     ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AnalyticsRequest';
   }
 }
 
-
+/**
+ * @implements {Message}
+ */
 class EventParams {
-  /**
-   * @param {!Array=} data
-   */
+ /**
+  * @param {!Array=} data
+  */
   constructor(data = []) {
+
     /** @private {?string} */
     this.smartboxMessage_ = (data[1] == null) ? null : data[1];
   }
@@ -393,15 +444,23 @@ class EventParams {
 
   /**
    * @return {!Array}
+   * @override
    */
   toArray() {
     return [
-      'EventParams',          // message type
+      this.label(),  // message label
       this.smartboxMessage_,  // field 1 - smartbox_message
     ];
   }
-}
 
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'EventParams';
+  }
+}
 
 const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
@@ -413,7 +472,7 @@ const PROTO_MAP = {
 /**
  * Utility to deserialize a buffer
  * @param {!Array} data
- * @return {?Object}
+ * @return {!Message}
  */
 function deserialize(data) {
   /** {?string} */
@@ -427,12 +486,24 @@ function deserialize(data) {
   throw new Error('Deserialization failed for ' + data);
 }
 
+/**
+ * @param {function(new: T)} messageType
+ * @return {string}
+ * @template T
+ */
+function getLabel(messageType) {
+  const message = /** @type {!Message} */ (new messageType());
+  return message.label();
+}
+
 export {
   AnalyticsContext,
+  AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
-  EventParams,
-  AnalyticsEvent,
   EventOriginator,
+  EventParams,
+  Message,
   deserialize,
+  getLabel,
 };
