@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-import {AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, deserialize, EventOriginator, EventParams} from './api_messages';
+import {
+    AnalyticsContext,
+    AnalyticsEvent,
+    AnalyticsEventMeta,
+    AnalyticsRequest,
+    EventOriginator,
+    EventParams,
+    deserialize} from './api_messages';
 
 /**
  * Compare two protos
@@ -124,10 +131,11 @@ describe('api_messages', () => {
       const /** !EventParams  */ eventparams = new EventParams();
       eventparams.setSmartboxMessage('');
       const eventparamsSerialized = eventparams.toArray();
-      const eventparamsDeserialized = deserialize(eventparamsSerialized);
+      const eventparamsDeserialized = deserialize(
+          eventparamsSerialized);
       expect(eventparamsDeserialized).to.not.be.null;
-      expect(isEqual(eventparams.toArray(), eventparamsDeserialized.toArray()))
-          .to.be.true;
+      expect(isEqual(eventparams.toArray(),
+          eventparamsDeserialized.toArray())).to.be.true;
     });
   });
 });
