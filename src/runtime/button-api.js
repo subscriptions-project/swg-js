@@ -127,6 +127,7 @@ export class ButtonApi {
     button.addEventListener('click', callback);
     if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) {
       this.deps_.entitlementsManager().getEntitlements().then(entitlements => {
+        // isFromUserAction = False
         this.analyticsService_.setReadyToPay(entitlements.isReadyToPay);
         this.analyticsService_.logEvent(
             AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
@@ -183,6 +184,7 @@ export class ButtonApi {
 
     let analyticsRequest = null;
     if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) {
+      // isFromUserAction = False
       analyticsRequest = this.analyticsService_.createLogRequest(
           AnalyticsEvent.IMPRESSION_SMARTBOX).toArray();
     }
