@@ -91,7 +91,7 @@ export class Propensity {
   sendEvent(userEvent) {
     if (!isEnumValue(PropensityApi.Event, userEvent.name)
         || !PropensityEventToAnalyticsEvent[userEvent.name]) {
-      throw new Error('Invalid user event provided');
+      throw new Error('Invalid user event provided(' + userEvent.name + ')');
     }
     if (userEvent.data && !isObject(userEvent.data)) {
       throw new Error('Event data must be an Object');

@@ -21,7 +21,7 @@ import {isObject,isBoolean} from '../utils/types';
 import {ExperimentFlags} from './experiment-flags';
 import {isExperimentOn} from './experiments';
 
-/** @private @const {!Object<number,string>} */
+/** @const {!Object<number,string>} */
 const AnalyticsEventToPropensityEvent = {
   [AnalyticsEvent.UNKNOWN]: null,
   [AnalyticsEvent.IMPRESSION_PAYWALL]: Event.IMPRESSION_PAYWALL,
@@ -143,8 +143,9 @@ export class PropensityServer {
   /**
    * @param {string} event
    * @param {?string} context
+   * @private
    */
-  sendEvent(event, context) {
+  sendEvent_(event, context) {
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
@@ -181,7 +182,7 @@ export class PropensityServer {
     if (isBoolean(event.isFromUserAction)) {
       additionalParameters['is_active'] = event.isFromUserAction;
     }
-    this.sendEvent(propEvent,
+    this.sendEvent_(propEvent,
         JSON.stringify(/** @type {!JsonObject} */ (additionalParameters)));
   }
 
