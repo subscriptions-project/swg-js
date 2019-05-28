@@ -23,10 +23,30 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {setExperiment} from './experiments';
 import {ExperimentFlags} from './experiment-flags';
 
+ /**
+  * Converts the URL sent to the propensity server into the propensity event
+  * that generated the URL.
+  * @param {!string} capturedUrl
+  * @return {!PropensityApi.PropensityEvent}
+  */
+function getPropensityEventFromUrl(capturedUrl) {
+  const queryString = capturedUrl.split('?')[1];
+  const eventsStr = decodeURIComponent(parseQueryString(queryString)['events']);
+  const startType = eventsStr.indexOf(':');
+  const endType = eventsStr.indexOf(':', startType + 1);
+  const eventParam = JSON.parse(eventsStr.substring(endType + 1));
+  return /* @typedef {PropensityEvent} */ {
+    name: eventsStr.substring(startType + 1, endType),
+    active: eventParam['is_active'],
+    data: eventParam,
+  };
+}
+
 describes.realWin('PropensityServer', {}, env => {
   let win;
   let propensityServer;
   let eventManager;
+  let eventManagerMock;
   const serverUrl = 'http://localhost:31862';
   const pubId = 'pub1';
   const defaultEvent = {
@@ -41,6 +61,8 @@ describes.realWin('PropensityServer', {}, env => {
   beforeEach(() => {
     win = env.win;
     eventManager = new ClientEventManager();
+    eventManagerMock = sandbox.mock(eventManager);
+    eventManagerMock.expects('registerEventListener').once();
     propensityServer = new PropensityServer(win, pubId, eventManager);
     sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
@@ -92,7 +114,7 @@ describes.realWin('PropensityServer', {}, env => {
           return Promise.reject(new Error('Not sent from allowed origin'));
         });
     const eventParam = {'is_active': false, 'offers_shown': ['a', 'b', 'c']};
-    return propensityServer.sendEvent(
+    return propensityServer.sendEvent_(
         PropensityApi.Event.IMPRESSION_PAYWALL,
         JSON.stringify(eventParam)
       ).then(() => {
@@ -314,130 +336,69 @@ describes.realWin('PropensityServer', {}, env => {
   });
 
   it('should listen for events from event manager', function*() {
-    //event registration happens during initialization so we need to stub it
-    //and then create a new propensity server
-    const eventMan = new ClientEventManager();
-    let receivedEvent = null;
-    sandbox.stub(PropensityServer.prototype, 'sendClientEvent_', event => {
-      receivedEvent = event;
+    eventManagerMock.verify();
+  });
+
+  it('should respect the SwG logging configuration', () => {
+    //stub to ensure the server received a request to log
+    let receivedType = null;
+    let receivedContext = null;
+    sandbox.stub(Xhr.prototype, 'fetch', url => {
+      const event = getPropensityEventFromUrl(url);
+      receivedType = event.name;
+      receivedContext = event.data;
+      return Promise.reject('Server down');
     });
-    new PropensityServer(win, pubId, eventMan);
-    eventMan.logEvent(defaultEvent);
-    yield eventMan.lastAction_;
-    expect(defaultEvent === receivedEvent).to.be.true;
-  });
-
-  it('should convert analytics events to propensity events', () => {
-    let receivedType = null;
-    let receivedContext = null;
-    sandbox.stub(PropensityServer.prototype, 'sendEvent',
-        (eventType, context) => {
-          receivedType = eventType;
-          receivedContext = context;
-        });
-    propensityServer.sendClientEvent_(defaultEvent);
-    expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
-    const str = JSON.stringify(defaultEvent.additionalParameters);
-    expect(receivedContext).to.equal(str);
-
-    //now ensure it properly converts each analytics event it receives into
-    //an appropriate propensity event (or suppresses the event entirely if it)
-    //isn't a propensity event.
-    for (const k in AnalyticsEvent) {
-      defaultEvent.eventType = AnalyticsEvent[k];
-      receivedType = null;
-      propensityServer.sendClientEvent_(defaultEvent);
-      switch (defaultEvent.eventType) {
-        case AnalyticsEvent.UNKNOWN:
-          expect(receivedType).to.equal(null);
-          break;
-        case AnalyticsEvent.IMPRESSION_PAYWALL:
-          expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_PAYWALL);
-          break;
-        case AnalyticsEvent.IMPRESSION_AD:
-          expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_AD);
-          break;
-        case AnalyticsEvent.IMPRESSION_OFFERS:
-          expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
-          break;
-        case AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON:
-          expect(receivedType).to.equal(null);
-          break;
-        case AnalyticsEvent.IMPRESSION_SMARTBOX:
-          expect(receivedType).to.equal(null);
-          break;
-        case AnalyticsEvent.ACTION_SUBSCRIBE:
-          expect(receivedType).to.equal(null);
-          break;
-        case AnalyticsEvent.ACTION_PAYMENT_COMPLETE:
-          expect(receivedType).to
-              .equal(PropensityApi.Event.ACTION_PAYMENT_COMPLETED);
-          break;
-        case AnalyticsEvent.ACTION_ACCOUNT_CREATED:
-          expect(receivedType).to.equal(null);
-          break;
-        case AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED:
-          expect(receivedType).to.equal(null);
-          break;
-        case AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE:
-          expect(receivedType).to
-              .equal(PropensityApi.Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE);
-          break;
-        case AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED:
-          expect(receivedType).to
-              .equal(PropensityApi.Event.ACTION_PAYMENT_FLOW_STARTED);
-          break;
-        case AnalyticsEvent.ACTION_OFFER_SELECTED:
-          expect(receivedType).to
-              .equal(PropensityApi.Event.ACTION_OFFER_SELECTED);
-          break;
-        case AnalyticsEvent.EVENT_PAYMENT_FAILED:
-          expect(receivedType).to.equal(null);
-          break;
-        case AnalyticsEvent.EVENT_CUSTOM:
-          expect(receivedType).to.equal(PropensityApi.Event.EVENT_CUSTOM);
-          break;
-        default:
-          expect(false).to.be.true; //add new analytics event to the switch
-      }
-    }
-  });
-
-  it('should respect the SwG logging experiment flag', () => {
-    let receivedType = null;
-    let receivedContext = null;
-    sandbox.stub(PropensityServer.prototype, 'sendEvent',
-        (eventType, context) => {
-          receivedType = eventType;
-          receivedContext = context;
-        });
 
     //no experiment set: expect all nulls
     defaultEvent.eventOriginator = EventOriginator.SWG_CLIENT;
-    propensityServer.sendClientEvent_(defaultEvent);
+    propensityServer.handleClientEvent_(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
     defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
-    propensityServer.sendClientEvent_(defaultEvent);
+    propensityServer.handleClientEvent_(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
-    //now ensure it does attempt to log these
+    //ensure the enable function alone does not activate the logging
+    propensityServer.enableLoggingGoogleEvents();
+    propensityServer.handleClientEvent_(defaultEvent);
+    expect(receivedType).to.be.null;
+    expect(receivedContext).to.be.null;
+
+    defaultEvent.eventOriginator = EventOriginator.SWG_CLIENT;
+    propensityServer.handleClientEvent_(defaultEvent);
+    expect(receivedType).to.be.null;
+    expect(receivedContext).to.be.null;
+
+    //activate the experiment
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
+    eventManagerMock.expects('registerEventListener').once();
     propensityServer = new PropensityServer(win, pubId, eventManager);
-    propensityServer.sendClientEvent_(defaultEvent);
+
+    //ensure the experiment alone is not enough to activate the logging
+    propensityServer.handleClientEvent_(defaultEvent);
+    expect(receivedType).to.be.null;
+    expect(receivedContext).to.be.null;
+
+    defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
+    propensityServer.handleClientEvent_(defaultEvent);
+    expect(receivedType).to.be.null;
+    expect(receivedContext).to.be.null;
+
+    //both experiment and enable: ensure it actually logs
+    propensityServer.enableLoggingGoogleEvents();
+    propensityServer.handleClientEvent_(defaultEvent);
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
-    expect(receivedContext).to.equal(
-        JSON.stringify(defaultEvent.additionalParameters));
+    expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
 
     receivedType = null;
     receivedContext = null;
     defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
-    propensityServer.sendClientEvent_(defaultEvent);
+    propensityServer.handleClientEvent_(defaultEvent);
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
-    expect(receivedContext).to.equal(
-        JSON.stringify(defaultEvent.additionalParameters));
+    expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
   });
 });

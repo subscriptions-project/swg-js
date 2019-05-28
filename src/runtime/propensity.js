@@ -16,22 +16,8 @@
 import * as PropensityApi from '../api/propensity-api';
 import {PropensityServer} from './propensity-server';
 import {isObject,isEnumValue} from '../utils/types';
-import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
-import {Event} from '../api/propensity-api';
-
-/** @private @const {!Object<string,AnalyticsEvent>} */
-const PropensityEventToAnalyticsEvent = {
-  [Event.IMPRESSION_PAYWALL]: AnalyticsEvent.IMPRESSION_PAYWALL,
-  [Event.IMPRESSION_AD]: AnalyticsEvent.IMPRESSION_AD,
-  [Event.IMPRESSION_OFFERS]: AnalyticsEvent.IMPRESSION_OFFERS,
-  [Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE]:
-      AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
-  [Event.ACTION_OFFER_SELECTED]: AnalyticsEvent.ACTION_OFFER_SELECTED,
-  [Event.ACTION_PAYMENT_FLOW_STARTED]:
-      AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
-  [Event.ACTION_PAYMENT_COMPLETED]: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-  [Event.EVENT_CUSTOM]: AnalyticsEvent.EVENT_CUSTOM,
-};
+import {EventOriginator} from '../proto/api_messages';
+import {propensityEventToAnalyticsEvent} from './propensity-type-mapping';
 
 /**
  * @implements {PropensityApi.PropensityApi}
@@ -89,19 +75,27 @@ export class Propensity {
 
   /** @override */
   sendEvent(userEvent) {
+    const analyticsEvent = propensityEventToAnalyticsEvent(userEvent.name);
     if (!isEnumValue(PropensityApi.Event, userEvent.name)
-        || !PropensityEventToAnalyticsEvent[userEvent.name]) {
+        || !analyticsEvent) {
       throw new Error('Invalid user event provided(' + userEvent.name + ')');
     }
-    if (userEvent.data && !isObject(userEvent.data)) {
-      throw new Error('Event data must be an Object');
+
+    //event manager requires data to be a real object so fill it in if
+    //the publisher didn't pass the field in
+    if (!userEvent.data) {
+      userEvent.data = null;
+    } else if (!isObject(userEvent.data)) {
+      //but if they did pass something in and it wasn't an object then inform
+      //them of the problem
+      throw new Error('Event data must be an Object(' + userEvent.data + ')');
     }
 
     this.eventManager_.logEvent({
-      eventType: PropensityEventToAnalyticsEvent[userEvent.name],
+      eventType: analyticsEvent,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: userEvent.active,
-      additionalParameters: userEvent.data,
+      additionalParameters: userEvent.data || null,
     });
   }
 

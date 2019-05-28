@@ -32,6 +32,9 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should provide valid subscription state', () => {
+    //don't actually send data to the server
+    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState', () => {});
+
     expect(() => {
       propensity.sendSubscriptionState(PropensityApi.SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
@@ -41,6 +44,9 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should provide entitlements for subscribed users', () => {
+    //don't actually send data to the server
+    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState', () => {});
+
     expect(() => {
       propensity.sendSubscriptionState(
           PropensityApi.SubscriptionState.SUBSCRIBER);
@@ -72,32 +78,10 @@ describes.realWin('Propensity', {}, env => {
     }).throw(/Entitlements must be an Object/);
   });
 
-
-  it('should provide valid event', () => {
-    const correctEvent = {
-      name: PropensityApi.Event.IMPRESSION_PAYWALL,
-      active: false,
-    };
-    expect(() => {
-      propensity.sendEvent(correctEvent);
-    }).to.not.throw('Invalid user event provided');
-    const incorrectEvent = {
-      name: 'user-redirect',
-    };
-    expect(() => {
-      propensity.sendEvent(incorrectEvent);
-    }).to.throw('Invalid user event provided');
-    const incorrectEventParam = {
-      name: PropensityApi.Event.IMPRESSION_OFFERS,
-      active: true,
-      data: 'all_offers',
-    };
-    expect(() => {
-      propensity.sendEvent(incorrectEventParam);
-    }).to.throw(/Event data must be an Object/);
-  });
-
   it('should request valid propensity type', () => {
+    //don't make actual request to the server
+    sandbox.stub(PropensityServer.prototype, 'getPropensity', () => {});
+
     expect(() => {
       propensity.getPropensity(PropensityApi.PropensityType.GENERAL);
     }).to.not.throw(/Invalid propensity type requested/);
@@ -128,6 +112,65 @@ describes.realWin('Propensity', {}, env => {
     }).to.throw('publisher not whitelisted');
   });
 
+  it('should validate events sent to it and set appropriate defaults', () => {
+    let hasError;
+    let receivedEvent;
+
+    sandbox.stub(ClientEventManager.prototype, 'logEvent', event => {
+      receivedEvent = event;
+    });
+
+    const testSend = event => {
+      try {
+        hasError = false;
+        receivedEvent = null;
+        propensity.sendEvent(event);
+      } catch (e) {
+        hasError = true;
+      }
+    };
+
+    //ensure it rejects invalid Propensity.Event enum values
+    testSend({name: 'user-redirect'});
+    expect(hasError).to.be.true;
+    expect(receivedEvent).to.be.null;
+
+    //ensure it takes a valid enum with nothing else and fills in appropriate
+    //defaults for other values
+    testSend({
+      name: PropensityApi.Event.IMPRESSION_PAYWALL,
+    });
+    expect(hasError).to.be.false;
+    expect(receivedEvent).to.deep.equal({
+      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      isFromUserAction: undefined,
+      additionalParameters: null,
+    });
+
+    //ensure it respects the active flag
+    testSend({
+      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      active: true,
+    });
+    expect(hasError).to.be.false;
+    expect(receivedEvent).to.deep.equal({
+      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      isFromUserAction: true,
+      additionalParameters: null,
+    });
+
+    //ensure it rejects invalid data objects
+    testSend({
+      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      active: true,
+      data: 'all_offers',
+    });
+    expect(hasError).to.be.true;
+    expect(receivedEvent).to.be.null;
+  });
+
   it('should send events to event manager', () => {
     let eventSent = null;
     const params = /** @type {JsonObject} */ ({
@@ -144,9 +187,7 @@ describes.realWin('Propensity', {}, env => {
       eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: false,
-      additionalParameters: {
-        'source': 'email',
-      },
+      additionalParameters: params,
     });
   });
 
@@ -169,60 +210,5 @@ describes.realWin('Propensity', {}, env => {
       expect(propensityScore.body).to.not.be.null;
       expect(propensityScore.body.result).to.equal(42);
     });
-  });
-
-  it('should convert all propensity events to analytics events', () => {
-    let eventSent = null;
-    const params = /** @type {JsonObject} */ ({
-      'source': 'email',
-    });
-    sandbox.stub(ClientEventManager.prototype, 'logEvent',
-        event => eventSent = event);
-
-    for (const k in PropensityApi.Event) {
-      const propEvent = PropensityApi.Event[k];
-      eventSent = null;
-      propensity.sendEvent({
-        name: propEvent,
-        active: false,
-        data: params,
-      });
-      expect(eventSent).to.not.be.null;
-      expect(eventSent.eventType).to.not.be.null;
-      let expected = null;
-
-      switch (propEvent) {
-        case PropensityApi.Event.IMPRESSION_PAYWALL:
-          expected = AnalyticsEvent.IMPRESSION_PAYWALL;
-          break;
-        case PropensityApi.Event.IMPRESSION_AD:
-          expected = AnalyticsEvent.IMPRESSION_AD;
-          break;
-        case PropensityApi.Event.IMPRESSION_OFFERS:
-          expected = AnalyticsEvent.IMPRESSION_OFFERS;
-          break;
-        case PropensityApi.Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE:
-          expected = AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE;
-          break;
-        case PropensityApi.Event.ACTION_OFFER_SELECTED:
-          expected = AnalyticsEvent.ACTION_OFFER_SELECTED;
-          break;
-        case PropensityApi.Event.ACTION_PAYMENT_FLOW_STARTED:
-          expected = AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED;
-          break;
-        case PropensityApi.Event.ACTION_PAYMENT_COMPLETED:
-          expected = AnalyticsEvent.ACTION_PAYMENT_COMPLETE;
-          break;
-        case PropensityApi.Event.EVENT_CUSTOM:
-          expected = AnalyticsEvent.EVENT_CUSTOM;
-          break;
-        default:
-          expect(false).to.be.true; //add your event type above
-          break;
-      }
-      if (expected !== null) {
-        expect(eventSent.eventType).to.equal(expected);
-      }
-    }
   });
 });
