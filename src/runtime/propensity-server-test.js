@@ -339,7 +339,7 @@ describes.realWin('PropensityServer', {}, env => {
     eventManagerMock.verify();
   });
 
-  it('should respect the SwG logging configuration', () => {
+  it('should not send SwG events to Propensity Service', () => {
     //stub to ensure the server received a request to log
     let receivedType = null;
     let receivedContext = null;
@@ -350,7 +350,7 @@ describes.realWin('PropensityServer', {}, env => {
       return Promise.reject('Server down');
     });
 
-    //no experiment set: expect all nulls
+    //no experiment set & not activated
     defaultEvent.eventOriginator = EventOriginator.SWG_CLIENT;
     propensityServer.handleClientEvent_(defaultEvent);
     expect(receivedType).to.be.null;
@@ -361,7 +361,7 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
-    //ensure the enable function alone does not activate the logging
+    //activated but no experiment
     propensityServer.enableLoggingGoogleEvents();
     propensityServer.handleClientEvent_(defaultEvent);
     expect(receivedType).to.be.null;
@@ -372,20 +372,30 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
-    //activate the experiment
+    //experiment but not activated
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
     eventManagerMock.expects('registerEventListener').once();
     propensityServer = new PropensityServer(win, pubId, eventManager);
-
-    //ensure the experiment alone is not enough to activate the logging
     propensityServer.handleClientEvent_(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
+    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
+  });
 
-    defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
-    propensityServer.handleClientEvent_(defaultEvent);
-    expect(receivedType).to.be.null;
-    expect(receivedContext).to.be.null;
+  it('should send SwG events to the Propensity Service', () => {
+    //stub to ensure the server received a request to log
+    let receivedType = null;
+    let receivedContext = null;
+    sandbox.stub(Xhr.prototype, 'fetch', url => {
+      const event = getPropensityEventFromUrl(url);
+      receivedType = event.name;
+      receivedContext = event.data;
+      return Promise.reject('Server down');
+    });
+
+    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
+    eventManagerMock.expects('registerEventListener').once();
+    propensityServer = new PropensityServer(win, pubId, eventManager);
 
     //both experiment and enable: ensure it actually logs
     propensityServer.enableLoggingGoogleEvents();
