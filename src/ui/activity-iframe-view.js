@@ -33,7 +33,7 @@ export class ActivityIframeView extends View {
 
   /**
    * @param {!Window} win
-   * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
+   * @param {!../activites/deprecated-web-activities.DeprecatedActivityPorts} activityPorts
    * @param {string} src
    * @param {!Object<string, ?>=} args
    * @param {boolean=} shouldFadeBody
