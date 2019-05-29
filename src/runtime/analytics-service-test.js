@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import {ActivityIframePort} from 'web-activities/activity-ports';
+import {
+  DeprecatedActivityIframePort,
+} from '../activities/deprecated-web-activities';
 import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ConfiguredRuntime} from './runtime';
@@ -42,7 +44,7 @@ describes.realWin('AnalyticsService', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activityPorts = runtime.activities();
     analyticsService = new AnalyticsService(runtime);
-    activityIframePort = new ActivityIframePort(
+    activityIframePort = new DeprecatedActivityIframePort(
         analyticsService.getElement(),
         feUrl(src), activityPorts);
 

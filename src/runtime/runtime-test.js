@@ -20,10 +20,12 @@ import {
   SubscribeOptionFlow,
 } from './offers-flow';
 import {
-  ActivityPorts,
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
+import {
+  DeprecatedActivityPorts,
+} from '../activities/deprecated-web-activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {
@@ -830,14 +832,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     win = env.win;
     activityResultCallbacks = {};
     redirectErrorHandler = null;
-    sandbox.stub(ActivityPorts.prototype, 'onResult',
+    sandbox.stub(DeprecatedActivityPorts.prototype, 'onResult',
         function(requestId, callback) {
           if (activityResultCallbacks[requestId]) {
             throw new Error('duplicate');
           }
           activityResultCallbacks[requestId] = callback;
         });
-    sandbox.stub(ActivityPorts.prototype, 'onRedirectError',
+    sandbox.stub(DeprecatedActivityPorts.prototype, 'onRedirectError',
         function(handler) {
           redirectErrorHandler = handler;
         });
@@ -1021,7 +1023,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(runtime.doc().getWin()).to.equal(win);
     expect(runtime.doc().getRootNode()).to.equal(win.document);
     expect(runtime.pageConfig()).to.equal(config);
-    expect(runtime.activities()).to.be.instanceof(ActivityPorts);
+    expect(runtime.activities()).to.be.instanceof(DeprecatedActivityPorts);
     expect(runtime.dialogManager()).to.be.instanceof(DialogManager);
     expect(runtime.dialogManager().doc_).to.equal(runtime.doc());
     expect(runtime.entitlementsManager().blockNextNotification_).to.be.false;

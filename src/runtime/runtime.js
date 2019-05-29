@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityPorts} from 'web-activities/activity-ports';
+import {DeprecatedActivityPorts} from '../activities/deprecated-web-activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ButtonApi} from './button-api';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
@@ -495,8 +495,8 @@ export class ConfiguredRuntime {
     /** @private @const {!DialogManager} */
     this.dialogManager_ = new DialogManager(this.doc_);
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = new ActivityPorts(this.win_);
+    /** @private @const {!DeprecatedActivityPorts} */
+    this.activityPorts_ = new DeprecatedActivityPorts(this.win_);
 
     /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(

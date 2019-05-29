@@ -33,7 +33,7 @@ export class ActivityIframeView extends View {
 
   /**
    * @param {!Window} win
-   * @param {!../activites/deprecated-web-activities.DeprecatedActivityPorts} activityPorts
+   * @param {!../activities/deprecated-web-activities.DeprecatedActivityPorts} activityPorts
    * @param {string} src
    * @param {!Object<string, ?>=} args
    * @param {boolean=} shouldFadeBody
@@ -59,7 +59,7 @@ export class ActivityIframeView extends View {
         /** @type {!HTMLIFrameElement} */ (
             createElement(this.doc_, 'iframe', iframeAttributes));
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../activities/deprecated-web-activities.DeprecatedActivityPorts} */
     this.activityPorts_ = activityPorts;
 
     /** @private @const {string} */

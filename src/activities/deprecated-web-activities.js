@@ -16,12 +16,18 @@
 //export {ActivityPorts as DeprecatedActivityPorts}
 //    from 'web-activities/activity-ports.ActivityPorts';
 
-import ActivityPorts
-    from 'web-activities/activity-ports.ActivityPorts';
+import {
+  ActivityPorts,
+  ActivityIframePort,
+} from 'web-activities/activity-ports';
 
 const DeprecatedActivityPorts = ActivityPorts;
+const DeprecatedActivityIframePort = ActivityIframePort;
 
-export {DeprecatedActivityPorts};
+export {
+  DeprecatedActivityPorts,
+  DeprecatedActivityIframePort,
+};
 
 
 

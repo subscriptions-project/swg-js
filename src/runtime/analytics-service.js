@@ -40,7 +40,7 @@ export class AnalyticsService {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../activities/deprecated-web-activities.DeprecatedActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!HTMLIFrameElement} */
@@ -67,7 +67,7 @@ export class AnalyticsService {
 
     this.context_.setTransactionId(uuidFast());
 
-    /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
+    /** @private {?Promise<!../activities/deprecated-web-activities.DeprecatedActivityIframePort>} */
     this.serviceReady_ = null;
 
     /** @private {?Promise} */
@@ -162,7 +162,7 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+   * @return {!Promise<!../activities/deprecated-web-activities.DeprecatedActivityIframePort>}
    * @private
    */
   start_() {
