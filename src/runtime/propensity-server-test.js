@@ -46,26 +46,30 @@ describes.realWin('PropensityServer', {}, env => {
   let win;
   let propensityServer;
   let eventManager;
-  let eventManagerMock;
+  let registeredCallback;
   const serverUrl = 'http://localhost:31862';
   const pubId = 'pub1';
+  const defaultParameters = {'custom': 'value'};
   const defaultEvent = {
     eventType: AnalyticsEvent.IMPRESSION_OFFERS,
     eventOriginator: EventOriginator.PROPENSITY_CLIENT,
     isFromUserAction: null,
-    additionalParameters: {
-      'custom': 'value',
-    },
+    additionalParameters: defaultParameters,
   };
 
   beforeEach(() => {
     win = env.win;
+    registeredCallback = null;
     eventManager = new ClientEventManager();
-    eventManagerMock = sandbox.mock(eventManager);
-    eventManagerMock.expects('registerEventListener').once();
+    sandbox.stub(ClientEventManager.prototype, 'registerEventListener',
+        callback => registeredCallback = callback);
     propensityServer = new PropensityServer(win, pubId, eventManager);
     sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
+  });
+
+  it('should listen for events from event manager', function*() {
+    expect(registeredCallback).to.not.be.null;
   });
 
   it('should test sending subscription state', () => {
@@ -114,30 +118,23 @@ describes.realWin('PropensityServer', {}, env => {
           return Promise.reject(new Error('Not sent from allowed origin'));
         });
     const eventParam = {'is_active': false, 'offers_shown': ['a', 'b', 'c']};
-    return propensityServer.sendEvent_(
-        PropensityApi.Event.IMPRESSION_PAYWALL,
-        JSON.stringify(eventParam)
-      ).then(() => {
-        throw new Error('must have failed');
-      }).catch(reason => {
-        const path = new URL(capturedUrl);
-        expect(path.pathname).to.equal('/subopt/data');
-        const queryString = capturedUrl.split('?')[1];
-        const queries = parseQueryString(queryString);
-        expect(queries).to.not.be.null;
-        expect('cookie' in queries).to.be.true;
-        expect(queries['cookie']).to.equal('noConsent');
-        expect('v' in queries).to.be.true;
-        expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
-        expect('events' in queries).to.be.true;
-        const events = decodeURIComponent(queries['events'].split(':')[2]);
-        expect(events).to.equal(JSON.stringify(eventParam));
-        expect(capturedRequest.credentials).to.equal('include');
-        expect(capturedRequest.method).to.equal('GET');
-        expect(() => {
-          throw reason;
-        }).to.throw(/Not sent from allowed origin/);
-      });
+    defaultEvent.additionalParameters = eventParam;
+    registeredCallback(defaultEvent);
+    const path = new URL(capturedUrl);
+    expect(path.pathname).to.equal('/subopt/data');
+    const queryString = capturedUrl.split('?')[1];
+    const queries = parseQueryString(queryString);
+    expect(queries).to.not.be.null;
+    expect('cookie' in queries).to.be.true;
+    expect(queries['cookie']).to.equal('noConsent');
+    expect('v' in queries).to.be.true;
+    expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
+    expect('events' in queries).to.be.true;
+    const events = decodeURIComponent(queries['events'].split(':')[2]);
+    expect(events).to.equal(JSON.stringify(eventParam));
+    expect(capturedRequest.credentials).to.equal('include');
+    expect(capturedRequest.method).to.equal('GET');
+    defaultEvent.additionalParameters = defaultParameters;
   });
 
   it('should test get propensity request failure', () => {
@@ -335,10 +332,6 @@ describes.realWin('PropensityServer', {}, env => {
         });
   });
 
-  it('should listen for events from event manager', function*() {
-    eventManagerMock.verify();
-  });
-
   it('should not send SwG events to Propensity Service', () => {
     //stub to ensure the server received a request to log
     let receivedType = null;
@@ -352,31 +345,31 @@ describes.realWin('PropensityServer', {}, env => {
 
     //no experiment set & not activated
     defaultEvent.eventOriginator = EventOriginator.SWG_CLIENT;
-    propensityServer.handleClientEvent_(defaultEvent);
+    registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
     defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
-    propensityServer.handleClientEvent_(defaultEvent);
+    registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
     //activated but no experiment
     propensityServer.enableLoggingGoogleEvents();
-    propensityServer.handleClientEvent_(defaultEvent);
+    registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
     defaultEvent.eventOriginator = EventOriginator.SWG_CLIENT;
-    propensityServer.handleClientEvent_(defaultEvent);
+    registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
     //experiment but not activated
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
-    eventManagerMock.expects('registerEventListener').once();
+    registeredCallback = null;
     propensityServer = new PropensityServer(win, pubId, eventManager);
-    propensityServer.handleClientEvent_(defaultEvent);
+    registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
@@ -394,19 +387,19 @@ describes.realWin('PropensityServer', {}, env => {
     });
 
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
-    eventManagerMock.expects('registerEventListener').once();
+    registeredCallback = null;
     propensityServer = new PropensityServer(win, pubId, eventManager);
 
     //both experiment and enable: ensure it actually logs
     propensityServer.enableLoggingGoogleEvents();
-    propensityServer.handleClientEvent_(defaultEvent);
+    registeredCallback(defaultEvent);
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
 
     receivedType = null;
     receivedContext = null;
     defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
-    propensityServer.handleClientEvent_(defaultEvent);
+    registeredCallback(defaultEvent);
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
