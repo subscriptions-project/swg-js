@@ -75,12 +75,21 @@ export class Propensity {
     if (userEvent.data && !isObject(userEvent.data)) {
       throw new Error('Event data must be an Object');
     }
-    // TODO(sohanirao, mborof): Idenfity the new interface with event
-    // manager and update the lines below to adhere to that interface
     let paramString = null;
+    if (userEvent.active != null) {
+      if (!userEvent.data) {
+        const jsonData = Object.create(null);
+        jsonData['is_active'] = userEvent.active;
+        userEvent.data = /** @type {JsonObject} */(jsonData);
+      } else {
+        Object.assign(userEvent.data, {'is_active': userEvent.active});
+      }
+    }
     if (userEvent.data) {
       paramString = JSON.stringify(userEvent.data);
     }
+    // TODO(sohanirao, mborof): Idenfity the new interface with event
+    // manager and update the lines below to adhere to that interface
     this.propensityServer_.sendEvent(userEvent.name, paramString);
   }
 }
