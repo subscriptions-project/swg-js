@@ -74,18 +74,18 @@ export class ActivityIframeView extends View {
     /** @private @const {boolean} */
     this.hasLoadingIndicator_ = hasLoadingIndicator;
 
-    /** @private {?web-activities/activity-ports.ActivityIframePort} */
+    /** @private {?../activities/deprecated-web-activities.DeprecatedActivityIframePort} */
     this.port_ = null;
 
     /**
      * @private
-     * {?function<!web-activities/activity-ports.ActivityIframePort|!Promise>}
+     * {?function<!../activities/deprecated-web-activities.DeprecatedActivityIframePort|!Promise>}
      */
     this.portResolver_ = null;
 
     /**
      * @private @const
-     * {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+     * {!Promise<!../activities/deprecated-web-activities.DeprecatedActivityIframePort>}
      */
     this.portPromise_ = new Promise(resolve => {
       this.portResolver_ = resolve;
@@ -120,7 +120,7 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * @param {!web-activities/activity-ports.ActivityIframePort} port
+   * @param {!../activities/deprecated-web-activities.DeprecatedActivityIframePort} port
    * @param {!../components/dialog.Dialog} dialog
    * @return {!Promise}
    */
@@ -136,7 +136,7 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+   * @return {!Promise<!../activities/deprecated-web-activities.DeprecatedActivityIframePort>}
    * @private
    */
   getPortPromise_() {

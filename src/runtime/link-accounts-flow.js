@@ -35,7 +35,7 @@ export class LinkbackFlow {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../activities/deprecated-web-activities.DeprecatedActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../model/page-config.PageConfig} */
@@ -108,7 +108,7 @@ export class LinkCompleteFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../activities/deprecated-web-activities.DeprecatedActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
@@ -203,7 +203,7 @@ export class LinkSaveFlow {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../activities/deprecated-web-activities.DeprecatedActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */

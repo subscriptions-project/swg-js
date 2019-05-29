@@ -174,7 +174,7 @@ export class PayCompleteFlow {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../activities/deprecated-web-activities.DeprecatedActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */

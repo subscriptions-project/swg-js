@@ -42,7 +42,7 @@ export class OffersFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../activities/deprecated-web-activities.DeprecatedActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
@@ -126,7 +126,7 @@ export class SubscribeOptionFlow {
     /** @private @const {!../api/subscriptions.OffersRequest|undefined} */
     this.options_ = options;
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../activities/deprecated-web-activities.DeprecatedActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
@@ -209,7 +209,7 @@ export class AbbrvOfferFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../activities/deprecated-web-activities.DeprecatedActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
