@@ -84,11 +84,15 @@ export class Propensity {
     //event manager requires data to be a real object so fill it in if
     //the publisher didn't pass the field in
     if (!userEvent.data) {
-      userEvent.data = null;
+      userEvent.data = /** @type {JsonObject} */(Object.create(null));
     } else if (!isObject(userEvent.data)) {
       //but if they did pass something in and it wasn't an object then inform
       //them of the problem
       throw new Error('Event data must be an Object(' + userEvent.data + ')');
+    }
+
+    if (userEvent.active != null) {
+      Object.assign(userEvent.data, {'is_active': userEvent.active});
     }
 
     this.eventManager_.logEvent({
