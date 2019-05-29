@@ -158,13 +158,16 @@ export class PropensityServer {
         && event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT) {
       return;
     }
-    const additionalParameters = isObject(event.additionalParameters) ?
-      event.additionalParameters : {};
+    let additionalParameters = event.additionalParameters;
+
     if (isBoolean(event.isFromUserAction)) {
+      if (!isObject(additionalParameters)) {
+        additionalParameters = {};
+      }
       additionalParameters['is_active'] = event.isFromUserAction;
     }
     this.sendEvent_(propEvent,
-        JSON.stringify(/** @type {!JsonObject} */ (additionalParameters)));
+        JSON.stringify(/** @type {?JsonObject} */ (additionalParameters)));
   }
 
   /**

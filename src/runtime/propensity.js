@@ -18,6 +18,7 @@ import {PropensityServer} from './propensity-server';
 import {isObject,isEnumValue} from '../utils/types';
 import {EventOriginator} from '../proto/api_messages';
 import {propensityEventToAnalyticsEvent} from './propensity-type-mapping';
+import {isBoolean} from '../utils/types';
 
 /**
  * @implements {PropensityApi.PropensityApi}
@@ -76,30 +77,35 @@ export class Propensity {
   /** @override */
   sendEvent(userEvent) {
     const analyticsEvent = propensityEventToAnalyticsEvent(userEvent.name);
+    let data = null;
     if (!isEnumValue(PropensityApi.Event, userEvent.name)
         || !analyticsEvent) {
       throw new Error('Invalid user event provided(' + userEvent.name + ')');
     }
 
-    //event manager requires data to be a real object so fill it in if
-    //the publisher didn't pass the field in
-    if (!userEvent.data) {
-      userEvent.data = /** @type {JsonObject} */(Object.create(null));
-    } else if (!isObject(userEvent.data)) {
-      //but if they did pass something in and it wasn't an object then inform
-      //them of the problem
-      throw new Error('Event data must be an Object(' + userEvent.data + ')');
+    if (userEvent.data) {
+      if (!isObject(userEvent.data)) {
+        throw new Error('Event data must be an Object(' + userEvent.data + ')');
+      } else {
+        data = {};
+        Object.assign(data, userEvent.data);
+      }
     }
 
-    if (userEvent.active != null) {
-      Object.assign(userEvent.data, {'is_active': userEvent.active});
+    if (isBoolean(userEvent.active)) {
+      if (!data) {
+        data = {};
+      }
+      Object.assign(data, {'is_active': userEvent.active});
+    } else if (userEvent.active != null) {
+      throw new Error('Event active must be set to true, false or null');
     }
 
     this.eventManager_.logEvent({
       eventType: analyticsEvent,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: userEvent.active,
-      additionalParameters: userEvent.data || null,
+      additionalParameters: data,
     });
   }
 

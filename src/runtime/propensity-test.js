@@ -103,13 +103,27 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should report server errors', () => {
-    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState',
-        () => {
-          throw new Error('publisher not whitelisted');
-        });
+    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState', () => {
+      throw new Error('publisher not whitelisted');
+    });
     expect(() => {
       propensity.sendSubscriptionState(PropensityApi.SubscriptionState.UNKNOWN);
     }).to.throw('publisher not whitelisted');
+  });
+
+  it('should send events to event manager', () => {
+    let eventSent = null;
+    sandbox.stub(ClientEventManager.prototype, 'logEvent',
+        event => eventSent = event);
+    propensity.sendEvent({
+      name: PropensityApi.Event.IMPRESSION_PAYWALL,
+    });
+    expect(eventSent).to.deep.equal({
+      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      isFromUserAction: undefined,
+      additionalParameters: null,
+    });
   });
 
   it('should validate events sent to it and set appropriate defaults', () => {
@@ -131,7 +145,9 @@ describes.realWin('Propensity', {}, env => {
     };
 
     //ensure it rejects invalid Propensity.Event enum values
-    testSend({name: 'user-redirect'});
+    testSend({
+      name: 'invalid name',
+    });
     expect(hasError).to.be.true;
     expect(receivedEvent).to.be.null;
 
@@ -148,7 +164,29 @@ describes.realWin('Propensity', {}, env => {
       additionalParameters: null,
     });
 
-    //ensure it respects the active flag
+    //ensure it respects and requires the active flag
+    testSend({
+      name: PropensityApi.Event.IMPRESSION_OFFERS,
+    });
+    expect(receivedEvent).to.deep.equal({
+      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      isFromUserAction: undefined,
+      additionalParameters: null,
+    });
+
+    testSend({
+      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      active: null,
+    });
+    expect(hasError).to.be.false;
+    expect(receivedEvent).to.deep.equal({
+      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+
     testSend({
       name: PropensityApi.Event.IMPRESSION_OFFERS,
       active: true,
@@ -158,7 +196,19 @@ describes.realWin('Propensity', {}, env => {
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: true,
-      additionalParameters: null,
+      additionalParameters: {'is_active': true},
+    });
+
+    testSend({
+      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      active: false,
+    });
+    expect(hasError).to.be.false;
+    expect(receivedEvent).to.deep.equal({
+      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      isFromUserAction: false,
+      additionalParameters: {'is_active': false},
     });
 
     //ensure it rejects invalid data objects
@@ -169,26 +219,6 @@ describes.realWin('Propensity', {}, env => {
     });
     expect(hasError).to.be.true;
     expect(receivedEvent).to.be.null;
-  });
-
-  it('should send events to event manager', () => {
-    let eventSent = null;
-    const params = /** @type {JsonObject} */ ({
-      'source': 'email',
-    });
-    sandbox.stub(ClientEventManager.prototype, 'logEvent',
-        event => eventSent = event);
-    propensity.sendEvent({
-      name: PropensityApi.Event.IMPRESSION_PAYWALL,
-      active: false,
-      data: params,
-    });
-    expect(eventSent).to.deep.equal({
-      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
-      isFromUserAction: false,
-      additionalParameters: params,
-    });
   });
 
   it('should return propensity score from server', () => {
