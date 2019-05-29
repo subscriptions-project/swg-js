@@ -16,10 +16,12 @@
 
 import {
   ActivityPort,
-  ActivityPorts,
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
+import {
+  DeprecatedActivityPorts,
+} from '../activities/deprecated-web-activities';
 import {DialogManager} from '../components/dialog-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
@@ -72,7 +74,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
   beforeEach(() => {
     win = env.win;
     resultIdsAttached = [];
-    activityPorts = new ActivityPorts(win);
+    activityPorts = new DeprecatedActivityPorts(win);
     activityPorts.onResult = (requestId, callback) => {
       if (requestId == 'swg-pay' || requestId == 'GPAY') {
         resultCallback = callback;
@@ -310,7 +312,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
 
   beforeEach(() => {
     win = env.win;
-    activityPorts = new ActivityPorts(win);
+    activityPorts = new DeprecatedActivityPorts(win);
     redirectVerifierHelperResults = {
       restoreKey: 'test_restore_key',
       verifier: 'test_verifier',
