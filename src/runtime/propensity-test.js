@@ -130,6 +130,7 @@ describes.realWin('Propensity', {}, env => {
     let eventSent = null;
     let paramsSent = null;
     const params = /** @type {JsonObject} */ ({'source': 'user-action'});
+    Object.assign(params, {'is_active': false});
     const eventParams = JSON.stringify(params);
     const propensityEvent = {
       name: PropensityApi.Event.IMPRESSION_OFFERS,
@@ -144,6 +145,15 @@ describes.realWin('Propensity', {}, env => {
     propensity.sendEvent(propensityEvent);
     expect(eventSent).to.deep.equal(propensityEvent.name);
     expect(eventParams).to.equal(paramsSent);
+    const propensityEvent2 = {
+      name: PropensityApi.Event.IMPRESSION_PAYWALL,
+      active: true,
+    };
+    const eventParams2 =
+        /** @typedef {JsonObject} */ ({'is_active': true});
+    propensity.sendEvent(propensityEvent2);
+    expect(eventSent).to.deep.equal(propensityEvent2.name);
+    expect(paramsSent).to.equal(JSON.stringify(eventParams2));
   });
 
   it('should return propensity score from server', () => {
