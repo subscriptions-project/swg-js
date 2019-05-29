@@ -100,7 +100,7 @@ export class ButtonApi {
 
   /**
    * @param {!Element} button
-   * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
+   * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}
    */
@@ -121,13 +121,13 @@ export class ButtonApi {
 
   /**
    *
-   * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
+   * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @return {!../api/subscriptions.ButtonOptions}
    * @private
    */
   getOptions_(optionsOrCallback) {
     const options = /** @type {!../api/subscriptions.ButtonOptions} */
-        (typeof optionsOrCallback != 'function' ?
+        (optionsOrCallback && typeof optionsOrCallback != 'function' ?
         optionsOrCallback : {'theme': Theme.LIGHT});
 
     const theme = options['theme'];
@@ -154,7 +154,7 @@ export class ButtonApi {
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!Element} button
-   * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
+   * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}
    */
