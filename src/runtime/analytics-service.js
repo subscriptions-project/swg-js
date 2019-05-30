@@ -78,7 +78,8 @@ export class AnalyticsService {
 
     /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
     this.eventManager_ = deps.eventManager();
-    this.eventManager_.registerEventListener(event => this.listener_(event));
+    this.eventManager_.registerEventListener(
+        this.handleClientEvent_.bind(this));
 
     /** @private @const {!boolean} */
     this.logPropensityEvents_ = isExperimentOn(deps.win(),
@@ -245,7 +246,7 @@ export class AnalyticsService {
    *  Listens for new events from the events manager and handles logging
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
-  listener_(event) {
+  handleClientEvent_(event) {
     if (!this.logPropensityEvents_
         && event.eventOriginator === EventOriginator.PROPENSITY_CLIENT) {
       return;
