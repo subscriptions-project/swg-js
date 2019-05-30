@@ -38,7 +38,6 @@ describes.sandboxed('EventManager', {}, () => {
     let event = {
       eventType: DEFAULT_TYPE,
       eventOriginator: DEFAULT_ORIGIN,
-      isFromUserAction: null,
       additionalParameters: {},
     };
     const eventMan = new ClientEventManager();
@@ -101,6 +100,14 @@ describes.sandboxed('EventManager', {}, () => {
     matchedExpected = 0;
     event.isFromUserAction = BAD_VALUE;
     expected = 'Event has an invalid isFromUserAction(' + BAD_VALUE + ')';
+    tryIt();
+    expect(errorCount).to.equal(1);
+    expect(matchedExpected).to.equal(1);
+    event.isFromUserAction = null;
+    tryIt();
+    expect(errorCount).to.equal(1);
+    expect(matchedExpected).to.equal(1);
+    event.isFromUserAction = undefined;
     tryIt();
     expect(errorCount).to.equal(1);
     expect(matchedExpected).to.equal(1);

@@ -53,7 +53,7 @@ function validateEvent(event) {
   }
 
 
-  if (event.isFromUserAction !== null && !isBoolean(event.isFromUserAction)) {
+  if (event.isFromUserAction != null && !isBoolean(event.isFromUserAction)) {
     throw new Error(createEventErrorMessage('isFromUserAction',
         event.isFromUserAction));
   }
@@ -109,20 +109,6 @@ export class ClientEventManager {
         this.listeners_[listener](event);
       }
       resolve();
-    });
-  }
-
-  /**
-   * This function exists for the sole purpose of allowing the code to be
-   * presubmitted.  It can be removed once there is code generating a real
-   * event object somewhere.
-   */
-  useValidateEventForCompilationPurposes() {
-    validateEvent({
-      eventType: AnalyticsEvent.UNKNOWN,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: {},
     });
   }
 }
