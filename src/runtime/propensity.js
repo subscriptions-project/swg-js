@@ -98,7 +98,7 @@ export class Propensity {
       }
       Object.assign(data, {'is_active': userEvent.active});
     } else if (userEvent.active != null) {
-      throw new Error('Event active must be set to true, false or null');
+      throw new Error('Event active must be a boolean');
     }
 
     this.eventManager_.logEvent({

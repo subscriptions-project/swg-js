@@ -47,7 +47,7 @@ function validateEvent(event) {
   }
 
   if (!isObject(event.additionalParameters)
-      && event.additionalParameters !== null) {
+      && event.additionalParameters != null) {
     throw new Error(createEventErrorMessage('additionalParameters',
         event.additionalParameters));
   }
