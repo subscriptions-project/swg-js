@@ -49,7 +49,7 @@ export class PropensityServer {
     /** @private @const {number} */
     this.version_ = 1;
 
-    eventManager.registerEventListener(event => this.handleClientEvent_(event));
+    eventManager.registerEventListener(this.handleClientEvent_.bind(this));
 
     // TODO(mborof): b/133519525
     /** @private @const {!boolean} */
@@ -247,7 +247,7 @@ export class PropensityServer {
         });
   }
 
-  enableLoggingGoogleEvents() {
+  enableLoggingSwgEvents() {
     this.logSwgEventsConfig_ = true;
   }
 }

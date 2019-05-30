@@ -355,7 +355,7 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedContext).to.be.null;
 
     //activated but no experiment
-    propensityServer.enableLoggingGoogleEvents();
+    propensityServer.enableLoggingSwgEvents();
     registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
@@ -391,7 +391,7 @@ describes.realWin('PropensityServer', {}, env => {
     propensityServer = new PropensityServer(win, pubId, eventManager);
 
     //both experiment and enable: ensure it actually logs
-    propensityServer.enableLoggingGoogleEvents();
+    propensityServer.enableLoggingSwgEvents();
     registeredCallback(defaultEvent);
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
