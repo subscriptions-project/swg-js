@@ -52,8 +52,7 @@ function validateEvent(event) {
         event.additionalParameters));
   }
 
-
-  if (event.isFromUserAction !== null && !isBoolean(event.isFromUserAction)) {
+  if (event.isFromUserAction != null && !isBoolean(event.isFromUserAction)) {
     throw new Error(createEventErrorMessage('isFromUserAction',
         event.isFromUserAction));
   }

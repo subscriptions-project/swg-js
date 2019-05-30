@@ -164,7 +164,7 @@ describes.realWin('Propensity', {}, env => {
       additionalParameters: null,
     });
 
-    //ensure it respects and requires the active flag
+    //ensure it respects the active flag
     testSend({
       name: PropensityApi.Event.IMPRESSION_OFFERS,
     });
