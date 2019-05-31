@@ -27,6 +27,7 @@ import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
 import {ExperimentFlags} from './experiment-flags';
+import {isBoolean} from '../utils/types';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -82,8 +83,11 @@ export class AnalyticsService {
         this.handleClientEvent_.bind(this));
 
     /** @private @const {!boolean} */
-    this.logPropensityEvents_ = isExperimentOn(deps.win(),
+    this.logPropensityExperiment_ = isExperimentOn(deps.win(),
         ExperimentFlags.LOG_PROPENSITY_TO_SWG);
+
+    /** @private {!boolean} */
+    this.logPropensityConfig_ = false;
   }
 
   /**
@@ -221,14 +225,20 @@ export class AnalyticsService {
   }
 
   /**
-   * @param {!../proto/api_messages.AnalyticsEvent} event
+   * This function can be used to log a buy-flow event from SwG.
+   * It exists as a helper and to ensure backwards compatability,
+   * you have additional parameters available if you call eventManager.logEvent
+   * directly.
+   * @param {!../proto/api_messages.AnalyticsEvent} eventTypeIn
+   * @param {!boolean=} isFromUserActionIn
    */
-  logEvent(event) {
+  logEvent(eventTypeIn, isFromUserActionIn) {
     this.eventManager_.logEvent({
-      eventType: event,
+      eventType: eventTypeIn,
       eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: {},
+      isFromUserAction: /** @type {?boolean} */
+          (isBoolean(isFromUserActionIn) ? isFromUserActionIn : null),
+      additionalParameters: null,
     });
   }
 
@@ -247,12 +257,16 @@ export class AnalyticsService {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
-    if (!this.logPropensityEvents_
+    if (!(this.logPropensityExperiment_ && this.logPropensityConfig_)
         && event.eventOriginator === EventOriginator.PROPENSITY_CLIENT) {
       return;
     }
     this.lastAction_ = this.start_().then(port => {
       port.message({'buf': this.createLogRequest_(event).toArray()});
     });
+  }
+
+  enableLoggingForPropensity() {
+    this.logPropensityConfig_ = true;
   }
 }
