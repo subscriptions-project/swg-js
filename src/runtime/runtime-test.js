@@ -800,7 +800,8 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should return propensity module', () => {
-      const propensity = new Propensity(win, config);
+      const propensity = new Propensity(win, config,
+          configuredRuntime.eventManager());
       configuredRuntimeMock.expects('getPropensityModule')
           .once()
           .returns(propensity);
