@@ -133,7 +133,7 @@ describes.realWin('AnalyticsService', {}, env => {
         eventType: AnalyticsEvent.UNKNOWN,
         eventOriginator: EventOriginator.UNKNOWN_CLIENT,
         isFromUserAction: null,
-        additionalParameters: {},
+        additionalParameters: null,
       });
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
@@ -143,12 +143,16 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(firstArgument['buf']).to.not.be.null;
         const /* {?AnalyticsRequest} */ request =
           new AnalyticsRequest(firstArgument['buf']);
+        const meta = request.getMeta();
         expect(request.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
+        expect(meta.getEventOriginator()).to
+            .equal(EventOriginator.UNKNOWN_CLIENT);
+        expect(meta.getIsFromUserAction()).to.be.null;
         registeredCallback({
           eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
           eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: null,
-          additionalParameters: {},
+          isFromUserAction: true,
+          additionalParameters: {droppedData: true},
         });
         return analyticsService.lastAction_;
       }).then(() => {
@@ -166,8 +170,11 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(messageArgument['buf']).to.not.be.null;
         const /* {?AnalyticsRequest} */ request =
           new AnalyticsRequest(messageArgument['buf']);
+        const meta = request.getMeta();
         expect(request.getEvent()).to.deep.equal(
             AnalyticsEvent.IMPRESSION_PAYWALL);
+        expect(meta.getEventOriginator()).to.equal(EventOriginator.SWG_CLIENT);
+        expect(meta.getIsFromUserAction()).to.be.true;
       });
     });
 
@@ -292,7 +299,7 @@ describes.realWin('AnalyticsService', {}, env => {
         eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: null,
-        additionalParameters: {},
+        additionalParameters: null,
       });
     });
 
@@ -312,12 +319,52 @@ describes.realWin('AnalyticsService', {}, env => {
       event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
       registeredCallback(event);
       expect(analyticsService.lastAction_).to.be.null;
+
+      //ensure it requires the experiment to log Propensity events
+      analyticsService.enableLoggingForPropensity();
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.SWG_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.AMP_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.be.null;
+
+      //reinitialize the service after turning the experiment on
+      //ensure it requires the .enable method to log Propensity
+      setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
+      analyticsService = new AnalyticsService(runtime);
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.SWG_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.AMP_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.be.null;
     });
 
     it('should log Propensity events if experiment is on', () => {
       //reinitialize the service after turning the experiment on
+      //ensure if we activate both things it properly logs all origins
       setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
       analyticsService = new AnalyticsService(runtime);
+      analyticsService.enableLoggingForPropensity();
+
       analyticsService.lastAction_ = null;
       event.eventOriginator = EventOriginator.SWG_CLIENT;
       registeredCallback(event);
