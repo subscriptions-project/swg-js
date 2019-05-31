@@ -192,6 +192,15 @@ export class AnalyticsService {
   }
 
   /**
+   * @return {!Promise<!AnalyticsContext>}
+   */
+  getContext() {
+    return this.start_().then(() => {
+      return this.context_;
+    });
+  }
+
+  /**
    * @param {!../proto/api_messages.AnalyticsEvent} event
    * @return {!AnalyticsRequest}
    */
