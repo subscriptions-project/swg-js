@@ -21,7 +21,7 @@ import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
 import * as sinon from 'sinon';
 import {defaultConfig, AnalyticsMode} from '../api/subscriptions';
-import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
+import {AnalyticsContext} from '../proto/api_messages';
 
 describes.realWin('ButtonApi', {}, env => {
   let win;
@@ -199,7 +199,7 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'light',
           lang: 'en',
-          analyticsRequest: null,
+          analyticsContext: null,
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(button, {}, handler);
@@ -223,7 +223,7 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'light',
           lang: 'en',
-          analyticsRequest: null,
+          analyticsContext: null,
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(button, handler);
@@ -247,7 +247,7 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'dark',
           lang: 'fr',
-          analyticsRequest: null,
+          analyticsContext: null,
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(
@@ -273,7 +273,7 @@ describes.realWin('ButtonApi', {}, env => {
               productId: 'pub1:label1',
               theme: 'light',
               lang: 'en',
-              analyticsRequest: null,
+              analyticsContext: null,
             })
             .returns(Promise.resolve(port));
         buttonApi.attachSmartButton(
@@ -288,11 +288,10 @@ describes.realWin('ButtonApi', {}, env => {
     const button = doc.createElement('button');
     button.className = 'swg-smart-button';
     expect(button.nodeType).to.equal(1);
-    const expAnalyticsRequest = new AnalyticsRequest();
-    expAnalyticsRequest.setEvent(AnalyticsEvent.IMPRESSION_SMARTBOX);
-    analyticsMock.expects('createLogRequest')
-        .withExactArgs(AnalyticsEvent.IMPRESSION_SMARTBOX)
-        .returns(expAnalyticsRequest)
+    let expAnalyticsContext = new AnalyticsContext();
+    expAnalyticsContext.setEmbedderOrigin('google.com');
+    analyticsMock.expects('getContext')
+        .returns(Promise.resolve(expAnalyticsContext))
         .once();
     config.analyticsMode = AnalyticsMode.IMPRESSIONS;
     runtime.configure(config);
@@ -305,7 +304,7 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'light',
           lang: 'en',
-          analyticsRequest: expAnalyticsRequest.toArray(),
+          analyticsContext: expAnalyticsContext.toArray(),
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(button, {}, handler);

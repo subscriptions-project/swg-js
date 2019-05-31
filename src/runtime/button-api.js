@@ -128,7 +128,6 @@ export class ButtonApi {
     if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) {
       this.deps_.entitlementsManager().getEntitlements().then(entitlements => {
         // isFromUserAction = False
-        this.analyticsService_.setReadyToPay(entitlements.isReadyToPay);
         this.analyticsService_.logEvent(
             AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
       }, () => {debugLog('Entitlements Failed.');});
@@ -182,13 +181,7 @@ export class ButtonApi {
     // Add required CSS class, if missing.
     button.classList.add('swg-smart-button');
 
-    let analyticsRequest = null;
-    if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) {
-      // isFromUserAction = False
-      analyticsRequest = this.analyticsService_.createLogRequest(
-          AnalyticsEvent.IMPRESSION_SMARTBOX).toArray();
-    }
     return new SmartSubscriptionButtonApi(
-      this.deps_, button, options, analyticsRequest, callback).start();
+      this.deps_, button, options, callback).start();
   }
 }
