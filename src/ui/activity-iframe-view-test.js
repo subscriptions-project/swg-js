@@ -16,7 +16,6 @@
 
 import {ActivityIframeView} from './activity-iframe-view';
 import {
-  ActivityPorts as WebActivityPorts,
   ActivityIframePort as WebActivityIframePort,
   ActivityResult,
 } from 'web-activities/activity-ports';
@@ -44,7 +43,7 @@ describes.realWin('ActivityIframeView', {}, env => {
     win = env.win;
     src = '$frontend$/offersiframe';
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    activityPorts = new ActivityPorts(new WebActivityPorts(win));
+    activityPorts = new ActivityPorts(win);
     activityIframePort = new ActivityIframePort(
         new WebActivityIframePort(dialog.getElement(), src, activityPorts));
 

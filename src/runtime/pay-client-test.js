@@ -16,10 +16,12 @@
 
 import {
   ActivityPort,
-  ActivityPorts,
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
+import {
+  ActivityPorts,
+} from '../model/activities';
 import {DialogManager} from '../components/dialog-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';

@@ -20,10 +20,12 @@ import {
   SubscribeOptionFlow,
 } from './offers-flow';
 import {
-  ActivityPorts,
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
+import {
+  ActivityPorts,
+} from '../model/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {

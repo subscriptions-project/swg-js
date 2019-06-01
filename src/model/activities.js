@@ -19,7 +19,7 @@ import {
 } from '../proto/api_messages';
 
 /**
- * @implements {ActivityPort}
+ * @implements {web-activities/activity-ports.ActivityPort}
  */
 export class ActivityIframePort {
   /**
@@ -69,7 +69,7 @@ export class ActivityIframePort {
 
   /**
    * Returns the mode of the activity: iframe, popup or redirect.
-   * @return {!ActivityMode}
+   * @return {!web-activities/activity-ports.ActivityMode}
    * @override
    */
   getMode() {
@@ -125,7 +125,7 @@ export class ActivityIframePort {
 
   /**
    * @param {!function(new: T)} message
-   * @param {function(!T)} callback
+   * @param {function(T)} callback
    * @template T
    */
   on(message, callback) {
@@ -159,7 +159,7 @@ export class ActivityPorts {
  /**
   * Start an activity within the specified iframe.
   * @param {!HTMLIFrameElement} iframe
-  * @param {!TrustedResourceUrl} url
+  * @param {string} url
   * @param {?Object=} opt_args
   * @return {!Promise<!ActivityIframePort>}
   */
@@ -190,7 +190,7 @@ export class ActivityPorts {
   *
   * @param {string} requestId
   * @param {string} url
-  * @param {!Const} target
+  * @param {string} target
   * @param {?Object=} opt_args
   * @param {?web-activities/activity-ports.ActivityOpenOptions=} opt_options
   * @return {{targetWin: ?Window}}
@@ -229,7 +229,7 @@ export class ActivityPorts {
   * ```
   *
   * @param {string} requestId
-  * @param {function(!ActivityPort)} callback
+  * @param {function(!web-activities/activity-ports.ActivityPort)} callback
   */
   onResult(requestId, callback) {
     this.activityPorts_.onResult(requestId, callback);
