@@ -17,8 +17,6 @@
 import {
   ActivityPorts as WebActivityPorts,
   ActivityIframePort as WebActivityIframePort,
-  ActivityResult,
-  ActivityResultCode,
   ActivityMode,
 } from 'web-activities/activity-ports';
 import {
@@ -31,75 +29,67 @@ import * as sinon from 'sinon';
 import {AnalyticsRequest, AnalyticsEvent} from '../proto/api_messages';
 
 describes.realWin('ActivityPorts test', {}, env => {
-  let win, iframe, activitiesMock, iframePortMock, url, dialog;
-  let webActivityPorts, webActivityIframePort;
+  let win, iframe, iframePortMock, url, dialog;
+  let webActivityIframePort;
 
   beforeEach(() => {
     win = env.win;
     url = '/hello';
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     iframe = dialog.getElement();
-    webActivityPorts = new WebActivityPorts(win);
-    activitiesMock = sandbox.mock(webActivityPorts);
     webActivityIframePort = new WebActivityIframePort(iframe, url);
     iframePortMock = sandbox.mock(webActivityIframePort);
   });
 
   afterEach(() => {
-    activitiesMock.verify();
     iframePortMock.verify();
   });
 
   describe('test delegation', () => {
     it('should delegate openIframe', () => {
-      const activityPorts = new ActivityPorts(webActivityPorts);
-      let opt_args;
-      activitiesMock.expects('openIframe').withExactArgs(
-          sinon.match(arg => arg.tagName == 'IFRAME'),
-          '/hello',
-          opt_args
-        ).returns(
-          Promise.resolve(webActivityIframePort));
-      return activityPorts.openIframe(iframe, url).then(port => {
-        expect(port.iframePort_).to.equal(webActivityIframePort);
-      });
+      const activityPorts = new ActivityPorts(win);
+      sandbox.stub(WebActivityPorts.prototype, 'openIframe',
+          (iframe, url, opt_args) => {
+            expect(iframe.tagName).to.equal('IFRAME');
+            expect(url).to.equal('/hello');
+            expect(opt_args).to.be.undefined;
+            return Promise.resolve(webActivityIframePort);
+          });
+      return activityPorts.openIframe(iframe, url);
     });
 
     it('should delegate open', () => {
-      const activityPorts = new ActivityPorts(webActivityPorts);
-      activitiesMock.expects('open').returns({targetWin: null});
+      const activityPorts = new ActivityPorts(win);
+      sandbox.stub(WebActivityPorts.prototype, 'open', () => {
+        return {targetWin: null};
+      });
       const opener = activityPorts.open('some_request_id', '/someUrl',
           '_top', {});
       expect(opener.targetWin).to.be.null;
     });
 
     it('must delegate onResult', () => {
-      const activityPorts = new ActivityPorts(webActivityPorts);
-      let handler = null;
-      activitiesMock.expects('onResult')
-          .withExactArgs('result', sinon.match(arg => {
-            handler = arg;
-            return typeof arg == 'function';
-          })).once();
-      activityPorts.onResult('result', activityResult => {
-        expect(activityResult.code).to.equal(ActivityResultCode.OK);
-      });
-      handler(new ActivityResult(ActivityResultCode.OK, {},
-            ActivityMode.IFRAME, '/hello', true, true));
+      const activityPorts = new ActivityPorts(win);
+      const resultHandler = port => port.acceptResult();
+      sandbox.stub(WebActivityPorts.prototype, 'onResult',
+          (requestId, handler) => {
+            expect(requestId).to.equal('result');
+            expect(handler).to.equal(resultHandler);
+          });
+      activityPorts.onResult('result', resultHandler);
     });
 
     it('must delegate onRedirectError', () => {
-      const activityPorts = new ActivityPorts(webActivityPorts);
-      let handler = null;
-      activitiesMock.expects('onRedirectError')
-          .withExactArgs(sinon.match(arg => {
-            handler = arg;
-            return typeof arg == 'function';
-          })).once();
-      activityPorts.onRedirectError(error => {
-        expect(error.message).to.equal('I am an error message');
+      const activityPorts = new ActivityPorts(win);
+      const redirectHandler = error => {
+        setTimeout(() => {
+          throw error;
+        });
+      };
+      sandbox.stub(WebActivityPorts.prototype, 'onRedirectError', handler => {
+        expect(handler).to.equal(redirectHandler);
       });
-      handler(new Error('I am an error message'));
+      activityPorts.onRedirectError(redirectHandler);
     });
 
     it('must delegate connect and disconnect', () => {
