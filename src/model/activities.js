@@ -17,16 +17,19 @@ import {
   deserialize,
   getLabel,
 } from '../proto/api_messages';
+import {
+  ActivityPorts as WebActivityPorts,
+} from 'web-activities/activity-ports';
 
 /**
  * @implements {ActivityPort}
  */
 export class ActivityIframePort {
   /**
-   * @param {!web-activities/activity-ports.ActivityIframePort} port
+   * @param {!web-activities/activity-ports} port
    */
   constructor(port) {
-    /** @private @const {!web-activities/activity-ports.ActivityIframePort} */
+    /** @private @const {!web-activities/activity-ports} */
     this.iframePort_ = port;
     /** @private @const {!Object<string, function(!{Object})>} */
     this.callbackMap_ = {};
@@ -149,11 +152,11 @@ export class ActivityIframePort {
 
 export class ActivityPorts {
  /**
-  * @param {!web-activities/activity-ports.ActivityPorts} ports
+  * @param {!Window} win
   */
-  constructor(ports) {
-  /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = ports;
+  constructor(win) {
+    /** @private @const {!WebActivityPorts} */
+    this.activityPorts_ = new WebActivityPorts(win);
   }
 
  /**
