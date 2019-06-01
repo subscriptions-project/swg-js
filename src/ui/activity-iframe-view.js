@@ -33,7 +33,7 @@ export class ActivityIframeView extends View {
 
   /**
    * @param {!Window} win
-   * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
+   * @param {!../model/activities.ActivityPorts} activityPorts
    * @param {string} src
    * @param {!Object<string, ?>=} args
    * @param {boolean=} shouldFadeBody
@@ -59,7 +59,7 @@ export class ActivityIframeView extends View {
         /** @type {!HTMLIFrameElement} */ (
             createElement(this.doc_, 'iframe', iframeAttributes));
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../model/activities.ActivityPorts} */
     this.activityPorts_ = activityPorts;
 
     /** @private @const {string} */
@@ -148,7 +148,7 @@ export class ActivityIframeView extends View {
    */
   message(data) {
     this.getPortPromise_().then(port => {
-      port.message(data);
+      port.messageDeprecated(data);
     });
   }
 
@@ -158,7 +158,7 @@ export class ActivityIframeView extends View {
    */
   onMessage(callback) {
     this.getPortPromise_().then(port => {
-      port.onMessage(callback);
+      port.onMessageDeprecated(callback);
     });
   }
 
