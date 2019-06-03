@@ -15,9 +15,12 @@
  */
 
 import {
-  ActivityPort,
   ActivityResult,
+  ActivityIframePort as WebActivityIframePort,
 } from 'web-activities/activity-ports';
+import {
+  ActivityIframePort,
+} from '../model/activities';
 import {
   acceptPortResultData,
 } from './../utils/activity-utils';
@@ -31,7 +34,8 @@ import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
 import * as sinon from 'sinon';
-
+import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
 
 describes.realWin('OffersFlow', {}, env => {
   let win;
@@ -42,6 +46,7 @@ describes.realWin('OffersFlow', {}, env => {
   let pageConfig;
   let port;
   let messageCallback;
+  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -50,13 +55,14 @@ describes.realWin('OffersFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
-    port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessage', callback => {
+    sandbox.stub(port, 'onMessageDeprecated', callback => {
       messageCallback = callback;
     });
   });
@@ -227,6 +233,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
   let pageConfig;
   let port;
   let messageCallback;
+  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -235,12 +242,13 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     offersFlow = new SubscribeOptionFlow(runtime);
-    port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessage', callback => {
+    sandbox.stub(port, 'onMessageDeprecated', callback => {
       messageCallback = callback;
     });
   });
@@ -352,6 +360,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   let abbrvOfferFlow;
   let port;
   let messageCallback;
+  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -360,13 +369,14 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
-    port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
     port.acceptResult = () => Promise.resolve();
     port.whenReady = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessage', callback => {
+    sandbox.stub(port, 'onMessageDeprecated', callback => {
       messageCallback = callback;
     });
   });

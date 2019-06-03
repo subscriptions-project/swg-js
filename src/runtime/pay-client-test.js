@@ -15,16 +15,18 @@
  */
 
 import {
-  ActivityPort,
+  ActivityIframePort as WebActivityIframePort,
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {
   ActivityPorts,
+  ActivityIframePort,
 } from '../model/activities';
 import {DialogManager} from '../components/dialog-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
+import {Dialog} from '../components/dialog';
 import {
   PayClient,
   PayClientBindingPayjs,
@@ -70,6 +72,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
   let resultCallback, resultStub;
   let payClient;
   let resultIdsAttached;
+  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -81,7 +84,9 @@ describes.realWin('PayClientBindingSwg', {}, env => {
         resultIdsAttached.push(requestId);
       }
     };
-    port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     activitiesMock = sandbox.mock(activityPorts);
     const dialogManager = new DialogManager(new GlobalDoc(win));
     dialogManagerMock = sandbox.mock(dialogManager);

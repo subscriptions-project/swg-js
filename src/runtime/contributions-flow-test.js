@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from 'web-activities/activity-ports';
+import {ActivityIframePort} from '../model/activities';
+import {
+  ActivityIframePort as WebActivityIframePort,
+} from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {
   ContributionsFlow,
@@ -23,7 +26,8 @@ import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
 import * as sinon from 'sinon';
-
+import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
 
 describes.realWin('ContributionsFlow', {}, env => {
   let win;
@@ -33,6 +37,7 @@ describes.realWin('ContributionsFlow', {}, env => {
   let callbacksMock;
   let pageConfig;
   let port;
+  let dialog;
   let messageCallback;
 
   beforeEach(() => {
@@ -42,13 +47,14 @@ describes.realWin('ContributionsFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     contributionsFlow = new ContributionsFlow(runtime, {'isClosable': true});
-    port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessage', callback => {
+    sandbox.stub(port, 'onMessageDeprecated', callback => {
       messageCallback = callback;
     });
   });

@@ -162,7 +162,7 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+   * @return {!Promise<!../model/activities.ActivityIframePort>}
    * @private
    */
   start_() {
@@ -207,7 +207,7 @@ export class AnalyticsService {
    */
   logEvent(event) {
     this.lastAction_ = this.start_().then(port => {
-      port.message({'buf': this.createLogRequest_(event).toArray()});
+      port.messageDeprecated({'buf': this.createLogRequest_(event).toArray()});
     });
   }
 
@@ -217,7 +217,7 @@ export class AnalyticsService {
    */
   onMessage(callback) {
     this.lastAction_ = this.start_().then(port => {
-      port.onMessage(callback);
+      port.onMessageDeprecated(callback);
     });
   }
 }

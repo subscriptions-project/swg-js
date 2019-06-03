@@ -109,7 +109,7 @@ export class SmartSubscriptionButtonApi {
     this.button_.appendChild(this.iframe_);
     this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
         .then(port => {
-          port.onMessage(result => {
+          port.onMessageDeprecated(result => {
             if (result['clicked']) {
               if (!this.callback_) {
                 throw new Error('No callback!');

@@ -74,7 +74,7 @@ export class ActivityIframeView extends View {
     /** @private @const {boolean} */
     this.hasLoadingIndicator_ = hasLoadingIndicator;
 
-    /** @private {?web-activities/activity-ports.ActivityIframePort} */
+    /** @private {?../model/activities.ActivityIframePort} */
     this.port_ = null;
 
     /**
@@ -120,7 +120,7 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * @param {!web-activities/activity-ports.ActivityIframePort} port
+   * @param {!../model/activities.ActivityIframePort} port
    * @param {!../components/dialog.Dialog} dialog
    * @return {!Promise}
    */
@@ -136,7 +136,7 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+   * @return {!Promise<!../model/activities.ActivityIframePort>}
    * @private
    */
   getPortPromise_() {

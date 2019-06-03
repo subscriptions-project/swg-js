@@ -15,13 +15,18 @@
  */
 
 import {
-    ActivityPort,
+    ActivityIframePort as WebActivityIframePort,
   } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {isCancelError} from '../utils/errors';
 import * as sinon from 'sinon';
+import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
+import {
+  ActivityIframePort,
+} from '../model/activities';
 
 describes.realWin('LoginPromptApi', {}, env => {
   let win;
@@ -35,6 +40,7 @@ describes.realWin('LoginPromptApi', {}, env => {
   let dialogManagerMock;
   const productId = 'pub1:label1';
   const publicationId = 'pub1';
+  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -43,8 +49,10 @@ describes.realWin('LoginPromptApi', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    port = new ActivityPort();
-    port.message = () => {};
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();

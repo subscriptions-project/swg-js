@@ -15,12 +15,15 @@
  */
 
 import {
-    ActivityPort,
+    ActivityIframePort as WebActivityIframePort,
   } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
+import {ActivityIframePort} from '../model/activities';
+import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
 
 describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
   let win;
@@ -36,6 +39,7 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
   const productId = 'pub1:label1';
   const publicationId = 'pub1';
   const account = 'found account!';
+  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -44,8 +48,10 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    port = new ActivityPort();
-    port.message = () => {};
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();

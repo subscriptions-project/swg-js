@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from 'web-activities/activity-ports';
 import {ButtonApi} from './button-api';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
 import * as sinon from 'sinon';
+import {
+  ActivityIframePort as WebActivityIframePort,
+} from 'web-activities/activity-ports';
+import {
+  ActivityIframePort,
+} from '../model/activities';
+import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
 
 describes.realWin('ButtonApi', {}, env => {
   let win;
@@ -31,6 +38,7 @@ describes.realWin('ButtonApi', {}, env => {
   let activitiesMock;
   let buttonApi;
   let handler;
+  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -39,7 +47,9 @@ describes.realWin('ButtonApi', {}, env => {
     pageConfig = new PageConfig('pub1:label1', false);
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
-    port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     handler = sandbox.spy();
   });
 

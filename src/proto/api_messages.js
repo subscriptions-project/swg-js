@@ -472,7 +472,7 @@ const PROTO_MAP = {
 /**
  * Utility to deserialize a buffer
  * @param {!Array} data
- * @return {!Message}
+ * @return {!Object}
  */
 function deserialize(data) {
   /** {?string} */

@@ -15,11 +15,16 @@
  */
 
 import {Toast} from './toast';
-import {ActivityPort} from 'web-activities/activity-ports';
+import {
+  ActivityIframePort as WebActivityIframePort,
+} from 'web-activities/activity-ports';
+import {ActivityIframePort} from '../model/activities';
 import {ConfiguredRuntime} from '../runtime/runtime';
 import {PageConfig} from '../model/page-config';
 import {getStyle} from '../utils/style';
 import * as sinon from 'sinon';
+import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
 
 const src = '$frontend$/swglib/toastiframe?_=_';
 
@@ -36,6 +41,7 @@ describes.realWin('Toast', {}, env => {
   let pageConfig;
   let port;
   let toast;
+  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -44,9 +50,11 @@ describes.realWin('Toast', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     toast = new Toast(runtime, src, args);
     toast.whenReady = () => Promise.resolve();
-    port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
   });
 

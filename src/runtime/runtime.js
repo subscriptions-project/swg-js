@@ -520,7 +520,7 @@ export class ConfiguredRuntime {
 
     /** @private @const {!Propensity} */
     this.propensityModule_ = new Propensity(this.win_,
-      this.pageConfig_);
+      this.pageConfig_, this.eventManager_);
 
     const preconnect = new Preconnect(this.win_.document);
 

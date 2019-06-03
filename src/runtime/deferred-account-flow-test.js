@@ -15,7 +15,7 @@
  */
 
 import {
-  ActivityPort,
+  ActivityIframePort as WebActivityIframePort,
 } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {
@@ -29,6 +29,11 @@ import {
 } from './pay-flow';
 import {isCancelError} from '../utils/errors';
 import * as sinon from 'sinon';
+import {
+  ActivityIframePort,
+} from '../model/activities';
+import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
 
 const EMPTY_ID_TOK = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9' +
     '.eyJzdWIiOiJJRF9UT0sifQ.SIG';
@@ -47,6 +52,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
   let port;
   let resultResolver;
   let flow;
+  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -65,9 +71,11 @@ describes.realWin('DeferredAccountFlow', {}, env => {
       entitlements: ents,
     });
 
-    port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     resultResolver = null;
     const resultPromise = new Promise(resolve => {

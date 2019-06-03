@@ -15,7 +15,7 @@
  */
 
 import {
-  ActivityPort,
+  ActivityIframePort as WebActivityIframePort,
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
@@ -30,6 +30,7 @@ import * as sinon from 'sinon';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {createCancelError} from '../utils/errors';
+import {ActivityIframePort} from '../model/activities';
 
 describes.realWin('LinkbackFlow', {}, env => {
   let win;
@@ -102,6 +103,8 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   let dialogManagerMock;
   let linkCompleteFlow;
   let triggerLinkProgressSpy, triggerLinkCompleteSpy, triggerFlowCancelSpy;
+  let dialog;
+  let port;
 
   beforeEach(() => {
     win = env.win;
@@ -139,9 +142,11 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     expect(triggerLinkProgressSpy).to.not.be.called;
     expect(triggerLinkCompleteSpy).to.not.be.called;
 
-    const port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     const result = new ActivityResult(
           ActivityResultCode.OK,
@@ -186,9 +191,11 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     expect(triggerLinkCompleteSpy).to.not.be.called;
     expect(triggerFlowCancelSpy).to.not.be.called;
 
-    const port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.reject(
         new DOMException('cancel', 'AbortError'));
@@ -210,7 +217,9 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   it('should default index to 0', () => {
     dialogManagerMock.expects('popupClosed').once();
     linkCompleteFlow = new LinkCompleteFlow(runtime, {});
-    const port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
@@ -229,9 +238,11 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
   it('should trigger events and reset entitlements', () => {
     dialogManagerMock.expects('popupClosed').once();
-    const port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
     const resultPromise = new Promise(resolve => {
@@ -268,9 +279,11 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
   it('should push new entitlements when available', () => {
     dialogManagerMock.expects('popupClosed').once();
-    const port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
     const resultPromise = new Promise(resolve => {
@@ -331,9 +344,11 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
   it('should reset entitlements for unsuccessful response', () => {
     dialogManagerMock.expects('popupClosed').once();
-    const port = new ActivityPort();
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
     const resultPromise = new Promise(resolve => {
@@ -376,6 +391,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   let triggerFlowStartSpy;
   let triggerFlowCanceledSpy;
   let triggerLinkProgressSpy;
+  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -390,12 +406,14 @@ describes.realWin('LinkSaveFlow', {}, env => {
         runtime.callbacks(), 'triggerFlowCanceled');
     triggerLinkProgressSpy = sandbox.stub(
         runtime.callbacks(), 'triggerLinkProgress');
-    port = new ActivityPort();
-    port.message = () => {};
+    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    port = new ActivityIframePort(
+        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessage', callback => {
+    sandbox.stub(port, 'onMessageDeprecated', callback => {
       messageCallback = callback;
     });
     const resultPromise = new Promise(resolve => {
@@ -529,7 +547,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       resolve({token: 'test'});
     });
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
-    const messageStub = sandbox.stub(port, 'message');
+    const messageStub = sandbox.stub(port, 'messageDeprecated');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_.then(() => {
@@ -548,7 +566,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       resolve({authCode: 'testCode'});
     });
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
-    const messageStub = sandbox.stub(port, 'message');
+    const messageStub = sandbox.stub(port, 'messageDeprecated');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_.then(() => {
