@@ -34,7 +34,7 @@ export class ActivityIframePort {
   constructor(iframe, url, opt_args) {
     /** @private @const {!web-activities/activity-ports.ActivityIframePort} */
     this.iframePort_ = new WebActivityIframePort(iframe, url, opt_args);
-    /** @private @const {!Object<string, function(!{Object})>} */
+    /** @private @const {!Object<string, function(!Object)>} */
     this.callbackMap_ = {};
   }
 
@@ -131,7 +131,7 @@ export class ActivityIframePort {
 
   /**
    * @param {!function(new: T)} message
-   * @param {function(!{Object})} callback
+   * @param {function(Object)} callback
    * @template T
    */
   on(message, callback) {
