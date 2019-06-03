@@ -15,10 +15,10 @@
  */
 
 
-import {createElement} from '../utils/dom';
-import {setImportantStyles} from '../utils/style';
-import {feArgs, feUrl} from './services';
-import {AnalyticsMode} from '../api/subscriptions';
+import { createElement } from '../utils/dom';
+import { setImportantStyles } from '../utils/style';
+import { feArgs, feUrl } from './services';
+import { AnalyticsMode } from '../api/subscriptions';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
@@ -75,9 +75,6 @@ export class SmartSubscriptionButtonApi {
     /** @private @const {string} */
     this.src_ = feUrl('/smartboxiframe');
 
-    /** @private @const {!../runtime/analytics-service.AnalyticsService} */
-    this.analyticsService_ = deps.analytics();
-
     /** @private @const {!Object} */
     this.args_ = feArgs({
       'productId': this.deps_.pageConfig().getProductId(),
@@ -111,14 +108,11 @@ export class SmartSubscriptionButtonApi {
       'width': '100%',
     });
     this.button_.appendChild(this.iframe_);
-    let analyticsContext = null;
     if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) {
       // isFromUserActsion = False
-      this.analyticsService_.getContext().then(context => {
-        analyticsContext = context.toArray();
-      });
+      const analyticsContext = this.deps_.analytics().getContext().toArray();
+      this.args_['analyticsContext'] = analyticsContext;
     }
-    this.args_['analyticsContext'] = analyticsContext;
     this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
         .then(port => {
           port.onMessage(result => {

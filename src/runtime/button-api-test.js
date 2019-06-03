@@ -199,7 +199,6 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'light',
           lang: 'en',
-          analyticsContext: null,
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(button, {}, handler);
@@ -223,7 +222,6 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'light',
           lang: 'en',
-          analyticsContext: null,
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(button, handler);
@@ -247,7 +245,6 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'dark',
           lang: 'fr',
-          analyticsContext: null,
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(
@@ -273,7 +270,6 @@ describes.realWin('ButtonApi', {}, env => {
               productId: 'pub1:label1',
               theme: 'light',
               lang: 'en',
-              analyticsContext: null,
             })
             .returns(Promise.resolve(port));
         buttonApi.attachSmartButton(
@@ -291,7 +287,7 @@ describes.realWin('ButtonApi', {}, env => {
     let expAnalyticsContext = new AnalyticsContext();
     expAnalyticsContext.setEmbedderOrigin('google.com');
     analyticsMock.expects('getContext')
-        .returns(Promise.resolve(expAnalyticsContext))
+        .returns(expAnalyticsContext)
         .once();
     config.analyticsMode = AnalyticsMode.IMPRESSIONS;
     runtime.configure(config);
@@ -311,6 +307,5 @@ describes.realWin('ButtonApi', {}, env => {
     expect(handler).to.not.be.called;
     button.click();
     expect(handler).to.be.calledOnce;
-    activitiesMock.verify();
   });
 });
