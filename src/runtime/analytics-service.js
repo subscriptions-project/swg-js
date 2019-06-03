@@ -192,12 +192,10 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise<!AnalyticsContext>}
+   * @return {!AnalyticsContext}
    */
   getContext() {
-    return this.start_().then(() => {
-      return this.context_;
-    });
+    return this.context_;
   }
 
   /**
