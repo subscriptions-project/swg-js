@@ -21,9 +21,6 @@ import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
 import * as sinon from 'sinon';
 import {
-  ActivityIframePort as WebActivityIframePort,
-} from 'web-activities/activity-ports';
-import {
   ActivityIframePort,
 } from '../model/activities';
 import {Dialog} from '../components/dialog';
@@ -48,8 +45,7 @@ describes.realWin('ButtonApi', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     handler = sandbox.spy();
   });
 

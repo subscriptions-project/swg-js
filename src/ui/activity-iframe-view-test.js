@@ -16,7 +16,6 @@
 
 import {ActivityIframeView} from './activity-iframe-view';
 import {
-  ActivityIframePort as WebActivityIframePort,
   ActivityResult,
 } from 'web-activities/activity-ports';
 import {
@@ -45,7 +44,7 @@ describes.realWin('ActivityIframeView', {}, env => {
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     activityPorts = new ActivityPorts(win);
     activityIframePort = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), src, activityPorts));
+        dialog.getElement(), src, activityPorts);
 
     sandbox.stub(
         activityIframePort,

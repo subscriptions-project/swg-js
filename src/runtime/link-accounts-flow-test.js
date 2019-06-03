@@ -15,7 +15,6 @@
  */
 
 import {
-  ActivityIframePort as WebActivityIframePort,
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
@@ -143,8 +142,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     expect(triggerLinkCompleteSpy).to.not.be.called;
 
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -192,8 +190,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     expect(triggerFlowCancelSpy).to.not.be.called;
 
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -218,8 +215,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     dialogManagerMock.expects('popupClosed').once();
     linkCompleteFlow = new LinkCompleteFlow(runtime, {});
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
@@ -239,8 +235,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   it('should trigger events and reset entitlements', () => {
     dialogManagerMock.expects('popupClosed').once();
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -280,8 +275,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   it('should push new entitlements when available', () => {
     dialogManagerMock.expects('popupClosed').once();
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -345,8 +339,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   it('should reset entitlements for unsuccessful response', () => {
     dialogManagerMock.expects('popupClosed').once();
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -407,8 +400,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     triggerLinkProgressSpy = sandbox.stub(
         runtime.callbacks(), 'triggerLinkProgress');
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};

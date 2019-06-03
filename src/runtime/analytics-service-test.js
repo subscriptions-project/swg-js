@@ -15,9 +15,6 @@
  */
 
 import {ActivityIframePort} from '../model/activities';
-import {
-  ActivityIframePort as WebActivityIframePort,
-} from 'web-activities/activity-ports';
 import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ConfiguredRuntime} from './runtime';
@@ -45,9 +42,8 @@ describes.realWin('AnalyticsService', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activityPorts = runtime.activities();
     analyticsService = new AnalyticsService(runtime);
-    activityIframePort = new ActivityIframePort(
-        new WebActivityIframePort(analyticsService.getElement(),
-        feUrl(src)), activityPorts);
+    activityIframePort = new ActivityIframePort(analyticsService.getElement(),
+        feUrl(src));
 
     sandbox.stub(
         activityPorts,

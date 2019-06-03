@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import {
-    ActivityIframePort as WebActivityIframePort,
-  } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {LoginNotificationApi} from './login-notification-api';
 import {PageConfig} from '../model/page-config';
@@ -47,8 +44,7 @@ describes.realWin('LoginNotificationApi', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.message = () => {};
     port.onResizeRequest = () => {};
     port.onMessage = () => {};

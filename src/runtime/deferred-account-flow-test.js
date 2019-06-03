@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import {
-  ActivityIframePort as WebActivityIframePort,
-} from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {
   DeferredAccountCreationResponse,
@@ -72,8 +69,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     });
 
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();

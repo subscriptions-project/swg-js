@@ -15,9 +15,6 @@
  */
 
 import {ActivityIframePort} from '../model/activities';
-import {
-  ActivityIframePort as WebActivityIframePort,
-} from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {
   ContributionsFlow,
@@ -48,8 +45,7 @@ describes.realWin('ContributionsFlow', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     contributionsFlow = new ContributionsFlow(runtime, {'isClosable': true});
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();

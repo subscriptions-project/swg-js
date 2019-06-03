@@ -15,9 +15,6 @@
  */
 
 import {Toast} from './toast';
-import {
-  ActivityIframePort as WebActivityIframePort,
-} from 'web-activities/activity-ports';
 import {ActivityIframePort} from '../model/activities';
 import {ConfiguredRuntime} from '../runtime/runtime';
 import {PageConfig} from '../model/page-config';
@@ -51,8 +48,7 @@ describes.realWin('Toast', {}, env => {
     toast = new Toast(runtime, src, args);
     toast.whenReady = () => Promise.resolve();
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();

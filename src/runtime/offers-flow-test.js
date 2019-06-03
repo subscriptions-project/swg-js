@@ -16,7 +16,6 @@
 
 import {
   ActivityResult,
-  ActivityIframePort as WebActivityIframePort,
 } from 'web-activities/activity-ports';
 import {
   ActivityIframePort,
@@ -56,8 +55,7 @@ describes.realWin('OffersFlow', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
@@ -243,8 +241,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     offersFlow = new SubscribeOptionFlow(runtime);
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     messageCallback = undefined;
@@ -370,8 +367,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
+    port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
     port.acceptResult = () => Promise.resolve();
     port.whenReady = () => Promise.resolve();
