@@ -19,6 +19,7 @@ import {
 } from '../proto/api_messages';
 import {
   ActivityPorts as WebActivityPorts,
+  ActivityIframePort as WebActivityIframePort,
 } from 'web-activities/activity-ports';
 
 /**
@@ -26,11 +27,13 @@ import {
  */
 export class ActivityIframePort {
   /**
-   * @param {!web-activities/activity-ports} port
+   * @param {!HTMLIFrameElement} iframe
+  * @param {!TrustedResourceUrl} url
+   * @param {?Object=} opt_args
    */
-  constructor(port) {
-    /** @private @const {!web-activities/activity-ports} */
-    this.iframePort_ = port;
+  constructor(iframe, url, opt_args) {
+    /** @private @const {!WebActivityIframePort} */
+    this.iframePort_ = new WebActivityIframePort(iframe, url, opt_args);
     /** @private @const {!Object<string, function(!{Object})>} */
     this.callbackMap_ = {};
   }
@@ -167,10 +170,8 @@ export class ActivityPorts {
   * @return {!Promise<!ActivityIframePort>}
   */
   openIframe(iframe, url, opt_args) {
-    return this.activityPorts_.openIframe(iframe, url, opt_args).then(port => {
-      const activityPort = new ActivityIframePort(port);
-      return activityPort;
-    });
+    const activityPort = new ActivityIframePort(iframe, url, opt_args);
+    return activityPort.connect().then(() => activityPort);
   }
 
  /**
