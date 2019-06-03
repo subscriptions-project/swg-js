@@ -49,7 +49,7 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     accountPromise = Promise.resolve(account);
     waitingApi = new WaitForSubscriptionLookupApi(runtime, accountPromise);

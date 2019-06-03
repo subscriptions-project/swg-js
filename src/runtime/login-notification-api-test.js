@@ -45,9 +45,9 @@ describes.realWin('LoginNotificationApi', {}, env => {
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     port = new ActivityIframePort(dialog.getElement(), '/hello');
-    port.message = () => {};
+    port.Deprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     loginNotificationApi = new LoginNotificationApi(runtime);
     resultResolver = null;

@@ -50,7 +50,7 @@ describes.realWin('LoginPromptApi', {}, env => {
     port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     loginPromptApi = new LoginPromptApi(runtime);
     resultResolver = null;

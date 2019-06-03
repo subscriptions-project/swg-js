@@ -368,8 +368,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     const port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
-    port.message = () => {};
-    port.onMessage = () => {};
+    port.messageDeprecated = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));

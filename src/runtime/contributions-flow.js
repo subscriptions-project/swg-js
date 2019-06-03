@@ -78,7 +78,7 @@ export class ContributionsFlow {
     });
 
     // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.onMessage(result => {
+    this.activityIframeView_.onMessageDeprecated(result => {
       if (result['alreadyMember']) {
         this.deps_.callbacks().triggerLoginRequest({
           linkRequested: !!result['linkRequested'],

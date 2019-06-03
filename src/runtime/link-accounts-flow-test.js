@@ -217,7 +217,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     port = new ActivityIframePort(dialog.getElement(), '/hello');
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),

@@ -288,7 +288,7 @@ export class LinkSaveFlow {
         /* shouldFadeBody */ false,
         /* hasLoadingIndicator */ true
     );
-    this.activityIframeView_.onMessage(data => {
+    this.activityIframeView_.onMessageDeprecated(data => {
       if (data['getLinkingInfo']) {
         this.requestPromise_ = new Promise(resolve => {
           resolve(this.callback_());
@@ -305,7 +305,7 @@ export class LinkSaveFlow {
           } else {
             throw new Error('Neither token or authCode is available');
           }
-          this.activityIframeView_.message(saveRequest);
+          this.activityIframeView_.messageDeprecated(saveRequest);
         }).catch(reason => {
           // The flow is complete.
           this.complete_();
