@@ -15,10 +15,10 @@
  */
 
 
-import { createElement } from '../utils/dom';
-import { setImportantStyles } from '../utils/style';
-import { feArgs, feUrl } from './services';
-import { AnalyticsMode } from '../api/subscriptions';
+import {createElement} from '../utils/dom';
+import {setImportantStyles} from '../utils/style';
+import {feArgs, feUrl} from './services';
+import {AnalyticsMode} from '../api/subscriptions';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
