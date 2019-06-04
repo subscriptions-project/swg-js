@@ -284,7 +284,7 @@ describes.realWin('ButtonApi', {}, env => {
     const button = doc.createElement('button');
     button.className = 'swg-smart-button';
     expect(button.nodeType).to.equal(1);
-    let expAnalyticsContext = new AnalyticsContext();
+    const expAnalyticsContext = new AnalyticsContext();
     expAnalyticsContext.setEmbedderOrigin('google.com');
     analyticsMock.expects('getContext')
         .returns(expAnalyticsContext)
