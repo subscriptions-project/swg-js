@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 import {Xhr} from '../utils/xhr';
-import * as ServiceUrl from './services';
+import {adsUrl} from './services';
+import {EventOriginator} from '../proto/api_messages';
+import {isObject,isBoolean} from '../utils/types';
+import {ExperimentFlags} from './experiment-flags';
+import {isExperimentOn} from './experiments';
+import {analyticsEventToPropensityEvent} from './propensity-type-mapping';
+
+
+
 
 /**
  * Implements interface to Propensity server
@@ -25,8 +33,9 @@ export class PropensityServer {
    * is available, publication ID is therefore used
    * in constructor for the server interface.
    * @param {string} publicationId
+   * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
    */
-  constructor(win, publicationId) {
+  constructor(win, publicationId, eventManager) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private @const {string} */
@@ -39,6 +48,16 @@ export class PropensityServer {
     this.xhr_ = new Xhr(win);
     /** @private @const {number} */
     this.version_ = 1;
+
+    eventManager.registerEventListener(this.handleClientEvent_.bind(this));
+
+    // TODO(mborof): b/133519525
+    /** @private @const {!boolean} */
+    this.logSwgEventsExperiment_ = isExperimentOn(win,
+        ExperimentFlags.LOG_SWG_TO_PROPENSITY);
+
+    /** @private {!boolean} */
+    this.logSwgEventsConfig_ = false;
   }
 
   /**
@@ -93,7 +112,7 @@ export class PropensityServer {
     if (entitlements) {
       userState = userState + ':' + encodeURIComponent(entitlements);
     }
-    let url = ServiceUrl.adsUrl('/subopt/data?states=')
+    let url = adsUrl('/subopt/data?states=')
         + encodeURIComponent(userState) + '&u_tz=240'
         + '&v=' + this.version_;
     if (clientId) {
@@ -105,8 +124,9 @@ export class PropensityServer {
   /**
    * @param {string} event
    * @param {?string} context
+   * @private
    */
-  sendEvent(event, context) {
+  sendEvent_(event, context) {
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
@@ -116,13 +136,38 @@ export class PropensityServer {
     if (context) {
       eventInfo = eventInfo + ':' + encodeURIComponent(context);
     }
-    let url = ServiceUrl.adsUrl('/subopt/data?events=')
+    let url = adsUrl('/subopt/data?events=')
         + encodeURIComponent(eventInfo) + '&u_tz=240'
         + '&v=' + this.version_;
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
     return this.xhr_.fetch(url, init);
+  }
+
+  /**
+   *
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   */
+  handleClientEvent_(event) {
+    const propEvent = analyticsEventToPropensityEvent(event.eventType);
+    if (propEvent == null) {
+      return;
+    }
+    if (!(this.logSwgEventsExperiment_ && this.logSwgEventsConfig_)
+        && event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT) {
+      return;
+    }
+    let additionalParameters = event.additionalParameters;
+
+    if (isBoolean(event.isFromUserAction)) {
+      if (!isObject(additionalParameters)) {
+        additionalParameters = {};
+      }
+      additionalParameters['is_active'] = event.isFromUserAction;
+    }
+    this.sendEvent_(propEvent,
+        JSON.stringify(/** @type {?JsonObject} */ (additionalParameters)));
   }
 
   /**
@@ -189,7 +234,7 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    let url = ServiceUrl.adsUrl('/subopt/pts?products=') + this.publicationId_
+    let url = adsUrl('/subopt/pts?products=') + this.publicationId_
         + '&type=' + type + '&u_tz=240'
         + '&ref=' + referrer
         + '&v=' + this.version_;
@@ -200,5 +245,9 @@ export class PropensityServer {
         .then(response => {
           return this.parsePropensityResponse_(response);
         });
+  }
+
+  enableLoggingSwgEvents() {
+    this.logSwgEventsConfig_ = true;
   }
 }

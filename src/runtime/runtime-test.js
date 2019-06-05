@@ -799,7 +799,8 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should return propensity module', () => {
-      const propensity = new Propensity(win, config);
+      const propensity = new Propensity(win, config,
+          configuredRuntime.eventManager());
       configuredRuntimeMock.expects('getPropensityModule')
           .once()
           .returns(propensity);
@@ -1465,6 +1466,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should return events manager', () => {
-    expect(runtime.eventManager()).to.deep.equal(new ClientEventManager());
+    expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
   });
 });
