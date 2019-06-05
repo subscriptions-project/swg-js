@@ -17,13 +17,17 @@
 import {
   AnalyticsRequest,
   AnalyticsContext,
+  EventOriginator,
+  AnalyticsEventMeta,
 } from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
-import {getOnExperiments} from './experiments';
+import {getOnExperiments, isExperimentOn} from './experiments';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
+import {ExperimentFlags} from './experiment-flags';
+import {isBoolean} from '../utils/types';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -72,6 +76,18 @@ export class AnalyticsService {
 
     /** @private {?Promise} */
     this.lastAction_ = null;
+
+    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
+    this.eventManager_ = deps.eventManager();
+    this.eventManager_.registerEventListener(
+        this.handleClientEvent_.bind(this));
+
+    /** @private @const {!boolean} */
+    this.logPropensityExperiment_ = isExperimentOn(deps.win(),
+        ExperimentFlags.LOG_PROPENSITY_TO_SWG);
+
+    /** @private {!boolean} */
+    this.logPropensityConfig_ = false;
   }
 
   /**
@@ -199,22 +215,37 @@ export class AnalyticsService {
   }
 
   /**
-   * @param {!../proto/api_messages.AnalyticsEvent} event
+   * @param {!../api/client-event-manager-api.ClientEvent} event
    * @return {!AnalyticsRequest}
    */
   createLogRequest_(event) {
+    //ignore event.additionalParameters.  It may have data we shouldn't log
+    const meta = new AnalyticsEventMeta();
+    meta.setEventOriginator(event.eventOriginator);
+    meta.setIsFromUserAction(event.isFromUserAction);
+
     const request = new AnalyticsRequest();
-    request.setEvent(event);
+    request.setEvent(event.eventType);
     request.setContext(this.context_);
+    request.setMeta(meta);
     return request;
   }
 
   /**
-   * @param {!../proto/api_messages.AnalyticsEvent} event
+   * This function can be used to log a buy-flow event from SwG.
+   * It exists as a helper and to ensure backwards compatability,
+   * you have additional parameters available if you call eventManager.logEvent
+   * directly.
+   * @param {!../proto/api_messages.AnalyticsEvent} eventTypeIn
+   * @param {!boolean=} isFromUserActionIn
    */
-  logEvent(event) {
-    this.lastAction_ = this.start_().then(port => {
-      port.message({'buf': this.createLogRequest_(event).toArray()});
+  logEvent(eventTypeIn, isFromUserActionIn) {
+    this.eventManager_.logEvent({
+      eventType: eventTypeIn,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: /** @type {?boolean} */
+          (isBoolean(isFromUserActionIn) ? isFromUserActionIn : null),
+      additionalParameters: null,
     });
   }
 
@@ -226,5 +257,23 @@ export class AnalyticsService {
     this.lastAction_ = this.start_().then(port => {
       port.onMessage(callback);
     });
+  }
+
+  /**
+   *  Listens for new events from the events manager and handles logging
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   */
+  handleClientEvent_(event) {
+    if (!(this.logPropensityExperiment_ && this.logPropensityConfig_)
+        && event.eventOriginator === EventOriginator.PROPENSITY_CLIENT) {
+      return;
+    }
+    this.lastAction_ = this.start_().then(port => {
+      port.message({'buf': this.createLogRequest_(event).toArray()});
+    });
+  }
+
+  enableLoggingForPropensity() {
+    this.logPropensityConfig_ = true;
   }
 }

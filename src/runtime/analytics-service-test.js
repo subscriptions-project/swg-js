@@ -15,13 +15,17 @@
  */
 
 import {ActivityIframePort} from 'web-activities/activity-ports';
-import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
+import {AnalyticsEvent,
+    AnalyticsRequest,
+    EventOriginator} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {feArgs, feUrl} from './services';
 import {getStyle} from '../utils/style';
-import {setExperimentsStringForTesting} from './experiments';
+import {setExperimentsStringForTesting, setExperiment} from './experiments';
+import {ClientEventManager} from './client-event-manager';
+import {ExperimentFlags} from './experiment-flags';
 
 
 describes.realWin('AnalyticsService', {}, env => {
@@ -33,9 +37,19 @@ describes.realWin('AnalyticsService', {}, env => {
   let pageConfig;
   let messageCallback;
   let runtime;
+  let registeredCallback;
+
   const productId = 'pub1:label1';
+  const event = {
+    eventType: AnalyticsEvent.ACTION_SUBSCRIBE,
+    eventOriginator: EventOriginator.SWG_CLIENT,
+    isFromUserAction: null,
+    additionalParameters: {},
+  };
 
   beforeEach(() => {
+    sandbox.stub(ClientEventManager.prototype, 'registerEventListener',
+        callback => registeredCallback = callback);
     win = env.win;
     src = '/serviceiframe';
     pageConfig = new PageConfig(productId);
@@ -69,6 +83,10 @@ describes.realWin('AnalyticsService', {}, env => {
   });
 
   describe('AnalyticsService', () => {
+    it('should be listening for events from events manager', () => {
+      expect(registeredCallback).to.not.be.null;
+    });
+
     it('should have analyticsService constructed', () => {
       const activityIframe = analyticsService.getElement();
       const transactionId = analyticsService.getTransactionId();
@@ -111,7 +129,12 @@ describes.realWin('AnalyticsService', {}, env => {
           activityIframePort,
           'message'
       );
-      analyticsService.logEvent(AnalyticsEvent.UNKNOWN);
+      registeredCallback({
+        eventType: AnalyticsEvent.UNKNOWN,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
@@ -120,8 +143,17 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(firstArgument['buf']).to.not.be.null;
         const /* {?AnalyticsRequest} */ request =
           new AnalyticsRequest(firstArgument['buf']);
+        const meta = request.getMeta();
         expect(request.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
-        analyticsService.logEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
+        expect(meta.getEventOriginator()).to
+            .equal(EventOriginator.UNKNOWN_CLIENT);
+        expect(meta.getIsFromUserAction()).to.be.null;
+        registeredCallback({
+          eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: {droppedData: true},
+        });
         return analyticsService.lastAction_;
       }).then(() => {
         expect(activityPorts.openIframe).to.have.been.calledOnce;
@@ -138,8 +170,11 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(messageArgument['buf']).to.not.be.null;
         const /* {?AnalyticsRequest} */ request =
           new AnalyticsRequest(messageArgument['buf']);
+        const meta = request.getMeta();
         expect(request.getEvent()).to.deep.equal(
             AnalyticsEvent.IMPRESSION_PAYWALL);
+        expect(meta.getEventOriginator()).to.equal(EventOriginator.SWG_CLIENT);
+        expect(meta.getIsFromUserAction()).to.be.true;
       });
     });
 
@@ -156,7 +191,7 @@ describes.realWin('AnalyticsService', {}, env => {
       };
       analyticsService.setReadyToPay(true);
       analyticsService.setSku('basic');
-      analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+      registeredCallback(event);
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
@@ -186,7 +221,7 @@ describes.realWin('AnalyticsService', {}, env => {
           activityIframePort,
           'message'
       );
-      analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+      registeredCallback(event);
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
@@ -205,7 +240,7 @@ describes.realWin('AnalyticsService', {}, env => {
           activityIframePort,
           'message'
       );
-      analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+      registeredCallback(event);
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
@@ -226,7 +261,7 @@ describes.realWin('AnalyticsService', {}, env => {
           activityIframePort,
           'message'
       );
-      analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+      registeredCallback(event);
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
@@ -236,7 +271,7 @@ describes.realWin('AnalyticsService', {}, env => {
             .to.deep.equal(['L1', 'L2', 'E1', 'E2']);
 
         analyticsService.addLabels(['L3', 'L4']);
-        analyticsService.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+        registeredCallback(event);
         return analyticsService.lastAction_;
       }).then(() => {
         const firstArgument = activityIframePort.message.getCall(1).args[0];
@@ -253,6 +288,97 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.addLabels(['L1', 'L2', 'L3']);
       expect(analyticsService.context_.getLabelList())
           .to.deep.equal(['L1', 'L2', 'L3']);
+    });
+
+    it('should pass events along to events manager', () => {
+      let receivedEvent = null;
+      sandbox.stub(ClientEventManager.prototype, 'logEvent',
+          event => receivedEvent = event);
+      analyticsService.logEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
+      expect(receivedEvent).to.deep.equal({
+        eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it('should not log Propensity events by default', () => {
+      //should log all clients but propensity
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.SWG_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.AMP_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.be.null;
+
+      //ensure it requires the experiment to log Propensity events
+      analyticsService.enableLoggingForPropensity();
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.SWG_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.AMP_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.be.null;
+
+      //reinitialize the service after turning the experiment on
+      //ensure it requires the .enable method to log Propensity
+      setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
+      analyticsService = new AnalyticsService(runtime);
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.SWG_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.AMP_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.be.null;
+    });
+
+    it('should log Propensity events if experiment is on', () => {
+      //reinitialize the service after turning the experiment on
+      //ensure if we activate both things it properly logs all origins
+      setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
+      analyticsService = new AnalyticsService(runtime);
+      analyticsService.enableLoggingForPropensity();
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.SWG_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.AMP_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
     });
   });
 });
