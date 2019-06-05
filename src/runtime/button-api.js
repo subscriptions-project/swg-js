@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
+import {AnalyticsMode} from '../api/subscriptions';
 
 
 /**
@@ -59,11 +61,17 @@ const TITLE_LANG_MAP = {
 export class ButtonApi {
 
   /**
-   * @param {!../model/doc.Doc} doc
+   * @param {!./deps.DepsDef} deps
    */
-  constructor(doc) {
+  constructor(deps) {
     /** @private @const {!../model/doc.Doc} */
-    this.doc_ = doc;
+    this.doc_ = deps.doc();
+
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
+    /** @private @const {!../runtime/analytics-service.AnalyticsService} */
+    this.analyticsService_ = deps.analytics();
   }
 
   /**
@@ -116,6 +124,10 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
+    if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) {
+      this.analyticsService_.logEvent(
+          AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
+    }
     return button;
   }
 
@@ -152,13 +164,12 @@ export class ButtonApi {
   }
 
   /**
-   * @param {!./deps.DepsDef} deps
    * @param {!Element} button
    * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}
    */
-  attachSmartButton(deps, button, optionsOrCallback, opt_callback) {
+  attachSmartButton(button, optionsOrCallback, opt_callback) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = /** @type {function()} */
         (this.getCallback_(optionsOrCallback, opt_callback));
@@ -167,6 +178,6 @@ export class ButtonApi {
     button.classList.add('swg-smart-button');
 
     return new SmartSubscriptionButtonApi(
-        deps, button, options, callback).start();
+      this.deps_, button, options, callback).start();
   }
 }
