@@ -27,10 +27,8 @@ import {
 import {isCancelError} from '../utils/errors';
 import * as sinon from 'sinon';
 import {
-  ActivityIframePort,
+  ActivityPort,
 } from '../model/activities';
-import {Dialog} from '../components/dialog';
-import {GlobalDoc} from '../model/doc';
 
 const EMPTY_ID_TOK = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9' +
     '.eyJzdWIiOiJJRF9UT0sifQ.SIG';
@@ -49,7 +47,6 @@ describes.realWin('DeferredAccountFlow', {}, env => {
   let port;
   let resultResolver;
   let flow;
-  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -68,8 +65,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
       entitlements: ents,
     });
 
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();

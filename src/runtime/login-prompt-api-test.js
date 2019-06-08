@@ -19,10 +19,8 @@ import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {isCancelError} from '../utils/errors';
 import * as sinon from 'sinon';
-import {Dialog} from '../components/dialog';
-import {GlobalDoc} from '../model/doc';
 import {
-  ActivityIframePort,
+  ActivityPort,
 } from '../model/activities';
 
 describes.realWin('LoginPromptApi', {}, env => {
@@ -37,7 +35,6 @@ describes.realWin('LoginPromptApi', {}, env => {
   let dialogManagerMock;
   const productId = 'pub1:label1';
   const publicationId = 'pub1';
-  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -46,8 +43,7 @@ describes.realWin('LoginPromptApi', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
