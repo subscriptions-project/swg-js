@@ -826,6 +826,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   let analyticsMock;
   let jserrorMock;
   let activityResultCallbacks;
+  let resultVerifier;
   let offersApiMock;
   let redirectErrorHandler;
 
@@ -834,7 +835,8 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     activityResultCallbacks = {};
     redirectErrorHandler = null;
     sandbox.stub(ActivityPorts.prototype, 'onResult',
-        function(requestId, callback) {
+        function(requestId, verifier, callback) {
+          resultVerifier = verifier;
           if (activityResultCallbacks[requestId]) {
             throw new Error('duplicate');
           }
@@ -865,12 +867,8 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   function returnActivity(requestId, code, opt_dataOrError, opt_origin) {
     const activityResult = new ActivityResult(code, opt_dataOrError,
         'POPUP', opt_origin || 'https://example.com', false, false);
-    const activityResultPromise = Promise.resolve(activityResult);
-    const promise = activityResultCallbacks[requestId]({
-      acceptResult() {
-        return activityResultPromise;
-      },
-    });
+    const activityResultPromise = Promise.resolve(activityResult.data);
+    const promise = activityResultCallbacks[requestId](activityResultPromise);
     return activityResultPromise.then(() => {
       // Skip microtask.
       return promise;
@@ -1246,6 +1244,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .catch(() => {})
         .then(() => {
           expect(startStub).to.be.calledOnce;
+          expect(resultVerifier).to.exist;
         });
   });
 
@@ -1319,6 +1318,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .catch(() => {})
         .then(() => {
           expect(stub).to.be.calledOnce;
+          expect(resultVerifier).to.exist;
         });
   });
 

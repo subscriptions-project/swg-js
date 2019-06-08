@@ -15,7 +15,6 @@
  */
 
 import {
-  ActivityPort,
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
@@ -24,8 +23,6 @@ import {
 } from './activity-utils';
 
 const OK = ActivityResultCode.OK;
-const CANCELED = ActivityResultCode.CANCELED;
-const FAILED = ActivityResultCode.FAILED;
 
 const ORIGIN = 'https://example.com';
 const OTHER_ORIGIN = 'https://other.com';
@@ -42,121 +39,47 @@ const DONT_REQUIRE_SECURE = false;
 
 
 describes.sandboxed('acceptPortResultData', {}, () => {
-  let port;
 
   beforeEach(() => {
-    port = new ActivityPort();
   });
 
-  function result(code, dataOrError, origin, originVerified, secureChannel) {
-    const result = new ActivityResult(
-        code, dataOrError, 'MODE',
-        origin, originVerified, secureChannel);
-    sandbox.stub(port, 'acceptResult', () => {
-      if (result.code == OK) {
-        return Promise.resolve(result);
-      }
-      if (result.code == CANCELED) {
-        const error = new Error();
-        error.name = 'AbortError';
-        return Promise.reject(error);
-      }
-      return Promise.reject(result.error);
-    });
-  }
-
   it('should resolve success with everything required ', () => {
-    result(OK, 'A', ORIGIN, VERIFIED, SECURE);
-    return acceptPortResultData(
-        port,
-        ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(data => {
-          expect(data).to.equal('A');
-        });
+    const result = new ActivityResult(
+      OK, 'A', 'MODE',
+      ORIGIN, VERIFIED, SECURE);
+    expect(acceptPortResultData(result, ORIGIN,
+        REQUIRE_VERIFIED, REQUIRE_SECURE)).to.be.true;
   });
 
   it('should fail success on wrong origin', () => {
-    result(OK, 'A', OTHER_ORIGIN, VERIFIED, SECURE);
-    return acceptPortResultData(
-        port,
-        ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(() => {throw reason;}).to.throw(/channel mismatch/);
-        });
+    expect(() => acceptPortResultData(
+        new ActivityResult(OK, 'A', 'MODE', OTHER_ORIGIN, VERIFIED, SECURE),
+        ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE)).to.throw(/channel mismatch/);
   });
 
   it('should fail success on not verified', () => {
-    result(OK, 'A', ORIGIN, NOT_VERIFIED, SECURE);
-    return acceptPortResultData(
-        port,
-        ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(() => {throw reason;}).to.throw(/channel mismatch/);
-        });
+    expect(() => acceptPortResultData(
+        new ActivityResult(OK, 'A', 'MODE', ORIGIN, NOT_VERIFIED, SECURE),
+        ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE)).to.throw(/channel mismatch/);
   });
 
   it('should allow success on not verified', () => {
-    result(OK, 'A', ORIGIN, NOT_VERIFIED, SECURE);
-    return acceptPortResultData(
-        port,
-        ORIGIN, DONT_REQUIRE_VERIFIED, REQUIRE_SECURE).then(data => {
-          expect(data).to.equal('A');
-        });
+    const result = new ActivityResult(OK,
+        'A', 'MODE', ORIGIN, NOT_VERIFIED, SECURE);
+    expect(acceptPortResultData(
+        result,
+        ORIGIN, DONT_REQUIRE_VERIFIED, REQUIRE_SECURE)).to.be.true;
   });
 
   it('should fail success on not secure channel', () => {
-    result(OK, 'A', ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResultData(
-        port,
-        ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(() => {throw reason;}).to.throw(/channel mismatch/);
-        });
+    expect(() => acceptPortResultData(
+        new ActivityResult(OK, 'A', 'MODE', ORIGIN, VERIFIED, NOT_SECURE),
+        ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE)).to.throw(/channel mismatch/);
   });
 
   it('should allow success on not secure channel', () => {
-    result(OK, 'A', ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResultData(
-        port,
-        ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE).then(data => {
-          expect(data).to.equal('A');
-        });
-  });
-
-  it('should resolve unexpected failure', () => {
-    sandbox.stub(port, 'acceptResult',
-        () => Promise.reject(new Error('intentional')));
-    return acceptPortResultData(
-        port,
-        ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(() => {throw reason;}).to.throw(/intentional/);
-        });
-  });
-
-  it('should resolve cancel', () => {
-    result(CANCELED, null, ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResultData(
-        port,
-        ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(reason.name).to.equal('AbortError');
-        });
-  });
-
-  it('should resolve failure', () => {
-    result(FAILED, 'failure', ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResultData(
-        port,
-        ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(reason.name).to.not.equal('AbortError');
-          expect(() => {throw reason;}).to.throw(/failure/);
-        });
+    expect(acceptPortResultData(
+        new ActivityResult(OK, 'A', 'MODE', ORIGIN, VERIFIED, NOT_SECURE),
+        ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE)).to.be.true;
   });
 });

@@ -29,7 +29,7 @@ import * as sinon from 'sinon';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {createCancelError} from '../utils/errors';
-import {ActivityIframePort} from '../model/activities';
+import {ActivityIframePort, ActivityPort} from '../model/activities';
 
 describes.realWin('LinkbackFlow', {}, env => {
   let win;
@@ -128,9 +128,12 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
   it('should trigger on link response', () => {
     dialogManagerMock.expects('popupClosed').once();
-    let handler;
+    let verifier, handler;
     activitiesMock.expects('onResult')
         .withExactArgs('swg-link', sinon.match(arg => {
+          verifier = arg;
+          return typeof arg == 'function';
+        }), sinon.match(arg => {
           handler = arg;
           return typeof arg == 'function';
         }))
@@ -138,24 +141,21 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     entitlementsManagerMock.expects('blockNextNotification').once();
     LinkCompleteFlow.configurePending(runtime);
     expect(handler).to.exist;
+    expect(verifier).to.exist;
     expect(triggerLinkProgressSpy).to.not.be.called;
     expect(triggerLinkCompleteSpy).to.not.be.called;
 
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
-    port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
-    port.whenReady = () => Promise.resolve();
     const result = new ActivityResult(
           ActivityResultCode.OK,
           {'index': '1'},
           'IFRAME', location.origin, true, true);
-    port.acceptResult = () => Promise.resolve(result);
 
     let startResolver;
     const startPromise = new Promise(resolve => {
       startResolver = resolve;
     });
+    expect(verifier(result)).to.be.true;
+    handler(Promise.resolve({'index': '1'}));
     let instance;
     const startStub = sandbox.stub(LinkCompleteFlow.prototype, 'start',
         function() {
@@ -163,7 +163,6 @@ describes.realWin('LinkCompleteFlow', {}, env => {
           startResolver();
         });
 
-    handler(port);
     expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
     expect(triggerLinkCompleteSpy).to.not.be.called;
     return startPromise.then(() => {
@@ -175,31 +174,26 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
   it('should trigger on failed link response', () => {
     dialogManagerMock.expects('popupClosed').once();
-    let handler;
+    let verifier, handler;
     activitiesMock.expects('onResult')
         .withExactArgs('swg-link', sinon.match(arg => {
+          verifier = arg;
+          return typeof arg == 'function';
+        }), sinon.match(arg => {
           handler = arg;
           return typeof arg == 'function';
-        }))
-        .once();
+        })).once();
     entitlementsManagerMock.expects('blockNextNotification').once();
     LinkCompleteFlow.configurePending(runtime);
     expect(handler).to.exist;
+    expect(verifier).to.exist;
     expect(triggerLinkProgressSpy).to.not.be.called;
     expect(triggerLinkCompleteSpy).to.not.be.called;
     expect(triggerFlowCancelSpy).to.not.be.called;
 
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
-    port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
-    port.whenReady = () => Promise.resolve();
-    port.acceptResult = () => Promise.reject(
-        new DOMException('cancel', 'AbortError'));
-
     const startStub = sandbox.stub(LinkCompleteFlow.prototype, 'start');
 
-    handler(port);
+    handler(Promise.reject(new DOMException('cancel', 'AbortError')));
     expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
     expect(triggerLinkCompleteSpy).to.not.be.called;
     return Promise.resolve().then(() => {
@@ -214,11 +208,14 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   it('should default index to 0', () => {
     dialogManagerMock.expects('popupClosed').once();
     linkCompleteFlow = new LinkCompleteFlow(runtime, {});
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve(new ActivityResult(
+        ActivityResultCode.OK,
+        {'index': '1'},
+        'IFRAME', location.origin, true, true));
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
@@ -234,8 +231,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
   it('should trigger events and reset entitlements', () => {
     dialogManagerMock.expects('popupClosed').once();
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();

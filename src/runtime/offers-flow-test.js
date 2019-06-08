@@ -512,13 +512,15 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
       return Promise.reject(error);
     });
     return abbrvOfferFlow.start().then(() => {
-      return acceptPortResultData(port, 'https://example.com', true, true)
-          .then(() => {
-            throw new Error('must have failed');
-          }, reason => {
-            expect(reason.name).to.equal('AbortError');
-          });
+      return port.acceptResult();
+    }).then(result => {
+      return acceptPortResultData(result,
+          'https://example.com', true, true);
+    }).then(() => {
+      throw new Error('must have failed');
+    }).catch(reason => {
       expect(offersStartStub).to.not.be.called;
+      expect(reason.name).to.equal('AbortError');
     });
   });
 

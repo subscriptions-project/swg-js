@@ -23,6 +23,83 @@ import {
 } from 'web-activities/activity-ports';
 
 /**
+ * @interface
+ */
+export class ActivityPort {
+  /**
+   * Returns the mode of the activity: iframe, popup or redirect.
+   * @return {!web-activities/activity-ports.ActivityMode}
+   */
+  getMode() {}
+
+  /**
+   * Accepts the result when ready. The client should verify the activity's
+   * mode, origin, verification and secure channel flags before deciding
+   * whether or not to trust the result.
+   *
+   * Returns the promise that yields when the activity has been completed and
+   * either a result, a cancelation or a failure has been returned.
+   *
+   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
+   */
+  acceptResult() {}
+
+  /**
+   * Returns a promise that yields when the iframe is ready to be interacted
+   * with.
+   * @return {!Promise}
+   */
+  whenReady() {}
+
+  /**
+   * Waits until the activity port is connected to the host.
+   * @return {!Promise}
+   */
+  connect() {}
+
+  /**
+   * Disconnect the activity binding and cleanup listeners.
+   */
+  disconnect() {}
+
+  /**
+   * Register a callback to handle resize requests. Once successfully resized,
+   * ensure to call `resized()` method.
+   * @param {function(number)} unusedCallback
+   */
+  onResizeRequest(unusedCallback) {}
+
+  /**
+   * Sends a message to the host.
+   * @param {!Object} unusedPayload
+   */
+  messageDeprecated(unusedPayload) {}
+
+  /**
+   * Registers a callback to receive messages from the host.
+   * @param {function(!Object)} unusedCallback
+   */
+  onMessageDeprecated(unusedCallback) {}
+
+  /**
+   * @param {!../proto/api_messages.Message} unusedRequest
+   */
+  execute(unusedRequest) {}
+
+  /**
+   * @param {!function(new: T)} unusedMessage
+   * @param {function(Object)} unusedCallback
+   * @template T
+   */
+  on(unusedMessage, unusedCallback) {}
+
+  /**
+   * Signals back to the activity implementation that the client has updated
+   * the activity's size.
+   */
+  resized() {}
+}
+/**
  * @implements {web-activities/activity-ports.ActivityPort}
  */
 export class ActivityIframePort {
@@ -233,10 +310,23 @@ export class ActivityPorts {
   * ```
   *
   * @param {string} requestId
-  * @param {function(!web-activities/activity-ports.ActivityPort)} callback
+  * @param {!function(!web-activities/activity-ports.ActivityResult):boolean} verifier
+  * @param {function(!Promise<!Object>)} callback
   */
-  onResult(requestId, callback) {
-    this.activityPorts_.onResult(requestId, callback);
+  onResult(requestId, verifier, callback) {
+    this.activityPorts_.onResult(requestId, port => {
+      return port.acceptResult().then(result => {
+        let resultAccepted = true;
+        if (verifier) {
+          resultAccepted = verifier(result);
+        }
+        if (resultAccepted) {
+          callback(Promise.resolve(result.data));
+        }
+      }).catch(error => {
+        callback(Promise.reject(error));
+      });
+    });
   }
 
  /**
@@ -244,6 +334,13 @@ export class ActivityPorts {
   */
   onRedirectError(handler) {
     this.activityPorts_.onRedirectError(handler);
+  }
+
+  /**
+   * @return {!web-activities/activity-ports.ActivityPorts}
+   */
+  getOriginalWebActivityPorts() {
+    return this.activityPorts_;
   }
 }
 

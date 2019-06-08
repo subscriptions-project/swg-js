@@ -18,10 +18,13 @@ import {
   ActivityPorts as WebActivityPorts,
   ActivityIframePort as WebActivityIframePort,
   ActivityMode,
+  ActivityResult,
+  ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {
   ActivityPorts,
   ActivityIframePort,
+  ActivityPort,
 } from './activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
@@ -62,15 +65,68 @@ describes.realWin('ActivityPorts test', {}, env => {
       expect(opener.targetWin).to.be.null;
     });
 
-    it('must delegate onResult', () => {
+    it('must delegate onResult', done => {
       const activityPorts = new ActivityPorts(win);
-      const resultHandler = port => port.acceptResult();
-      sandbox.stub(/*OK*/WebActivityPorts.prototype, 'onResult',
+      const resultHandler = resultPromise => {
+        resultPromise.then(result => {
+          expect(result).to.deep.equal({'testing': true});
+          done();
+        });
+      };
+      const activityPort = new ActivityPort();
+      activityPort.acceptResult = () => {
+        const activityResult = new ActivityResult();
+        activityResult.code = ActivityResultCode.OK;
+        activityResult.origin = '/hello';
+        activityResult.originVerified = true;
+        activityResult.secureChannel = true;
+        activityResult.data = {'testing': true};
+        return Promise.resolve(activityResult);
+      };
+      let callback;
+      sandbox.stub(WebActivityPorts.prototype, 'onResult',
           (requestId, handler) => {
             expect(requestId).to.equal('result');
-            expect(handler).to.equal(resultHandler);
+            callback = handler;
+            expect(handler).to.not.be.null;
           });
-      activityPorts.onResult('result', resultHandler);
+      const verifier = result => {
+        expect(result.origin).to.equal('/hello');
+        expect(result.originVerified).to.be.true;
+        expect(result.secureChannel).to.be.true;
+        return true;
+      };
+      activityPorts.onResult('result', verifier, resultHandler);
+      callback(activityPort);
+    });
+
+    it('must throw result verification error', done => {
+      const activityPorts = new ActivityPorts(win);
+      const resultHandler = resultPromise => {
+        resultPromise.then(() => {
+          throw new Error('must have failed');
+        }).catch(error => {
+          expect(() => {throw error;}).to.throw(/channel mismatch/);
+          done();
+        });
+      };
+      const activityPort = new ActivityPort();
+      activityPort.acceptResult = () => {
+        const activityResult = new ActivityResult();
+        return Promise.resolve(activityResult);
+      };
+      let callback;
+      sandbox.stub(WebActivityPorts.prototype, 'onResult',
+          (requestId, handler) => {
+            expect(requestId).to.equal('result');
+            callback = handler;
+            expect(handler).to.not.be.null;
+          });
+      const verifier = () => {
+        throw new Error('channel mismatch');
+      };
+      activityPorts.onResult('result', verifier, resultHandler);
+      callback(activityPort);
     });
 
     it('must delegate onRedirectError', () => {
@@ -80,7 +136,7 @@ describes.realWin('ActivityPorts test', {}, env => {
           throw error;
         });
       };
-      sandbox.stub(/*OK*/WebActivityPorts.prototype, 'onRedirectError',
+      sandbox.stub(WebActivityPorts.prototype, 'onRedirectError',
           handler => {
             expect(handler).to.equal(redirectHandler);
           });

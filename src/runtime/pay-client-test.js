@@ -15,18 +15,15 @@
  */
 
 import {
-  ActivityIframePort as WebActivityIframePort,
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {
   ActivityPorts,
-  ActivityIframePort,
 } from '../model/activities';
 import {DialogManager} from '../components/dialog-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
-import {Dialog} from '../components/dialog';
 import {
   PayClient,
   PayClientBindingPayjs,
@@ -67,26 +64,23 @@ const INTEGR_DATA_OBJ_DECODED = {
 
 describes.realWin('PayClientBindingSwg', {}, env => {
   let win;
-  let activityPorts, activitiesMock, port;
+  let activityPorts, activitiesMock;
   let dialogManagerMock;
-  let resultCallback, resultStub;
+  let resultCallback, resultStub, resultVerifier;
   let payClient;
   let resultIdsAttached;
-  let dialog;
 
   beforeEach(() => {
     win = env.win;
     resultIdsAttached = [];
     activityPorts = new ActivityPorts(win);
-    activityPorts.onResult = (requestId, callback) => {
+    activityPorts.onResult = (requestId, verifier, callback) => {
       if (requestId == 'swg-pay' || requestId == 'GPAY') {
+        resultVerifier = verifier;
         resultCallback = callback;
         resultIdsAttached.push(requestId);
       }
     };
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(
-        new WebActivityIframePort(dialog.getElement(), '/hello'));
     activitiesMock = sandbox.mock(activityPorts);
     const dialogManager = new DialogManager(new GlobalDoc(win));
     dialogManagerMock = sandbox.mock(dialogManager);
@@ -102,11 +96,21 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 
   /**
    * @param {!ActivityResult} result
+   * @param {?function(!ActivityResult: boolean)} verifier
    * @return {!Promise<!Object>}
    */
-  function withResult(result) {
-    sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
-    resultCallback(port);
+  function withResult(result, verifier) {
+    let verified = true;
+    try {
+      if (verifier) {
+        verified = verifier(result);
+      }
+      if (verified) {
+        resultCallback(Promise.resolve(result.data));
+      }
+    } catch (error) {
+      resultCallback(Promise.reject(error));
+    }
     expect(resultStub).to.be.calledOnce;
     return resultStub.args[0][0];
   }
@@ -166,7 +170,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
   it('should catch mismatching channel', () => {
     dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ);
-    return withResult(result).then(() => {
+    return withResult(result, resultVerifier).then(() => {
       throw new Error('must have failed');
     }, reason => {
       expect(() => {throw reason;}).to.throw(/channel mismatch/);
@@ -177,7 +181,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
         'REDIRECT', 'PAY_ORIGIN', true, false);
-    return withResult(result).then(() => {
+    return withResult(result, resultVerifier).then(() => {
       throw new Error('must have failed');
     }, reason => {
       expect(() => {throw reason;}).to.throw(/channel mismatch/);
@@ -188,7 +192,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ,
         'REDIRECT', 'PAY_ORIGIN', false, true);
-    return withResult(result).then(() => {
+    return withResult(result, resultVerifier).then(() => {
       throw new Error('must have failed');
     }, reason => {
       expect(() => {throw reason;}).to.throw(/channel mismatch/);
@@ -229,7 +233,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
         () => Promise.resolve(
         {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
-    return withResult(result).then(data => {
+    return withResult(result, resultVerifier).then(data => {
       expect(data.swgCallbackData)
           .to.deep.equal(INTEGR_DATA_OBJ_DECODED.swgCallbackData);
       expect(data.environment).to.equal('PRODUCTION');
@@ -261,7 +265,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
         () => Promise.resolve(
           {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
-    return withResult(result).then(data => {
+    return withResult(result, resultVerifier).then(data => {
       expect(data.swgCallbackData)
           .to.deep.equal(INTEGR_DATA_OBJ_DECODED.swgCallbackData);
       expect(data.environment).to.equal('SANDBOX');
@@ -280,9 +284,8 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 
   it('should propagate cancelation', () => {
     dialogManagerMock.expects('popupClosed').once();
-    sandbox.stub(port, 'acceptResult', () => Promise.reject(
+    resultCallback(Promise.reject(
         new DOMException('cancel', 'AbortError')));
-    resultCallback(port);
     expect(resultStub).to.be.calledOnce;
     return resultStub.args[0][0].then(() => {
       throw new Error('must have failed');
@@ -293,9 +296,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 
   it('should propagate an error', () => {
     dialogManagerMock.expects('popupClosed').once();
-    sandbox.stub(port, 'acceptResult', () => Promise.reject(
-        new Error('intentional')));
-    resultCallback(port);
+    resultCallback(Promise.reject(new Error('intentional')));
     expect(resultStub).to.be.calledOnce;
     return resultStub.args[0][0].then(() => {
       throw new Error('must have failed');
@@ -341,7 +342,8 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       loadPaymentData: sandbox.stub(PaymentsAsyncClient.prototype,
           'loadPaymentData'),
     };
-    payClient = new PayClientBindingPayjs(win, activityPorts);
+    payClient = new PayClientBindingPayjs(
+        win, activityPorts.getOriginalWebActivityPorts());
     resultStub = sandbox.stub();
     payClient.onResponse(resultStub);
   });

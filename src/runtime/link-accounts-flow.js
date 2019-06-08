@@ -77,27 +77,30 @@ export class LinkCompleteFlow {
   static configurePending(deps) {
     /**
      * Handler function.
-     * @param {!web-activities/activity-ports.ActivityPort} port
+     * @param {!Promise<!Object>} resultPromise
      */
-    function handler(port) {
+    function handler(resultPromise) {
       deps.entitlementsManager().blockNextNotification();
       deps.callbacks().triggerLinkProgress();
       deps.dialogManager().popupClosed();
-      const promise = acceptPortResultData(
-          port,
+      return resultPromise.then(result => {
+        const flow = new LinkCompleteFlow(deps, result);
+        flow.start();
+      }).catch(error => {
+        if (isCancelError(error)) {
+          deps.callbacks().triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
+        }
+        throw error;
+      });
+    };
+    function verifyResult(result) {
+      return acceptPortResultData(
+          result,
           feOrigin(),
           /* requireOriginVerified */ false,
           /* requireSecureChannel */ false);
-      return promise.then(response => {
-        const flow = new LinkCompleteFlow(deps, response);
-        flow.start();
-      }, reason => {
-        if (isCancelError(reason)) {
-          deps.callbacks().triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
-        }
-      });
     };
-    deps.activities().onResult(LINK_REQUEST_ID, handler);
+    deps.activities().onResult(LINK_REQUEST_ID, verifyResult, handler);
   }
 
   /**

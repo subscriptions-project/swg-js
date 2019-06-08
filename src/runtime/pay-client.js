@@ -176,27 +176,40 @@ class PayClientBindingSwg {
 
   /** @override */
   onResponse(callback) {
-    const responseCallback = port => {
+    const responseCallback = resultPromise => {
       this.dialogManager_.popupClosed();
-      callback(this.validatePayResponse_(port));
+      callback(this.validatePayResponse_(resultPromise));
     };
-    this.activityPorts_.onResult(GPAY_ACTIVITY_REQUEST, responseCallback);
-    this.activityPorts_.onResult(PAY_REQUEST_ID, responseCallback);
+    const verifyResult = result => {
+      if (result.origin != payOrigin()) {
+        throw new Error('channel mismatch');
+      };
+      // Accept encrypted data from trusted origin
+      const data = /** @type {!Object} */ (result.data);
+      if (data && data['redirectEncryptedCallbackData']) {
+        return true;
+      }
+      // Otherwise, data must be supplied directly:
+      // that is, it must be a verified and secure channel.
+      if (result.originVerified && result.secureChannel) {
+        return true;
+      }
+      throw new Error('channel mismatch');
+    };
+    this.activityPorts_.onResult(GPAY_ACTIVITY_REQUEST,
+        verifyResult, responseCallback);
+    this.activityPorts_.onResult(PAY_REQUEST_ID,
+        verifyResult, responseCallback);
   }
 
   /**
-   * @param {!web-activities/activity-ports.ActivityPort} port
+   * @param {!Promise<!Object>} dataPromise
    * @return {!Promise<!Object>}
    * @private
    */
-  validatePayResponse_(port) {
-    // Do not require security immediately: it will be checked below.
-    return port.acceptResult().then(result => {
-      if (result.origin != payOrigin()) {
-        throw new Error('channel mismatch');
-      }
-      const data = /** @type {!Object} */ (result.data);
-      if (data['redirectEncryptedCallbackData']) {
+  validatePayResponse_(dataPromise) {
+    return dataPromise.then(data => {
+      if (data && data['redirectEncryptedCallbackData']) {
         // Data is supplied as an encrypted blob.
         const xhr = new Xhr(this.win_);
         const url = payDecryptUrl();
@@ -214,11 +227,7 @@ class PayClientBindingSwg {
               return Object.assign(dataClone, response);
             });
       }
-      // Data is supplied directly: must be a verified and secure channel.
-      if (result.originVerified && result.secureChannel) {
-        return data;
-      }
-      throw new Error('channel mismatch');
+      return Promise.resolve(data);
     });
   }
 }
@@ -272,7 +281,7 @@ export class PayClientBindingPayjs {
         options,
         handler,
         /* useIframe */ false,
-        this.activityPorts_);
+        this.activityPorts_.getOriginalWebActivityPorts());
   }
 
   /** @override */

@@ -182,8 +182,14 @@ export class ActivityIframeView extends View {
     requireOriginVerified,
     requireSecureChannel) {
     return this.getPortPromise_().then(port => {
-      return acceptPortResultData(port, requireOrigin,
-          requireOriginVerified, requireSecureChannel);
+      return port.acceptResult();
+    }).then(result => {
+      if (acceptPortResultData(result, requireOrigin,
+          requireOriginVerified, requireSecureChannel)) {
+        return Promise.resolve(result.data);
+      }
+    }).catch(error => {
+      return Promise.reject(error);
     });
   }
 
