@@ -737,14 +737,16 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should delegate "createButton"', () => {
+    it('should directly call "createButton"', () => {
       const options = {};
       const callback = () => {};
-      configuredRuntimeMock.expects('createButton').once()
-          .withExactArgs(options, callback).returns(Promise.resolve());
-      return runtime.createButton(options, callback).then(() => {
-        expect(configureStub).to.be.calledOnce;
+      const button = win.document.createElement('button');
+      const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
+        return button;
       });
+      const result = runtime.createButton(options, callback);
+      expect(result).to.equal(button);
+      expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
     });
 
     it('should delegate "waitForSubscriptionLookup"', () => {
@@ -756,15 +758,14 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
-    it('should delegate "attachButton"', () => {
+    it('should directly call "attachButton"', () => {
       const options = {};
       const callback = () => {};
       const button = win.document.createElement('button');
-      configuredRuntimeMock.expects('attachButton').once()
-          .withExactArgs(button, options, callback).returns(Promise.resolve());
-      return runtime.attachButton(button, options, callback).then(() => {
-        expect(configureStub).to.be.calledOnce;
-      });
+      const stub = sandbox.stub(runtime.buttonApi_, 'attach');
+      runtime.attachButton(button, options, callback);
+      expect(stub).to.be.calledOnce
+          .calledWithExactly(button, options, callback);
     });
 
     it('should use default fetcher', () => {
@@ -1010,10 +1011,10 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
   });
 
-  it('should inject button stylesheet', () => {
+  it('should NOT inject button stylesheet', () => {
     const el = win.document.head.querySelector(
         'link[href*="swg-button.css"]');
-    expect(el).to.exist;
+    expect(el).to.not.exist;
   });
 
   it('should initialize deps', () => {
