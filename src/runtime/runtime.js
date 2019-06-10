@@ -177,6 +177,9 @@ export class Runtime {
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
 
+    /** @private @const {!ClientEventManager} */
+    this.eventManager_ = new ClientEventManager(this.configured_(false));
+
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
     this.buttonApi_.init();  // Injects swg-button stylesheet.
@@ -215,7 +218,7 @@ export class Runtime {
         this.configuredResolver_(new ConfiguredRuntime(
             this.doc_,
             pageConfig,
-            /* opt_integr */ undefined,
+            /* opt_integr */ {eventManager: this.getEventManager()},
             this.config_));
         this.configuredResolver_ = null;
       }, reason => {
@@ -439,6 +442,10 @@ export class Runtime {
       return runtime.getPropensityModule();
     });
   }
+
+  getEventManager() {
+    return this.eventManager_;
+  }
 }
 
 /**
@@ -452,12 +459,14 @@ export class ConfiguredRuntime {
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {{
    *     fetcher: (!Fetcher|undefined),
+   *     eventManager: (!ClientEventManager|undefined)
    *   }=} opt_integr
    * @param {!../api/subscriptions.Config=} opt_config
    */
   constructor(winOrDoc, pageConfig, opt_integr, opt_config) {
     /** @private @const {!ClientEventManager} */
-    this.eventManager_ = new ClientEventManager();
+    this.eventManager_ = (opt_integr && opt_integr.eventManager)
+        || new ClientEventManager(Promise.resolve());
 
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
@@ -888,6 +897,7 @@ function createPublicRuntime(runtime) {
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
     getPropensityModule: runtime
         .getPropensityModule.bind(runtime),
+    getEventManager: runtime.getEventManager.bind(runtime),
   });
 }
 

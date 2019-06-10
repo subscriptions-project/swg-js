@@ -23,6 +23,7 @@ const DEFAULT_ORIGIN = EventOriginator.SWG_CLIENT;
 const OTHER_TYPE = AnalyticsEvent.ACTION_PAYMENT_COMPLETE;
 const OTHER_ORIGIN = EventOriginator.AMP_CLIENT;
 const BAD_VALUE = 'I should throw an error';
+const RESOLVED_PROMISE = Promise.resolve();
 
 /** @type {!EventManagerApi.ClientEvent} */
 const DEFAULT_EVENT = {
@@ -41,7 +42,7 @@ describes.sandboxed('EventManager', {}, () => {
       isFromUserAction: null,
       additionalParameters: {},
     };
-    const eventMan = new ClientEventManager();
+    const eventMan = new ClientEventManager(RESOLVED_PROMISE);
 
     let errorCount = 0;
     let matchedExpected = 0;
@@ -144,7 +145,7 @@ describes.sandboxed('EventManager', {}, () => {
   });
 
   it('should be able to listen for events', function*() {
-    const eventMan = new ClientEventManager();
+    const eventMan = new ClientEventManager(RESOLVED_PROMISE);
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
 
@@ -162,7 +163,7 @@ describes.sandboxed('EventManager', {}, () => {
   });
 
   it('should be able to filter out some events', function*() {
-    const eventMan = new ClientEventManager();
+    const eventMan = new ClientEventManager(RESOLVED_PROMISE);
     let receivedEventsCount = 0;
     const callback = () => receivedEventsCount++;
     eventMan.registerEventListener(callback);

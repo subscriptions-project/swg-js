@@ -60,7 +60,11 @@ function validateEvent(event) {
 
 /** @implements {../api/client-event-manager-api.ClientEventManagerApi} */
 export class ClientEventManager {
-  constructor() {
+  /**
+   *
+   * @param {!Promise} configuredPromise
+   */
+  constructor(configuredPromise) {
     /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent)>} */
     this.listeners_ = [];
 
@@ -69,6 +73,9 @@ export class ClientEventManager {
 
     /** @private {?Promise} */
     this.lastAction_ = null;
+
+    /** @private @const {!Promise} */
+    this.isReadyPromise_ = configuredPromise;
   }
 
   /**
@@ -91,37 +98,24 @@ export class ClientEventManager {
     this.filterers_.push(filterer);
   }
 
-
   /**
    * @overrides
    */
   logEvent(event) {
     validateEvent(event);
     this.lastAction_ = new Promise(resolve => {
-      for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
-        if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
-          resolve();
-          return;
+      this.isReadyPromise_.then(() => {
+        for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
+          if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
+            resolve();
+            return;
+          }
         }
-      }
-      for (let listener = 0; listener < this.listeners_.length; listener++) {
-        this.listeners_[listener](event);
-      }
-      resolve();
-    });
-  }
-
-  /**
-   * This function exists for the sole purpose of allowing the code to be
-   * presubmitted.  It can be removed once there is code generating a real
-   * event object somewhere.
-   */
-  useValidateEventForCompilationPurposes() {
-    validateEvent({
-      eventType: AnalyticsEvent.UNKNOWN,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: {},
+        for (let listener = 0; listener < this.listeners_.length; listener++) {
+          this.listeners_[listener](event);
+        }
+        resolve();
+      });
     });
   }
 }
