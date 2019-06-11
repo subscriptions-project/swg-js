@@ -182,7 +182,7 @@ export class Runtime {
     this.eventManager_ = new ClientEventManager(this.configured_(false));
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_);
+    this.buttonApi_ = new ButtonApi(this.doc_, this.eventManager_);
     this.buttonApi_.init();  // Injects swg-button stylesheet.
   }
 

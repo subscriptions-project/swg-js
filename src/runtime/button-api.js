@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
@@ -60,10 +61,14 @@ export class ButtonApi {
 
   /**
    * @param {!../model/doc.Doc} doc
+   * @param {!ClientEventManager} eventManager
    */
-  constructor(doc) {
+  constructor(doc, eventManager) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
+
+    /** @private @const {!ClientEventManager} */
+    this.eventManager_ = eventManager;
   }
 
   /**
@@ -116,6 +121,7 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
+    this.eventManager_.logEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
     return button;
   }
 
