@@ -103,19 +103,16 @@ export class ClientEventManager {
    */
   logEvent(event) {
     validateEvent(event);
-    this.lastAction_ = new Promise(resolve => {
-      this.isReadyPromise_.then(() => {
-        for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
-          if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
-            resolve();
-            return;
-          }
+    this.lastAction_ = this.isReadyPromise_.then(() => {
+      for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
+        if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
+          return Promise.resolve();
         }
-        for (let listener = 0; listener < this.listeners_.length; listener++) {
-          this.listeners_[listener](event);
-        }
-        resolve();
-      });
+      }
+      for (let listener = 0; listener < this.listeners_.length; listener++) {
+        this.listeners_[listener](event);
+      }
+      return Promise.resolve();
     });
   }
 }
