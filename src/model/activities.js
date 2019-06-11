@@ -113,6 +113,8 @@ export class ActivityIframePort {
     this.iframePort_ = new WebActivityIframePort(iframe, url, opt_args);
     /** @private @const {!Object<string, function(!Object)>} */
     this.callbackMap_ = {};
+    /** @private {?function(!Object)} */
+    this.originalCallback_ = null;
   }
 
   /**
@@ -123,6 +125,9 @@ export class ActivityIframePort {
   whenReady() {
     return this.iframePort_.whenReady().then(() => {
       this.iframePort_.onMessage(data => {
+        if (this.originalCallback_) {
+          setTimeout(() => this.originalCallback_(data));
+        }
         const response = data && data['RESPONSE'];
         if (!response) {
           return;
@@ -196,7 +201,7 @@ export class ActivityIframePort {
    * @param {function(!Object)} callback
    */
   onMessageDeprecated(callback) {
-    this.iframePort_.onMessage(callback);
+    this.originalCallback_ = callback;
   }
 
   /**
