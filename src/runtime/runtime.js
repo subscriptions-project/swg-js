@@ -178,6 +178,7 @@ export class Runtime {
     this.pageConfigResolver_ = null;
 
     /** @private @const {!ClientEventManager} */
+    //configured is called with false to avoid breaking a large number of tests
     this.eventManager_ = new ClientEventManager(this.configured_(false));
 
     /** @private @const {!ButtonApi} */
