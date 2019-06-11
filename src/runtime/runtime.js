@@ -552,10 +552,6 @@ export class ConfiguredRuntime {
       this.analyticsService_.logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
       this.jserror_.error('Redirect error', error);
     });
-
-    if (doneConstructingResolve != null) {
-      doneConstructingResolve();
-    }
   }
 
   /** @override */
