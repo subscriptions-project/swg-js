@@ -280,7 +280,7 @@ describes.realWin('ButtonApi', {}, env => {
         expect(handler).to.be.calledOnce;
         activitiesMock.verify();
       });
-      
+
   it('should attach a smart button with analytics enabled', () => {
     const button = doc.createElement('button');
     button.className = 'swg-smart-button';
@@ -288,24 +288,24 @@ describes.realWin('ButtonApi', {}, env => {
     const expAnalyticsContext = new AnalyticsContext();
     expAnalyticsContext.setEmbedderOrigin('google.com');
     analyticsMock.expects('getContext')
-      .returns(expAnalyticsContext)
-      .once();
+        .returns(expAnalyticsContext)
+        .once();
     config.analyticsMode = AnalyticsMode.IMPRESSIONS;
     runtime.configure(config);
     activitiesMock.expects('openIframe').withExactArgs(
-      sinon.match(arg => arg.tagName == 'IFRAME'),
-      '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
-      {
-        _client: 'SwG $internalRuntimeVersion$',
-        publicationId: 'pub1',
-        productId: 'pub1:label1',
-        theme: 'light',
-        lang: 'en',
-        analyticsContext: expAnalyticsContext.toArray(),
-      })
-      .returns(Promise.resolve(port));
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          theme: 'light',
+          lang: 'en',
+          analyticsContext: expAnalyticsContext.toArray(),
+        })
+        .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(
-      runtime, button, {theme: 'INVALID'}, handler);
+        runtime, button, {theme: 'INVALID'}, handler);
     expect(handler).to.not.be.called;
     button.click();
     expect(handler).to.be.calledOnce;
