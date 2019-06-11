@@ -477,6 +477,7 @@ export class ConfiguredRuntime {
 
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
+
     if (isEdgeBrowser(this.win_)) {
       // TODO(dvoytenko, b/120607343): Find a way to remove this restriction
       // or move it to Web Activities.
@@ -488,6 +489,10 @@ export class ConfiguredRuntime {
 
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
+
+    /** @private @const {!Propensity} */
+    this.propensityModule_ = new Propensity(this.win_,
+      this.pageConfig_, this.eventManager_);
 
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
@@ -515,6 +520,10 @@ export class ConfiguredRuntime {
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
+    //NOTE: 'this' is passed in as a DepsDef.  Do not pass in 'this' before
+    //analytics service and entitlements manager are constructed unless
+    //you are certain they do not rely on them because they are part of that
+    //definition.
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
 
@@ -527,10 +536,6 @@ export class ConfiguredRuntime {
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
-
-    /** @private @const {!Propensity} */
-    this.propensityModule_ = new Propensity(this.win_,
-        this.pageConfig_, this.eventManager_);
 
     const preconnect = new Preconnect(this.win_.document);
 
@@ -547,6 +552,10 @@ export class ConfiguredRuntime {
       this.analyticsService_.logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
       this.jserror_.error('Redirect error', error);
     });
+
+    if (doneConstructingResolve != null) {
+      doneConstructingResolve();
+    }
   }
 
   /** @override */
