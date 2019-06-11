@@ -15,7 +15,7 @@
  */
 
 import {Toast} from './toast';
-import {ActivityPort} from '../model/activities';
+import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from '../runtime/runtime';
 import {PageConfig} from '../model/page-config';
 import {getStyle} from '../utils/style';

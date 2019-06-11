@@ -33,7 +33,7 @@ export class ActivityIframeView extends View {
 
   /**
    * @param {!Window} win
-   * @param {!../model/activities.ActivityPorts} activityPorts
+   * @param {!../components/activities.ActivityPorts} activityPorts
    * @param {string} src
    * @param {!Object<string, ?>=} args
    * @param {boolean=} shouldFadeBody
@@ -59,7 +59,7 @@ export class ActivityIframeView extends View {
         /** @type {!HTMLIFrameElement} */ (
             createElement(this.doc_, 'iframe', iframeAttributes));
 
-    /** @private @const {!../model/activities.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = activityPorts;
 
     /** @private @const {string} */
@@ -74,7 +74,7 @@ export class ActivityIframeView extends View {
     /** @private @const {boolean} */
     this.hasLoadingIndicator_ = hasLoadingIndicator;
 
-    /** @private {?../model/activities.ActivityIframePort} */
+    /** @private {?../components/activities.ActivityIframePort} */
     this.port_ = null;
 
     /**
@@ -120,7 +120,7 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * @param {!../model/activities.ActivityIframePort} port
+   * @param {!../components/activities.ActivityIframePort} port
    * @param {!../components/dialog.Dialog} dialog
    * @return {!Promise}
    */
@@ -136,7 +136,7 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * @return {!Promise<!../model/activities.ActivityIframePort>}
+   * @return {!Promise<!../components/activities.ActivityIframePort>}
    * @private
    */
   getPortPromise_() {

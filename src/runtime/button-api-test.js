@@ -22,7 +22,7 @@ import {resolveDoc} from '../model/doc';
 import * as sinon from 'sinon';
 import {
   ActivityPort,
-} from '../model/activities';
+} from '../components/activities';
 
 describes.realWin('ButtonApi', {}, env => {
   let win;

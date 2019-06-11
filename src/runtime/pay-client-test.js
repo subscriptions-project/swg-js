@@ -20,7 +20,7 @@ import {
 } from 'web-activities/activity-ports';
 import {
   ActivityPorts,
-} from '../model/activities';
+} from '../components/activities';
 import {DialogManager} from '../components/dialog-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';

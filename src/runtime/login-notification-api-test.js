@@ -18,7 +18,7 @@ import {ConfiguredRuntime} from './runtime';
 import {LoginNotificationApi} from './login-notification-api';
 import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
-import {ActivityPort} from '../model/activities';
+import {ActivityPort} from '../components/activities';
 
 describes.realWin('LoginNotificationApi', {}, env => {
   let win;

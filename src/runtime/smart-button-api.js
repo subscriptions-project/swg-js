@@ -54,7 +54,7 @@ export class SmartSubscriptionButtonApi {
     /** @private @const {!Document} */
     this.doc_ = this.win_.document;
 
-    /** @private @const {!../model/activities.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!HTMLIFrameElement} */

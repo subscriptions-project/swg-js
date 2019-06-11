@@ -28,7 +28,7 @@ import {isCancelError} from '../utils/errors';
 import * as sinon from 'sinon';
 import {
   ActivityPort,
-} from '../model/activities';
+} from '../components/activities';
 
 const EMPTY_ID_TOK = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9' +
     '.eyJzdWIiOiJJRF9UT0sifQ.SIG';

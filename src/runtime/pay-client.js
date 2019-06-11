@@ -67,7 +67,7 @@ function payDecryptUrl() {
 export class PayClient {
   /**
    * @param {!Window} win
-   * @param {!../model/activities.ActivityPorts} activityPorts
+   * @param {!../components/activities.ActivityPorts} activityPorts
    * @param {!../components/dialog-manager.DialogManager} dialogManager
    */
   constructor(win, activityPorts, dialogManager) {
@@ -146,13 +146,13 @@ class PayClientBindingDef {
 class PayClientBindingSwg {
   /**
    * @param {!Window} win
-   * @param {!../model/activities.ActivityPorts} activityPorts
+   * @param {!../components/activities.ActivityPorts} activityPorts
    * @param {!../components/dialog-manager.DialogManager} dialogManager
    */
   constructor(win, activityPorts, dialogManager) {
     /** @private @const {!Window} */
     this.win_ = win;
-    /** @private @const {!../model/activities.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = activityPorts;
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = dialogManager;
@@ -241,12 +241,12 @@ class PayClientBindingSwg {
 export class PayClientBindingPayjs {
   /**
    * @param {!Window} win
-   * @param {!../model/activities.ActivityPorts} activityPorts
+   * @param {!../components/activities.ActivityPorts} activityPorts
    */
   constructor(win, activityPorts) {
     /** @private @const {!Window} */
     this.win_ = win;
-    /** @private @const {!../model/activities.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = activityPorts;
 
     /** @private {?function(!Promise<!Object>)} */

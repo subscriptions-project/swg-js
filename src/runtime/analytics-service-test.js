@@ -16,7 +16,7 @@
 
 import {
   ActivityIframePort,
-} from '../model/activities';
+} from '../components/activities';
 import {
   AnalyticsEvent,
   AnalyticsRequest,

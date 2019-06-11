@@ -29,7 +29,7 @@ import * as sinon from 'sinon';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {createCancelError} from '../utils/errors';
-import {ActivityPort} from '../model/activities';
+import {ActivityPort} from '../components/activities';
 
 describes.realWin('LinkbackFlow', {}, env => {
   let win;

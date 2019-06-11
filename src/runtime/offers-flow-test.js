@@ -19,7 +19,7 @@ import {
 } from 'web-activities/activity-ports';
 import {
   ActivityPort,
-} from '../model/activities';
+} from '../components/activities';
 import {
   acceptPortResultData,
 } from './../utils/activity-utils';

@@ -25,7 +25,7 @@ import {
 } from 'web-activities/activity-ports';
 import {
   ActivityPorts,
-} from '../model/activities';
+} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {
