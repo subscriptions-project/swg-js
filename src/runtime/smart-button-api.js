@@ -109,7 +109,6 @@ export class SmartSubscriptionButtonApi {
     });
     this.button_.appendChild(this.iframe_);
     if (this.deps_.config().analyticsMode == AnalyticsMode.IMPRESSIONS) {
-      // isFromUserActsion = False
       const analyticsContext = this.deps_.analytics().getContext().toArray();
       this.args_['analyticsContext'] = analyticsContext;
     }
