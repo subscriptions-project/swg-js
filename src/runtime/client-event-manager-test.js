@@ -216,4 +216,21 @@ describes.sandboxed('EventManager', {}, () => {
     //If this test is flaky it means sometimes event manager is logging despite
     //the promise not being resolved (which is a problem).
   });
+
+  it('should not log events if promise rejected', function*() {
+    let rejector = null;
+    const eventMan = new ClientEventManager(
+        new Promise((resolveUnused, reject) => rejector = reject)
+    );
+
+    let counter = 0;
+
+    eventMan.registerEventListener(() => counter++);
+    eventMan.logEvent(DEFAULT_EVENT);
+    expect(counter).to.equal(0);
+
+    rejector();
+    yield eventMan.lastAction_;
+    expect(counter).to.equal(0);
+  });
 });
