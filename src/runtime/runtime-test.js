@@ -24,7 +24,7 @@ import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {
   ConfiguredRuntime,
@@ -379,6 +379,14 @@ describes.realWin('Runtime', {}, env => {
     let config;
     let configPromise;
     let resolveStub;
+    let eventManager;
+
+    const event = {
+      eventType: AnalyticsEvent.ACTION_OFFER_SELECTED,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    };
 
     beforeEach(() => {
       config = new PageConfig('pub1', true);
@@ -387,6 +395,7 @@ describes.realWin('Runtime', {}, env => {
           PageConfigResolver.prototype,
           'resolveConfig',
           () => configPromise);
+      eventManager = runtime.eventManager();
     });
 
     it('should initialize correctly with config lookup', () => {
@@ -458,6 +467,41 @@ describes.realWin('Runtime', {}, env => {
       }, reason => {
         expect(() => {throw reason;}).to.throw(/config not available/);
       });
+    });
+
+    it('should not let event manager log until config available', function*() {
+      let counter1 = 0;
+      let counter2 = 0;
+
+      eventManager.registerEventListener(() => counter1++);
+      eventManager.logEvent(event);
+      expect(counter1).to.equal(0);
+
+      eventManager.registerEventListener(() => counter2++);
+      eventManager.logEvent(event);
+      expect(counter1).to.equal(0);
+      expect(counter2).to.equal(0);
+
+      runtime.configured_(true);
+
+      yield eventManager.lastAction_;
+      expect(counter1).to.equal(2);
+      expect(counter2).to.equal(2);
+    });
+
+    it('should not log when config rejected', function*() {
+      configPromise = Promise.reject('config not available');
+      let counter1 = 0;
+
+      eventManager.registerEventListener(() => counter1++);
+      eventManager.logEvent(event);
+      expect(counter1).to.equal(0);
+      runtime.configured_(true);
+
+      try {
+        yield eventManager.lastAction_;
+      } catch (e) {}
+      expect(counter1).to.equal(0);
     });
   });
 
