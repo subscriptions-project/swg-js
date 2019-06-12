@@ -61,13 +61,13 @@ export class ButtonApi {
 
   /**
    * @param {!../model/doc.Doc} doc
-   * @param {!ClientEventManager} eventManager
+   * @param {!./client-event-manager.ClientEventManager} eventManager
    */
   constructor(doc, eventManager) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
 
-    /** @private @const {!ClientEventManager} */
+    /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = eventManager;
   }
 

@@ -16,13 +16,14 @@
 
 import {ActivityPort} from 'web-activities/activity-ports';
 import {ButtonApi} from './button-api';
+import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
 import * as sinon from 'sinon';
 import {defaultConfig, AnalyticsMode} from '../api/subscriptions';
-import {AnalyticsContext} from '../proto/api_messages';
+import {AnalyticsContext, AnalyticsEvent} from '../proto/api_messages';
 
 
 
@@ -35,18 +36,20 @@ describes.realWin('ButtonApi', {}, env => {
   let config;
   let analyticsMock;
   let activitiesMock;
+  let logEventStub;
   let buttonApi;
   let handler;
 
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
-    buttonApi = new ButtonApi(resolveDoc(doc));
+    eventManager = new ClientEventManager(Promise.resolve());
+    logEventStub = sandbox.stub(eventManager, "logEvent");
+    buttonApi = new ButtonApi(resolveDoc(doc), eventManager);
     pageConfig = new PageConfig('pub1:label1', false);
     config = defaultConfig();
     runtime = new ConfiguredRuntime(win, pageConfig, config);
     analyticsMock = sandbox.mock(runtime.analytics());
-    runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     port = new ActivityPort();
     handler = sandbox.spy();
@@ -68,7 +71,7 @@ describes.realWin('ButtonApi', {}, env => {
   });
 
   it('should inject stylesheet only once', () => {
-    new ButtonApi(resolveDoc(doc)).init();
+    new ButtonApi(resolveDoc(doc), eventManager).init();
     buttonApi.init();
     const links = doc.querySelectorAll('link[href="$assets$/swg-button.css"]');
     expect(links).to.have.length(1);
@@ -282,34 +285,5 @@ describes.realWin('ButtonApi', {}, env => {
         button.click();
         expect(handler).to.be.calledOnce;
         activitiesMock.verify();
-      });
-
-  it('should attach a smart button with analytics enabled', () => {
-        const button = doc.createElement('button');
-        button.className = 'swg-smart-button';
-        expect(button.nodeType).to.equal(1);
-        const expAnalyticsContext = new AnalyticsContext();
-        expAnalyticsContext.setEmbedderOrigin('google.com');
-        analyticsMock.expects('getContext')
-            .returns(expAnalyticsContext)
-            .once();
-        config.analyticsMode = AnalyticsMode.IMPRESSIONS;
-        runtime.configure(config);
-        activitiesMock.expects('openIframe').withExactArgs(
-            sinon.match(arg => arg.tagName == 'IFRAME'),
-            '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
-            {
-              _client: 'SwG $internalRuntimeVersion$',
-              publicationId: 'pub1',
-              productId: 'pub1:label1',
-              theme: 'light',
-              lang: 'en',
-              analyticsContext: expAnalyticsContext.toArray(),
-            })
-            .returns(Promise.resolve(port));
-        buttonApi.attachSmartButton(button, {}, handler);
-        expect(handler).to.not.be.called;
-        button.click();
-        expect(handler).to.be.calledOnce;
       });
 });

@@ -219,7 +219,7 @@ export class Runtime {
         this.configuredResolver_(new ConfiguredRuntime(
             this.doc_,
             pageConfig,
-            /* opt_integr */ {eventManager: this.getEventManager()},
+            /* opt_integr */ {eventManager: this.eventManager()},
             this.config_));
         this.configuredResolver_ = null;
       }, reason => {
@@ -444,7 +444,7 @@ export class Runtime {
     });
   }
 
-  getEventManager() {
+  eventManager() {
     return this.eventManager_;
   }
 }
@@ -903,7 +903,7 @@ function createPublicRuntime(runtime) {
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
     getPropensityModule: runtime
         .getPropensityModule.bind(runtime),
-    getEventManager: runtime.getEventManager.bind(runtime),
+    eventManager: runtime.eventManager.bind(runtime),
   });
 }
 
