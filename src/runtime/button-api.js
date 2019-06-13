@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
@@ -121,7 +121,13 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
-    this.eventManager_.logEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON);
+    const impression_log_event = {
+      eventType: AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: false,
+      additionalParametersP: null,
+    }
+    this.eventManager_.logEvent(impression_log_event);
     return button;
   }
 
