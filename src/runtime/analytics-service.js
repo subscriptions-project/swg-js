@@ -86,8 +86,11 @@ export class AnalyticsService {
     this.logPropensityExperiment_ = isExperimentOn(deps.win(),
         ExperimentFlags.LOG_PROPENSITY_TO_SWG);
 
+    const config = deps.config();
+    const analyticsConfig = (config && config.analyticsConfig) || {};
     /** @private {!boolean} */
-    this.logPropensityConfig_ = false;
+    this.logPropensityConfig_ = analyticsConfig['enable_buy_flow_comparison']
+        || false;
   }
 
   /**
@@ -264,9 +267,5 @@ export class AnalyticsService {
     this.lastAction_ = this.start_().then(port => {
       port.message({'buf': this.createLogRequest_(event).toArray()});
     });
-  }
-
-  enableLoggingForPropensity() {
-    this.logPropensityConfig_ = true;
   }
 }

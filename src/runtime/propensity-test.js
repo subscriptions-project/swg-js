@@ -19,16 +19,26 @@ import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {defaultConfig} from '../api/subscriptions';
 
 describes.realWin('Propensity', {}, env => {
   let win;
+  let pageConfig;
+  let runtime;
+  let eventManager;
   let config;
   let propensity;
 
   beforeEach(() => {
     win = env.win;
-    config = new PageConfig('pub1', true);
-    propensity = new Propensity(win, config, new ClientEventManager());
+    pageConfig = new PageConfig('pub1', true);
+    config = defaultConfig();
+    eventManager = new ClientEventManager();
+    runtime = {
+      eventManager: () => eventManager,
+      config: () => config,
+    };
+    propensity = new Propensity(win, pageConfig, runtime);
   });
 
   it('should provide valid subscription state', () => {

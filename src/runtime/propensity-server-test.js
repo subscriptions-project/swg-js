@@ -22,6 +22,7 @@ import {ClientEventManager} from './client-event-manager';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {setExperiment} from './experiments';
 import {ExperimentFlags} from './experiment-flags';
+import {defaultConfig} from '../api/subscriptions';
 
  /**
   * Converts the URL sent to the propensity server into the propensity event
@@ -47,6 +48,9 @@ describes.realWin('PropensityServer', {}, env => {
   let propensityServer;
   let eventManager;
   let registeredCallback;
+  let config;
+  let runtime;
+
   const serverUrl = 'http://localhost:31862';
   const pubId = 'pub1';
   const defaultParameters = {'custom': 'value'};
@@ -59,11 +63,16 @@ describes.realWin('PropensityServer', {}, env => {
 
   beforeEach(() => {
     win = env.win;
+    config = defaultConfig();
     registeredCallback = null;
     eventManager = new ClientEventManager();
     sandbox.stub(ClientEventManager.prototype, 'registerEventListener',
         callback => registeredCallback = callback);
-    propensityServer = new PropensityServer(win, pubId, eventManager);
+    runtime = {
+      eventManager: () => eventManager,
+      config: () => config,
+    };
+    propensityServer = new PropensityServer(win, pubId, runtime);
     sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
   });
@@ -354,8 +363,19 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
-    //activated but no experiment
-    propensityServer.enableLoggingSwgEvents();
+    //experiment but not configured
+    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
+    registeredCallback = null;
+    propensityServer = new PropensityServer(win, pubId, runtime);
+    registeredCallback(defaultEvent);
+    expect(receivedType).to.be.null;
+    expect(receivedContext).to.be.null;
+    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
+
+    //configure on but no experiment
+    config.analyticsConfig['enable_propensity_in_swg'] = true;
+    registeredCallback = null;
+    propensityServer = new PropensityServer(win, pubId, runtime);
     registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
@@ -364,15 +384,7 @@ describes.realWin('PropensityServer', {}, env => {
     registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
-
-    //experiment but not activated
-    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
-    registeredCallback = null;
-    propensityServer = new PropensityServer(win, pubId, eventManager);
-    registeredCallback(defaultEvent);
-    expect(receivedType).to.be.null;
-    expect(receivedContext).to.be.null;
-    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
+    config.analyticsConfig['enable_propensity_in_swg'] = false;
   });
 
   it('should send SwG events to the Propensity Service', () => {
@@ -387,11 +399,11 @@ describes.realWin('PropensityServer', {}, env => {
     });
 
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
+    config.analyticsConfig['enable_propensity_in_swg'] = true;
     registeredCallback = null;
-    propensityServer = new PropensityServer(win, pubId, eventManager);
+    propensityServer = new PropensityServer(win, pubId, runtime);
 
-    //both experiment and enable: ensure it actually logs
-    propensityServer.enableLoggingSwgEvents();
+    //both experiment and configured: ensure it actually logs
     registeredCallback(defaultEvent);
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
@@ -403,5 +415,6 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
+    config.analyticsConfig['enable_propensity_in_swg'] = false;
   });
 });

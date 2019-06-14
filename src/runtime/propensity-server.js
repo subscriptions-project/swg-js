@@ -33,9 +33,9 @@ export class PropensityServer {
    * is available, publication ID is therefore used
    * in constructor for the server interface.
    * @param {string} publicationId
-   * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
+   * @param {!./deps.DepsDef} deps
    */
-  constructor(win, publicationId, eventManager) {
+  constructor(win, publicationId, deps) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private @const {string} */
@@ -49,15 +49,19 @@ export class PropensityServer {
     /** @private @const {number} */
     this.version_ = 1;
 
-    eventManager.registerEventListener(this.handleClientEvent_.bind(this));
+    deps.eventManager()
+        .registerEventListener(this.handleClientEvent_.bind(this));
 
     // TODO(mborof): b/133519525
     /** @private @const {!boolean} */
     this.logSwgEventsExperiment_ = isExperimentOn(win,
         ExperimentFlags.LOG_SWG_TO_PROPENSITY);
 
+    const config = deps.config();
+    const analyticsConfig = (config && config.analyticsConfig) || {};
     /** @private {!boolean} */
-    this.logSwgEventsConfig_ = false;
+    this.logSwgEventsConfig_ = analyticsConfig.enable_propensity_in_swg
+        || false;
   }
 
   /**
@@ -245,9 +249,5 @@ export class PropensityServer {
         .then(response => {
           return this.parsePropensityResponse_(response);
         });
-  }
-
-  enableLoggingSwgEvents() {
-    this.logSwgEventsConfig_ = true;
   }
 }

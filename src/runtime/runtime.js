@@ -490,10 +490,6 @@ export class ConfiguredRuntime {
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
 
-    /** @private @const {!Propensity} */
-    this.propensityModule_ = new Propensity(this.win_,
-      this.pageConfig_, this.eventManager_);
-
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
 
@@ -521,15 +517,19 @@ export class ConfiguredRuntime {
     this.callbacks_ = new Callbacks();
 
     //NOTE: 'this' is passed in as a DepsDef.  Do not pass in 'this' before
-    //analytics service and entitlements manager are constructed unless
-    //you are certain they do not rely on them because they are part of that
-    //definition.
+    //the next comment unless you are certain all dependencies are formed.
+    /** @private @const {!Propensity} */
+    this.propensityModule_ = new Propensity(this.win_,
+      this.pageConfig_, this);
+
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
 
     /** @private @const {!EntitlementsManager} */
     this.entitlementsManager_ = new EntitlementsManager(
         this.win_, this.pageConfig_, this.fetcher_, this);
+
+    //the deps object is now fully formed and can be used safely
 
     /** @private @const {!OffersApi} */
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);

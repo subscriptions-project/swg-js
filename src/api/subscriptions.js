@@ -269,6 +269,19 @@ export const SubscriptionFlows = {
   SHOW_LOGIN_NOTIFICATION: 'showLoginNotification',
 };
 
+/**
+ * Analytics configuration properties:
+ * - enable_buy_flow_comparison: boolean.  If true, events passed to Propensity
+ *     by the publisher are also sent to the Google analytics service.
+ * - enable_propensity_in_swg: boolean.  If true, events normally passed only
+ *     to the Google analytics service are also passed to Propensity, where they
+ *     can be used as part of the propensity to subscribe calculation.
+ * @typedef {{
+ *   enable_buy_flow_comparison: (!boolean|undefined),
+ *   enable_propensity_in_swg: (!boolean|undefined),
+ * }}
+ */
+export let AnalyticsConfig;
 
 /**
  * Configuration properties:
@@ -281,6 +294,7 @@ export const SubscriptionFlows = {
  *   experiments: (!Array<string>|undefined),
  *   windowOpenMode: (!WindowOpenMode|undefined),
  *   analyticsMode: (!AnalyticsMode|undefined),
+ *   analyticsConfig: (!AnalyticsConfig|undefined),
  * }}
  */
 export let Config;
@@ -330,6 +344,10 @@ export function defaultConfig() {
   return {
     windowOpenMode: WindowOpenMode.AUTO,
     analyticsMode: AnalyticsMode.DEFAULT,
+    analyticsConfig: {
+      'enable_buy_flow_comparison': false,
+      'enable_propensity_in_swg': false,
+    },
   };
 }
 
