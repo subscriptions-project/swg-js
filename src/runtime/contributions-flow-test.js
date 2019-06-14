@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityIframePort} from '../model/activities';
+import {ActivityIframePort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {
   ContributionsFlow,

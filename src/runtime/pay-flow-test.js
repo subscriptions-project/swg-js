@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityIframePort} from '../model/activities';
+import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
@@ -35,8 +35,6 @@ import {
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import * as sinon from 'sinon';
-import {Dialog} from '../components/dialog';
-import {GlobalDoc} from '../model/doc';
 
 const INTEGR_DATA_STRING =
     'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -257,7 +255,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let flow;
   let analyticsMock;
   let jserrorMock;
-  let dialog;
   let port;
 
   const TOKEN_HEADER = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
@@ -308,8 +305,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           return arg === 'RaW';
         }))
         .once();
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -336,8 +332,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -365,8 +360,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const response = new SubscribeResponse(
       'RaW', purchaseData, userData, entitlements,
       ProductType.SUBSCRIPTION, null);
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    const port = new ActivityIframePort(dialog.getElement(), '/hello');
+    const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
     port.onMessageDeprecated = () => {};
@@ -409,8 +403,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
     port.onMessageDeprecated = () => {};
@@ -450,8 +443,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
     let messageHandler;
@@ -521,8 +513,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const entitlements = new Entitlements('service1', TOKEN, [], null);
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, entitlements);
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
     port.onMessageDeprecated = () => {};
@@ -548,8 +539,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, entitlements,
         ProductType.SUBSCRIPTION, null);
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
     port.onMessageDeprecated = () => {};

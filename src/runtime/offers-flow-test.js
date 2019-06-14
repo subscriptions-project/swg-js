@@ -18,8 +18,8 @@ import {
   ActivityResult,
 } from 'web-activities/activity-ports';
 import {
-  ActivityIframePort,
-} from '../model/activities';
+  ActivityPort,
+} from '../components/activities';
 import {
   acceptPortResultData,
 } from './../utils/activity-utils';
@@ -33,8 +33,6 @@ import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
 import * as sinon from 'sinon';
-import {Dialog} from '../components/dialog';
-import {GlobalDoc} from '../model/doc';
 
 describes.realWin('OffersFlow', {}, env => {
   let win;
@@ -45,7 +43,6 @@ describes.realWin('OffersFlow', {}, env => {
   let pageConfig;
   let port;
   let messageCallback;
-  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -54,8 +51,7 @@ describes.realWin('OffersFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
@@ -231,7 +227,6 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
   let pageConfig;
   let port;
   let messageCallback;
-  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -240,8 +235,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     offersFlow = new SubscribeOptionFlow(runtime);
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     messageCallback = undefined;
@@ -357,7 +351,6 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   let abbrvOfferFlow;
   let port;
   let messageCallback;
-  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -366,8 +359,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.acceptResult = () => Promise.resolve();
     port.whenReady = () => Promise.resolve();

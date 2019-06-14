@@ -21,7 +21,7 @@ import {
 import {
   ActivityPorts,
   ActivityIframePort,
-} from '../model/activities';
+} from '../components/activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 

@@ -17,7 +17,9 @@
 import {
   ActivityPorts as WebActivityPorts,
   ActivityIframePort as WebActivityIframePort,
+  ActivityPort as WebActivityPort,
   ActivityMode,
+  ActivityResult,
 } from 'web-activities/activity-ports';
 import {
   ActivityPorts,
@@ -54,7 +56,7 @@ describes.realWin('ActivityPorts test', {}, env => {
 
     it('should delegate open', () => {
       const activityPorts = new ActivityPorts(win);
-      sandbox.stub(/*OK*/WebActivityPorts.prototype, 'open', () => {
+      sandbox.stub(WebActivityPorts.prototype, 'open', () => {
         return {targetWin: null};
       });
       const opener = activityPorts.open('some_request_id', '/someUrl',
@@ -64,13 +66,25 @@ describes.realWin('ActivityPorts test', {}, env => {
 
     it('must delegate onResult', () => {
       const activityPorts = new ActivityPorts(win);
-      const resultHandler = port => port.acceptResult();
-      sandbox.stub(/*OK*/WebActivityPorts.prototype, 'onResult',
+      const resultHandler = portDef => {
+        return portDef.acceptResult().then(result => {
+          expect(result.data).to.deep.equal('test');
+        });
+      };
+      let cb;
+      sandbox.stub(WebActivityPorts.prototype, 'onResult',
           (requestId, handler) => {
             expect(requestId).to.equal('result');
-            expect(handler).to.equal(resultHandler);
+            cb = handler;
           });
       activityPorts.onResult('result', resultHandler);
+      const activityPort = new WebActivityPort();
+      activityPort.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = 'test';
+        return Promise.resolve(result);
+      };
+      cb(activityPort);
     });
 
     it('must delegate onRedirectError', () => {
@@ -80,7 +94,7 @@ describes.realWin('ActivityPorts test', {}, env => {
           throw error;
         });
       };
-      sandbox.stub(/*OK*/WebActivityPorts.prototype, 'onRedirectError',
+      sandbox.stub(WebActivityPorts.prototype, 'onRedirectError',
           handler => {
             expect(handler).to.equal(redirectHandler);
           });
@@ -90,7 +104,7 @@ describes.realWin('ActivityPorts test', {}, env => {
     it('must delegate connect and disconnect', () => {
       const activityIframePort = new ActivityIframePort(iframe, url);
       let connected = false;
-      sandbox.stub(/*OK*/WebActivityIframePort.prototype, 'connect', () => {
+      sandbox.stub(WebActivityIframePort.prototype, 'connect', () => {
         connected = true;
         return Promise.resolve();
       });
@@ -101,13 +115,13 @@ describes.realWin('ActivityPorts test', {}, env => {
 
     it('should delegate getMode and attach callback to whenReady', () => {
       const activityIframePort = new ActivityIframePort(iframe, url);
-      sandbox.stub(/*OK*/WebActivityIframePort.prototype, 'getMode',
+      sandbox.stub(WebActivityIframePort.prototype, 'getMode',
           () => ActivityMode.IFRAME);
       expect(activityIframePort.getMode()).to.equal(ActivityMode.IFRAME);
-      sandbox.stub(/*OK*/WebActivityIframePort.prototype,
+      sandbox.stub(WebActivityIframePort.prototype,
           'whenReady', () => Promise.resolve());
       let handler = null;
-      sandbox.stub(/*OK*/WebActivityIframePort.prototype, 'onMessage', arg => {
+      sandbox.stub(WebActivityIframePort.prototype, 'onMessage', arg => {
         handler = arg;
       });
       return activityIframePort.whenReady().then(() => {
@@ -120,13 +134,13 @@ describes.realWin('ActivityPorts test', {}, env => {
     it('should handle resize request and delegate resized', () => {
       const activityIframePort = new ActivityIframePort(iframe, url);
       let resized = false;
-      sandbox.stub(/*OK*/WebActivityIframePort.prototype, 'resized', () => {
+      sandbox.stub(WebActivityIframePort.prototype, 'resized', () => {
         resized = true;
       });
       activityIframePort.resized();
       expect(resized).to.be.true;
       let handler = null;
-      sandbox.stub(/*OK*/WebActivityIframePort.prototype, 'onResizeRequest',
+      sandbox.stub(WebActivityIframePort.prototype, 'onResizeRequest',
           arg => {
             handler = arg;
           });
@@ -140,14 +154,14 @@ describes.realWin('ActivityPorts test', {}, env => {
     it('should test delegated deprecated message apis', () => {
       const activityIframePort = new ActivityIframePort(iframe, url);
       let payload;
-      sandbox.stub(/*OK*/WebActivityIframePort.prototype, 'message',
+      sandbox.stub(WebActivityIframePort.prototype, 'message',
           args => {
             payload = args;
           });
       activityIframePort.messageDeprecated({'sku': 'daily'});
       expect(payload).to.deep.equal({'sku': 'daily'});
       let handler = null;
-      sandbox.stub(/*OK*/WebActivityIframePort.prototype, 'onMessage',
+      sandbox.stub(WebActivityIframePort.prototype, 'onMessage',
           arg => {
             handler = arg;
           });
@@ -164,7 +178,7 @@ describes.realWin('ActivityPorts test', {}, env => {
       analyticsRequest.setEvent(AnalyticsEvent.UNKNOWN);
       const serializedRequest = analyticsRequest.toArray();
       let payload;
-      sandbox.stub(/*OK*/WebActivityIframePort.prototype, 'message', args => {
+      sandbox.stub(WebActivityIframePort.prototype, 'message', args => {
         payload = args;
       });
       activityIframePort.execute(analyticsRequest);
@@ -172,10 +186,10 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityIframePort.on(AnalyticsRequest, request => {
         expect(request.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
       });
-      sandbox.stub(/*OK*/WebActivityIframePort.prototype, 'whenReady',
+      sandbox.stub(WebActivityIframePort.prototype, 'whenReady',
           () => Promise.resolve());
       let handler = null;
-      sandbox.stub(WebActivityIframePort./*OK*/prototype, 'onMessage', args => {
+      sandbox.stub(WebActivityIframePort.prototype, 'onMessage', args => {
         handler = args;
       });
       return activityIframePort.whenReady().then(() => {

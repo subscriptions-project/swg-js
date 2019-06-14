@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityIframePort} from '../model/activities';
+import {ActivityIframePort} from '../components/activities';
 import {AnalyticsEvent,
     AnalyticsRequest,
     EventOriginator} from '../proto/api_messages';

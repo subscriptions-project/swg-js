@@ -39,7 +39,7 @@ export class DepsDef {
   pageConfig() {}
 
   /**
-   * @return {!../model/activities.ActivityPorts}
+   * @return {!../components/activities.ActivityPorts}
    */
   activities() {}
 

@@ -29,7 +29,7 @@ import * as sinon from 'sinon';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {createCancelError} from '../utils/errors';
-import {ActivityIframePort} from '../model/activities';
+import {ActivityPort} from '../components/activities';
 
 describes.realWin('LinkbackFlow', {}, env => {
   let win;
@@ -102,7 +102,6 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   let dialogManagerMock;
   let linkCompleteFlow;
   let triggerLinkProgressSpy, triggerLinkCompleteSpy, triggerFlowCancelSpy;
-  let dialog;
   let port;
 
   beforeEach(() => {
@@ -141,8 +140,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     expect(triggerLinkProgressSpy).to.not.be.called;
     expect(triggerLinkCompleteSpy).to.not.be.called;
 
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -189,8 +187,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     expect(triggerLinkCompleteSpy).to.not.be.called;
     expect(triggerFlowCancelSpy).to.not.be.called;
 
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -214,8 +211,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   it('should default index to 0', () => {
     dialogManagerMock.expects('popupClosed').once();
     linkCompleteFlow = new LinkCompleteFlow(runtime, {});
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -234,8 +230,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
   it('should trigger events and reset entitlements', () => {
     dialogManagerMock.expects('popupClosed').once();
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -274,8 +269,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
   it('should push new entitlements when available', () => {
     dialogManagerMock.expects('popupClosed').once();
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -338,8 +332,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
   it('should reset entitlements for unsuccessful response', () => {
     dialogManagerMock.expects('popupClosed').once();
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
@@ -384,7 +377,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
   let triggerFlowStartSpy;
   let triggerFlowCanceledSpy;
   let triggerLinkProgressSpy;
-  let dialog;
 
   beforeEach(() => {
     win = env.win;
@@ -399,8 +391,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
         runtime.callbacks(), 'triggerFlowCanceled');
     triggerLinkProgressSpy = sandbox.stub(
         runtime.callbacks(), 'triggerLinkProgress');
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};

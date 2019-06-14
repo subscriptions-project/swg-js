@@ -31,7 +31,7 @@ export class LoginPromptApi {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!../model/activities.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
