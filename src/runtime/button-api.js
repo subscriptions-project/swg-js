@@ -125,8 +125,8 @@ export class ButtonApi {
       eventType: AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON,
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction: false,
-      additionalParametersP: null,
-    }
+      additionalParameters: null,
+    };
     this.eventManager_.logEvent(impression_log_event);
     return button;
   }
