@@ -128,8 +128,9 @@ class ActivityPortDeprecated {
     return this.port_.acceptResult();
   }
 }
+
 /**
- * @implements {ActivityPort}
+ * @implements {ActivityPortDef}
  */
 export class ActivityIframePort {
   /**
@@ -182,7 +183,6 @@ export class ActivityIframePort {
   /**
    * Returns the mode of the activity: iframe, popup or redirect.
    * @return {!web-activities/activity-ports.ActivityMode}
-   * @override
    */
   getMode() {
     return this.iframePort_.getMode();
