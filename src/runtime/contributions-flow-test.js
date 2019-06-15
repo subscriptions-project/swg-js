@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityIframePort} from '../components/activities';
+import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {
   ContributionsFlow,
@@ -23,8 +23,6 @@ import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
 import * as sinon from 'sinon';
-import {Dialog} from '../components/dialog';
-import {GlobalDoc} from '../model/doc';
 
 describes.realWin('ContributionsFlow', {}, env => {
   let win;
@@ -34,7 +32,6 @@ describes.realWin('ContributionsFlow', {}, env => {
   let callbacksMock;
   let pageConfig;
   let port;
-  let dialog;
   let messageCallback;
 
   beforeEach(() => {
@@ -44,8 +41,7 @@ describes.realWin('ContributionsFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     contributionsFlow = new ContributionsFlow(runtime, {'isClosable': true});
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    port = new ActivityIframePort(dialog.getElement(), '/hello');
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
