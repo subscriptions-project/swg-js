@@ -161,6 +161,11 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityIframePort.messageDeprecated({'sku': 'daily'});
       expect(payload).to.deep.equal({'sku': 'daily'});
       let handler = null;
+      activityIframePort.onMessageDeprecated(data => {
+        expect(data).to.deep.equal({'sku': 'daily'});
+      });
+      sandbox.stub(WebActivityIframePort.prototype, 'whenReady',
+          () => Promise.resolve());
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage',
           arg => {
             handler = arg;
@@ -168,8 +173,46 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityIframePort.onMessageDeprecated(data => {
         expect(data).to.deep.equal({'sku': 'daily'});
       });
-      expect(handler).to.not.be.null;
-      handler({'sku': 'daily'});
+      return activityIframePort.whenReady().then(() => {
+        return handler;
+      }).then(handler => {
+        expect(handler).to.not.be.null;
+        handler({'sku': 'daily'});
+      });
+    });
+
+    it('should allow registering callback after ready', () => {
+      const activityIframePort = new ActivityIframePort(iframe, url);
+      let payload;
+      sandbox.stub(WebActivityIframePort.prototype, 'message',
+          args => {
+            payload = args;
+          });
+      activityIframePort.messageDeprecated({'sku': 'daily'});
+      expect(payload).to.deep.equal({'sku': 'daily'});
+      let handler = null;
+      sandbox.stub(WebActivityIframePort.prototype, 'whenReady',
+          () => Promise.resolve());
+      sandbox.stub(WebActivityIframePort.prototype, 'onMessage',
+          arg => {
+            handler = arg;
+          });
+      let callbackCalled = false;
+      const callback = data => {
+        callbackCalled = true;
+        expect(data).to.deep.equal({'sku': 'daily'});
+      };
+      return activityIframePort.whenReady().then(() => {
+        return handler;
+      }).then(handler => {
+        expect(handler).to.not.be.null;
+        handler({'sku': 'daily'});
+        return Promise.resolve();
+      }).then(() => {
+        expect(callbackCalled).to.be.false;
+        activityIframePort.onMessageDeprecated(callback);
+        handler({'sku': 'daily'});
+      });
     });
 
     it('should test new messaging APIs', () => {
@@ -191,6 +234,31 @@ describes.realWin('ActivityPorts test', {}, env => {
       let handler = null;
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage', args => {
         handler = args;
+      });
+      return activityIframePort.whenReady().then(() => {
+        return handler;
+      }).then(handler => {
+        expect(handler).to.not.be.null;
+        handler({'RESPONSE': serializedRequest});
+      });
+    });
+
+    it('should support onMessageDeprecated AND on APIs', () => {
+      const activityIframePort = new ActivityIframePort(iframe, url);
+      const analyticsRequest = new AnalyticsRequest();
+      analyticsRequest.setEvent(AnalyticsEvent.UNKNOWN);
+      const serializedRequest = analyticsRequest.toArray();
+      activityIframePort.on(AnalyticsRequest, request => {
+        expect(request.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
+      });
+      sandbox.stub(WebActivityIframePort.prototype, 'whenReady',
+          () => Promise.resolve());
+      let handler = null;
+      sandbox.stub(WebActivityIframePort.prototype, 'onMessage', args => {
+        handler = args;
+      });
+      activityIframePort.onMessageDeprecated(data => {
+        expect(data['RESPONSE']).to.equal(serializedRequest);
       });
       return activityIframePort.whenReady().then(() => {
         return handler;
