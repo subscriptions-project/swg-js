@@ -22,7 +22,6 @@ import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
 import * as sinon from 'sinon';
-import {defaultConfig} from '../api/subscriptions';
 
 
 
@@ -32,7 +31,6 @@ describes.realWin('ButtonApi', {}, env => {
   let runtime;
   let pageConfig;
   let port;
-  let config;
   let activitiesMock;
   let eventManagerMock;
   let buttonApi;
@@ -45,8 +43,7 @@ describes.realWin('ButtonApi', {}, env => {
     eventManagerMock = sandbox.mock(eventManager);
     buttonApi = new ButtonApi(resolveDoc(doc), eventManager);
     pageConfig = new PageConfig('pub1:label1', false);
-    config = defaultConfig();
-    runtime = new ConfiguredRuntime(win, pageConfig, config);
+    runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     port = new ActivityPort();
     handler = sandbox.spy();
