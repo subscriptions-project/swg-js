@@ -187,4 +187,50 @@ describes.sandboxed('EventManager', {}, () => {
     expect(receivedEventsCount).to.equal(1);
     eventMan.eventOriginator = DEFAULT_ORIGIN;
   });
+
+  it('should not log events until its promise is resolved', function*() {
+    let resolver = null;
+    const eventMan = new ClientEventManager(
+        new Promise(resolve => resolver = resolve)
+    );
+
+    let counter1 = 0;
+    let counter2 = 0;
+
+    eventMan.registerEventListener(() => counter1++);
+    eventMan.logEvent(DEFAULT_EVENT);
+    //ensure it has not logged yet
+    expect(counter1).to.equal(0);
+
+    eventMan.registerEventListener(() => counter2++);
+    eventMan.logEvent(DEFAULT_EVENT);
+    //ensure it has not logged yet
+    expect(counter1).to.equal(0);
+    expect(counter2).to.equal(0);
+
+    resolver();
+    yield eventMan.lastAction_;
+    //ensure it logged both events after we called resolver and yielded
+    expect(counter1).to.equal(counter2);
+
+    //If this test is flaky it means sometimes event manager is logging despite
+    //the promise not being resolved (which is a problem).
+  });
+
+  it('should not log events if promise rejected', function*() {
+    let rejector = null;
+    const eventMan = new ClientEventManager(
+        new Promise((resolveUnused, reject) => rejector = reject)
+    );
+
+    let counter = 0;
+
+    eventMan.registerEventListener(() => counter++);
+    eventMan.logEvent(DEFAULT_EVENT);
+    expect(counter).to.equal(0);
+
+    rejector();
+    yield eventMan.lastAction_;
+    expect(counter).to.equal(0);
+  });
 });
