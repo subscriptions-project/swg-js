@@ -23,8 +23,6 @@ import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
 import * as sinon from 'sinon';
 
-
-
 describes.realWin('ButtonApi', {}, env => {
   let win;
   let doc;
@@ -34,6 +32,7 @@ describes.realWin('ButtonApi', {}, env => {
   let activitiesMock;
   let eventManagerMock;
   let buttonApi;
+  let eventManager;
   let handler;
 
   beforeEach(() => {
@@ -186,16 +185,18 @@ describes.realWin('ButtonApi', {}, env => {
     expect(button.getAttribute('title')).to.equal('S\'abonner avec Google');
   });
 
-  it('should log button impression to EventManager on create', () => {
-    eventManagerMock.expects('logEvent').withExactArgs(BUTTON_IMPRESSION_EVENT).once();
-    const button = buttonApi.create(handler);
-  })
+  it('should log button impression on create', () => {
+    eventManagerMock.expects('logEvent').withExactArgs(
+        BUTTON_IMPRESSION_EVENT).once();
+    buttonApi.create(handler);
+  });
 
-  it('should log button impression to EventManager on attach', () => {
-    eventManagerMock.expects('logEvent').withExactArgs(BUTTON_IMPRESSION_EVENT).once();
+  it('should log button impression on attach', () => {
+    eventManagerMock.expects('logEvent').withExactArgs(
+        BUTTON_IMPRESSION_EVENT).once();
     const button = doc.createElement('button');
     buttonApi.attach(button, {}, handler);
-  })
+  });
 
   it('should attach a smart button with no options', () => {
     const button = doc.createElement('button');
