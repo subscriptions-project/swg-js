@@ -51,6 +51,13 @@ const TITLE_LANG_MAP = {
   'zh-tw': '透過 Google 訂閱',
 };
 
+/** @type {!../api/client-event-manager-api.ClientEvent} */
+export const BUTTON_IMPRESSION_EVENT = {
+  eventType: AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON,
+  eventOriginator: EventOriginator.SWG_CLIENT,
+  isFromUserAction: false,
+  additionalParameters: null,
+};
 
 /**
  * The button stylesheet can be found in the `/assets/swg-button.css`.
@@ -121,13 +128,7 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
-    const impression_log_event = {
-      eventType: AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction: false,
-      additionalParameters: null,
-    };
-    this.eventManager_.logEvent(impression_log_event);
+    this.eventManager_.logEvent(BUTTON_IMPRESSION_EVENT);
     return button;
   }
 

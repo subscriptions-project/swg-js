@@ -15,7 +15,7 @@
  */
 
 import {ActivityPort} from 'web-activities/activity-ports';
-import {ButtonApi} from './button-api';
+import {ButtonApi, BUTTON_IMPRESSION_EVENT} from './button-api';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
@@ -34,7 +34,7 @@ describes.realWin('ButtonApi', {}, env => {
   let port;
   let config;
   let activitiesMock;
-  let logEventStub;
+  let eventManagerMock;
   let buttonApi;
   let handler;
 
@@ -42,7 +42,7 @@ describes.realWin('ButtonApi', {}, env => {
     win = env.win;
     doc = env.win.document;
     eventManager = new ClientEventManager(Promise.resolve());
-    logEventStub = sandbox.stub(eventManager, "logEvent");
+    eventManagerMock = sandbox.mock(eventManager);
     buttonApi = new ButtonApi(resolveDoc(doc), eventManager);
     pageConfig = new PageConfig('pub1:label1', false);
     config = defaultConfig();
@@ -54,7 +54,7 @@ describes.realWin('ButtonApi', {}, env => {
 
   afterEach(() => {
     activitiesMock.verify();
-    analyticsMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should inject stylesheet', () => {
@@ -188,6 +188,17 @@ describes.realWin('ButtonApi', {}, env => {
     expect(button.lang).to.equal('fr');
     expect(button.getAttribute('title')).to.equal('S\'abonner avec Google');
   });
+
+  it('should log button impression to EventManager on create', () => {
+    eventManagerMock.expects('logEvent').withExactArgs(BUTTON_IMPRESSION_EVENT).once();
+    const button = buttonApi.create(handler);
+  })
+
+  it('should log button impression to EventManager on attach', () => {
+    eventManagerMock.expects('logEvent').withExactArgs(BUTTON_IMPRESSION_EVENT).once();
+    const button = doc.createElement('button');
+    buttonApi.attach(button, {}, handler);
+  })
 
   it('should attach a smart button with no options', () => {
     const button = doc.createElement('button');
