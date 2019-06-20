@@ -177,6 +177,10 @@ export class Runtime {
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
 
+    /** @private @const {!ClientEventManager} */
+    //configured is called with false to avoid breaking a large number of tests
+    this.eventManager_ = new ClientEventManager(this.configured_(false));
+
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
     this.buttonApi_.init();  // Injects swg-button stylesheet.
@@ -215,7 +219,7 @@ export class Runtime {
         this.configuredResolver_(new ConfiguredRuntime(
             this.doc_,
             pageConfig,
-            /* opt_integr */ undefined,
+            /* opt_integr */ {eventManager: this.eventManager()},
             this.config_));
         this.configuredResolver_ = null;
       }, reason => {
@@ -439,6 +443,10 @@ export class Runtime {
       return runtime.getPropensityModule();
     });
   }
+
+  eventManager() {
+    return this.eventManager_;
+  }
 }
 
 /**
@@ -452,12 +460,14 @@ export class ConfiguredRuntime {
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {{
    *     fetcher: (!Fetcher|undefined),
+   *     eventManager: (!ClientEventManager|undefined)
    *   }=} opt_integr
    * @param {!../api/subscriptions.Config=} opt_config
    */
   constructor(winOrDoc, pageConfig, opt_integr, opt_config) {
     /** @private @const {!ClientEventManager} */
-    this.eventManager_ = new ClientEventManager();
+    this.eventManager_ = (opt_integr && opt_integr.eventManager)
+        || new ClientEventManager(Promise.resolve());
 
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
@@ -467,6 +477,7 @@ export class ConfiguredRuntime {
 
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
+
     if (isEdgeBrowser(this.win_)) {
       // TODO(dvoytenko, b/120607343): Find a way to remove this restriction
       // or move it to Web Activities.
@@ -478,6 +489,10 @@ export class ConfiguredRuntime {
 
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
+
+    /** @private @const {!Propensity} */
+    this.propensityModule_ = new Propensity(this.win_,
+      this.pageConfig_, this.eventManager_);
 
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
@@ -505,6 +520,10 @@ export class ConfiguredRuntime {
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
+    //NOTE: 'this' is passed in as a DepsDef.  Do not pass in 'this' before
+    //analytics service and entitlements manager are constructed unless
+    //you are certain they do not rely on them because they are part of that
+    //definition.
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
 
@@ -517,10 +536,6 @@ export class ConfiguredRuntime {
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
-
-    /** @private @const {!Propensity} */
-    this.propensityModule_ = new Propensity(this.win_,
-        this.pageConfig_, this.eventManager_);
 
     const preconnect = new Preconnect(this.win_.document);
 
