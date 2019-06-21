@@ -105,7 +105,8 @@ export class ButtonApi {
    * @return {!Element}
    */
   attach(button, optionsOrCallback, opt_callback) {
-    const options = /** @type {!../api/subscriptions.ButtonOptions} */ this.getOptions_(optionsOrCallback);
+    const options = /** @type {!../api/subscriptions.ButtonOptions} */
+        (this.getOptions_(optionsOrCallback));
     const callback = this.getCallback_(optionsOrCallback, opt_callback);
 
     const theme = options['theme'];
@@ -159,7 +160,8 @@ export class ButtonApi {
    * @return {!Element}
    */
   attachSmartButton(deps, button, optionsOrCallback, opt_callback) {
-    const options = /** @type {!../api/subscriptions.SmartButtonOptions} */ this.getOptions_(optionsOrCallback);
+    const options = /** @type {!../api/subscriptions.SmartButtonOptions} */
+        (this.getOptions_(optionsOrCallback));
     const callback = /** @type {function()} */
         (this.getCallback_(optionsOrCallback, opt_callback));
 
