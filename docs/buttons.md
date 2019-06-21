@@ -28,9 +28,8 @@ Both APIs are very similar - the only difference is the `createButton` creates a
 
 Both APIs require a callback and accept an optional `options` object. The configurable options are:
 
- - `theme`  : Button theme can be `light` (default) or `dark`.
-
  - `lang`: Sets the button SVG and title.  English is default language.  See [Button API](../src/runtime/button-api.js) for `lang` values.
+ - `theme`: Button theme can be `light` (default) or `dark`.
 
 The API call without options:
 
@@ -103,12 +102,11 @@ subscriptions.attachSmartButton(
 ### Parameters:
 
 - `buttonElement` (Required): HTML button element where smartButton is rendered.
-- `options` (Optional): Accepts JSON object with `theme` attribute.\
-                        i.e.: `{theme: 'dark'|'light'}` (Default is `light`) \
-                        `dark` theme renders the button with dark background and\
-                        light/white text.\
-                        `light` theme renders the button with light/white background \
-                        and dark text.
+- `options` (Optional): Accepts JSON object with attributes, all optional.
+  - `lang`: Sets the button SVG and title.  English is default language.  See [Button API](../src/runtime/button-api.js) for `lang` values.
+  - `theme`: Button theme can be `light` (default) or `dark`.
+  - `backgroundColor`: Overrides theme color for background. (ex: `'transparent'`)
+  - `messageTextColor`: Overrides theme color for message text. (ex: `'#09f'`)
 - `callback` (Required): Callback to provide action on click of `button`.
 
 
