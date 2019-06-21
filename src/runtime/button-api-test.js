@@ -243,7 +243,14 @@ describes.realWin('ButtonApi', {}, env => {
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(
-        runtime, button, {theme: 'dark', lang: 'fr', messageTextColor: '#411'}, handler);
+        runtime,
+        button,
+        {
+          theme: 'dark',
+          lang: 'fr',
+          messageTextColor: '#411',
+        },
+        handler);
     expect(handler).to.not.be.called;
     button.click();
     expect(handler).to.be.calledOnce;
