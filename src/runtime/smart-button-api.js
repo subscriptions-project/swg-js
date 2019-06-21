@@ -87,7 +87,6 @@ export class SmartSubscriptionButtonApi {
 
     /** @private @const {!Object} */
     this.args_ = feArgs(frontendArguments);
-    console.log(this.args_);
   }
 
   /**
