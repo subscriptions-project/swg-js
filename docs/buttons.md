@@ -102,11 +102,10 @@ subscriptions.attachSmartButton(
 ### Parameters:
 
 - `buttonElement` (Required): HTML button element where smartButton is rendered.
-- `options` (Optional): Accepts JSON object with attributes, all optional.
-  - `lang`: Sets the button SVG and title.  English is default language.  See [Button API](../src/runtime/button-api.js) for `lang` values.
-  - `theme`: Button theme can be `light` (default) or `dark`.
-  - `backgroundColor`: Overrides theme color for background. (ex: `'transparent'`)
-  - `messageTextColor`: Overrides theme color for message text. (ex: `'#09f'`)
+- `options` (Optional): Configures appearance of button.
+  - `lang`: (Optional) Sets the button SVG and title.  English is default language.  See [Button API](../src/runtime/button-api.js) for `lang` values.
+  - `theme`: (Optional) Button theme can be `light` (default) or `dark`.
+  - `messageTextColor`: (Optional) Overrides theme color for message text. (ex: `'#09f'`)
 - `callback` (Required): Callback to provide action on click of `button`.
 
 
