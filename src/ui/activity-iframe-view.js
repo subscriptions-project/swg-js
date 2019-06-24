@@ -33,7 +33,7 @@ export class ActivityIframeView extends View {
 
   /**
    * @param {!Window} win
-   * @param {!web-activities/activity-ports.ActivityPorts} activityPorts
+   * @param {!../components/activities.ActivityPorts} activityPorts
    * @param {string} src
    * @param {!Object<string, ?>=} args
    * @param {boolean=} shouldFadeBody
@@ -59,7 +59,7 @@ export class ActivityIframeView extends View {
         /** @type {!HTMLIFrameElement} */ (
             createElement(this.doc_, 'iframe', iframeAttributes));
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = activityPorts;
 
     /** @private @const {string} */
@@ -74,7 +74,7 @@ export class ActivityIframeView extends View {
     /** @private @const {boolean} */
     this.hasLoadingIndicator_ = hasLoadingIndicator;
 
-    /** @private {?web-activities/activity-ports.ActivityIframePort} */
+    /** @private {?../components/activities.ActivityIframePort} */
     this.port_ = null;
 
     /**
@@ -120,7 +120,7 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * @param {!web-activities/activity-ports.ActivityIframePort} port
+   * @param {!../components/activities.ActivityIframePort} port
    * @param {!../components/dialog.Dialog} dialog
    * @return {!Promise}
    */
@@ -136,7 +136,7 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+   * @return {!Promise<!../components/activities.ActivityIframePort>}
    * @private
    */
   getPortPromise_() {
@@ -146,9 +146,9 @@ export class ActivityIframeView extends View {
   /**
    * @param {!Object} data
    */
-  message(data) {
+  messageDeprecated(data) {
     this.getPortPromise_().then(port => {
-      port.message(data);
+      port.messageDeprecated(data);
     });
   }
 
@@ -156,9 +156,9 @@ export class ActivityIframeView extends View {
    * Handles the message received by the port.
    * @param {function(!Object<string, string|boolean>)} callback
    */
-  onMessage(callback) {
+  onMessageDeprecated(callback) {
     this.getPortPromise_().then(port => {
-      port.onMessage(callback);
+      port.onMessageDeprecated(callback);
     });
   }
 

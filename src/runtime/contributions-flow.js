@@ -40,7 +40,7 @@ export class ContributionsFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
@@ -78,7 +78,7 @@ export class ContributionsFlow {
     });
 
     // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.onMessage(result => {
+    this.activityIframeView_.onMessageDeprecated(result => {
       if (result['alreadyMember']) {
         this.deps_.callbacks().triggerLoginRequest({
           linkRequested: !!result['linkRequested'],
