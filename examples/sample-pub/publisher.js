@@ -111,9 +111,12 @@ function startFlowAuto() {
       whenDemoReady(function() {
         var smartButton = document.querySelector('button#smartButton');
         if (!smartButton) {
-          console.log(
-              'A <button id="smartButton"> is required to render smartbox');
-          return;
+          // Create a DOM element for SmartButton demo.
+          smartButton = document.createElement('button');
+          smartButton.id = 'smartButton';
+          var firstParagraph = document.querySelector('.text');
+          var container = firstParagraph.parentNode;
+          container.insertBefore(smartButton, firstParagraph);
         }
 
         subs.attachSmartButton(
