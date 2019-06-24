@@ -15,13 +15,15 @@
  */
 
 import {
-  ActivityPort,
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {
   acceptPortResultData,
 } from './activity-utils';
+import {
+  ActivityPortDef,
+} from '../components/activities';
 
 const OK = ActivityResultCode.OK;
 const CANCELED = ActivityResultCode.CANCELED;
@@ -45,7 +47,7 @@ describes.sandboxed('acceptPortResultData', {}, () => {
   let port;
 
   beforeEach(() => {
-    port = new ActivityPort();
+    port = new ActivityPortDef();
   });
 
   function result(code, dataOrError, origin, originVerified, secureChannel) {

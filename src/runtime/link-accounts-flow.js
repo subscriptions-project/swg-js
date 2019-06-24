@@ -35,7 +35,7 @@ export class LinkbackFlow {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../model/page-config.PageConfig} */
@@ -77,7 +77,7 @@ export class LinkCompleteFlow {
   static configurePending(deps) {
     /**
      * Handler function.
-     * @param {!web-activities/activity-ports.ActivityPort} port
+     * @param {!../components/activities.ActivityPortDef} port
      */
     function handler(port) {
       deps.entitlementsManager().blockNextNotification();
@@ -108,7 +108,7 @@ export class LinkCompleteFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
@@ -203,7 +203,7 @@ export class LinkSaveFlow {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
@@ -288,7 +288,7 @@ export class LinkSaveFlow {
         /* shouldFadeBody */ false,
         /* hasLoadingIndicator */ true
     );
-    this.activityIframeView_.onMessage(data => {
+    this.activityIframeView_.onMessageDeprecated(data => {
       if (data['getLinkingInfo']) {
         this.requestPromise_ = new Promise(resolve => {
           resolve(this.callback_());
@@ -305,7 +305,7 @@ export class LinkSaveFlow {
           } else {
             throw new Error('Neither token or authCode is available');
           }
-          this.activityIframeView_.message(saveRequest);
+          this.activityIframeView_.messageDeprecated(saveRequest);
         }).catch(reason => {
           // The flow is complete.
           this.complete_();
