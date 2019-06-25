@@ -47,6 +47,8 @@ describes.realWin('PropensityServer', {}, env => {
   let propensityServer;
   let eventManager;
   let registeredCallback;
+  let sendSwgEvents;
+
   const serverUrl = 'http://localhost:31862';
   const pubId = 'pub1';
   const defaultParameters = {'custom': 'value'};
@@ -60,10 +62,12 @@ describes.realWin('PropensityServer', {}, env => {
   beforeEach(() => {
     win = env.win;
     registeredCallback = null;
+    sendSwgEvents = false;
     eventManager = new ClientEventManager();
     sandbox.stub(ClientEventManager.prototype, 'registerEventListener',
         callback => registeredCallback = callback);
-    propensityServer = new PropensityServer(win, pubId, eventManager);
+    propensityServer = new PropensityServer(win, pubId, eventManager,
+      () => sendSwgEvents);
     sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
   });
@@ -108,7 +112,7 @@ describes.realWin('PropensityServer', {}, env => {
         });
   });
 
-  it('should test sending event', () => {
+  it('should test sending event to server', () => {
     let capturedUrl;
     let capturedRequest;
     sandbox.stub(Xhr.prototype, 'fetch',
@@ -355,7 +359,7 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedContext).to.be.null;
 
     //activated but no experiment
-    propensityServer.enableLoggingSwgEvents();
+    sendSwgEvents = true;
     registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
@@ -367,6 +371,7 @@ describes.realWin('PropensityServer', {}, env => {
 
     //experiment but not activated
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
+    sendSwgEvents = true;
     registeredCallback = null;
     propensityServer = new PropensityServer(win, pubId, eventManager);
     registeredCallback(defaultEvent);
@@ -387,11 +392,11 @@ describes.realWin('PropensityServer', {}, env => {
     });
 
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
+    sendSwgEvents = true;
     registeredCallback = null;
     propensityServer = new PropensityServer(win, pubId, eventManager);
 
     //both experiment and enable: ensure it actually logs
-    propensityServer.enableLoggingSwgEvents();
     registeredCallback(defaultEvent);
     expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);

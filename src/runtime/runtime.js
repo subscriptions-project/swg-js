@@ -493,7 +493,7 @@ export class ConfiguredRuntime {
     /** @private @const {!Propensity} */
     this.propensityModule_ = new Propensity(this.win_,
       this.pageConfig_, this.eventManager_,
-      () => this.config().analyticsConfig.enable_propensity_in_swg || false);
+      this.sendSwGEventsToPropensity_.bind(this));
 
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
@@ -864,6 +864,14 @@ export class ConfiguredRuntime {
   /** @override */
   getPropensityModule() {
     return Promise.resolve(this.propensityModule_);
+  }
+
+  /**
+   * Returns true if the Propensity client should send data about SwG client
+   * events to the Propensity to Subscribe server.
+   */
+  sendSwGEventsToPropensity_() {
+    return this.config().analyticsConfig.enable_propensity_in_swg;
   }
 
   /** @override */

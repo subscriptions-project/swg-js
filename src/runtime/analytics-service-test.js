@@ -38,6 +38,7 @@ describes.realWin('AnalyticsService', {}, env => {
   let messageCallback;
   let runtime;
   let registeredCallback;
+  let config;
 
   const productId = 'pub1:label1';
   const event = {
@@ -54,6 +55,7 @@ describes.realWin('AnalyticsService', {}, env => {
     src = '/serviceiframe';
     pageConfig = new PageConfig(productId);
     runtime = new ConfiguredRuntime(win, pageConfig);
+    config = runtime.config();
     activityPorts = runtime.activities();
     analyticsService = new AnalyticsService(runtime);
     activityIframePort = new ActivityIframePort(analyticsService.getElement(),
@@ -327,7 +329,7 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(analyticsService.lastAction_).to.be.null;
 
       //ensure it requires the experiment to log Propensity events
-      analyticsService.enableLoggingForPropensity();
+      config.analyticsConfig.enable_buy_flow_comparison = true;
       analyticsService.lastAction_ = null;
       event.eventOriginator = EventOriginator.SWG_CLIENT;
       registeredCallback(event);
@@ -342,6 +344,7 @@ describes.realWin('AnalyticsService', {}, env => {
       event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
       registeredCallback(event);
       expect(analyticsService.lastAction_).to.be.null;
+      config.analyticsConfig.enable_buy_flow_comparison = false;
 
       //reinitialize the service after turning the experiment on
       //ensure it requires the .enable method to log Propensity
@@ -368,8 +371,8 @@ describes.realWin('AnalyticsService', {}, env => {
       //reinitialize the service after turning the experiment on
       //ensure if we activate both things it properly logs all origins
       setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
+      config.analyticsConfig.enable_buy_flow_comparison = true;
       analyticsService = new AnalyticsService(runtime);
-      analyticsService.enableLoggingForPropensity();
 
       analyticsService.lastAction_ = null;
       event.eventOriginator = EventOriginator.SWG_CLIENT;

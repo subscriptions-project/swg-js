@@ -258,11 +258,12 @@ export class AnalyticsService {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
-    const config =
-        this.deps_.config().analyticsConfig.enable_buy_flow_comparison;
-    if (!(this.logPropensityExperiment_ && config)
-        && event.eventOriginator === EventOriginator.PROPENSITY_CLIENT) {
-      return;
+    if (event.eventOriginator === EventOriginator.PROPENSITY_CLIENT) {
+      const config =
+          this.deps_.config().analyticsConfig.enable_buy_flow_comparison;
+      if (!this.logPropensityExperiment_ || !config) {
+        return;
+      }
     }
     this.lastAction_ = this.start_().then(port => {
       port.messageDeprecated({'buf': this.createLogRequest_(event).toArray()});
