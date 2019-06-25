@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from 'web-activities/activity-ports';
+import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {
   ContributionsFlow,
@@ -23,7 +23,6 @@ import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
 import * as sinon from 'sinon';
-
 
 describes.realWin('ContributionsFlow', {}, env => {
   let win;
@@ -44,11 +43,10 @@ describes.realWin('ContributionsFlow', {}, env => {
     contributionsFlow = new ContributionsFlow(runtime, {'isClosable': true});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessage', callback => {
+    sandbox.stub(port, 'onMessageDeprecated', callback => {
       messageCallback = callback;
     });
   });

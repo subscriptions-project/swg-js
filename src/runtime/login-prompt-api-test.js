@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import {
-    ActivityPort,
-  } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {isCancelError} from '../utils/errors';
 import * as sinon from 'sinon';
+import {
+  ActivityPort,
+} from '../components/activities';
 
 describes.realWin('LoginPromptApi', {}, env => {
   let win;
@@ -44,9 +44,9 @@ describes.realWin('LoginPromptApi', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
-    port.message = () => {};
+    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     loginPromptApi = new LoginPromptApi(runtime);
     resultResolver = null;
