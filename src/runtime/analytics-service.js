@@ -260,7 +260,7 @@ export class AnalyticsService {
   handleClientEvent_(event) {
     if (event.eventOriginator === EventOriginator.PROPENSITY_CLIENT) {
       const config =
-          this.deps_.config().analyticsConfig.enable_buy_flow_comparison;
+          this.deps_.config().analyticsConfig.ENABLE_BUY_FLOW_COMPARISON;
       if (!this.logPropensityExperiment_ || !config) {
         return;
       }

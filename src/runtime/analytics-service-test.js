@@ -329,7 +329,7 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(analyticsService.lastAction_).to.be.null;
 
       //ensure it requires the experiment to log Propensity events
-      config.analyticsConfig['enable_buy_flow_comparison'] = true;
+      config.analyticsConfig['ENABLE_BUY_FLOW_COMPARISON'] = true;
       analyticsService.lastAction_ = null;
       event.eventOriginator = EventOriginator.SWG_CLIENT;
       registeredCallback(event);
@@ -344,7 +344,7 @@ describes.realWin('AnalyticsService', {}, env => {
       event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
       registeredCallback(event);
       expect(analyticsService.lastAction_).to.be.null;
-      config.analyticsConfig['enable_buy_flow_comparison'] = false;
+      config.analyticsConfig['ENABLE_BUY_FLOW_COMPARISON'] = false;
 
       //reinitialize the service after turning the experiment on
       //ensure it requires the .enable method to log Propensity
@@ -371,7 +371,7 @@ describes.realWin('AnalyticsService', {}, env => {
       //reinitialize the service after turning the experiment on
       //ensure if we activate both things it properly logs all origins
       setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
-      config.analyticsConfig['enable_buy_flow_comparison'] = true;
+      config.analyticsConfig['ENABLE_BUY_FLOW_COMPARISON'] = true;
       analyticsService = new AnalyticsService(runtime);
 
       analyticsService.lastAction_ = null;

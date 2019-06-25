@@ -371,9 +371,9 @@ describes.realWin('PropensityServer', {}, env => {
 
     //experiment but not activated
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
-    sendSwgEvents = true;
     registeredCallback = null;
-    propensityServer = new PropensityServer(win, pubId, eventManager);
+    propensityServer = new PropensityServer(win, pubId, eventManager,
+        () => false);
     registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
@@ -392,9 +392,9 @@ describes.realWin('PropensityServer', {}, env => {
     });
 
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
-    sendSwgEvents = true;
     registeredCallback = null;
-    propensityServer = new PropensityServer(win, pubId, eventManager);
+    propensityServer = new PropensityServer(win, pubId, eventManager,
+        () => true);
 
     //both experiment and enable: ensure it actually logs
     registeredCallback(defaultEvent);

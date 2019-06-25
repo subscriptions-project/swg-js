@@ -646,8 +646,8 @@ export class ConfiguredRuntime {
         const aconfig = config.analyticsConfig;
         for (const aKey in aconfig) {
           switch (aKey) {
-            case 'enable_buy_flow_comparison': break;
-            case 'enable_propensity_in_swg': break;
+            case 'ENABLE_BUY_FLOW_COMPARISON': break;
+            case 'ENABLE_PROPENSITY_IN_SWG': break;
             default: error = 'Unknown config property: analyticsConfig.' + key;
           }
         }
@@ -871,7 +871,7 @@ export class ConfiguredRuntime {
    * events to the Propensity to Subscribe server.
    */
   sendSwGEventsToPropensity_() {
-    return this.config().analyticsConfig.enable_propensity_in_swg;
+    return this.config().analyticsConfig.ENABLE_PROPENSITY_IN_SWG;
   }
 
   /** @override */
