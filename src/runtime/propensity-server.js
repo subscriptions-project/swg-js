@@ -36,7 +36,7 @@ export class PropensityServer {
    * If the callback is null, it will not log SwG events.
    * @param {string} publicationId
    * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
-   * @param {?function():boolean=} logSwgEventsCallback
+   * @param {?function():boolean} logSwgEventsCallback
    */
   constructor(win, publicationId, eventManager, logSwgEventsCallback) {
     /** @private @const {!Window} */
@@ -59,7 +59,7 @@ export class PropensityServer {
     this.logSwgEventsExperiment_ = isExperimentOn(win,
         ExperimentFlags.LOG_SWG_TO_PROPENSITY);
 
-    /** @private {!function():boolean} */
+    /** @private {!function():?boolean} */
     this.logSwgEventsCallback_ = logSwgEventsCallback || (() => false);
   }
 

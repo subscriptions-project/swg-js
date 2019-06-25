@@ -493,7 +493,7 @@ export class ConfiguredRuntime {
     /** @private @const {!Propensity} */
     this.propensityModule_ = new Propensity(this.win_,
       this.pageConfig_, this.eventManager_,
-      () => this.config().analyticsConfig.enable_propensity_in_swg);
+      () => this.config().analyticsConfig.enable_propensity_in_swg || false);
 
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
