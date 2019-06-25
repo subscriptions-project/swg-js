@@ -44,6 +44,10 @@ export class AnalyticsService {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
+
+    /** @private {!./deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
@@ -85,9 +89,6 @@ export class AnalyticsService {
     /** @private @const {!boolean} */
     this.logPropensityExperiment_ = isExperimentOn(deps.win(),
         ExperimentFlags.LOG_PROPENSITY_TO_SWG);
-
-    /** @private {!boolean} */
-    this.logPropensityConfig_ = false;
   }
 
   /**
@@ -257,16 +258,14 @@ export class AnalyticsService {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
-    if (!(this.logPropensityExperiment_ && this.logPropensityConfig_)
+    const config =
+        this.deps.config().analyticsConfig.enable_buy_flow_comparison;
+    if (!(this.logPropensityExperiment_ && config)
         && event.eventOriginator === EventOriginator.PROPENSITY_CLIENT) {
       return;
     }
     this.lastAction_ = this.start_().then(port => {
       port.messageDeprecated({'buf': this.createLogRequest_(event).toArray()});
     });
-  }
-
-  enableLoggingForPropensity() {
-    this.logPropensityConfig_ = true;
   }
 }

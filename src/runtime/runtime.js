@@ -492,7 +492,8 @@ export class ConfiguredRuntime {
 
     /** @private @const {!Propensity} */
     this.propensityModule_ = new Propensity(this.win_,
-      this.pageConfig_, this.eventManager_);
+      this.pageConfig_, this.eventManager_,
+      () => this.config().analyticsConfig.enable_propensity_in_swg);
 
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
@@ -627,22 +628,31 @@ export class ConfiguredRuntime {
   configure_(config) {
     // Validate first.
     let error = null;
-    for (const k in config) {
-      const v = config[k];
-      if (k == 'windowOpenMode') {
+    for (const key in config) {
+      const v = config[key];
+      if (key == 'windowOpenMode') {
         if (v != WindowOpenMode.AUTO &&
             v != WindowOpenMode.REDIRECT) {
           error = 'Unknown windowOpenMode: ' + v;
         }
-      } else if (k == 'experiments') {
+      } else if (key == 'experiments') {
         v.forEach(experiment => setExperiment(this.win_, experiment, true));
-      } else if (k == 'analyticsMode') {
+      } else if (key == 'analyticsMode') {
         if (v != AnalyticsMode.DEFAULT &&
             v != AnalyticsMode.IMPRESSIONS) {
           error = 'Unknown analytics mode: ' + v;
         }
+      } else if (key == 'analyticsConfig') {
+        const aconfig = config.analyticsConfig;
+        for (const aKey in aconfig) {
+          switch (aKey) {
+            case 'enable_buy_flow_comparison': break;
+            case 'enable_propensity_in_swg': break;
+            default: error = 'Unknown config property: analyticsConfig.' + key;
+          }
+        }
       } else {
-        error = 'Unknown config property: ' + k;
+        error = 'Unknown config property: ' + key;
       }
     }
     if (error) {

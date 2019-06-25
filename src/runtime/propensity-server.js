@@ -32,10 +32,13 @@ export class PropensityServer {
    * Page configuration is known when Propensity API
    * is available, publication ID is therefore used
    * in constructor for the server interface.
+   *
+   * If the callback is null, it will not log SwG events.
    * @param {string} publicationId
    * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
+   * @param {?function():boolean=} logSwgEventsCallback
    */
-  constructor(win, publicationId, eventManager) {
+  constructor(win, publicationId, eventManager, logSwgEventsCallback) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private @const {string} */
@@ -56,8 +59,8 @@ export class PropensityServer {
     this.logSwgEventsExperiment_ = isExperimentOn(win,
         ExperimentFlags.LOG_SWG_TO_PROPENSITY);
 
-    /** @private {!boolean} */
-    this.logSwgEventsConfig_ = false;
+    /** @private {!function():boolean} */
+    this.logSwgEventsCallback_ = logSwgEventsCallback || (() => false);
   }
 
   /**
@@ -154,7 +157,7 @@ export class PropensityServer {
     if (propEvent == null) {
       return;
     }
-    if (!(this.logSwgEventsExperiment_ && this.logSwgEventsConfig_)
+    if (!(this.logSwgEventsExperiment_ && this.logSwgEventsCallback_())
         && event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT) {
       return;
     }
@@ -245,9 +248,5 @@ export class PropensityServer {
         .then(response => {
           return this.parsePropensityResponse_(response);
         });
-  }
-
-  enableLoggingSwgEvents() {
-    this.logSwgEventsConfig_ = true;
   }
 }
