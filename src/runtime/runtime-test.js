@@ -1517,6 +1517,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should take the passed event manager', () => {
+    activityResultCallbacks = {};
     const eventManager = new ClientEventManager(Promise.resolve());
     const configRuntime = new ConfiguredRuntime(win, config, {
       eventManager,
@@ -1525,6 +1526,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should hold events until config resolved', () => {
+    activityResultCallbacks = {};
     let resolver = null;
     const configPromise = new Promise(resolve => resolver = resolve);
     const configRuntime = new ConfiguredRuntime(win, config, {
