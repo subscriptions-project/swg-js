@@ -1515,4 +1515,36 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   it('should return events manager', () => {
     expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
   });
+
+  it('should take the passed event manager', () => {
+    const eventManager = new ClientEventManager(Promise.resolve());
+    const configRuntime = new ConfiguredRuntime(win, config, {
+      eventManager,
+    });
+    expect(configRuntime.eventManager() === eventManager).to.be.true;
+  });
+
+  it('should hold events until config resolved', function*() {
+    let resolver = null;
+    const configPromise = new Promise(resolve => resolver = resolve);
+    const configRuntime = new ConfiguredRuntime(win, config, {
+      configPromise,
+    });
+    const eventMan = configRuntime.eventManager();
+    eventMan.logEvent({
+      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: true,
+      additionalParameters: null,
+    });
+
+    //register after declaring the event, then resolve the promise
+    //ensure you got the event even though you sent it before registering
+    let eventCount = 0;
+    eventMan.registerEventListener(() => eventCount++);
+    resolver();
+
+    await eventMan.lastAction_;
+    expect(eventCount).to.equal(1);
+  });
 });
