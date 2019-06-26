@@ -1524,7 +1524,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(configRuntime.eventManager() === eventManager).to.be.true;
   });
 
-  it('should hold events until config resolved', function*() {
+  it('should hold events until config resolved', () => {
     let resolver = null;
     const configPromise = new Promise(resolve => resolver = resolve);
     const configRuntime = new ConfiguredRuntime(win, config, {
@@ -1544,7 +1544,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     eventMan.registerEventListener(() => eventCount++);
     resolver();
 
-    await eventMan.lastAction_;
-    expect(eventCount).to.equal(1);
+    return configPromise.then(() => expect(eventCount).to.equal(1));
   });
 });
