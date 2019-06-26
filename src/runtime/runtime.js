@@ -461,7 +461,7 @@ export class ConfiguredRuntime {
    * @param {{
    *     fetcher: (!Fetcher|undefined),
    *     eventManager: (!ClientEventManager|undefined),
-   *     configPromise: (!boolean|undefined),
+   *     configPromise: (!Promise|undefined),
    *   }=} opt_integr
    * @param {!../api/subscriptions.Config=} opt_config
    */
