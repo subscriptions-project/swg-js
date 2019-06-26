@@ -460,14 +460,18 @@ export class ConfiguredRuntime {
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {{
    *     fetcher: (!Fetcher|undefined),
-   *     eventManager: (!ClientEventManager|undefined)
+   *     eventManager: (!ClientEventManager|undefined),
+   *     configPromise: (!boolean|undefined),
    *   }=} opt_integr
    * @param {!../api/subscriptions.Config=} opt_config
    */
   constructor(winOrDoc, pageConfig, opt_integr, opt_config) {
+    opt_integr = opt_integr || {};
+    opt_integr.configPromise = opt_integr.configPromise || Promise.resolve();
+
     /** @private @const {!ClientEventManager} */
-    this.eventManager_ = (opt_integr && opt_integr.eventManager)
-        || new ClientEventManager(Promise.resolve());
+    this.eventManager_ = opt_integr.eventManager
+        || new ClientEventManager(opt_integr.configPromise);
 
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
@@ -501,8 +505,7 @@ export class ConfiguredRuntime {
     this.jserror_ = new JsError(this.doc_);
 
     /** @private @const {!Fetcher} */
-    this.fetcher_ = opt_integr && opt_integr.fetcher ||
-        new XhrFetcher(this.win_);
+    this.fetcher_ = opt_integr.fetcher || new XhrFetcher(this.win_);
 
     /** @private @const {!Storage} */
     this.storage_ = new Storage(this.win_);
