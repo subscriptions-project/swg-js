@@ -124,7 +124,7 @@ function startFlowAuto() {
             {
               theme: 'light',
               lang: 'en',
-              messageTextColor: 'rgba(0, 160, 255, 0.85)'
+              messageTextColor: 'rgba(66, 133, 244, 0.95)'
             },
             function() {
               subs.showOffers({isClosable: true});
