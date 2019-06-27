@@ -1475,17 +1475,17 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     let resolveConfig;
     let rejectConfig;
     let eventManager;
+    let configPromise;
 
     beforeEach(() => {
-      runtime = new ConfiguredRuntime(win, config, {
-        configPromise: new Promise((resolve, reject) => {
-          resolveConfig = resolve;
-          rejectConfig = reject;
-        }),
+      configPromise = new Promise((resolve, reject) => {
+        resolveConfig = resolve;
+        rejectConfig = reject;
       });
+      runtime = new ConfiguredRuntime(win, config, {configPromise});
     });
 
-    it('should hold events until config resolved', () => {
+    it('should hold events until config resolved', function*() {
       activityResultCallbacks = {};
       eventManager.logEvent({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -1497,24 +1497,28 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       //register after declaring the event, then resolve the promise
       //ensure you got the event even though you sent it before registering
       let eventCount = 0;
-      eventMan.registerEventListener(() => eventCount++);
+      eventManager.registerEventListener(() => eventCount++);
       resolveConfig();
 
-      return configPromise.then(() => expect(eventCount).to.equal(1));
+
+      try {
+        yield configPromise;
+      } catch (e) {}
+      expect(eventCount).to.equal(1);
     });
 
     it('should not log when config rejected', function*() {
-      let counter1 = 0;
+      let eventCount = 0;
 
-      eventManager.registerEventListener(() => counter1++);
+      eventManager.registerEventListener(() => eventCount++);
       eventManager.logEvent(event);
-      expect(counter1).to.equal(0);
+      expect(eventCount).to.equal(0);
       rejectConfig();
 
       try {
-        yield eventManager.lastAction_;
+        yield configPromise;
       } catch (e) {}
-      expect(counter1).to.equal(0);
+      expect(eventCount).to.equal(0);
     });
   });
 });
