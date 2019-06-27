@@ -1477,22 +1477,25 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     let eventManager;
     let configPromise;
 
+    const event = {
+      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: true,
+      additionalParameters: null,
+    };
+
     beforeEach(() => {
+      activityResultCallbacks = {};
       configPromise = new Promise((resolve, reject) => {
         resolveConfig = resolve;
         rejectConfig = reject;
       });
       runtime = new ConfiguredRuntime(win, config, {configPromise});
+      eventManager = runtime.eventManager();
     });
 
     it('should hold events until config resolved', function*() {
-      activityResultCallbacks = {};
-      eventManager.logEvent({
-        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: null,
-      });
+      eventManager.logEvent(event);
 
       //register after declaring the event, then resolve the promise
       //ensure you got the event even though you sent it before registering
