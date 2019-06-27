@@ -149,12 +149,16 @@ For instance:
 
 ![Button with `theme: 'dark'`](./img/swg-button-dark.png)
 
+
 `SmartButton` with `light` theme:
 
 ![Button with `theme: 'light'`](./img/swg-smart-button-light.png)
 
-
 `SmartButton` with `dark` theme:
 
 ![Button with `theme: 'dark'`](./img/swg-smart-button-dark.png)
+
+`SmartButton` with custom messageTextColor:
+
+![Button with custom messageTextColor](./img/swg-smart-button-custom.png)
 
