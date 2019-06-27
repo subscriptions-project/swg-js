@@ -476,7 +476,6 @@ describes.realWin('Runtime', {}, env => {
     let configuredRuntime;
     let configuredRuntimeMock;
     let analyticsMock;
-    let eventManager;
 
     beforeEach(() => {
       config = new PageConfig('pub1');
@@ -485,7 +484,6 @@ describes.realWin('Runtime', {}, env => {
       analyticsMock = sandbox.mock(configuredRuntime.analytics());
       configureStub = sandbox.stub(runtime, 'configured_',
           () => Promise.resolve(configuredRuntime));
-      eventManager = configuredRuntime.eventManager();
     });
 
     afterEach(() => {
@@ -837,6 +835,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   let activityResultCallbacks;
   let offersApiMock;
   let redirectErrorHandler;
+  let eventManager;
 
   beforeEach(() => {
     win = env.win;
@@ -860,6 +859,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     analyticsMock = sandbox.mock(runtime.analytics());
     jserrorMock = sandbox.mock(runtime.jserror());
     offersApiMock = sandbox.mock(runtime.offersApi_);
+    eventManager = configuredRuntime.eventManager();
   });
 
   afterEach(() => {
@@ -1477,46 +1477,48 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
   });
 
-  it('should return events manager', () => {
-    expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
-  });
-
-  it('should hold events until config resolved', () => {
-    activityResultCallbacks = {};
-    let resolver = null;
-    const configPromise = new Promise(resolve => resolver = resolve);
-    const configRuntime = new ConfiguredRuntime(win, config, {
-      configPromise,
-    });
-    const eventMan = configRuntime.eventManager();
-    eventMan.logEvent({
-      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction: true,
-      additionalParameters: null,
+  describe('event manager', () => {
+    it('should return events manager', () => {
+      expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
     });
 
-    //register after declaring the event, then resolve the promise
-    //ensure you got the event even though you sent it before registering
-    let eventCount = 0;
-    eventMan.registerEventListener(() => eventCount++);
-    resolver();
+    it('should hold events until config resolved', () => {
+      activityResultCallbacks = {};
+      let resolver = null;
+      const configPromise = new Promise(resolve => resolver = resolve);
+      const configRuntime = new ConfiguredRuntime(win, config, {
+        configPromise,
+      });
+      const eventMan = configRuntime.eventManager();
+      eventMan.logEvent({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      });
 
-    return configPromise.then(() => expect(eventCount).to.equal(1));
-  });
+      //register after declaring the event, then resolve the promise
+      //ensure you got the event even though you sent it before registering
+      let eventCount = 0;
+      eventMan.registerEventListener(() => eventCount++);
+      resolver();
 
-  it('should not log when config rejected', function*() {
-    configPromise = Promise.reject('config not available');
-    let counter1 = 0;
+      return configPromise.then(() => expect(eventCount).to.equal(1));
+    });
 
-    eventManager.registerEventListener(() => counter1++);
-    eventManager.logEvent(event);
-    expect(counter1).to.equal(0);
-    runtime.configured_(true);
+    it('should not log when config rejected', function*() {
+      configPromise = Promise.reject('config not available');
+      let counter1 = 0;
 
-    try {
-      yield eventManager.lastAction_;
-    } catch (e) {}
-    expect(counter1).to.equal(0);
+      eventManager.registerEventListener(() => counter1++);
+      eventManager.logEvent(event);
+      expect(counter1).to.equal(0);
+      runtime.configured_(true);
+
+      try {
+        yield eventManager.lastAction_;
+      } catch (e) {}
+      expect(counter1).to.equal(0);
+    });
   });
 });
