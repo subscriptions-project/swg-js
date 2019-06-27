@@ -214,9 +214,12 @@ export const PropensityType = {
  *       If there are any errors which prevented the server from
  *       generating and providing a valid score, this field will have a
  *       string describing why score was not available.
+ *  - bucketed: Optional. When a numeric score is provided, this field
+ *       will be true or false to indicate if this score is bucketed or not.
  *
  *  @typedef {{
- *    result: (number|string)
+ *    result: (number|string),
+ *    bucketed: ?boolean,
  * }}
  */
 export let Body;

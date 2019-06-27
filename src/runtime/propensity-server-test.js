@@ -168,17 +168,14 @@ describes.realWin('PropensityServer', {}, env => {
         });
   });
 
-  it('should test get propensity', () => {
+  it('should test get propensity bucketed scores', () => {
     const propensityResponse = {
       'header': {'ok': true},
       'scores': [
         {
           'product': 'pub1',
           'score': 90,
-        },
-        {
-          'product': 'pub1:premium',
-          'error_message': 'not available',
+          'score_type': 2,
         },
       ],
     };
@@ -199,6 +196,7 @@ describes.realWin('PropensityServer', {}, env => {
           const body = response['body'];
           expect(body).to.not.be.null;
           expect(body['result']).to.equal(90);
+          expect(body['bucketed']).to.be.true;
         });
   });
 

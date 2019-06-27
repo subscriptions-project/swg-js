@@ -195,14 +195,19 @@ export class PropensityServer {
           const scoreStatus = !!result['score'];
           let value = undefined;
           if (scoreStatus) {
-            value = result['score'];
+            value = /** @type {!../api/propensity-api.Body} */ ({
+              result: result['score'],
+              bucketed: (result['score_type'] == 2),
+            });
           } else {
-            value = result['error_message'];
+            value = /** @type {!../api/propensity-api.Body} */ ({
+              result: result['error_message'],
+            });
           }
           defaultScore =
             /** @type {!../api/propensity-api.PropensityScore} */ ({
               header: {ok: scoreStatus},
-              body: {result: value},
+              body: value,
             });
           break;
         }
