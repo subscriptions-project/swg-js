@@ -1516,15 +1516,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
   });
 
-  it('should take the passed event manager', () => {
-    activityResultCallbacks = {};
-    const eventManager = new ClientEventManager(Promise.resolve());
-    const configRuntime = new ConfiguredRuntime(win, config, {
-      eventManager,
-    });
-    expect(configRuntime.eventManager() === eventManager).to.be.true;
-  });
-
   it('should hold events until config resolved', () => {
     activityResultCallbacks = {};
     let resolver = null;
