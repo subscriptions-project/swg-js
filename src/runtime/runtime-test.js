@@ -382,13 +382,6 @@ describes.realWin('Runtime', {}, env => {
     let configPromise;
     let resolveStub;
 
-    const event = {
-      eventType: AnalyticsEvent.ACTION_OFFER_SELECTED,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    };
-
     beforeEach(() => {
       config = new PageConfig('pub1', true);
       configPromise = Promise.resolve(config);
@@ -835,8 +828,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   let activityResultCallbacks;
   let offersApiMock;
   let redirectErrorHandler;
-  let eventManager;
-
   beforeEach(() => {
     win = env.win;
     activityResultCallbacks = {};
@@ -859,7 +850,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     analyticsMock = sandbox.mock(runtime.analytics());
     jserrorMock = sandbox.mock(runtime.jserror());
     offersApiMock = sandbox.mock(runtime.offersApi_);
-    eventManager = configuredRuntime.eventManager();
   });
 
   afterEach(() => {
@@ -1477,20 +1467,27 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
   });
 
-  describe('event manager', () => {
-    it('should return events manager', () => {
-      expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
+  it('should return events manager', () => {
+    expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
+  });
+
+  describe('configPromise', () => {
+    let resolveConfig;
+    let rejectConfig;
+    let eventManager;
+
+    beforeEach(() => {
+      runtime = new ConfiguredRuntime(win, config, {
+        configPromise: new Promise((resolve, reject) => {
+          resolveConfig = resolve;
+          rejectConfig = reject;
+        }),
+      });
     });
 
     it('should hold events until config resolved', () => {
       activityResultCallbacks = {};
-      let resolver = null;
-      const configPromise = new Promise(resolve => resolver = resolve);
-      const configRuntime = new ConfiguredRuntime(win, config, {
-        configPromise,
-      });
-      const eventMan = configRuntime.eventManager();
-      eventMan.logEvent({
+      eventManager.logEvent({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: true,
@@ -1501,19 +1498,18 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       //ensure you got the event even though you sent it before registering
       let eventCount = 0;
       eventMan.registerEventListener(() => eventCount++);
-      resolver();
+      resolveConfig();
 
       return configPromise.then(() => expect(eventCount).to.equal(1));
     });
 
     it('should not log when config rejected', function*() {
-      configPromise = Promise.reject('config not available');
       let counter1 = 0;
 
       eventManager.registerEventListener(() => counter1++);
       eventManager.logEvent(event);
       expect(counter1).to.equal(0);
-      runtime.configured_(true);
+      rejectConfig();
 
       try {
         yield eventManager.lastAction_;
