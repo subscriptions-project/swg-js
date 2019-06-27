@@ -105,7 +105,11 @@ subscriptions.attachSmartButton(
 - `options` (Optional): Configures appearance of button.
   - `lang`: (Optional) Sets the button SVG and title.  English is default language.  See [Button API](../src/runtime/button-api.js) for `lang` values.
   - `theme`: (Optional) Button theme can be `light` (default) or `dark`.
-  - `messageTextColor`: (Optional) Sets color for message shown below button (Ex: "Subscribe in 2 minutes..."). Can be any color. Defaults to `"#757575"`.
+  - `messageTextColor`: (Optional) Sets color for message shown below button (Ex: "Subscribe in 2 minutes..."). Can be any color. Defaults to `"#757575"`. The following formats are supported:
+    - color names (i.e. red or blue)
+    - hex colors (i.e. #fff or #ffffff)
+    - rgb(r, g, b)
+    - rgba(r, g, b, a)
 - `callback` (Required): Callback to provide action on click of `button`.
 
 
