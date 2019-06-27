@@ -16,10 +16,12 @@
 
 import {ActivityIframeView} from './activity-iframe-view';
 import {
-  ActivityPorts,
-  ActivityIframePort,
   ActivityResult,
 } from 'web-activities/activity-ports';
+import {
+  ActivityPorts,
+  ActivityIframePort,
+} from '../components/activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 
@@ -41,8 +43,8 @@ describes.realWin('ActivityIframeView', {}, env => {
     src = '$frontend$/offersiframe';
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     activityPorts = new ActivityPorts(win);
-    activityIframePort =
-        new ActivityIframePort(dialog.getElement(), src, activityPorts);
+    activityIframePort = new ActivityIframePort(
+        dialog.getElement(), src, activityPorts);
 
     sandbox.stub(
         activityIframePort,
@@ -51,12 +53,9 @@ describes.realWin('ActivityIframeView', {}, env => {
 
     sandbox.stub(
         activityIframePort,
-        'onMessage',
+        'onMessageDeprecated',
         () => {
           return Promise.resolve(true);
-          return function() {
-            return {'sku': 'basic'};
-          };
         });
 
     sandbox.stub(

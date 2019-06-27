@@ -54,7 +54,7 @@ export class SmartSubscriptionButtonApi {
     /** @private @const {!Document} */
     this.doc_ = this.win_.document;
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!HTMLIFrameElement} */
@@ -115,7 +115,7 @@ export class SmartSubscriptionButtonApi {
     this.button_.appendChild(this.iframe_);
     this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
         .then(port => {
-          port.onMessage(result => {
+          port.onMessageDeprecated(result => {
             if (result['clicked']) {
               if (!this.callback_) {
                 throw new Error('No callback!');

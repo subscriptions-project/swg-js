@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import {
-  ActivityPort,
-} from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {
   DeferredAccountCreationResponse,
@@ -29,6 +26,9 @@ import {
 } from './pay-flow';
 import {isCancelError} from '../utils/errors';
 import * as sinon from 'sinon';
+import {
+  ActivityPort,
+} from '../components/activities';
 
 const EMPTY_ID_TOK = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9' +
     '.eyJzdWIiOiJJRF9UT0sifQ.SIG';
@@ -67,7 +67,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
 
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     resultResolver = null;
     const resultPromise = new Promise(resolve => {
