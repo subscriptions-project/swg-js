@@ -28,9 +28,8 @@ Both APIs are very similar - the only difference is the `createButton` creates a
 
 Both APIs require a callback and accept an optional `options` object. The configurable options are:
 
- - `theme`  : Button theme can be `light` (default) or `dark`.
-
  - `lang`: Sets the button SVG and title.  English is default language.  See [Button API](../src/runtime/button-api.js) for `lang` values.
+ - `theme`: Button theme can be `light` (default) or `dark`.
 
 The API call without options:
 
@@ -103,12 +102,14 @@ subscriptions.attachSmartButton(
 ### Parameters:
 
 - `buttonElement` (Required): HTML button element where smartButton is rendered.
-- `options` (Optional): Accepts JSON object with `theme` attribute.\
-                        i.e.: `{theme: 'dark'|'light'}` (Default is `light`) \
-                        `dark` theme renders the button with dark background and\
-                        light/white text.\
-                        `light` theme renders the button with light/white background \
-                        and dark text.
+- `options` (Optional): Configures appearance of button.
+  - `lang`: (Optional) Sets the button SVG and title.  English is default language.  See [Button API](../src/runtime/button-api.js) for `lang` values.
+  - `theme`: (Optional) Button theme can be `light` (default) or `dark`.
+  - `messageTextColor`: (Optional) Sets color for message shown below button (Ex: "Subscribe in 2 minutes..."). Can be any color. Defaults to `"#757575"`. The following formats are supported:
+    - color names (i.e. red or blue)
+    - hex colors (i.e. #fff or #ffffff)
+    - rgb(r, g, b)
+    - rgba(r, g, b, a)
 - `callback` (Required): Callback to provide action on click of `button`.
 
 
@@ -148,12 +149,16 @@ For instance:
 
 ![Button with `theme: 'dark'`](./img/swg-button-dark.png)
 
+
 `SmartButton` with `light` theme:
 
 ![Button with `theme: 'light'`](./img/swg-smart-button-light.png)
 
-
 `SmartButton` with `dark` theme:
 
 ![Button with `theme: 'dark'`](./img/swg-smart-button-dark.png)
+
+`SmartButton` with custom messageTextColor:
+
+![Button with custom messageTextColor](./img/swg-smart-button-custom.png)
 
