@@ -121,7 +121,11 @@ function startFlowAuto() {
 
         subs.attachSmartButton(
             smartButton,
-            {theme: 'light', lang: 'en'},
+            {
+              theme: 'light',
+              lang: 'en',
+              messageTextColor: 'rgba(66, 133, 244, 0.95)'
+            },
             function() {
               subs.showOffers({isClosable: true});
             });
