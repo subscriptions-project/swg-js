@@ -15,9 +15,11 @@
  */
 
 import {
-  ActivityPort,
   ActivityResult,
 } from 'web-activities/activity-ports';
+import {
+  ActivityPort,
+} from '../components/activities';
 import {
   acceptPortResultData,
 } from './../utils/activity-utils';
@@ -31,7 +33,6 @@ import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
 import * as sinon from 'sinon';
-
 
 describes.realWin('OffersFlow', {}, env => {
   let win;
@@ -52,11 +53,10 @@ describes.realWin('OffersFlow', {}, env => {
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessage', callback => {
+    sandbox.stub(port, 'onMessageDeprecated', callback => {
       messageCallback = callback;
     });
   });
@@ -237,10 +237,9 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     offersFlow = new SubscribeOptionFlow(runtime);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessage', callback => {
+    sandbox.stub(port, 'onMessageDeprecated', callback => {
       messageCallback = callback;
     });
   });
@@ -362,11 +361,10 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
     port.acceptResult = () => Promise.resolve();
     port.whenReady = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessage', callback => {
+    sandbox.stub(port, 'onMessageDeprecated', callback => {
       messageCallback = callback;
     });
   });
