@@ -338,10 +338,13 @@ describes.realWin('installRuntime legacy', {}, env => {
 describes.realWin('Runtime', {}, env => {
   let win;
   let runtime;
+  let loggedEvents = [];
 
   beforeEach(() => {
     win = env.win;
     runtime = new Runtime(win);
+    sandbox.stub(ClientEventManager, 'logEvent',
+        event => loggedEvents.push(event));
   });
 
   describe('startSubscriptionsFlowIfNeeded', () => {
@@ -459,6 +462,19 @@ describes.realWin('Runtime', {}, env => {
         throw new Error('must have failed');
       }, reason => {
         expect(() => {throw reason;}).to.throw(/config not available/);
+      });
+    });
+
+    it('should eventually log events', () => {
+      runtime.logEvent({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+      expect(loggedEvents.length).to.equal(0);
+      return runtime.configure_(true).then(() => {
+        expect(loggedEvents.length).to.equal(1);
       });
     });
   });
