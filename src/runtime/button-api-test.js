@@ -260,11 +260,19 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'dark',
           lang: 'fr',
+          messageTextColor: '#411',
           analyticsContext: expAnalyticsContext.toArray(),
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(
-        runtime, button, {theme: 'dark', lang: 'fr'}, handler);
+        runtime,
+        button,
+        {
+          theme: 'dark',
+          lang: 'fr',
+          messageTextColor: '#411',
+        },
+        handler);
     expect(handler).to.not.be.called;
     button.click();
     expect(handler).to.be.calledOnce;
