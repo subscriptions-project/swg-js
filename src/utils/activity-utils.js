@@ -16,7 +16,7 @@
 
 
 /**
- * @param {!web-activities/activity-ports.ActivityPort} port
+ * @param {!../components/activities.ActivityPortDef} port
  * @param {string} requireOrigin
  * @param {boolean} requireOriginVerified
  * @param {boolean} requireSecureChannel

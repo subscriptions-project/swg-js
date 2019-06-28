@@ -44,7 +44,7 @@ export class AnalyticsService {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!HTMLIFrameElement} */
@@ -178,7 +178,7 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityIframePort>}
+   * @return {!Promise<!../components/activities.ActivityIframePort>}
    * @private
    */
   start_() {
@@ -255,7 +255,7 @@ export class AnalyticsService {
    */
   onMessage(callback) {
     this.lastAction_ = this.start_().then(port => {
-      port.onMessage(callback);
+      port.onMessageDeprecated(callback);
     });
   }
 
@@ -269,7 +269,7 @@ export class AnalyticsService {
       return;
     }
     this.lastAction_ = this.start_().then(port => {
-      port.message({'buf': this.createLogRequest_(event).toArray()});
+      port.messageDeprecated({'buf': this.createLogRequest_(event).toArray()});
     });
   }
 

@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-import {
-    ActivityPort,
-  } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {PageConfig} from '../model/page-config';
 import * as sinon from 'sinon';
+import {ActivityPort} from '../components/activities';
 
 describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
   let win;
@@ -45,9 +43,9 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
-    port.message = () => {};
+    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     accountPromise = Promise.resolve(account);
     waitingApi = new WaitForSubscriptionLookupApi(runtime, accountPromise);

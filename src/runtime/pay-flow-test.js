@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  ActivityPort,
-} from 'web-activities/activity-ports';
+import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
@@ -257,6 +255,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let flow;
   let analyticsMock;
   let jserrorMock;
+  let port;
 
   const TOKEN_HEADER = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
   const TOKEN_PAYLOAD =
@@ -306,9 +305,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
           return arg === 'RaW';
         }))
         .once();
-    const port = new ActivityPort();
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     analyticsMock.expects('logEvent').withExactArgs(
         AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
@@ -333,9 +332,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
-    const port = new ActivityPort();
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     analyticsMock.expects('logEvent').withExactArgs(
         AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
@@ -363,8 +362,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.message = () => {};
-    port.onMessage = () => {};
+    port.messageDeprecated = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -388,7 +387,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         AnalyticsEvent.ACTION_ACCOUNT_CREATED);
     analyticsMock.expects('logEvent').withExactArgs(
         AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
-    const messageStub = sandbox.stub(port, 'message');
+    const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow.start(response).then(() => {
       return flow.complete();
     }).then(() => {
@@ -404,10 +403,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
-    const port = new ActivityPort();
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.message = () => {};
-    port.onMessage = () => {};
+    port.messageDeprecated = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -428,7 +427,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
     analyticsMock.expects('logEvent').withExactArgs(
         AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
-    const messageStub = sandbox.stub(port, 'message');
+    const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow.start(response).then(() => {
       return flow.complete();
     }).then(() => {
@@ -444,11 +443,11 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, null, ProductType.SUBSCRIPTION, null);
-    const port = new ActivityPort();
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.message = () => {};
+    port.messageDeprecated = () => {};
     let messageHandler;
-    port.onMessage = handler => {
+    port.onMessageDeprecated = handler => {
       messageHandler = handler;
     };
     port.whenReady = () => Promise.resolve();
@@ -483,7 +482,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
     analyticsMock.expects('logEvent').withExactArgs(
         AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
-    const messageStub = sandbox.stub(port, 'message');
+    const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow.start(response).then(() => {
       messageHandler({
         'entitlements': 'ENTITLEMENTS_JWT',
@@ -514,17 +513,17 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const entitlements = new Entitlements('service1', TOKEN, [], null);
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, entitlements);
-    const port = new ActivityPort();
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.message = () => {};
-    port.onMessage = () => {};
+    port.messageDeprecated = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     analyticsMock.expects('logEvent')
         .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE)
         .once();
-    sandbox.stub(port, 'message');
+    sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);
   });
 
@@ -540,17 +539,17 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const response = new SubscribeResponse(
         'RaW', purchaseData, userData, entitlements,
         ProductType.SUBSCRIPTION, null);
-    const port = new ActivityPort();
+    port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.message = () => {};
-    port.onMessage = () => {};
+    port.messageDeprecated = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     analyticsMock.expects('logEvent')
         .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE)
         .once();
-    sandbox.stub(port, 'message');
+    sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);
   });
 

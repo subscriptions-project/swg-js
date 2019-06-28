@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from 'web-activities/activity-ports';
 import {ButtonApi} from './button-api';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
@@ -22,6 +21,7 @@ import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
 import * as sinon from 'sinon';
 import {AnalyticsContext} from '../proto/api_messages';
+import {ActivityPort} from '../components/activities';
 
 describes.realWin('ButtonApi', {}, env => {
   let win;
