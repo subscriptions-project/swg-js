@@ -338,12 +338,12 @@ describes.realWin('installRuntime legacy', {}, env => {
 describes.realWin('Runtime', {}, env => {
   let win;
   let runtime;
-  let loggedEvents = [];
+  const loggedEvents = [];
 
   beforeEach(() => {
     win = env.win;
     runtime = new Runtime(win);
-    sandbox.stub(ClientEventManager, 'logEvent',
+    sandbox.stub(ClientEventManager.prototype, 'logEvent',
         event => loggedEvents.push(event));
   });
 
@@ -473,7 +473,7 @@ describes.realWin('Runtime', {}, env => {
         additionalParameters: null,
       });
       expect(loggedEvents.length).to.equal(0);
-      return runtime.configure_(true).then(() => {
+      return runtime.configured_(true).then(() => {
         expect(loggedEvents.length).to.equal(1);
       });
     });
