@@ -20,9 +20,8 @@ import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
 import * as sinon from 'sinon';
-import {
-  ActivityPort,
-} from '../components/activities';
+import {AnalyticsContext} from '../proto/api_messages';
+import {ActivityPort} from '../components/activities';
 
 describes.realWin('ButtonApi', {}, env => {
   let win;
@@ -30,6 +29,7 @@ describes.realWin('ButtonApi', {}, env => {
   let runtime;
   let pageConfig;
   let port;
+  let analyticsMock;
   let activitiesMock;
   let buttonApi;
   let handler;
@@ -40,6 +40,7 @@ describes.realWin('ButtonApi', {}, env => {
     buttonApi = new ButtonApi(resolveDoc(doc));
     pageConfig = new PageConfig('pub1:label1', false);
     runtime = new ConfiguredRuntime(win, pageConfig);
+    analyticsMock = sandbox.mock(runtime.analytics());
     activitiesMock = sandbox.mock(runtime.activities());
     port = new ActivityPort();
     handler = sandbox.spy();
@@ -47,6 +48,7 @@ describes.realWin('ButtonApi', {}, env => {
 
   afterEach(() => {
     activitiesMock.verify();
+    analyticsMock.verify();
   });
 
   it('should inject stylesheet', () => {
@@ -186,6 +188,11 @@ describes.realWin('ButtonApi', {}, env => {
     button.className = 'swg-smart-button';
     expect(button.nodeType).to.equal(1);
 
+    const expAnalyticsContext = new AnalyticsContext();
+    expAnalyticsContext.setEmbedderOrigin('google.com');
+    analyticsMock.expects('getContext')
+        .returns(expAnalyticsContext)
+        .once();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
@@ -195,6 +202,7 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'light',
           lang: 'en',
+          analyticsContext: expAnalyticsContext.toArray(),
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(runtime, button, {}, handler);
@@ -209,6 +217,11 @@ describes.realWin('ButtonApi', {}, env => {
     button.className = 'swg-smart-button';
     expect(button.nodeType).to.equal(1);
 
+    const expAnalyticsContext = new AnalyticsContext();
+    expAnalyticsContext.setEmbedderOrigin('google.com');
+    analyticsMock.expects('getContext')
+        .returns(expAnalyticsContext)
+        .once();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
@@ -218,6 +231,7 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'light',
           lang: 'en',
+          analyticsContext: expAnalyticsContext.toArray(),
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(runtime, button, handler);
@@ -232,6 +246,11 @@ describes.realWin('ButtonApi', {}, env => {
     button.className = 'swg-smart-button';
     expect(button.nodeType).to.equal(1);
 
+    const expAnalyticsContext = new AnalyticsContext();
+    expAnalyticsContext.setEmbedderOrigin('google.com');
+    analyticsMock.expects('getContext')
+        .returns(expAnalyticsContext)
+        .once();
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
@@ -241,6 +260,7 @@ describes.realWin('ButtonApi', {}, env => {
           productId: 'pub1:label1',
           theme: 'dark',
           lang: 'fr',
+          analyticsContext: expAnalyticsContext.toArray(),
         })
         .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(
@@ -257,6 +277,11 @@ describes.realWin('ButtonApi', {}, env => {
         button.className = 'swg-smart-button';
         expect(button.nodeType).to.equal(1);
 
+        const expAnalyticsContext = new AnalyticsContext();
+        expAnalyticsContext.setEmbedderOrigin('google.com');
+        analyticsMock.expects('getContext')
+            .returns(expAnalyticsContext)
+            .once();
         activitiesMock.expects('openIframe').withExactArgs(
             sinon.match(arg => arg.tagName == 'IFRAME'),
             '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
@@ -266,6 +291,8 @@ describes.realWin('ButtonApi', {}, env => {
               productId: 'pub1:label1',
               theme: 'light',
               lang: 'en',
+              analyticsContext: expAnalyticsContext.toArray(),
+
             })
             .returns(Promise.resolve(port));
         buttonApi.attachSmartButton(
