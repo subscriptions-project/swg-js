@@ -241,7 +241,7 @@ export class Subscriptions {
    * The default theme is "light".
    *
    * @param {!Element} button
-   * @param {!ButtonOptions|function()} optionsOrCallback
+   * @param {!SmartButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    */
   attachSmartButton(button, optionsOrCallback, opt_callback) {}
@@ -381,14 +381,29 @@ export let SaveSubscriptionRequestCallback;
 
 /**
  * Properties:
+ * - lang: Sets the button SVG and title. Default is "en".
  * - theme: "light" or "dark". Default is "light".
  *
  * @typedef {{
- *   theme: string,
+ *   theme: (string|undefined),
  *   lang: (string|undefined),
  * }}
  */
 export let ButtonOptions;
+
+/**
+ * Properties:
+ * - lang: Sets the button SVG and title. Default is "en".
+ * - theme: "light" or "dark". Default is "light".
+ * - messageTextColor: Overrides theme color for message text. (ex: "#09f")
+ *
+ * @typedef {{
+ *   theme: (string|undefined),
+ *   lang: (string|undefined),
+ *   messageTextColor: (string|undefined),
+ * }}
+ */
+export let SmartButtonOptions;
 
 /**
  * Properties:
