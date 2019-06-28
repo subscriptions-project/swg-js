@@ -72,6 +72,7 @@ import {
 } from './experiments';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
+import {FilterResult} from '../api/client-event-manager-api';
 
 const EDGE_USER_AGENT =
     'Mozilla/5.0 (Windows NT 10.0)' +
@@ -1501,6 +1502,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     };
 
     beforeEach(() => {
+      //this test needs to re-declare ConfiguredRuntime which populates this
+      //object. Clearing the object avoids re-writing the other tests
+      //TODO(mborof): properly sandbox tests so this is not necessary.
       activityResultCallbacks = {};
       configPromise = new Promise((resolve, reject) => {
         resolveConfig = resolve;
@@ -1539,5 +1543,20 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       } catch (e) {}
       expect(eventCount).to.equal(0);
     });
+
+    it(
+      'should filter out events sent before a filterer is registered',
+      function*() {
+        let eventCount = 0;
+
+        eventManager.registerEventListener(() => eventCount++);
+        eventManager.logEvent(event);
+        expect(eventCount).to.equal(0);
+        eventManager.registerEventFilterer(() => FilterResult.CANCEL_EVENT);
+        resolveConfig();
+        yield configPromise;
+        expect(eventCount).to.equal(0);
+      }
+    );
   });
 });
