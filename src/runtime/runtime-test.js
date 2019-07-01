@@ -72,7 +72,6 @@ import {
 } from './experiments';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
-import {FilterResult} from '../api/client-event-manager-api';
 
 const EDGE_USER_AGENT =
     'Mozilla/5.0 (Windows NT 10.0)' +
@@ -838,657 +837,13 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   let win;
   let config;
   let runtime;
-  let entitlementsManagerMock;
-  let dialogManagerMock;
-  let analyticsMock;
-  let jserrorMock;
-  let activityResultCallbacks;
-  let offersApiMock;
-  let redirectErrorHandler;
+
   beforeEach(() => {
     win = env.win;
-    activityResultCallbacks = {};
-    redirectErrorHandler = null;
-    sandbox.stub(ActivityPorts.prototype, 'onResult',
-        function(requestId, callback) {
-          if (activityResultCallbacks[requestId]) {
-            throw new Error('duplicate');
-          }
-          activityResultCallbacks[requestId] = callback;
-        });
-    sandbox.stub(ActivityPorts.prototype, 'onRedirectError',
-        function(handler) {
-          redirectErrorHandler = handler;
-        });
     config = new PageConfig('pub1:label1', true);
-    runtime = new ConfiguredRuntime(win, config);
-    entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager_);
-    dialogManagerMock = sandbox.mock(runtime.dialogManager_);
-    analyticsMock = sandbox.mock(runtime.analytics());
-    jserrorMock = sandbox.mock(runtime.jserror());
-    offersApiMock = sandbox.mock(runtime.offersApi_);
   });
 
-  afterEach(() => {
-    dialogManagerMock.verify();
-    analyticsMock.verify();
-    jserrorMock.verify();
-    entitlementsManagerMock.verify();
-    offersApiMock.verify();
-    setExperimentsStringForTesting('');
-  });
-
-  function returnActivity(requestId, code, opt_dataOrError, opt_origin) {
-    const activityResult = new ActivityResult(code, opt_dataOrError,
-        'POPUP', opt_origin || 'https://example.com', false, false);
-    const activityResultPromise = Promise.resolve(activityResult);
-    const promise = activityResultCallbacks[requestId]({
-      acceptResult() {
-        return activityResultPromise;
-      },
-    });
-    return activityResultPromise.then(() => {
-      // Skip microtask.
-      return promise;
-    });
-  }
-
-  describe('callbacks', () => {
-    it('should trigger entitlements callback', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnEntitlementsResponse(resolve);
-      });
-      runtime.callbacks().triggerEntitlementsResponse(
-          Promise.resolve(new Entitlements('', 'RaW', [], null, () => {})));
-      return promise.then(result => {
-        expect(result.raw).to.equal('RaW');
-      });
-    });
-
-    it('should trigger native subscribe request', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnNativeSubscribeRequest(resolve);
-      });
-      runtime.callbacks().triggerSubscribeRequest();
-      return promise;
-    });
-
-    it('should trigger subscribe response', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnSubscribeResponse(resolve);
-      });
-      runtime.callbacks().triggerSubscribeResponse(Promise.resolve(
-          new SubscribeResponse('RaW')));
-      return promise.then(result => {
-        expect(result.raw).to.equal('RaW');
-      });
-    });
-
-    it('should trigger login request', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnLoginRequest(resolve);
-      });
-      runtime.callbacks().triggerLoginRequest({linkRequested: true});
-      return promise.then(result => {
-        expect(result.linkRequested).to.be.true;
-      });
-    });
-
-    it('should trigger link complete', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnLinkComplete(resolve);
-      });
-      runtime.callbacks().triggerLinkComplete();
-      return promise;
-    });
-
-    it('should trigger flow started callback', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnFlowStarted(resolve);
-      });
-      runtime.callbacks().triggerFlowStarted('flow1', {a: 1});
-      return promise.then(result => {
-        expect(result).to.deep.equal({flow: 'flow1', data: {a: 1}});
-      });
-    });
-
-    it('should trigger flow canceled callback', () => {
-      const promise = new Promise(resolve => {
-        runtime.setOnFlowCanceled(resolve);
-      });
-      runtime.callbacks().triggerFlowCanceled('flow1', {b: 2});
-      return promise.then(result => {
-        expect(result).to.deep.equal({flow: 'flow1', data: {b: 2}});
-      });
-    });
-  });
-
-  describe('config', () => {
-    it('should disallow unknown properties', () => {
-      expect(() => {
-        runtime.configure({unknown: 1});
-      }).to.throw(/Unknown config property/);
-    });
-
-    it('should configure windowOpenMode', () => {
-      expect(runtime.config().windowOpenMode).to.equal('auto');
-      runtime.configure({windowOpenMode: 'redirect'});
-      expect(runtime.config().windowOpenMode).to.equal('redirect');
-      runtime.configure({windowOpenMode: 'auto'});
-      expect(runtime.config().windowOpenMode).to.equal('auto');
-    });
-
-    it('should configure analytics mode to track impressions', () => {
-      expect(runtime.config().analyticsMode).to.equal(AnalyticsMode.DEFAULT);
-      runtime.configure({analyticsMode: AnalyticsMode.IMPRESSIONS});
-      expect(runtime.config().analyticsMode).to.equal(
-          AnalyticsMode.IMPRESSIONS);
-      runtime.configure({analyticsMode: AnalyticsMode.DEFAULT});
-      expect(runtime.config().analyticsMode).to.equal(
-          AnalyticsMode.DEFAULT);
-    });
-
-    it('should disallow unknown windowOpenMode values', () => {
-      expect(() => {
-        runtime.configure({windowOpenMode: 'unknown'});
-      }).to.throw(/Unknown windowOpenMode/);
-      // Value is unchanged.
-      expect(runtime.config().windowOpenMode).to.equal('auto');
-    });
-
-    it('should set experiments', () => {
-      runtime.configure({experiments: ['exp1', 'exp2']});
-      expect(isExperimentOn(win, 'exp1')).to.be.true;
-      expect(isExperimentOn(win, 'exp2')).to.be.true;
-      expect(isExperimentOn(win, 'exp3')).to.be.false;
-    });
-
-    it('should set experiments after initialization', () => {
-      expect(isExperimentOn(win, 'exp1')).to.be.false;
-      expect(isExperimentOn(win, 'exp2')).to.be.false;
-      expect(isExperimentOn(win, 'exp3')).to.be.false;
-
-      runtime.configure({experiments: ['exp1', 'exp2']});
-      expect(isExperimentOn(win, 'exp1')).to.be.true;
-      expect(isExperimentOn(win, 'exp2')).to.be.true;
-      expect(isExperimentOn(win, 'exp3')).to.be.false;
-    });
-  });
-
-  it('should prefetch loading indicator', () => {
-    const el = win.document.head.querySelector(
-        'link[rel="preconnect prefetch"][href*="/loader.svg"]');
-    expect(el).to.exist;
-    expect(el.getAttribute('href')).to.equal('$assets$/loader.svg');
-  });
-
-  it('should prefetch payments', () => {
-    const el = win.document.head.querySelector(
-        'link[rel="preconnect prefetch"][href*="/pay?"]');
-    expect(el).to.exist;
-    expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
-  });
-
-  it('should NOT inject button stylesheet', () => {
-    const el = win.document.head.querySelector(
-        'link[href*="swg-button.css"]');
-    expect(el).to.not.exist;
-  });
-
-  it('should initialize deps', () => {
-    expect(runtime.win()).to.equal(win);
-    expect(runtime.doc().getWin()).to.equal(win);
-    expect(runtime.doc().getRootNode()).to.equal(win.document);
-    expect(runtime.pageConfig()).to.equal(config);
-    expect(runtime.activities()).to.be.instanceof(ActivityPorts);
-    expect(runtime.dialogManager()).to.be.instanceof(DialogManager);
-    expect(runtime.dialogManager().doc_).to.equal(runtime.doc());
-    expect(runtime.entitlementsManager().blockNextNotification_).to.be.false;
-    expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
-    expect(runtime.jserror()).to.be.instanceOf(JsError);
-  });
-
-  it('should report the redirect failure', () => {
-    const error = new Error('intentional');
-    analyticsMock.expects('addLabels')
-        .withExactArgs(['redirect'])
-        .once();
-    analyticsMock.expects('logEvent')
-        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
-        .once();
-    jserrorMock.expects('error')
-        .withExactArgs('Redirect error', error)
-        .once();
-    redirectErrorHandler(error);
-  });
-
-  it('should reset entitlements', () => {
-    dialogManagerMock.expects('completeAll').once();
-    entitlementsManagerMock.expects('reset').once();
-    runtime.reset();
-  });
-
-  it('should clear entitlements', () => {
-    dialogManagerMock.expects('completeAll').once();
-    entitlementsManagerMock.expects('clear').once();
-    runtime.clear();
-  });
-
-  it('should not start entitlements flow without product', () => {
-    sandbox.stub(config, 'getProductId', () => null);
-    entitlementsManagerMock.expects('getEntitlements').never();
-    const triggerStub = sandbox.stub(runtime.callbacks(),
-        'triggerEntitlementsResponse');
-    return runtime.start().then(() => {
-      expect(triggerStub).to.not.be.called;
-    });
-  });
-
-  it('should not start entitlements flow for unlocked', () => {
-    sandbox.stub(config, 'isLocked', () => false);
-    entitlementsManagerMock.expects('getEntitlements').never();
-    const triggerStub = sandbox.stub(runtime.callbacks(),
-        'triggerEntitlementsResponse');
-    return runtime.start().then(() => {
-      expect(triggerStub).to.not.be.called;
-    });
-  });
-
-  it('should start entitlements flow with success', () => {
-    const entitlements = new Entitlements(
-        'service', 'raw',
-        [new Entitlement('', ['product1'], 'token1')],
-        'product1',
-        () => {});
-    entitlementsManagerMock.expects('getEntitlements')
-        .withExactArgs(undefined)
-        .returns(Promise.resolve(entitlements))
-        .once();
-    return runtime.start();
-  });
-
-  it('should start entitlements flow with failure', () => {
-    const error = new Error('broken');
-    entitlementsManagerMock.expects('getEntitlements')
-        .withExactArgs(undefined)
-        .returns(Promise.reject(error))
-        .once();
-    return runtime.start();
-  });
-
-  it('should call offers API w/o productId', () => {
-    const p = Promise.resolve();
-    offersApiMock.expects('getOffers')
-        .withExactArgs(undefined)
-        .returns(p)
-        .twice();
-    expect(runtime.getOffers()).to.equal(p);
-    expect(runtime.getOffers({})).to.equal(p);
-  });
-
-  it('should call offers API with productId', () => {
-    const p = Promise.resolve();
-    offersApiMock.expects('getOffers')
-        .withExactArgs('p1')
-        .returns(p)
-        .once();
-    expect(runtime.getOffers({productId: 'p1'})).to.equal(p);
-  });
-
-  it('should start "completeDeferredAccountCreation"', () => {
-    const ents = {};
-    const request = {entitlements: ents};
-    const resp = {};
-    let flow;
-    const startStub = sandbox.stub(
-        DeferredAccountFlow.prototype,
-        'start',
-        function() {
-          flow = this;
-          return Promise.resolve(resp);
-        });
-    return runtime.completeDeferredAccountCreation(request).then(result => {
-      expect(startStub).to.be.calledOnce.calledWithExactly();
-      expect(result).to.equal(resp);
-      expect(flow.options_.entitlements).to.equal(ents);
-    });
-  });
-
-  it('should call "showOffers"', () => {
-    let offersFlow;
-    sandbox.stub(OffersFlow.prototype, 'start', function() {
-      offersFlow = this;
-      return new Promise(() => {});
-    });
-    runtime.showOffers();
-    return runtime.documentParsed_.then(() => {
-      expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
-    });
-  });
-
-  it('should call "showOffers" with options', () => {
-    let offersFlow;
-    sandbox.stub(OffersFlow.prototype, 'start', function() {
-      offersFlow = this;
-      return new Promise(() => {});
-    });
-    runtime.showOffers({list: 'other'});
-    return runtime.documentParsed_.then(() => {
-      expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
-    });
-  });
-
-  it('should call "showAbbrvOffer"', () => {
-    let offersFlow;
-    sandbox.stub(AbbrvOfferFlow.prototype, 'start', function() {
-      offersFlow = this;
-      return new Promise(() => {});
-    });
-    runtime.showAbbrvOffer();
-    return runtime.documentParsed_.then(() => {
-      expect(offersFlow.options_).to.deep.equal({});
-    });
-  });
-
-  it('should call "showAbbrvOffer" with options', () => {
-    let offersFlow;
-    sandbox.stub(AbbrvOfferFlow.prototype, 'start', function() {
-      offersFlow = this;
-      return new Promise(() => {});
-    });
-    runtime.showAbbrvOffer({list: 'other'});
-    return runtime.documentParsed_.then(() => {
-      expect(offersFlow.options_).to.deep.equal({list: 'other'});
-    });
-  });
-
-  it('should call "showSubscribeOption"', () => {
-    let offersFlow;
-    sandbox.stub(SubscribeOptionFlow.prototype, 'start', function() {
-      offersFlow = this;
-      return new Promise(() => {});
-    });
-    runtime.showSubscribeOption();
-    return runtime.documentParsed_.then(() => {
-      expect(offersFlow.options_).to.be.undefined;
-    });
-  });
-
-  it('should call "showSubscribeOption" with options', () => {
-    let offersFlow;
-    sandbox.stub(SubscribeOptionFlow.prototype, 'start', function() {
-      offersFlow = this;
-      return new Promise(() => {});
-    });
-    runtime.showSubscribeOption({list: 'other'});
-    return runtime.documentParsed_.then(() => {
-      expect(offersFlow.options_).to.deep.equal({list: 'other'});
-    });
-  });
-
-  it('should call "showContributionOptions" with options', () => {
-    setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
-    let contributionFlow;
-    sandbox.stub(ContributionsFlow.prototype, 'start', function() {
-      contributionFlow = this;
-      return new Promise(() => {});
-    });
-    runtime.showContributionOptions({list: 'other', skus: ['sku1', 'sku2']});
-    return runtime.documentParsed_.then(() => {
-      expect(contributionFlow.options_).to.deep
-          .equal({list: 'other', skus: ['sku1', 'sku2']});
-    });
-  });
-
-  it('should start LinkbackFlow', () => {
-    const startStub = sandbox.stub(
-        LinkbackFlow.prototype,
-        'start',
-        () => Promise.resolve());
-    return runtime.linkAccount().then(() => {
-      expect(startStub).to.be.calledOnce;
-    });
-  });
-
-  it('should configure and start LinkCompleteFlow for swg-link', () => {
-    expect(activityResultCallbacks['swg-link']).to.exist;
-    const startStub = sandbox.stub(
-        LinkCompleteFlow.prototype,
-        'start',
-        () => Promise.resolve());
-    return returnActivity('swg-link', ActivityResultCode.OK, {},
-        location.origin)
-        // Succeeds or fails is not important for this test.
-        .catch(() => {})
-        .then(() => {
-          expect(startStub).to.be.calledOnce;
-        });
-  });
-
-  it('should start PayStartFlow for subscription', () => {
-    let flowInstance;
-    const startStub = sandbox.stub(
-        PayStartFlow.prototype,
-        'start',
-        function() {
-          flowInstance = this;
-          return Promise.resolve();
-        });
-    return runtime.subscribe('sku1').then(() => {
-      expect(startStub).to.be.calledOnce;
-      expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
-      expect(flowInstance.productType_).to.equal(ProductType.SUBSCRIPTION);
-    });
-  });
-
-  it('should start PayStartFlow for replaceSubscription ' +
-  '(no proration mode)', () => {
-    setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-    let flowInstance;
-    const startStub = sandbox.stub(
-        PayStartFlow.prototype,
-        'start',
-        function() {
-          flowInstance = this;
-          return Promise.resolve();
-        });
-    return runtime.subscribe({skuId: 'newSku', oldSkuId: 'oldSku'}).then(() => {
-      expect(startStub).to.be.calledOnce;
-      expect(flowInstance.subscriptionRequest_.skuId).to.equal('newSku');
-      expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal('oldSku');
-      expect(flowInstance.subscriptionRequest_.ReplaceSkuProrationMode)
-          .to.be.undefined;
-    });
-  });
-
-  it('should start PayStartFlow for replaceSubscription', () => {
-    setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-    let flowInstance;
-    const startStub = sandbox.stub(
-        PayStartFlow.prototype,
-        'start',
-        function() {
-          flowInstance = this;
-          return Promise.resolve();
-        });
-    return runtime.subscribe({skuId: 'newSku', oldSkuId: 'oldSku',
-      replaceSkuProrationMode: ReplaceSkuProrationMode
-          .IMMEDIATE_WITH_TIME_PRORATION}).then(() => {
-            expect(startStub).to.be.calledOnce;
-            expect(flowInstance.subscriptionRequest_.skuId).to.equal(
-                'newSku');
-            expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal(
-                'oldSku');
-            expect(flowInstance.subscriptionRequest_
-                .replaceSkuProrationMode).to.equal(
-                ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
-          });
-  });
-
-  it('should configure and start PayCompleteFlow', () => {
-    expect(activityResultCallbacks['swg-pay']).to.exist;
-    const stub = sandbox.stub(
-        runtime.callbacks(),
-        'triggerSubscribeResponse');
-    return returnActivity('swg-pay', ActivityResultCode.OK)
-        // Succeeds or fails is not important for this test.
-        .catch(() => {})
-        .then(() => {
-          expect(stub).to.be.calledOnce;
-        });
-  });
-
-  it('should start PayStartFlow for contribution', () => {
-    setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
-    let flowInstance;
-    const startStub = sandbox.stub(
-        PayStartFlow.prototype,
-        'start',
-        function() {
-          flowInstance = this;
-          return Promise.resolve();
-        });
-    return runtime.contribute('sku1').then(() => {
-      expect(startStub).to.be.calledOnce;
-      expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
-      expect(flowInstance.productType_).to.equal(ProductType.UI_CONTRIBUTION);
-    });
-  });
-
-  it('should start saveSubscriptionFlow with callback for token', () => {
-    let linkSaveFlow;
-    const newPromise = new Promise(() => {});
-    sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
-      linkSaveFlow = this;
-      return newPromise;
-    });
-    const requestPromise = new Promise(resolve => {
-      resolve({token: 'test'});
-    });
-    const resultPromise = runtime.saveSubscription(() => requestPromise);
-    return runtime.documentParsed_.then(() => {
-      expect(linkSaveFlow.callback_()).to.equal.requestPromise;
-      return linkSaveFlow.callback_().then(request => {
-        expect(request).to.deep.equal({token: 'test'});
-      });
-    });
-    expect(resultPromise).to.deep.equal(newPromise);
-  });
-
-  it('should start saveSubscriptionFlow with callback for authcode', () => {
-    let linkSaveFlow;
-    const newPromise = new Promise(() => {});
-    sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
-      linkSaveFlow = this;
-      return newPromise;
-    });
-    runtime.saveSubscription(() => {
-      return {authCode: 'testCode'};
-    });
-    return runtime.documentParsed_.then(() => {
-      expect(linkSaveFlow.callback_()).to.deep.equal({authCode: 'testCode'});
-    });
-  });
-
-  it('should start LoginPromptApi', () => {
-    const startStub = sandbox.stub(
-        LoginPromptApi.prototype,
-        'start',
-        () => Promise.resolve());
-    return runtime.showLoginPrompt().then(() => {
-      expect(startStub).to.be.calledOnce;
-    });
-  });
-
-  it('should start LoginNotificationApi', () => {
-    const startStub = sandbox.stub(
-        LoginNotificationApi.prototype,
-        'start',
-        () => Promise.resolve());
-    return runtime.showLoginNotification().then(() => {
-      expect(startStub).to.be.calledOnce;
-    });
-  });
-
-  it('should directly call "createButton"', () => {
-    const options = {};
-    const callback = () => {};
-    const button = win.document.createElement('button');
-    const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
-      return button;
-    });
-    const result = runtime.createButton(options, callback);
-    expect(result).to.equal(button);
-    expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
-  });
-
-  it('should start WaitForSubscriptionLookupApi', () => {
-    const accountResult = 'account result';
-    const accountPromise = Promise.resolve(accountResult);
-    const startSpy = sandbox.spy(
-        WaitForSubscriptionLookupApi.prototype,
-        'start');
-    return runtime.waitForSubscriptionLookup(accountPromise).then(
-        result => {
-          expect(startSpy).to.be.calledOnce;
-          expect(result).to.equal(accountResult);
-        });
-  });
-
-  it('should directly call "attachButton"', () => {
-    const options = {};
-    const callback = () => {};
-    const button = win.document.createElement('button');
-    const stub = sandbox.stub(runtime.buttonApi_, 'attach');
-    runtime.attachButton(button, options, callback);
-    expect(stub).to.be.calledOnce
-        .calledWithExactly(button, options, callback);
-  });
-
-  it('should invoke propensity APIs', () => {
-    const propensityResponse = {
-      header: {ok: true},
-      body: {result: 42},
-    };
-    const sendSubscriptionStateStub = sandbox.stub(
-        Propensity.prototype,
-        'sendSubscriptionState');
-    const eventStub = sandbox.stub(
-        Propensity.prototype,
-        'sendEvent');
-    const getPropensityStub = sandbox.stub(
-        Propensity.prototype,
-        'getPropensity',
-        () => Promise.resolve(propensityResponse));
-    return runtime.getPropensityModule().then(propensity => {
-      expect(propensity).to.not.be.null;
-      propensity.sendSubscriptionState('unknown');
-      const event = {
-        name: 'ad_shown',
-        active: false,
-        data: {
-          campaign: 'fall',
-        },
-      };
-      propensity.sendEvent(event);
-      expect(sendSubscriptionStateStub).to.be.calledWithExactly('unknown');
-      expect(eventStub).to.be.calledWithExactly(event);
-      return propensity.getPropensity().then(score => {
-        expect(score).to.not.be.null;
-        expect(score.header).to.not.be.null;
-        expect(score.header.ok).to.be.true;
-        expect(score.body).to.not.be.null;
-        expect(score.body.result).to.equal(42);
-        expect(getPropensityStub).to.be.calledOnce;
-      });
-    });
-  });
-
-  it('should return events manager', () => {
-    expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
-  });
-
-  describe('configPromise', () => {
+  describe('while configuring', () => {
     let resolveConfig;
     let rejectConfig;
     let eventManager;
@@ -1502,10 +857,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     };
 
     beforeEach(() => {
-      //this test needs to re-declare ConfiguredRuntime which populates this
-      //object. Clearing the object avoids re-writing the other tests
-      //TODO(mborof): properly sandbox tests so this is not necessary.
-      activityResultCallbacks = {};
       configPromise = new Promise((resolve, reject) => {
         resolveConfig = resolve;
         rejectConfig = reject;
@@ -1544,19 +895,671 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(eventCount).to.equal(0);
     });
 
-    it(
-      'should filter out events sent before a filterer is registered',
-      function*() {
-        let eventCount = 0;
+  });
 
-        eventManager.registerEventListener(() => eventCount++);
-        eventManager.logEvent(event);
-        expect(eventCount).to.equal(0);
-        eventManager.registerEventFilterer(() => FilterResult.CANCEL_EVENT);
-        resolveConfig();
-        yield configPromise;
-        expect(eventCount).to.equal(0);
-      }
-    );
+  describe('configured', () => {
+    let runtime;
+    let entitlementsManagerMock;
+    let dialogManagerMock;
+    let analyticsMock;
+    let jserrorMock;
+    let activityResultCallbacks;
+    let offersApiMock;
+    let redirectErrorHandler;
+
+
+    beforeEach(() => {
+      activityResultCallbacks = {};
+      redirectErrorHandler = null;
+      sandbox.stub(ActivityPorts.prototype, 'onResult',
+          function(requestId, callback) {
+            if (activityResultCallbacks[requestId]) {
+              throw new Error('duplicate');
+            }
+            activityResultCallbacks[requestId] = callback;
+          });
+      sandbox.stub(ActivityPorts.prototype, 'onRedirectError',
+          function(handler) {
+            redirectErrorHandler = handler;
+          });
+      runtime = new ConfiguredRuntime(win, config);
+      entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager_);
+      dialogManagerMock = sandbox.mock(runtime.dialogManager_);
+      analyticsMock = sandbox.mock(runtime.analytics());
+      jserrorMock = sandbox.mock(runtime.jserror());
+      offersApiMock = sandbox.mock(runtime.offersApi_);
+    });
+
+    afterEach(() => {
+      dialogManagerMock.verify();
+      analyticsMock.verify();
+      jserrorMock.verify();
+      entitlementsManagerMock.verify();
+      offersApiMock.verify();
+      setExperimentsStringForTesting('');
+    });
+
+    function returnActivity(requestId, code, opt_dataOrError, opt_origin) {
+      const activityResult = new ActivityResult(code, opt_dataOrError,
+          'POPUP', opt_origin || 'https://example.com', false, false);
+      const activityResultPromise = Promise.resolve(activityResult);
+      const promise = activityResultCallbacks[requestId]({
+        acceptResult() {
+          return activityResultPromise;
+        },
+      });
+      return activityResultPromise.then(() => {
+        // Skip microtask.
+        return promise;
+      });
+    }
+
+
+    describe('callbacks', () => {
+      it('should trigger entitlements callback', () => {
+        const promise = new Promise(resolve => {
+          runtime.setOnEntitlementsResponse(resolve);
+        });
+        runtime.callbacks().triggerEntitlementsResponse(
+            Promise.resolve(new Entitlements('', 'RaW', [], null, () => {})));
+        return promise.then(result => {
+          expect(result.raw).to.equal('RaW');
+        });
+      });
+
+      it('should trigger native subscribe request', () => {
+        const promise = new Promise(resolve => {
+          runtime.setOnNativeSubscribeRequest(resolve);
+        });
+        runtime.callbacks().triggerSubscribeRequest();
+        return promise;
+      });
+
+      it('should trigger subscribe response', () => {
+        const promise = new Promise(resolve => {
+          runtime.setOnSubscribeResponse(resolve);
+        });
+        runtime.callbacks().triggerSubscribeResponse(Promise.resolve(
+            new SubscribeResponse('RaW')));
+        return promise.then(result => {
+          expect(result.raw).to.equal('RaW');
+        });
+      });
+
+      it('should trigger login request', () => {
+        const promise = new Promise(resolve => {
+          runtime.setOnLoginRequest(resolve);
+        });
+        runtime.callbacks().triggerLoginRequest({linkRequested: true});
+        return promise.then(result => {
+          expect(result.linkRequested).to.be.true;
+        });
+      });
+
+      it('should trigger link complete', () => {
+        const promise = new Promise(resolve => {
+          runtime.setOnLinkComplete(resolve);
+        });
+        runtime.callbacks().triggerLinkComplete();
+        return promise;
+      });
+
+      it('should trigger flow started callback', () => {
+        const promise = new Promise(resolve => {
+          runtime.setOnFlowStarted(resolve);
+        });
+        runtime.callbacks().triggerFlowStarted('flow1', {a: 1});
+        return promise.then(result => {
+          expect(result).to.deep.equal({flow: 'flow1', data: {a: 1}});
+        });
+      });
+
+      it('should trigger flow canceled callback', () => {
+        const promise = new Promise(resolve => {
+          runtime.setOnFlowCanceled(resolve);
+        });
+        runtime.callbacks().triggerFlowCanceled('flow1', {b: 2});
+        return promise.then(result => {
+          expect(result).to.deep.equal({flow: 'flow1', data: {b: 2}});
+        });
+      });
+    });
+
+    describe('config', () => {
+      it('should disallow unknown properties', () => {
+        expect(() => {
+          runtime.configure({unknown: 1});
+        }).to.throw(/Unknown config property/);
+      });
+
+      it('should configure windowOpenMode', () => {
+        expect(runtime.config().windowOpenMode).to.equal('auto');
+        runtime.configure({windowOpenMode: 'redirect'});
+        expect(runtime.config().windowOpenMode).to.equal('redirect');
+        runtime.configure({windowOpenMode: 'auto'});
+        expect(runtime.config().windowOpenMode).to.equal('auto');
+      });
+
+      it('should configure analytics mode to track impressions', () => {
+        expect(runtime.config().analyticsMode).to.equal(AnalyticsMode.DEFAULT);
+        runtime.configure({analyticsMode: AnalyticsMode.IMPRESSIONS});
+        expect(runtime.config().analyticsMode).to.equal(
+            AnalyticsMode.IMPRESSIONS);
+        runtime.configure({analyticsMode: AnalyticsMode.DEFAULT});
+        expect(runtime.config().analyticsMode).to.equal(
+            AnalyticsMode.DEFAULT);
+      });
+
+      it('should disallow unknown windowOpenMode values', () => {
+        expect(() => {
+          runtime.configure({windowOpenMode: 'unknown'});
+        }).to.throw(/Unknown windowOpenMode/);
+        // Value is unchanged.
+        expect(runtime.config().windowOpenMode).to.equal('auto');
+      });
+
+      it('should set experiments', () => {
+        runtime.configure({experiments: ['exp1', 'exp2']});
+        expect(isExperimentOn(win, 'exp1')).to.be.true;
+        expect(isExperimentOn(win, 'exp2')).to.be.true;
+        expect(isExperimentOn(win, 'exp3')).to.be.false;
+      });
+
+      it('should set experiments after initialization', () => {
+        expect(isExperimentOn(win, 'exp1')).to.be.false;
+        expect(isExperimentOn(win, 'exp2')).to.be.false;
+        expect(isExperimentOn(win, 'exp3')).to.be.false;
+
+        runtime.configure({experiments: ['exp1', 'exp2']});
+        expect(isExperimentOn(win, 'exp1')).to.be.true;
+        expect(isExperimentOn(win, 'exp2')).to.be.true;
+        expect(isExperimentOn(win, 'exp3')).to.be.false;
+      });
+    });
+
+
+    it('should prefetch loading indicator', () => {
+      const el = win.document.head.querySelector(
+          'link[rel="preconnect prefetch"][href*="/loader.svg"]');
+      expect(el).to.exist;
+      expect(el.getAttribute('href')).to.equal('$assets$/loader.svg');
+    });
+
+    it('should prefetch payments', () => {
+      const el = win.document.head.querySelector(
+          'link[rel="preconnect prefetch"][href*="/pay?"]');
+      expect(el).to.exist;
+      expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
+    });
+
+    it('should NOT inject button stylesheet', () => {
+      const el = win.document.head.querySelector(
+          'link[href*="swg-button.css"]');
+      expect(el).to.not.exist;
+    });
+
+    it('should initialize deps', () => {
+      expect(runtime.win()).to.equal(win);
+      expect(runtime.doc().getWin()).to.equal(win);
+      expect(runtime.doc().getRootNode()).to.equal(win.document);
+      expect(runtime.pageConfig()).to.equal(config);
+      expect(runtime.activities()).to.be.instanceof(ActivityPorts);
+      expect(runtime.dialogManager()).to.be.instanceof(DialogManager);
+      expect(runtime.dialogManager().doc_).to.equal(runtime.doc());
+      expect(runtime.entitlementsManager().blockNextNotification_).to.be.false;
+      expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
+      expect(runtime.jserror()).to.be.instanceOf(JsError);
+    });
+
+    it('should report the redirect failure', () => {
+      const error = new Error('intentional');
+      analyticsMock.expects('addLabels')
+          .withExactArgs(['redirect'])
+          .once();
+      analyticsMock.expects('logEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
+          .once();
+      jserrorMock.expects('error')
+          .withExactArgs('Redirect error', error)
+          .once();
+      redirectErrorHandler(error);
+    });
+
+    it('should reset entitlements', () => {
+      dialogManagerMock.expects('completeAll').once();
+      entitlementsManagerMock.expects('reset').once();
+      runtime.reset();
+    });
+
+    it('should clear entitlements', () => {
+      dialogManagerMock.expects('completeAll').once();
+      entitlementsManagerMock.expects('clear').once();
+      runtime.clear();
+    });
+
+    it('should not start entitlements flow without product', () => {
+      sandbox.stub(config, 'getProductId', () => null);
+      entitlementsManagerMock.expects('getEntitlements').never();
+      const triggerStub = sandbox.stub(runtime.callbacks(),
+          'triggerEntitlementsResponse');
+      return runtime.start().then(() => {
+        expect(triggerStub).to.not.be.called;
+      });
+    });
+
+    it('should not start entitlements flow for unlocked', () => {
+      sandbox.stub(config, 'isLocked', () => false);
+      entitlementsManagerMock.expects('getEntitlements').never();
+      const triggerStub = sandbox.stub(runtime.callbacks(),
+          'triggerEntitlementsResponse');
+      return runtime.start().then(() => {
+        expect(triggerStub).to.not.be.called;
+      });
+    });
+
+    it('should start entitlements flow with success', () => {
+      const entitlements = new Entitlements(
+          'service', 'raw',
+          [new Entitlement('', ['product1'], 'token1')],
+          'product1',
+          () => {});
+      entitlementsManagerMock.expects('getEntitlements')
+          .withExactArgs(undefined)
+          .returns(Promise.resolve(entitlements))
+          .once();
+      return runtime.start();
+    });
+
+    it('should start entitlements flow with failure', () => {
+      const error = new Error('broken');
+      entitlementsManagerMock.expects('getEntitlements')
+          .withExactArgs(undefined)
+          .returns(Promise.reject(error))
+          .once();
+      return runtime.start();
+    });
+
+    it('should call offers API w/o productId', () => {
+      const p = Promise.resolve();
+      offersApiMock.expects('getOffers')
+          .withExactArgs(undefined)
+          .returns(p)
+          .twice();
+      expect(runtime.getOffers()).to.equal(p);
+      expect(runtime.getOffers({})).to.equal(p);
+    });
+
+    it('should call offers API with productId', () => {
+      const p = Promise.resolve();
+      offersApiMock.expects('getOffers')
+          .withExactArgs('p1')
+          .returns(p)
+          .once();
+      expect(runtime.getOffers({productId: 'p1'})).to.equal(p);
+    });
+
+    it('should start "completeDeferredAccountCreation"', () => {
+      const ents = {};
+      const request = {entitlements: ents};
+      const resp = {};
+      let flow;
+      const startStub = sandbox.stub(
+          DeferredAccountFlow.prototype,
+          'start',
+          function() {
+            flow = this;
+            return Promise.resolve(resp);
+          });
+      return runtime.completeDeferredAccountCreation(request).then(result => {
+        expect(startStub).to.be.calledOnce.calledWithExactly();
+        expect(result).to.equal(resp);
+        expect(flow.options_.entitlements).to.equal(ents);
+      });
+    });
+
+    it('should call "showOffers"', () => {
+      let offersFlow;
+      sandbox.stub(OffersFlow.prototype, 'start', function() {
+        offersFlow = this;
+        return new Promise(() => {});
+      });
+      runtime.showOffers();
+      return runtime.documentParsed_.then(() => {
+        expect(offersFlow.activityIframeView_.args_['list'])
+            .to.equal('default');
+      });
+    });
+
+    it('should call "showOffers" with options', () => {
+      let offersFlow;
+      sandbox.stub(OffersFlow.prototype, 'start', function() {
+        offersFlow = this;
+        return new Promise(() => {});
+      });
+      runtime.showOffers({list: 'other'});
+      return runtime.documentParsed_.then(() => {
+        expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+      });
+    });
+
+    it('should call "showAbbrvOffer"', () => {
+      let offersFlow;
+      sandbox.stub(AbbrvOfferFlow.prototype, 'start', function() {
+        offersFlow = this;
+        return new Promise(() => {});
+      });
+      runtime.showAbbrvOffer();
+      return runtime.documentParsed_.then(() => {
+        expect(offersFlow.options_).to.deep.equal({});
+      });
+    });
+
+    it('should call "showAbbrvOffer" with options', () => {
+      let offersFlow;
+      sandbox.stub(AbbrvOfferFlow.prototype, 'start', function() {
+        offersFlow = this;
+        return new Promise(() => {});
+      });
+      runtime.showAbbrvOffer({list: 'other'});
+      return runtime.documentParsed_.then(() => {
+        expect(offersFlow.options_).to.deep.equal({list: 'other'});
+      });
+    });
+
+    it('should call "showSubscribeOption"', () => {
+      let offersFlow;
+      sandbox.stub(SubscribeOptionFlow.prototype, 'start', function() {
+        offersFlow = this;
+        return new Promise(() => {});
+      });
+      runtime.showSubscribeOption();
+      return runtime.documentParsed_.then(() => {
+        expect(offersFlow.options_).to.be.undefined;
+      });
+    });
+
+    it('should call "showSubscribeOption" with options', () => {
+      let offersFlow;
+      sandbox.stub(SubscribeOptionFlow.prototype, 'start', function() {
+        offersFlow = this;
+        return new Promise(() => {});
+      });
+      runtime.showSubscribeOption({list: 'other'});
+      return runtime.documentParsed_.then(() => {
+        expect(offersFlow.options_).to.deep.equal({list: 'other'});
+      });
+    });
+
+    it('should call "showContributionOptions" with options', () => {
+      setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
+      let contributionFlow;
+      sandbox.stub(ContributionsFlow.prototype, 'start', function() {
+        contributionFlow = this;
+        return new Promise(() => {});
+      });
+      runtime.showContributionOptions({list: 'other', skus: ['sku1', 'sku2']});
+      return runtime.documentParsed_.then(() => {
+        expect(contributionFlow.options_).to.deep
+            .equal({list: 'other', skus: ['sku1', 'sku2']});
+      });
+    });
+
+    it('should start LinkbackFlow', () => {
+      const startStub = sandbox.stub(
+          LinkbackFlow.prototype,
+          'start',
+          () => Promise.resolve());
+      return runtime.linkAccount().then(() => {
+        expect(startStub).to.be.calledOnce;
+      });
+    });
+
+    it('should configure and start LinkCompleteFlow for swg-link', () => {
+      expect(activityResultCallbacks['swg-link']).to.exist;
+      const startStub = sandbox.stub(
+          LinkCompleteFlow.prototype,
+          'start',
+          () => Promise.resolve());
+      return returnActivity('swg-link', ActivityResultCode.OK, {},
+          location.origin)
+          // Succeeds or fails is not important for this test.
+          .catch(() => {})
+          .then(() => {
+            expect(startStub).to.be.calledOnce;
+          });
+    });
+
+    it('should start PayStartFlow for subscription', () => {
+      let flowInstance;
+      const startStub = sandbox.stub(
+          PayStartFlow.prototype,
+          'start',
+          function() {
+            flowInstance = this;
+            return Promise.resolve();
+          });
+      return runtime.subscribe('sku1').then(() => {
+        expect(startStub).to.be.calledOnce;
+        expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
+        expect(flowInstance.productType_).to.equal(ProductType.SUBSCRIPTION);
+      });
+    });
+
+    it('should start PayStartFlow for replaceSubscription ' +
+    '(no proration mode)', () => {
+      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+      let flowInstance;
+      const startStub = sandbox.stub(
+          PayStartFlow.prototype,
+          'start',
+          function() {
+            flowInstance = this;
+            return Promise.resolve();
+          });
+      return runtime.subscribe({skuId: 'newSku', oldSkuId: 'oldSku'})
+          .then(() => {
+            expect(startStub).to.be.calledOnce;
+            expect(flowInstance.subscriptionRequest_.skuId).to.equal('newSku');
+            expect(flowInstance.subscriptionRequest_.oldSkuId).to
+                .equal('oldSku');
+            expect(flowInstance.subscriptionRequest_.ReplaceSkuProrationMode)
+                .to.be.undefined;
+          }
+      );
+    });
+
+    it('should start PayStartFlow for replaceSubscription', () => {
+      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+      let flowInstance;
+      const startStub = sandbox.stub(
+          PayStartFlow.prototype,
+          'start',
+          function() {
+            flowInstance = this;
+            return Promise.resolve();
+          });
+      return runtime.subscribe({skuId: 'newSku', oldSkuId: 'oldSku',
+        replaceSkuProrationMode: ReplaceSkuProrationMode
+            .IMMEDIATE_WITH_TIME_PRORATION}).then(() => {
+              expect(startStub).to.be.calledOnce;
+              expect(flowInstance.subscriptionRequest_.skuId).to.equal(
+                  'newSku');
+              expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal(
+                  'oldSku');
+              expect(flowInstance.subscriptionRequest_
+                  .replaceSkuProrationMode).to.equal(
+                  ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
+            });
+    });
+
+    it('should configure and start PayCompleteFlow', () => {
+      expect(activityResultCallbacks['swg-pay']).to.exist;
+      const stub = sandbox.stub(
+          runtime.callbacks(),
+          'triggerSubscribeResponse');
+      return returnActivity('swg-pay', ActivityResultCode.OK)
+          // Succeeds or fails is not important for this test.
+          .catch(() => {})
+          .then(() => {
+            expect(stub).to.be.calledOnce;
+          });
+    });
+
+    it('should start PayStartFlow for contribution', () => {
+      setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
+      let flowInstance;
+      const startStub = sandbox.stub(
+          PayStartFlow.prototype,
+          'start',
+          function() {
+            flowInstance = this;
+            return Promise.resolve();
+          });
+      return runtime.contribute('sku1').then(() => {
+        expect(startStub).to.be.calledOnce;
+        expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
+        expect(flowInstance.productType_).to.equal(ProductType.UI_CONTRIBUTION);
+      });
+    });
+
+    it('should start saveSubscriptionFlow with callback for token', () => {
+      let linkSaveFlow;
+      const newPromise = new Promise(() => {});
+      sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
+        linkSaveFlow = this;
+        return newPromise;
+      });
+      const requestPromise = new Promise(resolve => {
+        resolve({token: 'test'});
+      });
+      const resultPromise = runtime.saveSubscription(() => requestPromise);
+      return runtime.documentParsed_.then(() => {
+        expect(linkSaveFlow.callback_()).to.equal.requestPromise;
+        return linkSaveFlow.callback_().then(request => {
+          expect(request).to.deep.equal({token: 'test'});
+        });
+      });
+      expect(resultPromise).to.deep.equal(newPromise);
+    });
+
+    it('should start saveSubscriptionFlow with callback for authcode', () => {
+      let linkSaveFlow;
+      const newPromise = new Promise(() => {});
+      sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
+        linkSaveFlow = this;
+        return newPromise;
+      });
+      runtime.saveSubscription(() => {
+        return {authCode: 'testCode'};
+      });
+      return runtime.documentParsed_.then(() => {
+        expect(linkSaveFlow.callback_()).to.deep.equal({authCode: 'testCode'});
+      });
+    });
+
+    it('should start LoginPromptApi', () => {
+      const startStub = sandbox.stub(
+          LoginPromptApi.prototype,
+          'start',
+          () => Promise.resolve());
+      return runtime.showLoginPrompt().then(() => {
+        expect(startStub).to.be.calledOnce;
+      });
+    });
+
+    it('should start LoginNotificationApi', () => {
+      const startStub = sandbox.stub(
+          LoginNotificationApi.prototype,
+          'start',
+          () => Promise.resolve());
+      return runtime.showLoginNotification().then(() => {
+        expect(startStub).to.be.calledOnce;
+      });
+    });
+
+    it('should directly call "createButton"', () => {
+      const options = {};
+      const callback = () => {};
+      const button = win.document.createElement('button');
+      const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
+        return button;
+      });
+      const result = runtime.createButton(options, callback);
+      expect(result).to.equal(button);
+      expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
+    });
+
+    it('should start WaitForSubscriptionLookupApi', () => {
+      const accountResult = 'account result';
+      const accountPromise = Promise.resolve(accountResult);
+      const startSpy = sandbox.spy(
+          WaitForSubscriptionLookupApi.prototype,
+          'start');
+      return runtime.waitForSubscriptionLookup(accountPromise).then(
+          result => {
+            expect(startSpy).to.be.calledOnce;
+            expect(result).to.equal(accountResult);
+          });
+    });
+
+    it('should directly call "attachButton"', () => {
+      const options = {};
+      const callback = () => {};
+      const button = win.document.createElement('button');
+      const stub = sandbox.stub(runtime.buttonApi_, 'attach');
+      runtime.attachButton(button, options, callback);
+      expect(stub).to.be.calledOnce
+          .calledWithExactly(button, options, callback);
+    });
+
+    it('should invoke propensity APIs', () => {
+      const propensityResponse = {
+        header: {ok: true},
+        body: {result: 42},
+      };
+      const sendSubscriptionStateStub = sandbox.stub(
+          Propensity.prototype,
+          'sendSubscriptionState');
+      const eventStub = sandbox.stub(
+          Propensity.prototype,
+          'sendEvent');
+      const getPropensityStub = sandbox.stub(
+          Propensity.prototype,
+          'getPropensity',
+          () => Promise.resolve(propensityResponse));
+      return runtime.getPropensityModule().then(propensity => {
+        expect(propensity).to.not.be.null;
+        propensity.sendSubscriptionState('unknown');
+        const event = {
+          name: 'ad_shown',
+          active: false,
+          data: {
+            campaign: 'fall',
+          },
+        };
+        propensity.sendEvent(event);
+        expect(sendSubscriptionStateStub).to.be.calledWithExactly('unknown');
+        expect(eventStub).to.be.calledWithExactly(event);
+        return propensity.getPropensity().then(score => {
+          expect(score).to.not.be.null;
+          expect(score.header).to.not.be.null;
+          expect(score.header.ok).to.be.true;
+          expect(score.body).to.not.be.null;
+          expect(score.body.result).to.equal(42);
+          expect(getPropensityStub).to.be.calledOnce;
+        });
+      });
+    });
+
+    it('should return events manager', () => {
+      expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
+    });
+
+    it('should let event manager send events without a promise', () => {
+      let count = 0;
+      sandbox.stub(ClientEventManager.prototype, 'logEvent', () => count++);
+      runtime.eventManager().logEvent(event);
+      expect(count).to.equal(1);
+    });
   });
 });
