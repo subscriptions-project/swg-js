@@ -41,7 +41,7 @@ export class SmartSubscriptionButtonApi {
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!Element} button
-   * @param {!../api/subscriptions.ButtonOptions} options
+   * @param {!../api/subscriptions.SmartButtonOptions} options
    * @param {function()=} callback
    */
   constructor(deps, button, options, callback) {
@@ -65,7 +65,7 @@ export class SmartSubscriptionButtonApi {
     /** @private @const {!Element} */
     this.button_ = button;
 
-    /** @private {!../api/subscriptions.ButtonOptions} */
+    /** @private {!../api/subscriptions.SmartButtonOptions} */
     this.options_ = options;
 
     /** @private const {function()=} */
@@ -74,13 +74,19 @@ export class SmartSubscriptionButtonApi {
     /** @private @const {string} */
     this.src_ = feUrl('/smartboxiframe');
 
-    /** @private @const {!Object} */
-    this.args_ = feArgs({
+    const frontendArguments = {
       'productId': this.deps_.pageConfig().getProductId(),
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'theme': this.options_ && this.options_.theme || 'light',
       'lang': this.options_ && this.options_.lang || 'en',
-    });
+    };
+    const messageTextColor = this.options_ && this.options_.messageTextColor;
+    if (messageTextColor) {
+      frontendArguments['messageTextColor'] = messageTextColor;
+    }
+
+    /** @private @const {!Object} */
+    this.args_ = feArgs(frontendArguments);
   }
 
   /**
@@ -107,6 +113,8 @@ export class SmartSubscriptionButtonApi {
       'width': '100%',
     });
     this.button_.appendChild(this.iframe_);
+    const analyticsContext = this.deps_.analytics().getContext().toArray();
+    this.args_['analyticsContext'] = analyticsContext;
     this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
         .then(port => {
           port.onMessageDeprecated(result => {
