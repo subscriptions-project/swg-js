@@ -181,51 +181,48 @@ export class PropensityServer {
       defaultScore =
         /** @type {!../api/propensity-api.PropensityScore} */ ({
           header: {ok: false},
-          body: {result: 'No valid response'},
+          body: {error: 'No valid response'},
         });
+      return defaultScore;
     }
     const status = response['header'];
+    let scoreDetails = undefined;
     if (status['ok']) {
       const scores = response['scores'];
-      let found = false;
+      scoreDetails = [];
       for (let i = 0; i < scores.length; i++) {
         const result = scores[i];
-        if (result['product'] == this.publicationId_) {
-          found = true;
-          const scoreStatus = !!result['score'];
-          let value = undefined;
-          if (scoreStatus) {
-            value = /** @type {!../api/propensity-api.Body} */ ({
-              result: result['score'],
-              bucketed: (result['score_type'] == 2),
-            });
-          } else {
-            value = /** @type {!../api/propensity-api.Body} */ ({
-              result: result['error_message'],
-            });
-          }
-          defaultScore =
-            /** @type {!../api/propensity-api.PropensityScore} */ ({
-              header: {ok: scoreStatus},
-              body: value,
-            });
-          break;
+        const scoreStatus = !!result['score'];
+        let scoreDetail;
+        if (scoreStatus) {
+          const value = /** @type {!../api/propensity-api.Score} */({
+            value: result['score'],
+            bucketed: result['score_type'] == 2,
+          });
+          scoreDetail = /** @type {!../api/propensity-api.Body} */ ({
+            product: result['product'],
+            score: value,
+          });
+        } else {
+          scoreDetail = /** @type {!../api/propensity-api.Body} */ ({
+            product: result['product'],
+            error: result['error_message'],
+          });
         }
+        scoreDetails.push(scoreDetail);
       }
-      if (!found) {
-        const errorMessage = 'No score available for ' + this.publicationId_;
+      if (scoreDetails) {
         defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
-          header: {ok: false},
-          body: {result: errorMessage},
+          header: {ok: true},
+          body: {scores: scoreDetails},
         });
       }
-    } else {
-      const errorMessage = response['error'];
-      defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
-        header: {ok: false},
-        body: {result: errorMessage},
-      });
+      return defaultScore;
     }
+    defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
+      header: {ok: false},
+      body: {error: response['error']},
+    });
     return defaultScore;
   }
   /**

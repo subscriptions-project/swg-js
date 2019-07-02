@@ -174,7 +174,7 @@ describes.realWin('PropensityServer', {}, env => {
       'scores': [
         {
           'product': 'pub1',
-          'score': 90,
+          'score': 10,
           'score_type': 2,
         },
       ],
@@ -195,8 +195,12 @@ describes.realWin('PropensityServer', {}, env => {
           expect(header['ok']).to.be.true;
           const body = response['body'];
           expect(body).to.not.be.null;
-          expect(body['result']).to.equal(90);
-          expect(body['bucketed']).to.be.true;
+          expect(body['scores']).to.not.be.null;
+          const scores = body['scores'];
+          expect(scores[0].product).to.equal('pub1');
+          expect(scores[0].score.value).to.equal(10);
+          expect(scores[0].score.bucketed).to.be.true;
+          expect(scores.length).to.equal(1);
         });
   });
 
@@ -227,10 +231,17 @@ describes.realWin('PropensityServer', {}, env => {
           expect(response).to.not.be.null;
           const header = response['header'];
           expect(header).to.not.be.null;
-          expect(header['ok']).to.be.false;
+          expect(header['ok']).to.be.true;
           const body = response['body'];
           expect(body).to.not.be.null;
-          expect(body['result']).to.equal('No score available for pub1');
+          expect(body['scores'].length).to.not.be.null;
+          const scores = body['scores'];
+          expect(scores[0].product).to.equal('pub2');
+          expect(scores[0].score.value).to.equal(90);
+          expect(scores[0].score.bucketed).to.be.false;
+          expect(scores[1].product).to.equal('pub1:premium');
+          expect(scores[1].error).to.equal('not available');
+          expect(scores.length).to.equal(2);
         });
   });
 
@@ -255,7 +266,7 @@ describes.realWin('PropensityServer', {}, env => {
           expect(header['ok']).to.be.false;
           const body = response['body'];
           expect(body).to.not.be.null;
-          expect(body['result']).to.equal('Service not available');
+          expect(body['error']).to.equal('Service not available');
         });
   });
 

@@ -222,13 +222,17 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should return propensity score from server', () => {
+    const scoreDetails = [{
+      score: 42,
+      bucketed: false,
+    }];
     sandbox.stub(PropensityServer.prototype, 'getPropensity',
         () => {
           return new Promise(resolve => {
             setTimeout(() => {
               resolve({
                 'header': {'ok': true},
-                'body': {'result': 42},
+                'body': {'scores': scoreDetails},
               });
             }, 10);
           });
@@ -238,7 +242,8 @@ describes.realWin('Propensity', {}, env => {
       expect(propensityScore.header).to.not.be.null;
       expect(propensityScore.header.ok).to.be.true;
       expect(propensityScore.body).to.not.be.null;
-      expect(propensityScore.body.result).to.equal(42);
+      expect(propensityScore.body.scores).to.not.be.null;
+      expect(propensityScore.body.scores[0].score).to.equal(42);
     });
   });
 });
