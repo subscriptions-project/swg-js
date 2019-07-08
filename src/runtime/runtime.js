@@ -177,10 +177,6 @@ export class Runtime {
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
 
-    /** @private @const {!ClientEventManager} */
-    //configured is called with false to avoid breaking a large number of tests
-    this.eventManager_ = new ClientEventManager(this.configured_(false));
-
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
     this.buttonApi_.init();  // Injects swg-button stylesheet.
@@ -219,7 +215,7 @@ export class Runtime {
         this.configuredResolver_(new ConfiguredRuntime(
             this.doc_,
             pageConfig,
-            /* opt_integr */ {eventManager: this.eventManager()},
+            /* opt_integr */ {configPromise: this.configuredPromise_},
             this.config_));
         this.configuredResolver_ = null;
       }, reason => {
@@ -444,8 +440,14 @@ export class Runtime {
     });
   }
 
-  eventManager() {
-    return this.eventManager_;
+  /**
+   * Log a subscription buy-flow event.
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   */
+  logEvent(event) {
+    this.configured_(false).then(configuredRuntime => {
+      configuredRuntime.eventManager().logEvent(event);
+    });
   }
 }
 
@@ -460,14 +462,16 @@ export class ConfiguredRuntime {
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {{
    *     fetcher: (!Fetcher|undefined),
-   *     eventManager: (!ClientEventManager|undefined)
+   *     configPromise: (!Promise|undefined),
    *   }=} opt_integr
    * @param {!../api/subscriptions.Config=} opt_config
    */
   constructor(winOrDoc, pageConfig, opt_integr, opt_config) {
+    opt_integr = opt_integr || {};
+    opt_integr.configPromise = opt_integr.configPromise || Promise.resolve();
+
     /** @private @const {!ClientEventManager} */
-    this.eventManager_ = (opt_integr && opt_integr.eventManager)
-        || new ClientEventManager(Promise.resolve());
+    this.eventManager_ = new ClientEventManager(opt_integr.configPromise);
 
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
@@ -501,8 +505,7 @@ export class ConfiguredRuntime {
     this.jserror_ = new JsError(this.doc_);
 
     /** @private @const {!Fetcher} */
-    this.fetcher_ = opt_integr && opt_integr.fetcher ||
-        new XhrFetcher(this.win_);
+    this.fetcher_ = opt_integr.fetcher || new XhrFetcher(this.win_);
 
     /** @private @const {!Storage} */
     this.storage_ = new Storage(this.win_);
