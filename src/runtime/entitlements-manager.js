@@ -19,8 +19,6 @@ import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
 import {feArgs, feUrl} from '../runtime/services';
-import {AnalyticsEvent} from '../proto/api_messages';
-import {AnalyticsMode} from '../api/subscriptions';
 import {parseQueryString} from '../utils/url';
 
 const SERVICE_ID = 'subscribe.google.com';
@@ -103,14 +101,6 @@ export class EntitlementsManager {
   }
 
   /**
-   * @private
-   */
-  logPaywallImpression_() {
-    // Sends event to logging service asynchronously
-    this.analyticsService_.logEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
-  }
-
-  /**
    * @return {string}
    * @private
    */
@@ -140,10 +130,6 @@ export class EntitlementsManager {
     return this.responsePromise_.then(response => {
       if (response.isReadyToPay != null) {
         this.analyticsService_.setReadyToPay(response.isReadyToPay);
-      }
-      if (this.config_.analyticsMode == AnalyticsMode.IMPRESSIONS ||
-            this.isGoogleUtmSource_()) {
-        this.logPaywallImpression_();
       }
       return response;
     });

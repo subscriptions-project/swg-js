@@ -51,13 +51,19 @@ const TITLE_LANG_MAP = {
   'zh-tw': '透過 Google 訂閱',
 };
 
-/** @type {!../api/client-event-manager-api.ClientEvent} */
-export const BUTTON_IMPRESSION_EVENT = {
-  eventType: AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON,
-  eventOriginator: EventOriginator.SWG_CLIENT,
-  isFromUserAction: false,
-  additionalParameters: null,
-};
+
+/**
+   * @param {!int} clientEventInt
+   * @return {!../api/client-event-manager-api.ClientEvent}
+   */
+export function CreateButtonRelatedClientEvent(clientEventInt) {
+  return {
+    eventType: clientEventInt,
+    eventOriginator: EventOriginator.SWG_CLIENT,
+    isFromUserAction: false,
+    additionalParameters: null,
+  };
+}
 
 
 /**
@@ -104,20 +110,24 @@ export class ButtonApi {
   /**
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
+   * @param {?boolean} opt_on_paywall
+   * @param {?boolean} opt_on_subscriptions_page
    * @return {!Element}
    */
-  create(optionsOrCallback, opt_callback) {
+  create(optionsOrCallback, opt_callback, opt_on_paywall, opt_on_subscriptions_page) {
     const button = createElement(this.doc_.getWin().document, 'button', {});
-    return this.attach(button, optionsOrCallback, opt_callback);
+    return this.attach(button, optionsOrCallback, opt_callback, opt_on_paywall, opt_on_subscriptions_page);
   }
 
   /**
    * @param {!Element} button
    * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
+   * @param {?boolean} opt_on_paywall
+   * @param {?boolean} opt_on_subscriptions_page
    * @return {!Element}
    */
-  attach(button, optionsOrCallback, opt_callback) {
+  attach(button, optionsOrCallback, opt_callback, opt_on_paywall, opt_on_subscriptions_page) {
     const options = /** @type {!../api/subscriptions.ButtonOptions} */
         (this.getOptions_(optionsOrCallback));
     const callback = this.getCallback_(optionsOrCallback, opt_callback);
@@ -130,7 +140,12 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
-    this.logEventFunc(BUTTON_IMPRESSION_EVENT);
+    if (opt_on_paywall != null && opt_on_paywall) {
+      this.logEventFunc(CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_PAYWALL));
+    } else if (opt_on_subscriptions_page != null && opt_on_subscriptions_page) {
+      this.logEventFunc(CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_OFFERS));
+    }
+    this.logEventFunc(CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON));
     return button;
   }
 
@@ -171,9 +186,11 @@ export class ButtonApi {
    * @param {!Element} button
    * @param {../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
+   * @param {?boolean} opt_on_paywall
+   * @param {?boolean} opt_on_subscriptions_page
    * @return {!Element}
    */
-  attachSmartButton(deps, button, optionsOrCallback, opt_callback) {
+  attachSmartButton(deps, button, optionsOrCallback, opt_callback, opt_on_paywall, opt_on_subscriptions_page) {
     const options = /** @type {!../api/subscriptions.SmartButtonOptions} */
         (this.getOptions_(optionsOrCallback));
     const callback = /** @type {function()} */
@@ -183,6 +200,6 @@ export class ButtonApi {
     button.classList.add('swg-smart-button');
 
     return new SmartSubscriptionButtonApi(
-        deps, button, options, callback).start();
+        deps, button, options, callback).start(opt_on_paywall, opt_on_subscriptions_page);
   }
 }

@@ -18,6 +18,7 @@
 import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
 import {feArgs, feUrl} from './services';
+import {AnalyticsEvent} from '../proto/api_messages';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
@@ -91,9 +92,11 @@ export class SmartSubscriptionButtonApi {
 
   /**
    * Make a call to build button content and listens for the 'click' message.
+   * @param {?boolean} opt_on_paywall
+   * @param {?boolean} opt_on_subscriptions_page
    * @return {!Element}
    */
-  start() {
+  start(opt_on_paywall, opt_on_subscriptions_page) {
     /**
      * Add a callback to the button itself to fire the iframe's button click
      * action when user tabs to the container button and hits enter.
@@ -114,6 +117,13 @@ export class SmartSubscriptionButtonApi {
     });
     this.button_.appendChild(this.iframe_);
     const analyticsContext = this.deps_.analytics().getContext().toArray();
+    let analyticsEvent = null;
+      if (opt_on_paywall != null && opt_on_paywall) {
+        analyticsEvent = AnalyticsEvent.IMPRESSION_PAYWALL;
+      } else if (opt_on_subscriptions_page != null && opt_on_subscriptions_page) {
+        analyticsEvent = AnalyticsEvent.IMPRESSION_OFFERS;
+      }
+    this.args_['analyticsEvent'] = analyticsEvent;
     this.args_['analyticsContext'] = analyticsContext;
     this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
         .then(port => {

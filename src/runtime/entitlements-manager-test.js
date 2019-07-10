@@ -29,8 +29,7 @@ import {
   utf8EncodeSync,
 } from '../utils/bytes';
 import {AnalyticsService} from './analytics-service';
-import {defaultConfig, AnalyticsMode} from '../api/subscriptions';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {defaultConfig} from '../api/subscriptions';
 import {ClientEventManager} from './client-event-manager';
 
 describes.realWin('EntitlementsManager', {}, env => {
@@ -469,61 +468,6 @@ describes.realWin('EntitlementsManager', {}, env => {
       analyticsMock.expects('setReadyToPay')
           .withExactArgs(true).once();
       return manager.getEntitlements().then(entitlements => {
-        expect(entitlements.isReadyToPay).to.be.true;
-      });
-    });
-
-    it('should log paywall impression with analytics mode enabled', () => {
-      expectToastShown('0');
-      storageMock.expects('set').withArgs('isreadytopay', 'true').once();
-      expectGetIsReadyToPayToBeCalled('true');
-      expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(true).once();
-      analyticsMock.expects('logEvent')
-          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).once();
-      config.analyticsMode = AnalyticsMode.IMPRESSIONS;
-      const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-        win, pageConfig, fetcher, deps);
-      return newMgr.getEntitlements().then(entitlements => {
-        expect(entitlements.isReadyToPay).to.be.true;
-      });
-    });
-
-    it('should log paywall impression event with utm source google', () => {
-      expectToastShown('0');
-      storageMock.expects('set').withArgs('isreadytopay', 'true').once();
-      expectGetIsReadyToPayToBeCalled('true');
-      expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(true).once();
-      analyticsMock.expects('logEvent')
-          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).once();
-      EntitlementsManager.prototype.getQueryString_ = () => {
-        return '?utm_source=google&utm_medium=email&utm_campaign=campaign';
-      };
-      const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-        win, pageConfig, fetcher, deps);
-      return newMgr.getEntitlements().then(entitlements => {
-        expect(entitlements.isReadyToPay).to.be.true;
-      });
-    });
-
-    it('should not log paywall impression', () => {
-      expectToastShown('0');
-      storageMock.expects('set').withArgs('isreadytopay', 'true').once();
-      expectGetIsReadyToPayToBeCalled('true');
-      expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(true).once();
-      analyticsMock.expects('logEvent')
-          .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).never();
-      EntitlementsManager.prototype.getQueryString_ = () => {
-        return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
-      };
-      const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-        win, pageConfig, fetcher, deps);
-      return newMgr.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
     });
