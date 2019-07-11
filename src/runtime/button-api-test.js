@@ -188,47 +188,57 @@ describes.realWin('ButtonApi', {}, env => {
 
   it('should log button impression on create.', () => {
     eventManagerMock.expects('logEvent').withExactArgs(
-      CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
+        CreateButtonRelatedClientEvent(
+            AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
     buttonApi.create(handler);
   });
 
-   it('should log button impression on attach.', () => {
+  it('should log button impression on attach.', () => {
     eventManagerMock.expects('logEvent').withExactArgs(
-      CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
+        CreateButtonRelatedClientEvent(
+            AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
     const button = doc.createElement('button');
     buttonApi.attach(button, {}, handler);
   });
 
   it('should log paywall impression on create.', () => {
     eventManagerMock.expects('logEvent').withExactArgs(
-      CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
+        CreateButtonRelatedClientEvent(
+            AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
     eventManagerMock.expects('logEvent').withExactArgs(
-      CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_PAYWALL)).once();
+        CreateButtonRelatedClientEvent(
+            AnalyticsEvent.IMPRESSION_PAYWALL)).once();
     buttonApi.create(handler, null, true);
   });
 
-   it('should log paywall impression on attach.', () => {
+  it('should log paywall impression on attach.', () => {
     eventManagerMock.expects('logEvent').withExactArgs(
-      CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
+        CreateButtonRelatedClientEvent(
+            AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
     eventManagerMock.expects('logEvent').withExactArgs(
-      CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_PAYWALL)).once();
+        CreateButtonRelatedClientEvent(
+            AnalyticsEvent.IMPRESSION_PAYWALL)).once();
     const button = doc.createElement('button');
     buttonApi.attach(button, {}, handler, true);
   });
 
   it('should log offers impression on create.', () => {
     eventManagerMock.expects('logEvent').withExactArgs(
-      CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
+        CreateButtonRelatedClientEvent(
+            AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
     eventManagerMock.expects('logEvent').withExactArgs(
-      CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_OFFERS)).once();
+        CreateButtonRelatedClientEvent(
+            AnalyticsEvent.IMPRESSION_OFFERS)).once();
     buttonApi.create(handler, null, false, true);
   });
 
-   it('should log offers impression on attach.', () => {
+  it('should log offers impression on attach.', () => {
     eventManagerMock.expects('logEvent').withExactArgs(
-      CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
+        CreateButtonRelatedClientEvent(
+            AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON)).once();
     eventManagerMock.expects('logEvent').withExactArgs(
-      CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_OFFERS)).once();
+        CreateButtonRelatedClientEvent(
+            AnalyticsEvent.IMPRESSION_OFFERS)).once();
     const button = doc.createElement('button');
     buttonApi.attach(button, {}, handler, false, true);
   });
@@ -374,8 +384,8 @@ describes.realWin('ButtonApi', {}, env => {
         const expAnalyticsContext = new AnalyticsContext();
         expAnalyticsContext.setEmbedderOrigin('google.com');
         analyticsMock.expects('getContext')
-          .returns(expAnalyticsContext)
-          .once();
+            .returns(expAnalyticsContext)
+            .once();
         activitiesMock.expects('openIframe').withExactArgs(
             sinon.match(arg => arg.tagName == 'IFRAME'),
             '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
@@ -391,7 +401,7 @@ describes.realWin('ButtonApi', {}, env => {
             })
             .returns(Promise.resolve(port));
         buttonApi.attachSmartButton(
-          runtime, button, {}, handler, true);
+            runtime, button, {}, handler, true);
         activitiesMock.verify();
       });
 
@@ -404,8 +414,8 @@ describes.realWin('ButtonApi', {}, env => {
         const expAnalyticsContext = new AnalyticsContext();
         expAnalyticsContext.setEmbedderOrigin('google.com');
         analyticsMock.expects('getContext')
-          .returns(expAnalyticsContext)
-          .once();
+            .returns(expAnalyticsContext)
+            .once();
         activitiesMock.expects('openIframe').withExactArgs(
             sinon.match(arg => arg.tagName == 'IFRAME'),
             '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
@@ -421,7 +431,7 @@ describes.realWin('ButtonApi', {}, env => {
             })
             .returns(Promise.resolve(port));
         buttonApi.attachSmartButton(
-          runtime, button, {}, handler, false, true);
+            runtime, button, {}, handler, false, true);
         activitiesMock.verify();
       });
 });

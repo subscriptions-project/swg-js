@@ -222,9 +222,11 @@ export class Subscriptions {
    *
    * @param {!ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
+   * @param {?boolean} optOnPaywall
+   * @param {?boolean} optOnSubscriptionsPage
    * @return {!Element}
    */
-  createButton(optionsOrCallback, opt_callback) {}
+  createButton(optionsOrCallback, opt_callback, optOnPaywall, optOnSubscriptionsPage) {}
 
   /**
    * Attaches the SwG button style and the provided callback to an existing
@@ -233,8 +235,10 @@ export class Subscriptions {
    * @param {!Element} button
    * @param {!ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
+   * @param {?boolean} optOnPaywall
+   * @param {?boolean} optOnSubscriptionsPage
    */
-  attachButton(button, optionsOrCallback, opt_callback) {}
+  attachButton(button, optionsOrCallback, opt_callback, optOnPaywall, optOnSubscriptionsPage) {}
 
   /**
    * Attaches smartButton element and the provided callback.
@@ -243,8 +247,10 @@ export class Subscriptions {
    * @param {!Element} button
    * @param {!SmartButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
+   * @param {?boolean} optOnPaywall
+   * @param {?boolean} optOnSubscriptionsPage
    */
-  attachSmartButton(button, optionsOrCallback, opt_callback) {}
+  attachSmartButton(button, optionsOrCallback, opt_callback, optOnPaywall, optOnSubscriptionsPage) {}
 
   /**
    * Retrieves the propensity module that provides APIs to

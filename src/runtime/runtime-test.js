@@ -762,9 +762,10 @@ describes.realWin('Runtime', {}, env => {
       const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
         return button;
       });
-      const result = runtime.createButton(options, callback);
+      const result = runtime.createButton(options, callback, false, true);
       expect(result).to.equal(button);
-      expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
+      expect(stub).to.be.calledOnce.calledWithExactly(
+          options, callback, false, true);
     });
 
     it('should delegate "waitForSubscriptionLookup"', () => {
@@ -781,9 +782,9 @@ describes.realWin('Runtime', {}, env => {
       const callback = () => {};
       const button = win.document.createElement('button');
       const stub = sandbox.stub(runtime.buttonApi_, 'attach');
-      runtime.attachButton(button, options, callback);
+      runtime.attachButton(button, options, callback, false, true);
       expect(stub).to.be.calledOnce
-          .calledWithExactly(button, options, callback);
+          .calledWithExactly(button, options, callback, false, true);
     });
 
     it('should use default fetcher', () => {
@@ -1484,9 +1485,10 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
         return button;
       });
-      const result = runtime.createButton(options, callback);
+      const result = runtime.createButton(options, callback, false, true);
       expect(result).to.equal(button);
-      expect(stub).to.be.calledOnce.calledWithExactly(options, callback);
+      expect(stub).to.be.calledOnce.calledWithExactly(
+          options, callback, false, true);
     });
 
     it('should start WaitForSubscriptionLookupApi', () => {
@@ -1507,9 +1509,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       const callback = () => {};
       const button = win.document.createElement('button');
       const stub = sandbox.stub(runtime.buttonApi_, 'attach');
-      runtime.attachButton(button, options, callback);
+      runtime.attachButton(button, options, callback, false, true);
       expect(stub).to.be.calledOnce
-          .calledWithExactly(button, options, callback);
+          .calledWithExactly(button, options, callback, false, true);
     });
 
     it('should invoke propensity APIs', () => {

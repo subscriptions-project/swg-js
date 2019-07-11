@@ -417,20 +417,26 @@ export class Runtime {
   }
 
   /** @override */
-  createButton(optionsOrCallback, opt_callback) {
-    return this.buttonApi_.create(optionsOrCallback, opt_callback);
+  createButton(optionsOrCallback, opt_callback, opt_onPaywall,
+               opt_onSubscriptionsPage) {
+    return this.buttonApi_.create(optionsOrCallback, opt_callback,
+        opt_onPaywall, opt_onSubscriptionsPage);
   }
 
   /** @override */
-  attachSmartButton(button, optionsOrCallback, opt_callback) {
+  attachSmartButton(button, optionsOrCallback, opt_callback,
+                    opt_onPaywall, opt_onSubscriptionsPage) {
     return this.configured_(true).then(
         runtime =>
-        runtime.attachSmartButton(button, optionsOrCallback, opt_callback));
+        runtime.attachSmartButton(button, optionsOrCallback, opt_callback,
+            opt_onPaywall, opt_onSubscriptionsPage));
   }
 
   /** @override */
-  attachButton(button, optionsOrCallback, opt_callback) {
-    return this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
+  attachButton(button, optionsOrCallback, opt_callback,
+               opt_onPaywall, opt_onSubscriptionsPage) {
+    return this.buttonApi_.attach(button, optionsOrCallback, opt_callback,
+        opt_onPaywall, opt_onSubscriptionsPage);
   }
 
   /** @override */
@@ -834,24 +840,30 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  createButton(optionsOrCallback, opt_callback) {
+  createButton(optionsOrCallback, opt_callback, opt_onPaywall,
+               opt_onSubscriptionsPage) {
     // This is a minor duplication to allow this code to be sync.
-    return this.buttonApi_.create(optionsOrCallback, opt_callback);
+    return this.buttonApi_.create(optionsOrCallback, opt_callback,
+        opt_onPaywall, opt_onSubscriptionsPage);
   }
 
   /** @override */
-  attachButton(button, optionsOrCallback, opt_callback) {
+  attachButton(button, optionsOrCallback, opt_callback, opt_onPaywall,
+               opt_onSubscriptionsPage) {
     // This is a minor duplication to allow this code to be sync.
-    this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
+    this.buttonApi_.attach(button, optionsOrCallback, opt_callback,
+        opt_onPaywall, opt_onSubscriptionsPage);
   }
 
   /** @override */
-  attachSmartButton(button, optionsOrCallback, opt_callback) {
+  attachSmartButton(button, optionsOrCallback, opt_callback, opt_onPaywall,
+                    opt_onSubscriptionsPage) {
     if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
       throw new Error('Not yet launched!');
     }
     this.buttonApi_.attachSmartButton(
-        this, button, optionsOrCallback, opt_callback);
+        this, button, optionsOrCallback, opt_callback, opt_onPaywall,
+        opt_onSubscriptionsPage);
   }
 
   /** @override */
@@ -864,8 +876,8 @@ export class ConfiguredRuntime {
     return this.eventManager_;
   }
 
-  /** 
-   * @override 
+  /**
+   * @override
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   logEvent(event) {

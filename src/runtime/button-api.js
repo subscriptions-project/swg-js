@@ -82,7 +82,7 @@ export class ButtonApi {
     this.doc_ = doc;
 
     /** @private @const {!function(!../api/client-event-manager-api.ClientEvent)} */
-    this.logEventFunc = logEventFunc;
+    this.logEventFunc_ = logEventFunc;
   }
 
   /**
@@ -110,24 +110,27 @@ export class ButtonApi {
   /**
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
-   * @param {?boolean} opt_on_paywall
-   * @param {?boolean} opt_on_subscriptions_page
+   * @param {?boolean} opt_onPaywall
+   * @param {?boolean} opt_onSubscriptionsPage
    * @return {!Element}
    */
-  create(optionsOrCallback, opt_callback, opt_on_paywall, opt_on_subscriptions_page) {
+  create(optionsOrCallback, opt_callback, opt_onPaywall,
+         opt_onSubscriptionsPage) {
     const button = createElement(this.doc_.getWin().document, 'button', {});
-    return this.attach(button, optionsOrCallback, opt_callback, opt_on_paywall, opt_on_subscriptions_page);
+    return this.attach(button, optionsOrCallback, opt_callback,
+        opt_onPaywall, opt_onSubscriptionsPage);
   }
 
   /**
    * @param {!Element} button
    * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
-   * @param {?boolean} opt_on_paywall
-   * @param {?boolean} opt_on_subscriptions_page
+   * @param {?boolean} opt_onPaywall
+   * @param {?boolean} opt_onSubscriptionsPage
    * @return {!Element}
    */
-  attach(button, optionsOrCallback, opt_callback, opt_on_paywall, opt_on_subscriptions_page) {
+  attach(button, optionsOrCallback, opt_callback, opt_onPaywall,
+         opt_onSubscriptionsPage) {
     const options = /** @type {!../api/subscriptions.ButtonOptions} */
         (this.getOptions_(optionsOrCallback));
     const callback = this.getCallback_(optionsOrCallback, opt_callback);
@@ -140,12 +143,15 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
-    if (opt_on_paywall != null && opt_on_paywall) {
-      this.logEventFunc(CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_PAYWALL));
-    } else if (opt_on_subscriptions_page != null && opt_on_subscriptions_page) {
-      this.logEventFunc(CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_OFFERS));
+    if (opt_onPaywall != null && opt_onPaywall) {
+      this.logEventFunc_(CreateButtonRelatedClientEvent(
+          AnalyticsEvent.IMPRESSION_PAYWALL));
+    } else if (opt_onSubscriptionsPage != null && opt_onSubscriptionsPage) {
+      this.logEventFunc_(CreateButtonRelatedClientEvent(
+          AnalyticsEvent.IMPRESSION_OFFERS));
     }
-    this.logEventFunc(CreateButtonRelatedClientEvent(AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON));
+    this.logEventFunc(CreateButtonRelatedClientEvent(
+        AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON));
     return button;
   }
 
@@ -186,11 +192,12 @@ export class ButtonApi {
    * @param {!Element} button
    * @param {../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
-   * @param {?boolean} opt_on_paywall
-   * @param {?boolean} opt_on_subscriptions_page
+   * @param {?boolean} opt_onPaywall
+   * @param {?boolean} opt_onSubscriptionsPage
    * @return {!Element}
    */
-  attachSmartButton(deps, button, optionsOrCallback, opt_callback, opt_on_paywall, opt_on_subscriptions_page) {
+  attachSmartButton(deps, button, optionsOrCallback, opt_callback,
+                    opt_onPaywall, opt_onSubscriptionsPage) {
     const options = /** @type {!../api/subscriptions.SmartButtonOptions} */
         (this.getOptions_(optionsOrCallback));
     const callback = /** @type {function()} */
@@ -200,6 +207,7 @@ export class ButtonApi {
     button.classList.add('swg-smart-button');
 
     return new SmartSubscriptionButtonApi(
-        deps, button, options, callback).start(opt_on_paywall, opt_on_subscriptions_page);
+        deps, button, options, callback).start(
+        opt_onPaywall, opt_onSubscriptionsPage);
   }
 }
