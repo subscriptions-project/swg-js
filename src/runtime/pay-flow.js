@@ -114,7 +114,7 @@ export class PayStartFlow {
         SubscriptionFlows.SUBSCRIBE, this.subscriptionRequest_);
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
-    this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+    this.analyticsService_.logEvent(AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED);
     this.payClient_.start({
       'apiVersion': 1,
       'allowedPaymentMethods': ['CARD'],

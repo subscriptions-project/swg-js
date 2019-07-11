@@ -140,7 +140,7 @@ describes.realWin('PayStartFlow', {}, env => {
         .once();
     analyticsMock.expects('setSku').withExactArgs('sku1');
     analyticsMock.expects('logEvent').withExactArgs(
-        AnalyticsEvent.ACTION_SUBSCRIBE);
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED);
     const flowPromise = flow.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -179,7 +179,7 @@ describes.realWin('PayStartFlow', {}, env => {
         .once();
     analyticsMock.expects('setSku').withExactArgs('newSku');
     analyticsMock.expects('logEvent').withExactArgs(
-        AnalyticsEvent.ACTION_SUBSCRIBE);
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED);
     const flowPromise = replaceFlow.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -212,7 +212,7 @@ describes.realWin('PayStartFlow', {}, env => {
         .once();
     analyticsMock.expects('setSku').withExactArgs('newSku');
     analyticsMock.expects('logEvent').withExactArgs(
-        AnalyticsEvent.ACTION_SUBSCRIBE);
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED);
     const flowPromise = replaceFlowNoProrationMode.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
