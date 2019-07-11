@@ -15,14 +15,27 @@
  */
 'use strict';
 
-require('./assets');
-require('./babel-helpers');
-require('./builders');
-require('./changelog');
-require('./check-rules');
-require('./compile');
-require('./export-to-es');
-require('./fix');
-require('./lint');
-require('./serve');
-require('./test');
+const argv = require('minimist')(process.argv.slice(2));
+const gulp = require('gulp-help')(require('gulp'));
+const prettier = require('gulp-prettier');
+
+/** Fixes code formatting using Prettier. */
+function fix() {
+  if (!argv.files) {
+    console.error(
+      'Error: The `--files` flag is required. Ex: gulp fix --files=src/**/*js'
+    );
+    return;
+  }
+
+  return gulp
+    .src(argv.files)
+    .pipe(prettier({ singleQuote: true }))
+    .pipe(gulp.dest(file => file.base));
+}
+
+gulp.task('fix', 'Fixes code formatting using Prettier', fix, {
+  options: {
+    files: '  Specifies files to fix. Ex: gulp fix --files=src/**/*js'
+  }
+});
