@@ -877,7 +877,6 @@ export class ConfiguredRuntime {
   }
 
   /**
-   * @override
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   logEvent(event) {

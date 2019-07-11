@@ -53,12 +53,12 @@ const TITLE_LANG_MAP = {
 
 
 /**
-   * @param {!int} clientEventInt
+   * @param {!AnalyticsEvent} analyticsEvent
    * @return {!../api/client-event-manager-api.ClientEvent}
    */
-export function CreateButtonRelatedClientEvent(clientEventInt) {
+export function CreateButtonRelatedClientEvent(analyticsEvent) {
   return {
-    eventType: clientEventInt,
+    eventType: analyticsEvent,
     eventOriginator: EventOriginator.SWG_CLIENT,
     isFromUserAction: false,
     additionalParameters: null,
@@ -110,8 +110,8 @@ export class ButtonApi {
   /**
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
-   * @param {?boolean} opt_onPaywall
-   * @param {?boolean} opt_onSubscriptionsPage
+   * @param {?boolean=} opt_onPaywall
+   * @param {?boolean=} opt_onSubscriptionsPage
    * @return {!Element}
    */
   create(optionsOrCallback, opt_callback, opt_onPaywall,
@@ -125,8 +125,8 @@ export class ButtonApi {
    * @param {!Element} button
    * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
-   * @param {?boolean} opt_onPaywall
-   * @param {?boolean} opt_onSubscriptionsPage
+   * @param {?boolean=} opt_onPaywall
+   * @param {?boolean=} opt_onSubscriptionsPage
    * @return {!Element}
    */
   attach(button, optionsOrCallback, opt_callback, opt_onPaywall,
@@ -150,7 +150,7 @@ export class ButtonApi {
       this.logEventFunc_(CreateButtonRelatedClientEvent(
           AnalyticsEvent.IMPRESSION_OFFERS));
     }
-    this.logEventFunc(CreateButtonRelatedClientEvent(
+    this.logEventFunc_(CreateButtonRelatedClientEvent(
         AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON));
     return button;
   }
@@ -192,8 +192,8 @@ export class ButtonApi {
    * @param {!Element} button
    * @param {../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
-   * @param {?boolean} opt_onPaywall
-   * @param {?boolean} opt_onSubscriptionsPage
+   * @param {?boolean=} opt_onPaywall
+   * @param {?boolean=} opt_onSubscriptionsPage
    * @return {!Element}
    */
   attachSmartButton(deps, button, optionsOrCallback, opt_callback,

@@ -92,8 +92,8 @@ export class SmartSubscriptionButtonApi {
 
   /**
    * Make a call to build button content and listens for the 'click' message.
-   * @param {?boolean} opt_onPaywall
-   * @param {?boolean} opt_onSubscriptionsPage
+   * @param {?boolean=} opt_onPaywall
+   * @param {?boolean=} opt_onSubscriptionsPage
    * @return {!Element}
    */
   start(opt_onPaywall, opt_onSubscriptionsPage) {
