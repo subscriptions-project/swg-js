@@ -207,8 +207,8 @@ export const PropensityType = {
 
 /**
  * The Propensity Score
- * - value: Required. A number that indicates the propensity to subscribe
- * - bucketed: Required. Indicates if the score is a raw score [1-100] or bucketed[1-20]
+ * - value: Required. A number that indicates the propensity to subscribe.
+ * - bucketed: Required. Indicates if the score is a raw score [1-100] or bucketed[1-20].
  *
  * @typedef {{
  *   value: number,
@@ -220,9 +220,9 @@ export let Score;
 /**
  * Propensity Score Detail
  * Properties:
- * - product: Required. Indicates the publication_id:product_id for which the score is provided
+ * - product: Required. Indicates the publication_id:product_id for which the score is provided.
  * - score: Optional. When score is available, this field contains the propensity score for this product.
- * - error_message: Optional. When no score is avaialble, a string provides the error message.
+ * - error: Optional. When no score is avaialble, a string provides the error message.
  *
  * @typedef {{
  *   product: string,
@@ -299,7 +299,8 @@ export let PropensityEvent;
  */
 export class PropensityApi {
   /**
-   * Send user subscription state upon initial discovery.
+   * When consent is available for personalization,
+   * send user subscription state upon initial discovery.
    * A user may have active subscriptions to some products
    * and expired subscriptions to others. Make one API call
    * per subscription state and provide a corresponding
@@ -309,18 +310,20 @@ export class PropensityApi {
    * Each call to this API should have the first argument
    * as a valid string from the enum SubscriptionState.
    * @param {SubscriptionState} state
-   * @param {?JsonObject} jsonEntitlements
+   * @param {?JsonObject} jsonProducts
    */
-  sendSubscriptionState(state, jsonEntitlements) {}
+  sendSubscriptionState(state, jsonProducts) {}
 
   /**
-   * Send a single user event.
+   * When consent is available for personalization,
+   * send a single user event.
    * @param {PropensityEvent} userEvent
    */
    sendEvent(userEvent) {}
 
   /**
-   * Get the propensity of a user to subscribe based on the type.
+   * When consent is available for personalization,
+   * get the propensity of a user to subscribe based on the type.
    * The argument should be a valid string from PropensityType.
    * If no type is provided, GENERAL score is returned.
    * @param {PropensityType=} type

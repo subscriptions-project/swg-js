@@ -42,8 +42,6 @@ export class PropensityServer {
     this.publicationId_ = publicationId;
     /** @private {?string} */
     this.clientId_ = null;
-    /** @private {boolean} */
-    this.userConsent_ = false;
     /** @private @const {!Xhr} */
     this.xhr_ = new Xhr(win);
     /** @private @const {number} */
@@ -74,12 +72,6 @@ export class PropensityServer {
    * @private
    */
   getClientId_() {
-    // No cookie is sent when user consent is not available.
-    if (!this.userConsent_) {
-      return 'noConsent';
-    }
-    // When user consent is available, get the first party cookie
-    // for Google Ads.
     if (!this.clientId_) {
       // Match '__gads' (name of the cookie) dropped by Ads Tag.
       const gadsmatch = this.getDocumentCookie_().match(
@@ -92,25 +84,18 @@ export class PropensityServer {
   }
 
   /**
-   * @param {boolean} userConsent
-   */
-  setUserConsent(userConsent) {
-    this.userConsent_ = userConsent;
-  }
-
-  /**
    * @param {string} state
-   * @param {?string} entitlements
+   * @param {?string} productsOrSkus
    */
-  sendSubscriptionState(state, entitlements) {
+  sendSubscriptionState(state, productsOrSkus) {
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
     });
     const clientId = this.getClientId_();
     let userState = this.publicationId_ + ':' + state;
-    if (entitlements) {
-      userState = userState + ':' + encodeURIComponent(entitlements);
+    if (productsOrSkus) {
+      userState = userState + ':' + encodeURIComponent(productsOrSkus);
     }
     let url = adsUrl('/subopt/data?states=')
         + encodeURIComponent(userState) + '&u_tz=240'
