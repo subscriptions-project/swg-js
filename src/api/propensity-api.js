@@ -85,7 +85,7 @@ export let PropensityScore;
  *         enum listed in the Event enum above.
  *
  *  @typedef {{
-  *    name: !LoggerApi.Event,
+  *    name: !Event,
   *    active: boolean,
   *    data: ?JsonObject,
   * }}
