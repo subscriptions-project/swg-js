@@ -60,11 +60,6 @@ const forbiddenTerms = {
   'sinon\\.useFake\\w+': {
     message: 'Use a sandbox instead to avoid repeated `#restore` calls',
   },
-  'sandbox\\.(spy|stub|mock)\\([^,\\s]*[iI]?frame[^,\\s]*,': {
-    message: 'Do NOT stub on a cross domain iframe! #5359\n' +
-        '  If this is same domain, mark /*OK*/.\n' +
-        '  If this is cross domain, overwrite the method directly.',
-  },
   'console\\.\\w+\\(': {
     message: 'If you run against this, use console/*OK*/.log to ' +
       'whitelist a legit case.',
@@ -85,6 +80,7 @@ const forbiddenTerms = {
       'examples/sample-pub/sample-pub-app.js',
       'examples/sample-pub/service/sample-pub-oauth-app.js',
       'examples/sample-pub/service/authorization-app.js',
+      'src/runtime/propensity-server.js',
     ],
   },
   'getCookie\\W': {
@@ -133,7 +129,6 @@ const forbiddenTerms = {
     message: 'SVG data images must use charset=utf-8: ' +
         '"data:image/svg+xml;charset=utf-8,..."',
   },
-  '(AMP|Amp|amp-|\\Wamp\\W)': 'Illegal AMP dependency',
 };
 
 const bannedTermsHelpString = 'Please review viewport service for helper ' +
@@ -201,7 +196,7 @@ const forbiddenTermsSrcInclusive = {
 
 // Terms that must appear in a source file.
 const requiredTerms = {
-  'Copyright 20(17|18) The Subscribe with Google Authors\\.':
+  'Copyright 20(17|18|19) The Subscribe with Google Authors\\.':
       dedicatedCopyrightNoteSources,
   'Licensed under the Apache License, Version 2\\.0':
       dedicatedCopyrightNoteSources,

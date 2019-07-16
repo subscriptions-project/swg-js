@@ -36,15 +36,15 @@ The publisher is responsible for deciding which flow they prefer.
 
 Here is an example of what the code for these flows can look like:
 
-```
+```js
 // You, the Publisher, go to look up the user. Resolve the promise with an account (if it was found).
-const  accountPromise = new Promise( … ); 
+const  accountPromise = new Promise( … );
 
 // We notify the user that their account is being looked up.
 subscriptions.waitForSubscriptionLookup(accountPromise).then(account => {
-    
+
     // Account was found.
-    if(account) {        
+    if(account) {
 
         // Option 1 - notify the user that they're being logged in with Google.
         subscriptions.showLoginNotification().then(() => {

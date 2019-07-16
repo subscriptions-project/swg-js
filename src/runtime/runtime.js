@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityPorts} from 'web-activities/activity-ports';
+import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ButtonApi} from './button-api';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
@@ -74,6 +74,7 @@ import {setExperiment} from './experiments';
 import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
+import {ClientEventManager} from './client-event-manager';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -214,7 +215,7 @@ export class Runtime {
         this.configuredResolver_(new ConfiguredRuntime(
             this.doc_,
             pageConfig,
-            /* opt_integr */ undefined,
+            /* opt_integr */ {configPromise: this.configuredPromise_},
             this.config_));
         this.configuredResolver_ = null;
       }, reason => {
@@ -279,9 +280,9 @@ export class Runtime {
   }
 
   /** @override */
-  getEntitlements() {
+  getEntitlements(opt_encryptedDocumentKey) {
     return this.configured_(true)
-        .then(runtime => runtime.getEntitlements());
+        .then(runtime => runtime.getEntitlements(opt_encryptedDocumentKey));
   }
 
   /** @override */
@@ -421,6 +422,13 @@ export class Runtime {
   }
 
   /** @override */
+  attachSmartButton(button, optionsOrCallback, opt_callback) {
+    return this.configured_(true).then(
+        runtime =>
+        runtime.attachSmartButton(button, optionsOrCallback, opt_callback));
+  }
+
+  /** @override */
   attachButton(button, optionsOrCallback, opt_callback) {
     return this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
   }
@@ -429,6 +437,16 @@ export class Runtime {
   getPropensityModule() {
     return this.configured_(true).then(runtime => {
       return runtime.getPropensityModule();
+    });
+  }
+
+  /**
+   * Log a subscription buy-flow event.
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   */
+  logEvent(event) {
+    this.configured_(false).then(configuredRuntime => {
+      configuredRuntime.eventManager().logEvent(event);
     });
   }
 }
@@ -444,10 +462,17 @@ export class ConfiguredRuntime {
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {{
    *     fetcher: (!Fetcher|undefined),
+   *     configPromise: (!Promise|undefined),
    *   }=} opt_integr
    * @param {!../api/subscriptions.Config=} opt_config
    */
   constructor(winOrDoc, pageConfig, opt_integr, opt_config) {
+    opt_integr = opt_integr || {};
+    opt_integr.configPromise = opt_integr.configPromise || Promise.resolve();
+
+    /** @private @const {!ClientEventManager} */
+    this.eventManager_ = new ClientEventManager(opt_integr.configPromise);
+
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
 
@@ -456,6 +481,7 @@ export class ConfiguredRuntime {
 
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
+
     if (isEdgeBrowser(this.win_)) {
       // TODO(dvoytenko, b/120607343): Find a way to remove this restriction
       // or move it to Web Activities.
@@ -468,6 +494,10 @@ export class ConfiguredRuntime {
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
 
+    /** @private @const {!Propensity} */
+    this.propensityModule_ = new Propensity(this.win_,
+      this.pageConfig_, this.eventManager_);
+
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
 
@@ -475,8 +505,7 @@ export class ConfiguredRuntime {
     this.jserror_ = new JsError(this.doc_);
 
     /** @private @const {!Fetcher} */
-    this.fetcher_ = opt_integr && opt_integr.fetcher ||
-        new XhrFetcher(this.win_);
+    this.fetcher_ = opt_integr.fetcher || new XhrFetcher(this.win_);
 
     /** @private @const {!Storage} */
     this.storage_ = new Storage(this.win_);
@@ -484,7 +513,7 @@ export class ConfiguredRuntime {
     /** @private @const {!DialogManager} */
     this.dialogManager_ = new DialogManager(this.doc_);
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(this.win_);
 
     /** @private @const {!PayClient} */
@@ -494,6 +523,10 @@ export class ConfiguredRuntime {
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
+    //NOTE: 'this' is passed in as a DepsDef.  Do not pass in 'this' before
+    //analytics service and entitlements manager are constructed unless
+    //you are certain they do not rely on them because they are part of that
+    //definition.
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
 
@@ -506,10 +539,6 @@ export class ConfiguredRuntime {
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
-
-    /** @private @const {!Propensity} */
-    this.propensityModule_ = new Propensity(this.win_,
-      this.pageConfig_);
 
     const preconnect = new Preconnect(this.win_.document);
 
@@ -653,8 +682,8 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getEntitlements() {
-    return this.entitlementsManager_.getEntitlements()
+  getEntitlements(opt_encryptedDocumentKey) {
+    return this.entitlementsManager_.getEntitlements(opt_encryptedDocumentKey)
         .then(entitlements => entitlements.clone());
   }
 
@@ -817,11 +846,22 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getPropensityModule() {
-    if (!isExperimentOn(this.win_, ExperimentFlags.PROPENSITY)) {
+  attachSmartButton(button, optionsOrCallback, opt_callback) {
+    if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
       throw new Error('Not yet launched!');
     }
+    this.buttonApi_.attachSmartButton(
+        this, button, optionsOrCallback, opt_callback);
+  }
+
+  /** @override */
+  getPropensityModule() {
     return Promise.resolve(this.propensityModule_);
+  }
+
+  /** @override */
+  eventManager() {
+    return this.eventManager_;
   }
 }
 
@@ -863,6 +903,7 @@ function createPublicRuntime(runtime) {
     saveSubscription: runtime.saveSubscription.bind(runtime),
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
+    attachSmartButton: runtime.attachSmartButton.bind(runtime),
     getPropensityModule: runtime
         .getPropensityModule.bind(runtime),
   });

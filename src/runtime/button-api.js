@@ -16,6 +16,8 @@
 
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
+import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
+
 
 /**
  * The button title should match that of button's SVG.
@@ -87,7 +89,7 @@ export class ButtonApi {
   }
 
   /**
-   * @param {!Object|function()} optionsOrCallback
+   * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}
    */
@@ -98,28 +100,75 @@ export class ButtonApi {
 
   /**
    * @param {!Element} button
-   * @param {!Object|function()} optionsOrCallback
+   * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} opt_callback
    * @return {!Element}
    */
   attach(button, optionsOrCallback, opt_callback) {
-    const options =
-        typeof optionsOrCallback != 'function' ?
-        optionsOrCallback : null;
-    const callback = /** @type {function()} */ (
-        (typeof optionsOrCallback == 'function' ? optionsOrCallback : null) ||
-            opt_callback);
-    let theme = options && options['theme'];
-    if (theme !== 'light' && theme !== 'dark') {
-      theme = 'light';
-    }
+    const options = /** @type {!../api/subscriptions.ButtonOptions} */
+        (this.getOptions_(optionsOrCallback));
+    const callback = this.getCallback_(optionsOrCallback, opt_callback);
+
+    const theme = options['theme'];
     button.classList.add(`swg-button-${theme}`);
     button.setAttribute('role', 'button');
-    if (options && options['lang']) {
+    if (options['lang']) {
       button.setAttribute('lang', options['lang']);
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
     return button;
+  }
+
+  /**
+   *
+   * @param {../api/subscriptions.ButtonOptions|../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
+   * @return {!../api/subscriptions.ButtonOptions|!../api/subscriptions.SmartButtonOptions}
+   * @private
+   */
+  getOptions_(optionsOrCallback) {
+    const options = /** @type {!../api/subscriptions.ButtonOptions|!../api/subscriptions.SmartButtonOptions} */
+        (optionsOrCallback && typeof optionsOrCallback != 'function' ?
+        optionsOrCallback : {'theme': Theme.LIGHT});
+
+    const theme = options['theme'];
+    if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
+      options['theme'] = Theme.LIGHT;
+    }
+    return options;
+  }
+
+  /**
+   *
+   * @param {?../api/subscriptions.ButtonOptions|?../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
+   * @param {function()=} opt_callback
+   * @return {function()|function(Event):boolean}
+   * @private
+   */
+  getCallback_(optionsOrCallback, opt_callback) {
+    const callback = /** @type {function()|function(Event):boolean} */ (
+      (typeof optionsOrCallback == 'function' ? optionsOrCallback : null) ||
+          opt_callback);
+    return callback;
+  }
+
+  /**
+   * @param {!./deps.DepsDef} deps
+   * @param {!Element} button
+   * @param {../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
+   * @param {function()=} opt_callback
+   * @return {!Element}
+   */
+  attachSmartButton(deps, button, optionsOrCallback, opt_callback) {
+    const options = /** @type {!../api/subscriptions.SmartButtonOptions} */
+        (this.getOptions_(optionsOrCallback));
+    const callback = /** @type {function()} */
+        (this.getCallback_(optionsOrCallback, opt_callback));
+
+    // Add required CSS class, if missing.
+    button.classList.add('swg-smart-button');
+
+    return new SmartSubscriptionButtonApi(
+        deps, button, options, callback).start();
   }
 }

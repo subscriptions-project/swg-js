@@ -35,7 +35,7 @@ To start the link save flow, provide an access token.  For OAuth implicit flow, 
 
 ## Generating the token after user confirmation
 
-```
+```js
 const requestPromise = new Promise(resolve => {
     // when using the implicit flow, generate a token
     resolve({token: 'entitlements_access_token'});

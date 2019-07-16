@@ -55,7 +55,7 @@ export class Toast {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {string} */

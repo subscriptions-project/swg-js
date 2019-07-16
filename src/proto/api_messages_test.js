@@ -16,8 +16,11 @@
 
 import {
     AnalyticsContext,
-    AnalyticsRequest,
     AnalyticsEvent,
+    AnalyticsEventMeta,
+    AnalyticsRequest,
+    EventOriginator,
+    EventParams,
     deserialize} from './api_messages';
 
 /**
@@ -78,6 +81,20 @@ describe('api_messages', () => {
     });
   });
 
+  describe('test_AnalyticsEventMeta', () => {
+    it('should deserialize correctly', () => {
+      const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
+      analyticseventmeta.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
+      analyticseventmeta.setIsFromUserAction(false);
+      const analyticseventmetaSerialized = analyticseventmeta.toArray();
+      const analyticseventmetaDeserialized = deserialize(
+          analyticseventmetaSerialized);
+      expect(analyticseventmetaDeserialized).to.not.be.null;
+      expect(isEqual(analyticseventmeta.toArray(),
+          analyticseventmetaDeserialized.toArray())).to.be.true;
+    });
+  });
+
   describe('test_AnalyticsRequest', () => {
     it('should deserialize correctly', () => {
       const /** !AnalyticsRequest  */ analyticsrequest = new AnalyticsRequest();
@@ -93,12 +110,32 @@ describe('api_messages', () => {
       analyticscontext.setLabelList([]);
       analyticsrequest.setContext(analyticscontext);
       analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
+      const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
+      analyticseventmeta.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
+      analyticseventmeta.setIsFromUserAction(false);
+      analyticsrequest.setMeta(analyticseventmeta);
+      const /** !EventParams  */ eventparams = new EventParams();
+      eventparams.setSmartboxMessage('');
+      analyticsrequest.setParams(eventparams);
       const analyticsrequestSerialized = analyticsrequest.toArray();
       const analyticsrequestDeserialized = deserialize(
           analyticsrequestSerialized);
       expect(analyticsrequestDeserialized).to.not.be.null;
       expect(isEqual(analyticsrequest.toArray(),
           analyticsrequestDeserialized.toArray())).to.be.true;
+    });
+  });
+
+  describe('test_EventParams', () => {
+    it('should deserialize correctly', () => {
+      const /** !EventParams  */ eventparams = new EventParams();
+      eventparams.setSmartboxMessage('');
+      const eventparamsSerialized = eventparams.toArray();
+      const eventparamsDeserialized = deserialize(
+          eventparamsSerialized);
+      expect(eventparamsDeserialized).to.not.be.null;
+      expect(isEqual(eventparams.toArray(),
+          eventparamsDeserialized.toArray())).to.be.true;
     });
   });
 });
