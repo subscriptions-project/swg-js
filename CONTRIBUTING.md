@@ -55,6 +55,7 @@ A few things to note:
 * The Subscribe with Google Project follows the [fork & pull](https://help.github.com/articles/using-pull-requests/#fork--pull) model for accepting contributions.
 * Familiarize yourself with our [Design Principles](contributing/DESIGN_PRINCIPLES.md).
 * We follow [Google's JavaScript Style Guide](https://google.github.io/styleguide/jsguide.html).  More generally make sure to follow the same comment and coding style as the rest of the project.
+* For reviewing your code, choose an owner from CODEOWNERS for the file or directories you change. When adding new files, choose owners of the directory where you wish to add files to be your reviewer. If no owner is listed for the file or directory you want to change, include the global owners at the top of the CODEOWNERS file.
 * Include tests when contributing code.  There are plenty of tests that you can use as examples.
 
 ## Contributor License Agreement

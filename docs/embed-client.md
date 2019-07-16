@@ -27,7 +27,7 @@ https://news.google.com/swg/js/v1/swg.js
 To include the SwG client on a page, include a `<script>` tag as
 follows (notice the `async` attribute):
 
-```
+```html
 <script async src="https://news.google.com/swg/js/v1/swg.js"></script>
 ```
 
@@ -35,7 +35,7 @@ follows (notice the `async` attribute):
 
 To get a callback when SwG client is ready, use the following code:
 
-```
+```js
 (self.SWG = self.SWG || []).push(function(subscriptions) {
   // SwG is ready to be called via subscriptions interface.
 });
@@ -59,13 +59,13 @@ for content pages (articles).
 
 To initialize the client manually, first set the `subscriptions-control="manual"` flag on the script:
 
-```
+```html
 <script async subscriptions-control="manual" src="https://news.google.com/swg/js/v1/swg.js"></script>
 ```
 
 Then initialize using the API:
 
-```
+```js
 (self.SWG = self.SWG || []).push(function(subscriptions) {
   // Either use a publication ID (example.com) or
   // a full product ID (example.com:premium).

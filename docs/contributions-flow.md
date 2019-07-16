@@ -20,7 +20,7 @@ This flow allows the publication site to display a flow where users can contribu
 
 First, please setup the contribution response callback via `setOnContributionResponse`:
 
-```
+```js
 subscriptions.setOnContributionResponse(function(subscriptionPromise) {
   subscriptionPromise.then(function(response) {
     // 1. Handle contribution response.
@@ -39,7 +39,7 @@ Once you receive the contribution response:
 
 To activate contribution flow itself, call the `contribute` method with the desired SKU:
 
-```
+```js
 subscriptions.contribute(sku);
 ```
 
@@ -50,32 +50,32 @@ A user will get a choice to either select one of the amounts to contribute to, o
 
 To handle the login request:
 
-```
+```js
 subscriptions.setOnLoginRequest(function() {
   // Handle login request.
 });
+```
 
 To display contributions:
 
-```
+```js
 subscriptions.showContributionOptions();
 ```
 
 The above mentioned API `showContributionsOptions` accepts a list of SKUs to be displayed. The list of SKUs should be of type type `UI_CONTRIBUTIONS` (publisher configuration).
 
-```
+```js
 subscriptions.showContributions({skus: ['sku1', 'sku2']});
 ```
 
 The `setOnContributionResponse` callback will be called once the contribution is complete, or when the previously executed contribution is recovered.
 
-```
-
 ## Contribution response
 The response returned by the `setOnContributionResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data.
+
 ### Structure
 The SubscriptionResponse object has the following structure:
-```
+```json
 {
   "raw": "",
   "purchaseData" : {

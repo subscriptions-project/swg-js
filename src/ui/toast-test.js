@@ -15,7 +15,7 @@
  */
 
 import {Toast} from './toast';
-import {ActivityPort} from 'web-activities/activity-ports';
+import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from '../runtime/runtime';
 import {PageConfig} from '../model/page-config';
 import {getStyle} from '../utils/style';
@@ -46,7 +46,7 @@ describes.realWin('Toast', {}, env => {
     toast.whenReady = () => Promise.resolve();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
   });
 

@@ -174,7 +174,7 @@ export class PayCompleteFlow {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
@@ -228,7 +228,7 @@ export class PayCompleteFlow {
         feUrl('/payconfirmiframe'),
         feArgs(args),
         /* shouldFadeBody */ true);
-    this.activityIframeView_.onMessage(data => {
+    this.activityIframeView_.onMessageDeprecated(data => {
       if (data['entitlements']) {
         this.deps_.entitlementsManager().pushNextEntitlements(
             /** @type {string} */ (data['entitlements']));
@@ -250,7 +250,7 @@ export class PayCompleteFlow {
     this.analyticsService_.logEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
-      this.activityIframeView_.message({'complete': true});
+      this.activityIframeView_.messageDeprecated({'complete': true});
     });
     return this.activityIframeView_.acceptResult().catch(() => {
       // Ignore errors.
@@ -271,6 +271,11 @@ export class PayCompleteFlow {
  */
 function validatePayResponse(deps, payPromise, completeHandler) {
   return payPromise.then(data => {
+    // If there was a redirect, we may have lost our stored transaction
+    // ID. Pay service is supposed to send back the transaction ID that
+    // was sent in the request and so, ideally it should be the same.
+    // In any case, we must remember and use this transaction ID going
+    // forward and assume whatever memory we had before redirect is lost.
     if (typeof data == 'object' && data['googleTransactionId']) {
       deps.analytics().setTransactionId(data['googleTransactionId']);
     }

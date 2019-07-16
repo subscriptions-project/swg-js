@@ -19,13 +19,13 @@
  */
 export const SubscriptionState = {
   // user's subscription state not known.
-  UNKNOWN: 'na',
+  UNKNOWN: 'unknown',
   // user is not a subscriber.
-  NON_SUBSCRIBER: 'no',
+  NON_SUBSCRIBER: 'non_subscriber',
   // user is a subscriber.
-  SUBSCRIBER: 'yes',
+  SUBSCRIBER: 'subscriber',
   // user's subscription has expired.
-  PAST_SUBSCRIBER: 'ex',
+  PAST_SUBSCRIBER: 'past_subscriber',
 }
 
 /**
@@ -40,40 +40,66 @@ export const Event = {
    * IMPRESSION_PAYWALL event.
    * User hits a paywall.
    * Every impression should be qualified as active or passive.
+   * The field 'active' of PropensityEvent, which carries this
+   * event, must be set to true or false to indicate this.
    * If the user has run out of metering, and that’s why was shown
    * a paywall, that would be a passive impression of the paywall.
-   * For example; {‘is_active’: false}
+   * For example:
+   * const propensityEvent = {
+   *  name: 'paywall',
+   *  active: false,
+   * }
    */
   IMPRESSION_PAYWALL: 'paywall',
   /**
    * IMPRESSION_AD event.
    * User has been shown a subscription ad.
    * Every impression should be qualified as active or passive.
+   * The field 'active' of PropensityEvent, which carries this
+   * event, must be set to true or false to indicate this.
    * The JSON block can provide the name of the subscription ad
    * creative or campaign. Ad impressions are usually passive.
-   * For example; {'name': 'fall_ad', 'is_active': false}
+   * const propensityEvent = {
+   *   name: 'ad_shown',
+   *   active: false,
+   *   data: {'ad_name': 'fall_ad'}
+   * }
    */
   IMPRESSION_AD: 'ad_shown',
   /**
    * IMPRESSION_OFFERS event.
    * User has been shown a list of available offers for subscription.
    * Every impression should be qualified as active or passive.
+   * The field 'active' of PropensityEvent, which carries this
+   * event, must be set to true or false to indicate this.
    * The JSON block can provide a list of products displayed,
    * and the source to indicate why the user was shown the offer.
    * Note: source is not the same as referrer.
    * In the cases below, the user took action before seeing the offers,
    * and therefore considered active impression.
-   * For example; {'offers': ['basic-monthly', 'premium-weekly'],
-   *               'source': 'ad-click',
-                  ‘is_active’: true}
-   * For example; {‘offers’: [‘basic-monthly’, ‘premium-weekly’],
-   *              ‘source’: ‘navigate-to-offers-page’,
-   *              ‘is_active’: true}
+   * For example:
+   * const propensityEvent = {
+   *   name: 'offers_shown',
+   *   active: true,
+   *   data: {'offers': ['basic-monthly', 'premium-weekly'],
+   *           'source': 'ad-click'}
+   * }
+   * For example:
+   * const propensityEvent = {
+   *   name: 'offers_shown',
+   *   active: true,
+   *   data: {'offers': ['basic-monthly', 'premium-weekly'],
+   *           'source': ‘navigate-to-offers-page’}
+   * }
    * If the user was shown the offers as a result of paywall metering
    * expiration, it is considered a passive impression.
-   * For example; {‘offers’: [‘basic-monthly’],
-   *               ‘source’: ‘paywall-metering-expired’,
-   *               ‘is_active’: false}
+   * For example:
+   * const propensityEvent = {
+   *   name: 'offers_shown',
+   *   active: false,
+   *   data: {'offers': ['basic-monthly', 'premium-weekly'],
+   *           'source': ‘paywall-metering-expired’}
+   * }
    */
   IMPRESSION_OFFERS: 'offers_shown',
   /**
@@ -94,17 +120,30 @@ export const Event = {
    *   or ACTION_PAYMENT_FLOW_STARTED depending on if that button
    *   took the user to a checkout page on the publishers site or
    *   directly started the payment flow).
+   * The field 'active' of PropensityEvent, which carries this
+   * event, must be set to true since this is a user action.
    * The JSON block with this event can provide additional information
    * such as the source, indicating what caused the user to navigate
    * to this page.
-   * For example; {‘source’: ‘marketing_via_email’}
+   * For example:
+   * const propensityEvent = {
+   *   name: 'subscriptions_landing_page',
+   *   active: true,
+   *   data: {'source': 'marketing_via_email'}
+   * }
    */
   ACTION_SUBSCRIPTIONS_LANDING_PAGE: 'subscriptions_landing_page',
   /**
    * ACTION_OFFER_SELECTED event.
    * User has selected an offer.
+   * The field 'active' of PropensityEvent, which carries this
+   * event, must be set to true since this is a user action.
    * The JSON block can provide the product selected.
-   * For example; {'product': 'basic-monthly'}
+   * For example: {
+   *   name: 'offer_selected',
+   *   active: true,
+   *   data: {product': 'basic-monthly'}
+   * }
    * When offer selection starts the payment flow directly,
    * use the next event ACTION_PAYMENT_FLOW_STARTED instead.
    */
@@ -112,21 +151,46 @@ export const Event = {
   /**
    * ACTION_PAYMENT_FLOW_STARTED event.
    * User has started payment flow.
+   * The field 'active' of PropensityEvent, which carries this
+   * event, must be set to true since this is a user action.
    * The JSON block can provide the product selected.
-   * For example; {'product': 'basic-monthly'}
+   * For example:
+   * const propensityEvent = {
+   *   name: 'payment_flow_started',
+   *   active: true,
+   *   data: {product': 'basic-monthly'}
+   * }
    */
   ACTION_PAYMENT_FLOW_STARTED: 'payment_flow_start',
   /**
    * ACTION_PAYMENT_COMPLETED.
    * User has made the payment for a subscription.
+   * The field 'active' of PropensityEvent, which carries this
+   * event, must be set to true since this is a user action.
    * The JSON block can provide the product user paid for.
-   * For example; {'product': 'basic-monthly'}
+   * For example:
+   * const propensityEvent = {
+   *   name: 'payment_complete',
+   *   active: true,
+   *   data: {product': 'basic-monthly'}
+   * }
    */
   ACTION_PAYMENT_COMPLETED: 'payment_complete',
   /**
    * EVENT_CUSTOM: custom publisher event.
+   * The field 'active' of PropensityEvent, which carries this
+   * event, must be set to true or false depending on if the event
+   * was generated as a result of a user action.
    * The JSON block can provide the event name for the custom event.
-   * For example; {'name': 'email_signup'}
+   * For example:
+   * const propensityEvent = {
+   *   name: 'custom',
+   *   active: true,
+   *   data: {
+   *     'event_name': 'social_share',
+   *     'platform_used': 'whatsapp'
+   *   }
+   *  }
    */
   EVENT_CUSTOM: 'custom',
 }
@@ -182,6 +246,31 @@ export let Header;
 export let PropensityScore;
 
 /**
+ * Propensity Event
+ * Properties:
+ * - name: Required. Name should be valid string in Event.
+ * - active: Required. A boolean that indicates whether the
+ *         user took some action to participate in the flow
+ *         that generated this event. For impression event,
+ *         this is set to true if is_active field would be
+ *         set to true, as described in documentation for
+ *         enum Event. Otherwise, set this field to false.
+ *         For action events, this field must always be set
+ *         to true. The caller must always set this field.
+ * - data: Optional. JSON block of depth '1' provides event
+ *         parameters. The guideline to create this JSON block
+ *         that describes the event is provided against each
+ *         enum listed in the Event enum above.
+ *
+ *  @typedef {{
+ *    name: string,
+ *    active: boolean,
+ *    data: ?JsonObject,
+ * }}
+ */
+export let PropensityEvent;
+
+/**
  * @interface
  */
 export class PropensityApi {
@@ -196,21 +285,15 @@ export class PropensityApi {
    * Each call to this API should have the first argument
    * as a valid string from the enum SubscriptionState.
    * @param {SubscriptionState} state
-   * @param {?Object} jsonEntitlements
+   * @param {?JsonObject} jsonEntitlements
    */
   sendSubscriptionState(state, jsonEntitlements) {}
 
   /**
    * Send a single user event.
-   * Event should be valid string in Event.
-   * JSON block of depth '1' provides event parameters.
-   * The guideline to create this JSON block that describes
-   * the event is provided against each enum listed in
-   * the Event enum above.
-   * @param {Event} userEvent
-   * @param {?Object} jsonParams
+   * @param {PropensityEvent} userEvent
    */
-   sendEvent(userEvent, jsonParams) {}
+   sendEvent(userEvent) {}
 
   /**
    * Get the propensity of a user to subscribe based on the type.

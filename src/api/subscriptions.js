@@ -60,9 +60,10 @@ export class Subscriptions {
   clear() {}
 
   /**
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements() {}
+  getEntitlements(opt_encryptedDocumentKey) {}
 
   /**
    * Set the subscribe callback.
@@ -236,6 +237,16 @@ export class Subscriptions {
   attachButton(button, optionsOrCallback, opt_callback) {}
 
   /**
+   * Attaches smartButton element and the provided callback.
+   * The default theme is "light".
+   *
+   * @param {!Element} button
+   * @param {!SmartButtonOptions|function()} optionsOrCallback
+   * @param {function()=} opt_callback
+   */
+  attachSmartButton(button, optionsOrCallback, opt_callback) {}
+
+  /**
    * Retrieves the propensity module that provides APIs to
    * get propensity scores based on user state and events
    * @return {!Promise<PropensityApi>}
@@ -370,13 +381,29 @@ export let SaveSubscriptionRequestCallback;
 
 /**
  * Properties:
+ * - lang: Sets the button SVG and title. Default is "en".
  * - theme: "light" or "dark". Default is "light".
  *
  * @typedef {{
- *   theme: string,
+ *   theme: (string|undefined),
+ *   lang: (string|undefined),
  * }}
  */
 export let ButtonOptions;
+
+/**
+ * Properties:
+ * - lang: Sets the button SVG and title. Default is "en".
+ * - theme: "light" or "dark". Default is "light".
+ * - messageTextColor: Overrides theme color for message text. (ex: "#09f")
+ *
+ * @typedef {{
+ *   theme: (string|undefined),
+ *   lang: (string|undefined),
+ *   messageTextColor: (string|undefined),
+ * }}
+ */
+export let SmartButtonOptions;
 
 /**
  * Properties:
