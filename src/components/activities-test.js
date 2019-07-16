@@ -114,19 +114,24 @@ describes.realWin('ActivityPorts test', {}, env => {
     });
 
     it('should delegate getMode and attach callback to whenReady', () => {
+      console.log('started');
       const activityIframePort = new ActivityIframePort(iframe, url);
       sandbox.stub(WebActivityIframePort.prototype, 'getMode',
           () => ActivityMode.IFRAME);
       expect(activityIframePort.getMode()).to.equal(ActivityMode.IFRAME);
+      sandbox.stub(WebActivityIframePort.prototype,
+          'connect', () => Promise.resolve());
       sandbox.stub(WebActivityIframePort.prototype,
           'whenReady', () => Promise.resolve());
       let handler = null;
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage', arg => {
         handler = arg;
       });
-      return activityIframePort.whenReady().then(() => {
+      return activityIframePort.connect().then(() => {
+        console.log('handler ', handler);
         return handler;
       }).then(handler => {
+        console.log('end');
         expect(handler).to.not.be.null;
       });
     });
@@ -164,8 +169,10 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityIframePort.onMessageDeprecated(data => {
         expect(data).to.deep.equal({'sku': 'daily'});
       });
-      sandbox.stub(WebActivityIframePort.prototype, 'whenReady',
+      sandbox.stub(WebActivityIframePort.prototype, 'connect',
           () => Promise.resolve());
+      sandbox.stub(WebActivityIframePort.prototype,
+          'whenReady', () => Promise.resolve());
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage',
           arg => {
             handler = arg;
@@ -173,7 +180,7 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityIframePort.onMessageDeprecated(data => {
         expect(data).to.deep.equal({'sku': 'daily'});
       });
-      return activityIframePort.whenReady().then(() => {
+      return activityIframePort.connect().then(() => {
         return handler;
       }).then(handler => {
         expect(handler).to.not.be.null;
@@ -181,7 +188,7 @@ describes.realWin('ActivityPorts test', {}, env => {
       });
     });
 
-    it('should allow registering callback after ready', () => {
+    it('should allow registering callback after connect and when ready', () => {
       const activityIframePort = new ActivityIframePort(iframe, url);
       let payload;
       sandbox.stub(WebActivityIframePort.prototype, 'message',
@@ -191,8 +198,10 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityIframePort.messageDeprecated({'sku': 'daily'});
       expect(payload).to.deep.equal({'sku': 'daily'});
       let handler = null;
-      sandbox.stub(WebActivityIframePort.prototype, 'whenReady',
+      sandbox.stub(WebActivityIframePort.prototype, 'connect',
           () => Promise.resolve());
+      sandbox.stub(WebActivityIframePort.prototype,
+          'whenReady', () => Promise.resolve());
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage',
           arg => {
             handler = arg;
@@ -202,7 +211,7 @@ describes.realWin('ActivityPorts test', {}, env => {
         callbackCalled = true;
         expect(data).to.deep.equal({'sku': 'daily'});
       };
-      return activityIframePort.whenReady().then(() => {
+      return activityIframePort.connect().then(() => {
         return handler;
       }).then(handler => {
         expect(handler).to.not.be.null;
@@ -229,13 +238,15 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityIframePort.on(AnalyticsRequest, request => {
         expect(request.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
       });
-      sandbox.stub(WebActivityIframePort.prototype, 'whenReady',
+      sandbox.stub(WebActivityIframePort.prototype, 'connect',
           () => Promise.resolve());
+      sandbox.stub(WebActivityIframePort.prototype,
+          'whenReady', () => Promise.resolve());
       let handler = null;
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage', args => {
         handler = args;
       });
-      return activityIframePort.whenReady().then(() => {
+      return activityIframePort.connect().then(() => {
         return handler;
       }).then(handler => {
         expect(handler).to.not.be.null;
@@ -251,8 +262,10 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityIframePort.on(AnalyticsRequest, request => {
         expect(request.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
       });
-      sandbox.stub(WebActivityIframePort.prototype, 'whenReady',
+      sandbox.stub(WebActivityIframePort.prototype, 'connect',
           () => Promise.resolve());
+      sandbox.stub(WebActivityIframePort.prototype,
+          'whenReady', () => Promise.resolve());
       let handler = null;
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage', args => {
         handler = args;
@@ -260,7 +273,7 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityIframePort.onMessageDeprecated(data => {
         expect(data['RESPONSE']).to.equal(serializedRequest);
       });
-      return activityIframePort.whenReady().then(() => {
+      return activityIframePort.connect().then(() => {
         return handler;
       }).then(handler => {
         expect(handler).to.not.be.null;

@@ -153,7 +153,18 @@ export class ActivityIframePort {
    * @return {!Promise}
    */
   whenReady() {
-    return this.iframePort_.whenReady().then(() => {
+    return this.iframePort_.whenReady();
+  }
+
+  /**
+   * Waits until the activity port is connected to the host.
+   * @return {!Promise}
+   */
+  connect() {
+    console.log('connect called');
+    // setup to receive messages when ready
+    // TODO(sohanirao): when origin verification is done
+    this.iframePort_.whenReady().then(() => {
       this.iframePort_.onMessage(data => {
         if (this.callbackOriginal_) {
           this.callbackOriginal_(data);
@@ -168,13 +179,6 @@ export class ActivityIframePort {
         }
       });
     });
-  }
-
-  /**
-   * Waits until the activity port is connected to the host.
-   * @return {!Promise}
-   */
-  connect() {
     return this.iframePort_.connect();
   }
 
@@ -282,7 +286,9 @@ export class ActivityPorts {
   */
   openIframe(iframe, url, opt_args) {
     const activityPort = new ActivityIframePort(iframe, url, opt_args);
-    return activityPort.connect().then(() => activityPort);
+    return activityPort.connect().then(() => {
+      return activityPort;
+    });
   }
 
  /**
