@@ -189,15 +189,15 @@ describes.realWin('ButtonApi', {}, env => {
   it('should log button click on create.', () => {
     const button = buttonApi.create(handler);
     eventManagerMock.expects('logEvent').withExactArgs(
-      BUTTON_CLICK_EVENT).once();
+        BUTTON_CLICK_EVENT).once();
     button.click();
   });
 
-   it('should log button click on attach.', () => {
+  it('should log button click on attach.', () => {
     const button = doc.createElement('button');
     buttonApi.attach(button, {}, handler);
     eventManagerMock.expects('logEvent').withExactArgs(
-      BUTTON_CLICK_EVENT).once();
+        BUTTON_CLICK_EVENT).once();
     button.click();
   });
 
@@ -329,7 +329,7 @@ describes.realWin('ButtonApi', {}, env => {
         activitiesMock.verify();
       });
 
-      it('should log smart button click',
+  it('should log smart button click',
       () => {
         const button = doc.createElement('button');
         button.className = 'swg-smart-button';
@@ -337,10 +337,9 @@ describes.realWin('ButtonApi', {}, env => {
             .returns(new AnalyticsContext());
         activitiesMock.expects('openIframe')
             .returns(Promise.resolve(port));
-        buttonApi.attachSmartButton(
-              runtime, button, {}, handler);
+        buttonApi.attachSmartButton(runtime, button, {}, handler);
         eventManagerMock.expects('logEvent').withExactArgs(
-              BUTTON_CLICK_EVENT).once();
+            BUTTON_CLICK_EVENT).once();
         button.click();
       });
 });

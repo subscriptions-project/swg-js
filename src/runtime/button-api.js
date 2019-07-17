@@ -60,7 +60,7 @@ export const BUTTON_CLICK_EVENT = {
   eventOriginator: EventOriginator.SWG_CLIENT,
   isFromUserAction: true,
   additionalParameters: null,
-}
+};
 
 
 /**
@@ -133,7 +133,8 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
-    button.addEventListener('click', () => {this.logEventFun_(BUTTON_CLICK_EVENT);});
+    button.addEventListener('click', () => {
+      this.logEventFun_(BUTTON_CLICK_EVENT);});
     return button;
   }
 
@@ -184,7 +185,8 @@ export class ButtonApi {
 
     // Add required CSS class, if missing.
     button.classList.add('swg-smart-button');
-    button.addEventListener('click', () => {this.logEventFun_(BUTTON_CLICK_EVENT);});
+    button.addEventListener('click', () => {
+      this.logEventFun_(BUTTON_CLICK_EVENT);});
 
     return new SmartSubscriptionButtonApi(
         deps, button, options, callback).start();
