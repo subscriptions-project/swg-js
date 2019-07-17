@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
@@ -50,6 +51,17 @@ const TITLE_LANG_MAP = {
   'zh-tw': '透過 Google 訂閱',
 };
 
+/**
+ * The ClientEvent object to log on button clicks.
+ */
+/** @type {!../api/client-event-manager-api.ClientEvent} */
+export const BUTTON_CLICK_EVENT = {
+  eventType: AnalyticsEvent.ACTION_SUBSCRIBE,
+  eventOriginator: EventOriginator.SWG_CLIENT,
+  isFromUserAction: true,
+  additionalParameters: null,
+}
+
 
 /**
  * The button stylesheet can be found in the `/assets/swg-button.css`.
@@ -60,10 +72,14 @@ export class ButtonApi {
 
   /**
    * @param {!../model/doc.Doc} doc
+   * @param {!function(!../api/client-event-manager-api.ClientEvent)} logEventFun
    */
-  constructor(doc) {
+  constructor(doc, logEventFun) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
+
+    /** @private @const {!function(!../api/client-event-manager-api.ClientEvent)} */
+    this.logEventFun_ = logEventFun;
   }
 
   /**
@@ -117,6 +133,7 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
+    button.addEventListener('click', () => {this.logEventFun_(BUTTON_CLICK_EVENT);});
     return button;
   }
 
@@ -167,6 +184,7 @@ export class ButtonApi {
 
     // Add required CSS class, if missing.
     button.classList.add('swg-smart-button');
+    button.addEventListener('click', () => {this.logEventFun_(BUTTON_CLICK_EVENT);});
 
     return new SmartSubscriptionButtonApi(
         deps, button, options, callback).start();

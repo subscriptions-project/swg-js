@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ButtonApi} from './button-api';
+import {ButtonApi, BUTTON_CLICK_EVENT} from './button-api';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
@@ -31,17 +31,19 @@ describes.realWin('ButtonApi', {}, env => {
   let port;
   let analyticsMock;
   let activitiesMock;
+  let eventManagerMock;
   let buttonApi;
   let handler;
 
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
-    buttonApi = new ButtonApi(resolveDoc(doc));
     pageConfig = new PageConfig('pub1:label1', false);
     runtime = new ConfiguredRuntime(win, pageConfig);
     analyticsMock = sandbox.mock(runtime.analytics());
     activitiesMock = sandbox.mock(runtime.activities());
+    eventManagerMock = sandbox.mock(runtime.eventManager());
+    buttonApi = new ButtonApi(resolveDoc(doc), runtime.logEvent.bind(runtime));
     port = new ActivityPort();
     handler = sandbox.spy();
   });
@@ -49,6 +51,7 @@ describes.realWin('ButtonApi', {}, env => {
   afterEach(() => {
     activitiesMock.verify();
     analyticsMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should inject stylesheet', () => {
@@ -62,7 +65,7 @@ describes.realWin('ButtonApi', {}, env => {
   });
 
   it('should inject stylesheet only once', () => {
-    new ButtonApi(resolveDoc(doc)).init();
+    new ButtonApi(resolveDoc(doc), runtime.logEvent.bind(runtime)).init();
     buttonApi.init();
     const links = doc.querySelectorAll('link[href="$assets$/swg-button.css"]');
     expect(links).to.have.length(1);
@@ -182,6 +185,21 @@ describes.realWin('ButtonApi', {}, env => {
     expect(button.lang).to.equal('fr');
     expect(button.getAttribute('title')).to.equal('S\'abonner avec Google');
   });
+
+  // it('should log button click on create.', () => {
+  //   const button = buttonApi.create(handler);
+  //   button.click();
+  //   eventManagerMock.expects('logEvent').withExactArgs(
+  //     BUTTON_CLICK_EVENT).once();
+  // });
+
+  //  it('should log button click on attach.', () => {
+  //   const button = doc.createElement('button');
+  //   buttonApi.attach(button, {}, handler);
+  //   button.click();
+  //   eventManagerMock.expects('logEvent').withExactArgs(
+  //     BUTTON_CLICK_EVENT).once();
+  // });
 
   it('should attach a smart button with no options', () => {
     const button = doc.createElement('button');
@@ -307,6 +325,8 @@ describes.realWin('ButtonApi', {}, env => {
             runtime, button, {theme: 'INVALID'}, handler);
         expect(handler).to.not.be.called;
         button.click();
+        eventManagerMock.expects('logEvent').withExactArgs(
+               BUTTON_CLICK_EVENT).once();
         expect(handler).to.be.calledOnce;
         activitiesMock.verify();
       });
