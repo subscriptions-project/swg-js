@@ -101,27 +101,38 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityPorts.onRedirectError(redirectHandler);
     });
 
-    it('must delegate connect and disconnect', () => {
+    it('must delegate connect, disconnect and ready', () => {
       const activityIframePort = new ActivityIframePort(iframe, url);
       let connected = false;
+      let ready = false;
       sandbox.stub(WebActivityIframePort.prototype, 'connect', () => {
         connected = true;
         return Promise.resolve();
       });
+      sandbox.stub(WebActivityIframePort.prototype, 'disconnect', () => {
+        connected = false;
+      });
+      sandbox.stub(WebActivityIframePort.prototype, 'whenReady', () => {
+        ready = true;
+        return Promise.resolve();
+      });
       return activityIframePort.connect().then(() => {
         expect(connected).to.be.true;
+        return activityIframePort.whenReady();
+      }).then(() => {
+        expect(ready).to.be.true;
+        activityIframePort.disconnect();
+        expect(connected).to.be.false;
       });
     });
 
-    it('should delegate getMode and attach callback to whenReady', () => {
+    it('should delegate getMode and attach callback to connect', () => {
       const activityIframePort = new ActivityIframePort(iframe, url);
       sandbox.stub(WebActivityIframePort.prototype, 'getMode',
           () => ActivityMode.IFRAME);
       expect(activityIframePort.getMode()).to.equal(ActivityMode.IFRAME);
       sandbox.stub(WebActivityIframePort.prototype,
           'connect', () => Promise.resolve());
-      sandbox.stub(WebActivityIframePort.prototype,
-          'whenReady', () => Promise.resolve());
       let handler = null;
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage', arg => {
         handler = arg;
@@ -168,8 +179,6 @@ describes.realWin('ActivityPorts test', {}, env => {
       });
       sandbox.stub(WebActivityIframePort.prototype, 'connect',
           () => Promise.resolve());
-      sandbox.stub(WebActivityIframePort.prototype,
-          'whenReady', () => Promise.resolve());
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage',
           arg => {
             handler = arg;
@@ -185,7 +194,7 @@ describes.realWin('ActivityPorts test', {}, env => {
       });
     });
 
-    it('should allow registering callback after connect and when ready', () => {
+    it('should allow registering callback after connect', () => {
       const activityIframePort = new ActivityIframePort(iframe, url);
       let payload;
       sandbox.stub(WebActivityIframePort.prototype, 'message',
@@ -197,8 +206,6 @@ describes.realWin('ActivityPorts test', {}, env => {
       let handler = null;
       sandbox.stub(WebActivityIframePort.prototype, 'connect',
           () => Promise.resolve());
-      sandbox.stub(WebActivityIframePort.prototype,
-          'whenReady', () => Promise.resolve());
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage',
           arg => {
             handler = arg;
@@ -237,8 +244,6 @@ describes.realWin('ActivityPorts test', {}, env => {
       });
       sandbox.stub(WebActivityIframePort.prototype, 'connect',
           () => Promise.resolve());
-      sandbox.stub(WebActivityIframePort.prototype,
-          'whenReady', () => Promise.resolve());
       let handler = null;
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage', args => {
         handler = args;
@@ -261,8 +266,6 @@ describes.realWin('ActivityPorts test', {}, env => {
       });
       sandbox.stub(WebActivityIframePort.prototype, 'connect',
           () => Promise.resolve());
-      sandbox.stub(WebActivityIframePort.prototype,
-          'whenReady', () => Promise.resolve());
       let handler = null;
       sandbox.stub(WebActivityIframePort.prototype, 'onMessage', args => {
         handler = args;
