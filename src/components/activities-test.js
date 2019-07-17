@@ -114,7 +114,6 @@ describes.realWin('ActivityPorts test', {}, env => {
     });
 
     it('should delegate getMode and attach callback to whenReady', () => {
-      console.log('started');
       const activityIframePort = new ActivityIframePort(iframe, url);
       sandbox.stub(WebActivityIframePort.prototype, 'getMode',
           () => ActivityMode.IFRAME);
@@ -128,10 +127,8 @@ describes.realWin('ActivityPorts test', {}, env => {
         handler = arg;
       });
       return activityIframePort.connect().then(() => {
-        console.log('handler ', handler);
         return handler;
       }).then(handler => {
-        console.log('end');
         expect(handler).to.not.be.null;
       });
     });
