@@ -186,20 +186,20 @@ describes.realWin('ButtonApi', {}, env => {
     expect(button.getAttribute('title')).to.equal('S\'abonner avec Google');
   });
 
-  // it('should log button click on create.', () => {
-  //   const button = buttonApi.create(handler);
-  //   button.click();
-  //   eventManagerMock.expects('logEvent').withExactArgs(
-  //     BUTTON_CLICK_EVENT).once();
-  // });
+  it('should log button click on create.', () => {
+    const button = buttonApi.create(handler);
+    eventManagerMock.expects('logEvent').withExactArgs(
+      BUTTON_CLICK_EVENT).once();
+    button.click();
+  });
 
-  //  it('should log button click on attach.', () => {
-  //   const button = doc.createElement('button');
-  //   buttonApi.attach(button, {}, handler);
-  //   button.click();
-  //   eventManagerMock.expects('logEvent').withExactArgs(
-  //     BUTTON_CLICK_EVENT).once();
-  // });
+   it('should log button click on attach.', () => {
+    const button = doc.createElement('button');
+    buttonApi.attach(button, {}, handler);
+    eventManagerMock.expects('logEvent').withExactArgs(
+      BUTTON_CLICK_EVENT).once();
+    button.click();
+  });
 
   it('should attach a smart button with no options', () => {
     const button = doc.createElement('button');
@@ -325,9 +325,22 @@ describes.realWin('ButtonApi', {}, env => {
             runtime, button, {theme: 'INVALID'}, handler);
         expect(handler).to.not.be.called;
         button.click();
-        eventManagerMock.expects('logEvent').withExactArgs(
-               BUTTON_CLICK_EVENT).once();
         expect(handler).to.be.calledOnce;
         activitiesMock.verify();
+      });
+
+      it('should log smart button click',
+      () => {
+        const button = doc.createElement('button');
+        button.className = 'swg-smart-button';
+        analyticsMock.expects('getContext')
+            .returns(new AnalyticsContext());
+        activitiesMock.expects('openIframe')
+            .returns(Promise.resolve(port));
+        buttonApi.attachSmartButton(
+              runtime, button, {}, handler);
+        eventManagerMock.expects('logEvent').withExactArgs(
+              BUTTON_CLICK_EVENT).once();
+        button.click();
       });
 });
