@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 /**
  * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
  *
