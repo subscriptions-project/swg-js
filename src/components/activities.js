@@ -153,7 +153,16 @@ export class ActivityIframePort {
    * @return {!Promise}
    */
   whenReady() {
-    return this.iframePort_.whenReady().then(() => {
+    return this.iframePort_.whenReady();
+  }
+
+  /**
+   * Waits until the activity port is connected to the host.
+   * @return {!Promise}
+   */
+  connect() {
+    return this.iframePort_.connect().then(() => {
+      // Attach a callback to receive messages after connection complete
       this.iframePort_.onMessage(data => {
         if (this.callbackOriginal_) {
           this.callbackOriginal_(data);
@@ -168,14 +177,6 @@ export class ActivityIframePort {
         }
       });
     });
-  }
-
-  /**
-   * Waits until the activity port is connected to the host.
-   * @return {!Promise}
-   */
-  connect() {
-    return this.iframePort_.connect();
   }
 
   /**
