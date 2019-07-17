@@ -462,11 +462,59 @@ class EventParams {
   }
 }
 
+/**
+ * @implements {Message}
+ */
+class SmartBoxMessage {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.isClicked_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getIsClicked() {
+    return this.isClicked_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setIsClicked(value) {
+    this.isClicked_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.isClicked_,  // field 1 - is_clicked
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SmartBoxMessage';
+  }
+}
+
 const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
   'EventParams': EventParams,
+  'SmartBoxMessage': SmartBoxMessage,
 };
 
 /**
@@ -504,6 +552,7 @@ export {
   EventOriginator,
   EventParams,
   Message,
+  SmartBoxMessage,
   deserialize,
   getLabel,
 };
