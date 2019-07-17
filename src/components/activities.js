@@ -161,7 +161,6 @@ export class ActivityIframePort {
    * @return {!Promise}
    */
   connect() {
-    console.log('connect called');
     // setup to receive messages when ready
     // TODO(sohanirao): when origin verification is done
     this.iframePort_.whenReady().then(() => {
