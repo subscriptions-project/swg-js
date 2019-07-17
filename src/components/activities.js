@@ -161,8 +161,8 @@ export class ActivityIframePort {
    * @return {!Promise}
    */
   connect() {
-    // setup to receive messages when ready
-    // TODO(sohanirao): when origin verification is done
+    // Attach a callback to receive messages after ready signal. Since
+    // before accept() origin verification is done, this is safe to do.
     this.iframePort_.whenReady().then(() => {
       this.iframePort_.onMessage(data => {
         if (this.callbackOriginal_) {
@@ -285,9 +285,7 @@ export class ActivityPorts {
   */
   openIframe(iframe, url, opt_args) {
     const activityPort = new ActivityIframePort(iframe, url, opt_args);
-    return activityPort.connect().then(() => {
-      return activityPort;
-    });
+    return activityPort.connect().then(() => activityPort);
   }
 
  /**
