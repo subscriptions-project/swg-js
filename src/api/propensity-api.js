@@ -123,6 +123,32 @@ export const SubscriptionState = LoggerApi.SubscriptionState;
  */
 export class PropensityApi {
   /**
+   * Send a buy-flow event that occurred on the publisher's site to Google.  The
+   * ultimate destination is controlled by configuration settings.  Data is
+   * sent to Propensity if the Propensity module is fetched from runtime and to
+   * Google's analytics service if you activate buy-flow comparative analysis.
+   * @param {!PropensityEvent} event
+   * @override
+   */
+  sendEvent(event) { }
+
+  /**
+   * Send user subscription state upon initial discovery.
+   * A user may have active subscriptions to some products
+   * and expired subscriptions to others. Make one API call
+   * per subscription state and provide a corresponding
+   * list of products with a json object of depth 1.
+   * For example:
+   *     {'product': ['basic-monthly', 'audio-weekly']}
+   * Each call to this API should have the first argument
+   * as a valid string from the enum SubscriptionState.
+   * @param {SubscriptionState} state
+   * @param {?JsonObject} jsonEntitlements
+   * @override
+   */
+  sendSubscriptionState(state, jsonEntitlements) {}
+
+  /**
    * Get the propensity of a user to subscribe based on the type.
    * The argument should be a valid string from PropensityType.
    * If no type is provided, GENERAL score is returned.
