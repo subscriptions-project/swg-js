@@ -229,7 +229,7 @@ export class LoggerApi {
    * ultimate destination is controlled by configuration settings.  Data is
    * sent to Propensity if the Propensity module is fetched from runtime and to
    * Google's analytics service if you activate buy-flow comparative analysis.
-   * @param {!PropensityEvent} userEvent
+   * @param {!PublisherEvent} userEvent
    */
   sendEvent(userEvent) { }
 
