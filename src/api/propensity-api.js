@@ -26,17 +26,41 @@ export const PropensityType = {
 };
 
 /**
+ * The Propensity Score
+ * - value: Required. A number that indicates the propensity to subscribe.
+ * - bucketed: Required. Indicates if the score is a raw score [1-100] or bucketed[1-20].
+ *
+ * @typedef {{
+ *   value: number,
+ *   bucketed: boolean,
+ * }}
+ */
+export let Score;
+
+/**
+ * Propensity Score Detail
+ * Properties:
+ * - product: Required. Indicates the publication_id:product_id for which the score is provided.
+ * - score: Optional. When score is available, this field contains the propensity score for this product.
+ * - error: Optional. When no score is avaialble, a string provides the error message.
+ *
+ * @typedef {{
+ *   product: string,
+ *   score: ?Score,
+ *   error: ?string,
+ * }}
+ */
+export let ScoreDetail;
+
+/**
  * The Body field of the Propensity Score.
  * Properties:
- * - result: Required. When available, provides the propensity score of the
- *       requested type with a number in the range [0-100], indicating the
- *       likelihood of a user to subscribe.
- *       If there are any errors which prevented the server from
- *       generating and providing a valid score, this field will have a
- *       string describing why score was not available.
+ * - scores: Optional, an array of scores. When header indicates so, atleast one score is available.
+ * - error: Optional, string describing why, if no scores were provided by the server.
  *
  *  @typedef {{
- *    result: (number|string)
+ *    scores: ?Array<ScoreDetail>,
+ *    error: ?string,
  * }}
  */
 export let Body;

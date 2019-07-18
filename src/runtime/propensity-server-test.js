@@ -81,10 +81,13 @@ describes.realWin('PropensityServer', {}, env => {
           capturedRequest = init;
           return Promise.reject(new Error('Publisher not whitelisted'));
         });
-    const entitlements = {'product': ['a', 'b', 'c']};
+    const productsOrSkus = {'product': ['a', 'b', 'c']};
+    PropensityServer.prototype.getDocumentCookie_ = () => {
+      return '__gads=aaaaaa';
+    };
     return propensityServer.sendSubscriptionState(
         PropensityApi.SubscriptionState.SUBSCRIBER,
-        JSON.stringify(entitlements)).then(() => {
+        JSON.stringify(productsOrSkus)).then(() => {
           throw new Error('must have failed');
         }).catch(reason => {
           const path = new URL(capturedUrl);
@@ -93,7 +96,7 @@ describes.realWin('PropensityServer', {}, env => {
           const queries = parseQueryString(queryString);
           expect(queries).to.not.be.null;
           expect('cookie' in queries).to.be.true;
-          expect(queries['cookie']).to.equal('noConsent');
+          expect(queries['cookie']).to.equal('aaaaaa');
           expect('v' in queries).to.be.true;
           expect(parseInt(queries['v'], 10)).to.equal(
               propensityServer.version_);
@@ -101,7 +104,7 @@ describes.realWin('PropensityServer', {}, env => {
           const userState = 'pub1:' + queries['states'].split(':')[1];
           expect(userState).to.equal('pub1:subscriber');
           const products = decodeURIComponent(queries['states'].split(':')[2]);
-          expect(products).to.equal(JSON.stringify(entitlements));
+          expect(products).to.equal(JSON.stringify(productsOrSkus));
           expect(capturedRequest.credentials).to.equal('include');
           expect(capturedRequest.method).to.equal('GET');
           expect(() => {throw reason;}).to.throw(/Publisher not whitelisted/);
@@ -117,6 +120,9 @@ describes.realWin('PropensityServer', {}, env => {
           capturedRequest = init;
           return Promise.reject(new Error('Not sent from allowed origin'));
         });
+    PropensityServer.prototype.getDocumentCookie_ = () => {
+      return '__gads=aaaaaa';
+    };
     const eventParam = {'is_active': false, 'offers_shown': ['a', 'b', 'c']};
     defaultEvent.additionalParameters = eventParam;
     registeredCallback(defaultEvent);
@@ -126,7 +132,7 @@ describes.realWin('PropensityServer', {}, env => {
     const queries = parseQueryString(queryString);
     expect(queries).to.not.be.null;
     expect('cookie' in queries).to.be.true;
-    expect(queries['cookie']).to.equal('noConsent');
+    expect(queries['cookie']).to.equal('aaaaaa');
     expect('v' in queries).to.be.true;
     expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
     expect('events' in queries).to.be.true;
@@ -146,6 +152,9 @@ describes.realWin('PropensityServer', {}, env => {
           capturedRequest = init;
           return Promise.reject(new Error('Invalid request'));
         });
+    PropensityServer.prototype.getDocumentCookie_ = () => {
+      return '__gads=aaaaaa';
+    };
     return propensityServer.getPropensity('/hello',
         PropensityApi.PropensityType.GENERAL).then(() => {
           throw new Error('must have failed');
@@ -154,7 +163,7 @@ describes.realWin('PropensityServer', {}, env => {
           const queries = parseQueryString(queryString);
           expect(queries).to.not.be.null;
           expect('cookie' in queries).to.be.true;
-          expect(queries['cookie']).to.equal('noConsent');
+          expect(queries['cookie']).to.equal('aaaaaa');
           expect('v' in queries).to.be.true;
           expect(parseInt(queries['v'], 10)).to.equal(
               propensityServer.version_);
@@ -168,17 +177,14 @@ describes.realWin('PropensityServer', {}, env => {
         });
   });
 
-  it('should test get propensity', () => {
+  it('should test get propensity bucketed scores', () => {
     const propensityResponse = {
       'header': {'ok': true},
       'scores': [
         {
           'product': 'pub1',
-          'score': 90,
-        },
-        {
-          'product': 'pub1:premium',
-          'error_message': 'not available',
+          'score': 10,
+          'score_type': 2,
         },
       ],
     };
@@ -198,7 +204,12 @@ describes.realWin('PropensityServer', {}, env => {
           expect(header['ok']).to.be.true;
           const body = response['body'];
           expect(body).to.not.be.null;
-          expect(body['result']).to.equal(90);
+          expect(body['scores']).to.not.be.null;
+          const scores = body['scores'];
+          expect(scores[0].product).to.equal('pub1');
+          expect(scores[0].score.value).to.equal(10);
+          expect(scores[0].score.bucketed).to.be.true;
+          expect(scores.length).to.equal(1);
         });
   });
 
@@ -229,10 +240,17 @@ describes.realWin('PropensityServer', {}, env => {
           expect(response).to.not.be.null;
           const header = response['header'];
           expect(header).to.not.be.null;
-          expect(header['ok']).to.be.false;
+          expect(header['ok']).to.be.true;
           const body = response['body'];
           expect(body).to.not.be.null;
-          expect(body['result']).to.equal('No score available for pub1');
+          expect(body['scores'].length).to.not.be.null;
+          const scores = body['scores'];
+          expect(scores[0].product).to.equal('pub2');
+          expect(scores[0].score.value).to.equal(90);
+          expect(scores[0].score.bucketed).to.be.false;
+          expect(scores[1].product).to.equal('pub1:premium');
+          expect(scores[1].error).to.equal('not available');
+          expect(scores.length).to.equal(2);
         });
   });
 
@@ -257,7 +275,7 @@ describes.realWin('PropensityServer', {}, env => {
           expect(header['ok']).to.be.false;
           const body = response['body'];
           expect(body).to.not.be.null;
-          expect(body['result']).to.equal('Service not available');
+          expect(body['error']).to.equal('Service not available');
         });
   });
 
@@ -273,7 +291,6 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    propensityServer.setUserConsent(true);
     return propensityServer.getPropensity(
         '/hello', PropensityApi.PropensityType.GENERAL).then(() => {
           throw new Error('must have failed');
@@ -308,7 +325,6 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__someonelsescookie=abcd';
     };
-    propensityServer.setUserConsent(true);
     return propensityServer.getPropensity(
         '/hello', PropensityApi.PropensityType.GENERAL).then(() => {
           throw new Error('must have failed');
