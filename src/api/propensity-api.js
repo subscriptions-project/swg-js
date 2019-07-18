@@ -129,24 +129,24 @@ export class PropensityApi {
    * per subscription state and provide a corresponding
    * list of products with a json object of depth 1.
    * For example:
-   *     {'product': ['basic-monthly', 'audio-weekly']}
+   *     {'product': ['product1', 'product2']}
    * Each call to this API should have the first argument
    * as a valid string from the enum SubscriptionState.
    * @param {SubscriptionState} state
-   * @param {?JsonObject} jsonEntitlements
+   * @param {?JsonObject} jsonProducts
    * @override
    */
-  sendSubscriptionState(state, jsonEntitlements) {}
+  sendSubscriptionState(state, jsonProducts) {}
 
   /**
    * Send a buy-flow event that occurred on the publisher's site to Google.  The
    * ultimate destination is controlled by configuration settings.  Data is
    * sent to Propensity if the Propensity module is fetched from runtime and to
    * Google's analytics service if you activate buy-flow comparative analysis.
-   * @param {!PropensityEvent} event
+   * @param {!PropensityEvent} userEvent
    * @override
    */
-  sendEvent(event) { }
+  sendEvent(userEvent) { }
 
   /**
    * Get the propensity of a user to subscribe based on the type.
