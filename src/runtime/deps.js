@@ -82,4 +82,9 @@ export class DepsDef {
    * @return {!../api/client-event-manager-api.ClientEventManagerApi}
    */
   eventManager() {}
+
+  /**
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   */
+  logEvent(event) {}
 }

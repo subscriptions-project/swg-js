@@ -23,7 +23,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
 import {
   PurchaseData,
@@ -35,6 +35,7 @@ import {
   WindowOpenMode,
 } from '../api/subscriptions';
 import {UserData} from '../api/user-data';
+import {CreateClientEvent} from './client-event-manager.js';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {
@@ -114,7 +115,8 @@ export class PayStartFlow {
         SubscriptionFlows.SUBSCRIBE, this.subscriptionRequest_);
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
-    this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
+    this.deps_.logEvent(CreateClientEvent(
+      AnalyticsEvent.ACTION_SUBSCRIBE, EventOriginator.SWG_CLIENT, true, null));
     this.payClient_.start({
       'apiVersion': 1,
       'allowedPaymentMethods': ['CARD'],
@@ -156,7 +158,9 @@ export class PayCompleteFlow {
         if (isCancelError(reason)) {
           deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
         } else {
-          deps.analytics().logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
+          deps.logEvent(CreateClientEvent(
+            AnalyticsEvent.EVENT_PAYMENT_FAILED,
+            EventOriginator.SWG_CLIENT, false, null));
           deps.jserror().error('Pay failed', reason);
         }
         throw reason;
@@ -207,7 +211,10 @@ export class PayCompleteFlow {
         this.analyticsService_.setSku(sku);
       }
     }
-    this.analyticsService_.logEvent(AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
+    
+    this.deps_.logEvent(CreateClientEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      EventOriginator.SWG_CLIENT, true, null));
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
     const args = {
@@ -247,7 +254,9 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   complete() {
-    this.analyticsService_.logEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
+    this.deps_.logEvent(CreateClientEvent(
+      AnalyticsEvent.ACTION_ACCOUNT_CREATED, 
+      EventOriginator.SWG_CLIENT, true, null));
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
       this.activityIframeView_.messageDeprecated({'complete': true});
@@ -255,8 +264,9 @@ export class PayCompleteFlow {
     return this.activityIframeView_.acceptResult().catch(() => {
       // Ignore errors.
     }).then(() => {
-      this.analyticsService_.logEvent(
-          AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
+      this.deps_.logEvent(CreateClientEvent(
+          AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
+          EventOriginator.SWG_CLIENT, true, null));
       this.deps_.entitlementsManager().setToastShown(true);
     });
   }

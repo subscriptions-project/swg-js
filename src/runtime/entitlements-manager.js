@@ -18,8 +18,9 @@ import {Entitlement, Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
+import {CreateClientEvent} from './client-event-manager.js';
 import {feArgs, feUrl} from '../runtime/services';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AnalyticsMode} from '../api/subscriptions';
 import {parseQueryString} from '../utils/url';
 
@@ -107,7 +108,8 @@ export class EntitlementsManager {
    */
   logPaywallImpression_() {
     // Sends event to logging service asynchronously
-    this.analyticsService_.logEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
+    this.deps_.logEvent(CreateClientEvent(
+      AnalyticsEvent.IMPRESSION_PAYWALL, EventOriginator.SWG_CLIENT, false, null));
   }
 
   /**
