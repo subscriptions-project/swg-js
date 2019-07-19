@@ -19,7 +19,7 @@ import {EventOriginator} from '../proto/api_messages';
 import {isObject,isBoolean} from '../utils/types';
 import {ExperimentFlags} from './experiment-flags';
 import {isExperimentOn} from './experiments';
-import {analyticsEventToPublisherEvent} from './propensity-type-mapping';
+import {analyticsEventToPropensityEvent} from './propensity-type-mapping';
 
 
 
@@ -135,7 +135,7 @@ export class PropensityServer {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
-    const propEvent = analyticsEventToPublisherEvent(event.eventType);
+    const propEvent = analyticsEventToPropensityEvent(event.eventType);
     if (propEvent == null) {
       return;
     }

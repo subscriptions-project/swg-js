@@ -15,7 +15,7 @@
  */
 import {Event} from '../api/propensity-api';
 import {AnalyticsEvent} from '../proto/api_messages';
-import {publisherEventToAnalyticsEvent, analyticsEventToPublisherEvent}
+import {propensityEventToAnalyticsEvent, analyticsEventToPropensityEvent}
   from './propensity-type-mapping';
 
 describes.realWin('PropensityServer', {}, () => {
@@ -27,8 +27,8 @@ describes.realWin('PropensityServer', {}, () => {
     //propensity event -> analytics events -> propensity event
     for (const propensityEnum in Event) {
       propensityEvent = Event[propensityEnum];
-      analyticsEvent = publisherEventToAnalyticsEvent(propensityEvent);
-      expect(analyticsEventToPublisherEvent(analyticsEvent)).to
+      analyticsEvent = propensityEventToAnalyticsEvent(propensityEvent);
+      expect(analyticsEventToPropensityEvent(analyticsEvent)).to
           .equal(propensityEvent);
       expect(analyticsEvent).to.not.be.null;
       expect(analyticsEvent).to.not.be.undefined;
@@ -40,14 +40,14 @@ describes.realWin('PropensityServer', {}, () => {
     let propensityEvent;
     for (const analyticsEnum in AnalyticsEvent) {
       analyticsEvent = AnalyticsEvent[analyticsEnum];
-      propensityEvent = analyticsEventToPublisherEvent(analyticsEvent);
+      propensityEvent = analyticsEventToPropensityEvent(analyticsEvent);
       //not all analytics events convert to propensity events - this is OK
       if (propensityEvent == null) {
         continue;
       }
       //but if the analytics event converted to the propensity event it should
       //be able to convert back to the same analytics event
-      expect(publisherEventToAnalyticsEvent(propensityEvent)).to
+      expect(propensityEventToAnalyticsEvent(propensityEvent)).to
           .equal(analyticsEvent);
     }
   });
