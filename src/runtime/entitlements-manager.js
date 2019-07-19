@@ -109,7 +109,8 @@ export class EntitlementsManager {
   logPaywallImpression_() {
     // Sends event to logging service asynchronously
     this.deps_.logEvent(CreateClientEvent(
-      AnalyticsEvent.IMPRESSION_PAYWALL, EventOriginator.SWG_CLIENT, false, null));
+        AnalyticsEvent.IMPRESSION_PAYWALL,
+        EventOriginator.SWG_CLIENT, false, null));
   }
 
   /**

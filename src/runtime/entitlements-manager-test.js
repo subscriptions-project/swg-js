@@ -484,7 +484,8 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs(true).once();
       eventManagerMock.expects('logEvent')
           .withExactArgs(CreateClientEvent(
-            AnalyticsEvent.IMPRESSION_PAYWALL, EventOriginator.SWG_CLIENT, false, null)).once();
+              AnalyticsEvent.IMPRESSION_PAYWALL,
+              EventOriginator.SWG_CLIENT, false, null)).once();
       config.analyticsMode = AnalyticsMode.IMPRESSIONS;
       const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
         win, pageConfig, fetcher, deps);
@@ -502,7 +503,8 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs(true).once();
       eventManagerMock.expects('logEvent')
           .withExactArgs(CreateClientEvent(
-            AnalyticsEvent.IMPRESSION_PAYWALL, EventOriginator.SWG_CLIENT, false, null)).once();
+              AnalyticsEvent.IMPRESSION_PAYWALL,
+              EventOriginator.SWG_CLIENT, false, null)).once();
       EntitlementsManager.prototype.getQueryString_ = () => {
         return '?utm_source=google&utm_medium=email&utm_campaign=campaign';
       };
@@ -522,7 +524,8 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs(true).once();
       eventManagerMock.expects('logEvent')
           .withExactArgs(CreateClientEvent(
-            AnalyticsEvent.IMPRESSION_PAYWALL, EventOriginator.SWG_CLIENT, false, null)).never();
+              AnalyticsEvent.IMPRESSION_PAYWALL,
+              EventOriginator.SWG_CLIENT, false, null)).never();
       EntitlementsManager.prototype.getQueryString_ = () => {
         return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
       };

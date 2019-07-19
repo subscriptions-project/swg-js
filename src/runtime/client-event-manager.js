@@ -29,22 +29,22 @@ function createEventErrorMessage(valueName, value) {
 }
 
 /**
-   * Utility function to create a ClientEvent proto.
-   * @param {!AnalyticsEvent} analyticsEvent
-   * @param {!EventOriginator} eventOriginator
-   * @param {?boolean} isFromUserAction
-   * @param {?Object} additionalParameters
-   * @returns {ClientEvent}
-   */
-  export function CreateClientEvent(
-    analyticsEvent, eventOriginator, isFromUserAction, additionalParameters) {
-      return {
-        eventType: analyticsEvent,
-        eventOriginator: eventOriginator,
-        isFromUserAction: isFromUserAction,
-        additionalParameters: additionalParameters,
-      }
-  }
+ * Utility function to create a ClientEvent proto.
+ * @param {!AnalyticsEvent} eventType
+ * @param {!EventOriginator} eventOriginator
+ * @param {?boolean} isFromUserAction
+ * @param {?Object} additionalParameters
+ * @returns {ClientEvent}
+ */
+export function CreateClientEvent(
+  eventType, eventOriginator, isFromUserAction, additionalParameters) {
+  return {
+    eventType,
+    eventOriginator,
+    isFromUserAction,
+    additionalParameters,
+  };
+}
 
 /**
  * Throws an error if the event is invalid.
