@@ -16,7 +16,6 @@
 import {PropensityServer} from './propensity-server';
 import {Xhr} from '../utils/xhr';
 import * as PropensityApi from '../api/propensity-api';
-import {SubscriptionState,Event} from '../api/logger-api';
 import {parseQueryString} from '../utils/url';
 import * as ServiceUrl from './services';
 import {ClientEventManager} from './client-event-manager';
@@ -87,7 +86,7 @@ describes.realWin('PropensityServer', {}, env => {
       return '__gads=aaaaaa';
     };
     return propensityServer.sendSubscriptionState(
-        SubscriptionState.SUBSCRIBER,
+        PropensityApi.SubscriptionState.SUBSCRIBER,
         JSON.stringify(productsOrSkus)).then(() => {
           throw new Error('must have failed');
         }).catch(reason => {
@@ -410,14 +409,14 @@ describes.realWin('PropensityServer', {}, env => {
     //both experiment and enable: ensure it actually logs
     propensityServer.enableLoggingSwgEvents();
     registeredCallback(defaultEvent);
-    expect(receivedType).to.equal(Event.IMPRESSION_OFFERS);
+    expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
 
     receivedType = null;
     receivedContext = null;
     defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
     registeredCallback(defaultEvent);
-    expect(receivedType).to.equal(Event.IMPRESSION_OFFERS);
+    expect(receivedType).to.equal(PropensityApi.Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
   });
