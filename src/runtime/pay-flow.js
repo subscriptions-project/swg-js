@@ -116,7 +116,8 @@ export class PayStartFlow {
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
     this.deps_.logEvent(CreateClientEvent(
-      AnalyticsEvent.ACTION_SUBSCRIBE, EventOriginator.SWG_CLIENT, true, null));
+        AnalyticsEvent.ACTION_SUBSCRIBE,
+        EventOriginator.SWG_CLIENT, true, null));
     this.payClient_.start({
       'apiVersion': 1,
       'allowedPaymentMethods': ['CARD'],
@@ -159,8 +160,8 @@ export class PayCompleteFlow {
           deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
         } else {
           deps.logEvent(CreateClientEvent(
-            AnalyticsEvent.EVENT_PAYMENT_FAILED,
-            EventOriginator.SWG_CLIENT, false, null));
+              AnalyticsEvent.EVENT_PAYMENT_FAILED,
+              EventOriginator.SWG_CLIENT, false, null));
           deps.jserror().error('Pay failed', reason);
         }
         throw reason;
@@ -211,10 +212,10 @@ export class PayCompleteFlow {
         this.analyticsService_.setSku(sku);
       }
     }
-    
+
     this.deps_.logEvent(CreateClientEvent(
-      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-      EventOriginator.SWG_CLIENT, true, null));
+        AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+        EventOriginator.SWG_CLIENT, true, null));
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
     const args = {
@@ -255,8 +256,8 @@ export class PayCompleteFlow {
    */
   complete() {
     this.deps_.logEvent(CreateClientEvent(
-      AnalyticsEvent.ACTION_ACCOUNT_CREATED, 
-      EventOriginator.SWG_CLIENT, true, null));
+        AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+        EventOriginator.SWG_CLIENT, true, null));
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
       this.activityIframeView_.messageDeprecated({'complete': true});
