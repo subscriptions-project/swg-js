@@ -15,6 +15,12 @@
  */
 import * as LoggerApi from './logger-api';
 
+/* Please note that logging publisher events has moved to logger-api.js.
+ * Propensity will continue to support logging publisher events however some
+ * enums it relies on (Event and SubscriptionState) are now defined in
+ * logger-api.
+ */
+
 /**
  * @enum {string}
  */
@@ -107,47 +113,18 @@ export let PropensityScore;
  *         enum listed in the Event enum above.
  *
  *  @typedef {{
- *    name: !Event,
+ *    name: string,
  *    active: boolean,
  *    data: ?JsonObject,
  * }}
  */
 export let PropensityEvent;
 
-export const Event = LoggerApi.Event;
-export const SubscriptionState = LoggerApi.SubscriptionState;
-
 /**
  * @extends {LoggerApi.LoggerApi}
  * @interface
  */
-export class PropensityApi {
-  /**
-   * Send user subscription state upon initial discovery.
-   * A user may have active subscriptions to some products
-   * and expired subscriptions to others. Make one API call
-   * per subscription state and provide a corresponding
-   * list of products with a json object of depth 1.
-   * For example:
-   *     {'product': ['product1', 'product2']}
-   * Each call to this API should have the first argument
-   * as a valid string from the enum SubscriptionState.
-   * @param {SubscriptionState} state
-   * @param {?JsonObject} jsonProducts
-   * @override
-   */
-  sendSubscriptionState(state, jsonProducts) {}
-
-  /**
-   * Send a buy-flow event that occurred on the publisher's site to Google.  The
-   * ultimate destination is controlled by configuration settings.  Data is
-   * sent to Propensity if the Propensity module is fetched from runtime and to
-   * Google's analytics service if you activate buy-flow comparative analysis.
-   * @param {!PropensityEvent} userEvent
-   * @override
-   */
-  sendEvent(userEvent) { }
-
+export class PropensityApi extends LoggerApi.LoggerApi {
   /**
    * Get the propensity of a user to subscribe based on the type.
    * The argument should be a valid string from PropensityType.
