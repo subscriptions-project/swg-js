@@ -91,6 +91,9 @@ export let PropensityScore;
 
 /**
  * Propensity Event
+ *   Please note that the primary defition of this object has changed to
+ *   PublisherEvent and is defined in logger-api.js.  These two object
+ *   definitions are identical.
  * Properties:
  * - name: Required. Name should be valid string in Event.
  * - active: Required. A boolean that indicates whether the
@@ -114,6 +117,13 @@ export let PropensityScore;
  */
 export let PropensityEvent;
 
+/*
+ * Please note that the definitions of Event and SubscriptionState have moved
+ * to logger-api.js.  This is now the preferred interface to use for logging
+ * publisher events and setting the user's current subscription state.
+ * Propensity will continue to function as an event logger until we are certain
+ * no publishers are actively using it to log events.
+ */
 export const Event = LoggerApi.Event;
 export const SubscriptionState = LoggerApi.SubscriptionState;
 
@@ -121,33 +131,7 @@ export const SubscriptionState = LoggerApi.SubscriptionState;
  * @extends {LoggerApi.LoggerApi}
  * @interface
  */
-export class PropensityApi {
-  /**
-   * Send user subscription state upon initial discovery.
-   * A user may have active subscriptions to some products
-   * and expired subscriptions to others. Make one API call
-   * per subscription state and provide a corresponding
-   * list of products with a json object of depth 1.
-   * For example:
-   *     {'product': ['product1', 'product2']}
-   * Each call to this API should have the first argument
-   * as a valid string from the enum SubscriptionState.
-   * @param {SubscriptionState} state
-   * @param {?JsonObject} jsonProducts
-   * @override
-   */
-  sendSubscriptionState(state, jsonProducts) {}
-
-  /**
-   * Send a buy-flow event that occurred on the publisher's site to Google.  The
-   * ultimate destination is controlled by configuration settings.  Data is
-   * sent to Propensity if the Propensity module is fetched from runtime and to
-   * Google's analytics service if you activate buy-flow comparative analysis.
-   * @param {!PropensityEvent} userEvent
-   * @override
-   */
-  sendEvent(userEvent) { }
-
+export class PropensityApi extends LoggerApi.LoggerApi {
   /**
    * Get the propensity of a user to subscribe based on the type.
    * The argument should be a valid string from PropensityType.
