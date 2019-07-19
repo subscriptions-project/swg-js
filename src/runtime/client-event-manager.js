@@ -34,7 +34,7 @@ function createEventErrorMessage(valueName, value) {
  * @param {!EventOriginator} eventOriginator
  * @param {?boolean} isFromUserAction
  * @param {?Object} additionalParameters
- * @returns {ClientEvent}
+ * @returns {!../api/client-event-manager-api.ClientEvent}
  */
 export function CreateClientEvent(
   eventType, eventOriginator, isFromUserAction, additionalParameters) {
