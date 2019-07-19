@@ -47,7 +47,7 @@ export function CreateClientEvent(
 }
 
 /**
- * Throws an error if the event is invalid.
+ * Throws an error if the wevent is invalid.
  * @param {!../api/client-event-manager-api.ClientEvent} event
  */
 function validateEvent(event) {
