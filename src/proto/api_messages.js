@@ -53,6 +53,7 @@ const EventOriginator = {
   AMP_CLIENT: 2,
   PROPENSITY_CLIENT: 3,
   SWG_SERVER: 4,
+  PUBLISHER_CLIENT: 5,
 };
 
 /**
