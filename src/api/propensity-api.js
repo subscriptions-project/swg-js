@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {LoggerApi} from './logger-api';
 
 /**
  * @enum {string}
@@ -297,7 +298,7 @@ export let PropensityEvent;
 /**
  * @interface
  */
-export class PropensityApi {
+export class PropensityApi extends LoggerApi{
   /**
    * Send user subscription state upon initial discovery.
    * A user may have active subscriptions to some products
@@ -310,12 +311,14 @@ export class PropensityApi {
    * as a valid string from the enum SubscriptionState.
    * @param {SubscriptionState} state
    * @param {?JsonObject} jsonProducts
+   * @override
    */
   sendSubscriptionState(state, jsonProducts) {}
 
   /**
    * Send a single user event.
    * @param {PropensityEvent} userEvent
+   * @override
    */
    sendEvent(userEvent) {}
 

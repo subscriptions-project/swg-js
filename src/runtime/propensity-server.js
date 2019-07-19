@@ -15,7 +15,7 @@
  */
 import {Xhr} from '../utils/xhr';
 import {adsUrl} from './services';
-import {EventOriginator} from '../proto/api_messages';
+import {EventOriginator, AnalyticsEvent} from '../proto/api_messages';
 import {isObject,isBoolean} from '../utils/types';
 import {ExperimentFlags} from './experiment-flags';
 import {isExperimentOn} from './experiments';
@@ -137,6 +137,12 @@ export class PropensityServer {
   handleClientEvent_(event) {
     const propEvent = analyticsEventToPropensityEvent(event.eventType);
     if (propEvent == null) {
+      // check for IMPRESSION_SUBSCRIPTION_STATE
+      if (event.name == AnalyticsEvent.IMPRESSION_SMARTBOX) {
+        const state = event.additionalParameters['state'];
+        const jsonProducts = {'product': event.additionalParameters['product']};
+        this.sendSubscriptionState(state, jsonProducts);
+      }
       return;
     }
     if (!(this.logSwgEventsExperiment_ && this.logSwgEventsConfig_)

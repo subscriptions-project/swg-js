@@ -75,6 +75,7 @@ import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
+import {Logger} from './logger';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -441,12 +442,11 @@ export class Runtime {
   }
 
   /**
-   * Log a subscription buy-flow event.
-   * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @override
    */
-  logEvent(event) {
-    this.configured_(false).then(configuredRuntime => {
-      configuredRuntime.eventManager().logEvent(event);
+  getLogger() {
+    return this.configured_(true).then(runtime => {
+      return runtime.getLogger();
     });
   }
 }
@@ -497,6 +497,9 @@ export class ConfiguredRuntime {
     /** @private @const {!Propensity} */
     this.propensityModule_ = new Propensity(this.win_,
       this.pageConfig_, this.eventManager_);
+
+    /** @private @const {!Logger} */
+    this.logger_ = new Logger(this.eventManager_);
 
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
