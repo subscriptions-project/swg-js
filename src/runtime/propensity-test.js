@@ -19,15 +19,19 @@ import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {Xhr} from '../utils/xhr';
 
 describes.realWin('Propensity', {}, env => {
   let win;
   let config;
   let propensity;
+  let propensityServerListener;
 
   beforeEach(() => {
     win = env.win;
     config = new PageConfig('pub1', true);
+    sandbox.stub(ClientEventManager.prototype, 'registerEventListener',
+        listener => propensityServerListener = listener);
     propensity = new Propensity(win, config, new ClientEventManager());
   });
 
@@ -96,6 +100,8 @@ describes.realWin('Propensity', {}, env => {
         state => {
           subscriptionState = state;
         });
+    sandbox.stub(ClientEventManager.prototype, 'logEvent',
+        event => propensityServerListener(event));
     expect(() => {
       propensity.sendSubscriptionState(PropensityApi.SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
@@ -103,9 +109,14 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should report server errors', () => {
-    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState', () => {
+    //TODO(mborof): would Xhr.fetch actually immediately throw this error?
+    //  I suspect it wouldn't.  This was a preexisting issue and I suspect
+    //  it is just a bad test but I'm not certain.
+    sandbox.stub(Xhr.prototype, 'fetch', () => {
       throw new Error('publisher not whitelisted');
     });
+    sandbox.stub(ClientEventManager.prototype, 'logEvent',
+        event => propensityServerListener(event));
     expect(() => {
       propensity.sendSubscriptionState(PropensityApi.SubscriptionState.UNKNOWN);
     }).to.throw('publisher not whitelisted');
