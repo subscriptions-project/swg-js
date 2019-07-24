@@ -24,6 +24,7 @@ const minimist = require('minimist');
 const source = require('vinyl-source-stream');
 const touch = require('touch');
 const watchify = require('watchify');
+const {lint} = require('./build-system/tasks/lint');
 
 /**
  * @const {!Object}
@@ -71,3 +72,4 @@ gulp.task('presubmit', 'Run through all checks and tests',
     gulpSequence('check', 'test'));
 gulp.task('default', 'Same as "watch"', ['watch', 'serve']);
 gulp.task('print-version', 'SwG version', printVersion);
+gulp.task('lint', lint);

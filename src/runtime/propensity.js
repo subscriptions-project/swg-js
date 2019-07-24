@@ -42,24 +42,24 @@ export class Propensity {
   }
 
   /** @override */
-  sendSubscriptionState(state, jsonEntitlements) {
+  sendSubscriptionState(state, jsonProducts) {
     if (!Object.values(PropensityApi.SubscriptionState).includes(state)) {
       throw new Error('Invalid subscription state provided');
     }
     if ((PropensityApi.SubscriptionState.SUBSCRIBER == state ||
          PropensityApi.SubscriptionState.PAST_SUBSCRIBER == state)
-        && !jsonEntitlements) {
+        && !jsonProducts) {
       throw new Error('Entitlements must be provided for users with'
           + ' active or expired subscriptions');
     }
-    if (jsonEntitlements && !isObject(jsonEntitlements)) {
+    if (jsonProducts && !isObject(jsonProducts)) {
       throw new Error('Entitlements must be an Object');
     }
-    let entitlements = null;
-    if (jsonEntitlements) {
-      entitlements = JSON.stringify(jsonEntitlements);
+    let productsOrSkus = null;
+    if (jsonProducts) {
+      productsOrSkus = JSON.stringify(jsonProducts);
     }
-    this.propensityServer_.sendSubscriptionState(state, entitlements);
+    this.propensityServer_.sendSubscriptionState(state, productsOrSkus);
   }
 
   /** @override */
