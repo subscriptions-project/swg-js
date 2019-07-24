@@ -19,10 +19,7 @@ import {EventOriginator, AnalyticsEvent} from '../proto/api_messages';
 import {isObject,isBoolean} from '../utils/types';
 import {ExperimentFlags} from './experiment-flags';
 import {isExperimentOn} from './experiments';
-import {analyticsEventToPropensityEvent} from './propensity-type-mapping';
-
-
-
+import {analyticsEventToPublisherEvent} from './event-type-mapping';
 
 /**
  * Implements interface to Propensity server
@@ -140,7 +137,7 @@ export class PropensityServer {
           event.additionalParameters['productsOrSkus']);
       return;
     }
-    const propEvent = analyticsEventToPropensityEvent(event.eventType);
+    const propEvent = analyticsEventToPublisherEvent(event.eventType);
     if (propEvent == null) {
       return;
     }

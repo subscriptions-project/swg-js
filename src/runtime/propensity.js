@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import * as PropensityApi from '../api/propensity-api';
+import {Event,SubscriptionState} from '../api/logger-api';
 import {PropensityServer} from './propensity-server';
 import {isObject,isEnumValue} from '../utils/types';
 import {EventOriginator} from '../proto/api_messages';
-import {propensityEventToAnalyticsEvent} from './propensity-type-mapping';
+import {publisherEventToAnalyticsEvent} from './event-type-mapping';
 import {isBoolean} from '../utils/types';
 import {AnalyticsEvent} from '../proto/api_messages';
 
@@ -44,11 +45,11 @@ export class Propensity {
 
   /** @override */
   sendSubscriptionState(state, jsonProducts) {
-    if (!Object.values(PropensityApi.SubscriptionState).includes(state)) {
+    if (!Object.values(SubscriptionState).includes(state)) {
       throw new Error('Invalid subscription state provided');
     }
-    if ((PropensityApi.SubscriptionState.SUBSCRIBER == state ||
-         PropensityApi.SubscriptionState.PAST_SUBSCRIBER == state)
+    if ((SubscriptionState.SUBSCRIBER == state ||
+         SubscriptionState.PAST_SUBSCRIBER == state)
         && !jsonProducts) {
       throw new Error('Entitlements must be provided for users with'
           + ' active or expired subscriptions');
@@ -85,9 +86,9 @@ export class Propensity {
 
   /** @override */
   sendEvent(userEvent) {
-    const analyticsEvent = propensityEventToAnalyticsEvent(userEvent.name);
+    const analyticsEvent = publisherEventToAnalyticsEvent(userEvent.name);
     let data = null;
-    if (!isEnumValue(PropensityApi.Event, userEvent.name)
+    if (!isEnumValue(Event, userEvent.name)
         || !analyticsEvent) {
       throw new Error('Invalid user event provided(' + userEvent.name + ')');
     }

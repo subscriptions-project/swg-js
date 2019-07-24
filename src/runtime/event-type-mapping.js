@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {Event} from '../api/propensity-api';
+import {Event} from '../api/logger-api';
 import {AnalyticsEvent} from '../proto/api_messages';
 
 /** @const {!Object<string,AnalyticsEvent>} */
-const PropensityEventToAnalyticsEvent = {
+const PublisherEventToAnalyticsEvent = {
   [Event.IMPRESSION_PAYWALL]: AnalyticsEvent.IMPRESSION_PAYWALL,
   [Event.IMPRESSION_AD]: AnalyticsEvent.IMPRESSION_AD,
   [Event.IMPRESSION_OFFERS]: AnalyticsEvent.IMPRESSION_OFFERS,
@@ -32,7 +32,7 @@ const PropensityEventToAnalyticsEvent = {
 };
 
 /** @const {!Object<number,?Event>} */
-const AnalyticsEventToPropensityEvent = {
+const AnalyticsEventToPublisherEvent = {
   [AnalyticsEvent.UNKNOWN]: null,
   [AnalyticsEvent.IMPRESSION_PAYWALL]: Event.IMPRESSION_PAYWALL,
   [AnalyticsEvent.IMPRESSION_AD]: Event.IMPRESSION_AD,
@@ -57,8 +57,8 @@ const AnalyticsEventToPropensityEvent = {
  * @param {!Event|string} propensityEvent
  * @returns {!AnalyticsEvent}
  */
-export function propensityEventToAnalyticsEvent(propensityEvent) {
-  return PropensityEventToAnalyticsEvent[propensityEvent];
+export function publisherEventToAnalyticsEvent(propensityEvent) {
+  return PublisherEventToAnalyticsEvent[propensityEvent];
 };
 
 /**
@@ -66,8 +66,8 @@ export function propensityEventToAnalyticsEvent(propensityEvent) {
  * @param {!AnalyticsEvent} analyticsEvent
  * @returns {?Event}
  */
-export function analyticsEventToPropensityEvent(analyticsEvent) {
-  return AnalyticsEventToPropensityEvent[analyticsEvent];
+export function analyticsEventToPublisherEvent(analyticsEvent) {
+  return AnalyticsEventToPublisherEvent[analyticsEvent];
 }
 
 
