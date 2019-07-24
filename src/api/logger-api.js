@@ -198,7 +198,8 @@ export const Event = {
 /**
  * Propensity Event
  * Properties:
- * - name: Required. Name should be valid string in Event.
+ * - name: Required. Name should be valid string in the Event
+ *         enum within src/api/logger-api.js.
  * - active: Required. A boolean that indicates whether the
  *         user took some action to participate in the flow
  *         that generated this event. For impression event,
@@ -213,7 +214,7 @@ export const Event = {
  *         enum listed in the Event enum above.
  *
  *  @typedef {{
-  *    name: !Event,
+  *    name: string,
   *    active: boolean,
   *    data: ?JsonObject,
   * }}
