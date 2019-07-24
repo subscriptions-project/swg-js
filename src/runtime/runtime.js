@@ -181,14 +181,15 @@ export class Runtime {
     //this gives us a promise to event manager and resolves it once configured
     //runtime is available
     let eventManPromiseResolve;
-    const eventManPromise = new Promise(resolve =>
+    /** @private @const {!Promise<ClientEventManager>} */
+    this.eventManPromise_ = new Promise(resolve =>
         eventManPromiseResolve = resolve);
     this.configured_(false).then(configuredRuntime => {
       eventManPromiseResolve(configuredRuntime.eventManager());
     });
 
     /** @private @const {!Logger} */
-    this.logger_ = new Logger(eventManPromise);
+    this.logger_ = new Logger(this.eventManPromise_);
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
@@ -920,8 +921,8 @@ function createPublicRuntime(runtime) {
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
-    getPropensityModule: runtime
-        .getPropensityModule.bind(runtime),
+    getPropensityModule: runtime.getPropensityModule.bind(runtime),
+    getLogger: runtime.getLogger.bind(runtime),
   });
 }
 

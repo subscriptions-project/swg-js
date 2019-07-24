@@ -92,4 +92,22 @@ export class Logger {
       additionalParameters: data,
     }));
   }
+
+  /**
+   *
+   * @param {!AnalyticsEvent} eventType
+   * @param {?boolean=} isFromUserAction
+   * @param {?Object=} additionalParameters
+   * @param {EventOriginator=} originator
+   */
+  logSwgEvent(eventType, isFromUserAction, additionalParameters, originator) {
+    this.eventManagerPromise_.then(eventMan => {
+      eventMan.logEvent({
+        eventType,
+        eventOriginator: originator || EventOriginator.SWG_CLIENT,
+        isFromUserAction: isFromUserAction || null,
+        additionalParameters: additionalParameters || null,
+      });
+    });
+  }
 }
