@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
 import {assert, debugLog} from './log';
 
 describes.realWin('debug log', {}, () => {
-  const sandbox = sinon.sandbox.create();
   let log;
 
   beforeEach(() => {

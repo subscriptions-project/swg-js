@@ -19,7 +19,6 @@ import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
-import * as sinon from 'sinon';
 import {AnalyticsContext} from '../proto/api_messages';
 import {ActivityPort} from '../components/activities';
 
@@ -194,7 +193,7 @@ describes.realWin('ButtonApi', {}, env => {
         .returns(expAnalyticsContext)
         .once();
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -223,7 +222,7 @@ describes.realWin('ButtonApi', {}, env => {
         .returns(expAnalyticsContext)
         .once();
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -252,7 +251,7 @@ describes.realWin('ButtonApi', {}, env => {
         .returns(expAnalyticsContext)
         .once();
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -291,7 +290,7 @@ describes.realWin('ButtonApi', {}, env => {
             .returns(expAnalyticsContext)
             .once();
         activitiesMock.expects('openIframe').withExactArgs(
-            sinon.match(arg => arg.tagName == 'IFRAME'),
+            sandbox.match(arg => arg.tagName == 'IFRAME'),
             '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
             {
               _client: 'SwG $internalRuntimeVersion$',

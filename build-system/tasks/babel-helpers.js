@@ -20,7 +20,7 @@
  * babel helpers based on the features we actually use in the source code.
  */
 
-var babel = require('babel-core');
+var babel = require('@babel/core');
 var fs = require('fs');
 var gulp = require('gulp-help')(require('gulp'));
 var through = require('through2');

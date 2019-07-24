@@ -15,11 +15,8 @@
  */
 
 import {Timer} from './timer';
-import * as sinon from 'sinon';
 
 describes.realWin('Timer', {}, env => {
-
-  let sandbox;
   let windowMock;
   let timer;
 
@@ -81,7 +78,7 @@ describes.realWin('Timer', {}, env => {
   });
 
   it('promise', () => {
-    windowMock.expects('setTimeout').withExactArgs(sinon.match(value => {
+    windowMock.expects('setTimeout').withExactArgs(sandbox.match(value => {
       value();
       return true;
     }), 111).returns(1).once();
@@ -95,7 +92,7 @@ describes.realWin('Timer', {}, env => {
   });
 
   it('timeoutPromise - no race', () => {
-    windowMock.expects('setTimeout').withExactArgs(sinon.match(value => {
+    windowMock.expects('setTimeout').withExactArgs(sandbox.match(value => {
       value();
       return true;
     }), 111).returns(1).once();
@@ -112,10 +109,15 @@ describes.realWin('Timer', {}, env => {
   });
 
   it('timeoutPromise - race no timeout', () => {
-    windowMock.expects('setTimeout').withExactArgs(sinon.match(unusedValue => {
-      // No timeout
-      return true;
-    }), 111).returns(1).once();
+    windowMock.expects('setTimeout')
+        .withExactArgs(
+        sandbox.match(value => {
+          value();
+          return true;
+        }),
+        111)
+        .returns(1)
+        .once();
 
     let c = 0;
     return timer.timeoutPromise(111, Promise.resolve('A')).then(result => {
@@ -126,7 +128,7 @@ describes.realWin('Timer', {}, env => {
   });
 
   it('timeoutPromise - race with timeout', () => {
-    windowMock.expects('setTimeout').withExactArgs(sinon.match(value => {
+    windowMock.expects('setTimeout').withExactArgs(sandbox.match(value => {
       // Immediate timeout
       value();
       return true;
@@ -166,5 +168,4 @@ describes.realWin('Timer', {}, env => {
       expect(clearIntervalStub).to.have.been.calledOnce;
     });
   });
-
 });
