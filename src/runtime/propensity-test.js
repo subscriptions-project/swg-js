@@ -15,6 +15,7 @@
  */
 import {Propensity} from './propensity';
 import * as PropensityApi from '../api/propensity-api';
+import {Event,SubscriptionState} from '../api/logger-api';
 import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
@@ -37,46 +38,44 @@ describes.realWin('Propensity', {}, env => {
         .callsFake(() => {});
 
     expect(() => {
-      propensity.sendSubscriptionState(PropensityApi.SubscriptionState.UNKNOWN);
+      propensity.sendSubscriptionState(SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
     expect(() => {
       propensity.sendSubscriptionState('past');
     }).to.throw('Invalid subscription state provided');
   });
 
-  it('should provide entitlements for subscribed users', () => {
+  it('should provide productsOrSkus for subscribed users', () => {
     //don't actually send data to the server
     sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState')
         .callsFake(() => {});
 
     expect(() => {
-      propensity.sendSubscriptionState(
-          PropensityApi.SubscriptionState.SUBSCRIBER);
+      propensity.sendSubscriptionState(SubscriptionState.SUBSCRIBER);
     }).to.throw('Entitlements must be provided for users with'
         + ' active or expired subscriptions');
     expect(() => {
-      propensity.sendSubscriptionState(
-          PropensityApi.SubscriptionState.PAST_SUBSCRIBER);
+      propensity.sendSubscriptionState(SubscriptionState.PAST_SUBSCRIBER);
     }).to.throw('Entitlements must be provided for users with'
         + ' active or expired subscriptions');
     expect(() => {
-      const entitlements = {};
-      entitlements['product'] = 'basic-monthly';
+      const productsOrSkus = {};
+      productsOrSkus['product'] = 'basic-monthly';
       propensity.sendSubscriptionState(
-          PropensityApi.SubscriptionState.SUBSCRIBER, entitlements);
+          SubscriptionState.SUBSCRIBER, productsOrSkus);
     }).not.throw('Entitlements must be provided for users with'
         + ' active or expired subscriptions');
     expect(() => {
-      const entitlements = {};
-      entitlements['product'] = 'basic-monthly';
+      const productsOrSkus = {};
+      productsOrSkus['product'] = 'basic-monthly';
       propensity.sendSubscriptionState(
-          PropensityApi.SubscriptionState.PAST_SUBSCRIBER, entitlements);
+          SubscriptionState.PAST_SUBSCRIBER, productsOrSkus);
     }).not.throw('Entitlements must be provided for users with'
         + ' active or expired subscriptions');
     expect(() => {
-      const entitlements = ['basic-monthly'];
+      const productsOrSkus = ['basic-monthly'];
       propensity.sendSubscriptionState(
-          PropensityApi.SubscriptionState.SUBSCRIBER, entitlements);
+          SubscriptionState.SUBSCRIBER, productsOrSkus);
     }).throw(/Entitlements must be an Object/);
   });
 
@@ -100,9 +99,9 @@ describes.realWin('Propensity', {}, env => {
           subscriptionState = state;
         });
     expect(() => {
-      propensity.sendSubscriptionState(PropensityApi.SubscriptionState.UNKNOWN);
+      propensity.sendSubscriptionState(SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
-    expect(subscriptionState).to.equal(PropensityApi.SubscriptionState.UNKNOWN);
+    expect(subscriptionState).to.equal(SubscriptionState.UNKNOWN);
   });
 
   it('should report server errors', () => {
@@ -111,7 +110,7 @@ describes.realWin('Propensity', {}, env => {
           throw new Error('publisher not whitelisted');
         });
     expect(() => {
-      propensity.sendSubscriptionState(PropensityApi.SubscriptionState.UNKNOWN);
+      propensity.sendSubscriptionState(SubscriptionState.UNKNOWN);
     }).to.throw('publisher not whitelisted');
   });
 
@@ -120,7 +119,7 @@ describes.realWin('Propensity', {}, env => {
     sandbox.stub(ClientEventManager.prototype, 'logEvent')
         .callsFake(event => eventSent = event);
     propensity.sendEvent({
-      name: PropensityApi.Event.IMPRESSION_PAYWALL,
+      name: Event.IMPRESSION_PAYWALL,
     });
     expect(eventSent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -158,7 +157,7 @@ describes.realWin('Propensity', {}, env => {
     //ensure it takes a valid enum with nothing else and fills in appropriate
     //defaults for other values
     testSend({
-      name: PropensityApi.Event.IMPRESSION_PAYWALL,
+      name: Event.IMPRESSION_PAYWALL,
     });
     expect(hasError).to.be.false;
     expect(receivedEvent).to.deep.equal({
@@ -170,7 +169,7 @@ describes.realWin('Propensity', {}, env => {
 
     //ensure it respects the active flag
     testSend({
-      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      name: Event.IMPRESSION_OFFERS,
     });
     expect(receivedEvent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
@@ -180,7 +179,7 @@ describes.realWin('Propensity', {}, env => {
     });
 
     testSend({
-      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      name: Event.IMPRESSION_OFFERS,
       active: null,
     });
     expect(hasError).to.be.false;
@@ -192,7 +191,7 @@ describes.realWin('Propensity', {}, env => {
     });
 
     testSend({
-      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      name: Event.IMPRESSION_OFFERS,
       active: true,
     });
     expect(hasError).to.be.false;
@@ -204,7 +203,7 @@ describes.realWin('Propensity', {}, env => {
     });
 
     testSend({
-      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      name: Event.IMPRESSION_OFFERS,
       active: false,
     });
     expect(hasError).to.be.false;
@@ -217,7 +216,7 @@ describes.realWin('Propensity', {}, env => {
 
     //ensure it rejects invalid data objects
     testSend({
-      name: PropensityApi.Event.IMPRESSION_OFFERS,
+      name: Event.IMPRESSION_OFFERS,
       active: true,
       data: 'all_offers',
     });
@@ -226,22 +225,27 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should return propensity score from server', () => {
+    const scoreDetails = [{
+      score: 42,
+      bucketed: false,
+    }];
     sandbox.stub(PropensityServer.prototype, 'getPropensity').callsFake(() => {
       return new Promise(resolve => {
         setTimeout(() => {
           resolve({
             'header': {'ok': true},
-            'body': {'result': 42},
+            'body': {'scores': scoreDetails},
           });
         }, 10);
       });
-    });
+    }, 10);
     return propensity.getPropensity().then(propensityScore => {
       expect(propensityScore).to.not.be.null;
       expect(propensityScore.header).to.not.be.null;
       expect(propensityScore.header.ok).to.be.true;
       expect(propensityScore.body).to.not.be.null;
-      expect(propensityScore.body.result).to.equal(42);
+      expect(propensityScore.body.scores).to.not.be.null;
+      expect(propensityScore.body.scores[0].score).to.equal(42);
     });
   });
 });

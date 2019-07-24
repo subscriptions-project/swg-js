@@ -143,7 +143,7 @@ export class ActivityIframePort {
     this.iframePort_ = new WebActivityIframePort(iframe, url, opt_args);
     /** @private @const {!Object<string, function(!Object)>} */
     this.callbackMap_ = {};
-    /** @private {?function(!Object)} */
+    /** @private {?function(!../proto/api_messages.Message)} */
     this.callbackOriginal_ = null;
   }
 
@@ -153,7 +153,16 @@ export class ActivityIframePort {
    * @return {!Promise}
    */
   whenReady() {
-    return this.iframePort_.whenReady().then(() => {
+    return this.iframePort_.whenReady();
+  }
+
+  /**
+   * Waits until the activity port is connected to the host.
+   * @return {!Promise}
+   */
+  connect() {
+    return this.iframePort_.connect().then(() => {
+      // Attach a callback to receive messages after connection complete
       this.iframePort_.onMessage(data => {
         if (this.callbackOriginal_) {
           this.callbackOriginal_(data);
@@ -168,14 +177,6 @@ export class ActivityIframePort {
         }
       });
     });
-  }
-
-  /**
-   * Waits until the activity port is connected to the host.
-   * @return {!Promise}
-   */
-  connect() {
-    return this.iframePort_.connect();
   }
 
   /**
@@ -242,7 +243,7 @@ export class ActivityIframePort {
 
   /**
    * @param {!function(new: T)} message
-   * @param {function(Object)} callback
+   * @param {function(!../proto/api_messages.Message)} callback
    * @template T
    */
   on(message, callback) {

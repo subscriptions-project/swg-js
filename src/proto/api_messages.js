@@ -36,6 +36,7 @@ const AnalyticsEvent = {
   IMPRESSION_OFFERS: 3,
   IMPRESSION_SUBSCRIBE_BUTTON: 4,
   IMPRESSION_SMARTBOX: 5,
+  IMPRESSION_SWG_BUTTON: 6,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -43,8 +44,10 @@ const AnalyticsEvent = {
   ACTION_SUBSCRIPTIONS_LANDING_PAGE: 1004,
   ACTION_PAYMENT_FLOW_STARTED: 1005,
   ACTION_OFFER_SELECTED: 1006,
+  ACTION_SWG_BUTTON_CLICK: 1007,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_CUSTOM: 3000,
+  EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
 const EventOriginator = {
@@ -53,6 +56,7 @@ const EventOriginator = {
   AMP_CLIENT: 2,
   PROPENSITY_CLIENT: 3,
   SWG_SERVER: 4,
+  PUBLISHER_CLIENT: 5,
 };
 
 /**
@@ -462,11 +466,59 @@ class EventParams {
   }
 }
 
+/**
+ * @implements {Message}
+ */
+class SmartBoxMessage {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.isClicked_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getIsClicked() {
+    return this.isClicked_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setIsClicked(value) {
+    this.isClicked_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.isClicked_,  // field 1 - is_clicked
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SmartBoxMessage';
+  }
+}
+
 const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
   'EventParams': EventParams,
+  'SmartBoxMessage': SmartBoxMessage,
 };
 
 /**
@@ -504,6 +556,7 @@ export {
   EventOriginator,
   EventParams,
   Message,
+  SmartBoxMessage,
   deserialize,
   getLabel,
 };
