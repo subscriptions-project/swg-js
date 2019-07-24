@@ -22,8 +22,7 @@
     "ava": "ava",
     "lint": "gulp lint",
     "build": "gulp build",
-    "dist": "gulp dist",
-    "report-coverage": "codecov"
+    "dist": "gulp dist"
   },
   "dependencies": {
     "gulp-eslint-if-fixed": "^1.0.0",
@@ -136,14 +135,5 @@
   "cloud-repo-tools": {
     "requiresKeyFile": true,
     "requiresProjectId": true
-  },
-  "bugs": {
-    "url": "https://github.com/subscriptions-project/swg-js/issues"
-  },
-  "homepage": "https://github.com/subscriptions-project/swg-js#readme",
-  "directories": {
-    "doc": "docs",
-    "example": "examples",
-    "test": "test"
   }
 }
