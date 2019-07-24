@@ -153,7 +153,12 @@ describes.realWin('OffersFlow', {}, env => {
   });
 
   it('should have valid OffersFlow constructed with skus and oldSku', () => {
-    offersFlow = new OffersFlow(runtime, {skus: ['sku1', 'sku2'], oldSku: 'old_sku'});
+    offersFlow = new OffersFlow(
+      runtime,
+      {
+        skus: ['sku1', 'sku2'],
+        oldSku: 'old_sku'
+      });
     activitiesMock.expects('openIframe').withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',

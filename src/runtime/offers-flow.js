@@ -53,7 +53,7 @@ export class OffersFlow {
       isClosable = false;  // Default is to hide Close button.
     }
 
-    let feArgsObj = {
+    const feArgsObj = {
       'productId': deps.pageConfig().getProductId(),
       'publicationId': deps.pageConfig().getPublicationId(),
       'showNative': deps.callbacks().hasSubscribeRequestCallback(),
@@ -61,7 +61,7 @@ export class OffersFlow {
       'list': options && options.list || 'default',
       'skus': options && options.skus || null,
       'isClosable': isClosable,
-    }
+    };
 
     if (options && options.oldSku) {
       feArgsObj['oldSku'] = options.oldSku;
