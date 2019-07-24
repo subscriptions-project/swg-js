@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import * as PropensityApi from '../api/propensity-api';
+import {Event,SubscriptionState} from '../api/logger-api';
 import {PropensityServer} from './propensity-server';
 import {isObject,isEnumValue} from '../utils/types';
 import {EventOriginator} from '../proto/api_messages';
-import {propensityEventToAnalyticsEvent} from './propensity-type-mapping';
+import {publisherEventToAnalyticsEvent} from './event-type-mapping';
 import {isBoolean} from '../utils/types';
 
 /**
@@ -42,24 +43,24 @@ export class Propensity {
   }
 
   /** @override */
-  sendSubscriptionState(state, jsonEntitlements) {
-    if (!Object.values(PropensityApi.SubscriptionState).includes(state)) {
+  sendSubscriptionState(state, jsonProducts) {
+    if (!Object.values(SubscriptionState).includes(state)) {
       throw new Error('Invalid subscription state provided');
     }
-    if ((PropensityApi.SubscriptionState.SUBSCRIBER == state ||
-         PropensityApi.SubscriptionState.PAST_SUBSCRIBER == state)
-        && !jsonEntitlements) {
+    if ((SubscriptionState.SUBSCRIBER == state ||
+         SubscriptionState.PAST_SUBSCRIBER == state)
+        && !jsonProducts) {
       throw new Error('Entitlements must be provided for users with'
           + ' active or expired subscriptions');
     }
-    if (jsonEntitlements && !isObject(jsonEntitlements)) {
+    if (jsonProducts && !isObject(jsonProducts)) {
       throw new Error('Entitlements must be an Object');
     }
-    let entitlements = null;
-    if (jsonEntitlements) {
-      entitlements = JSON.stringify(jsonEntitlements);
+    let productsOrSkus = null;
+    if (jsonProducts) {
+      productsOrSkus = JSON.stringify(jsonProducts);
     }
-    this.propensityServer_.sendSubscriptionState(state, entitlements);
+    this.propensityServer_.sendSubscriptionState(state, productsOrSkus);
   }
 
   /** @override */
@@ -76,9 +77,9 @@ export class Propensity {
 
   /** @override */
   sendEvent(userEvent) {
-    const analyticsEvent = propensityEventToAnalyticsEvent(userEvent.name);
+    const analyticsEvent = publisherEventToAnalyticsEvent(userEvent.name);
     let data = null;
-    if (!isEnumValue(PropensityApi.Event, userEvent.name)
+    if (!isEnumValue(Event, userEvent.name)
         || !analyticsEvent) {
       throw new Error('Invalid user event provided(' + userEvent.name + ')');
     }
