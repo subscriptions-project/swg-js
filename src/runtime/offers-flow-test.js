@@ -152,6 +152,26 @@ describes.realWin('OffersFlow', {}, env => {
     return offersFlow.start();
   });
 
+  it('should have valid OffersFlow constructed with skus and oldSku', () => {
+    offersFlow = new OffersFlow(runtime, {skus: ['sku1', 'sku2'], oldSku: 'old_sku'});
+    activitiesMock.expects('openIframe').withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: ['sku1', 'sku2'],
+          oldSku: 'old_sku',
+          isClosable: false,
+        })
+        .returns(Promise.resolve(port));
+    return offersFlow.start();
+  });
+
   it('should request native offers', () => {
     runtime.callbacks().setOnSubscribeRequest(function() {});
     activitiesMock.expects('openIframe').withExactArgs(
