@@ -71,8 +71,8 @@ export const defaultStyles = {
   'display': 'block',
   'empty-cells': 'show',
   'filter': 'none',
-  'flex': 'none',  // flex-grow, flex-shrink, and flex-basis.
-  'flex-flow': 'row nowrap',  // flex-direction, flex-wrap.
+  'flex': 'none', // flex-grow, flex-shrink, and flex-basis.
+  'flex-flow': 'row nowrap', // flex-direction, flex-wrap.
   'float': 'none',
   'flood-color': 'rgb(0, 0, 0)',
   'flood-opacity': '1',
@@ -82,7 +82,7 @@ export const defaultStyles = {
   'height': 'auto',
   'hyphens': 'manual',
   'image-rendering': 'auto',
-  'inline-size': '',  // Setting to 'auto' will not allow override.
+  'inline-size': '', // Setting to 'auto' will not allow override.
   'isolation': 'auto',
   'justify-content': 'normal',
   'justify-items': 'normal',
@@ -101,10 +101,10 @@ export const defaultStyles = {
   'min-inline-size': '0',
   'min-width': '0',
   'mix-blend-mode': 'normal',
-  'object-fit': 'fill',  // Important for Safari browser.
-  'offset-distance': 'none',  // Chrome only (Experimental).
-  'offset-path': 'none',  // Chrome only (Experimental).
-  'offset-rotate': 'auto 0deg',  // Chrome only (Experimental).
+  'object-fit': 'fill', // Important for Safari browser.
+  'offset-distance': 'none', // Chrome only (Experimental).
+  'offset-path': 'none', // Chrome only (Experimental).
+  'offset-rotate': 'auto 0deg', // Chrome only (Experimental).
   'opacity': '1',
   'order': '0',
   'orphans': '2',
@@ -121,7 +121,7 @@ export const defaultStyles = {
   'resize': 'none',
   'right': '0',
   'scroll-behavior': 'auto',
-  'tab-size': '8',  // Only Chrome, Safari (Experimental).
+  'tab-size': '8', // Only Chrome, Safari (Experimental).
   'table-layout': 'auto',
   'text-align': 'start',
   'text-align-last': 'auto',
@@ -252,7 +252,7 @@ export function setStyle(element, property, value, opt_units, opt_bypassCache) {
       opt_bypassCache);
   if (propertyName) {
     element.style[propertyName] =
-        /** @type {string} */ (opt_units ? value + opt_units : value);
+      /** @type {string} */ (opt_units ? value + opt_units : value);
   }
 }
 

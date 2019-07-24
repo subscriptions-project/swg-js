@@ -216,7 +216,7 @@ function isTestFile(file) {
   const isTestFile = /^test-/.test(basename) || /^_init_tests/.test(basename)
       || /-test\.js$/.test(basename);
 
-  const dirs = file.relative.split('/');
+  const dirs = normalizeRelativePath(file.relative).split('/');
   return isTestFile || dirs.indexOf('test') >= 0;
 }
 
@@ -237,6 +237,19 @@ function stripComments(contents) {
   return contents.replace(/( |}|;|^) *\/\/.*/g, '$1');
 }
 
+
+/**
+ * Normalizes relative paths, to support developers using Windows machines.
+ * ex: "src\runtime\file.js" => "src/runtime/file.js"
+ *
+ * @param {string} path relative path to a file, ex: "src\runtime\file.js"
+ * @return {string}
+ */
+function normalizeRelativePath(path) {
+  return path.replace(/\\/g, '/');
+}
+
+
 /**
  * Logs any issues found in the contents of file based on terms (regex
  * patterns), and provides any possible fix information for matched terms if
@@ -250,7 +263,7 @@ function stripComments(contents) {
  */
 function matchTerms(file, terms) {
   const contents = stripComments(file.contents.toString());
-  const relative = file.relative;
+  const relative = normalizeRelativePath(file.relative);
   return Object.keys(terms).map(function(term) {
     let fix;
     const whitelist = terms[term].whitelist;
@@ -345,7 +358,7 @@ function isMissingTerms(file) {
     const matches = contents.match(new RegExp(term));
     if (!matches) {
       util.log(util.colors.red('Did not find required: "' + term +
-          '" in ' + file.relative));
+          '" in ' + normalizeRelativePath(file.relative)));
       util.log(util.colors.blue('=========='));
       return true;
     }

@@ -223,7 +223,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
         'POPUP', 'PAY_ORIGIN', true, true);
     const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
         () => Promise.resolve(
-        {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
+            {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
     return withResult(result).then(data => {
       expect(data.swgCallbackData)
           .to.deep.equal(INTEGR_DATA_OBJ_DECODED.swgCallbackData);
@@ -255,7 +255,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
         'POPUP', 'PAY_ORIGIN', true, true);
     const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch',
         () => Promise.resolve(
-          {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
+            {json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)}));
     return withResult(result).then(data => {
       expect(data.swgCallbackData)
           .to.deep.equal(INTEGR_DATA_OBJ_DECODED.swgCallbackData);

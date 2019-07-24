@@ -505,7 +505,7 @@ describes.realWin('Runtime', {}, env => {
           .returns(Promise.resolve(11))
           .once();
       return runtime.configure().then(v => {
-        expect(v).to.equal(11);  // Ensure that the result is propagated back.
+        expect(v).to.equal(11); // Ensure that the result is propagated back.
       });
     });
 
@@ -1365,7 +1365,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
             expect(flowInstance.subscriptionRequest_.ReplaceSkuProrationMode)
                 .to.be.undefined;
           }
-      );
+          );
     });
 
     it('should start PayStartFlow for replaceSubscription', () => {
@@ -1381,15 +1381,15 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       return runtime.subscribe({skuId: 'newSku', oldSkuId: 'oldSku',
         replaceSkuProrationMode: ReplaceSkuProrationMode
             .IMMEDIATE_WITH_TIME_PRORATION}).then(() => {
-              expect(startStub).to.be.calledOnce;
-              expect(flowInstance.subscriptionRequest_.skuId).to.equal(
-                  'newSku');
-              expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal(
-                  'oldSku');
-              expect(flowInstance.subscriptionRequest_
-                  .replaceSkuProrationMode).to.equal(
-                  ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
-            });
+        expect(startStub).to.be.calledOnce;
+        expect(flowInstance.subscriptionRequest_.skuId).to.equal(
+            'newSku');
+        expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal(
+            'oldSku');
+        expect(flowInstance.subscriptionRequest_
+            .replaceSkuProrationMode).to.equal(
+            ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
+      });
     });
 
     it('should configure and start PayCompleteFlow', () => {

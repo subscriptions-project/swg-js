@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- /**
+/**
   * Debug logger, only log message if #swg.log=1
   * @param {...*} var_args [decription]
   */

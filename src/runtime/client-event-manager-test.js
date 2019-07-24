@@ -41,10 +41,10 @@ describes.sandboxed('EventManager', {}, () => {
     let counter;
     beforeEach(() => {
       eventMan = new ClientEventManager(
-        new Promise((resolve, reject) => {
-          rejector = reject;
-          resolver = resolve;
-        })
+          new Promise((resolve, reject) => {
+            rejector = reject;
+            resolver = resolve;
+          })
       );
       counter = 0;
       eventMan.registerEventListener(() => counter++);
@@ -249,8 +249,8 @@ describes.sandboxed('EventManager', {}, () => {
       //filter out the default origin
       eventMan.registerEventFilterer(event =>
         event.eventOriginator === DEFAULT_ORIGIN ?
-            EventManagerApi.FilterResult.CANCEL_EVENT :
-            EventManagerApi.FilterResult.PROCESS_EVENT
+          EventManagerApi.FilterResult.CANCEL_EVENT :
+          EventManagerApi.FilterResult.PROCESS_EVENT
       );
 
       //ensure the default origin is filtered out

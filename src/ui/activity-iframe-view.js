@@ -40,12 +40,12 @@ export class ActivityIframeView extends View {
    * @param {boolean=} hasLoadingIndicator
    */
   constructor(
-      win,
-      activityPorts,
-      src,
-      args,
-      shouldFadeBody = false,
-      hasLoadingIndicator = false) {
+    win,
+    activityPorts,
+    src,
+    args,
+    shouldFadeBody = false,
+    hasLoadingIndicator = false) {
     super();
 
     /** @private @const {!Window} */
@@ -56,8 +56,8 @@ export class ActivityIframeView extends View {
 
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ =
-        /** @type {!HTMLIFrameElement} */ (
-            createElement(this.doc_, 'iframe', iframeAttributes));
+      /** @type {!HTMLIFrameElement} */ (
+        createElement(this.doc_, 'iframe', iframeAttributes));
 
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = activityPorts;

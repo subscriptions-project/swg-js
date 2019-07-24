@@ -316,23 +316,23 @@ export class LinkSaveFlow {
 
     this.openPromise_ = this.dialogManager_.openView(this.activityIframeView_,
         /* hidden */ true);
-        /** {!Promise<boolean>} */
+    /** {!Promise<boolean>} */
     return this.activityIframeView_.acceptResultAndVerify(
         feOrigin(),
         /* requireOriginVerified */ true,
         /* requireSecureChannel */ true
-      ).then(result => {
-        return this.handleLinkSaveResponse_(result);
-      }).catch(reason => {
-        // In case this flow wasn't complete, complete it here
-        this.complete_();
-        // Handle cancellation from user, link confirm start or completion here
-        if (isCancelError(reason)) {
-          this.deps_.callbacks().triggerFlowCanceled(
-              SubscriptionFlows.LINK_ACCOUNT);
-          return false;
-        }
-        throw reason;
-      });
+    ).then(result => {
+      return this.handleLinkSaveResponse_(result);
+    }).catch(reason => {
+      // In case this flow wasn't complete, complete it here
+      this.complete_();
+      // Handle cancellation from user, link confirm start or completion here
+      if (isCancelError(reason)) {
+        this.deps_.callbacks().triggerFlowCanceled(
+            SubscriptionFlows.LINK_ACCOUNT);
+        return false;
+      }
+      throw reason;
+    });
   }
 }

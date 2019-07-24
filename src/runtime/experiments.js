@@ -195,7 +195,7 @@ function parseSetExperiment(win, experimentMap, spec) {
 function parseSelection(s) {
   // Do a simple if-then to inline the whole Selection enum.
   return s == Selection.EXPERIMENT ? Selection.EXPERIMENT :
-      s == Selection.CONTROL ? Selection.CONTROL : null;
+    s == Selection.CONTROL ? Selection.CONTROL : null;
 }
 
 

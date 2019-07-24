@@ -77,13 +77,13 @@ export class GlobalDoc {
     const isWin = !!winOrDoc.document;
     /** @private @const {!Window} */
     this.win_ = isWin ?
-        /** @type {!Window} */ (winOrDoc) :
-        /** @type {!Window} */ (
-            (/** @type {!Document} */ (winOrDoc)).defaultView);
+    /** @type {!Window} */ (winOrDoc) :
+    /** @type {!Window} */ (
+        (/** @type {!Document} */ (winOrDoc)).defaultView);
     /** @private @const {!Document} */
     this.doc_ = isWin ?
-        /** @type {!Window} */ (winOrDoc).document :
-        /** @type {!Document} */ (winOrDoc);
+    /** @type {!Window} */ (winOrDoc).document :
+    /** @type {!Document} */ (winOrDoc);
   }
 
   /** @override */

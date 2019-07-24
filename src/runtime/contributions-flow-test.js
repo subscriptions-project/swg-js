@@ -114,7 +114,7 @@ describes.realWin('ContributionsFlow', {}, env => {
       messageCallback({'alreadyMember': true});
       expect(loginStub).to.be.calledOnce
           .calledWithExactly({linkRequested: false});
-      expect(payStub).to.be.calledOnce;  // Dind't change.
+      expect(payStub).to.be.calledOnce; // Dind't change.
       expect(nativeStub).to.not.be.called;
     });
   });

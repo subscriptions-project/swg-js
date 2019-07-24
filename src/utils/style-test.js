@@ -112,47 +112,47 @@ describes.realWin('Types', {}, env => {
       it('no prefix', () => {
         const element = {style: {transitionDuration: ''}};
         const prop = st
-          .getVendorJsPropertyName(element.style, 'transitionDuration', true);
+            .getVendorJsPropertyName(element.style, 'transitionDuration', true);
         expect(prop).to.equal('transitionDuration');
       });
 
       it('should use cached previous result', () => {
         let element = {style: {transitionDuration: ''}};
         let prop = st
-          .getVendorJsPropertyName(element.style, 'transitionDuration');
+            .getVendorJsPropertyName(element.style, 'transitionDuration');
         expect(prop).to.equal('transitionDuration');
 
         element = {style: {WebkitTransitionDuration: ''}};
         prop = st
-          .getVendorJsPropertyName(element.style, 'transitionDuration');
+            .getVendorJsPropertyName(element.style, 'transitionDuration');
         expect(prop).to.equal('transitionDuration');
       });
 
       it('Webkit', () => {
         const element = {style: {WebkitTransitionDuration: ''}};
         const prop = st
-          .getVendorJsPropertyName(element.style, 'transitionDuration', true);
+            .getVendorJsPropertyName(element.style, 'transitionDuration', true);
         expect(prop).to.equal('WebkitTransitionDuration');
       });
 
       it('Moz', () => {
         const element = {style: {MozTransitionDuration: ''}};
         const prop = st
-          .getVendorJsPropertyName(element.style, 'transitionDuration', true);
+            .getVendorJsPropertyName(element.style, 'transitionDuration', true);
         expect(prop).to.equal('MozTransitionDuration');
       });
 
       it('ms', () => {
         const element = {style: {msTransitionDuration: ''}};
         const prop = st
-          .getVendorJsPropertyName(element.style, 'transitionDuration', true);
+            .getVendorJsPropertyName(element.style, 'transitionDuration', true);
         expect(prop).to.equal('msTransitionDuration');
       });
 
       it('O opera', () => {
         const element = {style: {OTransitionDuration: ''}};
         const prop = st
-          .getVendorJsPropertyName(element.style, 'transitionDuration', true);
+            .getVendorJsPropertyName(element.style, 'transitionDuration', true);
         expect(prop).to.equal('OTransitionDuration');
       });
     });

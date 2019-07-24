@@ -40,8 +40,8 @@ export function addAttributesToElement(element, attributes) {
   for (const attr in attributes) {
     if (attr == 'style') {
       setStyles(element,
-           /** @type !Object<string, string|boolean|number> */
-           (attributes[attr]));
+          /** @type !Object<string, string|boolean|number> */
+          (attributes[attr]));
     } else {
       element.setAttribute(attr,
           /** @type {string|boolean|number} */ (attributes[attr]));

@@ -97,7 +97,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       return base64UrlEncodeFromBytes(utf8EncodeSync(JSON.stringify(obj)));
     }
     const options = Object.assign({
-      exp: Math.floor(Date.now() / 1000) + 10,  // 10 seconds in the future.
+      exp: Math.floor(Date.now() / 1000) + 10, // 10 seconds in the future.
     }, opt_options || {});
     const header = {};
     const payload = {
@@ -164,8 +164,8 @@ describes.realWin('EntitlementsManager', {}, env => {
             headers: {'Accept': 'text/plain, application/json'},
             credentials: 'include',
           }).returns(Promise.resolve({
-            json: () => Promise.resolve({}),
-          }));
+        json: () => Promise.resolve({}),
+      }));
       return manager.getEntitlements().then(ents => {
         expect(ents.service).to.equal('subscribe.google.com');
         expect(ents.raw).to.equal('');
@@ -184,8 +184,8 @@ describes.realWin('EntitlementsManager', {}, env => {
             headers: {'Accept': 'text/plain, application/json'},
             credentials: 'include',
           }).returns(Promise.resolve({
-            json: () => Promise.resolve({}),
-          }));
+        json: () => Promise.resolve({}),
+      }));
       return manager.getEntitlements(encryptedDocumentKey).then(ents => {
         expect(ents.service).to.equal('subscribe.google.com');
         expect(ents.raw).to.equal('');
@@ -484,7 +484,7 @@ describes.realWin('EntitlementsManager', {}, env => {
           .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL).once();
       config.analyticsMode = AnalyticsMode.IMPRESSIONS;
       const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-        win, pageConfig, fetcher, deps);
+          win, pageConfig, fetcher, deps);
       return newMgr.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
@@ -503,7 +503,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         return '?utm_source=google&utm_medium=email&utm_campaign=campaign';
       };
       const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-        win, pageConfig, fetcher, deps);
+          win, pageConfig, fetcher, deps);
       return newMgr.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
@@ -522,7 +522,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
       };
       const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-        win, pageConfig, fetcher, deps);
+          win, pageConfig, fetcher, deps);
       return newMgr.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
@@ -556,7 +556,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       expectGetIsReadyToPayToBeCalled(null);
       storageMock.expects('set').withArgs('toast').never();
       expectGoogleResponse({
-        exp: Date.now() / 1000 - 10000,  // Far back.
+        exp: Date.now() / 1000 - 10000, // Far back.
       });
       return manager.getEntitlements().then(entitlements => {
         expect(entitlements.enablesAny()).to.be.true;
@@ -620,7 +620,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       expectGetIsReadyToPayToBeCalled(null);
       manager.blockNextNotification();
       return manager.getEntitlements().then(entitlements => {
-        expect(manager.blockNextNotification_).to.be.false;  // Reset.
+        expect(manager.blockNextNotification_).to.be.false; // Reset.
         expect(entitlements.enablesThis()).to.be.true;
         expect(callbacks.hasEntitlementsResponsePending()).to.be.false;
         expect(toastOpenStub).to.not.be.called;
@@ -631,7 +631,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       manager.blockNextNotification();
       expect(manager.blockNextNotification_).to.be.true;
       manager.unblockNextNotification();
-      expect(manager.blockNextNotification_).to.be.false;  // Reset.
+      expect(manager.blockNextNotification_).to.be.false; // Reset.
     });
 
     it('should NOT show toast if already shown', () => {
@@ -738,7 +738,7 @@ describes.realWin('EntitlementsManager', {}, env => {
           .never();
       manager.reset(true);
       return manager.getEntitlements().then(entitlements => {
-        expect(manager.positiveRetries_).to.equal(0);  // Retries are reset.
+        expect(manager.positiveRetries_).to.equal(0); // Retries are reset.
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
         expect(entitlements.getEntitlementForThis().source).to.equal('google');
@@ -812,7 +812,7 @@ describes.realWin('EntitlementsManager', {}, env => {
           .never();
       manager.reset(true);
       return manager.getEntitlements().then(entitlements => {
-        expect(manager.positiveRetries_).to.equal(0);  // Retries are reset.
+        expect(manager.positiveRetries_).to.equal(0); // Retries are reset.
         expect(entitlements.enablesAny()).to.be.true;
         expect(entitlements.enablesThis()).to.be.true;
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
@@ -826,7 +826,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         products: ['pub1:label1'],
         subscriptionToken: 's1',
       }, {
-        exp: Date.now() / 1000 - 100000,  // Far back.
+        exp: Date.now() / 1000 - 100000, // Far back.
       })['signedEntitlements'];
       expectGetIsReadyToPayToBeCalled(null);
       storageMock.expects('get')
@@ -918,7 +918,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         products: ['pub1:label1'],
         subscriptionToken: 's1',
       }, {
-        exp: Date.now() / 1000 - 10000,  // Far back.
+        exp: Date.now() / 1000 - 10000, // Far back.
       })['signedEntitlements'];
       storageMock.expects('set')
           .withArgs('ents')

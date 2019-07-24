@@ -397,7 +397,7 @@ class MicrodataParser {
    */
   isValidElement_(current, root, alreadySeen) {
     for (let node = current;
-        node && !node[alreadySeen]; node = node.parentNode) {
+      node && !node[alreadySeen]; node = node.parentNode) {
       node[alreadySeen] = true;
       // document nodes don't have hasAttribute
       if (node.hasAttribute && node.hasAttribute('itemscope')) {

@@ -129,7 +129,7 @@ export class ButtonApi {
   getOptions_(optionsOrCallback) {
     const options = /** @type {!../api/subscriptions.ButtonOptions|!../api/subscriptions.SmartButtonOptions} */
         (optionsOrCallback && typeof optionsOrCallback != 'function' ?
-        optionsOrCallback : {'theme': Theme.LIGHT});
+          optionsOrCallback : {'theme': Theme.LIGHT});
 
     const theme = options['theme'];
     if (theme !== Theme.LIGHT && theme !== Theme.DARK) {

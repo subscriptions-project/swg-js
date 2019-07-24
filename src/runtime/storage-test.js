@@ -59,7 +59,7 @@ describes.realWin('Storage', {}, env => {
     sessionStorageMock.expects('getItem')
         .withExactArgs('subscribe.google.com:a')
         .returns('one')
-        .once();  // Only executed once.
+        .once(); // Only executed once.
     return storage.get('a').then(value => {
       expect(value).to.equal('one');
       return storage.get('a');

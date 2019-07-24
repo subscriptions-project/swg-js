@@ -145,9 +145,9 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     const result = new ActivityResult(
-          ActivityResultCode.OK,
-          {'index': '1'},
-          'IFRAME', location.origin, true, true);
+        ActivityResultCode.OK,
+        {'index': '1'},
+        'IFRAME', location.origin, true, true);
     port.acceptResult = () => Promise.resolve(result);
 
     let startResolver;
@@ -295,7 +295,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
           if (order.indexOf('reset') == -1) {
             order.push('reset');
           }
-          return arg === true;  // Expected positive.
+          return arg === true; // Expected positive.
         }))
         .once();
     entitlementsManagerMock.expects('pushNextEntitlements')
@@ -468,8 +468,8 @@ describes.realWin('LinkSaveFlow', {}, env => {
   it('should test linking success', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     const result = new ActivityResult(ActivityResultCode.OK,
-      {'index': 1, 'linked': true},
-      'IFRAME', location.origin, true, true);
+        {'index': 1, 'linked': true},
+        'IFRAME', location.origin, true, true);
     resultResolver(result);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     LinkCompleteFlow.prototype.start = () => Promise.resolve();
@@ -540,7 +540,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       return linkSaveFlow.getRequestPromise();
     }).then(() => {
       expect(messageStub).to.be.calledOnce.calledWith(
-        {token: 'test'});
+          {token: 'test'});
     });
   });
 
@@ -559,7 +559,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       return linkSaveFlow.getRequestPromise();
     }).then(() => {
       expect(messageStub).to.be.calledOnce.calledWith(
-        {authCode: 'testCode'});
+          {authCode: 'testCode'});
     });
   });
 

@@ -74,8 +74,8 @@ export class PayClient {
     /** @const @private {!PayClientBindingDef} */
     this.binding_ =
         isExperimentOn(win, ExperimentFlags.GPAY_API) ?
-        new PayClientBindingPayjs(win, activityPorts) :
-        new PayClientBindingSwg(win, activityPorts, dialogManager);
+          new PayClientBindingPayjs(win, activityPorts) :
+          new PayClientBindingSwg(win, activityPorts, dialogManager);
   }
 
   /**

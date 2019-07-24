@@ -25,8 +25,8 @@ import {addQueryParam, parseUrl} from '../utils/url';
  */
 export const CACHE_KEYS = {
   'nocache': 1,
-  'hr1': 3600000,  // 1hr = 1000 * 60 * 60
-  'hr12': 43200000,  // 12hr = 1000 * 60 * 60 * 12
+  'hr1': 3600000, // 1hr = 1000 * 60 * 60
+  'hr12': 43200000, // 12hr = 1000 * 60 * 60 * 12
 };
 
 

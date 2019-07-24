@@ -50,7 +50,7 @@ export class OffersFlow {
 
     let isClosable = options && options.isClosable;
     if (isClosable == undefined) {
-      isClosable = false;  // Default is to hide Close button.
+      isClosable = false; // Default is to hide Close button.
     }
 
     /** @private @const {!ActivityIframeView} */

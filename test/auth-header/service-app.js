@@ -27,7 +27,7 @@ app.get('/set-cookie', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
   res.cookie('test-auth-header', '1',
-    {maxAge: /* 24 hours */ 24 * 1000 * 60 * 60});
+      {maxAge: /* 24 hours */ 24 * 1000 * 60 * 60});
   res.send('Done.');
 });
 

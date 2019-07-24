@@ -23,8 +23,8 @@
 export function msg(map, langOrElement) {
   const lang =
       !langOrElement ? '' :
-      typeof langOrElement == 'string' ? langOrElement :
-      langOrElement.lang ||
+        typeof langOrElement == 'string' ? langOrElement :
+          langOrElement.lang ||
       langOrElement.ownerDocument &&
           langOrElement.ownerDocument.documentElement.lang;
   let search = (lang && lang.toLowerCase() || 'en').replace(/_/g, '-');

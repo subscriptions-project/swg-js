@@ -65,9 +65,9 @@ export class PayStartFlow {
    * @param {!../api/subscriptions.ProductType} productType
    */
   constructor(
-        deps,
-        skuOrSubscriptionRequest,
-        productType = ProductType.SUBSCRIPTION) {
+    deps,
+    skuOrSubscriptionRequest,
+    productType = ProductType.SUBSCRIPTION) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -83,7 +83,7 @@ export class PayStartFlow {
     /** @private @const {!../api/subscriptions.SubscriptionRequest} */
     this.subscriptionRequest_ =
         typeof skuOrSubscriptionRequest == 'string' ?
-            {'skuId': skuOrSubscriptionRequest} : skuOrSubscriptionRequest;
+          {'skuId': skuOrSubscriptionRequest} : skuOrSubscriptionRequest;
 
     /**@private @const {!ProductType} */
     this.productType_ = productType;

@@ -132,14 +132,14 @@ export class DeferredAccountFlow {
         /** @type {!Object} */ (new JwtHelper().decode(idToken)));
     const purchaseDataList =
         data['purchaseDataList'] ?
-        data['purchaseDataList'].map(pd =>
+          data['purchaseDataList'].map(pd =>
             new PurchaseData(pd['data'], pd['signature'])) :
-        [
+          [
           // TODO(dvoytenko): cleanup/deprecate.
-          new PurchaseData(
-              data['purchaseData']['data'],
-              data['purchaseData']['signature']),
-        ];
+            new PurchaseData(
+                data['purchaseData']['data'],
+                data['purchaseData']['signature']),
+          ];
 
     // For now, we'll use the `PayCompleteFlow` as a "creating account" flow.
     // But this can be eventually implemented by the same iframe.
@@ -154,12 +154,12 @@ export class DeferredAccountFlow {
 
     // Start the "sync" flow.
     creatingFlow.start(new SubscribeResponse(
-        '',  // raw field doesn't matter in this case
+        '', // raw field doesn't matter in this case
         purchaseDataList[0],
         userData,
         entitlements,
         productType,
-        () => Promise.resolve()  // completeHandler doesn't matter in this case
+        () => Promise.resolve() // completeHandler doesn't matter in this case
     ));
     return response;
   }

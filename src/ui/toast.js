@@ -69,11 +69,11 @@ export class Toast {
 
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ =
-        /** @type {!HTMLIFrameElement} */ (
-            createElement(
-                this.doc_.getWin().document,
-                'iframe',
-                iframeAttributes));
+      /** @type {!HTMLIFrameElement} */ (
+        createElement(
+            this.doc_.getWin().document,
+            'iframe',
+            iframeAttributes));
 
     setImportantStyles(this.iframe_, toastImportantStyles);
 
@@ -96,7 +96,7 @@ export class Toast {
    * @return {!Promise}
    */
   open() {
-    this.doc_.getBody().appendChild(this.iframe_);  // Fires onload.
+    this.doc_.getBody().appendChild(this.iframe_); // Fires onload.
     return this.buildToast_();
   }
 
@@ -107,28 +107,28 @@ export class Toast {
     const toastDurationSeconds = 7;
     return this.activityPorts_.openIframe(
         this.iframe_, this.src_, this.args_).then(port => {
-          return port.whenReady();
-        }).then(() => {
-          resetStyles(this.iframe_, ['height']);
+      return port.whenReady();
+    }).then(() => {
+      resetStyles(this.iframe_, ['height']);
 
-          this.animate_(() => {
-            setImportantStyles(this.iframe_, {
-              'transform': 'translateY(100%)',
-              'opactiy': 1,
-              'visibility': 'visible',
-            });
-            return transition(this.iframe_, {
-              'transform': 'translateY(0)',
-              'opacity': 1,
-              'visibility': 'visible',
-            }, 400, 'ease-out');
-          });
-
-          // Close the Toast after the specified duration.
-          this.doc_.getWin().setTimeout(() => {
-            this.close();
-          }, (toastDurationSeconds + 1) * 1000);
+      this.animate_(() => {
+        setImportantStyles(this.iframe_, {
+          'transform': 'translateY(100%)',
+          'opactiy': 1,
+          'visibility': 'visible',
         });
+        return transition(this.iframe_, {
+          'transform': 'translateY(0)',
+          'opacity': 1,
+          'visibility': 'visible',
+        }, 400, 'ease-out');
+      });
+
+      // Close the Toast after the specified duration.
+      this.doc_.getWin().setTimeout(() => {
+        this.close();
+      }, (toastDurationSeconds + 1) * 1000);
+    });
   }
 
   /**

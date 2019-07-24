@@ -77,7 +77,7 @@ import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
 
 const RUNTIME_PROP = 'SWG';
-const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
+const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
 
 
 /** @private {Runtime} */
@@ -179,7 +179,7 @@ export class Runtime {
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
-    this.buttonApi_.init();  // Injects swg-button stylesheet.
+    this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
   /**
@@ -425,7 +425,7 @@ export class Runtime {
   attachSmartButton(button, optionsOrCallback, opt_callback) {
     return this.configured_(true).then(
         runtime =>
-        runtime.attachSmartButton(button, optionsOrCallback, opt_callback));
+          runtime.attachSmartButton(button, optionsOrCallback, opt_callback));
   }
 
   /** @override */
@@ -496,7 +496,7 @@ export class ConfiguredRuntime {
 
     /** @private @const {!Propensity} */
     this.propensityModule_ = new Propensity(this.win_,
-      this.pageConfig_, this.eventManager_);
+        this.pageConfig_, this.eventManager_);
 
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();

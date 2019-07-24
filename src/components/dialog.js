@@ -115,7 +115,7 @@ export class Dialog {
     this.loadingView_ = null;
 
     /** @private {?Element} */
-    this.container_ = null;  // Depends on constructed document inside iframe.
+    this.container_ = null; // Depends on constructed document inside iframe.
 
     /** @private {?./view.View} */
     this.view_ = null;
@@ -142,7 +142,7 @@ export class Dialog {
     }
 
     // Attach.
-    this.doc_.getBody().appendChild(iframe.getElement());  // Fires onload.
+    this.doc_.getBody().appendChild(iframe.getElement()); // Fires onload.
     this.graypane_.attach();
 
     if (hidden) {
@@ -251,7 +251,7 @@ export class Dialog {
     }
   }
 
-   /**
+  /**
    * Transition out of an old view.
    * @private
    */
@@ -423,7 +423,7 @@ export class Dialog {
    */
   updatePaddingToHtml_(newHeight) {
     if (this.inferPosition_() == PositionAt.BOTTOM) {
-      const bottomPadding = newHeight + 20;  // Add some extra padding.
+      const bottomPadding = newHeight + 20; // Add some extra padding.
       const htmlElement = this.doc_.getRootElement();
       setImportantStyles(htmlElement, {
         'padding-bottom': `${bottomPadding}px`,

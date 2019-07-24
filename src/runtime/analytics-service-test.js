@@ -16,8 +16,8 @@
 
 import {ActivityIframePort} from '../components/activities';
 import {AnalyticsEvent,
-    AnalyticsRequest,
-    EventOriginator} from '../proto/api_messages';
+  AnalyticsRequest,
+  EventOriginator} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';

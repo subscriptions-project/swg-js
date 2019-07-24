@@ -73,7 +73,7 @@ describes.realWin('ButtonApi', {}, env => {
     expect(button.nodeType).to.equal(1);
     expect(button.tagName).to.equal('BUTTON');
     expect(button.ownerDocument).to.equal(doc);
-    expect(button).to.have.class('swg-button-light');  // Default.
+    expect(button).to.have.class('swg-button-light'); // Default.
     expect(button.getAttribute('role')).to.equal('button');
     expect(button.getAttribute('title')).to.equal('Subscribe with Google');
 
@@ -86,7 +86,7 @@ describes.realWin('ButtonApi', {}, env => {
     const button = doc.createElement('button');
     button.className = 'button1';
     buttonApi.attach(button, handler);
-    expect(button).to.have.class('swg-button-light');  // Default.
+    expect(button).to.have.class('swg-button-light'); // Default.
     expect(button.getAttribute('role')).to.equal('button');
     expect(button.getAttribute('title')).to.equal('Subscribe with Google');
 

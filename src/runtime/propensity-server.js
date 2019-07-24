@@ -158,7 +158,7 @@ export class PropensityServer {
    */
   parsePropensityResponse_(response) {
     let defaultScore =
-        /** @type {!../api/propensity-api.PropensityScore} */ ({});
+    /** @type {!../api/propensity-api.PropensityScore} */ ({});
     if (!response['header']) {
       defaultScore =
         /** @type {!../api/propensity-api.PropensityScore} */ ({

@@ -319,7 +319,7 @@ export class FetchResponse {
    */
   json() {
     return /** @type {!Promise<!JsonObject>} */ (
-        this.drainText_().then(parseJson));
+      this.drainText_().then(parseJson));
   }
 
   /**
@@ -334,7 +334,7 @@ export class FetchResponse {
         'responseXML should exist. Make sure to return ' +
         'Content-Type: text/html header.');
     return /** @type {!Promise<!Document>} */ (
-        Promise.resolve(assert(this.xhr_.responseXML)));
+      Promise.resolve(assert(this.xhr_.responseXML)));
   }
 
   /**
@@ -344,7 +344,7 @@ export class FetchResponse {
    */
   arrayBuffer() {
     return /** @type {!Promise<!ArrayBuffer>} */ (
-        this.drainText_().then(utf8EncodeSync));
+      this.drainText_().then(utf8EncodeSync));
   }
 }
 

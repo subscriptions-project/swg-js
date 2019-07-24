@@ -358,8 +358,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
     const entitlements = new Entitlements('service1', 'RaW', [], null);
     const response = new SubscribeResponse(
-      'RaW', purchaseData, userData, entitlements,
-      ProductType.SUBSCRIPTION, null);
+        'RaW', purchaseData, userData, entitlements,
+        ProductType.SUBSCRIPTION, null);
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
@@ -368,7 +368,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     entitlementsManagerMock.expects('reset')
-        .withExactArgs(true)  // Expected positive.
+        .withExactArgs(true) // Expected positive.
         .once();
     entitlementsManagerMock.expects('pushNextEntitlements')
         .withExactArgs(sinon.match(arg => {
@@ -411,7 +411,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     entitlementsManagerMock.expects('reset')
-        .withExactArgs(true)  // Expected positive.
+        .withExactArgs(true) // Expected positive.
         .once();
     entitlementsManagerMock.expects('pushNextEntitlements')
         .never();
@@ -459,7 +459,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           if (order.indexOf('reset') == -1) {
             order.push('reset');
           }
-          return arg === true;  // Expected positive.
+          return arg === true; // Expected positive.
         }))
         .once();
     entitlementsManagerMock.expects('pushNextEntitlements')

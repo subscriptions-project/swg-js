@@ -72,8 +72,8 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(data => {
-          expect(data).to.equal('A');
-        });
+      expect(data).to.equal('A');
+    });
   });
 
   it('should fail success on wrong origin', () => {
@@ -81,10 +81,10 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(() => {throw reason;}).to.throw(/channel mismatch/);
-        });
+      throw new Error('must have failed');
+    }, reason => {
+      expect(() => {throw reason;}).to.throw(/channel mismatch/);
+    });
   });
 
   it('should fail success on not verified', () => {
@@ -92,10 +92,10 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(() => {throw reason;}).to.throw(/channel mismatch/);
-        });
+      throw new Error('must have failed');
+    }, reason => {
+      expect(() => {throw reason;}).to.throw(/channel mismatch/);
+    });
   });
 
   it('should allow success on not verified', () => {
@@ -103,8 +103,8 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     return acceptPortResultData(
         port,
         ORIGIN, DONT_REQUIRE_VERIFIED, REQUIRE_SECURE).then(data => {
-          expect(data).to.equal('A');
-        });
+      expect(data).to.equal('A');
+    });
   });
 
   it('should fail success on not secure channel', () => {
@@ -112,10 +112,10 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(() => {throw reason;}).to.throw(/channel mismatch/);
-        });
+      throw new Error('must have failed');
+    }, reason => {
+      expect(() => {throw reason;}).to.throw(/channel mismatch/);
+    });
   });
 
   it('should allow success on not secure channel', () => {
@@ -123,8 +123,8 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE).then(data => {
-          expect(data).to.equal('A');
-        });
+      expect(data).to.equal('A');
+    });
   });
 
   it('should resolve unexpected failure', () => {
@@ -133,10 +133,10 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(() => {throw reason;}).to.throw(/intentional/);
-        });
+      throw new Error('must have failed');
+    }, reason => {
+      expect(() => {throw reason;}).to.throw(/intentional/);
+    });
   });
 
   it('should resolve cancel', () => {
@@ -144,10 +144,10 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(reason.name).to.equal('AbortError');
-        });
+      throw new Error('must have failed');
+    }, reason => {
+      expect(reason.name).to.equal('AbortError');
+    });
   });
 
   it('should resolve failure', () => {
@@ -155,10 +155,10 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     return acceptPortResultData(
         port,
         ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE).then(() => {
-          throw new Error('must have failed');
-        }, reason => {
-          expect(reason.name).to.not.equal('AbortError');
-          expect(() => {throw reason;}).to.throw(/failure/);
-        });
+      throw new Error('must have failed');
+    }, reason => {
+      expect(reason.name).to.not.equal('AbortError');
+      expect(() => {throw reason;}).to.throw(/failure/);
+    });
   });
 });

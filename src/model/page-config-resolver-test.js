@@ -107,7 +107,7 @@ describes.realWin('PageConfigResolver', {}, env => {
         type: 'application/ld+json',
       });
       doc.body.appendChild(element);
-      doc.body.appendChild(createElement(doc, 'div'));  // Next element.
+      doc.body.appendChild(createElement(doc, 'div')); // Next element.
 
       // Empty content.
       let config = resolver.check();
@@ -130,7 +130,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       expect(config).to.be.null;
 
       // Add a sibling.
-      doc.body.appendChild(createElement(doc, 'div'));  // Next element.
+      doc.body.appendChild(createElement(doc, 'div')); // Next element.
       config = resolver.check();
       expect(config).to.be.ok;
       expect(config.getProductId()).to.equal('pub1:basic');
@@ -155,7 +155,7 @@ describes.realWin('PageConfigResolver', {}, env => {
 
     it('should ignore wrong script type', () => {
       doc.body.appendChild(createElement(doc, 'script', {
-        type: 'application/json',  // Not LD.
+        type: 'application/json', // Not LD.
       }, JSON.stringify(schema)));
       readyState = 'complete';
       const resolver = new PageConfigResolver(gd);

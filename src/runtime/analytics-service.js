@@ -49,8 +49,8 @@ export class AnalyticsService {
 
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ =
-        /** @type {!HTMLIFrameElement} */ (createElement(
-            this.doc_.getWin().document, 'iframe', {}));
+      /** @type {!HTMLIFrameElement} */ (createElement(
+          this.doc_.getWin().document, 'iframe', {}));
 
     setImportantStyles(this.iframe_, iframeStyles);
 
@@ -187,9 +187,9 @@ export class AnalyticsService {
       this.doc_.getBody().appendChild(this.getElement());
       this.serviceReady_ = this.activityPorts_.openIframe(
           this.iframe_, this.src_, this.args_).then(port => {
-            this.setContext_();
-            return port.whenReady().then(() => port);
-          });
+        this.setContext_();
+        return port.whenReady().then(() => port);
+      });
     }
     return this.serviceReady_;
   }

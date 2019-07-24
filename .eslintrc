@@ -1,18 +1,9 @@
 {
   "parser": "babel-eslint",
-  "rulePaths": ["build-system/eslint-rules/"],
   "plugins": [
     "eslint-plugin-swg-internal",
     "eslint-plugin-google-camelcase"
   ],
-  "ecmaFeatures": {
-    "modules": true,
-    "arrowFunctions": true,
-    "blockBindings": true,
-    "forOf": false,
-    "destructuring": true,
-    "spread": true
-  },
   "env": {
     "es6": true,
     "browser": true

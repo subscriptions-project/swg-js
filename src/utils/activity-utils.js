@@ -23,10 +23,10 @@
  * @return {!Promise<!Object>}
  */
 export function acceptPortResultData(
-    port,
-    requireOrigin,
-    requireOriginVerified,
-    requireSecureChannel) {
+  port,
+  requireOrigin,
+  requireOriginVerified,
+  requireSecureChannel) {
   return port.acceptResult().then(result => {
     if (result.origin != requireOrigin ||
         requireOriginVerified && !result.originVerified ||

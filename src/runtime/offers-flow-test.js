@@ -193,13 +193,13 @@ describes.realWin('OffersFlow', {}, env => {
       messageCallback({'alreadySubscribed': true});
       expect(loginStub).to.be.calledOnce
           .calledWithExactly({linkRequested: false});
-      expect(payStub).to.be.calledOnce;  // Dind't change.
+      expect(payStub).to.be.calledOnce; // Dind't change.
       expect(nativeStub).to.not.be.called;
       // Native message.
       messageCallback({'native': true});
       expect(nativeStub).to.be.calledOnce.calledWithExactly();
-      expect(loginStub).to.be.calledOnce;  // Dind't change.
-      expect(payStub).to.be.calledOnce;  // Dind't change.
+      expect(loginStub).to.be.calledOnce; // Dind't change.
+      expect(payStub).to.be.calledOnce; // Dind't change.
     });
   });
 

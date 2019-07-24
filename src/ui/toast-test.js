@@ -60,7 +60,7 @@ describes.realWin('Toast', {}, env => {
       expect(getStyle(iframe, 'bottom')).to.equal('0px');
       expect(getStyle(iframe, 'display')).to.equal('block');
 
-    // These two properties are not set !important.
+      // These two properties are not set !important.
       expect(getStyle(iframe, 'width')).to.equal('100%');
       expect(getStyle(iframe, 'left')).to.equal('0px');
     });
