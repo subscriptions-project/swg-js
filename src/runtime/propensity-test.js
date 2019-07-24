@@ -109,9 +109,8 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should report server errors', () => {
-    //TODO(mborof): would Xhr.fetch actually immediately throw this error?
-    //  I suspect it wouldn't.  This was a preexisting issue and I suspect
-    //  it is just a bad test but I'm not certain.
+    //note that actual event manager will cause the error to be logged to the
+    //console instead of being immediately thrown.
     sandbox.stub(Xhr.prototype, 'fetch', () => {
       throw new Error('publisher not whitelisted');
     });
