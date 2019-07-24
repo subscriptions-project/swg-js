@@ -95,7 +95,8 @@ export let PropensityScore;
  *   PublisherEvent and is defined in logger-api.js.  These two object
  *   definitions are identical.
  * Properties:
- * - name: Required. Name should be valid string in Event.
+ * - name: Required. Name should be valid string in the Event
+ *         enum within src/api/logger-api.js.
  * - active: Required. A boolean that indicates whether the
  *         user took some action to participate in the flow
  *         that generated this event. For impression event,
@@ -110,7 +111,7 @@ export let PropensityScore;
  *         enum listed in the Event enum above.
  *
  *  @typedef {{
- *    name: !Event,
+ *    name: string,
  *    active: boolean,
  *    data: ?JsonObject,
  * }}
