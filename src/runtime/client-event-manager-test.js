@@ -67,8 +67,8 @@ describes.sandboxed('EventManager', {}, () => {
       //ensure it logged both events after we called resolver and yielded
       expect(counter).to.equal(counter2);
 
-      //If this test is flaky it means sometimes event manager is logging despite
-      //the promise not being resolved (which is a problem).
+      //If this test is flaky it means sometimes event manager is logging
+      //despite the promise not being resolved (which is a problem).
     });
 
     it('should not log events if promise rejected', function*() {
