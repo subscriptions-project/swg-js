@@ -22,6 +22,7 @@ import {
 } from './deferred-account-creation';
 import {SubscribeResponse} from './subscribe-response';
 import {PropensityApi} from './propensity-api';
+import {LoggerApi} from './logger-api';
 
 
 /**
@@ -252,6 +253,9 @@ export class Subscriptions {
    * @return {!Promise<PropensityApi>}
    */
   getPropensityModule() {}
+
+  /** @return {!LoggerApi} */
+  getLogger() {}
 }
 
 
