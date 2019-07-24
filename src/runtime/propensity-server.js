@@ -42,8 +42,6 @@ export class PropensityServer {
     this.publicationId_ = publicationId;
     /** @private {?string} */
     this.clientId_ = null;
-    /** @private {boolean} */
-    this.userConsent_ = false;
     /** @private @const {!Xhr} */
     this.xhr_ = new Xhr(win);
     /** @private @const {number} */
@@ -74,12 +72,6 @@ export class PropensityServer {
    * @private
    */
   getClientId_() {
-    // No cookie is sent when user consent is not available.
-    if (!this.userConsent_) {
-      return 'noConsent';
-    }
-    // When user consent is available, get the first party cookie
-    // for Google Ads.
     if (!this.clientId_) {
       // Match '__gads' (name of the cookie) dropped by Ads Tag.
       const gadsmatch = this.getDocumentCookie_().match(
@@ -92,25 +84,18 @@ export class PropensityServer {
   }
 
   /**
-   * @param {boolean} userConsent
-   */
-  setUserConsent(userConsent) {
-    this.userConsent_ = userConsent;
-  }
-
-  /**
    * @param {string} state
-   * @param {?string} entitlements
+   * @param {?string} productsOrSkus
    */
-  sendSubscriptionState(state, entitlements) {
+  sendSubscriptionState(state, productsOrSkus) {
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
     });
     const clientId = this.getClientId_();
     let userState = this.publicationId_ + ':' + state;
-    if (entitlements) {
-      userState = userState + ':' + encodeURIComponent(entitlements);
+    if (productsOrSkus) {
+      userState = userState + ':' + encodeURIComponent(productsOrSkus);
     }
     let url = adsUrl('/subopt/data?states=')
         + encodeURIComponent(userState) + '&u_tz=240'
@@ -181,46 +166,48 @@ export class PropensityServer {
       defaultScore =
         /** @type {!../api/propensity-api.PropensityScore} */ ({
           header: {ok: false},
-          body: {result: 'No valid response'},
+          body: {error: 'No valid response'},
         });
+      return defaultScore;
     }
     const status = response['header'];
+    let scoreDetails = undefined;
     if (status['ok']) {
       const scores = response['scores'];
-      let found = false;
+      scoreDetails = [];
       for (let i = 0; i < scores.length; i++) {
         const result = scores[i];
-        if (result['product'] == this.publicationId_) {
-          found = true;
-          const scoreStatus = !!result['score'];
-          let value = undefined;
-          if (scoreStatus) {
-            value = result['score'];
-          } else {
-            value = result['error_message'];
-          }
-          defaultScore =
-            /** @type {!../api/propensity-api.PropensityScore} */ ({
-              header: {ok: scoreStatus},
-              body: {result: value},
-            });
-          break;
+        const scoreStatus = !!result['score'];
+        let scoreDetail;
+        if (scoreStatus) {
+          const value = /** @type {!../api/propensity-api.Score} */({
+            value: result['score'],
+            bucketed: result['score_type'] == 2,
+          });
+          scoreDetail = /** @type {!../api/propensity-api.Body} */ ({
+            product: result['product'],
+            score: value,
+          });
+        } else {
+          scoreDetail = /** @type {!../api/propensity-api.Body} */ ({
+            product: result['product'],
+            error: result['error_message'],
+          });
         }
+        scoreDetails.push(scoreDetail);
       }
-      if (!found) {
-        const errorMessage = 'No score available for ' + this.publicationId_;
+      if (scoreDetails) {
         defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
-          header: {ok: false},
-          body: {result: errorMessage},
+          header: {ok: true},
+          body: {scores: scoreDetails},
         });
       }
-    } else {
-      const errorMessage = response['error'];
-      defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
-        header: {ok: false},
-        body: {result: errorMessage},
-      });
+      return defaultScore;
     }
+    defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
+      header: {ok: false},
+      body: {error: response['error']},
+    });
     return defaultScore;
   }
   /**
