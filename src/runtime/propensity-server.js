@@ -100,7 +100,10 @@ export class PropensityServer {
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
-    url = url + '&cdm=' + parseUrl(this.getReferrer_()).origin;
+    const referrer = this.getReferrer_();
+    if (referrer) {
+      url = url + '&cdm=' + parseUrl(referrer).origin;
+    }
     return url;
   }
 

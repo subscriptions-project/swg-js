@@ -129,7 +129,7 @@ describes.realWin('PropensityServer', {}, env => {
       return '__gads=aaaaaa';
     };
     PropensityServer.prototype.getReferrer_ = () => {
-      return 'https://scenic-2017.appspot.com/landing.html';
+      return null;
     };
     const eventParam = {'is_active': false, 'offers_shown': ['a', 'b', 'c']};
     defaultEvent.additionalParameters = eventParam;
@@ -143,7 +143,7 @@ describes.realWin('PropensityServer', {}, env => {
     expect(queries['cookie']).to.equal('aaaaaa');
     expect('v' in queries).to.be.true;
     expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
-    expect(queries['cdm']).to.equal('https://scenic-2017.appspot.com');
+    expect('cdm' in queries).to.be.false;
     expect('events' in queries).to.be.true;
     const events = decodeURIComponent(queries['events'].split(':')[2]);
     expect(events).to.equal(JSON.stringify(eventParam));
