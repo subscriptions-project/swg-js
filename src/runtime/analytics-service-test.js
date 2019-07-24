@@ -48,8 +48,8 @@ describes.realWin('AnalyticsService', {}, env => {
   };
 
   beforeEach(() => {
-    sandbox.stub(ClientEventManager.prototype, 'registerEventListener',
-        callback => registeredCallback = callback);
+    sandbox.stub(ClientEventManager.prototype, 'registerEventListener')
+        .callsFake(callback => registeredCallback = callback);
     win = env.win;
     src = '/serviceiframe';
     pageConfig = new PageConfig(productId);
@@ -59,22 +59,15 @@ describes.realWin('AnalyticsService', {}, env => {
     activityIframePort = new ActivityIframePort(analyticsService.getElement(),
         feUrl(src));
 
-    sandbox.stub(
-        activityPorts,
-        'openIframe',
-        () => Promise.resolve(activityIframePort));
+    sandbox.stub(activityPorts, 'openIframe')
+        .callsFake(() => Promise.resolve(activityIframePort));
 
-    sandbox.stub(
-        activityIframePort,
-        'whenReady',
-        () => Promise.resolve(true));
+    sandbox.stub(activityIframePort, 'whenReady')
+        .callsFake(() => Promise.resolve(true));
 
-    sandbox.stub(
-        activityIframePort,
-        'onMessageDeprecated',
-        cb => {
-          messageCallback = cb;
-        });
+    sandbox.stub(activityIframePort, 'onMessageDeprecated').callsFake(cb => {
+      messageCallback = cb;
+    });
   });
 
   afterEach(() => {
@@ -298,8 +291,8 @@ describes.realWin('AnalyticsService', {}, env => {
 
     it('should pass events along to events manager', () => {
       let receivedEvent = null;
-      sandbox.stub(ClientEventManager.prototype, 'logEvent',
-          event => receivedEvent = event);
+      sandbox.stub(ClientEventManager.prototype, 'logEvent')
+          .callsFake(event => receivedEvent = event);
       analyticsService.logEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
       expect(receivedEvent).to.deep.equal({
         eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,

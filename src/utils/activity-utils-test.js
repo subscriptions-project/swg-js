@@ -54,7 +54,7 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     const result = new ActivityResult(
         code, dataOrError, 'MODE',
         origin, originVerified, secureChannel);
-    sandbox.stub(port, 'acceptResult', () => {
+    sandbox.stub(port, 'acceptResult').callsFake(() => {
       if (result.code == OK) {
         return Promise.resolve(result);
       }
@@ -128,14 +128,17 @@ describes.sandboxed('acceptPortResultData', {}, () => {
   });
 
   it('should resolve unexpected failure', () => {
-    sandbox.stub(port, 'acceptResult',
-        () => Promise.reject(new Error('intentional')));
-    return acceptPortResultData(
-        port,
-        ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE).then(() => {
+    sandbox.stub(port, 'acceptResult')
+        .callsFake(() => Promise.reject(new Error('intentional')));
+    return acceptPortResultData(port, ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE)
+        .then(
+        () => {
           throw new Error('must have failed');
-        }, reason => {
-          expect(() => {throw reason;}).to.throw(/intentional/);
+        },
+        reason => {
+          expect(() => {
+            throw reason;
+          }).to.throw(/intentional/);
         });
   });
 

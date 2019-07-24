@@ -32,7 +32,6 @@ import {
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
-import * as sinon from 'sinon';
 
 describes.realWin('OffersFlow', {}, env => {
   let win;
@@ -56,7 +55,7 @@ describes.realWin('OffersFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessageDeprecated', callback => {
+    sandbox.stub(port, 'onMessageDeprecated').callsFake(callback => {
       messageCallback = callback;
     });
   });
@@ -72,7 +71,7 @@ describes.realWin('OffersFlow', {}, env => {
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -98,7 +97,7 @@ describes.realWin('OffersFlow', {}, env => {
     port.acceptResult = () => Promise.reject(
         new DOMException('cancel', 'AbortError'));
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -117,7 +116,7 @@ describes.realWin('OffersFlow', {}, env => {
   it('should have valid OffersFlow constructed with a list', () => {
     offersFlow = new OffersFlow(runtime, {list: 'other'});
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -136,7 +135,7 @@ describes.realWin('OffersFlow', {}, env => {
   it('should have valid OffersFlow constructed with skus', () => {
     offersFlow = new OffersFlow(runtime, {skus: ['sku1', 'sku2']});
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -155,7 +154,7 @@ describes.realWin('OffersFlow', {}, env => {
   it('should request native offers', () => {
     runtime.callbacks().setOnSubscribeRequest(function() {});
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -239,7 +238,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessageDeprecated', callback => {
+    sandbox.stub(port, 'onMessageDeprecated').callsFake(callback => {
       messageCallback = callback;
     });
   });
@@ -255,7 +254,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -279,7 +278,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     port.acceptResult = () => Promise.reject(
         new DOMException('cancel', 'AbortError'));
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -297,7 +296,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     offersFlow = new SubscribeOptionFlow(runtime,
         {list: 'other', skus: ['sku1']});
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -329,11 +328,10 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     const options = {list: 'other'};
     const optionFlow = new SubscribeOptionFlow(runtime, options);
     let offersFlow;
-    sandbox.stub(OffersFlow.prototype, 'start',
-        function() {
-          offersFlow = this;
-          return Promise.resolve();
-        });
+    sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
+      offersFlow = this;
+      return Promise.resolve();
+    });
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return optionFlow.start().then(() => {
       messageCallback({'subscribe': true});
@@ -364,7 +362,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     port.acceptResult = () => Promise.resolve();
     port.whenReady = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessageDeprecated', callback => {
+    sandbox.stub(port, 'onMessageDeprecated').callsFake(callback => {
       messageCallback = callback;
     });
   });
@@ -380,7 +378,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
         .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -399,7 +397,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     runtime.callbacks().setOnSubscribeRequest(function() {});
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -424,7 +422,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     port.acceptResult = () => Promise.reject(
         new DOMException('cancel', 'AbortError'));
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -443,7 +441,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     abbrvOfferFlow = new AbbrvOfferFlow(runtime,
         {list: 'other', skus: ['sku1']});
     activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -486,7 +484,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
         'MODE', 'https://example.com', true, true);
     result.data = {'viewOffers': true};
     const resultPromise = Promise.resolve(result);
-    sandbox.stub(port, 'acceptResult', () => resultPromise);
+    sandbox.stub(port, 'acceptResult').callsFake(() => resultPromise);
     return abbrvOfferFlow.start().then(() => {
       return resultPromise.then(() => {
         expect(offersStartStub).to.be.calledOnce;
@@ -500,7 +498,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     expect(offersStartStub).to.not.be.called;
     const error = new Error();
     error.name = 'AbortError';
-    sandbox.stub(port, 'acceptResult', () => {
+    sandbox.stub(port, 'acceptResult').callsFake(() => {
       return Promise.reject(error);
     });
     return abbrvOfferFlow.start().then(() => {
@@ -518,17 +516,16 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     const options = {list: 'other'};
     const optionFlow = new AbbrvOfferFlow(runtime, options);
     let offersFlow;
-    sandbox.stub(OffersFlow.prototype, 'start',
-        function() {
-          offersFlow = this;
-          return Promise.resolve();
-        });
+    sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
+      offersFlow = this;
+      return Promise.resolve();
+    });
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     const result = new ActivityResult('OK', {'viewOffers': true},
         'MODE', 'https://example.com', true, true);
     result.data = {'viewOffers': true};
     const resultPromise = Promise.resolve(result);
-    sandbox.stub(port, 'acceptResult', () => resultPromise);
+    sandbox.stub(port, 'acceptResult').callsFake(() => resultPromise);
     return optionFlow.start().then(() => {
       return resultPromise.then(() => {
         expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
