@@ -278,15 +278,13 @@ describe('XHR', function() {
         }).to.throw(/Only credentials=include|omit support: null/);
       });
 
-      it('should omit request details for privacy', () => {
+      it('should omit request details for privacy', async() => {
         // NOTE THIS IS A BAD PORT ON PURPOSE.
-        return xhr.fetch('http://localhost:31863/status/500').then(() => {
+        return xhr.fetch('http://localhost:31862/status/500').then(() => {
           throw new Error('UNREACHABLE');
         }, error => {
           const message = error.message;
-          expect(message).to.contain('http://localhost:31863');
-          expect(message).not.to.contain('status/500');
-          expect(message).not.to.contain('CID');
+          expect(message).to.equal('HTTP error 500');
         });
       });
     });

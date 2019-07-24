@@ -47,7 +47,7 @@ describes.realWin('FriendlyIframe', {}, env => {
 
   describe('friendlyIframe', () => {
 
-    it('should have created a friendly iframe instance', async () => {
+    it('should have created a friendly iframe instance', async() => {
       expect(friendlyIframe.isConnected()).to.be.false;
       doc.body.appendChild(friendlyIframe.getElement());
       await friendlyIframe.whenReady();
