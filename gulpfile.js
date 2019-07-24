@@ -63,13 +63,20 @@ function checkMinVersion() {
 function printVersion() {
   fs.writeFileSync('dist/version.txt', internalRuntimeVersion);
 }
+printVersion.description = 'SwG version';
 
 
 // Gulp tasks.
-gulp.task('check', 'Run through all checks',
-    gulpSequence('lint', 'check-types', 'check-rules'));
-gulp.task('presubmit', 'Run through all checks and tests',
-    gulpSequence('check', 'test'));
-gulp.task('default', 'Same as "watch"', ['watch', 'serve']);
-gulp.task('print-version', 'SwG version', printVersion);
 gulp.task('lint', lint);
+
+const check = gulp.series('lint', 'check-types', 'check-rules');
+check.description = 'Run through all checks';
+gulp.task('check', check);
+
+const presubmit = gulp.series('check', 'test');
+presubmit.description = 'Run through all checks and tests';
+gulp.task('presubmit', presubmit);
+
+gulp.task('default', gulp.series(['watch', 'serve']));
+
+gulp.task('print-version', printVersion);

@@ -207,4 +207,5 @@ function errHandler(err) {
 }
 
 
-gulp.task('changelog', 'Change log since last release', changelog);
+changelog.description = 'Change log since last release';
+gulp.task('changelog', changelog);

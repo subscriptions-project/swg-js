@@ -386,5 +386,6 @@ function checkForbiddenAndRequiredTerms() {
 }
 
 
-gulp.task('check-rules', 'Run validation against files to check for ' +
-  'forbidden and required terms', checkForbiddenAndRequiredTerms);
+checkForbiddenAndRequiredTerms.description =
+    'Run validation against files to check for forbidden and required terms';
+gulp.task('check-rules', checkForbiddenAndRequiredTerms);
