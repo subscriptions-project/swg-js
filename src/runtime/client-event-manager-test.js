@@ -80,7 +80,6 @@ describes.sandboxed('EventManager', {}, () => {
 
   describe('error handling', () => {
     let eventMan;
-    let event = DEFAULT_EVENT;
     let errorReceived;
 
     const errorSent = new Error(errorSent);
@@ -93,10 +92,12 @@ describes.sandboxed('EventManager', {}, () => {
       });
     });
 
-    it('should throw an error for invalid events', () => {
-      let errorCount = 0;
-      let matchedExpected = 0;
+    describe('invalid events', () => {
+      let errorCount;
+      let matchedExpected;
       let expected;
+      let event;
+
       const tryIt = () => {
         try {
           eventMan.logEvent(event);
@@ -108,90 +109,95 @@ describes.sandboxed('EventManager', {}, () => {
         }
       };
 
-      tryIt();
-      expect(errorCount).to.equal(0);
-      expect(matchedExpected).to.equal(0);
+      beforeEach(() => {
+        errorCount = 0;
+        matchedExpected = 0;
+        event = {};
+        Object.assign(event, DEFAULT_EVENT);
+      });
 
-      //validate event type
-      event.eventType = BAD_VALUE;
-      expected = 'Event has an invalid eventType(' + BAD_VALUE + ')';
-      tryIt();
-      expect(errorCount).to.equal(1);
-      expect(matchedExpected).to.equal(1);
-      event.eventType = null;
-      expected = 'Event has an invalid eventType(' + null + ')';
-      tryIt();
-      expect(errorCount).to.equal(2);
-      expect(matchedExpected).to.equal(2);
-      event.eventType = OTHER_TYPE;
-      tryIt();
-      expect(errorCount).to.equal(2);
-      event.eventType = DEFAULT_TYPE;
+      it('should allow valid events', () => {
+        tryIt();
+        expect(errorCount).to.equal(0);
+        expect(matchedExpected).to.equal(0);
+      });
 
-      //validate event originator
-      errorCount = 0;
-      matchedExpected = 0;
-      event.eventOriginator = BAD_VALUE;
-      expected = 'Event has an invalid eventOriginator(' + BAD_VALUE + ')';
-      tryIt();
-      expect(errorCount).to.equal(1);
-      expect(matchedExpected).to.equal(1);
-      event.eventOriginator = null;
-      expected = 'Event has an invalid eventOriginator(' + null + ')';
-      tryIt();
-      expect(errorCount).to.equal(2);
-      expect(matchedExpected).to.equal(2);
-      event.eventOriginator = OTHER_ORIGIN;
-      tryIt();
-      expect(errorCount).to.equal(2);
-      expect(matchedExpected).to.equal(2);
-      event.eventOriginator = DEFAULT_ORIGIN;
+      it('should validate event type', () => {
+        event.eventType = BAD_VALUE;
+        expected = 'Event has an invalid eventType(' + BAD_VALUE + ')';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.eventType = null;
+        expected = 'Event has an invalid eventType(' + null + ')';
+        tryIt();
+        expect(errorCount).to.equal(2);
+        expect(matchedExpected).to.equal(2);
+        event.eventType = OTHER_TYPE;
+        tryIt();
+        expect(errorCount).to.equal(2);
+      });
 
-      //validate isFromUserAction
-      errorCount = 0;
-      matchedExpected = 0;
-      event.isFromUserAction = BAD_VALUE;
-      expected = 'Event has an invalid isFromUserAction(' + BAD_VALUE + ')';
-      tryIt();
-      expect(errorCount).to.equal(1);
-      expect(matchedExpected).to.equal(1);
-      event.isFromUserAction = true;
-      tryIt();
-      expect(errorCount).to.equal(1);
-      expect(matchedExpected).to.equal(1);
-      event.isFromUserAction = false;
-      tryIt();
-      expect(errorCount).to.equal(1);
-      expect(matchedExpected).to.equal(1);
-      event.isFromUserAction = null;
+      it('should validate event originator', () => {
+        event.eventOriginator = BAD_VALUE;
+        expected = 'Event has an invalid eventOriginator(' + BAD_VALUE + ')';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.eventOriginator = null;
+        expected = 'Event has an invalid eventOriginator(' + null + ')';
+        tryIt();
+        expect(errorCount).to.equal(2);
+        expect(matchedExpected).to.equal(2);
+        event.eventOriginator = OTHER_ORIGIN;
+        tryIt();
+        expect(errorCount).to.equal(2);
+        expect(matchedExpected).to.equal(2);
+        event.eventOriginator = DEFAULT_ORIGIN;
+      });
 
-      //validate additionalParameters
-      errorCount = 0;
-      matchedExpected = 0;
-      event.additionalParameters = BAD_VALUE;
-      expected = 'Event has an invalid additionalParameters(' + BAD_VALUE + ')';
-      tryIt();
-      expect(errorCount).to.equal(1);
-      expect(matchedExpected).to.equal(1);
-      event.additionalParameters = null;
-      expected = 'Event has an invalid additionalParameters(' + null + ')';
-      tryIt();
-      expect(errorCount).to.equal(1);
-      expect(matchedExpected).to.equal(1);
-      event.additionalParameters = {IAmValid: 5};
-      tryIt();
-      expect(errorCount).to.equal(1);
-      expect(matchedExpected).to.equal(1);
-      event.additionalParameters = {};
+      it('should validate isFromUserAction', () => {
+        event.isFromUserAction = BAD_VALUE;
+        expected = 'Event has an invalid isFromUserAction(' + BAD_VALUE + ')';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.isFromUserAction = true;
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.isFromUserAction = false;
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.isFromUserAction = null;
+      });
 
-      //validate null object
-      errorCount = 0;
-      matchedExpected = 0;
-      event = null;
-      expected = 'Event must be a valid object';
-      tryIt();
-      expect(errorCount).to.equal(1);
-      expect(matchedExpected).to.equal(1);
+      it('should validate additionalParameters', () => {
+        event.additionalParameters = BAD_VALUE;
+        expected = 'Event has an invalid additionalParameters('
+            + BAD_VALUE + ')';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.additionalParameters = null;
+        expected = 'Event has an invalid additionalParameters(' + null + ')';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.additionalParameters = {IAmValid: 5};
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+      });
+
+      it('should not allow null events', () => {
+        event = null;
+        expected = 'Event must be a valid object';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+      });
     });
 
     it('should log listener errors to the console', function*() {
