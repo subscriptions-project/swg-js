@@ -38,7 +38,7 @@ module.exports = {
     watch: true,
     debug: true,
     transform: [
-      ['babelify'],
+      ['babelify', {whitelist: ["es7.asyncFunctions"]}],
     ],
     bundleDelay: 900,
   },

@@ -17,6 +17,7 @@
 import {FilterResult} from '../api/client-event-manager-api';
 import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
 import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
+import {log} from '../utils/log';
 
 /**
  * Helper function to describe an issue with an event object
@@ -105,12 +106,20 @@ export class ClientEventManager {
     validateEvent(event);
     this.lastAction_ = this.isReadyPromise_.then(() => {
       for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
-        if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
-          return Promise.resolve();
+        try {
+          if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
+            return Promise.resolve();
+          }
+        } catch (e) {
+          log(e);
         }
       }
       for (let listener = 0; listener < this.listeners_.length; listener++) {
-        this.listeners_[listener](event);
+        try {
+          this.listeners_[listener](event);
+        } catch (e) {
+          log(e);
+        }
       }
       return Promise.resolve();
     });

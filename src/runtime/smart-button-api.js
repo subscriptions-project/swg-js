@@ -18,6 +18,7 @@
 import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
 import {feArgs, feUrl} from './services';
+import {SmartBoxMessage} from '../proto/api_messages';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
@@ -90,6 +91,19 @@ export class SmartSubscriptionButtonApi {
   }
 
   /**
+   * @param {SmartBoxMessage} smartBoxMessage
+   */
+  handleSmartBoxClick_(smartBoxMessage) {
+    if (smartBoxMessage && smartBoxMessage.getIsClicked()) {
+      if (!this.callback_) {
+        throw new Error('No callback!');
+      }
+      this.callback_();
+      return;
+    }
+  }
+
+  /**
    * Make a call to build button content and listens for the 'click' message.
    * @return {!Element}
    */
@@ -117,15 +131,7 @@ export class SmartSubscriptionButtonApi {
     this.args_['analyticsContext'] = analyticsContext;
     this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
         .then(port => {
-          port.onMessageDeprecated(result => {
-            if (result['clicked']) {
-              if (!this.callback_) {
-                throw new Error('No callback!');
-              }
-              this.callback_();
-              return;
-            }
-          });
+          port.on(SmartBoxMessage, this.handleSmartBoxClick_.bind(this));
         });
     return this.iframe_;
   }
