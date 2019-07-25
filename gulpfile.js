@@ -17,7 +17,6 @@
 const $$ = require('gulp-load-plugins')();
 const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
-const gulpSequence = require('gulp-sequence')
 const lazypipe = require('lazypipe');
 const minimatch = require('minimatch');
 const minimist = require('minimist');

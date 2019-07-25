@@ -1088,11 +1088,6 @@ async@^2.6.1:
   dependencies:
     lodash "^4.17.10"
 
-async@~0.2.6:
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/async/-/async-0.2.10.tgz#b6bbe0b0674b9d719708ca38de8c237cb526c3d1"
-  integrity sha1-trvgsGdLnXGXCMo43owjfLUmw9E=
-
 asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
@@ -3143,7 +3138,7 @@ chardet@^0.7.0:
   resolved "https://registry.yarnpkg.com/chardet/-/chardet-0.7.0.tgz#90094849f0937f2eedc2425d0d28a9e5f0cbad9e"
   integrity sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==
 
-chokidar@^1.0.0, chokidar@^1.0.3, chokidar@^1.4.1, chokidar@^1.4.2, chokidar@^1.4.3:
+chokidar@^1.0.0, chokidar@^1.4.1, chokidar@^1.4.2, chokidar@^1.4.3:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-1.7.0.tgz#798e689778151c8076b4b360e5edd28cda2bb468"
   integrity sha1-eY5ol3gVHIB2tLNg5e3SjNortGg=
@@ -4521,6 +4516,16 @@ duplexify@^3.6.0:
     readable-stream "^2.0.0"
     stream-shift "^1.0.0"
 
+duplexify@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/duplexify/-/duplexify-4.1.1.tgz#7027dc374f157b122a8ae08c2d3ea4d2d953aa61"
+  integrity sha512-DY3xVEmVHTv1wSzKNbwoU6nVjzI369Y6sPoqfYr0/xlx3IdX2n94xIszTcjPO8W8ZIv0Wb0PXNcjuZyT4wiICA==
+  dependencies:
+    end-of-stream "^1.4.1"
+    inherits "^2.0.3"
+    readable-stream "^3.1.1"
+    stream-shift "^1.0.0"
+
 each-props@^1.3.0:
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/each-props/-/each-props-1.3.2.tgz#ea45a414d16dd5cfa419b1a81720d5ca06892333"
@@ -4646,7 +4651,7 @@ end-of-stream@^1.0.0:
   dependencies:
     once "^1.4.0"
 
-end-of-stream@^1.1.0:
+end-of-stream@^1.1.0, end-of-stream@^1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/end-of-stream/-/end-of-stream-1.4.1.tgz#ed29634d19baba463b6ce6b80a37213eab71ec43"
   integrity sha512-1MkrZNvWTKCaigbn+W15elq2BB/L22nqrSY5DKlo3X6+vclJm8Bb5djXJBmEX6fS3+zCh/F4VBK5Z2KxJt4s2Q==
@@ -5035,19 +5040,6 @@ event-emitter@^0.3.5:
   dependencies:
     d "1"
     es5-ext "~0.10.14"
-
-event-stream@~3.0.18:
-  version "3.0.20"
-  resolved "https://registry.yarnpkg.com/event-stream/-/event-stream-3.0.20.tgz#038bbb2ea9ea90385b26fbc1854d0b539f2abea3"
-  integrity sha1-A4u7LqnqkDhbJvvBhU0LU58qvqM=
-  dependencies:
-    duplexer "~0.1.1"
-    from "~0"
-    map-stream "~0.0.3"
-    pause-stream "0.0.11"
-    split "0.2"
-    stream-combiner "~0.0.3"
-    through "~2.3.1"
 
 event-stream@~3.3.0:
   version "3.3.4"
@@ -5491,11 +5483,6 @@ find-cache-dir@^1.0.0:
     make-dir "^1.0.0"
     pkg-dir "^2.0.0"
 
-find-index@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/find-index/-/find-index-0.1.1.tgz#675d358b2ca3892d795a1ab47232f8b6e2e0dde4"
-  integrity sha1-Z101iyyjiS15Whq0cjL4tuLg3eQ=
-
 find-up@^1.0.0:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/find-up/-/find-up-1.1.2.tgz#6b2e9822b1a2ce0a60ab64d610eccad53cb24d0f"
@@ -5556,11 +5543,6 @@ fined@^1.0.1:
     object.defaults "^1.1.0"
     object.pick "^1.2.0"
     parse-filepath "^1.0.1"
-
-first-chunk-stream@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/first-chunk-stream/-/first-chunk-stream-1.0.0.tgz#59bfb50cd905f60d7c394cd3d9acaab4e6ad934e"
-  integrity sha1-Wb+1DNkF9g18OUzT2ayqtOatk04=
 
 first-chunk-stream@^2.0.0:
   version "2.0.0"
@@ -5938,7 +5920,7 @@ glob-parent@^2.0.0:
   dependencies:
     is-glob "^2.0.0"
 
-glob-parent@^3.1.0:
+glob-parent@^3.0.1, glob-parent@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/glob-parent/-/glob-parent-3.1.0.tgz#9e6af6299d8d3bd2bd40430832bd113df906c5ae"
   integrity sha1-nmr2KZ2NO9K9QEMIMr0RPfkGxa4=
@@ -5986,13 +5968,6 @@ glob-watcher@^5.0.3:
     just-debounce "^1.0.0"
     object.defaults "^1.1.0"
 
-glob2base@0.0.12:
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/glob2base/-/glob2base-0.0.12.tgz#9d419b3e28f12e83a362164a277055922c9c0d56"
-  integrity sha1-nUGbPijxLoOjYhZKJ3BVkiycDVY=
-  dependencies:
-    find-index "^0.1.1"
-
 glob@3.2.11:
   version "3.2.11"
   resolved "https://registry.yarnpkg.com/glob/-/glob-3.2.11.tgz#4a973f635b9190f715d10987d5c00fd2815ebe3d"
@@ -6013,7 +5988,7 @@ glob@7.1.2, glob@^7.0.0, glob@^7.0.3, glob@^7.0.5, glob@^7.1.0, glob@^7.1.1, glo
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-glob@^5.0.13, glob@^5.0.14, glob@^5.0.15:
+glob@^5.0.14, glob@^5.0.15:
   version "5.0.15"
   resolved "https://registry.yarnpkg.com/glob/-/glob-5.0.15.tgz#1bc936b9e02f4a603fcc222ecf7633d30b8b93b1"
   integrity sha1-G8k2ueAvSmA/zCIuz3Yz0wuLk7E=
@@ -6318,7 +6293,7 @@ gulp-closure-compiler@0.4.0:
     through "^2.3.4"
     uuid "^2.0.1"
 
-gulp-eslint-if-fixed@^1.0.0:
+gulp-eslint-if-fixed@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/gulp-eslint-if-fixed/-/gulp-eslint-if-fixed-1.0.0.tgz#ebad1f2a92e2c6ed793b01daaf0081dcaaca0e26"
   integrity sha1-660fKpLixu15OwHarwCB3KrKDiY=
@@ -6334,32 +6309,23 @@ gulp-eslint@6.0.0:
     fancy-log "^1.3.2"
     plugin-error "^1.0.1"
 
-gulp-exec@2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/gulp-exec/-/gulp-exec-2.1.2.tgz#5d8b132b0de0a738cb5dc9dfab8a0205726cca96"
-  integrity sha1-XYsTKw3gpzjLXcnfq4oCBXJsypY=
+gulp-file@0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/gulp-file/-/gulp-file-0.4.0.tgz#451356a2ac5089c6db91a0444252a0543657006b"
+  integrity sha1-RRNWoqxQicbbkaBEQlKgVDZXAGs=
   dependencies:
-    gulp-util "^3.0.0"
-    gulplog "^1.0.0"
-    through2 "^2.0.0"
-
-gulp-file@0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/gulp-file/-/gulp-file-0.2.0.tgz#9e9446a583419821834217cf6eebda59dd612435"
-  integrity sha1-npRGpYNBmCGDQhfPbuvaWd1hJDU=
-  dependencies:
-    gulp-util "^2.2.14"
     through2 "^0.4.1"
+    vinyl "^2.1.0"
 
-gulp-git@^2.8.0:
-  version "2.8.0"
-  resolved "https://registry.yarnpkg.com/gulp-git/-/gulp-git-2.8.0.tgz#c2b8e27566a008daccd0f235fec24a584c49abdd"
-  integrity sha512-45pahZGIcsb6eCJS9EGCdXqYBbxE1dtSbS03iXIF3dHHor1r37KMqwoQQJv1SXJjpLKc6ei+rdvIl7Ar6tB+ow==
+gulp-git@2.9.0:
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/gulp-git/-/gulp-git-2.9.0.tgz#f1ea6528d855f5e9cd4d712913131214f5088b58"
+  integrity sha512-66ZCwlCCf0YXEUedDbx76p0ii6aQ6aUHC4oSytn3UM8J6VWJKYF4PBARMIgR/POGWyYeN7hjd81Elpjn/o4+Tg==
   dependencies:
     any-shell-escape "^0.1.1"
     fancy-log "^1.3.2"
     lodash.template "^4.4.0"
-    plugin-error "^0.1.2"
+    plugin-error "^1.0.1"
     require-dir "^1.0.0"
     strip-bom-stream "^3.0.0"
     through2 "^2.0.3"
@@ -6372,14 +6338,14 @@ gulp-help@chmontgomery/gulp-help#gulp4:
     chalk "1.1.1"
     object-assign "4.0.1"
 
-gulp-if@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/gulp-if/-/gulp-if-2.0.0.tgz#5d5f6a7f74b45ba8ed78039ac177b3f1f730cd2b"
-  integrity sha1-XV9qf3S0W6jteAOawXez8fcwzSs=
+gulp-if@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/gulp-if/-/gulp-if-3.0.0.tgz#6c3e7edc8bafadc34f2ebecb314bf43324ba1e40"
+  integrity sha512-fCUEngzNiEZEK2YuPm+sdMpO6ukb8+/qzbGfJBXyNOXz85bCG7yBI+pPSl+N90d7gnLvMsarthsAImx0qy7BAw==
   dependencies:
-    gulp-match "^1.0.0"
-    ternary-stream "^2.0.0"
-    through2 "^2.0.0"
+    gulp-match "^1.1.0"
+    ternary-stream "^3.0.0"
+    through2 "^3.0.1"
 
 gulp-if@^2.0.0:
   version "2.0.2"
@@ -6389,13 +6355,6 @@ gulp-if@^2.0.0:
     gulp-match "^1.0.3"
     ternary-stream "^2.0.1"
     through2 "^2.0.1"
-
-gulp-intercept@0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/gulp-intercept/-/gulp-intercept-0.1.0.tgz#9de45c300166c9d9d9fdcb8eeff860e9767c16df"
-  integrity sha1-neRcMAFmydnZ/cuO7/hg6XZ8Ft8=
-  dependencies:
-    event-stream "~3.0.18"
 
 gulp-load-plugins@^1.5.0:
   version "1.6.0"
@@ -6410,17 +6369,24 @@ gulp-load-plugins@^1.5.0:
     micromatch "^3.1.10"
     resolve "^1.1.7"
 
-gulp-match@^1.0.0, gulp-match@^1.0.3:
+gulp-match@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/gulp-match/-/gulp-match-1.0.3.tgz#91c7c0d7f29becd6606d57d80a7f8776a87aba8e"
   integrity sha1-kcfA1/Kb7NZgbVfYCn+Hdqh6uo4=
   dependencies:
     minimatch "^3.0.3"
 
-gulp-rename@1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/gulp-rename/-/gulp-rename-1.2.2.tgz#3ad4428763f05e2764dec1c67d868db275687817"
-  integrity sha1-OtRCh2PwXidk3sHGfYaNsnVoeBc=
+gulp-match@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/gulp-match/-/gulp-match-1.1.0.tgz#552b7080fc006ee752c90563f9fec9d61aafdf4f"
+  integrity sha512-DlyVxa1Gj24DitY2OjEsS+X6tDpretuxD6wTfhXE/Rw2hweqc1f6D/XtsJmoiCwLWfXgR87W9ozEityPCVzGtQ==
+  dependencies:
+    minimatch "^3.0.3"
+
+gulp-rename@1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/gulp-rename/-/gulp-rename-1.4.0.tgz#de1c718e7c4095ae861f7296ef4f3248648240bd"
+  integrity sha512-swzbIGb/arEoFK89tPY58vg3Ok1bw+d35PfUNwWqdo7KM4jkmuGA78JiDNqR+JeZFaeeHnRg9N7aihX3YPmsyg==
 
 gulp-replace@0.5.4:
   version "0.5.4"
@@ -6430,14 +6396,6 @@ gulp-replace@0.5.4:
     istextorbinary "1.0.2"
     readable-stream "^2.0.1"
     replacestream "^4.0.0"
-
-gulp-sequence@0.4.6:
-  version "0.4.6"
-  resolved "https://registry.yarnpkg.com/gulp-sequence/-/gulp-sequence-0.4.6.tgz#e388d64311046e05547af43035352d9495501c50"
-  integrity sha1-44jWQxEEbgVUevQwNTUtlJVQHFA=
-  dependencies:
-    gulp-util ">=3.0.0"
-    thunks "^4.5.1"
 
 gulp-sourcemaps@2.6.5:
   version "2.6.5"
@@ -6455,20 +6413,6 @@ gulp-sourcemaps@2.6.5:
     source-map "~0.6.0"
     strip-bom-string "1.X"
     through2 "2.X"
-
-gulp-uglify@2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/gulp-uglify/-/gulp-uglify-2.0.1.tgz#e8cfb831014fc9ff2e055e33785861830d499365"
-  integrity sha1-6M+4MQFPyf8uBV4zeFhhgw1Jk2U=
-  dependencies:
-    gulplog "^1.0.0"
-    has-gulplog "^0.1.0"
-    lodash "^4.13.1"
-    make-error-cause "^1.1.1"
-    through2 "^2.0.0"
-    uglify-js "2.7.5"
-    uglify-save-license "^0.4.1"
-    vinyl-sourcemaps-apply "^0.2.0"
 
 gulp-util@3.0.7:
   version "3.0.7"
@@ -6494,7 +6438,21 @@ gulp-util@3.0.7:
     through2 "^2.0.0"
     vinyl "^0.5.0"
 
-gulp-util@>=3.0.0, gulp-util@^3.0.0, gulp-util@^3.0.6, gulp-util@^3.0.7:
+gulp-util@^2.2.19:
+  version "2.2.20"
+  resolved "https://registry.yarnpkg.com/gulp-util/-/gulp-util-2.2.20.tgz#d7146e5728910bd8f047a6b0b1e549bc22dbd64c"
+  integrity sha1-1xRuVyiRC9jwR6awseVJvCLb1kw=
+  dependencies:
+    chalk "^0.5.0"
+    dateformat "^1.0.7-1.2.3"
+    lodash._reinterpolate "^2.4.1"
+    lodash.template "^2.4.1"
+    minimist "^0.2.0"
+    multipipe "^0.1.0"
+    through2 "^0.5.0"
+    vinyl "^0.2.1"
+
+gulp-util@^3.0.0, gulp-util@^3.0.7:
   version "3.0.8"
   resolved "https://registry.yarnpkg.com/gulp-util/-/gulp-util-3.0.8.tgz#0054e1e744502e27c04c187c3ecc505dd54bbb4f"
   integrity sha1-AFTh50RQLifATBh8PsxQXdVLu08=
@@ -6518,34 +6476,23 @@ gulp-util@>=3.0.0, gulp-util@^3.0.0, gulp-util@^3.0.6, gulp-util@^3.0.7:
     through2 "^2.0.0"
     vinyl "^0.5.0"
 
-gulp-util@^2.2.14, gulp-util@^2.2.19:
-  version "2.2.20"
-  resolved "https://registry.yarnpkg.com/gulp-util/-/gulp-util-2.2.20.tgz#d7146e5728910bd8f047a6b0b1e549bc22dbd64c"
-  integrity sha1-1xRuVyiRC9jwR6awseVJvCLb1kw=
+gulp-watch@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/gulp-watch/-/gulp-watch-5.0.1.tgz#83d378752f5bfb46da023e73c17ed1da7066215d"
+  integrity sha512-HnTSBdzAOFIT4wmXYPDUn783TaYAq9bpaN05vuZNP5eni3z3aRx0NAKbjhhMYtcq76x4R1wf4oORDGdlrEjuog==
   dependencies:
-    chalk "^0.5.0"
-    dateformat "^1.0.7-1.2.3"
-    lodash._reinterpolate "^2.4.1"
-    lodash.template "^2.4.1"
-    minimist "^0.2.0"
-    multipipe "^0.1.0"
-    through2 "^0.5.0"
-    vinyl "^0.2.1"
-
-gulp-watch@4.3.5:
-  version "4.3.5"
-  resolved "https://registry.yarnpkg.com/gulp-watch/-/gulp-watch-4.3.5.tgz#3a94584d653f5c7f1aadd8d7791174b5fab048af"
-  integrity sha1-OpRYTWU/XH8ardjXeRF0tfqwSK8=
-  dependencies:
+    ansi-colors "1.1.0"
     anymatch "^1.3.0"
-    chokidar "^1.0.3"
-    glob "^5.0.13"
-    glob2base "0.0.12"
-    gulp-util "^3.0.6"
-    path-is-absolute "^1.0.0"
-    readable-stream "^2.0.1"
-    vinyl "^0.5.0"
-    vinyl-file "^1.2.1"
+    chokidar "^2.0.0"
+    fancy-log "1.3.2"
+    glob-parent "^3.0.1"
+    object-assign "^4.1.0"
+    path-is-absolute "^1.0.1"
+    plugin-error "1.0.1"
+    readable-stream "^2.2.2"
+    slash "^1.0.0"
+    vinyl "^2.1.0"
+    vinyl-file "^2.0.0"
 
 gulp-webserver@0.9.1:
   version "0.9.1"
@@ -6581,7 +6528,7 @@ gulp-wrap@^0.14.0:
     tryit "^1.0.1"
     vinyl-bufferstream "^1.0.1"
 
-gulp@^4.0.2:
+gulp@4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/gulp/-/gulp-4.0.2.tgz#543651070fd0f6ab0a0650c6a3e6ff5a7cb09caa"
   integrity sha512-dvEs27SCZt2ibF29xYgmnwwCYZxdxhQ/+LFWlbAW8y7jt68L/65402Lz3+CKy0Ov4rOs+NERmDq7YlZaDqUIfA==
@@ -8826,7 +8773,7 @@ lodash@4.16.2:
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.16.2.tgz#3e626db827048a699281a8a125226326cfc0e652"
   integrity sha1-PmJtuCcEimmSgaihJSJjJs/A5lI=
 
-lodash@4.17.4, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.17.4, lodash@^4.5.0, lodash@^4.6.1, lodash@^4.8.0:
+lodash@4.17.4, lodash@^4.14.0, lodash@^4.17.4, lodash@^4.5.0, lodash@^4.6.1, lodash@^4.8.0:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
   integrity sha1-eCA6TRwyiuHYbcpkYONptX9AVa4=
@@ -9001,18 +8948,6 @@ make-dir@^3.0.0:
   dependencies:
     semver "^6.0.0"
 
-make-error-cause@^1.1.1:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/make-error-cause/-/make-error-cause-1.2.2.tgz#df0388fcd0b37816dff0a5fb8108939777dcbc9d"
-  integrity sha1-3wOI/NCzeBbf8KX7gQiTl3fcvJ0=
-  dependencies:
-    make-error "^1.2.0"
-
-make-error@^1.2.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.3.0.tgz#52ad3a339ccf10ce62b4040b708fe707244b8b96"
-  integrity sha1-Uq06M5zPEM5itAQLcI/nByRLi5Y=
-
 make-iterator@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/make-iterator/-/make-iterator-1.0.1.tgz#29b33f312aa8f547c4a5e490f56afcec99133ad6"
@@ -9044,11 +8979,6 @@ map-obj@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/map-obj/-/map-obj-2.0.0.tgz#a65cd29087a92598b8791257a523e021222ac1f9"
   integrity sha1-plzSkIepJZi4eRJXpSPgISIqwfk=
-
-map-stream@~0.0.3:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/map-stream/-/map-stream-0.0.7.tgz#8a1f07896d82b10926bd3744a2420009f88974a8"
-  integrity sha1-ih8HiW2CsQkmvTdEokIACfiJdKg=
 
 map-stream@~0.1.0:
   version "0.1.0"
@@ -10716,6 +10646,16 @@ pkg-dir@^4.2.0:
   dependencies:
     find-up "^4.0.0"
 
+plugin-error@1.0.1, plugin-error@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/plugin-error/-/plugin-error-1.0.1.tgz#77016bd8919d0ac377fdcdd0322328953ca5781c"
+  integrity sha512-L1zP0dk7vGweZME2i+EeakvUNqSrdiI3F91TwEoYiGrAfUXmVv6fJIq4g82PAXxNsWOp0J7ZqQy/3Szz0ajTxA==
+  dependencies:
+    ansi-colors "^1.0.1"
+    arr-diff "^4.0.0"
+    arr-union "^3.1.0"
+    extend-shallow "^3.0.2"
+
 plugin-error@^0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/plugin-error/-/plugin-error-0.1.2.tgz#3b9bb3335ccf00f425e07437e19276967da47ace"
@@ -10726,16 +10666,6 @@ plugin-error@^0.1.2:
     arr-diff "^1.0.1"
     arr-union "^2.0.1"
     extend-shallow "^1.1.2"
-
-plugin-error@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/plugin-error/-/plugin-error-1.0.1.tgz#77016bd8919d0ac377fdcdd0322328953ca5781c"
-  integrity sha512-L1zP0dk7vGweZME2i+EeakvUNqSrdiI3F91TwEoYiGrAfUXmVv6fJIq4g82PAXxNsWOp0J7ZqQy/3Szz0ajTxA==
-  dependencies:
-    ansi-colors "^1.0.1"
-    arr-diff "^4.0.0"
-    arr-union "^3.1.0"
-    extend-shallow "^3.0.2"
 
 plur@^1.0.0:
   version "1.0.0"
@@ -11527,7 +11457,7 @@ read-yaml@^1.0.0:
     extend-shallow "^2.0.1"
     js-yaml "^3.8.2"
 
-"readable-stream@2 || 3":
+"readable-stream@2 || 3", readable-stream@^3.1.1:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.4.0.tgz#a51c26754658e0a3c21dbf59163bd45ba6f447fc"
   integrity sha512-jItXPLmrSR8jmTRmRWJXCnGJsfy85mB3Wd/uINMXA65yrnFo0cPClFIUWzo2najVNSl+mx7/4W8ttlLWJe99pQ==
@@ -12834,13 +12764,6 @@ split-string@^3.0.1, split-string@^3.0.2:
   dependencies:
     extend-shallow "^3.0.0"
 
-split@0.2:
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/split/-/split-0.2.10.tgz#67097c601d697ce1368f418f06cd201cf0521a57"
-  integrity sha1-Zwl8YB1pfOE2j0GPBs0gHPBSGlc=
-  dependencies:
-    through "2"
-
 split@0.3:
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/split/-/split-0.3.3.tgz#cd0eea5e63a211dfff7eb0f091c4133e2d0dd28f"
@@ -12940,7 +12863,7 @@ stream-combiner@*:
     duplexer "~0.1.1"
     through "~2.3.4"
 
-stream-combiner@~0.0.3, stream-combiner@~0.0.4:
+stream-combiner@~0.0.4:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/stream-combiner/-/stream-combiner-0.0.4.tgz#4d5e433c185261dde623ca3f44c586bcf5c4ad14"
   integrity sha1-TV5DPBhSYd3mI8o/RMWGvPXErRQ=
@@ -13134,12 +13057,12 @@ strip-bom-buf@^2.0.0:
   dependencies:
     is-utf8 "^0.2.1"
 
-strip-bom-stream@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/strip-bom-stream/-/strip-bom-stream-1.0.0.tgz#e7144398577d51a6bed0fa1994fa05f43fd988ee"
-  integrity sha1-5xRDmFd9Uaa+0PoZlPoF9D/ZiO4=
+strip-bom-stream@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/strip-bom-stream/-/strip-bom-stream-2.0.0.tgz#f87db5ef2613f6968aa545abfe1ec728b6a829ca"
+  integrity sha1-+H217yYT9paKpUWr/h7HKLaoKco=
   dependencies:
-    first-chunk-stream "^1.0.0"
+    first-chunk-stream "^2.0.0"
     strip-bom "^2.0.0"
 
 strip-bom-stream@^3.0.0:
@@ -13419,7 +13342,7 @@ term-size@^1.2.0:
   dependencies:
     execa "^0.7.0"
 
-ternary-stream@^2.0.0, ternary-stream@^2.0.1:
+ternary-stream@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/ternary-stream/-/ternary-stream-2.0.1.tgz#064e489b4b5bf60ba6a6b7bc7f2f5c274ecf8269"
   integrity sha1-Bk5Im0tb9gumpre8fy9cJ07Pgmk=
@@ -13428,6 +13351,16 @@ ternary-stream@^2.0.0, ternary-stream@^2.0.1:
     fork-stream "^0.0.4"
     merge-stream "^1.0.0"
     through2 "^2.0.1"
+
+ternary-stream@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/ternary-stream/-/ternary-stream-3.0.0.tgz#7951930ea9e823924d956f03d516151a2d516253"
+  integrity sha512-oIzdi+UL/JdktkT+7KU5tSIQjj8pbShj3OASuvDEhm0NT5lppsm7aXWAmAq4/QMaBIyfuEcNLbAQA+HpaISobQ==
+  dependencies:
+    duplexify "^4.1.1"
+    fork-stream "^0.0.4"
+    merge-stream "^2.0.0"
+    through2 "^3.0.1"
 
 text-encoding@0.6.4, text-encoding@^0.6.4:
   version "0.6.4"
@@ -13497,7 +13430,7 @@ through2@^2.0.0, through2@^2.0.1, through2@^2.0.3:
     readable-stream "^2.1.5"
     xtend "~4.0.1"
 
-through2@^3.0.0:
+through2@^3.0.0, through2@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/through2/-/through2-3.0.1.tgz#39276e713c3302edf9e388dd9c812dd3b825bd5a"
   integrity sha512-M96dvTalPT3YbYLaKaCuwu+j06D/8Jfib0o/PxbVt6Amhv3dUAtW6rTV1jPgJSBG83I/e04Y6xkVdVhSRhi0ww==
@@ -13508,11 +13441,6 @@ through@2, "through@>=2.2.7 <3", through@^2.3.4, through@^2.3.6, through@^2.3.8,
   version "2.3.8"
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
-
-thunks@^4.5.1:
-  version "4.8.1"
-  resolved "https://registry.yarnpkg.com/thunks/-/thunks-4.8.1.tgz#c9678b370bbaf54f369ea9fdbce2af99f3ae3ec9"
-  integrity sha512-ACVi0LZFY44kwc8USdp8cNiBzKgpSazNwBwJe/SNqcywVyvkRRXHcBjPSPNLTmXhRkpE6YMp+D5gkxb/ds0ceA==
 
 time-require@^0.1.2:
   version "0.1.2"
@@ -13833,16 +13761,6 @@ typedarray@^0.0.6, typedarray@~0.0.5:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-uglify-js@2.7.5:
-  version "2.7.5"
-  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-2.7.5.tgz#4612c0c7baaee2ba7c487de4904ae122079f2ca8"
-  integrity sha1-RhLAx7qu4rp8SH3kkErhIgefLKg=
-  dependencies:
-    async "~0.2.6"
-    source-map "~0.5.1"
-    uglify-to-browserify "~1.0.0"
-    yargs "~3.10.0"
-
 uglify-js@^2.6:
   version "2.8.29"
   resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-2.8.29.tgz#29c5733148057bb4e1f75df35b7a9cb72e6a59dd"
@@ -13852,11 +13770,6 @@ uglify-js@^2.6:
     yargs "~3.10.0"
   optionalDependencies:
     uglify-to-browserify "~1.0.0"
-
-uglify-save-license@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/uglify-save-license/-/uglify-save-license-0.4.1.tgz#95726c17cc6fd171c3617e3bf4d8d82aa8c4cce1"
-  integrity sha1-lXJsF8xv0XHDYX479NjYKqjEzOE=
 
 uglify-to-browserify@~1.0.0:
   version "1.0.2"
@@ -14250,14 +14163,16 @@ vinyl-bufferstream@^1.0.1:
   dependencies:
     bufferstreams "1.0.1"
 
-vinyl-file@^1.2.1:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/vinyl-file/-/vinyl-file-1.3.0.tgz#aa05634d3a867ba91447bedbb34afcb26f44f6e7"
-  integrity sha1-qgVjTTqGe6kUR77bs0r8sm9E9uc=
+vinyl-file@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/vinyl-file/-/vinyl-file-2.0.0.tgz#a7ebf5ffbefda1b7d18d140fcb07b223efb6751a"
+  integrity sha1-p+v1/779obfRjRQPyweyI++2dRo=
   dependencies:
     graceful-fs "^4.1.2"
+    pify "^2.3.0"
+    pinkie-promise "^2.0.0"
     strip-bom "^2.0.0"
-    strip-bom-stream "^1.0.0"
+    strip-bom-stream "^2.0.0"
     vinyl "^1.1.0"
 
 vinyl-fs@^3.0.0:
