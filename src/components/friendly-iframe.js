@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  createElement,
-  isConnected,
-} from '../utils/dom';
+import {createElement, isConnected} from '../utils/dom';
 import {resetAllStyles} from '../utils/style';
 
 /** @const {!Object<string|number>} */
@@ -31,19 +28,19 @@ const friendlyIframeAttributes = {
  * The class for building friendly iframe.
  */
 export class FriendlyIframe {
-
   /**
    * @param {!Document} doc
    * @param {!Object<string, string|number>=} attrs
    */
   constructor(doc, attrs = {}) {
-
     const mergedAttrs = Object.assign({}, friendlyIframeAttributes, attrs);
 
     /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ =
-      /** @type {!HTMLIFrameElement} */ (
-        createElement(doc, 'iframe', mergedAttrs));
+    this.iframe_ = /** @type {!HTMLIFrameElement} */ (createElement(
+      doc,
+      'iframe',
+      mergedAttrs
+    ));
 
     // Ensure that the new iframe does not inherit any CSS styles.
     resetAllStyles(this.iframe_);
@@ -75,8 +72,9 @@ export class FriendlyIframe {
    * @return {!Document}
    */
   getDocument() {
-    const doc = this.getElement().contentDocument ||
-        (this.getElement().contentWindow &&
+    const doc =
+      this.getElement().contentDocument ||
+      (this.getElement().contentWindow &&
         this.getElement().contentWindow.document);
 
     if (!doc) {

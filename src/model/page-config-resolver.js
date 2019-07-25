@@ -43,7 +43,6 @@ const RE_ALLOWED_TYPES = new RegExp(ALLOWED_TYPES.join('|'));
 /**
  */
 export class PageConfigResolver {
-
   /**
    * @param {!Window|!Document|!Doc} winOrDoc
    */
@@ -97,8 +96,9 @@ export class PageConfigResolver {
       this.configResolver_(config);
       this.configResolver_ = null;
     } else if (this.doc_.isReady()) {
-      this.configResolver_(Promise.reject(
-          new Error('No config could be discovered in the page')));
+      this.configResolver_(
+        Promise.reject(new Error('No config could be discovered in the page'))
+      );
       this.configResolver_ = null;
     }
     debugLog(config);
@@ -107,8 +107,7 @@ export class PageConfigResolver {
 }
 
 class TypeChecker {
-  constructor() {
-  }
+  constructor() {}
 
   /**
    * Check value from json
@@ -144,9 +143,11 @@ class TypeChecker {
   checkArray(typeArray, expectedTypes) {
     let found = false;
     typeArray.forEach(candidateType => {
-      found = found || expectedTypes.includes(
-          candidateType.replace(/^http:\/\/schema.org\//i,'')
-      );
+      found =
+        found ||
+        expectedTypes.includes(
+          candidateType.replace(/^http:\/\/schema.org\//i, '')
+        );
     });
     return found;
   }
@@ -180,22 +181,26 @@ class MetaParser {
     }
 
     // Try to find product id.
-    const productId = getMetaTag(this.doc_.getRootNode(),
-        'subscriptions-product-id');
+    const productId = getMetaTag(
+      this.doc_.getRootNode(),
+      'subscriptions-product-id'
+    );
     if (!productId) {
       return null;
     }
 
     // Is locked?
-    const accessibleForFree = getMetaTag(this.doc_.getRootNode(),
-        'subscriptions-accessible-for-free');
-    const locked = (accessibleForFree &&
-        accessibleForFree.toLowerCase() == 'false') || false;
+    const accessibleForFree = getMetaTag(
+      this.doc_.getRootNode(),
+      'subscriptions-accessible-for-free'
+    );
+    const locked =
+      (accessibleForFree && accessibleForFree.toLowerCase() == 'false') ||
+      false;
 
     return new PageConfig(productId, locked);
   }
 }
-
 
 class JsonLdParser {
   /**
@@ -220,13 +225,16 @@ class JsonLdParser {
     const domReady = this.doc_.isReady();
 
     // type: 'application/ld+json'
-    const elements = this.doc_.getRootNode().querySelectorAll(
-        'script[type="application/ld+json"]');
+    const elements = this.doc_
+      .getRootNode()
+      .querySelectorAll('script[type="application/ld+json"]');
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i];
-      if (element[ALREADY_SEEN] ||
-          !element.textContent ||
-          !domReady && !hasNextNodeInDocumentOrder(element)) {
+      if (
+        element[ALREADY_SEEN] ||
+        !element.textContent ||
+        (!domReady && !hasNextNodeInDocumentOrder(element))
+      ) {
         continue;
       }
       element[ALREADY_SEEN] = true;
@@ -273,8 +281,9 @@ class JsonLdParser {
 
     // Found product id, just check for the access flag.
     const isAccessibleForFree = this.bool_(
-        this.singleValue_(json, 'isAccessibleForFree'),
-        /* default */ true);
+      this.singleValue_(json, 'isAccessibleForFree'),
+      /* default */ true
+    );
 
     return new PageConfig(productId, !isAccessibleForFree);
   }
@@ -336,7 +345,7 @@ class JsonLdParser {
   singleValue_(json, name) {
     const valueArray = this.valueArray_(json, name);
     const value = valueArray && valueArray[0];
-    return (value == null || value === '') ? null : value;
+    return value == null || value === '' ? null : value;
   }
 }
 
@@ -363,8 +372,7 @@ class MicrodataParser {
    */
   discoverAccess_(root) {
     const ALREADY_SEEN = 'alreadySeenForAccessInfo';
-    const nodeList = root
-        .querySelectorAll("[itemprop='isAccessibleForFree']");
+    const nodeList = root.querySelectorAll("[itemprop='isAccessibleForFree']");
     for (let i = 0; nodeList[i]; i++) {
       const element = nodeList[i];
       const content = element.getAttribute('content') || element.textContent;
@@ -396,8 +404,11 @@ class MicrodataParser {
    * @private
    */
   isValidElement_(current, root, alreadySeen) {
-    for (let node = current;
-      node && !node[alreadySeen]; node = node.parentNode) {
+    for (
+      let node = current;
+      node && !node[alreadySeen];
+      node = node.parentNode
+    ) {
       node[alreadySeen] = true;
       // document nodes don't have hasAttribute
       if (node.hasAttribute && node.hasAttribute('itemscope')) {
@@ -420,8 +431,7 @@ class MicrodataParser {
    */
   discoverProductId_(root) {
     const ALREADY_SEEN = 'alreadySeenForProductInfo';
-    const nodeList = root
-        .querySelectorAll('[itemprop="productID"]');
+    const nodeList = root.querySelectorAll('[itemprop="productID"]');
     for (let i = 0; nodeList[i]; i++) {
       const element = nodeList[i];
       const content = element.getAttribute('content') || element.textContent;
@@ -466,12 +476,14 @@ class MicrodataParser {
     }
 
     // Grab all the nodes with an itemtype and filter for our allowed types
-    const nodeList = Array.prototype.slice.call(
-        this.doc_.getRootNode().querySelectorAll('[itemscope][itemtype]')
-    ).filter(
-        node => this.checkType_.checkString(
-            node.getAttribute('itemtype'), ALLOWED_TYPES)
-    );
+    const nodeList = Array.prototype.slice
+      .call(this.doc_.getRootNode().querySelectorAll('[itemscope][itemtype]'))
+      .filter(node =>
+        this.checkType_.checkString(
+          node.getAttribute('itemtype'),
+          ALLOWED_TYPES
+        )
+      );
 
     for (let i = 0; nodeList[i] && config == null; i++) {
       const element = nodeList[i];
@@ -533,7 +545,6 @@ function getMetaTag(rootNode, name) {
   }
   return null;
 }
-
 
 /** @package Visible for testing only. */
 export function getDocClassForTesting() {

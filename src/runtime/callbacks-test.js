@@ -16,7 +16,6 @@
 
 import {Callbacks} from './callbacks';
 
-
 describes.sandboxed('Callbacks', {}, () => {
   let callbacks;
 
@@ -37,23 +36,26 @@ describes.sandboxed('Callbacks', {}, () => {
     callbacks.setCallback_(2, spy2);
     expect(spy1).to.not.be.called;
     expect(spy2).to.not.be.called;
-    return skipMicro().then(() => {
-      expect(spy1).to.not.be.called;
-      expect(spy2).to.not.be.called;
-      expect(callbacks.trigger_(1, 'one')).to.be.true;
-      return skipMicro();
-    }).then(() => {
-      expect(spy1).to.be.calledOnce;
-      expect(spy1).to.be.calledWith('one');
-      expect(spy2).to.not.be.called;
-      expect(callbacks.trigger_(2, 'two')).to.be.true;
-      return skipMicro();
-    }).then(() => {
-      expect(spy1).to.be.calledOnce;
-      expect(spy1).to.be.calledWith('one');
-      expect(spy2).to.be.calledOnce;
-      expect(spy2).to.be.calledWith('two');
-    });
+    return skipMicro()
+      .then(() => {
+        expect(spy1).to.not.be.called;
+        expect(spy2).to.not.be.called;
+        expect(callbacks.trigger_(1, 'one')).to.be.true;
+        return skipMicro();
+      })
+      .then(() => {
+        expect(spy1).to.be.calledOnce;
+        expect(spy1).to.be.calledWith('one');
+        expect(spy2).to.not.be.called;
+        expect(callbacks.trigger_(2, 'two')).to.be.true;
+        return skipMicro();
+      })
+      .then(() => {
+        expect(spy1).to.be.calledOnce;
+        expect(spy1).to.be.calledWith('one');
+        expect(spy2).to.be.calledOnce;
+        expect(spy2).to.be.calledWith('two');
+      });
   });
 
   it('should trigger first can callback later', () => {

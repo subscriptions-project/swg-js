@@ -17,10 +17,7 @@
 import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Xhr} from '../utils/xhr';
-import {
-  bytesToString,
-  stringToBytes,
-} from '../utils/bytes';
+import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feArgs, feCached} from './services';
 import {isExperimentOn} from './experiments';
@@ -61,7 +58,6 @@ function payDecryptUrl() {
   return PAY_ORIGIN['$payEnvironment$'] + '/gp/p/apis/buyflow/process';
 }
 
-
 /**
  */
 export class PayClient {
@@ -72,10 +68,9 @@ export class PayClient {
    */
   constructor(win, activityPorts, dialogManager) {
     /** @const @private {!PayClientBindingDef} */
-    this.binding_ =
-        isExperimentOn(win, ExperimentFlags.GPAY_API) ?
-          new PayClientBindingPayjs(win, activityPorts) :
-          new PayClientBindingSwg(win, activityPorts, dialogManager);
+    this.binding_ = isExperimentOn(win, ExperimentFlags.GPAY_API)
+      ? new PayClientBindingPayjs(win, activityPorts)
+      : new PayClientBindingSwg(win, activityPorts, dialogManager);
   }
 
   /**
@@ -84,7 +79,8 @@ export class PayClient {
   preconnect(pre) {
     pre.prefetch(payUrl());
     pre.prefetch(
-        'https://payments.google.com/payments/v4/js/integrator.js?ss=md');
+      'https://payments.google.com/payments/v4/js/integrator.js?ss=md'
+    );
     pre.prefetch('https://clients2.google.com/gr/gr_full_2.0.6.js');
     pre.preconnect('https://www.gstatic.com/');
     pre.preconnect('https://fonts.googleapis.com/');
@@ -115,13 +111,11 @@ export class PayClient {
   }
 }
 
-
 /**
  * TODO(dvoytenko, #406): remove delegated class once GPay launches.
  * @interface
  */
 class PayClientBindingDef {
-
   /**
    * @return {string}
    */
@@ -138,7 +132,6 @@ class PayClientBindingDef {
    */
   onResponse(unusedCallback) {}
 }
-
 
 /**
  * @implements {PayClientBindingDef}
@@ -166,12 +159,13 @@ class PayClientBindingSwg {
   /** @override */
   start(paymentRequest, options) {
     const opener = this.activityPorts_.open(
-        GPAY_ACTIVITY_REQUEST,
-        payUrl(),
-        options.forceRedirect ? '_top' : '_blank',
-        feArgs(paymentRequest),
-        {});
-    this.dialogManager_.popupOpened(opener && opener.targetWin || null);
+      GPAY_ACTIVITY_REQUEST,
+      payUrl(),
+      options.forceRedirect ? '_top' : '_blank',
+      feArgs(paymentRequest),
+      {}
+    );
+    this.dialogManager_.popupOpened((opener && opener.targetWin) || null);
   }
 
   /** @override */
@@ -207,12 +201,14 @@ class PayClientBindingSwg {
           body: data['redirectEncryptedCallbackData'],
           mode: 'cors',
         });
-        return xhr.fetch(url, init).then(response => response.json())
-            .then(response => {
-              const dataClone = Object.assign({}, data);
-              delete dataClone['redirectEncryptedCallbackData'];
-              return Object.assign(dataClone, response);
-            });
+        return xhr
+          .fetch(url, init)
+          .then(response => response.json())
+          .then(response => {
+            const dataClone = Object.assign({}, data);
+            delete dataClone['redirectEncryptedCallbackData'];
+            return Object.assign(dataClone, response);
+          });
       }
       // Data is supplied directly: must be a verified and secure channel.
       if (result.originVerified && result.secureChannel) {
@@ -222,7 +218,6 @@ class PayClientBindingSwg {
     });
   }
 }
-
 
 /**
  * Binding based on the https://github.com/google/payjs.
@@ -250,12 +245,15 @@ export class PayClientBindingPayjs {
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
 
     /** @private @const {!PaymentsAsyncClient} */
-    this.client_ = this.createClient_({
-      environment: '$payEnvironment$',
-      'i': {
-        'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+    this.client_ = this.createClient_(
+      {
+        environment: '$payEnvironment$',
+        'i': {
+          'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+        },
       },
-    }, this.handleResponse_.bind(this));
+      this.handleResponse_.bind(this)
+    );
 
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
@@ -269,10 +267,11 @@ export class PayClientBindingPayjs {
    */
   createClient_(options, handler) {
     return new PaymentsAsyncClient(
-        options,
-        handler,
-        /* useIframe */ false,
-        this.activityPorts_.getOriginalWebActivityPorts());
+      options,
+      handler,
+      /* useIframe */ false,
+      this.activityPorts_.getOriginalWebActivityPorts()
+    );
   }
 
   /** @override */
@@ -287,12 +286,15 @@ export class PayClientBindingPayjs {
         'forceRedirect': options.forceRedirect || false,
       });
     }
-    setInternalParam(paymentRequest, 'disableNative',
-        // The page cannot be iframed at this time. May be relaxed later
-        // for AMP and similar contexts.
-        this.win_ != this.top_() ||
+    setInternalParam(
+      paymentRequest,
+      'disableNative',
+      // The page cannot be iframed at this time. May be relaxed later
+      // for AMP and similar contexts.
+      this.win_ != this.top_() ||
         // Experiment must be enabled.
-        !isExperimentOn(this.win_, ExperimentFlags.GPAY_NATIVE));
+        !isExperimentOn(this.win_, ExperimentFlags.GPAY_NATIVE)
+    );
     // Notice that the callback for verifier may execute asynchronously.
     this.redirectVerifierHelper_.useVerifier(verifier => {
       if (verifier) {
@@ -350,7 +352,6 @@ export class PayClientBindingPayjs {
   }
 }
 
-
 /**
  * @typedef {{
  *   key: string,
@@ -358,7 +359,6 @@ export class PayClientBindingPayjs {
  * }}
  */
 let RedirectVerifierPairDef;
-
 
 /**
  * This helper generates key/verifier pair for the redirect mode. When the
@@ -427,7 +427,7 @@ export class RedirectVerifierHelper {
           pair = null;
         }
       }
-      callback(pair && pair.verifier || null);
+      callback((pair && pair.verifier) || null);
     });
   }
 
@@ -437,9 +437,11 @@ export class RedirectVerifierHelper {
    */
   restoreKey() {
     try {
-      return this.win_.localStorage
-          && this.win_.localStorage.getItem(REDIRECT_STORAGE_KEY)
-          || null;
+      return (
+        (this.win_.localStorage &&
+          this.win_.localStorage.getItem(REDIRECT_STORAGE_KEY)) ||
+        null
+      );
     } catch (e) {
       return null;
     }
@@ -478,11 +480,13 @@ export class RedirectVerifierHelper {
     // c. Crypto random (crypto.getRandomValues);
     // d. SHA284 (crypto.subtle.digest).
     const crypto = this.win_.crypto;
-    if (this.win_.localStorage
-        && crypto
-        && crypto.getRandomValues
-        && crypto.subtle
-        && crypto.subtle.digest) {
+    if (
+      this.win_.localStorage &&
+      crypto &&
+      crypto.getRandomValues &&
+      crypto.subtle &&
+      crypto.subtle.digest
+    ) {
       this.pairPromise_ = new Promise((resolve, reject) => {
         // 1. Use crypto random to create a 128-bit (16 byte) redirect key.
         const keyBytes = new Uint8Array(16);
@@ -492,23 +496,30 @@ export class RedirectVerifierHelper {
         const key = btoa(bytesToString(keyBytes));
 
         // 3. Create a hash.
-        crypto.subtle.digest({name: 'SHA-384'}, stringToBytes(key))
-            .then(buffer => {
-              const verifier = btoa(bytesToString(new Uint8Array(
-                  /** @type {!ArrayBuffer} */ (buffer))));
-              resolve({key, verifier});
-            }, reason => {
-              reject(reason);
-            });
-      }).catch(() => {
-        // Ignore failures. A failure to create a redirect verifier is often
-        // recoverable.
-        return null;
-      }).then(pair => {
-        this.pairCreated_ = true;
-        this.pair_ = pair;
-        return pair;
-      });
+        crypto.subtle.digest({name: 'SHA-384'}, stringToBytes(key)).then(
+          buffer => {
+            const verifier = btoa(
+              bytesToString(
+                new Uint8Array(/** @type {!ArrayBuffer} */ (buffer))
+              )
+            );
+            resolve({key, verifier});
+          },
+          reason => {
+            reject(reason);
+          }
+        );
+      })
+        .catch(() => {
+          // Ignore failures. A failure to create a redirect verifier is often
+          // recoverable.
+          return null;
+        })
+        .then(pair => {
+          this.pairCreated_ = true;
+          this.pair_ = pair;
+          return pair;
+        });
     } else {
       // Not supported.
       this.pairCreated_ = true;
@@ -517,18 +528,16 @@ export class RedirectVerifierHelper {
   }
 }
 
-
 /**
  * @param {!Object} paymentRequest
  * @param {string} param
  * @param {*} value
  */
 function setInternalParam(paymentRequest, param, value) {
-  paymentRequest['i'] = Object.assign(
-      paymentRequest['i'] || {},
-      {[param]: value});
+  paymentRequest['i'] = Object.assign(paymentRequest['i'] || {}, {
+    [param]: value,
+  });
 }
-
 
 // TODO(dvoytenko, #406): Remove once GPay API is supported.
 export function getPayjsBindingForTesting() {

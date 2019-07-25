@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-
 /**
  * @param {!Object<string, string>} map
  * @param {?string|?Element} langOrElement
  * @return {?string}
  */
 export function msg(map, langOrElement) {
-  const lang =
-      !langOrElement ? '' :
-        typeof langOrElement == 'string' ? langOrElement :
-          langOrElement.lang ||
-      langOrElement.ownerDocument &&
-          langOrElement.ownerDocument.documentElement.lang;
-  let search = (lang && lang.toLowerCase() || 'en').replace(/_/g, '-');
+  const lang = !langOrElement
+    ? ''
+    : typeof langOrElement == 'string'
+    ? langOrElement
+    : langOrElement.lang ||
+      (langOrElement.ownerDocument &&
+        langOrElement.ownerDocument.documentElement.lang);
+  let search = ((lang && lang.toLowerCase()) || 'en').replace(/_/g, '-');
   while (search) {
     if (search in map) {
       return map[search];

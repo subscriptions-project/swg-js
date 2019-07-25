@@ -157,7 +157,7 @@ export const defaultStyles = {
 
 /** @const {string} */
 export const googleFontsUrl =
-    'https://fonts.googleapis.com/css?family=Google+Sans';
+  'https://fonts.googleapis.com/css?family=Google+Sans';
 
 /**
  * @export
@@ -185,7 +185,6 @@ function getVendorJsPropertyName_(style, titleCase) {
   }
   return '';
 }
-
 
 /**
  * Returns the possibly prefixed JavaScript property name of a style property
@@ -224,7 +223,6 @@ export function getVendorJsPropertyName(style, camelCase, opt_bypassCache) {
   return propertyName;
 }
 
-
 /**
  * Sets the CSS styles of the specified element with !important. The styles
  * are specified as a map from CSS property names to their values.
@@ -234,10 +232,12 @@ export function getVendorJsPropertyName(style, camelCase, opt_bypassCache) {
 export function setImportantStyles(element, styles) {
   for (const k in styles) {
     element.style.setProperty(
-        getVendorJsPropertyName(styles, k), styles[k].toString(), 'important');
+      getVendorJsPropertyName(styles, k),
+      styles[k].toString(),
+      'important'
+    );
   }
 }
-
 
 /**
  * Sets the CSS style of the specified element with optional units, e.g. "px".
@@ -248,14 +248,17 @@ export function setImportantStyles(element, styles) {
  * @param {boolean=} opt_bypassCache
  */
 export function setStyle(element, property, value, opt_units, opt_bypassCache) {
-  const propertyName = getVendorJsPropertyName(element.style, property,
-      opt_bypassCache);
+  const propertyName = getVendorJsPropertyName(
+    element.style,
+    property,
+    opt_bypassCache
+  );
   if (propertyName) {
-    element.style[propertyName] =
-      /** @type {string} */ (opt_units ? value + opt_units : value);
+    element.style[propertyName] = /** @type {string} */ (opt_units
+      ? value + opt_units
+      : value);
   }
 }
-
 
 /**
  * Returns the value of the CSS style of the specified element.
@@ -265,14 +268,16 @@ export function setStyle(element, property, value, opt_units, opt_bypassCache) {
  * @return {*}
  */
 export function getStyle(element, property, opt_bypassCache) {
-  const propertyName = getVendorJsPropertyName(element.style, property,
-      opt_bypassCache);
+  const propertyName = getVendorJsPropertyName(
+    element.style,
+    property,
+    opt_bypassCache
+  );
   if (!propertyName) {
     return undefined;
   }
   return element.style[propertyName];
 }
-
 
 /**
  * Sets the CSS styles of the specified element. The styles
@@ -286,7 +291,6 @@ export function setStyles(element, styles) {
   }
 }
 
-
 /**
  * Shows or hides the specified element.
  * @param {!Element} element
@@ -299,7 +303,6 @@ export function toggle(element, opt_display) {
   setStyle(element, 'display', opt_display ? '' : 'none');
 }
 
-
 /**
  * Returns a pixel value.
  * @param {number} value
@@ -308,7 +311,6 @@ export function toggle(element, opt_display) {
 export function px(value) {
   return value + 'px';
 }
-
 
 /**
  * Returns a "translateX" for CSS "transform" property.
@@ -321,7 +323,6 @@ export function translateX(value) {
   }
   return `translateX(${px(value)})`;
 }
-
 
 /**
  * Returns a "translateX" for CSS "transform" property.
@@ -342,7 +343,6 @@ export function translate(x, opt_y) {
   return `translate(${x}, ${opt_y})`;
 }
 
-
 /**
  * Returns a "scale" for CSS "transform" property.
  * @param {number|string} value
@@ -351,7 +351,6 @@ export function translate(x, opt_y) {
 export function scale(value) {
   return `scale(${value})`;
 }
-
 
 /**
  * Remove alpha value from a rgba color value.
@@ -362,9 +361,10 @@ export function scale(value) {
  */
 export function removeAlphaFromColor(rgbaColor) {
   return rgbaColor.replace(
-      /\(([^,]+),([^,]+),([^,)]+),[^)]+\)/g, '($1,$2,$3, 1)');
+    /\(([^,]+),([^,]+),([^,)]+),[^)]+\)/g,
+    '($1,$2,$3, 1)'
+  );
 }
-
 
 /**
  * Gets the computed style of the element. The helper is necessary to enforce
@@ -375,10 +375,9 @@ export function removeAlphaFromColor(rgbaColor) {
  * @return {!Object<string, string>}
  */
 export function computedStyle(win, el) {
-  const style = /** @type {?CSSStyleDeclaration} */(win.getComputedStyle(el));
-  return /** @type {!Object<string, string>} */(style) || map();
+  const style = /** @type {?CSSStyleDeclaration} */ (win.getComputedStyle(el));
+  return /** @type {!Object<string, string>} */ (style) || map();
 }
-
 
 /**
  * Resets styles that were set dynamically (i.e. inline)
@@ -392,7 +391,6 @@ export function resetStyles(element, properties) {
   });
   setStyles(element, styleObj);
 }
-
 
 /**
  * Resets all the styles of an element to a given value. Defaults to null.

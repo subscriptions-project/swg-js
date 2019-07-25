@@ -66,16 +66,19 @@ describes.realWin('Toast', {}, env => {
     });
   });
 
-  it('should build the content of toast iframe', function* () {
-    activitiesMock.expects('openIframe').withExactArgs(
+  it('should build the content of toast iframe', function*() {
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swglib/toastiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           source: 'google',
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     return toast.open();
   });
 });

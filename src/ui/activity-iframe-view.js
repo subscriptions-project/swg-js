@@ -25,12 +25,10 @@ const iframeAttributes = {
   'scrolling': 'no',
 };
 
-
 /**
  * Class to build and render Activity iframe view.
  */
 export class ActivityIframeView extends View {
-
   /**
    * @param {!Window} win
    * @param {!../components/activities.ActivityPorts} activityPorts
@@ -45,7 +43,8 @@ export class ActivityIframeView extends View {
     src,
     args,
     shouldFadeBody = false,
-    hasLoadingIndicator = false) {
+    hasLoadingIndicator = false
+  ) {
     super();
 
     /** @private @const {!Window} */
@@ -55,9 +54,11 @@ export class ActivityIframeView extends View {
     this.doc_ = this.win_.document;
 
     /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ =
-      /** @type {!HTMLIFrameElement} */ (
-        createElement(this.doc_, 'iframe', iframeAttributes));
+    this.iframe_ = /** @type {!HTMLIFrameElement} */ (createElement(
+      this.doc_,
+      'iframe',
+      iframeAttributes
+    ));
 
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = activityPorts;
@@ -99,8 +100,9 @@ export class ActivityIframeView extends View {
 
   /** @override */
   init(dialog) {
-    return this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
-        .then(port => this.onOpenIframeResponse_(port, dialog));
+    return this.activityPorts_
+      .openIframe(this.iframe_, this.src_, this.args_)
+      .then(port => this.onOpenIframeResponse_(port, dialog));
   }
 
   /**
@@ -180,10 +182,15 @@ export class ActivityIframeView extends View {
   acceptResultAndVerify(
     requireOrigin,
     requireOriginVerified,
-    requireSecureChannel) {
+    requireSecureChannel
+  ) {
     return this.getPortPromise_().then(port => {
-      return acceptPortResultData(port, requireOrigin,
-          requireOriginVerified, requireSecureChannel);
+      return acceptPortResultData(
+        port,
+        requireOrigin,
+        requireOriginVerified,
+        requireSecureChannel
+      );
     });
   }
 

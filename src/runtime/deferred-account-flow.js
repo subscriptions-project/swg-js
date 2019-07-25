@@ -15,27 +15,20 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {
-  DeferredAccountCreationResponse,
-} from '../api/deferred-account-creation';
+import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
 import {JwtHelper} from '../utils/jwt';
 import {PayCompleteFlow} from './pay-flow';
-import {
-  PurchaseData,
-  SubscribeResponse,
-} from '../api/subscribe-response';
+import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
-
 
 /**
  * The flow to initiate deferred account process.
  * See `Subscriptions.completeDeferredAccountCreation` API.
  */
 export class DeferredAccountFlow {
-
   /**
    * @param {!./deps.DepsDef} deps
    * @param {?../api/deferred-account-creation.DeferredAccountCreationRequest} options
@@ -83,34 +76,44 @@ export class DeferredAccountFlow {
     }
 
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.COMPLETE_DEFERRED_ACCOUNT_CREATION);
+    this.deps_
+      .callbacks()
+      .triggerFlowStarted(SubscriptionFlows.COMPLETE_DEFERRED_ACCOUNT_CREATION);
 
     this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl('/recoveriframe'),
-        feArgs({
-          'publicationId': this.deps_.pageConfig().getPublicationId(),
-          'productId': this.deps_.pageConfig().getProductId(),
-          'entitlements': entitlements && entitlements.raw || null,
-          'consent': this.options_.consent,
-        }),
-        /* shouldFadeBody */ true);
+      this.win_,
+      this.activityPorts_,
+      feUrl('/recoveriframe'),
+      feArgs({
+        'publicationId': this.deps_.pageConfig().getPublicationId(),
+        'productId': this.deps_.pageConfig().getProductId(),
+        'entitlements': (entitlements && entitlements.raw) || null,
+        'consent': this.options_.consent,
+      }),
+      /* shouldFadeBody */ true
+    );
 
     this.openPromise_ = this.dialogManager_.openView(this.activityIframeView_);
-    return this.activityIframeView_.acceptResult().then(result => {
-      // The consent part is complete.
-      return this.handleConsentResponse_(/** @type {!Object} */ (result.data));
-    }, reason => {
-      if (isCancelError(reason)) {
-        this.deps_.callbacks().triggerFlowCanceled(
-            SubscriptionFlows.COMPLETE_DEFERRED_ACCOUNT_CREATION);
-      } else {
-        this.dialogManager_.completeView(this.activityIframeView_);
+    return this.activityIframeView_.acceptResult().then(
+      result => {
+        // The consent part is complete.
+        return this.handleConsentResponse_(
+          /** @type {!Object} */ (result.data)
+        );
+      },
+      reason => {
+        if (isCancelError(reason)) {
+          this.deps_
+            .callbacks()
+            .triggerFlowCanceled(
+              SubscriptionFlows.COMPLETE_DEFERRED_ACCOUNT_CREATION
+            );
+        } else {
+          this.dialogManager_.completeView(this.activityIframeView_);
+        }
+        throw reason;
       }
-      throw reason;
-    });
+    );
   }
 
   /**
@@ -125,21 +128,24 @@ export class DeferredAccountFlow {
     const entitlementsJwt = data['entitlements'];
     const idToken = data['idToken'];
     const productType = data['productType'];
-    const entitlements = this.deps_.entitlementsManager()
-        .parseEntitlements({'signedEntitlements': entitlementsJwt});
+    const entitlements = this.deps_
+      .entitlementsManager()
+      .parseEntitlements({'signedEntitlements': entitlementsJwt});
     const userData = new UserData(
-        idToken,
-        /** @type {!Object} */ (new JwtHelper().decode(idToken)));
-    const purchaseDataList =
-        data['purchaseDataList'] ?
-          data['purchaseDataList'].map(pd =>
-            new PurchaseData(pd['data'], pd['signature'])) :
-          [
+      idToken,
+      /** @type {!Object} */ (new JwtHelper().decode(idToken))
+    );
+    const purchaseDataList = data['purchaseDataList']
+      ? data['purchaseDataList'].map(
+          pd => new PurchaseData(pd['data'], pd['signature'])
+        )
+      : [
           // TODO(dvoytenko): cleanup/deprecate.
-            new PurchaseData(
-                data['purchaseData']['data'],
-                data['purchaseData']['signature']),
-          ];
+          new PurchaseData(
+            data['purchaseData']['data'],
+            data['purchaseData']['signature']
+          ),
+        ];
 
     // For now, we'll use the `PayCompleteFlow` as a "creating account" flow.
     // But this can be eventually implemented by the same iframe.
@@ -147,20 +153,23 @@ export class DeferredAccountFlow {
     const completeHandler = creatingFlow.complete.bind(creatingFlow);
 
     const response = new DeferredAccountCreationResponse(
-        entitlements,
-        userData,
-        purchaseDataList,
-        completeHandler);
+      entitlements,
+      userData,
+      purchaseDataList,
+      completeHandler
+    );
 
     // Start the "sync" flow.
-    creatingFlow.start(new SubscribeResponse(
+    creatingFlow.start(
+      new SubscribeResponse(
         '', // raw field doesn't matter in this case
         purchaseDataList[0],
         userData,
         entitlements,
         productType,
         () => Promise.resolve() // completeHandler doesn't matter in this case
-    ));
+      )
+    );
     return response;
   }
 }

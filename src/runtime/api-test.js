@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-import {
-  DeferredAccountCreationResponse,
-} from '../api/deferred-account-creation';
-import {
-  Entitlement,
-  Entitlements,
-} from '../api/entitlements';
+import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
+import {Entitlement, Entitlements} from '../api/entitlements';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
-
 
 describes.sandboxed('Entitlements', {}, () => {
   let ackSpy;
@@ -109,11 +103,14 @@ describes.sandboxed('Entitlements', {}, () => {
   });
 
   it('should match products by wildcard', () => {
-    const list = [
-      new Entitlement('source1', ['pub:*'], 'token1'),
-    ];
-    const ents = new Entitlements('service1', 'RaW', list, 'pub:product1',
-        ackSpy);
+    const list = [new Entitlement('source1', ['pub:*'], 'token1')];
+    const ents = new Entitlements(
+      'service1',
+      'RaW',
+      list,
+      'pub:product1',
+      ackSpy
+    );
     expect(ents.enablesAny()).to.be.true;
     expect(ents.enablesThis()).to.be.true;
     expect(ents.enables('pub:product1')).to.be.true;
@@ -236,14 +233,11 @@ describes.sandboxed('Entitlements', {}, () => {
   });
 });
 
-
 describe('PurchaseData', () => {
   let pd;
 
   beforeEach(() => {
-    pd = new PurchaseData(
-        'RAW',
-        'SIG');
+    pd = new PurchaseData('RAW', 'SIG');
   });
 
   it('should correctly initialize', () => {
@@ -268,7 +262,6 @@ describe('PurchaseData', () => {
     });
   });
 });
-
 
 describes.sandboxed('SubscribeResponse', {}, () => {
   let sr, pd, ud, entitlements, complete, promise;
@@ -325,22 +318,19 @@ describes.sandboxed('SubscribeResponse', {}, () => {
   });
 });
 
-
 describe('UserData', () => {
   let userData;
 
   beforeEach(() => {
-    userData = new UserData(
-        'ID_TOKEN',
-        {
-          'sub': 'id1',
-          'email': 'id1@email.org',
-          'email_verified': true,
-          'name': 'Id One',
-          'picture': 'https://example.org/avatar/test',
-          'given_name': 'Id',
-          'family_name': 'One',
-        });
+    userData = new UserData('ID_TOKEN', {
+      'sub': 'id1',
+      'email': 'id1@email.org',
+      'email_verified': true,
+      'name': 'Id One',
+      'picture': 'https://example.org/avatar/test',
+      'given_name': 'Id',
+      'family_name': 'One',
+    });
   });
 
   it('should correctly initialize', () => {
@@ -381,14 +371,17 @@ describe('UserData', () => {
   });
 });
 
-
 describes.sandboxed('DeferredAccountCreationResponse', {}, () => {
   let ents, dacr, pd, pd2, ud, complete, promise;
 
   beforeEach(() => {
-    ents = new Entitlements('service1', 'RaW', [
-      new Entitlement('source1', ['product1', 'product2'], 'token1'),
-    ], 'product1', () => {});
+    ents = new Entitlements(
+      'service1',
+      'RaW',
+      [new Entitlement('source1', ['product1', 'product2'], 'token1')],
+      'product1',
+      () => {}
+    );
     pd = new PurchaseData('PD_RAW', 'PD_SIG');
     pd2 = new PurchaseData('PD_RAW2', 'PD_SIG2');
     ud = new UserData('ID_TOKEN', {sub: '1234'});

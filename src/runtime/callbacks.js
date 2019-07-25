@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 /** @enum {number} */
 const CallbackId = {
   ENTITLEMENTS: 1,
@@ -28,11 +27,9 @@ const CallbackId = {
   CONTRIBUTION_RESPONSE: 9,
 };
 
-
 /**
  */
 export class Callbacks {
-
   /**
    */
   constructor() {
@@ -54,8 +51,9 @@ export class Callbacks {
    */
   triggerEntitlementsResponse(promise) {
     return this.trigger_(
-        CallbackId.ENTITLEMENTS,
-        promise.then(res => res.clone()));
+      CallbackId.ENTITLEMENTS,
+      promise.then(res => res.clone())
+    );
   }
 
   /**
@@ -162,8 +160,9 @@ export class Callbacks {
    */
   triggerSubscribeResponse(responsePromise) {
     return this.trigger_(
-        CallbackId.SUBSCRIBE_RESPONSE,
-        responsePromise.then(res => res.clone()));
+      CallbackId.SUBSCRIBE_RESPONSE,
+      responsePromise.then(res => res.clone())
+    );
   }
 
   /**
@@ -172,8 +171,9 @@ export class Callbacks {
    */
   triggerContributionResponse(responsePromise) {
     return this.trigger_(
-        CallbackId.CONTRIBUTION_RESPONSE,
-        responsePromise.then(res => res.clone()));
+      CallbackId.CONTRIBUTION_RESPONSE,
+      responsePromise.then(res => res.clone())
+    );
   }
 
   /**

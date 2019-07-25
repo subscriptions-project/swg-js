@@ -34,13 +34,11 @@ const iframeStyles = {
   display: 'none',
 };
 
-
 export class AnalyticsService {
   /**
    * @param {!./deps.DepsDef} deps
    */
   constructor(deps) {
-
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
@@ -48,9 +46,11 @@ export class AnalyticsService {
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ =
-      /** @type {!HTMLIFrameElement} */ (createElement(
-          this.doc_.getWin().document, 'iframe', {}));
+    this.iframe_ = /** @type {!HTMLIFrameElement} */ (createElement(
+      this.doc_.getWin().document,
+      'iframe',
+      {}
+    ));
 
     setImportantStyles(this.iframe_, iframeStyles);
 
@@ -80,11 +80,14 @@ export class AnalyticsService {
     /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
     this.eventManager_ = deps.eventManager();
     this.eventManager_.registerEventListener(
-        this.handleClientEvent_.bind(this));
+      this.handleClientEvent_.bind(this)
+    );
 
     /** @private @const {!boolean} */
-    this.logPropensityExperiment_ = isExperimentOn(deps.win(),
-        ExperimentFlags.LOG_PROPENSITY_TO_SWG);
+    this.logPropensityExperiment_ = isExperimentOn(
+      deps.win(),
+      ExperimentFlags.LOG_PROPENSITY_TO_SWG
+    );
 
     /** @private {!boolean} */
     this.logPropensityConfig_ = false;
@@ -185,11 +188,12 @@ export class AnalyticsService {
     if (!this.serviceReady_) {
       // TODO(sohanirao): Potentially do this even earlier
       this.doc_.getBody().appendChild(this.getElement());
-      this.serviceReady_ = this.activityPorts_.openIframe(
-          this.iframe_, this.src_, this.args_).then(port => {
-        this.setContext_();
-        return port.whenReady().then(() => port);
-      });
+      this.serviceReady_ = this.activityPorts_
+        .openIframe(this.iframe_, this.src_, this.args_)
+        .then(port => {
+          this.setContext_();
+          return port.whenReady().then(() => port);
+        });
     }
     return this.serviceReady_;
   }
@@ -243,8 +247,10 @@ export class AnalyticsService {
     this.eventManager_.logEvent({
       eventType: eventTypeIn,
       eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction: /** @type {?boolean} */
-          (isBoolean(isFromUserActionIn) ? isFromUserActionIn : null),
+      /** @type {?boolean} */
+      isFromUserAction: (isBoolean(isFromUserActionIn)
+        ? isFromUserActionIn
+        : null),
       additionalParameters: null,
     });
   }
@@ -264,8 +270,10 @@ export class AnalyticsService {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
-    if (!(this.logPropensityExperiment_ && this.logPropensityConfig_)
-        && event.eventOriginator === EventOriginator.PROPENSITY_CLIENT) {
+    if (
+      !(this.logPropensityExperiment_ && this.logPropensityConfig_) &&
+      event.eventOriginator === EventOriginator.PROPENSITY_CLIENT
+    ) {
       return;
     }
     this.lastAction_ = this.start_().then(port => {

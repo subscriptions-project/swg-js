@@ -19,7 +19,6 @@ import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 
-
 export class LoginPromptApi {
   /**
    * @param {!./deps.DepsDef} deps
@@ -42,17 +41,17 @@ export class LoginPromptApi {
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl('/loginiframe'),
-        feArgs({
-          publicationId: deps.pageConfig().getPublicationId(),
-          productId: deps.pageConfig().getProductId(),
-          // First ask the user if they want us to log them in.
-          userConsent: true,
-          // TODO(chenshay): Pass entitlements value here.
-        }),
-        /* shouldFadeBody */ true
+      this.win_,
+      this.activityPorts_,
+      feUrl('/loginiframe'),
+      feArgs({
+        publicationId: deps.pageConfig().getPublicationId(),
+        productId: deps.pageConfig().getProductId(),
+        // First ask the user if they want us to log them in.
+        userConsent: true,
+        // TODO(chenshay): Pass entitlements value here.
+      }),
+      /* shouldFadeBody */ true
     );
   }
 
@@ -61,23 +60,29 @@ export class LoginPromptApi {
    * @return {!Promise}
    */
   start() {
-    this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SHOW_LOGIN_PROMPT);
+    this.deps_
+      .callbacks()
+      .triggerFlowStarted(SubscriptionFlows.SHOW_LOGIN_PROMPT);
 
     this.openViewPromise_ = this.dialogManager_.openView(
-        this.activityIframeView_);
+      this.activityIframeView_
+    );
 
-    return this.activityIframeView_.acceptResult().then(() => {
-      // The consent part is complete.
-      this.dialogManager_.completeView(this.activityIframeView_);
-    }, reason => {
-      if (isCancelError(reason)) {
-        this.deps_.callbacks().triggerFlowCanceled(
-            SubscriptionFlows.SHOW_LOGIN_PROMPT);
-      } else {
+    return this.activityIframeView_.acceptResult().then(
+      () => {
+        // The consent part is complete.
         this.dialogManager_.completeView(this.activityIframeView_);
+      },
+      reason => {
+        if (isCancelError(reason)) {
+          this.deps_
+            .callbacks()
+            .triggerFlowCanceled(SubscriptionFlows.SHOW_LOGIN_PROMPT);
+        } else {
+          this.dialogManager_.completeView(this.activityIframeView_);
+        }
+        throw reason;
       }
-      throw reason;
-    });
+    );
   }
 }

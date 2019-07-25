@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  getStyle,
-  setStyles,
-  setImportantStyles,
-} from '../utils/style';
+import {getStyle, setStyles, setImportantStyles} from '../utils/style';
 import {FriendlyIframe} from './friendly-iframe';
 
 /** @const {!Object<string, string|number} */
@@ -46,8 +42,7 @@ describes.realWin('FriendlyIframe', {}, env => {
   });
 
   describe('friendlyIframe', () => {
-
-    it('should have created a friendly iframe instance', async() => {
+    it('should have created a friendly iframe instance', async () => {
       expect(friendlyIframe.isConnected()).to.be.false;
       doc.body.appendChild(friendlyIframe.getElement());
       await friendlyIframe.whenReady();
@@ -70,8 +65,9 @@ describes.realWin('FriendlyIframe', {}, env => {
 
       expect(getStyle(iframe, 'opacity')).to.equal('1');
       expect(getStyle(iframe, 'display')).to.equal('block');
-      expect(getStyle(iframe, 'background-color'))
-          .to.equal('rgb(255, 255, 255)');
+      expect(getStyle(iframe, 'background-color')).to.equal(
+        'rgb(255, 255, 255)'
+      );
       expect(getStyle(iframe, 'position')).to.equal('fixed');
       expect(getStyle(iframe, 'bottom')).to.equal('0px');
     });

@@ -29,7 +29,6 @@ export const styleType = 'text/css';
 /** @const {string} */
 export const styleExistsQuerySelector = 'link[rel=stylesheet][href]';
 
-
 /**
  * Add attributes to an element.
  * @param {!Element} element
@@ -39,18 +38,20 @@ export const styleExistsQuerySelector = 'link[rel=stylesheet][href]';
 export function addAttributesToElement(element, attributes) {
   for (const attr in attributes) {
     if (attr == 'style') {
-      setStyles(element,
-          /** @type !Object<string, string|boolean|number> */
-          (attributes[attr]));
+      setStyles(
+        element,
+        /** @type !Object<string, string|boolean|number> */
+        attributes[attr]
+      );
     } else {
-      element.setAttribute(attr,
-          /** @type {string|boolean|number} */ (attributes[attr]));
+      element.setAttribute(
+        attr,
+        /** @type {string|boolean|number} */ (attributes[attr])
+      );
     }
-
   }
   return element;
 }
-
 
 /**
  * Create a new element on document with specified tagName and attributes.
@@ -79,7 +80,6 @@ export function createElement(doc, tagName, attributes, opt_content) {
   return element;
 }
 
-
 /**
  * Removes the element.
  * @param {!Element} element
@@ -90,7 +90,6 @@ export function removeElement(element) {
   }
 }
 
-
 /**
  * Removes all children from the parent element.
  * @param {!Element} parent
@@ -98,7 +97,6 @@ export function removeElement(element) {
 export function removeChildren(parent) {
   parent.textContent = '';
 }
-
 
 /**
  * Injects the provided styles in the HEAD section of the document.
@@ -115,7 +113,6 @@ export function injectStyleSheet(doc, styleText) {
   return styleElement;
 }
 
-
 /**
  * Whether the element have a next node in the document order.
  * This means either:
@@ -131,11 +128,12 @@ export function hasNextNodeInDocumentOrder(element, opt_stopNode) {
     if (currentElement.nextSibling) {
       return true;
     }
-  } while ((currentElement = currentElement.parentNode) &&
-            currentElement != opt_stopNode);
+  } while (
+    (currentElement = currentElement.parentNode) &&
+    currentElement != opt_stopNode
+  );
   return false;
 }
-
 
 /**
  * Polyfill of the `Node.isConnected` API. See
@@ -152,9 +150,8 @@ export function isConnected(node) {
   }
   // Polyfill.
   const root = node.ownerDocument && node.ownerDocument.documentElement;
-  return root && root.contains(node) || false;
+  return (root && root.contains(node)) || false;
 }
-
 
 /**
  * @param {!Window} win
