@@ -86,7 +86,7 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    PropensityServer.prototype.getReferrer_ = () => {
+    PropensityServer.prototype.getOrigin_ = () => {
       return 'https://scenic-2017.appspot.com/landing.html';
     };
     return propensityServer.sendSubscriptionState(
@@ -128,7 +128,7 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    PropensityServer.prototype.getReferrer_ = () => {
+    PropensityServer.prototype.getOrigin_ = () => {
       return null;
     };
     const eventParam = {'is_active': false, 'offers_shown': ['a', 'b', 'c']};
@@ -164,8 +164,8 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    PropensityServer.prototype.getReferrer_ = () => {
-      return 'https://scenic-2017.appspot.com/landing.html';
+    PropensityServer.prototype.getOrigin_ = () => {
+      return '';
     };
     return propensityServer.getPropensity('/hello',
         PropensityApi.PropensityType.GENERAL).then(() => {
@@ -179,7 +179,7 @@ describes.realWin('PropensityServer', {}, env => {
           expect('v' in queries).to.be.true;
           expect(parseInt(queries['v'], 10)).to.equal(
               propensityServer.version_);
-          expect(queries['cdm']).to.equal('https://scenic-2017.appspot.com');
+          expect('cdm' in queries).to.be.false;
           expect('products' in queries).to.be.true;
           expect(queries['products']).to.equal('pub1');
           expect('type' in queries).to.be.true;
@@ -304,7 +304,7 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    PropensityServer.prototype.getReferrer_ = () => {
+    PropensityServer.prototype.getOrigin_ = () => {
       return 'https://scenic-2017.appspot.com/landing.html';
     };
     return propensityServer.getPropensity(
@@ -342,7 +342,7 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__someonelsescookie=abcd';
     };
-    PropensityServer.prototype.getReferrer_ = () => {
+    PropensityServer.prototype.getOrigin_ = () => {
       return 'https://scenic-2017.appspot.com/landing.html';
     };
     return propensityServer.getPropensity(

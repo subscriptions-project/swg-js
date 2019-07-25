@@ -85,8 +85,8 @@ export class PropensityServer {
    * @return {string}
    * @private
    */
-  getReferrer_() {
-    return this.win_.document.referrer;
+  getOrigin_() {
+    return this.win_.location.hostname;
   }
 
   /**
@@ -100,9 +100,9 @@ export class PropensityServer {
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
-    const referrer = this.getReferrer_();
-    if (referrer) {
-      url = url + '&cdm=' + parseUrl(referrer).origin;
+    const origin = this.getOrigin_();
+    if (origin && origin != '') {
+      url = url + '&cdm=' + parseUrl(origin).origin;
     }
     return url;
   }
