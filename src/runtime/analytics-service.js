@@ -249,7 +249,7 @@ export class AnalyticsService {
       eventOriginator: EventOriginator.SWG_CLIENT,
       /** @type {?boolean} */
       isFromUserAction: (isBoolean(isFromUserActionIn)
-        ? isFromUserActionIn
+        ? !!isFromUserActionIn
         : null),
       additionalParameters: null,
     });
