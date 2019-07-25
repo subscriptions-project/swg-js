@@ -20,6 +20,7 @@ import {isObject,isBoolean} from '../utils/types';
 import {ExperimentFlags} from './experiment-flags';
 import {isExperimentOn} from './experiments';
 import {analyticsEventToPublisherEvent} from './event-type-mapping';
+import {parseUrl} from '../utils/url';
 
 /**
  * Implements interface to Propensity server
@@ -81,6 +82,32 @@ export class PropensityServer {
   }
 
   /**
+   * @return {string}
+   * @private
+   */
+  getReferrer_() {
+    return this.win_.document.referrer;
+  }
+
+  /**
+   * @private
+   * @param {string} url
+   * @return {string}
+   */
+  propensityUrl_(url) {
+    url = url + '&u_tz=240&v=' + this.version_;
+    const clientId = this.getClientId_();
+    if (clientId) {
+      url = url + '&cookie=' + clientId;
+    }
+    const referrer = this.getReferrer_();
+    if (referrer) {
+      url = url + '&cdm=' + parseUrl(referrer).origin;
+    }
+    return url;
+  }
+
+  /**
    * @param {string} state
    * @param {?string} productsOrSkus
    */
@@ -89,18 +116,13 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    const clientId = this.getClientId_();
     let userState = this.publicationId_ + ':' + state;
     if (productsOrSkus) {
       userState = userState + ':' + encodeURIComponent(productsOrSkus);
     }
-    let url = adsUrl('/subopt/data?states=')
-        + encodeURIComponent(userState) + '&u_tz=240'
-        + '&v=' + this.version_;
-    if (clientId) {
-      url = url + '&cookie=' + clientId;
-    }
-    return this.xhr_.fetch(url, init);
+    const url = adsUrl('/subopt/data?states=')
+        + encodeURIComponent(userState);
+    return this.xhr_.fetch(this.propensityUrl_(url), init);
   }
 
   /**
@@ -113,18 +135,13 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    const clientId = this.getClientId_();
     let eventInfo = this.publicationId_ + ':' + event;
     if (context) {
       eventInfo = eventInfo + ':' + encodeURIComponent(context);
     }
-    let url = adsUrl('/subopt/data?events=')
-        + encodeURIComponent(eventInfo) + '&u_tz=240'
-        + '&v=' + this.version_;
-    if (clientId) {
-      url = url + '&cookie=' + clientId;
-    }
-    return this.xhr_.fetch(url, init);
+    const url = adsUrl('/subopt/data?events=')
+        + encodeURIComponent(eventInfo);
+    return this.xhr_.fetch(this.propensityUrl_(url), init);
   }
 
   /**
@@ -213,19 +230,15 @@ export class PropensityServer {
    * @return {?Promise<../api/propensity-api.PropensityScore>}
    */
   getPropensity(referrer, type) {
-    const clientId = this.getClientId_();
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
     });
-    let url = adsUrl('/subopt/pts?products=') + this.publicationId_
-        + '&type=' + type + '&u_tz=240'
-        + '&ref=' + referrer
-        + '&v=' + this.version_;
-    if (clientId) {
-      url = url + '&cookie=' + clientId;
-    }
-    return this.xhr_.fetch(url, init).then(result => result.json())
+    const url = adsUrl('/subopt/pts?products=') + this.publicationId_
+        + '&type=' + type
+        + '&ref=' + referrer;
+    return this.xhr_.fetch(this.propensityUrl_(url), init)
+        .then(result => result.json())
         .then(response => {
           return this.parsePropensityResponse_(response);
         });
