@@ -18,7 +18,6 @@ import {Dialog} from './dialog';
 import {DialogManager} from './dialog-manager';
 import {GlobalDoc} from '../model/doc';
 
-
 describes.realWin('DialogManager', {}, env => {
   let clock;
   let win;
@@ -47,8 +46,11 @@ describes.realWin('DialogManager', {}, env => {
         currentView = view;
         return Promise.resolve();
       }),
-      getCurrentView: sandbox.stub(Dialog.prototype, 'getCurrentView',
-          () => currentView),
+      getCurrentView: sandbox.stub(
+        Dialog.prototype,
+        'getCurrentView',
+        () => currentView
+      ),
     };
     let graypaneAttached;
     const graypane = dialogManager.popupGraypane_;
@@ -76,7 +78,7 @@ describes.realWin('DialogManager', {}, env => {
 
   it('should open dialog as hidden', () => {
     expect(dialogManager.dialog_).to.be.null;
-    return dialogManager.openDialog(/* hidden */true).then(dialog => {
+    return dialogManager.openDialog(/* hidden */ true).then(dialog => {
       expect(dialog).to.exist;
       expect(dialogManager.dialog_).to.equal(dialog);
       expect(dialogIfc.open).to.be.calledWithExactly(true);

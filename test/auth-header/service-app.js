@@ -17,7 +17,7 @@
 /*eslint-env node*/
 'use strict';
 
-const app = module.exports = require('express').Router();
+const app = (module.exports = require('express').Router());
 app.use(require('cookie-parser')());
 
 /**
@@ -26,8 +26,9 @@ app.get('/set-cookie', (req, res) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-  res.cookie('test-auth-header', '1',
-    {maxAge: /* 24 hours */ 24 * 1000 * 60 * 60});
+  res.cookie('test-auth-header', '1', {
+    maxAge: /* 24 hours */ 24 * 1000 * 60 * 60,
+  });
   res.send('Done.');
 });
 
@@ -42,9 +43,11 @@ function echoHandler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-  res.send(JSON.stringify({
-    method: req.method,
-    cookie: req.cookies && req.cookies['test-auth-header'],
-    authorization: req.headers['authorization'],
-  }));
+  res.send(
+    JSON.stringify({
+      method: req.method,
+      cookie: req.cookies && req.cookies['test-auth-header'],
+      authorization: req.headers['authorization'],
+    })
+  );
 }

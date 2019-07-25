@@ -37,7 +37,6 @@ export function values(target) {
   return output;
 }
 
-
 /**
  * Sets the Object.values polyfill if it does not exist.
  * @param {!Window} win

@@ -15,7 +15,7 @@
  */
 'use strict';
 
-var astUtils = require('eslint/lib/ast-utils');
+var astUtils = require('eslint/lib/shared/ast-utils');
 
 var GLOBALS = Object.create(null);
 GLOBALS.window = 'Use `self` instead.';
