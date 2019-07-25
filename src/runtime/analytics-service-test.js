@@ -16,7 +16,6 @@
 
 import {ActivityIframePort} from '../components/activities';
 import {AnalyticsEvent,
-    AnalyticsRequest,
     EventOriginator} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ConfiguredRuntime} from './runtime';
@@ -126,7 +125,8 @@ describes.realWin('AnalyticsService', {}, env => {
     it('should send message on port and openIframe called only once', () => {
       sandbox.stub(
           activityIframePort,
-          'messageDeprecated'
+          'execute',
+          () => {}
       );
       registeredCallback({
         eventType: AnalyticsEvent.UNKNOWN,
@@ -137,17 +137,13 @@ describes.realWin('AnalyticsService', {}, env => {
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
-        expect(activityIframePort.messageDeprecated).to.be.calledOnce;
-        const firstArgument =
-            activityIframePort.messageDeprecated.getCall(0).args[0];
-        expect(firstArgument['buf']).to.not.be.null;
-        const /* {?AnalyticsRequest} */ request =
-          new AnalyticsRequest(firstArgument['buf']);
-        const meta = request.getMeta();
-        expect(request.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
-        expect(meta.getEventOriginator()).to
-            .equal(EventOriginator.UNKNOWN_CLIENT);
-        expect(meta.getIsFromUserAction()).to.be.null;
+        expect(activityIframePort.execute).to.be.calledOnce;
+        const /* {?AnalyticsRequest} */ requestSent =
+            activityIframePort.execute.getCall(0).args[0];
+        expect(requestSent.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
+        expect(requestSent.getMeta().getEventOriginator()).to.deep.equal(
+            EventOriginator.UNKNOWN_CLIENT);
+        expect(requestSent.getMeta().getIsFromUserAction()).to.be.null;
         registeredCallback({
           eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
           eventOriginator: EventOriginator.SWG_CLIENT,
@@ -166,11 +162,9 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(thirdArgument).to.deep.equal(feArgs({
           publicationId: pageConfig.getPublicationId(),
         }));
-        const messageArgument =
-            activityIframePort.messageDeprecated.getCall(1).args[0];
-        expect(messageArgument['buf']).to.not.be.null;
         const /* {?AnalyticsRequest} */ request =
-          new AnalyticsRequest(messageArgument['buf']);
+            activityIframePort.execute.getCall(1).args[0];
+        expect(request).to.not.be.null;
         const meta = request.getMeta();
         expect(request.getEvent()).to.deep.equal(
             AnalyticsEvent.IMPRESSION_PAYWALL);
@@ -182,7 +176,8 @@ describes.realWin('AnalyticsService', {}, env => {
     it('should create correct context for logging', () => {
       sandbox.stub(
           activityIframePort,
-          'messageDeprecated'
+          'execute',
+          () => {}
       );
       AnalyticsService.prototype.getQueryString_ = () => {
         return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
@@ -196,12 +191,10 @@ describes.realWin('AnalyticsService', {}, env => {
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
-        expect(activityIframePort.messageDeprecated).to.be.calledOnce;
-        const firstArgument =
-            activityIframePort.messageDeprecated.getCall(0).args[0];
-        expect(firstArgument['buf']).to.not.be.null;
+        expect(activityIframePort.execute).to.be.calledOnce;
         const /* {?AnalyticsRequest} */ request =
-            new AnalyticsRequest(firstArgument['buf']);
+            activityIframePort.execute.getCall(0).args[0];
+        expect(request).to.not.be.null;
         expect(request.getEvent()).to.deep.equal(
             AnalyticsEvent.ACTION_SUBSCRIBE);
         expect(request.getContext()).to.not.be.null;
@@ -221,18 +214,17 @@ describes.realWin('AnalyticsService', {}, env => {
       setExperimentsStringForTesting('');
       sandbox.stub(
           activityIframePort,
-          'messageDeprecated'
+          'execute',
+          () => {}
       );
       registeredCallback(event);
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
-        expect(activityIframePort.messageDeprecated).to.be.calledOnce;
-        const firstArgument =
-            activityIframePort.messageDeprecated.getCall(0).args[0];
-        expect(firstArgument['buf']).to.not.be.null;
+        expect(activityIframePort.execute).to.be.calledOnce;
         const /* {?AnalyticsRequest} */ request =
-            new AnalyticsRequest(firstArgument['buf']);
+            activityIframePort.execute.getCall(0).args[0];
+        expect(request).to.not.be.null;
         expect(request.getContext().getLabelList()).to.deep.equal([]);
       });
     });
@@ -241,18 +233,17 @@ describes.realWin('AnalyticsService', {}, env => {
       setExperimentsStringForTesting('experiment-A,experiment-B');
       sandbox.stub(
           activityIframePort,
-          'messageDeprecated'
+          'execute',
+          () => {}
       );
       registeredCallback(event);
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
-        expect(activityIframePort.messageDeprecated).to.be.calledOnce;
-        const firstArgument =
-            activityIframePort.messageDeprecated.getCall(0).args[0];
-        expect(firstArgument['buf']).to.not.be.null;
+        expect(activityIframePort.execute).to.be.calledOnce;
         const /* {?AnalyticsRequest} */ request =
-            new AnalyticsRequest(firstArgument['buf']);
+            activityIframePort.execute.getCall(0).args[0];
+        expect(request).to.not.be.null;
         expect(request.getContext().getLabelList())
             .to.deep.equal(['experiment-A', 'experiment-B']);
       });
@@ -263,15 +254,15 @@ describes.realWin('AnalyticsService', {}, env => {
       setExperimentsStringForTesting('E1,E2');
       sandbox.stub(
           activityIframePort,
-          'messageDeprecated'
+          'execute',
+          () => {}
       );
       registeredCallback(event);
       return analyticsService.lastAction_.then(() => {
         return activityIframePort.whenReady();
       }).then(() => {
-        const firstArgument =
-            activityIframePort.messageDeprecated.getCall(0).args[0];
-        const request = new AnalyticsRequest(firstArgument['buf']);
+        const /** {?AnalyticsRequest} */ request =
+            activityIframePort.execute.getCall(0).args[0];
         expect(request.getContext().getLabelList())
             .to.deep.equal(['L1', 'L2', 'E1', 'E2']);
 
@@ -279,9 +270,8 @@ describes.realWin('AnalyticsService', {}, env => {
         registeredCallback(event);
         return analyticsService.lastAction_;
       }).then(() => {
-        const firstArgument =
-            activityIframePort.messageDeprecated.getCall(1).args[0];
-        const request = new AnalyticsRequest(firstArgument['buf']);
+        const /** {?AnalyticsRequest} */ request =
+            activityIframePort.execute.getCall(1).args[0];
         expect(request.getContext().getLabelList())
             .to.deep.equal(['L1', 'L2', 'E1', 'E2', 'L3', 'L4']);
       });
