@@ -31,8 +31,11 @@ describes.realWin('Propensity', {}, env => {
   beforeEach(() => {
     win = env.win;
     config = new PageConfig('pub1', true);
-    sandbox.stub(ClientEventManager.prototype, 'registerEventListener',
-        listener => propensityServerListener = listener);
+    sandbox.stub(
+      ClientEventManager.prototype,
+      'registerEventListener',
+      listener => (propensityServerListener = listener)
+    );
     propensity = new Propensity(win, config, new ClientEventManager());
   });
 
@@ -109,12 +112,16 @@ describes.realWin('Propensity', {}, env => {
 
   it('should send subscription state', () => {
     let subscriptionState = null;
+    sandbox.stub(ClientEventManager.prototype, 'logEvent', event =>
+      propensityServerListener(event)
+    );
     sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState', state => {
       subscriptionState = state;
     });
     expect(() => {
       propensity.sendSubscriptionState(SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
+
     expect(subscriptionState).to.equal(SubscriptionState.UNKNOWN);
   });
 
@@ -124,8 +131,9 @@ describes.realWin('Propensity', {}, env => {
     sandbox.stub(Xhr.prototype, 'fetch', () => {
       throw new Error('publisher not whitelisted');
     });
-    sandbox.stub(ClientEventManager.prototype, 'logEvent',
-        event => propensityServerListener(event));
+    sandbox.stub(ClientEventManager.prototype, 'logEvent', event =>
+      propensityServerListener(event)
+    );
     expect(() => {
       propensity.sendSubscriptionState(SubscriptionState.UNKNOWN);
     }).to.throw('publisher not whitelisted');

@@ -16,7 +16,7 @@
 import {Xhr} from '../utils/xhr';
 import {adsUrl} from './services';
 import {EventOriginator, AnalyticsEvent} from '../proto/api_messages';
-import {isObject,isBoolean} from '../utils/types';
+import {isObject, isBoolean} from '../utils/types';
 import {ExperimentFlags} from './experiment-flags';
 import {isExperimentOn} from './experiments';
 import {analyticsEventToPublisherEvent} from './event-type-mapping';
@@ -151,8 +151,10 @@ export class PropensityServer {
    */
   handleClientEvent_(event) {
     if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
-      this.sendSubscriptionState(event.additionalParameters['state'],
-          event.additionalParameters['productsOrSkus']);
+      this.sendSubscriptionState(
+        event.additionalParameters['state'],
+        event.additionalParameters['productsOrSkus']
+      );
       return;
     }
     const propEvent = analyticsEventToPublisherEvent(event.eventType);
