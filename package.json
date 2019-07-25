@@ -5,8 +5,8 @@
   "description": "Subscribe with Google",
   "main": "index.js",
   "engines": {
-    "node": "^8.0.0 || ^10.0.0",
-    "yarn": ">=1.0.2"
+    "node": "^10.0.0",
+    "yarn": "^1.10.1"
   },
   "author": "Subscribe with Google Authors",
   "license": "Apache-2.0",
