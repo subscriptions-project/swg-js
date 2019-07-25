@@ -16,12 +16,10 @@
 
 import {isDocumentReady, whenDocumentReady} from '../utils/document-ready';
 
-
 /**
  * @interface
  */
 export class Doc {
-
   /**
    * @return {!Window}
    */
@@ -66,24 +64,21 @@ export class Doc {
   whenReady() {}
 }
 
-
 /** @implements {Doc} */
 export class GlobalDoc {
-
   /**
    * @param {!Window|!Document} winOrDoc
    */
   constructor(winOrDoc) {
     const isWin = !!winOrDoc.document;
     /** @private @const {!Window} */
-    this.win_ = isWin ?
-        /** @type {!Window} */ (winOrDoc) :
-        /** @type {!Window} */ (
-            (/** @type {!Document} */ (winOrDoc)).defaultView);
+    this.win_ = /** @type {!Window} */ (isWin
+      ? /** @type {!Window} */ (winOrDoc)
+      : /** @type {!Document} */ (winOrDoc).defaultView);
     /** @private @const {!Document} */
-    this.doc_ = isWin ?
-        /** @type {!Window} */ (winOrDoc).document :
-        /** @type {!Document} */ (winOrDoc);
+    this.doc_ = isWin
+      ? /** @type {!Window} */ (winOrDoc).document
+      : /** @type {!Document} */ (winOrDoc);
   }
 
   /** @override */
@@ -123,18 +118,17 @@ export class GlobalDoc {
   }
 }
 
-
 /**
  * @param {!Document|!Window|!Doc} input
  * @return {!Doc}
  */
 export function resolveDoc(input) {
   // Is it a `Document`
-  if ((/** @type {!Document} */ (input)).nodeType === /* DOCUMENT */ 9) {
+  if (/** @type {!Document} */ (input).nodeType === /* DOCUMENT */ 9) {
     return new GlobalDoc(/** @type {!Document} */ (input));
   }
   // Is it a `Window`?
-  if ((/** @type {!Window} */ (input)).document) {
+  if (/** @type {!Window} */ (input).document) {
     return new GlobalDoc(/** @type {!Window} */ (input));
   }
   return /** @type {!Doc} */ (input);

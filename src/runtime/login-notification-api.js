@@ -18,7 +18,6 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
-
 export class LoginNotificationApi {
   /**
    * @param {!./deps.DepsDef} deps
@@ -41,17 +40,17 @@ export class LoginNotificationApi {
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl('/loginiframe'),
-        feArgs({
-          publicationId: deps.pageConfig().getPublicationId(),
-          productId: deps.pageConfig().getProductId(),
-          // No need to ask the user. Just tell them you're logging them in.
-          userConsent: false,
-          // TODO(chenshay): Pass entitlements value here.
-        }),
-        /* shouldFadeBody */ true
+      this.win_,
+      this.activityPorts_,
+      feUrl('/loginiframe'),
+      feArgs({
+        publicationId: deps.pageConfig().getPublicationId(),
+        productId: deps.pageConfig().getProductId(),
+        // No need to ask the user. Just tell them you're logging them in.
+        userConsent: false,
+        // TODO(chenshay): Pass entitlements value here.
+      }),
+      /* shouldFadeBody */ true
     );
   }
 
@@ -60,18 +59,23 @@ export class LoginNotificationApi {
    * @return {!Promise}
    */
   start() {
-    this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SHOW_LOGIN_NOTIFICATION);
+    this.deps_
+      .callbacks()
+      .triggerFlowStarted(SubscriptionFlows.SHOW_LOGIN_NOTIFICATION);
 
     this.openViewPromise_ = this.dialogManager_.openView(
-        this.activityIframeView_);
+      this.activityIframeView_
+    );
 
-    return this.activityIframeView_.acceptResult().then(() => {
-      // The consent part is complete.
-      this.dialogManager_.completeView(this.activityIframeView_);
-    }, reason => {
-      this.dialogManager_.completeView(this.activityIframeView_);
-      throw reason;
-    });
+    return this.activityIframeView_.acceptResult().then(
+      () => {
+        // The consent part is complete.
+        this.dialogManager_.completeView(this.activityIframeView_);
+      },
+      reason => {
+        this.dialogManager_.completeView(this.activityIframeView_);
+        throw reason;
+      }
+    );
   }
 }

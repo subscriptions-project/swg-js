@@ -15,10 +15,7 @@
  */
 
 import {createElement} from '../utils/dom';
-import {
-  resetStyles,
-  setImportantStyles,
-} from '../utils/style';
+import {resetStyles, setImportantStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 
 /** @const {!Object<string, string|number>} */
@@ -44,14 +41,12 @@ const iframeAttributes = {
  * The class Notification toast.
  */
 export class Toast {
-
   /**
    * @param {!../runtime/deps.DepsDef} deps
    * @param {string} src
    * @param {!Object<string, ?>} args
    */
   constructor(deps, src, args) {
-
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
@@ -68,12 +63,11 @@ export class Toast {
     this.animating_ = null;
 
     /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ =
-        /** @type {!HTMLIFrameElement} */ (
-            createElement(
-                this.doc_.getWin().document,
-                'iframe',
-                iframeAttributes));
+    this.iframe_ = /** @type {!HTMLIFrameElement} */ (createElement(
+      this.doc_.getWin().document,
+      'iframe',
+      iframeAttributes
+    ));
 
     setImportantStyles(this.iframe_, toastImportantStyles);
 
@@ -96,7 +90,7 @@ export class Toast {
    * @return {!Promise}
    */
   open() {
-    this.doc_.getBody().appendChild(this.iframe_);  // Fires onload.
+    this.doc_.getBody().appendChild(this.iframe_); // Fires onload.
     return this.buildToast_();
   }
 
@@ -105,30 +99,37 @@ export class Toast {
    */
   buildToast_() {
     const toastDurationSeconds = 7;
-    return this.activityPorts_.openIframe(
-        this.iframe_, this.src_, this.args_).then(port => {
-          return port.whenReady();
-        }).then(() => {
-          resetStyles(this.iframe_, ['height']);
+    return this.activityPorts_
+      .openIframe(this.iframe_, this.src_, this.args_)
+      .then(port => {
+        return port.whenReady();
+      })
+      .then(() => {
+        resetStyles(this.iframe_, ['height']);
 
-          this.animate_(() => {
-            setImportantStyles(this.iframe_, {
-              'transform': 'translateY(100%)',
-              'opactiy': 1,
-              'visibility': 'visible',
-            });
-            return transition(this.iframe_, {
+        this.animate_(() => {
+          setImportantStyles(this.iframe_, {
+            'transform': 'translateY(100%)',
+            'opactiy': 1,
+            'visibility': 'visible',
+          });
+          return transition(
+            this.iframe_,
+            {
               'transform': 'translateY(0)',
               'opacity': 1,
               'visibility': 'visible',
-            }, 400, 'ease-out');
-          });
-
-          // Close the Toast after the specified duration.
-          this.doc_.getWin().setTimeout(() => {
-            this.close();
-          }, (toastDurationSeconds + 1) * 1000);
+            },
+            400,
+            'ease-out'
+          );
         });
+
+        // Close the Toast after the specified duration.
+        this.doc_.getWin().setTimeout(() => {
+          this.close();
+        }, (toastDurationSeconds + 1) * 1000);
+      });
   }
 
   /**
@@ -138,13 +139,18 @@ export class Toast {
    */
   animate_(callback) {
     const wait = this.animating_ || Promise.resolve();
-    return this.animating_ = wait.then(() => {
-      return callback();
-    }, () => {
-      // Ignore errors to make sure animations don't get stuck.
-    }).then(() => {
-      this.animating_ = null;
-    });
+    return (this.animating_ = wait
+      .then(
+        () => {
+          return callback();
+        },
+        () => {
+          // Ignore errors to make sure animations don't get stuck.
+        }
+      )
+      .then(() => {
+        this.animating_ = null;
+      }));
   }
 
   /**
@@ -159,11 +165,16 @@ export class Toast {
         return Promise.resolve();
       }, 500);
 
-      return transition(this.iframe_, {
-        'transform': 'translateY(100%)',
-        'opacity': 1,
-        'visibility': 'visible',
-      }, 400, 'ease-out');
+      return transition(
+        this.iframe_,
+        {
+          'transform': 'translateY(100%)',
+          'opacity': 1,
+          'visibility': 'visible',
+        },
+        400,
+        'ease-out'
+      );
     });
   }
 }

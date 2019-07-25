@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
- /**
-  * Debug logger, only log message if #swg.log=1
-  * @param {...*} var_args [decription]
-  */
+/**
+ * Debug logger, only log message if #swg.log=1
+ * @param {...*} var_args [decription]
+ */
 export function debugLog(var_args) {
   if (/swg.debug=1/.test(self.location.hash)) {
     const logArgs = Array.prototype.slice.call(arguments, 0);
@@ -91,7 +91,7 @@ function pushIfNonEmpty(array, val) {
 }
 
 function toString(val) {
-// Do check equivalent to `val instanceof Element` without cross-window bug
+  // Do check equivalent to `val instanceof Element` without cross-window bug
   if (val && val.nodeType == 1) {
     return val.tagName.toLowerCase() + (val.id ? '#' + val.id : '');
   }
