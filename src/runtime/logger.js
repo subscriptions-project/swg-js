@@ -49,15 +49,16 @@ export class Logger {
     if (jsonProducts) {
       productsOrSkus = JSON.stringify(jsonProducts);
     }
-    this.eventManagerPromise_.then(eventMan => eventMan.logEvent({
-      eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: {
-        state,
-        productsOrSkus,
-      },
-    }));
+    this.eventManagerPromise_.then(eventMan =>
+      eventMan.logEvent({
+        eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
+        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: {
+          state,
+          productsOrSkus,
+        },
+      }));
   }
 
   /** @override */
@@ -87,7 +88,7 @@ export class Logger {
     }
     this.eventManagerPromise_.then(eventMan => eventMan.logEvent({
       eventType: publisherEventToAnalyticsEvent(userEvent.name),
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
       isFromUserAction: userEvent.active,
       additionalParameters: data,
     }));
