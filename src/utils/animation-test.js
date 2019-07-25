@@ -17,7 +17,6 @@
 import {getStyle} from './style';
 import {transition} from './animation';
 
-
 describes.sandboxed('transition', {}, () => {
   let doc;
   let clock;
@@ -35,9 +34,14 @@ describes.sandboxed('transition', {}, () => {
   });
 
   it('should set transition', () => {
-    const promise = transition(el, {
-      transform: 'translateY(11px)',
-    }, 100, 'ease-in');
+    const promise = transition(
+      el,
+      {
+        transform: 'translateY(11px)',
+      },
+      100,
+      'ease-in'
+    );
     clock.tick(1);
     expect(getStyle(el, 'transform')).to.equal('translateY(11px)');
     const transitionStyle = getStyle(el, 'transition');

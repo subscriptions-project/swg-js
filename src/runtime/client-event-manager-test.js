@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import * as EventManagerApi from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 
@@ -175,8 +175,8 @@ describes.sandboxed('EventManager', {}, () => {
 
       it('should validate additionalParameters', () => {
         event.additionalParameters = BAD_VALUE;
-        expected = 'Event has an invalid additionalParameters('
-            + BAD_VALUE + ')';
+        expected =
+          'Event has an invalid additionalParameters(' + BAD_VALUE + ')';
         tryIt();
         expect(errorCount).to.equal(1);
         expect(matchedExpected).to.equal(1);
@@ -201,7 +201,6 @@ describes.sandboxed('EventManager', {}, () => {
     });
 
     it('should log listener errors to the console', function*() {
-
       eventMan.registerEventListener(() => {
         throw errorSent;
       });
@@ -248,9 +247,9 @@ describes.sandboxed('EventManager', {}, () => {
     it('should be able to filter out some events', function*() {
       //filter out the default origin
       eventMan.registerEventFilterer(event =>
-        event.eventOriginator === DEFAULT_ORIGIN ?
-            EventManagerApi.FilterResult.CANCEL_EVENT :
-            EventManagerApi.FilterResult.PROCESS_EVENT
+        event.eventOriginator === DEFAULT_ORIGIN
+          ? EventManagerApi.FilterResult.CANCEL_EVENT
+          : EventManagerApi.FilterResult.PROCESS_EVENT
       );
 
       //ensure the default origin is filtered out

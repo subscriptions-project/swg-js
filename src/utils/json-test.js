@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  getValueForExpr,
-  recreateNonProtoObject,
-  tryParseJson,
-} from './json';
+import {getValueForExpr, recreateNonProtoObject, tryParseJson} from './json';
 
 describe('json', () => {
   describe('getValueForExpr', () => {

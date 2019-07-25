@@ -16,25 +16,25 @@
 
 import {createElement} from '../utils/dom';
 
-
 /**
  * Loading indicator class. Builds the loading indicator view to be injected in
  * parent element <iframe class="swg-dialog"> element. Provides methods to
  * show/hide loading indicator.
  */
 export class LoadingView {
-
   /**
    * @param {!Document} doc
    */
   constructor(doc) {
-
     /** @private @const {!Document} */
     this.doc_ = doc;
 
     /** @private @const {!Element} */
-    this.loadingContainer_ =
-        createElement(this.doc_, 'swg-loading-container', {});
+    this.loadingContainer_ = createElement(
+      this.doc_,
+      'swg-loading-container',
+      {}
+    );
 
     /** @private @const {!Element} */
     this.loading_ = createElement(this.doc_, 'swg-loading', {});
@@ -76,12 +76,18 @@ export class LoadingView {
   buildLoadingIndicator_() {
     const loadingContainer = this.loading_;
 
-    const loadingIndicatorTopContainer =
-        createElement(this.doc_, 'swg-loading-animate', {});
+    const loadingIndicatorTopContainer = createElement(
+      this.doc_,
+      'swg-loading-animate',
+      {}
+    );
     loadingContainer.appendChild(loadingIndicatorTopContainer);
 
-    const loadingIndicatorChildContainer =
-        createElement(this.doc_, 'swg-loading-image', {});
+    const loadingIndicatorChildContainer = createElement(
+      this.doc_,
+      'swg-loading-image',
+      {}
+    );
     loadingIndicatorTopContainer.appendChild(loadingIndicatorChildContainer);
   }
 }

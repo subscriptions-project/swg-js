@@ -15,7 +15,7 @@
  */
 import {Propensity} from './propensity';
 import * as PropensityApi from '../api/propensity-api';
-import {Event,SubscriptionState} from '../api/logger-api';
+import {Event, SubscriptionState} from '../api/logger-api';
 import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
@@ -50,30 +50,44 @@ describes.realWin('Propensity', {}, env => {
 
     expect(() => {
       propensity.sendSubscriptionState(SubscriptionState.SUBSCRIBER);
-    }).to.throw('Entitlements must be provided for users with'
-        + ' active or expired subscriptions');
+    }).to.throw(
+      'Entitlements must be provided for users with' +
+        ' active or expired subscriptions'
+    );
     expect(() => {
       propensity.sendSubscriptionState(SubscriptionState.PAST_SUBSCRIBER);
-    }).to.throw('Entitlements must be provided for users with'
-        + ' active or expired subscriptions');
+    }).to.throw(
+      'Entitlements must be provided for users with' +
+        ' active or expired subscriptions'
+    );
     expect(() => {
       const productsOrSkus = {};
       productsOrSkus['product'] = 'basic-monthly';
       propensity.sendSubscriptionState(
-          SubscriptionState.SUBSCRIBER, productsOrSkus);
-    }).not.throw('Entitlements must be provided for users with'
-        + ' active or expired subscriptions');
+        SubscriptionState.SUBSCRIBER,
+        productsOrSkus
+      );
+    }).not.throw(
+      'Entitlements must be provided for users with' +
+        ' active or expired subscriptions'
+    );
     expect(() => {
       const productsOrSkus = {};
       productsOrSkus['product'] = 'basic-monthly';
       propensity.sendSubscriptionState(
-          SubscriptionState.PAST_SUBSCRIBER, productsOrSkus);
-    }).not.throw('Entitlements must be provided for users with'
-        + ' active or expired subscriptions');
+        SubscriptionState.PAST_SUBSCRIBER,
+        productsOrSkus
+      );
+    }).not.throw(
+      'Entitlements must be provided for users with' +
+        ' active or expired subscriptions'
+    );
     expect(() => {
       const productsOrSkus = ['basic-monthly'];
       propensity.sendSubscriptionState(
-          SubscriptionState.SUBSCRIBER, productsOrSkus);
+        SubscriptionState.SUBSCRIBER,
+        productsOrSkus
+      );
     }).throw(/Entitlements must be an Object/);
   });
 
@@ -91,10 +105,9 @@ describes.realWin('Propensity', {}, env => {
 
   it('should send subscription state', () => {
     let subscriptionState = null;
-    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState',
-        state => {
-          subscriptionState = state;
-        });
+    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState', state => {
+      subscriptionState = state;
+    });
     expect(() => {
       propensity.sendSubscriptionState(SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
@@ -112,8 +125,11 @@ describes.realWin('Propensity', {}, env => {
 
   it('should send events to event manager', () => {
     let eventSent = null;
-    sandbox.stub(ClientEventManager.prototype, 'logEvent',
-        event => eventSent = event);
+    sandbox.stub(
+      ClientEventManager.prototype,
+      'logEvent',
+      event => (eventSent = event)
+    );
     propensity.sendEvent({
       name: Event.IMPRESSION_PAYWALL,
     });
@@ -221,21 +237,22 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should return propensity score from server', () => {
-    const scoreDetails = [{
-      score: 42,
-      bucketed: false,
-    }];
-    sandbox.stub(PropensityServer.prototype, 'getPropensity',
-        () => {
-          return new Promise(resolve => {
-            setTimeout(() => {
-              resolve({
-                'header': {'ok': true},
-                'body': {'scores': scoreDetails},
-              });
-            }, 10);
+    const scoreDetails = [
+      {
+        score: 42,
+        bucketed: false,
+      },
+    ];
+    sandbox.stub(PropensityServer.prototype, 'getPropensity', () => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          resolve({
+            'header': {'ok': true},
+            'body': {'scores': scoreDetails},
           });
-        });
+        }, 10);
+      });
+    });
     return propensity.getPropensity().then(propensityScore => {
       expect(propensityScore).to.not.be.null;
       expect(propensityScore.header).to.not.be.null;

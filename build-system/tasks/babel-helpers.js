@@ -82,5 +82,5 @@ function buildBabelHelpers(cb) {
       .pipe(babelHelpers());
 }
 
-gulp.task('babel-helpers', 'Builds custom-babel-helpers.js',
-    buildBabelHelpers);
+buildBabelHelpers.description = 'Builds custom-babel-helpers.js';
+gulp.task('babel-helpers', buildBabelHelpers);
