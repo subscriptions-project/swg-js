@@ -22,6 +22,7 @@ import {
 } from './deferred-account-creation';
 import {SubscribeResponse} from './subscribe-response';
 import {PropensityApi} from './propensity-api';
+import {Logger} from '../runtime/logger';
 
 
 /**
@@ -252,6 +253,12 @@ export class Subscriptions {
    * @return {!Promise<PropensityApi>}
    */
   getPropensityModule() {}
+
+  /**
+   * Retrieves a logger used to log buy-flow events and communicate user state
+   * properties.
+   * @return {!Logger} */
+  getLogger() {}
 }
 
 

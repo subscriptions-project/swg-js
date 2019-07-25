@@ -75,6 +75,7 @@ import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
+import {Logger} from './logger';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
@@ -176,6 +177,19 @@ export class Runtime {
 
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
+
+    //this gives us a promise to event manager and resolves it once configured
+    //runtime is available
+    let eventManPromiseResolve;
+    /** @private @const {!Promise<ClientEventManager>} */
+    this.eventManPromise_ = new Promise(resolve =>
+        eventManPromiseResolve = resolve);
+    this.configured_(false).then(configuredRuntime => {
+      eventManPromiseResolve(configuredRuntime.eventManager());
+    });
+
+    /** @private @const {!Logger} */
+    this.logger_ = new Logger(this.eventManPromise_);
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
@@ -440,14 +454,9 @@ export class Runtime {
     });
   }
 
-  /**
-   * Log a subscription buy-flow event.
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   */
-  logEvent(event) {
-    this.configured_(false).then(configuredRuntime => {
-      configuredRuntime.eventManager().logEvent(event);
-    });
+  /** @override */
+  getLogger() {
+    return this.logger_;
   }
 }
 
@@ -473,6 +482,9 @@ export class ConfiguredRuntime {
     /** @private @const {!ClientEventManager} */
     this.eventManager_ = new ClientEventManager(opt_integr.configPromise);
 
+    /** @private @const {!Logger} */
+    this.logger_ = new Logger(Promise.resolve(this.eventManager_));
+
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
 
@@ -495,8 +507,8 @@ export class ConfiguredRuntime {
     this.pageConfig_ = pageConfig;
 
     /** @private @const {!Propensity} */
-    this.propensityModule_ = new Propensity(this.win_,
-      this.pageConfig_, this.eventManager_);
+    this.propensityModule_ = new Propensity(this.win_, this.pageConfig_,
+        this.eventManager_);
 
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
@@ -863,6 +875,11 @@ export class ConfiguredRuntime {
   eventManager() {
     return this.eventManager_;
   }
+
+  /** @override */
+  getLogger() {
+    return this.logger_;
+  }
 }
 
 /**
@@ -904,8 +921,8 @@ function createPublicRuntime(runtime) {
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
-    getPropensityModule: runtime
-        .getPropensityModule.bind(runtime),
+    getPropensityModule: runtime.getPropensityModule.bind(runtime),
+    getLogger: runtime.getLogger.bind(runtime),
   });
 }
 
