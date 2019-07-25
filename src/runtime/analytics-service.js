@@ -269,7 +269,8 @@ export class AnalyticsService {
       return;
     }
     this.lastAction_ = this.start_().then(port => {
-      port.messageDeprecated({'buf': this.createLogRequest_(event).toArray()});
+      const request = this.createLogRequest_(event);
+      port.execute(request);
     });
   }
 
