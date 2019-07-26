@@ -20,7 +20,6 @@ import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {Xhr} from '../utils/xhr';
 
 describes.realWin('Propensity', {}, env => {
   let win;
@@ -128,7 +127,7 @@ describes.realWin('Propensity', {}, env => {
   it('should report server errors', () => {
     //note that actual event manager will cause the error to be logged to the
     //console instead of being immediately thrown.
-    sandbox.stub(Xhr.prototype, 'fetch', () => {
+    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState', () => {
       throw new Error('publisher not whitelisted');
     });
     sandbox.stub(ClientEventManager.prototype, 'logEvent', event =>
