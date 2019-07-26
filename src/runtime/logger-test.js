@@ -37,7 +37,7 @@ describes.realWin('Logger', {}, env => {
 
     //we aren't testing event manager - this suppresses the promises
     sandbox
-      .stub(eventManager,'registerEventListener')
+      .stub(eventManager, 'registerEventListener')
       .callsFake(listener => (propensityServerListener = listener));
     sandbox.stub(eventManager, 'logEvent').callsFake(event => {
       try {
@@ -63,7 +63,7 @@ describes.realWin('Logger', {}, env => {
 
       beforeEach(() => {
         sandbox
-          .stub(PropensityServer.prototype,'sendSubscriptionState')
+          .stub(PropensityServer.prototype, 'sendSubscriptionState')
           .callsFake(() => {});
       });
 
