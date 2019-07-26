@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {Propensity} from './propensity';
-import {Event,SubscriptionState} from '../api/logger-api';
+import {Event, SubscriptionState} from '../api/logger-api';
 import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
@@ -36,8 +36,11 @@ describes.realWin('Logger', {}, env => {
     eventManager = new ClientEventManager(Promise.resolve());
 
     //we aren't testing event manager - this suppresses the promises
-    sandbox.stub(eventManager, 'registerEventListener',
-        listener => propensityServerListener = listener);
+    sandbox.stub(
+      eventManager,
+      'registerEventListener',
+      listener => (propensityServerListener = listener)
+    );
     sandbox.stub(eventManager, 'logEvent', event => {
       try {
         propensityServerListener(event);
@@ -55,13 +58,17 @@ describes.realWin('Logger', {}, env => {
   describe('subscription state', () => {
     describe('validation', () => {
       const errSubscState = 'Invalid subscription state provided';
-      const errEntitlements = 'Entitlements must be provided for users with'
-          + ' active or expired subscriptions';
+      const errEntitlements =
+        'Entitlements must be provided for users with' +
+        ' active or expired subscriptions';
       const productsOrSkus = {'product': 'basic-monthly'};
 
       beforeEach(() => {
-        sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState',
-            () => {});
+        sandbox.stub(
+          PropensityServer.prototype,
+          'sendSubscriptionState',
+          () => {}
+        );
       });
 
       it('subscription state', () => {
@@ -84,26 +91,35 @@ describes.realWin('Logger', {}, env => {
 
         expect(() => {
           logger.sendSubscriptionState(
-              SubscriptionState.SUBSCRIBER, productsOrSkus);
+            SubscriptionState.SUBSCRIBER,
+            productsOrSkus
+          );
         }).not.throw(errEntitlements);
 
         expect(() => {
           logger.sendSubscriptionState(
-              SubscriptionState.PAST_SUBSCRIBER, productsOrSkus);
+            SubscriptionState.PAST_SUBSCRIBER,
+            productsOrSkus
+          );
         }).not.throw(errEntitlements);
 
         expect(() => {
           const productsOrSkus = ['basic-monthly'];
           logger.sendSubscriptionState(
-              SubscriptionState.SUBSCRIBER, productsOrSkus);
+            SubscriptionState.SUBSCRIBER,
+            productsOrSkus
+          );
         }).throw(/Entitlements must be an Object/);
       });
     });
 
     it('should send subscription state', async function() {
       let subscriptionState = null;
-      sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState',
-          state => subscriptionState = state);
+      sandbox.stub(
+        PropensityServer.prototype,
+        'sendSubscriptionState',
+        state => (subscriptionState = state)
+      );
       logger.sendSubscriptionState(SubscriptionState.UNKNOWN);
       await logger.eventManagerPromise_;
       expect(subscriptionState).to.equal(SubscriptionState.UNKNOWN);
@@ -113,7 +129,9 @@ describes.realWin('Logger', {}, env => {
       const SENT_ERR = new Error('publisher not whitelisted');
       //note that actual event manager will cause the error to be logged to the
       //console instead of being immediately thrown.
-      sandbox.stub(Xhr.prototype, 'fetch', () => {throw SENT_ERR;});
+      sandbox.stub(Xhr.prototype, 'fetch', () => {
+        throw SENT_ERR;
+      });
       logger.sendSubscriptionState(SubscriptionState.UNKNOWN);
       await logger.eventManagerPromise_;
       expect(thrownError).to.equal(SENT_ERR);
@@ -124,7 +142,7 @@ describes.realWin('Logger', {}, env => {
     let receivedEvent;
 
     beforeEach(() => {
-      propensityServerListener = event => receivedEvent = event;
+      propensityServerListener = event => (receivedEvent = event);
     });
 
     it('should send events to event manager', async function() {
@@ -155,7 +173,7 @@ describes.realWin('Logger', {}, env => {
       };
 
       describe('name', () => {
-        it('should reject invalid', async function () {
+        it('should reject invalid', async function() {
           //ensure it rejects invalid Propensity.Event enum values
           testSend({
             name: 'invalid name',
@@ -164,7 +182,7 @@ describes.realWin('Logger', {}, env => {
           expect(receivedEvent).to.be.null;
         });
 
-        it('should allow valid', async function () {
+        it('should allow valid', async function() {
           //ensure it takes a valid enum with nothing else and fills in
           //appropriate defaults for other values
           await testSend({

@@ -151,8 +151,10 @@ export class PropensityServer {
    */
   handleClientEvent_(event) {
     if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
-      this.sendSubscriptionState(event.additionalParameters['state'],
-          event.additionalParameters['productsOrSkus']);
+      this.sendSubscriptionState(
+        event.additionalParameters['state'],
+        event.additionalParameters['productsOrSkus']
+      );
       return;
     }
     const propEvent = analyticsEventToPublisherEvent(event.eventType);

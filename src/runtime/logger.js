@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Event,SubscriptionState} from '../api/logger-api';
-import {isObject,isEnumValue,isBoolean} from '../utils/types';
-import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
+import {Event, SubscriptionState} from '../api/logger-api';
+import {isObject, isEnumValue, isBoolean} from '../utils/types';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {publisherEventToAnalyticsEvent} from './event-type-mapping';
 
 /**
  * @implements {../api/logger-api.LoggerApi}
  */
 export class Logger {
-
   /**
    * @param {!Promise<../api/client-event-manager-api.ClientEventManagerApi>} eventManagerPromise
    */
@@ -36,11 +35,15 @@ export class Logger {
     if (!isEnumValue(SubscriptionState, state)) {
       throw new Error('Invalid subscription state provided');
     }
-    if ((SubscriptionState.SUBSCRIBER == state ||
-         SubscriptionState.PAST_SUBSCRIBER == state)
-        && !jsonProducts) {
-      throw new Error('Entitlements must be provided for users with'
-          + ' active or expired subscriptions');
+    if (
+      (SubscriptionState.SUBSCRIBER == state ||
+        SubscriptionState.PAST_SUBSCRIBER == state) &&
+      !jsonProducts
+    ) {
+      throw new Error(
+        'Entitlements must be provided for users with' +
+          ' active or expired subscriptions'
+      );
     }
     if (jsonProducts && !isObject(jsonProducts)) {
       throw new Error('Entitlements must be an Object');
@@ -58,14 +61,17 @@ export class Logger {
           state,
           productsOrSkus,
         },
-      }));
+      })
+    );
   }
 
   /** @override */
   sendEvent(userEvent) {
     let data = null;
-    if (!isEnumValue(Event, userEvent.name)
-        || !publisherEventToAnalyticsEvent(userEvent.name)) {
+    if (
+      !isEnumValue(Event, userEvent.name) ||
+      !publisherEventToAnalyticsEvent(userEvent.name)
+    ) {
       throw new Error('Invalid user event provided(' + userEvent.name + ')');
     }
 
@@ -86,12 +92,14 @@ export class Logger {
     } else if (userEvent.active != null) {
       throw new Error('Event active must be a boolean');
     }
-    this.eventManagerPromise_.then(eventMan => eventMan.logEvent({
-      eventType: publisherEventToAnalyticsEvent(userEvent.name),
-      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-      isFromUserAction: userEvent.active,
-      additionalParameters: data,
-    }));
+    this.eventManagerPromise_.then(eventMan =>
+      eventMan.logEvent({
+        eventType: publisherEventToAnalyticsEvent(userEvent.name),
+        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+        isFromUserAction: userEvent.active,
+        additionalParameters: data,
+      })
+    );
   }
 
   /**
