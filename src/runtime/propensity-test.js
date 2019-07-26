@@ -30,11 +30,9 @@ describes.realWin('Propensity', {}, env => {
   beforeEach(() => {
     win = env.win;
     config = new PageConfig('pub1', true);
-    sandbox.stub(
-      ClientEventManager.prototype,
-      'registerEventListener',
-      listener => (propensityServerListener = listener)
-    );
+    sandbox
+      .stub(ClientEventManager.prototype, 'registerEventListener')
+      .callsFake(listener => (propensityServerListener = listener));
     propensity = new Propensity(win, config, new ClientEventManager());
   });
 
