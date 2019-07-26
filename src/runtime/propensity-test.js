@@ -126,6 +126,7 @@ describes.realWin('Propensity', {}, env => {
     expect(() => {
       propensity.sendSubscriptionState(SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
+
     expect(subscriptionState).to.equal(SubscriptionState.UNKNOWN);
   });
 
