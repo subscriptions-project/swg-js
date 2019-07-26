@@ -40,7 +40,9 @@ describes.realWin('Propensity', {}, env => {
 
   it('should provide valid subscription state', () => {
     //don't actually send data to the server
-    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState', () => {});
+    sandbox
+      .stub(PropensityServer.prototype, 'sendSubscriptionState')
+      .callsFake(() => {});
 
     expect(() => {
       propensity.sendSubscriptionState(SubscriptionState.UNKNOWN);
@@ -52,7 +54,9 @@ describes.realWin('Propensity', {}, env => {
 
   it('should provide productsOrSkus for subscribed users', () => {
     //don't actually send data to the server
-    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState', () => {});
+    sandbox
+      .stub(PropensityServer.prototype, 'sendSubscriptionState')
+      .callsFake(() => {});
 
     expect(() => {
       propensity.sendSubscriptionState(SubscriptionState.SUBSCRIBER);
@@ -99,7 +103,9 @@ describes.realWin('Propensity', {}, env => {
 
   it('should request valid propensity type', () => {
     //don't make actual request to the server
-    sandbox.stub(PropensityServer.prototype, 'getPropensity', () => {});
+    sandbox
+      .stub(PropensityServer.prototype, 'getPropensity')
+      .callsFake(() => {});
 
     expect(() => {
       propensity.getPropensity(PropensityApi.PropensityType.GENERAL);
@@ -111,12 +117,14 @@ describes.realWin('Propensity', {}, env => {
 
   it('should send subscription state', () => {
     let subscriptionState = null;
-    sandbox.stub(ClientEventManager.prototype, 'logEvent', event =>
-      propensityServerListener(event)
-    );
-    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState', state => {
-      subscriptionState = state;
-    });
+    sandbox
+      .stub(ClientEventManager.prototype, 'logEvent')
+      .callsFake(event => propensityServerListener(event));
+    sandbox
+      .stub(PropensityServer.prototype, 'sendSubscriptionState')
+      .callsFake(state => {
+        subscriptionState = state;
+      });
     expect(() => {
       propensity.sendSubscriptionState(SubscriptionState.UNKNOWN);
     }).to.not.throw('Invalid subscription state provided');
@@ -127,12 +135,14 @@ describes.realWin('Propensity', {}, env => {
   it('should report server errors', () => {
     //note that actual event manager will cause the error to be logged to the
     //console instead of being immediately thrown.
-    sandbox.stub(PropensityServer.prototype, 'sendSubscriptionState', () => {
-      throw new Error('publisher not whitelisted');
-    });
-    sandbox.stub(ClientEventManager.prototype, 'logEvent', event =>
-      propensityServerListener(event)
-    );
+    sandbox
+      .stub(ClientEventManager.prototype, 'logEvent')
+      .callsFake(event => propensityServerListener(event));
+    sandbox
+      .stub(PropensityServer.prototype, 'sendSubscriptionState')
+      .callsFake(() => {
+        throw new Error('publisher not whitelisted');
+      });
     expect(() => {
       propensity.sendSubscriptionState(SubscriptionState.UNKNOWN);
     }).to.throw('publisher not whitelisted');
@@ -140,11 +150,9 @@ describes.realWin('Propensity', {}, env => {
 
   it('should send events to event manager', () => {
     let eventSent = null;
-    sandbox.stub(
-      ClientEventManager.prototype,
-      'logEvent',
-      event => (eventSent = event)
-    );
+    sandbox
+      .stub(ClientEventManager.prototype, 'logEvent')
+      .callsFake(event => (eventSent = event));
     propensity.sendEvent({
       name: Event.IMPRESSION_PAYWALL,
     });
@@ -160,7 +168,7 @@ describes.realWin('Propensity', {}, env => {
     let hasError;
     let receivedEvent;
 
-    sandbox.stub(ClientEventManager.prototype, 'logEvent', event => {
+    sandbox.stub(ClientEventManager.prototype, 'logEvent').callsFake(event => {
       receivedEvent = event;
     });
 
@@ -258,7 +266,7 @@ describes.realWin('Propensity', {}, env => {
         bucketed: false,
       },
     ];
-    sandbox.stub(PropensityServer.prototype, 'getPropensity', () => {
+    sandbox.stub(PropensityServer.prototype, 'getPropensity').callsFake(() => {
       return new Promise(resolve => {
         setTimeout(() => {
           resolve({
@@ -267,7 +275,7 @@ describes.realWin('Propensity', {}, env => {
           });
         }, 10);
       });
-    });
+    }, 10);
     return propensity.getPropensity().then(propensityScore => {
       expect(propensityScore).to.not.be.null;
       expect(propensityScore.header).to.not.be.null;
