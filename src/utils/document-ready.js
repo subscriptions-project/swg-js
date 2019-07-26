@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 /**
  * @param {!Document} doc
  * @return {string}
@@ -22,7 +21,6 @@
 function getReadyState(doc) {
   return /** @type {string} */ (doc['readyState']);
 }
-
 
 /**
  * Whether the document is ready.

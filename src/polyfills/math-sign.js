@@ -31,8 +31,7 @@ export function sign(x) {
   }
 
   return x > 0 ? 1 : -1;
-};
-
+}
 
 /**
  * Sets the Math.sign polyfill if it does not exist.

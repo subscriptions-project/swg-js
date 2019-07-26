@@ -15,7 +15,7 @@
  */
 
 import {FilterResult} from '../api/client-event-manager-api';
-import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
 import {log} from '../utils/log';
 
@@ -43,19 +43,27 @@ function validateEvent(event) {
   }
 
   if (!isEnumValue(EventOriginator, event.eventOriginator)) {
-    throw new Error(createEventErrorMessage('eventOriginator',
-        event.eventOriginator));
+    throw new Error(
+      createEventErrorMessage('eventOriginator', event.eventOriginator)
+    );
   }
 
-  if (!isObject(event.additionalParameters)
-      && event.additionalParameters != null) {
-    throw new Error(createEventErrorMessage('additionalParameters',
-        event.additionalParameters));
+  if (
+    !isObject(event.additionalParameters) &&
+    event.additionalParameters != null
+  ) {
+    throw new Error(
+      createEventErrorMessage(
+        'additionalParameters',
+        event.additionalParameters
+      )
+    );
   }
 
   if (event.isFromUserAction != null && !isBoolean(event.isFromUserAction)) {
-    throw new Error(createEventErrorMessage('isFromUserAction',
-        event.isFromUserAction));
+    throw new Error(
+      createEventErrorMessage('isFromUserAction', event.isFromUserAction)
+    );
   }
 }
 

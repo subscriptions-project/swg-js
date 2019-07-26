@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 import * as Promise from 'promise-pjs/promise';
 
 /**

@@ -28,7 +28,6 @@
 import {throttle, debounce} from './rate-limit';
 
 describes.realWin('function utils', {}, env => {
-  let sandbox;
   let clock;
   let win;
 

@@ -114,6 +114,5 @@ function mkdirSync(path) {
 }
 
 
-gulp.task('assets', 'Prepare assets', distAssets);
-// TODO(dvoytenko): remove after it cycles to prod.
-gulp.task('assets:swg-button', 'Prepare button assets', distAssets);
+distAssets.description = 'Prepare assets';
+gulp.task('assets', distAssets);
