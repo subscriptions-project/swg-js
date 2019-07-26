@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-import {
-  DeferredAccountCreationResponse,
-} from '../api/deferred-account-creation';
-import {
-  Entitlement,
-  Entitlements,
-} from '../api/entitlements';
+import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
+import {Entitlement, Entitlements} from '../api/entitlements';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
-
 
 describes.sandboxed('Entitlements', {}, () => {
   let ackSpy;
@@ -73,18 +67,18 @@ describes.sandboxed('Entitlements', {}, () => {
 
     expect(ents.enablesAny('source1')).to.be.true;
     expect(ents.enablesAny('source2')).to.be.true;
-    expect(ents.enablesAny('source3')).to.be.false;  // Unknown source.
+    expect(ents.enablesAny('source3')).to.be.false; // Unknown source.
     expect(ents.enablesThis('source1')).to.be.true;
-    expect(ents.enablesThis('source2')).to.be.false;  // No "product1".
-    expect(ents.enablesThis('source3')).to.be.false;  // Unknown source.
+    expect(ents.enablesThis('source2')).to.be.false; // No "product1".
+    expect(ents.enablesThis('source3')).to.be.false; // Unknown source.
     expect(ents.enables('product1', 'source1')).to.be.true;
-    expect(ents.enables('product1', 'source2')).to.be.false;  // No "product1"
+    expect(ents.enables('product1', 'source2')).to.be.false; // No "product1"
     expect(ents.enables('product2', 'source1')).to.be.true;
     expect(ents.enables('product2', 'source2')).to.be.true;
-    expect(ents.enables('product3', 'source1')).to.be.false;  // No "product3"
+    expect(ents.enables('product3', 'source1')).to.be.false; // No "product3"
     expect(ents.enables('product3', 'source2')).to.be.true;
-    expect(ents.enables('product4', 'source1')).to.be.false;  // No "product4".
-    expect(ents.enables('product4', 'source2')).to.be.false;  // No "product4".
+    expect(ents.enables('product4', 'source1')).to.be.false; // No "product4".
+    expect(ents.enables('product4', 'source2')).to.be.false; // No "product4".
     expect(ents.getEntitlementFor('product1', 'source1')).to.equal(list[0]);
     expect(ents.getEntitlementFor('product1', 'source2')).to.be.null;
     expect(ents.getEntitlementFor('product2', 'source1')).to.equal(list[0]);
@@ -94,8 +88,8 @@ describes.sandboxed('Entitlements', {}, () => {
     expect(ents.getEntitlementFor('product4', 'source1')).to.be.null;
     expect(ents.getEntitlementFor('product4', 'source2')).to.be.null;
     expect(ents.getEntitlementForThis('source1')).to.equal(list[0]);
-    expect(ents.getEntitlementForThis('source2')).to.be.null;  // No "product1".
-    expect(ents.getEntitlementForThis('source3')).to.be.null;  // No source.
+    expect(ents.getEntitlementForThis('source2')).to.be.null; // No "product1".
+    expect(ents.getEntitlementForThis('source3')).to.be.null; // No source.
 
     // Change current product.
     ents.product_ = 'product2';
@@ -105,21 +99,24 @@ describes.sandboxed('Entitlements', {}, () => {
     // Just source.
     expect(ents.getEntitlementForSource('source1')).to.equal(list[0]);
     expect(ents.getEntitlementForSource('source2')).to.equal(list[1]);
-    expect(ents.getEntitlementForSource('source3')).to.be.null;  // No source.
+    expect(ents.getEntitlementForSource('source3')).to.be.null; // No source.
   });
 
   it('should match products by wildcard', () => {
-    const list = [
-      new Entitlement('source1', ['pub:*'], 'token1'),
-    ];
-    const ents = new Entitlements('service1', 'RaW', list, 'pub:product1',
-        ackSpy);
+    const list = [new Entitlement('source1', ['pub:*'], 'token1')];
+    const ents = new Entitlements(
+      'service1',
+      'RaW',
+      list,
+      'pub:product1',
+      ackSpy
+    );
     expect(ents.enablesAny()).to.be.true;
     expect(ents.enablesThis()).to.be.true;
     expect(ents.enables('pub:product1')).to.be.true;
     expect(ents.enables('pub:product2')).to.be.true;
-    expect(ents.enables('product3')).to.be.false;  // Empty publication.
-    expect(ents.enables('otr:product4')).to.be.false;  // Different publication.
+    expect(ents.enables('product3')).to.be.false; // Empty publication.
+    expect(ents.enables('otr:product4')).to.be.false; // Different publication.
     expect(ents.getEntitlementFor('pub:product1')).to.equal(list[0]);
     expect(ents.getEntitlementFor('pub:product2')).to.equal(list[0]);
     expect(ents.getEntitlementFor('product3')).to.be.null;
@@ -127,9 +124,9 @@ describes.sandboxed('Entitlements', {}, () => {
     expect(ents.getEntitlementForThis()).to.equal(list[0]);
 
     expect(ents.enablesAny('source1')).to.be.true;
-    expect(ents.enablesAny('source2')).to.be.false;  // Unknown source.
+    expect(ents.enablesAny('source2')).to.be.false; // Unknown source.
     expect(ents.enablesThis('source1')).to.be.true;
-    expect(ents.enablesThis('source2')).to.be.false;  // Unknown source.
+    expect(ents.enablesThis('source2')).to.be.false; // Unknown source.
   });
 
   it('should clone', () => {
@@ -236,14 +233,11 @@ describes.sandboxed('Entitlements', {}, () => {
   });
 });
 
-
 describe('PurchaseData', () => {
   let pd;
 
   beforeEach(() => {
-    pd = new PurchaseData(
-        'RAW',
-        'SIG');
+    pd = new PurchaseData('RAW', 'SIG');
   });
 
   it('should correctly initialize', () => {
@@ -268,7 +262,6 @@ describe('PurchaseData', () => {
     });
   });
 });
-
 
 describes.sandboxed('SubscribeResponse', {}, () => {
   let sr, pd, ud, entitlements, complete, promise;
@@ -325,22 +318,19 @@ describes.sandboxed('SubscribeResponse', {}, () => {
   });
 });
 
-
 describe('UserData', () => {
   let userData;
 
   beforeEach(() => {
-    userData = new UserData(
-        'ID_TOKEN',
-        {
-          'sub': 'id1',
-          'email': 'id1@email.org',
-          'email_verified': true,
-          'name': 'Id One',
-          'picture': 'https://example.org/avatar/test',
-          'given_name': 'Id',
-          'family_name': 'One',
-        });
+    userData = new UserData('ID_TOKEN', {
+      'sub': 'id1',
+      'email': 'id1@email.org',
+      'email_verified': true,
+      'name': 'Id One',
+      'picture': 'https://example.org/avatar/test',
+      'given_name': 'Id',
+      'family_name': 'One',
+    });
   });
 
   it('should correctly initialize', () => {
@@ -381,14 +371,17 @@ describe('UserData', () => {
   });
 });
 
-
 describes.sandboxed('DeferredAccountCreationResponse', {}, () => {
   let ents, dacr, pd, pd2, ud, complete, promise;
 
   beforeEach(() => {
-    ents = new Entitlements('service1', 'RaW', [
-      new Entitlement('source1', ['product1', 'product2'], 'token1'),
-    ], 'product1', () => {});
+    ents = new Entitlements(
+      'service1',
+      'RaW',
+      [new Entitlement('source1', ['product1', 'product2'], 'token1')],
+      'product1',
+      () => {}
+    );
     pd = new PurchaseData('PD_RAW', 'PD_SIG');
     pd2 = new PurchaseData('PD_RAW2', 'PD_SIG2');
     ud = new UserData('ID_TOKEN', {sub: '1234'});

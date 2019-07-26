@@ -60,7 +60,9 @@ describes.realWin('LoginNotificationApi', {}, env => {
 
   it('should start the flow correctly', () => {
     callbacksMock.expects('triggerFlowStarted').once();
-    activitiesMock.expects('openIframe').withExactArgs(
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/loginiframe?_=_',
         {
@@ -68,22 +70,27 @@ describes.realWin('LoginNotificationApi', {}, env => {
           publicationId,
           productId,
           userConsent: false,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
 
     loginNotificationApi.start();
     return loginNotificationApi.openViewPromise_;
   });
 
   it('should handle failure', () => {
-    activitiesMock.expects('openIframe')
-        .returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
-    return loginNotificationApi.start().then(() => {
-      throw new Error('must have failed');
-    }, reason => {
-      expect(() => {throw reason;}).to.throw(/broken/);
-    });
+    return loginNotificationApi.start().then(
+      () => {
+        throw new Error('must have failed');
+      },
+      reason => {
+        expect(() => {
+          throw reason;
+        }).to.throw(/broken/);
+      }
+    );
   });
 });

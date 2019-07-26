@@ -18,7 +18,6 @@ import {Dialog} from './dialog';
 import {DialogManager} from './dialog-manager';
 import {GlobalDoc} from '../model/doc';
 
-
 describes.realWin('DialogManager', {}, env => {
   let clock;
   let win;
@@ -43,19 +42,22 @@ describes.realWin('DialogManager', {}, env => {
         return Promise.resolve(this);
       }),
       close: sandbox.stub(Dialog.prototype, 'close').callsFake(function() {}),
-      openView: sandbox.stub(Dialog.prototype, 'openView')
-          .callsFake(function(view) {
-            currentView = view;
-            return Promise.resolve();
-          }),
-      getCurrentView: sandbox.stub(Dialog.prototype, 'getCurrentView')
-          .callsFake(() => currentView),
+      openView: sandbox
+        .stub(Dialog.prototype, 'openView')
+        .callsFake(function(view) {
+          currentView = view;
+          return Promise.resolve();
+        }),
+      getCurrentView: sandbox
+        .stub(Dialog.prototype, 'getCurrentView')
+        .callsFake(() => currentView),
     };
     let graypaneAttached;
     const graypane = dialogManager.popupGraypane_;
     graypaneStubs = {
-      isAttached: sandbox.stub(graypane, 'isAttached')
-          .callsFake(() => graypaneAttached),
+      isAttached: sandbox
+        .stub(graypane, 'isAttached')
+        .callsFake(() => graypaneAttached),
       attach: sandbox.stub(graypane, 'attach').callsFake(() => {
         graypaneAttached = true;
       }),
@@ -78,7 +80,7 @@ describes.realWin('DialogManager', {}, env => {
 
   it('should open dialog as hidden', () => {
     expect(dialogManager.dialog_).to.be.null;
-    return dialogManager.openDialog(/* hidden */true).then(dialog => {
+    return dialogManager.openDialog(/* hidden */ true).then(dialog => {
       expect(dialog).to.exist;
       expect(dialogManager.dialog_).to.equal(dialog);
       expect(dialogIfc.open).to.be.calledWithExactly(true);

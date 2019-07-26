@@ -40,15 +40,13 @@ describes.realWin('LoadingView', {}, env => {
   });
 
   describe('loadingView', () => {
-
     it('should have rendered the loading indicator in <BODY>', () => {
       expect(loadingView).to.be.defined;
       assert.isFunction(loadingView.show);
       assert.isFunction(loadingView.hide);
 
       // Should have injected styles applied.
-      const loadingTagStyles =
-          win.getComputedStyle(loadingContainer);
+      const loadingTagStyles = win.getComputedStyle(loadingContainer);
 
       expect(loadingTagStyles.bottom).to.equal('0px');
     });

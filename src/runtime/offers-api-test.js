@@ -18,7 +18,6 @@ import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
 import {Fetcher} from './fetcher';
 
-
 describes.realWin('OffersApi', {}, () => {
   let offersApi;
   let pageConfig;
@@ -37,47 +36,38 @@ describes.realWin('OffersApi', {}, () => {
 
   it('should fetch with default product', () => {
     const expectedUrl =
-        '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
-    fetcherMock.expects('fetchCredentialedJson')
-        .withExactArgs(expectedUrl)
-        .returns(Promise.resolve({offers: [
-          {skuId: '1'},
-          {skuId: '2'},
-        ]}))
-        .once();
+      '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .returns(Promise.resolve({offers: [{skuId: '1'}, {skuId: '2'}]}))
+      .once();
     return offersApi.getOffers().then(offers => {
-      expect(offers).to.deep.equal([
-        {skuId: '1'},
-        {skuId: '2'},
-      ]);
+      expect(offers).to.deep.equal([{skuId: '1'}, {skuId: '2'}]);
     });
   });
 
   it('should fetch with a different product', () => {
     const expectedUrl =
-        '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel2';
-    fetcherMock.expects('fetchCredentialedJson')
-        .withExactArgs(expectedUrl)
-        .returns(Promise.resolve({offers: [
-          {skuId: '1'},
-          {skuId: '2'},
-        ]}))
-        .once();
+      '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel2';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .returns(Promise.resolve({offers: [{skuId: '1'}, {skuId: '2'}]}))
+      .once();
     return offersApi.getOffers('pub1:label2').then(offers => {
-      expect(offers).to.deep.equal([
-        {skuId: '1'},
-        {skuId: '2'},
-      ]);
+      expect(offers).to.deep.equal([{skuId: '1'}, {skuId: '2'}]);
     });
   });
 
   it('should fetch empty response', () => {
     const expectedUrl =
-        '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
-    fetcherMock.expects('fetchCredentialedJson')
-        .withExactArgs(expectedUrl)
-        .returns(Promise.resolve({}))
-        .once();
+      '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .returns(Promise.resolve({}))
+      .once();
     return offersApi.getOffers().then(offers => {
       expect(offers).to.deep.equal([]);
     });
