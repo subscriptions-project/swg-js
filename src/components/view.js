@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-
 /**
  * abstract View Class. Used to render the content within the Dialog. The
  * extended class has actual content.
  * @abstract
  */
 export class View {
-
   /**
    * Empty constructor.
    */

@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-import {
-  Storage,
-} from './storage';
-
+import {Storage} from './storage';
 
 class WebStorageStub {
   getItem(unusedKey) {}
   setItem(unusedKey, unusedValue) {}
   removeItem(unusedKey) {}
 }
-
 
 describes.realWin('Storage', {}, env => {
   let win;
@@ -40,32 +36,38 @@ describes.realWin('Storage', {}, env => {
   });
 
   it('should return fresh value from the storage', () => {
-    sessionStorageMock.expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns('one')
-        .once();
+    sessionStorageMock
+      .expects('getItem')
+      .withExactArgs('subscribe.google.com:a')
+      .returns('one')
+      .once();
     return expect(storage.get('a')).to.be.eventually.equal('one');
   });
 
   it('should return null value if not in the storage', () => {
-    sessionStorageMock.expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns(null)
-        .once();
+    sessionStorageMock
+      .expects('getItem')
+      .withExactArgs('subscribe.google.com:a')
+      .returns(null)
+      .once();
     return expect(storage.get('a')).to.be.eventually.be.null;
   });
 
   it('should return cached value from the storage', () => {
-    sessionStorageMock.expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns('one')
-        .once();  // Only executed once.
-    return storage.get('a').then(value => {
-      expect(value).to.equal('one');
-      return storage.get('a');
-    }).then(value => {
-      expect(value).to.equal('one');
-    });
+    sessionStorageMock
+      .expects('getItem')
+      .withExactArgs('subscribe.google.com:a')
+      .returns('one')
+      .once(); // Only executed once.
+    return storage
+      .get('a')
+      .then(value => {
+        expect(value).to.equal('one');
+        return storage.get('a');
+      })
+      .then(value => {
+        expect(value).to.equal('one');
+      });
   });
 
   it('should return null if storage is not available', () => {
@@ -75,17 +77,19 @@ describes.realWin('Storage', {}, env => {
   });
 
   it('should return null value if storage fails', () => {
-    sessionStorageMock.expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .throws(new Error('intentional'))
-        .once();
+    sessionStorageMock
+      .expects('getItem')
+      .withExactArgs('subscribe.google.com:a')
+      .throws(new Error('intentional'))
+      .once();
     return expect(storage.get('a')).to.be.eventually.be.null;
   });
 
   it('should set a value', () => {
-    sessionStorageMock.expects('setItem')
-        .withExactArgs('subscribe.google.com:a', 'one')
-        .once();
+    sessionStorageMock
+      .expects('setItem')
+      .withExactArgs('subscribe.google.com:a', 'one')
+      .once();
     return expect(storage.set('a', 'one')).to.be.eventually.be.undefined;
   });
 
@@ -98,10 +102,11 @@ describes.realWin('Storage', {}, env => {
   });
 
   it('should set a value with failing storage', () => {
-    sessionStorageMock.expects('setItem')
-        .withExactArgs('subscribe.google.com:a', 'one')
-        .throws(new Error('intentional'))
-        .once();
+    sessionStorageMock
+      .expects('setItem')
+      .withExactArgs('subscribe.google.com:a', 'one')
+      .throws(new Error('intentional'))
+      .once();
     return storage.set('a', 'one').then(() => {
       return expect(storage.get('a')).to.be.eventually.equal('one');
     });
@@ -109,13 +114,15 @@ describes.realWin('Storage', {}, env => {
 
   it('should remove a value', () => {
     storage.set('a', 'one');
-    sessionStorageMock.expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns(null)
-        .once();
-    sessionStorageMock.expects('removeItem')
-        .withExactArgs('subscribe.google.com:a')
-        .once();
+    sessionStorageMock
+      .expects('getItem')
+      .withExactArgs('subscribe.google.com:a')
+      .returns(null)
+      .once();
+    sessionStorageMock
+      .expects('removeItem')
+      .withExactArgs('subscribe.google.com:a')
+      .once();
     return storage.remove('a').then(() => {
       return expect(storage.get('a')).to.be.eventually.be.null;
     });
@@ -131,14 +138,16 @@ describes.realWin('Storage', {}, env => {
   });
 
   it('should remove a value with failing storage', () => {
-    sessionStorageMock.expects('removeItem')
-        .withExactArgs('subscribe.google.com:a')
-        .throws(new Error('intentional'))
-        .once();
-    sessionStorageMock.expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns(null)
-        .once();
+    sessionStorageMock
+      .expects('removeItem')
+      .withExactArgs('subscribe.google.com:a')
+      .throws(new Error('intentional'))
+      .once();
+    sessionStorageMock
+      .expects('getItem')
+      .withExactArgs('subscribe.google.com:a')
+      .returns(null)
+      .once();
     storage.set('a', 'one');
     return storage.remove('a').then(() => {
       return expect(storage.get('a')).to.be.eventually.null;

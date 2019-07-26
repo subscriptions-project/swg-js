@@ -23,10 +23,10 @@ const PublisherEventToAnalyticsEvent = {
   [Event.IMPRESSION_AD]: AnalyticsEvent.IMPRESSION_AD,
   [Event.IMPRESSION_OFFERS]: AnalyticsEvent.IMPRESSION_OFFERS,
   [Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE]:
-      AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
+    AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
   [Event.ACTION_OFFER_SELECTED]: AnalyticsEvent.ACTION_OFFER_SELECTED,
   [Event.ACTION_PAYMENT_FLOW_STARTED]:
-      AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+    AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
   [Event.ACTION_PAYMENT_COMPLETED]: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
   [Event.EVENT_CUSTOM]: AnalyticsEvent.EVENT_CUSTOM,
 };
@@ -44,9 +44,9 @@ const AnalyticsEventToPublisherEvent = {
   [AnalyticsEvent.ACTION_ACCOUNT_CREATED]: null,
   [AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED]: null,
   [AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE]:
-      Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
+    Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
   [AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED]:
-      Event.ACTION_PAYMENT_FLOW_STARTED,
+    Event.ACTION_PAYMENT_FLOW_STARTED,
   [AnalyticsEvent.ACTION_OFFER_SELECTED]: Event.ACTION_OFFER_SELECTED,
   [AnalyticsEvent.EVENT_PAYMENT_FAILED]: null,
   [AnalyticsEvent.EVENT_CUSTOM]: Event.EVENT_CUSTOM,
@@ -59,7 +59,7 @@ const AnalyticsEventToPublisherEvent = {
  */
 export function publisherEventToAnalyticsEvent(propensityEvent) {
   return PublisherEventToAnalyticsEvent[propensityEvent];
-};
+}
 
 /**
  * Converts an analytics event enum into a propensity event enum.
@@ -69,5 +69,3 @@ export function publisherEventToAnalyticsEvent(propensityEvent) {
 export function analyticsEventToPublisherEvent(analyticsEvent) {
   return AnalyticsEventToPublisherEvent[analyticsEvent];
 }
-
-

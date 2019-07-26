@@ -16,7 +16,6 @@
 
 import {isArray} from './types';
 
-
 /**
   @typedef {{
     href: string,
@@ -32,13 +31,11 @@ import {isArray} from './types';
   */
 let LocationDef;
 
-
 /**
  * Cached a-tag to avoid memory allocation during URL parsing.
  * @type {HTMLAnchorElement}
  */
 let a;
-
 
 /**
  * We cached all parsed URLs. As of now there are no use cases
@@ -95,7 +92,7 @@ export function parseUrl(url, opt_nocache) {
 
   const info = parseUrlWithA(a, url);
 
-  return cache[url] = info;
+  return (cache[url] = info);
 }
 
 /**
@@ -135,8 +132,10 @@ function parseUrlWithA(a, url) {
 
   // 2) For URLs with implicit ports, IE11 parses to default ports while
   // other browsers leave the port field empty.
-  if ((info.protocol == 'http:' && info.port == 80) ||
-      (info.protocol == 'https:' && info.port == 443)) {
+  if (
+    (info.protocol == 'http:' && info.port == 80) ||
+    (info.protocol == 'https:' && info.port == 443)
+  ) {
     info.port = '';
     info.host = info.hostname;
   }
@@ -153,7 +152,6 @@ function parseUrlWithA(a, url) {
   return info;
 }
 
-
 /**
  * Parses and builds Object of URL query string.
  * @param {string} query The URL query string.
@@ -164,18 +162,17 @@ export function parseQueryString(query) {
     return {};
   }
   return (/^[?#]/.test(query) ? query.slice(1) : query)
-      .split('&')
-      .reduce((params, param) => {
-        const item = param.split('=');
-        const key = decodeURIComponent(item[0] || '');
-        const value = decodeURIComponent(item[1] || '');
-        if (key) {
-          params[key] = value;
-        }
-        return params;
-      }, {});
+    .split('&')
+    .reduce((params, param) => {
+      const item = param.split('=');
+      const key = decodeURIComponent(item[0] || '');
+      const value = decodeURIComponent(item[1] || '');
+      if (key) {
+        params[key] = value;
+      }
+      return params;
+    }, {});
 }
-
 
 /**
  * Adds a parameter to a query string.
@@ -200,7 +197,6 @@ export function addQueryParam(url, param, value) {
   url += encodeURIComponent(param) + '=' + encodeURIComponent(value);
   return url + fragment;
 }
-
 
 /**
  * Returns the Url including the path and search, without fregment.

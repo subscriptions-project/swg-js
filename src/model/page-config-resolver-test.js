@@ -19,7 +19,6 @@ import {PageConfig} from './page-config';
 import {PageConfigResolver, getControlFlag} from './page-config-resolver';
 import {createElement} from '../utils/dom';
 
-
 describes.realWin('PageConfigResolver', {}, env => {
   let win, doc, gd;
 
@@ -34,9 +33,14 @@ describes.realWin('PageConfigResolver', {}, env => {
   }
 
   function addJsonLd(content) {
-    const element = createElement(doc, 'script', {
-      type: 'application/ld+json',
-    }, JSON.stringify(content));
+    const element = createElement(
+      doc,
+      'script',
+      {
+        type: 'application/ld+json',
+      },
+      JSON.stringify(content)
+    );
     doc.body.appendChild(element);
     return element;
   }
@@ -107,7 +111,7 @@ describes.realWin('PageConfigResolver', {}, env => {
         type: 'application/ld+json',
       });
       doc.body.appendChild(element);
-      doc.body.appendChild(createElement(doc, 'div'));  // Next element.
+      doc.body.appendChild(createElement(doc, 'div')); // Next element.
 
       // Empty content.
       let config = resolver.check();
@@ -130,7 +134,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       expect(config).to.be.null;
 
       // Add a sibling.
-      doc.body.appendChild(createElement(doc, 'div'));  // Next element.
+      doc.body.appendChild(createElement(doc, 'div')); // Next element.
       config = resolver.check();
       expect(config).to.be.ok;
       expect(config.getProductId()).to.equal('pub1:basic');
@@ -154,9 +158,16 @@ describes.realWin('PageConfigResolver', {}, env => {
     });
 
     it('should ignore wrong script type', () => {
-      doc.body.appendChild(createElement(doc, 'script', {
-        type: 'application/json',  // Not LD.
-      }, JSON.stringify(schema)));
+      doc.body.appendChild(
+        createElement(
+          doc,
+          'script',
+          {
+            type: 'application/json', // Not LD.
+          },
+          JSON.stringify(schema)
+        )
+      );
       readyState = 'complete';
       const resolver = new PageConfigResolver(gd);
       expect(resolver.check()).to.be.null;
@@ -173,24 +184,27 @@ describes.realWin('PageConfigResolver', {}, env => {
       schema['@type'] = ['NewsArticle'];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(gd).check().getProductId())
-          .to.equal('pub1:basic');
+      expect(new PageConfigResolver(gd).check().getProductId()).to.equal(
+        'pub1:basic'
+      );
     });
 
     it('should allow alternate LD Types', () => {
       schema['@type'] = ['CreativeWork'];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(gd).check().getProductId())
-          .to.equal('pub1:basic');
+      expect(new PageConfigResolver(gd).check().getProductId()).to.equal(
+        'pub1:basic'
+      );
     });
 
     it('should work with multiple LD types', () => {
       schema['@type'] = ['NewsArticle', 'Person'];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(gd).check().getProductId())
-          .to.equal('pub1:basic');
+      expect(new PageConfigResolver(gd).check().getProductId()).to.equal(
+        'pub1:basic'
+      );
     });
 
     it('should return null with multiple LD types when none match', () => {
@@ -204,14 +218,20 @@ describes.realWin('PageConfigResolver', {}, env => {
       schema['@type'] = ['http://schema.org/NewsArticle'];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(gd).check().getProductId())
-          .to.equal('pub1:basic');
+      expect(new PageConfigResolver(gd).check().getProductId()).to.equal(
+        'pub1:basic'
+      );
     });
 
     it('should tolerate broken JSON', () => {
-      const element = createElement(doc, 'script', {
-        type: 'application/ld+json',
-      }, '{NewsArticle');
+      const element = createElement(
+        doc,
+        'script',
+        {
+          type: 'application/ld+json',
+        },
+        '{NewsArticle'
+      );
       doc.body.appendChild(element);
       readyState = 'complete';
 
@@ -223,16 +243,18 @@ describes.realWin('PageConfigResolver', {}, env => {
       schema['isPartOf'] = [{}, schema['isPartOf']];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(gd).check().getProductId())
-          .to.equal('pub1:basic');
+      expect(new PageConfigResolver(gd).check().getProductId()).to.equal(
+        'pub1:basic'
+      );
     });
 
     it('should allow array of product types', () => {
       schema['isPartOf']['@type'] = ['CreativeWork', 'Product'];
       addJsonLd(schema);
       readyState = 'complete';
-      expect(new PageConfigResolver(gd).check().getProductId())
-          .to.equal('pub1:basic');
+      expect(new PageConfigResolver(gd).check().getProductId()).to.equal(
+        'pub1:basic'
+      );
     });
 
     it('should ignore wrong product type', () => {
@@ -247,8 +269,9 @@ describes.realWin('PageConfigResolver', {}, env => {
       addJsonLd(schema);
       readyState = 'complete';
       // First one is picked.
-      expect(new PageConfigResolver(gd).check().getProductId())
-          .to.equal('pub1:l1');
+      expect(new PageConfigResolver(gd).check().getProductId()).to.equal(
+        'pub1:l1'
+      );
     });
 
     it('should accept false string for isAccessibleForFree', () => {
@@ -305,7 +328,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     it('should handle multiple item types', () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
-          '<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other"> \
+        '<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other"> \
             <meta itemprop="isAccessibleForFree" content="True"/> \
             <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
               <meta itemprop="name" content="New York Times"/> \
@@ -326,7 +349,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     it('should retur null for multiple invalid types', () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
-          '<div itemscope itemtype="http://schema.org/Person http://schema.org/Other"> \
+        '<div itemscope itemtype="http://schema.org/Person http://schema.org/Other"> \
             <meta itemprop="isAccessibleForFree" content="True"/> \
             <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
               <meta itemprop="name" content="New York Times"/> \
@@ -344,7 +367,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     it('should handle alternate item types', () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
-          '<div itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Other"> \
+        '<div itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Other"> \
             <meta itemprop="isAccessibleForFree" content="True"/> \
             <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
               <meta itemprop="name" content="New York Times"/> \
@@ -365,7 +388,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     it('should parse unlocked access when available', () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
-          '<div itemscope itemtype="http://schema.org/NewsArticle"> \
+        '<div itemscope itemtype="http://schema.org/NewsArticle"> \
             <meta itemprop="isAccessibleForFree" content="True"/> \
             <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
               <meta itemprop="name" content="New York Times"/> \
@@ -387,7 +410,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       const resolver = new PageConfigResolver(gd);
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
-          '<div itemscope itemtype="http://schema.org/NewsArticle" id="top"> \
+        '<div itemscope itemtype="http://schema.org/NewsArticle" id="top"> \
             <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
             <meta itemprop="name" content="New York Times"/> \
             <meta itemprop="productID" content="pub1:premium"/> \
@@ -408,8 +431,7 @@ describes.realWin('PageConfigResolver', {}, env => {
 
       // Add content.
       const validAccessElement = createElement(doc, 'div');
-      validAccessElement.innerHTML =
-          `<div id="bottom">
+      validAccessElement.innerHTML = `<div id="bottom">
             <meta itemprop="isAccessibleForFree" content="false"/>
             <meta itemprop="cssSelector" content=".paywalled-section"/>
           </div>`;
@@ -425,8 +447,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     it('malformed microdata no productId', () => {
       // Add content.
       const divElement = createElement(doc, 'div');
-      divElement.innerHTML =
-          `<div itemscope itemtype="http://schema.org/NewsArticle">
+      divElement.innerHTML = `<div itemscope itemtype="http://schema.org/NewsArticle">
             <div itemprop="hasPart" itemscope itemtype="http://schema.org/WebPageElement">
               <meta itemprop="isAccessibleForFree" content=true/>
               <meta itemprop="cssSelector" content=".paywalled-section"/>
@@ -443,8 +464,7 @@ describes.realWin('PageConfigResolver', {}, env => {
     it('malformed microdata not news article type', () => {
       // Add content.
       const divElement = createElement(doc, 'div');
-      divElement.innerHTML =
-          `<div>
+      divElement.innerHTML = `<div>
             <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
               <meta itemprop="name" content="New York Times"/>
               <meta itemprop="productID" content="pub1:premium"/>
@@ -464,8 +484,7 @@ describes.realWin('PageConfigResolver', {}, env => {
 
     it('malformed microdata tree product info under section type', () => {
       const divElement = createElement(doc, 'div');
-      divElement.innerHTML =
-        `<div itemscope itemtype="http://schema.org/NewsArticle">
+      divElement.innerHTML = `<div itemscope itemtype="http://schema.org/NewsArticle">
           <div itemscope itemtype="http://schema.org/Section">
               <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
                 <meta itemprop="name" content="New York Times"/>
@@ -487,8 +506,7 @@ describes.realWin('PageConfigResolver', {}, env => {
 
     it('multiple product info but one valid', () => {
       const divElement = createElement(doc, 'div');
-      divElement.innerHTML =
-          `<div itemscope itemtype="http://schema.org/NewsArticle">
+      divElement.innerHTML = `<div itemscope itemtype="http://schema.org/NewsArticle">
            <div itemscope itemtype="http://schema.org/Section">
               <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
                 <meta itemprop="name" content="New York Times"/>
@@ -516,8 +534,7 @@ describes.realWin('PageConfigResolver', {}, env => {
 
     it('multiple access info but one valid', () => {
       const divElement = createElement(doc, 'div');
-      divElement.innerHTML =
-          `<div itemscope itemtype="http://schema.org/NewsArticle">
+      divElement.innerHTML = `<div itemscope itemtype="http://schema.org/NewsArticle">
             <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
               <meta itemprop="name" content="New York Times"/>
               <meta itemprop="productID" content="pub1:premium"/>
@@ -582,22 +599,25 @@ describes.realWin('PageConfigResolver', {}, env => {
     });
 
     it('should parse from a script tag', () => {
-      doc.head.appendChild(createElement(doc, 'script', {
-        'subscriptions-control': 'manual',
-      }));
+      doc.head.appendChild(
+        createElement(doc, 'script', {
+          'subscriptions-control': 'manual',
+        })
+      );
       expect(getControlFlag(doc)).to.equal('manual');
     });
 
     it('should prefer meta tag', () => {
       addMeta('subscriptions-control', 'auto');
-      doc.head.appendChild(createElement(doc, 'script', {
-        'subscriptions-control': 'manual',
-      }));
+      doc.head.appendChild(
+        createElement(doc, 'script', {
+          'subscriptions-control': 'manual',
+        })
+      );
       expect(getControlFlag(doc)).to.equal('auto');
     });
   });
 });
-
 
 describes.sandboxed('PageConfig', {}, () => {
   it('should create from product id', () => {

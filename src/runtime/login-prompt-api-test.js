@@ -19,9 +19,7 @@ import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {isCancelError} from '../utils/errors';
 import * as sinon from 'sinon';
-import {
-  ActivityPort,
-} from '../components/activities';
+import {ActivityPort} from '../components/activities';
 
 describes.realWin('LoginPromptApi', {}, env => {
   let win;
@@ -65,7 +63,9 @@ describes.realWin('LoginPromptApi', {}, env => {
   it('should start the flow correctly', () => {
     callbacksMock.expects('triggerFlowStarted').once();
     callbacksMock.expects('triggerFlowCanceled').never();
-    activitiesMock.expects('openIframe').withExactArgs(
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/loginiframe?_=_',
         {
@@ -73,8 +73,9 @@ describes.realWin('LoginPromptApi', {}, env => {
           publicationId,
           productId,
           userConsent: true,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
 
     loginPromptApi.start();
     return loginPromptApi.openViewPromise_;
@@ -86,24 +87,31 @@ describes.realWin('LoginPromptApi', {}, env => {
 
     resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
     dialogManagerMock.expects('completeView').once();
-    return loginPromptApi.start().then(() => {
-      throw new Error('must have failed');
-    }, reason => {
-      expect(isCancelError(reason)).to.be.true;
-    });
+    return loginPromptApi.start().then(
+      () => {
+        throw new Error('must have failed');
+      },
+      reason => {
+        expect(isCancelError(reason)).to.be.true;
+      }
+    );
   });
 
   it('should handle failure', () => {
     callbacksMock.expects('triggerFlowCanceled').never();
-    activitiesMock.expects('openIframe')
-        .returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
     const promise = loginPromptApi.start();
-    return promise.then(() => {
-      throw new Error('must have failed');
-    }, reason => {
-      expect(() => {throw reason;}).to.throw(/broken/);
-    });
+    return promise.then(
+      () => {
+        throw new Error('must have failed');
+      },
+      reason => {
+        expect(() => {
+          throw reason;
+        }).to.throw(/broken/);
+      }
+    );
   });
 });

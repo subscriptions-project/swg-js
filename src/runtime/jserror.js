@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-
 /**
  */
 export class JsError {
-
   /**
    * @param {!../model/doc.Doc} doc
    */
@@ -43,17 +41,20 @@ export class JsError {
       }
       const img = this.doc_.getWin().document.createElement('img');
       img.src =
-          '$frontend$/_/SubscribewithgoogleClientUi/jserror' +
-          '?error=' + encodeURIComponent(String(error)) +
-          '&script=' + encodeURIComponent('$frontend$/swg/js/v1/swg.js') +
-          '&line=' + (error.lineNumber || 1) +
-          '&trace=' + encodeURIComponent(error.stack);
+        '$frontend$/_/SubscribewithgoogleClientUi/jserror' +
+        '?error=' +
+        encodeURIComponent(String(error)) +
+        '&script=' +
+        encodeURIComponent('$frontend$/swg/js/v1/swg.js') +
+        '&line=' +
+        (error.lineNumber || 1) +
+        '&trace=' +
+        encodeURIComponent(error.stack);
       // Appending this image to DOM is not necessary.
       error.reported = true;
     });
   }
 }
-
 
 /**
  * @param {...*} var_args
@@ -81,7 +82,6 @@ function createErrorVargs(var_args) {
   }
   return error;
 }
-
 
 /**
  * Some exceptions (DOMException, namely) have read-only message.

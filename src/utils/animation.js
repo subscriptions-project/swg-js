@@ -31,9 +31,15 @@ export function transition(el, props, durationMillis, curve) {
     win.setTimeout(() => {
       win.setTimeout(resolve, durationMillis);
       const tr = `${durationMillis}ms ${curve}`;
-      setImportantStyles(el, Object.assign({
-        'transition': `transform ${tr}, opacity ${tr}`,
-      }, props));
+      setImportantStyles(
+        el,
+        Object.assign(
+          {
+            'transition': `transform ${tr}, opacity ${tr}`,
+          },
+          props
+        )
+      );
     });
   }).then(() => {
     setImportantStyles(el, {
