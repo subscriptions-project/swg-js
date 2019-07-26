@@ -1659,8 +1659,11 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should create a working logger', async function() {
       let receivedEvent = null;
-      sandbox.stub(ClientEventManager.prototype, 'logEvent', event =>
-          receivedEvent = event);
+      sandbox.stub(
+        ClientEventManager.prototype,
+        'logEvent',
+        event => (receivedEvent = event)
+      );
       runtime.getLogger().logSwgEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
       //the test is basically to ensure it resolves the event manager promise
       //to logger
