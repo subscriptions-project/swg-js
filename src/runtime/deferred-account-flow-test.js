@@ -21,7 +21,6 @@ import {Entitlement, Entitlements} from '../api/entitlements';
 import {PageConfig} from '../model/page-config';
 import {PayCompleteFlow} from './pay-flow';
 import {isCancelError} from '../utils/errors';
-import * as sinon from 'sinon';
 import {ActivityPort} from '../components/activities';
 
 const EMPTY_ID_TOK =
@@ -144,7 +143,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/recoveriframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -212,11 +211,9 @@ describes.realWin('DeferredAccountFlow', {}, env => {
       .returns(outputEnts)
       .once();
     const confirmStartStub = sandbox.stub(PayCompleteFlow.prototype, 'start');
-    const confirmCompleteStub = sandbox.stub(
-      PayCompleteFlow.prototype,
-      'complete',
-      () => Promise.resolve()
-    );
+    const confirmCompleteStub = sandbox
+      .stub(PayCompleteFlow.prototype, 'complete')
+      .callsFake(() => Promise.resolve());
     resultResolver({
       data: {
         entitlements: 'OUTPUT_JWT',
@@ -270,11 +267,9 @@ describes.realWin('DeferredAccountFlow', {}, env => {
       .returns(outputEnts)
       .once();
     const confirmStartStub = sandbox.stub(PayCompleteFlow.prototype, 'start');
-    const confirmCompleteStub = sandbox.stub(
-      PayCompleteFlow.prototype,
-      'complete',
-      () => Promise.resolve()
-    );
+    const confirmCompleteStub = sandbox
+      .stub(PayCompleteFlow.prototype, 'complete')
+      .callsFake(() => Promise.resolve());
     resultResolver({
       data: {
         entitlements: 'OUTPUT_JWT',

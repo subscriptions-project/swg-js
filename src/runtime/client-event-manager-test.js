@@ -87,7 +87,7 @@ describes.sandboxed('EventManager', {}, () => {
     beforeEach(() => {
       errorReceived = null;
       eventMan = new ClientEventManager(RESOLVED_PROMISE);
-      sandbox.stub(console, 'log', err => {
+      sandbox.stub(console, 'log').callsFake(err => {
         errorReceived = err;
       });
     });
