@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  Xhr,
-  fetchPolyfill,
-  FetchResponse,
-  assertSuccess,
-} from './xhr';
+import {Xhr, fetchPolyfill, FetchResponse, assertSuccess} from './xhr';
 
 describe('XHR', function() {
   const location = {href: 'https://acme.com/path'};
@@ -37,7 +32,8 @@ describe('XHR', function() {
     {
       win: nativeWin,
       desc: 'Native',
-    }, {
+    },
+    {
       win: polyfillWin,
       desc: 'Polyfill',
     },
@@ -77,7 +73,6 @@ describe('XHR', function() {
     // Since if it's the Native fetch, it won't use the XHR object so
     // mocking and testing the request becomes not doable.
     if (test.desc != 'Native') {
-
       describe('#XHR', () => {
         beforeEach(() => {
           xhr = new Xhr(test.win);
@@ -151,7 +146,7 @@ describe('XHR', function() {
     }
 
     describe(test.desc, () => {
-      beforeEach(() => xhr = new Xhr(test.win));
+      beforeEach(() => (xhr = new Xhr(test.win)));
 
       describe('assertSuccess', () => {
         function createResponseInstance(body, init) {
@@ -172,25 +167,27 @@ describe('XHR', function() {
 
         it('should resolve if success', () => {
           mockXhr.status = 200;
-          return assertSuccess(createResponseInstance('', mockXhr))
-              .then(response => {
-                expect(response.status).to.equal(200);
-              }).should.not.be.rejected;
+          return assertSuccess(createResponseInstance('', mockXhr)).then(
+            response => {
+              expect(response.status).to.equal(200);
+            }
+          ).should.not.be.rejected;
         });
 
         it('should reject if error', () => {
           mockXhr.status = 500;
-          return assertSuccess(createResponseInstance('', mockXhr))
-              .should.be.rejected;
+          return assertSuccess(createResponseInstance('', mockXhr)).should.be
+            .rejected;
         });
 
         it('should include response in error', () => {
           mockXhr.status = 500;
-          return assertSuccess(createResponseInstance('', mockXhr))
-              .catch(error => {
-                expect(error.response).to.exist;
-                expect(error.response.status).to.equal(500);
-              });
+          return assertSuccess(createResponseInstance('', mockXhr)).catch(
+            error => {
+              expect(error.response).to.exist;
+              expect(error.response.status).to.equal(500);
+            }
+          );
         });
 
         it('should not resolve after rejecting promise', () => {
@@ -199,48 +196,56 @@ describe('XHR', function() {
           mockXhr.headers['Content-Type'] = 'application/json';
           mockXhr.getResponseHeader = () => 'application/json';
           return assertSuccess(createResponseInstance('{"a": 2}', mockXhr))
-              .should.not.be.fulfilled;
+            .should.not.be.fulfilled;
         });
       });
 
       it('should do simple JSON fetch', () => {
-        return xhr.fetch('http://localhost:31862/get?k=v1')
-            .then(res => res.json())
-            .then(res => {
-              expect(res).to.exist;
-              expect(res['args']['k']).to.equal('v1');
-            });
+        return xhr
+          .fetch('http://localhost:31862/get?k=v1')
+          .then(res => res.json())
+          .then(res => {
+            expect(res).to.exist;
+            expect(res['args']['k']).to.equal('v1');
+          });
       });
 
       it('should redirect fetch', () => {
-        const url = 'http://localhost:31862/redirect-to?url=' + encodeURIComponent(
-            'http://localhost:31862/get?k=v2');
-        return xhr.fetch(url, {ampCors: false})
-            .then(res => res.json())
-            .then(res => {
-              expect(res).to.exist;
-              expect(res['args']['k']).to.equal('v2');
-            });
+        const url =
+          'http://localhost:31862/redirect-to?url=' +
+          encodeURIComponent('http://localhost:31862/get?k=v2');
+        return xhr
+          .fetch(url, {ampCors: false})
+          .then(res => res.json())
+          .then(res => {
+            expect(res).to.exist;
+            expect(res['args']['k']).to.equal('v2');
+          });
       });
 
       it('should fail fetch for 400-error', () => {
         const url = 'http://localhost:31862/status/404';
-        return xhr.fetch(url).then(() => {
-          throw new Error('UNREACHABLE');
-        }, error => {
-          expect(error.message).to.contain('HTTP error 404');
-        });
+        return xhr.fetch(url).then(
+          () => {
+            throw new Error('UNREACHABLE');
+          },
+          error => {
+            expect(error.message).to.contain('HTTP error 404');
+          }
+        );
       });
 
       it('should fail fetch for 500-error', () => {
         const url = 'http://localhost:31862/status/500?CID=cid';
-        return xhr.fetch(url).then(() => {
-          throw new Error('UNREACHABLE');
-        }, error => {
-          expect(error.message).to.contain('HTTP error 500');
-        });
+        return xhr.fetch(url).then(
+          () => {
+            throw new Error('UNREACHABLE');
+          },
+          error => {
+            expect(error.message).to.contain('HTTP error 500');
+          }
+        );
       });
-
 
       it('should NOT succeed CORS setting cookies without credentials', () => {
         const cookieName = 'TEST_CORS_' + Math.round(Math.random() * 10000);
@@ -275,16 +280,17 @@ describe('XHR', function() {
         }).to.throw(/Only credentials=include|omit support: null/);
       });
 
-      it('should omit request details for privacy', () => {
+      it('should omit request details for privacy', async () => {
         // NOTE THIS IS A BAD PORT ON PURPOSE.
-        return xhr.fetch('http://localhost:31863/status/500').then(() => {
-          throw new Error('UNREACHABLE');
-        }, error => {
-          const message = error.message;
-          expect(message).to.contain('http://localhost:31863');
-          expect(message).not.to.contain('status/500');
-          expect(message).not.to.contain('CID');
-        });
+        return xhr.fetch('http://localhost:31862/status/500').then(
+          () => {
+            throw new Error('UNREACHABLE');
+          },
+          error => {
+            const message = error.message;
+            expect(message).to.equal('HTTP error 500');
+          }
+        );
       });
     });
   });
@@ -295,22 +301,25 @@ describe('XHR', function() {
     describe(test.desc + ' POST', () => {
       let xhr;
 
-      beforeEach(() => xhr = new Xhr(test.win));
+      beforeEach(() => (xhr = new Xhr(test.win)));
 
-      it('should get an echo\'d response back', () => {
-        return xhr.fetch(url, {
-          method: 'POST',
-          body: JSON.stringify({
-            hello: 'world',
-          }),
-          headers: {
-            'Content-Type': 'application/json;charset=utf-8',
-          },
-        }).then(res => res.json()).then(res => {
-          expect(res.json).to.jsonEqual({
-            hello: 'world',
+      it("should get an echo'd response back", () => {
+        return xhr
+          .fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({
+              hello: 'world',
+            }),
+            headers: {
+              'Content-Type': 'application/json;charset=utf-8',
+            },
+          })
+          .then(res => res.json())
+          .then(res => {
+            expect(res.json).to.jsonEqual({
+              hello: 'world',
+            });
           });
-        });
       });
     });
   });
@@ -333,18 +342,17 @@ describe('XHR', function() {
       const response = new FetchResponse(mockXhr);
       return response.text().then(result => {
         expect(result).to.equal(TEST_TEXT);
-        expect(response.text.bind(response), 'should throw').to.throw(Error,
-            /Body already used/);
+        expect(response.text.bind(response), 'should throw').to.throw(
+          Error,
+          /Body already used/
+        );
       });
     });
 
     it('should be cloneable and each instance should provide text', () => {
       const response = new FetchResponse(mockXhr);
       const clone = response.clone();
-      return Promise.all([
-        response.text(),
-        clone.text(),
-      ]).then(results => {
+      return Promise.all([response.text(), clone.text()]).then(results => {
         expect(results[0]).to.equal(TEST_TEXT);
         expect(results[1]).to.equal(TEST_TEXT);
       });
@@ -352,12 +360,12 @@ describe('XHR', function() {
 
     it('should not be cloneable if body is already accessed', () => {
       const response = new FetchResponse(mockXhr);
-      return response.text()
-          .then(() => {
-            expect(() => response.clone(), 'should throw').to.throw(
-                Error,
-                /Body already used/);
-          });
+      return response.text().then(() => {
+        expect(() => response.clone(), 'should throw').to.throw(
+          Error,
+          /Body already used/
+        );
+      });
     });
   });
 });

@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-
 /** @interface */
 export class DepsDef {
-
   /**
    * @return {!../model/doc.Doc}
    */

@@ -17,7 +17,6 @@
 import {base64UrlDecodeToBytes, utf8DecodeSync} from './bytes';
 import {tryParseJson} from './json';
 
-
 /**
  * @typedef {{
  *   header: (?JsonObject|undefined),
@@ -28,13 +27,11 @@ import {tryParseJson} from './json';
  */
 let JwtTokenInternalDef;
 
-
 /**
  * Provides helper methods to decode and verify JWT tokens.
  */
 export class JwtHelper {
-  constructor() {
-  }
+  constructor() {}
 
   /**
    * Decodes JWT token and returns its payload.
