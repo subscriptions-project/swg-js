@@ -67,15 +67,7 @@ export class Propensity {
     if (jsonProducts) {
       productsOrSkus = JSON.stringify(jsonProducts);
     }
-    this.eventManager_.logEvent({
-      eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: {
-        state,
-        productsOrSkus,
-      },
-    });
+    this.propensityServer_.sendSubscriptionState(state, productsOrSkus);
   }
 
   /** @override */
