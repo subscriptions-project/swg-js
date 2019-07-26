@@ -1657,7 +1657,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(count).to.equal(1);
     });
 
-    it('should create a working logger', async function() {
+    it('should create a working logger', function() {
       let receivedEvent = null;
       sandbox
         .stub(ClientEventManager.prototype, 'logEvent')
