@@ -17,7 +17,6 @@
 import {ConfiguredRuntime} from './runtime';
 import {LoginNotificationApi} from './login-notification-api';
 import {PageConfig} from '../model/page-config';
-import * as sinon from 'sinon';
 import {ActivityPort} from '../components/activities';
 
 describes.realWin('LoginNotificationApi', {}, env => {
@@ -64,7 +63,7 @@ describes.realWin('LoginNotificationApi', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/loginiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
