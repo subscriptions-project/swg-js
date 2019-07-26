@@ -470,17 +470,17 @@ describes.realWin('Runtime', {}, env => {
       );
     });
 
-    it('should eventually log events', () => {
-      runtime.logEvent({
+    it('should resolve event manager promise', async function() {
+      runtime.getLogger().logSwgEvent({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: null,
         additionalParameters: null,
       });
       expect(loggedEvents.length).to.equal(0);
-      return runtime.configured_(true).then(() => {
-        expect(loggedEvents.length).to.equal(1);
-      });
+      await runtime.configured_(true);
+      await runtime.eventManPromise_; //ensure this gets resolved
+      expect(loggedEvents.length).to.equal(1);
     });
   });
 
@@ -1655,6 +1655,22 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .callsFake(() => count++);
       runtime.eventManager().logEvent(event);
       expect(count).to.equal(1);
+    });
+
+    it('should create a working logger', async function() {
+      let receivedEvent = null;
+      sandbox
+        .stub(ClientEventManager.prototype, 'logEvent')
+        .callsFake(event => (receivedEvent = event));
+      runtime.getLogger().logSwgEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
+      //the test is basically to ensure it resolves the event manager promise
+      //to logger
+      expect(receivedEvent).to.eventually.deep.equal({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
     });
   });
 });

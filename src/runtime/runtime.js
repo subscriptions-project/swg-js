@@ -62,6 +62,7 @@ import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
+import {Logger} from './logger';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -151,6 +152,20 @@ export class Runtime {
 
     /** @private {?function((!ConfiguredRuntime|!Promise))} */
     this.configuredResolver_ = null;
+
+    //this gives us a promise to event manager and resolves it once configured
+    //runtime is available
+    let eventManPromiseResolve;
+    /** @private @const {!Promise<ClientEventManager>} */
+    this.eventManPromise_ = new Promise(
+      resolve => (eventManPromiseResolve = resolve)
+    );
+    this.configured_(false).then(configuredRuntime => {
+      eventManPromiseResolve(configuredRuntime.eventManager());
+    });
+
+    /** @private @const {!Logger} */
+    this.logger_ = new Logger(this.eventManPromise_);
 
     /** @private @const {!Promise<!ConfiguredRuntime>} */
     this.configuredPromise_ = new Promise(resolve => {
@@ -442,13 +457,13 @@ export class Runtime {
   }
 
   /**
-   * Log a subscription buy-flow event.
-   * @param {!../api/client-event-manager-api.ClientEvent} event
+   * Note that this returns Logger instead of LoggerApi for internal logging
+   * purposes.
+   * @override
+   * @return {!Logger}
    */
-  logEvent(event) {
-    this.configured_(false).then(configuredRuntime => {
-      configuredRuntime.eventManager().logEvent(event);
-    });
+  getLogger() {
+    return this.logger_;
   }
 }
 
@@ -472,6 +487,9 @@ export class ConfiguredRuntime {
 
     /** @private @const {!ClientEventManager} */
     this.eventManager_ = new ClientEventManager(opt_integr.configPromise);
+
+    /** @private @const {!Logger} */
+    this.logger_ = new Logger(Promise.resolve(this.eventManager_));
 
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
@@ -881,6 +899,16 @@ export class ConfiguredRuntime {
   eventManager() {
     return this.eventManager_;
   }
+
+  /**
+   * Note that this returns Logger instead of LoggerApi for internal logging
+   * purposes.
+   * @override
+   * @return {!Logger}
+   */
+  getLogger() {
+    return this.logger_;
+  }
 }
 
 /**
@@ -924,6 +952,7 @@ function createPublicRuntime(runtime) {
     attachButton: runtime.attachButton.bind(runtime),
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
     getPropensityModule: runtime.getPropensityModule.bind(runtime),
+    getLogger: runtime.getLogger.bind(runtime),
   });
 }
 
