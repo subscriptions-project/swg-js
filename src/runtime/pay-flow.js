@@ -25,10 +25,7 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
-import {
-  PurchaseData,
-  SubscribeResponse,
-} from '../api/subscribe-response';
+import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {
   ProductType,
   SubscriptionFlows,
@@ -37,11 +34,7 @@ import {
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
-import {
-  parseJson,
-  tryParseJson,
-} from '../utils/json';
-
+import {parseJson, tryParseJson} from '../utils/json';
 
 /**
  * String values input by the publisher are mapped to the number values.
@@ -54,7 +47,6 @@ export const ReplaceSkuProrationModeMapping = {
   'IMMEDIATE_WITH_TIME_PRORATION': 1,
 };
 
-
 /**
  * The flow to initiate payment process.
  */
@@ -65,9 +57,10 @@ export class PayStartFlow {
    * @param {!../api/subscriptions.ProductType} productType
    */
   constructor(
-        deps,
-        skuOrSubscriptionRequest,
-        productType = ProductType.SUBSCRIPTION) {
+    deps,
+    skuOrSubscriptionRequest,
+    productType = ProductType.SUBSCRIPTION
+  ) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -82,8 +75,9 @@ export class PayStartFlow {
 
     /** @private @const {!../api/subscriptions.SubscriptionRequest} */
     this.subscriptionRequest_ =
-        typeof skuOrSubscriptionRequest == 'string' ?
-            {'skuId': skuOrSubscriptionRequest} : skuOrSubscriptionRequest;
+      typeof skuOrSubscriptionRequest == 'string'
+        ? {'skuId': skuOrSubscriptionRequest}
+        : skuOrSubscriptionRequest;
 
     /**@private @const {!ProductType} */
     this.productType_ = productType;
@@ -98,48 +92,53 @@ export class PayStartFlow {
    */
   start() {
     // Add the 'publicationId' key to the subscriptionRequest_ object.
-    const swgPaymentRequest =
-        Object.assign({}, this.subscriptionRequest_, {
-          'publicationId': this.pageConfig_.getPublicationId()});
+    const swgPaymentRequest = Object.assign({}, this.subscriptionRequest_, {
+      'publicationId': this.pageConfig_.getPublicationId(),
+    });
 
     // Map the proration mode to the enum value (if proration exists).
     const prorationMode = this.subscriptionRequest_.replaceSkuProrationMode;
     if (prorationMode) {
       swgPaymentRequest.replaceSkuProrationMode =
-          ReplaceSkuProrationModeMapping[prorationMode];
+        ReplaceSkuProrationModeMapping[prorationMode];
     }
 
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SUBSCRIBE, this.subscriptionRequest_);
+    this.deps_
+      .callbacks()
+      .triggerFlowStarted(
+        SubscriptionFlows.SUBSCRIBE,
+        this.subscriptionRequest_
+      );
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
     this.analyticsService_.logEvent(AnalyticsEvent.ACTION_SUBSCRIBE);
-    this.payClient_.start({
-      'apiVersion': 1,
-      'allowedPaymentMethods': ['CARD'],
-      'environment': '$payEnvironment$',
-      'playEnvironment': '$playEnvironment$',
-      'swg': swgPaymentRequest,
-      'i': {
-        'startTimeMs': Date.now(),
-        'googleTransactionId': this.analyticsService_.getTransactionId(),
-        'productType': this.productType_,
+    this.payClient_.start(
+      {
+        'apiVersion': 1,
+        'allowedPaymentMethods': ['CARD'],
+        'environment': '$payEnvironment$',
+        'playEnvironment': '$playEnvironment$',
+        'swg': swgPaymentRequest,
+        'i': {
+          'startTimeMs': Date.now(),
+          'googleTransactionId': this.analyticsService_.getTransactionId(),
+          'productType': this.productType_,
+        },
       },
-    }, {
-      forceRedirect:
+      {
+        forceRedirect:
           this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT,
-    });
+      }
+    );
     return Promise.resolve();
   }
 }
-
 
 /**
  * The flow for successful payments completion.
  */
 export class PayCompleteFlow {
-
   /**
    * @param {!./deps.DepsDef} deps
    */
@@ -147,20 +146,26 @@ export class PayCompleteFlow {
     deps.payClient().onResponse(payPromise => {
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
-      const promise =
-          validatePayResponse(deps, payPromise, flow.complete.bind(flow));
+      const promise = validatePayResponse(
+        deps,
+        payPromise,
+        flow.complete.bind(flow)
+      );
       deps.callbacks().triggerSubscribeResponse(promise);
-      return promise.then(response => {
-        flow.start(response);
-      }, reason => {
-        if (isCancelError(reason)) {
-          deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
-        } else {
-          deps.analytics().logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
-          deps.jserror().error('Pay failed', reason);
+      return promise.then(
+        response => {
+          flow.start(response);
+        },
+        reason => {
+          if (isCancelError(reason)) {
+            deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
+          } else {
+            deps.analytics().logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
+            deps.jserror().error('Pay failed', reason);
+          }
+          throw reason;
         }
-        throw reason;
-      });
+      );
     });
   }
 
@@ -217,21 +222,24 @@ export class PayCompleteFlow {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
       args['idToken'] = response.userData.idToken;
-      this.deps_.entitlementsManager().pushNextEntitlements(
-          response.entitlements.raw);
+      this.deps_
+        .entitlementsManager()
+        .pushNextEntitlements(response.entitlements.raw);
     } else {
       args['loginHint'] = response.userData && response.userData.email;
     }
     this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl('/payconfirmiframe'),
-        feArgs(args),
-        /* shouldFadeBody */ true);
+      this.win_,
+      this.activityPorts_,
+      feUrl('/payconfirmiframe'),
+      feArgs(args),
+      /* shouldFadeBody */ true
+    );
     this.activityIframeView_.onMessageDeprecated(data => {
       if (data['entitlements']) {
-        this.deps_.entitlementsManager().pushNextEntitlements(
-            /** @type {string} */ (data['entitlements']));
+        this.deps_
+          .entitlementsManager()
+          .pushNextEntitlements(/** @type {string} */ (data['entitlements']));
         return;
       }
     });
@@ -252,16 +260,19 @@ export class PayCompleteFlow {
     this.readyPromise_.then(() => {
       this.activityIframeView_.messageDeprecated({'complete': true});
     });
-    return this.activityIframeView_.acceptResult().catch(() => {
-      // Ignore errors.
-    }).then(() => {
-      this.analyticsService_.logEvent(
-          AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
-      this.deps_.entitlementsManager().setToastShown(true);
-    });
+    return this.activityIframeView_
+      .acceptResult()
+      .catch(() => {
+        // Ignore errors.
+      })
+      .then(() => {
+        this.analyticsService_.logEvent(
+          AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED
+        );
+        this.deps_.entitlementsManager().setToastShown(true);
+      });
   }
 }
-
 
 /**
  * @param {!./deps.DepsDef} deps
@@ -282,7 +293,6 @@ function validatePayResponse(deps, payPromise, completeHandler) {
     return parseSubscriptionResponse(deps, data, completeHandler);
   });
 }
-
 
 /**
  * @param {!./deps.DepsDef} deps
@@ -326,14 +336,14 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
   }
   raw = JSON.stringify(/** @type {!JsonObject} */ (swgData));
   return new SubscribeResponse(
-      raw,
-      parsePurchaseData(swgData),
-      parseUserData(swgData),
-      parseEntitlements(deps, swgData),
-      productType,
-      completeHandler);
+    raw,
+    parsePurchaseData(swgData),
+    parseUserData(swgData),
+    parseEntitlements(deps, swgData),
+    productType,
+    completeHandler
+  );
 }
-
 
 /**
  * @param {!Object} swgData
@@ -344,7 +354,6 @@ function parsePurchaseData(swgData) {
   const signature = swgData['purchaseDataSignature'];
   return new PurchaseData(raw, signature);
 }
-
 
 /**
  * @param {!Object} swgData
@@ -360,7 +369,6 @@ export function parseUserData(swgData) {
   return new UserData(idToken, jwt);
 }
 
-
 /**
  * @param {!./deps.DepsDef} deps
  * @param {!Object} swgData
@@ -374,12 +382,11 @@ export function parseEntitlements(deps, swgData) {
   return null;
 }
 
-
 /**
  * @param {!PurchaseData} purchaseData
  * @return {?string}
  */
 function parseSkuFromPurchaseDataSafe(purchaseData) {
   const json = tryParseJson(purchaseData.raw);
-  return json && json['productId'] || null;
+  return (json && json['productId']) || null;
 }

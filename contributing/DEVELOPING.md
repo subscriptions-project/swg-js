@@ -24,7 +24,56 @@ Before you start developing in Subscribe with Google, check out these resources:
 
 ## Setup
 
-TODO: Node.js, Yarn, Gulp
+Now that you have all of the files copied locally you can actually build the code and run a local server to try things out. We use Node.js, the Yarn package manager, Closure Compiler, and the Gulp build system to build `swg-js` and start up a local server that lets you try out your changes.
+
+* Install the latest LTS version of [Node.js](https://nodejs.org/) (which includes npm). If you're on Mac or Linux, an easy way to install Node.js is with `nvm`: [here](https://github.com/creationix/nvm).
+
+   ```
+   nvm install --lts
+   ```
+
+* Install the stable version of [Yarn](https://yarnpkg.com/) (Mac and Linux: [here](https://yarnpkg.com/en/docs/install#alternatives-stable), Windows: [here](https://yarnpkg.com/lang/en/docs/install/#windows-stable))
+
+   ```
+   curl -o- -L https://yarnpkg.com/install.sh | bash
+   ```
+  An alternative to installing `yarn` is to invoke each Yarn command in this guide with `npx yarn` during local development. This will automatically use the current stable version of `yarn`.
+
+* Closure Compiler is automatically installed by Yarn, but it requires Java 8 which you need to install separately. SWG's version of Closure Compiler won't run with newer versions of Java. Download an installer for Mac, Linux or Windows [here](http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html).
+  * Note: If you are using Mac OS and have multiple versions of Java installed, make sure you are using Java 8 by adding this to `~/.bashrc`:
+
+  ```
+  export JAVA_HOME=`/usr/libexec/java_home -v 1.8`
+  ```
+
+* If you have a global install of [Gulp](https://gulpjs.com/), uninstall it. (Instructions [here](https://github.com/gulpjs/gulp/blob/v3.9.1/docs/getting-started.md). See [this article](https://medium.com/gulpjs/gulp-sips-command-line-interface-e53411d4467) for why.)
+
+   ```
+   yarn global remove gulp
+   ```
+
+* Install the [Gulp](https://gulpjs.com/) command line tool, which will automatically use the version of `gulp` packaged with the the `swg-js` repository. (instructions [here](https://github.com/gulpjs/gulp/blob/v3.9.1/docs/getting-started.md))
+
+   ```
+   yarn global add gulp-cli
+   ```
+  An alternative to installing `gulp-cli` is to invoke each Gulp command in this guide with `npx gulp` during local development. This will also use the version of `gulp` packaged with the `swg-js` repository.
+
+* In your local repository directory (e.g. `~/projects/swg-js`), install the packages that SWG uses by running
+   ```
+   yarn
+   ```
+   You should see a progress indicator and some messages scrolling by.  You may see some warnings about optional dependencies, which are generally safe to ignore.
+
+Now whenever you're ready to build `swg-js` and start up your local server, simply go to your local repository directory and run:
+
+```
+gulp
+```
+
+Running the `gulp` command will compile the code and start up a Node.js server listening on port 8000.  Once you see a message like `Finished 'default'` you can access the local server in your browser at [http://localhost:8000](http://localhost:8000)
+
+You can browse the [http://localhost:8000/examples](http://localhost:8000/examples) directory to see some demo pages for various AMP components and combination of components.
 
 ## DNS Aliases
 

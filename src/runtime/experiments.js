@@ -43,7 +43,6 @@ import {parseQueryString} from '../utils/url';
  *    only for the fraction under 20%.
  */
 
-
 /**
  * @enum {string}
  */
@@ -64,7 +63,6 @@ let experimentsString = '$experiments$';
  */
 let experimentMap = null;
 
-
 /**
  * @param {string} s
  * @package Visible for testing only.
@@ -73,7 +71,6 @@ export function setExperimentsStringForTesting(s) {
   experimentsString = s;
   experimentMap = null;
 }
-
 
 /**
  * Ensures that the experiments have been initialized and returns them.
@@ -112,7 +109,6 @@ function getExperiments(win) {
   }
   return experimentMap;
 }
-
 
 /**
  * @param {!Window} win
@@ -160,8 +156,11 @@ function parseSetExperiment(win, experimentMap, spec) {
     try {
       // Set fraction in the experiment to make it unlaunchable.
       const storageKey =
-          'subscribe.google.com:e:' + experimentId + ':' +
-          fraction + (control ? 'c' : '');
+        'subscribe.google.com:e:' +
+        experimentId +
+        ':' +
+        fraction +
+        (control ? 'c' : '');
       let selection = parseSelection(win.sessionStorage.getItem(storageKey));
       if (!selection) {
         // Is experiment/control range?
@@ -187,17 +186,18 @@ function parseSetExperiment(win, experimentMap, spec) {
   experimentMap[experimentId] = on;
 }
 
-
 /**
  * @param {?string} s
  * @return {?Selection}
  */
 function parseSelection(s) {
   // Do a simple if-then to inline the whole Selection enum.
-  return s == Selection.EXPERIMENT ? Selection.EXPERIMENT :
-      s == Selection.CONTROL ? Selection.CONTROL : null;
+  return s == Selection.EXPERIMENT
+    ? Selection.EXPERIMENT
+    : s == Selection.CONTROL
+    ? Selection.CONTROL
+    : null;
 }
-
 
 /**
  * Whether the specified experiment is on or off.
@@ -209,7 +209,6 @@ export function isExperimentOn(win, experimentId) {
   return getExperiments(win)[experimentId] || false;
 }
 
-
 /**
  * Toggles the experiment on or off. Returns the actual value of the experiment
  * after toggling is done.
@@ -220,7 +219,6 @@ export function isExperimentOn(win, experimentId) {
 export function setExperiment(win, experimentId, on) {
   getExperiments(win)[experimentId] = on;
 }
-
 
 /**
  * @return {!Array<string>}

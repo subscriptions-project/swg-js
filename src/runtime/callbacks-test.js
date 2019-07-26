@@ -16,7 +16,6 @@
 
 import {Callbacks} from './callbacks';
 
-
 describes.sandboxed('Callbacks', {}, () => {
   let callbacks;
 
@@ -37,23 +36,26 @@ describes.sandboxed('Callbacks', {}, () => {
     callbacks.setCallback_(2, spy2);
     expect(spy1).to.not.be.called;
     expect(spy2).to.not.be.called;
-    return skipMicro().then(() => {
-      expect(spy1).to.not.be.called;
-      expect(spy2).to.not.be.called;
-      expect(callbacks.trigger_(1, 'one')).to.be.true;
-      return skipMicro();
-    }).then(() => {
-      expect(spy1).to.be.calledOnce;
-      expect(spy1).to.be.calledWith('one');
-      expect(spy2).to.not.be.called;
-      expect(callbacks.trigger_(2, 'two')).to.be.true;
-      return skipMicro();
-    }).then(() => {
-      expect(spy1).to.be.calledOnce;
-      expect(spy1).to.be.calledWith('one');
-      expect(spy2).to.be.calledOnce;
-      expect(spy2).to.be.calledWith('two');
-    });
+    return skipMicro()
+      .then(() => {
+        expect(spy1).to.not.be.called;
+        expect(spy2).to.not.be.called;
+        expect(callbacks.trigger_(1, 'one')).to.be.true;
+        return skipMicro();
+      })
+      .then(() => {
+        expect(spy1).to.be.calledOnce;
+        expect(spy1).to.be.calledWith('one');
+        expect(spy2).to.not.be.called;
+        expect(callbacks.trigger_(2, 'two')).to.be.true;
+        return skipMicro();
+      })
+      .then(() => {
+        expect(spy1).to.be.calledOnce;
+        expect(spy1).to.be.calledWith('one');
+        expect(spy2).to.be.calledOnce;
+        expect(spy2).to.be.calledWith('two');
+      });
   });
 
   it('should trigger first can callback later', () => {
@@ -118,7 +120,7 @@ describes.sandboxed('Callbacks', {}, () => {
   it('should trigger and execute subscribeResponse', () => {
     const spy = sandbox.spy();
     const p = Promise.resolve();
-    callbacks.setOnLinkComplete(spy);  // Make sure there's no ID conflict.
+    callbacks.setOnLinkComplete(spy); // Make sure there's no ID conflict.
     callbacks.setOnSubscribeResponse(spy);
     expect(callbacks.hasLinkCompletePending()).to.be.false;
     expect(callbacks.hasSubscribeResponsePending()).to.be.false;
@@ -133,7 +135,7 @@ describes.sandboxed('Callbacks', {}, () => {
   it('should trigger and execute ContributionResponse', () => {
     const spy = sandbox.spy();
     const p = Promise.resolve();
-    callbacks.setOnLinkComplete(spy);  // Make sure there's no ID conflict.
+    callbacks.setOnLinkComplete(spy); // Make sure there's no ID conflict.
     callbacks.setOnContributionResponse(spy);
     expect(callbacks.hasLinkCompletePending()).to.be.false;
     expect(callbacks.hasSubscribeResponsePending()).to.be.false;
@@ -148,7 +150,7 @@ describes.sandboxed('Callbacks', {}, () => {
   it('should trigger and execute entitlementsResponse', () => {
     const spy = sandbox.spy();
     const p = Promise.resolve();
-    callbacks.setOnLinkComplete(spy);  // Make sure there's no ID conflict.
+    callbacks.setOnLinkComplete(spy); // Make sure there's no ID conflict.
     callbacks.setOnEntitlementsResponse(spy);
     expect(callbacks.triggerEntitlementsResponse(p)).to.be.true;
     expect(callbacks.hasLinkCompletePending()).to.be.false;
@@ -159,7 +161,7 @@ describes.sandboxed('Callbacks', {}, () => {
 
   it('should trigger and execute flowStarted', () => {
     const spy = sandbox.spy();
-    callbacks.setOnFlowCanceled(spy);  // Make sure there's no ID conflict.
+    callbacks.setOnFlowCanceled(spy); // Make sure there's no ID conflict.
     callbacks.setOnFlowStarted(spy);
     expect(callbacks.triggerFlowStarted('flow1')).to.be.true;
     return skipMicro().then(() => {
@@ -178,7 +180,7 @@ describes.sandboxed('Callbacks', {}, () => {
 
   it('should trigger and execute flowCanceled', () => {
     const spy = sandbox.spy();
-    callbacks.setOnFlowStarted(spy);  // Make sure there's no ID conflict.
+    callbacks.setOnFlowStarted(spy); // Make sure there's no ID conflict.
     callbacks.setOnFlowCanceled(spy);
     expect(callbacks.triggerFlowCanceled('flow1')).to.be.true;
     return skipMicro().then(() => {

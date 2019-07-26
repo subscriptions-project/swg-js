@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-
 import {findInArray, map} from './object';
-
 
 describe('map', () => {
   it('should return a map-like object', () => {
@@ -26,7 +24,6 @@ describe('map', () => {
     expect(map()).to.deep.equal({});
   });
 });
-
 
 describes.sandboxed('findInArray', {}, () => {
   it('should find a value', () => {
