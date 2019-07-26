@@ -21,14 +21,14 @@
  */
 
 const argv = require('minimist')(process.argv.slice(2));
-const BBPromise = require('bluebird');
 const colors = require('ansi-colors');
 const git = require('gulp-git');
-const gitExec = BBPromise.promisify(git.exec);
 const githubRequest = require('./github').githubRequest;
 const gulp = require('gulp-help')(require('gulp'));
 const logger = require('fancy-log');
+const {promisify} = require('bluebird');
 
+const gitExec = promisify(git.exec);
 
 /**
  * @typedef {{
@@ -44,22 +44,18 @@ const logger = require('fancy-log');
  */
 let ReleaseMetadata;
 
-
 /**
  * @param {!Object=} opt_options
  * @return {!Promise}
  */
 function changelog(opt_options) {
   return getLastGithubRelease()
-      .then(getGitLog)
-      .then(getGithubPullRequestsMetadata)
-      .then(buildChangelog)
-      .then(function(response) {
-        logger(colors.blue('\n' + response.changelog));
-      })
-      .catch(errHandler);
+    .then(getGitLog)
+    .then(getGithubPullRequestsMetadata)
+    .then(buildChangelog)
+    .then(response => logger(colors.blue('\n' + response.changelog)))
+    .catch(errHandler);
 }
-
 
 /**
  * Get the latest git tag from a normal release.
@@ -67,7 +63,7 @@ function changelog(opt_options) {
  */
 function getLastGithubRelease() {
   return githubRequest({
-    path: '/releases/latest'
+    path: '/releases/latest',
   }).then(res => {
     const id = res['id'];
     const tag = res['tag_name'];
@@ -90,86 +86,84 @@ function getLastGithubRelease() {
   });
 }
 
-
 /**
  * Extracts the log on the current branch since the release.
  * @param {!ReleaseMetadata} release
  * @return {!Promise<!ReleaseMetadata>}
  */
-function getGitLog(release) {
+async function getGitLog(release) {
   const tag = release.tag;
-  return gitExec({
+  const logs = await gitExec({
     args: `log ${tag}... --pretty=oneline --first-parent`,
-  }).then(function(logs) {
-    if (!logs) {
-      throw new Error('No logs found "git log ' + tag + '...".\n' +
-          'Is it possible that there is no delta?\n' +
-          'Make sure to fetch and rebase (or reset --hard) the latest ' +
-          'from remote upstream.');
-    }
-    const commits = logs.split('\n').filter(log => !!log.length);
-    release.logs = commits.map(log => {
-      const words = log.split(' ');
-      return {
-        sha: words.shift(),
-        title: words.join(' '),
-      };
-    });
-    return release;
   });
+  if (!logs) {
+    throw new Error(
+      'No logs found "git log ' +
+        tag +
+        '...".\n' +
+        'Is it possible that there is no delta?\n' +
+        'Make sure to fetch and rebase (or reset --hard) the latest ' +
+        'from remote upstream.'
+    );
+  }
+  const commits = logs.split('\n').filter(log => !!log.length);
+  release.logs = commits.map(log => {
+    const words = log.split(' ');
+    return {
+      sha: words.shift(),
+      title: words.join(' '),
+    };
+  });
+  return release;
 }
 
+/**
+ * Fetches pulls?page=${page}
+ * @param {number} page
+ * @return {!Promise<!Array<!PrMetadataDef>}
+ */
+function getClosedPullRequests(page) {
+  return githubRequest({
+    path: '/pulls',
+    qs: {
+      page,
+      state: 'closed',
+    },
+  });
+}
 
 /**
  * @param {!ReleaseMetadata} release
  * @return {!Promise<!GitMetadataDef>}
  */
-function getGithubPullRequestsMetadata(release) {
-  /**
-   * Fetches pulls?page=${page}
-   * @param {number} page
-   * @return {!Promise<!Array<!PrMetadataDef>}
-   */
-  function getClosedPullRequests(page) {
-    return githubRequest({
-      path: '/pulls',
-      qs: {
-        page,
-        state: 'closed',
-      },
-    });
-  }
-
-  // TODO(erwinm): Github seems to only return data for the first 3 pages
-  // from my manual testing.
-  return BBPromise.all([
+async function getGithubPullRequestsMetadata(release) {
+  // Fetch 4 pages of PRs.
+  const requests = await Promise.all([
     getClosedPullRequests(1),
     getClosedPullRequests(2),
     getClosedPullRequests(3),
-  ]).then(requests => {
-    return [].concat.apply([], requests);
-  }).then(prs => {
-    release.prs = prs;
-    const githubPrRequest = release.logs.map(log => {
-      const pr = prs.filter(pr => pr.merge_commit_sha == log.sha)[0];
-      if (pr) {
-        log.pr = {
-          id: pr['number'],
-          title: pr['title'],
-          body: pr['body'],
-          merge_commit_sha: pr['merge_commit_sha'],
-          url: pr['_links']['self']['href'],
-        };
-      } else {
-        // TODO(dvoytenko): try to find PR from the GitHub API.
-        logger.warn(colors.yellow('PR not found for commit: ' + log.sha));
-      }
-      return BBPromise.resolve();
-    });
-    return BBPromise.all(githubPrRequest).then(() => release);
-  });
-}
+    getClosedPullRequests(4),
+  ]);
+  release.prs = [].concat.apply([], requests);
 
+  for (const log of release.logs) {
+    const pr = release.prs.filter(pr => pr.merge_commit_sha == log.sha)[0];
+    if (pr) {
+      log.pr = {
+        id: pr['number'],
+        title: pr['title'],
+        body: pr['body'],
+        merge_commit_sha: pr['merge_commit_sha'],
+        url: pr['_links']['self']['href'],
+      };
+    } else {
+      // TODO(dvoytenko): try to find PR from the GitHub API.
+      logger.warn(colors.yellow('PR not found for commit: ' + log.sha));
+    }
+  }
+
+  return release;
+}
 
 /**
  * @param {!ReleaseMetadata} release
@@ -178,25 +172,24 @@ function getGithubPullRequestsMetadata(release) {
 function buildChangelog(release) {
   let changelog = `## Version: ${argv.swgVersion || 'TODO_VERSION'}\n\n`;
 
-  changelog += '## Previous release: ' +
-      `[${release.tag}]` +
-      '(' +
-      `https://github.com/subscriptions-project/swg-js/releases/tag/${release.tag}` +
-      ')\n\n';
+  changelog +=
+    '## Previous release: ' +
+    `[${release.tag}]` +
+    '(' +
+    `https://github.com/subscriptions-project/swg-js/releases/tag/${release.tag}` +
+    ')\n\n';
 
   // Append all titles.
-  changelog += release.logs.map(log => {
-    const pr = log.pr;
-    return '  - ' +
-        (pr ?
-          `${pr.title.trim()} (#${pr.id})` :
-          log.title);
-  }).join('\n');
+  changelog += release.logs
+    .map(log => {
+      const pr = log.pr;
+      return '  - ' + (pr ? `${pr.title.trim()} (#${pr.id})` : log.title);
+    })
+    .join('\n');
 
   release.changelog = changelog;
   return release;
 }
-
 
 function errHandler(err) {
   let msg = err;
@@ -205,7 +198,6 @@ function errHandler(err) {
   }
   logger(colors.red(msg));
 }
-
 
 changelog.description = 'Change log since last release';
 gulp.task('changelog', changelog);
