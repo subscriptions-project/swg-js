@@ -18,7 +18,6 @@ import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
 
-
 /**
  * The button title should match that of button's SVG.
  */
@@ -30,7 +29,7 @@ const TITLE_LANG_MAP = {
   'es': 'Suscríbete con Google',
   'es-latam': 'Suscríbete con Google',
   'es-latn': 'Suscríbete con Google',
-  'fr': 'S\'abonner avec Google',
+  'fr': "S'abonner avec Google",
   'hi': 'Google के ज़रिये सदस्यता',
   'id': 'Berlangganan dengan Google',
   'it': 'Abbonati con Google',
@@ -50,14 +49,12 @@ const TITLE_LANG_MAP = {
   'zh-tw': '透過 Google 訂閱',
 };
 
-
 /**
  * The button stylesheet can be found in the `/assets/swg-button.css`.
  * It's produced by the `gulp assets` task and deployed to
  * `https://news.google.com/swg/js/v1/swg-button.css`.
  */
 export class ButtonApi {
-
   /**
    * @param {!../model/doc.Doc} doc
    */
@@ -81,11 +78,13 @@ export class ButtonApi {
     }
 
     // <link rel="stylesheet" href="..." type="text/css">
-    head.appendChild(createElement(this.doc_.getWin().document, 'link', {
-      'rel': 'stylesheet',
-      'type': 'text/css',
-      'href': url,
-    }));
+    head.appendChild(
+      createElement(this.doc_.getWin().document, 'link', {
+        'rel': 'stylesheet',
+        'type': 'text/css',
+        'href': url,
+      })
+    );
   }
 
   /**
@@ -105,8 +104,9 @@ export class ButtonApi {
    * @return {!Element}
    */
   attach(button, optionsOrCallback, opt_callback) {
-    const options = /** @type {!../api/subscriptions.ButtonOptions} */
-        (this.getOptions_(optionsOrCallback));
+    const options = /** @type {!../api/subscriptions.ButtonOptions} */ (this.getOptions_(
+      optionsOrCallback
+    ));
     const callback = this.getCallback_(optionsOrCallback, opt_callback);
 
     const theme = options['theme'];
@@ -127,9 +127,11 @@ export class ButtonApi {
    * @private
    */
   getOptions_(optionsOrCallback) {
-    const options = /** @type {!../api/subscriptions.ButtonOptions|!../api/subscriptions.SmartButtonOptions} */
-        (optionsOrCallback && typeof optionsOrCallback != 'function' ?
-        optionsOrCallback : {'theme': Theme.LIGHT});
+    const options =
+      /** @type {!../api/subscriptions.ButtonOptions|!../api/subscriptions.SmartButtonOptions} */ (optionsOrCallback &&
+      typeof optionsOrCallback != 'function'
+        ? optionsOrCallback
+        : {'theme': Theme.LIGHT});
 
     const theme = options['theme'];
     if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
@@ -146,9 +148,11 @@ export class ButtonApi {
    * @private
    */
   getCallback_(optionsOrCallback, opt_callback) {
-    const callback = /** @type {function()|function(Event):boolean} */ (
-      (typeof optionsOrCallback == 'function' ? optionsOrCallback : null) ||
-          opt_callback);
+    const callback =
+      /** @type {function()|function(Event):boolean} */ ((typeof optionsOrCallback ==
+      'function'
+        ? optionsOrCallback
+        : null) || opt_callback);
     return callback;
   }
 
@@ -160,15 +164,22 @@ export class ButtonApi {
    * @return {!Element}
    */
   attachSmartButton(deps, button, optionsOrCallback, opt_callback) {
-    const options = /** @type {!../api/subscriptions.SmartButtonOptions} */
-        (this.getOptions_(optionsOrCallback));
-    const callback = /** @type {function()} */
-        (this.getCallback_(optionsOrCallback, opt_callback));
+    const options = /** @type {!../api/subscriptions.SmartButtonOptions} */ (this.getOptions_(
+      optionsOrCallback
+    ));
+    const callback = /** @type {function()} */ (this.getCallback_(
+      optionsOrCallback,
+      opt_callback
+    ));
 
     // Add required CSS class, if missing.
     button.classList.add('swg-smart-button');
 
     return new SmartSubscriptionButtonApi(
-        deps, button, options, callback).start();
+      deps,
+      button,
+      options,
+      callback
+    ).start();
   }
 }

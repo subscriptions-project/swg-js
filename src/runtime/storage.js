@@ -16,9 +16,7 @@
 
 const PREFIX = 'subscribe.google.com';
 
-
 export class Storage {
-
   /**
    * @param {!Window} win
    */
@@ -89,7 +87,6 @@ export class Storage {
     });
   }
 }
-
 
 /**
  * @param {string} key

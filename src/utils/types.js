@@ -69,7 +69,7 @@ export function isObject(value) {
  * @return {boolean}
  */
 export function isFiniteNumber(value) {
-  return (typeof value === 'number' && isFinite(value));
+  return typeof value === 'number' && isFinite(value);
 }
 
 /**

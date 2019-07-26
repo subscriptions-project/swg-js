@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-import {
-  setImportantStyles,
-} from '../utils/style';
+import {setImportantStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 
-
 export class Graypane {
-
   /**
    * @param {!../model/doc.Doc} doc
    * @param {number} zIndex
@@ -31,8 +27,9 @@ export class Graypane {
     this.doc_ = doc;
 
     /** @private @const {!Element} */
-    this.fadeBackground_ = this.doc_.getWin().document.createElement(
-        'swg-popup-background');
+    this.fadeBackground_ = this.doc_
+      .getWin()
+      .document.createElement('swg-popup-background');
     setImportantStyles(this.fadeBackground_, {
       'z-index': zIndex,
       'display': 'none',
@@ -84,9 +81,14 @@ export class Graypane {
       'opacity': animated ? 0 : 1,
     });
     if (animated) {
-      return transition(this.fadeBackground_, {
-        'opacity': 1,
-      }, 300, 'ease-out');
+      return transition(
+        this.fadeBackground_,
+        {
+          'opacity': 1,
+        },
+        300,
+        'ease-out'
+      );
     }
   }
 
@@ -97,9 +99,14 @@ export class Graypane {
    */
   hide(animated = true) {
     if (animated) {
-      return transition(this.fadeBackground_, {
-        'opacity': 0,
-      }, 300, 'ease-out').then(() => {
+      return transition(
+        this.fadeBackground_,
+        {
+          'opacity': 0,
+        },
+        300,
+        'ease-out'
+      ).then(() => {
         setImportantStyles(this.fadeBackground_, {'display': 'none'});
       });
     }

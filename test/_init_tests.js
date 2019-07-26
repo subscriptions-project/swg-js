@@ -23,7 +23,6 @@ import {PAY_ORIGIN} from '../src/runtime/pay-client';
 import {installYieldIt} from '../test/yield';
 import stringify from 'json-stable-stringify';
 
-
 // All exposed describes.
 global.describes = describes;
 
@@ -74,8 +73,10 @@ afterEach(function() {
     throw new Error('You forgot to clear global sandbox!');
   }
   if (!/native/.test(window.setTimeout)) {
-    throw new Error('You likely forgot to restore sinon timers ' +
-        '(installed via sandbox.useFakeTimers).');
+    throw new Error(
+      'You likely forgot to restore sinon timers ' +
+        '(installed via sandbox.useFakeTimers).'
+    );
   }
 });
 
@@ -83,11 +84,11 @@ chai.Assertion.addMethod('attribute', function(attr) {
   const obj = this._obj;
   const tagName = obj.tagName.toLowerCase();
   this.assert(
-      obj.hasAttribute(attr),
-      'expected element \'' + tagName + '\' to have attribute #{exp}',
-      'expected element \'' + tagName + '\' to not have attribute #{act}',
-      attr,
-      attr
+    obj.hasAttribute(attr),
+    "expected element '" + tagName + "' to have attribute #{exp}",
+    "expected element '" + tagName + "' to not have attribute #{act}",
+    attr,
+    attr
   );
 });
 
@@ -95,11 +96,11 @@ chai.Assertion.addMethod('class', function(className) {
   const obj = this._obj;
   const tagName = obj.tagName.toLowerCase();
   this.assert(
-      obj.classList.contains(className),
-      'expected element \'' + tagName + '\' to have class #{exp}',
-      'expected element \'' + tagName + '\' to not have class #{act}',
-      className,
-      className
+    obj.classList.contains(className),
+    "expected element '" + tagName + "' to have class #{exp}",
+    "expected element '" + tagName + "' to not have class #{act}",
+    className,
+    className
   );
 });
 
@@ -111,14 +112,17 @@ chai.Assertion.addProperty('visible', function() {
   const isOpaque = parseInt(opacity, 10) > 0;
   const tagName = obj.tagName.toLowerCase();
   this.assert(
-      visibility === 'visible' && isOpaque,
-      'expected element \'' +
-      tagName + '\' to be #{exp}, got #{act}. with classes: ' + obj.className,
-      'expected element \'' +
-      tagName + '\' not to be #{exp}, got #{act}. with classes: ' +
+    visibility === 'visible' && isOpaque,
+    "expected element '" +
+      tagName +
+      "' to be #{exp}, got #{act}. with classes: " +
       obj.className,
-      'visible and opaque',
-      `visibility = ${visibility} and opacity = ${opacity}`
+    "expected element '" +
+      tagName +
+      "' not to be #{exp}, got #{act}. with classes: " +
+      obj.className,
+    'visible and opaque',
+    `visibility = ${visibility} and opacity = ${opacity}`
   );
 });
 
@@ -129,13 +133,17 @@ chai.Assertion.addProperty('hidden', function() {
   const opacity = computedStyle.getPropertyValue('opacity');
   const tagName = obj.tagName.toLowerCase();
   this.assert(
-      visibility === 'hidden' || parseInt(opacity, 10) == 0,
-      'expected element \'' +
-        tagName + '\' to be #{exp}, got #{act}. with classes: ' + obj.className,
-      'expected element \'' +
-        tagName + '\' not to be #{act}. with classes: ' + obj.className,
-      'hidden',
-      visibility
+    visibility === 'hidden' || parseInt(opacity, 10) == 0,
+    "expected element '" +
+      tagName +
+      "' to be #{exp}, got #{act}. with classes: " +
+      obj.className,
+    "expected element '" +
+      tagName +
+      "' not to be #{act}. with classes: " +
+      obj.className,
+    'hidden',
+    visibility
   );
 });
 
@@ -144,11 +152,11 @@ chai.Assertion.addMethod('display', function(display) {
   const value = window.getComputedStyle(obj).getPropertyValue('display');
   const tagName = obj.tagName.toLowerCase();
   this.assert(
-      value === display,
-      'expected element \'' + tagName + '\' to be #{exp}, got #{act}.',
-      'expected element \'' + tagName + '\' not to be #{act}.',
-      display,
-      value
+    value === display,
+    "expected element '" + tagName + "' to be #{exp}, got #{act}.",
+    "expected element '" + tagName + "' not to be #{act}.",
+    display,
+    value
   );
 });
 
@@ -157,11 +165,11 @@ chai.Assertion.addMethod('jsonEqual', function(compare) {
   const a = stringify(compare);
   const b = stringify(obj);
   this.assert(
-      a == b,
-      'expected JSON to be equal.\nExp: #{exp}\nAct: #{act}',
-      'expected JSON to not be equal.\nExp: #{exp}\nAct: #{act}',
-      a,
-      b
+    a == b,
+    'expected JSON to be equal.\nExp: #{exp}\nAct: #{act}',
+    'expected JSON to not be equal.\nExp: #{exp}\nAct: #{act}',
+    a,
+    b
   );
 });
 

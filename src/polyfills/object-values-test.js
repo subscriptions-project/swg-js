@@ -16,14 +16,14 @@
 
 import {values} from './object-values';
 
-
 describes.sandboxed('Object.values polyfill', {}, () => {
-
   it('should disallow null and undefined', () => {
-    expect(() => values(null))
-        .to.throw(/Cannot convert undefined or null to object/);
-    expect(() => values(undefined))
-        .to.throw(/Cannot convert undefined or null to object/);
+    expect(() => values(null)).to.throw(
+      /Cannot convert undefined or null to object/
+    );
+    expect(() => values(undefined)).to.throw(
+      /Cannot convert undefined or null to object/
+    );
   });
 
   it('should allow primitives', () => {

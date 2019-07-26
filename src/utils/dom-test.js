@@ -17,7 +17,6 @@
 import {resolveDoc} from '../model/doc';
 import * as dom from './dom';
 
-
 describes.realWin('Dom', {}, env => {
   let doc;
 
@@ -26,15 +25,12 @@ describes.realWin('Dom', {}, env => {
   });
 
   describe('Dom', () => {
-
     it('should inject the style in the HEAD section', () => {
       const query = 'head style';
-      const existingStylesCount =
-             doc.querySelectorAll(query).length;
+      const existingStylesCount = doc.querySelectorAll(query).length;
       const styles = 'body{padding:0;margin:0}';
       dom.injectStyleSheet(resolveDoc(doc), styles);
-      const newStylesCount =
-             doc.querySelectorAll(query).length;
+      const newStylesCount = doc.querySelectorAll(query).length;
       expect(newStylesCount).to.equal(existingStylesCount + 1);
       const styleList = doc.querySelectorAll(query);
       const newStyle = styleList.item(styleList.length - 1);
@@ -51,8 +47,9 @@ describes.realWin('Dom', {}, env => {
         'height': '100%',
       };
       const element = dom.createElement(doc, 'iframe', attrs);
-      expect(element.getAttribute('frameborder'))
-          .to.equal(attrs['frameborder'].toString());
+      expect(element.getAttribute('frameborder')).to.equal(
+        attrs['frameborder'].toString()
+      );
       expect(element.getAttribute('scrolling')).to.equal(attrs['scrolling']);
       expect(element.getAttribute('width')).to.equal(attrs['width']);
       expect(element.getAttribute('height')).to.equal(attrs['height']);
@@ -84,12 +81,13 @@ describes.realWin('Dom', {}, env => {
       const element = dom.createElement(doc, 'div', attrs);
       expect(element.getAttribute('width')).to.equal(attrs['width']);
       expect(element.getAttribute('width')).to.equal(attrs['height']);
-      expect(element.style['min-height'])
-          .to.equal(attrs['style']['min-height']);
-      expect(element.style['display'])
-          .to.equal(attrs['style']['display']);
-      expect(element.style['opacity'])
-          .to.equal(attrs['style']['opacity'].toString());
+      expect(element.style['min-height']).to.equal(
+        attrs['style']['min-height']
+      );
+      expect(element.style['display']).to.equal(attrs['style']['display']);
+      expect(element.style['opacity']).to.equal(
+        attrs['style']['opacity'].toString()
+      );
       expect(element.firstChild).to.be.null;
     });
 
@@ -206,10 +204,10 @@ describes.realWin('Dom', {}, env => {
           contains: node => node.connected_,
         },
       };
-      expect(dom.isConnected({ownerDocument: doc, connected_: true}))
-          .to.be.true;
-      expect(dom.isConnected({ownerDocument: doc, connected_: false}))
-          .to.be.false;
+      expect(dom.isConnected({ownerDocument: doc, connected_: true})).to.be
+        .true;
+      expect(dom.isConnected({ownerDocument: doc, connected_: false})).to.be
+        .false;
     });
 
     it('should work on actual nodes', () => {

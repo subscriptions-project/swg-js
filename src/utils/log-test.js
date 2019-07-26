@@ -36,8 +36,8 @@ describes.realWin('debug log', {}, () => {
   it('should handle multiple arguments', () => {
     self.location.hash = 'swg.debug=1';
     debugLog('Hello', 'World');
-    expect(console.log.calledWith('[Subscriptions]', 'Hello', 'World'))
-        .to.be.true;
+    expect(console.log.calledWith('[Subscriptions]', 'Hello', 'World')).to.be
+      .true;
   });
 
   it('should not log if swg.debug=1 is not present', () => {
