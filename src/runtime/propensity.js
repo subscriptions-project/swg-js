@@ -20,7 +20,6 @@ import {isObject, isEnumValue} from '../utils/types';
 import {EventOriginator} from '../proto/api_messages';
 import {publisherEventToAnalyticsEvent} from './event-type-mapping';
 import {isBoolean} from '../utils/types';
-import {AnalyticsEvent} from '../proto/api_messages';
 
 /**
  * @implements {PropensityApi.PropensityApi}
