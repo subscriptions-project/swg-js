@@ -57,6 +57,7 @@ describes.realWin('PropensityServer', {}, env => {
     isFromUserAction: null,
     additionalParameters: defaultParameters,
   };
+  const productsOrSkus = {'product': ['a', 'b', 'c']};
 
   beforeEach(() => {
     win = env.win;
@@ -82,7 +83,6 @@ describes.realWin('PropensityServer', {}, env => {
       capturedRequest = init;
       return Promise.reject(new Error('Publisher not whitelisted'));
     });
-    const productsOrSkus = {'product': ['a', 'b', 'c']};
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
@@ -456,5 +456,28 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedType).to.equal(Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
+  });
+
+  it('should allow subscription state change via event', () => {
+    let receivedState;
+    let receivedProducts;
+
+    sandbox
+      .stub(PropensityServer.prototype, 'sendSubscriptionState')
+      .callsFake((state, products) => {
+        receivedState = state;
+        receivedProducts = products;
+      });
+    eventManager.logEvent({
+      eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: {
+        'state': SubscriptionState.UNKNOWN,
+        'productsOrSkus': JSON.stringify(productsOrSkus),
+      },
+    });
+    expect(receivedState).to.equal(SubscriptionState.UNKNOWN);
+    expect(receivedProducts).to.equal(JSON.stringify(productsOrSkus));
   });
 });

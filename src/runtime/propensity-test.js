@@ -25,14 +25,12 @@ describes.realWin('Propensity', {}, env => {
   let win;
   let config;
   let propensity;
-  let propensityServerListener;
+  let eventReceived;
 
   beforeEach(() => {
     win = env.win;
     config = new PageConfig('pub1', true);
-    sandbox
-      .stub(ClientEventManager.prototype, 'registerEventListener')
-      .callsFake(listener => (propensityServerListener = listener));
+    eventReceived = null;
     propensity = new Propensity(win, config, new ClientEventManager());
   });
 
@@ -116,9 +114,6 @@ describes.realWin('Propensity', {}, env => {
   it('should send subscription state', () => {
     let subscriptionState = null;
     sandbox
-      .stub(ClientEventManager.prototype, 'logEvent')
-      .callsFake(event => propensityServerListener(event));
-    sandbox
       .stub(PropensityServer.prototype, 'sendSubscriptionState')
       .callsFake(state => {
         subscriptionState = state;
@@ -134,9 +129,6 @@ describes.realWin('Propensity', {}, env => {
     //note that actual event manager will cause the error to be logged to the
     //console instead of being immediately thrown.
     sandbox
-      .stub(ClientEventManager.prototype, 'logEvent')
-      .callsFake(event => propensityServerListener(event));
-    sandbox
       .stub(PropensityServer.prototype, 'sendSubscriptionState')
       .callsFake(() => {
         throw new Error('publisher not whitelisted');
@@ -147,14 +139,10 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should send events to event manager', () => {
-    let eventSent = null;
-    sandbox
-      .stub(ClientEventManager.prototype, 'logEvent')
-      .callsFake(event => (eventSent = event));
     propensity.sendEvent({
       name: Event.IMPRESSION_PAYWALL,
     });
-    expect(eventSent).to.deep.equal({
+    expect(eventReceived).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: undefined,
@@ -164,16 +152,10 @@ describes.realWin('Propensity', {}, env => {
 
   it('should validate events sent to it and set appropriate defaults', () => {
     let hasError;
-    let receivedEvent;
-
-    sandbox.stub(ClientEventManager.prototype, 'logEvent').callsFake(event => {
-      receivedEvent = event;
-    });
-
     const testSend = event => {
       try {
         hasError = false;
-        receivedEvent = null;
+        eventReceived = null;
         propensity.sendEvent(event);
       } catch (e) {
         hasError = true;
@@ -185,7 +167,7 @@ describes.realWin('Propensity', {}, env => {
       name: 'invalid name',
     });
     expect(hasError).to.be.true;
-    expect(receivedEvent).to.be.null;
+    expect(eventReceived).to.be.null;
 
     //ensure it takes a valid enum with nothing else and fills in appropriate
     //defaults for other values
@@ -193,7 +175,7 @@ describes.realWin('Propensity', {}, env => {
       name: Event.IMPRESSION_PAYWALL,
     });
     expect(hasError).to.be.false;
-    expect(receivedEvent).to.deep.equal({
+    expect(eventReceived).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: undefined,
@@ -204,7 +186,7 @@ describes.realWin('Propensity', {}, env => {
     testSend({
       name: Event.IMPRESSION_OFFERS,
     });
-    expect(receivedEvent).to.deep.equal({
+    expect(eventReceived).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: undefined,
@@ -216,7 +198,7 @@ describes.realWin('Propensity', {}, env => {
       active: null,
     });
     expect(hasError).to.be.false;
-    expect(receivedEvent).to.deep.equal({
+    expect(eventReceived).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: null,
@@ -228,7 +210,7 @@ describes.realWin('Propensity', {}, env => {
       active: true,
     });
     expect(hasError).to.be.false;
-    expect(receivedEvent).to.deep.equal({
+    expect(eventReceived).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: true,
@@ -240,7 +222,7 @@ describes.realWin('Propensity', {}, env => {
       active: false,
     });
     expect(hasError).to.be.false;
-    expect(receivedEvent).to.deep.equal({
+    expect(eventReceived).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: false,
@@ -254,7 +236,7 @@ describes.realWin('Propensity', {}, env => {
       data: 'all_offers',
     });
     expect(hasError).to.be.true;
-    expect(receivedEvent).to.be.null;
+    expect(eventReceived).to.be.null;
   });
 
   it('should return propensity score from server', () => {
