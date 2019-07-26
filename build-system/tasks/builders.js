@@ -92,13 +92,21 @@ function checkTypes() {
 }
 
 
-gulp.task('clean', 'Removes build output', clean);
-gulp.task('watch', 'Watches for changes in files, re-build', watch);
-gulp.task('build', 'Builds the library', build);
-gulp.task('dist', 'Build production binaries', dist, {
-  options: {
-    pseudo_names: 'Compiles with readable names. ' +
-        'Great for profiling and debugging production code.',
-  }
-});
-gulp.task('check-types', 'Check JS types', checkTypes);
+clean.description = 'Removes build output';
+gulp.task('clean', clean);
+
+watch.description = 'Watches for changes in files, re-build';
+gulp.task('watch', watch);
+
+build.description = 'Builds the library';
+gulp.task('build', build);
+
+dist.description = 'Build production binaries';
+dist.flags = {
+  pseudo_names: 'Compiles with readable names. ' +
+      'Great for profiling and debugging production code.',
+};
+gulp.task('dist', dist);
+
+checkTypes.description = 'Check JS types';
+gulp.task('check-types', checkTypes);

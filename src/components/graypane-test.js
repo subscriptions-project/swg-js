@@ -21,7 +21,6 @@ import {getStyle} from '../utils/style';
 const NO_ANIMATE = false;
 const ANIMATE = true;
 
-
 describes.realWin('Graypane', {}, env => {
   let win;
   let graypane;
@@ -44,8 +43,9 @@ describes.realWin('Graypane', {}, env => {
     expect(getStyle(element, 'left')).to.equal('0px');
     expect(getStyle(element, 'right')).to.equal('0px');
     expect(getStyle(element, 'bottom')).to.equal('0px');
-    expect(getStyle(element, 'background-color'))
-        .to.equal('rgba(32, 33, 36, 0.6)');
+    expect(getStyle(element, 'background-color')).to.equal(
+      'rgba(32, 33, 36, 0.6)'
+    );
   });
 
   it('should attach and destroy', () => {

@@ -22,7 +22,6 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 
-
 describes.realWin('experiments', {}, env => {
   let win;
   let sessionStorageMock;
@@ -38,10 +37,10 @@ describes.realWin('experiments', {}, env => {
     sessionStorageMock = sandbox.mock(sessionStorage);
     Object.defineProperty(win, 'sessionStorage', {value: sessionStorage});
     errorCount = 0;
-    throwAsyncStub = sandbox.stub(ErrorUtils, 'throwAsync', () => {});
+    throwAsyncStub = sandbox.stub(ErrorUtils, 'throwAsync').callsFake(() => {});
     randomResults = [];
     randomCall = 0;
-    sandbox.stub(win.Math, 'random', () => {
+    sandbox.stub(win.Math, 'random').callsFake(() => {
       if (randomCall >= randomResults.length) {
         throw new Error('random not allowed');
       }
@@ -55,8 +54,10 @@ describes.realWin('experiments', {}, env => {
     if (throwAsyncStub.callCount == 0) {
       expect(errorCount).to.equal(0);
     } else {
-      expect(errorCount).to.equal(throwAsyncStub.callCount,
-          'ERROR:' + throwAsyncStub.args[0][0]);
+      expect(errorCount).to.equal(
+        throwAsyncStub.callCount,
+        'ERROR:' + throwAsyncStub.args[0][0]
+      );
     }
   });
 
@@ -84,8 +85,10 @@ describes.realWin('experiments', {}, env => {
       setExperimentsStringForTesting('experiment-A,experiment-B,');
       expect(isExperimentOn(win, 'experiment-A')).to.be.true;
       expect(isExperimentOn(win, 'experiment-B')).to.be.true;
-      expect(getOnExperiments(win))
-          .to.deep.equal(['experiment-A', 'experiment-B']);
+      expect(getOnExperiments(win)).to.deep.equal([
+        'experiment-A',
+        'experiment-B',
+      ]);
     });
 
     it('should update an experiment', () => {
@@ -95,8 +98,10 @@ describes.realWin('experiments', {}, env => {
       expect(isExperimentOn(win, 'experiment-A')).to.be.false;
       expect(isExperimentOn(win, 'experiment-B')).to.be.true;
       expect(isExperimentOn(win, 'experiment-C')).to.be.true;
-      expect(getOnExperiments(win))
-          .to.deep.equal(['experiment-B', 'experiment-C']);
+      expect(getOnExperiments(win)).to.deep.equal([
+        'experiment-B',
+        'experiment-C',
+      ]);
     });
 
     it('should parse duplicate experiments', () => {
@@ -126,24 +131,27 @@ describes.realWin('experiments', {}, env => {
       setExperimentsStringForTesting('');
       win = {
         location: {
-          hash: '#swg.experiments=' +
-              encodeURIComponent('experiment-A,experiment-B'),
+          hash:
+            '#swg.experiments=' +
+            encodeURIComponent('experiment-A,experiment-B'),
         },
       };
-      expect(getOnExperiments(win))
-          .to.deep.equal(['experiment-A', 'experiment-B']);
+      expect(getOnExperiments(win)).to.deep.equal([
+        'experiment-A',
+        'experiment-B',
+      ]);
     });
 
     it('should override experiments in hash', () => {
       setExperimentsStringForTesting('experiment-A:100');
       win = {
         location: {
-          hash: '#swg.experiments=' +
-              encodeURIComponent('experiment-A:0,experiment-B'),
+          hash:
+            '#swg.experiments=' +
+            encodeURIComponent('experiment-A:0,experiment-B'),
         },
       };
-      expect(getOnExperiments(win))
-          .to.deep.equal(['experiment-B']);
+      expect(getOnExperiments(win)).to.deep.equal(['experiment-B']);
     });
 
     it('should tolerate broken hash', () => {
@@ -151,15 +159,17 @@ describes.realWin('experiments', {}, env => {
       setExperimentsStringForTesting('experiment-A');
       win = {location: {}};
       Object.defineProperty(win.location, 'hash', {
-        get: () => {throw new Error('intentional');},
+        get: () => {
+          throw new Error('intentional');
+        },
       });
-      expect(getOnExperiments(win))
-          .to.deep.equal(['experiment-A']);
+      expect(getOnExperiments(win)).to.deep.equal(['experiment-A']);
     });
 
     it('should tolerate whitespace', () => {
       setExperimentsStringForTesting(
-          ' experiment-A : 100 ,, experiment-B : 0 ');
+        ' experiment-A : 100 ,, experiment-B : 0 '
+      );
       expect(isExperimentOn(win, 'experiment-A')).to.be.true;
       expect(isExperimentOn(win, 'experiment-B')).to.be.false;
       expect(getOnExperiments(win)).to.deep.equal(['experiment-A']);
@@ -167,13 +177,13 @@ describes.realWin('experiments', {}, env => {
   });
 
   describe('fractional experiments', () => {
-
     it('should select a non-control experiment', () => {
       setExperimentsStringForTesting('experiment-A:1');
       randomResults = [0.01];
-      sessionStorageMock.expects('setItem')
-          .withExactArgs('subscribe.google.com:e:experiment-A:1', 'e')
-          .once();
+      sessionStorageMock
+        .expects('setItem')
+        .withExactArgs('subscribe.google.com:e:experiment-A:1', 'e')
+        .once();
       expect(getOnExperiments(win)).to.deep.equal(['experiment-A']);
     });
 
@@ -187,18 +197,20 @@ describes.realWin('experiments', {}, env => {
     it('should select an experiment', () => {
       setExperimentsStringForTesting('experiment-A:1c');
       randomResults = [0.02, 0.5];
-      sessionStorageMock.expects('setItem')
-          .withExactArgs('subscribe.google.com:e:experiment-A:1c', 'e')
-          .once();
+      sessionStorageMock
+        .expects('setItem')
+        .withExactArgs('subscribe.google.com:e:experiment-A:1c', 'e')
+        .once();
       expect(getOnExperiments(win)).to.deep.equal(['experiment-A']);
     });
 
     it('should unselect a control', () => {
       setExperimentsStringForTesting('experiment-A:1c');
       randomResults = [0.02, 0.51];
-      sessionStorageMock.expects('setItem')
-          .withExactArgs('subscribe.google.com:e:experiment-A:1c', 'c')
-          .once();
+      sessionStorageMock
+        .expects('setItem')
+        .withExactArgs('subscribe.google.com:e:experiment-A:1c', 'c')
+        .once();
       expect(getOnExperiments(win)).to.deep.equal(['c-experiment-A']);
     });
 
@@ -219,9 +231,10 @@ describes.realWin('experiments', {}, env => {
     it('should tolerate storage failure on read', () => {
       setExperimentsStringForTesting('experiment-A:1');
       errorCount = 1;
-      sessionStorageMock.expects('getItem')
-          .throws(new Error('intentional'))
-          .once();
+      sessionStorageMock
+        .expects('getItem')
+        .throws(new Error('intentional'))
+        .once();
       sessionStorageMock.expects('setItem').never();
       expect(getOnExperiments(win)).to.deep.equal([]);
     });
@@ -230,37 +243,41 @@ describes.realWin('experiments', {}, env => {
       setExperimentsStringForTesting('experiment-A:1');
       randomResults = [0.01];
       errorCount = 1;
-      sessionStorageMock.expects('setItem')
-          .throws(new Error('intentional'))
-          .once();
+      sessionStorageMock
+        .expects('setItem')
+        .throws(new Error('intentional'))
+        .once();
       expect(getOnExperiments(win)).to.deep.equal([]);
     });
 
     it('should disable control when fraction is too high', () => {
       setExperimentsStringForTesting('experiment-A:40c');
       randomResults = [0.02];
-      sessionStorageMock.expects('setItem')
-          .withExactArgs('subscribe.google.com:e:experiment-A:40', 'e')
-          .once();
+      sessionStorageMock
+        .expects('setItem')
+        .withExactArgs('subscribe.google.com:e:experiment-A:40', 'e')
+        .once();
       expect(getOnExperiments(win)).to.deep.equal(['experiment-A']);
     });
 
     it('should select a persisted experiment', () => {
       setExperimentsStringForTesting('experiment-A:1');
-      sessionStorageMock.expects('getItem')
-          .withExactArgs('subscribe.google.com:e:experiment-A:1')
-          .returns('e')
-          .once();
+      sessionStorageMock
+        .expects('getItem')
+        .withExactArgs('subscribe.google.com:e:experiment-A:1')
+        .returns('e')
+        .once();
       sessionStorageMock.expects('setItem').never();
       expect(getOnExperiments(win)).to.deep.equal(['experiment-A']);
     });
 
     it('should select a persisted control', () => {
       setExperimentsStringForTesting('experiment-A:1');
-      sessionStorageMock.expects('getItem')
-          .withExactArgs('subscribe.google.com:e:experiment-A:1')
-          .returns('c')
-          .once();
+      sessionStorageMock
+        .expects('getItem')
+        .withExactArgs('subscribe.google.com:e:experiment-A:1')
+        .returns('c')
+        .once();
       sessionStorageMock.expects('setItem').never();
       expect(getOnExperiments(win)).to.deep.equal(['c-experiment-A']);
     });

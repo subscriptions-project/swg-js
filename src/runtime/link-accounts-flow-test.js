@@ -25,7 +25,6 @@ import {
   LinkSaveFlow,
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
-import * as sinon from 'sinon';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {createCancelError} from '../utils/errors';
@@ -48,7 +47,9 @@ describes.realWin('LinkbackFlow', {}, env => {
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     linkbackFlow = new LinkbackFlow(runtime);
     triggerFlowStartSpy = sandbox.stub(
-        runtime.callbacks(), 'triggerFlowStarted');
+      runtime.callbacks(),
+      'triggerFlowStarted'
+    );
   });
 
   afterEach(() => {
@@ -57,41 +58,53 @@ describes.realWin('LinkbackFlow', {}, env => {
 
   it('should start correctly', () => {
     const popupWin = {};
-    dialogManagerMock.expects('popupOpened')
-        .withExactArgs(popupWin)
-        .once();
-    activitiesMock.expects('open').withExactArgs(
+    dialogManagerMock
+      .expects('popupOpened')
+      .withExactArgs(popupWin)
+      .once();
+    activitiesMock
+      .expects('open')
+      .withExactArgs(
         'swg-link',
         '$frontend$/swg/_/ui/v1/linkbackstart?_=_',
-        '_blank', {
+        '_blank',
+        {
           '_client': 'SwG $internalRuntimeVersion$',
           'publicationId': 'pub1',
-        }, {})
-        .returns({targetWin: popupWin})
-        .once();
+        },
+        {}
+      )
+      .returns({targetWin: popupWin})
+      .once();
     linkbackFlow.start();
-    expect(triggerFlowStartSpy).to.be.calledOnce
-        .calledWithExactly('linkAccount');
+    expect(triggerFlowStartSpy).to.be.calledOnce.calledWithExactly(
+      'linkAccount'
+    );
   });
 
   it('should force redirect mode', () => {
     runtime.configure({windowOpenMode: 'redirect'});
-    dialogManagerMock.expects('popupOpened')
-        .withExactArgs(undefined)
-        .once();
-    activitiesMock.expects('open').withExactArgs(
+    dialogManagerMock
+      .expects('popupOpened')
+      .withExactArgs(undefined)
+      .once();
+    activitiesMock
+      .expects('open')
+      .withExactArgs(
         'swg-link',
         '$frontend$/swg/_/ui/v1/linkbackstart?_=_',
-        '_top', {
+        '_top',
+        {
           '_client': 'SwG $internalRuntimeVersion$',
           'publicationId': 'pub1',
-        }, {})
-        .returns(undefined)
-        .once();
+        },
+        {}
+      )
+      .returns(undefined)
+      .once();
     linkbackFlow.start();
   });
 });
-
 
 describes.realWin('LinkCompleteFlow', {}, env => {
   let win;
@@ -113,11 +126,17 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     linkCompleteFlow = new LinkCompleteFlow(runtime, {'index': '1'});
     triggerLinkProgressSpy = sandbox.stub(
-        runtime.callbacks(), 'triggerLinkProgress');
+      runtime.callbacks(),
+      'triggerLinkProgress'
+    );
     triggerLinkCompleteSpy = sandbox.stub(
-        runtime.callbacks(), 'triggerLinkComplete');
+      runtime.callbacks(),
+      'triggerLinkComplete'
+    );
     triggerFlowCancelSpy = sandbox.stub(
-        runtime.callbacks(), 'triggerFlowCanceled');
+      runtime.callbacks(),
+      'triggerFlowCanceled'
+    );
   });
 
   afterEach(() => {
@@ -128,12 +147,16 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   it('should trigger on link response', () => {
     dialogManagerMock.expects('popupClosed').once();
     let handler;
-    activitiesMock.expects('onResult')
-        .withExactArgs('swg-link', sinon.match(arg => {
+    activitiesMock
+      .expects('onResult')
+      .withExactArgs(
+        'swg-link',
+        sandbox.match(arg => {
           handler = arg;
           return typeof arg == 'function';
-        }))
-        .once();
+        })
+      )
+      .once();
     entitlementsManagerMock.expects('blockNextNotification').once();
     LinkCompleteFlow.configurePending(runtime);
     expect(handler).to.exist;
@@ -145,9 +168,13 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     const result = new ActivityResult(
-          ActivityResultCode.OK,
-          {'index': '1'},
-          'IFRAME', location.origin, true, true);
+      ActivityResultCode.OK,
+      {'index': '1'},
+      'IFRAME',
+      location.origin,
+      true,
+      true
+    );
     port.acceptResult = () => Promise.resolve(result);
 
     let startResolver;
@@ -155,11 +182,12 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       startResolver = resolve;
     });
     let instance;
-    const startStub = sandbox.stub(LinkCompleteFlow.prototype, 'start',
-        function() {
-          instance = this;
-          startResolver();
-        });
+    const startStub = sandbox
+      .stub(LinkCompleteFlow.prototype, 'start')
+      .callsFake(function() {
+        instance = this;
+        startResolver();
+      });
 
     handler(port);
     expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
@@ -174,12 +202,16 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   it('should trigger on failed link response', () => {
     dialogManagerMock.expects('popupClosed').once();
     let handler;
-    activitiesMock.expects('onResult')
-        .withExactArgs('swg-link', sinon.match(arg => {
+    activitiesMock
+      .expects('onResult')
+      .withExactArgs(
+        'swg-link',
+        sandbox.match(arg => {
           handler = arg;
           return typeof arg == 'function';
-        }))
-        .once();
+        })
+      )
+      .once();
     entitlementsManagerMock.expects('blockNextNotification').once();
     LinkCompleteFlow.configurePending(runtime);
     expect(handler).to.exist;
@@ -191,21 +223,23 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
-    port.acceptResult = () => Promise.reject(
-        new DOMException('cancel', 'AbortError'));
+    port.acceptResult = () =>
+      Promise.reject(new DOMException('cancel', 'AbortError'));
 
     const startStub = sandbox.stub(LinkCompleteFlow.prototype, 'start');
 
     handler(port);
     expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
     expect(triggerLinkCompleteSpy).to.not.be.called;
-    return Promise.resolve().then(() => {
-      // Skip microtask.
-      return Promise.resolve();
-    }).then(() => {
-      expect(triggerFlowCancelSpy).to.be.calledOnce;
-      expect(startStub).to.not.be.called;
-    });
+    return Promise.resolve()
+      .then(() => {
+        // Skip microtask.
+        return Promise.resolve();
+      })
+      .then(() => {
+        expect(triggerFlowCancelSpy).to.be.calledOnce;
+        expect(startStub).to.not.be.called;
+      });
   });
 
   it('should default index to 0', () => {
@@ -215,16 +249,19 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
           'productId': 'pub1:prod1',
           'publicationId': 'pub1',
-        })
-        .returns(Promise.resolve(port))
-        .once();
+        }
+      )
+      .returns(Promise.resolve(port))
+      .once();
     return linkCompleteFlow.start();
   });
 
@@ -239,32 +276,50 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/u/1/swg/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
           'productId': 'pub1:prod1',
           'publicationId': 'pub1',
-        })
-        .returns(Promise.resolve(port))
-        .once();
-    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
-    entitlementsManagerMock.expects('reset').withExactArgs(true).once();
-    entitlementsManagerMock.expects('unblockNextNotification')
-        .withExactArgs().once();
-    return linkCompleteFlow.start().then(() => {
-      expect(triggerLinkCompleteSpy).to.not.be.called;
-      const result = new ActivityResult(
+        }
+      )
+      .returns(Promise.resolve(port))
+      .once();
+    entitlementsManagerMock
+      .expects('setToastShown')
+      .withExactArgs(true)
+      .once();
+    entitlementsManagerMock
+      .expects('reset')
+      .withExactArgs(true)
+      .once();
+    entitlementsManagerMock
+      .expects('unblockNextNotification')
+      .withExactArgs()
+      .once();
+    return linkCompleteFlow
+      .start()
+      .then(() => {
+        expect(triggerLinkCompleteSpy).to.not.be.called;
+        const result = new ActivityResult(
           ActivityResultCode.OK,
           {success: true},
-          'IFRAME', location.origin, true, true);
-      resultResolver(result);
-      return linkCompleteFlow.whenComplete();
-    }).then(() => {
-      expect(triggerLinkCompleteSpy).to.be.calledOnce.calledWithExactly();
-      expect(triggerLinkProgressSpy).to.not.be.called;
-    });
+          'IFRAME',
+          location.origin,
+          true,
+          true
+        );
+        resultResolver(result);
+        return linkCompleteFlow.whenComplete();
+      })
+      .then(() => {
+        expect(triggerLinkCompleteSpy).to.be.calledOnce.calledWithExactly();
+        expect(triggerLinkProgressSpy).to.not.be.called;
+      });
   });
 
   it('should push new entitlements when available', () => {
@@ -278,56 +333,74 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/u/1/swg/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
           'productId': 'pub1:prod1',
           'publicationId': 'pub1',
-        })
-        .returns(Promise.resolve(port))
-        .once();
-    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
+        }
+      )
+      .returns(Promise.resolve(port))
+      .once();
+    entitlementsManagerMock
+      .expects('setToastShown')
+      .withExactArgs(true)
+      .once();
     const order = [];
-    entitlementsManagerMock.expects('reset')
-        .withExactArgs(sinon.match(arg => {
+    entitlementsManagerMock
+      .expects('reset')
+      .withExactArgs(
+        sandbox.match(arg => {
           if (order.indexOf('reset') == -1) {
             order.push('reset');
           }
-          return arg === true;  // Expected positive.
-        }))
-        .once();
-    entitlementsManagerMock.expects('pushNextEntitlements')
-        .withExactArgs(sinon.match(arg => {
+          return arg === true; // Expected positive.
+        })
+      )
+      .once();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(
+        sandbox.match(arg => {
           if (order.indexOf('pushNextEntitlements') == -1) {
             order.push('pushNextEntitlements');
           }
           return arg === 'ENTITLEMENTS_JWT';
-        }))
-        .once();
-    entitlementsManagerMock.expects('unblockNextNotification')
-        .withExactArgs().once();
-    return linkCompleteFlow.start().then(() => {
-      expect(triggerLinkCompleteSpy).to.not.be.called;
-      const result = new ActivityResult(
+        })
+      )
+      .once();
+    entitlementsManagerMock
+      .expects('unblockNextNotification')
+      .withExactArgs()
+      .once();
+    return linkCompleteFlow
+      .start()
+      .then(() => {
+        expect(triggerLinkCompleteSpy).to.not.be.called;
+        const result = new ActivityResult(
           ActivityResultCode.OK,
           {
             'success': true,
             'entitlements': 'ENTITLEMENTS_JWT',
           },
-          'IFRAME', location.origin, true, true);
-      resultResolver(result);
-      return linkCompleteFlow.whenComplete();
-    }).then(() => {
-      expect(triggerLinkCompleteSpy).to.be.calledOnce.calledWithExactly();
-      expect(triggerLinkProgressSpy).to.not.be.called;
-      // Order must be strict: first reset, then pushNextEntitlements.
-      expect(order).to.deep.equal([
-        'reset',
-        'pushNextEntitlements',
-      ]);
-    });
+          'IFRAME',
+          location.origin,
+          true,
+          true
+        );
+        resultResolver(result);
+        return linkCompleteFlow.whenComplete();
+      })
+      .then(() => {
+        expect(triggerLinkCompleteSpy).to.be.calledOnce.calledWithExactly();
+        expect(triggerLinkProgressSpy).to.not.be.called;
+        // Order must be strict: first reset, then pushNextEntitlements.
+        expect(order).to.deep.equal(['reset', 'pushNextEntitlements']);
+      });
   });
 
   it('should reset entitlements for unsuccessful response', () => {
@@ -341,26 +414,41 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
-    activitiesMock.expects('openIframe')
-        .returns(Promise.resolve(port))
-        .once();
-    entitlementsManagerMock.expects('reset').withExactArgs(false).once();
-    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
-    entitlementsManagerMock.expects('unblockNextNotification')
-        .withExactArgs().once();
-    return linkCompleteFlow.start().then(() => {
-      const result = new ActivityResult(
+    activitiesMock
+      .expects('openIframe')
+      .returns(Promise.resolve(port))
+      .once();
+    entitlementsManagerMock
+      .expects('reset')
+      .withExactArgs(false)
+      .once();
+    entitlementsManagerMock
+      .expects('setToastShown')
+      .withExactArgs(true)
+      .once();
+    entitlementsManagerMock
+      .expects('unblockNextNotification')
+      .withExactArgs()
+      .once();
+    return linkCompleteFlow
+      .start()
+      .then(() => {
+        const result = new ActivityResult(
           ActivityResultCode.OK,
           {},
-          'IFRAME', location.origin, true, true);
-      resultResolver(result);
-      return linkCompleteFlow.whenComplete();
-    }).then(() => {
-      expect(triggerLinkCompleteSpy).to.be.calledOnce;
-      expect(triggerLinkProgressSpy).to.not.be.called;
-    });
+          'IFRAME',
+          location.origin,
+          true,
+          true
+        );
+        resultResolver(result);
+        return linkCompleteFlow.whenComplete();
+      })
+      .then(() => {
+        expect(triggerLinkCompleteSpy).to.be.calledOnce;
+        expect(triggerLinkProgressSpy).to.not.be.called;
+      });
   });
-
 });
 
 describes.realWin('LinkSaveFlow', {}, env => {
@@ -386,17 +474,23 @@ describes.realWin('LinkSaveFlow', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     triggerFlowStartSpy = sandbox.stub(
-        runtime.callbacks(), 'triggerFlowStarted');
+      runtime.callbacks(),
+      'triggerFlowStarted'
+    );
     triggerFlowCanceledSpy = sandbox.stub(
-        runtime.callbacks(), 'triggerFlowCanceled');
+      runtime.callbacks(),
+      'triggerFlowCanceled'
+    );
     triggerLinkProgressSpy = sandbox.stub(
-        runtime.callbacks(), 'triggerLinkProgress');
+      runtime.callbacks(),
+      'triggerLinkProgress'
+    );
     port = new ActivityPort();
     port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessageDeprecated', callback => {
+    sandbox.stub(port, 'onMessageDeprecated').callsFake(callback => {
       messageCallback = callback;
     });
     const resultPromise = new Promise(resolve => {
@@ -414,15 +508,18 @@ describes.realWin('LinkSaveFlow', {}, env => {
 
   it('should have constructed valid LinkSaveFlow', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           isClosable: true,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_;
   });
@@ -431,17 +528,24 @@ describes.realWin('LinkSaveFlow', {}, env => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     const dialog = new Dialog(new GlobalDoc(win));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    dialogManagerMock.expects('openDialog')
-        .withExactArgs(/* hidden */true).returns(dialog.open());
+    dialogManagerMock
+      .expects('openDialog')
+      .withExactArgs(/* hidden */ true)
+      .returns(dialog.open());
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_;
   });
 
   it('should return false when linking not accepted', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
-    const result = new ActivityResult(ActivityResultCode.OK,
-        {'linked': false},
-        'IFRAME', location.origin, true, true);
+    const result = new ActivityResult(
+      ActivityResultCode.OK,
+      {'linked': false},
+      'IFRAME',
+      location.origin,
+      true,
+      true
+    );
     resultResolver(result);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     dialogManagerMock.expects('completeView').twice();
@@ -454,8 +558,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
 
   it('should return false if cancel error occurs', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
-    resultResolver(Promise.reject(
-        createCancelError('linking failed')));
+    resultResolver(Promise.reject(createCancelError('linking failed')));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     dialogManagerMock.expects('completeView').twice();
     return linkSaveFlow.start().then(result => {
@@ -467,9 +570,14 @@ describes.realWin('LinkSaveFlow', {}, env => {
 
   it('should test linking success', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
-    const result = new ActivityResult(ActivityResultCode.OK,
+    const result = new ActivityResult(
+      ActivityResultCode.OK,
       {'index': 1, 'linked': true},
-      'IFRAME', location.origin, true, true);
+      'IFRAME',
+      location.origin,
+      true,
+      true
+    );
     resultResolver(result);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     LinkCompleteFlow.prototype.start = () => Promise.resolve();
@@ -484,45 +592,58 @@ describes.realWin('LinkSaveFlow', {}, env => {
   it('should fail if both token and authCode are present', () => {
     const reqPromise = Promise.resolve({token: 'test', authCode: 'test'});
     const dialog = new Dialog(new GlobalDoc(win));
-    dialogManagerMock.expects('openDialog')
-        .withExactArgs(/* hidden */true).returns(dialog.open());
+    dialogManagerMock
+      .expects('openDialog')
+      .withExactArgs(/* hidden */ true)
+      .returns(dialog.open());
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
-    return linkSaveFlow.openPromise_.then(() => {
-      messageCallback({
-        'getLinkingInfo': true,
+    return linkSaveFlow.openPromise_
+      .then(() => {
+        messageCallback({
+          'getLinkingInfo': true,
+        });
+      })
+      .then(() => {
+        dialogManagerMock.expects('completeView').once();
+        return linkSaveFlow.getRequestPromise().then(
+          () => {
+            throw new Error('must have failed');
+          },
+          reason => {
+            expect(() => {
+              throw reason;
+            }).to.throw(/Both authCode and token are available/);
+          }
+        );
       });
-    }).then(() => {
-      dialogManagerMock.expects('completeView').once();
-      return linkSaveFlow.getRequestPromise().then(() => {
-        throw new Error('must have failed');
-      }, reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/Both authCode and token are available/);
-      });
-    });
   });
 
   it('should fail if neither token nor authCode is present', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
-    return linkSaveFlow.openPromise_.then(() => {
-      messageCallback({
-        'getLinkingInfo': true,
-      });
-    }).then(() => {
-      dialogManagerMock.expects('completeView').once();
-      return linkSaveFlow.getRequestPromise();
-    }).then(() => {
-      throw new Error('must have failed');
-    }, reason => {
-      expect(() => {
-        throw reason;
-      }).to.throw(/Neither token or authCode is available/);
-    });
+    return linkSaveFlow.openPromise_
+      .then(() => {
+        messageCallback({
+          'getLinkingInfo': true,
+        });
+      })
+      .then(() => {
+        dialogManagerMock.expects('completeView').once();
+        return linkSaveFlow.getRequestPromise();
+      })
+      .then(
+        () => {
+          throw new Error('must have failed');
+        },
+        reason => {
+          expect(() => {
+            throw reason;
+          }).to.throw(/Neither token or authCode is available/);
+        }
+      );
   });
 
   it('should respond with subscription request with token', () => {
@@ -533,15 +654,16 @@ describes.realWin('LinkSaveFlow', {}, env => {
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
-    return linkSaveFlow.openPromise_.then(() => {
-      messageCallback({
-        'getLinkingInfo': true,
+    return linkSaveFlow.openPromise_
+      .then(() => {
+        messageCallback({
+          'getLinkingInfo': true,
+        });
+        return linkSaveFlow.getRequestPromise();
+      })
+      .then(() => {
+        expect(messageStub).to.be.calledOnce.calledWith({token: 'test'});
       });
-      return linkSaveFlow.getRequestPromise();
-    }).then(() => {
-      expect(messageStub).to.be.calledOnce.calledWith(
-        {token: 'test'});
-    });
   });
 
   it('should respond with subscription request with authCode', () => {
@@ -552,34 +674,40 @@ describes.realWin('LinkSaveFlow', {}, env => {
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
-    return linkSaveFlow.openPromise_.then(() => {
-      messageCallback({
-        'getLinkingInfo': true,
+    return linkSaveFlow.openPromise_
+      .then(() => {
+        messageCallback({
+          'getLinkingInfo': true,
+        });
+        return linkSaveFlow.getRequestPromise();
+      })
+      .then(() => {
+        expect(messageStub).to.be.calledOnce.calledWith({authCode: 'testCode'});
       });
-      return linkSaveFlow.getRequestPromise();
-    }).then(() => {
-      expect(messageStub).to.be.calledOnce.calledWith(
-        {authCode: 'testCode'});
-    });
   });
 
   it('should callback promise rejected should close dialog', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => Promise.reject('no token'));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
-    return linkSaveFlow.openPromise_.then(() => {
-      messageCallback({
-        'getLinkingInfo': true,
-      });
-      dialogManagerMock.expects('completeView').once();
-      return linkSaveFlow.getRequestPromise();
-    }).then(() => {
-      throw new Error('must have failed');
-    }, reason => {
-      expect(() => {
-        throw reason;
-      }).to.throw(/no token/);
-    });
+    return linkSaveFlow.openPromise_
+      .then(() => {
+        messageCallback({
+          'getLinkingInfo': true,
+        });
+        dialogManagerMock.expects('completeView').once();
+        return linkSaveFlow.getRequestPromise();
+      })
+      .then(
+        () => {
+          throw new Error('must have failed');
+        },
+        reason => {
+          expect(() => {
+            throw reason;
+          }).to.throw(/no token/);
+        }
+      );
   });
 
   it('should callback synchronous error should close dialog', () => {
@@ -588,43 +716,55 @@ describes.realWin('LinkSaveFlow', {}, env => {
     });
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
-    return linkSaveFlow.openPromise_.then(() => {
-      messageCallback({
-        'getLinkingInfo': true,
-      });
-      dialogManagerMock.expects('completeView').once();
-      return linkSaveFlow.getRequestPromise();
-    }).then(() => {
-      throw new Error('must have failed');
-    }, reason => {
-      expect(() => {
-        throw reason;
-      }).to.throw(/callback failed/);
-    });
+    return linkSaveFlow.openPromise_
+      .then(() => {
+        messageCallback({
+          'getLinkingInfo': true,
+        });
+        dialogManagerMock.expects('completeView').once();
+        return linkSaveFlow.getRequestPromise();
+      })
+      .then(
+        () => {
+          throw new Error('must have failed');
+        },
+        reason => {
+          expect(() => {
+            throw reason;
+          }).to.throw(/callback failed/);
+        }
+      );
   });
 
   it('should test link complete flow start', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     LinkCompleteFlow.prototype.start = () => Promise.resolve();
     LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           isClosable: true,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     const startPromise = linkSaveFlow.start();
     linkSaveFlow.openPromise_.then(() => {
       const result = new ActivityResult(
-          ActivityResultCode.OK,
-          {
-            'index': 1,
-            'linked': true,
-          },
-          'IFRAME', location.origin, true, true);
+        ActivityResultCode.OK,
+        {
+          'index': 1,
+          'linked': true,
+        },
+        'IFRAME',
+        location.origin,
+        true,
+        true
+      );
       resultResolver(result);
     });
     return startPromise.then(result => {
@@ -636,26 +776,33 @@ describes.realWin('LinkSaveFlow', {}, env => {
 
   it('should test link complete flow start failure', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
-    LinkCompleteFlow.prototype.start = () => Promise.reject(
-        createCancelError('unable to open iframe'));
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    LinkCompleteFlow.prototype.start = () =>
+      Promise.reject(createCancelError('unable to open iframe'));
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           isClosable: true,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     const startPromise = linkSaveFlow.start();
     linkSaveFlow.openPromise_.then(() => {
       const result = new ActivityResult(
-          ActivityResultCode.OK,
-          {
-            'index': 1,
-            'linked': true,
-          },
-          'IFRAME', location.origin, true, true);
+        ActivityResultCode.OK,
+        {
+          'index': 1,
+          'linked': true,
+        },
+        'IFRAME',
+        location.origin,
+        true,
+        true
+      );
       resultResolver(result);
     });
     dialogManagerMock.expects('completeView').twice();
@@ -669,26 +816,33 @@ describes.realWin('LinkSaveFlow', {}, env => {
   it('should test link complete flow completion failure', () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     LinkCompleteFlow.prototype.start = () => Promise.resolve();
-    LinkCompleteFlow.prototype.whenComplete = () => Promise.reject(
-        createCancelError('unable to open iframe'));
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    LinkCompleteFlow.prototype.whenComplete = () =>
+      Promise.reject(createCancelError('unable to open iframe'));
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           isClosable: true,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     const startPromise = linkSaveFlow.start();
     linkSaveFlow.openPromise_.then(() => {
       const result = new ActivityResult(
-          ActivityResultCode.OK,
-          {
-            'index': 1,
-            'linked': true,
-          },
-          'IFRAME', location.origin, true, true);
+        ActivityResultCode.OK,
+        {
+          'index': 1,
+          'linked': true,
+        },
+        'IFRAME',
+        location.origin,
+        true,
+        true
+      );
       resultResolver(result);
     });
     dialogManagerMock.expects('completeView').twice();

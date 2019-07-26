@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  createAbortError,
-  isAbortError,
-} from 'web-activities/activity-ports';
-
+import {createAbortError, isAbortError} from 'web-activities/activity-ports';
 
 /**
  * Whether the specified error is an AbortError type.
@@ -30,7 +26,6 @@ export function isCancelError(error) {
   return isAbortError(error);
 }
 
-
 /**
  * Creates or emulates a DOMException of AbortError type.
  * See https://heycam.github.io/webidl/#aborterror.
@@ -41,7 +36,6 @@ export function isCancelError(error) {
 export function createCancelError(win, opt_message) {
   return createAbortError(win, opt_message);
 }
-
 
 /**
  * A set of error utilities combined in a class to allow easy stubbing in tests.
