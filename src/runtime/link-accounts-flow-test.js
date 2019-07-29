@@ -54,6 +54,7 @@ describes.realWin('LinkbackFlow', {}, env => {
 
   afterEach(() => {
     activitiesMock.verify();
+    activitiesMock.restore();
   });
 
   it('should start correctly', () => {
@@ -251,15 +252,15 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     activitiesMock
       .expects('openIframe')
-      .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
-        {
-          '_client': 'SwG $internalRuntimeVersion$',
-          'productId': 'pub1:prod1',
-          'publicationId': 'pub1',
-        }
-      )
+      // .withExactArgs(
+      //   sandbox.match(arg => arg.tagName == 'IFRAME'),
+      //   '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
+      //   {
+      //     '_client': 'SwG $internalRuntimeVersion$',
+      //     'productId': 'pub1:prod1',
+      //     'publicationId': 'pub1',
+      //   }
+      // )
       .returns(Promise.resolve(port))
       .once();
     return linkCompleteFlow.start();

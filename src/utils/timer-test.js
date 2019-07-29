@@ -34,6 +34,7 @@ describes.realWin('Timer', {}, env => {
 
   afterEach(() => {
     windowMock.verify();
+    sandbox.restore();
   });
 
   it('delay', () => {
@@ -87,7 +88,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(value => {
+        sinon.match(value => {
           value();
           return true;
         }),
@@ -108,7 +109,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(value => {
+        sinon.match(value => {
           value();
           return true;
         }),
@@ -135,7 +136,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(value => {
+        sinon.match(value => {
           value();
           return true;
         }),
@@ -156,7 +157,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(value => {
+        sinon.match(value => {
           // Immediate timeout
           value();
           return true;

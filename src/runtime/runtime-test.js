@@ -1192,7 +1192,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
 
     it('should not start entitlements flow without product', () => {
-      sandbox.stub(config, 'getProductId', () => null);
+      sandbox.stub(config, 'getProductId').callsFake(() => null);
       entitlementsManagerMock.expects('getEntitlements').never();
       const triggerStub = sandbox.stub(
         runtime.callbacks(),
@@ -1204,7 +1204,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
 
     it('should not start entitlements flow for unlocked', () => {
-      sandbox.stub(config, 'isLocked', () => false);
+      sandbox.stub(config, 'isLocked').callsFake(() => false);
       entitlementsManagerMock.expects('getEntitlements').never();
       const triggerStub = sandbox.stub(
         runtime.callbacks(),
@@ -1267,14 +1267,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       const request = {entitlements: ents};
       const resp = {};
       let flow;
-      const startStub = sandbox.stub(
-        DeferredAccountFlow.prototype,
-        'start',
-        function() {
+      const startStub = sandbox
+        .stub(DeferredAccountFlow.prototype, 'start')
+        .callsFake(function() {
           flow = this;
           return Promise.resolve(resp);
-        }
-      );
+        });
       return runtime.completeDeferredAccountCreation(request).then(result => {
         expect(startStub).to.be.calledOnce.calledWithExactly();
         expect(result).to.equal(resp);
@@ -1421,14 +1419,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       () => {
         setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
         let flowInstance;
-        const startStub = sandbox.stub(
-          PayStartFlow.prototype,
-          'start',
-          function() {
+        const startStub = sandbox
+          .stub(PayStartFlow.prototype, 'start')
+          .callsFake(function() {
             flowInstance = this;
             return Promise.resolve();
-          }
-        );
+          });
         return runtime
           .subscribe({skuId: 'newSku', oldSkuId: 'oldSku'})
           .then(() => {
@@ -1446,14 +1442,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     it('should start PayStartFlow for replaceSubscription', () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
       let flowInstance;
-      const startStub = sandbox.stub(
-        PayStartFlow.prototype,
-        'start',
-        function() {
+      const startStub = sandbox
+        .stub(PayStartFlow.prototype, 'start')
+        .callsFake(function() {
           flowInstance = this;
           return Promise.resolve();
-        }
-      );
+        });
       return runtime
         .subscribe({
           skuId: 'newSku',
@@ -1490,14 +1484,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     it('should start PayStartFlow for contribution', () => {
       setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
       let flowInstance;
-      const startStub = sandbox.stub(
-        PayStartFlow.prototype,
-        'start',
-        function() {
+      const startStub = sandbox
+        .stub(PayStartFlow.prototype, 'start')
+        .callsFake(function() {
           flowInstance = this;
           return Promise.resolve();
-        }
-      );
+        });
       return runtime.contribute('sku1').then(() => {
         expect(startStub).to.be.calledOnce;
         expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
@@ -1508,7 +1500,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     it('should start saveSubscriptionFlow with callback for token', () => {
       let linkSaveFlow;
       const newPromise = new Promise(() => {});
-      sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
+      sandbox.stub(LinkSaveFlow.prototype, 'start').callsFake(function() {
         linkSaveFlow = this;
         return newPromise;
       });
@@ -1528,7 +1520,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     it('should start saveSubscriptionFlow with callback for authcode', () => {
       let linkSaveFlow;
       const newPromise = new Promise(() => {});
-      sandbox.stub(LinkSaveFlow.prototype, 'start', function() {
+      sandbox.stub(LinkSaveFlow.prototype, 'start').callsFake(function() {
         linkSaveFlow = this;
         return newPromise;
       });
@@ -1541,20 +1533,18 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
 
     it('should start LoginPromptApi', () => {
-      const startStub = sandbox.stub(LoginPromptApi.prototype, 'start', () =>
-        Promise.resolve()
-      );
+      const startStub = sandbox
+        .stub(LoginPromptApi.prototype, 'start')
+        .callsFake(() => Promise.resolve());
       return runtime.showLoginPrompt().then(() => {
         expect(startStub).to.be.calledOnce;
       });
     });
 
     it('should start LoginNotificationApi', () => {
-      const startStub = sandbox.stub(
-        LoginNotificationApi.prototype,
-        'start',
-        () => Promise.resolve()
-      );
+      const startStub = sandbox
+        .stub(LoginNotificationApi.prototype, 'start')
+        .callsFake(() => Promise.resolve());
       return runtime.showLoginNotification().then(() => {
         expect(startStub).to.be.calledOnce;
       });
@@ -1564,7 +1554,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       const options = {};
       const callback = () => {};
       const button = win.document.createElement('button');
-      const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
+      const stub = sandbox.stub(runtime.buttonApi_, 'create').callsFake(() => {
         return button;
       });
       const result = runtime.createButton(options, callback);
@@ -1608,11 +1598,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         'sendSubscriptionState'
       );
       const eventStub = sandbox.stub(Propensity.prototype, 'sendEvent');
-      const getPropensityStub = sandbox.stub(
-        Propensity.prototype,
-        'getPropensity',
-        () => Promise.resolve(propensityResponse)
-      );
+      const getPropensityStub = sandbox
+        .stub(Propensity.prototype, 'getPropensity')
+        .callsFake(() => Promise.resolve(propensityResponse));
       return runtime.getPropensityModule().then(propensity => {
         expect(propensity).to.not.be.null;
         propensity.sendSubscriptionState('unknown');

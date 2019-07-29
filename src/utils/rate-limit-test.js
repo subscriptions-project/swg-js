@@ -32,7 +32,6 @@ describes.realWin('function utils', {}, env => {
   let win;
 
   beforeEach(() => {
-    sandbox = env.sandbox;
     clock = sandbox.useFakeTimers();
     win = env.win;
     win.setTimeout = self.setTimeout;
@@ -46,7 +45,7 @@ describes.realWin('function utils', {}, env => {
 
       throttledCallback(1);
       expect(callback).to.be.calledWith(1); // let 1st call through immediately
-      callback.reset();
+      callback.resetHistory();
 
       clock.tick(20);
       throttledCallback(2);
@@ -62,7 +61,7 @@ describes.realWin('function utils', {}, env => {
       clock.tick(1);
       expect(callback).to.be.calledOnce;
       expect(callback).to.be.calledWith(5);
-      callback.reset();
+      callback.resetHistory();
 
       clock.tick(10);
       throttledCallback(6);
@@ -108,7 +107,7 @@ describes.realWin('function utils', {}, env => {
       clock.tick(100);
       expect(callback).to.have.been.calledWith(1);
 
-      callback.reset();
+      callback.resetHistory();
       debounced(1);
       expect(callback).to.not.have.been.called;
       debounced(2);
