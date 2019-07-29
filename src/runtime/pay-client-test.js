@@ -92,7 +92,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
    * @return {!Promise<!Object>}
    */
   function withResult(result) {
-    sandbox.stub(port, 'acceptResult').callsFake(() => Promise.resolve(result));
+    sandbox.stub(port, 'acceptResult', () => Promise.resolve(result));
     resultCallback(port);
     expect(resultStub).to.be.calledOnce;
     return resultStub.args[0][0];
@@ -269,10 +269,8 @@ describes.realWin('PayClientBindingSwg', {}, env => {
         true,
         true
       );
-      const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch').callsFake(() =>
-        Promise.resolve({
-          json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED),
-        })
+      const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch', () =>
+        Promise.resolve({json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)})
       );
       return withResult(result).then(data => {
         expect(data.swgCallbackData).to.deep.equal(
@@ -311,11 +309,9 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       true,
       true
     );
-    const xhrFetchStub = sandbox
-      .stub(Xhr.prototype, 'fetch')
-      .callsFake(() =>
-        Promise.resolve({json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)})
-      );
+    const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch', () =>
+      Promise.resolve({json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)})
+    );
     return withResult(result).then(data => {
       expect(data.swgCallbackData).to.deep.equal(
         INTEGR_DATA_OBJ_DECODED.swgCallbackData
@@ -338,11 +334,9 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 
   it('should propagate cancelation', () => {
     dialogManagerMock.expects('popupClosed').once();
-    sandbox
-      .stub(port, 'acceptResult')
-      .callsFake(() =>
-        Promise.reject(new DOMException('cancel', 'AbortError'))
-      );
+    sandbox.stub(port, 'acceptResult', () =>
+      Promise.reject(new DOMException('cancel', 'AbortError'))
+    );
     resultCallback(port);
     expect(resultStub).to.be.calledOnce;
     return resultStub.args[0][0].then(
@@ -359,9 +353,9 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 
   it('should propagate an error', () => {
     dialogManagerMock.expects('popupClosed').once();
-    sandbox
-      .stub(port, 'acceptResult')
-      .callsFake(() => Promise.reject(new Error('intentional')));
+    sandbox.stub(port, 'acceptResult', () =>
+      Promise.reject(new Error('intentional'))
+    );
     resultCallback(port);
     expect(resultStub).to.be.calledOnce;
     return resultStub.args[0][0].then(
@@ -394,23 +388,29 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       verifier: 'test_verifier',
     };
     redirectVerifierHelperStubs = {
-      restoreKey: sandbox
-        .stub(RedirectVerifierHelper.prototype, 'restoreKey')
-        .callsFake(() => redirectVerifierHelperResults.restoreKey),
+      restoreKey: sandbox.stub(
+        RedirectVerifierHelper.prototype,
+        'restoreKey',
+        () => redirectVerifierHelperResults.restoreKey
+      ),
       prepare: sandbox.stub(RedirectVerifierHelper.prototype, 'prepare'),
-      useVerifier: sandbox
-        .stub(RedirectVerifierHelper.prototype, 'useVerifier')
-        .callsFake(callback => {
+      useVerifier: sandbox.stub(
+        RedirectVerifierHelper.prototype,
+        'useVerifier',
+        callback => {
           callback(redirectVerifierHelperResults.verifier);
-        }),
+        }
+      ),
     };
     payClientStubs = {
-      create: sandbox
-        .stub(PayClientBindingPayjs.prototype, 'createClient_')
-        .callsFake((options, handler) => {
+      create: sandbox.stub(
+        PayClientBindingPayjs.prototype,
+        'createClient_',
+        (options, handler) => {
           responseHandler = handler;
           return new PaymentsAsyncClient({});
-        }),
+        }
+      ),
       loadPaymentData: sandbox.stub(
         PaymentsAsyncClient.prototype,
         'loadPaymentData'
@@ -537,7 +537,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
 
     beforeEach(() => {
       top = win;
-      sandbox.stub(payClient, 'top_').callsFake(() => top);
+      sandbox.stub(payClient, 'top_', () => top);
       setExperiment(win, ExperimentFlags.GPAY_NATIVE, true);
     });
 
@@ -648,7 +648,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   it('should tolerate storage failures', () => {
-    sandbox.stub(localStorage, 'setItem').callsFake(() => {
+    sandbox.stub(localStorage, 'setItem', () => {
       throw new Error('intentional');
     });
     return useVerifierPromise().then(verifier => {
@@ -658,7 +658,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   it('should tolerate random values failures', () => {
-    sandbox.stub(crypto, 'getRandomValues').callsFake(() => {
+    sandbox.stub(crypto, 'getRandomValues', () => {
       throw new Error('intentional');
     });
     return useVerifierPromise().then(verifier => {
@@ -668,7 +668,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   it('should tolerate hashing failures', () => {
-    sandbox.stub(subtle, 'digest').callsFake(() => {
+    sandbox.stub(subtle, 'digest', () => {
       return Promise.reject('intentional');
     });
     return useVerifierPromise().then(verifier => {
@@ -678,7 +678,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   it('should tolerate storage retrieval failures', () => {
-    sandbox.stub(localStorage, 'getItem').callsFake(() => {
+    sandbox.stub(localStorage, 'getItem', () => {
       throw new Error('intentional');
     });
     expect(helper.restoreKey()).to.be.null;
