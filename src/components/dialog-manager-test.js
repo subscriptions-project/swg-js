@@ -38,30 +38,28 @@ describes.realWin('DialogManager', {}, env => {
       },
     };
     dialogIfc = {
-      open: sandbox.stub(Dialog.prototype, 'open').callsFake(function() {
+      open: sandbox.stub(Dialog.prototype, 'open', function() {
         return Promise.resolve(this);
       }),
-      close: sandbox.stub(Dialog.prototype, 'close').callsFake(function() {}),
-      openView: sandbox
-        .stub(Dialog.prototype, 'openView')
-        .callsFake(function(view) {
-          currentView = view;
-          return Promise.resolve();
-        }),
-      getCurrentView: sandbox
-        .stub(Dialog.prototype, 'getCurrentView')
-        .callsFake(() => currentView),
+      close: sandbox.stub(Dialog.prototype, 'close', function() {}),
+      openView: sandbox.stub(Dialog.prototype, 'openView', function(view) {
+        currentView = view;
+        return Promise.resolve();
+      }),
+      getCurrentView: sandbox.stub(
+        Dialog.prototype,
+        'getCurrentView',
+        () => currentView
+      ),
     };
     let graypaneAttached;
     const graypane = dialogManager.popupGraypane_;
     graypaneStubs = {
-      isAttached: sandbox
-        .stub(graypane, 'isAttached')
-        .callsFake(() => graypaneAttached),
-      attach: sandbox.stub(graypane, 'attach').callsFake(() => {
+      isAttached: sandbox.stub(graypane, 'isAttached', () => graypaneAttached),
+      attach: sandbox.stub(graypane, 'attach', () => {
         graypaneAttached = true;
       }),
-      destroy: sandbox.stub(graypane, 'destroy').callsFake(() => {
+      destroy: sandbox.stub(graypane, 'destroy', () => {
         graypaneAttached = false;
       }),
       show: sandbox.stub(graypane, 'show'),
