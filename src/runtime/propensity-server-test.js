@@ -48,6 +48,7 @@ describes.realWin('PropensityServer', {}, env => {
   let propensityServer;
   let eventManager;
   let registeredCallback;
+
   const serverUrl = 'http://localhost:31862';
   const pubId = 'pub1';
   const defaultParameters = {'custom': 'value'};
@@ -57,17 +58,23 @@ describes.realWin('PropensityServer', {}, env => {
     isFromUserAction: null,
     additionalParameters: defaultParameters,
   };
+
   const productsOrSkus = {'product': ['a', 'b', 'c']};
 
   beforeEach(() => {
     win = env.win;
     registeredCallback = null;
-    eventManager = new ClientEventManager();
-    sandbox
-      .stub(ClientEventManager.prototype, 'registerEventListener')
-      .callsFake(callback => (registeredCallback = callback));
+    eventManager = new ClientEventManager(Promise.resolve());
+    sandbox.stub(
+      ClientEventManager.prototype,
+      'registerEventListener',
+      callback => (registeredCallback = callback)
+    );
+    sandbox.stub(ClientEventManager.prototype, 'logEvent', event =>
+      registeredCallback(event)
+    );
     propensityServer = new PropensityServer(win, pubId, eventManager);
-    sandbox.stub(ServiceUrl, 'adsUrl').callsFake(url => serverUrl + url);
+    sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
   });
 
@@ -78,7 +85,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test sending subscription state', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+    sandbox.stub(Xhr.prototype, 'fetch', (url, init) => {
       capturedUrl = url;
       capturedRequest = init;
       return Promise.reject(new Error('Publisher not whitelisted'));
@@ -125,7 +132,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test sending event', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+    sandbox.stub(Xhr.prototype, 'fetch', (url, init) => {
       capturedUrl = url;
       capturedRequest = init;
       return Promise.reject(new Error('Not sent from allowed origin'));
@@ -160,7 +167,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test get propensity request failure', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+    sandbox.stub(Xhr.prototype, 'fetch', (url, init) => {
       capturedUrl = url;
       capturedRequest = init;
       return Promise.reject(new Error('Invalid request'));
@@ -214,7 +221,7 @@ describes.realWin('PropensityServer', {}, env => {
       .expects('json')
       .returns(Promise.resolve(propensityResponse))
       .once();
-    sandbox.stub(Xhr.prototype, 'fetch').callsFake(() => {
+    sandbox.stub(Xhr.prototype, 'fetch', () => {
       return Promise.resolve(response);
     });
     return propensityServer
@@ -255,7 +262,7 @@ describes.realWin('PropensityServer', {}, env => {
       .expects('json')
       .returns(Promise.resolve(propensityResponse))
       .once();
-    sandbox.stub(Xhr.prototype, 'fetch').callsFake(() => {
+    sandbox.stub(Xhr.prototype, 'fetch', () => {
       return Promise.resolve(response);
     });
     return propensityServer
@@ -289,7 +296,7 @@ describes.realWin('PropensityServer', {}, env => {
       .expects('json')
       .returns(Promise.resolve(propensityResponse))
       .once();
-    sandbox.stub(Xhr.prototype, 'fetch').callsFake(() => {
+    sandbox.stub(Xhr.prototype, 'fetch', () => {
       return Promise.resolve(response);
     });
     return propensityServer
@@ -308,7 +315,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test getting right clientID with user consent', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+    sandbox.stub(Xhr.prototype, 'fetch', (url, init) => {
       capturedUrl = url;
       capturedRequest = init;
       return Promise.reject(new Error('Invalid request'));
@@ -348,7 +355,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test getting right clientID without cookie', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+    sandbox.stub(Xhr.prototype, 'fetch', (url, init) => {
       capturedUrl = url;
       capturedRequest = init;
       return Promise.reject(new Error('Invalid request'));
@@ -390,7 +397,7 @@ describes.realWin('PropensityServer', {}, env => {
     //stub to ensure the server received a request to log
     let receivedType = null;
     let receivedContext = null;
-    sandbox.stub(Xhr.prototype, 'fetch').callsFake(url => {
+    sandbox.stub(Xhr.prototype, 'fetch', url => {
       const event = getPropensityEventFromUrl(url);
       receivedType = event.name;
       receivedContext = event.data;
@@ -433,7 +440,7 @@ describes.realWin('PropensityServer', {}, env => {
     //stub to ensure the server received a request to log
     let receivedType = null;
     let receivedContext = null;
-    sandbox.stub(Xhr.prototype, 'fetch').callsFake(url => {
+    sandbox.stub(Xhr.prototype, 'fetch', url => {
       const event = getPropensityEventFromUrl(url);
       receivedType = event.name;
       receivedContext = event.data;
@@ -463,12 +470,14 @@ describes.realWin('PropensityServer', {}, env => {
     let receivedState;
     let receivedProducts;
 
-    sandbox
-      .stub(PropensityServer.prototype, 'sendSubscriptionState')
-      .callsFake((state, products) => {
+    sandbox.stub(
+      PropensityServer.prototype,
+      'sendSubscriptionState',
+      (state, products) => {
         receivedState = state;
         receivedProducts = products;
-      });
+      }
+    );
     eventManager.logEvent({
       eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
       eventOriginator: EventOriginator.PUBLISHER_CLIENT,
