@@ -54,7 +54,7 @@ describes.sandboxed('acceptPortResultData', {}, () => {
       originVerified,
       secureChannel
     );
-    sandbox.stub(port, 'acceptResult').callsFake(() => {
+    sandbox.stub(port, 'acceptResult', () => {
       if (result.code == OK) {
         return Promise.resolve(result);
       }
@@ -161,9 +161,9 @@ describes.sandboxed('acceptPortResultData', {}, () => {
   });
 
   it('should resolve unexpected failure', () => {
-    sandbox
-      .stub(port, 'acceptResult')
-      .callsFake(() => Promise.reject(new Error('intentional')));
+    sandbox.stub(port, 'acceptResult', () =>
+      Promise.reject(new Error('intentional'))
+    );
     return acceptPortResultData(
       port,
       ORIGIN,
