@@ -48,6 +48,8 @@ describes.realWin('PropensityServer', {}, env => {
   let propensityServer;
   let eventManager;
   let registeredCallback;
+  let receivedEvent;
+
   const serverUrl = 'http://localhost:31862';
   const pubId = 'pub1';
   const defaultParameters = {'custom': 'value'};
@@ -58,15 +60,21 @@ describes.realWin('PropensityServer', {}, env => {
     additionalParameters: defaultParameters,
   };
 
+  const productsOrSkus = {'product': ['a', 'b', 'c']};
+
   beforeEach(() => {
     win = env.win;
     registeredCallback = null;
-    eventManager = new ClientEventManager();
+    eventManager = new ClientEventManager(Promise.resolve());
     sandbox.stub(
       ClientEventManager.prototype,
       'registerEventListener',
       callback => (registeredCallback = callback)
     );
+    sandbox.stub(ClientEventManager.prototype, 'logEvent', event => {
+      registeredCallback(event);
+      receivedEvent = event;
+    });
     propensityServer = new PropensityServer(win, pubId, eventManager);
     sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
@@ -458,5 +466,30 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedType).to.equal(Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
+  });
+
+  it('should allow subscription state change via event', () => {
+    let receivedState;
+    let receivedProducts;
+
+    sandbox.stub(
+      PropensityServer.prototype,
+      'sendSubscriptionState',
+      (state, products) => {
+        receivedState = state;
+        receivedProducts = products;
+      }
+    );
+    eventManager.logEvent({
+      eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: {
+        'state': SubscriptionState.UNKNOWN,
+        'productsOrSkus': JSON.stringify(productsOrSkus),
+      },
+    });
+    expect(receivedState).to.equal(SubscriptionState.UNKNOWN);
+    expect(receivedProducts).to.equal(JSON.stringify(productsOrSkus));
   });
 });
