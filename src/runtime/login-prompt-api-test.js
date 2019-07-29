@@ -18,6 +18,7 @@ import {ConfiguredRuntime} from './runtime';
 import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {isCancelError} from '../utils/errors';
+import * as sinon from 'sinon';
 import {ActivityPort} from '../components/activities';
 
 describes.realWin('LoginPromptApi', {}, env => {
@@ -65,7 +66,7 @@ describes.realWin('LoginPromptApi', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/loginiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
