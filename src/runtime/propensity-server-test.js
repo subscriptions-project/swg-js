@@ -48,7 +48,6 @@ describes.realWin('PropensityServer', {}, env => {
   let propensityServer;
   let eventManager;
   let registeredCallback;
-  let receivedEvent;
 
   const serverUrl = 'http://localhost:31862';
   const pubId = 'pub1';
@@ -71,10 +70,9 @@ describes.realWin('PropensityServer', {}, env => {
       'registerEventListener',
       callback => (registeredCallback = callback)
     );
-    sandbox.stub(ClientEventManager.prototype, 'logEvent', event => {
-      registeredCallback(event);
-      receivedEvent = event;
-    });
+    sandbox.stub(ClientEventManager.prototype, 'logEvent', event =>
+      registeredCallback(event)
+    );
     propensityServer = new PropensityServer(win, pubId, eventManager);
     sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
