@@ -17,6 +17,7 @@
 import {ConfiguredRuntime} from './runtime';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {PageConfig} from '../model/page-config';
+import * as sinon from 'sinon';
 import {ActivityPort} from '../components/activities';
 
 describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
@@ -65,7 +66,7 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/waitforsubscriptionlookupiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',

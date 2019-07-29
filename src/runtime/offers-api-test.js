@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {DepsDef} from './deps';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
 import {Fetcher} from './fetcher';

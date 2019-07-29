@@ -31,6 +31,7 @@ import {
 } from './pay-flow';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
+import * as sinon from 'sinon';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -128,9 +129,9 @@ describes.realWin('PayStartFlow', {}, env => {
           'playEnvironment': '$playEnvironment$',
           'swg': subscribeRequest,
           'i': {
-            'startTimeMs': sandbox.match.any,
-            'googleTransactionId': sandbox.match(transactionIdRegex),
-            'productType': sandbox.match(productTypeRegex),
+            'startTimeMs': sinon.match.any,
+            'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {
@@ -176,9 +177,9 @@ describes.realWin('PayStartFlow', {}, env => {
               ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
           },
           'i': {
-            'startTimeMs': sandbox.match.any,
-            'googleTransactionId': sandbox.match(transactionIdRegex),
-            'productType': sandbox.match(productTypeRegex),
+            'startTimeMs': sinon.match.any,
+            'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {
@@ -219,9 +220,9 @@ describes.realWin('PayStartFlow', {}, env => {
           'playEnvironment': '$playEnvironment$',
           'swg': subscriptionRequest,
           'i': {
-            'startTimeMs': sandbox.match.any,
-            'googleTransactionId': sandbox.match(transactionIdRegex),
-            'productType': sandbox.match(productTypeRegex),
+            'startTimeMs': sinon.match.any,
+            'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {
@@ -252,9 +253,9 @@ describes.realWin('PayStartFlow', {}, env => {
             'skuId': 'sku1',
           },
           'i': {
-            'startTimeMs': sandbox.match.any,
-            'googleTransactionId': sandbox.match(transactionIdRegex),
-            'productType': sandbox.match(productTypeRegex),
+            'startTimeMs': sinon.match.any,
+            'googleTransactionId': sinon.match(transactionIdRegex),
+            'productType': sinon.match(productTypeRegex),
           },
         },
         {
@@ -290,7 +291,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     win = env.win;
     pageConfig = new PageConfig('pub1');
     responseCallback = null;
-    sandbox.stub(PayClient.prototype, 'onResponse').callsFake(callback => {
+    sandbox.stub(PayClient.prototype, 'onResponse', callback => {
       if (responseCallback) {
         throw new Error('duplicated onResponse');
       }
@@ -330,7 +331,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock
       .expects('pushNextEntitlements')
       .withExactArgs(
-        sandbox.match(arg => {
+        sinon.match(arg => {
           return arg === 'RaW';
         })
       )
@@ -345,7 +346,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -382,7 +383,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -423,7 +424,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock
       .expects('pushNextEntitlements')
       .withExactArgs(
-        sandbox.match(arg => {
+        sinon.match(arg => {
           return arg === 'RaW';
         })
       )
@@ -538,7 +539,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock
       .expects('reset')
       .withExactArgs(
-        sandbox.match(arg => {
+        sinon.match(arg => {
           if (order.indexOf('reset') == -1) {
             order.push('reset');
           }
@@ -549,7 +550,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock
       .expects('pushNextEntitlements')
       .withExactArgs(
-        sandbox.match(arg => {
+        sinon.match(arg => {
           if (order.indexOf('pushNextEntitlements') == -1) {
             order.push('pushNextEntitlements');
           }
@@ -670,7 +671,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       callbacksMock
         .expects('triggerSubscribeResponse')
         .withExactArgs(
-          sandbox.match(arg => {
+          sinon.match(arg => {
             triggerPromise = arg;
             return true;
           })
