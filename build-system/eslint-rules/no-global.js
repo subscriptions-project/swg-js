@@ -17,7 +17,7 @@
 
 var astUtils = require('eslint/lib/shared/ast-utils');
 
-const GLOBALS = Object.create(null);
+var GLOBALS = Object.create(null);
 GLOBALS.window = 'Use `self` instead.';
 GLOBALS.document = 'Reference it as `self.document` or similar instead.';
 

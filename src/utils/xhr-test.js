@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+import * as sinon from 'sinon';
 import {Xhr, fetchPolyfill, FetchResponse, assertSuccess} from './xhr';
 
 describe('XHR', function() {
+  let sandbox;
   const location = {href: 'https://acme.com/path'};
   const nativeWin = {
     location,
@@ -60,6 +62,7 @@ describe('XHR', function() {
   }
 
   beforeEach(() => {
+    sandbox = sinon.sandbox.create();
     location.href = 'https://acme.com/path';
   });
 

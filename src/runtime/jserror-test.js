@@ -27,7 +27,7 @@ describes.realWin('JsError', {}, env => {
     doc = env.win.document;
     jsError = new JsError(resolveDoc(doc));
     elements = [];
-    sandbox.stub(doc, 'createElement').callsFake(name => {
+    sandbox.stub(doc, 'createElement', name => {
       const element = {name};
       elements.push(element);
       return element;
