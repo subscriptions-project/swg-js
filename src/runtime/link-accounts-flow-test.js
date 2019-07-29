@@ -25,6 +25,7 @@ import {
   LinkSaveFlow,
 } from './link-accounts-flow';
 import {PageConfig} from '../model/page-config';
+import * as sinon from 'sinon';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {createCancelError} from '../utils/errors';
@@ -152,7 +153,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       .expects('onResult')
       .withExactArgs(
         'swg-link',
-        sandbox.match(arg => {
+        sinon.match(arg => {
           handler = arg;
           return typeof arg == 'function';
         })
@@ -183,12 +184,14 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       startResolver = resolve;
     });
     let instance;
-    const startStub = sandbox
-      .stub(LinkCompleteFlow.prototype, 'start')
-      .callsFake(function() {
+    const startStub = sandbox.stub(
+      LinkCompleteFlow.prototype,
+      'start',
+      function() {
         instance = this;
         startResolver();
-      });
+      }
+    );
 
     handler(port);
     expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
@@ -207,7 +210,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       .expects('onResult')
       .withExactArgs(
         'swg-link',
-        sandbox.match(arg => {
+        sinon.match(arg => {
           handler = arg;
           return typeof arg == 'function';
         })
@@ -252,6 +255,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     activitiesMock
       .expects('openIframe')
+<<<<<<< HEAD
       // .withExactArgs(
       //   sandbox.match(arg => arg.tagName == 'IFRAME'),
       //   '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
@@ -261,6 +265,17 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       //     'publicationId': 'pub1',
       //   }
       // )
+=======
+      .withExactArgs(
+        sinon.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
+        {
+          '_client': 'SwG $internalRuntimeVersion$',
+          'productId': 'pub1:prod1',
+          'publicationId': 'pub1',
+        }
+      )
+>>>>>>> master
       .returns(Promise.resolve(port))
       .once();
     return linkCompleteFlow.start();
@@ -280,7 +295,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/u/1/swg/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
@@ -337,7 +352,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/u/1/swg/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
@@ -355,7 +370,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     entitlementsManagerMock
       .expects('reset')
       .withExactArgs(
-        sandbox.match(arg => {
+        sinon.match(arg => {
           if (order.indexOf('reset') == -1) {
             order.push('reset');
           }
@@ -366,7 +381,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     entitlementsManagerMock
       .expects('pushNextEntitlements')
       .withExactArgs(
-        sandbox.match(arg => {
+        sinon.match(arg => {
           if (order.indexOf('pushNextEntitlements') == -1) {
             order.push('pushNextEntitlements');
           }
@@ -491,7 +506,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessageDeprecated').callsFake(callback => {
+    sandbox.stub(port, 'onMessageDeprecated', callback => {
       messageCallback = callback;
     });
     const resultPromise = new Promise(resolve => {
@@ -512,7 +527,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -744,7 +759,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -782,7 +797,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -822,7 +837,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
