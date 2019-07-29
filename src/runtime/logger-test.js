@@ -36,10 +36,12 @@ describes.realWin('Logger', {}, env => {
     eventManager = new ClientEventManager(Promise.resolve());
 
     //we aren't testing event manager - this suppresses the promises
-    sandbox
-      .stub(eventManager, 'registerEventListener')
-      .callsFake(listener => (propensityServerListener = listener));
-    sandbox.stub(eventManager, 'logEvent').callsFake(event => {
+    sandbox.stub(
+      eventManager,
+      'registerEventListener',
+      listener => (propensityServerListener = listener)
+    );
+    sandbox.stub(eventManager, 'logEvent', event => {
       try {
         propensityServerListener(event);
       } catch (e) {
@@ -62,9 +64,11 @@ describes.realWin('Logger', {}, env => {
       const productsOrSkus = {'product': 'basic-monthly'};
 
       beforeEach(() => {
-        sandbox
-          .stub(PropensityServer.prototype, 'sendSubscriptionState')
-          .callsFake(() => {});
+        sandbox.stub(
+          PropensityServer.prototype,
+          'sendSubscriptionState',
+          () => {}
+        );
       });
 
       it('subscription state', () => {
@@ -111,9 +115,11 @@ describes.realWin('Logger', {}, env => {
 
     it('should send subscription state', async function() {
       let subscriptionState = null;
-      sandbox
-        .stub(PropensityServer.prototype, 'sendSubscriptionState')
-        .callsFake(state => (subscriptionState = state));
+      sandbox.stub(
+        PropensityServer.prototype,
+        'sendSubscriptionState',
+        state => (subscriptionState = state)
+      );
       logger.sendSubscriptionState(SubscriptionState.UNKNOWN);
       await logger.eventManagerPromise_;
       expect(subscriptionState).to.equal(SubscriptionState.UNKNOWN);
@@ -123,7 +129,7 @@ describes.realWin('Logger', {}, env => {
       const SENT_ERR = new Error('publisher not whitelisted');
       //note that actual event manager will cause the error to be logged to the
       //console instead of being immediately thrown.
-      sandbox.stub(Xhr.prototype, 'fetch').callsFake(() => {
+      sandbox.stub(Xhr.prototype, 'fetch', () => {
         throw SENT_ERR;
       });
       logger.sendSubscriptionState(SubscriptionState.UNKNOWN);
