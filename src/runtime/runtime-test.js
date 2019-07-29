@@ -1658,15 +1658,18 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(count).to.equal(1);
     });
 
-    it('should create a working logger', function() {
+    it('should create a working logger', async function() {
       let receivedEvent = null;
-      sandbox
-        .stub(ClientEventManager.prototype, 'logEvent')
-        .callsFake(event => (receivedEvent = event));
+      sandbox.stub(
+        ClientEventManager.prototype,
+        'logEvent',
+        event => (receivedEvent = event)
+      );
       runtime.getLogger().logSwgEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
+      await runtime.eventManPromise_;
       //the test is basically to ensure it resolves the event manager promise
       //to logger
-      expect(receivedEvent).to.eventually.deep.equal({
+      expect(receivedEvent).to.deep.equal({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: null,

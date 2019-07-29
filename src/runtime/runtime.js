@@ -153,6 +153,14 @@ export class Runtime {
     /** @private {?function((!ConfiguredRuntime|!Promise))} */
     this.configuredResolver_ = null;
 
+    /** @private @const {!Promise<!ConfiguredRuntime>} */
+    this.configuredPromise_ = new Promise(resolve => {
+      this.configuredResolver_ = resolve;
+    });
+
+    /** @private {?PageConfigResolver} */
+    this.pageConfigResolver_ = null;
+
     //this gives us a promise to event manager and resolves it once configured
     //runtime is available
     let eventManPromiseResolve;
@@ -166,14 +174,6 @@ export class Runtime {
 
     /** @private @const {!Logger} */
     this.logger_ = new Logger(this.eventManPromise_);
-
-    /** @private @const {!Promise<!ConfiguredRuntime>} */
-    this.configuredPromise_ = new Promise(resolve => {
-      this.configuredResolver_ = resolve;
-    });
-
-    /** @private {?PageConfigResolver} */
-    this.pageConfigResolver_ = null;
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
