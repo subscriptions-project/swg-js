@@ -15,8 +15,10 @@
  */
 
 import {Timer} from './timer';
+import * as sinon from 'sinon';
 
 describes.realWin('Timer', {}, env => {
+  let sandbox;
   let windowMock;
   let timer;
 
@@ -87,7 +89,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(value => {
+        sinon.match(value => {
           value();
           return true;
         }),
@@ -108,7 +110,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(value => {
+        sinon.match(value => {
           value();
           return true;
         }),
@@ -135,8 +137,8 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(value => {
-          value();
+        sinon.match(unusedValue => {
+          // No timeout
           return true;
         }),
         111
@@ -156,7 +158,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(value => {
+        sinon.match(value => {
           // Immediate timeout
           value();
           return true;

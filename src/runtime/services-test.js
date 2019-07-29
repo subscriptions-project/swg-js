@@ -23,7 +23,7 @@ describes.sandboxed('services', {}, () => {
     const now = 1520624744987;
 
     beforeEach(() => {
-      sandbox.stub(Date, 'now').callsFake(() => now);
+      sandbox.stub(Date, 'now', () => now);
     });
 
     it('should only allow simple keys', () => {

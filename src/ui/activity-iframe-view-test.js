@@ -44,19 +44,17 @@ describes.realWin('ActivityIframeView', {}, env => {
       activityPorts
     );
 
-    sandbox
-      .stub(activityIframePort, 'whenReady')
-      .callsFake(() => Promise.resolve(true));
+    sandbox.stub(activityIframePort, 'whenReady', () => Promise.resolve(true));
 
-    sandbox.stub(activityIframePort, 'onMessageDeprecated').callsFake(() => {
+    sandbox.stub(activityIframePort, 'onMessageDeprecated', () => {
       return Promise.resolve(true);
     });
 
-    sandbox
-      .stub(activityPorts, 'openIframe')
-      .callsFake(() => Promise.resolve(activityIframePort));
+    sandbox.stub(activityPorts, 'openIframe', () =>
+      Promise.resolve(activityIframePort)
+    );
 
-    sandbox.stub(activityIframePort, 'onResizeRequest').callsFake(() => true);
+    sandbox.stub(activityIframePort, 'onResizeRequest', () => true);
 
     activityIframeView = new ActivityIframeView(
       win,
@@ -97,9 +95,9 @@ describes.realWin('ActivityIframeView', {}, env => {
 
     it('should accept port and result', function*() {
       const result = new ActivityResult('OK');
-      sandbox
-        .stub(activityIframePort, 'acceptResult')
-        .callsFake(() => Promise.resolve(result));
+      sandbox.stub(activityIframePort, 'acceptResult', () =>
+        Promise.resolve(result)
+      );
 
       yield activityIframeView.init(dialog);
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
@@ -122,9 +120,9 @@ describes.realWin('ActivityIframeView', {}, env => {
         VERIFIED,
         SECURE
       );
-      sandbox
-        .stub(activityIframePort, 'acceptResult')
-        .callsFake(() => Promise.resolve(result));
+      sandbox.stub(activityIframePort, 'acceptResult', () =>
+        Promise.resolve(result)
+      );
       yield activityIframeView.init(dialog);
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
 
@@ -139,11 +137,9 @@ describes.realWin('ActivityIframeView', {}, env => {
     });
 
     it('should yield cancel callback', function*() {
-      sandbox
-        .stub(activityIframePort, 'acceptResult')
-        .callsFake(() =>
-          Promise.reject(new DOMException('cancel', 'AbortError'))
-        );
+      sandbox.stub(activityIframePort, 'acceptResult', () =>
+        Promise.reject(new DOMException('cancel', 'AbortError'))
+      );
       const cancelPromise = new Promise(resolve => {
         activityIframeView.onCancel(resolve);
       });
