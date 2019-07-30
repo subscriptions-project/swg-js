@@ -21,7 +21,11 @@ import {
     AnalyticsRequest,
     EventOriginator,
     EventParams,
+    LinkRequest,
+    SkuSelected,
     SmartBoxMessage,
+    SubscribeRequest,
+    ViewSubscriptionsRequest,
     deserialize} from './api_messages';
 
 /**
@@ -135,6 +139,33 @@ describe('api_messages', () => {
     });
   });
 
+  describe('test_LinkRequest', () => {
+    it('should deserialize correctly', () => {
+      const /** !LinkRequest  */ linkrequest = new LinkRequest();
+      linkrequest.setSubscriberOrMember(false);
+      linkrequest.setLinkRequested(false);
+      const linkrequestSerialized = linkrequest.toArray();
+      const linkrequestDeserialized = deserialize(
+          linkrequestSerialized);
+      expect(linkrequestDeserialized).to.not.be.null;
+      expect(isEqual(linkrequest.toArray(),
+          linkrequestDeserialized.toArray())).to.be.true;
+    });
+  });
+
+  describe('test_SkuSelected', () => {
+    it('should deserialize correctly', () => {
+      const /** !SkuSelected  */ skuselected = new SkuSelected();
+      skuselected.setSku('');
+      const skuselectedSerialized = skuselected.toArray();
+      const skuselectedDeserialized = deserialize(
+          skuselectedSerialized);
+      expect(skuselectedDeserialized).to.not.be.null;
+      expect(isEqual(skuselected.toArray(),
+          skuselectedDeserialized.toArray())).to.be.true;
+    });
+  });
+
   describe('test_SmartBoxMessage', () => {
     it('should deserialize correctly', () => {
       const /** !SmartBoxMessage  */ smartboxmessage = new SmartBoxMessage();
@@ -145,6 +176,32 @@ describe('api_messages', () => {
       expect(smartboxmessageDeserialized).to.not.be.null;
       expect(isEqual(smartboxmessage.toArray(),
           smartboxmessageDeserialized.toArray())).to.be.true;
+    });
+  });
+
+  describe('test_SubscribeRequest', () => {
+    it('should deserialize correctly', () => {
+      const /** !SubscribeRequest  */ subscriberequest = new SubscribeRequest();
+      subscriberequest.setSubscribe(false);
+      const subscriberequestSerialized = subscriberequest.toArray();
+      const subscriberequestDeserialized = deserialize(
+          subscriberequestSerialized);
+      expect(subscriberequestDeserialized).to.not.be.null;
+      expect(isEqual(subscriberequest.toArray(),
+          subscriberequestDeserialized.toArray())).to.be.true;
+    });
+  });
+
+  describe('test_ViewSubscriptionsRequest', () => {
+    it('should deserialize correctly', () => {
+      const /** !ViewSubscriptionsRequest  */ viewsubscriptionsrequest = new ViewSubscriptionsRequest();
+      viewsubscriptionsrequest.setNative(false);
+      const viewsubscriptionsrequestSerialized = viewsubscriptionsrequest.toArray();
+      const viewsubscriptionsrequestDeserialized = deserialize(
+          viewsubscriptionsrequestSerialized);
+      expect(viewsubscriptionsrequestDeserialized).to.not.be.null;
+      expect(isEqual(viewsubscriptionsrequest.toArray(),
+          viewsubscriptionsrequestDeserialized.toArray())).to.be.true;
     });
   });
 });

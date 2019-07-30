@@ -18,7 +18,7 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
-
+import {SkuSelected, LinkRequest} from '../proto/api_messages';
 /**
  * The class for Contributions flow.
  */
@@ -63,6 +63,27 @@ export class ContributionsFlow {
   }
 
   /**
+   * @param {LinkRequest} request
+   */
+  handleLinkRequest_(request) {
+    if (request.getSubscriberOrMember()) {
+      this.deps_.callbacks().triggerLoginRequest({
+        linkRequested: !!request.getLinkRequested(),
+      });
+    }
+  }
+
+  /**
+   * @param {SkuSelected} skuSelected
+   */
+  startPayFlow_(skuSelected) {
+    const sku = skuSelected.getSku();
+    if (sku) {
+      new PayStartFlow(this.deps_, sku, ProductType.UI_CONTRIBUTION).start();
+    }
+  }
+
+  /**
    * Starts the contributions flow or alreadyMember flow.
    * @return {!Promise}
    */
@@ -77,23 +98,11 @@ export class ContributionsFlow {
         .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     });
 
-    // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.onMessageDeprecated(result => {
-      if (result['alreadyMember']) {
-        this.deps_.callbacks().triggerLoginRequest({
-          linkRequested: !!result['linkRequested'],
-        });
-        return;
-      }
-      if (result['sku']) {
-        new PayStartFlow(
-          this.deps_,
-          /** @type {string} */ (result['sku']),
-          ProductType.UI_CONTRIBUTION
-        ).start();
-        return;
-      }
-    });
+    this.activityIframeView_.on(
+      LinkRequest,
+      this.handleLinkRequest_.bind(this)
+    );
+    this.activityIframeView_.on(SkuSelected, this.startPayFlow_.bind(this));
 
     return this.dialogManager_.openView(this.activityIframeView_);
   }
