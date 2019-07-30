@@ -881,7 +881,6 @@ export class ConfiguredRuntime {
   eventManager() {
     return this.eventManager_;
   }
-
 }
 
 /**

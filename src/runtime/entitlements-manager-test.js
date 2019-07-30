@@ -16,6 +16,7 @@
 
 import {Callbacks} from './callbacks';
 import {DepsDef} from './deps';
+import {CreateClientEvent} from './client-event-manager.js';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
@@ -25,6 +26,7 @@ import {XhrFetcher} from './fetcher';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {AnalyticsService} from './analytics-service';
 import {defaultConfig, AnalyticsMode} from '../api/subscriptions';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 
 describes.realWin('EntitlementsManager', {}, env => {
@@ -38,15 +40,16 @@ describes.realWin('EntitlementsManager', {}, env => {
   let storageMock;
   let config;
   let analyticsMock;
+  let eventManagerMock;
   let deps;
   let encryptedDocumentKey;
-  let eventManager;
 
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
     fetcher = new XhrFetcher(win);
-    eventManager = new ClientEventManager();
+    const eventManager = new ClientEventManager();
+    eventManagerMock = sandbox.mock(eventManager);
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
     deps = new DepsDef();
@@ -584,8 +587,21 @@ describes.realWin('EntitlementsManager', {}, env => {
         .once();
       expectGetIsReadyToPayToBeCalled('true');
       expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(true).once();
+      analyticsMock
+        .expects('setReadyToPay')
+        .withExactArgs(true)
+        .once();
+      eventManagerMock
+        .expects('logEvent')
+        .withExactArgs(
+          CreateClientEvent(
+            AnalyticsEvent.IMPRESSION_PAYWALL,
+            EventOriginator.SWG_CLIENT,
+            false,
+            null
+          )
+        )
+        .once();
       config.analyticsMode = AnalyticsMode.IMPRESSIONS;
       const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
           win,
@@ -606,8 +622,21 @@ describes.realWin('EntitlementsManager', {}, env => {
         .once();
       expectGetIsReadyToPayToBeCalled('true');
       expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(true).once();
+      analyticsMock
+        .expects('setReadyToPay')
+        .withExactArgs(true)
+        .once();
+      eventManagerMock
+        .expects('logEvent')
+        .withExactArgs(
+          CreateClientEvent(
+            AnalyticsEvent.IMPRESSION_PAYWALL,
+            EventOriginator.SWG_CLIENT,
+            false,
+            null
+          )
+        )
+        .once();
       EntitlementsManager.prototype.getQueryString_ = () => {
         return '?utm_source=google&utm_medium=email&utm_campaign=campaign';
       };
@@ -630,8 +659,21 @@ describes.realWin('EntitlementsManager', {}, env => {
         .once();
       expectGetIsReadyToPayToBeCalled('true');
       expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
-      analyticsMock.expects('setReadyToPay')
-          .withExactArgs(true).once();
+      analyticsMock
+        .expects('setReadyToPay')
+        .withExactArgs(true)
+        .once();
+      eventManagerMock
+        .expects('logEvent')
+        .withExactArgs(
+          CreateClientEvent(
+            AnalyticsEvent.IMPRESSION_PAYWALL,
+            EventOriginator.SWG_CLIENT,
+            false,
+            null
+          )
+        )
+        .once();
       EntitlementsManager.prototype.getQueryString_ = () => {
         return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
       };
