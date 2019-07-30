@@ -16,9 +16,7 @@
 
 import {serviceUrl} from './services';
 
-
 export class OffersApi {
-
   /**
    * @param {!../model/page-config.PageConfig} config
    * @param {!./fetcher.Fetcher} fetcher
@@ -50,10 +48,12 @@ export class OffersApi {
    */
   fetch_(productId) {
     const url = serviceUrl(
-        '/publication/' +
+      '/publication/' +
         encodeURIComponent(this.config_.getPublicationId()) +
         '/offers' +
-        '?label=' + encodeURIComponent(productId));
+        '?label=' +
+        encodeURIComponent(productId)
+    );
     // TODO(dvoytenko): switch to a non-credentialed request after launch.
     return this.fetcher_.fetchCredentialedJson(url).then(json => {
       return json['offers'] || [];

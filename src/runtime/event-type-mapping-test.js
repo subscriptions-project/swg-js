@@ -15,11 +15,12 @@
  */
 import {Event} from '../api/propensity-api';
 import {AnalyticsEvent} from '../proto/api_messages';
-import {propensityEventToAnalyticsEvent, analyticsEventToPropensityEvent}
-  from './propensity-type-mapping';
+import {
+  publisherEventToAnalyticsEvent,
+  analyticsEventToPublisherEvent,
+} from './event-type-mapping';
 
 describes.realWin('PropensityServer', {}, () => {
-
   it('propensity to analytics to propensity should be identical', () => {
     let analyticsEvent;
     let propensityEvent;
@@ -27,9 +28,10 @@ describes.realWin('PropensityServer', {}, () => {
     //propensity event -> analytics events -> propensity event
     for (const propensityEnum in Event) {
       propensityEvent = Event[propensityEnum];
-      analyticsEvent = propensityEventToAnalyticsEvent(propensityEvent);
-      expect(analyticsEventToPropensityEvent(analyticsEvent)).to
-          .equal(propensityEvent);
+      analyticsEvent = publisherEventToAnalyticsEvent(propensityEvent);
+      expect(analyticsEventToPublisherEvent(analyticsEvent)).to.equal(
+        propensityEvent
+      );
       expect(analyticsEvent).to.not.be.null;
       expect(analyticsEvent).to.not.be.undefined;
     }
@@ -40,15 +42,16 @@ describes.realWin('PropensityServer', {}, () => {
     let propensityEvent;
     for (const analyticsEnum in AnalyticsEvent) {
       analyticsEvent = AnalyticsEvent[analyticsEnum];
-      propensityEvent = analyticsEventToPropensityEvent(analyticsEvent);
+      propensityEvent = analyticsEventToPublisherEvent(analyticsEvent);
       //not all analytics events convert to propensity events - this is OK
       if (propensityEvent == null) {
         continue;
       }
       //but if the analytics event converted to the propensity event it should
       //be able to convert back to the same analytics event
-      expect(propensityEventToAnalyticsEvent(propensityEvent)).to
-          .equal(analyticsEvent);
+      expect(publisherEventToAnalyticsEvent(propensityEvent)).to.equal(
+        analyticsEvent
+      );
     }
   });
 });

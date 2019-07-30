@@ -63,15 +63,18 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
   });
 
   it('should start the flow correctly', () => {
-    activitiesMock.expects('openIframe').withExactArgs(
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/waitforsubscriptionlookupiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
           productId,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     dialogManagerMock.expects('completeView').once();
     waitingApi.start();
     return waitingApi.openViewPromise_;
@@ -90,11 +93,15 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     resultResolver(Promise.reject(new Error(noAccountFound)));
 
     dialogManagerMock.expects('completeView').once();
-    return waitingApi.start().then(foundAccount => {
-      throw new Error(
-          'test failed. \"' + foundAccount + '\" should not be found');
-    }, reason => {
-      expect(reason).to.equal(noAccountFound);
-    });
+    return waitingApi.start().then(
+      foundAccount => {
+        throw new Error(
+          'test failed. "' + foundAccount + '" should not be found'
+        );
+      },
+      reason => {
+        expect(reason).to.equal(noAccountFound);
+      }
+    );
   });
 });

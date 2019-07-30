@@ -25,10 +25,12 @@ import {
 describe('serializeQueryString', () => {
   it('should return empty string for empty params', () => {
     expect(serializeQueryString({})).to.equal('');
-    expect(serializeQueryString({
-      nullValue: null,
-      undefValue: undefined,
-    })).to.equal('');
+    expect(
+      serializeQueryString({
+        nullValue: null,
+        undefValue: undefined,
+      })
+    ).to.equal('');
   });
   it('should serialize a single value', () => {
     expect(serializeQueryString({a: 'A'})).to.equal('a=A');
@@ -43,13 +45,13 @@ describe('serializeQueryString', () => {
     expect(serializeQueryString({'a+b': 'A+B'})).to.equal('a%2Bb=A%2BB');
   });
   it('should serialize multiple valued parameters', () => {
-    expect(serializeQueryString({a: [1,2,3], b: true})).to.equal(
-        'a=1&a=2&a=3&b=true');
+    expect(serializeQueryString({a: [1, 2, 3], b: true})).to.equal(
+      'a=1&a=2&a=3&b=true'
+    );
   });
 });
 
 describe('parseUrl', () => {
-
   const currentPort = location.port;
 
   function compareParse(url, result) {
@@ -172,13 +174,13 @@ describe('parseUrl', () => {
     });
   });
   it('should parse origin https://twitter.com/path#abc', () => {
-    expect(parseUrl('https://twitter.com/path#abc').origin)
-        .to.equal('https://twitter.com');
+    expect(parseUrl('https://twitter.com/path#abc').origin).to.equal(
+      'https://twitter.com'
+    );
   });
 
   it('should parse origin data:12345', () => {
-    expect(parseUrl('data:12345').origin)
-        .to.equal('data:12345');
+    expect(parseUrl('data:12345').origin).to.equal('data:12345');
   });
 
   it('should parse URL query string', () => {
@@ -212,51 +214,47 @@ describe('parseUrl', () => {
   });
 
   it('should strip fragment for host url', () => {
-    expect(getHostUrl('https://example.com/abc?a=1#frag'))
-        .to.equal('https://example.com/abc?a=1');
-    expect(getHostUrl('https://example.com/abc?a=1'))
-        .to.equal('https://example.com/abc?a=1');
-    expect(getHostUrl('https://example.com/abc'))
-        .to.equal('https://example.com/abc');
-    expect(getHostUrl('https://example.com/'))
-        .to.equal('https://example.com/');
+    expect(getHostUrl('https://example.com/abc?a=1#frag')).to.equal(
+      'https://example.com/abc?a=1'
+    );
+    expect(getHostUrl('https://example.com/abc?a=1')).to.equal(
+      'https://example.com/abc?a=1'
+    );
+    expect(getHostUrl('https://example.com/abc')).to.equal(
+      'https://example.com/abc'
+    );
+    expect(getHostUrl('https://example.com/')).to.equal('https://example.com/');
   });
 });
 
 describe('addQueryParam', () => {
   it('should add on a simple url', () => {
-    expect(addQueryParam('https://example.org/file', 'a', 'b'))
-        .to.equal('https://example.org/file?a=b');
-    expect(addQueryParam('https://example.org/', 'a', 'b'))
-        .to.equal('https://example.org/?a=b');
-    expect(addQueryParam('https://example.org', 'a', 'b'))
-        .to.equal('https://example.org?a=b');
-    expect(addQueryParam('/file', 'a', 'b'))
-        .to.equal('/file?a=b');
-    expect(addQueryParam('file', 'a', 'b'))
-        .to.equal('file?a=b');
+    expect(addQueryParam('https://example.org/file', 'a', 'b')).to.equal(
+      'https://example.org/file?a=b'
+    );
+    expect(addQueryParam('https://example.org/', 'a', 'b')).to.equal(
+      'https://example.org/?a=b'
+    );
+    expect(addQueryParam('https://example.org', 'a', 'b')).to.equal(
+      'https://example.org?a=b'
+    );
+    expect(addQueryParam('/file', 'a', 'b')).to.equal('/file?a=b');
+    expect(addQueryParam('file', 'a', 'b')).to.equal('file?a=b');
   });
 
   it('should add on a empty url', () => {
-    expect(addQueryParam('', 'a', 'b'))
-        .to.equal('?a=b');
+    expect(addQueryParam('', 'a', 'b')).to.equal('?a=b');
   });
 
   it('should add with existing query', () => {
-    expect(addQueryParam('file?', 'a', 'b'))
-        .to.equal('file?a=b');
-    expect(addQueryParam('file?d=e', 'a', 'b'))
-        .to.equal('file?d=e&a=b');
+    expect(addQueryParam('file?', 'a', 'b')).to.equal('file?a=b');
+    expect(addQueryParam('file?d=e', 'a', 'b')).to.equal('file?d=e&a=b');
   });
 
   it('should add with existing fragment', () => {
-    expect(addQueryParam('file#', 'a', 'b'))
-        .to.equal('file?a=b#');
-    expect(addQueryParam('file#f', 'a', 'b'))
-        .to.equal('file?a=b#f');
-    expect(addQueryParam('file?#f', 'a', 'b'))
-        .to.equal('file?a=b#f');
-    expect(addQueryParam('file?d=e#f', 'a', 'b'))
-        .to.equal('file?d=e&a=b#f');
+    expect(addQueryParam('file#', 'a', 'b')).to.equal('file?a=b#');
+    expect(addQueryParam('file#f', 'a', 'b')).to.equal('file?a=b#f');
+    expect(addQueryParam('file?#f', 'a', 'b')).to.equal('file?a=b#f');
+    expect(addQueryParam('file?d=e#f', 'a', 'b')).to.equal('file?d=e&a=b#f');
   });
 });

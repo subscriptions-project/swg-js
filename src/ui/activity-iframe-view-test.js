@@ -15,13 +15,8 @@
  */
 
 import {ActivityIframeView} from './activity-iframe-view';
-import {
-  ActivityResult,
-} from 'web-activities/activity-ports';
-import {
-  ActivityPorts,
-  ActivityIframePort,
-} from '../components/activities';
+import {ActivityResult} from 'web-activities/activity-ports';
+import {ActivityPorts, ActivityIframePort} from '../components/activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 
@@ -44,32 +39,29 @@ describes.realWin('ActivityIframeView', {}, env => {
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     activityPorts = new ActivityPorts(win);
     activityIframePort = new ActivityIframePort(
-        dialog.getElement(), src, activityPorts);
+      dialog.getElement(),
+      src,
+      activityPorts
+    );
 
-    sandbox.stub(
-        activityIframePort,
-        'whenReady',
-        () => Promise.resolve(true));
+    sandbox.stub(activityIframePort, 'whenReady', () => Promise.resolve(true));
 
-    sandbox.stub(
-        activityIframePort,
-        'onMessageDeprecated',
-        () => {
-          return Promise.resolve(true);
-        });
+    sandbox.stub(activityIframePort, 'onMessageDeprecated', () => {
+      return Promise.resolve(true);
+    });
 
-    sandbox.stub(
-        activityPorts,
-        'openIframe',
-        () => Promise.resolve(activityIframePort));
+    sandbox.stub(activityPorts, 'openIframe', () =>
+      Promise.resolve(activityIframePort)
+    );
 
-    sandbox.stub(
-        activityIframePort,
-        'onResizeRequest',
-        () => true);
+    sandbox.stub(activityIframePort, 'onResizeRequest', () => true);
 
-    activityIframeView =
-        new ActivityIframeView(win, activityPorts, src, activityArgs);
+    activityIframeView = new ActivityIframeView(
+      win,
+      activityPorts,
+      src,
+      activityArgs
+    );
   });
 
   describe('ActivityIframeView', () => {
@@ -80,7 +72,7 @@ describes.realWin('ActivityIframeView', {}, env => {
       expect(activityIframe.getAttribute('frameborder')).to.equal('0');
     });
 
-    it('should initialize and open an iframe', function* () {
+    it('should initialize and open an iframe', function*() {
       const openedDialog = yield dialog.open();
 
       // The iframe should be inside DOM to call init().
@@ -101,12 +93,11 @@ describes.realWin('ActivityIframeView', {}, env => {
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
     });
 
-    it('should accept port and result', function* () {
+    it('should accept port and result', function*() {
       const result = new ActivityResult('OK');
-      sandbox.stub(
-          activityIframePort,
-          'acceptResult',
-          () => Promise.resolve(result));
+      sandbox.stub(activityIframePort, 'acceptResult', () =>
+        Promise.resolve(result)
+      );
 
       yield activityIframeView.init(dialog);
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
@@ -117,32 +108,38 @@ describes.realWin('ActivityIframeView', {}, env => {
       expect(actualResult).to.equal(result);
     });
 
-    it('should accept port and result and verify', function* () {
+    it('should accept port and result and verify', function*() {
       const ORIGIN = 'https://example.com';
       const VERIFIED = true;
       const SECURE = true;
       const result = new ActivityResult(
-          'OK', 'A', 'MODE', ORIGIN, VERIFIED, SECURE);
-      sandbox.stub(
-          activityIframePort,
-          'acceptResult',
-          () => Promise.resolve(result));
+        'OK',
+        'A',
+        'MODE',
+        ORIGIN,
+        VERIFIED,
+        SECURE
+      );
+      sandbox.stub(activityIframePort, 'acceptResult', () =>
+        Promise.resolve(result)
+      );
       yield activityIframeView.init(dialog);
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
 
       const actualPort = yield activityIframeView.getPortPromise_();
       const actualResult = yield activityIframeView.acceptResultAndVerify(
-          ORIGIN, VERIFIED, SECURE);
+        ORIGIN,
+        VERIFIED,
+        SECURE
+      );
       expect(actualPort).to.equal(activityIframePort);
       expect(actualResult).to.equal(result.data);
     });
 
-
-    it('should yield cancel callback', function* () {
-      sandbox.stub(
-          activityIframePort,
-          'acceptResult',
-          () => Promise.reject(new DOMException('cancel', 'AbortError')));
+    it('should yield cancel callback', function*() {
+      sandbox.stub(activityIframePort, 'acceptResult', () =>
+        Promise.reject(new DOMException('cancel', 'AbortError'))
+      );
       const cancelPromise = new Promise(resolve => {
         activityIframeView.onCancel(resolve);
       });
@@ -150,10 +147,16 @@ describes.realWin('ActivityIframeView', {}, env => {
       return cancelPromise;
     });
 
-    it('should cache loading indicator', function* () {
+    it('should cache loading indicator', function*() {
       expect(activityIframeView.hasLoadingIndicator()).to.be.false;
       const activityIframeView2 = new ActivityIframeView(
-          win, activityPorts, src, activityArgs, false, true);
+        win,
+        activityPorts,
+        src,
+        activityArgs,
+        false,
+        true
+      );
       expect(activityIframeView2.hasLoadingIndicator()).to.be.true;
     });
   });
