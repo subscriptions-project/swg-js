@@ -1630,5 +1630,19 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     it('should return events manager', () => {
       expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
     });
+
+    it('should let event manager send events without a promise', () => {
+      const event = {
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      };
+
+      let count = 0;
+      sandbox.stub(ClientEventManager.prototype, 'logEvent', () => count++);
+      runtime.eventManager().logEvent(event);
+      expect(count).to.equal(1);
+    });
   });
 });
