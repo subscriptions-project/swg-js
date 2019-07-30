@@ -48,7 +48,6 @@ describes.realWin('PropensityServer', {}, env => {
   let propensityServer;
   let eventManager;
   let registeredCallback;
-
   const serverUrl = 'http://localhost:31862';
   const pubId = 'pub1';
   const defaultParameters = {'custom': 'value'};
@@ -58,21 +57,15 @@ describes.realWin('PropensityServer', {}, env => {
     isFromUserAction: null,
     additionalParameters: defaultParameters,
   };
-
   const productsOrSkus = {'product': ['a', 'b', 'c']};
 
   beforeEach(() => {
     win = env.win;
     registeredCallback = null;
     eventManager = new ClientEventManager(Promise.resolve());
-    sandbox.stub(
-      ClientEventManager.prototype,
-      'registerEventListener').callsFake(
-      callback => (registeredCallback = callback)
-    );
-    sandbox.stub(ClientEventManager.prototype, 'logEvent').callsFake(event =>
-      registeredCallback(event)
-    );
+    sandbox
+      .stub(ClientEventManager.prototype, 'registerEventListener')
+      .callsFake(callback => (registeredCallback = callback));
     propensityServer = new PropensityServer(win, pubId, eventManager);
     sandbox.stub(ServiceUrl, 'adsUrl').callsFake(url => serverUrl + url);
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
@@ -90,7 +83,6 @@ describes.realWin('PropensityServer', {}, env => {
       capturedRequest = init;
       return Promise.reject(new Error('Publisher not whitelisted'));
     });
-    const productsOrSkus = {'product': ['a', 'b', 'c']};
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
@@ -455,14 +447,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should allow subscription state change via event', () => {
     let receivedState;
     let receivedProducts;
-
-    sandbox.stub(
-      PropensityServer.prototype,
-      'sendSubscriptionState').callsFake((state, products) => {
-        receivedState = state;
-        receivedProducts = products;
-      });
-    eventManager.logEvent({
+    const event = {
       eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
       eventOriginator: EventOriginator.PUBLISHER_CLIENT,
       isFromUserAction: null,
@@ -470,7 +455,17 @@ describes.realWin('PropensityServer', {}, env => {
         'state': SubscriptionState.UNKNOWN,
         'productsOrSkus': JSON.stringify(productsOrSkus),
       },
-    });
+    };
+
+    sandbox
+      .stub(PropensityServer.prototype, 'sendSubscriptionState')
+      .callsFake((state, products) => {
+        receivedState = state;
+        receivedProducts = products;
+      });
+
+    registeredCallback(event);
+    eventManager.logEvent(event);
     expect(receivedState).to.equal(SubscriptionState.UNKNOWN);
     expect(receivedProducts).to.equal(JSON.stringify(productsOrSkus));
   });
