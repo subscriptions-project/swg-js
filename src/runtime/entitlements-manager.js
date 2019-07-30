@@ -18,7 +18,7 @@ import {Entitlement, Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
-import {CreateClientEvent} from './client-event-manager.js';
+import {createClientEvent} from './client-event-manager.js';
 import {feArgs, feUrl} from '../runtime/services';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AnalyticsMode} from '../api/subscriptions';
@@ -111,7 +111,7 @@ export class EntitlementsManager {
     this.deps_
       .eventManager()
       .logEvent(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SWG_CLIENT,
           false,

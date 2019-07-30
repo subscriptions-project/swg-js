@@ -20,7 +20,7 @@ import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
-import {CreateClientEvent} from './client-event-manager.js';
+import {createClientEvent} from './client-event-manager.js';
 import {PayClient} from './pay-client';
 import {
   PayStartFlow,
@@ -147,7 +147,7 @@ describes.realWin('PayStartFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_SUBSCRIBE,
           EventOriginator.SWG_CLIENT,
           true,
@@ -202,7 +202,7 @@ describes.realWin('PayStartFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_SUBSCRIBE,
           EventOriginator.SWG_CLIENT,
           true,
@@ -252,7 +252,7 @@ describes.realWin('PayStartFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_SUBSCRIBE,
           EventOriginator.SWG_CLIENT,
           true,
@@ -371,7 +371,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
           EventOriginator.SWG_CLIENT,
           true,
@@ -415,7 +415,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
           EventOriginator.SWG_CLIENT,
           true,
@@ -482,7 +482,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
           EventOriginator.SWG_CLIENT,
           true,
@@ -492,7 +492,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_CREATED,
           EventOriginator.SWG_CLIENT,
           true,
@@ -502,7 +502,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
           EventOriginator.SWG_CLIENT,
           true,
@@ -557,7 +557,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_CREATED,
           EventOriginator.SWG_CLIENT,
           true,
@@ -567,7 +567,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
           EventOriginator.SWG_CLIENT,
           true,
@@ -577,7 +577,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
           EventOriginator.SWG_CLIENT,
           true,
@@ -653,7 +653,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_CREATED,
           EventOriginator.SWG_CLIENT,
           true,
@@ -663,7 +663,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
           EventOriginator.SWG_CLIENT,
           true,
@@ -673,7 +673,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
           EventOriginator.SWG_CLIENT,
           true,
@@ -728,7 +728,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
           EventOriginator.SWG_CLIENT,
           true,
@@ -768,7 +768,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
-        CreateClientEvent(
+        createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
           EventOriginator.SWG_CLIENT,
           true,
@@ -805,7 +805,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       eventManagerMock
         .expects('logEvent')
         .withExactArgs(
-          CreateClientEvent(
+          createClientEvent(
             AnalyticsEvent.EVENT_PAYMENT_FAILED,
             EventOriginator.SWG_CLIENT,
             false,

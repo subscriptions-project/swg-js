@@ -32,7 +32,7 @@ import {
   WindowOpenMode,
 } from '../api/subscriptions';
 import {UserData} from '../api/user-data';
-import {CreateClientEvent} from './client-event-manager.js';
+import {createClientEvent} from './client-event-manager.js';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseJson, tryParseJson} from '../utils/json';
@@ -117,7 +117,7 @@ export class PayStartFlow {
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
     this.eventManager_.logEvent(
-      CreateClientEvent(
+      createClientEvent(
         AnalyticsEvent.ACTION_SUBSCRIBE,
         EventOriginator.SWG_CLIENT,
         true,
@@ -174,7 +174,7 @@ export class PayCompleteFlow {
             deps
               .eventManager()
               .logEvent(
-                CreateClientEvent(
+                createClientEvent(
                   AnalyticsEvent.EVENT_PAYMENT_FAILED,
                   EventOriginator.SWG_CLIENT,
                   false,
@@ -237,7 +237,7 @@ export class PayCompleteFlow {
     }
 
     this.eventManager_.logEvent(
-      CreateClientEvent(
+      createClientEvent(
         AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
         EventOriginator.SWG_CLIENT,
         true,
@@ -287,7 +287,7 @@ export class PayCompleteFlow {
    */
   complete() {
     this.eventManager_.logEvent(
-      CreateClientEvent(
+      createClientEvent(
         AnalyticsEvent.ACTION_ACCOUNT_CREATED,
         EventOriginator.SWG_CLIENT,
         true,
@@ -305,7 +305,7 @@ export class PayCompleteFlow {
       })
       .then(() => {
         this.eventManager_.logEvent(
-          CreateClientEvent(
+          createClientEvent(
             AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
             EventOriginator.SWG_CLIENT,
             true,

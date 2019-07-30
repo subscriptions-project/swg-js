@@ -16,7 +16,7 @@
 
 import {Callbacks} from './callbacks';
 import {DepsDef} from './deps';
-import {CreateClientEvent} from './client-event-manager.js';
+import {createClientEvent} from './client-event-manager.js';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
@@ -48,7 +48,7 @@ describes.realWin('EntitlementsManager', {}, env => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
     fetcher = new XhrFetcher(win);
-    const eventManager = new ClientEventManager();
+    const eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
@@ -594,7 +594,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       eventManagerMock
         .expects('logEvent')
         .withExactArgs(
-          CreateClientEvent(
+          createClientEvent(
             AnalyticsEvent.IMPRESSION_PAYWALL,
             EventOriginator.SWG_CLIENT,
             false,
@@ -629,7 +629,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       eventManagerMock
         .expects('logEvent')
         .withExactArgs(
-          CreateClientEvent(
+          createClientEvent(
             AnalyticsEvent.IMPRESSION_PAYWALL,
             EventOriginator.SWG_CLIENT,
             false,
@@ -666,7 +666,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       eventManagerMock
         .expects('logEvent')
         .withExactArgs(
-          CreateClientEvent(
+          createClientEvent(
             AnalyticsEvent.IMPRESSION_PAYWALL,
             EventOriginator.SWG_CLIENT,
             false,

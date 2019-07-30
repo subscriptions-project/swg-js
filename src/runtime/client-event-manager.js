@@ -32,16 +32,16 @@ function createEventErrorMessage(valueName, value) {
 /**
  * Utility function to create a ClientEvent proto.
  * @param {!AnalyticsEvent} eventType
- * @param {!EventOriginator} eventOriginator
- * @param {?boolean} isFromUserAction
- * @param {?Object} additionalParameters
+ * @param {!EventOriginator=} eventOriginator
+ * @param {?boolean=} isFromUserAction
+ * @param {?Object=} additionalParameters
  * @returns {!../api/client-event-manager-api.ClientEvent}
  */
-export function CreateClientEvent(
+export function createClientEvent(
   eventType,
-  eventOriginator,
-  isFromUserAction,
-  additionalParameters
+  eventOriginator = EventOriginator.SWG_CLIENT,
+  isFromUserAction = false,
+  additionalParameters = null
 ) {
   return {
     eventType,
