@@ -250,17 +250,28 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
+
+    const activityResult = new ActivityResult(
+      ActivityResultCode.OK,
+      {},
+      'IFRAME',
+      location.origin,
+      true,
+      true
+    );
+    port.acceptResult = () => Promise.resolve(activityResult);
+
     activitiesMock
       .expects('openIframe')
-      // .withExactArgs(
-      //   sandbox.match(arg => arg.tagName == 'IFRAME'),
-      //   '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
-      //   {
-      //     '_client': 'SwG $internalRuntimeVersion$',
-      //     'productId': 'pub1:prod1',
-      //     'publicationId': 'pub1',
-      //   }
-      // )
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
+        {
+          '_client': 'SwG $internalRuntimeVersion$',
+          'productId': 'pub1:prod1',
+          'publicationId': 'pub1',
+        }
+      )
       .returns(Promise.resolve(port))
       .once();
     return linkCompleteFlow.start();
