@@ -330,9 +330,9 @@ describes.realWin('Runtime', {}, env => {
   beforeEach(() => {
     win = env.win;
     runtime = new Runtime(win);
-    sandbox.stub(ClientEventManager.prototype, 'logEvent', event =>
-      loggedEvents.push(event)
-    );
+    sandbox
+      .stub(ClientEventManager.prototype, 'logEvent')
+      .callsFake(event => loggedEvents.push(event));
   });
 
   describe('startSubscriptionsFlowIfNeeded', () => {
@@ -380,11 +380,9 @@ describes.realWin('Runtime', {}, env => {
     beforeEach(() => {
       config = new PageConfig('pub1', true);
       configPromise = Promise.resolve(config);
-      resolveStub = sandbox.stub(
-        PageConfigResolver.prototype,
-        'resolveConfig',
-        () => configPromise
-      );
+      resolveStub = sandbox
+        .stub(PageConfigResolver.prototype, 'resolveConfig')
+        .callsFake(() => configPromise);
     });
 
     it('should initialize correctly with config lookup', () => {
@@ -435,7 +433,9 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should propagate construction config', () => {
-      sandbox.stub(ConfiguredRuntime.prototype, 'configure', () => {});
+      sandbox
+        .stub(ConfiguredRuntime.prototype, 'configure')
+        .callsFake(() => {});
       runtime.configure({windowOpenMode: 'redirect'});
       runtime.init('pub2');
       return runtime.configured_(true).then(cr => {
@@ -447,7 +447,9 @@ describes.realWin('Runtime', {}, env => {
       Object.defineProperty(win.navigator, 'userAgent', {
         value: EDGE_USER_AGENT,
       });
-      sandbox.stub(ConfiguredRuntime.prototype, 'configure', () => {});
+      sandbox
+        .stub(ConfiguredRuntime.prototype, 'configure')
+        .callsFake(() => {});
       runtime.init('pub2');
       return runtime.configured_(true).then(cr => {
         expect(cr.config().windowOpenMode).to.equal('redirect');
@@ -494,9 +496,9 @@ describes.realWin('Runtime', {}, env => {
       configuredRuntime = new ConfiguredRuntime(new GlobalDoc(win), config);
       configuredRuntimeMock = sandbox.mock(configuredRuntime);
       analyticsMock = sandbox.mock(configuredRuntime.analytics());
-      configureStub = sandbox.stub(runtime, 'configured_', () =>
-        Promise.resolve(configuredRuntime)
-      );
+      configureStub = sandbox
+        .stub(runtime, 'configured_')
+        .callsFake(() => Promise.resolve(configuredRuntime));
     });
 
     afterEach(() => {
@@ -792,7 +794,7 @@ describes.realWin('Runtime', {}, env => {
       const options = {};
       const callback = () => {};
       const button = win.document.createElement('button');
-      const stub = sandbox.stub(runtime.buttonApi_, 'create', () => {
+      const stub = sandbox.stub(runtime.buttonApi_, 'create').callsFake(() => {
         return button;
       });
       const result = runtime.createButton(options, callback);
@@ -826,11 +828,9 @@ describes.realWin('Runtime', {}, env => {
 
     it('should use default fetcher', () => {
       const ents = {};
-      const xhrFetchStub = sandbox.stub(
-        XhrFetcher.prototype,
-        'fetchCredentialedJson',
-        () => Promise.resolve(ents)
-      );
+      const xhrFetchStub = sandbox
+        .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
+        .callsFake(() => Promise.resolve(ents));
       return runtime.getEntitlements().then(() => {
         expect(xhrFetchStub).to.be.calledOnce;
       });
@@ -839,16 +839,12 @@ describes.realWin('Runtime', {}, env => {
     it('should override fetcher', () => {
       const ents = {};
       const otherFetcher = new Fetcher();
-      const fetchStub = sandbox.stub(
-        otherFetcher,
-        'fetchCredentialedJson',
-        () => Promise.resolve(ents)
-      );
-      const xhrFetchStub = sandbox.stub(
-        XhrFetcher.prototype,
-        'fetchCredentialedJson',
-        () => Promise.resolve(ents)
-      );
+      const fetchStub = sandbox
+        .stub(otherFetcher, 'fetchCredentialedJson')
+        .callsFake(() => Promise.resolve(ents));
+      const xhrFetchStub = sandbox
+        .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
+        .callsFake(() => Promise.resolve(ents));
       runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
         fetcher: otherFetcher,
       });
@@ -951,20 +947,19 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     beforeEach(() => {
       activityResultCallbacks = {};
       redirectErrorHandler = null;
-      sandbox.stub(ActivityPorts.prototype, 'onResult', function(
-        requestId,
-        callback
-      ) {
-        if (activityResultCallbacks[requestId]) {
-          throw new Error('duplicate');
-        }
-        activityResultCallbacks[requestId] = callback;
-      });
-      sandbox.stub(ActivityPorts.prototype, 'onRedirectError', function(
-        handler
-      ) {
-        redirectErrorHandler = handler;
-      });
+      sandbox
+        .stub(ActivityPorts.prototype, 'onResult')
+        .callsFake(function(requestId, callback) {
+          if (activityResultCallbacks[requestId]) {
+            throw new Error('duplicate');
+          }
+          activityResultCallbacks[requestId] = callback;
+        });
+      sandbox
+        .stub(ActivityPorts.prototype, 'onRedirectError')
+        .callsFake(function(handler) {
+          redirectErrorHandler = handler;
+        });
       runtime = new ConfiguredRuntime(win, config);
       entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager_);
       dialogManagerMock = sandbox.mock(runtime.dialogManager_);
@@ -1287,7 +1282,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should call "showOffers"', () => {
       let offersFlow;
-      sandbox.stub(OffersFlow.prototype, 'start', function() {
+      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
         offersFlow = this;
         return new Promise(() => {});
       });
@@ -1301,7 +1296,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should call "showOffers" with options', () => {
       let offersFlow;
-      sandbox.stub(OffersFlow.prototype, 'start', function() {
+      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
         offersFlow = this;
         return new Promise(() => {});
       });
@@ -1313,7 +1308,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should call "showAbbrvOffer"', () => {
       let offersFlow;
-      sandbox.stub(AbbrvOfferFlow.prototype, 'start', function() {
+      sandbox.stub(AbbrvOfferFlow.prototype, 'start').callsFake(function() {
         offersFlow = this;
         return new Promise(() => {});
       });
@@ -1325,7 +1320,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should call "showAbbrvOffer" with options', () => {
       let offersFlow;
-      sandbox.stub(AbbrvOfferFlow.prototype, 'start', function() {
+      sandbox.stub(AbbrvOfferFlow.prototype, 'start').callsFake(function() {
         offersFlow = this;
         return new Promise(() => {});
       });
@@ -1337,10 +1332,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should call "showSubscribeOption"', () => {
       let offersFlow;
-      sandbox.stub(SubscribeOptionFlow.prototype, 'start', function() {
-        offersFlow = this;
-        return new Promise(() => {});
-      });
+      sandbox
+        .stub(SubscribeOptionFlow.prototype, 'start')
+        .callsFake(function() {
+          offersFlow = this;
+          return new Promise(() => {});
+        });
       runtime.showSubscribeOption();
       return runtime.documentParsed_.then(() => {
         expect(offersFlow.options_).to.be.undefined;
@@ -1349,10 +1346,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should call "showSubscribeOption" with options', () => {
       let offersFlow;
-      sandbox.stub(SubscribeOptionFlow.prototype, 'start', function() {
-        offersFlow = this;
-        return new Promise(() => {});
-      });
+      sandbox
+        .stub(SubscribeOptionFlow.prototype, 'start')
+        .callsFake(function() {
+          offersFlow = this;
+          return new Promise(() => {});
+        });
       runtime.showSubscribeOption({list: 'other'});
       return runtime.documentParsed_.then(() => {
         expect(offersFlow.options_).to.deep.equal({list: 'other'});
@@ -1362,7 +1361,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     it('should call "showContributionOptions" with options', () => {
       setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
       let contributionFlow;
-      sandbox.stub(ContributionsFlow.prototype, 'start', function() {
+      sandbox.stub(ContributionsFlow.prototype, 'start').callsFake(function() {
         contributionFlow = this;
         return new Promise(() => {});
       });
@@ -1376,9 +1375,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
 
     it('should start LinkbackFlow', () => {
-      const startStub = sandbox.stub(LinkbackFlow.prototype, 'start', () =>
-        Promise.resolve()
-      );
+      const startStub = sandbox
+        .stub(LinkbackFlow.prototype, 'start')
+        .callsFake(() => Promise.resolve());
       return runtime.linkAccount().then(() => {
         expect(startStub).to.be.calledOnce;
       });
@@ -1386,9 +1385,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should configure and start LinkCompleteFlow for swg-link', () => {
       expect(activityResultCallbacks['swg-link']).to.exist;
-      const startStub = sandbox.stub(LinkCompleteFlow.prototype, 'start', () =>
-        Promise.resolve()
-      );
+      const startStub = sandbox
+        .stub(LinkCompleteFlow.prototype, 'start')
+        .callsFake(() => Promise.resolve());
       return (
         returnActivity('swg-link', ActivityResultCode.OK, {}, location.origin)
           // Succeeds or fails is not important for this test.
@@ -1401,14 +1400,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should start PayStartFlow for subscription', () => {
       let flowInstance;
-      const startStub = sandbox.stub(
-        PayStartFlow.prototype,
-        'start',
-        function() {
+      const startStub = sandbox
+        .stub(PayStartFlow.prototype, 'start')
+        .callsFake(function() {
           flowInstance = this;
           return Promise.resolve();
-        }
-      );
+        });
       return runtime.subscribe('sku1').then(() => {
         expect(startStub).to.be.calledOnce;
         expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
@@ -1641,7 +1638,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       };
 
       let count = 0;
-      sandbox.stub(ClientEventManager.prototype, 'logEvent', () => count++);
+      sandbox
+        .stub(ClientEventManager.prototype, 'logEvent')
+        .callsFake(() => count++);
       runtime.eventManager().logEvent(event);
       expect(count).to.equal(1);
     });
