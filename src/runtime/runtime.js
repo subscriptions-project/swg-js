@@ -440,16 +440,6 @@ export class Runtime {
       return runtime.getPropensityModule();
     });
   }
-
-  /**
-   * Log a subscription buy-flow event.
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   */
-  logEvent(event) {
-    this.configured_(false).then(configuredRuntime => {
-      configuredRuntime.eventManager().logEvent(event);
-    });
-  }
 }
 
 /**
