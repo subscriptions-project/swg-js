@@ -16,9 +16,7 @@
 
 import {createElement} from './dom';
 
-
 export class Preconnect {
-
   /**
    * @param {!Document} doc
    */

@@ -16,16 +16,14 @@
 
 import {JwtHelper} from './jwt';
 
-
 describe('JwtHelper', () => {
-
   // Generated from https://jwt.io/#debugger
   // Name deliberately changed from "John Doe" to "John ௵Z加䅌ਇ☎Èʘغޝ" to test
   // correct unicode handling on our part.
   const TOKEN_HEADER = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
   const TOKEN_PAYLOAD =
-      'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4g4K-1' +
-      'WuWKoOSFjOCoh-KYjsOIypjYut6dIiwiYWRtaW4iOnRydWV9';
+    'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4g4K-1' +
+    'WuWKoOSFjOCoh-KYjsOIypjYut6dIiwiYWRtaW4iOnRydWV9';
   const TOKEN_SIG = 'TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ';
   const TOKEN = `${TOKEN_HEADER}.${TOKEN_PAYLOAD}.${TOKEN_SIG}`;
 
@@ -36,7 +34,6 @@ describe('JwtHelper', () => {
   });
 
   describe('decode', () => {
-
     it('should decode fully', () => {
       const tok = helper.decodeInternal_(TOKEN);
       expect(tok.header).to.deep.equal({
@@ -49,9 +46,9 @@ describe('JwtHelper', () => {
         'admin': true,
       });
       expect(tok.verifiable).to.equal(
-          TOKEN.substring(0, TOKEN.lastIndexOf('.')));
-      expect(tok.sig).to.equal(
-          TOKEN.substring(TOKEN.lastIndexOf('.') + 1));
+        TOKEN.substring(0, TOKEN.lastIndexOf('.'))
+      );
+      expect(tok.sig).to.equal(TOKEN.substring(TOKEN.lastIndexOf('.') + 1));
     });
 
     it('should fail on invalid format', () => {
@@ -63,14 +60,16 @@ describe('JwtHelper', () => {
     it('should fail on invalid JSON in header', () => {
       expect(() => {
         helper.decodeInternal_(
-            `${TOKEN_HEADER.substring(1)}.${TOKEN_PAYLOAD}.${TOKEN_SIG}`);
+          `${TOKEN_HEADER.substring(1)}.${TOKEN_PAYLOAD}.${TOKEN_SIG}`
+        );
       }).to.throw(/Invalid token/);
     });
 
     it('should fail on invalid JSON in payload', () => {
       expect(() => {
         helper.decodeInternal_(
-            `${TOKEN_HEADER}.${TOKEN_PAYLOAD.substring(1)}.${TOKEN_SIG}`);
+          `${TOKEN_HEADER}.${TOKEN_PAYLOAD.substring(1)}.${TOKEN_SIG}`
+        );
       }).to.throw(/Invalid token/);
     });
 

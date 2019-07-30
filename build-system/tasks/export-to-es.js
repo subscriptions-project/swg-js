@@ -141,5 +141,8 @@ async function mkdirs(paths) {
 }
 
 
-gulp.task('export-to-es-all', 'All exports to ES', runAllExportsToEs);
-gulp.task('export-to-amp', 'All exports to AMP', runAllExportsToAmp);
+runAllExportsToEs.description = 'All exports to ES';
+gulp.task('export-to-es-all', runAllExportsToEs);
+
+runAllExportsToAmp.description = 'All exports to AMP';
+gulp.task('export-to-amp', runAllExportsToAmp);

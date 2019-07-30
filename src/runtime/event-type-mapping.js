@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-import {Event} from '../api/propensity-api';
+import {Event} from '../api/logger-api';
 import {AnalyticsEvent} from '../proto/api_messages';
 
 /** @const {!Object<string,AnalyticsEvent>} */
-const PropensityEventToAnalyticsEvent = {
+const PublisherEventToAnalyticsEvent = {
   [Event.IMPRESSION_PAYWALL]: AnalyticsEvent.IMPRESSION_PAYWALL,
   [Event.IMPRESSION_AD]: AnalyticsEvent.IMPRESSION_AD,
   [Event.IMPRESSION_OFFERS]: AnalyticsEvent.IMPRESSION_OFFERS,
   [Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE]:
-      AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
+    AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
   [Event.ACTION_OFFER_SELECTED]: AnalyticsEvent.ACTION_OFFER_SELECTED,
   [Event.ACTION_PAYMENT_FLOW_STARTED]:
-      AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+    AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
   [Event.ACTION_PAYMENT_COMPLETED]: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
   [Event.EVENT_CUSTOM]: AnalyticsEvent.EVENT_CUSTOM,
 };
 
 /** @const {!Object<number,?Event>} */
-const AnalyticsEventToPropensityEvent = {
+const AnalyticsEventToPublisherEvent = {
   [AnalyticsEvent.UNKNOWN]: null,
   [AnalyticsEvent.IMPRESSION_PAYWALL]: Event.IMPRESSION_PAYWALL,
   [AnalyticsEvent.IMPRESSION_AD]: Event.IMPRESSION_AD,
@@ -44,9 +44,9 @@ const AnalyticsEventToPropensityEvent = {
   [AnalyticsEvent.ACTION_ACCOUNT_CREATED]: null,
   [AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED]: null,
   [AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE]:
-      Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
+    Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
   [AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED]:
-      Event.ACTION_PAYMENT_FLOW_STARTED,
+    Event.ACTION_PAYMENT_FLOW_STARTED,
   [AnalyticsEvent.ACTION_OFFER_SELECTED]: Event.ACTION_OFFER_SELECTED,
   [AnalyticsEvent.EVENT_PAYMENT_FAILED]: null,
   [AnalyticsEvent.EVENT_CUSTOM]: Event.EVENT_CUSTOM,
@@ -57,17 +57,15 @@ const AnalyticsEventToPropensityEvent = {
  * @param {!Event|string} propensityEvent
  * @returns {!AnalyticsEvent}
  */
-export function propensityEventToAnalyticsEvent(propensityEvent) {
-  return PropensityEventToAnalyticsEvent[propensityEvent];
-};
+export function publisherEventToAnalyticsEvent(propensityEvent) {
+  return PublisherEventToAnalyticsEvent[propensityEvent];
+}
 
 /**
  * Converts an analytics event enum into a propensity event enum.
  * @param {!AnalyticsEvent} analyticsEvent
  * @returns {?Event}
  */
-export function analyticsEventToPropensityEvent(analyticsEvent) {
-  return AnalyticsEventToPropensityEvent[analyticsEvent];
+export function analyticsEventToPublisherEvent(analyticsEvent) {
+  return AnalyticsEventToPublisherEvent[analyticsEvent];
 }
-
-

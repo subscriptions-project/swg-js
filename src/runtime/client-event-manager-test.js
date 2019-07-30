@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import * as EventManagerApi from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 
@@ -34,203 +34,235 @@ const DEFAULT_EVENT = {
 };
 
 describes.sandboxed('EventManager', {}, () => {
-  it('should throw an error for invalid events', () => {
-    /** @type {!EventManagerApi.ClientEvent} */
-    let event = {
-      eventType: DEFAULT_TYPE,
-      eventOriginator: DEFAULT_ORIGIN,
-      isFromUserAction: null,
-      additionalParameters: {},
-    };
-    const eventMan = new ClientEventManager(RESOLVED_PROMISE);
+  describe('promises', () => {
+    let eventMan;
+    let resolver;
+    let rejector;
+    let counter;
+    beforeEach(() => {
+      eventMan = new ClientEventManager(
+        new Promise((resolve, reject) => {
+          rejector = reject;
+          resolver = resolve;
+        })
+      );
+      counter = 0;
+      eventMan.registerEventListener(() => counter++);
+      eventMan.logEvent(DEFAULT_EVENT);
+      //ensure it has not logged yet
+      expect(counter).to.equal(0);
+    });
 
-    let errorCount = 0;
-    let matchedExpected = 0;
-    let expected;
-    const tryIt = () => {
-      try {
-        eventMan.logEvent(event);
-      } catch (e) {
-        errorCount++;
-        if (e.message === expected) {
-          matchedExpected++;
+    it('should not log events until its promise is resolved', function*() {
+      let counter2 = 0;
+
+      eventMan.registerEventListener(() => counter2++);
+      eventMan.logEvent(DEFAULT_EVENT);
+      //ensure it has not logged yet
+      expect(counter).to.equal(0);
+      expect(counter2).to.equal(0);
+
+      resolver();
+      yield eventMan.lastAction_;
+      //ensure it logged both events after we called resolver and yielded
+      expect(counter).to.equal(counter2);
+
+      //If this test is flaky it means sometimes event manager is logging
+      //despite the promise not being resolved (which is a problem).
+    });
+
+    it('should not log events if promise rejected', function*() {
+      rejector();
+      yield eventMan.lastAction_;
+      expect(counter).to.equal(0);
+    });
+  });
+
+  describe('error handling', () => {
+    let eventMan;
+    let errorReceived;
+
+    const errorSent = new Error(errorSent);
+
+    beforeEach(() => {
+      errorReceived = null;
+      eventMan = new ClientEventManager(RESOLVED_PROMISE);
+      sandbox.stub(console, 'log', err => {
+        errorReceived = err;
+      });
+    });
+
+    describe('invalid events', () => {
+      let errorCount;
+      let matchedExpected;
+      let expected;
+      let event;
+
+      const tryIt = () => {
+        try {
+          eventMan.logEvent(event);
+        } catch (e) {
+          errorCount++;
+          if (e.message === expected) {
+            matchedExpected++;
+          }
         }
-      }
-    };
+      };
 
-    tryIt();
-    expect(errorCount).to.equal(0);
-    expect(matchedExpected).to.equal(0);
+      beforeEach(() => {
+        errorCount = 0;
+        matchedExpected = 0;
+        event = {};
+        Object.assign(event, DEFAULT_EVENT);
+      });
 
-    //validate event type
-    event.eventType = BAD_VALUE;
-    expected = 'Event has an invalid eventType(' + BAD_VALUE + ')';
-    tryIt();
-    expect(errorCount).to.equal(1);
-    expect(matchedExpected).to.equal(1);
-    event.eventType = null;
-    expected = 'Event has an invalid eventType(' + null + ')';
-    tryIt();
-    expect(errorCount).to.equal(2);
-    expect(matchedExpected).to.equal(2);
-    event.eventType = OTHER_TYPE;
-    tryIt();
-    expect(errorCount).to.equal(2);
-    event.eventType = DEFAULT_TYPE;
+      it('should allow valid events', () => {
+        tryIt();
+        expect(errorCount).to.equal(0);
+        expect(matchedExpected).to.equal(0);
+      });
 
-    //validate event originator
-    errorCount = 0;
-    matchedExpected = 0;
-    event.eventOriginator = BAD_VALUE;
-    expected = 'Event has an invalid eventOriginator(' + BAD_VALUE + ')';
-    tryIt();
-    expect(errorCount).to.equal(1);
-    expect(matchedExpected).to.equal(1);
-    event.eventOriginator = null;
-    expected = 'Event has an invalid eventOriginator(' + null + ')';
-    tryIt();
-    expect(errorCount).to.equal(2);
-    expect(matchedExpected).to.equal(2);
-    event.eventOriginator = OTHER_ORIGIN;
-    tryIt();
-    expect(errorCount).to.equal(2);
-    expect(matchedExpected).to.equal(2);
-    event.eventOriginator = DEFAULT_ORIGIN;
+      it('should validate event type', () => {
+        event.eventType = BAD_VALUE;
+        expected = 'Event has an invalid eventType(' + BAD_VALUE + ')';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.eventType = null;
+        expected = 'Event has an invalid eventType(' + null + ')';
+        tryIt();
+        expect(errorCount).to.equal(2);
+        expect(matchedExpected).to.equal(2);
+        event.eventType = OTHER_TYPE;
+        tryIt();
+        expect(errorCount).to.equal(2);
+      });
 
-    //validate isFromUserAction
-    errorCount = 0;
-    matchedExpected = 0;
-    event.isFromUserAction = BAD_VALUE;
-    expected = 'Event has an invalid isFromUserAction(' + BAD_VALUE + ')';
-    tryIt();
-    expect(errorCount).to.equal(1);
-    expect(matchedExpected).to.equal(1);
-    event.isFromUserAction = true;
-    tryIt();
-    expect(errorCount).to.equal(1);
-    expect(matchedExpected).to.equal(1);
-    event.isFromUserAction = false;
-    tryIt();
-    expect(errorCount).to.equal(1);
-    expect(matchedExpected).to.equal(1);
-    event.isFromUserAction = null;
+      it('should validate event originator', () => {
+        event.eventOriginator = BAD_VALUE;
+        expected = 'Event has an invalid eventOriginator(' + BAD_VALUE + ')';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.eventOriginator = null;
+        expected = 'Event has an invalid eventOriginator(' + null + ')';
+        tryIt();
+        expect(errorCount).to.equal(2);
+        expect(matchedExpected).to.equal(2);
+        event.eventOriginator = OTHER_ORIGIN;
+        tryIt();
+        expect(errorCount).to.equal(2);
+        expect(matchedExpected).to.equal(2);
+        event.eventOriginator = DEFAULT_ORIGIN;
+      });
 
-    //validate additionalParameters
-    errorCount = 0;
-    matchedExpected = 0;
-    event.additionalParameters = BAD_VALUE;
-    expected = 'Event has an invalid additionalParameters(' + BAD_VALUE + ')';
-    tryIt();
-    expect(errorCount).to.equal(1);
-    expect(matchedExpected).to.equal(1);
-    event.additionalParameters = null;
-    expected = 'Event has an invalid additionalParameters(' + null + ')';
-    tryIt();
-    expect(errorCount).to.equal(1);
-    expect(matchedExpected).to.equal(1);
-    event.additionalParameters = {IAmValid: 5};
-    tryIt();
-    expect(errorCount).to.equal(1);
-    expect(matchedExpected).to.equal(1);
-    event.additionalParameters = {};
+      it('should validate isFromUserAction', () => {
+        event.isFromUserAction = BAD_VALUE;
+        expected = 'Event has an invalid isFromUserAction(' + BAD_VALUE + ')';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.isFromUserAction = true;
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.isFromUserAction = false;
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.isFromUserAction = null;
+      });
 
-    //validate null object
-    errorCount = 0;
-    matchedExpected = 0;
-    event = null;
-    expected = 'Event must be a valid object';
-    tryIt();
-    expect(errorCount).to.equal(1);
-    expect(matchedExpected).to.equal(1);
+      it('should validate additionalParameters', () => {
+        event.additionalParameters = BAD_VALUE;
+        expected =
+          'Event has an invalid additionalParameters(' + BAD_VALUE + ')';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.additionalParameters = null;
+        expected = 'Event has an invalid additionalParameters(' + null + ')';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+        event.additionalParameters = {IAmValid: 5};
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+      });
+
+      it('should not allow null events', () => {
+        event = null;
+        expected = 'Event must be a valid object';
+        tryIt();
+        expect(errorCount).to.equal(1);
+        expect(matchedExpected).to.equal(1);
+      });
+    });
+
+    it('should log listener errors to the console', function*() {
+      eventMan.registerEventListener(() => {
+        throw errorSent;
+      });
+
+      eventMan.logEvent(DEFAULT_EVENT);
+      yield eventMan.lastAction_;
+      expect(errorReceived).to.equal(errorSent);
+    });
+
+    it('should log filterer errors to the console', function*() {
+      eventMan.registerEventFilterer(() => {
+        throw errorSent;
+      });
+      eventMan.logEvent(DEFAULT_EVENT);
+      yield eventMan.lastAction_;
+      expect(errorReceived).to.equal(errorSent);
+    });
   });
 
-  it('should be able to listen for events', function*() {
-    const eventMan = new ClientEventManager(RESOLVED_PROMISE);
-    let receivedEventsCount = 0;
-    const callback = () => receivedEventsCount++;
+  describe('event management', () => {
+    let eventMan;
+    let counter;
 
-    //verify it supports 1 listener
-    eventMan.registerEventListener(callback);
-    eventMan.logEvent(DEFAULT_EVENT);
-    yield eventMan.lastAction_;
-    expect(receivedEventsCount).to.equal(1);
+    beforeEach(() => {
+      eventMan = new ClientEventManager(RESOLVED_PROMISE);
+      counter = 0;
+      eventMan.registerEventListener(() => counter++);
+    });
 
-    //verify it supports multiple listeners
-    eventMan.registerEventListener(callback);
-    eventMan.logEvent(DEFAULT_EVENT);
-    yield eventMan.lastAction_;
-    expect(receivedEventsCount).to.equal(3);
-  });
+    it('should be able to listen for events', function*() {
+      //verify it supports 1 listener
 
-  it('should be able to filter out some events', function*() {
-    const eventMan = new ClientEventManager(RESOLVED_PROMISE);
-    let receivedEventsCount = 0;
-    const callback = () => receivedEventsCount++;
-    eventMan.registerEventListener(callback);
+      eventMan.logEvent(DEFAULT_EVENT);
+      yield eventMan.lastAction_;
+      expect(counter).to.equal(1);
 
-    //filter out the default origin
-    eventMan.registerEventFilterer(event =>
-      event.eventOriginator === DEFAULT_ORIGIN ?
-          EventManagerApi.FilterResult.CANCEL_EVENT :
-          EventManagerApi.FilterResult.PROCESS_EVENT
-    );
+      //verify it supports multiple listeners
+      eventMan.registerEventListener(() => counter++);
+      eventMan.logEvent(DEFAULT_EVENT);
+      yield eventMan.lastAction_;
+      expect(counter).to.equal(3);
+    });
 
-    //ensure the default origin is filtered out
-    eventMan.logEvent(DEFAULT_EVENT);
-    yield eventMan.lastAction_;
-    expect(receivedEventsCount).to.equal(0);
+    it('should be able to filter out some events', function*() {
+      //filter out the default origin
+      eventMan.registerEventFilterer(event =>
+        event.eventOriginator === DEFAULT_ORIGIN
+          ? EventManagerApi.FilterResult.CANCEL_EVENT
+          : EventManagerApi.FilterResult.PROCESS_EVENT
+      );
 
-    //ensure the other origin is not filtered out
-    DEFAULT_EVENT.eventOriginator = OTHER_ORIGIN;
-    eventMan.logEvent(DEFAULT_EVENT);
-    yield eventMan.lastAction_;
-    expect(receivedEventsCount).to.equal(1);
-    eventMan.eventOriginator = DEFAULT_ORIGIN;
-  });
+      //ensure the default origin is filtered out
+      eventMan.logEvent(DEFAULT_EVENT);
+      yield eventMan.lastAction_;
+      expect(counter).to.equal(0);
 
-  it('should not log events until its promise is resolved', function*() {
-    let resolver = null;
-    const eventMan = new ClientEventManager(
-        new Promise(resolve => resolver = resolve)
-    );
-
-    let counter1 = 0;
-    let counter2 = 0;
-
-    eventMan.registerEventListener(() => counter1++);
-    eventMan.logEvent(DEFAULT_EVENT);
-    //ensure it has not logged yet
-    expect(counter1).to.equal(0);
-
-    eventMan.registerEventListener(() => counter2++);
-    eventMan.logEvent(DEFAULT_EVENT);
-    //ensure it has not logged yet
-    expect(counter1).to.equal(0);
-    expect(counter2).to.equal(0);
-
-    resolver();
-    yield eventMan.lastAction_;
-    //ensure it logged both events after we called resolver and yielded
-    expect(counter1).to.equal(counter2);
-
-    //If this test is flaky it means sometimes event manager is logging despite
-    //the promise not being resolved (which is a problem).
-  });
-
-  it('should not log events if promise rejected', function*() {
-    let rejector = null;
-    const eventMan = new ClientEventManager(
-        new Promise((resolveUnused, reject) => rejector = reject)
-    );
-
-    let counter = 0;
-
-    eventMan.registerEventListener(() => counter++);
-    eventMan.logEvent(DEFAULT_EVENT);
-    expect(counter).to.equal(0);
-
-    rejector();
-    yield eventMan.lastAction_;
-    expect(counter).to.equal(0);
+      //ensure the other origin is not filtered out
+      DEFAULT_EVENT.eventOriginator = OTHER_ORIGIN;
+      eventMan.logEvent(DEFAULT_EVENT);
+      yield eventMan.lastAction_;
+      expect(counter).to.equal(1);
+      eventMan.eventOriginator = DEFAULT_ORIGIN;
+    });
   });
 });

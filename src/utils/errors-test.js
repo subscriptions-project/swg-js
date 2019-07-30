@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  isCancelError,
-} from './errors';
-
+import {isCancelError} from './errors';
 
 describe('errors', () => {
   describe('isCancelError', () => {

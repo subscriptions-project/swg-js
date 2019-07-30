@@ -16,7 +16,6 @@
 
 import {Preconnect} from './preconnect';
 
-
 describes.realWin('preconnect', {}, env => {
   let doc;
   let preconnect;
@@ -29,28 +28,32 @@ describes.realWin('preconnect', {}, env => {
   it('should prefetch a resource', () => {
     preconnect.prefetch('one');
     const elements = doc.head.querySelectorAll(
-        'link[rel="preconnect prefetch"][href=one]');
+      'link[rel="preconnect prefetch"][href=one]'
+    );
     expect(elements.length).to.equal(1);
   });
 
   it('should dns-prefetch a resource', () => {
     preconnect.dnsPrefetch('one');
     const elements = doc.head.querySelectorAll(
-        'link[rel=dns-prefetch][href=one]');
+      'link[rel=dns-prefetch][href=one]'
+    );
     expect(elements.length).to.equal(1);
   });
 
   it('should preconnect a resource', () => {
     preconnect.preconnect('one');
     const elements = doc.head.querySelectorAll(
-        'link[rel=preconnect][href=one]');
+      'link[rel=preconnect][href=one]'
+    );
     expect(elements.length).to.equal(1);
   });
 
   it('should preload a resource', () => {
     preconnect.preload('one', 'image');
     const elements = doc.head.querySelectorAll(
-        'link[rel="preconnect preload"][href=one][as=image]');
+      'link[rel="preconnect preload"][href=one][as=image]'
+    );
     expect(elements.length).to.equal(1);
   });
 });
