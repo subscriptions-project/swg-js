@@ -144,10 +144,16 @@ describes.realWin('PayStartFlow', {}, env => {
       )
       .once();
     analyticsMock.expects('setSku').withExactArgs('sku1');
-    eventManagerMock.expects('logEvent').withExactArgs(
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
-            EventOriginator.SWG_CLIENT, true, null));
+          AnalyticsEvent.ACTION_SUBSCRIBE,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
     const flowPromise = flow.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -193,10 +199,16 @@ describes.realWin('PayStartFlow', {}, env => {
       )
       .once();
     analyticsMock.expects('setSku').withExactArgs('newSku');
-    eventManagerMock.expects('logEvent').withExactArgs(
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
-            EventOriginator.SWG_CLIENT, true, null));
+          AnalyticsEvent.ACTION_SUBSCRIBE,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
     const flowPromise = replaceFlow.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -237,10 +249,16 @@ describes.realWin('PayStartFlow', {}, env => {
       )
       .once();
     analyticsMock.expects('setSku').withExactArgs('newSku');
-    eventManagerMock.expects('logEvent').withExactArgs(
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
-            EventOriginator.SWG_CLIENT, true, null));
+          AnalyticsEvent.ACTION_SUBSCRIBE,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
     const flowPromise = replaceFlowNoProrationMode.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -350,11 +368,19 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
-    eventManagerMock.expects('logEvent').withExactArgs(
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-            EventOriginator.SWG_CLIENT, true, null));
-    activitiesMock.expects('openIframe').withExactArgs(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
         {
@@ -386,11 +412,19 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
-    eventManagerMock.expects('logEvent').withExactArgs(
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-            EventOriginator.SWG_CLIENT, true, null));
-    activitiesMock.expects('openIframe').withExactArgs(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
         sinon.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
         {
@@ -434,26 +468,47 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         sinon.match(arg => {
           return arg === 'RaW';
-        }))
-        .once();
-    entitlementsManagerMock.expects('setToastShown')
-        .withExactArgs(true)
-        .once();
-    entitlementsManagerMock.expects('unblockNextNotification')
-        .withExactArgs()
-        .once();
-    eventManagerMock.expects('logEvent').withExactArgs(
+        })
+      )
+      .once();
+    entitlementsManagerMock
+      .expects('setToastShown')
+      .withExactArgs(true)
+      .once();
+    entitlementsManagerMock
+      .expects('unblockNextNotification')
+      .withExactArgs()
+      .once();
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-            EventOriginator.SWG_CLIENT, true, null));
-    eventManagerMock.expects('logEvent').withExactArgs(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-            EventOriginator.SWG_CLIENT, true, null));
-    eventManagerMock.expects('logEvent').withExactArgs(
+          AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-            EventOriginator.SWG_CLIENT, true, null));
+          AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)
@@ -486,29 +541,49 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    entitlementsManagerMock.expects('reset')
-        .withExactArgs(true)  // Expected positive.
-        .once();
-    entitlementsManagerMock.expects('pushNextEntitlements')
-        .never();
-    entitlementsManagerMock.expects('setToastShown')
-        .withExactArgs(true)
-        .once();
-    entitlementsManagerMock.expects('unblockNextNotification')
-        .withExactArgs()
-        .once();
-    eventManagerMock.expects('logEvent').withExactArgs(
+    entitlementsManagerMock
+      .expects('reset')
+      .withExactArgs(true) // Expected positive.
+      .once();
+    entitlementsManagerMock.expects('pushNextEntitlements').never();
+    entitlementsManagerMock
+      .expects('setToastShown')
+      .withExactArgs(true)
+      .once();
+    entitlementsManagerMock
+      .expects('unblockNextNotification')
+      .withExactArgs()
+      .once();
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-            EventOriginator.SWG_CLIENT, true, null));
-    eventManagerMock.expects('logEvent').withExactArgs(
+          AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-            EventOriginator.SWG_CLIENT, true, null));
-    eventManagerMock.expects('logEvent').withExactArgs(
+          AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-            EventOriginator.SWG_CLIENT, true, null));
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)
@@ -564,26 +639,47 @@ describes.realWin('PayCompleteFlow', {}, env => {
             order.push('pushNextEntitlements');
           }
           return arg === 'ENTITLEMENTS_JWT';
-        }))
-        .once();
-    entitlementsManagerMock.expects('setToastShown')
-        .withExactArgs(true)
-        .once();
-    entitlementsManagerMock.expects('unblockNextNotification')
-        .withExactArgs()
-        .once();
-    eventManagerMock.expects('logEvent').withExactArgs(
+        })
+      )
+      .once();
+    entitlementsManagerMock
+      .expects('setToastShown')
+      .withExactArgs(true)
+      .once();
+    entitlementsManagerMock
+      .expects('unblockNextNotification')
+      .withExactArgs()
+      .once();
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-            EventOriginator.SWG_CLIENT, true, null));
-    eventManagerMock.expects('logEvent').withExactArgs(
+          AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-            EventOriginator.SWG_CLIENT, true, null));
-    eventManagerMock.expects('logEvent').withExactArgs(
+          AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-            EventOriginator.SWG_CLIENT, true, null));
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      );
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)
@@ -629,11 +725,17 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    eventManagerMock.expects('logEvent')
-        .withExactArgs(CreateClientEvent(
-            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-            EventOriginator.SWG_CLIENT, true, null))
-        .once();
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
+        CreateClientEvent(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      )
+      .once();
     sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);
   });
@@ -663,11 +765,17 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    eventManagerMock.expects('logEvent')
-        .withExactArgs(CreateClientEvent(
-            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-            EventOriginator.SWG_CLIENT, true, null))
-        .once();
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
+        CreateClientEvent(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          EventOriginator.SWG_CLIENT,
+          true,
+          null
+        )
+      )
+      .once();
     sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);
   });
@@ -694,17 +802,26 @@ describes.realWin('PayCompleteFlow', {}, env => {
       const error = new Error('intentional');
       analyticsMock.expects('setTransactionId').never();
       analyticsMock.expects('addLabels').never();
-      eventManagerMock.expects('logEvent')
-          .withExactArgs(CreateClientEvent(
-              AnalyticsEvent.EVENT_PAYMENT_FAILED,
-              EventOriginator.SWG_CLIENT, false, null))
-          .once();
-      jserrorMock.expects('error')
-          .withExactArgs('Pay failed', error)
-          .once();
-      return responseCallback(Promise.reject(error)).then(() => {
-        throw new Error('must have failed');
-      }, reason => {
+      eventManagerMock
+        .expects('logEvent')
+        .withExactArgs(
+          CreateClientEvent(
+            AnalyticsEvent.EVENT_PAYMENT_FAILED,
+            EventOriginator.SWG_CLIENT,
+            false,
+            null
+          )
+        )
+        .once();
+      jserrorMock
+        .expects('error')
+        .withExactArgs('Pay failed', error)
+        .once();
+      return responseCallback(Promise.reject(error)).then(
+        () => {
+          throw new Error('must have failed');
+        },
+        reason => {
           expect(() => {
             throw reason;
           }).to.throw(/intentional/);
