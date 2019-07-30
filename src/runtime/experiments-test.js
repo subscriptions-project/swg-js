@@ -37,10 +37,10 @@ describes.realWin('experiments', {}, env => {
     sessionStorageMock = sandbox.mock(sessionStorage);
     Object.defineProperty(win, 'sessionStorage', {value: sessionStorage});
     errorCount = 0;
-    throwAsyncStub = sandbox.stub(ErrorUtils, 'throwAsync').callsFake(() => {});
+    throwAsyncStub = sandbox.stub(ErrorUtils, 'throwAsync', () => {});
     randomResults = [];
     randomCall = 0;
-    sandbox.stub(win.Math, 'random').callsFake(() => {
+    sandbox.stub(win.Math, 'random', () => {
       if (randomCall >= randomResults.length) {
         throw new Error('random not allowed');
       }
