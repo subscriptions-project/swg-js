@@ -104,16 +104,6 @@ export class EntitlementsManager {
   }
 
   /**
-   * @private
-   */
-  logPaywallImpression_() {
-    // Sends event to logging service asynchronously
-    this.deps_.logEvent(CreateClientEvent(
-        AnalyticsEvent.IMPRESSION_PAYWALL,
-        EventOriginator.SWG_CLIENT, false, null));
-  }
-
-  /**
    * @return {string}
    * @private
    */
@@ -143,10 +133,6 @@ export class EntitlementsManager {
     return this.responsePromise_.then(response => {
       if (response.isReadyToPay != null) {
         this.analyticsService_.setReadyToPay(response.isReadyToPay);
-      }
-      if (this.config_.analyticsMode == AnalyticsMode.IMPRESSIONS ||
-            this.isGoogleUtmSource_()) {
-        this.logPaywallImpression_();
       }
       return response;
     });

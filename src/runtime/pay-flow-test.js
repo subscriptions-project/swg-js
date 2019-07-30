@@ -145,7 +145,7 @@ describes.realWin('PayStartFlow', {}, env => {
     analyticsMock.expects('setSku').withExactArgs('sku1');
     eventManagerMock.expects('logEvent').withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_SUBSCRIBE,
+            AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
             EventOriginator.SWG_CLIENT, true, null));
     const flowPromise = flow.start();
     return expect(flowPromise).to.eventually.be.undefined;
@@ -186,7 +186,7 @@ describes.realWin('PayStartFlow', {}, env => {
     analyticsMock.expects('setSku').withExactArgs('newSku');
     eventManagerMock.expects('logEvent').withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_SUBSCRIBE,
+            AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
             EventOriginator.SWG_CLIENT, true, null));
     const flowPromise = replaceFlow.start();
     return expect(flowPromise).to.eventually.be.undefined;
@@ -221,7 +221,7 @@ describes.realWin('PayStartFlow', {}, env => {
     analyticsMock.expects('setSku').withExactArgs('newSku');
     eventManagerMock.expects('logEvent').withExactArgs(
         CreateClientEvent(
-            AnalyticsEvent.ACTION_SUBSCRIBE,
+            AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
             EventOriginator.SWG_CLIENT, true, null));
     const flowPromise = replaceFlowNoProrationMode.start();
     return expect(flowPromise).to.eventually.be.undefined;
