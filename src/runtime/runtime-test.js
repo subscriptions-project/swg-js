@@ -464,19 +464,6 @@ describes.realWin('Runtime', {}, env => {
         expect(() => {throw reason;}).to.throw(/config not available/);
       });
     });
-
-    it('should eventually log events', () => {
-      runtime.logEvent({
-        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
-      });
-      expect(loggedEvents.length).to.equal(0);
-      return runtime.configured_(true).then(() => {
-        expect(loggedEvents.length).to.equal(1);
-      });
-    });
   });
 
   describe('configured', () => {
@@ -1553,13 +1540,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should return events manager', () => {
       expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
-    });
-
-    it('should let event manager send events without a promise', () => {
-      let count = 0;
-      sandbox.stub(ClientEventManager.prototype, 'logEvent', () => count++);
-      runtime.eventManager().logEvent(event);
-      expect(count).to.equal(1);
     });
   });
 });
