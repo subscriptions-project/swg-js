@@ -54,7 +54,6 @@ describes.realWin('LinkbackFlow', {}, env => {
 
   afterEach(() => {
     activitiesMock.verify();
-    activitiesMock.restore();
   });
 
   it('should start correctly', () => {

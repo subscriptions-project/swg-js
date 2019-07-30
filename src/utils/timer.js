@@ -46,7 +46,6 @@ export class Timer {
    * @return {number|string}
    */
   delay(callback, opt_delay) {
-    console.log('+++++++++');
     if (!opt_delay) {
       // For a delay of zero,  schedule a promise based micro task since
       // they are predictably fast.
