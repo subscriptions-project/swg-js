@@ -63,6 +63,7 @@ import {
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
 import {Logger} from './logger';
+import {Event} from '../api/logger-api';
 
 const EDGE_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0)' +
@@ -469,22 +470,27 @@ describes.realWin('Runtime', {}, env => {
       );
     });
 
-    it('should resolve logger promise', async function() {
-      let loggerFound = null;
-      runtime.getLogger().then(logger => {
-        loggerFound = logger;
-        logger.logSwgEvent({
-          eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: null,
-          additionalParameters: null,
+    it('should return a working logger', async function() {
+      let foundLogger = null;
+
+      await runtime.getLogger().then(logger => {
+        foundLogger = logger;
+        logger.sendEvent({
+          name: Event.IMPRESSION_PAYWALL,
+          active: null,
+          data: null,
         });
       });
-      expect(loggedEvents.length).to.equal(0);
-      await runtime.configured_(true);
-      await runtime.getLogger();
+      //the test is basically to ensure it resolves the event manager promise
+      //to logger
       expect(loggedEvents.length).to.equal(1);
-      expect(loggerFound).to.be.instanceOf(Logger);
+      expect(loggedEvents[0]).to.deep.equal({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+      expect(foundLogger).to.be.instanceOf(Logger);
     });
   });
 
@@ -1664,7 +1670,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(count).to.equal(1);
     });
 
-    it('should create a working logger', async function() {
+    it('should create a logger', async function() {
       let receivedEvent = null;
       let foundLogger = null;
       sandbox.stub(
@@ -1672,16 +1678,20 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         'logEvent',
         event => (receivedEvent = event)
       );
-      runtime.getLogger().then(logger => {
+
+      await runtime.getLogger().then(logger => {
         foundLogger = logger;
-        logger.logSwgEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
+        logger.sendEvent({
+          name: Event.IMPRESSION_PAYWALL,
+          active: null,
+          data: null,
+        });
       });
-      await runtime.getLogger();
       //the test is basically to ensure it resolves the event manager promise
       //to logger
       expect(receivedEvent).to.deep.equal({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-        eventOriginator: EventOriginator.SWG_CLIENT,
+        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
         isFromUserAction: null,
         additionalParameters: null,
       });
