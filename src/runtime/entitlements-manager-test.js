@@ -1073,6 +1073,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         try {
           callback();
         } catch (err) {
+          expect(err.toString()).to.contain('Invalid token: "VeRy BroKen"');
           threwErrorAfterTimeout = true;
         }
       });
