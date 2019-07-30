@@ -15,10 +15,8 @@
  */
 
 import {Timer} from './timer';
-import * as sinon from 'sinon';
 
 describes.realWin('Timer', {}, env => {
-  let sandbox;
   let windowMock;
   let timer;
 
@@ -138,13 +136,8 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-<<<<<<< HEAD
         sinon.match(value => {
           value();
-=======
-        sinon.match(unusedValue => {
-          // No timeout
->>>>>>> master
           return true;
         }),
         111

@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
 import {Xhr, fetchPolyfill, FetchResponse, assertSuccess} from './xhr';
 
-<<<<<<< HEAD
 describes.realWin('test', {}, () => {
   describe('XHR', function() {
     const location = {href: 'https://acme.com/path'};
@@ -46,43 +44,6 @@ describes.realWin('test', {}, () => {
       const cookieString = win.document.cookie;
       if (!cookieString) {
         return null;
-=======
-describe('XHR', function() {
-  let sandbox;
-  const location = {href: 'https://acme.com/path'};
-  const nativeWin = {
-    location,
-    fetch: self.fetch,
-  };
-
-  const polyfillWin = {
-    location,
-    fetch: fetchPolyfill,
-  };
-
-  const scenarios = [
-    {
-      win: nativeWin,
-      desc: 'Native',
-    },
-    {
-      win: polyfillWin,
-      desc: 'Polyfill',
-    },
-  ];
-
-  function getCookie(win, name) {
-    const cookieString = win.document.cookie;
-    if (!cookieString) {
-      return null;
-    }
-    const cookies = cookieString.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      const eq = cookie.indexOf('=');
-      if (eq == -1) {
-        continue;
->>>>>>> master
       }
       const cookies = cookieString.split(';');
       for (let i = 0; i < cookies.length; i++) {
@@ -99,16 +60,9 @@ describe('XHR', function() {
       return null;
     }
 
-<<<<<<< HEAD
     beforeEach(() => {
       location.href = 'https://acme.com/path';
     });
-=======
-  beforeEach(() => {
-    sandbox = sinon.sandbox.create();
-    location.href = 'https://acme.com/path';
-  });
->>>>>>> master
 
     scenarios.forEach(test => {
       let xhr;
