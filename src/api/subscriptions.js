@@ -253,7 +253,7 @@ export class Subscriptions {
    */
   getPropensityModule() {}
 
-  /** @return {!LoggerApi} */
+  /** @return {!Promise<LoggerApi>} */
   getLogger() {}
 }
 

@@ -161,20 +161,6 @@ export class Runtime {
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
 
-    //this gives us a promise to event manager and resolves it once configured
-    //runtime is available
-    let eventManPromiseResolve;
-    /** @private @const {!Promise<ClientEventManager>} */
-    this.eventManPromise_ = new Promise(
-      resolve => (eventManPromiseResolve = resolve)
-    );
-    this.configured_(false).then(configuredRuntime => {
-      eventManPromiseResolve(configuredRuntime.eventManager());
-    });
-
-    /** @private @const {!Logger} */
-    this.logger_ = new Logger(this.eventManPromise_);
-
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
     this.buttonApi_.init(); // Injects swg-button stylesheet.
@@ -460,10 +446,10 @@ export class Runtime {
    * Note that this returns Logger instead of LoggerApi for internal logging
    * purposes.
    * @override
-   * @return {!Logger}
+   * @return {!Promise<Logger>}
    */
   getLogger() {
-    return this.logger_;
+    return this.configured_(true).then(runtime => runtime.getLogger());
   }
 }
 
@@ -487,9 +473,6 @@ export class ConfiguredRuntime {
 
     /** @private @const {!ClientEventManager} */
     this.eventManager_ = new ClientEventManager(opt_integr.configPromise);
-
-    /** @private @const {!Logger} */
-    this.logger_ = new Logger(Promise.resolve(this.eventManager_));
 
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
@@ -551,6 +534,9 @@ export class ConfiguredRuntime {
     //analytics service and entitlements manager are constructed unless
     //you are certain they do not rely on them because they are part of that
     //definition.
+    /** @private @const {!Logger} */
+    this.logger_ = new Logger(this);
+
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
 
@@ -904,10 +890,10 @@ export class ConfiguredRuntime {
    * Note that this returns Logger instead of LoggerApi for internal logging
    * purposes.
    * @override
-   * @return {!Logger}
+   * @return {!Promise<Logger>}
    */
   getLogger() {
-    return this.logger_;
+    return Promise.resolve(this.logger_);
   }
 }
 

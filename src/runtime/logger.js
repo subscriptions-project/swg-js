@@ -23,11 +23,11 @@ import {publisherEventToAnalyticsEvent} from './event-type-mapping';
  */
 export class Logger {
   /**
-   * @param {!Promise<../api/client-event-manager-api.ClientEventManagerApi>} eventManagerPromise
+   * @param {!./deps.DepsDef} deps
    */
-  constructor(eventManagerPromise) {
-    /** @private @const {!Promise<../api/client-event-manager-api.ClientEventManagerApi>} */
-    this.eventManagerPromise_ = eventManagerPromise;
+  constructor(deps) {
+    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
+    this.eventManager_ = deps.eventManager();
   }
 
   /** @override */
@@ -52,17 +52,15 @@ export class Logger {
     if (jsonProducts) {
       productsOrSkus = JSON.stringify(jsonProducts);
     }
-    this.eventManagerPromise_.then(eventMan =>
-      eventMan.logEvent({
-        eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
-        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: {
-          state,
-          productsOrSkus,
-        },
-      })
-    );
+    this.eventManager_.logEvent({
+      eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: {
+        state,
+        productsOrSkus,
+      },
+    });
   }
 
   /** @override */
@@ -92,14 +90,12 @@ export class Logger {
     } else if (userEvent.active != null) {
       throw new Error('Event active must be a boolean');
     }
-    this.eventManagerPromise_.then(eventMan =>
-      eventMan.logEvent({
-        eventType: publisherEventToAnalyticsEvent(userEvent.name),
-        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-        isFromUserAction: userEvent.active,
-        additionalParameters: data,
-      })
-    );
+    this.eventManager_.logEvent({
+      eventType: publisherEventToAnalyticsEvent(userEvent.name),
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+      isFromUserAction: userEvent.active,
+      additionalParameters: data,
+    });
   }
 
   /**
@@ -110,13 +106,11 @@ export class Logger {
    * @param {EventOriginator=} originator
    */
   logSwgEvent(eventType, isFromUserAction, additionalParameters, originator) {
-    this.eventManagerPromise_.then(eventMan => {
-      eventMan.logEvent({
-        eventType,
-        eventOriginator: originator || EventOriginator.SWG_CLIENT,
-        isFromUserAction: isFromUserAction || null,
-        additionalParameters: additionalParameters || null,
-      });
+    this.eventManager_.logEvent({
+      eventType,
+      eventOriginator: originator || EventOriginator.SWG_CLIENT,
+      isFromUserAction: isFromUserAction || null,
+      additionalParameters: additionalParameters || null,
     });
   }
 }

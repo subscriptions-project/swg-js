@@ -62,6 +62,7 @@ import {
 } from './experiments';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
+import {Logger} from './logger';
 
 const EDGE_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0)' +
@@ -468,17 +469,22 @@ describes.realWin('Runtime', {}, env => {
       );
     });
 
-    it('should resolve event manager promise', async function() {
-      runtime.getLogger().logSwgEvent({
-        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
+    it('should resolve logger promise', async function() {
+      let loggerFound = null;
+      runtime.getLogger().then(logger => {
+        loggerFound = logger;
+        logger.logSwgEvent({
+          eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
       });
       expect(loggedEvents.length).to.equal(0);
       await runtime.configured_(true);
-      await runtime.eventManPromise_; //ensure this gets resolved
+      await runtime.getLogger();
       expect(loggedEvents.length).to.equal(1);
+      expect(loggerFound).to.be.instanceOf(Logger);
     });
   });
 
@@ -1660,13 +1666,17 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should create a working logger', async function() {
       let receivedEvent = null;
+      let foundLogger = null;
       sandbox.stub(
         ClientEventManager.prototype,
         'logEvent',
         event => (receivedEvent = event)
       );
-      runtime.getLogger().logSwgEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
-      await runtime.eventManPromise_;
+      runtime.getLogger().then(logger => {
+        foundLogger = logger;
+        logger.logSwgEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
+      });
+      await runtime.getLogger();
       //the test is basically to ensure it resolves the event manager promise
       //to logger
       expect(receivedEvent).to.deep.equal({
@@ -1675,6 +1685,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         isFromUserAction: null,
         additionalParameters: null,
       });
+      expect(foundLogger).to.be.instanceOf(Logger);
     });
   });
 });
