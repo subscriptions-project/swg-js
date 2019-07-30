@@ -115,7 +115,7 @@ export class PayStartFlow {
         SubscriptionFlows.SUBSCRIBE, this.subscriptionRequest_);
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
-    this.deps_.logEvent(CreateClientEvent(
+    this.eventManager_.logEvent(CreateClientEvent(
         AnalyticsEvent.ACTION_SUBSCRIBE,
         EventOriginator.SWG_CLIENT, true, null));
     this.payClient_.start({
@@ -196,6 +196,9 @@ export class PayCompleteFlow {
 
     /** @private @const {!../runtime/analytics-service.AnalyticsService} */
     this.analyticsService_ = deps.analytics();
+
+    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
+    this.eventManager_ = deps.eventManager();
   }
 
   /**
@@ -213,8 +216,8 @@ export class PayCompleteFlow {
       }
     }
 
-    this.deps_.logEvent(CreateClientEvent(
-        AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+    this.eventManager_.logEvent(CreateClientEvent(
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         EventOriginator.SWG_CLIENT, true, null));
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
@@ -255,7 +258,7 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   complete() {
-    this.deps_.logEvent(CreateClientEvent(
+    this.eventManager_.logEvent(CreateClientEvent(
         AnalyticsEvent.ACTION_ACCOUNT_CREATED,
         EventOriginator.SWG_CLIENT, true, null));
     this.deps_.entitlementsManager().unblockNextNotification();
@@ -265,7 +268,7 @@ export class PayCompleteFlow {
     return this.activityIframeView_.acceptResult().catch(() => {
       // Ignore errors.
     }).then(() => {
-      this.deps_.logEvent(CreateClientEvent(
+      this.eventManager_.logEvent(CreateClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
           EventOriginator.SWG_CLIENT, true, null));
       this.deps_.entitlementsManager().setToastShown(true);

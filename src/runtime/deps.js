@@ -48,7 +48,7 @@ export class DepsDef {
    */
   payClient() {}
 
-  /**
+  /**1
    * @return {!../components/dialog-manager.DialogManager}
    */
   dialogManager() {}
@@ -82,9 +82,4 @@ export class DepsDef {
    * @return {!../api/client-event-manager-api.ClientEventManagerApi}
    */
   eventManager() {}
-
-  /**
-   * @param {!../api/client-event-manager-api.ClientEvent} unusedEvent
-   */
-  logEvent(unusedEvent) {}
 }

@@ -864,11 +864,6 @@ export class ConfiguredRuntime {
     return this.eventManager_;
   }
 
-  /** @override */
-  logEvent(event) {
-    this.eventManager_.logEvent(event);
-  }
-
 }
 
 /**
