@@ -46,7 +46,7 @@ export class DepsDef {
    */
   payClient() {}
 
-  /**1
+  /**
    * @return {!../components/dialog-manager.DialogManager}
    */
   dialogManager() {}
