@@ -183,14 +183,12 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       startResolver = resolve;
     });
     let instance;
-    const startStub = sandbox.stub(
-      LinkCompleteFlow.prototype,
-      'start',
-      function() {
+    const startStub = sandbox
+      .stub(LinkCompleteFlow.prototype, 'start')
+      .callsFake(() => {
         instance = this;
         startResolver();
-      }
-    );
+      });
 
     handler(port);
     expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
@@ -252,6 +250,15 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
+    const activityResult = new ActivityResult(
+      ActivityResultCode.OK,
+      {},
+      'IFRAME',
+      location.origin,
+      true,
+      true
+    );
+    port.acceptResult = () => Promise.resolve(activityResult);
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
@@ -493,7 +500,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessageDeprecated', callback => {
+    sandbox.stub(port, 'onMessageDeprecated').callsFake(callback => {
       messageCallback = callback;
     });
     const resultPromise = new Promise(resolve => {
