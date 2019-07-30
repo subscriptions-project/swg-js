@@ -1067,7 +1067,7 @@ describes.realWin('EntitlementsManager', {}, env => {
     });
 
     it('should tolerate malformed cache', () => {
-      // Handle async error.
+      // Handle async error caused by invalid token.
       let threwErrorAfterTimeout = false;
       sandbox.stub(win, 'setTimeout').callsFake(callback => {
         try {
@@ -1093,7 +1093,7 @@ describes.realWin('EntitlementsManager', {}, env => {
         // Cached response is from Google, but refresh response is from "pub1".
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
 
-        // Expect async error, caused by invalid token: 'VeRy BroKen'
+        // Expect async error.
         expect(threwErrorAfterTimeout).to.be.true;
       });
     });
