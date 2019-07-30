@@ -1067,6 +1067,16 @@ describes.realWin('EntitlementsManager', {}, env => {
     });
 
     it('should tolerate malformed cache', () => {
+      // Handle async error.
+      let threwErrorAfterTimeout = false;
+      sandbox.stub(win, 'setTimeout').callsFake(callback => {
+        try {
+          callback();
+        } catch (err) {
+          threwErrorAfterTimeout = true;
+        }
+      });
+
       expectGetIsReadyToPayToBeCalled(null);
       storageMock
         .expects('get')
@@ -1081,6 +1091,9 @@ describes.realWin('EntitlementsManager', {}, env => {
       return manager.getEntitlements().then(entitlements => {
         // Cached response is from Google, but refresh response is from "pub1".
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
+
+        // Expect async error, caused by invalid token: 'VeRy BroKen'
+        expect(threwErrorAfterTimeout).to.be.true;
       });
     });
 
