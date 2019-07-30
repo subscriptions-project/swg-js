@@ -15,15 +15,12 @@
  */
 
 import {Timer} from './timer';
-import * as sinon from 'sinon';
 
 describes.realWin('Timer', {}, env => {
-  let sandbox;
   let windowMock;
   let timer;
 
   beforeEach(() => {
-    sandbox = env.sandbox;
     const WindowApi = function() {};
     WindowApi.prototype.setTimeout = function(unusedCallback, unusedDelay) {};
     WindowApi.prototype.clearTimeout = function(unusedTimerId) {};
@@ -36,6 +33,7 @@ describes.realWin('Timer', {}, env => {
 
   afterEach(() => {
     windowMock.verify();
+    sandbox.restore();
   });
 
   it('delay', () => {
@@ -89,7 +87,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sinon.match(value => {
+        sandbox.match(value => {
           value();
           return true;
         }),
@@ -110,7 +108,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sinon.match(value => {
+        sandbox.match(value => {
           value();
           return true;
         }),
@@ -136,13 +134,7 @@ describes.realWin('Timer', {}, env => {
   it('timeoutPromise - race no timeout', () => {
     windowMock
       .expects('setTimeout')
-      .withExactArgs(
-        sinon.match(unusedValue => {
-          // No timeout
-          return true;
-        }),
-        111
-      )
+      .withExactArgs(sandbox.match(fn => typeof fn === 'function'), 111)
       .returns(1)
       .once();
 
@@ -158,7 +150,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sinon.match(value => {
+        sandbox.match(value => {
           // Immediate timeout
           value();
           return true;
