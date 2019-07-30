@@ -29,6 +29,7 @@ describes.realWin('Logger', {}, env => {
   let eventManager;
   let propensityServerListener;
   let thrownError;
+  let fakeDeps;
 
   beforeEach(() => {
     win = env.win;
@@ -49,7 +50,8 @@ describes.realWin('Logger', {}, env => {
       }
     });
 
-    logger = new Logger(Promise.resolve(eventManager));
+    fakeDeps = {eventManager: () => eventManager};
+    logger = new Logger(fakeDeps);
 
     //this ensure propensity server is listening
     new Propensity(win, config, eventManager, logger);
