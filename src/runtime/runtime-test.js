@@ -481,8 +481,6 @@ describes.realWin('Runtime', {}, env => {
           data: null,
         });
       });
-      //the test is basically to ensure it resolves the event manager promise
-      //to logger
       expect(loggedEvents.length).to.equal(1);
       expect(loggedEvents[0]).to.deep.equal({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -1670,7 +1668,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(count).to.equal(1);
     });
 
-    it('should create a logger', async function() {
+    it('should create a working logger', async function() {
       let receivedEvent = null;
       let foundLogger = null;
       sandbox.stub(
@@ -1687,8 +1685,6 @@ describes.realWin('ConfiguredRuntime', {}, env => {
           data: null,
         });
       });
-      //the test is basically to ensure it resolves the event manager promise
-      //to logger
       expect(receivedEvent).to.deep.equal({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
         eventOriginator: EventOriginator.PUBLISHER_CLIENT,
