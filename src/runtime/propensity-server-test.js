@@ -67,9 +67,7 @@ describes.realWin('PropensityServer', {}, env => {
       .stub(ClientEventManager.prototype, 'registerEventListener')
       .callsFake(callback => (registeredCallback = callback));
     propensityServer = new PropensityServer(win, pubId, eventManager);
-    sandbox
-      .stub(ServiceUrl, 'adsUrl')
-      .callsFake(url => serverUrl + url);
+    sandbox.stub(ServiceUrl, 'adsUrl').callsFake(url => serverUrl + url);
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
   });
 
@@ -463,7 +461,7 @@ describes.realWin('PropensityServer', {}, env => {
   it('should allow subscription state change via event', () => {
     let receivedState;
     let receivedProducts;
-    let event = {
+    const event = {
       eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
       eventOriginator: EventOriginator.PUBLISHER_CLIENT,
       isFromUserAction: null,
