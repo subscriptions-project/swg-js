@@ -91,6 +91,9 @@ export class PayStartFlow {
 
     /** @private @const {!../runtime/analytics-service.AnalyticsService} */
     this.analyticsService_ = deps.analytics();
+
+    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
+    this.eventManager_ = deps.eventManager();
   }
 
   /**
@@ -116,7 +119,7 @@ export class PayStartFlow {
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
     this.eventManager_.logEvent(CreateClientEvent(
-        AnalyticsEvent.ACTION_SUBSCRIBE,
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         EventOriginator.SWG_CLIENT, true, null));
     this.payClient_.start({
       'apiVersion': 1,
@@ -159,7 +162,7 @@ export class PayCompleteFlow {
         if (isCancelError(reason)) {
           deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
         } else {
-          deps.logEvent(CreateClientEvent(
+          deps.eventManager().logEvent(CreateClientEvent(
               AnalyticsEvent.EVENT_PAYMENT_FAILED,
               EventOriginator.SWG_CLIENT, false, null));
           deps.jserror().error('Pay failed', reason);
@@ -217,7 +220,7 @@ export class PayCompleteFlow {
     }
 
     this.eventManager_.logEvent(CreateClientEvent(
-        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+        AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
         EventOriginator.SWG_CLIENT, true, null));
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
