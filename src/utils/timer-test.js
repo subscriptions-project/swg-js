@@ -21,7 +21,6 @@ describes.realWin('Timer', {}, env => {
   let timer;
 
   beforeEach(() => {
-    sandbox = env.sandbox;
     const WindowApi = function() {};
     WindowApi.prototype.setTimeout = function(unusedCallback, unusedDelay) {};
     WindowApi.prototype.clearTimeout = function(unusedTimerId) {};
@@ -88,7 +87,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sinon.match(value => {
+        sandbox.match(value => {
           value();
           return true;
         }),
@@ -109,7 +108,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sinon.match(value => {
+        sandbox.match(value => {
           value();
           return true;
         }),
@@ -136,7 +135,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sinon.match(value => {
+        sandbox.match(value => {
           value();
           return true;
         }),
@@ -157,7 +156,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sinon.match(value => {
+        sandbox.match(value => {
           // Immediate timeout
           value();
           return true;
