@@ -62,6 +62,7 @@ import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
+import {Logger} from './logger';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -441,14 +442,9 @@ export class Runtime {
     });
   }
 
-  /**
-   * Log a subscription buy-flow event.
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   */
-  logEvent(event) {
-    this.configured_(false).then(configuredRuntime => {
-      configuredRuntime.eventManager().logEvent(event);
-    });
+  /** @override */
+  getLogger() {
+    return this.configured_(true).then(runtime => runtime.getLogger());
   }
 }
 
@@ -533,6 +529,9 @@ export class ConfiguredRuntime {
     //analytics service and entitlements manager are constructed unless
     //you are certain they do not rely on them because they are part of that
     //definition.
+    /** @private @const {!Logger} */
+    this.logger_ = new Logger(this);
+
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
 
@@ -881,6 +880,11 @@ export class ConfiguredRuntime {
   eventManager() {
     return this.eventManager_;
   }
+
+  /** @override */
+  getLogger() {
+    return Promise.resolve(this.logger_);
+  }
 }
 
 /**
@@ -924,6 +928,7 @@ function createPublicRuntime(runtime) {
     attachButton: runtime.attachButton.bind(runtime),
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
     getPropensityModule: runtime.getPropensityModule.bind(runtime),
+    getLogger: runtime.getLogger.bind(runtime),
   });
 }
 
