@@ -1658,11 +1658,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     it('should create a working logger', async function() {
       let receivedEvent = null;
       let foundLogger = null;
-      sandbox.stub(
-        ClientEventManager.prototype,
-        'logEvent',
-        event => (receivedEvent = event)
-      );
+      sandbox
+        .stub(ClientEventManager.prototype, 'logEvent')
+        .callsFake(event => (receivedEvent = event));
 
       await runtime.getLogger().then(logger => {
         foundLogger = logger;
