@@ -596,8 +596,8 @@ describes.realWin('EntitlementsManager', {}, env => {
         .withExactArgs(
           createClientEvent(
             AnalyticsEvent.IMPRESSION_PAYWALL,
-            EventOriginator.SWG_CLIENT,
             false,
+            EventOriginator.SWG_CLIENT,
             null
           )
         )
@@ -631,8 +631,8 @@ describes.realWin('EntitlementsManager', {}, env => {
         .withExactArgs(
           createClientEvent(
             AnalyticsEvent.IMPRESSION_PAYWALL,
-            EventOriginator.SWG_CLIENT,
             false,
+            EventOriginator.SWG_CLIENT,
             null
           )
         )
@@ -668,8 +668,8 @@ describes.realWin('EntitlementsManager', {}, env => {
         .withExactArgs(
           createClientEvent(
             AnalyticsEvent.IMPRESSION_PAYWALL,
-            EventOriginator.SWG_CLIENT,
             false,
+            EventOriginator.SWG_CLIENT,
             null
           )
         )

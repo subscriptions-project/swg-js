@@ -119,8 +119,8 @@ export class PayStartFlow {
     this.eventManager_.logEvent(
       createClientEvent(
         AnalyticsEvent.ACTION_SUBSCRIBE,
-        EventOriginator.SWG_CLIENT,
         true,
+        EventOriginator.SWG_CLIENT,
         null
       )
     );
@@ -176,8 +176,8 @@ export class PayCompleteFlow {
               .logEvent(
                 createClientEvent(
                   AnalyticsEvent.EVENT_PAYMENT_FAILED,
-                  EventOriginator.SWG_CLIENT,
                   false,
+                  EventOriginator.SWG_CLIENT,
                   null
                 )
               );
@@ -239,8 +239,8 @@ export class PayCompleteFlow {
     this.eventManager_.logEvent(
       createClientEvent(
         AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-        EventOriginator.SWG_CLIENT,
         true,
+        EventOriginator.SWG_CLIENT,
         null
       )
     );
@@ -289,8 +289,8 @@ export class PayCompleteFlow {
     this.eventManager_.logEvent(
       createClientEvent(
         AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-        EventOriginator.SWG_CLIENT,
         true,
+        EventOriginator.SWG_CLIENT,
         null
       )
     );
@@ -307,8 +307,8 @@ export class PayCompleteFlow {
         this.eventManager_.logEvent(
           createClientEvent(
             AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-            EventOriginator.SWG_CLIENT,
             true,
+            EventOriginator.SWG_CLIENT,
             null
           )
         );
