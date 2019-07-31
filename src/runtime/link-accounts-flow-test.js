@@ -249,6 +249,17 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
+
+    const activityResult = new ActivityResult(
+      ActivityResultCode.OK,
+      {},
+      'IFRAME',
+      location.origin,
+      true,
+      true
+    );
+    port.acceptResult = () => Promise.resolve(activityResult);
+
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
