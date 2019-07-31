@@ -133,7 +133,6 @@ export class PropensityServer {
    * @private
    */
   sendEvent_(event, context) {
-    console.log('sent event');
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
