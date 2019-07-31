@@ -45,11 +45,9 @@ describes.realWin('AnalyticsService', {}, env => {
   };
 
   beforeEach(() => {
-    sandbox.stub(
-      ClientEventManager.prototype,
-      'registerEventListener',
-      callback => (registeredCallback = callback)
-    );
+    sandbox
+      .stub(ClientEventManager.prototype, 'registerEventListener')
+      .callsFake(callback => (registeredCallback = callback));
     win = env.win;
     src = '/serviceiframe';
     pageConfig = new PageConfig(productId);
@@ -61,13 +59,15 @@ describes.realWin('AnalyticsService', {}, env => {
       feUrl(src)
     );
 
-    sandbox.stub(activityPorts, 'openIframe', () =>
-      Promise.resolve(activityIframePort)
-    );
+    sandbox
+      .stub(activityPorts, 'openIframe')
+      .callsFake(() => Promise.resolve(activityIframePort));
 
-    sandbox.stub(activityIframePort, 'whenReady', () => Promise.resolve(true));
+    sandbox
+      .stub(activityIframePort, 'whenReady')
+      .callsFake(() => Promise.resolve(true));
 
-    sandbox.stub(activityIframePort, 'onMessageDeprecated', cb => {
+    sandbox.stub(activityIframePort, 'onMessageDeprecated').callsFake(cb => {
       messageCallback = cb;
     });
   });
@@ -124,7 +124,7 @@ describes.realWin('AnalyticsService', {}, env => {
     });
 
     it('should send message on port and openIframe called only once', () => {
-      sandbox.stub(activityIframePort, 'execute', () => {});
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       registeredCallback({
         eventType: AnalyticsEvent.UNKNOWN,
         eventOriginator: EventOriginator.UNKNOWN_CLIENT,
@@ -182,7 +182,7 @@ describes.realWin('AnalyticsService', {}, env => {
     });
 
     it('should create correct context for logging', () => {
-      sandbox.stub(activityIframePort, 'execute', () => {});
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       AnalyticsService.prototype.getQueryString_ = () => {
         return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
       };
@@ -222,7 +222,7 @@ describes.realWin('AnalyticsService', {}, env => {
 
     it('should set context for empty experiments', () => {
       setExperimentsStringForTesting('');
-      sandbox.stub(activityIframePort, 'execute', () => {});
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       registeredCallback(event);
       return analyticsService.lastAction_
         .then(() => {
@@ -240,7 +240,7 @@ describes.realWin('AnalyticsService', {}, env => {
 
     it('should set context for non-empty experiments', () => {
       setExperimentsStringForTesting('experiment-A,experiment-B');
-      sandbox.stub(activityIframePort, 'execute', () => {});
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       registeredCallback(event);
       return analyticsService.lastAction_
         .then(() => {
@@ -262,7 +262,7 @@ describes.realWin('AnalyticsService', {}, env => {
     it('should add additional labels to experiments', () => {
       analyticsService.addLabels(['L1', 'L2']);
       setExperimentsStringForTesting('E1,E2');
-      sandbox.stub(activityIframePort, 'execute', () => {});
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       registeredCallback(event);
       return analyticsService.lastAction_
         .then(() => {
@@ -314,11 +314,9 @@ describes.realWin('AnalyticsService', {}, env => {
 
     it('should pass events along to events manager', () => {
       let receivedEvent = null;
-      sandbox.stub(
-        ClientEventManager.prototype,
-        'logEvent',
-        event => (receivedEvent = event)
-      );
+      sandbox
+        .stub(ClientEventManager.prototype, 'logEvent')
+        .callsFake(event => (receivedEvent = event));
       analyticsService.logEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
       expect(receivedEvent).to.deep.equal({
         eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
