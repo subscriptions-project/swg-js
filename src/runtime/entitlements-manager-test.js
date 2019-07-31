@@ -51,20 +51,20 @@ describes.realWin('EntitlementsManager', {}, env => {
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
     deps = new DepsDef();
-    sandbox.stub(deps, 'win', () => win);
+    sandbox.stub(deps, 'win').callsFake(() => win);
     const globalDoc = new GlobalDoc(win);
-    sandbox.stub(deps, 'doc', () => globalDoc);
+    sandbox.stub(deps, 'doc').callsFake(() => globalDoc);
     callbacks = new Callbacks();
-    sandbox.stub(deps, 'callbacks', () => callbacks);
+    sandbox.stub(deps, 'callbacks').callsFake(() => callbacks);
     const storage = new Storage(win);
     storageMock = sandbox.mock(storage);
-    sandbox.stub(deps, 'storage', () => storage);
-    sandbox.stub(deps, 'pageConfig', () => pageConfig);
-    sandbox.stub(deps, 'config', () => config);
-    sandbox.stub(deps, 'eventManager', () => eventManager);
+    sandbox.stub(deps, 'storage').callsFake(() => storage);
+    sandbox.stub(deps, 'pageConfig').callsFake(() => pageConfig);
+    sandbox.stub(deps, 'config').callsFake(() => config);
+    sandbox.stub(deps, 'eventManager').callsFake(() => eventManager);
     const analyticsService = new AnalyticsService(deps);
     analyticsMock = sandbox.mock(analyticsService);
-    sandbox.stub(deps, 'analytics', () => analyticsService);
+    sandbox.stub(deps, 'analytics').callsFake(() => analyticsService);
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
@@ -333,7 +333,7 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     it('should fetch with positive expectation with two attempts', () => {
       let totalTime = 0;
-      sandbox.stub(win, 'setTimeout', (callback, timeout) => {
+      sandbox.stub(win, 'setTimeout').callsFake((callback, timeout) => {
         totalTime += timeout;
         callback();
       });
@@ -377,7 +377,7 @@ describes.realWin('EntitlementsManager', {}, env => {
 
     it('should fetch with positive expectation with max attempts', () => {
       let totalTime = 0;
-      sandbox.stub(win, 'setTimeout', (callback, timeout) => {
+      sandbox.stub(win, 'setTimeout').callsFake((callback, timeout) => {
         totalTime += timeout;
         callback();
       });
@@ -453,9 +453,11 @@ describes.realWin('EntitlementsManager', {}, env => {
     let toast;
 
     beforeEach(() => {
-      toastOpenStub = sandbox.stub(Toast.prototype, 'open', function() {
-        toast = this;
-      });
+      toastOpenStub = sandbox
+        .stub(Toast.prototype, 'open')
+        .callsFake(function() {
+          toast = this;
+        });
       storageMock
         .expects('get')
         .withExactArgs('ents')
@@ -1065,6 +1067,17 @@ describes.realWin('EntitlementsManager', {}, env => {
     });
 
     it('should tolerate malformed cache', () => {
+      // Handle async error caused by invalid token.
+      let threwErrorAfterTimeout = false;
+      sandbox.stub(win, 'setTimeout').callsFake(callback => {
+        try {
+          callback();
+        } catch (err) {
+          expect(err.toString()).to.contain('Invalid token: "VeRy BroKen"');
+          threwErrorAfterTimeout = true;
+        }
+      });
+
       expectGetIsReadyToPayToBeCalled(null);
       storageMock
         .expects('get')
@@ -1079,6 +1092,9 @@ describes.realWin('EntitlementsManager', {}, env => {
       return manager.getEntitlements().then(entitlements => {
         // Cached response is from Google, but refresh response is from "pub1".
         expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
+
+        // Expect async error.
+        expect(threwErrorAfterTimeout).to.be.true;
       });
     });
 
