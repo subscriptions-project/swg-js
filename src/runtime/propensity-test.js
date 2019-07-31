@@ -154,106 +154,16 @@ describes.realWin('Propensity', {}, env => {
     }).to.throw('publisher not whitelisted');
   });
 
-  it('should send events to event manager', () => {
-    propensity.sendEvent({
+  it('should send events to logger', () => {
+    const sentEvent = {
       name: Event.IMPRESSION_PAYWALL,
-    });
-    expect(receivedEvent).to.deep.equal({
-      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-      isFromUserAction: undefined,
-      additionalParameters: null,
-    });
-  });
-
-  it('should validate events sent to it and set appropriate defaults', () => {
-    let hasError;
-
-    const testSend = event => {
-      try {
-        hasError = false;
-        receivedEvent = null;
-        propensity.sendEvent(event);
-      } catch (e) {
-        hasError = true;
-      }
     };
-
-    //ensure it rejects invalid Propensity.Event enum values
-    testSend({
-      name: 'invalid name',
-    });
-    expect(hasError).to.be.true;
-    expect(receivedEvent).to.be.null;
-
-    //ensure it takes a valid enum with nothing else and fills in appropriate
-    //defaults for other values
-    testSend({
-      name: Event.IMPRESSION_PAYWALL,
-    });
-    expect(hasError).to.be.false;
-    expect(receivedEvent).to.deep.equal({
-      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-      isFromUserAction: undefined,
-      additionalParameters: null,
-    });
-
-    //ensure it respects the active flag
-    testSend({
-      name: Event.IMPRESSION_OFFERS,
-    });
-    expect(receivedEvent).to.deep.equal({
-      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-      isFromUserAction: undefined,
-      additionalParameters: null,
-    });
-
-    testSend({
-      name: Event.IMPRESSION_OFFERS,
-      active: null,
-    });
-    expect(hasError).to.be.false;
-    expect(receivedEvent).to.deep.equal({
-      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-
-    testSend({
-      name: Event.IMPRESSION_OFFERS,
-      active: true,
-    });
-    expect(hasError).to.be.false;
-    expect(receivedEvent).to.deep.equal({
-      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-      isFromUserAction: true,
-      additionalParameters: {'is_active': true},
-    });
-
-    testSend({
-      name: Event.IMPRESSION_OFFERS,
-      active: false,
-    });
-    expect(hasError).to.be.false;
-    expect(receivedEvent).to.deep.equal({
-      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-      isFromUserAction: false,
-      additionalParameters: {'is_active': false},
-    });
-
-    //ensure it rejects invalid data objects
-    testSend({
-      name: Event.IMPRESSION_OFFERS,
-      active: true,
-      data: 'all_offers',
-    });
-    expect(hasError).to.be.true;
-    expect(receivedEvent).to.be.null;
+    let receivedEvent = null;
+    sandbox
+      .stub(Logger.prototype, 'sendEvent')
+      .callsFake(event => (receivedEvent = event));
+    propensity.sendEvent(sentEvent);
+    expect(receivedEvent).to.deep.equal(sentEvent);
   });
 
   it('should return propensity score from server', () => {
