@@ -20,7 +20,7 @@ import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
-import {createClientEvent} from './client-event-manager.js';
+import {createClientEvent} from './client-event-manager';
 import {PayClient} from './pay-client';
 import {
   PayStartFlow,

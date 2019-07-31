@@ -16,7 +16,6 @@
 
 import {Callbacks} from './callbacks';
 import {DepsDef} from './deps';
-import {createClientEvent} from './client-event-manager.js';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
@@ -27,7 +26,7 @@ import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {AnalyticsService} from './analytics-service';
 import {defaultConfig, AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {ClientEventManager} from './client-event-manager';
+import {ClientEventManager, createClientEvent} from './client-event-manager';
 
 describes.realWin('EntitlementsManager', {}, env => {
   let win;
