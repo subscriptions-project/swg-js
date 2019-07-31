@@ -20,7 +20,6 @@ import {isObject, isBoolean} from '../utils/types';
 import {ExperimentFlags} from './experiment-flags';
 import {isExperimentOn} from './experiments';
 import {analyticsEventToPublisherEvent} from './event-type-mapping';
-import {parseUrl} from '../utils/url';
 
 /**
  * Implements interface to Propensity server
@@ -85,14 +84,6 @@ export class PropensityServer {
   }
 
   /**
-   * @return {string}
-   * @private
-   */
-  getReferrer_() {
-    return this.win_.document.referrer;
-  }
-
-  /**
    * @private
    * @param {string} url
    * @return {string}
@@ -103,10 +94,7 @@ export class PropensityServer {
     if (clientId) {
       url = url + '&cookie=' + clientId;
     }
-    const referrer = this.getReferrer_();
-    if (referrer) {
-      url = url + '&cdm=' + parseUrl(referrer).origin;
-    }
+    url = url + '&cdm=' + this.win_.location.hostname;
     return url;
   }
 
