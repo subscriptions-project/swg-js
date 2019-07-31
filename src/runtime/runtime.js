@@ -442,12 +442,7 @@ export class Runtime {
     });
   }
 
-  /**
-   * Note that this returns Logger instead of LoggerApi for internal logging
-   * purposes.
-   * @override
-   * @return {!Promise<Logger>}
-   */
+  /** @override */
   getLogger() {
     return this.configured_(true).then(runtime => runtime.getLogger());
   }
@@ -886,12 +881,7 @@ export class ConfiguredRuntime {
     return this.eventManager_;
   }
 
-  /**
-   * Note that this returns Logger instead of LoggerApi for internal logging
-   * purposes.
-   * @override
-   * @return {!Promise<Logger>}
-   */
+  /** @override */
   getLogger() {
     return Promise.resolve(this.logger_);
   }
