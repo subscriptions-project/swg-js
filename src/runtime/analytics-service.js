@@ -272,7 +272,7 @@ export class AnalyticsService {
   handleClientEvent_(event) {
     if (
       !(this.logPropensityExperiment_ && this.logPropensityConfig_) &&
-      event.eventOriginator === EventOriginator.PROPENSITY_CLIENT
+      event.eventOriginator === EventOriginator.PUBLISHER_CLIENT
     ) {
       return;
     }

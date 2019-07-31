@@ -339,7 +339,7 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(analyticsService.lastAction_).to.not.be.null;
 
       analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
+      event.eventOriginator = EventOriginator.PUBLISHER_CLIENT;
       registeredCallback(event);
       expect(analyticsService.lastAction_).to.be.null;
 
@@ -356,7 +356,7 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(analyticsService.lastAction_).to.not.be.null;
 
       analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
+      event.eventOriginator = EventOriginator.PUBLISHER_CLIENT;
       registeredCallback(event);
       expect(analyticsService.lastAction_).to.be.null;
 
@@ -376,7 +376,7 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(analyticsService.lastAction_).to.not.be.null;
 
       analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
+      event.eventOriginator = EventOriginator.PUBLISHER_CLIENT;
       registeredCallback(event);
       expect(analyticsService.lastAction_).to.be.null;
     });
@@ -399,7 +399,7 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(analyticsService.lastAction_).to.not.be.null;
 
       analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
+      event.eventOriginator = EventOriginator.PUBLISHER_CLIENT;
       registeredCallback(event);
       expect(analyticsService.lastAction_).to.not.be.null;
     });

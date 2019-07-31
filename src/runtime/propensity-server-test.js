@@ -53,7 +53,7 @@ describes.realWin('PropensityServer', {}, env => {
   const defaultParameters = {'custom': 'value'};
   const defaultEvent = {
     eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-    eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+    eventOriginator: EventOriginator.PUBLISHER_CLIENT,
     isFromUserAction: null,
     additionalParameters: defaultParameters,
   };

@@ -133,6 +133,7 @@ export class PropensityServer {
    * @private
    */
   sendEvent_(event, context) {
+    console.log('sent event');
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
@@ -150,6 +151,7 @@ export class PropensityServer {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
+    debugger;
     if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
       this.sendSubscriptionState(
         event.additionalParameters['state'],
@@ -163,7 +165,7 @@ export class PropensityServer {
     }
     if (
       !(this.logSwgEventsExperiment_ && this.logSwgEventsConfig_) &&
-      event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT
+      event.eventOriginator !== EventOriginator.PUBLISHER_CLIENT
     ) {
       return;
     }
