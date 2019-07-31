@@ -18,6 +18,12 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
+import {
+  SkuSelected,
+  LinkRequest,
+  ViewSubscriptionsRequest,
+  SubscribeRequest,
+} from '../proto/api_messages';
 
 /**
  * Offers view is closable when request was originated from 'AbbrvOfferFlow'
@@ -70,6 +76,39 @@ export class OffersFlow {
   }
 
   /**
+   * @param {SkuSelected} skuSelected
+   * @private
+   */
+  startPayFlow_(skuSelected) {
+    const sku = skuSelected.getSku();
+    if (sku) {
+      new PayStartFlow(this.deps_, sku).start();
+    }
+  }
+
+  /**
+   * @param {LinkRequest} request
+   * @private
+   */
+  handleLinkRequest_(request) {
+    if (request.getSubscriberOrMember()) {
+      this.deps_.callbacks().triggerLoginRequest({
+        linkRequested: !!request.getLinkRequested(),
+      });
+    }
+  }
+
+  /**
+   * @param {ViewSubscriptionsRequest} request
+   * @private
+   */
+  startNativeFlow_(request) {
+    if (request.getNative()) {
+      this.deps_.callbacks().triggerSubscribeRequest();
+    }
+  }
+
+  /**
    * Starts the offers flow or alreadySubscribed flow.
    * @return {!Promise}
    */
@@ -80,26 +119,15 @@ export class OffersFlow {
       this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
     });
 
-    // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.onMessageDeprecated(result => {
-      if (result['alreadySubscribed']) {
-        this.deps_.callbacks().triggerLoginRequest({
-          linkRequested: !!result['linkRequested'],
-        });
-        return;
-      }
-      if (result['sku']) {
-        new PayStartFlow(
-          this.deps_,
-          /** @type {string} */ (result['sku'])
-        ).start();
-        return;
-      }
-      if (result['native']) {
-        this.deps_.callbacks().triggerSubscribeRequest();
-        return;
-      }
-    });
+    this.activityIframeView_.on(SkuSelected, this.startPayFlow_.bind(this));
+    this.activityIframeView_.on(
+      LinkRequest,
+      this.handleLinkRequest_.bind(this)
+    );
+    this.activityIframeView_.on(
+      ViewSubscriptionsRequest,
+      this.startNativeFlow_.bind(this)
+    );
 
     return this.dialogManager_.openView(this.activityIframeView_);
   }
@@ -157,12 +185,18 @@ export class SubscribeOptionFlow {
         .triggerFlowCanceled(SubscriptionFlows.SHOW_SUBSCRIBE_OPTION);
     });
 
-    this.activityIframeView_.onMessageDeprecated(data => {
-      this.maybeOpenOffersFlow_(data);
-    });
+    this.activityIframeView_.on(
+      SubscribeRequest,
+      this.maybeOpenOffersFlow_.bind(this)
+    );
     this.activityIframeView_.acceptResult().then(
       result => {
-        this.maybeOpenOffersFlow_(result.data);
+        const data = result.data;
+        const subsribeRequest = new SubscribeRequest();
+        if (data['subsribe']) {
+          subsribeRequest.setSubscribe(true);
+        }
+        this.maybeOpenOffersFlow_(subsribeRequest);
       },
       reason => {
         this.dialogManager_.completeView(this.activityIframeView_);
@@ -173,11 +207,11 @@ export class SubscribeOptionFlow {
   }
 
   /**
-   * @param {*} data
+   * @param {SubscribeRequest} request
    * @private
    */
-  maybeOpenOffersFlow_(data) {
-    if (data && data['subscribe']) {
+  maybeOpenOffersFlow_(request) {
+    if (request.getSubscribe()) {
       const options = this.options_ || {};
       if (options.isClosable == undefined) {
         options.isClosable = OFFERS_VIEW_CLOSABLE;
@@ -230,6 +264,18 @@ export class AbbrvOfferFlow {
   }
 
   /**
+   * @param {LinkRequest} request
+   * @private
+   */
+  handleLinkRequest_(request) {
+    if (request.getSubscriberOrMember()) {
+      this.deps_.callbacks().triggerLoginRequest({
+        linkRequested: !!request.getLinkRequested(),
+      });
+    }
+  }
+
+  /**
    * Starts the offers flow
    * @return {!Promise}
    */
@@ -245,14 +291,10 @@ export class AbbrvOfferFlow {
     });
 
     // If the user is already subscribed, trigger login flow
-    this.activityIframeView_.onMessageDeprecated(data => {
-      if (data['alreadySubscribed']) {
-        this.deps_.callbacks().triggerLoginRequest({
-          linkRequested: !!data['linkRequested'],
-        });
-        return;
-      }
-    });
+    this.activityIframeView_.on(
+      LinkRequest,
+      this.handleLinkRequest_.bind(this)
+    );
     // If result is due to requesting offers, redirect to offers flow
     this.activityIframeView_.acceptResult().then(result => {
       if (result.data['viewOffers']) {
