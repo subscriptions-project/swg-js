@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 import * as PropensityApi from '../api/propensity-api';
-import {Event, SubscriptionState} from '../api/logger-api';
 import {PropensityServer} from './propensity-server';
-import {isObject, isEnumValue} from '../utils/types';
-import {EventOriginator} from '../proto/api_messages';
-import {publisherEventToAnalyticsEvent} from './event-type-mapping';
-import {isBoolean} from '../utils/types';
 
 /**
  * @implements {PropensityApi.PropensityApi}
@@ -29,8 +24,9 @@ export class Propensity {
    * @param {!Window} win
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
+   * @param {!../api/logger-api.LoggerApi} logger
    */
-  constructor(win, pageConfig, eventManager) {
+  constructor(win, pageConfig, eventManager, logger) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private {PropensityServer} */
@@ -40,33 +36,13 @@ export class Propensity {
       eventManager
     );
 
-    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
-    this.eventManager_ = eventManager;
+    /** @private @const {!../api/logger-api.LoggerApi} */
+    this.logger_ = logger;
   }
 
   /** @override */
   sendSubscriptionState(state, jsonProducts) {
-    if (!Object.values(SubscriptionState).includes(state)) {
-      throw new Error('Invalid subscription state provided');
-    }
-    if (
-      (SubscriptionState.SUBSCRIBER == state ||
-        SubscriptionState.PAST_SUBSCRIBER == state) &&
-      !jsonProducts
-    ) {
-      throw new Error(
-        'Entitlements must be provided for users with' +
-          ' active or expired subscriptions'
-      );
-    }
-    if (jsonProducts && !isObject(jsonProducts)) {
-      throw new Error('Entitlements must be an Object');
-    }
-    let productsOrSkus = null;
-    if (jsonProducts) {
-      productsOrSkus = JSON.stringify(jsonProducts);
-    }
-    this.propensityServer_.sendSubscriptionState(state, productsOrSkus);
+    this.logger_.sendSubscriptionState(state, jsonProducts);
   }
 
   /** @override */
@@ -85,36 +61,7 @@ export class Propensity {
 
   /** @override */
   sendEvent(userEvent) {
-    const analyticsEvent = publisherEventToAnalyticsEvent(userEvent.name);
-    let data = null;
-    if (!isEnumValue(Event, userEvent.name) || !analyticsEvent) {
-      throw new Error('Invalid user event provided(' + userEvent.name + ')');
-    }
-
-    if (userEvent.data) {
-      if (!isObject(userEvent.data)) {
-        throw new Error('Event data must be an Object(' + userEvent.data + ')');
-      } else {
-        data = {};
-        Object.assign(data, userEvent.data);
-      }
-    }
-
-    if (isBoolean(userEvent.active)) {
-      if (!data) {
-        data = {};
-      }
-      Object.assign(data, {'is_active': userEvent.active});
-    } else if (userEvent.active != null) {
-      throw new Error('Event active must be a boolean');
-    }
-
-    this.eventManager_.logEvent({
-      eventType: analyticsEvent,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
-      isFromUserAction: userEvent.active,
-      additionalParameters: data,
-    });
+    this.logger_.sendEvent(userEvent);
   }
 
   /**

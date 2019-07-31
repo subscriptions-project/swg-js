@@ -490,13 +490,6 @@ export class ConfiguredRuntime {
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
 
-    /** @private @const {!Propensity} */
-    this.propensityModule_ = new Propensity(
-      this.win_,
-      this.pageConfig_,
-      this.eventManager_
-    );
-
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
 
@@ -531,6 +524,14 @@ export class ConfiguredRuntime {
     //definition.
     /** @private @const {!Logger} */
     this.logger_ = new Logger(this);
+
+    /** @private @const {!Propensity} */
+    this.propensityModule_ = new Propensity(
+      this.win_,
+      this.pageConfig_,
+      this.eventManager_,
+      this.logger_
+    );
 
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);

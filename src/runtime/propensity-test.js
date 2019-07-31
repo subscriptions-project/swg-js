@@ -20,16 +20,37 @@ import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {Logger} from './logger';
 
 describes.realWin('Propensity', {}, env => {
   let win;
   let config;
   let propensity;
+  let eventManager;
+  let fakeDeps;
+  let eventListener;
+  let receivedEvent;
 
   beforeEach(() => {
     win = env.win;
     config = new PageConfig('pub1', true);
-    propensity = new Propensity(win, config, new ClientEventManager());
+    eventManager = new ClientEventManager();
+    fakeDeps = {
+      eventManager: () => eventManager,
+    };
+    sandbox
+      .stub(ClientEventManager.prototype, 'registerEventListener')
+      .callsFake(listener => (eventListener = listener));
+    sandbox.stub(ClientEventManager.prototype, 'logEvent').callsFake(event => {
+      eventListener(event);
+      receivedEvent = event;
+    });
+    propensity = new Propensity(
+      win,
+      config,
+      eventManager,
+      new Logger(fakeDeps)
+    );
   });
 
   it('should provide valid subscription state', () => {
@@ -134,16 +155,12 @@ describes.realWin('Propensity', {}, env => {
   });
 
   it('should send events to event manager', () => {
-    let eventSent = null;
-    sandbox
-      .stub(ClientEventManager.prototype, 'logEvent')
-      .callsFake(event => (eventSent = event));
     propensity.sendEvent({
       name: Event.IMPRESSION_PAYWALL,
     });
-    expect(eventSent).to.deep.equal({
+    expect(receivedEvent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
       isFromUserAction: undefined,
       additionalParameters: null,
     });
@@ -151,11 +168,6 @@ describes.realWin('Propensity', {}, env => {
 
   it('should validate events sent to it and set appropriate defaults', () => {
     let hasError;
-    let receivedEvent;
-
-    sandbox.stub(ClientEventManager.prototype, 'logEvent').callsFake(event => {
-      receivedEvent = event;
-    });
 
     const testSend = event => {
       try {
@@ -182,7 +194,7 @@ describes.realWin('Propensity', {}, env => {
     expect(hasError).to.be.false;
     expect(receivedEvent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
       isFromUserAction: undefined,
       additionalParameters: null,
     });
@@ -193,7 +205,7 @@ describes.realWin('Propensity', {}, env => {
     });
     expect(receivedEvent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
       isFromUserAction: undefined,
       additionalParameters: null,
     });
@@ -205,7 +217,7 @@ describes.realWin('Propensity', {}, env => {
     expect(hasError).to.be.false;
     expect(receivedEvent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
       isFromUserAction: null,
       additionalParameters: null,
     });
@@ -217,7 +229,7 @@ describes.realWin('Propensity', {}, env => {
     expect(hasError).to.be.false;
     expect(receivedEvent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
       isFromUserAction: true,
       additionalParameters: {'is_active': true},
     });
@@ -229,7 +241,7 @@ describes.realWin('Propensity', {}, env => {
     expect(hasError).to.be.false;
     expect(receivedEvent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
       isFromUserAction: false,
       additionalParameters: {'is_active': false},
     });
