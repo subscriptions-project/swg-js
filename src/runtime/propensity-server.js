@@ -151,7 +151,6 @@ export class PropensityServer {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
-    debugger;
     if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
       this.sendSubscriptionState(
         event.additionalParameters['state'],
