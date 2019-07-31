@@ -113,8 +113,8 @@ export class EntitlementsManager {
       .logEvent(
         createClientEvent(
           AnalyticsEvent.IMPRESSION_PAYWALL,
-          EventOriginator.SWG_CLIENT,
           false,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );

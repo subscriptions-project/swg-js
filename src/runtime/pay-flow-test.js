@@ -149,8 +149,8 @@ describes.realWin('PayStartFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_SUBSCRIBE,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -204,8 +204,8 @@ describes.realWin('PayStartFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_SUBSCRIBE,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -254,8 +254,8 @@ describes.realWin('PayStartFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_SUBSCRIBE,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -373,8 +373,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -417,8 +417,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -484,8 +484,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -494,8 +494,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -504,8 +504,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -559,8 +559,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -569,8 +569,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -579,8 +579,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -655,8 +655,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -665,8 +665,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -675,8 +675,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       );
@@ -730,8 +730,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       )
@@ -770,8 +770,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(
         createClientEvent(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-          EventOriginator.SWG_CLIENT,
           true,
+          EventOriginator.SWG_CLIENT,
           null
         )
       )
@@ -807,8 +807,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .withExactArgs(
           createClientEvent(
             AnalyticsEvent.EVENT_PAYMENT_FAILED,
-            EventOriginator.SWG_CLIENT,
             false,
+            EventOriginator.SWG_CLIENT,
             null
           )
         )
