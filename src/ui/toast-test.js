@@ -19,7 +19,6 @@ import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from '../runtime/runtime';
 import {PageConfig} from '../model/page-config';
 import {getStyle} from '../utils/style';
-import * as sinon from 'sinon';
 
 const src = '$frontend$/swglib/toastiframe?_=_';
 
@@ -70,7 +69,7 @@ describes.realWin('Toast', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swglib/toastiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
