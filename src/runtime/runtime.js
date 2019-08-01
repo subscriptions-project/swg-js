@@ -441,14 +441,11 @@ export class Runtime {
       return runtime.getPropensityModule();
     });
   }
-<<<<<<< HEAD
-=======
 
   /** @override */
   getLogger() {
     return this.configured_(true).then(runtime => runtime.getLogger());
   }
->>>>>>> master
 }
 
 /**
