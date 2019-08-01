@@ -19,7 +19,6 @@ import {Event, SubscriptionState} from '../api/logger-api';
 import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {Logger} from './logger';
 
 describes.realWin('Propensity', {}, env => {
@@ -29,7 +28,6 @@ describes.realWin('Propensity', {}, env => {
   let eventManager;
   let fakeDeps;
   let eventListener;
-  let receivedEvent;
 
   beforeEach(() => {
     win = env.win;
@@ -41,10 +39,9 @@ describes.realWin('Propensity', {}, env => {
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
       .callsFake(listener => (eventListener = listener));
-    sandbox.stub(ClientEventManager.prototype, 'logEvent').callsFake(event => {
-      eventListener(event);
-      receivedEvent = event;
-    });
+    sandbox
+      .stub(ClientEventManager.prototype, 'logEvent')
+      .callsFake(event => eventListener(event));
     propensity = new Propensity(
       win,
       config,
