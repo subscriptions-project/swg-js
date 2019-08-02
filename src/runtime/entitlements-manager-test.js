@@ -25,8 +25,8 @@ import {XhrFetcher} from './fetcher';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {AnalyticsService} from './analytics-service';
 import {defaultConfig, AnalyticsMode} from '../api/subscriptions';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {ClientEventManager, createClientEvent} from './client-event-manager';
+import {AnalyticsEvent} from '../proto/api_messages';
+import {ClientEventManager} from './client-event-manager';
 
 describes.realWin('EntitlementsManager', {}, env => {
   let win;
@@ -593,15 +593,8 @@ describes.realWin('EntitlementsManager', {}, env => {
         .withExactArgs(true)
         .once();
       eventManagerMock
-        .expects('logEvent')
-        .withExactArgs(
-          createClientEvent(
-            AnalyticsEvent.IMPRESSION_PAYWALL,
-            false,
-            EventOriginator.SWG_CLIENT,
-            null
-          )
-        )
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL, false, null)
         .once();
       config.analyticsMode = AnalyticsMode.IMPRESSIONS;
       const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
@@ -628,15 +621,8 @@ describes.realWin('EntitlementsManager', {}, env => {
         .withExactArgs(true)
         .once();
       eventManagerMock
-        .expects('logEvent')
-        .withExactArgs(
-          createClientEvent(
-            AnalyticsEvent.IMPRESSION_PAYWALL,
-            false,
-            EventOriginator.SWG_CLIENT,
-            null
-          )
-        )
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL, false, null)
         .once();
       EntitlementsManager.prototype.getQueryString_ = () => {
         return '?utm_source=google&utm_medium=email&utm_campaign=campaign';
@@ -665,15 +651,8 @@ describes.realWin('EntitlementsManager', {}, env => {
         .withExactArgs(true)
         .once();
       eventManagerMock
-        .expects('logEvent')
-        .withExactArgs(
-          createClientEvent(
-            AnalyticsEvent.IMPRESSION_PAYWALL,
-            false,
-            EventOriginator.SWG_CLIENT,
-            null
-          )
-        )
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL, false, null)
         .once();
       EntitlementsManager.prototype.getQueryString_ = () => {
         return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';

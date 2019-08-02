@@ -30,28 +30,6 @@ function createEventErrorMessage(valueName, value) {
 }
 
 /**
- * Utility function to create a ClientEvent proto.
- * @param {!AnalyticsEvent} eventType
- * @param {?boolean=} isFromUserAction
- * @param {!EventOriginator=} eventOriginator
- * @param {?Object=} additionalParameters
- * @returns {!../api/client-event-manager-api.ClientEvent}
- */
-export function createClientEvent(
-  eventType,
-  isFromUserAction = false,
-  eventOriginator = EventOriginator.SWG_CLIENT,
-  additionalParameters = null
-) {
-  return {
-    eventType,
-    eventOriginator,
-    isFromUserAction,
-    additionalParameters,
-  };
-}
-
-/**
  * Throws an error if the event is invalid.
  * @param {!../api/client-event-manager-api.ClientEvent} event
  */
@@ -152,6 +130,25 @@ export class ClientEventManager {
         }
       }
       return Promise.resolve();
+    });
+  }
+
+  /**
+   * Creates an event with the arguments provided and calls logEvent.
+   * @param {!AnalyticsEvent} eventType
+   * @param {?boolean=} isFromUserAction
+   * @param {?Object=} additionalParameters
+   */
+  logSwgEvent(
+    eventType,
+    isFromUserAction = false,
+    additionalParameters = null
+  ) {
+    this.logEvent({
+      eventType,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction,
+      additionalParameters,
     });
   }
 }

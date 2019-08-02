@@ -18,9 +18,8 @@ import {Entitlement, Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
-import {createClientEvent} from './client-event-manager.js';
 import {feArgs, feUrl} from '../runtime/services';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {AnalyticsMode} from '../api/subscriptions';
 import {parseQueryString} from '../utils/url';
 
@@ -110,14 +109,7 @@ export class EntitlementsManager {
     // Sends event to logging service asynchronously
     this.deps_
       .eventManager()
-      .logEvent(
-        createClientEvent(
-          AnalyticsEvent.IMPRESSION_PAYWALL,
-          false,
-          EventOriginator.SWG_CLIENT,
-          null
-        )
-      );
+      .logSwgEvent(AnalyticsEvent.IMPRESSION_PAYWALL, false, null);
   }
 
   /**
