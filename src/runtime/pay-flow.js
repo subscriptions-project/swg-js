@@ -23,7 +23,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {
@@ -32,7 +32,6 @@ import {
   WindowOpenMode,
 } from '../api/subscriptions';
 import {UserData} from '../api/user-data';
-import {createClientEvent} from './client-event-manager.js';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseJson, tryParseJson} from '../utils/json';
@@ -86,7 +85,7 @@ export class PayStartFlow {
     /** @private @const {!../runtime/analytics-service.AnalyticsService} */
     this.analyticsService_ = deps.analytics();
 
-    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
+    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
   }
 
@@ -116,14 +115,7 @@ export class PayStartFlow {
       );
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
-    this.eventManager_.logEvent(
-      createClientEvent(
-        AnalyticsEvent.ACTION_SUBSCRIBE,
-        true,
-        EventOriginator.SWG_CLIENT,
-        null
-      )
-    );
+    this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_SUBSCRIBE, true, null);
     this.payClient_.start(
       {
         'apiVersion': 1,
@@ -173,14 +165,7 @@ export class PayCompleteFlow {
           } else {
             deps
               .eventManager()
-              .logEvent(
-                createClientEvent(
-                  AnalyticsEvent.EVENT_PAYMENT_FAILED,
-                  false,
-                  EventOriginator.SWG_CLIENT,
-                  null
-                )
-              );
+              .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false, null);
             deps.jserror().error('Pay failed', reason);
           }
           throw reason;
@@ -217,7 +202,7 @@ export class PayCompleteFlow {
     /** @private @const {!../runtime/analytics-service.AnalyticsService} */
     this.analyticsService_ = deps.analytics();
 
-    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
+    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
   }
 
@@ -236,13 +221,10 @@ export class PayCompleteFlow {
       }
     }
 
-    this.eventManager_.logEvent(
-      createClientEvent(
-        AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-        true,
-        EventOriginator.SWG_CLIENT,
-        null
-      )
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      true,
+      null
     );
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
@@ -286,13 +268,10 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   complete() {
-    this.eventManager_.logEvent(
-      createClientEvent(
-        AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-        true,
-        EventOriginator.SWG_CLIENT,
-        null
-      )
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+      true,
+      null
     );
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
@@ -304,13 +283,10 @@ export class PayCompleteFlow {
         // Ignore errors.
       })
       .then(() => {
-        this.eventManager_.logEvent(
-          createClientEvent(
-            AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-            true,
-            EventOriginator.SWG_CLIENT,
-            null
-          )
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
+          true,
+          null
         );
         this.deps_.entitlementsManager().setToastShown(true);
       });

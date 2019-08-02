@@ -876,7 +876,9 @@ export class ConfiguredRuntime {
     return Promise.resolve(this.propensityModule_);
   }
 
-  /** @override */
+  /** @override
+   * @return {!ClientEventManager}
+   */
   eventManager() {
     return this.eventManager_;
   }
