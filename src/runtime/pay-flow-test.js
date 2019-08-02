@@ -87,6 +87,7 @@ describes.realWin('PayStartFlow', {}, env => {
   let callbacksMock;
   let flow;
   let analyticsMock;
+  let eventManagerMock;
   const transactionIdRegex = /^.{8}-.{4}-.{4}-.{4}-.{12}$/;
   const productTypeRegex = /^(SUBSCRIPTION|UI_CONTRIBUTION)$/;
 
@@ -98,6 +99,7 @@ describes.realWin('PayStartFlow', {}, env => {
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     callbacksMock = sandbox.mock(runtime.callbacks());
     analyticsMock = sandbox.mock(runtime.analytics());
+    eventManagerMock = sandbox.mock(runtime.eventManager());
     flow = new PayStartFlow(runtime, 'sku1');
   });
 
@@ -106,6 +108,7 @@ describes.realWin('PayStartFlow', {}, env => {
     dialogManagerMock.verify();
     callbacksMock.verify();
     analyticsMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should have valid flow constructed in payStartFlow', () => {
@@ -139,9 +142,9 @@ describes.realWin('PayStartFlow', {}, env => {
       )
       .once();
     analyticsMock.expects('setSku').withExactArgs('sku1');
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_SUBSCRIBE);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_SUBSCRIBE, true, null);
     const flowPromise = flow.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -187,9 +190,9 @@ describes.realWin('PayStartFlow', {}, env => {
       )
       .once();
     analyticsMock.expects('setSku').withExactArgs('newSku');
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_SUBSCRIBE);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_SUBSCRIBE, true, null);
     const flowPromise = replaceFlow.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -230,9 +233,9 @@ describes.realWin('PayStartFlow', {}, env => {
       )
       .once();
     analyticsMock.expects('setSku').withExactArgs('newSku');
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_SUBSCRIBE);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_SUBSCRIBE, true, null);
     const flowPromise = replaceFlowNoProrationMode.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -276,6 +279,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let responseCallback;
   let flow;
   let analyticsMock;
+  let eventManagerMock;
   let jserrorMock;
   let port;
 
@@ -302,6 +306,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
+    eventManagerMock = sandbox.mock(runtime.eventManager());
     flow = new PayCompleteFlow(runtime);
   });
 
@@ -311,6 +316,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock.verify();
     analyticsMock.verify();
     jserrorMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should have valid flow constructed', () => {
@@ -339,9 +345,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null);
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
@@ -376,9 +382,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null);
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
@@ -436,15 +442,15 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .expects('unblockNextNotification')
       .withExactArgs()
       .once();
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true, null);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true, null);
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)
@@ -490,15 +496,15 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .expects('unblockNextNotification')
       .withExactArgs()
       .once();
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true, null);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true, null);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null);
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)
@@ -565,15 +571,15 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .expects('unblockNextNotification')
       .withExactArgs()
       .once();
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED);
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true, null);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true, null);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null);
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)
@@ -619,9 +625,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE)
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null)
       .once();
     sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);
@@ -652,9 +658,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    analyticsMock
-      .expects('logEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE)
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null)
       .once();
     sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);
@@ -682,9 +688,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       const error = new Error('intentional');
       analyticsMock.expects('setTransactionId').never();
       analyticsMock.expects('addLabels').never();
-      analyticsMock
-        .expects('logEvent')
-        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false, null)
         .once();
       jserrorMock
         .expects('error')
