@@ -115,7 +115,11 @@ export class PayStartFlow {
       );
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
-    this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_SUBSCRIBE, true, null);
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+      true,
+      null
+    );
     this.payClient_.start(
       {
         'apiVersion': 1,
