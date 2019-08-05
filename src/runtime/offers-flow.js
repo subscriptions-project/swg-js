@@ -17,7 +17,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows, ProductType} from '../api/subscriptions';
+import {SubscriptionFlows, ProductType, SubscriptionRequest} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 /**
@@ -67,6 +67,44 @@ export class OffersFlow {
       feArgsObj['oldSku'] = options.oldSku;
     }
 
+    if (feArgsObj['oldSku']) {
+      if (!feArgsObj['skus']) {
+        console.error("Need a sku list if old sku is provided!");
+        return;
+      }
+      // remove old sku from offers if in list
+      let skuList = feArgsObj['skus'];
+      let oldSku = feArgsObj['oldSku'];
+      skuList = skuList.filter(sku => sku !== oldSku);
+      if (skuList.length > 0) {
+        feArgsObj['skus'] = skuList;
+      } else {
+        console.error('Sku list only contained offer user already has');
+        return;
+      }
+    }
+
+    // redirect to payments if only one upgrade option is passed
+    if (feArgsObj['skus'] && feArgsObj['skus'].length === 1) {
+      const sku = feArgsObj['skus'][0];
+      const oldSku = feArgsObj['oldSku']
+      // object currently requires experimental flag
+      // so we need to check for oldSku to decide what to send
+      if (oldSku) {
+        new PayStartFlow(
+          this.deps_,
+          /** @type {SubscriptionRequest} */ {
+            skuId: sku,
+            oldSkuId: oldSku,
+          })
+          .start();
+        return;
+      } else {
+        new PayStartFlow(this.deps_, sku)
+          .start();
+        return;
+      }
+    }
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
         this.win_,
@@ -81,36 +119,48 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
-    // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SHOW_OFFERS);
-    this.activityIframeView_.onCancel(() => {
-      this.deps_.callbacks().triggerFlowCanceled(
+    if (this.activityIframeView_) { // so no error is thrown if offers skipped
+      // Start/cancel events.
+      this.deps_.callbacks().triggerFlowStarted(
           SubscriptionFlows.SHOW_OFFERS);
-    });
+      this.activityIframeView_.onCancel(() => {
+        this.deps_.callbacks().triggerFlowCanceled(
+            SubscriptionFlows.SHOW_OFFERS);
+      });
 
-    // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.onMessageDeprecated(result => {
-      if (result['alreadySubscribed']) {
-        this.deps_.callbacks().triggerLoginRequest({
-          linkRequested: !!result['linkRequested'],
-        });
-        return;
-      }
-      if (result['sku']) {
-        new PayStartFlow(
-            this.deps_,
-            /** @type {string} */ (result['sku']))
-            .start();
-        return;
-      }
-      if (result['native']) {
-        this.deps_.callbacks().triggerSubscribeRequest();
-        return;
-      }
-    });
+      // If result is due to OfferSelection, redirect to payments.
+      this.activityIframeView_.onMessageDeprecated(result => {
+        if (result['alreadySubscribed']) {
+          this.deps_.callbacks().triggerLoginRequest({
+            linkRequested: !!result['linkRequested'],
+          });
+          return;
+        }
+        if (result['oldSku']) {
+          new PayStartFlow(
+              this.deps_,
+              /** @type {SubscriptionRequest} */ {
+                skuId: result['sku'],
+                oldSkuId: result['oldSku'],
+              })
+              .start();
+          return;
+        }
+        if (result['sku']) {
+          new PayStartFlow(
+              this.deps_,
+              /** @type {string} */ (result['sku']))
+              .start();
+          return;
+        }
+        if (result['native']) {
+          this.deps_.callbacks().triggerSubscribeRequest();
+          return;
+        }
+      });
 
-    return this.dialogManager_.openView(this.activityIframeView_);
+      return this.dialogManager_.openView(this.activityIframeView_);
+    }
   }
 }
 
