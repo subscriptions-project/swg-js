@@ -42,7 +42,7 @@ describes.realWin('ButtonApi', {}, env => {
     analyticsMock = sandbox.mock(runtime.analytics());
     activitiesMock = sandbox.mock(runtime.activities());
     eventManagerMock = sandbox.mock(runtime.eventManager());
-    buttonApi = new ButtonApi(resolveDoc(doc), runtime.eventManager());
+    buttonApi = new ButtonApi(resolveDoc(doc), Promise.resolve(runtime));
     port = new ActivityPort();
     handler = sandbox.spy();
   });
@@ -64,7 +64,7 @@ describes.realWin('ButtonApi', {}, env => {
   });
 
   it('should inject stylesheet only once', () => {
-    new ButtonApi(resolveDoc(doc), runtime.eventManager()).init();
+    new ButtonApi(resolveDoc(doc), Promise.resolve(runtime)).init();
     buttonApi.init();
     const links = doc.querySelectorAll('link[href="$assets$/swg-button.css"]');
     expect(links).to.have.length(1);
@@ -185,7 +185,7 @@ describes.realWin('ButtonApi', {}, env => {
     expect(button.getAttribute('title')).to.equal("S'abonner avec Google");
   });
 
-  it('should log button click on create.', () => {
+  it('should log button click on create.', async () => {
     const button = buttonApi.create(handler);
     eventManagerMock
       .expects('logSwgEvent')
@@ -194,7 +194,7 @@ describes.realWin('ButtonApi', {}, env => {
     button.click();
   });
 
-  it('should log button click on attach.', () => {
+  it('should log button click on attach.', async () => {
     const button = doc.createElement('button');
     buttonApi.attach(button, {}, handler);
     eventManagerMock
@@ -346,7 +346,7 @@ describes.realWin('ButtonApi', {}, env => {
     activitiesMock.verify();
   });
 
-  it('should log smart button click', () => {
+  it('should log smart button click', async () => {
     const button = doc.createElement('button');
     button.className = 'swg-smart-button';
     analyticsMock.expects('getContext').returns(new AnalyticsContext());

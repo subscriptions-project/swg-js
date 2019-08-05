@@ -58,14 +58,14 @@ const TITLE_LANG_MAP = {
 export class ButtonApi {
   /**
    * @param {!../model/doc.Doc} doc
-   * @param {!./client-event-manager.ClientEventManager} eventManager
+   * @param {!Promise<!./runtime.ConfiguredRuntime>} configuredRuntimePromise
    */
-  constructor(doc, eventManager) {
+  constructor(doc, configuredRuntimePromise) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
 
-    /** @private @const {!./client-event-manager.ClientEventManager} */
-    this.eventManager_ = eventManager;
+    /** @private @const {!Promise<!./runtime.ConfiguredRuntime>} */
+    this.configuredRuntimePromise_ = configuredRuntimePromise;
   }
 
   /**
@@ -122,12 +122,16 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
-    button.addEventListener('click', () =>
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
-        true
-      )
-    );
+    button.addEventListener('click', () => {
+      this.configuredRuntimePromise_.then(configuredRuntime => {
+        configuredRuntime
+          .eventManager()
+          .logSwgEvent(
+            AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+            /* isFromUserAction */ true
+          );
+      });
+    });
     return button;
   }
 
@@ -186,9 +190,13 @@ export class ButtonApi {
     // Add required CSS class, if missing.
     button.classList.add('swg-smart-button');
     button.addEventListener('click', () =>
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
-        true
+      this.configuredRuntimePromise_.then(configuredRuntime =>
+        configuredRuntime
+          .eventManager()
+          .logSwgEvent(
+            AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+            /* isFromUserAction */ true
+          )
       )
     );
 

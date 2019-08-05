@@ -161,12 +161,8 @@ export class Runtime {
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
 
-    /** @private @const {!ClientEventManager} */
-
-    this.eventManager_ = new ClientEventManager(this.configuredPromise_);
-
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_, this.eventManager_);
+    this.buttonApi_ = new ButtonApi(this.doc_, this.configuredPromise_);
     this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
@@ -446,10 +442,6 @@ export class Runtime {
     });
   }
 
-  eventManager() {
-    return this.configured_(true).then(runtime => runtime.eventManager());
-  }
-
   /** @override */
   getLogger() {
     return this.configured_(true).then(runtime => runtime.getLogger());
@@ -555,7 +547,7 @@ export class ConfiguredRuntime {
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_, this.eventManager_);
+    this.buttonApi_ = new ButtonApi(this.doc_, opt_integr.configPromise);
 
     const preconnect = new Preconnect(this.win_.document);
 
