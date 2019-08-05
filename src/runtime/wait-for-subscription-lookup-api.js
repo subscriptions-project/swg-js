@@ -15,11 +15,8 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {
-  DeferredAccountCreationResponse,
-} from '../api/deferred-account-creation';
+import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
 import {feArgs, feUrl} from './services';
-
 
 export class WaitForSubscriptionLookupApi {
   /**
@@ -33,7 +30,7 @@ export class WaitForSubscriptionLookupApi {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
@@ -47,15 +44,15 @@ export class WaitForSubscriptionLookupApi {
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl('/waitforsubscriptionlookupiframe'),
-        feArgs({
-          publicationId: deps.pageConfig().getPublicationId(),
-          productId: deps.pageConfig().getProductId(),
-        }),
-        /* shouldFadeBody */ true,
-        /* hasLoadingIndicator */ true
+      this.win_,
+      this.activityPorts_,
+      feUrl('/waitforsubscriptionlookupiframe'),
+      feArgs({
+        publicationId: deps.pageConfig().getPublicationId(),
+        productId: deps.pageConfig().getProductId(),
+      }),
+      /* shouldFadeBody */ true,
+      /* hasLoadingIndicator */ true
     );
   }
 
@@ -65,15 +62,19 @@ export class WaitForSubscriptionLookupApi {
    */
   start() {
     this.openViewPromise_ = this.dialogManager_.openView(
-        this.activityIframeView_);
+      this.activityIframeView_
+    );
 
-    return this.accountPromise_.then(account => {
-      // Account was found.
-      this.dialogManager_.completeView(this.activityIframeView_);
-      return account;
-    }, reason => {
-      this.dialogManager_.completeView(this.activityIframeView_);
-      throw reason;
-    });
+    return this.accountPromise_.then(
+      account => {
+        // Account was found.
+        this.dialogManager_.completeView(this.activityIframeView_);
+        return account;
+      },
+      reason => {
+        this.dialogManager_.completeView(this.activityIframeView_);
+        throw reason;
+      }
+    );
   }
 }

@@ -13,17 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * @interface
+ */
+class Message {
+  /**
+   * @return {string}
+   */
+  label() {}
+
+  /**
+   * @return {!Array}
+   */
+  toArray() {}
+}
+
 /** @enum {number} */
 const AnalyticsEvent = {
   UNKNOWN: 0,
   IMPRESSION_PAYWALL: 1,
+  IMPRESSION_AD: 2,
+  IMPRESSION_OFFERS: 3,
+  IMPRESSION_SUBSCRIBE_BUTTON: 4,
+  IMPRESSION_SMARTBOX: 5,
+  IMPRESSION_SWG_BUTTON: 6,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
   ACTION_ACCOUNT_ACKNOWLEDGED: 1003,
+  ACTION_SUBSCRIPTIONS_LANDING_PAGE: 1004,
+  ACTION_PAYMENT_FLOW_STARTED: 1005,
+  ACTION_OFFER_SELECTED: 1006,
+  ACTION_SWG_BUTTON_CLICK: 1007,
   EVENT_PAYMENT_FAILED: 2000,
+  EVENT_CUSTOM: 3000,
+  EVENT_SUBSCRIPTION_STATE: 4000,
+};
+/** @enum {number} */
+const EventOriginator = {
+  UNKNOWN_CLIENT: 0,
+  SWG_CLIENT: 1,
+  AMP_CLIENT: 2,
+  PROPENSITY_CLIENT: 3,
+  SWG_SERVER: 4,
+  PUBLISHER_CLIENT: 5,
 };
 
+/**
+ * @implements {Message}
+ */
 class AnalyticsContext {
  /**
   * @param {!Array=} data
@@ -186,10 +224,11 @@ class AnalyticsContext {
 
   /**
    * @return {!Array}
+   * @override
    */
   toArray() {
     return [
-      'AnalyticsContext',  // message type
+      this.label(),  // message label
       this.embedderOrigin_,  // field 1 - embedder_origin
       this.transactionId_,  // field 2 - transaction_id
       this.referringOrigin_,  // field 3 - referring_origin
@@ -201,9 +240,84 @@ class AnalyticsContext {
       this.label_,  // field 9 - label
     ];
   }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AnalyticsContext';
+  }
 }
 
+/**
+ * @implements {Message}
+ */
+class AnalyticsEventMeta {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
 
+    /** @private {?EventOriginator} */
+    this.eventOriginator_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?boolean} */
+    this.isFromUserAction_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?EventOriginator}
+   */
+  getEventOriginator() {
+    return this.eventOriginator_;
+  }
+
+  /**
+   * @param {!EventOriginator} value
+   */
+  setEventOriginator(value) {
+    this.eventOriginator_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getIsFromUserAction() {
+    return this.isFromUserAction_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setIsFromUserAction(value) {
+    this.isFromUserAction_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.eventOriginator_,  // field 1 - event_originator
+      this.isFromUserAction_,  // field 2 - is_from_user_action
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AnalyticsEventMeta';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class AnalyticsRequest {
  /**
   * @param {!Array=} data
@@ -216,6 +330,14 @@ class AnalyticsRequest {
 
     /** @private {?AnalyticsEvent} */
     this.event_ = (data[2] == null) ? null : data[2];
+
+    /** @private {?AnalyticsEventMeta} */
+    this.meta_ = (data[3] == null || data[3] == undefined) ? null : new
+        AnalyticsEventMeta(data[3]);
+
+    /** @private {?EventParams} */
+    this.params_ = (data[4] == null || data[4] == undefined) ? null : new
+        EventParams(data[4]);
   }
 
   /**
@@ -247,27 +369,162 @@ class AnalyticsRequest {
   }
 
   /**
+   * @return {?AnalyticsEventMeta}
+   */
+  getMeta() {
+    return this.meta_;
+  }
+
+  /**
+   * @param {!AnalyticsEventMeta} value
+   */
+  setMeta(value) {
+    this.meta_ = value;
+  }
+
+  /**
+   * @return {?EventParams}
+   */
+  getParams() {
+    return this.params_;
+  }
+
+  /**
+   * @param {!EventParams} value
+   */
+  setParams(value) {
+    this.params_ = value;
+  }
+
+  /**
    * @return {!Array}
+   * @override
    */
   toArray() {
     return [
-      'AnalyticsRequest',  // message type
+      this.label(),  // message label
       this.context_ ? this.context_.toArray() : [], // field 1 - context
       this.event_,  // field 2 - event
+      this.meta_ ? this.meta_.toArray() : [], // field 3 - meta
+      this.params_ ? this.params_.toArray() : [], // field 4 - params
     ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AnalyticsRequest';
   }
 }
 
+/**
+ * @implements {Message}
+ */
+class EventParams {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?string} */
+    this.smartboxMessage_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getSmartboxMessage() {
+    return this.smartboxMessage_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSmartboxMessage(value) {
+    this.smartboxMessage_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.smartboxMessage_,  // field 1 - smartbox_message
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'EventParams';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SmartBoxMessage {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.isClicked_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getIsClicked() {
+    return this.isClicked_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setIsClicked(value) {
+    this.isClicked_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.isClicked_,  // field 1 - is_clicked
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SmartBoxMessage';
+  }
+}
 
 const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
+  'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
+  'EventParams': EventParams,
+  'SmartBoxMessage': SmartBoxMessage,
 };
 
 /**
  * Utility to deserialize a buffer
  * @param {!Array} data
- * @return {?Object}
+ * @return {!Message}
  */
 function deserialize(data) {
   /** {?string} */
@@ -281,9 +538,25 @@ function deserialize(data) {
   throw new Error('Deserialization failed for ' + data);
 }
 
+/**
+ * @param {function(new: T)} messageType
+ * @return {string}
+ * @template T
+ */
+function getLabel(messageType) {
+  const message = /** @type {!Message} */ (new messageType());
+  return message.label();
+}
+
 export {
   AnalyticsContext,
-  AnalyticsRequest,
   AnalyticsEvent,
+  AnalyticsEventMeta,
+  AnalyticsRequest,
+  EventOriginator,
+  EventParams,
+  Message,
+  SmartBoxMessage,
   deserialize,
+  getLabel,
 };

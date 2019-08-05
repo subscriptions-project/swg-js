@@ -16,8 +16,12 @@
 
 import {
     AnalyticsContext,
-    AnalyticsRequest,
     AnalyticsEvent,
+    AnalyticsEventMeta,
+    AnalyticsRequest,
+    EventOriginator,
+    EventParams,
+    SmartBoxMessage,
     deserialize} from './api_messages';
 
 /**
@@ -31,22 +35,17 @@ function isEqual(thisArray, otherArray) {
     return false;
   }
   for (let i = 0; i < otherArray.length; i++) {
-    if (Array.isArray(thisArray[i])) {
-      if (!Array.isArray(otherArray[i])) {
+    const first = thisArray[i];
+    const second = otherArray[i];
+    if (Array.isArray(first)) {
+      if (!Array.isArray(second)) {
         return false;
       }
-      const arr = thisArray[i];
-      const otherArr = otherArray[i];
-      if (arr.length != otherArr.length) {
+      if (!isEqual(first, second)) {
         return false;
-      }
-      for (let j = 0; j < arr.length; j++) {
-        if (arr[j] != otherArr[j]) {
-          return false;
-        }
       }
     } else {
-      if (thisArray[i] != otherArray[i]) {
+      if (first != second) {
         return false;
       }
     }
@@ -78,6 +77,20 @@ describe('api_messages', () => {
     });
   });
 
+  describe('test_AnalyticsEventMeta', () => {
+    it('should deserialize correctly', () => {
+      const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
+      analyticseventmeta.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
+      analyticseventmeta.setIsFromUserAction(false);
+      const analyticseventmetaSerialized = analyticseventmeta.toArray();
+      const analyticseventmetaDeserialized = deserialize(
+          analyticseventmetaSerialized);
+      expect(analyticseventmetaDeserialized).to.not.be.null;
+      expect(isEqual(analyticseventmeta.toArray(),
+          analyticseventmetaDeserialized.toArray())).to.be.true;
+    });
+  });
+
   describe('test_AnalyticsRequest', () => {
     it('should deserialize correctly', () => {
       const /** !AnalyticsRequest  */ analyticsrequest = new AnalyticsRequest();
@@ -93,12 +106,45 @@ describe('api_messages', () => {
       analyticscontext.setLabelList([]);
       analyticsrequest.setContext(analyticscontext);
       analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
+      const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
+      analyticseventmeta.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
+      analyticseventmeta.setIsFromUserAction(false);
+      analyticsrequest.setMeta(analyticseventmeta);
+      const /** !EventParams  */ eventparams = new EventParams();
+      eventparams.setSmartboxMessage('');
+      analyticsrequest.setParams(eventparams);
       const analyticsrequestSerialized = analyticsrequest.toArray();
       const analyticsrequestDeserialized = deserialize(
           analyticsrequestSerialized);
       expect(analyticsrequestDeserialized).to.not.be.null;
       expect(isEqual(analyticsrequest.toArray(),
           analyticsrequestDeserialized.toArray())).to.be.true;
+    });
+  });
+
+  describe('test_EventParams', () => {
+    it('should deserialize correctly', () => {
+      const /** !EventParams  */ eventparams = new EventParams();
+      eventparams.setSmartboxMessage('');
+      const eventparamsSerialized = eventparams.toArray();
+      const eventparamsDeserialized = deserialize(
+          eventparamsSerialized);
+      expect(eventparamsDeserialized).to.not.be.null;
+      expect(isEqual(eventparams.toArray(),
+          eventparamsDeserialized.toArray())).to.be.true;
+    });
+  });
+
+  describe('test_SmartBoxMessage', () => {
+    it('should deserialize correctly', () => {
+      const /** !SmartBoxMessage  */ smartboxmessage = new SmartBoxMessage();
+      smartboxmessage.setIsClicked(false);
+      const smartboxmessageSerialized = smartboxmessage.toArray();
+      const smartboxmessageDeserialized = deserialize(
+          smartboxmessageSerialized);
+      expect(smartboxmessageDeserialized).to.not.be.null;
+      expect(isEqual(smartboxmessage.toArray(),
+          smartboxmessageDeserialized.toArray())).to.be.true;
     });
   });
 });

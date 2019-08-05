@@ -52,7 +52,7 @@ JSON-LD and Microdata formats are supported; JSON-LD is preferred.
 
 Using JSON-LD, the markup for a publication `The Norcal Tribune` with a productID `norcal_tribune.com:basic` could look like:
 
-```
+```html
 <script type="application/ld+json">
 {
   "@context": "http://schema.org",
@@ -76,7 +76,7 @@ Using JSON-LD, the markup for a publication `The Norcal Tribune` with a productI
 
 The corresponding markup in Microdata format could look like:
 
-```
+```html
 <div itemscope itemtype="http://schema.org/NewsArticle">
   <meta itemprop="isAccessibleForFree" content="false"/>
   <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">

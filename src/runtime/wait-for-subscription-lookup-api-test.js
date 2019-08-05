@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-import {
-    ActivityPort,
-  } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {PageConfig} from '../model/page-config';
-import * as sinon from 'sinon';
+import {ActivityPort} from '../components/activities';
 
 describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
   let win;
@@ -45,9 +42,9 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
-    port.message = () => {};
+    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     accountPromise = Promise.resolve(account);
     waitingApi = new WaitForSubscriptionLookupApi(runtime, accountPromise);
@@ -65,15 +62,18 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
   });
 
   it('should start the flow correctly', () => {
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/waitforsubscriptionlookupiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
           productId,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     dialogManagerMock.expects('completeView').once();
     waitingApi.start();
     return waitingApi.openViewPromise_;
@@ -92,11 +92,15 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     resultResolver(Promise.reject(new Error(noAccountFound)));
 
     dialogManagerMock.expects('completeView').once();
-    return waitingApi.start().then(foundAccount => {
-      throw new Error(
-          'test failed. \"' + foundAccount + '\" should not be found');
-    }, reason => {
-      expect(reason).to.equal(noAccountFound);
-    });
+    return waitingApi.start().then(
+      foundAccount => {
+        throw new Error(
+          'test failed. "' + foundAccount + '" should not be found'
+        );
+      },
+      reason => {
+        expect(reason).to.equal(noAccountFound);
+      }
+    );
   });
 });

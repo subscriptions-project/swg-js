@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from 'web-activities/activity-ports';
+import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
-import {
-  ContributionsFlow,
-} from './contributions-flow';
+import {ContributionsFlow} from './contributions-flow';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
-import * as sinon from 'sinon';
-
 
 describes.realWin('ContributionsFlow', {}, env => {
   let win;
@@ -44,11 +40,10 @@ describes.realWin('ContributionsFlow', {}, env => {
     contributionsFlow = new ContributionsFlow(runtime, {'isClosable': true});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     messageCallback = undefined;
-    sandbox.stub(port, 'onMessage', callback => {
+    sandbox.stub(port, 'onMessageDeprecated').callsFake(callback => {
       messageCallback = callback;
     });
   });
@@ -60,8 +55,10 @@ describes.realWin('ContributionsFlow', {}, env => {
 
   it('should have valid ContributionsFlow constructed with a list', () => {
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -71,16 +68,20 @@ describes.realWin('ContributionsFlow', {}, env => {
           list: 'other',
           skus: null,
           isClosable: true,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     return contributionsFlow.start();
   });
 
   it('should have valid ContributionsFlow constructed with skus', () => {
-    contributionsFlow =
-        new ContributionsFlow(runtime, {skus: ['sku1', 'sku2']});
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    contributionsFlow = new ContributionsFlow(runtime, {
+      skus: ['sku1', 'sku2'],
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -90,8 +91,9 @@ describes.realWin('ContributionsFlow', {}, env => {
           list: 'default',
           skus: ['sku1', 'sku2'],
           isClosable: true,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     return contributionsFlow.start();
   });
 
@@ -99,7 +101,9 @@ describes.realWin('ContributionsFlow', {}, env => {
     const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     const nativeStub = sandbox.stub(
-        runtime.callbacks(), 'triggerSubscribeRequest');
+      runtime.callbacks(),
+      'triggerSubscribeRequest'
+    );
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return contributionsFlow.start().then(() => {
       // Unrelated message.
@@ -114,9 +118,10 @@ describes.realWin('ContributionsFlow', {}, env => {
       expect(nativeStub).to.not.be.called;
       // Login message.
       messageCallback({'alreadyMember': true});
-      expect(loginStub).to.be.calledOnce
-          .calledWithExactly({linkRequested: false});
-      expect(payStub).to.be.calledOnce;  // Dind't change.
+      expect(loginStub).to.be.calledOnce.calledWithExactly({
+        linkRequested: false,
+      });
+      expect(payStub).to.be.calledOnce; // Dind't change.
       expect(nativeStub).to.not.be.called;
     });
   });
@@ -129,8 +134,9 @@ describes.realWin('ContributionsFlow', {}, env => {
         'alreadyMember': true,
         'linkRequested': true,
       });
-      expect(loginStub).to.be.calledOnce
-          .calledWithExactly({linkRequested: true});
+      expect(loginStub).to.be.calledOnce.calledWithExactly({
+        linkRequested: true,
+      });
     });
   });
 });

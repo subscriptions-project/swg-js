@@ -60,11 +60,6 @@ const forbiddenTerms = {
   'sinon\\.useFake\\w+': {
     message: 'Use a sandbox instead to avoid repeated `#restore` calls',
   },
-  'sandbox\\.(spy|stub|mock)\\([^,\\s]*[iI]?frame[^,\\s]*,': {
-    message: 'Do NOT stub on a cross domain iframe! #5359\n' +
-        '  If this is same domain, mark /*OK*/.\n' +
-        '  If this is cross domain, overwrite the method directly.',
-  },
   'console\\.\\w+\\(': {
     message: 'If you run against this, use console/*OK*/.log to ' +
       'whitelist a legit case.',
@@ -85,6 +80,7 @@ const forbiddenTerms = {
       'examples/sample-pub/sample-pub-app.js',
       'examples/sample-pub/service/sample-pub-oauth-app.js',
       'examples/sample-pub/service/authorization-app.js',
+      'src/runtime/propensity-server.js',
     ],
   },
   'getCookie\\W': {
@@ -133,7 +129,6 @@ const forbiddenTerms = {
     message: 'SVG data images must use charset=utf-8: ' +
         '"data:image/svg+xml;charset=utf-8,..."',
   },
-  '(AMP|Amp|amp-|\\Wamp\\W)': 'Illegal AMP dependency',
 };
 
 const bannedTermsHelpString = 'Please review viewport service for helper ' +
@@ -201,7 +196,7 @@ const forbiddenTermsSrcInclusive = {
 
 // Terms that must appear in a source file.
 const requiredTerms = {
-  'Copyright 20(17|18) The Subscribe with Google Authors\\.':
+  'Copyright 20(17|18|19) The Subscribe with Google Authors\\.':
       dedicatedCopyrightNoteSources,
   'Licensed under the Apache License, Version 2\\.0':
       dedicatedCopyrightNoteSources,
@@ -221,7 +216,7 @@ function isTestFile(file) {
   const isTestFile = /^test-/.test(basename) || /^_init_tests/.test(basename)
       || /-test\.js$/.test(basename);
 
-  const dirs = file.relative.split('/');
+  const dirs = normalizeRelativePath(file.relative).split('/');
   return isTestFile || dirs.indexOf('test') >= 0;
 }
 
@@ -242,6 +237,19 @@ function stripComments(contents) {
   return contents.replace(/( |}|;|^) *\/\/.*/g, '$1');
 }
 
+
+/**
+ * Normalizes relative paths, to support developers using Windows machines.
+ * ex: "src\runtime\file.js" => "src/runtime/file.js"
+ *
+ * @param {string} path relative path to a file, ex: "src\runtime\file.js"
+ * @return {string}
+ */
+function normalizeRelativePath(path) {
+  return path.replace(/\\/g, '/');
+}
+
+
 /**
  * Logs any issues found in the contents of file based on terms (regex
  * patterns), and provides any possible fix information for matched terms if
@@ -255,7 +263,7 @@ function stripComments(contents) {
  */
 function matchTerms(file, terms) {
   const contents = stripComments(file.contents.toString());
-  const relative = file.relative;
+  const relative = normalizeRelativePath(file.relative);
   return Object.keys(terms).map(function(term) {
     let fix;
     const whitelist = terms[term].whitelist;
@@ -350,7 +358,7 @@ function isMissingTerms(file) {
     const matches = contents.match(new RegExp(term));
     if (!matches) {
       util.log(util.colors.red('Did not find required: "' + term +
-          '" in ' + file.relative));
+          '" in ' + normalizeRelativePath(file.relative)));
       util.log(util.colors.blue('=========='));
       return true;
     }
@@ -391,5 +399,6 @@ function checkForbiddenAndRequiredTerms() {
 }
 
 
-gulp.task('check-rules', 'Run validation against files to check for ' +
-  'forbidden and required terms', checkForbiddenAndRequiredTerms);
+checkForbiddenAndRequiredTerms.description =
+    'Run validation against files to check for forbidden and required terms';
+gulp.task('check-rules', checkForbiddenAndRequiredTerms);

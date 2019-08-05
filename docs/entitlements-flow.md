@@ -21,7 +21,7 @@ This flow would notify the publication site when SwG believes that the reader is
 It's recommended that the site install entitlements listener as early as practical using `setOnEntitlementsResponse` method.
 
 For instance:
-```
+```js
 subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
   entitlementsPromise.then(function(entitlements) {
     // Handle the entitlements.
@@ -33,13 +33,13 @@ This callback will be called whenever the new entitlements have been updated.
 
 In the [auto mode](./embed-client.md#auto-initialization), the entitlements are fetched automatically. In the [manual mode](./embed-client.md#manual-initialization) the site can call `start` method:
 
-```
+```js
 subscriptions.start();
 ```
 
 Likewise, at any point, the site can call `getEntitlements` method to access the entitlements, whether they were previously fetched or not:
 
-```
+```js
 subscriptions.getEntitlements().then(function(entitlements) {
   // Handle the entitlements.
 });
@@ -52,7 +52,7 @@ products | Array of strings | Subscribe with Google Product IDs the user can acc
 subscriptionToken | String  | <ul><li> When provided by Google this is a quoted string that represents an [IN_APP_PURCHASE_DATA](https://developer.android.com/google/play/billing/billing_reference#purchase-data-table) JSON object </li><li> When provided by the publisher: this is an opaque string the publisher provided to Google during the account linking process.The publisher should use this string to lookup the subscription on their backend </li><li> If you're going to provide JSON in your subscriptionToken, be sure to escape it properly (example below) </li></ul> |
 
 An example response:
-```
+```js
 {
   service: "subscribe.google.com",
   entitlements: [
@@ -79,7 +79,7 @@ See the [Entitlements](../src/api/entitlements.js) object for more detail.
 The successful entitlements object should be acknowledged by the publication site to stop it from showing the notification. This is done by calling the `entitlements.ack()` method.
 
 For instance:
-```
+```js
 subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
   entitlementsPromise.then(function(entitlements) {
     // Handle the entitlements.
@@ -111,7 +111,7 @@ This example is a skeleton for the following:
 3) Using the login flow functions if so,
 4) Initiating the Deferred Account Creation Flow if not,
 5) Remove the "Subscribed with ... [publication] [Manage Link]" bottom toast.
-```
+```js
 subscriptions.setOnEntitlementsResponse(entitlementsPromise => {
   entitlementsPromise.then(entitlements => {
     // Handle the entitlements.

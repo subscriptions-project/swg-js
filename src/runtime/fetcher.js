@@ -16,12 +16,10 @@
 
 import {Xhr} from '../utils/xhr';
 
-
 /**
  * @interface
  */
 export class Fetcher {
-
   /**
    * @param {string} unusedUrl
    * @return {!Promise<!Object>}
@@ -29,12 +27,10 @@ export class Fetcher {
   fetchCredentialedJson(unusedUrl) {}
 }
 
-
 /**
  * @implements {Fetcher}
  */
 export class XhrFetcher {
-
   /**
    * @param {!Window} win
    */

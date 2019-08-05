@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-import {
-    ActivityPort,
-  } from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
 import {LoginNotificationApi} from './login-notification-api';
 import {PageConfig} from '../model/page-config';
-import * as sinon from 'sinon';
+import {ActivityPort} from '../components/activities';
 
 describes.realWin('LoginNotificationApi', {}, env => {
   let win;
@@ -43,9 +40,9 @@ describes.realWin('LoginNotificationApi', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
-    port.message = () => {};
+    port.Deprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     loginNotificationApi = new LoginNotificationApi(runtime);
     resultResolver = null;
@@ -63,30 +60,37 @@ describes.realWin('LoginNotificationApi', {}, env => {
 
   it('should start the flow correctly', () => {
     callbacksMock.expects('triggerFlowStarted').once();
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/loginiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
           productId,
           userConsent: false,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
 
     loginNotificationApi.start();
     return loginNotificationApi.openViewPromise_;
   });
 
   it('should handle failure', () => {
-    activitiesMock.expects('openIframe')
-        .returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
-    return loginNotificationApi.start().then(() => {
-      throw new Error('must have failed');
-    }, reason => {
-      expect(() => {throw reason;}).to.throw(/broken/);
-    });
+    return loginNotificationApi.start().then(
+      () => {
+        throw new Error('must have failed');
+      },
+      reason => {
+        expect(() => {
+          throw reason;
+        }).to.throw(/broken/);
+      }
+    );
   });
 });

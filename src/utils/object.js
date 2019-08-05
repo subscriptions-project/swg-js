@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 /**
  * Returns a map-like object.
  * If opt_initial is provided, copies its own properties into the
@@ -30,7 +29,6 @@ export function map(opt_initial) {
   }
   return obj;
 }
-
 
 /**
  * Implements `Array.find()` method that's not yet available in all browsers.

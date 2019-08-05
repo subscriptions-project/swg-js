@@ -25,10 +25,9 @@ import {addQueryParam, parseUrl} from '../utils/url';
  */
 export const CACHE_KEYS = {
   'nocache': 1,
-  'hr1': 3600000,  // 1hr = 1000 * 60 * 60
-  'hr12': 43200000,  // 12hr = 1000 * 60 * 60 * 12
+  'hr1': 3600000, // 1hr = 1000 * 60 * 60
+  'hr12': 43200000, // 12hr = 1000 * 60 * 60 * 12
 };
-
 
 /**
  * @return {string}
@@ -36,7 +35,6 @@ export const CACHE_KEYS = {
 export function feOrigin() {
   return parseUrl('$frontend$').origin;
 }
-
 
 /**
  * @param {string} url Relative URL, e.g. "/service1".
@@ -46,6 +44,13 @@ export function serviceUrl(url) {
   return '$frontend$/swg/_/api/v1' + url;
 }
 
+/**
+ * @param {string} url  Relative URL, e.g. "/service1".
+ * @return {string} The complete URL.
+ */
+export function adsUrl(url) {
+  return '$adsServer$' + url;
+}
 
 /**
  * @param {string} url Relative URL, e.g. "/offersiframe".
@@ -56,7 +61,6 @@ export function feUrl(url, prefix = '') {
   return feCached('$frontend$' + prefix + '/swg/_/ui/v1' + url);
 }
 
-
 /**
  * @param {string} url FE URL.
  * @return {string} The complete URL including cache params.
@@ -64,7 +68,6 @@ export function feUrl(url, prefix = '') {
 export function feCached(url) {
   return addQueryParam(url, '_', cacheParam('$frontendCache$'));
 }
-
 
 /**
  * @param {!Object<string, ?>} args
@@ -75,7 +78,6 @@ export function feArgs(args) {
     '_client': 'SwG $internalRuntimeVersion$',
   });
 }
-
 
 /**
  * @param {string} cacheKey

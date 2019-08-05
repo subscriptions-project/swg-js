@@ -28,11 +28,9 @@ const TOAST_STORAGE_KEY = 'toast';
 const ENTS_STORAGE_KEY = 'ents';
 const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
 
-
 /**
  */
 export class EntitlementsManager {
-
   /**
    * @param {!Window} win
    * @param {!../model/page-config.PageConfig} pageConfig
@@ -83,7 +81,9 @@ export class EntitlementsManager {
   reset(opt_expectPositive) {
     this.responsePromise_ = null;
     this.positiveRetries_ = Math.max(
-        this.positiveRetries_, opt_expectPositive ? 3 : 0);
+      this.positiveRetries_,
+      opt_expectPositive ? 3 : 0
+    );
     if (opt_expectPositive) {
       this.storage_.remove(ENTS_STORAGE_KEY);
       this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
@@ -107,7 +107,9 @@ export class EntitlementsManager {
    */
   logPaywallImpression_() {
     // Sends event to logging service asynchronously
-    this.analyticsService_.logEvent(AnalyticsEvent.IMPRESSION_PAYWALL);
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.IMPRESSION_PAYWALL, false, null);
   }
 
   /**
@@ -125,22 +127,27 @@ export class EntitlementsManager {
   isGoogleUtmSource_() {
     // TODO(sohanirao): b/120294106
     const utmParams = parseQueryString(this.getQueryString_());
-    return (utmParams['utm_source'] == 'google');
+    return utmParams['utm_source'] == 'google';
   }
 
   /**
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements() {
+  getEntitlements(opt_encryptedDocumentKey) {
     if (!this.responsePromise_) {
-      this.responsePromise_ = this.getEntitlementsFlow_();
+      this.responsePromise_ = this.getEntitlementsFlow_(
+        opt_encryptedDocumentKey
+      );
     }
     return this.responsePromise_.then(response => {
       if (response.isReadyToPay != null) {
         this.analyticsService_.setReadyToPay(response.isReadyToPay);
       }
-      if (this.config_.analyticsMode == AnalyticsMode.IMPRESSIONS ||
-            this.isGoogleUtmSource_()) {
+      if (
+        this.config_.analyticsMode == AnalyticsMode.IMPRESSIONS ||
+        this.isGoogleUtmSource_()
+      ) {
         this.logPaywallImpression_();
       }
       return response;
@@ -154,7 +161,10 @@ export class EntitlementsManager {
    */
   pushNextEntitlements(raw, opt_isReadyToPay) {
     const entitlements = this.getValidJwtEntitlements_(
-        raw, /* requireNonExpired */ true, opt_isReadyToPay);
+      raw,
+      /* requireNonExpired */ true,
+      opt_isReadyToPay
+    );
     if (entitlements && entitlements.enablesThis()) {
       this.storage_.set(ENTS_STORAGE_KEY, raw);
       return true;
@@ -163,21 +173,25 @@ export class EntitlementsManager {
   }
 
   /**
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  getEntitlementsFlow_() {
-    return this.fetchEntitlementsWithCaching_().then(entitlements => {
-      this.onEntitlementsFetched_(entitlements);
-      return entitlements;
-    });
+  getEntitlementsFlow_(opt_encryptedDocumentKey) {
+    return this.fetchEntitlementsWithCaching_(opt_encryptedDocumentKey).then(
+      entitlements => {
+        this.onEntitlementsFetched_(entitlements);
+        return entitlements;
+      }
+    );
   }
 
   /**
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetchEntitlementsWithCaching_() {
+  fetchEntitlementsWithCaching_(opt_encryptedDocumentKey) {
     return Promise.all([
       this.storage_.get(ENTS_STORAGE_KEY),
       this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY),
@@ -185,10 +199,12 @@ export class EntitlementsManager {
       const raw = cachedValues[0];
       const irtp = cachedValues[1];
       // Try cache first.
-      if (raw) {
+      if (raw && !opt_encryptedDocumentKey) {
         const cached = this.getValidJwtEntitlements_(
-            raw, /* requireNonExpired */ true,
-            irtpStringToBoolean(irtp));
+          raw,
+          /* requireNonExpired */ true,
+          irtpStringToBoolean(irtp)
+        );
         if (cached && cached.enablesThis()) {
           // Already have a positive response.
           this.positiveRetries_ = 0;
@@ -196,7 +212,7 @@ export class EntitlementsManager {
         }
       }
       // If cache didn't match, perform fetch.
-      return this.fetchEntitlements_().then(ents => {
+      return this.fetchEntitlements_(opt_encryptedDocumentKey).then(ents => {
         // If entitlements match the product, store them in cache.
         if (ents && ents.enablesThis() && ents.raw) {
           this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
@@ -207,16 +223,17 @@ export class EntitlementsManager {
   }
 
   /**
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetchEntitlements_() {
+  fetchEntitlements_(opt_encryptedDocumentKey) {
     // TODO(dvoytenko): Replace retries with consistent fetch.
     let positiveRetries = this.positiveRetries_;
     this.positiveRetries_ = 0;
     const attempt = () => {
       positiveRetries--;
-      return this.fetch_().then(entitlements => {
+      return this.fetch_(opt_encryptedDocumentKey).then(entitlements => {
         if (entitlements.enablesThis() || positiveRetries <= 0) {
           return entitlements;
         }
@@ -265,7 +282,10 @@ export class EntitlementsManager {
     const signedData = json['signedEntitlements'];
     if (signedData) {
       const entitlements = this.getValidJwtEntitlements_(
-          signedData, /* requireNonExpired */ false, isReadyToPay);
+        signedData,
+        /* requireNonExpired */ false,
+        isReadyToPay
+      );
       if (entitlements) {
         return entitlements;
       }
@@ -283,10 +303,16 @@ export class EntitlementsManager {
    * @param {string} raw
    * @param {boolean} requireNonExpired
    * @param {boolean=} opt_isReadyToPay
+   * @param {?string=} opt_decryptedDocumentKey
    * @return {?Entitlements}
    * @private
    */
-  getValidJwtEntitlements_(raw, requireNonExpired, opt_isReadyToPay) {
+  getValidJwtEntitlements_(
+    raw,
+    requireNonExpired,
+    opt_isReadyToPay,
+    opt_decryptedDocumentKey
+  ) {
     try {
       const jwt = this.jwtHelper_.decode(raw);
       if (requireNonExpired) {
@@ -297,11 +323,21 @@ export class EntitlementsManager {
         }
       }
       const entitlementsClaim = jwt['entitlements'];
-      return entitlementsClaim && this.createEntitlements_(
-          raw, entitlementsClaim, opt_isReadyToPay) || null;
+      return (
+        (entitlementsClaim &&
+          this.createEntitlements_(
+            raw,
+            entitlementsClaim,
+            opt_isReadyToPay,
+            opt_decryptedDocumentKey
+          )) ||
+        null
+      );
     } catch (e) {
       // Ignore the error.
-      this.win_.setTimeout(() => {throw e;});
+      this.win_.setTimeout(() => {
+        throw e;
+      });
     }
     return null;
   }
@@ -310,17 +346,20 @@ export class EntitlementsManager {
    * @param {string} raw
    * @param {!Object|!Array<!Object>} json
    * @param {boolean=} opt_isReadyToPay
+   * @param {?string=} opt_decryptedDocumentKey
    * @return {!Entitlements}
    * @private
    */
-  createEntitlements_(raw, json, opt_isReadyToPay) {
+  createEntitlements_(raw, json, opt_isReadyToPay, opt_decryptedDocumentKey) {
     return new Entitlements(
-        SERVICE_ID,
-        raw,
-        Entitlement.parseListFromJson(json),
-        this.pageConfig_.getProductId(),
-        this.ack_.bind(this),
-        opt_isReadyToPay);
+      SERVICE_ID,
+      raw,
+      Entitlement.parseListFromJson(json),
+      this.pageConfig_.getProductId(),
+      this.ack_.bind(this),
+      opt_isReadyToPay,
+      opt_decryptedDocumentKey
+    );
   }
 
   /**
@@ -337,8 +376,9 @@ export class EntitlementsManager {
     }
 
     // Notify on the received entitlements.
-    this.deps_.callbacks().triggerEntitlementsResponse(
-        Promise.resolve(entitlements));
+    this.deps_
+      .callbacks()
+      .triggerEntitlementsResponse(Promise.resolve(entitlements));
 
     // Show a toast if needed.
     this.maybeShowToast_(entitlements);
@@ -373,10 +413,14 @@ export class EntitlementsManager {
    */
   showToast_(entitlement) {
     const source = entitlement.source || 'google';
-    return new Toast(this.deps_, feUrl('/toastiframe'), feArgs({
-      'publicationId': this.publicationId_,
-      'source': source,
-    })).open();
+    return new Toast(
+      this.deps_,
+      feUrl('/toastiframe'),
+      feArgs({
+        'publicationId': this.publicationId_,
+        'source': source,
+      })
+    ).open();
   }
 
   /**
@@ -390,16 +434,22 @@ export class EntitlementsManager {
   }
 
   /**
+   * @param {?string=} opt_encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetch_() {
-    const url = serviceUrl(
-        '/publication/' +
-        encodeURIComponent(this.publicationId_) +
-        '/entitlements');
-    return this.fetcher_.fetchCredentialedJson(url)
-        .then(json => this.parseEntitlements(json));
+  fetch_(opt_encryptedDocumentKey) {
+    let url =
+      '/publication/' +
+      encodeURIComponent(this.publicationId_) +
+      '/entitlements';
+    if (opt_encryptedDocumentKey) {
+      //TODO(chenshay): Make this a 'Post'.
+      url += '?crypt=' + encodeURIComponent(opt_encryptedDocumentKey);
+    }
+    return this.fetcher_
+      .fetchCredentialedJson(serviceUrl(url))
+      .then(json => this.parseEntitlements(json));
   }
 }
 

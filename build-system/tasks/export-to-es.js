@@ -59,6 +59,7 @@ function runAllExportsToAmp() {
     'assets': 'https://news.google.com/swg/js/v1',
     'payEnvironment': 'PRODUCTION',
     'playEnvironment': 'PROD',
+    'adsServer': 'https://pubads.g.doubleclick.net',
   }, {
     config: 'dist/amp/config.js',
     swg: 'dist/amp/swg.js',
@@ -101,10 +102,6 @@ async function exportToEs6(inputFile, outputFile) {
     );
   }
 
-  // Replace module-based types in comments.
-  // TODO(dvoytenko): Remove once AMP figures out 3p compilation story.
-  output = output.replace(/(!|\?)\.[^>)}]*/g, '*');
-
   // Change the export format.
   output = output.replace(/module.exports\s*\=\s*\{/g, 'export {');
 
@@ -144,5 +141,8 @@ async function mkdirs(paths) {
 }
 
 
-gulp.task('export-to-es-all', 'All exports to ES', runAllExportsToEs);
-gulp.task('export-to-amp', 'All exports to AMP', runAllExportsToAmp);
+runAllExportsToEs.description = 'All exports to ES';
+gulp.task('export-to-es-all', runAllExportsToEs);
+
+runAllExportsToAmp.description = 'All exports to AMP';
+gulp.task('export-to-amp', runAllExportsToAmp);

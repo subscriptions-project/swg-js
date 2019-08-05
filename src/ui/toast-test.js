@@ -15,11 +15,10 @@
  */
 
 import {Toast} from './toast';
-import {ActivityPort} from 'web-activities/activity-ports';
+import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from '../runtime/runtime';
 import {PageConfig} from '../model/page-config';
 import {getStyle} from '../utils/style';
-import * as sinon from 'sinon';
 
 const src = '$frontend$/swglib/toastiframe?_=_';
 
@@ -46,7 +45,7 @@ describes.realWin('Toast', {}, env => {
     toast.whenReady = () => Promise.resolve();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessage = () => {};
+    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
   });
 
@@ -60,22 +59,25 @@ describes.realWin('Toast', {}, env => {
       expect(getStyle(iframe, 'bottom')).to.equal('0px');
       expect(getStyle(iframe, 'display')).to.equal('block');
 
-    // These two properties are not set !important.
+      // These two properties are not set !important.
       expect(getStyle(iframe, 'width')).to.equal('100%');
       expect(getStyle(iframe, 'left')).to.equal('0px');
     });
   });
 
-  it('should build the content of toast iframe', function* () {
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+  it('should build the content of toast iframe', function*() {
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swglib/toastiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
           source: 'google',
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     return toast.open();
   });
 });

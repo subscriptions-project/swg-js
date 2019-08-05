@@ -69,7 +69,7 @@ export function isObject(value) {
  * @return {boolean}
  */
 export function isFiniteNumber(value) {
-  return (typeof value === 'number' && isFinite(value));
+  return typeof value === 'number' && isFinite(value);
 }
 
 /**
@@ -96,4 +96,20 @@ export function isEnumValue(enumObj, s) {
     }
   }
   return false;
+}
+
+/**
+ * True if the value is a function.
+ * @param {*} value
+ */
+export function isFunction(value) {
+  return value !== null && typeof value === 'function';
+}
+
+/**
+ * True if the value is either true or false.
+ * @param {?*} value
+ */
+export function isBoolean(value) {
+  return value === true || value === false;
 }

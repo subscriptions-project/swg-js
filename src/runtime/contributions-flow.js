@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
-
 /**
  * The class for Contributions flow.
  */
 export class ContributionsFlow {
-
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.OffersRequest|undefined} options
@@ -40,7 +37,7 @@ export class ContributionsFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
@@ -50,18 +47,19 @@ export class ContributionsFlow {
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl('/contributionsiframe'),
-        feArgs({
-          'productId': deps.pageConfig().getProductId(),
-          'publicationId': deps.pageConfig().getPublicationId(),
-          'productType': ProductType.UI_CONTRIBUTION,
-          'list': options && options.list || 'default',
-          'skus': options && options.skus || null,
-          'isClosable': isClosable,
-        }),
-        /* shouldFadeBody */ true);
+      this.win_,
+      this.activityPorts_,
+      feUrl('/contributionsiframe'),
+      feArgs({
+        'productId': deps.pageConfig().getProductId(),
+        'publicationId': deps.pageConfig().getPublicationId(),
+        'productType': ProductType.UI_CONTRIBUTION,
+        'list': (options && options.list) || 'default',
+        'skus': (options && options.skus) || null,
+        'isClosable': isClosable,
+      }),
+      /* shouldFadeBody */ true
+    );
   }
 
   /**
@@ -70,15 +68,17 @@ export class ContributionsFlow {
    */
   start() {
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+    this.deps_
+      .callbacks()
+      .triggerFlowStarted(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     this.activityIframeView_.onCancel(() => {
-      this.deps_.callbacks().triggerFlowCanceled(
-          SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+      this.deps_
+        .callbacks()
+        .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     });
 
     // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.onMessage(result => {
+    this.activityIframeView_.onMessageDeprecated(result => {
       if (result['alreadyMember']) {
         this.deps_.callbacks().triggerLoginRequest({
           linkRequested: !!result['linkRequested'],
@@ -87,10 +87,10 @@ export class ContributionsFlow {
       }
       if (result['sku']) {
         new PayStartFlow(
-            this.deps_,
-            /** @type {string} */ (result['sku']),
-            ProductType.UI_CONTRIBUTION)
-            .start();
+          this.deps_,
+          /** @type {string} */ (result['sku']),
+          ProductType.UI_CONTRIBUTION
+        ).start();
         return;
       }
     });

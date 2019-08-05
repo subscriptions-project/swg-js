@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-
 /**
- * @param {!web-activities/activity-ports.ActivityPort} port
+ * @param {!../components/activities.ActivityPortDef} port
  * @param {string} requireOrigin
  * @param {boolean} requireOriginVerified
  * @param {boolean} requireSecureChannel
  * @return {!Promise<!Object>}
  */
 export function acceptPortResultData(
-    port,
-    requireOrigin,
-    requireOriginVerified,
-    requireSecureChannel) {
+  port,
+  requireOrigin,
+  requireOriginVerified,
+  requireSecureChannel
+) {
   return port.acceptResult().then(result => {
-    if (result.origin != requireOrigin ||
-        requireOriginVerified && !result.originVerified ||
-        requireSecureChannel && !result.secureChannel) {
+    if (
+      result.origin != requireOrigin ||
+      (requireOriginVerified && !result.originVerified) ||
+      (requireSecureChannel && !result.secureChannel)
+    ) {
       throw new Error('channel mismatch');
     }
     return result.data;

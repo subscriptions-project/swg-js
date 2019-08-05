@@ -15,12 +15,8 @@
  */
 
 import {JsError} from './jserror';
-import {
-  parseQueryString,
-  parseUrl,
-} from '../utils/url';
+import {parseQueryString, parseUrl} from '../utils/url';
 import {resolveDoc} from '../model/doc';
-
 
 describes.realWin('JsError', {}, env => {
   let doc;
@@ -31,7 +27,7 @@ describes.realWin('JsError', {}, env => {
     doc = env.win.document;
     jsError = new JsError(resolveDoc(doc));
     elements = [];
-    sandbox.stub(doc, 'createElement', name => {
+    sandbox.stub(doc, 'createElement').callsFake(name => {
       const element = {name};
       elements.push(element);
       return element;
@@ -45,12 +41,12 @@ describes.realWin('JsError', {}, env => {
       expect(elements[0].name).to.equal('img');
       const src = parseUrl(elements[0].src);
       const params = parseQueryString(src.search);
-      expect(src.pathname)
-          .to.equal('/$frontend$/_/SubscribewithgoogleClientUi/jserror');
+      expect(src.pathname).to.equal(
+        '/$frontend$/_/SubscribewithgoogleClientUi/jserror'
+      );
       expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
-      expect(params['line']).to.equal('1');
       expect(params['error']).to.equal('Error: broken');
-      expect(params['trace']).to.match(/Error: broken/);
+      expect(params['trace']).to.match(/browserify.js/);
       expect(error.reported).to.be.true;
     });
   });
@@ -70,12 +66,12 @@ describes.realWin('JsError', {}, env => {
       expect(elements[0].name).to.equal('img');
       const src = parseUrl(elements[0].src);
       const params = parseQueryString(src.search);
-      expect(src.pathname)
-          .to.equal('/$frontend$/_/SubscribewithgoogleClientUi/jserror');
+      expect(src.pathname).to.equal(
+        '/$frontend$/_/SubscribewithgoogleClientUi/jserror'
+      );
       expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
-      expect(params['line']).to.equal('1');
       expect(params['error']).to.equal('Error: A B: broken');
-      expect(params['trace']).to.match(/Error: A B: broken/);
+      expect(params['trace']).to.match(/browserify.js/);
     });
   });
 
@@ -85,12 +81,12 @@ describes.realWin('JsError', {}, env => {
       expect(elements[0].name).to.equal('img');
       const src = parseUrl(elements[0].src);
       const params = parseQueryString(src.search);
-      expect(src.pathname)
-          .to.equal('/$frontend$/_/SubscribewithgoogleClientUi/jserror');
+      expect(src.pathname).to.equal(
+        '/$frontend$/_/SubscribewithgoogleClientUi/jserror'
+      );
       expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
-      expect(params['line']).to.equal('1');
       expect(params['error']).to.equal('Error: A B');
-      expect(params['trace']).to.match(/Error: A B/);
+      expect(params['trace']).to.match(/browserify.js/);
     });
   });
 });

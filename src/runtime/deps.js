@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-
 /** @interface */
 export class DepsDef {
-
   /**
    * @return {!../model/doc.Doc}
    */
@@ -39,7 +37,7 @@ export class DepsDef {
   pageConfig() {}
 
   /**
-   * @return {!web-activities/activity-ports.ActivityPorts}
+   * @return {!../components/activities.ActivityPorts}
    */
   activities() {}
 
@@ -77,4 +75,9 @@ export class DepsDef {
    * @return {!../runtime/jserror.JsError}
    */
   jserror() {}
+
+  /**
+   * @return {!../runtime/client-event-manager.ClientEventManager}
+   */
+  eventManager() {}
 }

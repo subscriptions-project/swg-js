@@ -20,7 +20,6 @@ import {log} from './log';
  * Helper with all things Timer.
  */
 export class Timer {
-
   /**
    * @param {!Window} win
    */
@@ -51,13 +50,15 @@ export class Timer {
       // For a delay of zero,  schedule a promise based micro task since
       // they are predictably fast.
       const id = 'p' + this.taskCount_++;
-      this.resolved_.then(() => {
-        if (this.canceled_[id]) {
-          delete this.canceled_[id];
-          return;
-        }
-        callback();
-      }).catch(log);
+      this.resolved_
+        .then(() => {
+          if (this.canceled_[id]) {
+            delete this.canceled_[id];
+            return;
+          }
+          callback();
+        })
+        .catch(log);
       return id;
     }
     const wrapped = () => {
@@ -148,5 +149,4 @@ export class Timer {
       }, delay));
     });
   }
-
 }

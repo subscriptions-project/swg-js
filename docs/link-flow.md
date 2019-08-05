@@ -16,32 +16,56 @@ limitations under the License.
 
 # SwG Link Flow
 
-This flow is normally originated from another surface and allows the reader to link this publication's subscription to that surface. See [Subscriptions APIs](./core-apis.md).
+This flow is normally originated from another surface and allows the user to link the publication's subscription to the surface. See [Subscriptions APIs](./core-apis.md).
 
 The link flow would normally be executed by a 3p surface to let a user to claim an existing subscription. However, SwG client provides `linkAccount` and `setOnLinkComplete` APIs for testing purposes.
 
 SwG supports two flavors of OAuth account linking:
- - [OAuth implicit flow](https://developers.google.com/actions/identity/oauth2-implicit-flow)
- - [OAuth authorization code flow](https://developers.google.com/actions/identity/oauth2-code-flow)
+ - [OAuth implicit flow](https://developers.google.com/actions/identity/oauth2)
+ - [OAuth authorization code flow](https://developers.google.com/actions/identity/oauth2?oauth=code)
 
 # SwG Link Save flow
 
-This flow is normally originated from the publisher and allows the reader to link publication's subscription to the reader's account.
+This flow is normally originated from the publisher and allows the user to link the publication's subscription to the user's account.
 
-To start the saving subscription link, provide a callback synchronously returning a token or authCode corresponding to the reader's
-subscription, or a Promise to return it asynchronously Eg:
+As a part of the flow, a dialog will prompt the user to opt-in to saving the subscription link.  If the user agrees, the publisher generates a corresponding access token.  Once the subscription link is saved, the user will see a progress indicator, then a confirmation dialog.  Completion of the link save flow or the user declining to opt-in can be detected as shown in the examples below.
 
-```
-subscriptions.saveSubscription(() => {return {token: 'THE TOKEN'}});
-```
-OR
+To start the link save flow, provide an access token.  For OAuth implicit flow, generate a `token` value.  For OAuth authorization code flow, generate an `authCode` value.  The `token` or `authCode` may be generated after user confirmation, or in advance.
 
-```
+
+## Generating the token after user confirmation
+
+```js
 const requestPromise = new Promise(resolve => {
-    // whenever available
-    resolve({authCode: 'THE CODE'});
+    // when using the implicit flow, generate a token
+    resolve({token: 'entitlements_access_token'});
+
+    // or when using the auth code flow, generate an auth code
+    resolve({authCode: 'auth_code'});
 });
-subscriptions.saveSubscription(() => requestPromise));
+
+subscriptions.saveSubscription(() => requestPromise)).then(
+    result => {
+        if (result) {
+            // link save flow completed successfully
+        } else {
+            // user declined or link save flow failed
+        }
+    }
+);
 ```
 
-The dialog will prompt the user to opt-in to save the subscription. If the user agrees, the provided callback will be called to resolve the token/authCode. Once the subscription is saved, the user will see a progress indicator and a confirmation window that subscription is saved.
+## Generating the token in advance
+
+
+```
+// when using the implicit flow, generate a token
+subscriptions.saveSubscription(() => {return {token: 'access_token'}}).then(
+  // handle flow completion or user declining as shown in above example
+);
+
+// or when using the auth code flow, generate an auth code
+subscriptions.saveSubscription(() => {return {authCode: 'auth_code'}}).then(
+  // handle flow completion or user declining
+);
+```

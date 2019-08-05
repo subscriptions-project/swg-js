@@ -21,7 +21,6 @@
 
 import {isObject} from './types';
 
-
 /**
  * Recreates objects with prototype-less copies.
  * @param {!JsonObject} obj
@@ -38,7 +37,6 @@ export function recreateNonProtoObject(obj) {
   }
   return /** @type {!JsonObject} */ (copy);
 }
-
 
 /**
  * Returns a value from an object for a field-based expression. The expression
@@ -64,9 +62,11 @@ export function getValueForExpr(obj, expr) {
       value = undefined;
       break;
     }
-    if (!isObject(value) ||
-            value[part] === undefined ||
-            !hasOwnProperty(value, part)) {
+    if (
+      !isObject(value) ||
+      value[part] === undefined ||
+      !hasOwnProperty(value, part)
+    ) {
       value = undefined;
       break;
     }
@@ -83,7 +83,7 @@ export function getValueForExpr(obj, expr) {
  * @return {?JsonObject|undefined} May be extend to parse arrays.
  */
 export function parseJson(json) {
-  return /** @type {?JsonObject} */(JSON.parse(/** @type {string} */ (json)));
+  return /** @type {?JsonObject} */ (JSON.parse(/** @type {string} */ (json)));
 }
 
 /**
@@ -106,7 +106,6 @@ export function tryParseJson(json, opt_onFailed) {
   }
 }
 
-
 /**
  * @param {*} obj
  * @param {string} key
@@ -117,5 +116,7 @@ function hasOwnProperty(obj, key) {
     return false;
   }
   return Object.prototype.hasOwnProperty.call(
-      /** @type {!Object} */ (obj), key);
+    /** @type {!Object} */ (obj),
+    key
+  );
 }

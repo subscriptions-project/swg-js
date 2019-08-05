@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-import {ActivityPorts} from 'web-activities/activity-ports';
+import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ButtonApi} from './button-api';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
-import {
-  ContributionsFlow,
-} from './contributions-flow';
+import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
@@ -35,29 +33,18 @@ import {
   LinkbackFlow,
   LinkSaveFlow,
 } from './link-accounts-flow';
-import {
-  LoginPromptApi,
-} from './login-prompt-api';
+import {LoginPromptApi} from './login-prompt-api';
 import {LoginNotificationApi} from './login-notification-api';
 import {PayClient} from './pay-client';
-import {
-  WaitForSubscriptionLookupApi,
-} from './wait-for-subscription-lookup-api';
+import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {OffersApi} from './offers-api';
-import {
-  OffersFlow,
-  SubscribeOptionFlow,
-  AbbrvOfferFlow,
-} from './offers-flow';
+import {OffersFlow, SubscribeOptionFlow, AbbrvOfferFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {
   PageConfigResolver,
   getControlFlag,
 } from '../model/page-config-resolver';
-import {
-  PayStartFlow,
-  PayCompleteFlow,
-} from './pay-flow';
+import {PayStartFlow, PayCompleteFlow} from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
 import {Storage} from './storage';
 import {
@@ -74,14 +61,14 @@ import {setExperiment} from './experiments';
 import {AnalyticsService} from './analytics-service';
 import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
+import {ClientEventManager} from './client-event-manager';
+import {Logger} from './logger';
 
 const RUNTIME_PROP = 'SWG';
-const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS';  // MIGRATE
-
+const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
 
 /** @private {Runtime} */
 let runtimeInstance_;
-
 
 /**
  * Returns runtime for testing if available. Throws if the runtime is not
@@ -95,7 +82,6 @@ export function getRuntime() {
   }
   return runtimeInstance_;
 }
-
 
 /**
  * @param {!Window} win
@@ -138,7 +124,6 @@ export function installRuntime(win) {
   runtime.startSubscriptionsFlowIfNeeded();
 }
 
-
 /**
  * @implements {Subscriptions}
  */
@@ -178,7 +163,7 @@ export class Runtime {
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
-    this.buttonApi_.init();  // Injects swg-button stylesheet.
+    this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
   /**
@@ -199,28 +184,35 @@ export class Runtime {
       /** @type {!Promise<!PageConfig>} */
       let pageConfigPromise;
       if (this.productOrPublicationId_) {
-        pageConfigPromise = Promise.resolve(new PageConfig(
-            this.productOrPublicationId_,
-            /* locked */ false));
+        pageConfigPromise = Promise.resolve(
+          new PageConfig(this.productOrPublicationId_, /* locked */ false)
+        );
       } else {
         this.pageConfigResolver_ = new PageConfigResolver(this.doc_);
-        pageConfigPromise = this.pageConfigResolver_.resolveConfig()
-            .then(config => {
-              this.pageConfigResolver_ = null;
-              return config;
-            });
+        pageConfigPromise = this.pageConfigResolver_
+          .resolveConfig()
+          .then(config => {
+            this.pageConfigResolver_ = null;
+            return config;
+          });
       }
-      pageConfigPromise.then(pageConfig => {
-        this.configuredResolver_(new ConfiguredRuntime(
-            this.doc_,
-            pageConfig,
-            /* opt_integr */ undefined,
-            this.config_));
-        this.configuredResolver_ = null;
-      }, reason => {
-        this.configuredResolver_(Promise.reject(reason));
-        this.configuredResolver_ = null;
-      });
+      pageConfigPromise.then(
+        pageConfig => {
+          this.configuredResolver_(
+            new ConfiguredRuntime(
+              this.doc_,
+              pageConfig,
+              /* opt_integr */ {configPromise: this.configuredPromise_},
+              this.config_
+            )
+          );
+          this.configuredResolver_ = null;
+        },
+        reason => {
+          this.configuredResolver_(Promise.reject(reason));
+          this.configuredResolver_ = null;
+        }
+      );
     } else if (commit && this.pageConfigResolver_) {
       this.pageConfigResolver_.check();
     }
@@ -256,149 +248,160 @@ export class Runtime {
   configure(config) {
     // Accumulate config for startup.
     Object.assign(this.config_, config);
-    return this.configured_(false)
-        .then(runtime => runtime.configure(config));
+    return this.configured_(false).then(runtime => runtime.configure(config));
   }
 
   /** @override */
   start() {
-    return this.configured_(true)
-        .then(runtime => runtime.start());
+    return this.configured_(true).then(runtime => runtime.start());
   }
 
   /** @override */
   reset() {
-    return this.configured_(true)
-        .then(runtime => runtime.reset());
+    return this.configured_(true).then(runtime => runtime.reset());
   }
 
   /** @override */
   clear() {
-    return this.configured_(true)
-        .then(runtime => runtime.clear());
+    return this.configured_(true).then(runtime => runtime.clear());
   }
 
   /** @override */
-  getEntitlements() {
-    return this.configured_(true)
-        .then(runtime => runtime.getEntitlements());
+  getEntitlements(opt_encryptedDocumentKey) {
+    return this.configured_(true).then(runtime =>
+      runtime.getEntitlements(opt_encryptedDocumentKey)
+    );
   }
 
   /** @override */
   setOnEntitlementsResponse(callback) {
-    return this.configured_(false)
-        .then(runtime => runtime.setOnEntitlementsResponse(callback));
+    return this.configured_(false).then(runtime =>
+      runtime.setOnEntitlementsResponse(callback)
+    );
   }
 
   /** @override */
   getOffers(opt_options) {
-    return this.configured_(true)
-        .then(runtime => runtime.getOffers(opt_options));
+    return this.configured_(true).then(runtime =>
+      runtime.getOffers(opt_options)
+    );
   }
 
   /** @override */
   showOffers(opt_options) {
-    return this.configured_(true)
-        .then(runtime => runtime.showOffers(opt_options));
+    return this.configured_(true).then(runtime =>
+      runtime.showOffers(opt_options)
+    );
   }
 
   /** @override */
   showSubscribeOption(opt_options) {
-    return this.configured_(true)
-        .then(runtime => runtime.showSubscribeOption(opt_options));
+    return this.configured_(true).then(runtime =>
+      runtime.showSubscribeOption(opt_options)
+    );
   }
 
   /** @override */
   showAbbrvOffer(opt_options) {
-    return this.configured_(true)
-        .then(runtime => runtime.showAbbrvOffer(opt_options));
+    return this.configured_(true).then(runtime =>
+      runtime.showAbbrvOffer(opt_options)
+    );
   }
 
   /** @override */
   showContributionOptions(opt_options) {
-    return this.configured_(true)
-        .then(runtime => runtime.showContributionOptions(opt_options));
+    return this.configured_(true).then(runtime =>
+      runtime.showContributionOptions(opt_options)
+    );
   }
 
   /** @override */
   waitForSubscriptionLookup(accountPromise) {
-    return this.configured_(true)
-        .then(runtime => runtime.waitForSubscriptionLookup(
-            accountPromise));
+    return this.configured_(true).then(runtime =>
+      runtime.waitForSubscriptionLookup(accountPromise)
+    );
   }
 
   /** @override */
   setOnNativeSubscribeRequest(callback) {
-    return this.configured_(false)
-        .then(runtime => runtime.setOnNativeSubscribeRequest(callback));
+    return this.configured_(false).then(runtime =>
+      runtime.setOnNativeSubscribeRequest(callback)
+    );
   }
 
   /** @override */
   setOnSubscribeResponse(callback) {
-    return this.configured_(false)
-        .then(runtime => runtime.setOnSubscribeResponse(callback));
+    return this.configured_(false).then(runtime =>
+      runtime.setOnSubscribeResponse(callback)
+    );
   }
 
   /** @override */
   subscribe(skuOrSubscriptionRequest) {
-    return this.configured_(true)
-        .then(runtime => runtime.subscribe(skuOrSubscriptionRequest));
+    return this.configured_(true).then(runtime =>
+      runtime.subscribe(skuOrSubscriptionRequest)
+    );
   }
 
   /** @override */
   setOnContributionResponse(callback) {
-    return this.configured_(false)
-        .then(runtime => runtime.setOnContributionResponse(callback));
+    return this.configured_(false).then(runtime =>
+      runtime.setOnContributionResponse(callback)
+    );
   }
 
   /** @override */
   contribute(skuOrSubscriptionRequest) {
-    return this.configured_(true)
-        .then(runtime => runtime.contribute(skuOrSubscriptionRequest));
+    return this.configured_(true).then(runtime =>
+      runtime.contribute(skuOrSubscriptionRequest)
+    );
   }
 
   /** @override */
   completeDeferredAccountCreation(opt_options) {
-    return this.configured_(true)
-        .then(runtime => runtime.completeDeferredAccountCreation(opt_options));
+    return this.configured_(true).then(runtime =>
+      runtime.completeDeferredAccountCreation(opt_options)
+    );
   }
 
   /** @override */
   setOnLoginRequest(callback) {
-    return this.configured_(false)
-        .then(runtime => runtime.setOnLoginRequest(callback));
+    return this.configured_(false).then(runtime =>
+      runtime.setOnLoginRequest(callback)
+    );
   }
 
   /** @override */
   setOnLinkComplete(callback) {
-    return this.configured_(false)
-        .then(runtime => runtime.setOnLinkComplete(callback));
+    return this.configured_(false).then(runtime =>
+      runtime.setOnLinkComplete(callback)
+    );
   }
 
   /** @override */
   linkAccount() {
-    return this.configured_(true)
-        .then(runtime => runtime.linkAccount());
+    return this.configured_(true).then(runtime => runtime.linkAccount());
   }
 
   /** @override */
   setOnFlowStarted(callback) {
-    return this.configured_(false)
-        .then(runtime => runtime.setOnFlowStarted(callback));
+    return this.configured_(false).then(runtime =>
+      runtime.setOnFlowStarted(callback)
+    );
   }
 
   /** @override */
   setOnFlowCanceled(callback) {
-    return this.configured_(false)
-        .then(runtime => runtime.setOnFlowCanceled(callback));
+    return this.configured_(false).then(runtime =>
+      runtime.setOnFlowCanceled(callback)
+    );
   }
 
   /** @override */
   saveSubscription(saveSubscriptionRequestCallback) {
-    return this.configured_(true)
-        .then(runtime => {
-          return runtime.saveSubscription(saveSubscriptionRequestCallback);
-        });
+    return this.configured_(true).then(runtime => {
+      return runtime.saveSubscription(saveSubscriptionRequestCallback);
+    });
   }
 
   /** @override */
@@ -421,6 +424,13 @@ export class Runtime {
   }
 
   /** @override */
+  attachSmartButton(button, optionsOrCallback, opt_callback) {
+    return this.configured_(true).then(runtime =>
+      runtime.attachSmartButton(button, optionsOrCallback, opt_callback)
+    );
+  }
+
+  /** @override */
   attachButton(button, optionsOrCallback, opt_callback) {
     return this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
   }
@@ -431,6 +441,11 @@ export class Runtime {
       return runtime.getPropensityModule();
     });
   }
+
+  /** @override */
+  getLogger() {
+    return this.configured_(true).then(runtime => runtime.getLogger());
+  }
 }
 
 /**
@@ -438,16 +453,22 @@ export class Runtime {
  * @implements {Subscriptions}
  */
 export class ConfiguredRuntime {
-
   /**
    * @param {!Window|!Document|!Doc} winOrDoc
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {{
    *     fetcher: (!Fetcher|undefined),
+   *     configPromise: (!Promise|undefined),
    *   }=} opt_integr
    * @param {!../api/subscriptions.Config=} opt_config
    */
   constructor(winOrDoc, pageConfig, opt_integr, opt_config) {
+    opt_integr = opt_integr || {};
+    opt_integr.configPromise = opt_integr.configPromise || Promise.resolve();
+
+    /** @private @const {!ClientEventManager} */
+    this.eventManager_ = new ClientEventManager(opt_integr.configPromise);
+
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
 
@@ -456,6 +477,7 @@ export class ConfiguredRuntime {
 
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
+
     if (isEdgeBrowser(this.win_)) {
       // TODO(dvoytenko, b/120607343): Find a way to remove this restriction
       // or move it to Web Activities.
@@ -468,6 +490,13 @@ export class ConfiguredRuntime {
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
 
+    /** @private @const {!Propensity} */
+    this.propensityModule_ = new Propensity(
+      this.win_,
+      this.pageConfig_,
+      this.eventManager_
+    );
+
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
 
@@ -475,8 +504,7 @@ export class ConfiguredRuntime {
     this.jserror_ = new JsError(this.doc_);
 
     /** @private @const {!Fetcher} */
-    this.fetcher_ = opt_integr && opt_integr.fetcher ||
-        new XhrFetcher(this.win_);
+    this.fetcher_ = opt_integr.fetcher || new XhrFetcher(this.win_);
 
     /** @private @const {!Storage} */
     this.storage_ = new Storage(this.win_);
@@ -484,32 +512,42 @@ export class ConfiguredRuntime {
     /** @private @const {!DialogManager} */
     this.dialogManager_ = new DialogManager(this.doc_);
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(this.win_);
 
     /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(
-        this.win_, this.activityPorts_, this.dialogManager_);
+      this.win_,
+      this.activityPorts_,
+      this.dialogManager_
+    );
 
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
+
+    //NOTE: 'this' is passed in as a DepsDef.  Do not pass in 'this' before
+    //analytics service and entitlements manager are constructed unless
+    //you are certain they do not rely on them because they are part of that
+    //definition.
+    /** @private @const {!Logger} */
+    this.logger_ = new Logger(this);
 
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
 
     /** @private @const {!EntitlementsManager} */
     this.entitlementsManager_ = new EntitlementsManager(
-        this.win_, this.pageConfig_, this.fetcher_, this);
+      this.win_,
+      this.pageConfig_,
+      this.fetcher_,
+      this
+    );
 
     /** @private @const {!OffersApi} */
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_);
-
-    /** @private @const {!Propensity} */
-    this.propensityModule_ = new Propensity(this.win_,
-      this.pageConfig_);
 
     const preconnect = new Preconnect(this.win_.document);
 
@@ -604,15 +642,13 @@ export class ConfiguredRuntime {
     for (const k in config) {
       const v = config[k];
       if (k == 'windowOpenMode') {
-        if (v != WindowOpenMode.AUTO &&
-            v != WindowOpenMode.REDIRECT) {
+        if (v != WindowOpenMode.AUTO && v != WindowOpenMode.REDIRECT) {
           error = 'Unknown windowOpenMode: ' + v;
         }
       } else if (k == 'experiments') {
         v.forEach(experiment => setExperiment(this.win_, experiment, true));
       } else if (k == 'analyticsMode') {
-        if (v != AnalyticsMode.DEFAULT &&
-            v != AnalyticsMode.IMPRESSIONS) {
+        if (v != AnalyticsMode.DEFAULT && v != AnalyticsMode.IMPRESSIONS) {
           error = 'Unknown analytics mode: ' + v;
         }
       } else {
@@ -653,9 +689,10 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getEntitlements() {
-    return this.entitlementsManager_.getEntitlements()
-        .then(entitlements => entitlements.clone());
+  getEntitlements(opt_encryptedDocumentKey) {
+    return this.entitlementsManager_
+      .getEntitlements(opt_encryptedDocumentKey)
+      .then(entitlements => entitlements.clone());
   }
 
   /** @override */
@@ -761,8 +798,10 @@ export class ConfiguredRuntime {
 
   /** @override */
   subscribe(skuOrSubscriptionRequest) {
-    if (typeof skuOrSubscriptionRequest != 'string' &&
-        !isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)) {
+    if (
+      typeof skuOrSubscriptionRequest != 'string' &&
+      !isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)
+    ) {
       throw new Error('Not yet launched!');
     }
     return this.documentParsed_.then(() => {
@@ -783,7 +822,10 @@ export class ConfiguredRuntime {
 
     return this.documentParsed_.then(() => {
       return new PayStartFlow(
-          this, skuOrSubscriptionRequest, ProductType.UI_CONTRIBUTION).start();
+        this,
+        skuOrSubscriptionRequest,
+        ProductType.UI_CONTRIBUTION
+      ).start();
     });
   }
 
@@ -817,11 +859,33 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getPropensityModule() {
-    if (!isExperimentOn(this.win_, ExperimentFlags.PROPENSITY)) {
+  attachSmartButton(button, optionsOrCallback, opt_callback) {
+    if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
       throw new Error('Not yet launched!');
     }
+    this.buttonApi_.attachSmartButton(
+      this,
+      button,
+      optionsOrCallback,
+      opt_callback
+    );
+  }
+
+  /** @override */
+  getPropensityModule() {
     return Promise.resolve(this.propensityModule_);
+  }
+
+  /** @override
+   * @return {!ClientEventManager}
+   */
+  eventManager() {
+    return this.eventManager_;
+  }
+
+  /** @override */
+  getLogger() {
+    return Promise.resolve(this.logger_);
   }
 }
 
@@ -845,17 +909,18 @@ function createPublicRuntime(runtime) {
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
-    waitForSubscriptionLookup:
-        runtime.waitForSubscriptionLookup.bind(runtime),
+    waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
     contribute: runtime.contribute.bind(runtime),
-    completeDeferredAccountCreation:
-        runtime.completeDeferredAccountCreation.bind(runtime),
+    completeDeferredAccountCreation: runtime.completeDeferredAccountCreation.bind(
+      runtime
+    ),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
     setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
     setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
-    setOnNativeSubscribeRequest:
-        runtime.setOnNativeSubscribeRequest.bind(runtime),
+    setOnNativeSubscribeRequest: runtime.setOnNativeSubscribeRequest.bind(
+      runtime
+    ),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
     setOnContributionResponse: runtime.setOnContributionResponse.bind(runtime),
     setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),
@@ -863,11 +928,11 @@ function createPublicRuntime(runtime) {
     saveSubscription: runtime.saveSubscription.bind(runtime),
     createButton: runtime.createButton.bind(runtime),
     attachButton: runtime.attachButton.bind(runtime),
-    getPropensityModule: runtime
-        .getPropensityModule.bind(runtime),
+    attachSmartButton: runtime.attachSmartButton.bind(runtime),
+    getPropensityModule: runtime.getPropensityModule.bind(runtime),
+    getLogger: runtime.getLogger.bind(runtime),
   });
 }
-
 
 /**
  * @return {!Function}
