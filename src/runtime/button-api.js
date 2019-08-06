@@ -124,6 +124,7 @@ export class ButtonApi {
     button.addEventListener('click', callback);
     button.addEventListener('click', () => {
       this.configuredRuntimePromise_.then(configuredRuntime => {
+        console.log('click');
         configuredRuntime
           .eventManager()
           .logSwgEvent(
@@ -131,6 +132,12 @@ export class ButtonApi {
             /* isFromUserAction */ true
           );
       });
+    });
+    this.configuredRuntimePromise_.then(configuredRuntime => {
+      console.log('impression');
+      configuredRuntime
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_SWG_BUTTON);
     });
     return button;
   }
