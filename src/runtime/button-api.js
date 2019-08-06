@@ -132,6 +132,11 @@ export class ButtonApi {
           );
       });
     });
+    this.configuredRuntimePromise_.then(configuredRuntime => {
+      configuredRuntime
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_SWG_BUTTON);
+    });
     return button;
   }
 
