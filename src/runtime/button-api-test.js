@@ -15,6 +15,7 @@
  */
 
 import {ButtonApi} from './button-api';
+import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
@@ -187,21 +188,42 @@ describes.realWin('ButtonApi', {}, env => {
 
   it('should log button click on create.', async () => {
     const button = buttonApi.create(handler);
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
-      .once();
-    button.click();
+    let count = 0;
+    sandbox
+      .stub(ClientEventManager.prototype, 'logSwgEvent')
+      .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+      .callsFake(() => count++);
+    await button.click();
+    expect(count).to.equal(1);
   });
 
   it('should log button click on attach.', async () => {
     const button = doc.createElement('button');
     buttonApi.attach(button, {}, handler);
+    let count = 0;
+    sandbox
+      .stub(ClientEventManager.prototype, 'logSwgEvent')
+      .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+      .callsFake(() => count++);
+    await button.click();
+    expect(count).to.equal(1);
+  });
+
+  it('should log button impression on create', async () => {
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+      .withExactArgs(AnalyticsEvent.IMPRESSION_SWG_BUTTON)
       .once();
-    button.click();
+    buttonApi.create(handler);
+  });
+
+  it('should log button impression on attach', async () => {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_SWG_BUTTON)
+      .once();
+    const button = doc.createElement('button');
+    buttonApi.attach(button, {}, handler);
   });
 
   it('should attach a smart button with no options', () => {
