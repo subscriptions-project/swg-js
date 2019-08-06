@@ -547,7 +547,7 @@ export class ConfiguredRuntime {
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_, opt_integr.configPromise);
+    this.buttonApi_ = new ButtonApi(this.doc_, Promise.resolve(this));
 
     const preconnect = new Preconnect(this.win_.document);
 
