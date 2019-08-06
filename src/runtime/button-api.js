@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
@@ -57,10 +58,14 @@ const TITLE_LANG_MAP = {
 export class ButtonApi {
   /**
    * @param {!../model/doc.Doc} doc
+   * @param {!Promise<!./runtime.ConfiguredRuntime>} configuredRuntimePromise
    */
-  constructor(doc) {
+  constructor(doc, configuredRuntimePromise) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
+
+    /** @private @const {!Promise<!./runtime.ConfiguredRuntime>} */
+    this.configuredRuntimePromise_ = configuredRuntimePromise;
   }
 
   /**
@@ -117,6 +122,16 @@ export class ButtonApi {
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
     button.addEventListener('click', callback);
+    button.addEventListener('click', () => {
+      this.configuredRuntimePromise_.then(configuredRuntime => {
+        configuredRuntime
+          .eventManager()
+          .logSwgEvent(
+            AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+            /* isFromUserAction */ true
+          );
+      });
+    });
     return button;
   }
 
@@ -174,6 +189,16 @@ export class ButtonApi {
 
     // Add required CSS class, if missing.
     button.classList.add('swg-smart-button');
+    button.addEventListener('click', () =>
+      this.configuredRuntimePromise_.then(configuredRuntime =>
+        configuredRuntime
+          .eventManager()
+          .logSwgEvent(
+            AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+            /* isFromUserAction */ true
+          )
+      )
+    );
 
     return new SmartSubscriptionButtonApi(
       deps,

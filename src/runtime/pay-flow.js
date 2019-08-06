@@ -115,7 +115,10 @@ export class PayStartFlow {
       );
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
-    this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_SUBSCRIBE, true, null);
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+      true
+    );
     this.payClient_.start(
       {
         'apiVersion': 1,
@@ -165,7 +168,7 @@ export class PayCompleteFlow {
           } else {
             deps
               .eventManager()
-              .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false, null);
+              .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false);
             deps.jserror().error('Pay failed', reason);
           }
           throw reason;
@@ -223,8 +226,7 @@ export class PayCompleteFlow {
 
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-      true,
-      null
+      true
     );
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
@@ -268,11 +270,7 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   complete() {
-    this.eventManager_.logSwgEvent(
-      AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-      true,
-      null
-    );
+    this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
       this.activityIframeView_.messageDeprecated({'complete': true});
@@ -285,8 +283,7 @@ export class PayCompleteFlow {
       .then(() => {
         this.eventManager_.logSwgEvent(
           AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-          true,
-          null
+          true
         );
         this.deps_.entitlementsManager().setToastShown(true);
       });
