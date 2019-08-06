@@ -17,6 +17,7 @@
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
+import {AnalyticsEvent} from '../proto/api_messages';
 
 /**
  * The button title should match that of button's SVG.
@@ -57,10 +58,20 @@ const TITLE_LANG_MAP = {
 export class ButtonApi {
   /**
    * @param {!../model/doc.Doc} doc
+   * @param {!Promise<./client-event-manager.ClientEventManager>} eventManagerPromise
    */
-  constructor(doc) {
+  constructor(doc, eventManagerPromise) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
+
+    /** @private @const {!Promise<./client-event-manager.ClientEventManager>} */
+    this.eventManagerPromise_ = eventManagerPromise;
+  }
+
+  logEvent() {
+    this.eventManagerPromise_.then(eventManager => {
+      eventManager.logSwgEvent(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true);
+    });
   }
 
   /**

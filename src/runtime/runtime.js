@@ -162,7 +162,10 @@ export class Runtime {
     this.pageConfigResolver_ = null;
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_);
+    this.buttonApi_ = new ButtonApi(
+      this.doc_,
+      this.configuredPromise_.then(runtime => runtime.eventManager())
+    );
     this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
@@ -547,7 +550,10 @@ export class ConfiguredRuntime {
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_);
+    this.buttonApi_ = new ButtonApi(
+      this.doc_,
+      Promise.resolve(this.eventManager())
+    );
 
     const preconnect = new Preconnect(this.win_.document);
 
