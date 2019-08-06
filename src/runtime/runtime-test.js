@@ -1683,11 +1683,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       let count = 0;
       sandbox
         .stub(ClientEventManager.prototype, 'logSwgEvent')
+        .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
         .callsFake(() => count++);
 
       const button = runtime.createButton();
       await button.click();
-      expect(count).to.not.equal(0);
+      expect(count).to.equal(1);
     });
   });
 });
