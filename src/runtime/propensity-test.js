@@ -30,7 +30,13 @@ describes.realWin('Propensity', {}, env => {
   beforeEach(() => {
     win = env.win;
     config = new PageConfig('pub1', true);
-    propensity = new Propensity(win, config, new ClientEventManager(), new XhrFetcher(win));
+    // Note: tests here don't use the fetcher (that's in propensity-server-test)
+    propensity = new Propensity(
+      win,
+      config,
+      new ClientEventManager(),
+      new XhrFetcher(win)
+    );
   });
 
   it('should provide valid subscription state', () => {
