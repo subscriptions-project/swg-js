@@ -14,6 +14,7 @@ before_install:
   - sudo dpkg -i google-chrome*.deb
   # Install yarn
   - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.17.3
+  - export PATH=$HOME/.yarn/bin:$PATH
 before_script:
   - export PATH="`pwd`/node_modules/.bin:$PATH"
 script: gulp presubmit
