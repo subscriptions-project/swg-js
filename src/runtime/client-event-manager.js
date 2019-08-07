@@ -132,4 +132,23 @@ export class ClientEventManager {
       return Promise.resolve();
     });
   }
+
+  /**
+   * Creates an event with the arguments provided and calls logEvent.
+   * @param {!AnalyticsEvent} eventType
+   * @param {?boolean=} isFromUserAction
+   * @param {?Object=} additionalParameters
+   */
+  logSwgEvent(
+    eventType,
+    isFromUserAction = false,
+    additionalParameters = null
+  ) {
+    this.logEvent({
+      eventType,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction,
+      additionalParameters,
+    });
+  }
 }

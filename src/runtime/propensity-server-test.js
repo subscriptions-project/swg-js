@@ -86,9 +86,6 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    PropensityServer.prototype.getReferrer_ = () => {
-      return 'https://scenic-2017.appspot.com/landing.html';
-    };
     return propensityServer
       .sendSubscriptionState(
         SubscriptionState.SUBSCRIBER,
@@ -107,7 +104,7 @@ describes.realWin('PropensityServer', {}, env => {
         expect(queries['cookie']).to.equal('aaaaaa');
         expect('v' in queries).to.be.true;
         expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
-        expect(queries['cdm']).to.equal('https://scenic-2017.appspot.com');
+        expect(queries['cdm']).to.not.be.null;
         expect('states' in queries).to.be.true;
         const userState = 'pub1:' + queries['states'].split(':')[1];
         expect(userState).to.equal('pub1:subscriber');
@@ -132,9 +129,6 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    PropensityServer.prototype.getReferrer_ = () => {
-      return null;
-    };
     const eventParam = {'is_active': false, 'offers_shown': ['a', 'b', 'c']};
     defaultEvent.additionalParameters = eventParam;
     registeredCallback(defaultEvent);
@@ -147,7 +141,7 @@ describes.realWin('PropensityServer', {}, env => {
     expect(queries['cookie']).to.equal('aaaaaa');
     expect('v' in queries).to.be.true;
     expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
-    expect('cdm' in queries).to.be.false;
+    expect(queries['cdm']).to.not.be.null;
     expect('events' in queries).to.be.true;
     const events = decodeURIComponent(queries['events'].split(':')[2]);
     expect(events).to.equal(JSON.stringify(eventParam));
@@ -167,9 +161,6 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    PropensityServer.prototype.getReferrer_ = () => {
-      return 'https://scenic-2017.appspot.com/landing.html';
-    };
     return propensityServer
       .getPropensity('/hello', PropensityApi.PropensityType.GENERAL)
       .then(() => {
@@ -183,7 +174,8 @@ describes.realWin('PropensityServer', {}, env => {
         expect(queries['cookie']).to.equal('aaaaaa');
         expect('v' in queries).to.be.true;
         expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
-        expect(queries['cdm']).to.equal('https://scenic-2017.appspot.com');
+        expect('cdm' in queries).to.be.true;
+        expect(queries['cdm']).to.not.be.null;
         expect('products' in queries).to.be.true;
         expect(queries['products']).to.equal('pub1');
         expect('type' in queries).to.be.true;
@@ -315,9 +307,6 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    PropensityServer.prototype.getReferrer_ = () => {
-      return 'https://scenic-2017.appspot.com/landing.html';
-    };
     return propensityServer
       .getPropensity('/hello', PropensityApi.PropensityType.GENERAL)
       .then(() => {
@@ -331,7 +320,7 @@ describes.realWin('PropensityServer', {}, env => {
         expect(queries['cookie']).to.equal('aaaaaa');
         expect('v' in queries).to.be.true;
         expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
-        expect(queries['cdm']).to.equal('https://scenic-2017.appspot.com');
+        expect(queries['cdm']).to.not.be.null;
         expect('products' in queries).to.be.true;
         expect(queries['products']).to.equal('pub1');
         expect('type' in queries).to.be.true;
@@ -355,9 +344,6 @@ describes.realWin('PropensityServer', {}, env => {
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__someonelsescookie=abcd';
     };
-    PropensityServer.prototype.getReferrer_ = () => {
-      return 'https://scenic-2017.appspot.com/landing.html';
-    };
     return propensityServer
       .getPropensity('/hello', PropensityApi.PropensityType.GENERAL)
       .then(() => {
@@ -372,7 +358,7 @@ describes.realWin('PropensityServer', {}, env => {
         expect('cookie' in queries).to.be.false;
         expect('v' in queries).to.be.true;
         expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
-        expect(queries['cdm']).to.equal('https://scenic-2017.appspot.com');
+        expect(queries['cdm']).to.not.be.null;
         expect('products' in queries).to.be.true;
         expect(queries['products']).to.equal('pub1');
         expect('type' in queries).to.be.true;
