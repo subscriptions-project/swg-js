@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Xhr} from '../utils/xhr';
 import {adsUrl} from './services';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {isObject, isBoolean} from '../utils/types';
@@ -29,18 +28,20 @@ export class PropensityServer {
    * Page configuration is known when Propensity API
    * is available, publication ID is therefore used
    * in constructor for the server interface.
+   * @param {!Window} win
    * @param {string} publicationId
    * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
+   * @param {!./fetcher.Fetcher} fetcher
    */
-  constructor(win, publicationId, eventManager) {
+  constructor(win, publicationId, eventManager, fetcher) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private @const {string} */
     this.publicationId_ = publicationId;
     /** @private {?string} */
     this.clientId_ = null;
-    /** @private @const {!Xhr} */
-    this.xhr_ = new Xhr(win);
+    /** @private @const {!./fetcher.Fetcher} */
+    this.fetcher_ = fetcher;
     /** @private @const {number} */
     this.version_ = 1;
 
@@ -112,7 +113,7 @@ export class PropensityServer {
       userState = userState + ':' + encodeURIComponent(productsOrSkus);
     }
     const url = adsUrl('/subopt/data?states=') + encodeURIComponent(userState);
-    return this.xhr_.fetch(this.propensityUrl_(url), init);
+    return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
   /**
@@ -130,7 +131,7 @@ export class PropensityServer {
       eventInfo = eventInfo + ':' + encodeURIComponent(context);
     }
     const url = adsUrl('/subopt/data?events=') + encodeURIComponent(eventInfo);
-    return this.xhr_.fetch(this.propensityUrl_(url), init);
+    return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
   /**
@@ -239,7 +240,7 @@ export class PropensityServer {
       type +
       '&ref=' +
       referrer;
-    return this.xhr_
+    return this.fetcher_
       .fetch(this.propensityUrl_(url), init)
       .then(result => result.json())
       .then(response => {

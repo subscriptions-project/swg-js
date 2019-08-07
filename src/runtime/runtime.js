@@ -490,13 +490,6 @@ export class ConfiguredRuntime {
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
 
-    /** @private @const {!Propensity} */
-    this.propensityModule_ = new Propensity(
-      this.win_,
-      this.pageConfig_,
-      this.eventManager_
-    );
-
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
 
@@ -506,6 +499,14 @@ export class ConfiguredRuntime {
     /** @private @const {!Fetcher} */
     this.fetcher_ = opt_integr.fetcher || new XhrFetcher(this.win_);
 
+    /** @private @const {!Propensity} */
+    this.propensityModule_ = new Propensity(
+      this.win_,
+      this.pageConfig_,
+      this.eventManager_,
+      this.fetcher_
+    );
+  
     /** @private @const {!Storage} */
     this.storage_ = new Storage(this.win_);
 
