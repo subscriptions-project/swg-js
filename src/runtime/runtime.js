@@ -506,7 +506,7 @@ export class ConfiguredRuntime {
       this.eventManager_,
       this.fetcher_
     );
-  
+
     /** @private @const {!Storage} */
     this.storage_ = new Storage(this.win_);
 
