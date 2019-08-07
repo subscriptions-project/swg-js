@@ -12,6 +12,8 @@ before_install:
   - sh -e /etc/init.d/xvfb start
   - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
   - sudo dpkg -i google-chrome*.deb
+  # Install yarn
+  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.17.3
 before_script:
   - export PATH="`pwd`/node_modules/.bin:$PATH"
 script: gulp presubmit
