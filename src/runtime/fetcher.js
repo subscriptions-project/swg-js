@@ -29,7 +29,7 @@ export class Fetcher {
   /**
    * @param {string} unusedUrl
    * @param {!../utils/xhr.FetchInitDef} unusedInit
-   * @return {!Promise<!Object>}
+   * @return {!Promise<!../utils/xhr.FetchResponse>}
    */
   fetch(unusedUrl, unusedInit) {}
 }
