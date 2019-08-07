@@ -29,3 +29,4 @@ matrix:
   directories:
   - node_modules
   bundler: true
+  yarn: true
