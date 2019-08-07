@@ -1678,5 +1678,17 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
       expect(foundLogger).to.be.instanceOf(Logger);
     });
+
+    it('should log to EventManager on createButton click.', async () => {
+      let count = 0;
+      sandbox
+        .stub(ClientEventManager.prototype, 'logSwgEvent')
+        .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+        .callsFake(() => count++);
+
+      const button = runtime.createButton();
+      await button.click();
+      expect(count).to.equal(1);
+    });
   });
 });
