@@ -27,7 +27,7 @@ export class Fetcher {
   fetchCredentialedJson(unusedUrl) {}
 
   /**
-   * @param {string} unsundedUrl
+   * @param {string} unusedUrl
    * @param {!../utils/xhr.FetchInitDef} unusedInit
    * @return {!Promise<!Object>}
    */
