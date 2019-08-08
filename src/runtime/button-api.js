@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/messages';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
@@ -127,7 +127,7 @@ export class ButtonApi {
         configuredRuntime
           .eventManager()
           .logSwgEvent(
-            AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+            AnalyticsEvent['ACTION_SWG_BUTTON_CLICK'],
             /* isFromUserAction */ true
           );
       });
@@ -135,8 +135,9 @@ export class ButtonApi {
     this.configuredRuntimePromise_.then(configuredRuntime => {
       configuredRuntime
         .eventManager()
-        .logSwgEvent(AnalyticsEvent.IMPRESSION_SWG_BUTTON);
+        .logSwgEvent(AnalyticsEvent['IMPRESSION_SWG_BUTTON']);
     });
+    console.log('event', AnalyticsEvent);
     return button;
   }
 
@@ -199,7 +200,7 @@ export class ButtonApi {
         configuredRuntime
           .eventManager()
           .logSwgEvent(
-            AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+            AnalyticsEvent['ACTION_SWG_BUTTON_CLICK'],
             /* isFromUserAction */ true
           )
       )

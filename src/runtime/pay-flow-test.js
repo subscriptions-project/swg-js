@@ -15,7 +15,7 @@
  */
 
 import {ActivityPort} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
@@ -444,10 +444,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .once();
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+      .withExactArgs(AnalyticsEvent['ACTION_PAYMENT_COMPLETE'], true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
+      .withExactArgs(AnalyticsEvent['ACTION_ACCOUNT_CREATED'], true);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
@@ -498,7 +498,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .once();
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
+      .withExactArgs(AnalyticsEvent['ACTION_ACCOUNT_CREATED'], true);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
@@ -573,13 +573,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .once();
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
+      .withExactArgs(AnalyticsEvent['ACTION_ACCOUNT_CREATED'], true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
+      .withExactArgs(AnalyticsEvent['ACTION_ACCOUNT_ACKNOWLEDGED'], true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+      .withExactArgs(AnalyticsEvent['ACTION_PAYMENT_COMPLETE'], true);
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)

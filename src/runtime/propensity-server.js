@@ -15,7 +15,7 @@
  */
 import {Xhr} from '../utils/xhr';
 import {adsUrl} from './services';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/messages';
 import {isObject, isBoolean} from '../utils/types';
 import {ExperimentFlags} from './experiment-flags';
 import {isExperimentOn} from './experiments';
@@ -138,7 +138,7 @@ export class PropensityServer {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
-    if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
+    if (event.eventType === AnalyticsEvent['EVENT_SUBSCRIPTION_STATE']) {
       this.sendSubscriptionState(
         event.additionalParameters['state'],
         event.additionalParameters['productsOrSkus']
@@ -151,7 +151,7 @@ export class PropensityServer {
     }
     if (
       !(this.logSwgEventsExperiment_ && this.logSwgEventsConfig_) &&
-      event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT
+      event.eventOriginator !== EventOriginator['PROPENSITY_CLIENT']
     ) {
       return;
     }

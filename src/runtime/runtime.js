@@ -15,7 +15,7 @@
  */
 
 import {ActivityPorts} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/messages';
 import {ButtonApi} from './button-api';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
@@ -561,7 +561,7 @@ export class ConfiguredRuntime {
     // Report redirect errors if any.
     this.activityPorts_.onRedirectError(error => {
       this.analyticsService_.addLabels(['redirect']);
-      this.analyticsService_.logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
+      this.analyticsService_.logEvent(AnalyticsEvent['EVENT_PAYMENT_FAILED']);
       this.jserror_.error('Redirect error', error);
     });
   }

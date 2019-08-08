@@ -23,7 +23,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/messages';
 import {JwtHelper} from '../utils/jwt';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {
@@ -116,7 +116,7 @@ export class PayStartFlow {
     // TODO(chenshay): Create analytics for 'replace subscription'.
     this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
     this.eventManager_.logSwgEvent(
-      AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+      AnalyticsEvent['ACTION_PAYMENT_FLOW_STARTED'],
       true
     );
     this.payClient_.start(
@@ -168,7 +168,7 @@ export class PayCompleteFlow {
           } else {
             deps
               .eventManager()
-              .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false);
+              .logSwgEvent(AnalyticsEvent['EVENT_PAYMENT_FAILED'], false);
             deps.jserror().error('Pay failed', reason);
           }
           throw reason;
@@ -225,7 +225,7 @@ export class PayCompleteFlow {
     }
 
     this.eventManager_.logSwgEvent(
-      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      AnalyticsEvent['ACTION_PAYMENT_COMPLETE'],
       true
     );
     this.deps_.entitlementsManager().reset(true);
@@ -270,7 +270,7 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   complete() {
-    this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
+    this.eventManager_.logSwgEvent(AnalyticsEvent['ACTION_ACCOUNT_CREATED'], true);
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
       this.activityIframeView_.messageDeprecated({'complete': true});
@@ -282,7 +282,7 @@ export class PayCompleteFlow {
       })
       .then(() => {
         this.eventManager_.logSwgEvent(
-          AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
+          AnalyticsEvent['ACTION_ACCOUNT_ACKNOWLEDGED'],
           true
         );
         this.deps_.entitlementsManager().setToastShown(true);

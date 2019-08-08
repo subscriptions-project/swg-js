@@ -24,7 +24,7 @@ import {
 import {ActivityPorts, ActivityIframePort} from './activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
-import {AnalyticsRequest, AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsRequest, AnalyticsEvent} from '../proto/messages';
 
 describes.realWin('ActivityPorts test', {}, env => {
   let win, iframe, url, dialog, doc;
@@ -262,7 +262,7 @@ describes.realWin('ActivityPorts test', {}, env => {
     it('should test new messaging APIs', () => {
       const activityIframePort = new ActivityIframePort(iframe, url);
       const analyticsRequest = new AnalyticsRequest();
-      analyticsRequest.setEvent(AnalyticsEvent.UNKNOWN);
+      analyticsRequest.setEvent(AnalyticsEvent['UNKNOWN']);
       const serializedRequest = analyticsRequest.toArray();
       let payload;
       sandbox
@@ -273,7 +273,7 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityIframePort.execute(analyticsRequest);
       expect(payload).to.deep.equal({'REQUEST': serializedRequest});
       activityIframePort.on(AnalyticsRequest, request => {
-        expect(request.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
+        expect(request.getEvent()).to.equal(AnalyticsEvent['UNKNOWN']);
       });
       sandbox
         .stub(WebActivityIframePort.prototype, 'connect')
@@ -298,10 +298,10 @@ describes.realWin('ActivityPorts test', {}, env => {
     it('should support onMessageDeprecated AND on APIs', () => {
       const activityIframePort = new ActivityIframePort(iframe, url);
       const analyticsRequest = new AnalyticsRequest();
-      analyticsRequest.setEvent(AnalyticsEvent.UNKNOWN);
+      analyticsRequest.setEvent(AnalyticsEvent['UNKNOWN']);
       const serializedRequest = analyticsRequest.toArray();
       activityIframePort.on(AnalyticsRequest, request => {
-        expect(request.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
+        expect(request.getEvent()).to.equal(AnalyticsEvent['UNKNOWN']);
       });
       sandbox
         .stub(WebActivityIframePort.prototype, 'connect')

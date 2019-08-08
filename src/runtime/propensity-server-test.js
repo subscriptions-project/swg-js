@@ -20,7 +20,7 @@ import {Event, SubscriptionState} from '../api/logger-api';
 import {parseQueryString} from '../utils/url';
 import * as ServiceUrl from './services';
 import {ClientEventManager} from './client-event-manager';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/messages';
 import {setExperiment} from './experiments';
 import {ExperimentFlags} from './experiment-flags';
 
@@ -52,7 +52,7 @@ describes.realWin('PropensityServer', {}, env => {
   const pubId = 'pub1';
   const defaultParameters = {'custom': 'value'};
   const defaultEvent = {
-    eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+    eventType: AnalyticsEvent['IMPRESSION_OFFERS'],
     eventOriginator: EventOriginator.PROPENSITY_CLIENT,
     isFromUserAction: null,
     additionalParameters: defaultParameters,
@@ -68,7 +68,7 @@ describes.realWin('PropensityServer', {}, env => {
       .callsFake(callback => (registeredCallback = callback));
     propensityServer = new PropensityServer(win, pubId, eventManager);
     sandbox.stub(ServiceUrl, 'adsUrl').callsFake(url => serverUrl + url);
-    defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
+    defaultEvent.eventType = AnalyticsEvent['IMPRESSION_OFFERS'];
   });
 
   it('should listen for events from event manager', function*() {
@@ -383,12 +383,12 @@ describes.realWin('PropensityServer', {}, env => {
     });
 
     //no experiment set & not activated
-    defaultEvent.eventOriginator = EventOriginator.SWG_CLIENT;
+    defaultEvent.eventOriginator = EventOriginator['SWG_CLIENT'];
     registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
 
-    defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
+    defaultEvent.eventOriginator = EventOriginator['AMP_CLIENT'];
     registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
@@ -437,7 +437,7 @@ describes.realWin('PropensityServer', {}, env => {
 
     receivedType = null;
     receivedContext = null;
-    defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
+    defaultEvent.eventOriginator = EventOriginator['AMP_CLIENT'];
     registeredCallback(defaultEvent);
     expect(receivedType).to.equal(Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
@@ -448,8 +448,8 @@ describes.realWin('PropensityServer', {}, env => {
     let receivedState;
     let receivedProducts;
     const event = {
-      eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
-      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+      eventType: AnalyticsEvent['EVENT_SUBSCRIPTION_STATE'],
+      eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
       isFromUserAction: null,
       additionalParameters: {
         'state': SubscriptionState.UNKNOWN,

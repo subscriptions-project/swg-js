@@ -15,7 +15,7 @@
  */
 
 import {ActivityIframePort} from '../components/activities';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/messages';
 import {AnalyticsService} from './analytics-service';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
@@ -38,7 +38,7 @@ describes.realWin('AnalyticsService', {}, env => {
 
   const productId = 'pub1:label1';
   const event = {
-    eventType: AnalyticsEvent.ACTION_SUBSCRIBE,
+    eventType: AnalyticsEvent['ACTION_SUBSCRIBE'],
     eventOriginator: EventOriginator.SWG_CLIENT,
     isFromUserAction: null,
     additionalParameters: {},
@@ -126,8 +126,8 @@ describes.realWin('AnalyticsService', {}, env => {
     it('should send message on port and openIframe called only once', () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       registeredCallback({
-        eventType: AnalyticsEvent.UNKNOWN,
-        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        eventType: AnalyticsEvent['UNKNOWN'],
+        eventOriginator: EventOriginator['UNKNOWN_CLIENT'],
         isFromUserAction: null,
         additionalParameters: null,
       });
@@ -140,14 +140,14 @@ describes.realWin('AnalyticsService', {}, env => {
           const /* {?AnalyticsRequest} */ requestSent = activityIframePort.execute.getCall(
               0
             ).args[0];
-          expect(requestSent.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
+          expect(requestSent.getEvent()).to.deep.equal(AnalyticsEvent['UNKNOWN']);
           expect(requestSent.getMeta().getEventOriginator()).to.deep.equal(
             EventOriginator.UNKNOWN_CLIENT
           );
           expect(requestSent.getMeta().getIsFromUserAction()).to.be.null;
           registeredCallback({
-            eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-            eventOriginator: EventOriginator.SWG_CLIENT,
+            eventType: AnalyticsEvent['IMPRESSION_PAYWALL'],
+            eventOriginator: EventOriginator['SWG_CLIENT'],
             isFromUserAction: true,
             additionalParameters: {droppedData: true},
           });
@@ -203,7 +203,7 @@ describes.realWin('AnalyticsService', {}, env => {
             ).args[0];
           expect(request).to.not.be.null;
           expect(request.getEvent()).to.deep.equal(
-            AnalyticsEvent.ACTION_SUBSCRIBE
+            AnalyticsEvent['ACTION_SUBSCRIBE']
           );
           expect(request.getContext()).to.not.be.null;
           expect(request.getContext().getReferringOrigin()).to.equal(
@@ -317,9 +317,9 @@ describes.realWin('AnalyticsService', {}, env => {
       sandbox
         .stub(ClientEventManager.prototype, 'logEvent')
         .callsFake(event => (receivedEvent = event));
-      analyticsService.logEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
+      analyticsService.logEvent(AnalyticsEvent['ACTION_ACCOUNT_CREATED']);
       expect(receivedEvent).to.deep.equal({
-        eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+        eventType: AnalyticsEvent['ACTION_ACCOUNT_CREATED'],
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: null,
         additionalParameters: null,

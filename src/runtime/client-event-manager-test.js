@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/messages';
 import * as EventManagerApi from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 
-const DEFAULT_TYPE = AnalyticsEvent.IMPRESSION_AD;
-const DEFAULT_ORIGIN = EventOriginator.SWG_CLIENT;
-const OTHER_TYPE = AnalyticsEvent.ACTION_PAYMENT_COMPLETE;
-const OTHER_ORIGIN = EventOriginator.AMP_CLIENT;
+const DEFAULT_TYPE = AnalyticsEvent['IMPRESSION_AD'];
+const DEFAULT_ORIGIN = EventOriginator['SWG_CLIENT'];
+const OTHER_TYPE = AnalyticsEvent['ACTION_PAYMENT_COMPLETE'];
+const OTHER_ORIGIN = EventOriginator['AMP_CLIENT'];
 const BAD_VALUE = 'I should throw an error';
 const RESOLVED_PROMISE = Promise.resolve();
 

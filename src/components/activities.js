@@ -89,7 +89,7 @@ export class ActivityPort extends ActivityPortDef {
   onMessageDeprecated(unusedCallback) {}
 
   /**
-   * @param {!../proto/api_messages.Message} unusedRequest
+   * @param {!../proto/messages.Message} unusedRequest
    */
   execute(unusedRequest) {}
 
@@ -140,7 +140,7 @@ export class ActivityIframePort {
     this.iframePort_ = new WebActivityIframePort(iframe, url, opt_args);
     /** @private @const {!Object<string, function(!Object)>} */
     this.callbackMap_ = {};
-    /** @private {?function(!../proto/api_messages.Message)} */
+    /** @private {?function(!../proto/messages.Message)} */
     this.callbackOriginal_ = null;
   }
 
@@ -232,7 +232,7 @@ export class ActivityIframePort {
   }
 
   /**
-   * @param {!../proto/api_messages.Message} request
+   * @param {!../proto/messages.Message} request
    */
   execute(request) {
     this.iframePort_.message({'REQUEST': request.toArray()});
@@ -240,7 +240,7 @@ export class ActivityIframePort {
 
   /**
    * @param {!function(new: T)} message
-   * @param {function(!../proto/api_messages.Message)} callback
+   * @param {function(!../proto/messages.Message)} callback
    * @template T
    */
   on(message, callback) {

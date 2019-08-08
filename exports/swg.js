@@ -23,7 +23,7 @@ import {Fetcher} from '../src/runtime/fetcher';
 import {SubscribeResponse} from '../src/api/subscribe-response';
 import {ClientEventManagerApi,ClientEvent,FilterResult}
     from '../src/api/client-event-manager-api';
-import {AnalyticsEvent,EventOriginator} from '../src/proto/api_messages';
+import {AnalyticsEvent,EventOriginator} from '../src/proto/messages';
 
 module.exports = {
   ConfiguredRuntime,

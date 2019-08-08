@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent,EventOriginator} from '../proto/messages';
 
 /** @enum {number}  */
 export const FilterResult = {

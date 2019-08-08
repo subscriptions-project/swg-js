@@ -15,7 +15,7 @@
  */
 
 import {FilterResult} from '../api/client-event-manager-api';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/messages';
 import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
 import {log} from '../utils/log';
 
@@ -146,7 +146,7 @@ export class ClientEventManager {
   ) {
     this.logEvent({
       eventType,
-      eventOriginator: EventOriginator.SWG_CLIENT,
+      eventOriginator: EventOriginator['SWG_CLIENT'],
       isFromUserAction,
       additionalParameters,
     });

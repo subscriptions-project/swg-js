@@ -17,7 +17,7 @@
 import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
 import {feArgs, feUrl} from './services';
-import {SmartBoxMessage} from '../proto/api_messages';
+import {SmartBoxMessage} from '../proto/messages';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {

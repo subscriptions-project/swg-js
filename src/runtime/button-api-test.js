@@ -20,7 +20,7 @@ import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
-import {AnalyticsEvent, AnalyticsContext} from '../proto/api_messages';
+import {AnalyticsEvent, AnalyticsContext} from '../proto/messages';
 import {ActivityPort} from '../components/activities';
 
 describes.realWin('ButtonApi', {}, env => {
@@ -191,7 +191,7 @@ describes.realWin('ButtonApi', {}, env => {
     let count = 0;
     sandbox
       .stub(ClientEventManager.prototype, 'logSwgEvent')
-      .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+      .withArgs(AnalyticsEvent['ACTION_SWG_BUTTON_CLICK'], true)
       .callsFake(() => count++);
     await button.click();
     expect(count).to.equal(1);
@@ -203,7 +203,7 @@ describes.realWin('ButtonApi', {}, env => {
     let count = 0;
     sandbox
       .stub(ClientEventManager.prototype, 'logSwgEvent')
-      .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+      .withArgs(AnalyticsEvent['ACTION_SWG_BUTTON_CLICK'], true)
       .callsFake(() => count++);
     await button.click();
     expect(count).to.equal(1);
@@ -220,7 +220,7 @@ describes.realWin('ButtonApi', {}, env => {
   it('should log button impression on attach', async () => {
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_SWG_BUTTON)
+      .withExactArgs(AnalyticsEvent['IMPRESSION_SWG_BUTTON'])
       .once();
     const button = doc.createElement('button');
     buttonApi.attach(button, {}, handler);
@@ -376,7 +376,7 @@ describes.realWin('ButtonApi', {}, env => {
     buttonApi.attachSmartButton(runtime, button, {}, handler);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+      .withExactArgs(AnalyticsEvent['ACTION_SWG_BUTTON_CLICK'], true)
       .once();
     button.click();
   });

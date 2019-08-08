@@ -18,7 +18,7 @@ import {Event, SubscriptionState} from '../api/logger-api';
 import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/messages';
 import {Xhr} from '../utils/xhr';
 import {Logger} from './logger';
 
@@ -147,8 +147,8 @@ describes.realWin('Logger', {}, env => {
       });
       await logger.eventManagerPromise_;
       expect(receivedEvent).to.deep.equal({
-        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+        eventType: AnalyticsEvent['IMPRESSION_PAYWALL'],
+        eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
         isFromUserAction: undefined,
         additionalParameters: null,
       });
@@ -186,8 +186,8 @@ describes.realWin('Logger', {}, env => {
           });
           expect(hasError).to.be.false;
           expect(receivedEvent).to.deep.equal({
-            eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-            eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+            eventType: AnalyticsEvent['IMPRESSION_PAYWALL'],
+            eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
             isFromUserAction: undefined,
             additionalParameters: null,
           });
@@ -202,7 +202,7 @@ describes.realWin('Logger', {}, env => {
           });
           expect(receivedEvent).to.deep.equal({
             eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-            eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+            eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
             isFromUserAction: undefined,
             additionalParameters: null,
           });
@@ -216,7 +216,7 @@ describes.realWin('Logger', {}, env => {
           expect(hasError).to.be.false;
           expect(receivedEvent).to.deep.equal({
             eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-            eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+            eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
             isFromUserAction: null,
             additionalParameters: null,
           });
@@ -228,7 +228,7 @@ describes.realWin('Logger', {}, env => {
           expect(hasError).to.be.false;
           expect(receivedEvent).to.deep.equal({
             eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-            eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+            eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
             isFromUserAction: true,
             additionalParameters: {'is_active': true},
           });
@@ -240,7 +240,7 @@ describes.realWin('Logger', {}, env => {
           expect(hasError).to.be.false;
           expect(receivedEvent).to.deep.equal({
             eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-            eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+            eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
             isFromUserAction: false,
             additionalParameters: {'is_active': false},
           });
@@ -277,7 +277,7 @@ describes.realWin('Logger', {}, env => {
           expect(hasError).to.be.false;
           expect(receivedEvent).to.deep.equal({
             eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-            eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+            eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
             isFromUserAction: undefined,
             additionalParameters: data,
           });
@@ -291,7 +291,7 @@ describes.realWin('Logger', {}, env => {
           expect(hasError).to.be.false;
           expect(receivedEvent).to.deep.equal({
             eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-            eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+            eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
             isFromUserAction: undefined,
             additionalParameters: null,
           });

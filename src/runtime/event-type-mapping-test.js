@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {Event} from '../api/propensity-api';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/messages';
 import {
   publisherEventToAnalyticsEvent,
   analyticsEventToPublisherEvent,

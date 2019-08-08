@@ -15,7 +15,7 @@
  */
 import {Event, SubscriptionState} from '../api/logger-api';
 import {isObject, isEnumValue, isBoolean} from '../utils/types';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/messages';
 import {publisherEventToAnalyticsEvent} from './event-type-mapping';
 
 /**
@@ -53,8 +53,8 @@ export class Logger {
       productsOrSkus = JSON.stringify(jsonProducts);
     }
     this.eventManager_.logEvent({
-      eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
-      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+      eventType: AnalyticsEvent['EVENT_SUBSCRIPTION_STATE'],
+      eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
       isFromUserAction: null,
       additionalParameters: {
         state,
@@ -92,7 +92,7 @@ export class Logger {
     }
     this.eventManager_.logEvent({
       eventType: publisherEventToAnalyticsEvent(userEvent.name),
-      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+      eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
       isFromUserAction: userEvent.active,
       additionalParameters: data,
     });

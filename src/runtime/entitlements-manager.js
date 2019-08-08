@@ -19,7 +19,7 @@ import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
 import {feArgs, feUrl} from '../runtime/services';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/messages';
 import {AnalyticsMode} from '../api/subscriptions';
 import {parseQueryString} from '../utils/url';
 
@@ -109,7 +109,7 @@ export class EntitlementsManager {
     // Sends event to logging service asynchronously
     this.deps_
       .eventManager()
-      .logSwgEvent(AnalyticsEvent.IMPRESSION_PAYWALL, false, null);
+      .logSwgEvent(AnalyticsEvent['IMPRESSION_PAYWALL'], false, null);
   }
 
   /**

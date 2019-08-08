@@ -17,7 +17,7 @@ import * as PropensityApi from '../api/propensity-api';
 import {Event, SubscriptionState} from '../api/logger-api';
 import {PropensityServer} from './propensity-server';
 import {isObject, isEnumValue} from '../utils/types';
-import {EventOriginator} from '../proto/api_messages';
+import {EventOriginator} from '../proto/messages';
 import {publisherEventToAnalyticsEvent} from './event-type-mapping';
 import {isBoolean} from '../utils/types';
 
@@ -111,7 +111,7 @@ export class Propensity {
 
     this.eventManager_.logEvent({
       eventType: analyticsEvent,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      eventOriginator: EventOriginator['PROPENSITY_CLIENT'],
       isFromUserAction: userEvent.active,
       additionalParameters: data,
     });

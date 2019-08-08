@@ -19,7 +19,7 @@ import {
   AnalyticsContext,
   EventOriginator,
   AnalyticsEventMeta,
-} from '../proto/api_messages';
+} from '../proto/messages';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
 import {getOnExperiments, isExperimentOn} from './experiments';
@@ -240,13 +240,13 @@ export class AnalyticsService {
    * It exists as a helper and to ensure backwards compatability,
    * you have additional parameters available if you call eventManager.logEvent
    * directly.
-   * @param {!../proto/api_messages.AnalyticsEvent} eventTypeIn
+   * @param {!../proto/messages.AnalyticsEvent} eventTypeIn
    * @param {!boolean=} isFromUserActionIn
    */
   logEvent(eventTypeIn, isFromUserActionIn) {
     this.eventManager_.logEvent({
       eventType: eventTypeIn,
-      eventOriginator: EventOriginator.SWG_CLIENT,
+      eventOriginator: EventOriginator['SWG_CLIENT'],
       /** @type {?boolean} */
       isFromUserAction: (isBoolean(isFromUserActionIn)
         ? !!isFromUserActionIn
@@ -272,7 +272,7 @@ export class AnalyticsService {
   handleClientEvent_(event) {
     if (
       !(this.logPropensityExperiment_ && this.logPropensityConfig_) &&
-      event.eventOriginator === EventOriginator.PROPENSITY_CLIENT
+      event.eventOriginator === EventOriginator['PROPENSITY_CLIENT']
     ) {
       return;
     }

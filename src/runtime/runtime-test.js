@@ -20,7 +20,7 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {ActivityPorts} from '../components/activities';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/messages';
 import {AnalyticsService} from './analytics-service';
 import {
   ConfiguredRuntime,
@@ -485,8 +485,8 @@ describes.realWin('Runtime', {}, env => {
       });
       expect(loggedEvents.length).to.equal(1);
       expect(loggedEvents[0]).to.deep.equal({
-        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+        eventType: AnalyticsEvent['IMPRESSION_PAYWALL'],
+        eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
         isFromUserAction: null,
         additionalParameters: null,
       });
@@ -899,8 +899,8 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     let configPromise;
 
     const event = {
-      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-      eventOriginator: EventOriginator.SWG_CLIENT,
+      eventType: AnalyticsEvent['IMPRESSION_PAYWALL'],
+      eventOriginator: EventOriginator['SWG_CLIENT'],
       isFromUserAction: true,
       additionalParameters: null,
     };
@@ -1180,7 +1180,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .once();
       analyticsMock
         .expects('logEvent')
-        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
+        .withExactArgs(AnalyticsEvent['EVENT_PAYMENT_FAILED'])
         .once();
       jserrorMock
         .expects('error')
@@ -1641,8 +1641,8 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should let event manager send events without a promise', () => {
       const event = {
-        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-        eventOriginator: EventOriginator.SWG_CLIENT,
+        eventType: AnalyticsEvent['IMPRESSION_PAYWALL'],
+        eventOriginator: EventOriginator['SWG_CLIENT'],
         isFromUserAction: true,
         additionalParameters: null,
       };
@@ -1671,8 +1671,8 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
       });
       expect(receivedEvent).to.deep.equal({
-        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+        eventType: AnalyticsEvent['IMPRESSION_PAYWALL'],
+        eventOriginator: EventOriginator['PUBLISHER_CLIENT'],
         isFromUserAction: null,
         additionalParameters: null,
       });
@@ -1683,7 +1683,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       let count = 0;
       sandbox
         .stub(ClientEventManager.prototype, 'logSwgEvent')
-        .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+        .withArgs(AnalyticsEvent['ACTION_SWG_BUTTON_CLICK'], true)
         .callsFake(() => count++);
 
       const button = runtime.createButton();
