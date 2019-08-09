@@ -304,6 +304,12 @@ export class Runtime {
   }
 
   /** @override */
+  showUpdateOffers(opt_options) {
+    return this.configured_(true)
+        .then(runtime => runtime.showUpdateOffers(opt_options));
+  }
+
+  /** @override */
   showSubscribeOption(opt_options) {
     return this.configured_(true)
         .then(runtime => runtime.showSubscribeOption(opt_options));
@@ -700,6 +706,25 @@ export class ConfiguredRuntime {
   /** @override */
   showOffers(opt_options) {
     return this.documentParsed_.then(() => {
+      if (opt_options['oldSku']) {
+        console.error('Use the showUpdateOffers method for subscription updates');
+        return new Error('Use the showUpdateOffers method for new subscription updates');
+      }
+      const flow = new OffersFlow(this, opt_options);
+      return flow.start();
+    });
+  }
+
+  /** @override */
+  showUpdateOffers(opt_options) {
+    if (!isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)) {
+      throw new Error('Not yet launched!');
+    }
+    return this.documentParsed_.then(() => {
+      if (!opt_options['oldSku']) {
+        console.error('Use the showOffers method for new subscribers');
+        return new Error('Use the showOffers method for new subscribers');
+      }
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
     });
@@ -882,6 +907,7 @@ function createPublicRuntime(runtime) {
     showLoginNotification: runtime.showLoginNotification.bind(runtime),
     getOffers: runtime.getOffers.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
+    showUpdateOffers: runtime.showUpdateOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
