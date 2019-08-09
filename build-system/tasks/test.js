@@ -20,9 +20,6 @@ var gulp = require('gulp-help')(require('gulp'));
 var glob = require('glob');
 var Karma = require('karma').Server;
 var config = require('../config');
-var read = require('file-reader');
-var fs = require('fs');
-var path = require('path');
 var util = require('gulp-util');
 var webserver = require('gulp-webserver');
 var app = require('../server/test-server').app;
@@ -106,8 +103,7 @@ function printArgvMessages() {
 /**
  * Run tests.
  */
-gulp.task('test', 'Runs tests',
-    argv.nobuild ? [] : (argv.unit ? ['css'] : ['build']), function(done) {
+function runTests(done) {
   if (!argv.nohelp) {
     printArgvMessages();
   }
@@ -234,25 +230,37 @@ gulp.task('test', 'Runs tests',
       done();
     }
   }).start();
-}, {
-  options: {
-    'verbose': '  With logging enabled',
-    'testnames': '  Lists the name of each test being run',
-    'watch': '  Watches for changes in files, runs corresponding test(s)',
-    'safari': '  Runs tests on Safari',
-    'firefox': '  Runs tests on Firefox',
-    'edge': '  Runs tests on Edge',
-    'ie': '  Runs tests on IE',
-    'unit': '  Run only unit tests.',
-    'integration': '  Run only integration tests.',
-    'compiled': '  Changes integration tests to use production JS ' +
-        'binaries for execution',
-    'grep': '  Runs tests that match the pattern',
-    'files': '  Runs tests for specific files',
-    'randomize': '  Runs entire test suite in random order',
-    'seed': '  Seeds the test order randomization. Use with --randomize',
-    'glob': '  Explicitly expands test paths using glob before passing ' +
-        'to Karma',
-    'nohelp': '  Silence help messages that are printed prior to test run',
+}
+
+const tasks = [];
+if (!argv.nobuild) {
+  if (argv.unit) {
+    tasks.push('css');
+  } else {
+    tasks.push('build');
   }
-});
+}
+tasks.push(runTests);
+const test = gulp.series(...tasks);
+test.description = 'Runs tests';
+test.flags = {
+  'verbose': '  With logging enabled',
+  'testnames': '  Lists the name of each test being run',
+  'watch': '  Watches for changes in files, runs corresponding test(s)',
+  'safari': '  Runs tests on Safari',
+  'firefox': '  Runs tests on Firefox',
+  'edge': '  Runs tests on Edge',
+  'ie': '  Runs tests on IE',
+  'unit': '  Run only unit tests.',
+  'integration': '  Run only integration tests.',
+  'compiled': '  Changes integration tests to use production JS ' +
+      'binaries for execution',
+  'grep': '  Runs tests that match the pattern',
+  'files': '  Runs tests for specific files',
+  'randomize': '  Runs entire test suite in random order',
+  'seed': '  Seeds the test order randomization. Use with --randomize',
+  'glob': '  Explicitly expands test paths using glob before passing ' +
+      'to Karma',
+  'nohelp': '  Silence help messages that are printed prior to test run',
+};
+gulp.task('test', test);

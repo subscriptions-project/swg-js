@@ -63,21 +63,16 @@ process.on('SIGINT', function() {
   process.exit();
 });
 
-gulp.task(
-    'serve',
-    'Serves content in root dir over ' + getHost() + '/',
-    serve,
-    {
-      options: {
-        'host': '  Hostname or IP address to bind to (default: localhost)',
-        'port': '  Specifies alternative port (default: 8000)',
-        'https': '  Use HTTPS server (default: false)',
-        'quiet': '  Do not log HTTP requests (default: false)',
-        'publicationId': '  Sample publicationId',
-        'ampLocal': '  Run against local AMP installation',
-      },
-    }
-);
+serve.description = 'Serves content in root dir over ' + getHost() + '/';
+serve.flags = {
+  'host': '  Hostname or IP address to bind to (default: localhost)',
+  'port': '  Specifies alternative port (default: 8000)',
+  'https': '  Use HTTPS server (default: false)',
+  'quiet': '  Do not log HTTP requests (default: false)',
+  'publicationId': '  Sample publicationId',
+  'ampLocal': '  Run against local AMP installation',
+};
+gulp.task('serve', serve);
 
 function getHost() {
   return (useHttps ? 'https' : 'http') + '://' + host + ':' + port;

@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-
 /**
  */
 export class PageConfig {
-
   /**
    * @param {string} productOrPublicationId
    * @param {boolean} locked

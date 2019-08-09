@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import {PropensityServer} from './propensity-server';
-import {Xhr} from '../utils/xhr';
+import {XhrFetcher} from './fetcher';
 import * as PropensityApi from '../api/propensity-api';
-import {Event,SubscriptionState} from '../api/logger-api';
+import {Event, SubscriptionState} from '../api/logger-api';
 import {parseQueryString} from '../utils/url';
 import * as ServiceUrl from './services';
 import {ClientEventManager} from './client-event-manager';
@@ -24,12 +24,12 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {setExperiment} from './experiments';
 import {ExperimentFlags} from './experiment-flags';
 
- /**
-  * Converts the URL sent to the propensity server into the propensity event
-  * that generated the URL.
-  * @param {!string} capturedUrl
-  * @return {!PropensityApi.PropensityEvent}
-  */
+/**
+ * Converts the URL sent to the propensity server into the propensity event
+ * that generated the URL.
+ * @param {!string} capturedUrl
+ * @return {!PropensityApi.PropensityEvent}
+ */
 function getPropensityEventFromUrl(capturedUrl) {
   const queryString = capturedUrl.split('?')[1];
   const eventsStr = decodeURIComponent(parseQueryString(queryString)['events']);
@@ -48,6 +48,7 @@ describes.realWin('PropensityServer', {}, env => {
   let propensityServer;
   let eventManager;
   let registeredCallback;
+  let fetcher;
   const serverUrl = 'http://localhost:31862';
   const pubId = 'pub1';
   const defaultParameters = {'custom': 'value'};
@@ -57,15 +58,18 @@ describes.realWin('PropensityServer', {}, env => {
     isFromUserAction: null,
     additionalParameters: defaultParameters,
   };
+  const productsOrSkus = {'product': ['a', 'b', 'c']};
 
   beforeEach(() => {
     win = env.win;
     registeredCallback = null;
-    eventManager = new ClientEventManager();
-    sandbox.stub(ClientEventManager.prototype, 'registerEventListener',
-        callback => registeredCallback = callback);
-    propensityServer = new PropensityServer(win, pubId, eventManager);
-    sandbox.stub(ServiceUrl, 'adsUrl', url => serverUrl + url);
+    fetcher = new XhrFetcher(win);
+    eventManager = new ClientEventManager(Promise.resolve());
+    sandbox
+      .stub(ClientEventManager.prototype, 'registerEventListener')
+      .callsFake(callback => (registeredCallback = callback));
+    propensityServer = new PropensityServer(win, pubId, eventManager, fetcher);
+    sandbox.stub(ServiceUrl, 'adsUrl').callsFake(url => serverUrl + url);
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
   });
 
@@ -76,51 +80,54 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test sending subscription state', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(Xhr.prototype, 'fetch',
-        (url, init) => {
-          capturedUrl = url;
-          capturedRequest = init;
-          return Promise.reject(new Error('Publisher not whitelisted'));
-        });
-    const productsOrSkus = {'product': ['a', 'b', 'c']};
+    sandbox.stub(fetcher, 'fetch').callsFake((url, init) => {
+      capturedUrl = url;
+      capturedRequest = init;
+      return Promise.reject(new Error('Publisher not whitelisted'));
+    });
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    return propensityServer.sendSubscriptionState(
+    return propensityServer
+      .sendSubscriptionState(
         SubscriptionState.SUBSCRIBER,
-        JSON.stringify(productsOrSkus)).then(() => {
-          throw new Error('must have failed');
-        }).catch(reason => {
-          const path = new URL(capturedUrl);
-          expect(path.pathname).to.equal('/subopt/data');
-          const queryString = capturedUrl.split('?')[1];
-          const queries = parseQueryString(queryString);
-          expect(queries).to.not.be.null;
-          expect('cookie' in queries).to.be.true;
-          expect(queries['cookie']).to.equal('aaaaaa');
-          expect('v' in queries).to.be.true;
-          expect(parseInt(queries['v'], 10)).to.equal(
-              propensityServer.version_);
-          expect('states' in queries).to.be.true;
-          const userState = 'pub1:' + queries['states'].split(':')[1];
-          expect(userState).to.equal('pub1:subscriber');
-          const products = decodeURIComponent(queries['states'].split(':')[2]);
-          expect(products).to.equal(JSON.stringify(productsOrSkus));
-          expect(capturedRequest.credentials).to.equal('include');
-          expect(capturedRequest.method).to.equal('GET');
-          expect(() => {throw reason;}).to.throw(/Publisher not whitelisted/);
-        });
+        JSON.stringify(productsOrSkus)
+      )
+      .then(() => {
+        throw new Error('must have failed');
+      })
+      .catch(reason => {
+        const path = new URL(capturedUrl);
+        expect(path.pathname).to.equal('/subopt/data');
+        const queryString = capturedUrl.split('?')[1];
+        const queries = parseQueryString(queryString);
+        expect(queries).to.not.be.null;
+        expect('cookie' in queries).to.be.true;
+        expect(queries['cookie']).to.equal('aaaaaa');
+        expect('v' in queries).to.be.true;
+        expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
+        expect(queries['cdm']).to.not.be.null;
+        expect('states' in queries).to.be.true;
+        const userState = 'pub1:' + queries['states'].split(':')[1];
+        expect(userState).to.equal('pub1:subscriber');
+        const products = decodeURIComponent(queries['states'].split(':')[2]);
+        expect(products).to.equal(JSON.stringify(productsOrSkus));
+        expect(capturedRequest.credentials).to.equal('include');
+        expect(capturedRequest.method).to.equal('GET');
+        expect(() => {
+          throw reason;
+        }).to.throw(/Publisher not whitelisted/);
+      });
   });
 
   it('should test sending event', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(Xhr.prototype, 'fetch',
-        (url, init) => {
-          capturedUrl = url;
-          capturedRequest = init;
-          return Promise.reject(new Error('Not sent from allowed origin'));
-        });
+    sandbox.stub(fetcher, 'fetch').callsFake((url, init) => {
+      capturedUrl = url;
+      capturedRequest = init;
+      return Promise.reject(new Error('Not sent from allowed origin'));
+    });
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
@@ -136,6 +143,7 @@ describes.realWin('PropensityServer', {}, env => {
     expect(queries['cookie']).to.equal('aaaaaa');
     expect('v' in queries).to.be.true;
     expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
+    expect(queries['cdm']).to.not.be.null;
     expect('events' in queries).to.be.true;
     const events = decodeURIComponent(queries['events'].split(':')[2]);
     expect(events).to.equal(JSON.stringify(eventParam));
@@ -147,35 +155,39 @@ describes.realWin('PropensityServer', {}, env => {
   it('should test get propensity request failure', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(Xhr.prototype, 'fetch',
-        (url, init) => {
-          capturedUrl = url;
-          capturedRequest = init;
-          return Promise.reject(new Error('Invalid request'));
-        });
+    sandbox.stub(fetcher, 'fetch').callsFake((url, init) => {
+      capturedUrl = url;
+      capturedRequest = init;
+      return Promise.reject(new Error('Invalid request'));
+    });
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    return propensityServer.getPropensity('/hello',
-        PropensityApi.PropensityType.GENERAL).then(() => {
-          throw new Error('must have failed');
-        }).catch(reason => {
-          const queryString = capturedUrl.split('?')[1];
-          const queries = parseQueryString(queryString);
-          expect(queries).to.not.be.null;
-          expect('cookie' in queries).to.be.true;
-          expect(queries['cookie']).to.equal('aaaaaa');
-          expect('v' in queries).to.be.true;
-          expect(parseInt(queries['v'], 10)).to.equal(
-              propensityServer.version_);
-          expect('products' in queries).to.be.true;
-          expect(queries['products']).to.equal('pub1');
-          expect('type' in queries).to.be.true;
-          expect(queries['type']).to.equal('general');
-          expect(capturedRequest.credentials).to.equal('include');
-          expect(capturedRequest.method).to.equal('GET');
-          expect(() => {throw reason;}).to.throw(/Invalid request/);
-        });
+    return propensityServer
+      .getPropensity('/hello', PropensityApi.PropensityType.GENERAL)
+      .then(() => {
+        throw new Error('must have failed');
+      })
+      .catch(reason => {
+        const queryString = capturedUrl.split('?')[1];
+        const queries = parseQueryString(queryString);
+        expect(queries).to.not.be.null;
+        expect('cookie' in queries).to.be.true;
+        expect(queries['cookie']).to.equal('aaaaaa');
+        expect('v' in queries).to.be.true;
+        expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
+        expect('cdm' in queries).to.be.true;
+        expect(queries['cdm']).to.not.be.null;
+        expect('products' in queries).to.be.true;
+        expect(queries['products']).to.equal('pub1');
+        expect('type' in queries).to.be.true;
+        expect(queries['type']).to.equal('general');
+        expect(capturedRequest.credentials).to.equal('include');
+        expect(capturedRequest.method).to.equal('GET');
+        expect(() => {
+          throw reason;
+        }).to.throw(/Invalid request/);
+      });
   });
 
   it('should test get propensity bucketed scores', () => {
@@ -191,27 +203,29 @@ describes.realWin('PropensityServer', {}, env => {
     };
     const response = new Response();
     const mockResponse = sandbox.mock(response);
-    mockResponse.expects('json').returns(
-        Promise.resolve(propensityResponse)).once();
-    sandbox.stub(Xhr.prototype, 'fetch',
-        () => {
-          return Promise.resolve(response);
-        });
-    return propensityServer.getPropensity('/hello',
-        PropensityApi.PropensityType.GENERAL).then(response => {
-          expect(response).to.not.be.null;
-          const header = response['header'];
-          expect(header).to.not.be.null;
-          expect(header['ok']).to.be.true;
-          const body = response['body'];
-          expect(body).to.not.be.null;
-          expect(body['scores']).to.not.be.null;
-          const scores = body['scores'];
-          expect(scores[0].product).to.equal('pub1');
-          expect(scores[0].score.value).to.equal(10);
-          expect(scores[0].score.bucketed).to.be.true;
-          expect(scores.length).to.equal(1);
-        });
+    mockResponse
+      .expects('json')
+      .returns(Promise.resolve(propensityResponse))
+      .once();
+    sandbox.stub(fetcher, 'fetch').callsFake(() => {
+      return Promise.resolve(response);
+    });
+    return propensityServer
+      .getPropensity('/hello', PropensityApi.PropensityType.GENERAL)
+      .then(response => {
+        expect(response).to.not.be.null;
+        const header = response['header'];
+        expect(header).to.not.be.null;
+        expect(header['ok']).to.be.true;
+        const body = response['body'];
+        expect(body).to.not.be.null;
+        expect(body['scores']).to.not.be.null;
+        const scores = body['scores'];
+        expect(scores[0].product).to.equal('pub1');
+        expect(scores[0].score.value).to.equal(10);
+        expect(scores[0].score.bucketed).to.be.true;
+        expect(scores.length).to.equal(1);
+      });
   });
 
   it('should test only get propensity score for pub', () => {
@@ -230,29 +244,31 @@ describes.realWin('PropensityServer', {}, env => {
     };
     const response = new Response();
     const mockResponse = sandbox.mock(response);
-    mockResponse.expects('json').returns(
-        Promise.resolve(propensityResponse)).once();
-    sandbox.stub(Xhr.prototype, 'fetch',
-        () => {
-          return Promise.resolve(response);
-        });
-    return propensityServer.getPropensity('/hello',
-        PropensityApi.PropensityType.GENERAL).then(response => {
-          expect(response).to.not.be.null;
-          const header = response['header'];
-          expect(header).to.not.be.null;
-          expect(header['ok']).to.be.true;
-          const body = response['body'];
-          expect(body).to.not.be.null;
-          expect(body['scores'].length).to.not.be.null;
-          const scores = body['scores'];
-          expect(scores[0].product).to.equal('pub2');
-          expect(scores[0].score.value).to.equal(90);
-          expect(scores[0].score.bucketed).to.be.false;
-          expect(scores[1].product).to.equal('pub1:premium');
-          expect(scores[1].error).to.equal('not available');
-          expect(scores.length).to.equal(2);
-        });
+    mockResponse
+      .expects('json')
+      .returns(Promise.resolve(propensityResponse))
+      .once();
+    sandbox.stub(fetcher, 'fetch').callsFake(() => {
+      return Promise.resolve(response);
+    });
+    return propensityServer
+      .getPropensity('/hello', PropensityApi.PropensityType.GENERAL)
+      .then(response => {
+        expect(response).to.not.be.null;
+        const header = response['header'];
+        expect(header).to.not.be.null;
+        expect(header['ok']).to.be.true;
+        const body = response['body'];
+        expect(body).to.not.be.null;
+        expect(body['scores'].length).to.not.be.null;
+        const scores = body['scores'];
+        expect(scores[0].product).to.equal('pub2');
+        expect(scores[0].score.value).to.equal(90);
+        expect(scores[0].score.bucketed).to.be.false;
+        expect(scores[1].product).to.equal('pub1:premium');
+        expect(scores[1].error).to.equal('not available');
+        expect(scores.length).to.equal(2);
+      });
   });
 
   it('should test no propensity score available', () => {
@@ -262,98 +278,106 @@ describes.realWin('PropensityServer', {}, env => {
     };
     const response = new Response();
     const mockResponse = sandbox.mock(response);
-    mockResponse.expects('json').returns(
-        Promise.resolve(propensityResponse)).once();
-    sandbox.stub(Xhr.prototype, 'fetch',
-        () => {
-          return Promise.resolve(response);
-        });
-    return propensityServer.getPropensity('/hello',
-        PropensityApi.PropensityType.GENERAL).then(response => {
-          expect(response).to.not.be.null;
-          const header = response['header'];
-          expect(header).to.not.be.null;
-          expect(header['ok']).to.be.false;
-          const body = response['body'];
-          expect(body).to.not.be.null;
-          expect(body['error']).to.equal('Service not available');
-        });
+    mockResponse
+      .expects('json')
+      .returns(Promise.resolve(propensityResponse))
+      .once();
+    sandbox.stub(fetcher, 'fetch').callsFake(() => {
+      return Promise.resolve(response);
+    });
+    return propensityServer
+      .getPropensity('/hello', PropensityApi.PropensityType.GENERAL)
+      .then(response => {
+        expect(response).to.not.be.null;
+        const header = response['header'];
+        expect(header).to.not.be.null;
+        expect(header['ok']).to.be.false;
+        const body = response['body'];
+        expect(body).to.not.be.null;
+        expect(body['error']).to.equal('Service not available');
+      });
   });
 
   it('should test getting right clientID with user consent', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(Xhr.prototype, 'fetch',
-        (url, init) => {
-          capturedUrl = url;
-          capturedRequest = init;
-          return Promise.reject(new Error('Invalid request'));
-        });
+    sandbox.stub(fetcher, 'fetch').callsFake((url, init) => {
+      capturedUrl = url;
+      capturedRequest = init;
+      return Promise.reject(new Error('Invalid request'));
+    });
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__gads=aaaaaa';
     };
-    return propensityServer.getPropensity(
-        '/hello', PropensityApi.PropensityType.GENERAL).then(() => {
-          throw new Error('must have failed');
-        }).catch(reason => {
-          const queryString = capturedUrl.split('?')[1];
-          const queries = parseQueryString(queryString);
-          expect(queries).to.not.be.null;
-          expect('cookie' in queries).to.be.true;
-          expect(queries['cookie']).to.equal('aaaaaa');
-          expect('v' in queries).to.be.true;
-          expect(parseInt(queries['v'], 10)).to.equal(
-              propensityServer.version_);
-          expect('products' in queries).to.be.true;
-          expect(queries['products']).to.equal('pub1');
-          expect('type' in queries).to.be.true;
-          expect(queries['type']).to.equal('general');
-          expect(capturedRequest.credentials).to.equal('include');
-          expect(capturedRequest.method).to.equal('GET');
-          expect(() => {throw reason;}).to.throw(/Invalid request/);
-        });
+    return propensityServer
+      .getPropensity('/hello', PropensityApi.PropensityType.GENERAL)
+      .then(() => {
+        throw new Error('must have failed');
+      })
+      .catch(reason => {
+        const queryString = capturedUrl.split('?')[1];
+        const queries = parseQueryString(queryString);
+        expect(queries).to.not.be.null;
+        expect('cookie' in queries).to.be.true;
+        expect(queries['cookie']).to.equal('aaaaaa');
+        expect('v' in queries).to.be.true;
+        expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
+        expect(queries['cdm']).to.not.be.null;
+        expect('products' in queries).to.be.true;
+        expect(queries['products']).to.equal('pub1');
+        expect('type' in queries).to.be.true;
+        expect(queries['type']).to.equal('general');
+        expect(capturedRequest.credentials).to.equal('include');
+        expect(capturedRequest.method).to.equal('GET');
+        expect(() => {
+          throw reason;
+        }).to.throw(/Invalid request/);
+      });
   });
 
   it('should test getting right clientID without cookie', () => {
     let capturedUrl;
     let capturedRequest;
-    sandbox.stub(Xhr.prototype, 'fetch',
-        (url, init) => {
-          capturedUrl = url;
-          capturedRequest = init;
-          return Promise.reject(new Error('Invalid request'));
-        });
+    sandbox.stub(fetcher, 'fetch').callsFake((url, init) => {
+      capturedUrl = url;
+      capturedRequest = init;
+      return Promise.reject(new Error('Invalid request'));
+    });
     PropensityServer.prototype.getDocumentCookie_ = () => {
       return '__someonelsescookie=abcd';
     };
-    return propensityServer.getPropensity(
-        '/hello', PropensityApi.PropensityType.GENERAL).then(() => {
-          throw new Error('must have failed');
-        }).catch(reason => {
-          const path = new URL(capturedUrl);
-          expect(path.pathname).to.equal('/subopt/pts');
-          const queryString = capturedUrl.split('?')[1];
-          const queries = parseQueryString(queryString);
-          expect(queries).to.not.be.null;
-          expect('cookie' in queries).to.be.false;
-          expect('v' in queries).to.be.true;
-          expect(parseInt(queries['v'], 10)).to.equal(
-              propensityServer.version_);
-          expect('products' in queries).to.be.true;
-          expect(queries['products']).to.equal('pub1');
-          expect('type' in queries).to.be.true;
-          expect(queries['type']).to.equal('general');
-          expect(capturedRequest.credentials).to.equal('include');
-          expect(capturedRequest.method).to.equal('GET');
-          expect(() => {throw reason;}).to.throw(/Invalid request/);
-        });
+    return propensityServer
+      .getPropensity('/hello', PropensityApi.PropensityType.GENERAL)
+      .then(() => {
+        throw new Error('must have failed');
+      })
+      .catch(reason => {
+        const path = new URL(capturedUrl);
+        expect(path.pathname).to.equal('/subopt/pts');
+        const queryString = capturedUrl.split('?')[1];
+        const queries = parseQueryString(queryString);
+        expect(queries).to.not.be.null;
+        expect('cookie' in queries).to.be.false;
+        expect('v' in queries).to.be.true;
+        expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
+        expect(queries['cdm']).to.not.be.null;
+        expect('products' in queries).to.be.true;
+        expect(queries['products']).to.equal('pub1');
+        expect('type' in queries).to.be.true;
+        expect(queries['type']).to.equal('general');
+        expect(capturedRequest.credentials).to.equal('include');
+        expect(capturedRequest.method).to.equal('GET');
+        expect(() => {
+          throw reason;
+        }).to.throw(/Invalid request/);
+      });
   });
 
   it('should not send SwG events to Propensity Service', () => {
     //stub to ensure the server received a request to log
     let receivedType = null;
     let receivedContext = null;
-    sandbox.stub(Xhr.prototype, 'fetch', url => {
+    sandbox.stub(fetcher, 'fetch').callsFake(url => {
       const event = getPropensityEventFromUrl(url);
       receivedType = event.name;
       receivedContext = event.data;
@@ -385,7 +409,7 @@ describes.realWin('PropensityServer', {}, env => {
     //experiment but not activated
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
     registeredCallback = null;
-    propensityServer = new PropensityServer(win, pubId, eventManager);
+    propensityServer = new PropensityServer(win, pubId, eventManager, fetcher);
     registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
@@ -396,7 +420,7 @@ describes.realWin('PropensityServer', {}, env => {
     //stub to ensure the server received a request to log
     let receivedType = null;
     let receivedContext = null;
-    sandbox.stub(Xhr.prototype, 'fetch', url => {
+    sandbox.stub(fetcher, 'fetch').callsFake(url => {
       const event = getPropensityEventFromUrl(url);
       receivedType = event.name;
       receivedContext = event.data;
@@ -405,7 +429,7 @@ describes.realWin('PropensityServer', {}, env => {
 
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
     registeredCallback = null;
-    propensityServer = new PropensityServer(win, pubId, eventManager);
+    propensityServer = new PropensityServer(win, pubId, eventManager, fetcher);
 
     //both experiment and enable: ensure it actually logs
     propensityServer.enableLoggingSwgEvents();
@@ -420,5 +444,31 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedType).to.equal(Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
+  });
+
+  it('should allow subscription state change via event', () => {
+    let receivedState;
+    let receivedProducts;
+    const event = {
+      eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: {
+        'state': SubscriptionState.UNKNOWN,
+        'productsOrSkus': JSON.stringify(productsOrSkus),
+      },
+    };
+
+    sandbox
+      .stub(PropensityServer.prototype, 'sendSubscriptionState')
+      .callsFake((state, products) => {
+        receivedState = state;
+        receivedProducts = products;
+      });
+
+    registeredCallback(event);
+    eventManager.logEvent(event);
+    expect(receivedState).to.equal(SubscriptionState.UNKNOWN);
+    expect(receivedProducts).to.equal(JSON.stringify(productsOrSkus));
   });
 });

@@ -20,13 +20,11 @@ import {isCancelError} from '../utils/errors';
 
 const POPUP_Z_INDEX = 2147483647;
 
-
 /**
  * The class for the top level dialog.
  * @final
  */
 export class DialogManager {
-
   /**
    * @param {!../model/doc.Doc} doc
    */
@@ -79,7 +77,7 @@ export class DialogManager {
       if (isCancelError(reason)) {
         this.completeView(view);
       }
-      throw (reason);
+      throw reason;
     });
     return this.openDialog(hidden).then(dialog => {
       return dialog.openView(view);

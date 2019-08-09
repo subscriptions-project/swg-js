@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-import {
-  CACHE_KEYS,
-  cacheParam,
-} from './services';
-
+import {CACHE_KEYS, cacheParam} from './services';
 
 describes.sandboxed('services', {}, () => {
-
-  beforeEach(() => {
-  });
+  beforeEach(() => {});
 
   describe('cache', () => {
     const now = 1520624744987;
 
     beforeEach(() => {
-      sandbox.stub(Date, 'now', () => now);
+      sandbox.stub(Date, 'now').callsFake(() => now);
     });
 
     it('should only allow simple keys', () => {

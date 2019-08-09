@@ -1,17 +1,14 @@
 {
+  "root": true,
   "parser": "babel-eslint",
-  "rulePaths": ["build-system/eslint-rules/"],
   "plugins": [
-    "eslint-plugin-swg-internal",
-    "eslint-plugin-google-camelcase"
+    "swg-internal",
+    "google-camelcase",
+    "prettier",
   ],
-  "ecmaFeatures": {
-    "modules": true,
-    "arrowFunctions": true,
-    "blockBindings": true,
-    "forOf": false,
-    "destructuring": true,
-    "spread": true
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
   },
   "env": {
     "es6": true,
@@ -45,22 +42,8 @@
     "swg-internal/no-global": 0,
     "swg-internal/no-spread": 2,
     "swg-internal/todo-format": 0,
-    "array-bracket-spacing": [2, "never"],
-    "arrow-parens": [2, "as-needed"],
-    "arrow-spacing": 2,
-    "comma-dangle": [2, "always-multiline"],
-    "computed-property-spacing": [2, "never"],
     "curly": 2,
-    "dot-location": [2, "property"],
-    "eol-last": 2,
     "google-camelcase/google-camelcase": 2,
-    "indent": [2, 2, { "SwitchCase": 1, "VariableDeclarator": 2, "MemberExpression": 2, "ObjectExpression": 1, "CallExpression": { "arguments": 2 } }],
-    "key-spacing": 2,
-    "max-len": [2, 80, 4, {
-      "ignoreComments": true,
-      "ignoreUrls": true,
-      "ignorePattern": ""
-    }],
     "no-alert": 2,
     "no-cond-assign": 2,
     "no-debugger": 2,
@@ -73,15 +56,13 @@
     "no-implied-eval": 2,
     "no-iterator": 2,
     "no-lone-blocks": 2,
-    "no-multi-spaces": 2,
     "no-native-reassign": 2,
     "no-redeclare": 2,
+    "no-restricted-globals": [2, "error", "event"],
     "no-script-url": 2,
     "no-self-compare": 2,
     "no-sequences": 2,
-    "no-spaced-func": 2,
     "no-throw-literal": 2,
-    "no-trailing-spaces": 2,
     "no-unused-expressions": 0,
     "no-unused-vars": [2, {
       "argsIgnorePattern": "^var_|opt_|unused",
@@ -98,15 +79,7 @@
     }],
     "object-shorthand": [2, "properties", { "avoidQuotes": true }],
     "prefer-const": 2,
-    "quotes": [2, "single", "avoid-escape"],
+    "prettier/prettier": 2,
     "radix": 2,
-    "semi": 2,
-    "keyword-spacing": ["error", { "before": true, "after": true }],
-    "space-before-blocks": 2,
-    "space-before-function-paren": [2, "never"],
-    "space-in-parens": 2,
-    "space-infix-ops": 2,
-    "space-unary-ops": [1, { "words": true, "nonwords": false }],
-    "wrap-iife": [2, "any"]
   }
 }

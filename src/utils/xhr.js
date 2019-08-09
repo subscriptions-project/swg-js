@@ -35,7 +35,6 @@ import {utf8EncodeSync} from './bytes';
  */
 export let FetchInitDef;
 
-
 /** @private @const {!Array<string>} */
 const allowedMethods_ = ['GET', 'POST'];
 
@@ -45,12 +44,10 @@ const allowedFetchTypes_ = {
   text: 2,
 };
 
-
 /**
  * A class that polyfills Fetch API.
  */
 export class Xhr {
-
   /**
    * @param {!Window} win
    */
@@ -75,8 +72,10 @@ export class Xhr {
     // `credentials`.
     const creds = init.credentials;
     assert(
-        creds === undefined || creds == 'include' || creds == 'omit',
-        'Only credentials=include|omit support: %s', creds);
+      creds === undefined || creds == 'include' || creds == 'omit',
+      'Only credentials=include|omit support: %s',
+      creds
+    );
     // Fallback to xhr polyfill since `fetch` api does not support
     // responseType = 'document'. We do this so we don't have to do any parsing
     // and document construction on the UI thread which would be expensive.
@@ -94,11 +93,18 @@ export class Xhr {
   fetch(input, opt_init) {
     // TODO (avimehta): Figure out if CORS needs be handled the way AMP does it.
     const init = setupInit(opt_init);
-    return this.fetch_(input, init).then(response => response, reason => {
-      const targetOrigin = parseUrl(input).origin;
-      throw new Error('XHR Failed fetching' +
-          ` (${targetOrigin}/...):`, reason && reason.message);
-    }).then(response => assertSuccess(response));
+    return this.fetch_(input, init)
+      .then(
+        response => response,
+        reason => {
+          const targetOrigin = parseUrl(input).origin;
+          throw new Error(
+            `XHR Failed fetching (${targetOrigin}/...):`,
+            reason && reason.message
+          );
+        }
+      )
+      .then(response => assertSuccess(response));
   }
 }
 
@@ -115,10 +121,10 @@ function normalizeMethod_(method) {
   method = method.toUpperCase();
 
   assert(
-      allowedMethods_.includes(method),
-      'Only one of %s is currently allowed. Got %s',
-      allowedMethods_.join(', '),
-      method
+    allowedMethods_.includes(method),
+    'Only one of %s is currently allowed. Got %s',
+    allowedMethods_.join(', '),
+    method
   );
 
   return method;
@@ -140,7 +146,6 @@ function setupInit(opt_init, opt_accept) {
   }
   return init;
 }
-
 
 /**
  * A minimal polyfill of Fetch API. It only polyfills what we currently use.
@@ -213,8 +218,6 @@ export function fetchPolyfill(input, init) {
  */
 function createXhrRequest(method, url) {
   const xhr = new XMLHttpRequest();
-  // TODO(avimehta): IE 8/9 don't support XHR (with CORS). Use XDR instead
-  // if we plan to support those browsers.
   if ('withCredentials' in xhr) {
     xhr.open(method, url, true);
   } else {
@@ -230,7 +233,6 @@ function createXhrRequest(method, url) {
 function isRetriable(status) {
   return status == 415 || (status >= 500 && status < 600);
 }
-
 
 /**
  * Returns the response if successful or otherwise throws an error.
@@ -253,7 +255,6 @@ export function assertSuccess(response) {
     throw err;
   });
 }
-
 
 /**
  * Response object in the Fetch API.
@@ -318,8 +319,9 @@ export class FetchResponse {
    * @return {!Promise<!JsonObject>}
    */
   json() {
-    return /** @type {!Promise<!JsonObject>} */ (
-        this.drainText_().then(parseJson));
+    return /** @type {!Promise<!JsonObject>} */ (this.drainText_().then(
+      parseJson
+    ));
   }
 
   /**
@@ -330,11 +332,14 @@ export class FetchResponse {
   document_() {
     assert(!this.bodyUsed, 'Body already used');
     this.bodyUsed = true;
-    assert(this.xhr_.responseXML,
-        'responseXML should exist. Make sure to return ' +
-        'Content-Type: text/html header.');
-    return /** @type {!Promise<!Document>} */ (
-        Promise.resolve(assert(this.xhr_.responseXML)));
+    assert(
+      this.xhr_.responseXML,
+      'responseXML should exist. Make sure to return ' +
+        'Content-Type: text/html header.'
+    );
+    return /** @type {!Promise<!Document>} */ (Promise.resolve(
+      assert(this.xhr_.responseXML)
+    ));
   }
 
   /**
@@ -343,11 +348,11 @@ export class FetchResponse {
    * @return {!Promise<!ArrayBuffer>}
    */
   arrayBuffer() {
-    return /** @type {!Promise<!ArrayBuffer>} */ (
-        this.drainText_().then(utf8EncodeSync));
+    return /** @type {!Promise<!ArrayBuffer>} */ (this.drainText_().then(
+      utf8EncodeSync
+    ));
   }
 }
-
 
 /**
  * Provides access to the response headers as defined in the Fetch API.

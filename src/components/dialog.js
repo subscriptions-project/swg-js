@@ -24,10 +24,7 @@ import {
   removeChildren,
   removeElement,
 } from '../utils/dom';
-import {
-  setStyles,
-  setImportantStyles,
-} from '../utils/style';
+import {setStyles, setImportantStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 import {FriendlyIframe} from './friendly-iframe';
 
@@ -80,13 +77,11 @@ const PositionAt = {
   FULL: 'FULL',
 };
 
-
 /**
  * The class for the top level dialog.
  * @final
  */
 export class Dialog {
-
   /**
    * Create a dialog for the provided doc.
    * @param {!../model/doc.Doc} doc
@@ -98,16 +93,19 @@ export class Dialog {
     this.doc_ = doc;
 
     /** @private @const {!FriendlyIframe} */
-    this.iframe_ = new FriendlyIframe(
-        doc.getWin().document, {'class': 'swg-dialog'});
+    this.iframe_ = new FriendlyIframe(doc.getWin().document, {
+      'class': 'swg-dialog',
+    });
 
     /** @private @const {!Graypane} */
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);
 
-    const modifiedImportantStyles =
-        Object.assign({}, rootElementImportantStyles, importantStyles);
-    setImportantStyles(
-        this.iframe_.getElement(), modifiedImportantStyles);
+    const modifiedImportantStyles = Object.assign(
+      {},
+      rootElementImportantStyles,
+      importantStyles
+    );
+    setImportantStyles(this.iframe_.getElement(), modifiedImportantStyles);
 
     setStyles(this.iframe_.getElement(), styles);
 
@@ -115,7 +113,7 @@ export class Dialog {
     this.loadingView_ = null;
 
     /** @private {?Element} */
-    this.container_ = null;  // Depends on constructed document inside iframe.
+    this.container_ = null; // Depends on constructed document inside iframe.
 
     /** @private {?./view.View} */
     this.view_ = null;
@@ -142,7 +140,7 @@ export class Dialog {
     }
 
     // Attach.
-    this.doc_.getBody().appendChild(iframe.getElement());  // Fires onload.
+    this.doc_.getBody().appendChild(iframe.getElement()); // Fires onload.
     this.graypane_.attach();
 
     if (hidden) {
@@ -193,9 +191,14 @@ export class Dialog {
     if (animated) {
       animating = this.animate_(() => {
         this.graypane_.hide(/* animate */ true);
-        return transition(this.getElement(), {
-          'transform': 'translateY(100%)',
-        }, 300, 'ease-out');
+        return transition(
+          this.getElement(),
+          {
+            'transform': 'translateY(100%)',
+          },
+          300,
+          'ease-out'
+        );
       });
     } else {
       animating = Promise.resolve();
@@ -251,7 +254,7 @@ export class Dialog {
     }
   }
 
-   /**
+  /**
    * Transition out of an old view.
    * @private
    */
@@ -312,11 +315,16 @@ export class Dialog {
         'opactiy': 1,
         'visibility': 'visible',
       });
-      return transition(this.getElement(), {
-        'transform': 'translateY(0)',
-        'opacity': 1,
-        'visibility': 'visible',
-      }, 300, 'ease-out');
+      return transition(
+        this.getElement(),
+        {
+          'transform': 'translateY(0)',
+          'opacity': 1,
+          'visibility': 'visible',
+        },
+        300,
+        'ease-out'
+      );
     });
     this.hidden_ = false;
   }
@@ -344,16 +352,26 @@ export class Dialog {
             'height': `${newHeight}px`,
             'transform': `translateY(${newHeight - oldHeight}px)`,
           });
-          return transition(this.getElement(), {
-            'transform': 'translateY(0)',
-          }, 300, 'ease-out');
+          return transition(
+            this.getElement(),
+            {
+              'transform': 'translateY(0)',
+            },
+            300,
+            'ease-out'
+          );
         });
       } else {
         // Collapse.
         animating = this.animate_(() => {
-          return transition(this.getElement(), {
-            'transform': `translateY(${oldHeight - newHeight}px)`,
-          }, 300, 'ease-out').then(() => {
+          return transition(
+            this.getElement(),
+            {
+              'transform': `translateY(${oldHeight - newHeight}px)`,
+            },
+            300,
+            'ease-out'
+          ).then(() => {
             setImportantStyles(this.getElement(), {
               'height': `${newHeight}px`,
               'transform': 'translateY(0)',
@@ -380,13 +398,18 @@ export class Dialog {
    */
   animate_(callback) {
     const wait = this.animating_ || Promise.resolve();
-    return this.animating_ = wait.then(() => {
-      return callback();
-    }, () => {
-      // Ignore errors to make sure animations don't get stuck.
-    }).then(() => {
-      this.animating_ = null;
-    });
+    return (this.animating_ = wait
+      .then(
+        () => {
+          return callback();
+        },
+        () => {
+          // Ignore errors to make sure animations don't get stuck.
+        }
+      )
+      .then(() => {
+        this.animating_ = null;
+      }));
   }
 
   /**
@@ -396,7 +419,7 @@ export class Dialog {
    * @private
    */
   getMaxAllowedHeight_(height) {
-    return Math.min(height, this.doc_.getWin()./*OK*/innerHeight * 0.9);
+    return Math.min(height, this.doc_.getWin()./*OK*/ innerHeight * 0.9);
   }
 
   /**
@@ -423,7 +446,7 @@ export class Dialog {
    */
   updatePaddingToHtml_(newHeight) {
     if (this.inferPosition_() == PositionAt.BOTTOM) {
-      const bottomPadding = newHeight + 20;  // Add some extra padding.
+      const bottomPadding = newHeight + 20; // Add some extra padding.
       const htmlElement = this.doc_.getRootElement();
       setImportantStyles(htmlElement, {
         'padding-bottom': `${bottomPadding}px`,
@@ -438,7 +461,6 @@ export class Dialog {
   removePaddingToHtml_() {
     this.doc_.getRootElement().style.removeProperty('padding-bottom');
   }
-
 
   /**
    * Calculates the position of the dialog. Currently dialog is positioned at

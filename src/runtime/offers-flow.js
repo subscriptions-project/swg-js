@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType, SubscriptionRequest} from '../api/subscriptions';
@@ -30,7 +29,6 @@ const OFFERS_VIEW_CLOSABLE = true;
  * The class for Offers flow.
  */
 export class OffersFlow {
-
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.OffersRequest|undefined} options
@@ -50,7 +48,7 @@ export class OffersFlow {
 
     let isClosable = options && options.isClosable;
     if (isClosable == undefined) {
-      isClosable = false;  // Default is to hide Close button.
+      isClosable = false; // Default is to hide Close button.
     }
 
     const feArgsObj = {
@@ -164,18 +162,15 @@ export class OffersFlow {
   }
 }
 
-
 /**
  * The class for subscribe option flow.
  */
 export class SubscribeOptionFlow {
-
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.OffersRequest|undefined} options
    */
   constructor(deps, options) {
-
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -190,17 +185,18 @@ export class SubscribeOptionFlow {
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
-        deps.win(),
-        this.activityPorts_,
-        feUrl('/optionsiframe'),
-        feArgs({
-          'publicationId': deps.pageConfig().getPublicationId(),
-          'productId': deps.pageConfig().getProductId(),
-          'list': options && options.list || 'default',
-          'skus': options && options.skus || null,
-          'isClosable': true,
-        }),
-        /* shouldFadeBody */ false);
+      deps.win(),
+      this.activityPorts_,
+      feUrl('/optionsiframe'),
+      feArgs({
+        'publicationId': deps.pageConfig().getPublicationId(),
+        'productId': deps.pageConfig().getProductId(),
+        'list': (options && options.list) || 'default',
+        'skus': (options && options.skus) || null,
+        'isClosable': true,
+      }),
+      /* shouldFadeBody */ false
+    );
   }
 
   /**
@@ -209,22 +205,27 @@ export class SubscribeOptionFlow {
    */
   start() {
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SHOW_SUBSCRIBE_OPTION);
+    this.deps_
+      .callbacks()
+      .triggerFlowStarted(SubscriptionFlows.SHOW_SUBSCRIBE_OPTION);
     this.activityIframeView_.onCancel(() => {
-      this.deps_.callbacks().triggerFlowCanceled(
-          SubscriptionFlows.SHOW_SUBSCRIBE_OPTION);
+      this.deps_
+        .callbacks()
+        .triggerFlowCanceled(SubscriptionFlows.SHOW_SUBSCRIBE_OPTION);
     });
 
     this.activityIframeView_.onMessageDeprecated(data => {
       this.maybeOpenOffersFlow_(data);
     });
-    this.activityIframeView_.acceptResult().then(result => {
-      this.maybeOpenOffersFlow_(result.data);
-    }, reason => {
-      this.dialogManager_.completeView(this.activityIframeView_);
-      throw reason;
-    });
+    this.activityIframeView_.acceptResult().then(
+      result => {
+        this.maybeOpenOffersFlow_(result.data);
+      },
+      reason => {
+        this.dialogManager_.completeView(this.activityIframeView_);
+        throw reason;
+      }
+    );
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 
@@ -243,19 +244,16 @@ export class SubscribeOptionFlow {
   }
 }
 
-
 /**
  * The class for Abbreviated Offer flow.
  *
  */
 export class AbbrvOfferFlow {
-
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!../api/subscriptions.OffersRequest=} options
    */
   constructor(deps, options = {}) {
-
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -273,18 +271,19 @@ export class AbbrvOfferFlow {
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl('/abbrvofferiframe'),
-        feArgs({
-          'publicationId': deps.pageConfig().getPublicationId(),
-          'productId': deps.pageConfig().getProductId(),
-          'showNative': deps.callbacks().hasSubscribeRequestCallback(),
-          'list': options && options.list || 'default',
-          'skus': options && options.skus || null,
-          'isClosable': true,
-        }),
-        /* shouldFadeBody */ false);
+      this.win_,
+      this.activityPorts_,
+      feUrl('/abbrvofferiframe'),
+      feArgs({
+        'publicationId': deps.pageConfig().getPublicationId(),
+        'productId': deps.pageConfig().getProductId(),
+        'showNative': deps.callbacks().hasSubscribeRequestCallback(),
+        'list': (options && options.list) || 'default',
+        'skus': (options && options.skus) || null,
+        'isClosable': true,
+      }),
+      /* shouldFadeBody */ false
+    );
   }
 
   /**
@@ -293,11 +292,13 @@ export class AbbrvOfferFlow {
    */
   start() {
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(
-        SubscriptionFlows.SHOW_ABBRV_OFFER);
+    this.deps_
+      .callbacks()
+      .triggerFlowStarted(SubscriptionFlows.SHOW_ABBRV_OFFER);
     this.activityIframeView_.onCancel(() => {
-      this.deps_.callbacks().triggerFlowCanceled(
-          SubscriptionFlows.SHOW_ABBRV_OFFER);
+      this.deps_
+        .callbacks()
+        .triggerFlowCanceled(SubscriptionFlows.SHOW_ABBRV_OFFER);
     });
 
     // If the user is already subscribed, trigger login flow
