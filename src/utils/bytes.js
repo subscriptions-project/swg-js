@@ -28,7 +28,6 @@ const base64UrlDecodeSubs = {'-': '+', '_': '/', '.': '='};
  */
 const base64UrlEncodeSubs = {'+': '-', '/': '_'};
 
-
 /**
  * Converts a string which holds 8-bit code points, such as the result of atob,
  * into a Uint8Array with the corresponding bytes.
@@ -46,7 +45,6 @@ export function stringToBytes(str) {
   return bytes;
 }
 
-
 /**
  * Converts a 8-bit bytes array into a string
  * @param {!Uint8Array} bytes
@@ -62,7 +60,6 @@ export function bytesToString(bytes) {
   return array.join('');
 }
 
-
 /**
  * Interpret a byte array as a UTF-8 string.
  * @param {!BufferSource} bytes
@@ -76,7 +73,6 @@ export function utf8DecodeSync(bytes) {
   return decodeURIComponent(escape(asciiString));
 }
 
-
 /**
  * Turn a string into UTF-8 bytes.
  * @param {string} string
@@ -89,7 +85,6 @@ export function utf8EncodeSync(string) {
   return stringToBytes(unescape(encodeURIComponent(string)));
 }
 
-
 /**
  * Converts a string which is in base64url encoding into a Uint8Array
  * containing the decoded value.
@@ -100,7 +95,6 @@ export function base64UrlDecodeToBytes(str) {
   const encoded = atob(str.replace(/[-_.]/g, ch => base64UrlDecodeSubs[ch]));
   return stringToBytes(encoded);
 }
-
 
 /**
  * Converts a bytes array into base64url encoded string.

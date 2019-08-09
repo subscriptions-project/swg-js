@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Xhr} from '../utils/xhr';
 import {adsUrl} from './services';
-import {EventOriginator} from '../proto/api_messages';
-import {isObject,isBoolean} from '../utils/types';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {isObject, isBoolean} from '../utils/types';
 import {ExperimentFlags} from './experiment-flags';
 import {isExperimentOn} from './experiments';
 import {analyticsEventToPublisherEvent} from './event-type-mapping';
@@ -29,18 +28,20 @@ export class PropensityServer {
    * Page configuration is known when Propensity API
    * is available, publication ID is therefore used
    * in constructor for the server interface.
+   * @param {!Window} win
    * @param {string} publicationId
    * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
+   * @param {!./fetcher.Fetcher} fetcher
    */
-  constructor(win, publicationId, eventManager) {
+  constructor(win, publicationId, eventManager, fetcher) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private @const {string} */
     this.publicationId_ = publicationId;
     /** @private {?string} */
     this.clientId_ = null;
-    /** @private @const {!Xhr} */
-    this.xhr_ = new Xhr(win);
+    /** @private @const {!./fetcher.Fetcher} */
+    this.fetcher_ = fetcher;
     /** @private @const {number} */
     this.version_ = 1;
 
@@ -48,8 +49,10 @@ export class PropensityServer {
 
     // TODO(mborof): b/133519525
     /** @private @const {!boolean} */
-    this.logSwgEventsExperiment_ = isExperimentOn(win,
-        ExperimentFlags.LOG_SWG_TO_PROPENSITY);
+    this.logSwgEventsExperiment_ = isExperimentOn(
+      win,
+      ExperimentFlags.LOG_SWG_TO_PROPENSITY
+    );
 
     /** @private {!boolean} */
     this.logSwgEventsConfig_ = false;
@@ -72,12 +75,28 @@ export class PropensityServer {
     if (!this.clientId_) {
       // Match '__gads' (name of the cookie) dropped by Ads Tag.
       const gadsmatch = this.getDocumentCookie_().match(
-          '(^|;)\\s*__gads\\s*=\\s*([^;]+)');
+        '(^|;)\\s*__gads\\s*=\\s*([^;]+)'
+      );
       // Since the cookie will be consumed using decodeURIComponent(),
       // use encodeURIComponent() here to match.
       this.clientId_ = gadsmatch && encodeURIComponent(gadsmatch.pop());
     }
     return this.clientId_;
+  }
+
+  /**
+   * @private
+   * @param {string} url
+   * @return {string}
+   */
+  propensityUrl_(url) {
+    url = url + '&u_tz=240&v=' + this.version_;
+    const clientId = this.getClientId_();
+    if (clientId) {
+      url = url + '&cookie=' + clientId;
+    }
+    url = url + '&cdm=' + this.win_.location.hostname;
+    return url;
   }
 
   /**
@@ -89,18 +108,12 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    const clientId = this.getClientId_();
     let userState = this.publicationId_ + ':' + state;
     if (productsOrSkus) {
       userState = userState + ':' + encodeURIComponent(productsOrSkus);
     }
-    let url = adsUrl('/subopt/data?states=')
-        + encodeURIComponent(userState) + '&u_tz=240'
-        + '&v=' + this.version_;
-    if (clientId) {
-      url = url + '&cookie=' + clientId;
-    }
-    return this.xhr_.fetch(url, init);
+    const url = adsUrl('/subopt/data?states=') + encodeURIComponent(userState);
+    return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
   /**
@@ -113,18 +126,12 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    const clientId = this.getClientId_();
     let eventInfo = this.publicationId_ + ':' + event;
     if (context) {
       eventInfo = eventInfo + ':' + encodeURIComponent(context);
     }
-    let url = adsUrl('/subopt/data?events=')
-        + encodeURIComponent(eventInfo) + '&u_tz=240'
-        + '&v=' + this.version_;
-    if (clientId) {
-      url = url + '&cookie=' + clientId;
-    }
-    return this.xhr_.fetch(url, init);
+    const url = adsUrl('/subopt/data?events=') + encodeURIComponent(eventInfo);
+    return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
   /**
@@ -132,12 +139,21 @@ export class PropensityServer {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
+    if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
+      this.sendSubscriptionState(
+        event.additionalParameters['state'],
+        event.additionalParameters['productsOrSkus']
+      );
+      return;
+    }
     const propEvent = analyticsEventToPublisherEvent(event.eventType);
     if (propEvent == null) {
       return;
     }
-    if (!(this.logSwgEventsExperiment_ && this.logSwgEventsConfig_)
-        && event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT) {
+    if (
+      !(this.logSwgEventsExperiment_ && this.logSwgEventsConfig_) &&
+      event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT
+    ) {
       return;
     }
     let additionalParameters = event.additionalParameters;
@@ -148,8 +164,10 @@ export class PropensityServer {
       }
       additionalParameters['is_active'] = event.isFromUserAction;
     }
-    this.sendEvent_(propEvent,
-        JSON.stringify(/** @type {?JsonObject} */ (additionalParameters)));
+    this.sendEvent_(
+      propEvent,
+      JSON.stringify(/** @type {?JsonObject} */ (additionalParameters))
+    );
   }
 
   /**
@@ -157,14 +175,12 @@ export class PropensityServer {
    * @return {!../api/propensity-api.PropensityScore}
    */
   parsePropensityResponse_(response) {
-    let defaultScore =
-        /** @type {!../api/propensity-api.PropensityScore} */ ({});
+    let defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({});
     if (!response['header']) {
-      defaultScore =
-        /** @type {!../api/propensity-api.PropensityScore} */ ({
-          header: {ok: false},
-          body: {error: 'No valid response'},
-        });
+      defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
+        header: {ok: false},
+        body: {error: 'No valid response'},
+      });
       return defaultScore;
     }
     const status = response['header'];
@@ -177,7 +193,7 @@ export class PropensityServer {
         const scoreStatus = !!result['score'];
         let scoreDetail;
         if (scoreStatus) {
-          const value = /** @type {!../api/propensity-api.Score} */({
+          const value = /** @type {!../api/propensity-api.Score} */ ({
             value: result['score'],
             bucketed: result['score_type'] == 2,
           });
@@ -213,22 +229,23 @@ export class PropensityServer {
    * @return {?Promise<../api/propensity-api.PropensityScore>}
    */
   getPropensity(referrer, type) {
-    const clientId = this.getClientId_();
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'GET',
       credentials: 'include',
     });
-    let url = adsUrl('/subopt/pts?products=') + this.publicationId_
-        + '&type=' + type + '&u_tz=240'
-        + '&ref=' + referrer
-        + '&v=' + this.version_;
-    if (clientId) {
-      url = url + '&cookie=' + clientId;
-    }
-    return this.xhr_.fetch(url, init).then(result => result.json())
-        .then(response => {
-          return this.parsePropensityResponse_(response);
-        });
+    const url =
+      adsUrl('/subopt/pts?products=') +
+      this.publicationId_ +
+      '&type=' +
+      type +
+      '&ref=' +
+      referrer;
+    return this.fetcher_
+      .fetch(this.propensityUrl_(url), init)
+      .then(result => result.json())
+      .then(response => {
+        return this.parsePropensityResponse_(response);
+      });
   }
 
   enableLoggingSwgEvents() {

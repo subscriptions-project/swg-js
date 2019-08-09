@@ -2,7 +2,7 @@ language: node_js
 sudo: required  # See http://docs.travis-ci.com/user/trusty-ci-environment/
 dist: trusty
 node_js:
-  - "8"
+  - "lts/*"
 python:
   - "2.7"
 before_install:
@@ -12,6 +12,9 @@ before_install:
   - sh -e /etc/init.d/xvfb start
   - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
   - sudo dpkg -i google-chrome*.deb
+  # Install yarn
+  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.17.3
+  - export PATH=$HOME/.yarn/bin:$PATH
 before_script:
   - export PATH="`pwd`/node_modules/.bin:$PATH"
 script: gulp presubmit
@@ -29,3 +32,4 @@ matrix:
   directories:
   - node_modules
   bundler: true
+  yarn: true

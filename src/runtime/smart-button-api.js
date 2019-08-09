@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-
 import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
 import {feArgs, feUrl} from './services';
+import {SmartBoxMessage} from '../proto/api_messages';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
@@ -32,7 +32,6 @@ export const Theme = {
   LIGHT: 'light',
   DARK: 'dark',
 };
-
 
 /**
  * The class for Smart button Api.
@@ -58,9 +57,11 @@ export class SmartSubscriptionButtonApi {
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ =
-    /** @type {!HTMLIFrameElement} */ (
-        createElement(this.doc_, 'iframe', iframeAttributes));
+    this.iframe_ = /** @type {!HTMLIFrameElement} */ (createElement(
+      this.doc_,
+      'iframe',
+      iframeAttributes
+    ));
 
     /** @private @const {!Element} */
     this.button_ = button;
@@ -77,8 +78,8 @@ export class SmartSubscriptionButtonApi {
     const frontendArguments = {
       'productId': this.deps_.pageConfig().getProductId(),
       'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'theme': this.options_ && this.options_.theme || 'light',
-      'lang': this.options_ && this.options_.lang || 'en',
+      'theme': (this.options_ && this.options_.theme) || 'light',
+      'lang': (this.options_ && this.options_.lang) || 'en',
     };
     const messageTextColor = this.options_ && this.options_.messageTextColor;
     if (messageTextColor) {
@@ -87,6 +88,19 @@ export class SmartSubscriptionButtonApi {
 
     /** @private @const {!Object} */
     this.args_ = feArgs(frontendArguments);
+  }
+
+  /**
+   * @param {SmartBoxMessage} smartBoxMessage
+   */
+  handleSmartBoxClick_(smartBoxMessage) {
+    if (smartBoxMessage && smartBoxMessage.getIsClicked()) {
+      if (!this.callback_) {
+        throw new Error('No callback!');
+      }
+      this.callback_();
+      return;
+    }
   }
 
   /**
@@ -113,20 +127,16 @@ export class SmartSubscriptionButtonApi {
       'width': '100%',
     });
     this.button_.appendChild(this.iframe_);
-    const analyticsContext = this.deps_.analytics().getContext().toArray();
+    const analyticsContext = this.deps_
+      .analytics()
+      .getContext()
+      .toArray();
     this.args_['analyticsContext'] = analyticsContext;
-    this.activityPorts_.openIframe(this.iframe_, this.src_, this.args_)
-        .then(port => {
-          port.onMessageDeprecated(result => {
-            if (result['clicked']) {
-              if (!this.callback_) {
-                throw new Error('No callback!');
-              }
-              this.callback_();
-              return;
-            }
-          });
-        });
+    this.activityPorts_
+      .openIframe(this.iframe_, this.src_, this.args_)
+      .then(port => {
+        port.on(SmartBoxMessage, this.handleSmartBoxClick_.bind(this));
+      });
     return this.iframe_;
   }
 }

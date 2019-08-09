@@ -15,8 +15,9 @@
  */
 
 import {FilterResult} from '../api/client-event-manager-api';
-import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
+import {log} from '../utils/log';
 
 /**
  * Helper function to describe an issue with an event object
@@ -42,19 +43,27 @@ function validateEvent(event) {
   }
 
   if (!isEnumValue(EventOriginator, event.eventOriginator)) {
-    throw new Error(createEventErrorMessage('eventOriginator',
-        event.eventOriginator));
+    throw new Error(
+      createEventErrorMessage('eventOriginator', event.eventOriginator)
+    );
   }
 
-  if (!isObject(event.additionalParameters)
-      && event.additionalParameters != null) {
-    throw new Error(createEventErrorMessage('additionalParameters',
-        event.additionalParameters));
+  if (
+    !isObject(event.additionalParameters) &&
+    event.additionalParameters != null
+  ) {
+    throw new Error(
+      createEventErrorMessage(
+        'additionalParameters',
+        event.additionalParameters
+      )
+    );
   }
 
   if (event.isFromUserAction != null && !isBoolean(event.isFromUserAction)) {
-    throw new Error(createEventErrorMessage('isFromUserAction',
-        event.isFromUserAction));
+    throw new Error(
+      createEventErrorMessage('isFromUserAction', event.isFromUserAction)
+    );
   }
 }
 
@@ -105,14 +114,41 @@ export class ClientEventManager {
     validateEvent(event);
     this.lastAction_ = this.isReadyPromise_.then(() => {
       for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
-        if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
-          return Promise.resolve();
+        try {
+          if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
+            return Promise.resolve();
+          }
+        } catch (e) {
+          log(e);
         }
       }
       for (let listener = 0; listener < this.listeners_.length; listener++) {
-        this.listeners_[listener](event);
+        try {
+          this.listeners_[listener](event);
+        } catch (e) {
+          log(e);
+        }
       }
       return Promise.resolve();
+    });
+  }
+
+  /**
+   * Creates an event with the arguments provided and calls logEvent.
+   * @param {!AnalyticsEvent} eventType
+   * @param {?boolean=} isFromUserAction
+   * @param {?Object=} additionalParameters
+   */
+  logSwgEvent(
+    eventType,
+    isFromUserAction = false,
+    additionalParameters = null
+  ) {
+    this.logEvent({
+      eventType,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction,
+      additionalParameters,
     });
   }
 }

@@ -15,12 +15,12 @@
  */
 
 import {ButtonApi} from './button-api';
+import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
-import * as sinon from 'sinon';
-import {AnalyticsContext} from '../proto/api_messages';
+import {AnalyticsEvent, AnalyticsContext} from '../proto/api_messages';
 import {ActivityPort} from '../components/activities';
 
 describes.realWin('ButtonApi', {}, env => {
@@ -31,17 +31,19 @@ describes.realWin('ButtonApi', {}, env => {
   let port;
   let analyticsMock;
   let activitiesMock;
+  let eventManagerMock;
   let buttonApi;
   let handler;
 
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
-    buttonApi = new ButtonApi(resolveDoc(doc));
     pageConfig = new PageConfig('pub1:label1', false);
     runtime = new ConfiguredRuntime(win, pageConfig);
     analyticsMock = sandbox.mock(runtime.analytics());
     activitiesMock = sandbox.mock(runtime.activities());
+    eventManagerMock = sandbox.mock(runtime.eventManager());
+    buttonApi = new ButtonApi(resolveDoc(doc), Promise.resolve(runtime));
     port = new ActivityPort();
     handler = sandbox.spy();
   });
@@ -49,6 +51,7 @@ describes.realWin('ButtonApi', {}, env => {
   afterEach(() => {
     activitiesMock.verify();
     analyticsMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should inject stylesheet', () => {
@@ -62,7 +65,7 @@ describes.realWin('ButtonApi', {}, env => {
   });
 
   it('should inject stylesheet only once', () => {
-    new ButtonApi(resolveDoc(doc)).init();
+    new ButtonApi(resolveDoc(doc), Promise.resolve(runtime)).init();
     buttonApi.init();
     const links = doc.querySelectorAll('link[href="$assets$/swg-button.css"]');
     expect(links).to.have.length(1);
@@ -73,7 +76,7 @@ describes.realWin('ButtonApi', {}, env => {
     expect(button.nodeType).to.equal(1);
     expect(button.tagName).to.equal('BUTTON');
     expect(button.ownerDocument).to.equal(doc);
-    expect(button).to.have.class('swg-button-light');  // Default.
+    expect(button).to.have.class('swg-button-light'); // Default.
     expect(button.getAttribute('role')).to.equal('button');
     expect(button.getAttribute('title')).to.equal('Subscribe with Google');
 
@@ -86,7 +89,7 @@ describes.realWin('ButtonApi', {}, env => {
     const button = doc.createElement('button');
     button.className = 'button1';
     buttonApi.attach(button, handler);
-    expect(button).to.have.class('swg-button-light');  // Default.
+    expect(button).to.have.class('swg-button-light'); // Default.
     expect(button.getAttribute('role')).to.equal('button');
     expect(button.getAttribute('title')).to.equal('Subscribe with Google');
 
@@ -180,7 +183,47 @@ describes.realWin('ButtonApi', {}, env => {
     button.setAttribute('lang', 'fr');
     buttonApi.attach(button, {}, handler);
     expect(button.lang).to.equal('fr');
-    expect(button.getAttribute('title')).to.equal('S\'abonner avec Google');
+    expect(button.getAttribute('title')).to.equal("S'abonner avec Google");
+  });
+
+  it('should log button click on create.', async () => {
+    const button = buttonApi.create(handler);
+    let count = 0;
+    sandbox
+      .stub(ClientEventManager.prototype, 'logSwgEvent')
+      .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+      .callsFake(() => count++);
+    await button.click();
+    expect(count).to.equal(1);
+  });
+
+  it('should log button click on attach.', async () => {
+    const button = doc.createElement('button');
+    buttonApi.attach(button, {}, handler);
+    let count = 0;
+    sandbox
+      .stub(ClientEventManager.prototype, 'logSwgEvent')
+      .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+      .callsFake(() => count++);
+    await button.click();
+    expect(count).to.equal(1);
+  });
+
+  it('should log button impression on create', async () => {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_SWG_BUTTON)
+      .once();
+    buttonApi.create(handler);
+  });
+
+  it('should log button impression on attach', async () => {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_SWG_BUTTON)
+      .once();
+    const button = doc.createElement('button');
+    buttonApi.attach(button, {}, handler);
   });
 
   it('should attach a smart button with no options', () => {
@@ -190,11 +233,14 @@ describes.realWin('ButtonApi', {}, env => {
 
     const expAnalyticsContext = new AnalyticsContext();
     expAnalyticsContext.setEmbedderOrigin('google.com');
-    analyticsMock.expects('getContext')
-        .returns(expAnalyticsContext)
-        .once();
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    analyticsMock
+      .expects('getContext')
+      .returns(expAnalyticsContext)
+      .once();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -203,8 +249,9 @@ describes.realWin('ButtonApi', {}, env => {
           theme: 'light',
           lang: 'en',
           analyticsContext: expAnalyticsContext.toArray(),
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(runtime, button, {}, handler);
     expect(handler).to.not.be.called;
     button.click();
@@ -219,11 +266,14 @@ describes.realWin('ButtonApi', {}, env => {
 
     const expAnalyticsContext = new AnalyticsContext();
     expAnalyticsContext.setEmbedderOrigin('google.com');
-    analyticsMock.expects('getContext')
-        .returns(expAnalyticsContext)
-        .once();
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    analyticsMock
+      .expects('getContext')
+      .returns(expAnalyticsContext)
+      .once();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -232,8 +282,9 @@ describes.realWin('ButtonApi', {}, env => {
           theme: 'light',
           lang: 'en',
           analyticsContext: expAnalyticsContext.toArray(),
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(runtime, button, handler);
     expect(handler).to.not.be.called;
     button.click();
@@ -248,11 +299,14 @@ describes.realWin('ButtonApi', {}, env => {
 
     const expAnalyticsContext = new AnalyticsContext();
     expAnalyticsContext.setEmbedderOrigin('google.com');
-    analyticsMock.expects('getContext')
-        .returns(expAnalyticsContext)
-        .once();
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    analyticsMock
+      .expects('getContext')
+      .returns(expAnalyticsContext)
+      .once();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -262,52 +316,68 @@ describes.realWin('ButtonApi', {}, env => {
           lang: 'fr',
           messageTextColor: '#411',
           analyticsContext: expAnalyticsContext.toArray(),
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     buttonApi.attachSmartButton(
-        runtime,
-        button,
-        {
-          theme: 'dark',
-          lang: 'fr',
-          messageTextColor: '#411',
-        },
-        handler);
+      runtime,
+      button,
+      {
+        theme: 'dark',
+        lang: 'fr',
+        messageTextColor: '#411',
+      },
+      handler
+    );
     expect(handler).to.not.be.called;
     button.click();
     expect(handler).to.be.calledOnce;
     activitiesMock.verify();
   });
 
-  it('should attach a smart button with default theme when invalid value',
-      () => {
-        const button = doc.createElement('button');
-        button.className = 'swg-smart-button';
-        expect(button.nodeType).to.equal(1);
+  it('should attach a smart button with default theme when invalid value', () => {
+    const button = doc.createElement('button');
+    button.className = 'swg-smart-button';
+    expect(button.nodeType).to.equal(1);
 
-        const expAnalyticsContext = new AnalyticsContext();
-        expAnalyticsContext.setEmbedderOrigin('google.com');
-        analyticsMock.expects('getContext')
-            .returns(expAnalyticsContext)
-            .once();
-        activitiesMock.expects('openIframe').withExactArgs(
-            sinon.match(arg => arg.tagName == 'IFRAME'),
-            '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
-            {
-              _client: 'SwG $internalRuntimeVersion$',
-              publicationId: 'pub1',
-              productId: 'pub1:label1',
-              theme: 'light',
-              lang: 'en',
-              analyticsContext: expAnalyticsContext.toArray(),
+    const expAnalyticsContext = new AnalyticsContext();
+    expAnalyticsContext.setEmbedderOrigin('google.com');
+    analyticsMock
+      .expects('getContext')
+      .returns(expAnalyticsContext)
+      .once();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          theme: 'light',
+          lang: 'en',
+          analyticsContext: expAnalyticsContext.toArray(),
+        }
+      )
+      .returns(Promise.resolve(port));
+    buttonApi.attachSmartButton(runtime, button, {theme: 'INVALID'}, handler);
+    expect(handler).to.not.be.called;
+    button.click();
+    expect(handler).to.be.calledOnce;
+    activitiesMock.verify();
+  });
 
-            })
-            .returns(Promise.resolve(port));
-        buttonApi.attachSmartButton(
-            runtime, button, {theme: 'INVALID'}, handler);
-        expect(handler).to.not.be.called;
-        button.click();
-        expect(handler).to.be.calledOnce;
-        activitiesMock.verify();
-      });
+  it('should log smart button click', async () => {
+    const button = doc.createElement('button');
+    button.className = 'swg-smart-button';
+    analyticsMock.expects('getContext').returns(new AnalyticsContext());
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    buttonApi.attachSmartButton(runtime, button, {}, handler);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+      .once();
+    button.click();
+  });
 });

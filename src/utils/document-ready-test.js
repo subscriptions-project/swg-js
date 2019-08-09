@@ -21,7 +21,6 @@ import {
   whenDocumentComplete,
 } from './document-ready';
 
-
 describes.sandboxed('documentReady', {}, () => {
   let testDoc;
   let eventListeners;
@@ -98,14 +97,15 @@ describes.sandboxed('documentReady', {}, () => {
   });
 
   describe('whenDocumentReady', () => {
-
     it('should call callback immediately when ready', () => {
       testDoc.readyState = 'complete';
       const spy = sandbox.spy();
       const spy2 = sandbox.spy();
       const spy3 = sandbox.spy();
 
-      whenDocumentReady(testDoc).then(spy).then(spy2);
+      whenDocumentReady(testDoc)
+        .then(spy)
+        .then(spy2);
 
       whenDocumentReady(testDoc).then(spy3);
 
@@ -113,15 +113,17 @@ describes.sandboxed('documentReady', {}, () => {
       expect(spy2).to.have.not.been.called;
       expect(spy3).to.have.not.been.called;
 
-      return Promise.resolve().then(() => {
-        // Skip microtask.
-        return Promise.resolve();
-      }).then(() => {
-        expect(spy).to.be.calledOnce;
-        expect(spy.getCall(0).args).to.deep.equal([testDoc]);
-        expect(spy2).to.be.calledOnce;
-        expect(spy3).to.be.calledOnce;
-      });
+      return Promise.resolve()
+        .then(() => {
+          // Skip microtask.
+          return Promise.resolve();
+        })
+        .then(() => {
+          expect(spy).to.be.calledOnce;
+          expect(spy.getCall(0).args).to.deep.equal([testDoc]);
+          expect(spy2).to.be.calledOnce;
+          expect(spy3).to.be.calledOnce;
+        });
     });
 
     it('should not call callback', () => {
@@ -156,14 +158,15 @@ describes.sandboxed('documentReady', {}, () => {
   });
 
   describe('whenDocumentComplete', () => {
-
     it('should call callback immediately when complete', () => {
       testDoc.readyState = 'complete';
       const spy = sandbox.spy();
       const spy2 = sandbox.spy();
       const spy3 = sandbox.spy();
 
-      whenDocumentComplete(testDoc).then(spy).then(spy2);
+      whenDocumentComplete(testDoc)
+        .then(spy)
+        .then(spy2);
 
       whenDocumentComplete(testDoc).then(spy3);
 
@@ -171,15 +174,17 @@ describes.sandboxed('documentReady', {}, () => {
       expect(spy2).to.have.not.been.called;
       expect(spy3).to.have.not.been.called;
 
-      return Promise.resolve().then(() => {
-        // Skip microtask.
-        return Promise.resolve();
-      }).then(() => {
-        expect(spy).to.be.calledOnce;
-        expect(spy.getCall(0).args).to.deep.equal([testDoc]);
-        expect(spy2).to.be.calledOnce;
-        expect(spy3).to.be.calledOnce;
-      });
+      return Promise.resolve()
+        .then(() => {
+          // Skip microtask.
+          return Promise.resolve();
+        })
+        .then(() => {
+          expect(spy).to.be.calledOnce;
+          expect(spy.getCall(0).args).to.deep.equal([testDoc]);
+          expect(spy2).to.be.calledOnce;
+          expect(spy3).to.be.calledOnce;
+        });
     });
 
     it('should not call callback', () => {
