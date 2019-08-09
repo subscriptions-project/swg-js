@@ -343,9 +343,16 @@ export class Runtime {
   }
 
   /** @override */
-  subscribe(skuOrSubscriptionRequest) {
+  subscribe(sku) {
     return this.configured_(true).then(runtime =>
-      runtime.subscribe(skuOrSubscriptionRequest)
+      runtime.subscribe(sku)
+    );
+  }
+
+  /** @override */
+  updateSubscription(subscriptionRequest) {
+    return this.configured_(true).then(runtime =>
+      runtime.updateSubscription(subscriptionRequest)
     );
   }
 
@@ -823,15 +830,19 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  subscribe(skuOrSubscriptionRequest) {
-    if (
-      typeof skuOrSubscriptionRequest != 'string' &&
-      !isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)
-    ) {
+  subscribe(sku) {
+    return this.documentParsed_.then(() => {
+      return new PayStartFlow(this, sku).start();
+    });
+  }
+
+  /** @override */
+  updateSubscription(subscriptionRequest) {
+    if (!isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)) {
       throw new Error('Not yet launched!');
     }
     return this.documentParsed_.then(() => {
-      return new PayStartFlow(this, skuOrSubscriptionRequest).start();
+      return new PayStartFlow(this, subscriptionRequest).start();
     });
   }
 
@@ -938,6 +949,7 @@ function createPublicRuntime(runtime) {
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
     waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
+    updateSubscription: runtime.updateSubscription.bind(runtime),
     contribute: runtime.contribute.bind(runtime),
     completeDeferredAccountCreation: runtime.completeDeferredAccountCreation.bind(
       runtime
