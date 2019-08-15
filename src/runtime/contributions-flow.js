@@ -66,21 +66,21 @@ export class ContributionsFlow {
   }
 
   /**
-   * @param {AlreadySubscribedResponse} request
+   * @param {AlreadySubscribedResponse} response
    */
-  handleLinkRequest_(request) {
-    if (request.getSubscriberOrMember()) {
+  handleLinkRequest_(response) {
+    if (response.getSubscriberOrMember()) {
       this.deps_.callbacks().triggerLoginRequest({
-        linkRequested: !!request.getLinkRequested(),
+        linkRequested: !!response.getLinkRequested(),
       });
     }
   }
 
   /**
-   * @param {SkuSelectedResponse} skuSelected
+   * @param {SkuSelectedResponse} response
    */
-  startPayFlow_(skuSelected) {
-    const sku = skuSelected.getSku();
+  startPayFlow_(response) {
+    const sku = response.getSku();
     if (sku) {
       new PayStartFlow(this.deps_, sku, ProductType.UI_CONTRIBUTION).start();
     }

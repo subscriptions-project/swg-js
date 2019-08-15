@@ -76,34 +76,34 @@ export class OffersFlow {
   }
 
   /**
-   * @param {SkuSelectedResponse} skuSelected
+   * @param {SkuSelectedResponse} response
    * @private
    */
-  startPayFlow_(skuSelected) {
-    const sku = skuSelected.getSku();
+  startPayFlow_(response) {
+    const sku = response.getSku();
     if (sku) {
       new PayStartFlow(this.deps_, sku).start();
     }
   }
 
   /**
-   * @param {AlreadySubscribedResponse} request
+   * @param {AlreadySubscribedResponse} response
    * @private
    */
-  handleLinkRequest_(request) {
-    if (request.getSubscriberOrMember()) {
+  handleLinkRequest_(response) {
+    if (response.getSubscriberOrMember()) {
       this.deps_.callbacks().triggerLoginRequest({
-        linkRequested: !!request.getLinkRequested(),
+        linkRequested: !!response.getLinkRequested(),
       });
     }
   }
 
   /**
-   * @param {ViewSubscriptionsResponse} request
+   * @param {ViewSubscriptionsResponse} response
    * @private
    */
-  startNativeFlow_(request) {
-    if (request.getNative()) {
+  startNativeFlow_(response) {
+    if (response.getNative()) {
       this.deps_.callbacks().triggerSubscribeRequest();
     }
   }
@@ -195,11 +195,11 @@ export class SubscribeOptionFlow {
     this.activityIframeView_.acceptResult().then(
       result => {
         const data = result.data;
-        const subsribeRequest = new SubscribeResponse();
+        const response = new SubscribeResponse();
         if (data['subsribe']) {
-          subsribeRequest.setSubscribe(true);
+          response.setSubscribe(true);
         }
-        this.maybeOpenOffersFlow_(subsribeRequest);
+        this.maybeOpenOffersFlow_(response);
       },
       reason => {
         this.dialogManager_.completeView(this.activityIframeView_);
@@ -210,11 +210,11 @@ export class SubscribeOptionFlow {
   }
 
   /**
-   * @param {SubscribeResponse} request
+   * @param {SubscribeResponse} response
    * @private
    */
-  maybeOpenOffersFlow_(request) {
-    if (request.getSubscribe()) {
+  maybeOpenOffersFlow_(response) {
+    if (response.getSubscribe()) {
       const options = this.options_ || {};
       if (options.isClosable == undefined) {
         options.isClosable = OFFERS_VIEW_CLOSABLE;
@@ -267,13 +267,13 @@ export class AbbrvOfferFlow {
   }
 
   /**
-   * @param {AlreadySubscribedResponse} request
+   * @param {AlreadySubscribedResponse} response
    * @private
    */
-  handleLinkRequest_(request) {
-    if (request.getSubscriberOrMember()) {
+  handleLinkRequest_(response) {
+    if (response.getSubscriberOrMember()) {
       this.deps_.callbacks().triggerLoginRequest({
-        linkRequested: !!request.getLinkRequested(),
+        linkRequested: !!response.getLinkRequested(),
       });
     }
   }
