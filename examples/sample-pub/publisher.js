@@ -56,6 +56,11 @@ whenReady(function(subscriptions) {
   subscriptions.setOnLoginRequest(eventCallback('login-request'));
   subscriptions.setOnSubscribeResponse(eventCallback('subscribe'));
   subscriptions.setOnContributionResponse(eventCallback('contribute'));
+  (self.SWG = self.SWG || []).push(function (subscriptions) {
+    self.buttonAction = function () {
+        subscriptions.showOffers({skus: ['basic', 'basic2']});
+    }
+});
 });
 
 /**
