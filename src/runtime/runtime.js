@@ -296,8 +296,9 @@ export class Runtime {
 
   /** @override */
   showUpdateOffers(opt_options) {
-    return this.configured_(true)
-        .then(runtime => runtime.showUpdateOffers(opt_options));
+    return this.configured_(true).then(runtime =>
+      runtime.showUpdateOffers(opt_options)
+    );
   }
 
   /** @override */
@@ -344,9 +345,7 @@ export class Runtime {
 
   /** @override */
   subscribe(sku) {
-    return this.configured_(true).then(runtime =>
-      runtime.subscribe(sku)
-    );
+    return this.configured_(true).then(runtime => runtime.subscribe(sku));
   }
 
   /** @override */
@@ -723,8 +722,12 @@ export class ConfiguredRuntime {
   showOffers(opt_options) {
     return this.documentParsed_.then(() => {
       if (opt_options['oldSku']) {
-        console.error('Use the showUpdateOffers method for subscription updates');
-        return new Error('Use the showUpdateOffers method for new subscription updates');
+        console.error(
+          'Use the showUpdateOffers method for subscription updates'
+        );
+        return new Error(
+          'Use the showUpdateOffers method for new subscription updates'
+        );
       }
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
