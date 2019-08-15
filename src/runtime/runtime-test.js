@@ -62,6 +62,8 @@ import {
 } from './experiments';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
+import {Logger} from './logger';
+import {Event} from '../api/logger-api';
 
 const EDGE_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0)' +
@@ -470,17 +472,25 @@ describes.realWin('Runtime', {}, env => {
       );
     });
 
-    it('should eventually log events', () => {
-      runtime.logEvent({
+    it('should return a working logger', async function() {
+      let foundLogger = null;
+
+      await runtime.getLogger().then(logger => {
+        foundLogger = logger;
+        logger.sendEvent({
+          name: Event.IMPRESSION_PAYWALL,
+          active: null,
+          data: null,
+        });
+      });
+      expect(loggedEvents.length).to.equal(1);
+      expect(loggedEvents[0]).to.deep.equal({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-        eventOriginator: EventOriginator.SWG_CLIENT,
+        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
         isFromUserAction: null,
         additionalParameters: null,
       });
-      expect(loggedEvents.length).to.equal(0);
-      return runtime.configured_(true).then(() => {
-        expect(loggedEvents.length).to.equal(1);
-      });
+      expect(foundLogger).to.be.instanceOf(Logger);
     });
   });
 
@@ -1642,6 +1652,42 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .stub(ClientEventManager.prototype, 'logEvent')
         .callsFake(() => count++);
       runtime.eventManager().logEvent(event);
+      expect(count).to.equal(1);
+    });
+
+    it('should create a working logger', async function() {
+      let receivedEvent = null;
+      let foundLogger = null;
+      sandbox
+        .stub(ClientEventManager.prototype, 'logEvent')
+        .callsFake(event => (receivedEvent = event));
+
+      await runtime.getLogger().then(logger => {
+        foundLogger = logger;
+        logger.sendEvent({
+          name: Event.IMPRESSION_PAYWALL,
+          active: null,
+          data: null,
+        });
+      });
+      expect(receivedEvent).to.deep.equal({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+      expect(foundLogger).to.be.instanceOf(Logger);
+    });
+
+    it('should log to EventManager on createButton click.', async () => {
+      let count = 0;
+      sandbox
+        .stub(ClientEventManager.prototype, 'logSwgEvent')
+        .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+        .callsFake(() => count++);
+
+      const button = runtime.createButton();
+      await button.click();
       expect(count).to.equal(1);
     });
   });
