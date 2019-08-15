@@ -126,10 +126,10 @@ describes.realWin('ContributionsFlow', {}, env => {
       expect(nativeStub).to.not.be.called;
       // Login message.
       messageCallback = messageMap['AlreadySubscribedResponse'];
-      const linkRequest = new AlreadySubscribedResponse();
-      linkRequest.setSubscriberOrMember(true);
-      linkRequest.setLinkRequested(false);
-      messageCallback(linkRequest);
+      const response = new AlreadySubscribedResponse();
+      response.setSubscriberOrMember(true);
+      response.setLinkRequested(false);
+      messageCallback(response);
       expect(loginStub).to.be.calledOnce.calledWithExactly({
         linkRequested: false,
       });
@@ -142,12 +142,12 @@ describes.realWin('ContributionsFlow', {}, env => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return contributionsFlow.start().then(() => {
-      const linkRequest = new AlreadySubscribedResponse();
-      linkRequest.setSubscriberOrMember(true);
-      linkRequest.setLinkRequested(true);
+      const response = new AlreadySubscribedResponse();
+      response.setSubscriberOrMember(true);
+      response.setLinkRequested(true);
       const messageCallback = messageMap['AlreadySubscribedResponse'];
       expect(messageCallback).to.not.be.null;
-      messageCallback(linkRequest);
+      messageCallback(response);
       expect(loginStub).to.be.calledOnce.calledWithExactly({
         linkRequested: true,
       });
