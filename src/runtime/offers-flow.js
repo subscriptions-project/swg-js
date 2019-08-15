@@ -19,7 +19,6 @@ import {PayStartFlow} from './pay-flow';
 import {
   SubscriptionFlows,
   ProductType,
-  SubscriptionRequest,
 } from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
