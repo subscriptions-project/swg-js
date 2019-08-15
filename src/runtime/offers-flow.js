@@ -91,7 +91,7 @@ export class OffersFlow {
       if (oldSku) {
         new PayStartFlow(
           this.deps_,
-          /** @type {SubscriptionRequest} */ {
+          {
             skuId: sku,
             oldSkuId: oldSku,
           }
@@ -138,7 +138,7 @@ export class OffersFlow {
         if (result['oldSku']) {
           new PayStartFlow(
             this.deps_,
-            /** @type {SubscriptionRequest} */ {
+            {
               skuId: result['sku'],
               oldSkuId: result['oldSku'],
             }
