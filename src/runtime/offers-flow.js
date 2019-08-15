@@ -16,9 +16,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
-import {
-  SubscriptionFlows, ProductType,
-} from '../api/subscriptions';
+import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 /**
