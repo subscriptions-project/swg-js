@@ -33,10 +33,11 @@ describes.realWin('ContributionsFlow', {}, env => {
   let callbacksMock;
   let pageConfig;
   let port;
-  const messageMap = {};
+  let messageMap;
 
   beforeEach(() => {
     win = env.win;
+    messageMap = {};
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
