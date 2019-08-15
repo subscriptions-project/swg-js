@@ -61,6 +61,7 @@ function checkMinVersion() {
 
 function printVersion() {
   fs.writeFileSync('dist/version.txt', internalRuntimeVersion);
+  return Promise.resolve();
 }
 printVersion.description = 'SwG version';
 
