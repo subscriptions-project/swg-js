@@ -157,14 +157,15 @@ describes.realWin('OffersFlow', {}, env => {
   });
 
   it('should have valid OffersFlow constructed with skus and oldSku', () => {
-    offersFlow = new OffersFlow(
-      runtime,
-        {
-          skus: ['sku1', 'sku2'],
-          oldSku: 'old_sku',
-        });
-    activitiesMock.expects('openIframe').withExactArgs(
-        sinon.match(arg => arg.tagName == 'IFRAME'),
+    offersFlow = new OffersFlow(runtime,
+      {
+        skus: ['sku1', 'sku2'],
+        oldSku: 'old_sku',
+      });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -176,8 +177,9 @@ describes.realWin('OffersFlow', {}, env => {
           skus: ['sku1', 'sku2'],
           oldSku: 'old_sku',
           isClosable: false,
-        })
-        .returns(Promise.resolve(port));
+        }
+      )
+      .returns(Promise.resolve(port));
     return offersFlow.start();
   });
 

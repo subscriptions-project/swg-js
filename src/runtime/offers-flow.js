@@ -16,7 +16,11 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows, ProductType, SubscriptionRequest} from '../api/subscriptions';
+import {
+  SubscriptionFlows,
+  ProductType,
+  SubscriptionRequest,
+} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 /**
@@ -56,8 +60,8 @@ export class OffersFlow {
       'publicationId': deps.pageConfig().getPublicationId(),
       'showNative': deps.callbacks().hasSubscribeRequestCallback(),
       'productType': ProductType.SUBSCRIPTION,
-      'list': options && options.list || 'default',
-      'skus': options && options.skus || null,
+      'list': (options && options.list) || 'default',
+      'skus': (options && options.skus) || null,
       'isClosable': isClosable,
     };
 
@@ -67,12 +71,12 @@ export class OffersFlow {
 
     if (feArgsObj['oldSku']) {
       if (!feArgsObj['skus']) {
-        console.error("Need a sku list if old sku is provided!");
+        console.error('Need a sku list if old sku is provided!');
         return;
       }
       // remove old sku from offers if in list
       let skuList = feArgsObj['skus'];
-      let oldSku = feArgsObj['oldSku'];
+      const oldSku = feArgsObj['oldSku'];
       skuList = skuList.filter(sku => sku !== oldSku);
       if (skuList.length > 0) {
         feArgsObj['skus'] = skuList;
@@ -85,7 +89,7 @@ export class OffersFlow {
     // redirect to payments if only one upgrade option is passed
     if (feArgsObj['skus'] && feArgsObj['skus'].length === 1) {
       const sku = feArgsObj['skus'][0];
-      const oldSku = feArgsObj['oldSku']
+      const oldSku = feArgsObj['oldSku'];
       // object currently requires experimental flag
       // so we need to check for oldSku to decide what to send
       if (oldSku) {
@@ -94,22 +98,22 @@ export class OffersFlow {
           /** @type {SubscriptionRequest} */ {
             skuId: sku,
             oldSkuId: oldSku,
-          })
-          .start();
+          }
+        ).start();
         return;
       } else {
-        new PayStartFlow(this.deps_, sku)
-          .start();
+        new PayStartFlow(this.deps_, sku).start();
         return;
       }
     }
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl('/offersiframe'),
-        feArgs(feArgsObj),
-        /* shouldFadeBody */ true);
+      this.win_,
+      this.activityPorts_,
+      feUrl('/offersiframe'),
+      feArgs(feArgsObj),
+      /* shouldFadeBody */ true
+    );
   }
 
   /**
@@ -117,13 +121,14 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
-    if (this.activityIframeView_) { // so no error is thrown if offers skipped
+    if (this.activityIframeView_) {
+      // so no error is thrown if offers skipped
       // Start/cancel events.
-      this.deps_.callbacks().triggerFlowStarted(
-          SubscriptionFlows.SHOW_OFFERS);
+      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS);
       this.activityIframeView_.onCancel(() => {
-        this.deps_.callbacks().triggerFlowCanceled(
-            SubscriptionFlows.SHOW_OFFERS);
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
       });
 
       // If result is due to OfferSelection, redirect to payments.
@@ -136,19 +141,19 @@ export class OffersFlow {
         }
         if (result['oldSku']) {
           new PayStartFlow(
-              this.deps_,
-              /** @type {SubscriptionRequest} */ {
-                skuId: result['sku'],
-                oldSkuId: result['oldSku'],
-              })
-              .start();
+            this.deps_,
+            /** @type {SubscriptionRequest} */ {
+              skuId: result['sku'],
+              oldSkuId: result['oldSku'],
+            }
+          ).start();
           return;
         }
         if (result['sku']) {
           new PayStartFlow(
-              this.deps_,
-              /** @type {string} */ (result['sku']))
-              .start();
+            this.deps_,
+            /** @type {string} */ (result['sku'])
+          ).start();
           return;
         }
         if (result['native']) {
