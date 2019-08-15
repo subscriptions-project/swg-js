@@ -25,6 +25,9 @@ To display offers:
 ```js
 subscriptions.showOffers();
 ```
+![Offer carousel](./img/offer-carousel.png)
+
+If a user elects for a presented offer, SwG will run the [Subscribe flow](./subscribe-flow.md).
 
 To handle the login request:
 
@@ -34,7 +37,7 @@ subscriptions.setOnLoginRequest(function() {
 });
 ```
 
-If a user elects for a presented offer, SwG will run the [Subscribe flow](./subscribe-flow.md).
+
 
 
 ### Native option in offers
@@ -57,7 +60,7 @@ To activate:
 ```js
 subscriptions.showSubscribeOption();
 ```
-
+![Subscribe with Google option](./img/subscribe-with-google.png)
 
 ## SwG Abbreviated Offer
 
@@ -69,6 +72,7 @@ To activate:
 subscriptions.showAbbrvOffer();
 ```
 
+![Abbreviated offer](./img/abbreviated-offer.png)
 
 ## Offer options
 

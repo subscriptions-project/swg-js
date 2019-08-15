@@ -25,6 +25,13 @@ export class Fetcher {
    * @return {!Promise<!Object>}
    */
   fetchCredentialedJson(unusedUrl) {}
+
+  /**
+   * @param {string} unusedUrl
+   * @param {!../utils/xhr.FetchInitDef} unusedInit
+   * @return {!Promise<!../utils/xhr.FetchResponse>}
+   */
+  fetch(unusedUrl, unusedInit) {}
 }
 
 /**
@@ -47,5 +54,10 @@ export class XhrFetcher {
       credentials: 'include',
     });
     return this.xhr_.fetch(url, init).then(response => response.json());
+  }
+
+  /** @override */
+  fetch(url, init) {
+    return this.xhr_.fetch(url, init);
   }
 }
