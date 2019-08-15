@@ -20,7 +20,10 @@ import {ContributionsFlow} from './contributions-flow';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
-import {SkuSelected, LinkRequest} from '../proto/api_messages';
+import {
+  SkuSelectedResponse,
+  AlreadySubscribedResponse,
+} from '../proto/api_messages';
 
 describes.realWin('ContributionsFlow', {}, env => {
   let win;
@@ -108,13 +111,13 @@ describes.realWin('ContributionsFlow', {}, env => {
     );
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return contributionsFlow.start().then(() => {
-      let messageCallback = messageMap['SkuSelected'];
+      let messageCallback = messageMap['SkuSelectedResponse'];
       expect(messageCallback).to.not.be.null;
       // Unrelated message.
       expect(payStub).to.not.be.called;
       expect(loginStub).to.not.be.called;
       expect(nativeStub).to.not.be.called;
-      const skuSelected = new SkuSelected();
+      const skuSelected = new SkuSelectedResponse();
       skuSelected.setSku('sku1');
       // Pay message.
       messageCallback(skuSelected);
@@ -122,8 +125,8 @@ describes.realWin('ContributionsFlow', {}, env => {
       expect(loginStub).to.not.be.called;
       expect(nativeStub).to.not.be.called;
       // Login message.
-      messageCallback = messageMap['LinkRequest'];
-      const linkRequest = new LinkRequest();
+      messageCallback = messageMap['AlreadySubscribedResponse'];
+      const linkRequest = new AlreadySubscribedResponse();
       linkRequest.setSubscriberOrMember(true);
       linkRequest.setLinkRequested(false);
       messageCallback(linkRequest);
@@ -139,10 +142,10 @@ describes.realWin('ContributionsFlow', {}, env => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return contributionsFlow.start().then(() => {
-      const linkRequest = new LinkRequest();
+      const linkRequest = new AlreadySubscribedResponse();
       linkRequest.setSubscriberOrMember(true);
       linkRequest.setLinkRequested(true);
-      const messageCallback = messageMap['LinkRequest'];
+      const messageCallback = messageMap['AlreadySubscribedResponse'];
       expect(messageCallback).to.not.be.null;
       messageCallback(linkRequest);
       expect(loginStub).to.be.calledOnce.calledWithExactly({

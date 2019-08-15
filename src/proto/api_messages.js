@@ -62,6 +62,71 @@ const EventOriginator = {
 /**
  * @implements {Message}
  */
+class AlreadySubscribedResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.subscriberOrMember_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?boolean} */
+    this.linkRequested_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getSubscriberOrMember() {
+    return this.subscriberOrMember_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setSubscriberOrMember(value) {
+    this.subscriberOrMember_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getLinkRequested() {
+    return this.linkRequested_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setLinkRequested(value) {
+    this.linkRequested_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.subscriberOrMember_,  // field 1 - subscriber_or_member
+      this.linkRequested_,  // field 2 - link_requested
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AlreadySubscribedResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class AnalyticsContext {
  /**
   * @param {!Array=} data
@@ -469,72 +534,7 @@ class EventParams {
 /**
  * @implements {Message}
  */
-class LinkRequest {
- /**
-  * @param {!Array=} data
-  */
-  constructor(data = []) {
-
-    /** @private {?boolean} */
-    this.subscriberOrMember_ = (data[1] == null) ? null : data[1];
-
-    /** @private {?boolean} */
-    this.linkRequested_ = (data[2] == null) ? null : data[2];
-  }
-
-  /**
-   * @return {?boolean}
-   */
-  getSubscriberOrMember() {
-    return this.subscriberOrMember_;
-  }
-
-  /**
-   * @param {boolean} value
-   */
-  setSubscriberOrMember(value) {
-    this.subscriberOrMember_ = value;
-  }
-
-  /**
-   * @return {?boolean}
-   */
-  getLinkRequested() {
-    return this.linkRequested_;
-  }
-
-  /**
-   * @param {boolean} value
-   */
-  setLinkRequested(value) {
-    this.linkRequested_ = value;
-  }
-
-  /**
-   * @return {!Array}
-   * @override
-   */
-  toArray() {
-    return [
-      this.label(),  // message label
-      this.subscriberOrMember_,  // field 1 - subscriber_or_member
-      this.linkRequested_,  // field 2 - link_requested
-    ];
-  }
-
-  /**
-   * @return {string}
-   * @override
-   */
-  label() {
-    return 'LinkRequest';
-  }
-}
-
-/**
- * @implements {Message}
- */
-class SkuSelected {
+class SkuSelectedResponse {
  /**
   * @param {!Array=} data
   */
@@ -574,7 +574,7 @@ class SkuSelected {
    * @override
    */
   label() {
-    return 'SkuSelected';
+    return 'SkuSelectedResponse';
   }
 }
 
@@ -628,7 +628,7 @@ class SmartBoxMessage {
 /**
  * @implements {Message}
  */
-class SubscribeRequest {
+class SubscribeResponse {
  /**
   * @param {!Array=} data
   */
@@ -668,14 +668,14 @@ class SubscribeRequest {
    * @override
    */
   label() {
-    return 'SubscribeRequest';
+    return 'SubscribeResponse';
   }
 }
 
 /**
  * @implements {Message}
  */
-class ViewSubscriptionsRequest {
+class ViewSubscriptionsResponse {
  /**
   * @param {!Array=} data
   */
@@ -715,20 +715,20 @@ class ViewSubscriptionsRequest {
    * @override
    */
   label() {
-    return 'ViewSubscriptionsRequest';
+    return 'ViewSubscriptionsResponse';
   }
 }
 
 const PROTO_MAP = {
+  'AlreadySubscribedResponse': AlreadySubscribedResponse,
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
   'EventParams': EventParams,
-  'LinkRequest': LinkRequest,
-  'SkuSelected': SkuSelected,
+  'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
-  'SubscribeRequest': SubscribeRequest,
-  'ViewSubscriptionsRequest': ViewSubscriptionsRequest,
+  'SubscribeResponse': SubscribeResponse,
+  'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
 };
 
 /**
@@ -759,18 +759,18 @@ function getLabel(messageType) {
 }
 
 export {
+  AlreadySubscribedResponse,
   AnalyticsContext,
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
   EventOriginator,
   EventParams,
-  LinkRequest,
   Message,
-  SkuSelected,
+  SkuSelectedResponse,
   SmartBoxMessage,
-  SubscribeRequest,
-  ViewSubscriptionsRequest,
+  SubscribeResponse,
+  ViewSubscriptionsResponse,
   deserialize,
   getLabel,
 };

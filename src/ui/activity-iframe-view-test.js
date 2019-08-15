@@ -19,7 +19,7 @@ import {ActivityResult} from 'web-activities/activity-ports';
 import {ActivityPorts, ActivityIframePort} from '../components/activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
-import {SkuSelected} from '../proto/api_messages';
+import {SkuSelectedResponse} from '../proto/api_messages';
 
 describes.realWin('ActivityIframeView', {}, env => {
   let win;
@@ -158,15 +158,15 @@ describes.realWin('ActivityIframeView', {}, env => {
         messageLabel = new messageCtor().label();
         onCb = cb;
       });
-      const skuSelection = new SkuSelected();
+      const skuSelection = new SkuSelectedResponse();
       skuSelection.setSku('sku1');
       activityIframeView.onMessageDeprecated(data => {
         expect(data['test']).to.be.true;
       });
       activityIframeView.messageDeprecated({'test': true});
-      activityIframeView.on(SkuSelected, skuSelected => {
+      activityIframeView.on(SkuSelectedResponse, skuSelected => {
         expect(skuSelected.getSku()).to.equal('sku1');
-        expect(messageLabel).to.equal('SkuSelected');
+        expect(messageLabel).to.equal('SkuSelectedResponse');
       });
       activityIframeView.execute(skuSelection);
       yield activityIframeView.init(dialog);
@@ -174,7 +174,7 @@ describes.realWin('ActivityIframeView', {}, env => {
       messageCallback({'test': true});
       onCb(skuSelection);
       expect(payload).to.deep.equal({'test': true});
-      expect(dataSent.label()).to.equal('SkuSelected');
+      expect(dataSent.label()).to.equal('SkuSelectedResponse');
       expect(dataSent.getSku()).to.equal('sku1');
     });
 

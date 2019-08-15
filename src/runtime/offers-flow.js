@@ -19,10 +19,10 @@ import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 import {
-  SkuSelected,
-  LinkRequest,
-  ViewSubscriptionsRequest,
-  SubscribeRequest,
+  SkuSelectedResponse,
+  AlreadySubscribedResponse,
+  ViewSubscriptionsResponse,
+  SubscribeResponse,
 } from '../proto/api_messages';
 
 /**
@@ -76,7 +76,7 @@ export class OffersFlow {
   }
 
   /**
-   * @param {SkuSelected} skuSelected
+   * @param {SkuSelectedResponse} skuSelected
    * @private
    */
   startPayFlow_(skuSelected) {
@@ -87,7 +87,7 @@ export class OffersFlow {
   }
 
   /**
-   * @param {LinkRequest} request
+   * @param {AlreadySubscribedResponse} request
    * @private
    */
   handleLinkRequest_(request) {
@@ -99,7 +99,7 @@ export class OffersFlow {
   }
 
   /**
-   * @param {ViewSubscriptionsRequest} request
+   * @param {ViewSubscriptionsResponse} request
    * @private
    */
   startNativeFlow_(request) {
@@ -119,13 +119,16 @@ export class OffersFlow {
       this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
     });
 
-    this.activityIframeView_.on(SkuSelected, this.startPayFlow_.bind(this));
     this.activityIframeView_.on(
-      LinkRequest,
+      SkuSelectedResponse,
+      this.startPayFlow_.bind(this)
+    );
+    this.activityIframeView_.on(
+      AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
     );
     this.activityIframeView_.on(
-      ViewSubscriptionsRequest,
+      ViewSubscriptionsResponse,
       this.startNativeFlow_.bind(this)
     );
 
@@ -186,13 +189,13 @@ export class SubscribeOptionFlow {
     });
 
     this.activityIframeView_.on(
-      SubscribeRequest,
+      SubscribeResponse,
       this.maybeOpenOffersFlow_.bind(this)
     );
     this.activityIframeView_.acceptResult().then(
       result => {
         const data = result.data;
-        const subsribeRequest = new SubscribeRequest();
+        const subsribeRequest = new SubscribeResponse();
         if (data['subsribe']) {
           subsribeRequest.setSubscribe(true);
         }
@@ -207,7 +210,7 @@ export class SubscribeOptionFlow {
   }
 
   /**
-   * @param {SubscribeRequest} request
+   * @param {SubscribeResponse} request
    * @private
    */
   maybeOpenOffersFlow_(request) {
@@ -264,7 +267,7 @@ export class AbbrvOfferFlow {
   }
 
   /**
-   * @param {LinkRequest} request
+   * @param {AlreadySubscribedResponse} request
    * @private
    */
   handleLinkRequest_(request) {
@@ -292,7 +295,7 @@ export class AbbrvOfferFlow {
 
     // If the user is already subscribed, trigger login flow
     this.activityIframeView_.on(
-      LinkRequest,
+      AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
     );
     // If result is due to requesting offers, redirect to offers flow

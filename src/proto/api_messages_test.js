@@ -15,17 +15,17 @@
  */
 
 import {
+    AlreadySubscribedResponse,
     AnalyticsContext,
     AnalyticsEvent,
     AnalyticsEventMeta,
     AnalyticsRequest,
     EventOriginator,
     EventParams,
-    LinkRequest,
-    SkuSelected,
+    SkuSelectedResponse,
     SmartBoxMessage,
-    SubscribeRequest,
-    ViewSubscriptionsRequest,
+    SubscribeResponse,
+    ViewSubscriptionsResponse,
     deserialize} from './api_messages';
 
 /**
@@ -59,6 +59,20 @@ function isEqual(thisArray, otherArray) {
 
 
 describe('api_messages', () => {
+
+  describe('test_AlreadySubscribedResponse', () => {
+    it('should deserialize correctly', () => {
+      const /** !AlreadySubscribedResponse  */ alreadysubscribedresponse = new AlreadySubscribedResponse();
+      alreadysubscribedresponse.setSubscriberOrMember(false);
+      alreadysubscribedresponse.setLinkRequested(false);
+      const alreadysubscribedresponseSerialized = alreadysubscribedresponse.toArray();
+      const alreadysubscribedresponseDeserialized = deserialize(
+          alreadysubscribedresponseSerialized);
+      expect(alreadysubscribedresponseDeserialized).to.not.be.null;
+      expect(isEqual(alreadysubscribedresponse.toArray(),
+          alreadysubscribedresponseDeserialized.toArray())).to.be.true;
+    });
+  });
 
   describe('test_AnalyticsContext', () => {
     it('should deserialize correctly', () => {
@@ -139,30 +153,16 @@ describe('api_messages', () => {
     });
   });
 
-  describe('test_LinkRequest', () => {
+  describe('test_SkuSelectedResponse', () => {
     it('should deserialize correctly', () => {
-      const /** !LinkRequest  */ linkrequest = new LinkRequest();
-      linkrequest.setSubscriberOrMember(false);
-      linkrequest.setLinkRequested(false);
-      const linkrequestSerialized = linkrequest.toArray();
-      const linkrequestDeserialized = deserialize(
-          linkrequestSerialized);
-      expect(linkrequestDeserialized).to.not.be.null;
-      expect(isEqual(linkrequest.toArray(),
-          linkrequestDeserialized.toArray())).to.be.true;
-    });
-  });
-
-  describe('test_SkuSelected', () => {
-    it('should deserialize correctly', () => {
-      const /** !SkuSelected  */ skuselected = new SkuSelected();
-      skuselected.setSku('');
-      const skuselectedSerialized = skuselected.toArray();
-      const skuselectedDeserialized = deserialize(
-          skuselectedSerialized);
-      expect(skuselectedDeserialized).to.not.be.null;
-      expect(isEqual(skuselected.toArray(),
-          skuselectedDeserialized.toArray())).to.be.true;
+      const /** !SkuSelectedResponse  */ skuselectedresponse = new SkuSelectedResponse();
+      skuselectedresponse.setSku('');
+      const skuselectedresponseSerialized = skuselectedresponse.toArray();
+      const skuselectedresponseDeserialized = deserialize(
+          skuselectedresponseSerialized);
+      expect(skuselectedresponseDeserialized).to.not.be.null;
+      expect(isEqual(skuselectedresponse.toArray(),
+          skuselectedresponseDeserialized.toArray())).to.be.true;
     });
   });
 
@@ -179,29 +179,29 @@ describe('api_messages', () => {
     });
   });
 
-  describe('test_SubscribeRequest', () => {
+  describe('test_SubscribeResponse', () => {
     it('should deserialize correctly', () => {
-      const /** !SubscribeRequest  */ subscriberequest = new SubscribeRequest();
-      subscriberequest.setSubscribe(false);
-      const subscriberequestSerialized = subscriberequest.toArray();
-      const subscriberequestDeserialized = deserialize(
-          subscriberequestSerialized);
-      expect(subscriberequestDeserialized).to.not.be.null;
-      expect(isEqual(subscriberequest.toArray(),
-          subscriberequestDeserialized.toArray())).to.be.true;
+      const /** !SubscribeResponse  */ subscriberesponse = new SubscribeResponse();
+      subscriberesponse.setSubscribe(false);
+      const subscriberesponseSerialized = subscriberesponse.toArray();
+      const subscriberesponseDeserialized = deserialize(
+          subscriberesponseSerialized);
+      expect(subscriberesponseDeserialized).to.not.be.null;
+      expect(isEqual(subscriberesponse.toArray(),
+          subscriberesponseDeserialized.toArray())).to.be.true;
     });
   });
 
-  describe('test_ViewSubscriptionsRequest', () => {
+  describe('test_ViewSubscriptionsResponse', () => {
     it('should deserialize correctly', () => {
-      const /** !ViewSubscriptionsRequest  */ viewsubscriptionsrequest = new ViewSubscriptionsRequest();
-      viewsubscriptionsrequest.setNative(false);
-      const viewsubscriptionsrequestSerialized = viewsubscriptionsrequest.toArray();
-      const viewsubscriptionsrequestDeserialized = deserialize(
-          viewsubscriptionsrequestSerialized);
-      expect(viewsubscriptionsrequestDeserialized).to.not.be.null;
-      expect(isEqual(viewsubscriptionsrequest.toArray(),
-          viewsubscriptionsrequestDeserialized.toArray())).to.be.true;
+      const /** !ViewSubscriptionsResponse  */ viewsubscriptionsresponse = new ViewSubscriptionsResponse();
+      viewsubscriptionsresponse.setNative(false);
+      const viewsubscriptionsresponseSerialized = viewsubscriptionsresponse.toArray();
+      const viewsubscriptionsresponseDeserialized = deserialize(
+          viewsubscriptionsresponseSerialized);
+      expect(viewsubscriptionsresponseDeserialized).to.not.be.null;
+      expect(isEqual(viewsubscriptionsresponse.toArray(),
+          viewsubscriptionsresponseDeserialized.toArray())).to.be.true;
     });
   });
 });

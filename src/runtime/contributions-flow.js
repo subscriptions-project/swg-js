@@ -18,7 +18,10 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
-import {SkuSelected, LinkRequest} from '../proto/api_messages';
+import {
+  SkuSelectedResponse,
+  AlreadySubscribedResponse,
+} from '../proto/api_messages';
 /**
  * The class for Contributions flow.
  */
@@ -63,7 +66,7 @@ export class ContributionsFlow {
   }
 
   /**
-   * @param {LinkRequest} request
+   * @param {AlreadySubscribedResponse} request
    */
   handleLinkRequest_(request) {
     if (request.getSubscriberOrMember()) {
@@ -74,7 +77,7 @@ export class ContributionsFlow {
   }
 
   /**
-   * @param {SkuSelected} skuSelected
+   * @param {SkuSelectedResponse} skuSelected
    */
   startPayFlow_(skuSelected) {
     const sku = skuSelected.getSku();
@@ -99,10 +102,13 @@ export class ContributionsFlow {
     });
 
     this.activityIframeView_.on(
-      LinkRequest,
+      AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
     );
-    this.activityIframeView_.on(SkuSelected, this.startPayFlow_.bind(this));
+    this.activityIframeView_.on(
+      SkuSelectedResponse,
+      this.startPayFlow_.bind(this)
+    );
 
     return this.dialogManager_.openView(this.activityIframeView_);
   }
