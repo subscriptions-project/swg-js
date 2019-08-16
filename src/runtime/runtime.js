@@ -63,6 +63,7 @@ import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
 import {Logger} from './logger';
+import {isBoolean} from '../utils/types';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -654,6 +655,10 @@ export class ConfiguredRuntime {
       } else if (k == 'analyticsMode') {
         if (v != AnalyticsMode.DEFAULT && v != AnalyticsMode.IMPRESSIONS) {
           error = 'Unknown analytics mode: ' + v;
+        }
+      } else if (k == 'enableSwgAnalytics') {
+        if (!isBoolean(v)) {
+          error = 'Unknown enableSwgAnalytics value: ' + v;
         }
       } else {
         error = 'Unknown config property: ' + k;

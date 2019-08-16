@@ -339,14 +339,13 @@ describes.realWin('AnalyticsService', {}, env => {
       ensureNotLoggingPublisherEvents();
 
       //ensure it requires the experiment to log publisher events
-      analyticsService.enableLoggingFromPublisher();
+      runtime.configure({enableSwgAnalytics: true});
       ensureNotLoggingPublisherEvents();
 
       //reinitialize the service after turning the experiment on
-      //ensure it requires the .enableLoggingFromPublisher method to log
-      //publisher events
       setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
       analyticsService = new AnalyticsService(runtime);
+      runtime.configure({enableSwgAnalytics: false});
       ensureNotLoggingPublisherEvents();
     });
 
@@ -355,7 +354,7 @@ describes.realWin('AnalyticsService', {}, env => {
       //ensure if we activate both things it properly logs all origins
       setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
       analyticsService = new AnalyticsService(runtime);
-      analyticsService.enableLoggingFromPublisher();
+      runtime.configure({enableSwgAnalytics: true});
       testOriginator(EventOriginator.SWG_CLIENT, true);
       testOriginator(EventOriginator.AMP_CLIENT, true);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
