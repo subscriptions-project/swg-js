@@ -16,7 +16,9 @@
 
 import {ActivityResult} from 'web-activities/activity-ports';
 import {ActivityPort} from '../components/activities';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {acceptPortResultData} from './../utils/activity-utils';
+import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
@@ -28,6 +30,7 @@ describes.realWin('OffersFlow', {}, env => {
   let offersFlow;
   let runtime;
   let activitiesMock;
+  let eventManagerMock;
   let callbacksMock;
   let pageConfig;
   let port;
@@ -39,6 +42,9 @@ describes.realWin('OffersFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
+    const eventManager = new ClientEventManager(Promise.resolve());
+    eventManagerMock = sandbox.mock(eventManager);
+    sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -53,6 +59,7 @@ describes.realWin('OffersFlow', {}, env => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should have valid OffersFlow constructed', () => {
@@ -225,6 +232,13 @@ describes.realWin('OffersFlow', {}, env => {
         linkRequested: true,
       });
     });
+  });
+
+  it('should log IMPRESSION_OFFERS on start', () => {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_OFFERS);
+    offersFlow.start();
   });
 });
 
