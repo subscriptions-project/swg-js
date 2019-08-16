@@ -43,6 +43,9 @@ export class AnalyticsService {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
@@ -89,9 +92,6 @@ export class AnalyticsService {
       deps.win(),
       ExperimentFlags.LOG_PROPENSITY_TO_SWG
     );
-
-    /** @private {!boolean} */
-    this.logFromPublisherConfig_ = false;
   }
 
   /**
@@ -270,7 +270,9 @@ export class AnalyticsService {
    * @return {boolean}
    */
   shouldLogPublisherEvents_() {
-    return this.logPropensityExperiment_ && this.logFromPublisherConfig_;
+    return (
+      this.logPropensityExperiment_ && this.deps_.config().enableSwgAnalytics
+    );
   }
 
   /**
@@ -288,9 +290,5 @@ export class AnalyticsService {
       const request = this.createLogRequest_(event);
       port.execute(request);
     });
-  }
-
-  enableLoggingFromPublisher() {
-    this.logFromPublisherConfig_ = true;
   }
 }
