@@ -72,7 +72,7 @@ export class OffersFlow {
       }
       // remove old sku from offers if in list
       let skuList = feArgsObj['skus'];
-      const oldSku = feArgsObj['oldSku'];
+      const /** @type {String} */ oldSku = feArgsObj['oldSku'];
       skuList = skuList.filter(sku => sku !== oldSku);
       if (skuList.length > 0) {
         feArgsObj['skus'] = skuList;
@@ -85,7 +85,7 @@ export class OffersFlow {
     // redirect to payments if only one upgrade option is passed
     if (feArgsObj['skus'] && feArgsObj['skus'].length === 1) {
       const sku = feArgsObj['skus'][0];
-      const oldSku = feArgsObj['oldSku'];
+      const /** @type {String} */ oldSku = feArgsObj['oldSku'];
       // object currently requires experimental flag
       // so we need to check for oldSku to decide what to send
       if (oldSku) {
