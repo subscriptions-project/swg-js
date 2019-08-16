@@ -281,9 +281,9 @@ describes.sandboxed('EventManager', {}, () => {
         );
       };
       testIsPublisherEvent(EventOriginator.SWG_CLIENT, false);
-      testIsPublisherEvent(EventOriginator.AMP_CLIENT, false);
       testIsPublisherEvent(EventOriginator.SWG_SERVER, false);
       testIsPublisherEvent(EventOriginator.UNKNOWN_CLIENT, false);
+      testIsPublisherEvent(EventOriginator.AMP_CLIENT, true);
       testIsPublisherEvent(EventOriginator.PROPENSITY_CLIENT, true);
       testIsPublisherEvent(EventOriginator.PUBLISHER_CLIENT, true);
     });

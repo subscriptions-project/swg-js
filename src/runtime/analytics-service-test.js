@@ -343,7 +343,8 @@ describes.realWin('AnalyticsService', {}, env => {
     it('should not log publisher events by default', () => {
       const ensureNotLoggingPublisherEvents = function() {
         testOriginator(EventOriginator.SWG_CLIENT, true);
-        testOriginator(EventOriginator.AMP_CLIENT, true);
+        testOriginator(EventOriginator.SWG_SERVER, true);
+        testOriginator(EventOriginator.AMP_CLIENT, false);
         testOriginator(EventOriginator.PROPENSITY_CLIENT, false);
         testOriginator(EventOriginator.PUBLISHER_CLIENT, false);
       };
