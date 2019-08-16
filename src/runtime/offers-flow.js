@@ -16,7 +16,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows, ProductType} from '../api/subscriptions';
+import {SubscriptionFlows, ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 /**
@@ -92,6 +92,7 @@ export class OffersFlow {
         new PayStartFlow(this.deps_, {
           skuId: sku,
           oldSkuId: oldSku,
+          replaceSkuProrationMode: ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
         }).start();
         return;
       } else {
@@ -130,25 +131,26 @@ export class OffersFlow {
           this.deps_.callbacks().triggerLoginRequest({
             linkRequested: !!result['linkRequested'],
           });
-          return;
+          return new Promise();
         }
         if (result['oldSku']) {
           new PayStartFlow(this.deps_, {
             skuId: result['sku'],
             oldSkuId: result['oldSku'],
+            replaceSkuProrationMode: ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
           }).start();
-          return;
+          return new Promise();
         }
         if (result['sku']) {
           new PayStartFlow(
             this.deps_,
             /** @type {string} */ (result['sku'])
           ).start();
-          return;
+          return new Promise();
         }
         if (result['native']) {
           this.deps_.callbacks().triggerSubscribeRequest();
-          return;
+          return new Promise();
         }
       });
 
