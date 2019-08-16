@@ -563,7 +563,10 @@ export class ConfiguredRuntime {
     // Report redirect errors if any.
     this.activityPorts_.onRedirectError(error => {
       this.analyticsService_.addLabels(['redirect']);
-      this.analyticsService_.logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_PAYMENT_FAILED,
+        false
+      );
       this.jserror_.error('Redirect error', error);
     });
   }
