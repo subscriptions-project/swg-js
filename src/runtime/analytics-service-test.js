@@ -312,20 +312,6 @@ describes.realWin('AnalyticsService', {}, env => {
       ]);
     });
 
-    it('should pass events along to events manager', () => {
-      let receivedEvent = null;
-      sandbox
-        .stub(ClientEventManager.prototype, 'logEvent')
-        .callsFake(event => (receivedEvent = event));
-      analyticsService.logEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
-      expect(receivedEvent).to.deep.equal({
-        eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
-      });
-    });
-
     /**
      * Ensure that analytics service is only logging events from the passed
      * originator if shouldLog is true.
@@ -353,14 +339,13 @@ describes.realWin('AnalyticsService', {}, env => {
       ensureNotLoggingPublisherEvents();
 
       //ensure it requires the experiment to log publisher events
-      analyticsService.enableLoggingFromPublisher();
+      runtime.configure({enableSwgAnalytics: true});
       ensureNotLoggingPublisherEvents();
 
       //reinitialize the service after turning the experiment on
-      //ensure it requires the .enableLoggingFromPublisher method to log
-      //publisher events
       setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
       analyticsService = new AnalyticsService(runtime);
+      runtime.configure({enableSwgAnalytics: false});
       ensureNotLoggingPublisherEvents();
     });
 
@@ -369,7 +354,7 @@ describes.realWin('AnalyticsService', {}, env => {
       //ensure if we activate both things it properly logs all origins
       setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
       analyticsService = new AnalyticsService(runtime);
-      analyticsService.enableLoggingFromPublisher();
+      runtime.configure({enableSwgAnalytics: true});
       testOriginator(EventOriginator.SWG_CLIENT, true);
       testOriginator(EventOriginator.AMP_CLIENT, true);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);

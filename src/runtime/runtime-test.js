@@ -953,6 +953,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     let activityResultCallbacks;
     let offersApiMock;
     let redirectErrorHandler;
+    let eventManagerMock;
 
     beforeEach(() => {
       activityResultCallbacks = {};
@@ -976,6 +977,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       analyticsMock = sandbox.mock(runtime.analytics());
       jserrorMock = sandbox.mock(runtime.jserror());
       offersApiMock = sandbox.mock(runtime.offersApi_);
+      eventManagerMock = sandbox.mock(runtime.eventManager());
     });
 
     afterEach(() => {
@@ -984,6 +986,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       jserrorMock.verify();
       entitlementsManagerMock.verify();
       offersApiMock.verify();
+      eventManagerMock.verify();
       setExperimentsStringForTesting('');
     });
 
@@ -1178,9 +1181,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .expects('addLabels')
         .withExactArgs(['redirect'])
         .once();
-      analyticsMock
-        .expects('logEvent')
-        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false)
         .once();
       jserrorMock
         .expects('error')
