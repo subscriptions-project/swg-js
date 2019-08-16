@@ -218,9 +218,6 @@ export class AbbrvOfferFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
-    this.eventManager_ = deps.eventManager();
-
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
@@ -279,8 +276,6 @@ export class AbbrvOfferFlow {
         return;
       }
     });
-
-    this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_OFFERS);
 
     return this.dialogManager_.openView(this.activityIframeView_);
   }
