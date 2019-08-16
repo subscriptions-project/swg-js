@@ -20,7 +20,6 @@ import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {XhrFetcher} from './fetcher';
 
 describes.realWin('Propensity', {}, env => {
   let win;
@@ -30,13 +29,7 @@ describes.realWin('Propensity', {}, env => {
   beforeEach(() => {
     win = env.win;
     config = new PageConfig('pub1', true);
-    // Note: tests here don't use the fetcher (that's in propensity-server-test)
-    propensity = new Propensity(
-      win,
-      config,
-      new ClientEventManager(),
-      new XhrFetcher(win)
-    );
+    propensity = new Propensity(win, config, new ClientEventManager());
   });
 
   it('should provide valid subscription state', () => {

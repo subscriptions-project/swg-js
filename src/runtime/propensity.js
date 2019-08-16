@@ -29,17 +29,15 @@ export class Propensity {
    * @param {!Window} win
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
-   * @param {!./fetcher.Fetcher} fetcher
    */
-  constructor(win, pageConfig, eventManager, fetcher) {
+  constructor(win, pageConfig, eventManager) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private {PropensityServer} */
     this.propensityServer_ = new PropensityServer(
       win,
       pageConfig.getPublicationId(),
-      eventManager,
-      fetcher
+      eventManager
     );
 
     /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
