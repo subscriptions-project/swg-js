@@ -1182,13 +1182,8 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .withExactArgs(['redirect'])
         .once();
       eventManagerMock
-        .expects('logEvent')
-        .withExactArgs({
-          eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: null,
-        })
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false)
         .once();
       jserrorMock
         .expects('error')
