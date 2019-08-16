@@ -19,7 +19,6 @@ import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {serviceUrl} from './services';
 import {feArgs, feUrl} from '../runtime/services';
-import {parseQueryString} from '../utils/url';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -106,16 +105,6 @@ export class EntitlementsManager {
    */
   getQueryString_() {
     return this.win_.location.search;
-  }
-
-  /**
-   * @private
-   * @return boolean true if UTM source is google
-   */
-  isGoogleUtmSource_() {
-    // TODO(sohanirao): b/120294106
-    const utmParams = parseQueryString(this.getQueryString_());
-    return utmParams['utm_source'] == 'google';
   }
 
   /**
