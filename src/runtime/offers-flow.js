@@ -89,13 +89,10 @@ export class OffersFlow {
       // object currently requires experimental flag
       // so we need to check for oldSku to decide what to send
       if (oldSku) {
-        new PayStartFlow(
-          this.deps_,
-          {
-            skuId: sku,
-            oldSkuId: oldSku,
-          }
-        ).start();
+        new PayStartFlow(this.deps_, {
+          skuId: sku,
+          oldSkuId: oldSku,
+        }).start();
         return;
       } else {
         new PayStartFlow(this.deps_, sku).start();
@@ -136,13 +133,10 @@ export class OffersFlow {
           return;
         }
         if (result['oldSku']) {
-          new PayStartFlow(
-            this.deps_,
-            {
-              skuId: result['sku'],
-              oldSkuId: result['oldSku'],
-            }
-          ).start();
+          new PayStartFlow(this.deps_, {
+            skuId: result['sku'],
+            oldSkuId: result['oldSku'],
+          }).start();
           return;
         }
         if (result['sku']) {
