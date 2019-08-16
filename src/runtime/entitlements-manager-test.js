@@ -24,8 +24,7 @@ import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {AnalyticsService} from './analytics-service';
-import {defaultConfig, AnalyticsMode} from '../api/subscriptions';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {defaultConfig} from '../api/subscriptions';
 import {ClientEventManager} from './client-event-manager';
 
 describes.realWin('EntitlementsManager', {}, env => {
@@ -39,7 +38,6 @@ describes.realWin('EntitlementsManager', {}, env => {
   let storageMock;
   let config;
   let analyticsMock;
-  let eventManagerMock;
   let deps;
   let encryptedDocumentKey;
 
@@ -48,7 +46,6 @@ describes.realWin('EntitlementsManager', {}, env => {
     pageConfig = new PageConfig('pub1:label1');
     fetcher = new XhrFetcher(win);
     const eventManager = new ClientEventManager(Promise.resolve());
-    eventManagerMock = sandbox.mock(eventManager);
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
     deps = new DepsDef();
@@ -576,94 +573,6 @@ describes.realWin('EntitlementsManager', {}, env => {
         .withExactArgs(true)
         .once();
       return manager.getEntitlements().then(entitlements => {
-        expect(entitlements.isReadyToPay).to.be.true;
-      });
-    });
-
-    it('should log paywall impression with analytics mode enabled', () => {
-      expectToastShown('0');
-      storageMock
-        .expects('set')
-        .withArgs('isreadytopay', 'true')
-        .once();
-      expectGetIsReadyToPayToBeCalled('true');
-      expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
-      analyticsMock
-        .expects('setReadyToPay')
-        .withExactArgs(true)
-        .once();
-      eventManagerMock
-        .expects('logSwgEvent')
-        .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL, false, null)
-        .once();
-      config.analyticsMode = AnalyticsMode.IMPRESSIONS;
-      const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-          win,
-          pageConfig,
-          fetcher,
-          deps
-        );
-      return newMgr.getEntitlements().then(entitlements => {
-        expect(entitlements.isReadyToPay).to.be.true;
-      });
-    });
-
-    it('should log paywall impression event with utm source google', () => {
-      expectToastShown('0');
-      storageMock
-        .expects('set')
-        .withArgs('isreadytopay', 'true')
-        .once();
-      expectGetIsReadyToPayToBeCalled('true');
-      expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
-      analyticsMock
-        .expects('setReadyToPay')
-        .withExactArgs(true)
-        .once();
-      eventManagerMock
-        .expects('logSwgEvent')
-        .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL, false, null)
-        .once();
-      EntitlementsManager.prototype.getQueryString_ = () => {
-        return '?utm_source=google&utm_medium=email&utm_campaign=campaign';
-      };
-      const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-          win,
-          pageConfig,
-          fetcher,
-          deps
-        );
-      return newMgr.getEntitlements().then(entitlements => {
-        expect(entitlements.isReadyToPay).to.be.true;
-      });
-    });
-
-    it('should not log paywall impression', () => {
-      expectToastShown('0');
-      storageMock
-        .expects('set')
-        .withArgs('isreadytopay', 'true')
-        .once();
-      expectGetIsReadyToPayToBeCalled('true');
-      expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
-      analyticsMock
-        .expects('setReadyToPay')
-        .withExactArgs(true)
-        .once();
-      eventManagerMock
-        .expects('logSwgEvent')
-        .withExactArgs(AnalyticsEvent.IMPRESSION_PAYWALL, false, null)
-        .once();
-      EntitlementsManager.prototype.getQueryString_ = () => {
-        return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
-      };
-      const /* {!EntitlementsManager} */ newMgr = new EntitlementsManager(
-          win,
-          pageConfig,
-          fetcher,
-          deps
-        );
-      return newMgr.getEntitlements().then(entitlements => {
         expect(entitlements.isReadyToPay).to.be.true;
       });
     });
