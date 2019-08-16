@@ -38,7 +38,6 @@ describes.realWin('EntitlementsManager', {}, env => {
   let storageMock;
   let config;
   let analyticsMock;
-  let eventManagerMock;
   let deps;
   let encryptedDocumentKey;
 
@@ -47,7 +46,6 @@ describes.realWin('EntitlementsManager', {}, env => {
     pageConfig = new PageConfig('pub1:label1');
     fetcher = new XhrFetcher(win);
     const eventManager = new ClientEventManager(Promise.resolve());
-    eventManagerMock = sandbox.mock(eventManager);
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
     deps = new DepsDef();
@@ -78,7 +76,6 @@ describes.realWin('EntitlementsManager', {}, env => {
     xhrMock.verify();
     jwtHelperMock.verify();
     analyticsMock.verify();
-    eventManagerMock.verify();
   });
 
   function expectNoResponse() {
