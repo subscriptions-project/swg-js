@@ -265,4 +265,83 @@ describes.sandboxed('EventManager', {}, () => {
       eventMan.eventOriginator = DEFAULT_ORIGIN;
     });
   });
+
+  describe('helpers', () => {
+    let eventMan;
+
+    beforeEach(() => {
+      eventMan = new ClientEventManager(RESOLVED_PROMISE);
+    });
+
+    it('should identify publisher events', () => {
+      const testIsPublisherEvent = function(originator, isPublisherEvent) {
+        DEFAULT_EVENT.eventOriginator = originator;
+        expect(ClientEventManager.isPublisherEvent(DEFAULT_EVENT)).to.equal(
+          isPublisherEvent
+        );
+      };
+      testIsPublisherEvent(EventOriginator.SWG_CLIENT, false);
+      testIsPublisherEvent(EventOriginator.AMP_CLIENT, false);
+      testIsPublisherEvent(EventOriginator.SWG_SERVER, false);
+      testIsPublisherEvent(EventOriginator.UNKNOWN_CLIENT, false);
+      testIsPublisherEvent(EventOriginator.PROPENSITY_CLIENT, true);
+      testIsPublisherEvent(EventOriginator.PUBLISHER_CLIENT, true);
+    });
+
+    describe('logSwgEvent', () => {
+      let event;
+      beforeEach(() => {
+        sandbox
+          .stub(ClientEventManager.prototype, 'logEvent')
+          .callsFake(evt => (event = evt));
+      });
+
+      it('should have appropriate defaults', () => {
+        eventMan.logSwgEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
+        expect(event).to.deep.equal({
+          eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+        });
+      });
+
+      it('should respect isFromUserAction', () => {
+        const testIsFromUserAction = function(isFromUserAction) {
+          eventMan.logSwgEvent(
+            AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+            isFromUserAction
+          );
+          expect(event).to.deep.equal({
+            eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction,
+            additionalParameters: null,
+          });
+        };
+        testIsFromUserAction(true);
+        testIsFromUserAction(false);
+        testIsFromUserAction(null);
+      });
+
+      it('should respect additionalParameters', () => {
+        const testAdditionalParams = function(additionalParameters) {
+          eventMan.logSwgEvent(
+            AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+            null,
+            additionalParameters
+          );
+          expect(event).to.deep.equal({
+            eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: null,
+            additionalParameters,
+          });
+        };
+        testAdditionalParams({});
+        testAdditionalParams(null);
+        testAdditionalParams({fig: true});
+      });
+    });
+  });
 });

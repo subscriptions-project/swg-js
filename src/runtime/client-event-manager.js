@@ -70,6 +70,17 @@ function validateEvent(event) {
 /** @implements {../api/client-event-manager-api.ClientEventManagerApi} */
 export class ClientEventManager {
   /**
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @return {boolean}
+   */
+  static isPublisherEvent(event) {
+    return (
+      event.eventOriginator === EventOriginator.PROPENSITY_CLIENT ||
+      event.eventOriginator === EventOriginator.PUBLISHER_CLIENT
+    );
+  }
+
+  /**
    *
    * @param {!Promise} configuredPromise
    */
