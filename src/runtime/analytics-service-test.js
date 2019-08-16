@@ -312,20 +312,6 @@ describes.realWin('AnalyticsService', {}, env => {
       ]);
     });
 
-    it('should pass events along to events manager', () => {
-      let receivedEvent = null;
-      sandbox
-        .stub(ClientEventManager.prototype, 'logEvent')
-        .callsFake(event => (receivedEvent = event));
-      analyticsService.logEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
-      expect(receivedEvent).to.deep.equal({
-        eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
-      });
-    });
-
     /**
      * Ensure that analytics service is only logging events from the passed
      * originator if shouldLog is true.

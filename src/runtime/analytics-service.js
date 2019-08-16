@@ -17,7 +17,6 @@
 import {
   AnalyticsRequest,
   AnalyticsContext,
-  EventOriginator,
   AnalyticsEventMeta,
 } from '../proto/api_messages';
 import {createElement} from '../utils/dom';
@@ -27,7 +26,6 @@ import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
 import {ExperimentFlags} from './experiment-flags';
-import {isBoolean} from '../utils/types';
 import {ClientEventManager} from './client-event-manager';
 
 /** @const {!Object<string, string>} */
@@ -234,26 +232,6 @@ export class AnalyticsService {
     request.setContext(this.context_);
     request.setMeta(meta);
     return request;
-  }
-
-  /**
-   * This function can be used to log a buy-flow event from SwG.
-   * It exists as a helper and to ensure backwards compatability,
-   * you have additional parameters available if you call eventManager.logEvent
-   * directly.
-   * @param {!../proto/api_messages.AnalyticsEvent} eventTypeIn
-   * @param {!boolean=} isFromUserActionIn
-   */
-  logEvent(eventTypeIn, isFromUserActionIn) {
-    this.eventManager_.logEvent({
-      eventType: eventTypeIn,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      /** @type {?boolean} */
-      isFromUserAction: (isBoolean(isFromUserActionIn)
-        ? !!isFromUserActionIn
-        : null),
-      additionalParameters: null,
-    });
   }
 
   /**
