@@ -326,82 +326,54 @@ describes.realWin('AnalyticsService', {}, env => {
       });
     });
 
-    it('should not log Propensity events by default', () => {
-      //should log all clients but propensity
+    /**
+     * Ensure that analytics service is only logging events from the passed
+     * originator if shouldLog is true.
+     * @param {!EventOriginator} originator
+     * @param {boolean} shouldLog
+     */
+    const testOriginator = function(originator, shouldLog) {
       analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.SWG_CLIENT;
+      event.eventOriginator = originator;
       registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
+      const didLog = analyticsService.lastAction_ !== null;
+      expect(shouldLog).to.equal(didLog);
+    };
 
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.AMP_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
+    it('should not log publisher events by default', () => {
+      const ensureNotLoggingPublisherEvents = function() {
+        testOriginator(EventOriginator.SWG_CLIENT, true);
+        testOriginator(EventOriginator.SWG_SERVER, true);
+        testOriginator(EventOriginator.AMP_CLIENT, false);
+        testOriginator(EventOriginator.PROPENSITY_CLIENT, false);
+        testOriginator(EventOriginator.PUBLISHER_CLIENT, false);
+      };
 
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.be.null;
+      //ensure it doesn't log them by default
+      ensureNotLoggingPublisherEvents();
 
-      //ensure it requires the experiment to log Propensity events
-      analyticsService.enableLoggingForPropensity();
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.SWG_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.AMP_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.be.null;
+      //ensure it requires the experiment to log publisher events
+      analyticsService.enableLoggingFromPublisher();
+      ensureNotLoggingPublisherEvents();
 
       //reinitialize the service after turning the experiment on
-      //ensure it requires the .enable method to log Propensity
+      //ensure it requires the .enableLoggingFromPublisher method to log
+      //publisher events
       setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
       analyticsService = new AnalyticsService(runtime);
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.SWG_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.AMP_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.be.null;
+      ensureNotLoggingPublisherEvents();
     });
 
-    it('should log Propensity events if experiment is on', () => {
+    it('should log publisher events if experiment is on', () => {
       //reinitialize the service after turning the experiment on
       //ensure if we activate both things it properly logs all origins
       setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
       analyticsService = new AnalyticsService(runtime);
-      analyticsService.enableLoggingForPropensity();
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.SWG_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.AMP_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
+      analyticsService.enableLoggingFromPublisher();
+      testOriginator(EventOriginator.SWG_CLIENT, true);
+      testOriginator(EventOriginator.AMP_CLIENT, true);
+      testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
+      testOriginator(EventOriginator.PUBLISHER_CLIENT, true);
     });
   });
 });

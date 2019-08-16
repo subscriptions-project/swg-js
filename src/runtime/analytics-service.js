@@ -28,6 +28,7 @@ import {setImportantStyles} from '../utils/style';
 import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
 import {ExperimentFlags} from './experiment-flags';
 import {isBoolean} from '../utils/types';
+import {ClientEventManager} from './client-event-manager';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -77,7 +78,7 @@ export class AnalyticsService {
     /** @private {?Promise} */
     this.lastAction_ = null;
 
-    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
+    /** @private @const {!ClientEventManager} */
     this.eventManager_ = deps.eventManager();
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
@@ -90,7 +91,7 @@ export class AnalyticsService {
     );
 
     /** @private {!boolean} */
-    this.logPropensityConfig_ = false;
+    this.logFromPublisherConfig_ = false;
   }
 
   /**
@@ -266,13 +267,20 @@ export class AnalyticsService {
   }
 
   /**
+   * @return {boolean}
+   */
+  shouldLogPublisherEvents_() {
+    return this.logPropensityExperiment_ && this.logFromPublisherConfig_;
+  }
+
+  /**
    *  Listens for new events from the events manager and handles logging
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
     if (
-      !(this.logPropensityExperiment_ && this.logPropensityConfig_) &&
-      event.eventOriginator === EventOriginator.PROPENSITY_CLIENT
+      ClientEventManager.isPublisherEvent(event) &&
+      !this.shouldLogPublisherEvents_()
     ) {
       return;
     }
@@ -282,7 +290,7 @@ export class AnalyticsService {
     });
   }
 
-  enableLoggingForPropensity() {
-    this.logPropensityConfig_ = true;
+  enableLoggingFromPublisher() {
+    this.logFromPublisherConfig_ = true;
   }
 }
