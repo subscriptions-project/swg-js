@@ -384,7 +384,6 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   let runtime;
   let activitiesMock;
   let callbacksMock;
-  let eventManagerMock;
   let pageConfig;
   let abbrvOfferFlow;
   let port;
@@ -396,9 +395,6 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
-    const eventManager = new ClientEventManager(Promise.resolve());
-    eventManagerMock = sandbox.mock(eventManager);
-    sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -413,7 +409,6 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
-    eventManagerMock.verify();
   });
 
   it('should have valid AbbrvOfferFlow constructed', () => {
@@ -608,12 +603,5 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
         expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
       });
     });
-  });
-
-  it('should log IMPRESSION_OFFERS on start', () => {
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_OFFERS);
-    abbrvOfferFlow.start();
   });
 });
