@@ -18,6 +18,7 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
+import {assert} from '../utils/log';
 
 /**
  * Offers view is closable when request was originated from 'AbbrvOfferFlow'
@@ -66,20 +67,13 @@ export class OffersFlow {
     }
 
     if (feArgsObj['oldSku']) {
-      if (!feArgsObj['skus']) {
-        console.error('Need a sku list if old sku is provided!');
-        return;
-      }
+      assert(feArgsObj['skus'], 'Need a sku list if old sku is provided!')
       // remove old sku from offers if in list
       let skuList = feArgsObj['skus'];
       const /** @type {String} */ oldSku = feArgsObj['oldSku'];
       skuList = skuList.filter(sku => sku !== oldSku);
-      if (skuList.length > 0) {
-        feArgsObj['skus'] = skuList;
-      } else {
-        console.error('Sku list only contained offer user already has');
-        return;
-      }
+      assert(skuList.length > 0, 'Sku list only contained offer user already has');
+      feArgsObj['skus'] = skuList;
     }
 
     // redirect to payments if only one upgrade option is passed
