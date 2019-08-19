@@ -187,7 +187,7 @@ export class SubscribeOptionFlow {
       }
     );
     this.eventManager_.logSwgEvent(
-      AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS
     );
     return this.dialogManager_.openView(this.activityIframeView_);
   }
@@ -301,7 +301,7 @@ export class AbbrvOfferFlow {
     });
 
     this.eventManager_.logSwgEvent(
-      AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS
+      AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
     );
 
     return this.dialogManager_.openView(this.activityIframeView_);

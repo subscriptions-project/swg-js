@@ -301,9 +301,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
       .returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
-      );
+      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
     return offersFlow.start();
   });
 
@@ -335,9 +333,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
       .returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
-      );
+      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
     return offersFlow.start();
   });
 
@@ -363,9 +359,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
       .returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
-      );
+      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
     return offersFlow.start();
   });
 
@@ -375,9 +369,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     expect(offersStartStub).to.not.be.called;
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
-      );
+      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
@@ -402,9 +394,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
-      );
+      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
@@ -476,7 +466,9 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
       .returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     return abbrvOfferFlow.start();
   });
 
@@ -501,7 +493,9 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
       .returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     return abbrvOfferFlow.start();
   });
 
@@ -534,7 +528,9 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
       .returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     return abbrvOfferFlow.start();
   });
 
@@ -561,7 +557,9 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
       .returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     return abbrvOfferFlow.start();
   });
 
@@ -570,7 +568,9 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ALREADY_SUBSCRIBED, true);
@@ -587,7 +587,9 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ALREADY_SUBSCRIBED, true);
@@ -616,7 +618,9 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     sandbox.stub(port, 'acceptResult').callsFake(() => resultPromise);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
@@ -638,7 +642,9 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     });
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     return abbrvOfferFlow.start().then(() => {
       return acceptPortResultData(port, 'https://example.com', true, true).then(
         () => {
@@ -674,7 +680,9 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     sandbox.stub(port, 'acceptResult').callsFake(() => resultPromise);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
