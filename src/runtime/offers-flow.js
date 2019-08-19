@@ -87,12 +87,20 @@ export class OffersFlow {
     // If result is due to OfferSelection, redirect to payments.
     this.activityIframeView_.onMessageDeprecated(result => {
       if (result['alreadySubscribed']) {
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.ACTION_ALREADY_SUBSCRIBED,
+          true
+        );
         this.deps_.callbacks().triggerLoginRequest({
           linkRequested: !!result['linkRequested'],
         });
         return;
       }
       if (result['sku']) {
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.ACTION_OFFER_SELECTED,
+          true
+        );
         new PayStartFlow(
           this.deps_,
           /** @type {string} */ (result['sku'])
@@ -175,6 +183,9 @@ export class SubscribeOptionFlow {
         throw reason;
       }
     );
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+    );
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 
@@ -188,6 +199,7 @@ export class SubscribeOptionFlow {
       if (options.isClosable == undefined) {
         options.isClosable = OFFERS_VIEW_CLOSABLE;
       }
+      this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
       new OffersFlow(this.deps_, options).start();
     }
   }
@@ -253,6 +265,10 @@ export class AbbrvOfferFlow {
     // If the user is already subscribed, trigger login flow
     this.activityIframeView_.onMessageDeprecated(data => {
       if (data['alreadySubscribed']) {
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.ACTION_ALREADY_SUBSCRIBED,
+          true
+        );
         this.deps_.callbacks().triggerLoginRequest({
           linkRequested: !!data['linkRequested'],
         });
@@ -266,6 +282,7 @@ export class AbbrvOfferFlow {
         if (options.isClosable == undefined) {
           options.isClosable = OFFERS_VIEW_CLOSABLE;
         }
+        this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
         new OffersFlow(this.deps_, options).start();
         return;
       }
@@ -276,6 +293,10 @@ export class AbbrvOfferFlow {
         return;
       }
     });
+
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS
+    );
 
     return this.dialogManager_.openView(this.activityIframeView_);
   }

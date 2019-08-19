@@ -271,6 +271,10 @@ export class PayCompleteFlow {
    */
   complete() {
     this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.IMPRESSION_SUBSCRIPTION_COMPLETE,
+      true
+    );
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
       this.activityIframeView_.messageDeprecated({'complete': true});
