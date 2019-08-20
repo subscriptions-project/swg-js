@@ -141,13 +141,11 @@ export class SmartSubscriptionButtonApi {
           port.on(SmartBoxMessage, this.handleSmartBoxClick_.bind(this));
         } else {
           port.onMessageDeprecated(result => {
+            const smartBoxMessage = new SmartBoxMessage();
             if (result['clicked']) {
-              if (!this.callback_) {
-                throw new Error('No callback!');
-              }
-              this.callback_();
-              return;
+              smartBoxMessage.setIsClicked(true);
             }
+            this.handleSmartBoxClick_(smartBoxMessage);
           });
         }
       });
