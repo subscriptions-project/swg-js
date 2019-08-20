@@ -17,6 +17,7 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType} from '../api/subscriptions';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {feArgs, feUrl} from './services';
 import {
   SkuSelectedResponse,
@@ -51,6 +52,9 @@ export class OffersFlow {
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
+
+    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
+    this.eventManager_ = deps.eventManager();
 
     let isClosable = options && options.isClosable;
     if (isClosable == undefined) {
@@ -131,6 +135,8 @@ export class OffersFlow {
       ViewSubscriptionsResponse,
       this.startNativeFlow_.bind(this)
     );
+
+    this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_OFFERS);
 
     return this.dialogManager_.openView(this.activityIframeView_);
   }
