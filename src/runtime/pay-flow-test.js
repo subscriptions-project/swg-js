@@ -450,9 +450,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_COMPLETE, true);
-    eventManagerMock
-      .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
@@ -505,9 +502,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_COMPLETE, true);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
@@ -580,9 +574,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_COMPLETE, true);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
