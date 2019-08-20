@@ -251,6 +251,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
   let pageConfig;
   let port;
   let messageCallback;
+  let eventManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -258,6 +259,9 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
+    const eventManager = new ClientEventManager(Promise.resolve());
+    eventManagerMock = sandbox.mock(eventManager);
+    sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     offersFlow = new SubscribeOptionFlow(runtime);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -271,6 +275,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should have valid SubscribeOptionFlow constructed', () => {
@@ -294,6 +299,9 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
     return offersFlow.start();
   });
 
@@ -323,6 +331,9 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
     return offersFlow.start();
   });
 
@@ -346,6 +357,9 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
     return offersFlow.start();
   });
 
@@ -353,6 +367,12 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     const offersStartStub = sandbox.stub(OffersFlow.prototype, 'start');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     expect(offersStartStub).to.not.be.called;
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
     return offersFlow.start().then(() => {
       // Unrelated message.
       messageCallback({});
@@ -372,6 +392,12 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
       return Promise.resolve();
     });
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
     return optionFlow.start().then(() => {
       messageCallback({'subscribe': true});
       expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
@@ -388,11 +414,15 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   let abbrvOfferFlow;
   let port;
   let messageCallback;
+  let eventManagerMock;
 
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
+    const eventManager = new ClientEventManager(Promise.resolve());
+    eventManagerMock = sandbox.mock(eventManager);
+    sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
@@ -409,6 +439,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should have valid AbbrvOfferFlow constructed', () => {
@@ -433,6 +464,11 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     return abbrvOfferFlow.start();
   });
 
@@ -455,6 +491,11 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     return abbrvOfferFlow.start();
   });
 
@@ -485,6 +526,11 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     return abbrvOfferFlow.start();
   });
 
@@ -509,12 +555,25 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     return abbrvOfferFlow.start();
   });
 
   it('should trigger login flow for a subscribed user with linking', () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_ALREADY_SUBSCRIBED, true);
     return abbrvOfferFlow.start().then(() => {
       messageCallback({'alreadySubscribed': true, 'linkRequested': true});
       expect(loginStub).to.be.calledOnce.calledWithExactly({
@@ -526,6 +585,14 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   it('should trigger login flow for subscibed user without linking', () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_ALREADY_SUBSCRIBED, true);
     return abbrvOfferFlow.start().then(() => {
       messageCallback({'alreadySubscribed': true, 'linkRequested': false});
       expect(loginStub).to.be.calledOnce.calledWithExactly({
@@ -549,6 +616,14 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     result.data = {'viewOffers': true};
     const resultPromise = Promise.resolve(result);
     sandbox.stub(port, 'acceptResult').callsFake(() => resultPromise);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
     return abbrvOfferFlow.start().then(() => {
       return resultPromise.then(() => {
         expect(offersStartStub).to.be.calledOnce;
@@ -565,6 +640,11 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     sandbox.stub(port, 'acceptResult').callsFake(() => {
       return Promise.reject(error);
     });
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
     return abbrvOfferFlow.start().then(() => {
       return acceptPortResultData(port, 'https://example.com', true, true).then(
         () => {
@@ -598,6 +678,14 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     result.data = {'viewOffers': true};
     const resultPromise = Promise.resolve(result);
     sandbox.stub(port, 'acceptResult').callsFake(() => resultPromise);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
     return optionFlow.start().then(() => {
       return resultPromise.then(() => {
         expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
