@@ -104,6 +104,9 @@ export class PayStartFlow {
     if (prorationMode) {
       swgPaymentRequest.replaceSkuProrationMode =
         ReplaceSkuProrationModeMapping[prorationMode];
+    } else if (this.subscriptionRequest_.oldSkuId) {
+      swgPaymentRequest.replaceSkuProrationMode =
+        ReplaceSkuProrationModeMapping['IMMEDIATE_WITH_TIME_PRORATION'];
     }
 
     // Start/cancel events.
