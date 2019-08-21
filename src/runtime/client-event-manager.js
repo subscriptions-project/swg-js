@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/* eslint-disable */
 import {FilterResult} from '../api/client-event-manager-api';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
