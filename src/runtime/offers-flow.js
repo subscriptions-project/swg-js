@@ -68,7 +68,7 @@ export class OffersFlow {
 
     if (feArgsObj['oldSku']) {
       assert(feArgsObj['skus'], 'Need a sku list if old sku is provided!')
-      // remove old sku from offers if in list
+      // Remove old sku from offers if in list.
       let skuList = feArgsObj['skus'];
       const /** @type {String} */ oldSku = feArgsObj['oldSku'];
       skuList = skuList.filter(sku => sku !== oldSku);
@@ -76,12 +76,13 @@ export class OffersFlow {
       feArgsObj['skus'] = skuList;
     }
 
-    // redirect to payments if only one upgrade option is passed
+    // Redirect to payments if only one upgrade option is passed.
     if (feArgsObj['skus'] && feArgsObj['skus'].length === 1) {
       const sku = feArgsObj['skus'][0];
       const /** @type {String} */ oldSku = feArgsObj['oldSku'];
-      // object currently requires experimental flag
-      // so we need to check for oldSku to decide what to send
+      // Update subscription triggers experimental flag if oldSku is passed,
+      // so we need to check for oldSku to decide if it needs to be sent.
+      // Otherwise we might accidentally block a regular subscription request.
       if (oldSku) {
         new PayStartFlow(this.deps_, {
           skuId: sku,
@@ -109,8 +110,7 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
-    if (this.activityIframeView_) {
-      // so no error is thrown if offers skipped
+    if (this.activityIframeView_) { // So no error if skipped to payment screen.
       // Start/cancel events.
       this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS);
       this.activityIframeView_.onCancel(() => {

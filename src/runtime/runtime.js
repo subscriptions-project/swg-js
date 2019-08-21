@@ -63,6 +63,7 @@ import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
 import {Logger} from './logger';
+import {assert} from '../utils/log';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -77,9 +78,7 @@ let runtimeInstance_;
  * @return {!Runtime}
  */
 export function getRuntime() {
-  if (!runtimeInstance_) {
-    throw new Error('not initialized yet');
-  }
+  assert(runtimeInstance_, 'not initialized yet');
   return runtimeInstance_;
 }
 
@@ -238,9 +237,7 @@ export class Runtime {
 
   /** @override */
   init(productOrPublicationId) {
-    if (this.committed_) {
-      throw new Error('already configured');
-    }
+    assert(!this.committed_, 'already configured');
     this.productOrPublicationId_ = productOrPublicationId;
   }
 
@@ -668,9 +665,8 @@ export class ConfiguredRuntime {
         error = 'Unknown config property: ' + k;
       }
     }
-    if (error) {
-      throw new Error(error);
-    }
+    assert(!error, error);
+
     // Assign.
     Object.assign(this.config_, config);
   }
@@ -721,14 +717,8 @@ export class ConfiguredRuntime {
   /** @override */
   showOffers(opt_options) {
     return this.documentParsed_.then(() => {
-      if (opt_options['oldSku']) {
-        console.error(
-          'Use the showUpdateOffers method for subscription updates'
-        );
-        return new Error(
-          'Use the showUpdateOffers method for new subscription updates'
-        );
-      }
+      assert(!opt_options['oldSku'],
+        'Use the showUpdateOffers method for subscription updates');
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
     });
@@ -736,14 +726,11 @@ export class ConfiguredRuntime {
 
   /** @override */
   showUpdateOffers(opt_options) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)) {
-      throw new Error('Not yet launched!');
-    }
+    assert(isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
+      'Not yet launched!');
     return this.documentParsed_.then(() => {
-      if (!opt_options['oldSku']) {
-        console.error('Use the showOffers method for new subscribers');
-        return new Error('Use the showOffers method for new subscribers');
-      }
+      assert(opt_options['oldSku'],
+        'Use the showOffers method for new subscribers');
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
     });
@@ -767,9 +754,8 @@ export class ConfiguredRuntime {
 
   /** @override */
   showContributionOptions(opt_options) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS)) {
-      throw new Error('Not yet launched!');
-    }
+    assert(isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
+    'Not yet launched!');
     return this.documentParsed_.then(() => {
       const flow = new ContributionsFlow(this, opt_options);
       return flow.start();
@@ -841,9 +827,8 @@ export class ConfiguredRuntime {
 
   /** @override */
   updateSubscription(subscriptionRequest) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)) {
-      throw new Error('Not yet launched!');
-    }
+    assert(isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
+      'Not yet launched!');
     return this.documentParsed_.then(() => {
       return new PayStartFlow(this, subscriptionRequest).start();
     });
@@ -856,9 +841,8 @@ export class ConfiguredRuntime {
 
   /** @override */
   contribute(skuOrSubscriptionRequest) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS)) {
-      throw new Error('Not yet launched!');
-    }
+    assert(isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
+      'Not yet launched!');
 
     return this.documentParsed_.then(() => {
       return new PayStartFlow(
@@ -900,9 +884,8 @@ export class ConfiguredRuntime {
 
   /** @override */
   attachSmartButton(button, optionsOrCallback, opt_callback) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
-      throw new Error('Not yet launched!');
-    }
+    assert(isExperimentOn(this.win_, ExperimentFlags.SMARTBOX),
+      'Not yet launched!');
     this.buttonApi_.attachSmartButton(
       this,
       button,
