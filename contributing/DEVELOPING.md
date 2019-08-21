@@ -73,7 +73,7 @@ gulp
 
 Running the `gulp` command will compile the code and start up a Node.js server listening on port 8000.  Once you see a message like `Finished 'default'` you can access the local server in your browser at [http://localhost:8000](http://localhost:8000)
 
-You can browse the [http://localhost:8000/examples](http://localhost:8000/examples) directory to see some demo pages for various AMP components and combination of components.
+You can browse the [http://localhost:8000/examples](http://localhost:8000/examples) directory to see some demo pages for various SwG components and combination of components.
 
 ## DNS Aliases
 
