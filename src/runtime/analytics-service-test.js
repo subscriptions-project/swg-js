@@ -203,9 +203,7 @@ describes.realWin('AnalyticsService', {}, env => {
               0
             ).args[0];
           expect(request).to.not.be.null;
-          expect(request.getEvent()).to.deep.equal(
-            AnalyticsEvent.ACTION_SUBSCRIBE
-          );
+          expect(request.getEvent()).to.deep.equal(defEventType);
           expect(request.getContext()).to.not.be.null;
           expect(request.getContext().getReferringOrigin()).to.equal(
             'https://scenic-2017.appspot.com'
