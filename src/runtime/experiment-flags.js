@@ -62,4 +62,9 @@ export const ExperimentFlags = {
    * publishers propensity server.
    */
   LOG_SWG_TO_PROPENSITY: 'log_swg_to_propensity',
+
+  /**
+   * Enables using new Activities APIs
+   */
+  HEJIRA: 'hejira',
 };
