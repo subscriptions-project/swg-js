@@ -18,6 +18,12 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
+import {
+  SkuSelectedResponse,
+  AlreadySubscribedResponse,
+} from '../proto/api_messages';
+import {isExperimentOn} from './experiments';
+import {ExperimentFlags} from './experiment-flags';
 
 /**
  * The class for Contributions flow.
@@ -63,6 +69,27 @@ export class ContributionsFlow {
   }
 
   /**
+   * @param {AlreadySubscribedResponse} response
+   */
+  handleLinkRequest_(response) {
+    if (response.getSubscriberOrMember()) {
+      this.deps_.callbacks().triggerLoginRequest({
+        linkRequested: !!response.getLinkRequested(),
+      });
+    }
+  }
+
+  /**
+   * @param {SkuSelectedResponse} response
+   */
+  startPayFlow_(response) {
+    const sku = response.getSku();
+    if (sku) {
+      new PayStartFlow(this.deps_, sku, ProductType.UI_CONTRIBUTION).start();
+    }
+  }
+
+  /**
    * Starts the contributions flow or alreadyMember flow.
    * @return {!Promise}
    */
@@ -76,24 +103,33 @@ export class ContributionsFlow {
         .callbacks()
         .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     });
-
-    // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.onMessageDeprecated(result => {
-      if (result['alreadyMember']) {
-        this.deps_.callbacks().triggerLoginRequest({
-          linkRequested: !!result['linkRequested'],
-        });
-        return;
-      }
-      if (result['sku']) {
-        new PayStartFlow(
-          this.deps_,
-          /** @type {string} */ (result['sku']),
-          ProductType.UI_CONTRIBUTION
-        ).start();
-        return;
-      }
-    });
+    if (isExperimentOn(this.deps_.win(), ExperimentFlags.HEJIRA)) {
+      this.activityIframeView_.on(
+        AlreadySubscribedResponse,
+        this.handleLinkRequest_.bind(this)
+      );
+      this.activityIframeView_.on(
+        SkuSelectedResponse,
+        this.startPayFlow_.bind(this)
+      );
+    } else {
+      // If result is due to OfferSelection, redirect to payments.
+      this.activityIframeView_.onMessageDeprecated(result => {
+        if (result['alreadyMember']) {
+          const alreadySubscribedResponse = new AlreadySubscribedResponse();
+          alreadySubscribedResponse.setLinkRequested(result['linkRequested']);
+          alreadySubscribedResponse.setSubscriberOrMember(true);
+          this.handleLinkRequest_(alreadySubscribedResponse);
+          return;
+        }
+        if (result['sku']) {
+          const skuSelectedResponse = new SkuSelectedResponse();
+          skuSelectedResponse.setSku(result['sku']);
+          this.startPayFlow_(skuSelectedResponse);
+          return;
+        }
+      });
+    }
 
     return this.dialogManager_.openView(this.activityIframeView_);
   }
