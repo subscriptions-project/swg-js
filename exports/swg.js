@@ -25,7 +25,7 @@ import {ClientEventManagerApi,ClientEvent,FilterResult}
     from '../src/api/client-event-manager-api';
 import {AnalyticsEvent,EventOriginator} from '../src/proto/api_messages';
 
-export {
+module.exports = {
   ConfiguredRuntime,
   Entitlements,
   Entitlement,
