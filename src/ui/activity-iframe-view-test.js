@@ -19,6 +19,7 @@ import {ActivityResult} from 'web-activities/activity-ports';
 import {ActivityPorts, ActivityIframePort} from '../components/activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
+import {SkuSelectedResponse} from '../proto/api_messages';
 
 describes.realWin('ActivityIframeView', {}, env => {
   let win;
@@ -27,6 +28,7 @@ describes.realWin('ActivityIframeView', {}, env => {
   let activityIframePort;
   let activityIframeView;
   let dialog;
+
   const activityArgs = {
     'publicationId': 'pub1',
     'requestId': 'request1-complete',
@@ -47,10 +49,6 @@ describes.realWin('ActivityIframeView', {}, env => {
     sandbox
       .stub(activityIframePort, 'whenReady')
       .callsFake(() => Promise.resolve(true));
-
-    sandbox.stub(activityIframePort, 'onMessageDeprecated').callsFake(() => {
-      return Promise.resolve(true);
-    });
 
     sandbox
       .stub(activityPorts, 'openIframe')
@@ -136,6 +134,48 @@ describes.realWin('ActivityIframeView', {}, env => {
       );
       expect(actualPort).to.equal(activityIframePort);
       expect(actualResult).to.equal(result.data);
+    });
+
+    it('should send and receive messages', function*() {
+      let messageCallback;
+      let onCb;
+      let messageLabel;
+      let payload;
+      let dataSent;
+      sandbox.stub(activityIframePort, 'onMessageDeprecated').callsFake(cb => {
+        messageCallback = cb;
+      });
+
+      sandbox.stub(activityIframePort, 'messageDeprecated').callsFake(data => {
+        payload = data;
+      });
+
+      sandbox.stub(activityIframePort, 'execute').callsFake(data => {
+        dataSent = data;
+      });
+
+      sandbox.stub(activityIframePort, 'on').callsFake((messageCtor, cb) => {
+        messageLabel = new messageCtor().label();
+        onCb = cb;
+      });
+      const skuSelection = new SkuSelectedResponse();
+      skuSelection.setSku('sku1');
+      activityIframeView.onMessageDeprecated(data => {
+        expect(data['test']).to.be.true;
+      });
+      activityIframeView.messageDeprecated({'test': true});
+      activityIframeView.on(SkuSelectedResponse, skuSelected => {
+        expect(skuSelected.getSku()).to.equal('sku1');
+        expect(messageLabel).to.equal('SkuSelectedResponse');
+      });
+      activityIframeView.execute(skuSelection);
+      yield activityIframeView.init(dialog);
+      yield activityIframeView.getPortPromise_();
+      messageCallback({'test': true});
+      onCb(skuSelection);
+      expect(payload).to.deep.equal({'test': true});
+      expect(dataSent.label()).to.equal('SkuSelectedResponse');
+      expect(dataSent.getSku()).to.equal('sku1');
     });
 
     it('should yield cancel callback', function*() {
