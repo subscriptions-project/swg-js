@@ -18,9 +18,6 @@
  * Debug logger, only log message if #swg.log=1
  * @param {...*} var_args [decription]
  */
-
-/* eslint-disable */
-
 export function debugLog(var_args) {
   if (/swg.debug=1/.test(self.location.hash)) {
     const logArgs = Array.prototype.slice.call(arguments, 0);

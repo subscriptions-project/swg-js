@@ -54,7 +54,7 @@ function serve() {
       });
   if (!quiet) {
     util.log(util.colors.yellow('Run `gulp build` then go to '
-        + getHost() + '/examples/sample-pub/'
+        + getHost() + '/examples/article.html'
     ));
   }
 }

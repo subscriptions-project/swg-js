@@ -88,21 +88,24 @@ async function exportToEs6(inputFile, outputFile) {
       // cleanup({comments:'none'}),
     ],
   });
-  const {output} = await bundle.generate({
-    format: 'esm',
+  const {code} = await bundle.generate({
+    format: 'es',
     sourcemap: true,
   });
 
-  let js = `${license}\n/** Version: ${version} */\n${output[0].code}`;
+  let output = `${license}\n/** Version: ${version} */\n${code}`;
   // Replacements (TBD Rollup Plugin replacements instead)
   const replacements = resolveConfig();
   for (const k in replacements) {
-    js = js.replace(
+    output = output.replace(
         new RegExp('\\$' + k + '\\$', 'g'), replacements[k]
     );
   }
 
-  return writeFile(outputFile, js);
+  // Change the export format.
+  output = output.replace(/module.exports\s*\=\s*\{/g, 'export {');
+
+  return writeFile(outputFile, output);
 }
 
 /**
