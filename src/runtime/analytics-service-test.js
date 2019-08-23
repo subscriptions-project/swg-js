@@ -37,8 +37,9 @@ describes.realWin('AnalyticsService', {}, env => {
   let registeredCallback;
 
   const productId = 'pub1:label1';
+  const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
   const event = {
-    eventType: AnalyticsEvent.ACTION_SUBSCRIBE,
+    eventType: defEventType,
     eventOriginator: EventOriginator.SWG_CLIENT,
     isFromUserAction: null,
     additionalParameters: {},
@@ -202,9 +203,7 @@ describes.realWin('AnalyticsService', {}, env => {
               0
             ).args[0];
           expect(request).to.not.be.null;
-          expect(request.getEvent()).to.deep.equal(
-            AnalyticsEvent.ACTION_SUBSCRIBE
-          );
+          expect(request.getEvent()).to.deep.equal(defEventType);
           expect(request.getContext()).to.not.be.null;
           expect(request.getContext().getReferringOrigin()).to.equal(
             'https://scenic-2017.appspot.com'
@@ -359,6 +358,14 @@ describes.realWin('AnalyticsService', {}, env => {
       testOriginator(EventOriginator.AMP_CLIENT, true);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
       testOriginator(EventOriginator.PUBLISHER_CLIENT, true);
+    });
+
+    it('should not log the subscription state change event', () => {
+      analyticsService.lastAction_ = null;
+      event.eventType = AnalyticsEvent.EVENT_SUBSCRIPTION_STATE;
+      registeredCallback(event);
+      expect(analyticsService.lastAction_).to.be.null;
+      event.eventType = defEventType;
     });
   });
 });
