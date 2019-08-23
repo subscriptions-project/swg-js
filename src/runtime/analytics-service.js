@@ -18,6 +18,7 @@ import {
   AnalyticsRequest,
   AnalyticsContext,
   AnalyticsEventMeta,
+  AnalyticsEvent,
 } from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
@@ -258,6 +259,12 @@ export class AnalyticsService {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
+    //this event is just used to communicate information internally.  It should
+    //not be reported to the SwG analytics service.
+    if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
+      return;
+    }
+
     if (
       ClientEventManager.isPublisherEvent(event) &&
       !this.shouldLogPublisherEvents_()
