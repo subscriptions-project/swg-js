@@ -406,6 +406,8 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
     return offersFlow.start().then(() => {
+      // Unrelated message
+      messageCallback({});
       expect(offersStartStub).to.not.be.called;
       // Subscribe message.
       messageCallback({'subscribe': true});
