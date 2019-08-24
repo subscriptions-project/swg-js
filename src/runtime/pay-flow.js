@@ -236,6 +236,7 @@ export class PayCompleteFlow {
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'productType': this.response_['productType'],
+      'isSubscriptionUpdate' : !!this.subscriptionRequest_.oldSkuId,
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {

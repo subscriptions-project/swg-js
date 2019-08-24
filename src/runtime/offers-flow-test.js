@@ -182,6 +182,65 @@ describes.realWin('OffersFlow', {}, env => {
     return offersFlow.start();
   });
 
+  it('should throw error if calling OffersFlow with oldSku but no skus', () => {
+    try {
+      offersFlow = new OffersFlow(runtime, {
+        oldSku: 'old_sku',
+      })
+    } catch(err) {
+      expect(err).to.be.an.instanceOf(Error)
+      .with.property('message', 'Need a sku list if old sku is provided!');
+    }
+  });
+
+  it('should remove oldSku if skus contains it', () => {
+    offersFlow = new OffersFlow(runtime, {
+      skus: ['sku1', 'sku2', 'sku3'],
+      oldSku: 'sku1',
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: ['sku2', 'sku3'],
+          oldSku: 'sku1',
+          isClosable: false,
+        }
+      )
+      .returns(Promise.resolve(port));
+    return offersFlow.start();
+  });
+
+  it('should auto-redirect to payments if only one update option given', () => {
+    let payClientMock = sandbox.mock(runtime.payClient());
+    payClientMock
+      .expects('start')
+      .once();
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('subscribe', {
+        skuId: 'sku2',
+        oldSkuId: 'sku1',
+        replaceSkuProrationMode: 'IMMEDIATE_WITH_TIME_PRORATION',
+      })
+      .once();
+    offersFlow = new OffersFlow(runtime, {
+      skus: ['sku1', 'sku2',],
+      oldSku: 'sku1',
+    });
+    activitiesMock.expects('openIframe').never();
+    payClientMock.verify();
+    return offersFlow.start();
+  });
+
   it('should request native offers', () => {
     runtime.callbacks().setOnSubscribeRequest(function() {});
     activitiesMock
