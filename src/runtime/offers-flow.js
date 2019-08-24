@@ -67,11 +67,13 @@ export class OffersFlow {
     }
 
     if (feArgsObj['oldSku']) {
-      assert(feArgsObj['skus'], 'Need a sku list if old sku is provided!')
+      assert(feArgsObj['skus'], 'Need a sku list if old sku is provided!');
+
       // Remove old sku from offers if in list.
       let skuList = feArgsObj['skus'];
       const /** @type {String} */ oldSku = feArgsObj['oldSku'];
       skuList = skuList.filter(sku => sku !== oldSku);
+
       assert(skuList.length > 0, 'Sku list only contained offer user already has');
       feArgsObj['skus'] = skuList;
     }
@@ -90,10 +92,10 @@ export class OffersFlow {
           replaceSkuProrationMode: ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
         }).start();
         return;
-      } else {
-        new PayStartFlow(this.deps_, sku).start();
-        return;
-      }
+      } //else {
+      //   new PayStartFlow(this.deps_, sku).start();
+      //   return;
+      // }
     }
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -125,7 +127,7 @@ export class OffersFlow {
           this.deps_.callbacks().triggerLoginRequest({
             linkRequested: !!result['linkRequested'],
           });
-          return new Promise();
+          return;
         }
         if (result['oldSku']) {
           new PayStartFlow(this.deps_, {
@@ -133,18 +135,18 @@ export class OffersFlow {
             oldSkuId: result['oldSku'],
             replaceSkuProrationMode: ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
           }).start();
-          return new Promise();
+          return;
         }
         if (result['sku']) {
           new PayStartFlow(
             this.deps_,
             /** @type {string} */ (result['sku'])
           ).start();
-          return new Promise();
+          return;
         }
         if (result['native']) {
           this.deps_.callbacks().triggerSubscribeRequest();
-          return new Promise();
+          return;
         }
       });
 
