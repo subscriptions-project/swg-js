@@ -49,7 +49,7 @@ function getRandomSymbol() {
  * replaced by a random character.  The default is
  * 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.  Some old browsers will only return
  * the default format.
- * @param {string?} format
+ * @param {string=} format
  * @return {string}
  */
 export function getRandomString(format) {
