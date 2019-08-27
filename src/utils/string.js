@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
+
 /**
  * @param {string} _match
  * @param {string} character
@@ -30,6 +32,33 @@ function toUpperCase(_match, character) {
  */
 export function dashToCamelCase(name) {
   return name.replace(/-([a-z])/g, toUpperCase);
+}
+
+/**
+ * Returns a random letter or number. WARNING: this can fail in older browsers.
+ * @return {string}
+ */
+function getRandomSymbol() {
+  const arr = new Uint8Array(1);
+  crypto.getRandomValues(arr);
+  return (arr[0] % 16).toString(16);
+}
+
+/**
+ * Returns a GUID in the specified format.  Each x in the format string is
+ * replaced by a random character.  The default is
+ * 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.  Some old browsers will only return
+ * the default format.
+ * @param {string?} format
+ * @return {string}
+ */
+export function getRandomString(format) {
+  format = format || 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+  try {
+    return format.replace(/x/g, getRandomSymbol);
+  } catch (e) {
+    return uuidFast();
+  }
 }
 
 /**

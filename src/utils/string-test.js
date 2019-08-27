@@ -14,7 +14,40 @@
  * limitations under the License.
  */
 
-import {dashToCamelCase, expandTemplate, endsWith} from './string';
+import {
+  dashToCamelCase,
+  expandTemplate,
+  endsWith,
+  getRandomString,
+} from './string';
+
+describe('getRandomString', () => {
+  it('should generate a uuid in the default format', () => {
+    const uuid = getRandomString();
+    const uuidArray = uuid.split('-');
+    expect(uuidArray.length).to.equal(5);
+    expect(uuidArray[0].length).to.equal(8);
+    expect(uuidArray[1].length).to.equal(4);
+    expect(uuid).to.not.be.undefined;
+    expect(uuid.length).to.equal(36);
+
+    const uuid2 = getRandomString();
+    expect(uuid2).to.not.be.undefined;
+    expect(uuid2.length).to.equal(36);
+    expect(uuid2).to.not.equal(uuid);
+
+    const uuid3 = getRandomString();
+    expect(uuid3).to.not.be.undefined;
+    expect(uuid3.length).to.equal(36);
+    expect(uuid3).to.not.equal(uuid2);
+    expect(uuid3).to.not.equal(uuid);
+  });
+
+  it('should support other formats', () => {
+    const uuid = getRandomString('xx');
+    expect(uuid.length).to.equal(2);
+  });
+});
 
 describe('dashToCamelCase', () => {
   it('should transform dashes to camel case.', () => {
