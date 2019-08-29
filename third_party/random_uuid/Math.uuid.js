@@ -41,14 +41,13 @@ const CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.s
  * Returns a random number between 0 and 1.
  */
 export function getRandomFloat() {
-  try {
+  if (crypto && crypto.getRandomValues) {
     const arr = new Uint32Array(2);
     crypto.getRandomValues(arr);
     const mantissa = arr[0] * Math.pow(2, 20) + (arr[1] >>> 12);
     return mantissa * Math.pow(2, -52);
-  } catch (e) {
-    return Math.random(); //for older browsers
   }
+  return Math.random(); //for older browsers
 }
 
 Math.uuid = function(len, radix) {
