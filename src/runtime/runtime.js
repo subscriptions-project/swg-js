@@ -717,8 +717,9 @@ export class ConfiguredRuntime {
   /** @override */
   showOffers(opt_options) {
     return this.documentParsed_.then(() => {
-      assert(!opt_options['oldSku'],
-        'Use the showUpdateOffers method for subscription updates');
+      const errorMessage = 'The showOffers() method cannot be used to update \
+a subscription. Use the showUpdateOffers() method instead.';
+      assert(opt_options ? !opt_options['oldSku'] : true, errorMessage);
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
     });
@@ -729,8 +730,9 @@ export class ConfiguredRuntime {
     assert(isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
       'Not yet launched!');
     return this.documentParsed_.then(() => {
-      assert(opt_options['oldSku'],
-        'Use the showOffers method for new subscribers');
+      const errorMessage = 'The showUpdateOffers() method cannot be used for \
+new subscribers. Use the showOffers() method instead.';
+    assert(opt_options ? !opt_options['oldSku'] : true, errorMessage);
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
     });
@@ -820,6 +822,9 @@ export class ConfiguredRuntime {
 
   /** @override */
   subscribe(sku) {
+    const errorMessage = 'The subscribe() method can only take a sku as its \
+parameter; for subscription updates please use the updateSubscription() method';
+    assert(typeof sku === 'string', errorMessage);
     return this.documentParsed_.then(() => {
       return new PayStartFlow(this, sku).start();
     });
@@ -829,6 +834,9 @@ export class ConfiguredRuntime {
   updateSubscription(subscriptionRequest) {
     assert(isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
       'Not yet launched!');
+    const errorMessage = 'The updateSubscription() method should be used for \
+subscription updates; for new subscriptions please use the subscribe() method';
+    assert(subscriptionRequest ? subscriptionRequest['oldSkuId'] : false, errorMessage);
     return this.documentParsed_.then(() => {
       return new PayStartFlow(this, subscriptionRequest).start();
     });

@@ -614,6 +614,27 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should delegate "showUpdateOffers"', () => {
+      configuredRuntimeMock
+        .expects('showUpdateOffers')
+        .withExactArgs(undefined)
+        .once();
+      return runtime.showUpdateOffers().then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
+    it('should delegate "showUpdateOffers" with options', () => {
+      const options = {list: 'other'};
+      configuredRuntimeMock
+        .expects('showUpdateOffers')
+        .withExactArgs(options)
+        .once();
+      return runtime.showUpdateOffers(options).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
     it('should delegate "showSubscribeOption"', () => {
       configuredRuntimeMock
         .expects('showSubscribeOption')
@@ -662,6 +683,16 @@ describes.realWin('Runtime', {}, env => {
         .withExactArgs('sku1')
         .once();
       return runtime.subscribe('sku1').then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
+    it('should delegate "updateSubscription"', () => {
+      configuredRuntimeMock
+        .expects('updateSubscription')
+        .withExactArgs({skuId: 'sku1', oldSkuId: 'sku2'})
+        .once();
+      return runtime.updateSubscription({skuId: 'sku1', oldSkuId: 'sku2'}).then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(true);
       });
     });
@@ -1316,6 +1347,34 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
     });
 
+    it('should call "showUpdateOffers"', () => {
+      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+      let offersFlow;
+      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
+        offersFlow = this;
+        return new Promise(() => {});
+      });
+      runtime.showUpdateOffers();
+      return runtime.documentParsed_.then(() => {
+        expect(offersFlow.activityIframeView_.args_['list']).to.equal(
+          'default'
+        );
+      });
+    });
+
+    it('should call "showUpdateOffers" with options', () => {
+      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+      let offersFlow;
+      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
+        offersFlow = this;
+        return new Promise(() => {});
+      });
+      runtime.showUpdateOffers({list: 'other'});
+      return runtime.documentParsed_.then(() => {
+        expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+      });
+    });
+
     it('should call "showAbbrvOffer"', () => {
       let offersFlow;
       sandbox.stub(AbbrvOfferFlow.prototype, 'start').callsFake(function() {
@@ -1436,7 +1495,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
             return Promise.resolve();
           });
         return runtime
-          .subscribe({skuId: 'newSku', oldSkuId: 'oldSku'})
+          .updateSubscription({skuId: 'newSku', oldSkuId: 'oldSku'})
           .then(() => {
             expect(startStub).to.be.calledOnce;
             expect(flowInstance.subscriptionRequest_.skuId).to.equal('newSku');
@@ -1459,7 +1518,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
           return Promise.resolve();
         });
       return runtime
-        .subscribe({
+        .updateSubscription({
           skuId: 'newSku',
           oldSkuId: 'oldSku',
           replaceSkuProrationMode:
