@@ -46,6 +46,9 @@ export function getRandomFloat() {
   return Math.random(); //for older browsers
 }
 
+/**
+ * Generates a rfc4122v4 uuid.
+ */
 export function uuidFast() {
   const uuid = new Array(36);
   let rnd = 0;

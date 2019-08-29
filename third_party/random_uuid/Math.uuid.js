@@ -62,6 +62,10 @@ function getYVal(v) {
   return (v & 0x3) | 0x8;
 }
 
+/**
+ * Generates a RFC4122v4 uuid.  This implementation balances readability with
+ * execution speed.
+ */
 Math.uuid = function(len, radix) {
   const chars = CHARS,
     uuid = [];
@@ -95,8 +99,8 @@ Math.uuid = function(len, radix) {
 };
 
 /**
- * A more performant, but slightly bulkier, RFC4122v4 solution.  We boost
- * performance by minimizing calls to random().
+ * Generates a RFC4122v4 uuid.  This implementation runs the fastest but may
+ * be less random and have a smaller solution space.
  */
 Math.uuidFast = function() {
   const chars = CHARS,
@@ -121,7 +125,10 @@ Math.uuidFast = function() {
   return uuid.join('');
 };
 
-// A more compact, but less performant, RFC4122v4 solution:
+/**
+ * Generates a RFC4122v4 uuid.  This implementation runs slower than the other
+ * options but has the highest level of readability.
+ */
 Math.uuidCompact = function() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = (getRandomFloat() * 16) | 0;
