@@ -149,7 +149,7 @@ export class PropensityServer {
     ) {
       return;
     }
-    
+
     if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
       this.sendSubscriptionState(
         event.additionalParameters['state'],
