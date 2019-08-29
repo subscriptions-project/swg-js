@@ -17,24 +17,30 @@
 import {getRandomFloat} from './Math.uuid';
 
 /**
- *
- * @param {!function():string} fun
+ * Returns true if the UUID has a valid format.
+ * @param {string} uuid
  */
-function testUuidGenerator(fun) {
-  const uuid = fun();
+function isValidUuid(uuid) {
+  expect(uuid).to.not.be.undefined;
+  expect(uuid.length).to.equal(36);
   const uuidArray = uuid.split('-');
   expect(uuidArray.length).to.equal(5);
   expect(uuidArray[0].length).to.equal(8);
   expect(uuidArray[1].length).to.equal(4);
-  expect(uuid).to.not.be.undefined;
-  expect(uuid.length).to.equal(36);
+  expect(uuidArray[2][0]).to.equal('4');
+}
+
+/**
+ * @param {!function():string} fun
+ */
+function testUuidGenerator(fun) {
+  const uuid = fun();
   const uuid2 = fun();
-  expect(uuid2).to.not.be.undefined;
-  expect(uuid2.length).to.equal(36);
-  expect(uuid2).to.not.equal(uuid);
   const uuid3 = fun();
-  expect(uuid3).to.not.be.undefined;
-  expect(uuid3.length).to.equal(36);
+  isValidUuid(uuid);
+  isValidUuid(uuid2);
+  isValidUuid(uuid3);
+  expect(uuid2).to.not.equal(uuid);
   expect(uuid3).to.not.equal(uuid2);
   expect(uuid3).to.not.equal(uuid);
 }
