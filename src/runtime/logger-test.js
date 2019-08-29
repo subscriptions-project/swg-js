@@ -50,11 +50,14 @@ describes.realWin('Logger', {}, env => {
       }
     });
 
-    fakeDeps = {eventManager: () => eventManager};
+    fakeDeps = {
+      eventManager: () => eventManager,
+      pageConfig: () => config,
+    };
     logger = new Logger(fakeDeps);
 
     //this ensures propensity server is listening
-    new Propensity(win, config, eventManager, fetcher);
+    new Propensity(win, fakeDeps, fetcher);
   });
 
   describe('subscription state', () => {
