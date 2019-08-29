@@ -17,8 +17,20 @@ Dual licensed under the MIT and GPL licenses.
  * since we are only using uuidFast().
  */
 
-const CHARS =
-    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
+const CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split(
+  ''
+);
+
+export function getRandomFloat() {
+  try {
+    const arr = new Uint32Array(2);
+    crypto.getRandomValues(arr);
+    const mantissa = arr[0] * Math.pow(2, 20) + (arr[1] >>> 12);
+    return mantissa * Math.pow(2, -52);
+  } catch (e) {
+    return Math.random(); //for older browsers
+  }
+}
 
 export function uuidFast() {
   const uuid = new Array(36);
@@ -31,12 +43,12 @@ export function uuidFast() {
       uuid[i] = '4';
     } else {
       if (rnd <= 0x02) {
-        rnd = 0x2000000 + (Math.random() * 0x1000000) | 0;
+        rnd = 0x2000000 + (getRandomFloat() * 0x1000000) | 0;
       }
       r = rnd & 0xf;
       rnd = rnd >> 4;
-      uuid[i] = CHARS[(i == 19) ? (r & 0x3) | 0x8 : r];
+      uuid[i] = CHARS[i == 19 ? (r & 0x3) | 0x8 : r];
     }
   }
   return uuid.join('');
-};
+}

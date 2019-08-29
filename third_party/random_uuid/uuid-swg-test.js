@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-import {uuidFast} from './uuid-swg';
+import {uuidFast, getRandomFloat} from './uuid-swg';
 
-describe('uuidFast', function() {
+describe('getRandomFloat', () => {
+  it('should generate numbers > 0 and < 1', () => {
+    for (let i = 10000; i > 0; i--) {
+      const v = getRandomFloat();
+      expect(v).to.be.greaterThan(0);
+      expect(v).to.be.lessThan(1);
+    }
+  });
+});
+
+describe('uuidFast', () => {
   it('should generate a uuid', () => {
     const uuid = uuidFast();
     console.log('uuid:', uuid);
@@ -35,6 +45,5 @@ describe('uuidFast', function() {
     expect(uuid3.length).to.equal(36);
     expect(uuid3).to.not.equal(uuid2);
     expect(uuid3).to.not.equal(uuid);
-
   });
 });
