@@ -16,7 +16,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows, ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
+import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 import {assert} from '../utils/log';
 
@@ -35,7 +35,6 @@ export class OffersFlow {
    * @param {!../api/subscriptions.OffersRequest|undefined} options
    */
   constructor(deps, options) {
-    console.log('this is a new offersflow');
 
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
@@ -90,8 +89,8 @@ export class OffersFlow {
       if (oldSku) {
         new PayStartFlow(this.deps_, {
           skuId: sku,
-          oldSkuId: oldSku,
-          replaceSkuProrationMode: ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
+          oldSku: oldSku,
+          replaceSkuProrationMode: feArgsObj['replaceSkuProrationMode'] || undefined,
         }).start();
         return;
       }
@@ -131,7 +130,7 @@ export class OffersFlow {
         if (result['oldSku']) {
           new PayStartFlow(this.deps_, {
             skuId: result['sku'],
-            oldSkuId: result['oldSku'],
+            oldSku: result['oldSku'],
             replaceSkuProrationMode: ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
           }).start();
           return;

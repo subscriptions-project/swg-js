@@ -430,7 +430,7 @@ export let SmartButtonOptions;
  *
  *  @typedef {{
  *    skuId: string,
- *    oldSkuId: (string|undefined),
+ *    oldSku: (string|undefined),
  *    replaceSkuProrationMode: (ReplaceSkuProrationMode|undefined),
  * }}
  */
