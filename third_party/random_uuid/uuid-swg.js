@@ -6,32 +6,12 @@ Copyright (c) 2010 Robert Kieffer
 Dual licensed under the MIT and GPL licenses.
 */
 
-/*
- * Generate a random uuid.
- * EXAMPLES:
- *   returns RFC4122, version 4 ID
- *   >>> uuidFast()
- *   "92329D39-6F5C-4520-ABFC-AAB64544E172"
- *
- * Note: The original code was modified to ES6 and removed other functions,
- * since we are only using uuidFast().
- */
-
 const CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split(
   ''
 );
 
 const FACTOR1 = Math.pow(2, 20);
 const FACTOR2 = Math.pow(2, -52);
-
-/**
- * Ensures the passed value is safe to use for character 19 per rfc4122,
- * sec. 4.1.5
- * @param {!Number} v
- */
-function getYVal(v) {
-  return (v & 0x3) | 0x8;
-}
 
 /**
  * Returns a random number between 0 and 1.
@@ -56,25 +36,53 @@ function fastFloor(v) {
 }
 
 /**
- * Generates a rfc4122v4 uuid.
+ * Returns a random integer between 0 and maxInt.
+ * @param {Number?} maxInt
  */
-export function uuidFast() {
-  const uuid = new Array(36);
-  let rnd = 0;
-  let r;
-  for (let i = 0; i < 36; i++) {
-    if (i === 8 || i === 13 || i === 18 || i === 23) {
-      uuid[i] = '-';
-    } else if (i === 14) {
-      uuid[i] = '4';
-    } else {
-      if (rnd <= 0x02) {
-        rnd = fastFloor(0x2000000 + getRandomFloat() * 0x1000000);
+function getRandomInt(maxInt) {
+  return fastFloor(getRandomFloat() * (maxInt || 16));
+}
+
+/**
+ * Ensures the passed value is safe to use for character 19 per rfc4122,
+ * sec. 4.1.5.  "Sets the high bits of clock sequence".
+ * @param {!Number} v
+ */
+function getYVal(v) {
+  return (v & 0x3) | 0x8;
+}
+
+/**
+ * Generates a rfc4122v4 uuid. Ex:
+ * "92329D39-6F5C-4520-ABFC-AAB64544E172"
+ */
+export function uuid(len, radix) {
+  const uuid = [];
+  let i;
+
+  if (len) {
+    radix = Math.max(radix || CHARS.length, CHARS.length);
+    // Compact form
+    for (i = 0; i < len; i++) {
+      uuid[i] = CHARS[getRandomInt(radix)];
+    }
+  } else {
+    // rfc4122, version 4 form
+    let r;
+
+    // rfc4122 requires these characters
+    uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
+    uuid[14] = '4';
+
+    // Fill in random data.  At i==19 set the high bits of clock sequence as
+    // per rfc4122, sec. 4.1.5
+    for (i = 0; i < 36; i++) {
+      if (!uuid[i]) {
+        r = getRandomInt(16);
+        uuid[i] = CHARS[i == 19 ? getYVal(r) : r];
       }
-      r = rnd & 0xf;
-      rnd = rnd >> 4;
-      uuid[i] = CHARS[i == 19 ? getYVal(r) : r];
     }
   }
+
   return uuid.join('');
 }
