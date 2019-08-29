@@ -63,19 +63,27 @@ function getYVal(v) {
 }
 
 /**
+ * Drops all decimal points in number.  This varies from Math.floor in that it
+ * is faster and will round up instead of down if the number is negative.
+ * @param {Number} v
+ */
+function fastFloor(v) {
+  return 0 | v;
+}
+
+/**
  * Generates a RFC4122v4 uuid.  This implementation balances readability with
  * execution speed.
  */
 Math.uuid = function(len, radix) {
-  const chars = CHARS,
-    uuid = [];
+  const uuid = [];
   let i;
-  radix = radix || chars.length;
 
   if (len) {
+    radix = Math.max(radix || CHARS.length, CHARS.length);
     // Compact form
     for (i = 0; i < len; i++) {
-      uuid[i] = chars[0 | getRandomFloat() * radix];
+      uuid[i] = CHARS[fastFloor(getRandomFloat() * radix)];
     }
   } else {
     // rfc4122, version 4 form
@@ -89,8 +97,8 @@ Math.uuid = function(len, radix) {
     // per rfc4122, sec. 4.1.5
     for (i = 0; i < 36; i++) {
       if (!uuid[i]) {
-        r = 0 | getRandomFloat() * 16;
-        uuid[i] = chars[i == 19 ? getYVal(r) : r];
+        r = fastFloor(getRandomFloat() * 16);
+        uuid[i] = CHARS[i == 19 ? getYVal(r) : r];
       }
     }
   }
@@ -103,8 +111,7 @@ Math.uuid = function(len, radix) {
  * be less random and have a smaller solution space.
  */
 Math.uuidFast = function() {
-  const chars = CHARS,
-    uuid = new Array(36);
+  const uuid = new Array(36);
   let rnd = 0;
   let r;
 
@@ -115,11 +122,11 @@ Math.uuidFast = function() {
       uuid[i] = '4';
     } else {
       if (rnd <= 0x02) {
-        rnd = 0x2000000 + (getRandomFloat() * 0x1000000) | 0;
+        rnd = fastFloor(0x2000000 + getRandomFloat() * 0x1000000);
       }
       r = rnd & 0xf;
       rnd = rnd >> 4;
-      uuid[i] = chars[i == 19 ? getYVal(r) : r];
+      uuid[i] = CHARS[i == 19 ? getYVal(r) : r];
     }
   }
   return uuid.join('');
@@ -131,7 +138,7 @@ Math.uuidFast = function() {
  */
 Math.uuidCompact = function() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = (getRandomFloat() * 16) | 0;
+    const r = fastFloor(getRandomFloat() * 16);
     const v = c == 'x' ? r : getYVal(r);
     return v.toString(16);
   });

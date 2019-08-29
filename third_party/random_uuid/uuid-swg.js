@@ -47,6 +47,15 @@ export function getRandomFloat() {
 }
 
 /**
+ * Drops all decimal points in number.  This varies from Math.floor in that it
+ * is faster and will round up instead of down if the number is negative.
+ * @param {Number} v
+ */
+function fastFloor(v) {
+  return 0 | v;
+}
+
+/**
  * Generates a rfc4122v4 uuid.
  */
 export function uuidFast() {
@@ -60,7 +69,7 @@ export function uuidFast() {
       uuid[i] = '4';
     } else {
       if (rnd <= 0x02) {
-        rnd = 0x2000000 + (getRandomFloat() * 0x1000000) | 0;
+        rnd = fastFloor(0x2000000 + getRandomFloat() * 0x1000000);
       }
       r = rnd & 0xf;
       rnd = rnd >> 4;
