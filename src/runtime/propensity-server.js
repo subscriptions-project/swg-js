@@ -139,6 +139,17 @@ export class PropensityServer {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
+    /**
+     * Does a live check of the config because we don't know when publisher called to
+     * enable (it may be after a consent dialog)
+     */
+    if (
+      !(this.deps_.config().enablePropensity && this.logSwgEventsExperiment_) &&
+      event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT
+    ) {
+      return;
+    }
+    
     if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
       this.sendSubscriptionState(
         event.additionalParameters['state'],
@@ -148,16 +159,6 @@ export class PropensityServer {
     }
     const propEvent = analyticsEventToPublisherEvent(event.eventType);
     if (propEvent == null) {
-      return;
-    }
-    /**
-     * Does a live check of the config becasue we don't know when publisher called to
-     * enable (it may be after a consent dialog)
-     */
-    if (
-      !(this.deps_.config().enablePropensity && this.logSwgEventsExperiment_) &&
-      event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT
-    ) {
       return;
     }
     let additionalParameters = event.additionalParameters;
