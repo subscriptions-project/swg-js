@@ -29,15 +29,16 @@ export class PropensityServer {
    * is available, publication ID is therefore used
    * in constructor for the server interface.
    * @param {!Window} win
-   * @param {string} publicationId
-   * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
+   * @param {!./deps.DepsDef} deps
    * @param {!./fetcher.Fetcher} fetcher
    */
-  constructor(win, publicationId, eventManager, fetcher) {
+  constructor(win, deps, fetcher) {
     /** @private @const {!Window} */
     this.win_ = win;
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
     /** @private @const {string} */
-    this.publicationId_ = publicationId;
+    this.publicationId_ = this.deps_.pageConfig().getPublicationId();
     /** @private {?string} */
     this.clientId_ = null;
     /** @private @const {!./fetcher.Fetcher} */
@@ -45,7 +46,9 @@ export class PropensityServer {
     /** @private @const {number} */
     this.version_ = 1;
 
-    eventManager.registerEventListener(this.handleClientEvent_.bind(this));
+    this.deps_
+      .eventManager()
+      .registerEventListener(this.handleClientEvent_.bind(this));
 
     // TODO(mborof): b/133519525
     /** @private @const {!boolean} */
@@ -53,9 +56,6 @@ export class PropensityServer {
       win,
       ExperimentFlags.LOG_SWG_TO_PROPENSITY
     );
-
-    /** @private {!boolean} */
-    this.logSwgEventsConfig_ = false;
   }
 
   /**
@@ -150,8 +150,12 @@ export class PropensityServer {
     if (propEvent == null) {
       return;
     }
+    /**
+     * Does a live check of the config becasue we don't know when publisher called to
+     * enable (it may be after a consent dialog)
+     */
     if (
-      !(this.logSwgEventsExperiment_ && this.logSwgEventsConfig_) &&
+      !(this.deps_.config().enablePropensity && this.logSwgEventsExperiment_) &&
       event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT
     ) {
       return;
@@ -246,9 +250,5 @@ export class PropensityServer {
       .then(response => {
         return this.parsePropensityResponse_(response);
       });
-  }
-
-  enableLoggingSwgEvents() {
-    this.logSwgEventsConfig_ = true;
   }
 }

@@ -500,14 +500,6 @@ export class ConfiguredRuntime {
     /** @private @const {!Fetcher} */
     this.fetcher_ = opt_integr.fetcher || new XhrFetcher(this.win_);
 
-    /** @private @const {!Propensity} */
-    this.propensityModule_ = new Propensity(
-      this.win_,
-      this.pageConfig_,
-      this.eventManager_,
-      this.fetcher_
-    );
-
     /** @private @const {!Storage} */
     this.storage_ = new Storage(this.win_);
 
@@ -542,7 +534,14 @@ export class ConfiguredRuntime {
       this.win_,
       this.pageConfig_,
       this.fetcher_,
-      this
+      this // See note about 'this' above
+    );
+
+    /** @private @const {!Propensity} */
+    this.propensityModule_ = new Propensity(
+      this.win_,
+      this, // See note about 'this' above
+      this.fetcher_
     );
 
     /** @private @const {!OffersApi} */
@@ -646,27 +645,36 @@ export class ConfiguredRuntime {
     let error = null;
     for (const k in config) {
       const v = config[k];
-      if (k == 'windowOpenMode') {
-        if (v != WindowOpenMode.AUTO && v != WindowOpenMode.REDIRECT) {
-          error = 'Unknown windowOpenMode: ' + v;
-        }
-      } else if (k == 'experiments') {
-        v.forEach(experiment => setExperiment(this.win_, experiment, true));
-      } else if (k == 'analyticsMode') {
-        if (v != AnalyticsMode.DEFAULT && v != AnalyticsMode.IMPRESSIONS) {
-          error = 'Unknown analytics mode: ' + v;
-        }
-      } else if (k == 'enableSwgAnalytics') {
-        if (!isBoolean(v)) {
-          error = 'Unknown enableSwgAnalytics value: ' + v;
-        }
-      } else {
-        error = 'Unknown config property: ' + k;
+      switch (k) {
+        case 'windowOpenMode':
+          if (v != WindowOpenMode.AUTO && v != WindowOpenMode.REDIRECT) {
+            error = 'Unknown windowOpenMode: ' + v;
+          }
+          break;
+        case 'experiments':
+          v.forEach(experiment => setExperiment(this.win_, experiment, true));
+          break;
+        case 'analyticsMode':
+          if (v != AnalyticsMode.DEFAULT && v != AnalyticsMode.IMPRESSIONS) {
+            error = 'Unknown analytics mode: ' + v;
+          }
+          break;
+        case 'enableSwgAnalytics':
+          if (!isBoolean(v)) {
+            error = 'Unknown enableSwgAnalytics value: ' + v;
+          }
+          break;
+        case 'enablePropensity':
+          if (!isBoolean(v)) {
+            error = 'Unknown enablePropensity value: ' + v;
+          }
+          break;
+        default:
+          error = 'Unknown config property: ' + k;
       }
     }
-    if (error) {
-      throw new Error(error);
-    }
+    // Throw error string if's set
+    assert(!error, error);
     // Assign.
     Object.assign(this.config_, config);
   }

@@ -24,19 +24,22 @@ import {XhrFetcher} from './fetcher';
 
 describes.realWin('Propensity', {}, env => {
   let win;
-  let config;
   let propensity;
+  let pageConfig;
+  let eventManager;
+  const config = {};
+  const fakeDeps = {
+    pageConfig: () => pageConfig,
+    config: () => config,
+    eventManager: () => eventManager,
+  };
 
   beforeEach(() => {
     win = env.win;
-    config = new PageConfig('pub1', true);
+    pageConfig = new PageConfig('pub1', true);
+    eventManager = new ClientEventManager();
     // Note: tests here don't use the fetcher (that's in propensity-server-test)
-    propensity = new Propensity(
-      win,
-      config,
-      new ClientEventManager(),
-      new XhrFetcher(win)
-    );
+    propensity = new Propensity(win, fakeDeps, new XhrFetcher(win));
   });
 
   it('should provide valid subscription state', () => {

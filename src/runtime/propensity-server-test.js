@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import {PropensityServer} from './propensity-server';
-import {XhrFetcher} from './fetcher';
 import * as PropensityApi from '../api/propensity-api';
 import {Event, SubscriptionState} from '../api/logger-api';
 import {parseQueryString} from '../utils/url';
@@ -23,6 +22,7 @@ import {ClientEventManager} from './client-event-manager';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {setExperiment} from './experiments';
 import {ExperimentFlags} from './experiment-flags';
+import {PageConfig} from '../model/page-config';
 
 /**
  * Converts the URL sent to the propensity server into the propensity event
@@ -49,8 +49,14 @@ describes.realWin('PropensityServer', {}, env => {
   let eventManager;
   let registeredCallback;
   let fetcher;
+  let pageConfig;
+  const config = {};
+  const fakeDeps = {
+    eventManager: () => eventManager,
+    pageConfig: () => pageConfig,
+    config: () => config,
+  };
   const serverUrl = 'http://localhost:31862';
-  const pubId = 'pub1';
   const defaultParameters = {'custom': 'value'};
   const defaultEvent = {
     eventType: AnalyticsEvent.IMPRESSION_OFFERS,
@@ -58,17 +64,19 @@ describes.realWin('PropensityServer', {}, env => {
     isFromUserAction: null,
     additionalParameters: defaultParameters,
   };
+
   const productsOrSkus = {'product': ['a', 'b', 'c']};
 
   beforeEach(() => {
     win = env.win;
     registeredCallback = null;
-    fetcher = new XhrFetcher(win);
+    fetcher = {fetch: () => {}};
     eventManager = new ClientEventManager(Promise.resolve());
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
       .callsFake(callback => (registeredCallback = callback));
-    propensityServer = new PropensityServer(win, pubId, eventManager, fetcher);
+    pageConfig = new PageConfig('pub1', true);
+    propensityServer = new PropensityServer(win, fakeDeps, fetcher);
     sandbox.stub(ServiceUrl, 'adsUrl').callsFake(url => serverUrl + url);
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
   });
@@ -396,7 +404,7 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedContext).to.be.null;
 
     //activated but no experiment
-    propensityServer.enableLoggingSwgEvents();
+    config.enablePropensity = true;
     registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
@@ -407,9 +415,10 @@ describes.realWin('PropensityServer', {}, env => {
     expect(receivedContext).to.be.null;
 
     //experiment but not activated
+    config.enablePropensity = false;
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
     registeredCallback = null;
-    propensityServer = new PropensityServer(win, pubId, eventManager, fetcher);
+    propensityServer = new PropensityServer(win, fakeDeps, fetcher);
     registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
@@ -429,10 +438,10 @@ describes.realWin('PropensityServer', {}, env => {
 
     setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
     registeredCallback = null;
-    propensityServer = new PropensityServer(win, pubId, eventManager, fetcher);
-
     //both experiment and enable: ensure it actually logs
-    propensityServer.enableLoggingSwgEvents();
+    config.enablePropensity = true;
+    propensityServer = new PropensityServer(win, fakeDeps, fetcher);
+
     registeredCallback(defaultEvent);
     expect(receivedType).to.equal(Event.IMPRESSION_OFFERS);
     expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
