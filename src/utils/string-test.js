@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {dashToCamelCase, expandTemplate, endsWith} from './string';
+import {dashToCamelCase, expandTemplate, endsWith, uuid} from './string';
 
 describe('dashToCamelCase', () => {
   it('should transform dashes to camel case.', () => {
@@ -98,5 +98,40 @@ describe('expandTemplate', () => {
     expect(expandTemplate('${loop}', testGetter)).to.equal('${loop}');
     expect(expandTemplate('${loop}', testGetter), 10).to.equal('${loop}');
     expect(expandTemplate('${loop1}', testGetter), 10).to.equal('${loop2}');
+  });
+});
+
+/**
+ * Returns true if the UUID has a valid format.
+ * @param {string} uuid
+ */
+function isValidUuid(uuid) {
+  expect(uuid).to.not.be.undefined;
+  expect(uuid.length).to.equal(36);
+  const uuidArray = uuid.split('-');
+  expect(uuidArray.length).to.equal(5);
+  expect(uuidArray[0].length).to.equal(8);
+  expect(uuidArray[1].length).to.equal(4);
+  expect(uuidArray[2][0]).to.equal('4');
+}
+
+/**
+ * @param {!function():string} fun
+ */
+function testUuidGenerator(fun) {
+  const uuid = fun();
+  const uuid2 = fun();
+  const uuid3 = fun();
+  isValidUuid(uuid);
+  isValidUuid(uuid2);
+  isValidUuid(uuid3);
+  expect(uuid2).to.not.equal(uuid);
+  expect(uuid3).to.not.equal(uuid2);
+  expect(uuid3).to.not.equal(uuid);
+}
+
+describe('uuid', () => {
+  it('should generate a uuid', () => {
+    testUuidGenerator(uuid);
   });
 });

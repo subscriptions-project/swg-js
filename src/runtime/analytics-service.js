@@ -25,7 +25,7 @@ import {feArgs, feUrl} from './services';
 import {getOnExperiments, isExperimentOn} from './experiments';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
-import {uuid} from '../../third_party/random_uuid/uuid-swg';
+import {uuid} from '../utils/string';
 import {ExperimentFlags} from './experiment-flags';
 import {ClientEventManager} from './client-event-manager';
 

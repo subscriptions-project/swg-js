@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {getRandomInts} from './random';
+
 /**
  * @param {string} _match
  * @param {string} character
@@ -108,4 +110,57 @@ export function stringHash32(str) {
   }
   // Convert from 32-bit signed to unsigned.
   return String(hash >>> 0);
+}
+
+const CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split(
+  ''
+);
+
+/**
+ * Ensures the passed value is safe to use for character 19 per rfc4122,
+ * sec. 4.1.5.  "Sets the high bits of clock sequence".
+ * @param {!number} v
+ */
+function getYVal(v) {
+  return (v & 0x3) | 0x8;
+}
+
+/**
+ * Generates a rfc4122v4 uuid. Ex:
+ *   "92329D39-6F5C-4520-ABFC-AAB64544E172"
+ * @param {number=} len
+ * @param {number=} radix
+ */
+export function uuid(len, radix) {
+  const uuid = [];
+  let i;
+
+  if (len) {
+    const rands = getRandomInts(
+      len,
+      Math.max(radix || CHARS.length, CHARS.length)
+    );
+    // Compact form
+    for (i = 0; i < len; i++) {
+      uuid[i] = CHARS[rands(i)];
+    }
+  } else {
+    // rfc4122, version 4 form
+    let r = 0;
+
+    // rfc4122 requires these characters
+    uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
+    uuid[14] = '4';
+    const rands = getRandomInts(31, 16);
+    // Fill in random data.  At i==19 set the high bits of clock sequence as
+    // per rfc4122, sec. 4.1.5
+    for (i = 0; i < 36; i++) {
+      if (!uuid[i]) {
+        const rand = rands[r++];
+        uuid[i] = CHARS[i == 19 ? getYVal(rand) : rand];
+      }
+    }
+  }
+
+  return uuid.join('');
 }
