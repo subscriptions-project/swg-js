@@ -690,9 +690,9 @@ describes.realWin('Runtime', {}, env => {
     it('should delegate "updateSubscription"', () => {
       configuredRuntimeMock
         .expects('updateSubscription')
-        .withExactArgs({skuId: 'sku1', oldSkuId: 'sku2'})
+        .withExactArgs({skuId: 'sku1', oldSku: 'sku2'})
         .once();
-      return runtime.updateSubscription({skuId: 'sku1', oldSkuId: 'sku2'}).then(() => {
+      return runtime.updateSubscription({skuId: 'sku1', oldSku: 'sku2'}).then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(true);
       });
     });
@@ -1495,11 +1495,11 @@ describes.realWin('ConfiguredRuntime', {}, env => {
             return Promise.resolve();
           });
         return runtime
-          .updateSubscription({skuId: 'newSku', oldSkuId: 'oldSku'})
+          .updateSubscription({skuId: 'newSku', oldSku: 'oldSku'})
           .then(() => {
             expect(startStub).to.be.calledOnce;
             expect(flowInstance.subscriptionRequest_.skuId).to.equal('newSku');
-            expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal(
+            expect(flowInstance.subscriptionRequest_.oldSku).to.equal(
               'oldSku'
             );
             expect(flowInstance.subscriptionRequest_.ReplaceSkuProrationMode).to
@@ -1520,14 +1520,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       return runtime
         .updateSubscription({
           skuId: 'newSku',
-          oldSkuId: 'oldSku',
+          oldSku: 'oldSku',
           replaceSkuProrationMode:
             ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
         })
         .then(() => {
           expect(startStub).to.be.calledOnce;
           expect(flowInstance.subscriptionRequest_.skuId).to.equal('newSku');
-          expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal('oldSku');
+          expect(flowInstance.subscriptionRequest_.oldSku).to.equal('oldSku');
           expect(
             flowInstance.subscriptionRequest_.replaceSkuProrationMode
           ).to.equal(ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);

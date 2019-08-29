@@ -104,7 +104,7 @@ export class PayStartFlow {
     if (prorationMode) {
       swgPaymentRequest.replaceSkuProrationMode =
         ReplaceSkuProrationModeMapping[prorationMode];
-    } else if (this.subscriptionRequest_.oldSkuId) {
+    } else if (this.subscriptionRequest_.oldSku) {
       swgPaymentRequest.replaceSkuProrationMode =
         ReplaceSkuProrationModeMapping['IMMEDIATE_WITH_TIME_PRORATION'];
     }
@@ -236,7 +236,7 @@ export class PayCompleteFlow {
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'productType': this.response_['productType'],
-      'isSubscriptionUpdate' : !!this.subscriptionRequest_.oldSkuId,
+      'isSubscriptionUpdate' : !!this.subscriptionRequest_.oldSku,
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {

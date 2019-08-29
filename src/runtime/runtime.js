@@ -836,7 +836,7 @@ parameter; for subscription updates please use the updateSubscription() method';
       'Not yet launched!');
     const errorMessage = 'The updateSubscription() method should be used for \
 subscription updates; for new subscriptions please use the subscribe() method';
-    assert(subscriptionRequest ? subscriptionRequest['oldSkuId'] : false, errorMessage);
+    assert(subscriptionRequest ? subscriptionRequest['oldSku'] : false, errorMessage);
     return this.documentParsed_.then(() => {
       return new PayStartFlow(this, subscriptionRequest).start();
     });
