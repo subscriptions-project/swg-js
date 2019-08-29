@@ -21,6 +21,18 @@ const CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.s
   ''
 );
 
+const FACTOR1 = Math.pow(2, 20);
+const FACTOR2 = Math.pow(2, -52);
+
+/**
+ * Ensures the passed value is safe to use for character 19 per rfc4122,
+ * sec. 4.1.5
+ * @param {!Number} v
+ */
+function getYVal(v) {
+  return (v & 0x3) | 0x8;
+}
+
 /**
  * Returns a random number between 0 and 1.
  */
@@ -28,8 +40,8 @@ export function getRandomFloat() {
   if (crypto && crypto.getRandomValues) {
     const arr = new Uint32Array(2);
     crypto.getRandomValues(arr);
-    const mantissa = arr[0] * Math.pow(2, 20) + (arr[1] >>> 12);
-    return mantissa * Math.pow(2, -52);
+    const mantissa = arr[0] * FACTOR1 + (arr[1] >>> 12);
+    return mantissa * FACTOR2;
   }
   return Math.random(); //for older browsers
 }
@@ -49,7 +61,7 @@ export function uuidFast() {
       }
       r = rnd & 0xf;
       rnd = rnd >> 4;
-      uuid[i] = CHARS[i == 19 ? (r & 0x3) | 0x8 : r];
+      uuid[i] = CHARS[i == 19 ? getYVal(r) : r];
     }
   }
   return uuid.join('');

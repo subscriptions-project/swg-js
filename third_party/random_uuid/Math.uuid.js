@@ -37,6 +37,9 @@ const CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.s
   ''
 );
 
+const FACTOR1 = Math.pow(2, 20);
+const FACTOR2 = Math.pow(2, -52);
+
 /**
  * Returns a random number between 0 and 1.
  */
@@ -44,10 +47,19 @@ export function getRandomFloat() {
   if (crypto && crypto.getRandomValues) {
     const arr = new Uint32Array(2);
     crypto.getRandomValues(arr);
-    const mantissa = arr[0] * Math.pow(2, 20) + (arr[1] >>> 12);
-    return mantissa * Math.pow(2, -52);
+    const mantissa = arr[0] * FACTOR1 + (arr[1] >>> 12);
+    return mantissa * FACTOR2;
   }
   return Math.random(); //for older browsers
+}
+
+/**
+ * Ensures the passed value is safe to use for character 19 per rfc4122,
+ * sec. 4.1.5
+ * @param {!Number} v
+ */
+function getYVal(v) {
+  return (v & 0x3) | 0x8;
 }
 
 Math.uuid = function(len, radix) {
@@ -74,7 +86,7 @@ Math.uuid = function(len, radix) {
     for (i = 0; i < 36; i++) {
       if (!uuid[i]) {
         r = 0 | getRandomFloat() * 16;
-        uuid[i] = chars[i == 19 ? (r & 0x3) | 0x8 : r];
+        uuid[i] = chars[i == 19 ? getYVal(r) : r];
       }
     }
   }
@@ -82,8 +94,10 @@ Math.uuid = function(len, radix) {
   return uuid.join('');
 };
 
-// A more performant, but slightly bulkier, RFC4122v4 solution.  We boost performance
-// by minimizing calls to random()
+/**
+ * A more performant, but slightly bulkier, RFC4122v4 solution.  We boost
+ * performance by minimizing calls to random().
+ */
 Math.uuidFast = function() {
   const chars = CHARS,
     uuid = new Array(36);
@@ -97,11 +111,11 @@ Math.uuidFast = function() {
       uuid[i] = '4';
     } else {
       if (rnd <= 0x02) {
-        rnd = 0x2000000 + (getRandomFloat() * 0x1000000)|0;
+        rnd = 0x2000000 + (getRandomFloat() * 0x1000000) | 0;
       }
       r = rnd & 0xf;
       rnd = rnd >> 4;
-      uuid[i] = chars[i == 19 ? (r & 0x3) | 0x8 : r];
+      uuid[i] = chars[i == 19 ? getYVal(r) : r];
     }
   }
   return uuid.join('');
@@ -111,7 +125,7 @@ Math.uuidFast = function() {
 Math.uuidCompact = function() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = (getRandomFloat() * 16) | 0;
-    const v = c == 'x' ? r : (r & 0x3) | 0x8;
+    const v = c == 'x' ? r : getYVal(r);
     return v.toString(16);
   });
 };
