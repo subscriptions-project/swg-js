@@ -35,6 +35,8 @@ export class OffersFlow {
    * @param {!../api/subscriptions.OffersRequest|undefined} options
    */
   constructor(deps, options) {
+    console.log('this is a new offersflow');
+
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -92,10 +94,7 @@ export class OffersFlow {
           replaceSkuProrationMode: ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
         }).start();
         return;
-      } //else {
-      //   new PayStartFlow(this.deps_, sku).start();
-      //   return;
-      // }
+      }
     }
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
