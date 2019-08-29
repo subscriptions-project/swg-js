@@ -148,6 +148,6 @@ Math.uuidCompact = function() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = getRandomInt(16);
     const v = c == 'x' ? r : getYVal(r);
-    return v.toString(16);
+    return v.toString(16).toUpperCase();
   });
 };
