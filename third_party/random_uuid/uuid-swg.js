@@ -21,6 +21,9 @@ const CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.s
   ''
 );
 
+/**
+ * Returns a random number between 0 and 1.
+ */
 export function getRandomFloat() {
   try {
     const arr = new Uint32Array(2);

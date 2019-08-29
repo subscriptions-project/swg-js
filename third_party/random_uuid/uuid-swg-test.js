@@ -29,7 +29,6 @@ describe('getRandomFloat', () => {
 describe('uuidFast', () => {
   it('should generate a uuid', () => {
     const uuid = uuidFast();
-    console.log('uuid:', uuid);
     const uuidArray = uuid.split('-');
     expect(uuidArray.length).to.equal(5);
     expect(uuidArray[0].length).to.equal(8);
