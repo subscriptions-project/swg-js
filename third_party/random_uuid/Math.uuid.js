@@ -54,21 +54,29 @@ export function getRandomFloat() {
 }
 
 /**
- * Ensures the passed value is safe to use for character 19 per rfc4122,
- * sec. 4.1.5
- * @param {!Number} v
- */
-function getYVal(v) {
-  return (v & 0x3) | 0x8;
-}
-
-/**
  * Drops all decimal points in number.  This varies from Math.floor in that it
  * is faster and will round up instead of down if the number is negative.
  * @param {Number} v
  */
 function fastFloor(v) {
   return 0 | v;
+}
+
+/**
+ * Returns a random integer between 0 and maxInt.
+ * @param {Number?} maxInt
+ */
+function getRandomInt(maxInt) {
+  return fastFloor(getRandomFloat() * (maxInt || 16));
+}
+
+/**
+ * Ensures the passed value is safe to use for character 19 per rfc4122,
+ * sec. 4.1.5.  "Sets the high bits of clock sequence".
+ * @param {!Number} v
+ */
+function getYVal(v) {
+  return (v & 0x3) | 0x8;
 }
 
 /**
@@ -83,7 +91,7 @@ Math.uuid = function(len, radix) {
     radix = Math.max(radix || CHARS.length, CHARS.length);
     // Compact form
     for (i = 0; i < len; i++) {
-      uuid[i] = CHARS[fastFloor(getRandomFloat() * radix)];
+      uuid[i] = CHARS[getRandomInt(radix)];
     }
   } else {
     // rfc4122, version 4 form
@@ -97,7 +105,7 @@ Math.uuid = function(len, radix) {
     // per rfc4122, sec. 4.1.5
     for (i = 0; i < 36; i++) {
       if (!uuid[i]) {
-        r = fastFloor(getRandomFloat() * 16);
+        r = getRandomInt(16);
         uuid[i] = CHARS[i == 19 ? getYVal(r) : r];
       }
     }
@@ -138,7 +146,7 @@ Math.uuidFast = function() {
  */
 Math.uuidCompact = function() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = fastFloor(getRandomFloat() * 16);
+    const r = getRandomInt(16);
     const v = c == 'x' ? r : getYVal(r);
     return v.toString(16);
   });
