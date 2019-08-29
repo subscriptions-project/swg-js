@@ -71,6 +71,7 @@ describes.realWin('PropensityServer', {}, env => {
     win = env.win;
     registeredCallback = null;
     fetcher = {fetch: () => {}};
+    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
     eventManager = new ClientEventManager(Promise.resolve());
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
@@ -422,7 +423,6 @@ describes.realWin('PropensityServer', {}, env => {
     registeredCallback(defaultEvent);
     expect(receivedType).to.be.null;
     expect(receivedContext).to.be.null;
-    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
   });
 
   it('should send SwG events to the Propensity Service', () => {
@@ -458,6 +458,10 @@ describes.realWin('PropensityServer', {}, env => {
   it('should allow subscription state change via event', () => {
     let receivedState;
     let receivedProducts;
+    // Set experiments and config then make a news server with them enabled
+    config.enablePropensity = true;
+    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
+    propensityServer = new PropensityServer(win, fakeDeps, fetcher);
     const event = {
       eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
       eventOriginator: EventOriginator.PUBLISHER_CLIENT,
