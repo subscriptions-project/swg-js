@@ -131,7 +131,7 @@ export class OffersFlow {
           new PayStartFlow(this.deps_, {
             skuId: result['sku'],
             oldSku: result['oldSku'],
-            replaceSkuProrationMode: ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
+            replaceSkuProrationMode: feArgsObj['replaceSkuProrationMode'] || undefined,
           }).start();
           return;
         }
