@@ -1347,6 +1347,16 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
     });
 
+    it('should throw an error if showOffers is used with an oldSku', () => {
+        try{
+          runtime.showOffers({skuId: 'newSku', oldSku: 'oldSku'})
+        } catch(err) {
+          expect(err).to.be.an.instanceOf(Error)
+          .with.property('The showOffers() method cannot be used to update \
+a subscription. Use the showUpdateOffers() method instead.');
+        }
+      })
+
     it('should call "showUpdateOffers"', () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
       let offersFlow;
@@ -1374,6 +1384,19 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
       });
     });
+
+    it(
+      'should throw an error if showUpdateOffers is used without' +
+      'an oldSku', () => {
+        setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true)
+        try{
+          runtime.showUpdateOffers({skuId: 'newSku'})
+        } catch(err) {
+          expect(err).to.be.an.instanceOf(Error)
+          .with.property('The showUpdateOffers() method cannot be used for \
+new subscribers. Use the showOffers() method instead.');
+        }
+      })
 
     it('should call "showAbbrvOffer"', () => {
       let offersFlow;
@@ -1481,6 +1504,35 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         expect(flowInstance.productType_).to.equal(ProductType.SUBSCRIPTION);
       });
     });
+
+    it(
+      'should throw an error if subscribe() is used to replace ' +
+        'a subscription',
+      () => {
+        try{
+          runtime.subscribe({skuId: 'newSku', oldSku: 'oldSku'})
+        } catch(err) {
+          expect(err).to.be.an.instanceOf(Error)
+          .with.property('message', 'The subscribe() method can only take a \
+sku as its parameter; for subscription updates please use the \
+updateSubscription() method');
+        }
+      })
+
+      it(
+        'should throw an error if updateSubscription is used to initiate ' +
+          'a new subscription',
+        () => {
+          setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+          try{
+            runtime.updateSubscription({skuId: 'newSku'})
+          } catch(err) {
+            expect(err).to.be.an.instanceOf(Error)
+            .with.property('message', 'The updateSubscription() method should \
+be used for subscription updates; for new subscriptions please use the \
+subscribe() method');
+          }
+        })
 
     it(
       'should start PayStartFlow for replaceSubscription ' +
