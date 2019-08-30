@@ -64,6 +64,7 @@ import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
 import {Logger} from './logger';
 import {assert} from '../utils/log';
+import {isBoolean} from '../utils/types';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -571,7 +572,10 @@ export class ConfiguredRuntime {
     // Report redirect errors if any.
     this.activityPorts_.onRedirectError(error => {
       this.analyticsService_.addLabels(['redirect']);
-      this.analyticsService_.logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_PAYMENT_FAILED,
+        false
+      );
       this.jserror_.error('Redirect error', error);
     });
   }
@@ -660,6 +664,10 @@ export class ConfiguredRuntime {
       } else if (k == 'analyticsMode') {
         if (v != AnalyticsMode.DEFAULT && v != AnalyticsMode.IMPRESSIONS) {
           error = 'Unknown analytics mode: ' + v;
+        }
+      } else if (k == 'enableSwgAnalytics') {
+        if (!isBoolean(v)) {
+          error = 'Unknown enableSwgAnalytics value: ' + v;
         }
       } else {
         error = 'Unknown config property: ' + k;

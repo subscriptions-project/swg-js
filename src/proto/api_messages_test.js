@@ -15,13 +15,17 @@
  */
 
 import {
+    AlreadySubscribedResponse,
     AnalyticsContext,
     AnalyticsEvent,
     AnalyticsEventMeta,
     AnalyticsRequest,
     EventOriginator,
     EventParams,
+    SkuSelectedResponse,
     SmartBoxMessage,
+    SubscribeResponse,
+    ViewSubscriptionsResponse,
     deserialize} from './api_messages';
 
 /**
@@ -55,6 +59,20 @@ function isEqual(thisArray, otherArray) {
 
 
 describe('api_messages', () => {
+
+describe('test_AlreadySubscribedResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !AlreadySubscribedResponse  */ alreadysubscribedresponse = new AlreadySubscribedResponse();
+    alreadysubscribedresponse.setSubscriberOrMember(false);
+    alreadysubscribedresponse.setLinkRequested(false);
+    const alreadysubscribedresponseSerialized = alreadysubscribedresponse.toArray();
+    const alreadysubscribedresponseDeserialized = deserialize(
+        alreadysubscribedresponseSerialized);
+    expect(alreadysubscribedresponseDeserialized).to.not.be.null;
+    expect(isEqual(alreadysubscribedresponse.toArray(),
+        alreadysubscribedresponseDeserialized.toArray())).to.be.true;
+  });
+});
 
   describe('test_AnalyticsContext', () => {
     it('should deserialize correctly', () => {
@@ -112,7 +130,7 @@ describe('api_messages', () => {
       analyticsrequest.setMeta(analyticseventmeta);
       const /** !EventParams  */ eventparams = new EventParams();
       eventparams.setSmartboxMessage('');
-      analyticsrequest.setParams(eventparams);
+            analyticsrequest.setParams(eventparams);
       const analyticsrequestSerialized = analyticsrequest.toArray();
       const analyticsrequestDeserialized = deserialize(
           analyticsrequestSerialized);
@@ -135,6 +153,19 @@ describe('api_messages', () => {
     });
   });
 
+describe('test_SkuSelectedResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !SkuSelectedResponse  */ skuselectedresponse = new SkuSelectedResponse();
+    skuselectedresponse.setSku('');
+    const skuselectedresponseSerialized = skuselectedresponse.toArray();
+    const skuselectedresponseDeserialized = deserialize(
+        skuselectedresponseSerialized);
+    expect(skuselectedresponseDeserialized).to.not.be.null;
+    expect(isEqual(skuselectedresponse.toArray(),
+        skuselectedresponseDeserialized.toArray())).to.be.true;
+  });
+});
+
   describe('test_SmartBoxMessage', () => {
     it('should deserialize correctly', () => {
       const /** !SmartBoxMessage  */ smartboxmessage = new SmartBoxMessage();
@@ -147,4 +178,30 @@ describe('api_messages', () => {
           smartboxmessageDeserialized.toArray())).to.be.true;
     });
   });
+
+describe('test_SubscribeResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !SubscribeResponse  */ subscriberesponse = new SubscribeResponse();
+    subscriberesponse.setSubscribe(false);
+    const subscriberesponseSerialized = subscriberesponse.toArray();
+    const subscriberesponseDeserialized = deserialize(
+        subscriberesponseSerialized);
+    expect(subscriberesponseDeserialized).to.not.be.null;
+    expect(isEqual(subscriberesponse.toArray(),
+        subscriberesponseDeserialized.toArray())).to.be.true;
+  });
+});
+
+describe('test_ViewSubscriptionsResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !ViewSubscriptionsResponse  */ viewsubscriptionsresponse = new ViewSubscriptionsResponse();
+    viewsubscriptionsresponse.setNative(false);
+    const viewsubscriptionsresponseSerialized = viewsubscriptionsresponse.toArray();
+    const viewsubscriptionsresponseDeserialized = deserialize(
+        viewsubscriptionsresponseSerialized);
+    expect(viewsubscriptionsresponseDeserialized).to.not.be.null;
+    expect(isEqual(viewsubscriptionsresponse.toArray(),
+        viewsubscriptionsresponseDeserialized.toArray())).to.be.true;
+  });
+});
 });

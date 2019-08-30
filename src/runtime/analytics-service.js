@@ -17,8 +17,8 @@
 import {
   AnalyticsRequest,
   AnalyticsContext,
-  EventOriginator,
   AnalyticsEventMeta,
+  AnalyticsEvent,
 } from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
@@ -27,7 +27,7 @@ import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
 import {ExperimentFlags} from './experiment-flags';
-import {isBoolean} from '../utils/types';
+import {ClientEventManager} from './client-event-manager';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -41,6 +41,9 @@ export class AnalyticsService {
   constructor(deps) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
+
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
 
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
@@ -77,7 +80,7 @@ export class AnalyticsService {
     /** @private {?Promise} */
     this.lastAction_ = null;
 
-    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
+    /** @private @const {!ClientEventManager} */
     this.eventManager_ = deps.eventManager();
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
@@ -88,9 +91,6 @@ export class AnalyticsService {
       deps.win(),
       ExperimentFlags.LOG_PROPENSITY_TO_SWG
     );
-
-    /** @private {!boolean} */
-    this.logPropensityConfig_ = false;
   }
 
   /**
@@ -236,26 +236,6 @@ export class AnalyticsService {
   }
 
   /**
-   * This function can be used to log a buy-flow event from SwG.
-   * It exists as a helper and to ensure backwards compatability,
-   * you have additional parameters available if you call eventManager.logEvent
-   * directly.
-   * @param {!../proto/api_messages.AnalyticsEvent} eventTypeIn
-   * @param {!boolean=} isFromUserActionIn
-   */
-  logEvent(eventTypeIn, isFromUserActionIn) {
-    this.eventManager_.logEvent({
-      eventType: eventTypeIn,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      /** @type {?boolean} */
-      isFromUserAction: (isBoolean(isFromUserActionIn)
-        ? !!isFromUserActionIn
-        : null),
-      additionalParameters: null,
-    });
-  }
-
-  /**
    * Handles the message received by the port.
    * @param {function(!Object<string, string|boolean>)} callback
    */
@@ -266,13 +246,28 @@ export class AnalyticsService {
   }
 
   /**
+   * @return {boolean}
+   */
+  shouldLogPublisherEvents_() {
+    return (
+      this.logPropensityExperiment_ && this.deps_.config().enableSwgAnalytics
+    );
+  }
+
+  /**
    *  Listens for new events from the events manager and handles logging
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
+    //this event is just used to communicate information internally.  It should
+    //not be reported to the SwG analytics service.
+    if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
+      return;
+    }
+
     if (
-      !(this.logPropensityExperiment_ && this.logPropensityConfig_) &&
-      event.eventOriginator === EventOriginator.PROPENSITY_CLIENT
+      ClientEventManager.isPublisherEvent(event) &&
+      !this.shouldLogPublisherEvents_()
     ) {
       return;
     }
@@ -280,9 +275,5 @@ export class AnalyticsService {
       const request = this.createLogRequest_(event);
       port.execute(request);
     });
-  }
-
-  enableLoggingForPropensity() {
-    this.logPropensityConfig_ = true;
   }
 }
