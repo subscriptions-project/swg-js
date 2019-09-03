@@ -44,7 +44,6 @@ export class OffersFlow {
    * @param {!../api/subscriptions.OffersRequest|undefined} options
    */
   constructor(deps, options) {
-
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -87,7 +86,10 @@ export class OffersFlow {
       const /** @type {String} */ oldSku = feArgsObj['oldSku'];
       skuList = skuList.filter(sku => sku !== oldSku);
 
-      assert(skuList.length > 0, 'Sku list only contained offer user already has');
+      assert(
+        skuList.length > 0,
+        'Sku list only contained offer user already has'
+      );
       feArgsObj['skus'] = skuList;
     }
 
@@ -102,7 +104,8 @@ export class OffersFlow {
         new PayStartFlow(this.deps_, {
           skuId: sku,
           oldSku: oldSku,
-          replaceSkuProrationMode: feArgsObj['replaceSkuProrationMode'] || undefined,
+          replaceSkuProrationMode:
+            feArgsObj['replaceSkuProrationMode'] || undefined,
         }).start();
         return;
       }
@@ -163,11 +166,14 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
-    if (this.activityIframeView_) { // So no error if skipped to payment screen.
+    if (this.activityIframeView_) {
+      // So no error if skipped to payment screen.
       // Start/cancel events.
       this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS);
       this.activityIframeView_.onCancel(() => {
-        this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
       });
       if (isExperimentOn(this.win_, ExperimentFlags.HEJIRA)) {
         this.activityIframeView_.on(
@@ -198,7 +204,8 @@ export class OffersFlow {
             new PayStartFlow(this.deps_, {
               skuId: result['sku'],
               oldSku: result['oldSku'],
-              replaceSkuProrationMode: feArgsObj['replaceSkuProrationMode'] || undefined,
+              replaceSkuProrationMode:
+                feArgsObj['replaceSkuProrationMode'] || undefined,
             }).start();
             return;
           }

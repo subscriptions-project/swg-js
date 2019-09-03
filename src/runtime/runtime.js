@@ -725,7 +725,8 @@ export class ConfiguredRuntime {
   /** @override */
   showOffers(opt_options) {
     return this.documentParsed_.then(() => {
-      const errorMessage = 'The showOffers() method cannot be used to update \
+      const errorMessage =
+        'The showOffers() method cannot be used to update \
 a subscription. Use the showUpdateOffers() method instead.';
       assert(opt_options ? !opt_options['oldSku'] : true, errorMessage);
       const flow = new OffersFlow(this, opt_options);
@@ -735,12 +736,15 @@ a subscription. Use the showUpdateOffers() method instead.';
 
   /** @override */
   showUpdateOffers(opt_options) {
-    assert(isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
-      'Not yet launched!');
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
+      'Not yet launched!'
+    );
     return this.documentParsed_.then(() => {
-      const errorMessage = 'The showUpdateOffers() method cannot be used for \
+      const errorMessage =
+        'The showUpdateOffers() method cannot be used for \
 new subscribers. Use the showOffers() method instead.';
-    assert(opt_options ? !opt_options['oldSku'] : true, errorMessage);
+      assert(opt_options ? !opt_options['oldSku'] : true, errorMessage);
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
     });
@@ -764,8 +768,10 @@ new subscribers. Use the showOffers() method instead.';
 
   /** @override */
   showContributionOptions(opt_options) {
-    assert(isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
-    'Not yet launched!');
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
+      'Not yet launched!'
+    );
     return this.documentParsed_.then(() => {
       const flow = new ContributionsFlow(this, opt_options);
       return flow.start();
@@ -830,7 +836,8 @@ new subscribers. Use the showOffers() method instead.';
 
   /** @override */
   subscribe(sku) {
-    const errorMessage = 'The subscribe() method can only take a sku as its \
+    const errorMessage =
+      'The subscribe() method can only take a sku as its \
 parameter; for subscription updates please use the updateSubscription() method';
     assert(typeof sku === 'string', errorMessage);
     return this.documentParsed_.then(() => {
@@ -840,11 +847,17 @@ parameter; for subscription updates please use the updateSubscription() method';
 
   /** @override */
   updateSubscription(subscriptionRequest) {
-    assert(isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
-      'Not yet launched!');
-    const errorMessage = 'The updateSubscription() method should be used for \
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
+      'Not yet launched!'
+    );
+    const errorMessage =
+      'The updateSubscription() method should be used for \
 subscription updates; for new subscriptions please use the subscribe() method';
-    assert(subscriptionRequest ? subscriptionRequest['oldSku'] : false, errorMessage);
+    assert(
+      subscriptionRequest ? subscriptionRequest['oldSku'] : false,
+      errorMessage
+    );
     return this.documentParsed_.then(() => {
       return new PayStartFlow(this, subscriptionRequest).start();
     });
@@ -857,8 +870,10 @@ subscription updates; for new subscriptions please use the subscribe() method';
 
   /** @override */
   contribute(skuOrSubscriptionRequest) {
-    assert(isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
-      'Not yet launched!');
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
+      'Not yet launched!'
+    );
 
     return this.documentParsed_.then(() => {
       return new PayStartFlow(
@@ -900,8 +915,10 @@ subscription updates; for new subscriptions please use the subscribe() method';
 
   /** @override */
   attachSmartButton(button, optionsOrCallback, opt_callback) {
-    assert(isExperimentOn(this.win_, ExperimentFlags.SMARTBOX),
-      'Not yet launched!');
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.SMARTBOX),
+      'Not yet launched!'
+    );
     this.buttonApi_.attachSmartButton(
       this,
       button,

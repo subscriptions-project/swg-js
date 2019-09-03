@@ -208,10 +208,11 @@ describes.realWin('OffersFlow', {}, env => {
     try {
       offersFlow = new OffersFlow(runtime, {
         oldSku: 'old_sku',
-      })
-    } catch(err) {
-      expect(err).to.be.an.instanceOf(Error)
-      .with.property('message', 'Need a sku list if old sku is provided!');
+      });
+    } catch (err) {
+      expect(err)
+        .to.be.an.instanceOf(Error)
+        .with.property('message', 'Need a sku list if old sku is provided!');
     }
   });
 
@@ -243,9 +244,7 @@ describes.realWin('OffersFlow', {}, env => {
 
   it('should auto-redirect to payments if only one update option given', () => {
     let payClientMock = sandbox.mock(runtime.payClient());
-    payClientMock
-      .expects('start')
-      .once();
+    payClientMock.expects('start').once();
     callbacksMock
       .expects('triggerFlowStarted')
       .withExactArgs('subscribe', {
@@ -255,7 +254,7 @@ describes.realWin('OffersFlow', {}, env => {
       })
       .once();
     offersFlow = new OffersFlow(runtime, {
-      skus: ['sku1', 'sku2',],
+      skus: ['sku1', 'sku2'],
       oldSku: 'sku1',
     });
     activitiesMock.expects('openIframe').never();
