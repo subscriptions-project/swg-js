@@ -25,7 +25,7 @@ import {feArgs, feUrl} from './services';
 import {getOnExperiments, isExperimentOn} from './experiments';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
-import {uuid} from '../utils/string';
+import {getUuid} from '../utils/string';
 import {ExperimentFlags} from './experiment-flags';
 import {ClientEventManager} from './client-event-manager';
 
@@ -72,7 +72,7 @@ export class AnalyticsService {
      */
     this.context_ = new AnalyticsContext();
 
-    this.context_.setTransactionId(uuid());
+    this.context_.setTransactionId(getUuid());
 
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;

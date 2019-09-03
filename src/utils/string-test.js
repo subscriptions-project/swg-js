@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {dashToCamelCase, expandTemplate, endsWith, uuid} from './string';
+import {dashToCamelCase, expandTemplate, endsWith, getUuid} from './string';
 
 describe('dashToCamelCase', () => {
   it('should transform dashes to camel case.', () => {
@@ -101,6 +101,8 @@ describe('expandTemplate', () => {
   });
 });
 
+const allowedChars = '0123456789ABCDEF-'.split('');
+const allowChar19 = '89AB'.split('');
 /**
  * Returns true if the UUID has a valid format.
  * @param {string} uuid
@@ -108,30 +110,31 @@ describe('expandTemplate', () => {
 function isValidUuid(uuid) {
   expect(uuid).to.not.be.undefined;
   expect(uuid.length).to.equal(36);
+  for (let i = 0; i < uuid.length; i++) {
+    expect(uuid[i]).to.be.oneOf(allowedChars);
+  }
+  expect(uuid[14]).to.equal('4');
+  expect(uuid[19]).to.be.oneOf(allowChar19);
+
   const uuidArray = uuid.split('-');
   expect(uuidArray.length).to.equal(5);
   expect(uuidArray[0].length).to.equal(8);
   expect(uuidArray[1].length).to.equal(4);
-  expect(uuidArray[2][0]).to.equal('4');
-}
-
-/**
- * @param {!function():string} fun
- */
-function testUuidGenerator(fun) {
-  const uuid = fun();
-  const uuid2 = fun();
-  const uuid3 = fun();
-  isValidUuid(uuid);
-  isValidUuid(uuid2);
-  isValidUuid(uuid3);
-  expect(uuid2).to.not.equal(uuid);
-  expect(uuid3).to.not.equal(uuid2);
-  expect(uuid3).to.not.equal(uuid);
+  expect(uuidArray[2].length).to.equal(4);
+  expect(uuidArray[3].length).to.equal(4);
+  expect(uuidArray[4].length).to.equal(12);
+  //98C2426F-4138-4F14-9694-7E86FD958EBF
 }
 
 describe('uuid', () => {
-  it('should generate a uuid', () => {
-    testUuidGenerator(uuid);
+  it('should generate a set of valid unique RFC 4122 V4 uuids', () => {
+    //flakiness warning: could randomly generate the same one every now and then
+    const uuids = {};
+    for (let i = 0; i < 100; i++) {
+      const uuid = getUuid();
+      isValidUuid(uuid);
+      expect(uuids[uuid]).to.be.undefined;
+      uuids[uuid] = 1;
+    }
   });
 });

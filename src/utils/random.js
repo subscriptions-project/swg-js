@@ -16,20 +16,20 @@
 
 /**
  * Returns an array of random values.  The length of the array is numInts.  Each
- * int will vary between 0 and maxInt.
+ * int will be >= 0 and < maxVal.
  * @param {!number} numInts
- * @param {!number} maxInt
+ * @param {!number} maxVal
  */
-export function getRandomInts(numInts, maxInt) {
+export function getRandomInts(numInts, maxVal) {
   const arr = new Uint32Array(numInts);
   if (crypto && crypto.getRandomValues) {
     crypto.getRandomValues(arr);
     for (let i = arr.length - 1; i > -1; i--) {
-      arr[i] = arr[i] % maxInt;
+      arr[i] = arr[i] % maxVal;
     }
   } else {
     for (let i = arr.length - 1; i > -1; i--) {
-      arr[i] = Math.floor(Math.random() * maxInt);
+      arr[i] = Math.floor(Math.random() * maxVal);
     }
   }
 
