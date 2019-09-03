@@ -21,17 +21,25 @@
  * @param {!number} maxVal
  */
 export function getRandomInts(numInts, maxVal) {
-  const arr = new Uint32Array(numInts);
+  //ensure array type is appropriate for the max value (performance)
+  const arr =
+    maxVal < 256
+      ? new Uint8Array(numInts)
+      : maxVal < 32768
+      ? new Uint16Array(numInts)
+      : new Uint32Array(numInts);
+
   if (crypto && crypto.getRandomValues) {
     crypto.getRandomValues(arr);
     for (let i = arr.length - 1; i > -1; i--) {
       arr[i] = arr[i] % maxVal;
     }
   } else {
+    //for older browsers
     for (let i = arr.length - 1; i > -1; i--) {
       arr[i] = Math.floor(Math.random() * maxVal);
     }
   }
 
-  return arr; //for older browsers
+  return arr;
 }

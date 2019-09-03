@@ -16,15 +16,27 @@
 
 import {getRandomInts} from './random';
 
-describe('getRandomInts', () => {
-  it('should generate random ints that respect boundaries', () => {
-    for (let i = 10000; i > 0; i--) {
-      const vals = getRandomInts(5, 57);
-      expect(vals.length).to.equal(5);
-      for (let j = 0; j < 5; j++) {
-        expect(vals[j] >= 0).to.be.true;
-        expect(vals[j]).to.be.lessThan(57);
-      }
+function testRand(maxVal) {
+  for (let i = 1000; i > 0; i--) {
+    const vals = getRandomInts(5, maxVal);
+    expect(vals.length).to.equal(5);
+    for (let j = 0; j < 5; j++) {
+      expect(vals[j] >= 0).to.be.true;
+      expect(vals[j]).to.be.lessThan(maxVal);
     }
+  }
+}
+
+describe('getRandomInts', () => {
+  it('should generate random small ints that respect boundaries', () => {
+    testRand(250);
+  });
+
+  it('should generate random medium ints that respect boundaries', () => {
+    testRand(32000);
+  });
+
+  it('should generate random large ints that respect boundaries', () => {
+    testRand(4000000);
   });
 });
