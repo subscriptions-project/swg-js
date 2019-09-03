@@ -692,9 +692,11 @@ describes.realWin('Runtime', {}, env => {
         .expects('updateSubscription')
         .withExactArgs({skuId: 'sku1', oldSku: 'sku2'})
         .once();
-      return runtime.updateSubscription({skuId: 'sku1', oldSku: 'sku2'}).then(() => {
-        expect(configureStub).to.be.calledOnce.calledWith(true);
-      });
+      return runtime
+        .updateSubscription({skuId: 'sku1', oldSku: 'sku2'})
+        .then(() => {
+          expect(configureStub).to.be.calledOnce.calledWith(true);
+        });
     });
 
     it('should delegate "completeDeferredAccountCreation"', () => {
@@ -1351,14 +1353,17 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
 
     it('should throw an error if showOffers is used with an oldSku', () => {
-        try{
-          runtime.showOffers({skuId: 'newSku', oldSku: 'oldSku'})
-        } catch(err) {
-          expect(err).to.be.an.instanceOf(Error)
-          .with.property('The showOffers() method cannot be used to update \
-a subscription. Use the showUpdateOffers() method instead.');
-        }
-      })
+      try {
+        runtime.showOffers({skuId: 'newSku', oldSku: 'oldSku'});
+      } catch (err) {
+        expect(err)
+          .to.be.an.instanceOf(Error)
+          .with.property(
+            'The showOffers() method cannot be used to update \
+a subscription. Use the showUpdateOffers() method instead.'
+          );
+      }
+    });
 
     it('should call "showUpdateOffers"', () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
@@ -1389,17 +1394,21 @@ a subscription. Use the showUpdateOffers() method instead.');
     });
 
     it(
-      'should throw an error if showUpdateOffers is used without' +
-      'an oldSku', () => {
-        setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true)
-        try{
-          runtime.showUpdateOffers({skuId: 'newSku'})
-        } catch(err) {
-          expect(err).to.be.an.instanceOf(Error)
-          .with.property('The showUpdateOffers() method cannot be used for \
-new subscribers. Use the showOffers() method instead.');
+      'should throw an error if showUpdateOffers is used without' + 'an oldSku',
+      () => {
+        setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+        try {
+          runtime.showUpdateOffers({skuId: 'newSku'});
+        } catch (err) {
+          expect(err)
+            .to.be.an.instanceOf(Error)
+            .with.property(
+              'The showUpdateOffers() method cannot be used for \
+new subscribers. Use the showOffers() method instead.'
+            );
         }
-      })
+      }
+    );
 
     it('should call "showAbbrvOffer"', () => {
       let offersFlow;
@@ -1512,30 +1521,40 @@ new subscribers. Use the showOffers() method instead.');
       'should throw an error if subscribe() is used to replace ' +
         'a subscription',
       () => {
-        try{
-          runtime.subscribe({skuId: 'newSku', oldSku: 'oldSku'})
-        } catch(err) {
-          expect(err).to.be.an.instanceOf(Error)
-          .with.property('message', 'The subscribe() method can only take a \
+        try {
+          runtime.subscribe({skuId: 'newSku', oldSku: 'oldSku'});
+        } catch (err) {
+          expect(err)
+            .to.be.an.instanceOf(Error)
+            .with.property(
+              'message',
+              'The subscribe() method can only take a \
 sku as its parameter; for subscription updates please use the \
-updateSubscription() method');
+updateSubscription() method'
+            );
         }
-      })
+      }
+    );
 
-      it(
-        'should throw an error if updateSubscription is used to initiate ' +
-          'a new subscription',
-        () => {
-          setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-          try{
-            runtime.updateSubscription({skuId: 'newSku'})
-          } catch(err) {
-            expect(err).to.be.an.instanceOf(Error)
-            .with.property('message', 'The updateSubscription() method should \
+    it(
+      'should throw an error if updateSubscription is used to initiate ' +
+        'a new subscription',
+      () => {
+        setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+        try {
+          runtime.updateSubscription({skuId: 'newSku'});
+        } catch (err) {
+          expect(err)
+            .to.be.an.instanceOf(Error)
+            .with.property(
+              'message',
+              'The updateSubscription() method should \
 be used for subscription updates; for new subscriptions please use the \
-subscribe() method');
-          }
-        })
+subscribe() method'
+            );
+        }
+      }
+    );
 
     it(
       'should start PayStartFlow for replaceSubscription ' +
@@ -1554,9 +1573,7 @@ subscribe() method');
           .then(() => {
             expect(startStub).to.be.calledOnce;
             expect(flowInstance.subscriptionRequest_.skuId).to.equal('newSku');
-            expect(flowInstance.subscriptionRequest_.oldSku).to.equal(
-              'oldSku'
-            );
+            expect(flowInstance.subscriptionRequest_.oldSku).to.equal('oldSku');
             expect(flowInstance.subscriptionRequest_.ReplaceSkuProrationMode).to
               .be.undefined;
           });
