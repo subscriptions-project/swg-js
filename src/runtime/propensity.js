@@ -32,6 +32,7 @@ export class Propensity {
    *
    * IMPORTANT: deps may not be full initialized config and pageConfig are
    * available immediately, other function should be gated on a ready promise.
+   * #TODO(jpettitt) switch refactor to take out the win and use deps to get win
    */
   constructor(win, deps, fetcher) {
     /** @private @const {!Window} */
