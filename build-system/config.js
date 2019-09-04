@@ -44,10 +44,7 @@ const commonTestPaths = [
   },
 ];
 
-const basicTestPaths = [
-  'src/**/*-test.js',
-  'third_party/random_uuid/*-test.js',
-];
+const basicTestPaths = ['src/**/*-test.js'];
 
 const testPaths = commonTestPaths.concat(basicTestPaths);
 
