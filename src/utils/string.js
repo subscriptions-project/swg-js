@@ -124,22 +124,32 @@ function getChar19(v) {
 }
 
 /**
- * Generates a rfc4122v4 uuid. Ex:
- *   "92329D39-6F5C-4520-ABFC-AAB64544E172"
+ * Generates a RFC 4122 V4 UUID. Ex: "92329D39-6F5C-4520-ABFC-AAB64544E172"
  */
 export function getUuid() {
-  const uuid = new Array(36);
+  let uuid = '';
   let rIndex = 0;
   const rands = getRandomInts(31, 16);
-  uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
-  uuid[14] = '4';
-  uuid[19] = getChar19(rands[rIndex++]);
 
   for (let i = 0; i < 36; i++) {
-    if (!uuid[i]) {
-      uuid[i] = CHARS[rands[rIndex++]];
+    switch (i) {
+      case 8:
+      case 13:
+      case 18:
+      case 23:
+        uuid += '-';
+        break;
+      case 14:
+        uuid += '4';
+        break;
+      case 19:
+        uuid += getChar19(rands[rIndex++]);
+        break;
+      default:
+        uuid += CHARS[rands[rIndex++]];
+        break;
     }
   }
 
-  return uuid.join('');
+  return uuid;
 }
