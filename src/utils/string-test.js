@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {dashToCamelCase, expandTemplate, endsWith, getUuid} from './string';
+import {dashToCamelCase, expandTemplate, endsWith, getUuid, getMonthlyTimeIdentifier} from './string';
 
 describe('dashToCamelCase', () => {
   it('should transform dashes to camel case.', () => {
