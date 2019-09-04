@@ -16,7 +16,7 @@
 
 import {getRandomInts} from './random';
 
-const CHARS = '0123456789ABCDEF'.split('');
+const CHARS = '0123456789ABCDEF';
 
 /**
  * @param {string} _match
@@ -129,14 +129,13 @@ function getChar19(v) {
  */
 export function getUuid() {
   const uuid = new Array(36);
-  let i;
   let rIndex = 0;
   const rands = getRandomInts(31, 16);
   uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
   uuid[14] = '4';
   uuid[19] = getChar19(rands[rIndex++]);
 
-  for (i = 0; i < 36; i++) {
+  for (let i = 0; i < 36; i++) {
     if (!uuid[i]) {
       uuid[i] = CHARS[rands[rIndex++]];
     }

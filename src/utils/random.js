@@ -21,7 +21,7 @@
  * @param {!number} maxVal
  */
 export function getRandomInts(numInts, maxVal) {
-  //ensure array type is appropriate for the max value (performance)
+  // Ensure array type is appropriate for the max value (performance)
   const arr =
     maxVal < 256
       ? new Uint8Array(numInts)
