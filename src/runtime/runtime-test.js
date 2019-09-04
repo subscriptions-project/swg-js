@@ -1389,22 +1389,19 @@ a subscription. Use the showUpdateOffers() method instead.'
       });
     });
 
-    it(
-      'should throw an error if showUpdateOffers is used without an oldSku',
-      () => {
-        setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-        try {
-          runtime.showUpdateOffers({skuId: 'newSku'});
-        } catch (err) {
-          expect(err)
-            .to.be.an.instanceOf(Error)
-            .with.property(
-              'The showUpdateOffers() method cannot be used for \
+    it('should throw an error if showUpdateOffers is used without an oldSku', () => {
+      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+      try {
+        runtime.showUpdateOffers({skuId: 'newSku'});
+      } catch (err) {
+        expect(err)
+          .to.be.an.instanceOf(Error)
+          .with.property(
+            'The showUpdateOffers() method cannot be used for \
 new subscribers. Use the showOffers() method instead.'
-            );
-        }
+          );
       }
-    );
+    });
 
     it('should call "showAbbrvOffer"', () => {
       let offersFlow;
