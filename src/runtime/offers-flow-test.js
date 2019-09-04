@@ -243,7 +243,7 @@ describes.realWin('OffersFlow', {}, env => {
   });
 
   it('should auto-redirect to payments if only one update option given', () => {
-    let payClientMock = sandbox.mock(runtime.payClient());
+    const payClientMock = sandbox.mock(runtime.payClient());
     payClientMock.expects('start').once();
     callbacksMock
       .expects('triggerFlowStarted')

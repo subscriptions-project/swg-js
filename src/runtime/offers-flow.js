@@ -74,6 +74,8 @@ export class OffersFlow {
       'isClosable': isClosable,
     };
 
+    this.prorationMode = feArgsObj['replaceSkuProrationMode'] || undefined;
+
     if (options && options.oldSku) {
       feArgsObj['oldSku'] = options.oldSku;
     }
@@ -103,9 +105,8 @@ export class OffersFlow {
       if (oldSku) {
         new PayStartFlow(this.deps_, {
           skuId: sku,
-          oldSku: oldSku,
-          replaceSkuProrationMode:
-            feArgsObj['replaceSkuProrationMode'] || undefined,
+          oldSku,
+          replaceSkuProrationMode: this.prorationMode,
         }).start();
         return;
       }
@@ -204,8 +205,7 @@ export class OffersFlow {
             new PayStartFlow(this.deps_, {
               skuId: result['sku'],
               oldSku: result['oldSku'],
-              replaceSkuProrationMode:
-                feArgsObj['replaceSkuProrationMode'] || undefined,
+              replaceSkuProrationMode: this.prorationMode,
             }).start();
             return;
           }
