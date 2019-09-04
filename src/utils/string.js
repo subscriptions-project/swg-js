@@ -124,29 +124,13 @@ function getChar19(v) {
 }
 
 /**
- * Gets the number of MS since midnight.
- * @param {!Date} date
- * @return {Number}
- */
-function getMsSinceMidnight(date) {
-  date = date || new Date();
-  return date.getTime() - date.setHours(0, 0, 0, 0);
-}
-
-/**
  * The returned identifier will always be an 8 digit valid hexidecimal number
- * and will be unique down to the MS within a given month.  For example,
- * exactly midnight on the first of any month will be '00000000' and it will
- * increase with each MS of the month after (not necessarily by 1).
+ * and will be unique down to the MS within a given month.
  * @return {String}
  */
 function getMonthlyTimeIdentifier() {
-  const date = new Date();
-  const v = (date.getDate() - 1) * 100000000 + getMsSinceMidnight(date);
-  return v
-    .toString(16)
-    .padStart(8, '0')
-    .toUpperCase();
+  const hexTime = new Date().getTime().toString(16);
+  return hexTime.substring(hexTime.length - 8).toUpperCase();
 }
 
 /**
