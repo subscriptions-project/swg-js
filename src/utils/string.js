@@ -124,16 +124,43 @@ function getChar19(v) {
 }
 
 /**
+ * Gets the number of MS since midnight.
+ * @param {!Date} date
+ * @return {Number}
+ */
+function getMsSinceMidnight(date) {
+  date = date || new Date();
+  return date.getTime() - date.setHours(0, 0, 0, 0);
+}
+
+/**
+ * The returned identifier will always be an 8 digit valid hexidecimal number
+ * and will be unique down to the MS within a given month.  For example,
+ * exactly midnight on the first of any month will be '00000000' and it will
+ * increase with each MS of the month after (not necessarily by 1).
+ * @return {String}
+ */
+function getMonthlyTimeIdentifier() {
+  const date = new Date();
+  const v = (date.getDate() - 1) * 100000000 + getMsSinceMidnight(date);
+  return v
+    .toString(16)
+    .padStart(8, '0')
+    .toUpperCase();
+}
+
+/**
  * Generates a RFC 4122 V4 UUID. Ex: "92329D39-6F5C-4520-ABFC-AAB64544E172"
+ * The first 8 digits are unique for the millisecond of the month.  The rest
+ * are randomly generated.
  */
 export function getUuid() {
-  let uuid = '';
+  let uuid = getMonthlyTimeIdentifier() + '-';
   let rIndex = 0;
-  const rands = getRandomInts(31, 16);
+  const rands = getRandomInts(23, 16);
 
-  for (let i = 0; i < 36; i++) {
+  for (let i = 9; i < 36; i++) {
     switch (i) {
-      case 8:
       case 13:
       case 18:
       case 23:
@@ -150,6 +177,5 @@ export function getUuid() {
         break;
     }
   }
-
   return uuid;
 }
