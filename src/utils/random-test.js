@@ -17,14 +17,17 @@
 import {getRandomInts} from './random';
 
 const RAND_FACTOR = 0.7;
+const NUM_ROUNDS = 1000;
+const NUM_PER_ROUND = 20;
 
 function testRand(maxVal) {
   let maxFound = 0;
   let minFound = maxVal;
-  for (let i = 1000; i > 0; i--) {
-    const vals = getRandomInts(5, maxVal);
-    expect(vals.length).to.equal(5);
-    for (let j = 0; j < 5; j++) {
+
+  for (let i = NUM_ROUNDS; i > 0; i--) {
+    const vals = getRandomInts(NUM_PER_ROUND, maxVal);
+    expect(vals.length).to.equal(NUM_PER_ROUND);
+    for (let j = 0; j < NUM_PER_ROUND; j++) {
       expect(vals[j] >= 0).to.be.true;
       expect(vals[j]).to.be.lessThan(maxVal);
       if (vals[j] > maxFound) {
@@ -35,6 +38,7 @@ function testRand(maxVal) {
       }
     }
   }
+
   // Flakiness warning: Could randomly fail a small percentage of the time.
   // If it fails consistently then there is something wrong with the random
   // number generator.

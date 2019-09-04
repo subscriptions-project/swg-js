@@ -35,7 +35,7 @@ export function getRandomInts(numInts, maxVal) {
       arr[i] = arr[i] % maxVal;
     }
   } else {
-    //for older browsers
+    // For older browsers
     for (let i = arr.length - 1; i > -1; i--) {
       arr[i] = Math.floor(Math.random() * maxVal);
     }
