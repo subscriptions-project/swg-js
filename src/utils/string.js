@@ -126,10 +126,10 @@ function getChar19(v) {
 /**
  * The returned identifier will always be an 8 digit valid hexidecimal number
  * and will be unique for each MS within a given month.
- * @return {String}
+ * @return {string}
  */
 function getMonthlyTimeIdentifier() {
-  const hexTime = new Date().getTime().toString(16);
+  const hexTime = Date.now().toString(16);
   return hexTime.substring(hexTime.length - 8).toUpperCase();
 }
 
@@ -142,7 +142,6 @@ export function getUuid() {
   let uuid = getMonthlyTimeIdentifier() + '-';
   let rIndex = 0;
   const rands = getRandomInts(23, 16);
-
   for (let i = 9; i < 36; i++) {
     switch (i) {
       case 13:
