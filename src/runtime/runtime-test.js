@@ -1390,7 +1390,7 @@ a subscription. Use the showUpdateOffers() method instead.'
     });
 
     it(
-      'should throw an error if showUpdateOffers is used without' + 'an oldSku',
+      'should throw an error if showUpdateOffers is used without an oldSku',
       () => {
         setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
         try {
