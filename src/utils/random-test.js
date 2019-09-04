@@ -16,15 +16,34 @@
 
 import {getRandomInts} from './random';
 
+const RAND_FACTOR = 0.7;
+
 function testRand(maxVal) {
+  let maxFound = 0;
+  let minFound = maxVal;
   for (let i = 1000; i > 0; i--) {
     const vals = getRandomInts(5, maxVal);
     expect(vals.length).to.equal(5);
     for (let j = 0; j < 5; j++) {
       expect(vals[j] >= 0).to.be.true;
       expect(vals[j]).to.be.lessThan(maxVal);
+      if (vals[j] > maxFound) {
+        maxFound = vals[j];
+      }
+      if (vals[j] < minFound) {
+        minFound = vals[j];
+      }
     }
   }
+  // Flakiness warning: Could randomly fail a small percentage of the time.
+  // If it fails consistently then there is something wrong with the random
+  // number generator.
+
+  // Expect at least 1 value higher than 70% of max value.
+  expect(maxFound).to.be.greaterThan(maxVal * RAND_FACTOR);
+
+  // Expect at least 1 value lower than 30% of max value.
+  expect(minFound).to.be.lessThan(maxVal * (1 - RAND_FACTOR));
 }
 
 describe('getRandomInts', () => {
