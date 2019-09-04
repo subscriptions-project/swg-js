@@ -125,7 +125,7 @@ function getChar19(v) {
 
 /**
  * The returned identifier will always be an 8 digit valid hexidecimal number
- * and will be unique down to the MS within a given month.
+ * and will be unique for each MS within a given month.
  * @return {String}
  */
 function getMonthlyTimeIdentifier() {
