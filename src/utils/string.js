@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+import {getRandomInts} from './random';
+
+const CHARS = '0123456789ABCDEF';
+
 /**
  * @param {string} _match
  * @param {string} character
@@ -108,4 +112,44 @@ export function stringHash32(str) {
   }
   // Convert from 32-bit signed to unsigned.
   return String(hash >>> 0);
+}
+
+/**
+ * Ensures the passed value is safe to use for character 19 per rfc4122,
+ * sec. 4.1.5.  "Sets the high bits of clock sequence".
+ * @param {!number} v
+ */
+function getChar19(v) {
+  return CHARS[(v & 0x3) | 0x8];
+}
+
+/**
+ * Generates a RFC 4122 V4 UUID. Ex: "92329D39-6F5C-4520-ABFC-AAB64544E172"
+ */
+export function getUuid() {
+  let uuid = '';
+  let rIndex = 0;
+  const rands = getRandomInts(31, 16);
+
+  for (let i = 0; i < 36; i++) {
+    switch (i) {
+      case 8:
+      case 13:
+      case 18:
+      case 23:
+        uuid += '-';
+        break;
+      case 14:
+        uuid += '4';
+        break;
+      case 19:
+        uuid += getChar19(rands[rIndex++]);
+        break;
+      default:
+        uuid += CHARS[rands[rIndex++]];
+        break;
+    }
+  }
+
+  return uuid;
 }
