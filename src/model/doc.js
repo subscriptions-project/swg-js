@@ -62,6 +62,17 @@ export class Doc {
    * @return {!Promise}
    */
   whenReady() {}
+
+  /**
+   * Adds the element to the fixed layer.
+   * @param {!Element} unusedElement
+   * @param {boolean=} opt_forceTransfer If set to true , then the element needs
+   *    to be forcefully transferred to the fixed layer.
+   * @return {!Promise}
+   * 
+   * This is a no-op for except in AMP on iOS < 13.0.
+   */
+  addToFixedLayer(unusedElement, opt_forceTransfer) {}
 }
 
 /** @implements {Doc} */
@@ -115,6 +126,11 @@ export class GlobalDoc {
   /** @override */
   whenReady() {
     return whenDocumentReady(this.doc_);
+  }
+
+  /** @override */
+  addToFixedLayer(unusedElement, opt_forceTransfer) {
+    return Promise.resolve();
   }
 }
 

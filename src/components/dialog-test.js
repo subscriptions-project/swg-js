@@ -26,6 +26,8 @@ describes.realWin('Dialog', {}, env => {
   let win;
   let doc;
   let dialog;
+  let fixedLayerStub;
+  let globalDoc;
   let graypaneStubs;
   let view;
   let element;
@@ -34,8 +36,14 @@ describes.realWin('Dialog', {}, env => {
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
-    dialog = new Dialog(new GlobalDoc(win), {height: `${documentHeight}px`});
+    globalDoc = new GlobalDoc(win);
+    dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
     graypaneStubs = sandbox.stub(dialog.graypane_);
+    fixedLayerStub = sandbox
+      .stub(globalDoc, 'addToFixedLayer')
+      .callsFake(() => {
+        return Promise.resolve();
+      });
 
     element = doc.createElement('div');
     view = {
@@ -195,6 +203,9 @@ describes.realWin('Dialog', {}, env => {
       const iframe = openedDialog.getElement();
       expect(iframe.getAttribute('src')).to.equal('about:blank');
       expect(iframe.nodeName).to.equal('IFRAME');
+
+      // Should have asked AMP to update fixed layer if needed
+      expect(fixedLayerStub).to.be.called.once;
 
       // Should have document loaded.
       const iframeDoc = openedDialog.getIframe().getDocument();
