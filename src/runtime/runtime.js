@@ -673,7 +673,7 @@ export class ConfiguredRuntime {
           error = 'Unknown config property: ' + k;
       }
     }
-    // Throw error string if's set
+    // Throw error string if it's not null
     assert(!error, error);
     // Assign.
     Object.assign(this.config_, config);
