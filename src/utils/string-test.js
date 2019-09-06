@@ -128,7 +128,8 @@ function isValidUuid(uuid) {
 
 describe('uuid', () => {
   it('should generate a set of valid unique RFC 4122 V4 uuids', () => {
-    //flakiness warning: could randomly generate the same one every now and then
+    // Flakiness warning: could randomly generate the same one every now and
+    // then.
     const uuids = {};
     for (let i = 0; i < 100; i++) {
       const uuid = getUuid();
