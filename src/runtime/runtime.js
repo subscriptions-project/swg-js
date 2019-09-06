@@ -63,6 +63,7 @@ import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
 import {Logger} from './logger';
+import {assert} from '../utils/log';
 import {isBoolean} from '../utils/types';
 
 const RUNTIME_PROP = 'SWG';
@@ -642,7 +643,7 @@ export class ConfiguredRuntime {
    */
   configure_(config) {
     // Validate first.
-    let error = null;
+    let error = '';
     for (const k in config) {
       const v = config[k];
       switch (k) {
