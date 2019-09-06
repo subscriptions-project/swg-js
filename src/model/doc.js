@@ -127,7 +127,7 @@ export class GlobalDoc {
   }
 
   /** @override */
-  addToFixedLayer(element) {
+  addToFixedLayer(unusedElement) {
     return Promise.resolve();
   }
 }
