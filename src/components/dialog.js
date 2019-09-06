@@ -141,6 +141,7 @@ export class Dialog {
 
     // Attach.
     this.doc_.getBody().appendChild(iframe.getElement()); // Fires onload.
+
     this.graypane_.attach();
 
     if (hidden) {
@@ -152,11 +153,15 @@ export class Dialog {
     } else {
       this.show_();
     }
-
-    return iframe.whenReady().then(() => {
-      this.buildIframe_();
-      return this;
-    });
+    return this.doc_
+      .addToFixedLayer(iframe.getElement())
+      .then(() => {
+        iframe.whenReady();
+      })
+      .then(() => {
+        this.buildIframe_();
+        return this;
+      });
   }
 
   /**

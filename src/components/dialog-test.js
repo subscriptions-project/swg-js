@@ -26,6 +26,8 @@ describes.realWin('Dialog', {}, env => {
   let win;
   let doc;
   let dialog;
+  let fixedLayerSpy;
+  let globalDoc;
   let graypaneStubs;
   let view;
   let element;
@@ -34,8 +36,10 @@ describes.realWin('Dialog', {}, env => {
   beforeEach(() => {
     win = env.win;
     doc = env.win.document;
-    dialog = new Dialog(new GlobalDoc(win), {height: `${documentHeight}px`});
+    globalDoc = new GlobalDoc(win);
+    dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
     graypaneStubs = sandbox.stub(dialog.graypane_);
+    fixedLayerSpy = sandbox.spy(globalDoc, 'addToFixedLayer');
 
     element = doc.createElement('div');
     view = {
@@ -74,9 +78,9 @@ describes.realWin('Dialog', {}, env => {
       expect(getStyle(iframe, 'display')).to.equal('block');
     });
 
-    it('should have created fade background', function*() {
+    it('should have created fade background', async function*() {
       expect(graypaneStubs.attach).to.not.be.called;
-      const openedDialog = yield dialog.open(NO_ANIMATE);
+      const openedDialog = await dialog.open(NO_ANIMATE);
       expect(graypaneStubs.attach).to.be.calledOnce;
       expect(graypaneStubs.show).to.not.be.called;
 
@@ -88,9 +92,9 @@ describes.realWin('Dialog', {}, env => {
       );
     });
 
-    it('should open dialog with animation', function*() {
+    it('should open dialog with animation', async function*() {
       immediate();
-      dialog.open();
+      await dialog.open();
       yield dialog.animating_;
 
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
@@ -100,9 +104,9 @@ describes.realWin('Dialog', {}, env => {
       expect(graypaneStubs.show).to.not.be.called;
     });
 
-    it('should open dialog as hidden', function*() {
+    it('should open dialog as hidden', async function*() {
       immediate();
-      dialog.open(HIDDEN);
+      await dialog.open(HIDDEN);
 
       expect(getStyle(dialog.getElement(), 'visibility')).to.equal('hidden');
       expect(getStyle(dialog.getElement(), 'opacity')).to.equal('0');
@@ -195,6 +199,9 @@ describes.realWin('Dialog', {}, env => {
       const iframe = openedDialog.getElement();
       expect(iframe.getAttribute('src')).to.equal('about:blank');
       expect(iframe.nodeName).to.equal('IFRAME');
+
+      // Should have asked AMP to update fixed layer if needed
+      expect(fixedLayerSpy).to.be.called.once;
 
       // Should have document loaded.
       const iframeDoc = openedDialog.getIframe().getDocument();
