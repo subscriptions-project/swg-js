@@ -63,6 +63,7 @@ import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
 import {Logger} from './logger';
+import {assert} from '../utils/log';
 import {isBoolean} from '../utils/types';
 import {assert} from '../utils/log';
 
