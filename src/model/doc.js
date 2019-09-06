@@ -128,7 +128,6 @@ export class GlobalDoc {
 
   /** @override */
   addToFixedLayer(element) {
-    this.getBody().appendChild(element);
     return Promise.resolve();
   }
 }
