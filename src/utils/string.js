@@ -124,16 +124,26 @@ function getChar19(v) {
 }
 
 /**
+ * The returned identifier will always be an 8 digit valid hexidecimal number
+ * and will be unique for each MS within a given month.
+ * @return {string}
+ */
+function getMonthlyTimeIdentifier() {
+  const hexTime = Date.now().toString(16);
+  return hexTime.substring(hexTime.length - 8).toUpperCase();
+}
+
+/**
  * Generates a RFC 4122 V4 UUID. Ex: "92329D39-6F5C-4520-ABFC-AAB64544E172"
+ * The first 8 digits are unique for the millisecond of the month.  The rest
+ * are randomly generated.
  */
 export function getUuid() {
-  let uuid = '';
+  let uuid = getMonthlyTimeIdentifier() + '-';
   let rIndex = 0;
-  const rands = getRandomInts(31, 16);
-
-  for (let i = 0; i < 36; i++) {
+  const rands = getRandomInts(23, 16);
+  for (let i = 9; i < 36; i++) {
     switch (i) {
-      case 8:
       case 13:
       case 18:
       case 23:
@@ -150,6 +160,5 @@ export function getUuid() {
         break;
     }
   }
-
   return uuid;
 }
