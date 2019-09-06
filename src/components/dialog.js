@@ -140,23 +140,28 @@ export class Dialog {
     }
 
     // Attach.
-    return this.doc_.addToFixedLayer(iframe.getElement()).then(() => {
-      this.graypane_.attach();
+    this.doc_.getBody().appendChild(iframe.getElement()); // Fires onload.
 
-      if (hidden) {
-        setImportantStyles(iframe.getElement(), {
-          'visibility': 'hidden',
-          'opacity': 0,
-        });
-        this.hidden_ = hidden;
-      } else {
-        this.show_();
-      }
-      return iframe.whenReady().then(() => {
+    this.graypane_.attach();
+
+    if (hidden) {
+      setImportantStyles(iframe.getElement(), {
+        'visibility': 'hidden',
+        'opacity': 0,
+      });
+      this.hidden_ = hidden;
+    } else {
+      this.show_();
+    }
+    return this.doc_
+      .addToFixedLayer(iframe.getElement(), /* force transfer */ true)
+      .then(() => {
+        iframe.whenReady();
+      })
+      .then(() => {
         this.buildIframe_();
         return this;
       });
-    });
   }
 
   /**
