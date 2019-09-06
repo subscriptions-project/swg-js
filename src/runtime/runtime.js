@@ -643,7 +643,7 @@ export class ConfiguredRuntime {
    */
   configure_(config) {
     // Validate first.
-    let error = null;
+    let error = '';
     for (const k in config) {
       const v = config[k];
       switch (k) {

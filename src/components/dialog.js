@@ -154,7 +154,7 @@ export class Dialog {
       this.show_();
     }
     return this.doc_
-      .addToFixedLayer(iframe.getElement(), /* force transfer */ true)
+      .addToFixedLayer(iframe.getElement())
       .then(() => {
         iframe.whenReady();
       })
