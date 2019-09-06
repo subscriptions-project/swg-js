@@ -65,7 +65,6 @@ import {ClientEventManager} from './client-event-manager';
 import {Logger} from './logger';
 import {assert} from '../utils/log';
 import {isBoolean} from '../utils/types';
-import {assert} from '../utils/log';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
