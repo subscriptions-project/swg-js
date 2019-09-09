@@ -23,7 +23,6 @@ import {SubscriptionFlows} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
-import {AnalyticsEvent} from '../proto/api_messages';
 
 /**
  * The flow to initiate deferred account process.
@@ -159,10 +158,6 @@ export class DeferredAccountFlow {
       purchaseDataList,
       completeHandler
     );
-
-    this.deps_
-      .eventManager()
-      .logSwgEvent(AnalyticsEvent.ACTION_NEW_DEFERRED_ACCOUNT, true);
 
     // Start the "sync" flow.
     creatingFlow.start(
