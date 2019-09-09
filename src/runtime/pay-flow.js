@@ -149,6 +149,9 @@ export class PayCompleteFlow {
    * @param {!./deps.DepsDef} deps
    */
   static configurePending(deps) {
+    /** @const @type {./client-event-manager.ClientEventManager} */
+    const eventManager = deps.eventManager();
+
     deps.payClient().onResponse(payPromise => {
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
@@ -160,6 +163,10 @@ export class PayCompleteFlow {
       deps.callbacks().triggerSubscribeResponse(promise);
       return promise.then(
         response => {
+          eventManager.logSwgEvent(
+            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+            true
+          );
           flow.start(response);
         },
         reason => {
@@ -225,8 +232,8 @@ export class PayCompleteFlow {
     }
 
     this.eventManager_.logSwgEvent(
-      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-      true
+      AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGES,
+      false
     );
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
