@@ -513,8 +513,7 @@ export class ConfiguredRuntime {
     /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(
       this.win_,
-      this.activityPorts_,
-      this.dialogManager_
+      this.activityPorts_
     );
 
     /** @private @const {!Callbacks} */

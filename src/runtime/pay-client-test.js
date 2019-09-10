@@ -24,7 +24,6 @@ import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
 import {
   PayClient,
-  PayClientBindingPayjs,
   RedirectVerifierHelper,
 } from './pay-client';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
@@ -55,329 +54,7 @@ const INTEGR_DATA_OBJ_DECODED = {
   },
 };
 
-describes.realWin('PayClientBindingSwg', {}, env => {
-  let win;
-  let activityPorts, activitiesMock, port;
-  let dialogManagerMock;
-  let resultCallback, resultStub;
-  let payClient;
-  let resultIdsAttached;
-
-  beforeEach(() => {
-    win = env.win;
-    resultIdsAttached = [];
-    activityPorts = new ActivityPorts(win);
-    activityPorts.onResult = (requestId, callback) => {
-      if (requestId == 'swg-pay' || requestId == 'GPAY') {
-        resultCallback = callback;
-        resultIdsAttached.push(requestId);
-      }
-    };
-    port = new ActivityPort();
-    activitiesMock = sandbox.mock(activityPorts);
-    const dialogManager = new DialogManager(new GlobalDoc(win));
-    dialogManagerMock = sandbox.mock(dialogManager);
-    payClient = new PayClient(win, activityPorts, dialogManager);
-    resultStub = sandbox.stub();
-    payClient.onResponse(resultStub);
-  });
-
-  afterEach(() => {
-    activitiesMock.verify();
-    dialogManagerMock.verify();
-  });
-
-  /**
-   * @param {!ActivityResult} result
-   * @return {!Promise<!Object>}
-   */
-  function withResult(result) {
-    sandbox.stub(port, 'acceptResult').callsFake(() => Promise.resolve(result));
-    resultCallback(port);
-    expect(resultStub).to.be.calledOnce;
-    return resultStub.args[0][0];
-  }
-
-  it('should support SwG and GPay result IDs', () => {
-    expect(resultIdsAttached).to.contain('swg-pay');
-    expect(resultIdsAttached).to.contain('GPAY');
-  });
-
-  it('should select the right binding', () => {
-    expect(payClient.getType()).to.equal('SWG');
-  });
-
-  it('should have valid flow constructed', () => {
-    const popupWin = {};
-    dialogManagerMock
-      .expects('popupOpened')
-      .withExactArgs(popupWin)
-      .once();
-    activitiesMock
-      .expects('open')
-      .withExactArgs(
-        'GPAY',
-        'PAY_ORIGIN/gp/p/ui/pay?_=_',
-        '_blank',
-        {
-          '_client': 'SwG $internalRuntimeVersion$',
-          'paymentArgs': {'a': 1},
-        },
-        {}
-      )
-      .returns({targetWin: popupWin})
-      .once();
-    payClient.start({
-      'paymentArgs': {'a': 1},
-    });
-  });
-
-  it('should force redirect mode', () => {
-    dialogManagerMock
-      .expects('popupOpened')
-      .withExactArgs(null)
-      .once();
-    activitiesMock
-      .expects('open')
-      .withExactArgs(
-        'GPAY',
-        'PAY_ORIGIN/gp/p/ui/pay?_=_',
-        '_top',
-        {
-          '_client': 'SwG $internalRuntimeVersion$',
-          'paymentArgs': {'a': 1},
-        },
-        {}
-      )
-      .returns(undefined)
-      .once();
-    payClient.start(
-      {
-        'paymentArgs': {'a': 1},
-      },
-      {
-        forceRedirect: true,
-      }
-    );
-  });
-
-  it('should catch mismatching channel', () => {
-    dialogManagerMock.expects('popupClosed').once();
-    const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ);
-    return withResult(result).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/channel mismatch/);
-      }
-    );
-  });
-
-  it('should require secure channel for unencrypted payload', () => {
-    dialogManagerMock.expects('popupClosed').once();
-    const result = new ActivityResult(
-      ActivityResultCode.OK,
-      INTEGR_DATA_OBJ,
-      'REDIRECT',
-      'PAY_ORIGIN',
-      true,
-      false
-    );
-    return withResult(result).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/channel mismatch/);
-      }
-    );
-  });
-
-  it('should require secure channel for unverified payload', () => {
-    dialogManagerMock.expects('popupClosed').once();
-    const result = new ActivityResult(
-      ActivityResultCode.OK,
-      INTEGR_DATA_OBJ,
-      'REDIRECT',
-      'PAY_ORIGIN',
-      false,
-      true
-    );
-    return withResult(result).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/channel mismatch/);
-      }
-    );
-  });
-
-  it('should accept a correct payment response', () => {
-    dialogManagerMock.expects('popupClosed').once();
-    const result = new ActivityResult(
-      ActivityResultCode.OK,
-      INTEGR_DATA_OBJ,
-      'POPUP',
-      'PAY_ORIGIN',
-      true,
-      true
-    );
-    return withResult(result).then(data => {
-      expect(data).to.deep.equal(INTEGR_DATA_OBJ);
-    });
-  });
-
-  it('should accept a correct payment response as decoded obj', () => {
-    dialogManagerMock.expects('popupClosed').once();
-    const result = new ActivityResult(
-      ActivityResultCode.OK,
-      INTEGR_DATA_OBJ_DECODED,
-      'POPUP',
-      'PAY_ORIGIN',
-      true,
-      true
-    );
-    return withResult(result).then(data => {
-      expect(data).to.deep.equal(INTEGR_DATA_OBJ_DECODED);
-    });
-  });
-
-  it(
-    'should accept a correct payment response as encrypted obj' +
-      ' in PRODUCTION',
-    () => {
-      dialogManagerMock.expects('popupClosed').once();
-      const encryptedData = 'ENCRYPTED';
-      const encryptedResponse = {
-        redirectEncryptedCallbackData: encryptedData,
-        environment: 'PRODUCTION',
-        other: 'OTHER',
-      };
-      const result = new ActivityResult(
-        ActivityResultCode.OK,
-        encryptedResponse,
-        'POPUP',
-        'PAY_ORIGIN',
-        true,
-        true
-      );
-      const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch').callsFake(() =>
-        Promise.resolve({
-          json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED),
-        })
-      );
-      return withResult(result).then(data => {
-        expect(data.swgCallbackData).to.deep.equal(
-          INTEGR_DATA_OBJ_DECODED.swgCallbackData
-        );
-        expect(data.environment).to.equal('PRODUCTION');
-        expect(data.other).to.equal('OTHER');
-        // Verify xhr call.
-        expect(xhrFetchStub).to.be.calledOnce;
-        expect(xhrFetchStub).to.be.calledWith(
-          'PAY_ORIGIN/gp/p/apis/buyflow/process',
-          {
-            method: 'post',
-            headers: {'Accept': 'text/plain, application/json'},
-            credentials: 'include',
-            body: encryptedData,
-            mode: 'cors',
-          }
-        );
-      });
-    }
-  );
-
-  it('should accept a correct payment response as encrypted obj in SANDBOX', () => {
-    dialogManagerMock.expects('popupClosed').once();
-    const encryptedData = 'ENCRYPTED';
-    const encryptedResponse = {
-      redirectEncryptedCallbackData: encryptedData,
-      environment: 'SANDBOX',
-    };
-    const result = new ActivityResult(
-      ActivityResultCode.OK,
-      encryptedResponse,
-      'POPUP',
-      'PAY_ORIGIN',
-      true,
-      true
-    );
-    const xhrFetchStub = sandbox
-      .stub(Xhr.prototype, 'fetch')
-      .callsFake(() =>
-        Promise.resolve({json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)})
-      );
-    return withResult(result).then(data => {
-      expect(data.swgCallbackData).to.deep.equal(
-        INTEGR_DATA_OBJ_DECODED.swgCallbackData
-      );
-      expect(data.environment).to.equal('SANDBOX');
-      // Verify xhr call.
-      expect(xhrFetchStub).to.be.calledOnce;
-      expect(xhrFetchStub).to.be.calledWith(
-        'PAY_ORIGIN/gp/p/apis/buyflow/process',
-        {
-          method: 'post',
-          headers: {'Accept': 'text/plain, application/json'},
-          credentials: 'include',
-          body: encryptedData,
-          mode: 'cors',
-        }
-      );
-    });
-  });
-
-  it('should propagate cancelation', () => {
-    dialogManagerMock.expects('popupClosed').once();
-    sandbox
-      .stub(port, 'acceptResult')
-      .callsFake(() =>
-        Promise.reject(new DOMException('cancel', 'AbortError'))
-      );
-    resultCallback(port);
-    expect(resultStub).to.be.calledOnce;
-    return resultStub.args[0][0].then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/cancel/);
-      }
-    );
-  });
-
-  it('should propagate an error', () => {
-    dialogManagerMock.expects('popupClosed').once();
-    sandbox
-      .stub(port, 'acceptResult')
-      .callsFake(() => Promise.reject(new Error('intentional')));
-    resultCallback(port);
-    expect(resultStub).to.be.calledOnce;
-    return resultStub.args[0][0].then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/intentional/);
-      }
-    );
-  });
-});
-
-describes.realWin('PayClientBindingPayjs', {}, env => {
+describes.realWin('PayClient', {}, env => {
   let win;
   let resultStub;
   let activityPorts;
@@ -406,7 +83,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     };
     payClientStubs = {
       create: sandbox
-        .stub(PayClientBindingPayjs.prototype, 'createClient_')
+        .stub(PayClient.prototype, 'createClient_')
         .callsFake((options, handler) => {
           responseHandler = handler;
           return new PaymentsAsyncClient({});
@@ -416,7 +93,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
         'loadPaymentData'
       ),
     };
-    payClient = new PayClientBindingPayjs(win, activityPorts);
+    payClient = new PayClient(win, activityPorts);
     resultStub = sandbox.stub();
     payClient.onResponse(resultStub);
   });
@@ -434,12 +111,6 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     expect(resultStub).to.be.calledOnce;
     return resultStub.args[0][0];
   }
-
-  it('should select the right binding', () => {
-    expect(payClient.getType()).to.equal('PAYJS');
-    setExperiment(win, ExperimentFlags.GPAY_API, true);
-    expect(new PayClient(win, activityPorts).getType()).to.equal('PAYJS');
-  });
 
   it('should initalize correctly', () => {
     expect(payClientStubs.create).to.be.calledOnce.calledWith({
