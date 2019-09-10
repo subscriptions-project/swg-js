@@ -22,11 +22,10 @@ import {
 } from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
-import {getOnExperiments, isExperimentOn} from './experiments';
+import {getOnExperiments} from './experiments';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {getUuid} from '../utils/string';
-import {ExperimentFlags} from './experiment-flags';
 import {ClientEventManager} from './client-event-manager';
 
 /** @const {!Object<string, string>} */
@@ -84,12 +83,6 @@ export class AnalyticsService {
     this.eventManager_ = deps.eventManager();
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
-    );
-
-    /** @private @const {!boolean} */
-    this.logPropensityExperiment_ = isExperimentOn(
-      deps.win(),
-      ExperimentFlags.LOG_PROPENSITY_TO_SWG
     );
   }
 
@@ -249,9 +242,7 @@ export class AnalyticsService {
    * @return {boolean}
    */
   shouldLogPublisherEvents_() {
-    return (
-      this.logPropensityExperiment_ && this.deps_.config().enableSwgAnalytics
-    );
+    return this.deps_.config().enableSwgAnalytics === true;
   }
 
   /**
