@@ -21,9 +21,8 @@ import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {feArgs, feUrl} from './services';
 import {getStyle} from '../utils/style';
-import {setExperimentsStringForTesting, setExperiment} from './experiments';
+import {setExperimentsStringForTesting} from './experiments';
 import {ClientEventManager} from './client-event-manager';
-import {ExperimentFlags} from './experiment-flags';
 
 describes.realWin('AnalyticsService', {}, env => {
   let win;
@@ -326,33 +325,14 @@ describes.realWin('AnalyticsService', {}, env => {
     };
 
     it('should not log publisher events by default', () => {
-      const ensureNotLoggingPublisherEvents = function() {
-        testOriginator(EventOriginator.SWG_CLIENT, true);
-        testOriginator(EventOriginator.SWG_SERVER, true);
-        testOriginator(EventOriginator.AMP_CLIENT, false);
-        testOriginator(EventOriginator.PROPENSITY_CLIENT, false);
-        testOriginator(EventOriginator.PUBLISHER_CLIENT, false);
-      };
-
-      //ensure it doesn't log them by default
-      ensureNotLoggingPublisherEvents();
-
-      //ensure it requires the experiment to log publisher events
-      runtime.configure({enableSwgAnalytics: true});
-      ensureNotLoggingPublisherEvents();
-
-      //reinitialize the service after turning the experiment on
-      setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
-      analyticsService = new AnalyticsService(runtime);
-      runtime.configure({enableSwgAnalytics: false});
-      ensureNotLoggingPublisherEvents();
+      testOriginator(EventOriginator.SWG_CLIENT, true);
+      testOriginator(EventOriginator.SWG_SERVER, true);
+      testOriginator(EventOriginator.AMP_CLIENT, false);
+      testOriginator(EventOriginator.PROPENSITY_CLIENT, false);
+      testOriginator(EventOriginator.PUBLISHER_CLIENT, false);
     });
 
-    it('should log publisher events if experiment is on', () => {
-      //reinitialize the service after turning the experiment on
-      //ensure if we activate both things it properly logs all origins
-      setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
-      analyticsService = new AnalyticsService(runtime);
+    it('should log publisher events if configured', () => {
       runtime.configure({enableSwgAnalytics: true});
       testOriginator(EventOriginator.SWG_CLIENT, true);
       testOriginator(EventOriginator.AMP_CLIENT, true);
