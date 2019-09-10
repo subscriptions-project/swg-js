@@ -347,7 +347,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, false);
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
 
     activitiesMock
       .expects('openIframe')
@@ -385,7 +385,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, false);
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
@@ -445,7 +445,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .once();
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, false);
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
@@ -505,7 +505,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, false);
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)
@@ -580,7 +580,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, false);
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)
@@ -628,7 +628,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, false)
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true)
       .once();
     sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);
@@ -661,7 +661,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, false)
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true)
       .once();
     sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);

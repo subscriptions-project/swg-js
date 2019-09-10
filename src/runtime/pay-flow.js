@@ -233,7 +233,7 @@ export class PayCompleteFlow {
 
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
-      false
+      true
     );
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
