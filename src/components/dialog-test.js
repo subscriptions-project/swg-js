@@ -78,13 +78,13 @@ describes.realWin('Dialog', {}, env => {
       expect(getStyle(iframe, 'display')).to.equal('block');
     });
 
-    it('should have created fade background', async function*() {
+    it('should have created fade background', async function() {
       expect(graypaneStubs.attach).to.not.be.called;
       const openedDialog = await dialog.open(NO_ANIMATE);
       expect(graypaneStubs.attach).to.be.calledOnce;
       expect(graypaneStubs.show).to.not.be.called;
 
-      yield openedDialog.openView(view);
+      await openedDialog.openView(view);
       expect(graypaneStubs.show).to.be.calledOnce.calledWith(ANIMATE);
       expect(graypaneStubs.attach).to.be.calledOnce;
       expect(dialog.graypane_.fadeBackground_.style.zIndex).to.equal(
@@ -92,10 +92,10 @@ describes.realWin('Dialog', {}, env => {
       );
     });
 
-    it('should open dialog with animation', async function*() {
+    it('should open dialog with animation', async function() {
       immediate();
       await dialog.open();
-      yield dialog.animating_;
+      await dialog.animating_;
 
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
@@ -104,13 +104,13 @@ describes.realWin('Dialog', {}, env => {
       expect(graypaneStubs.show).to.not.be.called;
     });
 
-    it('should open dialog as hidden', async function*() {
+    it('should open dialog as hidden', async function() {
       immediate();
       await dialog.open(HIDDEN);
 
       expect(getStyle(dialog.getElement(), 'visibility')).to.equal('hidden');
       expect(getStyle(dialog.getElement(), 'opacity')).to.equal('0');
-      yield dialog.animating_;
+      await dialog.animating_;
       expect(graypaneStubs.attach).to.be.calledOnce;
       expect(graypaneStubs.show).to.not.be.called;
     });
