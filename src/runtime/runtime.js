@@ -69,7 +69,7 @@ import {isBoolean} from '../utils/types';
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
 
-/** @private {Runtime} */
+/** @private {!Runtime} */
 let runtimeInstance_;
 
 /**
@@ -683,7 +683,7 @@ export class ConfiguredRuntime {
       }
     }
     // Throw error string if it's not null
-    assert(!error, error);
+    assert(!error, error || undefined);
     // Assign.
     Object.assign(this.config_, config);
   }
@@ -735,8 +735,8 @@ export class ConfiguredRuntime {
   showOffers(opt_options) {
     return this.documentParsed_.then(() => {
       const errorMessage =
-        'The showOffers() method cannot be used to update \
-a subscription. Use the showUpdateOffers() method instead.';
+        'The showOffers() method cannot be used to update a subscription. ' +
+        'Use the showUpdateOffers() method instead.';
       assert(opt_options ? !opt_options['oldSku'] : true, errorMessage);
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
@@ -751,9 +751,9 @@ a subscription. Use the showUpdateOffers() method instead.';
     );
     return this.documentParsed_.then(() => {
       const errorMessage =
-        'The showUpdateOffers() method cannot be used for \
-new subscribers. Use the showOffers() method instead.';
-      assert(opt_options ? !opt_options['oldSku'] : true, errorMessage);
+        'The showUpdateOffers() method cannot be used for new subscribers. ' +
+        'Use the showOffers() method instead.';
+      assert(opt_options ? !!opt_options['oldSku'] : true, errorMessage);
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
     });
@@ -846,8 +846,8 @@ new subscribers. Use the showOffers() method instead.';
   /** @override */
   subscribe(sku) {
     const errorMessage =
-      'The subscribe() method can only take a sku as its \
-parameter; for subscription updates please use the updateSubscription() method';
+      'The subscribe() method can only take a sku as its parameter; ' +
+      'for subscription updates please use the updateSubscription() method';
     assert(typeof sku === 'string', errorMessage);
     return this.documentParsed_.then(() => {
       return new PayStartFlow(this, sku).start();
@@ -861,8 +861,8 @@ parameter; for subscription updates please use the updateSubscription() method';
       'Not yet launched!'
     );
     const errorMessage =
-      'The updateSubscription() method should be used for \
-subscription updates; for new subscriptions please use the subscribe() method';
+      'The updateSubscription() method should be used for subscription ' +
+      'updates; for new subscriptions please use the subscribe() method';
     assert(
       subscriptionRequest ? subscriptionRequest['oldSku'] : false,
       errorMessage

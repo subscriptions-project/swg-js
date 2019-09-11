@@ -85,7 +85,7 @@ export class OffersFlow {
 
       // Remove old sku from offers if in list.
       let skuList = feArgsObj['skus'];
-      const /** @type {String} */ oldSku = feArgsObj['oldSku'];
+      const /** @type {string} */ oldSku = feArgsObj['oldSku'];
       skuList = skuList.filter(sku => sku !== oldSku);
 
       assert(
@@ -98,7 +98,7 @@ export class OffersFlow {
     // Redirect to payments if only one upgrade option is passed.
     if (feArgsObj['skus'] && feArgsObj['skus'].length === 1) {
       const sku = feArgsObj['skus'][0];
-      const /** @type {String} */ oldSku = feArgsObj['oldSku'];
+      const /** @type {string|undefined} */ oldSku = feArgsObj['oldSku'];
       // Update subscription triggers experimental flag if oldSku is passed,
       // so we need to check for oldSku to decide if it needs to be sent.
       // Otherwise we might accidentally block a regular subscription request.
@@ -203,8 +203,8 @@ export class OffersFlow {
           }
           if (result['oldSku']) {
             new PayStartFlow(this.deps_, {
-              skuId: result['sku'],
-              oldSku: result['oldSku'],
+              skuId: /** @type {string} */ (result['sku']),
+              oldSku: /** @type {string|undefined} */ (result['oldSku']),
               replaceSkuProrationMode: this.prorationMode,
             }).start();
             return;
@@ -228,6 +228,7 @@ export class OffersFlow {
 
       return this.dialogManager_.openView(this.activityIframeView_);
     }
+    return Promise.resolve();
   }
 }
 

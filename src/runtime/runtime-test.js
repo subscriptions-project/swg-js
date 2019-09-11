@@ -1383,9 +1383,11 @@ a subscription. Use the showUpdateOffers() method instead.'
         offersFlow = this;
         return new Promise(() => {});
       });
-      runtime.showUpdateOffers({list: 'other'});
+      runtime.showUpdateOffers({oldSku: 'other', skus: ['sku1', 'sku2']});
       return runtime.documentParsed_.then(() => {
-        expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+        expect(offersFlow.activityIframeView_.args_['list']).to.equal(
+          'default'
+        );
       });
     });
 

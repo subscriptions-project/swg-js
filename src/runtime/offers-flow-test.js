@@ -249,8 +249,8 @@ describes.realWin('OffersFlow', {}, env => {
       .expects('triggerFlowStarted')
       .withExactArgs('subscribe', {
         skuId: 'sku2',
-        oldSkuId: 'sku1',
-        replaceSkuProrationMode: 'IMMEDIATE_WITH_TIME_PRORATION',
+        oldSku: 'sku1',
+        replaceSkuProrationMode: undefined,
       })
       .once();
     offersFlow = new OffersFlow(runtime, {
