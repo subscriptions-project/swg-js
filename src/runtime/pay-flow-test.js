@@ -220,7 +220,10 @@ describes.realWin('PayStartFlow', {}, env => {
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
-          'swg': subscriptionRequest,
+          'swg': Object.assign(subscriptionRequest, {
+            replaceSkuProrationMode:
+              ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
+          }),
           'i': {
             'startTimeMs': sandbox.match.any,
             'googleTransactionId': sandbox.match(transactionIdRegex),
