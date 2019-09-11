@@ -27,11 +27,16 @@ import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {getUuid} from '../utils/string';
 import {ClientEventManager} from './client-event-manager';
+import {parseJson} from '../utils/json';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
   display: 'none',
 };
+
+//the UUID will expire after 2 hours of inactivity
+const MS_FOR_TRANSACTION_KEY_TO_EXPIRE = 7200000;
+const SESSION_STORE_KEY = 'SWG_ANALYTICS_TRANSACTION_ID';
 
 export class AnalyticsService {
   /**
@@ -71,8 +76,6 @@ export class AnalyticsService {
      */
     this.context_ = new AnalyticsContext();
 
-    this.context_.setTransactionId(getUuid());
-
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;
 
@@ -84,6 +87,28 @@ export class AnalyticsService {
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
     );
+  }
+
+  /**
+   * @return {string}
+   */
+  guaranteeTransactionId() {
+    const store = this.doc_.getWin().sessionStorage;
+    let key = parseJson(store.getItem(SESSION_STORE_KEY));
+    const msSinceLastAccess = !key
+      ? null
+      : Date.now() - key['lastAccess'].now();
+
+    if (!key || msSinceLastAccess > MS_FOR_TRANSACTION_KEY_TO_EXPIRE) {
+      key = {uuid: getUuid()};
+      this.setTransactionId(key.uuid);
+    }
+    key['lastAccess'] = new Date();
+    store.setItem(
+      SESSION_STORE_KEY,
+      JSON.stringify(/** @type {!JsonObject} */ (key))
+    );
+    return key['uuid'];
   }
 
   /**
@@ -234,6 +259,7 @@ export class AnalyticsService {
    */
   onMessage(callback) {
     this.lastAction_ = this.start_().then(port => {
+      this.guaranteeTransactionId();
       port.onMessageDeprecated(callback);
     });
   }
