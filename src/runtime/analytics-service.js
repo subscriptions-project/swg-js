@@ -22,11 +22,10 @@ import {
 } from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
-import {getOnExperiments, isExperimentOn} from './experiments';
+import {getOnExperiments} from './experiments';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
-import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
-import {ExperimentFlags} from './experiment-flags';
+import {getUuid} from '../utils/string';
 import {ClientEventManager} from './client-event-manager';
 
 /** @const {!Object<string, string>} */
@@ -72,7 +71,7 @@ export class AnalyticsService {
      */
     this.context_ = new AnalyticsContext();
 
-    this.context_.setTransactionId(uuidFast());
+    this.context_.setTransactionId(getUuid());
 
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;
@@ -84,12 +83,6 @@ export class AnalyticsService {
     this.eventManager_ = deps.eventManager();
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
-    );
-
-    /** @private @const {!boolean} */
-    this.logPropensityExperiment_ = isExperimentOn(
-      deps.win(),
-      ExperimentFlags.LOG_PROPENSITY_TO_SWG
     );
   }
 
@@ -249,9 +242,7 @@ export class AnalyticsService {
    * @return {boolean}
    */
   shouldLogPublisherEvents_() {
-    return (
-      this.logPropensityExperiment_ && this.deps_.config().enableSwgAnalytics
-    );
+    return this.deps_.config().enableSwgAnalytics === true;
   }
 
   /**
