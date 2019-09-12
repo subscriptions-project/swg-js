@@ -15,7 +15,11 @@
  */
 
 import {ActivityIframePort} from '../components/activities';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
@@ -76,7 +80,7 @@ describes.realWin('AnalyticsService', {}, env => {
     setExperimentsStringForTesting('');
   });
 
-  describe('AnalyticsService', () => {
+  describe('Construction', () => {
     it('should be listening for events from events manager', () => {
       expect(registeredCallback).to.not.be.null;
     });
@@ -95,7 +99,9 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.setTransactionId(txId);
       expect(analyticsService.getTransactionId()).to.equal(txId);
     });
+  });
 
+  describe('Communications', () => {
     it('should yield onMessage callback and call openIframe', () => {
       let messageReceived;
       analyticsService.onMessage(data => {
@@ -180,7 +186,17 @@ describes.realWin('AnalyticsService', {}, env => {
           expect(meta.getIsFromUserAction()).to.be.true;
         });
     });
+  });
 
+  it('should not log the subscription state change event', () => {
+    analyticsService.lastAction_ = null;
+    event.eventType = AnalyticsEvent.EVENT_SUBSCRIPTION_STATE;
+    registeredCallback(event);
+    expect(analyticsService.lastAction_).to.be.null;
+    event.eventType = defEventType;
+  });
+
+  describe('Context, experiments & labels', () => {
     it('should create correct context for logging', () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       AnalyticsService.prototype.getQueryString_ = () => {
@@ -309,7 +325,9 @@ describes.realWin('AnalyticsService', {}, env => {
         'L3',
       ]);
     });
+  });
 
+  describe('Publisher Events', () => {
     /**
      * Ensure that analytics service is only logging events from the passed
      * originator if shouldLog is true.
@@ -317,11 +335,13 @@ describes.realWin('AnalyticsService', {}, env => {
      * @param {boolean} shouldLog
      */
     const testOriginator = function(originator, shouldLog) {
+      const prevOriginator = event.eventOriginator;
       analyticsService.lastAction_ = null;
       event.eventOriginator = originator;
       registeredCallback(event);
       const didLog = analyticsService.lastAction_ !== null;
       expect(shouldLog).to.equal(didLog);
+      event.eventOriginator = prevOriginator;
     };
 
     it('should not log publisher events by default', () => {
@@ -339,13 +359,32 @@ describes.realWin('AnalyticsService', {}, env => {
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
       testOriginator(EventOriginator.PUBLISHER_CLIENT, true);
     });
+  });
 
-    it('should not log the subscription state change event', () => {
-      analyticsService.lastAction_ = null;
-      event.eventType = AnalyticsEvent.EVENT_SUBSCRIPTION_STATE;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.be.null;
-      event.eventType = defEventType;
+  describe('EventParams', () => {
+    it('should ignore additionalParameters', () => {
+      const logRequest = analyticsService.createLogRequest_(event);
+      expect(logRequest.setParams()).to.be.undefined;
+    });
+
+    it('should process EventParams', () => {
+      event.additionalParameters = new EventParams();
+      const logRequest = analyticsService.createLogRequest_(event);
+      expect(logRequest.getParams()).to.be.instanceOf(EventParams);
+      event.additionalParameters = {};
+    });
+  });
+
+  describe('getHasLogged', () => {
+    it('should initially not have logged anything', () => {
+      expect(analyticsService.getHasLogged()).to.be.false;
+    });
+
+    it('should remember it logged something', async function() {
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+      analyticsService.handleClientEvent_(event);
+      await analyticsService.lastAction_;
+      expect(analyticsService.getHasLogged()).to.be.true;
     });
   });
 });

@@ -19,6 +19,7 @@ import {
   AnalyticsContext,
   AnalyticsEventMeta,
   AnalyticsEvent,
+  EventParams,
 } from '../proto/api_messages';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
@@ -70,6 +71,9 @@ export class AnalyticsService {
     this.args_ = feArgs({
       publicationId: this.publicationId_,
     });
+
+    /** @private @type {!boolean} */
+    this.everLogged_ = false;
 
     /**
      * @private @const {!AnalyticsContext}
@@ -237,11 +241,18 @@ export class AnalyticsService {
   }
 
   /**
+   * Returns true if any logs have already be sent to the analytics server.
+   * @return {boolean}
+   */
+  getHasLogged() {
+    return this.everLogged_;
+  }
+
+  /**
    * @param {!../api/client-event-manager-api.ClientEvent} event
    * @return {!AnalyticsRequest}
    */
   createLogRequest_(event) {
-    //ignore event.additionalParameters.  It may have data we shouldn't log
     const meta = new AnalyticsEventMeta();
     meta.setEventOriginator(event.eventOriginator);
     meta.setIsFromUserAction(event.isFromUserAction);
@@ -250,6 +261,9 @@ export class AnalyticsService {
     request.setEvent(event.eventType);
     request.setContext(this.context_);
     request.setMeta(meta);
+    if (event.additionalParameters instanceof EventParams) {
+      request.setParams(event.additionalParameters);
+    } // Ignore event.additionalParameters.  It may have data we shouldn't log.
     return request;
   }
 
@@ -290,6 +304,7 @@ export class AnalyticsService {
     }
     this.lastAction_ = this.start_().then(port => {
       const request = this.createLogRequest_(event);
+      this.everLogged_ = true;
       port.execute(request);
     });
   }

@@ -75,6 +75,19 @@ Running the `gulp` command will compile the code and start up a Node.js server l
 
 You can browse the [http://localhost:8000/examples](http://localhost:8000/examples) directory to see some demo pages for various SwG components and combination of components.
 
+## Code quality and style
+
+SwG uses [Eslint](https://eslint.org/) to ensure code quality and [Prettier](https://prettier.io/) to standardize code style. For easy development, here are two recommendations:
+- Use a code editor with Eslint support to make sure that your code satisfies all of SwG's quality and style rules. [Here](https://eslint.org/docs/user-guide/integrations#editors) is a list of editors with Eslint extension support.
+- Set your editor to automatically fix Eslint errors in your code on save.
+
+For example, if you use [Visual Studio Code](https://code.visualstudio.com/), you can install its [Eslint plugin](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint), and enable the `eslint.autoFixOnSave` setting.
+
+Alternatively, you can manually fix lint errors in your code by running:
+```
+gulp lint --local_changes --fix
+```
+
 ## DNS Aliases
 
 For some local testing we refer to fake local URLs in order to simulate referencing third party URLs.  This requires extra setup so your browser will know that these URLs actually point to your local server.
