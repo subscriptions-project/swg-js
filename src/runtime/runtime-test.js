@@ -1363,14 +1363,9 @@ a subscription. Use the showUpdateOffers() method instead.'
 
     it('should call "showUpdateOffers"', () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-      let offersFlow;
-      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
-        offersFlow = this;
-        return new Promise(() => {});
-      });
       try {
         runtime.showUpdateOffers();
-      }catch (err) {
+      } catch (err) {
         expect(err)
           .to.be.an.instanceOf(Error)
           .with.property(
