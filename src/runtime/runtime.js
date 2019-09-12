@@ -753,7 +753,7 @@ export class ConfiguredRuntime {
       const errorMessage =
         'The showUpdateOffers() method cannot be used for new subscribers. ' +
         'Use the showOffers() method instead.';
-      assert(opt_options ? !!opt_options['oldSku'] : true, errorMessage);
+      assert(opt_options ? !!opt_options['oldSku'] : false, errorMessage);
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
     });

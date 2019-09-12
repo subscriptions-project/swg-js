@@ -1368,12 +1368,16 @@ a subscription. Use the showUpdateOffers() method instead.'
         offersFlow = this;
         return new Promise(() => {});
       });
-      runtime.showUpdateOffers();
-      return runtime.documentParsed_.then(() => {
-        expect(offersFlow.activityIframeView_.args_['list']).to.equal(
-          'default'
-        );
-      });
+      try {
+        runtime.showUpdateOffers();
+      }catch (err) {
+        expect(err)
+          .to.be.an.instanceOf(Error)
+          .with.property(
+            'The showUpdateOffers() method cannot be used for \
+new subscribers. Use the showOffers() method instead.'
+          );
+      }
     });
 
     it('should call "showUpdateOffers" with options', () => {
