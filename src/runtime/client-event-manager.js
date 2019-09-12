@@ -149,18 +149,14 @@ export class ClientEventManager {
    * Creates an event with the arguments provided and calls logEvent.
    * @param {!AnalyticsEvent} eventType
    * @param {?boolean=} isFromUserAction
-   * @param {?Object=} additionalParameters
+   * @param {../proto/api_messages.EventParams=} eventParams
    */
-  logSwgEvent(
-    eventType,
-    isFromUserAction = false,
-    additionalParameters = null
-  ) {
+  logSwgEvent(eventType, isFromUserAction = false, eventParams = null) {
     this.logEvent({
       eventType,
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction,
-      additionalParameters,
+      additionalParameters: eventParams,
     });
   }
 }
