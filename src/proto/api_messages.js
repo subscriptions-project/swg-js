@@ -581,6 +581,118 @@ class EventParams {
 /**
  * @implements {Message}
  */
+class LinkSaveTokenRequest {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?string} */
+    this.authCode_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?string} */
+    this.token_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getAuthCode() {
+    return this.authCode_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setAuthCode(value) {
+    this.authCode_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getToken() {
+    return this.token_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setToken(value) {
+    this.token_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.authCode_,  // field 1 - auth_code
+      this.token_,  // field 2 - token
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'LinkSaveTokenRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class LinkingInfoResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.requested_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getRequested() {
+    return this.requested_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setRequested(value) {
+    this.requested_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.requested_,  // field 1 - requested
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'LinkingInfoResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class SkuSelectedResponse {
  /**
   * @param {!Array=} data
@@ -772,6 +884,8 @@ const PROTO_MAP = {
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
   'EventParams': EventParams,
+  'LinkSaveTokenRequest': LinkSaveTokenRequest,
+  'LinkingInfoResponse': LinkingInfoResponse,
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
@@ -813,6 +927,8 @@ export {
   AnalyticsRequest,
   EventOriginator,
   EventParams,
+  LinkSaveTokenRequest,
+  LinkingInfoResponse,
   Message,
   SkuSelectedResponse,
   SmartBoxMessage,
