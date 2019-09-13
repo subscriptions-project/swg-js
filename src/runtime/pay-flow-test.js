@@ -152,7 +152,7 @@ describes.realWin('PayStartFlow', {}, env => {
   it('should have valid replace flow constructed', () => {
     const subscriptionRequest = {
       skuId: 'newSku',
-      oldSkuId: 'oldSku',
+      oldSku: 'oldSku',
       publicationId: 'pub1',
       replaceSkuProrationMode:
         ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
@@ -173,7 +173,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'playEnvironment': '$playEnvironment$',
           'swg': {
             skuId: 'newSku',
-            oldSkuId: 'oldSku',
+            oldSku: 'oldSku',
             publicationId: 'pub1',
             replaceSkuProrationMode:
               ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
@@ -200,7 +200,7 @@ describes.realWin('PayStartFlow', {}, env => {
   it('should have valid replace flow constructed (no proration mode)', () => {
     const subscriptionRequest = {
       skuId: 'newSku',
-      oldSkuId: 'oldSku',
+      oldSku: 'oldSku',
       publicationId: 'pub1',
     };
     const replaceFlowNoProrationMode = new PayStartFlow(
@@ -220,7 +220,10 @@ describes.realWin('PayStartFlow', {}, env => {
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
-          'swg': subscriptionRequest,
+          'swg': Object.assign(subscriptionRequest, {
+            replaceSkuProrationMode:
+              ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
+          }),
           'i': {
             'startTimeMs': sandbox.match.any,
             'googleTransactionId': sandbox.match(transactionIdRegex),
