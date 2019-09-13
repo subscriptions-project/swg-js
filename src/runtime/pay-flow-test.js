@@ -15,7 +15,7 @@
  */
 
 import {ActivityPort} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
@@ -750,21 +750,111 @@ describes.realWin('PayCompleteFlow', {}, env => {
         });
     });
 
-    it('should start flow with a transaction id', () => {
-      analyticsMock
-        .expects('setTransactionId')
-        .withExactArgs('NEW_TRANSACTION_ID')
-        .once();
-      const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
-      data['googleTransactionId'] = 'NEW_TRANSACTION_ID';
-      return responseCallback(Promise.resolve(data))
-        .then(() => {
-          return triggerPromise;
-        })
-        .then(response => {
-          expect(response).to.be.instanceof(SubscribeResponse);
-          expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-        });
+    describe('Transaction IDs', () => {
+      let hasLogged;
+
+      beforeEach(() => {
+        hasLogged = false;
+        sandbox
+          .stub(runtime.analytics(), 'getHasLogged')
+          .callsFake(() => hasLogged);
+      });
+
+      it('should log a change in TX ID without previous logging', () => {
+        analyticsMock
+          .expects('setTransactionId')
+          .withExactArgs('NEW_TRANSACTION_ID')
+          .once();
+
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(
+            AnalyticsEvent.EVENT_GPAY_CANNOT_CONFIRM_TX_ID,
+            true,
+            undefined
+          );
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+        data['googleTransactionId'] = 'NEW_TRANSACTION_ID';
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
+
+      it('should log a change in TX ID with previous logging', () => {
+        hasLogged = true;
+        const newTxId = 'NEW_TRANSACTION_ID';
+        const eventParams = new EventParams();
+        eventParams.setGpayTransactionId(newTxId);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_CHANGED_TX_ID, true, eventParams);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+        data['googleTransactionId'] = newTxId;
+
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
+
+      it('log no TX ID from gPay and that logging has occured', () => {
+        hasLogged = true;
+        const eventParams = new EventParams();
+        eventParams.setHadLogged(hasLogged);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
+
+      it('log no TX ID from gPay and that logging has not occured', () => {
+        hasLogged = false;
+        const eventParams = new EventParams();
+        eventParams.setHadLogged(hasLogged);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
     });
 
     it('should start flow on correct payment response w/o entitlements', () => {
