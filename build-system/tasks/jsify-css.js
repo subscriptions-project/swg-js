@@ -60,28 +60,32 @@ const cssnano = cssnanoDecl({
  * @return {!Promise<string>} that resolves with the css content after
  *    processing
  */
-exports.jsifyCssAsync = function(filename, opt_options) {
+exports.jsifyCssAsync = async (filename, opt_options) => {
   const options = Object.assign(
     {
       sourceMap: true,
     },
-    opt_options || {}
+    opt_options,
+    {}
   );
-  const css = fs.readFileSync(filename, 'utf8');
+  const originalCss = fs.readFileSync(filename, 'utf8');
   const transformers = [cssprefixer, cssnano];
-  return postcss(transformers)
+  const result = await postcss(transformers)
     .use(postcssImport)
-    .process(css.toString(), {
+    .process(originalCss.toString(), {
       'from': filename,
-    })
-    .then(function(result) {
-      result.warnings().forEach(function(warn) {
-        $$.util.log($$.util.colors.red(warn.toString()));
-      });
-      let css = result.css;
-      if (options.sourceMap) {
-        css += '\n/*# sourceURL=/' + filename + '*/';
-      }
-      return css;
     });
+
+  // Log warnings.
+  result.warnings().forEach(warning => {
+    $$.util.log($$.util.colors.red(warning.toString()));
+  });
+
+  // Add source URLs.
+  let newCss = result.css;
+  if (options.sourceMap) {
+    newCss += '\n/*# sourceURL=/' + filename + '*/';
+  }
+
+  return newCss;
 };
