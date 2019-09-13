@@ -19,6 +19,7 @@ import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType} from '../api/subscriptions';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {feArgs, feUrl} from './services';
+import {assert} from '../utils/log';
 import {
   SkuSelectedResponse,
   AlreadySubscribedResponse,
@@ -63,20 +64,59 @@ export class OffersFlow {
       isClosable = false; // Default is to hide Close button.
     }
 
+    const feArgsObj = {
+      'productId': deps.pageConfig().getProductId(),
+      'publicationId': deps.pageConfig().getPublicationId(),
+      'showNative': deps.callbacks().hasSubscribeRequestCallback(),
+      'productType': ProductType.SUBSCRIPTION,
+      'list': (options && options.list) || 'default',
+      'skus': (options && options.skus) || null,
+      'isClosable': isClosable,
+    };
+
+    this.prorationMode = feArgsObj['replaceSkuProrationMode'] || undefined;
+
+    if (options && options.oldSku) {
+      feArgsObj['oldSku'] = options.oldSku;
+    }
+
+    if (feArgsObj['oldSku']) {
+      assert(feArgsObj['skus'], 'Need a sku list if old sku is provided!');
+
+      // Remove old sku from offers if in list.
+      let skuList = feArgsObj['skus'];
+      const /** @type {string} */ oldSku = feArgsObj['oldSku'];
+      skuList = skuList.filter(sku => sku !== oldSku);
+
+      assert(
+        skuList.length > 0,
+        'Sku list only contained offer user already has'
+      );
+      feArgsObj['skus'] = skuList;
+    }
+
+    // Redirect to payments if only one upgrade option is passed.
+    if (feArgsObj['skus'] && feArgsObj['skus'].length === 1) {
+      const sku = feArgsObj['skus'][0];
+      const /** @type {string|undefined} */ oldSku = feArgsObj['oldSku'];
+      // Update subscription triggers experimental flag if oldSku is passed,
+      // so we need to check for oldSku to decide if it needs to be sent.
+      // Otherwise we might accidentally block a regular subscription request.
+      if (oldSku) {
+        new PayStartFlow(this.deps_, {
+          skuId: sku,
+          oldSku,
+          replaceSkuProrationMode: this.prorationMode,
+        }).start();
+        return;
+      }
+    }
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       feUrl('/offersiframe'),
-      feArgs({
-        'productId': deps.pageConfig().getProductId(),
-        'publicationId': deps.pageConfig().getPublicationId(),
-        'showNative': deps.callbacks().hasSubscribeRequestCallback(),
-        'productType': ProductType.SUBSCRIPTION,
-        'list': (options && options.list) || 'default',
-        'skus': (options && options.skus) || null,
-        'isClosable': isClosable,
-      }),
+      feArgs(feArgsObj),
       /* shouldFadeBody */ true
     );
   }
@@ -127,54 +167,68 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
-    // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS);
-    this.activityIframeView_.onCancel(() => {
-      this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
-    });
-    if (isExperimentOn(this.win_, ExperimentFlags.HEJIRA)) {
-      this.activityIframeView_.on(
-        SkuSelectedResponse,
-        this.startPayFlow_.bind(this)
-      );
-      this.activityIframeView_.on(
-        AlreadySubscribedResponse,
-        this.handleLinkRequest_.bind(this)
-      );
-      this.activityIframeView_.on(
-        ViewSubscriptionsResponse,
-        this.startNativeFlow_.bind(this)
-      );
-    } else {
-      // If result is due to OfferSelection, redirect to payments.
-      this.activityIframeView_.onMessageDeprecated(result => {
-        if (result['alreadySubscribed']) {
-          const alreadySubscribedResponse = new AlreadySubscribedResponse();
-          alreadySubscribedResponse.setSubscriberOrMember(true);
-          if (result['linkRequested']) {
-            alreadySubscribedResponse.setLinkRequested(true);
-          }
-          this.handleLinkRequest_(alreadySubscribedResponse);
-          return;
-        }
-        if (result['sku']) {
-          const skuSelectedResponse = new SkuSelectedResponse();
-          skuSelectedResponse.setSku(result['sku']);
-          this.startPayFlow_(skuSelectedResponse);
-          return;
-        }
-        if (result['native']) {
-          const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
-          viewSubscriptionsResponse.setNative(true);
-          this.startNativeFlow_(viewSubscriptionsResponse);
-          return;
-        }
+    if (this.activityIframeView_) {
+      // So no error if skipped to payment screen.
+      // Start/cancel events.
+      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS);
+      this.activityIframeView_.onCancel(() => {
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
       });
+      if (isExperimentOn(this.win_, ExperimentFlags.HEJIRA)) {
+        this.activityIframeView_.on(
+          SkuSelectedResponse,
+          this.startPayFlow_.bind(this)
+        );
+        this.activityIframeView_.on(
+          AlreadySubscribedResponse,
+          this.handleLinkRequest_.bind(this)
+        );
+        this.activityIframeView_.on(
+          ViewSubscriptionsResponse,
+          this.startNativeFlow_.bind(this)
+        );
+      } else {
+        // If result is due to OfferSelection, redirect to payments.
+        this.activityIframeView_.onMessageDeprecated(result => {
+          if (result['alreadySubscribed']) {
+            const alreadySubscribedResponse = new AlreadySubscribedResponse();
+            alreadySubscribedResponse.setSubscriberOrMember(true);
+            if (result['linkRequested']) {
+              alreadySubscribedResponse.setLinkRequested(true);
+            }
+            this.handleLinkRequest_(alreadySubscribedResponse);
+            return;
+          }
+          if (result['oldSku']) {
+            new PayStartFlow(this.deps_, {
+              skuId: /** @type {string} */ (result['sku']),
+              oldSku: /** @type {string|undefined} */ (result['oldSku']),
+              replaceSkuProrationMode: this.prorationMode,
+            }).start();
+            return;
+          }
+          if (result['sku']) {
+            const skuSelectedResponse = new SkuSelectedResponse();
+            skuSelectedResponse.setSku(result['sku']);
+            this.startPayFlow_(skuSelectedResponse);
+            return;
+          }
+          if (result['native']) {
+            const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
+            viewSubscriptionsResponse.setNative(true);
+            this.startNativeFlow_(viewSubscriptionsResponse);
+            return;
+          }
+        });
+      }
+
+      this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_OFFERS);
+
+      return this.dialogManager_.openView(this.activityIframeView_);
     }
-
-    this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_OFFERS);
-
-    return this.dialogManager_.openView(this.activityIframeView_);
+    return Promise.resolve();
   }
 }
 

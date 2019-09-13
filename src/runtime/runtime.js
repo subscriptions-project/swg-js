@@ -69,7 +69,7 @@ import {isBoolean} from '../utils/types';
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
 
-/** @private {Runtime} */
+/** @private {!Runtime} */
 let runtimeInstance_;
 
 /**
@@ -79,9 +79,7 @@ let runtimeInstance_;
  * @return {!Runtime}
  */
 export function getRuntime() {
-  if (!runtimeInstance_) {
-    throw new Error('not initialized yet');
-  }
+  assert(runtimeInstance_, 'not initialized yet');
   return runtimeInstance_;
 }
 
@@ -240,9 +238,7 @@ export class Runtime {
 
   /** @override */
   init(productOrPublicationId) {
-    if (this.committed_) {
-      throw new Error('already configured');
-    }
+    assert(!this.committed_, 'already configured');
     this.productOrPublicationId_ = productOrPublicationId;
   }
 
@@ -297,6 +293,13 @@ export class Runtime {
   }
 
   /** @override */
+  showUpdateOffers(opt_options) {
+    return this.configured_(true).then(runtime =>
+      runtime.showUpdateOffers(opt_options)
+    );
+  }
+
+  /** @override */
   showSubscribeOption(opt_options) {
     return this.configured_(true).then(runtime =>
       runtime.showSubscribeOption(opt_options)
@@ -339,9 +342,14 @@ export class Runtime {
   }
 
   /** @override */
-  subscribe(skuOrSubscriptionRequest) {
+  subscribe(sku) {
+    return this.configured_(true).then(runtime => runtime.subscribe(sku));
+  }
+
+  /** @override */
+  updateSubscription(subscriptionRequest) {
     return this.configured_(true).then(runtime =>
-      runtime.subscribe(skuOrSubscriptionRequest)
+      runtime.updateSubscription(subscriptionRequest)
     );
   }
 
@@ -675,7 +683,7 @@ export class ConfiguredRuntime {
       }
     }
     // Throw error string if it's not null
-    assert(!error, error);
+    assert(!error, error || undefined);
     // Assign.
     Object.assign(this.config_, config);
   }
@@ -726,6 +734,26 @@ export class ConfiguredRuntime {
   /** @override */
   showOffers(opt_options) {
     return this.documentParsed_.then(() => {
+      const errorMessage =
+        'The showOffers() method cannot be used to update a subscription. ' +
+        'Use the showUpdateOffers() method instead.';
+      assert(opt_options ? !opt_options['oldSku'] : true, errorMessage);
+      const flow = new OffersFlow(this, opt_options);
+      return flow.start();
+    });
+  }
+
+  /** @override */
+  showUpdateOffers(opt_options) {
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
+      'Not yet launched!'
+    );
+    return this.documentParsed_.then(() => {
+      const errorMessage =
+        'The showUpdateOffers() method cannot be used for new subscribers. ' +
+        'Use the showOffers() method instead.';
+      assert(opt_options ? !!opt_options['oldSku'] : false, errorMessage);
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
     });
@@ -749,9 +777,10 @@ export class ConfiguredRuntime {
 
   /** @override */
   showContributionOptions(opt_options) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS)) {
-      throw new Error('Not yet launched!');
-    }
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
+      'Not yet launched!'
+    );
     return this.documentParsed_.then(() => {
       const flow = new ContributionsFlow(this, opt_options);
       return flow.start();
@@ -815,15 +844,31 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  subscribe(skuOrSubscriptionRequest) {
-    if (
-      typeof skuOrSubscriptionRequest != 'string' &&
-      !isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)
-    ) {
-      throw new Error('Not yet launched!');
-    }
+  subscribe(sku) {
+    const errorMessage =
+      'The subscribe() method can only take a sku as its parameter; ' +
+      'for subscription updates please use the updateSubscription() method';
+    assert(typeof sku === 'string', errorMessage);
     return this.documentParsed_.then(() => {
-      return new PayStartFlow(this, skuOrSubscriptionRequest).start();
+      return new PayStartFlow(this, sku).start();
+    });
+  }
+
+  /** @override */
+  updateSubscription(subscriptionRequest) {
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
+      'Not yet launched!'
+    );
+    const errorMessage =
+      'The updateSubscription() method should be used for subscription ' +
+      'updates; for new subscriptions please use the subscribe() method';
+    assert(
+      subscriptionRequest ? subscriptionRequest['oldSku'] : false,
+      errorMessage
+    );
+    return this.documentParsed_.then(() => {
+      return new PayStartFlow(this, subscriptionRequest).start();
     });
   }
 
@@ -834,9 +879,10 @@ export class ConfiguredRuntime {
 
   /** @override */
   contribute(skuOrSubscriptionRequest) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS)) {
-      throw new Error('Not yet launched!');
-    }
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
+      'Not yet launched!'
+    );
 
     return this.documentParsed_.then(() => {
       return new PayStartFlow(
@@ -878,9 +924,10 @@ export class ConfiguredRuntime {
 
   /** @override */
   attachSmartButton(button, optionsOrCallback, opt_callback) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
-      throw new Error('Not yet launched!');
-    }
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.SMARTBOX),
+      'Not yet launched!'
+    );
     this.buttonApi_.attachSmartButton(
       this,
       button,
@@ -924,11 +971,13 @@ function createPublicRuntime(runtime) {
     showLoginNotification: runtime.showLoginNotification.bind(runtime),
     getOffers: runtime.getOffers.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
+    showUpdateOffers: runtime.showUpdateOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
     waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
+    updateSubscription: runtime.updateSubscription.bind(runtime),
     contribute: runtime.contribute.bind(runtime),
     completeDeferredAccountCreation: runtime.completeDeferredAccountCreation.bind(
       runtime
