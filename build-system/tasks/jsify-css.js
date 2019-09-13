@@ -24,7 +24,7 @@ const postcssImport = require('postcss-import');
 
 // NOTE: see https://github.com/ai/browserslist#queries for `browsers` list
 const cssprefixer = autoprefixer({
-  browsers: [
+  overrideBrowserslist: [
     'last 5 ChromeAndroid versions',
     'last 5 iOS versions',
     'last 3 FirefoxAndroid versions',
@@ -50,7 +50,6 @@ const cssnano = cssnanoDecl({
   },
 });
 
-
 /**
  * 'Jsify' a CSS file - Adds vendor specific css prefixes to the css file,
  * compresses the file, removes the copyright comment, and adds the sourceURL
@@ -62,21 +61,27 @@ const cssnano = cssnanoDecl({
  *    processing
  */
 exports.jsifyCssAsync = function(filename, opt_options) {
-  const options = Object.assign({
-    sourceMap: true,
-  }, opt_options || {});
+  const options = Object.assign(
+    {
+      sourceMap: true,
+    },
+    opt_options || {}
+  );
   const css = fs.readFileSync(filename, 'utf8');
   const transformers = [cssprefixer, cssnano];
-  return postcss(transformers).use(postcssImport).process(css.toString(), {
-    'from': filename,
-  }).then(function(result) {
-    result.warnings().forEach(function(warn) {
-      $$.util.log($$.util.colors.red(warn.toString()));
+  return postcss(transformers)
+    .use(postcssImport)
+    .process(css.toString(), {
+      'from': filename,
+    })
+    .then(function(result) {
+      result.warnings().forEach(function(warn) {
+        $$.util.log($$.util.colors.red(warn.toString()));
+      });
+      let css = result.css;
+      if (options.sourceMap) {
+        css += '\n/*# sourceURL=/' + filename + '*/';
+      }
+      return css;
     });
-    let css = result.css;
-    if (options.sourceMap) {
-      css += '\n/*# sourceURL=/' + filename + '*/';
-    }
-    return css;
-  });
 };
