@@ -82,7 +82,7 @@ describes.realWin('PropensityServer', {}, env => {
     defaultEvent.eventType = AnalyticsEvent.IMPRESSION_OFFERS;
   });
 
-  it('should listen for events from event manager', function*() {
+  it('should listen for events from event manager', async () => {
     expect(registeredCallback).to.not.be.null;
   });
 

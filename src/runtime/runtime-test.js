@@ -81,7 +81,7 @@ describes.realWin('installRuntime', {}, env => {
     (win.SWG = win.SWG || []).push(callback);
   }
 
-  it('should chain and execute dependencies in order', function*() {
+  it('should chain and execute dependencies in order', async () => {
     // Before runtime is installed.
     let progress = '';
     dep(function() {
@@ -106,7 +106,7 @@ describes.realWin('installRuntime', {}, env => {
     });
 
     // Wait for ready signal.
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('1234');
 
     // Few more.
@@ -116,7 +116,7 @@ describes.realWin('installRuntime', {}, env => {
     dep(function() {
       progress += '6';
     });
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123456');
   });
 
@@ -143,7 +143,7 @@ describes.realWin('installRuntime', {}, env => {
     });
   });
 
-  it('handles recursive calls after installation', function*() {
+  it('handles recursive calls after installation', async () => {
     try {
       installRuntime(win);
     } catch (e) {
@@ -159,13 +159,13 @@ describes.realWin('installRuntime', {}, env => {
         });
       });
     });
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
 
-  it('handles recursive calls before installation', function*() {
+  it('handles recursive calls before installation', async () => {
     let progress = '';
     dep(() => {
       progress += '1';
@@ -181,9 +181,9 @@ describes.realWin('installRuntime', {}, env => {
     } catch (e) {
       // Page doesn't have valid subscription and hence this function throws.
     }
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
 
@@ -214,7 +214,7 @@ describes.realWin('installRuntime legacy', {}, env => {
     (win.SUBSCRIPTIONS = win.SUBSCRIPTIONS || []).push(callback);
   }
 
-  it('should chain and execute dependencies in order', function*() {
+  it('should chain and execute dependencies in order', async () => {
     // Before runtime is installed.
     let progress = '';
     dep(function() {
@@ -239,7 +239,7 @@ describes.realWin('installRuntime legacy', {}, env => {
     });
 
     // Wait for ready signal.
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('1234');
 
     // Few more.
@@ -249,7 +249,7 @@ describes.realWin('installRuntime legacy', {}, env => {
     dep(function() {
       progress += '6';
     });
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123456');
   });
 
@@ -264,7 +264,7 @@ describes.realWin('installRuntime legacy', {}, env => {
     expect(getRuntime()).to.equal(runtime1);
   });
 
-  it('handles recursive calls after installation', function*() {
+  it('handles recursive calls after installation', async () => {
     try {
       installRuntime(win);
     } catch (e) {
@@ -280,13 +280,13 @@ describes.realWin('installRuntime legacy', {}, env => {
         });
       });
     });
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
 
-  it('handles recursive calls before installation', function*() {
+  it('handles recursive calls before installation', async () => {
     let progress = '';
     dep(() => {
       progress += '1';
@@ -302,9 +302,9 @@ describes.realWin('installRuntime legacy', {}, env => {
     } catch (e) {
       // Page doesn't have valid subscription and hence this function throws.
     }
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
 
@@ -910,7 +910,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       eventManager = runtime.eventManager();
     });
 
-    it('should hold events until config resolved', function*() {
+    it('should hold events until config resolved', async () => {
       eventManager.logEvent(event);
 
       //register after declaring the event, then resolve the promise
@@ -920,12 +920,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       resolveConfig();
 
       try {
-        yield configPromise;
+        await configPromise;
       } catch (e) {}
       expect(eventCount).to.equal(1);
     });
 
-    it('should not log when config rejected', function*() {
+    it('should not log when config rejected', async () => {
       let eventCount = 0;
 
       eventManager.registerEventListener(() => eventCount++);
@@ -934,7 +934,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       rejectConfig();
 
       try {
-        yield configPromise;
+        await configPromise;
       } catch (e) {}
       expect(eventCount).to.equal(0);
     });

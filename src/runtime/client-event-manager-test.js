@@ -53,7 +53,7 @@ describes.sandboxed('EventManager', {}, () => {
       expect(counter).to.equal(0);
     });
 
-    it('should not log events until its promise is resolved', function*() {
+    it('should not log events until its promise is resolved', async () => {
       let counter2 = 0;
 
       eventMan.registerEventListener(() => counter2++);
@@ -63,7 +63,7 @@ describes.sandboxed('EventManager', {}, () => {
       expect(counter2).to.equal(0);
 
       resolver();
-      yield eventMan.lastAction_;
+      await eventMan.lastAction_;
       //ensure it logged both events after we called resolver and yielded
       expect(counter).to.equal(counter2);
 
@@ -71,9 +71,11 @@ describes.sandboxed('EventManager', {}, () => {
       //despite the promise not being resolved (which is a problem).
     });
 
-    it('should not log events if promise rejected', function*() {
+    it('should not log events if promise rejected', async () => {
       rejector();
-      yield eventMan.lastAction_;
+      try {
+        await eventMan.lastAction_;
+      } catch (err) {}
       expect(counter).to.equal(0);
     });
   });
@@ -200,22 +202,22 @@ describes.sandboxed('EventManager', {}, () => {
       });
     });
 
-    it('should log listener errors to the console', function*() {
+    it('should log listener errors to the console', async () => {
       eventMan.registerEventListener(() => {
         throw errorSent;
       });
 
       eventMan.logEvent(DEFAULT_EVENT);
-      yield eventMan.lastAction_;
+      await eventMan.lastAction_;
       expect(errorReceived).to.equal(errorSent);
     });
 
-    it('should log filterer errors to the console', function*() {
+    it('should log filterer errors to the console', async () => {
       eventMan.registerEventFilterer(() => {
         throw errorSent;
       });
       eventMan.logEvent(DEFAULT_EVENT);
-      yield eventMan.lastAction_;
+      await eventMan.lastAction_;
       expect(errorReceived).to.equal(errorSent);
     });
   });
@@ -230,21 +232,21 @@ describes.sandboxed('EventManager', {}, () => {
       eventMan.registerEventListener(() => counter++);
     });
 
-    it('should be able to listen for events', function*() {
+    it('should be able to listen for events', async () => {
       //verify it supports 1 listener
 
       eventMan.logEvent(DEFAULT_EVENT);
-      yield eventMan.lastAction_;
+      await eventMan.lastAction_;
       expect(counter).to.equal(1);
 
       //verify it supports multiple listeners
       eventMan.registerEventListener(() => counter++);
       eventMan.logEvent(DEFAULT_EVENT);
-      yield eventMan.lastAction_;
+      await eventMan.lastAction_;
       expect(counter).to.equal(3);
     });
 
-    it('should be able to filter out some events', function*() {
+    it('should be able to filter out some events', async () => {
       //filter out the default origin
       eventMan.registerEventFilterer(event =>
         event.eventOriginator === DEFAULT_ORIGIN
@@ -254,13 +256,13 @@ describes.sandboxed('EventManager', {}, () => {
 
       //ensure the default origin is filtered out
       eventMan.logEvent(DEFAULT_EVENT);
-      yield eventMan.lastAction_;
+      await eventMan.lastAction_;
       expect(counter).to.equal(0);
 
       //ensure the other origin is not filtered out
       DEFAULT_EVENT.eventOriginator = OTHER_ORIGIN;
       eventMan.logEvent(DEFAULT_EVENT);
-      yield eventMan.lastAction_;
+      await eventMan.lastAction_;
       expect(counter).to.equal(1);
       eventMan.eventOriginator = DEFAULT_ORIGIN;
     });
