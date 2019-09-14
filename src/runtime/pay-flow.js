@@ -23,7 +23,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {
@@ -314,14 +314,47 @@ export class PayCompleteFlow {
  */
 function validatePayResponse(deps, payPromise, completeHandler) {
   return payPromise.then(data => {
-    // If there was a redirect, we may have lost our stored transaction
-    // ID. Pay service is supposed to send back the transaction ID that
-    // was sent in the request and so, ideally it should be the same.
-    // In any case, we must remember and use this transaction ID going
-    // forward and assume whatever memory we had before redirect is lost.
-    if (typeof data == 'object' && data['googleTransactionId']) {
-      deps.analytics().setTransactionId(data['googleTransactionId']);
+    // 1) We log against a random TX ID which is how we track a specific user
+    //    anonymously.
+    // 2) If there was a redirect to gPay, we may have lost our stored TX ID.
+    // 3) Pay service is supposed to give us the TX ID it logged against.
+
+    const hasLogged = deps.analytics().getHasLogged();
+    let eventType = AnalyticsEvent.UNKNOWN;
+    let eventParams = undefined;
+    if (typeof data !== 'object' || !data['googleTransactionId']) {
+      // If gPay doesn't give us a TX ID it means that something may
+      // be wrong.  If we previously logged then we are at least continuing to
+      // log against the same TX ID.  If we didn't previously log then we have
+      // lost all connection to the events that preceded the payment event and
+      // we at least want to know why that data was lost.
+      eventParams = new EventParams();
+      eventParams.setHadLogged(hasLogged);
+      eventType = AnalyticsEvent.EVENT_GPAY_NO_TX_ID;
+    } else {
+      const oldTxId = deps.analytics().getTransactionId();
+      const newTxId = data['googleTransactionId'];
+
+      if (!hasLogged) {
+        // This is the expected case for full redirects.  It may be happening
+        // unexpectedly at other times too though and we want to be aware of it
+        // if it does.
+        deps.analytics().setTransactionId(newTxId);
+        eventType = AnalyticsEvent.EVENT_GPAY_CANNOT_CONFIRM_TX_ID;
+      } else {
+        if (oldTxId === newTxId) {
+          // This is the expected case for non-redirect pay events
+          eventType = AnalyticsEvent.EVENT_CONFIRM_TX_ID;
+        } else {
+          // This is an unexpected case: gPay rejected our TX ID and created
+          // its own.  Log the gPay TX ID but keep our logging consistent.
+          eventParams = new EventParams();
+          eventParams.setGpayTransactionId(newTxId);
+          eventType = AnalyticsEvent.EVENT_CHANGED_TX_ID;
+        }
+      }
     }
+    deps.eventManager().logSwgEvent(eventType, true, eventParams);
     return parseSubscriptionResponse(deps, data, completeHandler);
   });
 }

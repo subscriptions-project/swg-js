@@ -62,19 +62,19 @@ return true;
 
 describe('api_messages', () => {
 
-describe('test_AlreadySubscribedResponse', () => {
-  it('should deserialize correctly', () => {
-    const /** !AlreadySubscribedResponse  */ alreadysubscribedresponse = new AlreadySubscribedResponse();
-    alreadysubscribedresponse.setSubscriberOrMember(false);
-    alreadysubscribedresponse.setLinkRequested(false);
-    const alreadysubscribedresponseSerialized = alreadysubscribedresponse.toArray();
-    const alreadysubscribedresponseDeserialized = deserialize(
-        alreadysubscribedresponseSerialized);
-    expect(alreadysubscribedresponseDeserialized).to.not.be.null;
-    expect(isEqual(alreadysubscribedresponse.toArray(),
-        alreadysubscribedresponseDeserialized.toArray())).to.be.true;
+  describe('test_AlreadySubscribedResponse', () => {
+    it('should deserialize correctly', () => {
+      const /** !AlreadySubscribedResponse  */ alreadysubscribedresponse = new AlreadySubscribedResponse();
+      alreadysubscribedresponse.setSubscriberOrMember(false);
+      alreadysubscribedresponse.setLinkRequested(false);
+      const alreadysubscribedresponseSerialized = alreadysubscribedresponse.toArray();
+      const alreadysubscribedresponseDeserialized = deserialize(
+          alreadysubscribedresponseSerialized);
+      expect(alreadysubscribedresponseDeserialized).to.not.be.null;
+      expect(isEqual(alreadysubscribedresponse.toArray(),
+          alreadysubscribedresponseDeserialized.toArray())).to.be.true;
+    });
   });
-});
 
 describe('test_AnalyticsContext', () => {
   it('should deserialize correctly', () => {
@@ -198,7 +198,6 @@ describe('test_SkuSelectedResponse', () => {
     expect(isEqual(skuselectedresponse.toArray(),
         skuselectedresponseDeserialized.toArray())).to.be.true;
   });
-});
 
 describe('test_SmartBoxMessage', () => {
   it('should deserialize correctly', () => {
@@ -213,29 +212,29 @@ describe('test_SmartBoxMessage', () => {
   });
 });
 
-describe('test_SubscribeResponse', () => {
-  it('should deserialize correctly', () => {
-    const /** !SubscribeResponse  */ subscriberesponse = new SubscribeResponse();
-    subscriberesponse.setSubscribe(false);
-    const subscriberesponseSerialized = subscriberesponse.toArray();
-    const subscriberesponseDeserialized = deserialize(
-        subscriberesponseSerialized);
-    expect(subscriberesponseDeserialized).to.not.be.null;
-    expect(isEqual(subscriberesponse.toArray(),
-        subscriberesponseDeserialized.toArray())).to.be.true;
+  describe('test_SubscribeResponse', () => {
+    it('should deserialize correctly', () => {
+      const /** !SubscribeResponse  */ subscriberesponse = new SubscribeResponse();
+      subscriberesponse.setSubscribe(false);
+      const subscriberesponseSerialized = subscriberesponse.toArray();
+      const subscriberesponseDeserialized = deserialize(
+          subscriberesponseSerialized);
+      expect(subscriberesponseDeserialized).to.not.be.null;
+      expect(isEqual(subscriberesponse.toArray(),
+          subscriberesponseDeserialized.toArray())).to.be.true;
+    });
   });
-});
 
-describe('test_ViewSubscriptionsResponse', () => {
-  it('should deserialize correctly', () => {
-    const /** !ViewSubscriptionsResponse  */ viewsubscriptionsresponse = new ViewSubscriptionsResponse();
-    viewsubscriptionsresponse.setNative(false);
-    const viewsubscriptionsresponseSerialized = viewsubscriptionsresponse.toArray();
-    const viewsubscriptionsresponseDeserialized = deserialize(
-        viewsubscriptionsresponseSerialized);
-    expect(viewsubscriptionsresponseDeserialized).to.not.be.null;
-    expect(isEqual(viewsubscriptionsresponse.toArray(),
-        viewsubscriptionsresponseDeserialized.toArray())).to.be.true;
+  describe('test_ViewSubscriptionsResponse', () => {
+    it('should deserialize correctly', () => {
+      const /** !ViewSubscriptionsResponse  */ viewsubscriptionsresponse = new ViewSubscriptionsResponse();
+      viewsubscriptionsresponse.setNative(false);
+      const viewsubscriptionsresponseSerialized = viewsubscriptionsresponse.toArray();
+      const viewsubscriptionsresponseDeserialized = deserialize(
+          viewsubscriptionsresponseSerialized);
+      expect(viewsubscriptionsresponseDeserialized).to.not.be.null;
+      expect(isEqual(viewsubscriptionsresponse.toArray(),
+          viewsubscriptionsresponseDeserialized.toArray())).to.be.true;
+    });
   });
-});
 });
