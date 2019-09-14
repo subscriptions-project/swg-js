@@ -29,6 +29,9 @@ import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {createCancelError} from '../utils/errors';
 import {ActivityPort} from '../components/activities';
+import {LinkingInfoResponse, LinkSaveTokenRequest} from '../proto/api_messages';
+import {setExperiment, setExperimentsStringForTesting} from './experiments';
+import {ExperimentFlags} from './experiment-flags';
 
 describes.realWin('LinkbackFlow', {}, env => {
   let win;
@@ -476,6 +479,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   let triggerFlowStartSpy;
   let triggerFlowCanceledSpy;
   let triggerLinkProgressSpy;
+  let messageMap;
 
   beforeEach(() => {
     win = env.win;
@@ -500,9 +504,16 @@ describes.realWin('LinkSaveFlow', {}, env => {
     port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
+    messageMap = {};
+    setExperimentsStringForTesting('');
     messageCallback = undefined;
     sandbox.stub(port, 'onMessageDeprecated').callsFake(callback => {
       messageCallback = callback;
+    });
+    sandbox.stub(port, 'on').callsFake((ctor, cb) => {
+      const messageType = new ctor();
+      const label = messageType.label();
+      messageMap[label] = cb;
     });
     const resultPromise = new Promise(resolve => {
       resultResolver = resolve;
@@ -658,6 +669,8 @@ describes.realWin('LinkSaveFlow', {}, env => {
   });
 
   it('should respond with subscription request with token', () => {
+    const saveToken = new LinkSaveTokenRequest();
+    saveToken.setToken('test');
     const reqPromise = new Promise(resolve => {
       resolve({token: 'test'});
     });
@@ -678,22 +691,26 @@ describes.realWin('LinkSaveFlow', {}, env => {
   });
 
   it('should respond with subscription request with authCode', () => {
+    const saveToken = new LinkSaveTokenRequest();
+    saveToken.setAuthCode('testCode');
     const reqPromise = new Promise(resolve => {
       resolve({authCode: 'testCode'});
     });
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
-    const messageStub = sandbox.stub(port, 'messageDeprecated');
+    const messageStub = sandbox.stub(port, 'execute');
+    setExperiment(win, ExperimentFlags.HEJIRA, true);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_
       .then(() => {
-        messageCallback({
-          'getLinkingInfo': true,
-        });
+        const response = new LinkingInfoResponse();
+        response.setRequested(true);
+        const cb = messageMap[response.label()];
+        cb(response);
         return linkSaveFlow.getRequestPromise();
       })
       .then(() => {
-        expect(messageStub).to.be.calledOnce.calledWith({authCode: 'testCode'});
+        expect(messageStub).to.be.calledOnce.calledWith(saveToken);
       });
   });
 
@@ -725,13 +742,15 @@ describes.realWin('LinkSaveFlow', {}, env => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {
       throw new Error('callback failed');
     });
+    setExperiment(win, ExperimentFlags.HEJIRA, true);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_
       .then(() => {
-        messageCallback({
-          'getLinkingInfo': true,
-        });
+        const response = new LinkingInfoResponse();
+        response.setRequested(true);
+        const cb = messageMap[response.label()];
+        cb(response);
         dialogManagerMock.expects('completeView').once();
         return linkSaveFlow.getRequestPromise();
       })
