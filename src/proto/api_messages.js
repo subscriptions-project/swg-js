@@ -701,6 +701,9 @@ class SkuSelectedResponse {
 
     /** @private {?string} */
     this.sku_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?string} */
+    this.oldSku_ = (data[2] == null) ? null : data[2];
   }
 
   /**
@@ -718,6 +721,20 @@ class SkuSelectedResponse {
   }
 
   /**
+   * @return {?string}
+   */
+  getOldSku() {
+    return this.oldSku_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setOldSku(value) {
+    this.oldSku_ = value;
+  }
+
+  /**
    * @return {!Array}
    * @override
    */
@@ -725,6 +742,7 @@ class SkuSelectedResponse {
     return [
       this.label(),  // message label
       this.sku_,  // field 1 - sku
+      this.oldSku_,  // field 2 - old_sku
     ];
   }
 
