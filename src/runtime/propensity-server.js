@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Xhr} from '../utils/xhr';
 import {adsUrl} from './services';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
 import {isObject, isBoolean} from '../utils/types';
 import {ExperimentFlags} from './experiment-flags';
 import {isExperimentOn} from './experiments';
@@ -29,22 +32,27 @@ export class PropensityServer {
    * Page configuration is known when Propensity API
    * is available, publication ID is therefore used
    * in constructor for the server interface.
-   * @param {string} publicationId
-   * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
+   * @param {!Window} win
+   * @param {!./deps.DepsDef} deps
+   * @param {!./fetcher.Fetcher} fetcher
    */
-  constructor(win, publicationId, eventManager) {
+  constructor(win, deps, fetcher) {
     /** @private @const {!Window} */
     this.win_ = win;
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
     /** @private @const {string} */
-    this.publicationId_ = publicationId;
+    this.publicationId_ = this.deps_.pageConfig().getPublicationId();
     /** @private {?string} */
     this.clientId_ = null;
-    /** @private @const {!Xhr} */
-    this.xhr_ = new Xhr(win);
+    /** @private @const {!./fetcher.Fetcher} */
+    this.fetcher_ = fetcher;
     /** @private @const {number} */
     this.version_ = 1;
 
-    eventManager.registerEventListener(this.handleClientEvent_.bind(this));
+    this.deps_
+      .eventManager()
+      .registerEventListener(this.handleClientEvent_.bind(this));
 
     // TODO(mborof): b/133519525
     /** @private @const {!boolean} */
@@ -52,9 +60,6 @@ export class PropensityServer {
       win,
       ExperimentFlags.LOG_SWG_TO_PROPENSITY
     );
-
-    /** @private {!boolean} */
-    this.logSwgEventsConfig_ = false;
   }
 
   /**
@@ -112,7 +117,7 @@ export class PropensityServer {
       userState = userState + ':' + encodeURIComponent(productsOrSkus);
     }
     const url = adsUrl('/subopt/data?states=') + encodeURIComponent(userState);
-    return this.xhr_.fetch(this.propensityUrl_(url), init);
+    return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
   /**
@@ -130,7 +135,7 @@ export class PropensityServer {
       eventInfo = eventInfo + ':' + encodeURIComponent(context);
     }
     const url = adsUrl('/subopt/data?events=') + encodeURIComponent(eventInfo);
-    return this.xhr_.fetch(this.propensityUrl_(url), init);
+    return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
   /**
@@ -138,6 +143,17 @@ export class PropensityServer {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
+    /**
+     * Does a live check of the config because we don't know when publisher called to
+     * enable (it may be after a consent dialog)
+     */
+    if (
+      !(this.deps_.config().enablePropensity && this.logSwgEventsExperiment_) &&
+      event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT
+    ) {
+      return;
+    }
+
     if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
       this.sendSubscriptionState(
         event.additionalParameters['state'],
@@ -149,14 +165,11 @@ export class PropensityServer {
     if (propEvent == null) {
       return;
     }
-    if (
-      !(this.logSwgEventsExperiment_ && this.logSwgEventsConfig_) &&
-      event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT
-    ) {
-      return;
-    }
     let additionalParameters = event.additionalParameters;
-
+    // The EventParams object is private to SwG analytics.  Do not send.
+    if (additionalParameters instanceof EventParams) {
+      additionalParameters = undefined;
+    }
     if (isBoolean(event.isFromUserAction)) {
       if (!isObject(additionalParameters)) {
         additionalParameters = {};
@@ -239,15 +252,11 @@ export class PropensityServer {
       type +
       '&ref=' +
       referrer;
-    return this.xhr_
+    return this.fetcher_
       .fetch(this.propensityUrl_(url), init)
       .then(result => result.json())
       .then(response => {
         return this.parsePropensityResponse_(response);
       });
-  }
-
-  enableLoggingSwgEvents() {
-    this.logSwgEventsConfig_ = true;
   }
 }

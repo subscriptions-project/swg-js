@@ -15,15 +15,18 @@
  */
 
 import {ActivityIframePort} from '../components/activities';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {feArgs, feUrl} from './services';
 import {getStyle} from '../utils/style';
-import {setExperimentsStringForTesting, setExperiment} from './experiments';
+import {setExperimentsStringForTesting} from './experiments';
 import {ClientEventManager} from './client-event-manager';
-import {ExperimentFlags} from './experiment-flags';
 
 describes.realWin('AnalyticsService', {}, env => {
   let win;
@@ -37,8 +40,9 @@ describes.realWin('AnalyticsService', {}, env => {
   let registeredCallback;
 
   const productId = 'pub1:label1';
+  const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
   const event = {
-    eventType: AnalyticsEvent.ACTION_SUBSCRIBE,
+    eventType: defEventType,
     eventOriginator: EventOriginator.SWG_CLIENT,
     isFromUserAction: null,
     additionalParameters: {},
@@ -76,7 +80,7 @@ describes.realWin('AnalyticsService', {}, env => {
     setExperimentsStringForTesting('');
   });
 
-  describe('AnalyticsService', () => {
+  describe('Construction', () => {
     it('should be listening for events from events manager', () => {
       expect(registeredCallback).to.not.be.null;
     });
@@ -95,7 +99,9 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.setTransactionId(txId);
       expect(analyticsService.getTransactionId()).to.equal(txId);
     });
+  });
 
+  describe('Communications', () => {
     it('should yield onMessage callback and call openIframe', () => {
       let messageReceived;
       analyticsService.onMessage(data => {
@@ -180,7 +186,17 @@ describes.realWin('AnalyticsService', {}, env => {
           expect(meta.getIsFromUserAction()).to.be.true;
         });
     });
+  });
 
+  it('should not log the subscription state change event', () => {
+    analyticsService.lastAction_ = null;
+    event.eventType = AnalyticsEvent.EVENT_SUBSCRIPTION_STATE;
+    registeredCallback(event);
+    expect(analyticsService.lastAction_).to.be.null;
+    event.eventType = defEventType;
+  });
+
+  describe('Context, experiments & labels', () => {
     it('should create correct context for logging', () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       AnalyticsService.prototype.getQueryString_ = () => {
@@ -202,9 +218,7 @@ describes.realWin('AnalyticsService', {}, env => {
               0
             ).args[0];
           expect(request).to.not.be.null;
-          expect(request.getEvent()).to.deep.equal(
-            AnalyticsEvent.ACTION_SUBSCRIBE
-          );
+          expect(request.getEvent()).to.deep.equal(defEventType);
           expect(request.getContext()).to.not.be.null;
           expect(request.getContext().getReferringOrigin()).to.equal(
             'https://scenic-2017.appspot.com'
@@ -311,97 +325,66 @@ describes.realWin('AnalyticsService', {}, env => {
         'L3',
       ]);
     });
+  });
 
-    it('should pass events along to events manager', () => {
-      let receivedEvent = null;
-      sandbox
-        .stub(ClientEventManager.prototype, 'logEvent')
-        .callsFake(event => (receivedEvent = event));
-      analyticsService.logEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
-      expect(receivedEvent).to.deep.equal({
-        eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
-      });
+  describe('Publisher Events', () => {
+    /**
+     * Ensure that analytics service is only logging events from the passed
+     * originator if shouldLog is true.
+     * @param {!EventOriginator} originator
+     * @param {boolean} shouldLog
+     */
+    const testOriginator = function(originator, shouldLog) {
+      const prevOriginator = event.eventOriginator;
+      analyticsService.lastAction_ = null;
+      event.eventOriginator = originator;
+      registeredCallback(event);
+      const didLog = analyticsService.lastAction_ !== null;
+      expect(shouldLog).to.equal(didLog);
+      event.eventOriginator = prevOriginator;
+    };
+
+    it('should not log publisher events by default', () => {
+      testOriginator(EventOriginator.SWG_CLIENT, true);
+      testOriginator(EventOriginator.SWG_SERVER, true);
+      testOriginator(EventOriginator.AMP_CLIENT, false);
+      testOriginator(EventOriginator.PROPENSITY_CLIENT, false);
+      testOriginator(EventOriginator.PUBLISHER_CLIENT, false);
     });
 
-    it('should not log Propensity events by default', () => {
-      //should log all clients but propensity
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.SWG_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
+    it('should log publisher events if configured', () => {
+      runtime.configure({enableSwgAnalytics: true});
+      testOriginator(EventOriginator.SWG_CLIENT, true);
+      testOriginator(EventOriginator.AMP_CLIENT, true);
+      testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
+      testOriginator(EventOriginator.PUBLISHER_CLIENT, true);
+    });
+  });
 
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.AMP_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.be.null;
-
-      //ensure it requires the experiment to log Propensity events
-      analyticsService.enableLoggingForPropensity();
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.SWG_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.AMP_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.be.null;
-
-      //reinitialize the service after turning the experiment on
-      //ensure it requires the .enable method to log Propensity
-      setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
-      analyticsService = new AnalyticsService(runtime);
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.SWG_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.AMP_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.be.null;
+  describe('EventParams', () => {
+    it('should ignore additionalParameters', () => {
+      const logRequest = analyticsService.createLogRequest_(event);
+      expect(logRequest.setParams()).to.be.undefined;
     });
 
-    it('should log Propensity events if experiment is on', () => {
-      //reinitialize the service after turning the experiment on
-      //ensure if we activate both things it properly logs all origins
-      setExperiment(win, ExperimentFlags.LOG_PROPENSITY_TO_SWG, true);
-      analyticsService = new AnalyticsService(runtime);
-      analyticsService.enableLoggingForPropensity();
+    it('should process EventParams', () => {
+      event.additionalParameters = new EventParams();
+      const logRequest = analyticsService.createLogRequest_(event);
+      expect(logRequest.getParams()).to.be.instanceOf(EventParams);
+      event.additionalParameters = {};
+    });
+  });
 
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.SWG_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
+  describe('getHasLogged', () => {
+    it('should initially not have logged anything', () => {
+      expect(analyticsService.getHasLogged()).to.be.false;
+    });
 
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.AMP_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-
-      analyticsService.lastAction_ = null;
-      event.eventOriginator = EventOriginator.PROPENSITY_CLIENT;
-      registeredCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
+    it('should remember it logged something', async function() {
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+      analyticsService.handleClientEvent_(event);
+      await analyticsService.lastAction_;
+      expect(analyticsService.getHasLogged()).to.be.true;
     });
   });
 });

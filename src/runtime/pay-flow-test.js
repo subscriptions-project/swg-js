@@ -15,7 +15,7 @@
  */
 
 import {ActivityPort} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
@@ -144,7 +144,7 @@ describes.realWin('PayStartFlow', {}, env => {
     analyticsMock.expects('setSku').withExactArgs('sku1');
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_SUBSCRIBE, true, null);
+      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED, true);
     const flowPromise = flow.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -152,7 +152,7 @@ describes.realWin('PayStartFlow', {}, env => {
   it('should have valid replace flow constructed', () => {
     const subscriptionRequest = {
       skuId: 'newSku',
-      oldSkuId: 'oldSku',
+      oldSku: 'oldSku',
       publicationId: 'pub1',
       replaceSkuProrationMode:
         ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
@@ -173,7 +173,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'playEnvironment': '$playEnvironment$',
           'swg': {
             skuId: 'newSku',
-            oldSkuId: 'oldSku',
+            oldSku: 'oldSku',
             publicationId: 'pub1',
             replaceSkuProrationMode:
               ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
@@ -192,7 +192,7 @@ describes.realWin('PayStartFlow', {}, env => {
     analyticsMock.expects('setSku').withExactArgs('newSku');
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_SUBSCRIBE, true, null);
+      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED, true);
     const flowPromise = replaceFlow.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -200,7 +200,7 @@ describes.realWin('PayStartFlow', {}, env => {
   it('should have valid replace flow constructed (no proration mode)', () => {
     const subscriptionRequest = {
       skuId: 'newSku',
-      oldSkuId: 'oldSku',
+      oldSku: 'oldSku',
       publicationId: 'pub1',
     };
     const replaceFlowNoProrationMode = new PayStartFlow(
@@ -220,7 +220,10 @@ describes.realWin('PayStartFlow', {}, env => {
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
-          'swg': subscriptionRequest,
+          'swg': Object.assign(subscriptionRequest, {
+            replaceSkuProrationMode:
+              ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
+          }),
           'i': {
             'startTimeMs': sandbox.match.any,
             'googleTransactionId': sandbox.match(transactionIdRegex),
@@ -235,7 +238,7 @@ describes.realWin('PayStartFlow', {}, env => {
     analyticsMock.expects('setSku').withExactArgs('newSku');
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_SUBSCRIBE, true, null);
+      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED, true);
     const flowPromise = replaceFlowNoProrationMode.start();
     return expect(flowPromise).to.eventually.be.undefined;
   });
@@ -347,7 +350,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null);
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
+
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
@@ -384,7 +388,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port.whenReady = () => Promise.resolve();
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null);
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
@@ -444,13 +448,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .once();
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null);
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true, null);
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true, null);
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)
@@ -498,13 +502,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .once();
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true, null);
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true, null);
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null);
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)
@@ -573,13 +577,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .once();
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true, null);
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true, null);
+      .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null);
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
     const messageStub = sandbox.stub(port, 'messageDeprecated');
     return flow
       .start(response)
@@ -627,7 +631,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null)
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true)
       .once();
     sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);
@@ -660,7 +664,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true, null)
+      .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true)
       .once();
     sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);
@@ -690,7 +694,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       analyticsMock.expects('addLabels').never();
       eventManagerMock
         .expects('logSwgEvent')
-        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false, null)
+        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false)
         .once();
       jserrorMock
         .expects('error')
@@ -746,21 +750,111 @@ describes.realWin('PayCompleteFlow', {}, env => {
         });
     });
 
-    it('should start flow with a transaction id', () => {
-      analyticsMock
-        .expects('setTransactionId')
-        .withExactArgs('NEW_TRANSACTION_ID')
-        .once();
-      const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
-      data['googleTransactionId'] = 'NEW_TRANSACTION_ID';
-      return responseCallback(Promise.resolve(data))
-        .then(() => {
-          return triggerPromise;
-        })
-        .then(response => {
-          expect(response).to.be.instanceof(SubscribeResponse);
-          expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-        });
+    describe('Transaction IDs', () => {
+      let hasLogged;
+
+      beforeEach(() => {
+        hasLogged = false;
+        sandbox
+          .stub(runtime.analytics(), 'getHasLogged')
+          .callsFake(() => hasLogged);
+      });
+
+      it('should log a change in TX ID without previous logging', () => {
+        analyticsMock
+          .expects('setTransactionId')
+          .withExactArgs('NEW_TRANSACTION_ID')
+          .once();
+
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(
+            AnalyticsEvent.EVENT_GPAY_CANNOT_CONFIRM_TX_ID,
+            true,
+            undefined
+          );
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+        data['googleTransactionId'] = 'NEW_TRANSACTION_ID';
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
+
+      it('should log a change in TX ID with previous logging', () => {
+        hasLogged = true;
+        const newTxId = 'NEW_TRANSACTION_ID';
+        const eventParams = new EventParams();
+        eventParams.setGpayTransactionId(newTxId);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_CHANGED_TX_ID, true, eventParams);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+        data['googleTransactionId'] = newTxId;
+
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
+
+      it('log no TX ID from gPay and that logging has occured', () => {
+        hasLogged = true;
+        const eventParams = new EventParams();
+        eventParams.setHadLogged(hasLogged);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
+
+      it('log no TX ID from gPay and that logging has not occured', () => {
+        hasLogged = false;
+        const eventParams = new EventParams();
+        eventParams.setHadLogged(hasLogged);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
     });
 
     it('should start flow on correct payment response w/o entitlements', () => {

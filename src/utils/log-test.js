@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable */
+
 import {assert, debugLog} from './log';
 
 describes.realWin('debug log', {}, () => {

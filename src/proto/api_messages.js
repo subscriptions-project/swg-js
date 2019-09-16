@@ -37,6 +37,10 @@ const AnalyticsEvent = {
   IMPRESSION_SUBSCRIBE_BUTTON: 4,
   IMPRESSION_SMARTBOX: 5,
   IMPRESSION_SWG_BUTTON: 6,
+  IMPRESSION_CLICK_TO_SHOW_OFFERS: 7,
+  IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED: 8,
+  IMPRESSION_SUBSCRIPTION_COMPLETE: 9,
+  IMPRESSION_ACCOUNT_CHANGED: 10,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -45,8 +49,15 @@ const AnalyticsEvent = {
   ACTION_PAYMENT_FLOW_STARTED: 1005,
   ACTION_OFFER_SELECTED: 1006,
   ACTION_SWG_BUTTON_CLICK: 1007,
+  ACTION_VIEW_OFFERS: 1008,
+  ACTION_ALREADY_SUBSCRIBED: 1009,
+  ACTION_NEW_DEFERRED_ACCOUNT: 1010,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_CUSTOM: 3000,
+  EVENT_CONFIRM_TX_ID: 3001,
+  EVENT_CHANGED_TX_ID: 3002,
+  EVENT_GPAY_NO_TX_ID: 3003,
+  EVENT_GPAY_CANNOT_CONFIRM_TX_ID: 3004,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -58,6 +69,71 @@ const EventOriginator = {
   SWG_SERVER: 4,
   PUBLISHER_CLIENT: 5,
 };
+
+/**
+ * @implements {Message}
+ */
+class AlreadySubscribedResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.subscriberOrMember_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?boolean} */
+    this.linkRequested_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getSubscriberOrMember() {
+    return this.subscriberOrMember_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setSubscriberOrMember(value) {
+    this.subscriberOrMember_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getLinkRequested() {
+    return this.linkRequested_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setLinkRequested(value) {
+    this.linkRequested_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.subscriberOrMember_,  // field 1 - subscriber_or_member
+      this.linkRequested_,  // field 2 - link_requested
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AlreadySubscribedResponse';
+  }
+}
 
 /**
  * @implements {Message}
@@ -430,6 +506,12 @@ class EventParams {
 
     /** @private {?string} */
     this.smartboxMessage_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?string} */
+    this.gpayTransactionId_ = (data[2] == null) ? null : data[2];
+
+    /** @private {?boolean} */
+    this.hadLogged_ = (data[3] == null) ? null : data[3];
   }
 
   /**
@@ -447,6 +529,34 @@ class EventParams {
   }
 
   /**
+   * @return {?string}
+   */
+  getGpayTransactionId() {
+    return this.gpayTransactionId_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setGpayTransactionId(value) {
+    this.gpayTransactionId_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getHadLogged() {
+    return this.hadLogged_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setHadLogged(value) {
+    this.hadLogged_ = value;
+  }
+
+  /**
    * @return {!Array}
    * @override
    */
@@ -454,6 +564,8 @@ class EventParams {
     return [
       this.label(),  // message label
       this.smartboxMessage_,  // field 1 - smartbox_message
+      this.gpayTransactionId_,  // field 2 - gpay_transaction_id
+      this.hadLogged_,  // field 3 - had_logged
     ];
   }
 
@@ -463,6 +575,183 @@ class EventParams {
    */
   label() {
     return 'EventParams';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class LinkSaveTokenRequest {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?string} */
+    this.authCode_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?string} */
+    this.token_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getAuthCode() {
+    return this.authCode_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setAuthCode(value) {
+    this.authCode_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getToken() {
+    return this.token_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setToken(value) {
+    this.token_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.authCode_,  // field 1 - auth_code
+      this.token_,  // field 2 - token
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'LinkSaveTokenRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class LinkingInfoResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.requested_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getRequested() {
+    return this.requested_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setRequested(value) {
+    this.requested_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.requested_,  // field 1 - requested
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'LinkingInfoResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SkuSelectedResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?string} */
+    this.sku_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?string} */
+    this.oldSku_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getSku() {
+    return this.sku_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSku(value) {
+    this.sku_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getOldSku() {
+    return this.oldSku_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setOldSku(value) {
+    this.oldSku_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.sku_,  // field 1 - sku
+      this.oldSku_,  // field 2 - old_sku
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SkuSelectedResponse';
   }
 }
 
@@ -513,12 +802,112 @@ class SmartBoxMessage {
   }
 }
 
+/**
+ * @implements {Message}
+ */
+class SubscribeResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.subscribe_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getSubscribe() {
+    return this.subscribe_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setSubscribe(value) {
+    this.subscribe_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.subscribe_,  // field 1 - subscribe
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SubscribeResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class ViewSubscriptionsResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.native_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getNative() {
+    return this.native_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setNative(value) {
+    this.native_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.native_,  // field 1 - native
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'ViewSubscriptionsResponse';
+  }
+}
+
 const PROTO_MAP = {
+  'AlreadySubscribedResponse': AlreadySubscribedResponse,
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
   'EventParams': EventParams,
+  'LinkSaveTokenRequest': LinkSaveTokenRequest,
+  'LinkingInfoResponse': LinkingInfoResponse,
+  'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
+  'SubscribeResponse': SubscribeResponse,
+  'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
 };
 
 /**
@@ -549,14 +938,20 @@ function getLabel(messageType) {
 }
 
 export {
+  AlreadySubscribedResponse,
   AnalyticsContext,
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
   EventOriginator,
   EventParams,
+  LinkSaveTokenRequest,
+  LinkingInfoResponse,
   Message,
+  SkuSelectedResponse,
   SmartBoxMessage,
+  SubscribeResponse,
+  ViewSubscriptionsResponse,
   deserialize,
   getLabel,
 };

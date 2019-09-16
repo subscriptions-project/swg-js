@@ -63,11 +63,13 @@ import {AnalyticsMode} from '../api/subscriptions';
 import {Propensity} from './propensity';
 import {ClientEventManager} from './client-event-manager';
 import {Logger} from './logger';
+import {assert} from '../utils/log';
+import {isBoolean} from '../utils/types';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
 
-/** @private {Runtime} */
+/** @private {!Runtime} */
 let runtimeInstance_;
 
 /**
@@ -77,9 +79,7 @@ let runtimeInstance_;
  * @return {!Runtime}
  */
 export function getRuntime() {
-  if (!runtimeInstance_) {
-    throw new Error('not initialized yet');
-  }
+  assert(runtimeInstance_, 'not initialized yet');
   return runtimeInstance_;
 }
 
@@ -162,7 +162,7 @@ export class Runtime {
     this.pageConfigResolver_ = null;
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_);
+    this.buttonApi_ = new ButtonApi(this.doc_, this.configuredPromise_);
     this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
@@ -238,9 +238,7 @@ export class Runtime {
 
   /** @override */
   init(productOrPublicationId) {
-    if (this.committed_) {
-      throw new Error('already configured');
-    }
+    assert(!this.committed_, 'already configured');
     this.productOrPublicationId_ = productOrPublicationId;
   }
 
@@ -295,6 +293,13 @@ export class Runtime {
   }
 
   /** @override */
+  showUpdateOffers(opt_options) {
+    return this.configured_(true).then(runtime =>
+      runtime.showUpdateOffers(opt_options)
+    );
+  }
+
+  /** @override */
   showSubscribeOption(opt_options) {
     return this.configured_(true).then(runtime =>
       runtime.showSubscribeOption(opt_options)
@@ -337,9 +342,14 @@ export class Runtime {
   }
 
   /** @override */
-  subscribe(skuOrSubscriptionRequest) {
+  subscribe(sku) {
+    return this.configured_(true).then(runtime => runtime.subscribe(sku));
+  }
+
+  /** @override */
+  updateSubscription(subscriptionRequest) {
     return this.configured_(true).then(runtime =>
-      runtime.subscribe(skuOrSubscriptionRequest)
+      runtime.updateSubscription(subscriptionRequest)
     );
   }
 
@@ -490,13 +500,6 @@ export class ConfiguredRuntime {
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
 
-    /** @private @const {!Propensity} */
-    this.propensityModule_ = new Propensity(
-      this.win_,
-      this.pageConfig_,
-      this.eventManager_
-    );
-
     /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
 
@@ -540,14 +543,21 @@ export class ConfiguredRuntime {
       this.win_,
       this.pageConfig_,
       this.fetcher_,
-      this
+      this // See note about 'this' above
+    );
+
+    /** @private @const {!Propensity} */
+    this.propensityModule_ = new Propensity(
+      this.win_,
+      this, // See note about 'this' above
+      this.fetcher_
     );
 
     /** @private @const {!OffersApi} */
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_);
+    this.buttonApi_ = new ButtonApi(this.doc_, Promise.resolve(this));
 
     const preconnect = new Preconnect(this.win_.document);
 
@@ -561,7 +571,10 @@ export class ConfiguredRuntime {
     // Report redirect errors if any.
     this.activityPorts_.onRedirectError(error => {
       this.analyticsService_.addLabels(['redirect']);
-      this.analyticsService_.logEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED);
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_PAYMENT_FAILED,
+        false
+      );
       this.jserror_.error('Redirect error', error);
     });
   }
@@ -638,26 +651,39 @@ export class ConfiguredRuntime {
    */
   configure_(config) {
     // Validate first.
-    let error = null;
+    let error = '';
     for (const k in config) {
       const v = config[k];
-      if (k == 'windowOpenMode') {
-        if (v != WindowOpenMode.AUTO && v != WindowOpenMode.REDIRECT) {
-          error = 'Unknown windowOpenMode: ' + v;
-        }
-      } else if (k == 'experiments') {
-        v.forEach(experiment => setExperiment(this.win_, experiment, true));
-      } else if (k == 'analyticsMode') {
-        if (v != AnalyticsMode.DEFAULT && v != AnalyticsMode.IMPRESSIONS) {
-          error = 'Unknown analytics mode: ' + v;
-        }
-      } else {
-        error = 'Unknown config property: ' + k;
+      switch (k) {
+        case 'windowOpenMode':
+          if (v != WindowOpenMode.AUTO && v != WindowOpenMode.REDIRECT) {
+            error = 'Unknown windowOpenMode: ' + v;
+          }
+          break;
+        case 'experiments':
+          v.forEach(experiment => setExperiment(this.win_, experiment, true));
+          break;
+        case 'analyticsMode':
+          if (v != AnalyticsMode.DEFAULT && v != AnalyticsMode.IMPRESSIONS) {
+            error = 'Unknown analytics mode: ' + v;
+          }
+          break;
+        case 'enableSwgAnalytics':
+          if (!isBoolean(v)) {
+            error = 'Unknown enableSwgAnalytics value: ' + v;
+          }
+          break;
+        case 'enablePropensity':
+          if (!isBoolean(v)) {
+            error = 'Unknown enablePropensity value: ' + v;
+          }
+          break;
+        default:
+          error = 'Unknown config property: ' + k;
       }
     }
-    if (error) {
-      throw new Error(error);
-    }
+    // Throw error string if it's not null
+    assert(!error, error || undefined);
     // Assign.
     Object.assign(this.config_, config);
   }
@@ -708,6 +734,26 @@ export class ConfiguredRuntime {
   /** @override */
   showOffers(opt_options) {
     return this.documentParsed_.then(() => {
+      const errorMessage =
+        'The showOffers() method cannot be used to update a subscription. ' +
+        'Use the showUpdateOffers() method instead.';
+      assert(opt_options ? !opt_options['oldSku'] : true, errorMessage);
+      const flow = new OffersFlow(this, opt_options);
+      return flow.start();
+    });
+  }
+
+  /** @override */
+  showUpdateOffers(opt_options) {
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
+      'Not yet launched!'
+    );
+    return this.documentParsed_.then(() => {
+      const errorMessage =
+        'The showUpdateOffers() method cannot be used for new subscribers. ' +
+        'Use the showOffers() method instead.';
+      assert(opt_options ? !!opt_options['oldSku'] : false, errorMessage);
       const flow = new OffersFlow(this, opt_options);
       return flow.start();
     });
@@ -731,9 +777,10 @@ export class ConfiguredRuntime {
 
   /** @override */
   showContributionOptions(opt_options) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS)) {
-      throw new Error('Not yet launched!');
-    }
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
+      'Not yet launched!'
+    );
     return this.documentParsed_.then(() => {
       const flow = new ContributionsFlow(this, opt_options);
       return flow.start();
@@ -797,15 +844,31 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  subscribe(skuOrSubscriptionRequest) {
-    if (
-      typeof skuOrSubscriptionRequest != 'string' &&
-      !isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION)
-    ) {
-      throw new Error('Not yet launched!');
-    }
+  subscribe(sku) {
+    const errorMessage =
+      'The subscribe() method can only take a sku as its parameter; ' +
+      'for subscription updates please use the updateSubscription() method';
+    assert(typeof sku === 'string', errorMessage);
     return this.documentParsed_.then(() => {
-      return new PayStartFlow(this, skuOrSubscriptionRequest).start();
+      return new PayStartFlow(this, sku).start();
+    });
+  }
+
+  /** @override */
+  updateSubscription(subscriptionRequest) {
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
+      'Not yet launched!'
+    );
+    const errorMessage =
+      'The updateSubscription() method should be used for subscription ' +
+      'updates; for new subscriptions please use the subscribe() method';
+    assert(
+      subscriptionRequest ? subscriptionRequest['oldSku'] : false,
+      errorMessage
+    );
+    return this.documentParsed_.then(() => {
+      return new PayStartFlow(this, subscriptionRequest).start();
     });
   }
 
@@ -816,9 +879,10 @@ export class ConfiguredRuntime {
 
   /** @override */
   contribute(skuOrSubscriptionRequest) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS)) {
-      throw new Error('Not yet launched!');
-    }
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
+      'Not yet launched!'
+    );
 
     return this.documentParsed_.then(() => {
       return new PayStartFlow(
@@ -860,9 +924,10 @@ export class ConfiguredRuntime {
 
   /** @override */
   attachSmartButton(button, optionsOrCallback, opt_callback) {
-    if (!isExperimentOn(this.win_, ExperimentFlags.SMARTBOX)) {
-      throw new Error('Not yet launched!');
-    }
+    assert(
+      isExperimentOn(this.win_, ExperimentFlags.SMARTBOX),
+      'Not yet launched!'
+    );
     this.buttonApi_.attachSmartButton(
       this,
       button,
@@ -906,11 +971,13 @@ function createPublicRuntime(runtime) {
     showLoginNotification: runtime.showLoginNotification.bind(runtime),
     getOffers: runtime.getOffers.bind(runtime),
     showOffers: runtime.showOffers.bind(runtime),
+    showUpdateOffers: runtime.showUpdateOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
     waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
+    updateSubscription: runtime.updateSubscription.bind(runtime),
     contribute: runtime.contribute.bind(runtime),
     completeDeferredAccountCreation: runtime.completeDeferredAccountCreation.bind(
       runtime

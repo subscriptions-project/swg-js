@@ -19,22 +19,27 @@ import {PageConfig} from '../model/page-config';
 import {PropensityServer} from './propensity-server';
 import {ClientEventManager} from './client-event-manager';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {Xhr} from '../utils/xhr';
+import {XhrFetcher} from './fetcher';
 import {Logger} from './logger';
+import {setExperiment} from './experiments';
+import {ExperimentFlags} from './experiment-flags';
 
 describes.realWin('Logger', {}, env => {
   let win;
-  let config;
+  let pageConfig;
   let logger;
   let eventManager;
   let propensityServerListener;
   let thrownError;
   let fakeDeps;
+  let fetcher;
+  const config = {};
 
   beforeEach(() => {
     win = env.win;
-    config = new PageConfig('pub1', true);
+    pageConfig = new PageConfig('pub1', true);
     eventManager = new ClientEventManager(Promise.resolve());
+    fetcher = new XhrFetcher(win);
 
     //we aren't testing event manager - this suppresses the promises
     sandbox
@@ -48,11 +53,19 @@ describes.realWin('Logger', {}, env => {
       }
     });
 
-    fakeDeps = {eventManager: () => eventManager};
+    config.enablePropensity = true;
+
+    fakeDeps = {
+      eventManager: () => eventManager,
+      pageConfig: () => pageConfig,
+      config: () => config,
+    };
     logger = new Logger(fakeDeps);
 
-    //this ensure propensity server is listening
-    new Propensity(win, config, eventManager, logger);
+    // Allow swg events
+    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
+    //this ensures propensity server is listening
+    new Propensity(win, fakeDeps, fetcher);
   });
 
   describe('subscription state', () => {
@@ -125,7 +138,7 @@ describes.realWin('Logger', {}, env => {
       const SENT_ERR = new Error('publisher not whitelisted');
       //note that actual event manager will cause the error to be logged to the
       //console instead of being immediately thrown.
-      sandbox.stub(Xhr.prototype, 'fetch').callsFake(() => {
+      sandbox.stub(fetcher, 'fetch').callsFake(() => {
         throw SENT_ERR;
       });
       logger.sendSubscriptionState(SubscriptionState.UNKNOWN);

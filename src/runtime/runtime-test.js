@@ -81,7 +81,7 @@ describes.realWin('installRuntime', {}, env => {
     (win.SWG = win.SWG || []).push(callback);
   }
 
-  it('should chain and execute dependencies in order', function*() {
+  it('should chain and execute dependencies in order', async () => {
     // Before runtime is installed.
     let progress = '';
     dep(function() {
@@ -106,7 +106,7 @@ describes.realWin('installRuntime', {}, env => {
     });
 
     // Wait for ready signal.
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('1234');
 
     // Few more.
@@ -116,7 +116,7 @@ describes.realWin('installRuntime', {}, env => {
     dep(function() {
       progress += '6';
     });
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123456');
   });
 
@@ -143,7 +143,7 @@ describes.realWin('installRuntime', {}, env => {
     });
   });
 
-  it('handles recursive calls after installation', function*() {
+  it('handles recursive calls after installation', async () => {
     try {
       installRuntime(win);
     } catch (e) {
@@ -159,13 +159,13 @@ describes.realWin('installRuntime', {}, env => {
         });
       });
     });
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
 
-  it('handles recursive calls before installation', function*() {
+  it('handles recursive calls before installation', async () => {
     let progress = '';
     dep(() => {
       progress += '1';
@@ -181,9 +181,9 @@ describes.realWin('installRuntime', {}, env => {
     } catch (e) {
       // Page doesn't have valid subscription and hence this function throws.
     }
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
 
@@ -214,7 +214,7 @@ describes.realWin('installRuntime legacy', {}, env => {
     (win.SUBSCRIPTIONS = win.SUBSCRIPTIONS || []).push(callback);
   }
 
-  it('should chain and execute dependencies in order', function*() {
+  it('should chain and execute dependencies in order', async () => {
     // Before runtime is installed.
     let progress = '';
     dep(function() {
@@ -239,7 +239,7 @@ describes.realWin('installRuntime legacy', {}, env => {
     });
 
     // Wait for ready signal.
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('1234');
 
     // Few more.
@@ -249,7 +249,7 @@ describes.realWin('installRuntime legacy', {}, env => {
     dep(function() {
       progress += '6';
     });
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123456');
   });
 
@@ -264,7 +264,7 @@ describes.realWin('installRuntime legacy', {}, env => {
     expect(getRuntime()).to.equal(runtime1);
   });
 
-  it('handles recursive calls after installation', function*() {
+  it('handles recursive calls after installation', async () => {
     try {
       installRuntime(win);
     } catch (e) {
@@ -280,13 +280,13 @@ describes.realWin('installRuntime legacy', {}, env => {
         });
       });
     });
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
 
-  it('handles recursive calls before installation', function*() {
+  it('handles recursive calls before installation', async () => {
     let progress = '';
     dep(() => {
       progress += '1';
@@ -302,9 +302,9 @@ describes.realWin('installRuntime legacy', {}, env => {
     } catch (e) {
       // Page doesn't have valid subscription and hence this function throws.
     }
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
-    yield getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
+    await getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
 
@@ -614,6 +614,27 @@ describes.realWin('Runtime', {}, env => {
       });
     });
 
+    it('should delegate "showUpdateOffers"', () => {
+      configuredRuntimeMock
+        .expects('showUpdateOffers')
+        .withExactArgs(undefined)
+        .once();
+      return runtime.showUpdateOffers().then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
+    it('should delegate "showUpdateOffers" with options', () => {
+      const options = {list: 'other'};
+      configuredRuntimeMock
+        .expects('showUpdateOffers')
+        .withExactArgs(options)
+        .once();
+      return runtime.showUpdateOffers(options).then(() => {
+        expect(configureStub).to.be.calledOnce.calledWith(true);
+      });
+    });
+
     it('should delegate "showSubscribeOption"', () => {
       configuredRuntimeMock
         .expects('showSubscribeOption')
@@ -664,6 +685,18 @@ describes.realWin('Runtime', {}, env => {
       return runtime.subscribe('sku1').then(() => {
         expect(configureStub).to.be.calledOnce.calledWith(true);
       });
+    });
+
+    it('should delegate "updateSubscription"', () => {
+      configuredRuntimeMock
+        .expects('updateSubscription')
+        .withExactArgs({skuId: 'sku1', oldSku: 'sku2'})
+        .once();
+      return runtime
+        .updateSubscription({skuId: 'sku1', oldSku: 'sku2'})
+        .then(() => {
+          expect(configureStub).to.be.calledOnce.calledWith(true);
+        });
     });
 
     it('should delegate "completeDeferredAccountCreation"', () => {
@@ -865,11 +898,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should return propensity module', () => {
-      const propensity = new Propensity(
-        win,
-        config,
-        configuredRuntime.eventManager()
-      );
+      const propensity = new Propensity(win, configuredRuntime, new Fetcher());
       configuredRuntimeMock
         .expects('getPropensityModule')
         .once()
@@ -914,7 +943,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       eventManager = runtime.eventManager();
     });
 
-    it('should hold events until config resolved', function*() {
+    it('should hold events until config resolved', async () => {
       eventManager.logEvent(event);
 
       //register after declaring the event, then resolve the promise
@@ -924,12 +953,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       resolveConfig();
 
       try {
-        yield configPromise;
+        await configPromise;
       } catch (e) {}
       expect(eventCount).to.equal(1);
     });
 
-    it('should not log when config rejected', function*() {
+    it('should not log when config rejected', async () => {
       let eventCount = 0;
 
       eventManager.registerEventListener(() => eventCount++);
@@ -938,7 +967,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       rejectConfig();
 
       try {
-        yield configPromise;
+        await configPromise;
       } catch (e) {}
       expect(eventCount).to.equal(0);
     });
@@ -953,6 +982,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     let activityResultCallbacks;
     let offersApiMock;
     let redirectErrorHandler;
+    let eventManagerMock;
 
     beforeEach(() => {
       activityResultCallbacks = {};
@@ -976,6 +1006,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       analyticsMock = sandbox.mock(runtime.analytics());
       jserrorMock = sandbox.mock(runtime.jserror());
       offersApiMock = sandbox.mock(runtime.offersApi_);
+      eventManagerMock = sandbox.mock(runtime.eventManager());
     });
 
     afterEach(() => {
@@ -984,6 +1015,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       jserrorMock.verify();
       entitlementsManagerMock.verify();
       offersApiMock.verify();
+      eventManagerMock.verify();
       setExperimentsStringForTesting('');
     });
 
@@ -1178,9 +1210,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .expects('addLabels')
         .withExactArgs(['redirect'])
         .once();
-      analyticsMock
-        .expects('logEvent')
-        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED)
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false)
         .once();
       jserrorMock
         .expects('error')
@@ -1316,6 +1348,62 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
     });
 
+    it('should throw an error if showOffers is used with an oldSku', () => {
+      try {
+        runtime.showOffers({skuId: 'newSku', oldSku: 'oldSku'});
+      } catch (err) {
+        expect(err)
+          .to.be.an.instanceOf(Error)
+          .with.property(
+            'The showOffers() method cannot be used to update \
+a subscription. Use the showUpdateOffers() method instead.'
+          );
+      }
+    });
+
+    it('should call "showUpdateOffers"', () => {
+      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+      try {
+        runtime.showUpdateOffers();
+      } catch (err) {
+        expect(err)
+          .to.be.an.instanceOf(Error)
+          .with.property(
+            'The showUpdateOffers() method cannot be used for \
+new subscribers. Use the showOffers() method instead.'
+          );
+      }
+    });
+
+    it('should call "showUpdateOffers" with options', () => {
+      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+      let offersFlow;
+      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
+        offersFlow = this;
+        return new Promise(() => {});
+      });
+      runtime.showUpdateOffers({oldSku: 'other', skus: ['sku1', 'sku2']});
+      return runtime.documentParsed_.then(() => {
+        expect(offersFlow.activityIframeView_.args_['list']).to.equal(
+          'default'
+        );
+      });
+    });
+
+    it('should throw an error if showUpdateOffers is used without an oldSku', () => {
+      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+      try {
+        runtime.showUpdateOffers({skuId: 'newSku'});
+      } catch (err) {
+        expect(err)
+          .to.be.an.instanceOf(Error)
+          .with.property(
+            'The showUpdateOffers() method cannot be used for \
+new subscribers. Use the showOffers() method instead.'
+          );
+      }
+    });
+
     it('should call "showAbbrvOffer"', () => {
       let offersFlow;
       sandbox.stub(AbbrvOfferFlow.prototype, 'start').callsFake(function() {
@@ -1424,6 +1512,45 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
 
     it(
+      'should throw an error if subscribe() is used to replace ' +
+        'a subscription',
+      () => {
+        try {
+          runtime.subscribe({skuId: 'newSku', oldSku: 'oldSku'});
+        } catch (err) {
+          expect(err)
+            .to.be.an.instanceOf(Error)
+            .with.property(
+              'message',
+              'The subscribe() method can only take a \
+sku as its parameter; for subscription updates please use the \
+updateSubscription() method'
+            );
+        }
+      }
+    );
+
+    it(
+      'should throw an error if updateSubscription is used to initiate ' +
+        'a new subscription',
+      () => {
+        setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+        try {
+          runtime.updateSubscription({skuId: 'newSku'});
+        } catch (err) {
+          expect(err)
+            .to.be.an.instanceOf(Error)
+            .with.property(
+              'message',
+              'The updateSubscription() method should \
+be used for subscription updates; for new subscriptions please use the \
+subscribe() method'
+            );
+        }
+      }
+    );
+
+    it(
       'should start PayStartFlow for replaceSubscription ' +
         '(no proration mode)',
       () => {
@@ -1436,13 +1563,11 @@ describes.realWin('ConfiguredRuntime', {}, env => {
             return Promise.resolve();
           });
         return runtime
-          .subscribe({skuId: 'newSku', oldSkuId: 'oldSku'})
+          .updateSubscription({skuId: 'newSku', oldSku: 'oldSku'})
           .then(() => {
             expect(startStub).to.be.calledOnce;
             expect(flowInstance.subscriptionRequest_.skuId).to.equal('newSku');
-            expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal(
-              'oldSku'
-            );
+            expect(flowInstance.subscriptionRequest_.oldSku).to.equal('oldSku');
             expect(flowInstance.subscriptionRequest_.ReplaceSkuProrationMode).to
               .be.undefined;
           });
@@ -1459,16 +1584,16 @@ describes.realWin('ConfiguredRuntime', {}, env => {
           return Promise.resolve();
         });
       return runtime
-        .subscribe({
+        .updateSubscription({
           skuId: 'newSku',
-          oldSkuId: 'oldSku',
+          oldSku: 'oldSku',
           replaceSkuProrationMode:
             ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
         })
         .then(() => {
           expect(startStub).to.be.calledOnce;
           expect(flowInstance.subscriptionRequest_.skuId).to.equal('newSku');
-          expect(flowInstance.subscriptionRequest_.oldSkuId).to.equal('oldSku');
+          expect(flowInstance.subscriptionRequest_.oldSku).to.equal('oldSku');
           expect(
             flowInstance.subscriptionRequest_.replaceSkuProrationMode
           ).to.equal(ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
@@ -1677,6 +1802,18 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         additionalParameters: null,
       });
       expect(foundLogger).to.be.instanceOf(Logger);
+    });
+
+    it('should log to EventManager on createButton click.', async () => {
+      let count = 0;
+      sandbox
+        .stub(ClientEventManager.prototype, 'logSwgEvent')
+        .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
+        .callsFake(() => count++);
+
+      const button = runtime.createButton();
+      await button.click();
+      expect(count).to.equal(1);
     });
   });
 });

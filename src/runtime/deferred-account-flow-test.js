@@ -22,6 +22,7 @@ import {PageConfig} from '../model/page-config';
 import {PayCompleteFlow} from './pay-flow';
 import {isCancelError} from '../utils/errors';
 import {ActivityPort} from '../components/activities';
+import {AnalyticsEvent} from '../proto/api_messages';
 
 const EMPTY_ID_TOK =
   'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJRF9UT0sifQ.SIG';
@@ -39,6 +40,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
   let port;
   let resultResolver;
   let flow;
+  let eventManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -48,6 +50,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     callbacksMock = sandbox.mock(runtime.callbacks());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
+    eventManagerMock = sandbox.mock(runtime.eventManager());
 
     ents = new Entitlements(
       'subscribe.google.com',
@@ -79,6 +82,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     dialogManagerMock.verify();
     callbacksMock.verify();
     entitlementsManagerMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should initialize options', () => {
@@ -224,6 +228,12 @@ describes.realWin('DeferredAccountFlow', {}, env => {
         },
       },
     });
+
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_NEW_DEFERRED_ACCOUNT, true)
+      .once();
+
     return flow.start().then(response => {
       expect(response.entitlements).to.equal(outputEnts);
       expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
@@ -286,6 +296,12 @@ describes.realWin('DeferredAccountFlow', {}, env => {
         ],
       },
     });
+
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_NEW_DEFERRED_ACCOUNT, true)
+      .once();
+
     return flow.start().then(response => {
       expect(response.entitlements).to.equal(outputEnts);
       expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
