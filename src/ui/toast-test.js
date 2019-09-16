@@ -65,7 +65,7 @@ describes.realWin('Toast', {}, env => {
     });
   });
 
-  it('should build the content of toast iframe', function*() {
+  it('should build the content of toast iframe', async () => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
