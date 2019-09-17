@@ -136,7 +136,7 @@ export class OffersFlow {
       let skuOrSubscriptionRequest;
       if (oldSku) {
         skuOrSubscriptionRequest = {};
-        skuOrSubscriptionRequest['sku'] = sku;
+        skuOrSubscriptionRequest['skuId'] = sku;
         skuOrSubscriptionRequest['oldSku'] = oldSku;
       } else {
         skuOrSubscriptionRequest = sku;
@@ -213,7 +213,7 @@ export class OffersFlow {
           if (result['oldSku']) {
             const skuSelectedResponse = new SkuSelectedResponse();
             skuSelectedResponse.setSku(result['sku']);
-            skuSelectedResponse.setOldSku(result['oldSku']),
+            skuSelectedResponse.setOldSku(result['oldSku']);
             this.startPayFlow_(skuSelectedResponse);
             return;
           }
