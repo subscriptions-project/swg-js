@@ -20,8 +20,6 @@ import {
   EventParams,
 } from '../proto/api_messages';
 import {isObject, isBoolean} from '../utils/types';
-import {ExperimentFlags} from './experiment-flags';
-import {isExperimentOn} from './experiments';
 import {analyticsEventToPublisherEvent} from './event-type-mapping';
 
 /**
@@ -53,13 +51,6 @@ export class PropensityServer {
     this.deps_
       .eventManager()
       .registerEventListener(this.handleClientEvent_.bind(this));
-
-    // TODO(mborof): b/133519525
-    /** @private @const {!boolean} */
-    this.logSwgEventsExperiment_ = isExperimentOn(
-      win,
-      ExperimentFlags.LOG_SWG_TO_PROPENSITY
-    );
   }
 
   /**
@@ -144,11 +135,11 @@ export class PropensityServer {
    */
   handleClientEvent_(event) {
     /**
-     * Does a live check of the config because we don't know when publisher called to
-     * enable (it may be after a consent dialog)
+     * Does a live check of the config because we don't know when publisher
+     * called to enable (it may be after a consent dialog).
      */
     if (
-      !(this.deps_.config().enablePropensity && this.logSwgEventsExperiment_) &&
+      !this.deps_.config().enablePropensity &&
       event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT
     ) {
       return;
