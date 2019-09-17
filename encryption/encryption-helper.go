@@ -1,70 +1,76 @@
-package encryption
+package swg_encryption
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 	"github.com/golang/protobuf/proto"
-	"github.com/google/tink/go/core/primitiveset"
-	"github.com/google/tink/go/hybrid/hybrid_encrypt_factory"
+	subtleAEAD "github.com/google/tink/go/subtle/aead"
+	"github.com/google/tink/go/hybrid"
+	"github.com/google/tink/go/keyset"
+	"github.com/google/tink/go/core/registry"
 	gcmpb "github.com/google/tink/proto/aes_gcm_go_proto"
-	"github.com/google/tink/go/tink"
+	tinkpb "github.com/google/tink/proto/tink_go_proto"
 	"net/http"
 	"strings"
 )
 
-type encryptionHelper struct{
-	aesGcmKeyManager *aead.aesGcmKeyManager
-}
-
-func (eh *encryptionHelper) generateEncryptedDocument(html string) string {
-	key := eh.generateNewAesGcmKey()
+func GenerateEncryptedDocument(html_str string, public_key_url string) (string, error) {
+	keyManager, err := registry.GetKeyManager("type.googleapis.com/google.crypto.tink.AesGcmKey")
+	if err != nil {
+		return "", err
+	}
+	key := generateNewAesGcmKey(keyManager)
 	if key == "" {
-		return html
+		return "", fmt.Errorf("Could not generate new AES-GCM key.")
 	}
-	r := strings.NewReader(html)
-	parsed_html := html.Parse(r)
+	r := strings.NewReader(html_str)
+	parsed_html, err := html.Parse(r)
 	if err != nil {
-		fmt.Println("Unparsable HTML.")
-		return html
+		return "", err
 	}
-	encrypted_sections := eh.getAllEncryptedSections(parsed_html)
-	err_encrypt := eh.encryptAllSections(parsed_html, encrypted_sections)
-	if err_encrypt != nil {
-		return html
-	}
-	google_public_key, err  := eh.getGooglePublicKey(PUBLIC_KEY_LOC)
+	encrypted_sections := getAllEncryptedSections(parsed_html)
+	err = encryptAllSections(parsed_html, encrypted_sections, key, keyManager)
 	if err != nil {
-		return html
+		return "", err
 	}
-	encrypted_key, err := eh.encryptDocumentKey(key, google_public_key)
+	google_public_key, err  := getGooglePublicKey(public_key_url)
 	if err != nil {
-		return html
+		return "", err
 	}
-	if err := eh.addEncryptedDocumentKeyToHead(encrypted_key, parsed_html); err != nil {
-		return html
+	encrypted_key, err := encryptDocumentKey(key, google_public_key)
+	if err != nil {
+		return "", err
 	}
-	return renderNode(parsed_html, false)
+	if err := addEncryptedDocumentKeyToHead(encrypted_key, parsed_html); err != nil {
+		return "", err
+	}
+	return renderNode(parsed_html, false), nil
 }
 
-func (eh *encryptionHelper) generateNewAesGcmKey() string {
+func generateNewAesGcmKey(km registry.KeyManager) string {
 	serialized_proto, _ := proto.Marshal(&gcmpb.AesGcmKeyFormat{KeySize: 16})
-	m, err := eh.aesGcmKeyManager.NewKey(serialized_proto)
+	m, err := km.NewKey(serialized_proto)
 	if err != nil {
 		fmt.Println("Error occurred creating new key.")
 		return ""
 	}
-	return m.(*gcmpb.AesGcmKey)
+	b, err := proto.Marshal(m)
+	if err != nil {
+		fmt.Println("Error occurred creating new key.")
+		return ""
+	}
+	return string(b)
 }
 
-func (eh *encryptionHelper) getAllEncryptedSections(parsed_html *html.Node) []*html.Node {
+func getAllEncryptedSections(parsed_html *html.Node) []*html.Node {
 	var encrypted_sections []*html.Node
 	if (parsed_html.FirstChild != nil) && (parsed_html.FirstChild.Data == "html") {
 		var in_body bool = false
-		for node := parsed_html.FirstChild.FirstChild; node != nil; node = node.NextSibling) {
+		for node := parsed_html.FirstChild.FirstChild; node != nil; node = node.NextSibling {
 			if !in_body {
 				if (node.Data == "body") {
 					in_body = true
@@ -90,8 +96,9 @@ func (eh *encryptionHelper) getAllEncryptedSections(parsed_html *html.Node) []*h
 	return encrypted_sections
 }
 
-func (eh *encryptionHelper) encryptAllSections(parsed_html *html.Node, encrypted_sections []*html.Node, key string) error {
-	aead, prim_err := eh.aesGcmKeyManager.Primitive(key)
+func encryptAllSections(parsed_html *html.Node, encrypted_sections []*html.Node, key string, km registry.KeyManager) error {
+	aesgcm, prim_err := km.Primitive([]byte(key))
+	cipher := aesgcm.(*subtleAEAD.AESGCM)
 	if prim_err != nil {
 		return prim_err
 	}
@@ -101,48 +108,75 @@ func (eh *encryptionHelper) encryptAllSections(parsed_html *html.Node, encrypted
 			content = append(content, renderNode(c, true))
 			node.RemoveChild(c)
 		}
-		encrypted_content, encrypt_err := aead.Encrypt([]byte(strings.Join(content, "")), nil)
+		encrypted_content, encrypt_err := cipher.Encrypt([]byte(strings.Join(content, "")), nil)
 		if encrypt_err != nil {
 			return encrypt_err
 		}
-		text_node := &html.Node{Type: html.TextNode, Data: encrypted_content}
+		text_node := &html.Node{Type: html.TextNode, Data: string(encrypted_content)}
 		node.AppendChild(text_node)
 	}
+	return nil
 }
 
-func (eh *encryptionHelper) getGooglePublicKey(public_key_url string) (map[string]interface{}, error) {
+func getGooglePublicKey(public_key_url string) (tinkpb.KeyData, error) {
 	resp, err := http.Get(public_key_url)
 	if err != nil {
-		return nil, err
+		return tinkpb.KeyData{}, err
 	}
-	var dat map[string]interface{}
-	if err := json.Unmarshal(resp.Body, &dat); err != nil {
-		return err
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return tinkpb.KeyData{}, err
 	}
-	return dat, nil
+	keyData := tinkpb.KeyData{}
+	if err := proto.Unmarshal(body, &keyData); err != nil {
+		return tinkpb.KeyData{}, err
+	}
+	return keyData, nil
 }
 
-func (eh *encryptionHelper) encryptDocumentKey(doc_key string, public_key map[string]interface{}) (string, error) {
-	ps := primitiveset.New()
-	entry, err := ps.Add(tink.HybridEncrypt, public_key)
-	if err != nil {
-		return nil, err
+func encryptDocumentKey(doc_key string, public_key tinkpb.KeyData) (string, error) {
+	keys := []*tinkpb.Keyset_Key{
+		&tinkpb.Keyset_Key{
+			KeyData:          &public_key,
+			Status:           tinkpb.KeyStatusType_ENABLED,
+			KeyId:            0,
+			OutputPrefixType: tinkpb.OutputPrefixType_TINK,
+		},
 	}
-	ps.Primary = entry
-	client := hybrid_encrypt_factory.newEncryptPrimitiveSet(ps)
-	enc, err := client.Encrypt(doc_key, nil)
-	if err != nil {
-		return nil, err
+	ks := &tinkpb.Keyset{
+		PrimaryKeyId: 0,
+		Key:          keys,
 	}
-	return enc.ToString(), nil
+	handle, err := keyset.NewHandleWithNoSecrets(ks)
+	if err != nil {
+		return "", err
+	}
+	he, err := hybrid.NewHybridEncrypt(handle)
+    if err != nil {
+        return "", err
+    }
+	enc, err := he.Encrypt([]byte(doc_key), nil)
+	if err != nil {
+		return "", err
+	}
+	return string(enc), nil
 }
 
-func (eh *encryptionHelper) addEncryptedDocumentKeyToHead(encrypted_key string, parsed_html *html.Node) error {
+func addEncryptedDocumentKeyToHead(encrypted_key string, parsed_html *html.Node) error {
 	if (parsed_html.FirstChild != nil) && (parsed_html.FirstChild.Data == "html") {
-		for node := parsed_html.FirstChild.FirstChild; node != nil; node = node.NextSibling) {
+		for node := parsed_html.FirstChild.FirstChild; node != nil; node = node.NextSibling {
 				if (node.Data == "head") {
-					crypto_keys := &html.Node{Type: html.ElementNode, Data:"script", DataAtom: atom.Script, Attr: html.Attribute{type: "application/json", cryptokeys: ""}}
-					jsonData := []byte(frm.Sprintf(`{"google.com":"%s"`, encrypted_key))
+					attrs := []html.Attribute{
+						html.Attribute{Key: "type", Val: "application/json"},
+						html.Attribute{Key: "cryptokeys", Val: ""},
+					}
+					crypto_keys := &html.Node{
+						Type: html.ElementNode,
+						Data:"script",
+						DataAtom: atom.Script, 
+						Attr: attrs,
+					}
+					jsonData := fmt.Sprintf(`{"google.com":"%s"`, encrypted_key)
 					text_node := &html.Node{Type: html.TextNode, Data: jsonData}
 					crypto_keys.AppendChild(text_node)
 					node.AppendChild(crypto_keys)
@@ -157,7 +191,7 @@ func renderNode(n *html.Node, trim bool) string {
 	var buf bytes.Buffer
 	w := io.Writer(&buf)
 	html.Render(w, n)
-	s := buf.ToString()
+	s := buf.String()
 	if trim {
 		s = strings.TrimPrefix(s, "<html><body>")
 		s = strings.TrimSuffix(s, "</body></html>")
