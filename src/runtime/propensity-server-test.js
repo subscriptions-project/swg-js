@@ -24,8 +24,6 @@ import {
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
-import {setExperiment} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 
 /**
@@ -71,7 +69,6 @@ describes.realWin('PropensityServer', {}, env => {
     win = env.win;
     registeredCallback = null;
     fetcher = {fetch: () => {}};
-    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
     eventManager = new ClientEventManager(Promise.resolve());
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
@@ -138,8 +135,6 @@ describes.realWin('PropensityServer', {}, env => {
       let receivedProducts;
       // Set experiments and config then make a news server with them enabled
       config.enablePropensity = true;
-      setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
-      propensityServer = new PropensityServer(win, fakeDeps, fetcher);
       const event = {
         eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
         eventOriginator: EventOriginator.PUBLISHER_CLIENT,
@@ -433,78 +428,58 @@ describes.realWin('PropensityServer', {}, env => {
     });
   });
 
-  describe('SwG Events', () => {
-    it('should not send SwG events to Propensity Service', () => {
-      //stub to ensure the server received a request to log
-      let receivedType = null;
-      let receivedContext = null;
+  describe('Originators', () => {
+    // Data about events transmitted by propensity-server
+    let receivedType = null;
+    let receivedContext = null;
+
+    /**
+     * @param {!EventOriginator} originator
+     * @param {boolean} expectTransmit
+     */
+    function testOriginator(originator, expectTransmit) {
+      defaultEvent.eventOriginator = originator;
+      receivedType = null;
+      receivedContext = null;
+
+      registeredCallback(defaultEvent);
+      if (expectTransmit) {
+        expect(receivedType).to.equal(Event.IMPRESSION_OFFERS);
+        expect(receivedContext).to.deep.equal(
+          defaultEvent.additionalParameters
+        );
+      } else {
+        expect(receivedType).to.be.null;
+        expect(receivedContext).to.be.null;
+      }
+    }
+
+    beforeEach(() => {
+      config.enablePropensity = false;
       sandbox.stub(fetcher, 'fetch').callsFake(url => {
         const event = getPropensityEventFromUrl(url);
         receivedType = event.name;
         receivedContext = event.data;
         return Promise.reject('Server down');
       });
+    });
 
-      //no experiment set & not activated
-      defaultEvent.eventOriginator = EventOriginator.SWG_CLIENT;
-      registeredCallback(defaultEvent);
-      expect(receivedType).to.be.null;
-      expect(receivedContext).to.be.null;
-
-      defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
-      registeredCallback(defaultEvent);
-      expect(receivedType).to.be.null;
-      expect(receivedContext).to.be.null;
-
-      //activated but no experiment
+    it('should always send propensity events', () => {
+      testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
       config.enablePropensity = true;
-      registeredCallback(defaultEvent);
-      expect(receivedType).to.be.null;
-      expect(receivedContext).to.be.null;
+      testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
+    });
 
-      defaultEvent.eventOriginator = EventOriginator.SWG_CLIENT;
-      registeredCallback(defaultEvent);
-      expect(receivedType).to.be.null;
-      expect(receivedContext).to.be.null;
-
-      //experiment but not activated
-      config.enablePropensity = false;
-      setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
-      registeredCallback = null;
-      propensityServer = new PropensityServer(win, fakeDeps, fetcher);
-      registeredCallback(defaultEvent);
-      expect(receivedType).to.be.null;
-      expect(receivedContext).to.be.null;
+    it('should not send SwG events to Propensity Service', () => {
+      testOriginator(EventOriginator.SWG_CLIENT, false);
+      testOriginator(EventOriginator.AMP_CLIENT, false);
     });
 
     it('should send SwG events to the Propensity Service', () => {
-      //stub to ensure the server received a request to log
-      let receivedType = null;
-      let receivedContext = null;
-      sandbox.stub(fetcher, 'fetch').callsFake(url => {
-        const event = getPropensityEventFromUrl(url);
-        receivedType = event.name;
-        receivedContext = event.data;
-        return Promise.reject('Server down');
-      });
-
-      setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
-      registeredCallback = null;
-      //both experiment and enable: ensure it actually logs
       config.enablePropensity = true;
-      propensityServer = new PropensityServer(win, fakeDeps, fetcher);
 
-      registeredCallback(defaultEvent);
-      expect(receivedType).to.equal(Event.IMPRESSION_OFFERS);
-      expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
-
-      receivedType = null;
-      receivedContext = null;
-      defaultEvent.eventOriginator = EventOriginator.AMP_CLIENT;
-      registeredCallback(defaultEvent);
-      expect(receivedType).to.equal(Event.IMPRESSION_OFFERS);
-      expect(receivedContext).to.deep.equal(defaultEvent.additionalParameters);
-      setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, false);
+      testOriginator(EventOriginator.SWG_CLIENT, true);
+      testOriginator(EventOriginator.AMP_CLIENT, true);
     });
   });
 
