@@ -127,12 +127,21 @@ export class OffersFlow {
    */
   startPayFlow_(response) {
     const sku = response.getSku();
+    const oldSku = response.getOldSku();
     if (sku) {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.ACTION_OFFER_SELECTED,
         true
       );
-      new PayStartFlow(this.deps_, sku).start();
+      let skuOrSubscriptionRequest;
+      if (oldSku) {
+        skuOrSubscriptionRequest = {};
+        skuOrSubscriptionRequest['skuId'] = sku;
+        skuOrSubscriptionRequest['oldSku'] = oldSku;
+      } else {
+        skuOrSubscriptionRequest = sku;
+      }
+      new PayStartFlow(this.deps_, skuOrSubscriptionRequest).start();
     }
   }
 
@@ -202,11 +211,10 @@ export class OffersFlow {
             return;
           }
           if (result['oldSku']) {
-            new PayStartFlow(this.deps_, {
-              skuId: /** @type {string} */ (result['sku']),
-              oldSku: /** @type {string|undefined} */ (result['oldSku']),
-              replaceSkuProrationMode: this.prorationMode,
-            }).start();
+            const skuSelectedResponse = new SkuSelectedResponse();
+            skuSelectedResponse.setSku(result['sku']);
+            skuSelectedResponse.setOldSku(result['oldSku']);
+            this.startPayFlow_(skuSelectedResponse);
             return;
           }
           if (result['sku']) {
