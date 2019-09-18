@@ -18,8 +18,7 @@
     "start": "node build-system/server/server-gae.js",
     "start-local": "gulp",
     "deploy": "gcloud app deploy --stop-previous-version",
-    "test": "gulp test && ava",
-    "ava": "ava",
+    "test": "gulp test",
     "lint": "gulp lint",
     "build": "gulp build",
     "dist": "gulp dist"
@@ -34,7 +33,6 @@
     "ansi-colors": "4.1.1",
     "atob": "2.1.2",
     "autoprefixer": "9.6.1",
-    "ava": "0.15.2",
     "babel-eslint": "10.0.3",
     "babelify": "6.4.0",
     "bluebird": "3.5.5",
@@ -58,7 +56,6 @@
     "fs-extra": "0.27.0",
     "glob": "7.1.2",
     "gulp": "4.0.2",
-    "gulp-ava": "2.0.0",
     "gulp-closure-compiler": "0.4.0",
     "gulp-eslint": "6.0.0",
     "gulp-eslint-if-fixed": "1.0.0",
@@ -122,14 +119,6 @@
     "vinyl-buffer": "1.0.1",
     "vinyl-source-stream": "2.0.0",
     "watchify": "3.9.0"
-  },
-  "ava": {
-    "files": [
-      "build-system/tasks/**/{test,test-*}.js"
-    ],
-    "concurrency": 5,
-    "tap": true,
-    "failFast": true
   },
   "cloud-repo-tools": {
     "requiresKeyFile": true,
