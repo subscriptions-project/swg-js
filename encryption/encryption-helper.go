@@ -1,4 +1,4 @@
-package swg_encryption
+package encryption
 
 import (
 	"bytes"

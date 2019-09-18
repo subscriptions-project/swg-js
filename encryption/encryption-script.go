@@ -6,7 +6,7 @@ import (
 	"github.com/google/tink/go/aead"
 	"io/ioutil"
 	"os"
-	"github.com/subscriptions-project/swg-js/encryption/swg_encryption"
+	"github.com/subscriptions-project/swg-js/encryption"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 		fmt.Print(err)
 		os.Exit(42)
 	}
-	encrypted_doc, err := swg_encryption.GenerateEncryptedDocument(string(b), google_public_key_url)
+	encrypted_doc, err := encryption.GenerateEncryptedDocument(string(b), google_public_key_url)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(42)
