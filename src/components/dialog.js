@@ -155,9 +155,7 @@ export class Dialog {
     }
     return this.doc_
       .addToFixedLayer(iframe.getElement())
-      .then(() => {
-        iframe.whenReady();
-      })
+      .then(() => iframe.whenReady())
       .then(() => {
         this.buildIframe_();
         return this;
