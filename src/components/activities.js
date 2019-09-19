@@ -221,6 +221,9 @@ export class ActivityIframePort {
    */
   messageDeprecated(payload) {
     this.iframePort_.message(payload);
+    setTimeout(() => {
+      throw new Error('WARNING: messageDeprecated() is deprecated');
+    });
   }
 
   /**
@@ -229,6 +232,9 @@ export class ActivityIframePort {
    */
   onMessageDeprecated(callback) {
     this.callbackOriginal_ = callback;
+    setTimeout(() => {
+      throw new Error('WARNING: use of deprecated API onMessageDeprecated()');
+    });
   }
 
   /**
