@@ -21,7 +21,7 @@
 
 /* eslint-disable */
 
-export function debugLog(var_args) {
+function debugLog(var_args) {
   if (/swg.debug=1/.test(self.location.hash)) {
     const logArgs = Array.prototype.slice.call(arguments, 0);
     logArgs.unshift('[Subscriptions]');
@@ -32,7 +32,7 @@ export function debugLog(var_args) {
 /**
  * @param  {...*} var_args [description]
  */
-export function log(var_args) {
+function log(var_args) {
   console.log.apply(console, arguments);
 }
 
@@ -55,7 +55,7 @@ export function log(var_args) {
  * @return {T} The value of shouldBeTrueish.
  * @template T
  */
-export function assert(shouldBeTrueish, opt_message, var_args) {
+function assert(shouldBeTrueish, opt_message, var_args) {
   let firstElement;
   if (!shouldBeTrueish) {
     const message = opt_message || 'Assertion failed';
@@ -100,3 +100,9 @@ function toString(val) {
   }
   return /** @type {string} */ (val);
 }
+
+module.exports = {
+  assert,
+  debugLog,
+  log
+};
