@@ -550,15 +550,11 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
-    let messageHandler;
-    port.onMessageDeprecated = handler => {
-      messageHandler = handler;
-    };
     port.on = (ctor, cb) => {
       const messageType = new ctor();
       messageLabel = messageType.label();
       messageMap[messageLabel] = cb;
-    }
+    };
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
