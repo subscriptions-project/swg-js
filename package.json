@@ -15,6 +15,7 @@
     "url": "https://github.com/subscriptions-project/swg-js.git"
   },
   "scripts": {
+    "preinstall": "node build-system/check-package-manager.js",
     "start": "node build-system/server/server-gae.js",
     "start-local": "gulp",
     "deploy": "gcloud app deploy --stop-previous-version",
