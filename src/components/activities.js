@@ -18,6 +18,7 @@ import {
   ActivityPorts as WebActivityPorts,
   ActivityIframePort as WebActivityIframePort,
 } from 'web-activities/activity-ports';
+import {debugLog} from '../utils/log';
 
 /**
  * @interface
@@ -221,6 +222,7 @@ export class ActivityIframePort {
    */
   messageDeprecated(payload) {
     this.iframePort_.message(payload);
+    debugLog('WARNING: messageDeprecated() is deprecated');
   }
 
   /**
@@ -229,6 +231,7 @@ export class ActivityIframePort {
    */
   onMessageDeprecated(callback) {
     this.callbackOriginal_ = callback;
+    debugLog('WARNING: use of deprecated API onMessageDeprecated()');
   }
 
   /**
