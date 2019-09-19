@@ -65,6 +65,7 @@ const forbiddenTerms = {
       'whitelist a legit case.',
     whitelist: [
       'src/main.js',
+      'src/components/activities.js',
     ],
     checkInTestFolder: true,
   },
