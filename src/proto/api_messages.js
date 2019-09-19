@@ -73,6 +73,53 @@ const EventOriginator = {
 /**
  * @implements {Message}
  */
+class AccountCreationRequest {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.complete_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getComplete() {
+    return this.complete_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setComplete(value) {
+    this.complete_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.complete_,  // field 1 - complete
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AccountCreationRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class AlreadySubscribedResponse {
  /**
   * @param {!Array=} data
@@ -498,6 +545,53 @@ class AnalyticsRequest {
 /**
  * @implements {Message}
  */
+class EntitlementsResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?string} */
+    this.jwt_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getJwt() {
+    return this.jwt_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setJwt(value) {
+    this.jwt_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.jwt_,  // field 1 - jwt
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'EntitlementsResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class EventParams {
  /**
   * @param {!Array=} data
@@ -897,10 +991,12 @@ class ViewSubscriptionsResponse {
 }
 
 const PROTO_MAP = {
+  'AccountCreationRequest': AccountCreationRequest,
   'AlreadySubscribedResponse': AlreadySubscribedResponse,
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
+  'EntitlementsResponse': EntitlementsResponse,
   'EventParams': EventParams,
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
   'LinkingInfoResponse': LinkingInfoResponse,
@@ -938,11 +1034,13 @@ function getLabel(messageType) {
 }
 
 export {
+  AccountCreationRequest,
   AlreadySubscribedResponse,
   AnalyticsContext,
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
+  EntitlementsResponse,
   EventOriginator,
   EventParams,
   LinkSaveTokenRequest,

@@ -31,6 +31,12 @@ import {
 } from './pay-flow';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
+import {setExperiment, setExperimentsStringForTesting} from './experiments';
+import {ExperimentFlags} from './experiment-flags';
+import {
+  EntitlementsResponse,
+  AccountCreationRequest,
+} from '../proto/api_messages';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -285,6 +291,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let eventManagerMock;
   let jserrorMock;
   let port;
+  let messageLabel;
+  let messageMap;
 
   const TOKEN_HEADER = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
   const TOKEN_PAYLOAD =
@@ -303,6 +311,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       }
       responseCallback = callback;
     });
+    setExperimentsStringForTesting('');
+    messageMap = {};
     runtime = new ConfiguredRuntime(win, pageConfig);
     analyticsMock = sandbox.mock(runtime.analytics());
     jserrorMock = sandbox.mock(runtime.jserror());
@@ -509,14 +519,17 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
-    const messageStub = sandbox.stub(port, 'messageDeprecated');
+    setExperiment(win, ExperimentFlags.HEJIRA, true);
+    const messageStub = sandbox.stub(port, 'execute');
     return flow
       .start(response)
       .then(() => {
         return flow.complete();
       })
       .then(() => {
-        expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+        const accountCreationRequest = new AccountCreationRequest();
+        accountCreationRequest.setComplete(true);
+        expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
       });
   });
 
@@ -537,9 +550,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
-    let messageHandler;
-    port.onMessageDeprecated = handler => {
-      messageHandler = handler;
+    port.on = (ctor, cb) => {
+      const messageType = new ctor();
+      messageLabel = messageType.label();
+      messageMap[messageLabel] = cb;
     };
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
@@ -584,17 +598,22 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
-    const messageStub = sandbox.stub(port, 'messageDeprecated');
+    const messageStub = sandbox.stub(port, 'execute');
+    setExperiment(win, ExperimentFlags.HEJIRA, true);
     return flow
       .start(response)
       .then(() => {
-        messageHandler({
-          'entitlements': 'ENTITLEMENTS_JWT',
-        });
+        const entitlementsResponse = new EntitlementsResponse();
+        entitlementsResponse.setJwt('ENTITLEMENTS_JWT');
+        expect(messageLabel).to.equal(entitlementsResponse.label());
+        const cb = messageMap[messageLabel];
+        cb(entitlementsResponse);
         return flow.complete();
       })
       .then(() => {
-        expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+        const accountCreationRequest = new AccountCreationRequest();
+        accountCreationRequest.setComplete(true);
+        expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
         // Order must be strict: first reset, then pushNextEntitlements.
         expect(order).to.deep.equal(['reset', 'pushNextEntitlements']);
       });
