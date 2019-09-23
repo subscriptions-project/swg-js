@@ -38,3 +38,27 @@ export function acceptPortResultData(
     return result.data;
   });
 }
+
+/**
+ *
+ * @param {!web-activities/activity-ports.ActivityResult} result
+ * @param {string} requireOrigin
+ * @param {boolean} requireOriginVerified
+ * @param {boolean} requireSecureChannel
+ * @return {boolean}
+ */
+export function verifyResultData(
+  result,
+  requireOrigin,
+  requireOriginVerified,
+  requireSecureChannel
+) {
+  if (
+    result.origin != requireOrigin ||
+    (requireOriginVerified && !result.originVerified) ||
+    (requireSecureChannel && !result.secureChannel)
+  ) {
+    throw new Error('channel mismatch');
+  }
+  return true;
+}

@@ -24,7 +24,11 @@ import {
 import {ActivityPorts, ActivityIframePort} from './activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
-import {AnalyticsRequest, AnalyticsEvent} from '../proto/api_messages';
+import {
+  AnalyticsRequest,
+  AnalyticsEvent,
+  SkuSelectedResponse,
+} from '../proto/api_messages';
 
 describes.realWin('ActivityPorts test', {}, env => {
   let win, iframe, url, dialog, doc;
@@ -86,6 +90,110 @@ describes.realWin('ActivityPorts test', {}, env => {
         result.data = 'test';
         return Promise.resolve(result);
       };
+      cb(activityPort);
+    });
+
+    it('should invoke result callback', () => {
+      const activityPorts = new ActivityPorts(win);
+      const response = new SkuSelectedResponse();
+      response.setSku('A');
+      const resultHandler = resultPromise => {
+        resultPromise.then(result => {
+          expect(result.label()).to.equal(response.label());
+          expect(result.getSku()).to.equal(response.getSku());
+        });
+      };
+      const resultVerifier = () => true;
+      let cb;
+      sandbox
+        .stub(WebActivityPorts.prototype, 'onResult')
+        .callsFake((requestId, handler) => {
+          expect(requestId).to.equal('result');
+          cb = handler;
+        });
+      const activityPort = new WebActivityPort();
+      activityPort.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {'RESULT': response.toArray()};
+        return Promise.resolve(result);
+      };
+      activityPorts.attachResultHandler(
+        'result',
+        resultVerifier,
+        resultHandler
+      );
+      cb(activityPort);
+    });
+
+    it('should handle error in result', () => {
+      const activityPorts = new ActivityPorts(win);
+      const resultHandler = resultPromise => {
+        resultPromise
+          .then(() => {
+            throw new Error('must have failed');
+          })
+          .catch(reason => {
+            expect(() => {
+              throw reason;
+            }).to.throw(/no result/);
+          });
+      };
+      const resultVerifier = () => true;
+      let cb;
+      sandbox
+        .stub(WebActivityPorts.prototype, 'onResult')
+        .callsFake((requestId, handler) => {
+          expect(requestId).to.equal('result');
+          cb = handler;
+        });
+      const activityPort = new WebActivityPort();
+      activityPort.acceptResult = () => {
+        return Promise.reject('no result');
+      };
+      activityPorts.attachResultHandler(
+        'result',
+        resultVerifier,
+        resultHandler
+      );
+      cb(activityPort);
+    });
+
+    it('should handle result verification failure', () => {
+      const activityPorts = new ActivityPorts(win);
+      const response = new SkuSelectedResponse();
+      response.setSku('A');
+      const resultHandler = resultPromise => {
+        resultPromise
+          .then(() => {
+            throw new Error('must have failed');
+          })
+          .catch(reason => {
+            expect(() => {
+              throw reason;
+            }).to.throw(/channel mismatch/);
+          });
+      };
+      const resultVerifier = () => {
+        throw new Error('channel mismatch');
+      };
+      let cb;
+      sandbox
+        .stub(WebActivityPorts.prototype, 'onResult')
+        .callsFake((requestId, handler) => {
+          expect(requestId).to.equal('result');
+          cb = handler;
+        });
+      const activityPort = new WebActivityPort();
+      activityPort.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {'RESULT': response.toArray()};
+        return Promise.resolve(result);
+      };
+      activityPorts.attachResultHandler(
+        'result',
+        resultVerifier,
+        resultHandler
+      );
       cb(activityPort);
     });
 

@@ -16,10 +16,14 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
-import {acceptPortResultData} from '../utils/activity-utils';
+import {acceptPortResultData, verifyResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isCancelError, createCancelError} from '../utils/errors';
-import {LinkingInfoResponse, LinkSaveTokenRequest} from '../proto/api_messages';
+import {
+  AccountSelected,
+  LinkingInfoResponse,
+  LinkSaveTokenRequest,
+} from '../proto/api_messages';
 import {isExperimentOn} from './experiments';
 import {ExperimentFlags} from './experiment-flags';
 
@@ -76,40 +80,88 @@ export class LinkCompleteFlow {
    * @param {!./deps.DepsDef} deps
    */
   static configurePending(deps) {
-    /**
-     * Handler function.
-     * @param {!../components/activities.ActivityPortDef} port
-     */
-    function handler(port) {
-      deps.entitlementsManager().blockNextNotification();
-      deps.callbacks().triggerLinkProgress();
-      deps.dialogManager().popupClosed();
-      const promise = acceptPortResultData(
-        port,
-        feOrigin(),
-        /* requireOriginVerified */ false,
-        /* requireSecureChannel */ false
-      );
-      return promise.then(
-        response => {
-          const flow = new LinkCompleteFlow(deps, response);
-          flow.start();
-        },
-        reason => {
-          if (isCancelError(reason)) {
-            deps
-              .callbacks()
-              .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
+    if (isExperimentOn(this.win_, ExperimentFlags.HEJIRA)) {
+      /**
+       * Verifies result and invokes some callbacks
+       * @param {!web-activities/activity-ports.ActivityResult} result
+       */
+      function resultVerifier(result) {
+        deps.entitlementsManager().blockNextNotification();
+        deps.callbacks().triggerLinkProgress();
+        deps.dialogManager().popupClosed();
+        return verifyResultData(
+          result,
+          feOrigin(),
+          /* requireOriginVerified */ false,
+          /* requireSecureChannel */ false
+        );
+      }
+      /**
+       * A promise that resolves to AccountSelected data
+       * @param {!Promise<!../proto/api_messages.Message>} resultPromise
+       */
+      function startLinkCompleteFlow(resultPromise) {
+        resultPromise.then(
+          result => {
+            const flow = new LinkCompleteFlow(deps, result);
+            flow.start();
+          },
+          reason => {
+            if (isCancelError(reason)) {
+              deps
+                .callbacks()
+                .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
+            }
           }
-        }
-      );
+        );
+      }
+      deps
+        .activities()
+        .attachResultHandler(
+          LINK_REQUEST_ID,
+          resultVerifier,
+          startLinkCompleteFlow
+        );
+    } else {
+      /**
+       * Handler function.
+       * @param {!../components/activities.ActivityPortDef} port
+       */
+      function handler(port) {
+        deps.entitlementsManager().blockNextNotification();
+        deps.callbacks().triggerLinkProgress();
+        deps.dialogManager().popupClosed();
+        const promise = acceptPortResultData(
+          port,
+          feOrigin(),
+          /* requireOriginVerified */ false,
+          /* requireSecureChannel */ false
+        );
+        return promise.then(
+          response => {
+            const accountSelected = new AccountSelected();
+            if (response && response['index']) {
+              accountSelected.setIndex(response['index']);
+            }
+            const flow = new LinkCompleteFlow(deps, accountSelected);
+            flow.start();
+          },
+          reason => {
+            if (isCancelError(reason)) {
+              deps
+                .callbacks()
+                .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
+            }
+          }
+        );
+      }
+      deps.activities().onResult(LINK_REQUEST_ID, handler);
     }
-    deps.activities().onResult(LINK_REQUEST_ID, handler);
   }
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {?Object} response
+   * @param {!AccountSelected} response
    */
   constructor(deps, response) {
     /** @private @const {!Window} */
@@ -127,7 +179,8 @@ export class LinkCompleteFlow {
     /** @private @const {!./callbacks.Callbacks} */
     this.callbacks_ = deps.callbacks();
 
-    const index = (response && response['index']) || '0';
+    const index = response.getIndex() ? response.getIndex() : '0';
+
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
@@ -261,7 +314,13 @@ export class LinkSaveFlow {
       // When linking succeeds, start link confirmation flow
       this.dialogManager_.popupClosed();
       this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
-      linkConfirm = new LinkCompleteFlow(this.deps_, result);
+      const accountSelected = new AccountSelected();
+      if (result && result['index']) {
+        accountSelected.setIndex(result['index']);
+      } else {
+        accountSelected.setIndex('0');
+      }
+      linkConfirm = new LinkCompleteFlow(this.deps_, accountSelected);
       startPromise = linkConfirm.start();
     } else {
       startPromise = Promise.reject(createCancelError(this.win_, 'not linked'));

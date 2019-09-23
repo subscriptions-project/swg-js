@@ -29,7 +29,11 @@ import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {createCancelError} from '../utils/errors';
 import {ActivityPort} from '../components/activities';
-import {LinkingInfoResponse, LinkSaveTokenRequest} from '../proto/api_messages';
+import {
+  AccountSelected,
+  LinkingInfoResponse,
+  LinkSaveTokenRequest,
+} from '../proto/api_messages';
 import {setExperiment, setExperimentsStringForTesting} from './experiments';
 import {ExperimentFlags} from './experiment-flags';
 
@@ -127,7 +131,10 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    linkCompleteFlow = new LinkCompleteFlow(runtime, {'index': '1'});
+    const accountSelected = new AccountSelected();
+    accountSelected.setIndex('1');
+    setExperimentsStringForTesting('');
+    linkCompleteFlow = new LinkCompleteFlow(runtime, accountSelected);
     triggerLinkProgressSpy = sandbox.stub(
       runtime.callbacks(),
       'triggerLinkProgress'
@@ -245,9 +252,243 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       });
   });
 
+  it('should trigger resultHandler on link response', () => {
+    setExperiment(win, ExperimentFlags.HEJIRA, true);
+    dialogManagerMock.expects('popupClosed').once();
+    let handler;
+    let verifier;
+    activitiesMock
+      .expects('attachResultHandler')
+      .withExactArgs(
+        'swg-link',
+        sandbox.match(arg => {
+          verifier = arg;
+          return typeof arg == 'function';
+        }),
+        sandbox.match(arg => {
+          handler = arg;
+          return typeof arg == 'function';
+        })
+      )
+      .once();
+    entitlementsManagerMock.expects('blockNextNotification').once();
+    LinkCompleteFlow.configurePending(runtime);
+    expect(handler).to.exist;
+    expect(verifier).to.exist;
+    expect(triggerLinkProgressSpy).to.not.be.called;
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+    expect(triggerFlowCancelSpy).to.not.be.called;
+
+    const accountSelected = new AccountSelected();
+    accountSelected.setIndex('1');
+    const result = new ActivityResult(
+      ActivityResultCode.OK,
+      'irreleveant',
+      'IFRAME',
+      location.origin,
+      true,
+      true
+    );
+
+    let startResolver;
+    const startPromise = new Promise(resolve => {
+      startResolver = resolve;
+    });
+    let instance;
+    const startStub = sandbox
+      .stub(LinkCompleteFlow.prototype, 'start')
+      .callsFake(function() {
+        instance = this;
+        startResolver();
+      });
+    expect(verifier(result)).to.be.true;
+    handler(Promise.resolve(accountSelected));
+    expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+    return startPromise.then(() => {
+      expect(startStub).to.be.calledWithExactly();
+      expect(instance.activityIframeView_.src_).to.contain('/u/1/');
+      expect(triggerFlowCancelSpy).to.not.be.called;
+    });
+  });
+
+  it('should trigger resultHandler on failed link response', () => {
+    setExperiment(win, ExperimentFlags.HEJIRA, true);
+    dialogManagerMock.expects('popupClosed').once();
+    let handler;
+    let verifier;
+    activitiesMock
+      .expects('attachResultHandler')
+      .withExactArgs(
+        'swg-link',
+        sandbox.match(arg => {
+          verifier = arg;
+          return typeof arg == 'function';
+        }),
+        sandbox.match(arg => {
+          handler = arg;
+          return typeof arg == 'function';
+        })
+      )
+      .once();
+    entitlementsManagerMock.expects('blockNextNotification').once();
+    LinkCompleteFlow.configurePending(runtime);
+    expect(handler).to.exist;
+    expect(verifier).to.exist;
+    expect(triggerLinkProgressSpy).to.not.be.called;
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+
+    const accountSelected = new AccountSelected();
+    accountSelected.setIndex('1');
+    const result = new ActivityResult(
+      ActivityResultCode.OK,
+      'irrelevant',
+      'IFRAME',
+      'other-origin',
+      true,
+      true
+    );
+
+    const startStub = sandbox.stub(LinkCompleteFlow.prototype, 'start');
+    try {
+      verifier(result);
+    } catch (error) {
+      expect(() => {
+        throw error;
+      }).to.throw(/channel mismatch/);
+    }
+    handler(Promise.reject(new Error('channel mismatch')));
+    expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+    return Promise.resolve()
+      .then(() => {
+        // Skip microtask.
+        return Promise.resolve();
+      })
+      .then(() => {
+        expect(triggerFlowCancelSpy).to.be.calledOnce;
+        expect(startStub).to.not.be.called;
+      });
+  });
+
+  it('should trigger resultHandler on verification failure', () => {
+    setExperiment(win, ExperimentFlags.HEJIRA, true);
+    dialogManagerMock.expects('popupClosed').once();
+    let handler;
+    let verifier;
+    activitiesMock
+      .expects('attachResultHandler')
+      .withExactArgs(
+        'swg-link',
+        sandbox.match(arg => {
+          verifier = arg;
+          return typeof arg == 'function';
+        }),
+        sandbox.match(arg => {
+          handler = arg;
+          return typeof arg == 'function';
+        })
+      )
+      .once();
+    entitlementsManagerMock.expects('blockNextNotification').once();
+    LinkCompleteFlow.configurePending(runtime);
+    expect(handler).to.exist;
+    expect(verifier).to.exist;
+    expect(triggerLinkProgressSpy).to.not.be.called;
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+
+    const accountSelected = new AccountSelected();
+    accountSelected.setIndex('1');
+    const result = new ActivityResult(
+      ActivityResultCode.OK,
+      'irrelevant',
+      'IFRAME',
+      location.origin,
+      true,
+      true
+    );
+
+    const startStub = sandbox.stub(LinkCompleteFlow.prototype, 'start');
+    expect(verifier(result)).to.be.true;
+    handler(Promise.reject(new DOMException('cancel', 'AbortError')));
+    expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+    return Promise.resolve()
+      .then(() => {
+        // Skip microtask.
+        return Promise.resolve();
+      })
+      .then(() => {
+        expect(triggerFlowCancelSpy).to.be.calledOnce;
+        expect(startStub).to.not.be.called;
+      });
+  });
+
+  it('should trigger resultHandler with default index', () => {
+    setExperiment(win, ExperimentFlags.HEJIRA, true);
+    dialogManagerMock.expects('popupClosed').once();
+    let handler;
+    let verifier;
+    activitiesMock
+      .expects('attachResultHandler')
+      .withExactArgs(
+        'swg-link',
+        sandbox.match(arg => {
+          verifier = arg;
+          return typeof arg == 'function';
+        }),
+        sandbox.match(arg => {
+          handler = arg;
+          return typeof arg == 'function';
+        })
+      )
+      .once();
+    entitlementsManagerMock.expects('blockNextNotification').once();
+    LinkCompleteFlow.configurePending(runtime);
+    expect(handler).to.exist;
+    expect(verifier).to.exist;
+    expect(triggerLinkProgressSpy).to.not.be.called;
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+    expect(triggerFlowCancelSpy).to.not.be.called;
+
+    const accountSelected = new AccountSelected();
+    linkCompleteFlow = new LinkCompleteFlow(runtime, accountSelected);
+    const result = new ActivityResult(
+      ActivityResultCode.OK,
+      'irrelevant',
+      'IFRAME',
+      location.origin,
+      true,
+      true
+    );
+
+    let startResolver;
+    const startPromise = new Promise(resolve => {
+      startResolver = resolve;
+    });
+    let instance;
+    const startStub = sandbox
+      .stub(LinkCompleteFlow.prototype, 'start')
+      .callsFake(function() {
+        instance = this;
+        startResolver();
+      });
+    expect(verifier(result)).to.be.true;
+    handler(Promise.resolve(accountSelected));
+    expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+    return startPromise.then(() => {
+      expect(startStub).to.be.calledWithExactly();
+      expect(instance.activityIframeView_.src_).to.contain('/u/0/');
+      expect(triggerFlowCancelSpy).to.not.be.called;
+    });
+  });
+
   it('should default index to 0', () => {
     dialogManagerMock.expects('popupClosed').once();
-    linkCompleteFlow = new LinkCompleteFlow(runtime, {});
+    const accountSelected = new AccountSelected();
+    accountSelected.setIndex('0');
+    linkCompleteFlow = new LinkCompleteFlow(runtime, accountSelected);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};

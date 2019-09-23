@@ -120,6 +120,53 @@ class AccountCreationRequest {
 /**
  * @implements {Message}
  */
+class AccountSelected {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?string} */
+    this.index_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getIndex() {
+    return this.index_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setIndex(value) {
+    this.index_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.index_,  // field 1 - index
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AccountSelected';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class AlreadySubscribedResponse {
  /**
   * @param {!Array=} data
@@ -992,6 +1039,7 @@ class ViewSubscriptionsResponse {
 
 const PROTO_MAP = {
   'AccountCreationRequest': AccountCreationRequest,
+  'AccountSelected': AccountSelected,
   'AlreadySubscribedResponse': AlreadySubscribedResponse,
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
@@ -1035,6 +1083,7 @@ function getLabel(messageType) {
 
 export {
   AccountCreationRequest,
+  AccountSelected,
   AlreadySubscribedResponse,
   AnalyticsContext,
   AnalyticsEvent,

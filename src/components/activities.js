@@ -359,6 +359,42 @@ export class ActivityPorts {
   }
 
   /**
+   *
+   * @param {string} requestId
+   * @param {!function(!web-activities/activity-ports.ActivityResult):boolean} verifier
+   * @param {function(!Promise<!../proto/api_messages.Message>)} callback
+   */
+  attachResultHandler(requestId, verifier, callback) {
+    this.activityPorts_.onResult(requestId, port => {
+      return port
+        .acceptResult()
+        .then(response => {
+          let resultAccepted = true;
+          if (verifier) {
+            resultAccepted = verifier(response);
+          }
+          if (resultAccepted) {
+            const data = /** @type {?Object} */ (response.data);
+            let result = null;
+            if (data) {
+              try {
+                result = deserialize(data['RESULT']);
+              } catch (e) {
+                throw e;
+              }
+            }
+            if (result) {
+              callback(Promise.resolve(result));
+            }
+          }
+        })
+        .catch(error => {
+          callback(Promise.reject(error));
+        });
+    });
+  }
+
+  /**
    * @param {function(!Error)} handler
    */
   onRedirectError(handler) {

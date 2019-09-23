@@ -18,7 +18,7 @@ import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {acceptPortResultData} from './activity-utils';
+import {acceptPortResultData, verifyResultData} from './activity-utils';
 import {ActivityPortDef} from '../components/activities';
 
 const OK = ActivityResultCode.OK;
@@ -79,6 +79,29 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     });
   });
 
+  it('should verify success', () => {
+    const result = new ActivityResult(
+      OK,
+      'A',
+      'MODE',
+      ORIGIN,
+      VERIFIED,
+      SECURE
+    );
+    let verified = false;
+    try {
+      verified = verifyResultData(
+        result,
+        ORIGIN,
+        REQUIRE_VERIFIED,
+        REQUIRE_SECURE
+      );
+    } catch (e) {
+      // Ignore
+    }
+    expect(verified).to.be.true;
+  });
+
   it('should fail success on wrong origin', () => {
     result(OK, 'A', OTHER_ORIGIN, VERIFIED, SECURE);
     return acceptPortResultData(
@@ -96,6 +119,24 @@ describes.sandboxed('acceptPortResultData', {}, () => {
         }).to.throw(/channel mismatch/);
       }
     );
+  });
+
+  it('should verify origin and fail', () => {
+    const result = new ActivityResult(
+      OK,
+      'A',
+      'MODE',
+      OTHER_ORIGIN,
+      VERIFIED,
+      SECURE
+    );
+    try {
+      verifyResultData(result, ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE);
+    } catch (e) {
+      expect(() => {
+        throw new Error(e);
+      }).to.throw(/channel mismatch/);
+    }
   });
 
   it('should fail success on not verified', () => {
@@ -117,6 +158,24 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     );
   });
 
+  it('should verify failure on not verified', () => {
+    const result = new ActivityResult(
+      OK,
+      'A',
+      'MODE',
+      ORIGIN,
+      NOT_VERIFIED,
+      SECURE
+    );
+    try {
+      verifyResultData(result, ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE);
+    } catch (e) {
+      expect(() => {
+        throw new Error(e);
+      }).to.throw(/channel mismatch/);
+    }
+  });
+
   it('should allow success on not verified', () => {
     result(OK, 'A', ORIGIN, NOT_VERIFIED, SECURE);
     return acceptPortResultData(
@@ -127,6 +186,29 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     ).then(data => {
       expect(data).to.equal('A');
     });
+  });
+
+  it('should verify success on not verified', () => {
+    const result = new ActivityResult(
+      OK,
+      'A',
+      'MODE',
+      ORIGIN,
+      VERIFIED,
+      SECURE
+    );
+    let verified = false;
+    try {
+      verified = verifyResultData(
+        result,
+        ORIGIN,
+        DONT_REQUIRE_VERIFIED,
+        REQUIRE_SECURE
+      );
+    } catch (e) {
+      // Ignore
+    }
+    expect(verified).to.be.true;
   });
 
   it('should fail success on not secure channel', () => {
@@ -148,6 +230,24 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     );
   });
 
+  it('should verify fail on not secure channel', () => {
+    const result = new ActivityResult(
+      OK,
+      'A',
+      'MODE',
+      ORIGIN,
+      VERIFIED,
+      NOT_SECURE
+    );
+    try {
+      verifyResultData(result, ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE);
+    } catch (e) {
+      expect(() => {
+        throw new Error(e);
+      }).to.throw(/channel mismatch/);
+    }
+  });
+
   it('should allow success on not secure channel', () => {
     result(OK, 'A', ORIGIN, VERIFIED, NOT_SECURE);
     return acceptPortResultData(
@@ -158,6 +258,29 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     ).then(data => {
       expect(data).to.equal('A');
     });
+  });
+
+  it('should verify success', () => {
+    const result = new ActivityResult(
+      OK,
+      'A',
+      'MODE',
+      ORIGIN,
+      VERIFIED,
+      NOT_SECURE
+    );
+    let verified = false;
+    try {
+      verified = verifyResultData(
+        result,
+        ORIGIN,
+        REQUIRE_VERIFIED,
+        DONT_REQUIRE_SECURE
+      );
+    } catch (e) {
+      // Should not happen
+    }
+    expect(verified).to.be.true;
   });
 
   it('should resolve unexpected failure', () => {
@@ -198,6 +321,24 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     );
   });
 
+  it('should verify cancel', () => {
+    const result = new ActivityResult(
+      CANCELED,
+      null,
+      'MODE',
+      ORIGIN,
+      VERIFIED,
+      NOT_SECURE
+    );
+    try {
+      verifyResultData(result, ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE);
+    } catch (e) {
+      expect(() => {
+        throw new Error(e);
+      }).to.throw(/AbortError/);
+    }
+  });
+
   it('should resolve failure', () => {
     result(FAILED, 'failure', ORIGIN, VERIFIED, NOT_SECURE);
     return acceptPortResultData(
@@ -216,5 +357,23 @@ describes.sandboxed('acceptPortResultData', {}, () => {
         }).to.throw(/failure/);
       }
     );
+  });
+
+  it('should fail and throw error', () => {
+    const result = new ActivityResult(
+      FAILED,
+      'faliure',
+      'MODE',
+      ORIGIN,
+      VERIFIED,
+      NOT_SECURE
+    );
+    try {
+      verifyResultData(result, ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE);
+    } catch (e) {
+      expect(() => {
+        throw new Error(e);
+      }).to.throw(/channel mismatch/);
+    }
   });
 });
