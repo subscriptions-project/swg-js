@@ -16,7 +16,7 @@
 
 import {
     AccountCreationRequest,
-    AccountSelectedResponse,
+    AccountSelectedResult,
     AlreadySubscribedResponse,
     AnalyticsContext,
     AnalyticsEvent,
@@ -78,16 +78,16 @@ describe('api_messages', () => {
     });
   });
 
-  describe('test_AccountSelectedResponse', () => {
+  describe('test_AccountSelectedResult', () => {
     it('should deserialize correctly', () => {
-      const /** !AccountSelectedResponse  */ accountselectedresponse = new AccountSelectedResponse();
-      accountselectedresponse.setIndex('');
-      const accountselectedresponseSerialized = accountselectedresponse.toArray();
-      const accountselectedresponseDeserialized = deserialize(
-          accountselectedresponseSerialized);
-      expect(accountselectedresponseDeserialized).to.not.be.null;
-      expect(isEqual(accountselectedresponse.toArray(),
-          accountselectedresponseDeserialized.toArray())).to.be.true;
+      const /** !AccountSelectedResult  */ accountselectedresult = new AccountSelectedResult();
+      accountselectedresult.setIndex('');
+      const accountselectedresultSerialized = accountselectedresult.toArray();
+      const accountselectedresultDeserialized = deserialize(
+          accountselectedresultSerialized);
+      expect(accountselectedresultDeserialized).to.not.be.null;
+      expect(isEqual(accountselectedresult.toArray(),
+          accountselectedresultDeserialized.toArray())).to.be.true;
     });
   });
 

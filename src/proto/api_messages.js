@@ -120,7 +120,7 @@ class AccountCreationRequest {
 /**
  * @implements {Message}
  */
-class AccountSelectedResponse {
+class AccountSelectedResult {
  /**
   * @param {!Array=} data
   */
@@ -160,7 +160,7 @@ class AccountSelectedResponse {
    * @override
    */
   label() {
-    return 'AccountSelectedResponse';
+    return 'AccountSelectedResult';
   }
 }
 
@@ -1039,7 +1039,7 @@ class ViewSubscriptionsResponse {
 
 const PROTO_MAP = {
   'AccountCreationRequest': AccountCreationRequest,
-  'AccountSelectedResponse': AccountSelectedResponse,
+  'AccountSelectedResult': AccountSelectedResult,
   'AlreadySubscribedResponse': AlreadySubscribedResponse,
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
@@ -1083,7 +1083,7 @@ function getLabel(messageType) {
 
 export {
   AccountCreationRequest,
-  AccountSelectedResponse,
+  AccountSelectedResult,
   AlreadySubscribedResponse,
   AnalyticsContext,
   AnalyticsEvent,
