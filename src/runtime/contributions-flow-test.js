@@ -24,8 +24,6 @@ import {
   SkuSelectedResponse,
   AlreadySubscribedResponse,
 } from '../proto/api_messages';
-import {setExperiment, setExperimentsStringForTesting} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 
 describes.realWin('ContributionsFlow', {}, env => {
   let win;
@@ -36,7 +34,6 @@ describes.realWin('ContributionsFlow', {}, env => {
   let pageConfig;
   let port;
   let messageMap;
-  let messageCallback;
 
   beforeEach(() => {
     win = env.win;
@@ -55,10 +52,6 @@ describes.realWin('ContributionsFlow', {}, env => {
       const messageLabel = messageType.label();
       messageMap[messageLabel] = cb;
     });
-    sandbox.stub(port, 'onMessageDeprecated').callsFake(function(cb) {
-      messageCallback = cb;
-    });
-    setExperimentsStringForTesting('');
   });
 
   afterEach(() => {
@@ -117,7 +110,6 @@ describes.realWin('ContributionsFlow', {}, env => {
       runtime.callbacks(),
       'triggerSubscribeRequest'
     );
-    setExperiment(win, ExperimentFlags.HEJIRA, true);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return contributionsFlow.start().then(() => {
       let callback = messageMap['SkuSelectedResponse'];
@@ -151,7 +143,11 @@ describes.realWin('ContributionsFlow', {}, env => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return contributionsFlow.start().then(() => {
-      messageCallback({'alreadyMember': true, 'linkRequested': true});
+      const response = new AlreadySubscribedResponse();
+      response.setSubscriberOrMember(true);
+      response.setLinkRequested(true);
+      const callback = messageMap[response.label()];
+      callback(response);
       expect(loginStub).to.be.calledOnce.calledWithExactly({
         linkRequested: true,
       });

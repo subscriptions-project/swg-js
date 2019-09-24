@@ -30,8 +30,6 @@ import {
   ViewSubscriptionsResponse,
   SubscribeResponse,
 } from '../proto/api_messages';
-import {setExperiment, setExperimentsStringForTesting} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 
 describes.realWin('OffersFlow', {}, env => {
   let win;
@@ -60,15 +58,11 @@ describes.realWin('OffersFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    sandbox.stub(port, 'onMessageDeprecated').callsFake(cb => {
-      messageCallback = cb;
-    });
     sandbox.stub(port, 'on').callsFake((ctor, callback) => {
       const messageType = new ctor();
       const messageLabel = messageType.label();
       messageMap[messageLabel] = callback;
     });
-    setExperimentsStringForTesting('');
   });
 
   afterEach(() => {
@@ -292,7 +286,6 @@ describes.realWin('OffersFlow', {}, env => {
       runtime.callbacks(),
       'triggerSubscribeRequest'
     );
-    setExperiment(win, ExperimentFlags.HEJIRA, true);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return offersFlow.start().then(() => {
       // Unrlated message.
@@ -302,16 +295,16 @@ describes.realWin('OffersFlow', {}, env => {
       const skuSelected = new SkuSelectedResponse();
       skuSelected.setSku('sku1');
       // Pay message.
-      let messageCallback = messageMap['SkuSelectedResponse'];
+      let messageCallback = messageMap[skuSelected.label()];
       messageCallback(skuSelected);
       expect(payStub).to.be.calledOnce;
       expect(loginStub).to.not.be.called;
       expect(nativeStub).to.not.be.called;
       // Login message.
-      messageCallback = messageMap['AlreadySubscribedResponse'];
       const response = new AlreadySubscribedResponse();
       response.setSubscriberOrMember(true);
       response.setLinkRequested(false);
+      messageCallback = messageMap[response.label()];
       messageCallback(response);
       expect(loginStub).to.be.calledOnce.calledWithExactly({
         linkRequested: false,
@@ -319,9 +312,9 @@ describes.realWin('OffersFlow', {}, env => {
       expect(payStub).to.be.calledOnce; // Dind't change.
       expect(nativeStub).to.not.be.called;
       // Native message.
-      messageCallback = messageMap['ViewSubscriptionsResponse'];
       const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
       viewSubscriptionsResponse.setNative(true);
+      messageCallback = messageMap[viewSubscriptionsResponse.label()];
       messageCallback(viewSubscriptionsResponse);
       expect(nativeStub).to.be.calledOnce.calledWithExactly();
       expect(loginStub).to.be.calledOnce; // Dind't change.
@@ -333,10 +326,11 @@ describes.realWin('OffersFlow', {}, env => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     return offersFlow.start().then(() => {
-      messageCallback({
-        'alreadySubscribed': true,
-        'linkRequested': true,
-      });
+      const response = new AlreadySubscribedResponse();
+      response.setSubscriberOrMember(true);
+      response.setLinkRequested(true);
+      messageCallback = messageMap[response.label()];
+      messageCallback(response);
       expect(loginStub).to.be.calledOnce.calledWithExactly({
         linkRequested: true,
       });
@@ -377,15 +371,11 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
-    sandbox.stub(port, 'onMessageDeprecated').callsFake(cb => {
-      messageCallback = cb;
-    });
     sandbox.stub(port, 'on').callsFake((ctor, callback) => {
       const messageType = new ctor();
       const messageLabel = messageType.label();
       messageMap[messageLabel] = callback;
     });
-    setExperimentsStringForTesting('');
   });
 
   afterEach(() => {
@@ -490,11 +480,12 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
     return offersFlow.start().then(() => {
-      // Unrelated message
-      messageCallback({});
       expect(offersStartStub).to.not.be.called;
       // Subscribe message.
-      messageCallback({'subscribe': true});
+      const response = new SubscribeResponse();
+      response.setSubscribe(true);
+      messageCallback = messageMap[response.label()];
+      messageCallback(response);
       expect(offersStartStub).to.be.calledOnce;
     });
   });
@@ -507,7 +498,6 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
       offersFlow = this;
       return Promise.resolve();
     });
-    setExperiment(win, ExperimentFlags.HEJIRA, true);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
@@ -518,8 +508,8 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     return optionFlow.start().then(() => {
       const response = new SubscribeResponse();
       response.setSubscribe(true);
-      const callback = messageMap['SubscribeResponse'];
-      callback(response);
+      messageCallback = messageMap[response.label()];
+      messageCallback(response);
       expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
     });
   });
@@ -552,15 +542,11 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.acceptResult = () => Promise.resolve();
     port.whenReady = () => Promise.resolve();
-    sandbox.stub(port, 'onMessageDeprecated').callsFake(cb => {
-      messageCallback = cb;
-    });
     sandbox.stub(port, 'on').callsFake((ctor, callback) => {
       const messageType = new ctor();
       const messageLabel = messageType.label();
       messageMap[messageLabel] = callback;
     });
-    setExperimentsStringForTesting('');
   });
 
   afterEach(() => {
@@ -692,7 +678,6 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
 
   it('should trigger login flow for a subscribed user with linking', () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
-    setExperiment(win, ExperimentFlags.HEJIRA, true);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     eventManagerMock
       .expects('logSwgEvent')
@@ -706,8 +691,8 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
       const response = new AlreadySubscribedResponse();
       response.setLinkRequested(true);
       response.setSubscriberOrMember(true);
-      const callback = messageMap['AlreadySubscribedResponse'];
-      callback(response);
+      messageCallback = messageMap['AlreadySubscribedResponse'];
+      messageCallback(response);
       expect(loginStub).to.be.calledOnce.calledWithExactly({
         linkRequested: true,
       });
@@ -726,7 +711,11 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ALREADY_SUBSCRIBED, true);
     return abbrvOfferFlow.start().then(() => {
-      messageCallback({'alreadySubscribed': true, 'linkRequested': false});
+      const response = new AlreadySubscribedResponse();
+      response.setSubscriberOrMember(true);
+      response.setLinkRequested(false);
+      messageCallback = messageMap[response.label()];
+      messageCallback(response);
       expect(loginStub).to.be.calledOnce.calledWithExactly({
         linkRequested: false,
       });
