@@ -120,6 +120,7 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityPorts.attachResultHandler(
         'result',
         resultVerifier,
+        SkuSelectedResponse,
         resultHandler
       );
       cb(activityPort);
@@ -153,6 +154,7 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityPorts.attachResultHandler(
         'result',
         resultVerifier,
+        SkuSelectedResponse,
         resultHandler
       );
       cb(activityPort);
@@ -192,6 +194,7 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityPorts.attachResultHandler(
         'result',
         resultVerifier,
+        SkuSelectedResponse,
         resultHandler
       );
       cb(activityPort);

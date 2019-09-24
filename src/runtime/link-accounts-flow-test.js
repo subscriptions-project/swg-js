@@ -30,7 +30,7 @@ import {GlobalDoc} from '../model/doc';
 import {createCancelError} from '../utils/errors';
 import {ActivityPort} from '../components/activities';
 import {
-  AccountSelected,
+  AccountSelectedResponse,
   LinkingInfoResponse,
   LinkSaveTokenRequest,
 } from '../proto/api_messages';
@@ -131,7 +131,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    const accountSelected = new AccountSelected();
+    const accountSelected = new AccountSelectedResponse();
     accountSelected.setIndex('1');
     setExperimentsStringForTesting('');
     linkCompleteFlow = new LinkCompleteFlow(runtime, accountSelected);
@@ -265,6 +265,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
           verifier = arg;
           return typeof arg == 'function';
         }),
+        sandbox.match.any,
         sandbox.match(arg => {
           handler = arg;
           return typeof arg == 'function';
@@ -279,7 +280,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     expect(triggerLinkCompleteSpy).to.not.be.called;
     expect(triggerFlowCancelSpy).to.not.be.called;
 
-    const accountSelected = new AccountSelected();
+    const accountSelected = new AccountSelectedResponse();
     accountSelected.setIndex('1');
     const result = new ActivityResult(
       ActivityResultCode.OK,
@@ -325,6 +326,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
           verifier = arg;
           return typeof arg == 'function';
         }),
+        sandbox.match.any,
         sandbox.match(arg => {
           handler = arg;
           return typeof arg == 'function';
@@ -338,8 +340,6 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     expect(triggerLinkProgressSpy).to.not.be.called;
     expect(triggerLinkCompleteSpy).to.not.be.called;
 
-    const accountSelected = new AccountSelected();
-    accountSelected.setIndex('1');
     const result = new ActivityResult(
       ActivityResultCode.OK,
       'irrelevant',
@@ -357,7 +357,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
         throw error;
       }).to.throw(/channel mismatch/);
     }
-    handler(Promise.reject(new Error('channel mismatch')));
+    handler(Promise.reject(new DOMException('cancel', 'AbortError')));
     expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
     expect(triggerLinkCompleteSpy).to.not.be.called;
     return Promise.resolve()
@@ -384,6 +384,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
           verifier = arg;
           return typeof arg == 'function';
         }),
+        sandbox.match.any,
         sandbox.match(arg => {
           handler = arg;
           return typeof arg == 'function';
@@ -397,7 +398,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     expect(triggerLinkProgressSpy).to.not.be.called;
     expect(triggerLinkCompleteSpy).to.not.be.called;
 
-    const accountSelected = new AccountSelected();
+    const accountSelected = new AccountSelectedResponse();
     accountSelected.setIndex('1');
     const result = new ActivityResult(
       ActivityResultCode.OK,
@@ -437,6 +438,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
           verifier = arg;
           return typeof arg == 'function';
         }),
+        sandbox.match.any,
         sandbox.match(arg => {
           handler = arg;
           return typeof arg == 'function';
@@ -451,7 +453,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     expect(triggerLinkCompleteSpy).to.not.be.called;
     expect(triggerFlowCancelSpy).to.not.be.called;
 
-    const accountSelected = new AccountSelected();
+    const accountSelected = new AccountSelectedResponse();
     linkCompleteFlow = new LinkCompleteFlow(runtime, accountSelected);
     const result = new ActivityResult(
       ActivityResultCode.OK,
@@ -486,7 +488,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
   it('should default index to 0', () => {
     dialogManagerMock.expects('popupClosed').once();
-    const accountSelected = new AccountSelected();
+    const accountSelected = new AccountSelectedResponse();
     accountSelected.setIndex('0');
     linkCompleteFlow = new LinkCompleteFlow(runtime, accountSelected);
     port = new ActivityPort();

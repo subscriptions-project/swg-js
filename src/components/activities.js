@@ -272,6 +272,8 @@ export class ActivityPorts {
   constructor(win) {
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = new WebActivityPorts(win);
+    /** @private @const {!Object<string, function(!Promise<!Object>)>} */
+    this.callbackMap_ = {};
   }
 
   /**
@@ -362,9 +364,13 @@ export class ActivityPorts {
    *
    * @param {string} requestId
    * @param {!function(!web-activities/activity-ports.ActivityResult):boolean} verifier
+   * @param {!function(new: T)} resultType
    * @param {function(!Promise<!../proto/api_messages.Message>)} callback
+   * @template T
    */
-  attachResultHandler(requestId, verifier, callback) {
+  attachResultHandler(requestId, verifier, resultType, callback) {
+    const label = getLabel(resultType);
+    this.callbackMap_[label] = callback;
     this.activityPorts_.onResult(requestId, port => {
       return port
         .acceptResult()
@@ -376,15 +382,13 @@ export class ActivityPorts {
           if (resultAccepted) {
             const data = /** @type {?Object} */ (response.data);
             let result = null;
-            if (data) {
-              try {
-                result = deserialize(data['RESULT']);
-              } catch (e) {
-                throw e;
-              }
+            let cb = null;
+            if (data && data['RESULT']) {
+              result = /** @type {!Array} */ (data['RESULT']);
+              cb = this.callbackMap_[result[0]];
             }
-            if (result) {
-              callback(Promise.resolve(result));
+            if (cb && result) {
+              cb(Promise.resolve(deserialize(result)));
             }
           }
         })

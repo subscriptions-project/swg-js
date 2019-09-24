@@ -20,7 +20,7 @@ import {acceptPortResultData, verifyResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isCancelError, createCancelError} from '../utils/errors';
 import {
-  AccountSelected,
+  AccountSelectedResponse,
   LinkingInfoResponse,
   LinkSaveTokenRequest,
 } from '../proto/api_messages';
@@ -120,6 +120,7 @@ export class LinkCompleteFlow {
         .attachResultHandler(
           LINK_REQUEST_ID,
           resultVerifier,
+          AccountSelectedResponse,
           startLinkCompleteFlow
         );
     } else {
@@ -139,7 +140,7 @@ export class LinkCompleteFlow {
         );
         return promise.then(
           response => {
-            const accountSelected = new AccountSelected();
+            const accountSelected = new AccountSelectedResponse();
             if (response && response['index']) {
               accountSelected.setIndex(response['index']);
             }
@@ -161,7 +162,7 @@ export class LinkCompleteFlow {
 
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!AccountSelected} response
+   * @param {!AccountSelectedResponse} response
    */
   constructor(deps, response) {
     /** @private @const {!Window} */
@@ -314,11 +315,9 @@ export class LinkSaveFlow {
       // When linking succeeds, start link confirmation flow
       this.dialogManager_.popupClosed();
       this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
-      const accountSelected = new AccountSelected();
+      const accountSelected = new AccountSelectedResponse();
       if (result && result['index']) {
         accountSelected.setIndex(result['index']);
-      } else {
-        accountSelected.setIndex('0');
       }
       linkConfirm = new LinkCompleteFlow(this.deps_, accountSelected);
       startPromise = linkConfirm.start();
