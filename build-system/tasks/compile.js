@@ -16,6 +16,8 @@
 'use strict';
 
 const $$ = require('gulp-load-plugins')();
+const colors = require('ansi-colors');
+const log = require('fancy-log');
 const babel = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
@@ -25,8 +27,6 @@ const glob = require('glob');
 const gulp = $$.help(require('gulp'));
 const jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
 const lazypipe = require('lazypipe');
-const minimatch = require('minimatch');
-const minimist = require('minimist');
 const pathLib = require('path');
 const resolveConfig = require('./compile-config').resolveConfig;
 const source = require('vinyl-source-stream');
@@ -147,9 +147,9 @@ function compileJs(srcDir, srcFilename, destDir, options) {
     return toPromise(bundler.bundle()
         .on('error', function(err) {
           if (err instanceof SyntaxError) {
-            console.error($$.util.colors.red('Syntax error:', err.message));
+            console.error(colors.red('Syntax error:', err.message));
           } else {
-            console.error($$.util.colors.red(err.message));
+            console.error(colors.red(err.message));
           }
         })
         .pipe(lazybuild())
@@ -251,10 +251,10 @@ function endBuildStep(stepName, targetName, startTime) {
     timeString += secs + '.' + ms + ' s)';
   }
   if (!process.env.TRAVIS) {
-    $$.util.log(
+    log(
         stepName,
-        $$.util.colors.cyan(targetName),
-        $$.util.colors.green(timeString));
+        colors.cyan(targetName),
+        colors.green(timeString));
   }
 }
 
