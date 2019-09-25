@@ -18,7 +18,6 @@ const $$ = require('gulp-load-plugins')();
 const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
 const lazypipe = require('lazypipe');
-const minimatch = require('minimatch');
 const minimist = require('minimist');
 const source = require('vinyl-source-stream');
 const touch = require('touch');
