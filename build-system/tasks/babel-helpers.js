@@ -24,7 +24,7 @@ var babel = require('babel-core');
 var fs = require('fs');
 var gulp = require('gulp-help')(require('gulp'));
 var through = require('through2');
-var util = require('gulp-util');
+var PluginError = require('plugin-error');
 
 var options = JSON.parse(fs.readFileSync('.babelrc', 'utf8').toString());
 
@@ -42,7 +42,7 @@ function onFileThrough(helpers, file, enc, cb) {
   }
 
   if (file.isStream()) {
-    cb(new util.PluginError('babel-helpers', 'Stream not supported'));
+    cb(new PluginError('babel-helpers', 'Stream not supported'));
     return;
   }
 
