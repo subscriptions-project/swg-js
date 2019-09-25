@@ -35,8 +35,6 @@ import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseJson, tryParseJson} from '../utils/json';
-import {isExperimentOn} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 import {
   EntitlementsResponse,
   AccountCreationRequest,
@@ -272,20 +270,10 @@ export class PayCompleteFlow {
       /* shouldFadeBody */ true
     );
 
-    if (isExperimentOn(this.win_, ExperimentFlags.HEJIRA)) {
-      this.activityIframeView_.on(
-        EntitlementsResponse,
-        this.handleEntitlementsResponse_.bind(this)
-      );
-    } else {
-      this.activityIframeView_.onMessageDeprecated(data => {
-        if (data['entitlements']) {
-          const response = new EntitlementsResponse();
-          response.setJwt(/** @type {string} */ (data['entitlements']));
-          this.handleEntitlementsResponse_(response);
-        }
-      });
-    }
+    this.activityIframeView_.on(
+      EntitlementsResponse,
+      this.handleEntitlementsResponse_.bind(this)
+    );
 
     this.activityIframeView_.acceptResult().then(() => {
       // The flow is complete.
@@ -313,13 +301,9 @@ export class PayCompleteFlow {
     this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
-      if (isExperimentOn(this.win_, ExperimentFlags.HEJIRA)) {
-        const accountCompletionRequest = new AccountCreationRequest();
-        accountCompletionRequest.setComplete(true);
-        this.activityIframeView_.execute(accountCompletionRequest);
-      } else {
-        this.activityIframeView_.messageDeprecated({'complete': true});
-      }
+      const accountCompletionRequest = new AccountCreationRequest();
+      accountCompletionRequest.setComplete(true);
+      this.activityIframeView_.execute(accountCompletionRequest);
     });
     return this.activityIframeView_
       .acceptResult()

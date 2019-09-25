@@ -22,8 +22,6 @@ import {
   SkuSelectedResponse,
   AlreadySubscribedResponse,
 } from '../proto/api_messages';
-import {isExperimentOn} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 
 /**
  * The class for Contributions flow.
@@ -103,33 +101,14 @@ export class ContributionsFlow {
         .callbacks()
         .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     });
-    if (isExperimentOn(this.deps_.win(), ExperimentFlags.HEJIRA)) {
-      this.activityIframeView_.on(
-        AlreadySubscribedResponse,
-        this.handleLinkRequest_.bind(this)
-      );
-      this.activityIframeView_.on(
-        SkuSelectedResponse,
-        this.startPayFlow_.bind(this)
-      );
-    } else {
-      // If result is due to OfferSelection, redirect to payments.
-      this.activityIframeView_.onMessageDeprecated(result => {
-        if (result['alreadyMember']) {
-          const alreadySubscribedResponse = new AlreadySubscribedResponse();
-          alreadySubscribedResponse.setLinkRequested(result['linkRequested']);
-          alreadySubscribedResponse.setSubscriberOrMember(true);
-          this.handleLinkRequest_(alreadySubscribedResponse);
-          return;
-        }
-        if (result['sku']) {
-          const skuSelectedResponse = new SkuSelectedResponse();
-          skuSelectedResponse.setSku(result['sku']);
-          this.startPayFlow_(skuSelectedResponse);
-          return;
-        }
-      });
-    }
+    this.activityIframeView_.on(
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
+    );
+    this.activityIframeView_.on(
+      SkuSelectedResponse,
+      this.startPayFlow_.bind(this)
+    );
 
     return this.dialogManager_.openView(this.activityIframeView_);
   }

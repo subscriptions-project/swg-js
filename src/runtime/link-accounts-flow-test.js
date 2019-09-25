@@ -30,8 +30,6 @@ import {GlobalDoc} from '../model/doc';
 import {createCancelError} from '../utils/errors';
 import {ActivityPort} from '../components/activities';
 import {LinkingInfoResponse, LinkSaveTokenRequest} from '../proto/api_messages';
-import {setExperiment, setExperimentsStringForTesting} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 
 describes.realWin('LinkbackFlow', {}, env => {
   let win;
@@ -475,7 +473,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
   let port;
   let dialogManagerMock;
   let resultResolver;
-  let messageCallback;
   let triggerFlowStartSpy;
   let triggerFlowCanceledSpy;
   let triggerLinkProgressSpy;
@@ -505,11 +502,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.onMessageDeprecated = () => {};
     messageMap = {};
-    setExperimentsStringForTesting('');
-    messageCallback = undefined;
-    sandbox.stub(port, 'onMessageDeprecated').callsFake(callback => {
-      messageCallback = callback;
-    });
     sandbox.stub(port, 'on').callsFake((ctor, cb) => {
       const messageType = new ctor();
       const label = messageType.label();
@@ -623,9 +615,10 @@ describes.realWin('LinkSaveFlow', {}, env => {
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_
       .then(() => {
-        messageCallback({
-          'getLinkingInfo': true,
-        });
+        const response = new LinkingInfoResponse();
+        response.setRequested(true);
+        const cb = messageMap[response.label()];
+        cb(response);
       })
       .then(() => {
         dialogManagerMock.expects('completeView').once();
@@ -648,9 +641,10 @@ describes.realWin('LinkSaveFlow', {}, env => {
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_
       .then(() => {
-        messageCallback({
-          'getLinkingInfo': true,
-        });
+        const response = new LinkingInfoResponse();
+        response.setRequested(true);
+        const cb = messageMap[response.label()];
+        cb(response);
       })
       .then(() => {
         dialogManagerMock.expects('completeView').once();
@@ -675,18 +669,19 @@ describes.realWin('LinkSaveFlow', {}, env => {
       resolve({token: 'test'});
     });
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
-    const messageStub = sandbox.stub(port, 'messageDeprecated');
+    const messageStub = sandbox.stub(port, 'execute');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_
       .then(() => {
-        messageCallback({
-          'getLinkingInfo': true,
-        });
+        const response = new LinkingInfoResponse();
+        response.setRequested(true);
+        const cb = messageMap[response.label()];
+        cb(response);
         return linkSaveFlow.getRequestPromise();
       })
       .then(() => {
-        expect(messageStub).to.be.calledOnce.calledWith({token: 'test'});
+        expect(messageStub).to.be.calledOnce.calledWith(saveToken);
       });
   });
 
@@ -698,7 +693,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
     });
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
     const messageStub = sandbox.stub(port, 'execute');
-    setExperiment(win, ExperimentFlags.HEJIRA, true);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_
@@ -720,9 +714,10 @@ describes.realWin('LinkSaveFlow', {}, env => {
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_
       .then(() => {
-        messageCallback({
-          'getLinkingInfo': true,
-        });
+        const response = new LinkingInfoResponse();
+        response.setRequested(true);
+        const cb = messageMap[response.label()];
+        cb(response);
         dialogManagerMock.expects('completeView').once();
         return linkSaveFlow.getRequestPromise();
       })
@@ -742,7 +737,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {
       throw new Error('callback failed');
     });
-    setExperiment(win, ExperimentFlags.HEJIRA, true);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
     return linkSaveFlow.openPromise_

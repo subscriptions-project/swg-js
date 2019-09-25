@@ -26,8 +26,6 @@ import {
   ViewSubscriptionsResponse,
   SubscribeResponse,
 } from '../proto/api_messages';
-import {isExperimentOn} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 
 /**
  * Offers view is closable when request was originated from 'AbbrvOfferFlow'
@@ -185,52 +183,18 @@ export class OffersFlow {
           .callbacks()
           .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
       });
-      if (isExperimentOn(this.win_, ExperimentFlags.HEJIRA)) {
-        this.activityIframeView_.on(
-          SkuSelectedResponse,
-          this.startPayFlow_.bind(this)
-        );
-        this.activityIframeView_.on(
-          AlreadySubscribedResponse,
-          this.handleLinkRequest_.bind(this)
-        );
-        this.activityIframeView_.on(
-          ViewSubscriptionsResponse,
-          this.startNativeFlow_.bind(this)
-        );
-      } else {
-        // If result is due to OfferSelection, redirect to payments.
-        this.activityIframeView_.onMessageDeprecated(result => {
-          if (result['alreadySubscribed']) {
-            const alreadySubscribedResponse = new AlreadySubscribedResponse();
-            alreadySubscribedResponse.setSubscriberOrMember(true);
-            if (result['linkRequested']) {
-              alreadySubscribedResponse.setLinkRequested(true);
-            }
-            this.handleLinkRequest_(alreadySubscribedResponse);
-            return;
-          }
-          if (result['oldSku']) {
-            const skuSelectedResponse = new SkuSelectedResponse();
-            skuSelectedResponse.setSku(result['sku']);
-            skuSelectedResponse.setOldSku(result['oldSku']);
-            this.startPayFlow_(skuSelectedResponse);
-            return;
-          }
-          if (result['sku']) {
-            const skuSelectedResponse = new SkuSelectedResponse();
-            skuSelectedResponse.setSku(result['sku']);
-            this.startPayFlow_(skuSelectedResponse);
-            return;
-          }
-          if (result['native']) {
-            const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
-            viewSubscriptionsResponse.setNative(true);
-            this.startNativeFlow_(viewSubscriptionsResponse);
-            return;
-          }
-        });
-      }
+      this.activityIframeView_.on(
+        SkuSelectedResponse,
+        this.startPayFlow_.bind(this)
+      );
+      this.activityIframeView_.on(
+        AlreadySubscribedResponse,
+        this.handleLinkRequest_.bind(this)
+      );
+      this.activityIframeView_.on(
+        ViewSubscriptionsResponse,
+        this.startNativeFlow_.bind(this)
+      );
 
       this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_OFFERS);
 
@@ -294,20 +258,11 @@ export class SubscribeOptionFlow {
         .callbacks()
         .triggerFlowCanceled(SubscriptionFlows.SHOW_SUBSCRIBE_OPTION);
     });
-    if (isExperimentOn(this.deps_.win(), ExperimentFlags.HEJIRA)) {
-      this.activityIframeView_.on(
-        SubscribeResponse,
-        this.maybeOpenOffersFlow_.bind(this)
-      );
-    } else {
-      this.activityIframeView_.onMessageDeprecated(data => {
-        const response = new SubscribeResponse();
-        if (data['subscribe']) {
-          response.setSubscribe(true);
-        }
-        this.maybeOpenOffersFlow_(response);
-      });
-    }
+    this.activityIframeView_.on(
+      SubscribeResponse,
+      this.maybeOpenOffersFlow_.bind(this)
+    );
+
     this.activityIframeView_.acceptResult().then(
       result => {
         const data = result.data;
@@ -421,22 +376,11 @@ export class AbbrvOfferFlow {
     });
 
     // If the user is already subscribed, trigger login flow
-    if (isExperimentOn(this.win_, ExperimentFlags.HEJIRA)) {
-      this.activityIframeView_.on(
-        AlreadySubscribedResponse,
-        this.handleLinkRequest_.bind(this)
-      );
-    } else {
-      this.activityIframeView_.onMessageDeprecated(data => {
-        if (data['alreadySubscribed']) {
-          const alreadySubscrbiedResponse = new AlreadySubscribedResponse();
-          alreadySubscrbiedResponse.setSubscriberOrMember(true);
-          alreadySubscrbiedResponse.setLinkRequested(data['linkRequested']);
-          this.handleLinkRequest_(alreadySubscrbiedResponse);
-          return;
-        }
-      });
-    }
+    this.activityIframeView_.on(
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
+    );
+
     // If result is due to requesting offers, redirect to offers flow
     this.activityIframeView_.acceptResult().then(result => {
       if (result.data['viewOffers']) {
