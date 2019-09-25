@@ -31,8 +31,6 @@ import {
 } from './pay-flow';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
-import {setExperiment, setExperimentsStringForTesting} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 import {
   EntitlementsResponse,
   AccountCreationRequest,
@@ -311,7 +309,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       }
       responseCallback = callback;
     });
-    setExperimentsStringForTesting('');
     messageMap = {};
     runtime = new ConfiguredRuntime(win, pageConfig);
     analyticsMock = sandbox.mock(runtime.analytics());
@@ -465,14 +462,16 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
-    const messageStub = sandbox.stub(port, 'messageDeprecated');
+    const messageStub = sandbox.stub(port, 'execute');
     return flow
       .start(response)
       .then(() => {
         return flow.complete();
       })
       .then(() => {
-        expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+        const accountCreationRequest = new AccountCreationRequest();
+        accountCreationRequest.setComplete(true);
+        expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
       });
   });
 
@@ -519,7 +518,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
-    setExperiment(win, ExperimentFlags.HEJIRA, true);
     const messageStub = sandbox.stub(port, 'execute');
     return flow
       .start(response)
@@ -599,7 +597,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
     const messageStub = sandbox.stub(port, 'execute');
-    setExperiment(win, ExperimentFlags.HEJIRA, true);
     return flow
       .start(response)
       .then(() => {
