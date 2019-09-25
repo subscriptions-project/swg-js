@@ -95,10 +95,10 @@ function endBuildStep(stepName, targetName, startTime) {
     timeString += secs + '.' + ms + ' s)';
   }
   if (!process.env.TRAVIS) {
-    $$.util.log(
+    $$.log(
         stepName,
-        $$.util.colors.cyan(targetName),
-        $$.util.colors.green(timeString));
+        $$.colors.cyan(targetName),
+        $$.colors.green(timeString));
   }
 }
 
