@@ -25,7 +25,6 @@ const glob = require('glob');
 const gulp = $$.help(require('gulp'));
 const jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
 const lazypipe = require('lazypipe');
-const minimatch = require('minimatch');
 const minimist = require('minimist');
 const pathLib = require('path');
 const resolveConfig = require('./compile-config').resolveConfig;

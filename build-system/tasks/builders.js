@@ -25,7 +25,6 @@ var del = require('del');
 var fs = require('fs-extra');
 var gulp = $$.help(require('gulp'));
 var lazypipe = require('lazypipe');
-var minimatch = require('minimatch');
 var minimist = require('minimist');
 var source = require('vinyl-source-stream');
 var touch = require('touch');

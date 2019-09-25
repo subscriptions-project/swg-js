@@ -96,7 +96,6 @@
     "lazypipe": "1.0.1",
     "lolex": "1.4.0",
     "markdown-link-check": "3.7.2",
-    "minimatch": "3.0.2",
     "minimist": "1.2.0",
     "mocha": "6.2.0",
     "morgan": "1.9.1",
