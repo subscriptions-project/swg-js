@@ -145,17 +145,21 @@ describes.realWin('Dialog', {}, env => {
     it('should resize the element', async () => {
       const openedDialog = await dialog.open();
       await openedDialog.openView(view);
-      const dialogHeight = 99;
-      await openedDialog.resizeView(view, dialogHeight, NO_ANIMATE);
-      // TODO(dparikh): When animiation is implemented, need to wait for
+      const expectedDialogHeight = 99;
+      await openedDialog.resizeView(view, expectedDialogHeight, NO_ANIMATE);
+      // TODO(dparikh): When animation is implemented, need to wait for
       // resized() call.
-      expect(computedStyle(win, dialog.getElement())['height']).to.equal(
-        `${dialogHeight}px`
-      );
+      const measuredDialogHeight =
+        // Round the measured height to allow for subpixel differences
+        // between browsers & environments.
+        Math.round(
+          parseFloat(computedStyle(win, dialog.getElement())['height'])
+        ) + 'px';
+      expect(measuredDialogHeight).to.equal(`${expectedDialogHeight}px`);
 
       // Check if correct document padding was added.
       expect(win.document.documentElement.style.paddingBottom).to.equal(
-        `${dialogHeight + 20}px`
+        `${expectedDialogHeight + 20}px`
       );
     });
 
