@@ -150,7 +150,7 @@ describes.realWin('Dialog', {}, env => {
       // TODO(dparikh): When animation is implemented, need to wait for
       // resized() call.
       const measuredDialogHeight =
-        // Round measured dialog height to allow for subpixel differences
+        // Round the measured height to allow for subpixel differences
         // between browsers & environments.
         Math.round(
           parseFloat(computedStyle(win, dialog.getElement())['height'])
