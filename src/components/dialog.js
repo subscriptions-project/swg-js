@@ -207,7 +207,9 @@ export class Dialog {
       animating = Promise.resolve();
     }
     return animating.then(() => {
-      this.doc_.getBody().removeChild(this.iframe_.getElement());
+      const iframeEl = this.iframe_.getElement();
+      iframeEl.parentNode.removeChild(iframeEl);
+
       this.removePaddingToHtml_();
       this.graypane_.destroy();
     });
