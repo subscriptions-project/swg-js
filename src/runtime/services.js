@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {addQueryParam, parseUrl} from '../utils/url';
+import {addQueryParam, parseUrl, parseQueryString} from '../utils/url';
 
 /**
  * Have to put these in the map to avoid compiler optimization. Due to
@@ -63,10 +63,20 @@ export function feUrl(url, prefix = '') {
 
 /**
  * @param {string} url FE URL.
- * @return {string} The complete URL including cache params.
+ * @return {string} The complete URL including cache & jsmode params.
  */
 export function feCached(url) {
-  return addQueryParam(url, '_', cacheParam('$frontendCache$'));
+  // Add cache param.
+  url = addQueryParam(url, '_', cacheParam('$frontendCache$'));
+
+  // Add jsmode param. (optional)
+  const query = parseQueryString(window.location.hash);
+  const boqJsMode = query['swg.boqjsmode'];
+  if (boqJsMode !== undefined) {
+    url = addQueryParam(url, 'jsmode', boqJsMode);
+  }
+
+  return url;
 }
 
 /**
