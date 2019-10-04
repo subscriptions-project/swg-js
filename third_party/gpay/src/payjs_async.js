@@ -21,7 +21,7 @@ import {PaymentsRequestDelegate} from './payments_request_delegate.js';
 import {PaymentsWebActivityDelegate} from './payments_web_activity_delegate.js';
 import {UpiHandler} from './upi_handler.js';
 import {ActivityPorts} from 'web-activities/activity-ports';
-import {BuyFlowActivityMode, PayFrameHelper, PostMessageEventType, PublicErrorCode} from './pay_frame_helper.js';
+import {BuyFlowActivityMode, BuyFlowMode, PayFrameHelper, PostMessageEventType, PublicErrorCode} from './pay_frame_helper.js';
 import {apiV2DoesMerchantSupportSpecifiedCardType, chromeSupportsPaymentHandler, chromeSupportsPaymentRequest, doesMerchantSupportOnlyTokenizedCards, getUpiPaymentMethod, validatePaymentOptions, validateIsReadyToPayRequest, validatePaymentDataRequest, validateSecureContext} from './validator.js';
 
 import {createGoogleTransactionId} from './utils.js';
@@ -84,6 +84,9 @@ class PaymentsAsyncClient {
         this.environment_, PaymentsAsyncClient.googleTransactionId_,
         opt_useIframe, opt_activities,
         paymentOptions['i'] && paymentOptions['i']['redirectKey']);
+
+    /** @private {number} */
+    this.buyFlowMode_ = BuyFlowMode.PAY_WITH_GOOGLE;
 
     const paymentRequestSupported = chromeSupportsPaymentRequest();
     // TODO: Remove the temporary hack that disable payments
@@ -303,11 +306,15 @@ class PaymentsAsyncClient {
     });
     const errorMessage = validateSecureContext() ||
         validatePaymentDataRequest(paymentDataRequest);
+    this.buyFlowMode_ = paymentDataRequest && paymentDataRequest.swg ?
+        BuyFlowMode.SUBSCRIBE_WITH_GOOGLE :
+        BuyFlowMode.PAY_WITH_GOOGLE;
     if (errorMessage) {
       this.onPaymentResponse_(new Promise((resolve, reject) => {
         PayFrameHelper.postMessage({
           'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
           'error': PublicErrorCode.DEVELOPER_ERROR,
+          'buyFlowMode': this.buyFlowMode_,
         });
         PaymentsAsyncClient.logDevErrorToConsole_(
             'loadPaymentData', errorMessage);
@@ -413,12 +420,14 @@ class PaymentsAsyncClient {
             PayFrameHelper.postMessage({
               'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
               'error': /** @type {!PublicErrorCode} */ (result['errorCode']),
+              'buyFlowMode': this.buyFlowMode_,
             });
           } else {
             // If user closes window we don't get a error code
             PayFrameHelper.postMessage({
               'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
               'error': PublicErrorCode.BUYER_CANCEL,
+              'buyFlowMode': this.buyFlowMode_,
             });
           }
         });
