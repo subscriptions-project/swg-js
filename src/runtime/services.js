@@ -58,18 +58,10 @@ export function adsUrl(url) {
  * @return {string} The complete URL.
  */
 export function feUrl(url, prefix = '') {
-  return feCached('$frontend$' + prefix + '/swg/_/ui/v1' + url);
-}
-
-/**
- * @param {string} url FE URL.
- * @return {string} The complete URL including cache & jsmode params.
- */
-export function feCached(url) {
   // Add cache param.
-  url = addQueryParam(url, '_', cacheParam('$frontendCache$'));
+  url = feCached('$frontend$' + prefix + '/swg/_/ui/v1' + url);
 
-  // Add jsmode param. (optional)
+  // Optionally add jsmode param. This allows us to test against "aggressively" compiled Boq JS.
   const query = parseQueryString(window.location.hash);
   const boqJsMode = query['swg.boqjsmode'];
   if (boqJsMode !== undefined) {
@@ -77,6 +69,14 @@ export function feCached(url) {
   }
 
   return url;
+}
+
+/**
+ * @param {string} url FE URL.
+ * @return {string} The complete URL including cache param.
+ */
+export function feCached(url) {
+  return addQueryParam(url, '_', cacheParam('$frontendCache$'));
 }
 
 /**
