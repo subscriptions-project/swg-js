@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {addQueryParam, parseUrl, parseQueryString} from '../utils/url';
+import {addQueryParam, parseQueryString, parseUrl} from '../utils/url';
 
 /**
  * Have to put these in the map to avoid compiler optimization. Due to
@@ -62,7 +62,7 @@ export function feUrl(url, prefix = '') {
   url = feCached('$frontend$' + prefix + '/swg/_/ui/v1' + url);
 
   // Optionally add jsmode param. This allows us to test against "aggressively" compiled Boq JS.
-  const query = parseQueryString(window.location.hash);
+  const query = parseQueryString(self.location.hash);
   const boqJsMode = query['swg.boqjsmode'];
   if (boqJsMode !== undefined) {
     url = addQueryParam(url, 'jsmode', boqJsMode);
