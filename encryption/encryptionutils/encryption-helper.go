@@ -2,6 +2,7 @@ package encryptionutils
 
 import (
 	"bytes"
+    "encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,20 +15,19 @@ import (
 	"github.com/google/tink/go/keyset"
 	"github.com/google/tink/go/core/registry"
 	gcmpb "github.com/google/tink/proto/aes_gcm_go_proto"
-	eahpb "github.com/google/tink/proto/ecies_aead_hkdf_go_proto"
 	tinkpb "github.com/google/tink/proto/tink_go_proto"
 	"net/http"
 	"strings"
 )
 
-func GenerateEncryptedDocument(html_str string, public_key_url string) (string, error) {
+func GenerateEncryptedDocument(html_str string, public_key_url string, access_requirement string) (string, error) {
 	keyManager, err := registry.GetKeyManager("type.googleapis.com/google.crypto.tink.AesGcmKey")
 	if err != nil {
 		fmt.Println("1")
 		return "", err
 	}
-	key := generateNewAesGcmKey(keyManager)
-	if key == "" {
+	key, key_value := generateNewAesGcmKey(keyManager)
+	if key == "" || key_value == "" {
 		return "", fmt.Errorf("Could not generate new AES-GCM key.")
 	}
 	r := strings.NewReader(html_str)
@@ -47,7 +47,7 @@ func GenerateEncryptedDocument(html_str string, public_key_url string) (string, 
 		fmt.Println("4")
 		return "", err
 	}
-	encrypted_key, err := encryptDocumentKey(key, google_public_key)
+	encrypted_key, err := encryptDocumentKey(key_value, access_requirement, google_public_key)
 	if err != nil {
 		fmt.Println("5")
 		return "", err
@@ -59,43 +59,53 @@ func GenerateEncryptedDocument(html_str string, public_key_url string) (string, 
 	return renderNode(parsed_html, false), nil
 }
 
-func generateNewAesGcmKey(km registry.KeyManager) string {
+func generateNewAesGcmKey(km registry.KeyManager) (string, string) {
 	serialized_proto, _ := proto.Marshal(&gcmpb.AesGcmKeyFormat{KeySize: 16})
 	m, err := km.NewKey(serialized_proto)
+	key := m.(*gcmpb.AesGcmKey)
 	if err != nil {
 		fmt.Println("Error occurred creating new key.")
-		return ""
+		return "", ""
 	}
 	b, err := proto.Marshal(m)
 	if err != nil {
 		fmt.Println("Error occurred creating new key.")
-		return ""
+		return "", ""
 	}
-	return string(b)
+	return string(b), base64.StdEncoding.EncodeToString(key.KeyValue)
 }
 
 func getAllEncryptedSections(parsed_html *html.Node) []*html.Node {
 	var encrypted_sections []*html.Node
-	if (parsed_html.FirstChild != nil) && (parsed_html.FirstChild.Data == "html") {
-		var in_body bool = false
-		for node := parsed_html.FirstChild.FirstChild; node != nil; node = node.NextSibling {
-			if !in_body {
-				if (node.Data == "body") {
-					in_body = true
-				}
-			} else {
-				if (node.Type == html.ElementNode && node.Data == "section") {
-					var content_sub_section bool = false
-					var encrypted bool = false
-					for _, a := range node.Attr {
-						if a.Key == "subscriptions-section" && a.Val == "content" {
-							content_sub_section = true
-						} else if a.Key == "encrypted" {
-							encrypted = true
+	for n := parsed_html.FirstChild; n != nil; n = n.NextSibling {
+		if (n.Data == "html") && (len(n.Attr) != 0) {
+			fmt.Println("Hello everyone!")
+			for bn := n.FirstChild; bn != nil; bn = bn.NextSibling {
+				if (bn.Data == "body") {
+					var stack []*html.Node
+					stack = append(stack, bn)
+					for {
+						if len(stack) == 0 {
+							break
 						}
-					}
-					if content_sub_section && encrypted {
-						encrypted_sections = append(encrypted_sections, node)
+						n, stack = stack[len(stack)-1], stack[:len(stack)-1]
+						if (n.Type == html.ElementNode && n.Data == "section") {
+							var content_sub_section bool = false
+							var encrypted bool = false
+							for _, a := range n.Attr {
+								if a.Key == "subscriptions-section" && a.Val == "content" {
+									content_sub_section = true
+								} else if a.Key == "encrypted" {
+									encrypted = true
+								}
+							}
+							if content_sub_section && encrypted {
+								encrypted_sections = append(encrypted_sections, n)
+							}
+						}
+						for cn := n.FirstChild; cn != nil; cn = cn.NextSibling {
+							stack = append(stack, cn)
+						}
 					}
 				}
 			}
@@ -103,6 +113,7 @@ func getAllEncryptedSections(parsed_html *html.Node) []*html.Node {
 	}
 	return encrypted_sections
 }
+
 
 func encryptAllSections(parsed_html *html.Node, encrypted_sections []*html.Node, key string, km registry.KeyManager) error {
 	aesgcm, prim_err := km.Primitive([]byte(key))
@@ -120,8 +131,19 @@ func encryptAllSections(parsed_html *html.Node, encrypted_sections []*html.Node,
 		if encrypt_err != nil {
 			return encrypt_err
 		}
-		text_node := &html.Node{Type: html.TextNode, Data: string(encrypted_content)}
-		node.AppendChild(text_node)
+		text_node := &html.Node{Type: html.TextNode, Data: base64.StdEncoding.EncodeToString(encrypted_content)}
+	    attrs := []html.Attribute{
+			html.Attribute{Key: "type", Val: "application/octet-stream"},
+			html.Attribute{Key: "ciphertext", Val: ""},
+		}
+		script_node := &html.Node{
+			Type: html.ElementNode,
+			Data:"script",
+			DataAtom: atom.Script, 
+			Attr: attrs,
+		}
+		node.AppendChild(script_node)
+		script_node.AppendChild(text_node)
 	}
 	return nil
 }
@@ -129,10 +151,12 @@ func encryptAllSections(parsed_html *html.Node, encrypted_sections []*html.Node,
 func getGooglePublicKey(public_key_url string) (tinkpb.KeyData, error) {
 	resp, err := http.Get(public_key_url)
 	if err != nil {
+		fmt.Println("0.1")
 		return tinkpb.KeyData{}, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		fmt.Println("0.2")
 		return tinkpb.KeyData{}, err
 	}
 	var tink_json_key map[string]interface{}
@@ -140,20 +164,20 @@ func getGooglePublicKey(public_key_url string) (tinkpb.KeyData, error) {
 		return tinkpb.KeyData{}, err
 	}
 	key_material_type := tinkpb.KeyData_KeyMaterialType_value[tink_json_key["keyMaterialType"].(string)]
-	keydata := new(eahpb.EciesAeadHkdfPublicKey)
-	if err := proto.Unmarshal([]byte(tink_json_key["value"].(string)), keydata); err != nil {
+	decoded_key, err := base64.StdEncoding.DecodeString(tink_json_key["value"].(string))
+	if err != nil {
+		fmt.Println("0.3")
 		return tinkpb.KeyData{}, err
 	}
-	buf, _ := proto.Marshal(keydata)
 	keyData := tinkpb.KeyData{
 		KeyMaterialType: tinkpb.KeyData_KeyMaterialType(key_material_type),
 		TypeUrl: tink_json_key["typeUrl"].(string),
-		Value: buf,
+		Value: decoded_key,
 	}
 	return keyData, nil
 }
 
-func encryptDocumentKey(doc_key string, public_key tinkpb.KeyData) (string, error) {
+func encryptDocumentKey(doc_key string, access_requirement string, public_key tinkpb.KeyData) (string, error) {
 	keys := []*tinkpb.Keyset_Key{
 		&tinkpb.Keyset_Key{
 			KeyData:          &public_key,
@@ -176,19 +200,22 @@ func encryptDocumentKey(doc_key string, public_key tinkpb.KeyData) (string, erro
     if err != nil {
 		fmt.Println("5.1")
         return "", err
-    }
-	enc, err := he.Encrypt([]byte(doc_key), nil)
+	}
+	key_raw := map[string]string{"accessRequirements": access_requirement, "key": doc_key}
+    key_json, _ := json.Marshal(key_raw)
+	enc, err := he.Encrypt([]byte(key_json), nil)
 	if err != nil {
 		fmt.Println("5.2")
 		return "", err
 	}
-	return string(enc), nil
+	return base64.StdEncoding.EncodeToString(enc), nil
 }
 
 func addEncryptedDocumentKeyToHead(encrypted_key string, parsed_html *html.Node) error {
-	if (parsed_html.FirstChild != nil) && (parsed_html.FirstChild.Data == "html") {
-		for node := parsed_html.FirstChild.FirstChild; node != nil; node = node.NextSibling {
-			if (node.Data == "head") {
+	for n := parsed_html.FirstChild; n != nil; n = n.NextSibling {
+	if (n.Data == "html") && (len(n.Attr) != 0) {
+		for cn := n.FirstChild; cn != nil; cn = cn.NextSibling {
+			if (cn.Data == "head") {
 				attrs := []html.Attribute{
 					html.Attribute{Key: "type", Val: "application/json"},
 					html.Attribute{Key: "cryptokeys", Val: ""},
@@ -199,13 +226,14 @@ func addEncryptedDocumentKeyToHead(encrypted_key string, parsed_html *html.Node)
 					DataAtom: atom.Script, 
 					Attr: attrs,
 				}
-				jsonData := fmt.Sprintf(`{"google.com":"%s"`, encrypted_key)
+				jsonData := fmt.Sprintf(`{"google.com":"%s"}`, encrypted_key)
 				text_node := &html.Node{Type: html.TextNode, Data: jsonData}
 				crypto_keys.AppendChild(text_node)
-				node.AppendChild(crypto_keys)
+				cn.AppendChild(crypto_keys)
 			    return nil
 			}
 		}
+	}
 	}
 	return fmt.Errorf("Could not add cryptokeys to head.")
 }
