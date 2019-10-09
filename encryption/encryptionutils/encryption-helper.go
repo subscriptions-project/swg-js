@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/html/atom"
 	"github.com/golang/protobuf/proto"
 	// subtleAEAD "github.com/google/tink/go/subtle/aead"
+	"github.com/google/tink/go/insecurecleartextkeyset"
 	"github.com/google/tink/go/aead"
 	"github.com/google/tink/go/hybrid"
 	"github.com/google/tink/go/keyset"
@@ -38,7 +39,7 @@ func GenerateEncryptedDocument(html_str string, public_key_url string, access_re
 		return "", err
 	}
 	encrypted_sections := getAllEncryptedSections(parsed_html)
-	err = encryptAllSections(parsed_html, encrypted_sections, key, keyManager)
+	err = encryptAllSections(parsed_html, encrypted_sections, key)
 	if err != nil {
 		fmt.Println("3")
 		return "", err
@@ -116,12 +117,33 @@ func getAllEncryptedSections(parsed_html *html.Node) []*html.Node {
 }
 
 
-func encryptAllSections(parsed_html *html.Node, encrypted_sections []*html.Node, key string, km registry.KeyManager) error {
-	kh, err := keyset.NewHandle(aead.AES128GCMKeyTemplate())
+func encryptAllSections(parsed_html *html.Node, encrypted_sections []*html.Node, key string) error {
+	// kh, err := keyset.NewHandle(aead.AES128GCMKeyTemplate())
+	// if err != nil {
+	// 	return err
+	// }
+	keyData := tinkpb.KeyData{
+		KeyMaterialType: tinkpb.KeyData_SYMMETRIC,
+		TypeUrl: "type.googleapis.com/google.crypto.tink.AesGcmKey",
+		Value: []byte(key),
+	}
+	keys := []*tinkpb.Keyset_Key{
+		&tinkpb.Keyset_Key{
+			KeyData:          &keyData,
+			Status:           tinkpb.KeyStatusType_ENABLED,
+			KeyId:            1,
+			OutputPrefixType: tinkpb.OutputPrefixType_TINK,
+		},
+	}
+	ks := &tinkpb.Keyset{
+		PrimaryKeyId: 1,
+		Key:          keys,
+	}
+	kh, err := insecurecleartextkeyset.Read(&keyset.MemReaderWriter{Keyset: ks})
 	if err != nil {
 		return err
 	}
-	cipher, err := aead.NewWithKeyManager(kh, km)
+	cipher, err := aead.New(kh)
 	if err != nil {
 		return err
 	}
