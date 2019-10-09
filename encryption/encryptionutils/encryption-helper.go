@@ -3,17 +3,14 @@ package encryptionutils
 import (
 	"bytes"
     "encoding/base64"
-	// "encoding/json"
 	"fmt"
 	"io"
-	// "io/ioutil"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 	"github.com/golang/protobuf/proto"
-	// subtleAEAD "github.com/google/tink/go/subtle/aead"
-	"github.com/google/tink/go/insecurecleartextkeyset"
 	"github.com/google/tink/go/aead"
 	"github.com/google/tink/go/hybrid"
+	"github.com/google/tink/go/insecurecleartextkeyset"
 	"github.com/google/tink/go/keyset"
 	"github.com/google/tink/go/core/registry"
 	gcmpb "github.com/google/tink/proto/aes_gcm_go_proto"
@@ -22,10 +19,12 @@ import (
 	"strings"
 )
 
+const AES_GCM_KEY_URL string = "type.googleapis.com/google.crypto.tink.AesGcmKey" 
+const AES_GCM_KEY_SIZE uint32 = 16
+
 func GenerateEncryptedDocument(html_str string, public_key_url string, access_requirement string) (string, error) {
-	keyManager, err := registry.GetKeyManager("type.googleapis.com/google.crypto.tink.AesGcmKey")
+	keyManager, err := registry.GetKeyManager(AES_GCM_KEY_URL)
 	if err != nil {
-		fmt.Println("1")
 		return "", err
 	}
 	key, key_value := generateNewAesGcmKey(keyManager)
@@ -35,36 +34,30 @@ func GenerateEncryptedDocument(html_str string, public_key_url string, access_re
 	r := strings.NewReader(html_str)
 	parsed_html, err := html.Parse(r)
 	if err != nil {
-		fmt.Println("2")
 		return "", err
 	}
 	encrypted_sections := getAllEncryptedSections(parsed_html)
 	err = encryptAllSections(parsed_html, encrypted_sections, key)
 	if err != nil {
-		fmt.Println("3")
 		return "", err
 	}
 	google_public_key, err  := getGooglePublicKey(public_key_url)
 	if err != nil {
-		fmt.Println("4")
 		return "", err
 	}
 	encrypted_key, err := encryptDocumentKey(key_value, access_requirement, google_public_key)
 	if err != nil {
-		fmt.Println("5")
 		return "", err
 	}
 	if err := addEncryptedDocumentKeyToHead(encrypted_key, parsed_html); err != nil {
-		fmt.Println("6")
 		return "", err
 	}
 	return renderNode(parsed_html, false), nil
 }
 
 func generateNewAesGcmKey(km registry.KeyManager) (string, string) {
-	serialized_proto, _ := proto.Marshal(&gcmpb.AesGcmKeyFormat{KeySize: 16})
+	serialized_proto, _ := proto.Marshal(&gcmpb.AesGcmKeyFormat{KeySize: AES_GCM_KEY_SIZE})
 	m, err := km.NewKey(serialized_proto)
-	// key := m.(*gcmpb.AesGcmKey)
 	if err != nil {
 		fmt.Println("Error occurred creating new key.")
 		return "", ""
@@ -81,7 +74,6 @@ func getAllEncryptedSections(parsed_html *html.Node) []*html.Node {
 	var encrypted_sections []*html.Node
 	for n := parsed_html.FirstChild; n != nil; n = n.NextSibling {
 		if (n.Data == "html") && (len(n.Attr) != 0) {
-			fmt.Println("Hello everyone!")
 			for bn := n.FirstChild; bn != nil; bn = bn.NextSibling {
 				if (bn.Data == "body") {
 					var stack []*html.Node
@@ -118,28 +110,8 @@ func getAllEncryptedSections(parsed_html *html.Node) []*html.Node {
 
 
 func encryptAllSections(parsed_html *html.Node, encrypted_sections []*html.Node, key string) error {
-	// kh, err := keyset.NewHandle(aead.AES128GCMKeyTemplate())
-	// if err != nil {
-	// 	return err
-	// }
-	keyData := tinkpb.KeyData{
-		KeyMaterialType: tinkpb.KeyData_SYMMETRIC,
-		TypeUrl: "type.googleapis.com/google.crypto.tink.AesGcmKey",
-		Value: []byte(key),
-	}
-	keys := []*tinkpb.Keyset_Key{
-		&tinkpb.Keyset_Key{
-			KeyData:          &keyData,
-			Status:           tinkpb.KeyStatusType_ENABLED,
-			KeyId:            1,
-			OutputPrefixType: tinkpb.OutputPrefixType_TINK,
-		},
-	}
-	ks := &tinkpb.Keyset{
-		PrimaryKeyId: 1,
-		Key:          keys,
-	}
-	kh, err := insecurecleartextkeyset.Read(&keyset.MemReaderWriter{Keyset: ks})
+	ks := createAesGcmKeyset([]byte(key))
+	kh, err := insecurecleartextkeyset.Read(&keyset.MemReaderWriter{Keyset: &ks})
 	if err != nil {
 		return err
 	}
@@ -153,7 +125,6 @@ func encryptAllSections(parsed_html *html.Node, encrypted_sections []*html.Node,
 			content = append(content, renderNode(c, true))
 			node.RemoveChild(c)
 		}
-		fmt.Println("line!!!! ", strings.Join(content, ""))
 		encrypted_content, encrypt_err := cipher.Encrypt([]byte(strings.Join(content, "")), nil)
 		if encrypt_err != nil {
 			return encrypt_err
@@ -175,65 +146,51 @@ func encryptAllSections(parsed_html *html.Node, encrypted_sections []*html.Node,
 	return nil
 }
 
+func createAesGcmKeyset(key []byte) tinkpb.Keyset {
+	keyData := tinkpb.KeyData{
+		KeyMaterialType: tinkpb.KeyData_SYMMETRIC,
+		TypeUrl: AES_GCM_KEY_URL,
+		Value: key,
+	}
+	keys := []*tinkpb.Keyset_Key{
+		&tinkpb.Keyset_Key{
+			KeyData:          &keyData,
+			Status:           tinkpb.KeyStatusType_ENABLED,
+			KeyId:            1,
+			OutputPrefixType: tinkpb.OutputPrefixType_TINK,
+		},
+	}
+	return tinkpb.Keyset{
+		PrimaryKeyId: 1,
+		Key:          keys,
+	}
+}
+
 func getGooglePublicKey(public_key_url string) (tinkpb.Keyset, error) {
 	resp, err := http.Get(public_key_url)
 	if err != nil {
-		fmt.Println("0.1")
 		return tinkpb.Keyset{}, err
 	}
 	r := keyset.NewJSONReader(resp.Body)
 	ks, err := r.Read()
 	if err != nil {
-		fmt.Println("0.2")
 		return tinkpb.Keyset{}, err
 	}
 	return *ks, nil
-	// var tink_json_key map[string]interface{}
-	// if err = json.Unmarshal(body, &tink_json_key); err != nil {
-	// 	return tinkpb.KeyData{}, err
-	// }
-	// key_material_type := tinkpb.KeyData_KeyMaterialType_value[tink_json_key["keyMaterialType"].(string)]
-	// decoded_key, err := base64.StdEncoding.DecodeString(tink_json_key["value"].(string))
-	// if err != nil {
-	// 	fmt.Println("0.3")
-	// 	return tinkpb.KeyData{}, err
-	// }
-	// keyData := tinkpb.KeyData{
-	// 	KeyMaterialType: tinkpb.KeyData_KeyMaterialType(key_material_type),
-	// 	TypeUrl: tink_json_key["typeUrl"].(string),
-	// 	Value: decoded_key,
-	// }
-	// return keyData, nil
 }
 
 func encryptDocumentKey(doc_key string, access_requirement string, ks tinkpb.Keyset) (string, error) {
-	// keys := []*tinkpb.Keyset_Key{
-	// 	&tinkpb.Keyset_Key{
-	// 		KeyData:          &public_key,
-	// 		Status:           tinkpb.KeyStatusType_ENABLED,
-	// 		KeyId:            3962548922,
-	// 		OutputPrefixType: tinkpb.OutputPrefixType_CRUNCHY,
-	// 	},
-	// }
-	// ks := &tinkpb.Keyset{
-	// 	PrimaryKeyId: 3962548922,
-	// 	Key:          keys,
-	// }
 	handle, err := keyset.NewHandleWithNoSecrets(&ks)
 	if err != nil {
-		fmt.Println("5.0")
 		return "", err
 	}
 	he, err := hybrid.NewHybridEncrypt(handle)
     if err != nil {
-		fmt.Println("5.1")
         return "", err
 	}
 	json_str := fmt.Sprintf("{\"accessRequirements\": [\"%s\"], \"key\": \"%s\"}", access_requirement, doc_key)
-	fmt.Println(json_str)
 	enc, err := he.Encrypt([]byte(json_str), nil)
 	if err != nil {
-		fmt.Println("5.2")
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(enc), nil
@@ -255,7 +212,6 @@ func addEncryptedDocumentKeyToHead(encrypted_key string, parsed_html *html.Node)
 					Attr: attrs,
 				}
 				jsonData := fmt.Sprintf(`{"google.com":"%s"}`, encrypted_key)
-				fmt.Println(jsonData)
 				text_node := &html.Node{Type: html.TextNode, Data: jsonData}
 				crypto_keys.AppendChild(text_node)
 				cn.AppendChild(crypto_keys)
