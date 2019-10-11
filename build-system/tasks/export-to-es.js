@@ -17,7 +17,6 @@
 
 const $$ = require('gulp-load-plugins')();
 const BBPromise = require('bluebird');
-const exec = BBPromise.promisify(require('child_process').exec);
 const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
 const resolveConfig = require('./compile-config').resolveConfig;
@@ -26,7 +25,6 @@ const rollup = require('rollup');
 const resolveNodeModules = require('rollup-plugin-node-resolve');
 const commonJS = require('rollup-plugin-commonjs');
 const util = require('util');
-const cleanup = require('rollup-plugin-cleanup');
 const overrideConfig = require('./compile-config').overrideConfig;
 
 const readFile = util.promisify(fs.readFile);

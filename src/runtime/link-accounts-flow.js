@@ -19,6 +19,7 @@ import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isCancelError, createCancelError} from '../utils/errors';
+import {LinkingInfoResponse, LinkSaveTokenRequest} from '../proto/api_messages';
 
 const LINK_REQUEST_ID = 'swg-link';
 
@@ -274,6 +275,39 @@ export class LinkSaveFlow {
   }
 
   /**
+   * @param {LinkingInfoResponse} response
+   * @private
+   */
+  sendLinkSaveToken_(response) {
+    if (!response || !response.getRequested()) {
+      return;
+    }
+    this.requestPromise_ = new Promise(resolve => {
+      resolve(this.callback_());
+    })
+      .then(request => {
+        const saveRequest = new LinkSaveTokenRequest();
+        if (request && request.token) {
+          if (request.authCode) {
+            throw new Error('Both authCode and token are available');
+          } else {
+            saveRequest.setToken(request.token);
+          }
+        } else if (request && request.authCode) {
+          saveRequest.setAuthCode(request.authCode);
+        } else {
+          throw new Error('Neither token or authCode is available');
+        }
+        this.activityIframeView_.execute(saveRequest);
+      })
+      .catch(reason => {
+        // The flow is complete.
+        this.complete_();
+        throw reason;
+      });
+  }
+
+  /**
    * @return {?Promise}
    */
   /**
@@ -293,33 +327,10 @@ export class LinkSaveFlow {
       /* shouldFadeBody */ false,
       /* hasLoadingIndicator */ true
     );
-    this.activityIframeView_.onMessageDeprecated(data => {
-      if (data['getLinkingInfo']) {
-        this.requestPromise_ = new Promise(resolve => {
-          resolve(this.callback_());
-        })
-          .then(request => {
-            let saveRequest;
-            if (request && request.token) {
-              if (request.authCode) {
-                throw new Error('Both authCode and token are available');
-              } else {
-                saveRequest = {'token': request.token};
-              }
-            } else if (request && request.authCode) {
-              saveRequest = {'authCode': request.authCode};
-            } else {
-              throw new Error('Neither token or authCode is available');
-            }
-            this.activityIframeView_.messageDeprecated(saveRequest);
-          })
-          .catch(reason => {
-            // The flow is complete.
-            this.complete_();
-            throw reason;
-          });
-      }
-    });
+    this.activityIframeView_.on(
+      LinkingInfoResponse,
+      this.sendLinkSaveToken_.bind(this)
+    );
 
     this.openPromise_ = this.dialogManager_.openView(
       this.activityIframeView_,

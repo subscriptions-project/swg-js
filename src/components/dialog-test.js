@@ -68,7 +68,7 @@ describes.realWin('Dialog', {}, env => {
   }
 
   describe('dialog', () => {
-    it('should have created a friendly iframe instance', function*() {
+    it('should have created a friendly iframe instance', async () => {
       const iframe = dialog.getElement();
       expect(iframe.nodeType).to.equal(1);
       expect(iframe.nodeName).to.equal('IFRAME');
@@ -78,7 +78,7 @@ describes.realWin('Dialog', {}, env => {
       expect(getStyle(iframe, 'display')).to.equal('block');
     });
 
-    it('should have created fade background', async function() {
+    it('should have created fade background', async () => {
       expect(graypaneStubs.attach).to.not.be.called;
       const openedDialog = await dialog.open(NO_ANIMATE);
       expect(graypaneStubs.attach).to.be.calledOnce;
@@ -92,7 +92,7 @@ describes.realWin('Dialog', {}, env => {
       );
     });
 
-    it('should open dialog with animation', async function() {
+    it('should open dialog with animation', async () => {
       immediate();
       await dialog.open();
       await dialog.animating_;
@@ -104,7 +104,7 @@ describes.realWin('Dialog', {}, env => {
       expect(graypaneStubs.show).to.not.be.called;
     });
 
-    it('should open dialog as hidden', async function() {
+    it('should open dialog as hidden', async () => {
       immediate();
       await dialog.open(HIDDEN);
 
@@ -115,9 +115,9 @@ describes.realWin('Dialog', {}, env => {
       expect(graypaneStubs.show).to.not.be.called;
     });
 
-    it('should build the view', function*() {
-      const openedDialog = yield dialog.open();
-      yield openedDialog.openView(view);
+    it('should build the view', async () => {
+      const openedDialog = await dialog.open();
+      await openedDialog.openView(view);
       expect(computedStyle(win, element)['opacity']).to.equal('1');
       expect(computedStyle(win, element)['max-height']).to.equal('100%');
       expect(computedStyle(win, element)['max-width']).to.equal('100%');
@@ -128,9 +128,9 @@ describes.realWin('Dialog', {}, env => {
       expect(graypaneStubs.show).to.be.calledOnce.calledWith(ANIMATE);
     });
 
-    it('should build the view and show hidden iframe', function*() {
-      const openedDialog = yield dialog.open(HIDDEN);
-      yield openedDialog.openView(view);
+    it('should build the view and show hidden iframe', async () => {
+      const openedDialog = await dialog.open(HIDDEN);
+      await openedDialog.openView(view);
       expect(computedStyle(win, element)['visibility']).to.equal('visible');
       expect(computedStyle(win, element)['opacity']).to.equal('1');
       expect(computedStyle(win, element)['max-height']).to.equal('100%');
@@ -142,28 +142,32 @@ describes.realWin('Dialog', {}, env => {
       expect(graypaneStubs.show).to.be.calledOnce.calledWith(ANIMATE);
     });
 
-    it('should resize the element', function*() {
-      const openedDialog = yield dialog.open();
-      yield openedDialog.openView(view);
-      const dialogHeight = 99;
-      yield openedDialog.resizeView(view, dialogHeight, NO_ANIMATE);
-      // TODO(dparikh): When animiation is implemented, need to wait for
+    it('should resize the element', async () => {
+      const openedDialog = await dialog.open();
+      await openedDialog.openView(view);
+      const expectedDialogHeight = 99;
+      await openedDialog.resizeView(view, expectedDialogHeight, NO_ANIMATE);
+      // TODO(dparikh): When animation is implemented, need to wait for
       // resized() call.
-      expect(computedStyle(win, dialog.getElement())['height']).to.equal(
-        `${dialogHeight}px`
-      );
+      const measuredDialogHeight =
+        // Round the measured height to allow for subpixel differences
+        // between browsers & environments.
+        Math.round(
+          parseFloat(computedStyle(win, dialog.getElement())['height'])
+        ) + 'px';
+      expect(measuredDialogHeight).to.equal(`${expectedDialogHeight}px`);
 
       // Check if correct document padding was added.
       expect(win.document.documentElement.style.paddingBottom).to.equal(
-        `${dialogHeight + 20}px`
+        `${expectedDialogHeight + 20}px`
       );
     });
 
-    it('should resize the element to expand with animation', function*() {
+    it('should resize the element to expand with animation', async () => {
       immediate();
-      yield dialog.open();
-      yield dialog.openView(view);
-      yield dialog.resizeView(view, 99, ANIMATE);
+      await dialog.open();
+      await dialog.openView(view);
+      await dialog.resizeView(view, 99, ANIMATE);
 
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
@@ -175,11 +179,11 @@ describes.realWin('Dialog', {}, env => {
       );
     });
 
-    it('should resize the element to collapse with animation', function*() {
+    it('should resize the element to collapse with animation', async () => {
       immediate();
-      yield dialog.open();
-      yield dialog.openView(view);
-      yield dialog.resizeView(view, 19, ANIMATE);
+      await dialog.open();
+      await dialog.openView(view);
+      await dialog.resizeView(view, 19, ANIMATE);
 
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
@@ -191,8 +195,8 @@ describes.realWin('Dialog', {}, env => {
       );
     });
 
-    it('should open the dialog', function*() {
-      const openedDialog = yield dialog.open();
+    it('should open the dialog', async () => {
+      const openedDialog = await dialog.open();
       expect(openedDialog.getContainer().tagName).to.equal('SWG-CONTAINER');
 
       // Should have top level friendly iframe created.
@@ -214,8 +218,8 @@ describes.realWin('Dialog', {}, env => {
       expect(container.nodeName).to.equal('SWG-CONTAINER');
     });
 
-    it('should remove the dialog', function*() {
-      const openedDialog = yield dialog.open();
+    it('should remove the dialog', async () => {
+      const openedDialog = await dialog.open();
       expect(openedDialog.getContainer().tagName).to.equal('SWG-CONTAINER');
 
       // Should have top level friendly iframe created.
@@ -226,7 +230,7 @@ describes.realWin('Dialog', {}, env => {
       expect(openedDialog.getIframe().isConnected()).to.equal(true);
 
       // Remove the element from the dom.
-      yield dialog.close(NO_ANIMATE);
+      await dialog.close(NO_ANIMATE);
 
       expect(doc.querySelector('iframe')).to.be.null;
       expect(openedDialog.getIframe().isConnected()).to.equal(false);
@@ -237,10 +241,10 @@ describes.realWin('Dialog', {}, env => {
       expect(graypaneStubs.hide).to.not.be.called;
     });
 
-    it('should remove the dialog with animation', function*() {
+    it('should remove the dialog with animation', async () => {
       immediate();
-      yield dialog.open();
-      yield dialog.close(ANIMATE);
+      await dialog.open();
+      await dialog.close(ANIMATE);
       expect(win.document.documentElement.contains(dialog.getElement())).to.be
         .false;
       // Check if document padding was removed.
@@ -249,8 +253,8 @@ describes.realWin('Dialog', {}, env => {
       expect(graypaneStubs.hide).to.be.calledOnce.calledWith(ANIMATE);
     });
 
-    it('should have Loading view element added', function*() {
-      const openedDialog = yield dialog.open();
+    it('should have Loading view element added', async () => {
+      const openedDialog = await dialog.open();
       const iframeDoc = openedDialog.getIframe().getDocument();
       const loadingView = iframeDoc.querySelector('swg-loading');
       expect(loadingView.nodeName).to.equal('SWG-LOADING');
@@ -258,8 +262,8 @@ describes.realWin('Dialog', {}, env => {
       expect(loadingView.children.length).to.equal(1);
     });
 
-    it('should display loading view', function*() {
-      const openedDialog = yield dialog.open();
+    it('should display loading view', async () => {
+      const openedDialog = await dialog.open();
       const iframeDoc = openedDialog.getIframe().getDocument();
       const loadingContainer = iframeDoc.querySelector('swg-loading-container');
       view.init = () => {
@@ -269,18 +273,18 @@ describes.realWin('Dialog', {}, env => {
       view.hasLoadingIndicator = () => {
         return true;
       };
-      yield openedDialog.openView(view);
+      await openedDialog.openView(view);
       expect(loadingContainer.getAttribute('style')).to.equal(
         'display: none !important;'
       );
     });
 
-    it('should not display loading view if previous view did', function*() {
-      const openedDialog = yield dialog.open();
+    it('should not display loading view if previous view did', async () => {
+      const openedDialog = await dialog.open();
       view.hasLoadingIndicator = () => {
         return true;
       };
-      yield openedDialog.openView(view);
+      await openedDialog.openView(view);
       const view2 = {
         getElement: function() {
           return element;
@@ -308,7 +312,7 @@ describes.realWin('Dialog', {}, env => {
         );
         return Promise.resolve(dialog);
       };
-      yield openedDialog.openView(view2);
+      await openedDialog.openView(view2);
     });
   });
 });

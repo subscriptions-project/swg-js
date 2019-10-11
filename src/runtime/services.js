@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {addQueryParam, parseUrl} from '../utils/url';
+import {addQueryParam, parseQueryString, parseUrl} from '../utils/url';
 
 /**
  * Have to put these in the map to avoid compiler optimization. Due to
@@ -58,12 +58,22 @@ export function adsUrl(url) {
  * @return {string} The complete URL.
  */
 export function feUrl(url, prefix = '') {
-  return feCached('$frontend$' + prefix + '/swg/_/ui/v1' + url);
+  // Add cache param.
+  url = feCached('$frontend$' + prefix + '/swg/_/ui/v1' + url);
+
+  // Optionally add jsmode param. This allows us to test against "aggressively" compiled Boq JS.
+  const query = parseQueryString(self.location.hash);
+  const boqJsMode = query['swg.boqjsmode'];
+  if (boqJsMode !== undefined) {
+    url = addQueryParam(url, 'jsmode', boqJsMode);
+  }
+
+  return url;
 }
 
 /**
  * @param {string} url FE URL.
- * @return {string} The complete URL including cache params.
+ * @return {string} The complete URL including cache param.
  */
 export function feCached(url) {
   return addQueryParam(url, '_', cacheParam('$frontendCache$'));

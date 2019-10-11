@@ -21,8 +21,6 @@ import {ClientEventManager} from './client-event-manager';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {XhrFetcher} from './fetcher';
 import {Logger} from './logger';
-import {setExperiment} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 
 describes.realWin('Logger', {}, env => {
   let win;
@@ -62,8 +60,6 @@ describes.realWin('Logger', {}, env => {
     };
     logger = new Logger(fakeDeps);
 
-    // Allow swg events
-    setExperiment(win, ExperimentFlags.LOG_SWG_TO_PROPENSITY, true);
     //this ensures propensity server is listening
     new Propensity(win, fakeDeps, fetcher);
   });

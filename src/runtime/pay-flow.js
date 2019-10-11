@@ -23,7 +23,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {
@@ -35,7 +35,10 @@ import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseJson, tryParseJson} from '../utils/json';
-
+import {
+  EntitlementsResponse,
+  AccountCreationRequest,
+} from '../proto/api_messages';
 /**
  * String values input by the publisher are mapped to the number values.
  * @type {!Object<string, number>}
@@ -87,6 +90,16 @@ export class PayStartFlow {
 
     /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
+
+    // Map the proration mode to the enum value (if proration exists).
+    this.prorationMode = this.subscriptionRequest_.replaceSkuProrationMode;
+    this.prorationEnum = 0;
+    if (this.prorationMode) {
+      this.prorationEnum = ReplaceSkuProrationModeMapping[this.prorationMode];
+    } else if (this.subscriptionRequest_.oldSku) {
+      this.prorationEnum =
+        ReplaceSkuProrationModeMapping['IMMEDIATE_WITH_TIME_PRORATION'];
+    }
   }
 
   /**
@@ -99,11 +112,8 @@ export class PayStartFlow {
       'publicationId': this.pageConfig_.getPublicationId(),
     });
 
-    // Map the proration mode to the enum value (if proration exists).
-    const prorationMode = this.subscriptionRequest_.replaceSkuProrationMode;
-    if (prorationMode) {
-      swgPaymentRequest.replaceSkuProrationMode =
-        ReplaceSkuProrationModeMapping[prorationMode];
+    if (this.prorationEnum) {
+      swgPaymentRequest.replaceSkuProrationMode = this.prorationEnum;
     }
 
     // Start/cancel events.
@@ -237,9 +247,11 @@ export class PayCompleteFlow {
     );
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
+    // TODO(dianajing): find a way to specify whether response is a subscription update
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'productType': this.response_['productType'],
+      // 'isSubscriptionUpdate': !!response.oldSku,
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
@@ -257,14 +269,12 @@ export class PayCompleteFlow {
       feArgs(args),
       /* shouldFadeBody */ true
     );
-    this.activityIframeView_.onMessageDeprecated(data => {
-      if (data['entitlements']) {
-        this.deps_
-          .entitlementsManager()
-          .pushNextEntitlements(/** @type {string} */ (data['entitlements']));
-        return;
-      }
-    });
+
+    this.activityIframeView_.on(
+      EntitlementsResponse,
+      this.handleEntitlementsResponse_.bind(this)
+    );
+
     this.activityIframeView_.acceptResult().then(() => {
       // The flow is complete.
       this.dialogManager_.completeView(this.activityIframeView_);
@@ -274,13 +284,26 @@ export class PayCompleteFlow {
   }
 
   /**
+   * @param {!EntitlementsResponse} response
+   * @private
+   */
+  handleEntitlementsResponse_(response) {
+    const jwt = response.getJwt();
+    if (jwt) {
+      this.deps_.entitlementsManager().pushNextEntitlements(jwt);
+    }
+  }
+
+  /**
    * @return {!Promise}
    */
   complete() {
     this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
-      this.activityIframeView_.messageDeprecated({'complete': true});
+      const accountCompletionRequest = new AccountCreationRequest();
+      accountCompletionRequest.setComplete(true);
+      this.activityIframeView_.execute(accountCompletionRequest);
     });
     return this.activityIframeView_
       .acceptResult()
@@ -305,14 +328,47 @@ export class PayCompleteFlow {
  */
 function validatePayResponse(deps, payPromise, completeHandler) {
   return payPromise.then(data => {
-    // If there was a redirect, we may have lost our stored transaction
-    // ID. Pay service is supposed to send back the transaction ID that
-    // was sent in the request and so, ideally it should be the same.
-    // In any case, we must remember and use this transaction ID going
-    // forward and assume whatever memory we had before redirect is lost.
-    if (typeof data == 'object' && data['googleTransactionId']) {
-      deps.analytics().setTransactionId(data['googleTransactionId']);
+    // 1) We log against a random TX ID which is how we track a specific user
+    //    anonymously.
+    // 2) If there was a redirect to gPay, we may have lost our stored TX ID.
+    // 3) Pay service is supposed to give us the TX ID it logged against.
+
+    const hasLogged = deps.analytics().getHasLogged();
+    let eventType = AnalyticsEvent.UNKNOWN;
+    let eventParams = undefined;
+    if (typeof data !== 'object' || !data['googleTransactionId']) {
+      // If gPay doesn't give us a TX ID it means that something may
+      // be wrong.  If we previously logged then we are at least continuing to
+      // log against the same TX ID.  If we didn't previously log then we have
+      // lost all connection to the events that preceded the payment event and
+      // we at least want to know why that data was lost.
+      eventParams = new EventParams();
+      eventParams.setHadLogged(hasLogged);
+      eventType = AnalyticsEvent.EVENT_GPAY_NO_TX_ID;
+    } else {
+      const oldTxId = deps.analytics().getTransactionId();
+      const newTxId = data['googleTransactionId'];
+
+      if (!hasLogged) {
+        // This is the expected case for full redirects.  It may be happening
+        // unexpectedly at other times too though and we want to be aware of it
+        // if it does.
+        deps.analytics().setTransactionId(newTxId);
+        eventType = AnalyticsEvent.EVENT_GPAY_CANNOT_CONFIRM_TX_ID;
+      } else {
+        if (oldTxId === newTxId) {
+          // This is the expected case for non-redirect pay events
+          eventType = AnalyticsEvent.EVENT_CONFIRM_TX_ID;
+        } else {
+          // This is an unexpected case: gPay rejected our TX ID and created
+          // its own.  Log the gPay TX ID but keep our logging consistent.
+          eventParams = new EventParams();
+          eventParams.setGpayTransactionId(newTxId);
+          eventType = AnalyticsEvent.EVENT_CHANGED_TX_ID;
+        }
+      }
     }
+    deps.eventManager().logSwgEvent(eventType, true, eventParams);
     return parseSubscriptionResponse(deps, data, completeHandler);
   });
 }

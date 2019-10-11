@@ -15,7 +15,7 @@
  */
 
 import {ActivityPort} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
@@ -31,6 +31,10 @@ import {
 } from './pay-flow';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
+import {
+  EntitlementsResponse,
+  AccountCreationRequest,
+} from '../proto/api_messages';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -152,7 +156,7 @@ describes.realWin('PayStartFlow', {}, env => {
   it('should have valid replace flow constructed', () => {
     const subscriptionRequest = {
       skuId: 'newSku',
-      oldSkuId: 'oldSku',
+      oldSku: 'oldSku',
       publicationId: 'pub1',
       replaceSkuProrationMode:
         ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
@@ -173,7 +177,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'playEnvironment': '$playEnvironment$',
           'swg': {
             skuId: 'newSku',
-            oldSkuId: 'oldSku',
+            oldSku: 'oldSku',
             publicationId: 'pub1',
             replaceSkuProrationMode:
               ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
@@ -200,7 +204,7 @@ describes.realWin('PayStartFlow', {}, env => {
   it('should have valid replace flow constructed (no proration mode)', () => {
     const subscriptionRequest = {
       skuId: 'newSku',
-      oldSkuId: 'oldSku',
+      oldSku: 'oldSku',
       publicationId: 'pub1',
     };
     const replaceFlowNoProrationMode = new PayStartFlow(
@@ -220,7 +224,10 @@ describes.realWin('PayStartFlow', {}, env => {
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
-          'swg': subscriptionRequest,
+          'swg': Object.assign(subscriptionRequest, {
+            replaceSkuProrationMode:
+              ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
+          }),
           'i': {
             'startTimeMs': sandbox.match.any,
             'googleTransactionId': sandbox.match(transactionIdRegex),
@@ -282,6 +289,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
   let eventManagerMock;
   let jserrorMock;
   let port;
+  let messageLabel;
+  let messageMap;
 
   const TOKEN_HEADER = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
   const TOKEN_PAYLOAD =
@@ -300,6 +309,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       }
       responseCallback = callback;
     });
+    messageMap = {};
     runtime = new ConfiguredRuntime(win, pageConfig);
     analyticsMock = sandbox.mock(runtime.analytics());
     jserrorMock = sandbox.mock(runtime.jserror());
@@ -452,14 +462,16 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true);
-    const messageStub = sandbox.stub(port, 'messageDeprecated');
+    const messageStub = sandbox.stub(port, 'execute');
     return flow
       .start(response)
       .then(() => {
         return flow.complete();
       })
       .then(() => {
-        expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+        const accountCreationRequest = new AccountCreationRequest();
+        accountCreationRequest.setComplete(true);
+        expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
       });
   });
 
@@ -506,14 +518,16 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
-    const messageStub = sandbox.stub(port, 'messageDeprecated');
+    const messageStub = sandbox.stub(port, 'execute');
     return flow
       .start(response)
       .then(() => {
         return flow.complete();
       })
       .then(() => {
-        expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+        const accountCreationRequest = new AccountCreationRequest();
+        accountCreationRequest.setComplete(true);
+        expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
       });
   });
 
@@ -534,9 +548,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
-    let messageHandler;
-    port.onMessageDeprecated = handler => {
-      messageHandler = handler;
+    port.on = (ctor, cb) => {
+      const messageType = new ctor();
+      messageLabel = messageType.label();
+      messageMap[messageLabel] = cb;
     };
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
@@ -581,17 +596,21 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true);
-    const messageStub = sandbox.stub(port, 'messageDeprecated');
+    const messageStub = sandbox.stub(port, 'execute');
     return flow
       .start(response)
       .then(() => {
-        messageHandler({
-          'entitlements': 'ENTITLEMENTS_JWT',
-        });
+        const entitlementsResponse = new EntitlementsResponse();
+        entitlementsResponse.setJwt('ENTITLEMENTS_JWT');
+        expect(messageLabel).to.equal(entitlementsResponse.label());
+        const cb = messageMap[messageLabel];
+        cb(entitlementsResponse);
         return flow.complete();
       })
       .then(() => {
-        expect(messageStub).to.be.calledOnce.calledWith({'complete': true});
+        const accountCreationRequest = new AccountCreationRequest();
+        accountCreationRequest.setComplete(true);
+        expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
         // Order must be strict: first reset, then pushNextEntitlements.
         expect(order).to.deep.equal(['reset', 'pushNextEntitlements']);
       });
@@ -747,21 +766,111 @@ describes.realWin('PayCompleteFlow', {}, env => {
         });
     });
 
-    it('should start flow with a transaction id', () => {
-      analyticsMock
-        .expects('setTransactionId')
-        .withExactArgs('NEW_TRANSACTION_ID')
-        .once();
-      const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
-      data['googleTransactionId'] = 'NEW_TRANSACTION_ID';
-      return responseCallback(Promise.resolve(data))
-        .then(() => {
-          return triggerPromise;
-        })
-        .then(response => {
-          expect(response).to.be.instanceof(SubscribeResponse);
-          expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-        });
+    describe('Transaction IDs', () => {
+      let hasLogged;
+
+      beforeEach(() => {
+        hasLogged = false;
+        sandbox
+          .stub(runtime.analytics(), 'getHasLogged')
+          .callsFake(() => hasLogged);
+      });
+
+      it('should log a change in TX ID without previous logging', () => {
+        analyticsMock
+          .expects('setTransactionId')
+          .withExactArgs('NEW_TRANSACTION_ID')
+          .once();
+
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(
+            AnalyticsEvent.EVENT_GPAY_CANNOT_CONFIRM_TX_ID,
+            true,
+            undefined
+          );
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+        data['googleTransactionId'] = 'NEW_TRANSACTION_ID';
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
+
+      it('should log a change in TX ID with previous logging', () => {
+        hasLogged = true;
+        const newTxId = 'NEW_TRANSACTION_ID';
+        const eventParams = new EventParams();
+        eventParams.setGpayTransactionId(newTxId);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_CHANGED_TX_ID, true, eventParams);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+        data['googleTransactionId'] = newTxId;
+
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
+
+      it('log no TX ID from gPay and that logging has occured', () => {
+        hasLogged = true;
+        const eventParams = new EventParams();
+        eventParams.setHadLogged(hasLogged);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
+
+      it('log no TX ID from gPay and that logging has not occured', () => {
+        hasLogged = false;
+        const eventParams = new EventParams();
+        eventParams.setHadLogged(hasLogged);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, true);
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+
+        return responseCallback(Promise.resolve(data))
+          .then(() => {
+            return triggerPromise;
+          })
+          .then(response => {
+            expect(response).to.be.instanceof(SubscribeResponse);
+            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+          });
+      });
     });
 
     it('should start flow on correct payment response w/o entitlements', () => {

@@ -87,6 +87,12 @@ export class Subscriptions {
   showOffers(opt_options) {}
 
   /**
+   * Starts the Offers flow for a subscription update.
+   * @param {!OffersRequest=} opt_options
+   */
+  showUpdateOffers(opt_options) {}
+
+  /**
    * Show subscription option.
    * @param {!OffersRequest=} opt_options
    */
@@ -124,9 +130,15 @@ export class Subscriptions {
 
   /**
    * Starts subscription purchase flow.
-   * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
+   * @param {string} sku
    */
-  subscribe(skuOrSubscriptionRequest) {}
+  subscribe(sku) {}
+
+  /**
+   * Starts subscription purchase flow.
+   * @param {SubscriptionRequest} subscriptionRequest
+   */
+  updateSubscription(subscriptionRequest) {}
 
   /**
    * Set the contribution complete callback.
@@ -428,7 +440,7 @@ export let SmartButtonOptions;
  *
  *  @typedef {{
  *    skuId: string,
- *    oldSkuId: (string|undefined),
+ *    oldSku: (string|undefined),
  *    replaceSkuProrationMode: (ReplaceSkuProrationMode|undefined),
  * }}
  */

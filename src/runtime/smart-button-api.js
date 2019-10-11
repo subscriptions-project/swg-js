@@ -18,8 +18,6 @@ import {createElement} from '../utils/dom';
 import {setImportantStyles} from '../utils/style';
 import {feArgs, feUrl} from './services';
 import {SmartBoxMessage} from '../proto/api_messages';
-import {isExperimentOn} from './experiments';
-import {ExperimentFlags} from './experiment-flags';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
@@ -137,17 +135,7 @@ export class SmartSubscriptionButtonApi {
     this.activityPorts_
       .openIframe(this.iframe_, this.src_, this.args_)
       .then(port => {
-        if (isExperimentOn(this.win_, ExperimentFlags.HEJIRA)) {
-          port.on(SmartBoxMessage, this.handleSmartBoxClick_.bind(this));
-        } else {
-          port.onMessageDeprecated(result => {
-            const smartBoxMessage = new SmartBoxMessage();
-            if (result['clicked']) {
-              smartBoxMessage.setIsClicked(true);
-            }
-            this.handleSmartBoxClick_(smartBoxMessage);
-          });
-        }
+        port.on(SmartBoxMessage, this.handleSmartBoxClick_.bind(this));
       });
     return this.iframe_;
   }

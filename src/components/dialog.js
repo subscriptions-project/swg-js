@@ -155,9 +155,7 @@ export class Dialog {
     }
     return this.doc_
       .addToFixedLayer(iframe.getElement())
-      .then(() => {
-        iframe.whenReady();
-      })
+      .then(() => iframe.whenReady())
       .then(() => {
         this.buildIframe_();
         return this;
@@ -209,7 +207,9 @@ export class Dialog {
       animating = Promise.resolve();
     }
     return animating.then(() => {
-      this.doc_.getBody().removeChild(this.iframe_.getElement());
+      const iframeEl = this.iframe_.getElement();
+      iframeEl.parentNode.removeChild(iframeEl);
+
       this.removePaddingToHtml_();
       this.graypane_.destroy();
     });
