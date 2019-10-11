@@ -54,6 +54,10 @@ const AnalyticsEvent = {
   ACTION_NEW_DEFERRED_ACCOUNT: 1010,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_CUSTOM: 3000,
+  EVENT_CONFIRM_TX_ID: 3001,
+  EVENT_CHANGED_TX_ID: 3002,
+  EVENT_GPAY_NO_TX_ID: 3003,
+  EVENT_GPAY_CANNOT_CONFIRM_TX_ID: 3004,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -65,6 +69,53 @@ const EventOriginator = {
   SWG_SERVER: 4,
   PUBLISHER_CLIENT: 5,
 };
+
+/**
+ * @implements {Message}
+ */
+class AccountCreationRequest {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.complete_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getComplete() {
+    return this.complete_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setComplete(value) {
+    this.complete_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.complete_,  // field 1 - complete
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AccountCreationRequest';
+  }
+}
 
 /**
  * @implements {Message}
@@ -494,6 +545,53 @@ class AnalyticsRequest {
 /**
  * @implements {Message}
  */
+class EntitlementsResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?string} */
+    this.jwt_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getJwt() {
+    return this.jwt_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setJwt(value) {
+    this.jwt_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.jwt_,  // field 1 - jwt
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'EntitlementsResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class EventParams {
  /**
   * @param {!Array=} data
@@ -502,6 +600,12 @@ class EventParams {
 
     /** @private {?string} */
     this.smartboxMessage_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?string} */
+    this.gpayTransactionId_ = (data[2] == null) ? null : data[2];
+
+    /** @private {?boolean} */
+    this.hadLogged_ = (data[3] == null) ? null : data[3];
   }
 
   /**
@@ -519,6 +623,34 @@ class EventParams {
   }
 
   /**
+   * @return {?string}
+   */
+  getGpayTransactionId() {
+    return this.gpayTransactionId_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setGpayTransactionId(value) {
+    this.gpayTransactionId_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getHadLogged() {
+    return this.hadLogged_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setHadLogged(value) {
+    this.hadLogged_ = value;
+  }
+
+  /**
    * @return {!Array}
    * @override
    */
@@ -526,6 +658,8 @@ class EventParams {
     return [
       this.label(),  // message label
       this.smartboxMessage_,  // field 1 - smartbox_message
+      this.gpayTransactionId_,  // field 2 - gpay_transaction_id
+      this.hadLogged_,  // field 3 - had_logged
     ];
   }
 
@@ -541,6 +675,118 @@ class EventParams {
 /**
  * @implements {Message}
  */
+class LinkSaveTokenRequest {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?string} */
+    this.authCode_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?string} */
+    this.token_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getAuthCode() {
+    return this.authCode_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setAuthCode(value) {
+    this.authCode_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getToken() {
+    return this.token_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setToken(value) {
+    this.token_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.authCode_,  // field 1 - auth_code
+      this.token_,  // field 2 - token
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'LinkSaveTokenRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class LinkingInfoResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.requested_ = (data[1] == null) ? null : data[1];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getRequested() {
+    return this.requested_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setRequested(value) {
+    this.requested_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.requested_,  // field 1 - requested
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'LinkingInfoResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class SkuSelectedResponse {
  /**
   * @param {!Array=} data
@@ -549,6 +795,9 @@ class SkuSelectedResponse {
 
     /** @private {?string} */
     this.sku_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?string} */
+    this.oldSku_ = (data[2] == null) ? null : data[2];
   }
 
   /**
@@ -566,6 +815,20 @@ class SkuSelectedResponse {
   }
 
   /**
+   * @return {?string}
+   */
+  getOldSku() {
+    return this.oldSku_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setOldSku(value) {
+    this.oldSku_ = value;
+  }
+
+  /**
    * @return {!Array}
    * @override
    */
@@ -573,6 +836,7 @@ class SkuSelectedResponse {
     return [
       this.label(),  // message label
       this.sku_,  // field 1 - sku
+      this.oldSku_,  // field 2 - old_sku
     ];
   }
 
@@ -727,11 +991,15 @@ class ViewSubscriptionsResponse {
 }
 
 const PROTO_MAP = {
+  'AccountCreationRequest': AccountCreationRequest,
   'AlreadySubscribedResponse': AlreadySubscribedResponse,
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
+  'EntitlementsResponse': EntitlementsResponse,
   'EventParams': EventParams,
+  'LinkSaveTokenRequest': LinkSaveTokenRequest,
+  'LinkingInfoResponse': LinkingInfoResponse,
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
@@ -766,13 +1034,17 @@ function getLabel(messageType) {
 }
 
 export {
+  AccountCreationRequest,
   AlreadySubscribedResponse,
   AnalyticsContext,
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
+  EntitlementsResponse,
   EventOriginator,
   EventParams,
+  LinkSaveTokenRequest,
+  LinkingInfoResponse,
   Message,
   SkuSelectedResponse,
   SmartBoxMessage,

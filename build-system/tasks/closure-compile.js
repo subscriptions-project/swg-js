@@ -22,9 +22,7 @@ const gulp = require('gulp');
 const rename = require('gulp-rename');
 const replace = require('gulp-replace');
 const resolveConfig = require('./compile-config').resolveConfig;
-const util = require('gulp-util');
 const internalRuntimeVersion = require('./internal-version').VERSION;
-const rimraf = require('rimraf');
 
 const isProdBuild = !!argv.type;
 const queue = [];
@@ -52,7 +50,7 @@ exports.closureCompile = function(entryModuleFilename, outputDir,
             next();
             resolve();
           }, function(e) {
-            console./*OK*/error(util.colors.red('Compilation error',
+            console./*OK*/error(colors.red('Compilation error',
                 e.message));
             process.exit(1);
           });
@@ -237,9 +235,9 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     let stream = gulp.src(srcs)
         .pipe(closureCompiler(compilerOptions))
         .on('error', function(err) {
-          console./*OK*/error(util.colors.red('Error compiling',
+          console./*OK*/error(colors.red('Error compiling',
               entryModuleFilenames));
-          console./*OK*/error(util.colors.red(err.message));
+          console./*OK*/error(colors.red(err.message));
           process.exit(1);
         });
 

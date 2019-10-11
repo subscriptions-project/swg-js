@@ -70,6 +70,16 @@ const PublicErrorCode = {
 };
 
 /**
+ * The presentation mode of the buy flow
+ *
+ * @enum {number}
+ */
+const BuyFlowMode = {
+  PAY_WITH_GOOGLE: 5,
+  SUBSCRIBE_WITH_GOOGLE: 6,
+};
+
+/**
  * Iframe used for logging and prefetching.
  *
  * @type {?Element}
@@ -341,6 +351,7 @@ PayFrameHelper.load();
 
 export {
   BuyFlowActivityMode,
+  BuyFlowMode,
   PayFrameHelper,
   PostMessageEventType,
   PublicErrorCode,
