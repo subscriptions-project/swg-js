@@ -54,9 +54,34 @@ whenReady(function(subscriptions) {
   subscriptions.setOnEntitlementsResponse(eventCallback('entitlements'));
   subscriptions.setOnLinkComplete(eventCallback('link-complete'));
   subscriptions.setOnLoginRequest(eventCallback('login-request'));
-  subscriptions.setOnSubscribeResponse(eventCallback('subscribe'));
-  subscriptions.setOnContributionResponse(eventCallback('contribute'));
+  subscriptions.setOnSubscribeResponse(
+      subscribeResponse_.bind(this));
+  subscriptions.setOnContributionResponse(
+      subscribeResponse_.bind(this));
 });
+
+subscribeResponse_ = function(promise) {
+  promise.then((function(response) {
+    // TODO: Start account creation flow.
+    log('got subscription response', response);
+    var toast = document.getElementById('creating_account_toast');
+    var userEl = document.getElementById('creating_account_toast_user');
+    userEl.textContent = response.userData.email;
+    toast.style.display = 'block';
+    // TODO: wait for account creation to be complete.
+    setTimeout((function() {
+      response.complete().then((function() {
+        log('subscription has been confirmed');
+        // Open the content.
+        globalSubscriptions.reset();
+      }).bind(this));
+      toast.style.display = 'none';
+    }).bind(this), 7000);
+  }).bind(this), function(reason) {
+    log('subscription response failed: ', reason);
+    throw reason;
+  });
+}
 
 /**
  * Selects the flow based on the URL query parameter.

@@ -170,7 +170,7 @@ export class PayCompleteFlow {
         payPromise,
         flow.complete.bind(flow)
       );
-      deps.callbacks().triggerSubscribeResponse(promise);
+
       return promise.then(
         response => {
           eventManager.logSwgEvent(
@@ -178,6 +178,11 @@ export class PayCompleteFlow {
             true
           );
           flow.start(response);
+          if (response.productType === 'UI_CONTRIBUTION') {
+            deps.callbacks().triggerContributionResponse(promise);
+          } else {
+            deps.callbacks().triggerSubscribeResponse(promise);
+          }
         },
         reason => {
           if (isCancelError(reason)) {
