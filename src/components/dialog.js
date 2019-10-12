@@ -126,6 +126,9 @@ export class Dialog {
 
     /** @private {?./view.View} */
     this.previousProgressView_ = null;
+
+    /** @private {boolean} */
+    this.useFixedLayer_ = false;
   }
 
   /**
@@ -153,13 +156,21 @@ export class Dialog {
     } else {
       this.show_();
     }
-    return this.doc_
-      .addToFixedLayer(iframe.getElement())
-      .then(() => iframe.whenReady())
-      .then(() => {
+
+    if (this.useFixedLayer_) {
+      return this.doc_
+        .addToFixedLayer(iframe.getElement())
+        .then(() => iframe.whenReady())
+        .then(() => {
+          this.buildIframe_();
+          return this;
+        });
+    } else {
+      return iframe.whenReady().then(() => {
         this.buildIframe_();
         return this;
       });
+    }
   }
 
   /**
