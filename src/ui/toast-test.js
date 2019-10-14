@@ -45,7 +45,6 @@ describes.realWin('Toast', {}, env => {
     toast.whenReady = () => Promise.resolve();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
   });
 
