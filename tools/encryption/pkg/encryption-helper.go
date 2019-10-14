@@ -142,18 +142,13 @@ func getAllEncryptedSections(parsedHtml *html.Node) []*html.Node {
 func getEncryptedSectionsDfs(bodyNode *html.Node) []*html.Node {
 	var encryptedSections []*html.Node
 	var stack []*html.Node
+	var n *html.Node
 	stack = append(stack, bodyNode)
-	ahh := false
 	for {
 		if len(stack) == 0 {
 			break
 		}
-		fmt.Println("stack: ", stack[len(stack)-1].Data)
-		if ahh {
-			break
-		}
-		fmt.Println(stack[len(stack)- 1].Data)
-		n, stack := stack[len(stack)-1], stack[:len(stack)-1]
+		n, stack = stack[len(stack)-1], stack[:len(stack)-1]
 		if n.Type == html.ElementNode && n.DataAtom == atom.Section {
 			var contentSubSection bool = false
 			var encrypted bool = false
@@ -169,10 +164,8 @@ func getEncryptedSectionsDfs(bodyNode *html.Node) []*html.Node {
 			}
 		}
 		for cn := n.FirstChild; cn != nil; cn = cn.NextSibling {
-			fmt.Println("shucks: ", cn.Data)
 			stack = append(stack, cn)
 		}
-		ahh = true
 	}
 	return encryptedSections
 }
