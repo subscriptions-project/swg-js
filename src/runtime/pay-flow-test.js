@@ -353,7 +353,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .once();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     eventManagerMock
       .expects('logSwgEvent')
@@ -391,7 +390,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     eventManagerMock
       .expects('logSwgEvent')
@@ -429,7 +427,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -492,7 +489,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -641,7 +637,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -674,7 +669,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.messageDeprecated = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));

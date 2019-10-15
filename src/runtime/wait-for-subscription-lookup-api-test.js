@@ -44,7 +44,6 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     port = new ActivityPort();
     port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     accountPromise = Promise.resolve(account);
     waitingApi = new WaitForSubscriptionLookupApi(runtime, accountPromise);

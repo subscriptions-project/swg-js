@@ -42,7 +42,6 @@ describes.realWin('LoginNotificationApi', {}, env => {
     port = new ActivityPort();
     port.Deprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     loginNotificationApi = new LoginNotificationApi(runtime);
     resultResolver = null;
