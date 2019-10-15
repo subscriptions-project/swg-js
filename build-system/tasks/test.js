@@ -277,8 +277,7 @@ test.flags = {
   'files': '  Runs tests for specific files',
   'randomize': '  Runs entire test suite in random order',
   'seed': '  Seeds the test order randomization. Use with --randomize',
-  'glob':
-    '  Explicitly expands test paths using glob before passing ' + 'to Karma',
+  'glob': '  Explicitly expands test paths using glob before passing to Karma',
   'nohelp': '  Silence help messages that are printed prior to test run',
 };
 gulp.task('test', test);
