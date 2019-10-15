@@ -42,7 +42,6 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
-    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     accountPromise = Promise.resolve(account);
