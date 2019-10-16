@@ -17,6 +17,7 @@ package encryption
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/golang/protobuf/proto"
@@ -29,7 +30,6 @@ import (
 	tinkpb "github.com/google/tink/proto/tink_go_proto"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
-	"html/template"
 	"io"
 	"net/http"
 	"strings"
@@ -209,6 +209,11 @@ func encryptAllSections(parsedHtml *html.Node, encryptedSections []*html.Node, k
 	return nil
 }
 
+type swgEncryptionKey struct {
+	accessRequirement []string
+	key               string
+}
+
 // Encrypts the document's symmetric key using the input Keyset.
 func encryptDocumentKey(docKeyset, accessRequirement string, ks tinkpb.Keyset) (string, error) {
 	handle, err := keyset.NewHandleWithNoSecrets(&ks)
@@ -219,8 +224,15 @@ func encryptDocumentKey(docKeyset, accessRequirement string, ks tinkpb.Keyset) (
 	if err != nil {
 		return "", err
 	}
-	jsonStr := fmt.Sprintf("{\"accessRequirements\": [\"%s\"], \"key\": \"%s\"}", template.HTMLEscapeString(accessRequirement), docKeyset)
-	enc, err := he.Encrypt([]byte(jsonStr), nil)
+	swgKey := swgEncryptionKey{
+		accessRequirement: []string{accessRequirement},
+		key:               docKeyset,
+	}
+	jsonData, err := json.Marshal(swgKey)
+	if err != nil {
+		return "", err
+	}
+	enc, err := he.Encrypt(jsonData, nil)
 	if err != nil {
 		return "", err
 	}
