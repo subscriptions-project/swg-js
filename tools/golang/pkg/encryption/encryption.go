@@ -1,4 +1,4 @@
-/* Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+/* Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pkg
+package encryption
 
 import (
 	"bytes"
@@ -29,9 +29,11 @@ import (
 	tinkpb "github.com/google/tink/proto/tink_go_proto"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+	"html/template"
 	"io"
 	"net/http"
 	"strings"
+	"unicode/utf8"
 )
 
 // Helper functions for the SwG Encryption Script.
@@ -73,7 +75,7 @@ func GenerateEncryptedDocument(htmlStr, accessRequirement string, pubKey *tinkpb
 	if err = addEncryptedDocumentKeyToHead(encryptedKey, parsedHtml); err != nil {
 		return "", err
 	}
-	return renderNode(parsedHtml, false), nil
+	return renderNode(parsedHtml), nil
 }
 
 // Retrieves Google's public key from the given URL.
@@ -141,14 +143,14 @@ func getAllEncryptedSections(parsedHtml *html.Node) []*html.Node {
 // Searches for all <section subscriptions-section="content" encrypted> nodes and returns them.
 func getEncryptedSectionsDfs(bodyNode *html.Node) []*html.Node {
 	var encryptedSections []*html.Node
-	var stack []*html.Node
+	var queue []*html.Node
 	var n *html.Node
-	stack = append(stack, bodyNode)
+	queue = append(queue, bodyNode)
 	for {
-		if len(stack) == 0 {
+		if len(queue) == 0 {
 			break
 		}
-		n, stack = stack[len(stack)-1], stack[:len(stack)-1]
+		n, queue = queue[len(queue)-1], queue[:len(queue)-1]
 		if n.Type == html.ElementNode && n.DataAtom == atom.Section {
 			var contentSubSection bool = false
 			var encrypted bool = false
@@ -164,7 +166,7 @@ func getEncryptedSectionsDfs(bodyNode *html.Node) []*html.Node {
 			}
 		}
 		for cn := n.FirstChild; cn != nil; cn = cn.NextSibling {
-			stack = append(stack, cn)
+			queue = append(queue, cn)
 		}
 	}
 	return encryptedSections
@@ -179,10 +181,14 @@ func encryptAllSections(parsedHtml *html.Node, encryptedSections []*html.Node, k
 	for _, node := range encryptedSections {
 		var content []string
 		for c := node.FirstChild; c != nil; c = c.NextSibling {
-			content = append(content, renderNode(c, true))
+			content = append(content, renderNode(c))
 			node.RemoveChild(c)
 		}
-		encContent, err := cipher.Encrypt([]byte(strings.Join(content, "")), nil)
+		b := []byte(strings.Join(content, ""))
+		if !utf8.Valid(b) {
+			return errors.New("Content contains invalid UTF-8.")
+		}
+		encContent, err := cipher.Encrypt(b, nil)
 		if err != nil {
 			return err
 		}
@@ -213,7 +219,7 @@ func encryptDocumentKey(docKeyset, accessRequirement string, ks tinkpb.Keyset) (
 	if err != nil {
 		return "", err
 	}
-	jsonStr := fmt.Sprintf("{\"accessRequirements\": [\"%s\"], \"key\": \"%s\"}", accessRequirement, docKeyset)
+	jsonStr := fmt.Sprintf("{\"accessRequirements\": [\"%s\"], \"key\": \"%s\"}", template.HTMLEscapeString(accessRequirement), docKeyset)
 	enc, err := he.Encrypt([]byte(jsonStr), nil)
 	if err != nil {
 		return "", err
@@ -250,14 +256,10 @@ func addEncryptedDocumentKeyToHead(encryptedKey string, parsedHtml *html.Node) e
 }
 
 // Renders the input Node to a string.
-func renderNode(n *html.Node, trim bool) string {
+func renderNode(n *html.Node) string {
 	var buf bytes.Buffer
 	w := io.Writer(&buf)
 	html.Render(w, n)
 	s := buf.String()
-	if trim {
-		s = strings.TrimPrefix(s, "<html><body>")
-		s = strings.TrimSuffix(s, "</body></html>")
-	}
 	return s
 }

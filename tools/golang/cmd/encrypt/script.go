@@ -1,4 +1,4 @@
-/* Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+/* Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ package main
 
 import (
 	"flag"
-	"github.com/subscriptions-project/swg-js/tools/encryption/pkg"
+	"github.com/subscriptions-project/swg-js/tools/golang/encryption"
 	"io/ioutil"
 	"log"
 	"os"
@@ -58,12 +58,12 @@ func main() {
 		log.Fatal(err)
 	}
 	// Retrieve Google's public key from the input URL.
-	pubKey, err := pkg.RetrieveGooglePublicKey(*googlePublicKeyUrl)
+	pubKey, err := encryption.RetrieveGooglePublicKey(*googlePublicKeyUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// Generate the encrypted document from the input HTML document.
-	encryptedDoc, err := pkg.GenerateEncryptedDocument(string(b), *accessRequirement, &pubKey)
+	encryptedDoc, err := encryption.GenerateEncryptedDocument(string(b), *accessRequirement, &pubKey)
 	if err != nil {
 		log.Fatal(err)
 	}
