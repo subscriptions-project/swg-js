@@ -250,7 +250,7 @@ describes.realWin('ActivityPorts test', {}, env => {
         });
     });
 
-    it('should support onMessageDeprecated AND on APIs', () => {
+    it('should support on APIs', () => {
       const activityIframePort = new ActivityIframePort(iframe, url);
       const analyticsRequest = new AnalyticsRequest();
       analyticsRequest.setEvent(AnalyticsEvent.UNKNOWN);
