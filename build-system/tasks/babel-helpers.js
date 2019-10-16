@@ -20,14 +20,13 @@
  * babel helpers based on the features we actually use in the source code.
  */
 
-var babel = require('babel-core');
-var fs = require('fs');
-var gulp = require('gulp-help')(require('gulp'));
-var through = require('through2');
-var PluginError = require('plugin-error');
+const babel = require('babel-core');
+const fs = require('fs');
+const gulp = require('gulp-help')(require('gulp'));
+const through = require('through2');
+const PluginError = require('plugin-error');
 
-var options = JSON.parse(fs.readFileSync('.babelrc', 'utf8').toString());
-
+const options = JSON.parse(fs.readFileSync('.babelrc', 'utf8').toString());
 
 /**
  * @param {!Array<!Array<string>>} helpers
@@ -46,8 +45,8 @@ function onFileThrough(helpers, file, enc, cb) {
     return;
   }
 
-  var usedHelpers = babel.transform(file.contents, options)
-      .metadata.usedHelpers;
+  const usedHelpers = babel.transform(file.contents, options).metadata
+    .usedHelpers;
   helpers.push(usedHelpers);
   cb(null, file);
 }
@@ -57,9 +56,9 @@ function onFileThrough(helpers, file, enc, cb) {
  * @param {function} cb
  */
 function onFileThroughEnd(usedHelpers, cb) {
-  var helpers = [].concat.apply([], usedHelpers);
-  var content = babel.buildExternalHelpers(helpers);
-  fs.writeFileSync('third_party/babel/custom-babel-helpers.js', content +'\n');
+  const helpers = [].concat.apply([], usedHelpers);
+  const content = babel.buildExternalHelpers(helpers);
+  fs.writeFileSync('third_party/babel/custom-babel-helpers.js', content + '\n');
   cb();
 }
 
@@ -67,10 +66,10 @@ function onFileThroughEnd(usedHelpers, cb) {
  * @return {!Stream}
  */
 function babelHelpers() {
-  var helpers = [];
+  const helpers = [];
   return through.obj(
-      onFileThrough.bind(null, helpers),
-      onFileThroughEnd.bind(null, helpers)
+    onFileThrough.bind(null, helpers),
+    onFileThroughEnd.bind(null, helpers)
   );
 }
 
@@ -78,8 +77,9 @@ function babelHelpers() {
  * @return {!Stream}
  */
 function buildBabelHelpers(cb) {
-  return gulp.src('./{src,3p,extensions,builtins}/**/*.js')
-      .pipe(babelHelpers());
+  return gulp
+    .src('./{src,3p,extensions,builtins}/**/*.js')
+    .pipe(babelHelpers());
 }
 
 buildBabelHelpers.description = 'Builds custom-babel-helpers.js';

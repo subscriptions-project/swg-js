@@ -18,9 +18,8 @@
 /**
  * @fileoverview Creates an http server to handle responses for different test cases.
  */
-var app = require('express')();
-var bodyParser = require('body-parser');
-var morgan = require('morgan');
+const app = require('express')();
+const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
@@ -44,7 +43,6 @@ app.use('/redirect-to', function(req, res) {
   res.redirect(302, req.query.url);
 });
 
-
 app.use('/status/404', function(req, res) {
   res.status(404).end();
 });
@@ -54,8 +52,8 @@ app.use('/status/500', function(req, res) {
 });
 
 app.use('/cookies/set', function(req, res) {
-  for (var name in req.query) {
-    res./*OK*/cookie(name, req.query[name]);
+  for (const name in req.query) {
+    res./*OK*/ cookie(name, req.query[name]);
   }
   res.json({
     cookies: req.cookies || {},
@@ -63,7 +61,7 @@ app.use('/cookies/set', function(req, res) {
 });
 
 app.use('/response-headers', function(req, res) {
-  for (var name in req.query) {
+  for (const name in req.query) {
     res.setHeader(name, req.query[name]);
   }
   res.json({});
