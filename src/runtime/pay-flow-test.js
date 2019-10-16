@@ -426,7 +426,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     );
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.messageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -488,7 +487,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.messageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -543,7 +541,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.messageDeprecated = () => {};
     port.on = (ctor, cb) => {
       const messageType = new ctor();
       messageLabel = messageType.label();
@@ -636,7 +633,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.messageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -644,7 +640,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true)
       .once();
-    sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);
   });
 
@@ -668,7 +663,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.messageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -676,7 +670,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true)
       .once();
-    sandbox.stub(port, 'messageDeprecated');
     return flow.start(response);
   });
 
