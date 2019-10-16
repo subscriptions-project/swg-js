@@ -142,13 +142,6 @@ describes.realWin('ActivityIframeView', {}, env => {
       let messageLabel;
       let payload;
       let dataSent;
-      sandbox.stub(activityIframePort, 'onMessageDeprecated').callsFake(cb => {
-        messageCallback = cb;
-      });
-
-      sandbox.stub(activityIframePort, 'messageDeprecated').callsFake(data => {
-        payload = data;
-      });
 
       sandbox.stub(activityIframePort, 'execute').callsFake(data => {
         dataSent = data;
@@ -160,10 +153,6 @@ describes.realWin('ActivityIframeView', {}, env => {
       });
       const skuSelection = new SkuSelectedResponse();
       skuSelection.setSku('sku1');
-      activityIframeView.onMessageDeprecated(data => {
-        expect(data['test']).to.be.true;
-      });
-      activityIframeView.messageDeprecated({'test': true});
       activityIframeView.on(SkuSelectedResponse, skuSelected => {
         expect(skuSelected.getSku()).to.equal('sku1');
         expect(messageLabel).to.equal('SkuSelectedResponse');
