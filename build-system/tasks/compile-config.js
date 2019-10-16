@@ -28,7 +28,6 @@ const EXPERIMENTS = '';
 
 const overrides = {};
 
-
 /**
  * @return {!Object<string, string>}
  */
@@ -44,8 +43,7 @@ exports.resolveConfig = function() {
     'adsServer': argv.adsServer || ADS_SERVER,
   };
   return Object.assign(config, overrides);
-}
-
+};
 
 /**
  * @param {!Object<string, string>} config
@@ -54,4 +52,4 @@ exports.overrideConfig = function(config) {
   for (const k in config) {
     overrides[k] = config[k];
   }
-}
+};
