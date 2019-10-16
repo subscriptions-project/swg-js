@@ -67,8 +67,8 @@ module.exports = {
   lintGlobs: [
     '**/*.js',
     '!**/*.extern.js',
-    '!exports/*.js',  // Exports only.
-    '!src/api/*.js',  // Avoid "unused" prefixes in APIs.
+    '!exports/*.js', // Exports only.
+    '!src/api/*.js', // Avoid "unused" prefixes in APIs.
     '!src/proto/*.js', // Auto generated code,
     '!{node_modules,build,dist,third_party,build-system}/**/*.*',
     '!{testing,examples}/**/*.*',
