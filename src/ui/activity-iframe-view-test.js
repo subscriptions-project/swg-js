@@ -137,10 +137,8 @@ describes.realWin('ActivityIframeView', {}, env => {
     });
 
     it('should send and receive messages', async () => {
-      let messageCallback;
       let onCb;
       let messageLabel;
-      let payload;
       let dataSent;
 
       sandbox.stub(activityIframePort, 'execute').callsFake(data => {
@@ -160,9 +158,7 @@ describes.realWin('ActivityIframeView', {}, env => {
       activityIframeView.execute(skuSelection);
       await activityIframeView.init(dialog);
       await activityIframeView.getPortPromise_();
-      messageCallback({'test': true});
       onCb(skuSelection);
-      expect(payload).to.deep.equal({'test': true});
       expect(dataSent.label()).to.equal('SkuSelectedResponse');
       expect(dataSent.getSku()).to.equal('sku1');
     });
