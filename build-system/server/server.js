@@ -22,7 +22,6 @@
 const app = require(require.resolve('./server-app'));
 const isRunning = require('is-running');
 const gulp = require('gulp-help')(require('gulp'));
-const morgan = require('morgan');
 const util = require('gulp-util');
 const webserver = require('gulp-webserver');
 
@@ -32,10 +31,9 @@ const useHttps = process.env.SERVE_USEHTTPS == 'true' ? true : false;
 const gulpProcess = process.env.SERVE_PROCESS_ID;
 const quiet = process.env.SERVE_QUIET == 'true' ? true : false;
 
-
 // Exit if the port is in use.
 process.on('uncaughtException', function(err) {
-  if(err.errno === 'EADDRINUSE') {
+  if (err.errno === 'EADDRINUSE') {
     util.log(util.colors.red('Port', port, 'in use, shutting down server'));
   } else {
     util.log(util.colors.red(err));
@@ -44,7 +42,6 @@ process.on('uncaughtException', function(err) {
   process.exit(1);
 });
 
-
 // Exit in the event of a crash in the parent gulp process.
 setInterval(function() {
   if (!isRunning(gulpProcess)) {
@@ -52,13 +49,13 @@ setInterval(function() {
   }
 }, 1000);
 
-
 // Start gulp webserver
-gulp.src(process.cwd())
-  .pipe(webserver({
+gulp.src(process.cwd()).pipe(
+  webserver({
     port,
     host,
     directoryListing: true,
     https: useHttps,
-    middleware: quiet ? [] : [app]
-  }));
+    middleware: quiet ? [] : [app],
+  })
+);
