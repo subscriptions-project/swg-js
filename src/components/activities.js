@@ -18,7 +18,6 @@ import {
   ActivityPorts as WebActivityPorts,
   ActivityIframePort as WebActivityIframePort,
 } from 'web-activities/activity-ports';
-import {debugLog} from '../utils/log';
 
 /**
  * @interface

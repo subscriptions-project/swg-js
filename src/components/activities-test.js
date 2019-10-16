@@ -193,11 +193,6 @@ describes.realWin('ActivityPorts test', {}, env => {
         .callsFake(arg => {
           handler = arg;
         });
-      let callbackCalled = false;
-      const callback = data => {
-        callbackCalled = true;
-        expect(data).to.deep.equal({'sku': 'daily'});
-      };
       return activityIframePort
         .connect()
         .then(() => {
@@ -209,7 +204,6 @@ describes.realWin('ActivityPorts test', {}, env => {
           return Promise.resolve();
         })
         .then(() => {
-          expect(callbackCalled).to.be.false;
           handler({'sku': 'daily'});
         });
     });
