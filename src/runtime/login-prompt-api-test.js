@@ -41,7 +41,6 @@ describes.realWin('LoginPromptApi', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
-    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     loginPromptApi = new LoginPromptApi(runtime);

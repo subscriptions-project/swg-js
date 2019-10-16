@@ -492,7 +492,6 @@ describes.realWin('LinkSaveFlow', {}, env => {
       'triggerLinkProgress'
     );
     port = new ActivityPort();
-    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
     messageMap = {};
     sandbox.stub(port, 'on').callsFake((ctor, cb) => {
