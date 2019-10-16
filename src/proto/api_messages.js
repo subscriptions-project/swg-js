@@ -41,6 +41,7 @@ const AnalyticsEvent = {
   IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED: 8,
   IMPRESSION_SUBSCRIPTION_COMPLETE: 9,
   IMPRESSION_ACCOUNT_CHANGED: 10,
+  IMPRESSION_PAGE_LOAD: 11,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -74,13 +75,12 @@ const EventOriginator = {
  * @implements {Message}
  */
 class AccountCreationRequest {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
-
     /** @private {?boolean} */
-    this.complete_ = (data[1] == null) ? null : data[1];
+    this.complete_ = data[1] == null ? null : data[1];
   }
 
   /**
@@ -103,8 +103,8 @@ class AccountCreationRequest {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.complete_,  // field 1 - complete
+      this.label(), // message label
+      this.complete_, // field 1 - complete
     ];
   }
 
@@ -121,16 +121,15 @@ class AccountCreationRequest {
  * @implements {Message}
  */
 class AlreadySubscribedResponse {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
+    /** @private {?boolean} */
+    this.subscriberOrMember_ = data[1] == null ? null : data[1];
 
     /** @private {?boolean} */
-    this.subscriberOrMember_ = (data[1] == null) ? null : data[1];
-
-    /** @private {?boolean} */
-    this.linkRequested_ = (data[2] == null) ? null : data[2];
+    this.linkRequested_ = data[2] == null ? null : data[2];
   }
 
   /**
@@ -167,9 +166,9 @@ class AlreadySubscribedResponse {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.subscriberOrMember_,  // field 1 - subscriber_or_member
-      this.linkRequested_,  // field 2 - link_requested
+      this.label(), // message label
+      this.subscriberOrMember_, // field 1 - subscriber_or_member
+      this.linkRequested_, // field 2 - link_requested
     ];
   }
 
@@ -186,34 +185,33 @@ class AlreadySubscribedResponse {
  * @implements {Message}
  */
 class AnalyticsContext {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
+    /** @private {?string} */
+    this.embedderOrigin_ = data[1] == null ? null : data[1];
 
     /** @private {?string} */
-    this.embedderOrigin_ = (data[1] == null) ? null : data[1];
+    this.transactionId_ = data[2] == null ? null : data[2];
 
     /** @private {?string} */
-    this.transactionId_ = (data[2] == null) ? null : data[2];
+    this.referringOrigin_ = data[3] == null ? null : data[3];
 
     /** @private {?string} */
-    this.referringOrigin_ = (data[3] == null) ? null : data[3];
+    this.utmSource_ = data[4] == null ? null : data[4];
 
     /** @private {?string} */
-    this.utmSource_ = (data[4] == null) ? null : data[4];
+    this.utmCampaign_ = data[5] == null ? null : data[5];
 
     /** @private {?string} */
-    this.utmCampaign_ = (data[5] == null) ? null : data[5];
+    this.utmMedium_ = data[6] == null ? null : data[6];
 
     /** @private {?string} */
-    this.utmMedium_ = (data[6] == null) ? null : data[6];
-
-    /** @private {?string} */
-    this.sku_ = (data[7] == null) ? null : data[7];
+    this.sku_ = data[7] == null ? null : data[7];
 
     /** @private {?boolean} */
-    this.readyToPay_ = (data[8] == null) ? null : data[8];
+    this.readyToPay_ = data[8] == null ? null : data[8];
 
     /** @private {!Array<string>} */
     this.label_ = data[9] || [];
@@ -351,16 +349,16 @@ class AnalyticsContext {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.embedderOrigin_,  // field 1 - embedder_origin
-      this.transactionId_,  // field 2 - transaction_id
-      this.referringOrigin_,  // field 3 - referring_origin
-      this.utmSource_,  // field 4 - utm_source
-      this.utmCampaign_,  // field 5 - utm_campaign
-      this.utmMedium_,  // field 6 - utm_medium
-      this.sku_,  // field 7 - sku
-      this.readyToPay_,  // field 8 - ready_to_pay
-      this.label_,  // field 9 - label
+      this.label(), // message label
+      this.embedderOrigin_, // field 1 - embedder_origin
+      this.transactionId_, // field 2 - transaction_id
+      this.referringOrigin_, // field 3 - referring_origin
+      this.utmSource_, // field 4 - utm_source
+      this.utmCampaign_, // field 5 - utm_campaign
+      this.utmMedium_, // field 6 - utm_medium
+      this.sku_, // field 7 - sku
+      this.readyToPay_, // field 8 - ready_to_pay
+      this.label_, // field 9 - label
     ];
   }
 
@@ -377,16 +375,15 @@ class AnalyticsContext {
  * @implements {Message}
  */
 class AnalyticsEventMeta {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
-
     /** @private {?EventOriginator} */
-    this.eventOriginator_ = (data[1] == null) ? null : data[1];
+    this.eventOriginator_ = data[1] == null ? null : data[1];
 
     /** @private {?boolean} */
-    this.isFromUserAction_ = (data[2] == null) ? null : data[2];
+    this.isFromUserAction_ = data[2] == null ? null : data[2];
   }
 
   /**
@@ -423,9 +420,9 @@ class AnalyticsEventMeta {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.eventOriginator_,  // field 1 - event_originator
-      this.isFromUserAction_,  // field 2 - is_from_user_action
+      this.label(), // message label
+      this.eventOriginator_, // field 1 - event_originator
+      this.isFromUserAction_, // field 2 - is_from_user_action
     ];
   }
 
@@ -442,25 +439,28 @@ class AnalyticsEventMeta {
  * @implements {Message}
  */
 class AnalyticsRequest {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
-
     /** @private {?AnalyticsContext} */
-    this.context_ = (data[1] == null || data[1] == undefined) ? null : new
-        AnalyticsContext(data[1]);
+    this.context_ =
+      data[1] == null || data[1] == undefined
+        ? null
+        : new AnalyticsContext(data[1]);
 
     /** @private {?AnalyticsEvent} */
-    this.event_ = (data[2] == null) ? null : data[2];
+    this.event_ = data[2] == null ? null : data[2];
 
     /** @private {?AnalyticsEventMeta} */
-    this.meta_ = (data[3] == null || data[3] == undefined) ? null : new
-        AnalyticsEventMeta(data[3]);
+    this.meta_ =
+      data[3] == null || data[3] == undefined
+        ? null
+        : new AnalyticsEventMeta(data[3]);
 
     /** @private {?EventParams} */
-    this.params_ = (data[4] == null || data[4] == undefined) ? null : new
-        EventParams(data[4]);
+    this.params_ =
+      data[4] == null || data[4] == undefined ? null : new EventParams(data[4]);
   }
 
   /**
@@ -525,9 +525,9 @@ class AnalyticsRequest {
    */
   toArray() {
     return [
-      this.label(),  // message label
+      this.label(), // message label
       this.context_ ? this.context_.toArray() : [], // field 1 - context
-      this.event_,  // field 2 - event
+      this.event_, // field 2 - event
       this.meta_ ? this.meta_.toArray() : [], // field 3 - meta
       this.params_ ? this.params_.toArray() : [], // field 4 - params
     ];
@@ -546,13 +546,12 @@ class AnalyticsRequest {
  * @implements {Message}
  */
 class EntitlementsResponse {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
-
     /** @private {?string} */
-    this.jwt_ = (data[1] == null) ? null : data[1];
+    this.jwt_ = data[1] == null ? null : data[1];
   }
 
   /**
@@ -575,8 +574,8 @@ class EntitlementsResponse {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.jwt_,  // field 1 - jwt
+      this.label(), // message label
+      this.jwt_, // field 1 - jwt
     ];
   }
 
@@ -593,19 +592,18 @@ class EntitlementsResponse {
  * @implements {Message}
  */
 class EventParams {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
+    /** @private {?string} */
+    this.smartboxMessage_ = data[1] == null ? null : data[1];
 
     /** @private {?string} */
-    this.smartboxMessage_ = (data[1] == null) ? null : data[1];
-
-    /** @private {?string} */
-    this.gpayTransactionId_ = (data[2] == null) ? null : data[2];
+    this.gpayTransactionId_ = data[2] == null ? null : data[2];
 
     /** @private {?boolean} */
-    this.hadLogged_ = (data[3] == null) ? null : data[3];
+    this.hadLogged_ = data[3] == null ? null : data[3];
   }
 
   /**
@@ -656,10 +654,10 @@ class EventParams {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.smartboxMessage_,  // field 1 - smartbox_message
-      this.gpayTransactionId_,  // field 2 - gpay_transaction_id
-      this.hadLogged_,  // field 3 - had_logged
+      this.label(), // message label
+      this.smartboxMessage_, // field 1 - smartbox_message
+      this.gpayTransactionId_, // field 2 - gpay_transaction_id
+      this.hadLogged_, // field 3 - had_logged
     ];
   }
 
@@ -676,16 +674,15 @@ class EventParams {
  * @implements {Message}
  */
 class LinkSaveTokenRequest {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
+    /** @private {?string} */
+    this.authCode_ = data[1] == null ? null : data[1];
 
     /** @private {?string} */
-    this.authCode_ = (data[1] == null) ? null : data[1];
-
-    /** @private {?string} */
-    this.token_ = (data[2] == null) ? null : data[2];
+    this.token_ = data[2] == null ? null : data[2];
   }
 
   /**
@@ -722,9 +719,9 @@ class LinkSaveTokenRequest {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.authCode_,  // field 1 - auth_code
-      this.token_,  // field 2 - token
+      this.label(), // message label
+      this.authCode_, // field 1 - auth_code
+      this.token_, // field 2 - token
     ];
   }
 
@@ -741,13 +738,12 @@ class LinkSaveTokenRequest {
  * @implements {Message}
  */
 class LinkingInfoResponse {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
-
     /** @private {?boolean} */
-    this.requested_ = (data[1] == null) ? null : data[1];
+    this.requested_ = data[1] == null ? null : data[1];
   }
 
   /**
@@ -770,8 +766,8 @@ class LinkingInfoResponse {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.requested_,  // field 1 - requested
+      this.label(), // message label
+      this.requested_, // field 1 - requested
     ];
   }
 
@@ -788,16 +784,15 @@ class LinkingInfoResponse {
  * @implements {Message}
  */
 class SkuSelectedResponse {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
+    /** @private {?string} */
+    this.sku_ = data[1] == null ? null : data[1];
 
     /** @private {?string} */
-    this.sku_ = (data[1] == null) ? null : data[1];
-
-    /** @private {?string} */
-    this.oldSku_ = (data[2] == null) ? null : data[2];
+    this.oldSku_ = data[2] == null ? null : data[2];
   }
 
   /**
@@ -834,9 +829,9 @@ class SkuSelectedResponse {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.sku_,  // field 1 - sku
-      this.oldSku_,  // field 2 - old_sku
+      this.label(), // message label
+      this.sku_, // field 1 - sku
+      this.oldSku_, // field 2 - old_sku
     ];
   }
 
@@ -853,13 +848,12 @@ class SkuSelectedResponse {
  * @implements {Message}
  */
 class SmartBoxMessage {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
-
     /** @private {?boolean} */
-    this.isClicked_ = (data[1] == null) ? null : data[1];
+    this.isClicked_ = data[1] == null ? null : data[1];
   }
 
   /**
@@ -882,8 +876,8 @@ class SmartBoxMessage {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.isClicked_,  // field 1 - is_clicked
+      this.label(), // message label
+      this.isClicked_, // field 1 - is_clicked
     ];
   }
 
@@ -900,13 +894,12 @@ class SmartBoxMessage {
  * @implements {Message}
  */
 class SubscribeResponse {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
-
     /** @private {?boolean} */
-    this.subscribe_ = (data[1] == null) ? null : data[1];
+    this.subscribe_ = data[1] == null ? null : data[1];
   }
 
   /**
@@ -929,8 +922,8 @@ class SubscribeResponse {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.subscribe_,  // field 1 - subscribe
+      this.label(), // message label
+      this.subscribe_, // field 1 - subscribe
     ];
   }
 
@@ -947,13 +940,12 @@ class SubscribeResponse {
  * @implements {Message}
  */
 class ViewSubscriptionsResponse {
- /**
-  * @param {!Array=} data
-  */
+  /**
+   * @param {!Array=} data
+   */
   constructor(data = []) {
-
     /** @private {?boolean} */
-    this.native_ = (data[1] == null) ? null : data[1];
+    this.native_ = data[1] == null ? null : data[1];
   }
 
   /**
@@ -976,8 +968,8 @@ class ViewSubscriptionsResponse {
    */
   toArray() {
     return [
-      this.label(),  // message label
-      this.native_,  // field 1 - native
+      this.label(), // message label
+      this.native_, // field 1 - native
     ];
   }
 
