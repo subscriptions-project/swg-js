@@ -19,7 +19,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/tink/go/aead"
 	"github.com/google/tink/go/core/registry"
@@ -42,7 +41,7 @@ const aesGcmKeyUrl string = "type.googleapis.com/google.crypto.tink.AesGcmKey"
 const aesGcmKeySize uint32 = 16
 
 // Public function to generate an encrypted HTML document given the original.
-func GenerateEncryptedDocument(htmlStr, accessRequirement string, pubKey *tinkpb.Keyset) (string, error) {
+func GenerateEncryptedDocument(htmlStr, accessRequirement string, pubKeys map[string]tinkpb.Keyset) (string, error) {
 	km, err := registry.GetKeyManager(aesGcmKeyUrl)
 	if err != nil {
 		return "", err
@@ -68,18 +67,18 @@ func GenerateEncryptedDocument(htmlStr, accessRequirement string, pubKey *tinkpb
 	if err = encryptAllSections(parsedHtml, encryptedSections, kh); err != nil {
 		return "", err
 	}
-	encryptedKey, err := encryptDocumentKey(base64.StdEncoding.EncodeToString(ksEnc), accessRequirement, *pubKey)
+	encryptedKeys, err := encryptDocumentKey(base64.StdEncoding.EncodeToString(ksEnc), accessRequirement, pubKeys)
 	if err != nil {
 		return "", err
 	}
-	if err = addEncryptedDocumentKeyToHead(encryptedKey, parsedHtml); err != nil {
+	if err = addEncryptedDocumentKeyToHead(encryptedKeys, parsedHtml); err != nil {
 		return "", err
 	}
 	return renderNode(parsedHtml), nil
 }
 
-// Retrieves Google's public key from the given URL.
-func RetrieveGooglePublicKey(publicKeyUrl string) (tinkpb.Keyset, error) {
+// Retrieves a Tink public key from the given URL.
+func RetrieveTinkPublicKey(publicKeyUrl string) (tinkpb.Keyset, error) {
 	resp, err := http.Get(publicKeyUrl)
 	if err != nil {
 		return tinkpb.Keyset{}, err
@@ -106,6 +105,18 @@ func generateNewAesGcmKey(km registry.KeyManager) ([]byte, error) {
 }
 
 // Creates an AES-GCM Keyset using the input key.
+// Example output proto:
+// 		primary_key_id: 1
+// 		key: <
+// 			key_data: <
+//   			type_url: "type.googleapis.com/google.crypto.tink.AesGcmKey"
+//   			value: "\032\020\355\323'\277\341\241u\020w\322\177\207\357\374\301/"
+//   			key_material_type: SYMMETRIC
+// 			>
+// 			status: ENABLED
+// 			key_id: 1
+// 			output_prefix_type: TINK
+// 		>
 func createAesGcmKeyset(key []byte) tinkpb.Keyset {
 	keyData := tinkpb.KeyData{
 		KeyMaterialType: tinkpb.KeyData_SYMMETRIC,
@@ -215,32 +226,36 @@ type swgEncryptionKey struct {
 }
 
 // Encrypts the document's symmetric key using the input Keyset.
-func encryptDocumentKey(docKeyset, accessRequirement string, ks tinkpb.Keyset) (string, error) {
-	handle, err := keyset.NewHandleWithNoSecrets(&ks)
-	if err != nil {
-		return "", err
+func encryptDocumentKey(docKeyset, accessRequirement string, pubKeys map[string]tinkpb.Keyset) (map[string]string, error) {
+	outMap := make(map[string]string)
+	for domain, ks := range pubKeys {
+		handle, err := keyset.NewHandleWithNoSecrets(&ks)
+		if err != nil {
+			return nil, err
+		}
+		he, err := hybrid.NewHybridEncrypt(handle)
+		if err != nil {
+			return nil, err
+		}
+		swgKey := swgEncryptionKey{
+			accessRequirement: []string{accessRequirement},
+			key:               docKeyset,
+		}
+		jsonData, err := json.Marshal(swgKey)
+		if err != nil {
+			return nil, err
+		}
+		enc, err := he.Encrypt(jsonData, nil)
+		if err != nil {
+			return nil, err
+		}
+		outMap[domain] = base64.StdEncoding.EncodeToString(enc)
 	}
-	he, err := hybrid.NewHybridEncrypt(handle)
-	if err != nil {
-		return "", err
-	}
-	swgKey := swgEncryptionKey{
-		accessRequirement: []string{accessRequirement},
-		key:               docKeyset,
-	}
-	jsonData, err := json.Marshal(swgKey)
-	if err != nil {
-		return "", err
-	}
-	enc, err := he.Encrypt(jsonData, nil)
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(enc), nil
+	return outMap, nil
 }
 
-// Adds the encrypted document key to the output document's head.
-func addEncryptedDocumentKeyToHead(encryptedKey string, parsedHtml *html.Node) error {
+// Adds the encrypted document keys to the output document's head.
+func addEncryptedDocumentKeyToHead(encryptedKeys map[string]string, parsedHtml *html.Node) error {
 	for n := parsedHtml.FirstChild; n != nil; n = n.NextSibling {
 		if (n.DataAtom == atom.Html) && (len(n.Attr) != 0) {
 			for cn := n.FirstChild; cn != nil; cn = cn.NextSibling {
@@ -255,8 +270,11 @@ func addEncryptedDocumentKeyToHead(encryptedKey string, parsedHtml *html.Node) e
 						DataAtom: atom.Script,
 						Attr:     attrs,
 					}
-					jsonData := fmt.Sprintf(`{"google.com":"%s"}`, encryptedKey)
-					textNode := &html.Node{Type: html.TextNode, Data: jsonData}
+					jsonEncKeys, err := json.Marshal(encryptedKeys)
+					if err != nil {
+						return err
+					}
+					textNode := &html.Node{Type: html.TextNode, Data: string(jsonEncKeys)}
 					cryptoKeys.AppendChild(textNode)
 					cn.AppendChild(cryptoKeys)
 					return nil
