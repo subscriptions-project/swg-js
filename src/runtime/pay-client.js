@@ -65,11 +65,16 @@ export class PayClient {
    * @param {!Window} win
    * @param {!../components/activities.ActivityPorts} activityPorts
    * @param {!../components/dialog-manager.DialogManager} dialogManager
+   * @param {!../runtime/analytics-service.AnalyticsService} analyticsService
    */
-  constructor(win, activityPorts, dialogManager) {
+  constructor(win, activityPorts, dialogManager, analyticsService) {
+    console.log(analyticsService);
+    this.googleTransactionId_ = analyticsService.getTransactionId();
+    console.log(this.googleTransactionId_);
+
     /** @const @private {!PayClientBindingDef} */
     this.binding_ = isExperimentOn(win, ExperimentFlags.GPAY_API)
-      ? new PayClientBindingPayjs(win, activityPorts)
+      ? new PayClientBindingPayjs(win, activityPorts, this.googleTransactionId_)
       : new PayClientBindingSwg(win, activityPorts, dialogManager);
   }
 
@@ -229,7 +234,7 @@ export class PayClientBindingPayjs {
    * @param {!Window} win
    * @param {!../components/activities.ActivityPorts} activityPorts
    */
-  constructor(win, activityPorts) {
+  constructor(win, activityPorts, googleTransactionId) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private @const {!../components/activities.ActivityPorts} */
@@ -252,6 +257,7 @@ export class PayClientBindingPayjs {
           'redirectKey': this.redirectVerifierHelper_.restoreKey(),
         },
       },
+      googleTransactionId,
       this.handleResponse_.bind(this)
     );
 
@@ -265,13 +271,15 @@ export class PayClientBindingPayjs {
    * @return {!PaymentsAsyncClient}
    * @private
    */
-  createClient_(options, handler) {
-    return new PaymentsAsyncClient(
+  createClient_(options, googleTransactionId, handler) {
+    const paymentsAsyncClient = new PaymentsAsyncClient(
       options,
       handler,
       /* useIframe */ false,
       this.activityPorts_.getOriginalWebActivityPorts()
     );
+    paymentsAsyncClient.googleTransactionId_ = googleTransactionId;
+    return paymentsAsyncClient;
   }
 
   /** @override */
