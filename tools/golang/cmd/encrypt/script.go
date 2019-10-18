@@ -40,8 +40,8 @@ import (
 *	--output_file=../tmp/sample-encryption-out.html \
 *	--google_public_key_url=https://news.google.com/swg/encryption/keys/dev/tink/public_key \
 *	--access_requirement=norcal.com:premium \
-*	--publisher_public_key_urls=nytimes.com,www.nytimes.com/scs/publickey \
-*	--publisher_public_key_urls=wp.com,www.wp.com/scs/publickey
+*	--publisher_public_key_url=nytimes.com,www.nytimes.com/scs/publickey \
+*	--publisher_public_key_url=wp.com,www.wp.com/scs/publickey
  */
 type mapFlags map[string]string
 
@@ -70,9 +70,9 @@ func main() {
 		"https://news.google.com/swg/encryption/keys/dev/tink/public_key",
 		"URL to Google's public key.")
 	mf := make(mapFlags)
-	flag.Var(&mf, "publisher_public_key_urls", `Strings in the form of '<domain-name>,<url>', where url is 
-												link to the hosted public key that we use to encrypt the 
-												document key.`)
+	flag.Var(&mf, "publisher_public_key_url", `Strings in the form of '<domain-name>,<url>', where url is 
+											   link to the hosted public key that we use to encrypt the 
+											   document key.`)
 	flag.Parse()
 	if *inputHtmlFile == "" {
 		log.Fatal("Missing flag: input_html_file")
