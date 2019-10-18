@@ -518,11 +518,15 @@ export class ConfiguredRuntime {
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(this.win_);
 
+    /** @private @const {!AnalyticsService} */
+    this.analyticsService_ = new AnalyticsService(this);
+
     /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(
       this.win_,
       this.activityPorts_,
-      this.dialogManager_
+      this.dialogManager_,
+      this.analyticsService_
     );
 
     /** @private @const {!Callbacks} */
@@ -534,9 +538,6 @@ export class ConfiguredRuntime {
     //definition.
     /** @private @const {!Logger} */
     this.logger_ = new Logger(this);
-
-    /** @private @const {!AnalyticsService} */
-    this.analyticsService_ = new AnalyticsService(this);
 
     /** @private @const {!EntitlementsManager} */
     this.entitlementsManager_ = new EntitlementsManager(
