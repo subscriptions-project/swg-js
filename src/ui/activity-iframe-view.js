@@ -146,24 +146,6 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * @param {!Object} data
-   */
-  messageDeprecated(data) {
-    this.getPortPromise_().then(port => {
-      port.messageDeprecated(data);
-    });
-  }
-
-  /**
-   * Handles the message received by the port.
-   * @param {function(!Object<string, string|boolean>)} callback
-   */
-  onMessageDeprecated(callback) {
-    this.getPortPromise_().then(port => {
-      port.onMessageDeprecated(callback);
-    });
-  }
-  /**
    * @param {!function(new: T)}  message
    * @param {function(../proto/api_messages.Message)} callback
    * @template T
