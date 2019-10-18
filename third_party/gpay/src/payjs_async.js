@@ -413,6 +413,7 @@ class PaymentsAsyncClient {
           PayFrameHelper.postMessage({
             'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
             'clientLatencyStartMs': this.loadPaymentDataApiStartTimeMs_,
+            'buyFlowMode': this.buyFlowMode_,
           });
         })
         .catch(result => {
