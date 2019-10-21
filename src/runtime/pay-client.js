@@ -231,6 +231,7 @@ export class PayClientBindingPayjs {
   /**
    * @param {!Window} win
    * @param {!../components/activities.ActivityPorts} activityPorts
+   * @param {!string} googleTransactionId
    */
   constructor(win, activityPorts, googleTransactionId) {
     /** @private @const {!Window} */
@@ -266,6 +267,7 @@ export class PayClientBindingPayjs {
 
   /**
    * @param {!Object} options
+   * @param {!string} googleTransactionId
    * @param {function(!Promise<!Object>)} handler
    * @return {!PaymentsAsyncClient}
    * @private

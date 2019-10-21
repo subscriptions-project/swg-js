@@ -22,6 +22,7 @@ import {ActivityPorts, ActivityPort} from '../components/activities';
 import {DialogManager} from '../components/dialog-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
+import {PageConfig} from '../model/page-config';
 import {
   PayClient,
   PayClientBindingPayjs,
@@ -31,6 +32,9 @@ import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Xhr} from '../utils/xhr';
 import {isCancelError} from '../utils/errors';
 import {setExperiment, setExperimentsStringForTesting} from './experiments';
+import {DepsDef} from './deps';
+import {AnalyticsService} from './analytics-service';
+import {ClientEventManager} from './client-event-manager';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -56,15 +60,23 @@ const INTEGR_DATA_OBJ_DECODED = {
 };
 
 describes.realWin('PayClientBindingSwg', {}, env => {
+  let deps;
+  let eventManager;
+  let globalDoc;
+  let pageConfig;
   let win;
   let activityPorts, activitiesMock, port;
-  let dialogManagerMock;
+  let dialogManager, dialogManagerMock;
+  let analyticsService, analyticsMock;
   let resultCallback, resultStub;
   let payClient;
   let resultIdsAttached;
 
   beforeEach(() => {
+    deps = new DepsDef();
     win = env.win;
+    sandbox.stub(deps, 'win').callsFake(() => win);
+
     resultIdsAttached = [];
     activityPorts = new ActivityPorts(win);
     activityPorts.onResult = (requestId, callback) => {
@@ -75,15 +87,38 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     };
     port = new ActivityPort();
     activitiesMock = sandbox.mock(activityPorts);
-    const dialogManager = new DialogManager(new GlobalDoc(win));
+
+    globalDoc = new GlobalDoc(win);
+    dialogManager = new DialogManager(globalDoc);
     dialogManagerMock = sandbox.mock(dialogManager);
-    payClient = new PayClient(win, activityPorts, dialogManager);
+
+    sandbox.stub(deps, 'doc').callsFake(() => globalDoc);
+
+    pageConfig = new PageConfig('pub1:label1');
+    sandbox.stub(deps, 'pageConfig').callsFake(() => pageConfig);
+
+    eventManager = new ClientEventManager(Promise.resolve);
+    sandbox.stub(deps, 'eventManager').callsFake(() => eventManager);
+
+    analyticsService = new AnalyticsService(deps);
+    analyticsMock = sandbox.mock(analyticsService);
+    sandbox.stub(analyticsService, 'getTransactionId').callsFake(() => {
+      return 'testid123';
+    });
+
+    payClient = new PayClient(
+      win,
+      activityPorts,
+      dialogManager,
+      analyticsService
+    );
     resultStub = sandbox.stub();
     payClient.onResponse(resultStub);
   });
 
   afterEach(() => {
     activitiesMock.verify();
+    analyticsMock.verify();
     dialogManagerMock.verify();
   });
 
@@ -378,17 +413,29 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 });
 
 describes.realWin('PayClientBindingPayjs', {}, env => {
+  let deps;
   let win;
+  let eventManager;
+  let globalDoc;
   let resultStub;
   let activityPorts;
   let payClient;
   let payClientStubs;
+  let pageConfig;
+  let analyticsService, analyticsMock;
+  let dialogManager, dialogManagerMock;
   let redirectVerifierHelperStubs, redirectVerifierHelperResults;
   let responseHandler;
+  let googleTransactionId;
 
   beforeEach(() => {
+    deps = new DepsDef();
     win = env.win;
     activityPorts = new ActivityPorts(win);
+    sandbox.stub(deps, 'win').callsFake(() => win);
+
+    googleTransactionId = 'testid123';
+
     redirectVerifierHelperResults = {
       restoreKey: 'test_restore_key',
       verifier: 'test_verifier',
@@ -407,7 +454,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     payClientStubs = {
       create: sandbox
         .stub(PayClientBindingPayjs.prototype, 'createClient_')
-        .callsFake((options, handler) => {
+        .callsFake((options, googleTransactionId, handler) => {
           responseHandler = handler;
           return new PaymentsAsyncClient({});
         }),
@@ -416,13 +463,39 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
         'loadPaymentData'
       ),
     };
-    payClient = new PayClientBindingPayjs(win, activityPorts);
+
+    globalDoc = new GlobalDoc(win);
+    sandbox.stub(deps, 'doc').callsFake(() => globalDoc);
+
+    dialogManager = new DialogManager(globalDoc);
+    dialogManagerMock = sandbox.mock(dialogManager);
+
+    pageConfig = new PageConfig('pub1:label1');
+    sandbox.stub(deps, 'pageConfig').callsFake(() => pageConfig);
+
+    eventManager = new ClientEventManager(Promise.resolve);
+    sandbox.stub(deps, 'eventManager').callsFake(() => eventManager);
+
+    analyticsService = new AnalyticsService(deps);
+    analyticsMock = sandbox.mock(analyticsService);
+    sandbox.stub(analyticsService, 'getTransactionId').callsFake(() => {
+      return 'testid123';
+    });
+
+    payClient = new PayClientBindingPayjs(
+      win,
+      activityPorts,
+      googleTransactionId
+    );
+
     resultStub = sandbox.stub();
     payClient.onResponse(resultStub);
   });
 
   afterEach(() => {
     setExperimentsStringForTesting('');
+    analyticsMock.verify();
+    dialogManagerMock.verify();
   });
 
   /**
@@ -438,7 +511,14 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
   it('should select the right binding', () => {
     expect(payClient.getType()).to.equal('PAYJS');
     setExperiment(win, ExperimentFlags.GPAY_API, true);
-    expect(new PayClient(win, activityPorts).getType()).to.equal('PAYJS');
+    expect(
+      new PayClient(
+        win,
+        activityPorts,
+        dialogManager,
+        analyticsService
+      ).getType()
+    ).to.equal('PAYJS');
   });
 
   it('should initalize correctly', () => {
@@ -446,6 +526,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       'environment': '$payEnvironment$',
       'i': {
         'redirectKey': 'test_restore_key',
+        'googleTransactionId': 'testid123',
       },
     });
     expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
