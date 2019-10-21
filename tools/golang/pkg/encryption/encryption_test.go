@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-var googPublicKeyStr string = `{"key":[
+const googPublicKeyStr string = `{"key":[
 	{
 		"keyData":{
 			"keyMaterialType":"ASYMMETRIC_PUBLIC",
