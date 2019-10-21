@@ -103,7 +103,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     analyticsService = new AnalyticsService(deps);
     analyticsMock = sandbox.mock(analyticsService);
     sandbox.stub(analyticsService, 'getTransactionId').callsFake(() => {
-      return 'testid123';
+      return 'GOOGLE_TRANSACTION_ID';
     });
 
     payClient = new PayClient(
@@ -434,7 +434,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     activityPorts = new ActivityPorts(win);
     sandbox.stub(deps, 'win').callsFake(() => win);
 
-    googleTransactionId = 'testid123';
+    googleTransactionId = 'GOOGLE_TRANSACTION_ID';
 
     redirectVerifierHelperResults = {
       restoreKey: 'test_restore_key',
@@ -479,7 +479,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     analyticsService = new AnalyticsService(deps);
     analyticsMock = sandbox.mock(analyticsService);
     sandbox.stub(analyticsService, 'getTransactionId').callsFake(() => {
-      return 'testid123';
+      return googleTransactionId;
     });
 
     payClient = new PayClientBindingPayjs(
@@ -526,7 +526,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       'environment': '$payEnvironment$',
       'i': {
         'redirectKey': 'test_restore_key',
-        'googleTransactionId': 'testid123',
+        'googleTransactionId': 'GOOGLE_TRANSACTION_ID',
       },
     });
     expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
