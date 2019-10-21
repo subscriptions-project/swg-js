@@ -38,12 +38,14 @@ import (
 * go run swg-js/tools/golang/cmd/encrypt/script.go \
 *	--input_html_file=../tmp/sample-encryption.html \
 *	--output_file=../tmp/sample-encryption-out.html \
-*	--google_public_key_url=https://news.google.com/swg/encryption/keys/dev/tink/public_key \
+*	--google_public_key_url=https://news.google.com/swg/encryption/keys/{dev|prod}/tink/public_key \
 *	--access_requirement=norcal.com:premium \
 *	--publisher_public_key_url=nytimes.com,www.nytimes.com/scs/publickey \
 *	--publisher_public_key_url=wp.com,www.wp.com/scs/publickey
  */
 type mapFlags map[string]string
+
+const googleDevPublicKeyUrl string = "https://news.google.com/swg/encryption/keys/dev/tink/public_key"
 
 func (m *mapFlags) String() string {
 	var strs []string
@@ -66,13 +68,10 @@ func main() {
 	inputHtmlFile := flag.String("input_html_file", "", "Input HTML file to encrypt.")
 	outFile := flag.String("output_file", "", "Output path to write encrypted HTML file.")
 	accessRequirement := flag.String("access_requirement", "", "The access requirement we grant upon decryption.")
-	googlePublicKeyUrl := flag.String("google_public_key_url",
-		"https://news.google.com/swg/encryption/keys/dev/tink/public_key",
-		"URL to Google's public key.")
 	mf := make(mapFlags)
-	flag.Var(&mf, "publisher_public_key_url", `Strings in the form of '<domain-name>,<url>', where url is 
-											   link to the hosted public key that we use to encrypt the 
-											   document key.`)
+	flag.Var(&mf, "encryption_key_url", `Strings in the form of '<domain-name>,<url>', where url is 
+										 link to the hosted public key that we use to encrypt the 
+										 document key.`)
 	flag.Parse()
 	if *inputHtmlFile == "" {
 		log.Fatal("Missing flag: input_html_file")
@@ -83,9 +82,6 @@ func main() {
 	if *accessRequirement == "" {
 		log.Fatal("Missing flag: access_requirement")
 	}
-	if *googlePublicKeyUrl == "" {
-		log.Fatal("Missing flag: google_public_key_url")
-	}
 	// Read the input HTML file.
 	b, err := ioutil.ReadFile(*inputHtmlFile)
 	if err != nil {
@@ -93,11 +89,6 @@ func main() {
 	}
 	// Retrieve all public keys from the input URLs.
 	pubKeys := make(map[string]tinkpb.Keyset)
-	googKey, err := encryption.RetrieveTinkPublicKey(*googlePublicKeyUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
-	pubKeys["google.com"] = googKey
 	var pubKey tinkpb.Keyset
 	for domain, url := range mf {
 		pubKey, err = encryption.RetrieveTinkPublicKey(url)
@@ -105,6 +96,13 @@ func main() {
 			log.Fatal(err)
 		}
 		pubKeys[domain] = pubKey
+	}
+	if _, ok := pubKeys["google.com"]; !ok {
+		googKey, err := encryption.RetrieveTinkPublicKey(googleDevPublicKeyUrl)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pubKeys["google.com"] = googKey
 	}
 	// Generate the encrypted document from the input HTML document.
 	encryptedDoc, err := encryption.GenerateEncryptedDocument(string(b), *accessRequirement, pubKeys)
