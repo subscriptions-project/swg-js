@@ -68,9 +68,7 @@ export class PayClient {
    * @param {!../runtime/analytics-service.AnalyticsService} analyticsService
    */
   constructor(win, activityPorts, dialogManager, analyticsService) {
-    console.log(analyticsService);
     this.googleTransactionId_ = analyticsService.getTransactionId();
-    console.log(this.googleTransactionId_);
 
     /** @const @private {!PayClientBindingDef} */
     this.binding_ = isExperimentOn(win, ExperimentFlags.GPAY_API)
@@ -255,6 +253,7 @@ export class PayClientBindingPayjs {
         environment: '$payEnvironment$',
         'i': {
           'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+          'googleTransactionId': googleTransactionId,
         },
       },
       googleTransactionId,
@@ -272,14 +271,13 @@ export class PayClientBindingPayjs {
    * @private
    */
   createClient_(options, googleTransactionId, handler) {
-    const paymentsAsyncClient = new PaymentsAsyncClient(
+    PaymentsAsyncClient.googleTransactionId_ = googleTransactionId;
+    return new PaymentsAsyncClient(
       options,
       handler,
       /* useIframe */ false,
       this.activityPorts_.getOriginalWebActivityPorts()
     );
-    paymentsAsyncClient.googleTransactionId_ = googleTransactionId;
-    return paymentsAsyncClient;
   }
 
   /** @override */
