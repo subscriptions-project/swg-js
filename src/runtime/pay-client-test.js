@@ -59,6 +59,8 @@ const INTEGR_DATA_OBJ_DECODED = {
   },
 };
 
+const GOOGLE_TRANSACTION_ID = 'ABC12345-CDE0-XYZ1-ABAB-11609E6472E9';
+
 describes.realWin('PayClientBindingSwg', {}, env => {
   let deps;
   let eventManager;
@@ -103,7 +105,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     analyticsService = new AnalyticsService(deps);
     analyticsMock = sandbox.mock(analyticsService);
     sandbox.stub(analyticsService, 'getTransactionId').callsFake(() => {
-      return 'GOOGLE_TRANSACTION_ID';
+      return GOOGLE_TRANSACTION_ID;
     });
 
     payClient = new PayClient(
@@ -434,7 +436,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     activityPorts = new ActivityPorts(win);
     sandbox.stub(deps, 'win').callsFake(() => win);
 
-    googleTransactionId = 'GOOGLE_TRANSACTION_ID';
+    googleTransactionId = GOOGLE_TRANSACTION_ID;
 
     redirectVerifierHelperResults = {
       restoreKey: 'test_restore_key',
@@ -526,7 +528,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       'environment': '$payEnvironment$',
       'i': {
         'redirectKey': 'test_restore_key',
-        'googleTransactionId': 'GOOGLE_TRANSACTION_ID',
+        'googleTransactionId': GOOGLE_TRANSACTION_ID,
       },
     });
     expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
