@@ -1,8 +1,13 @@
 package encryption
 
 import (
+	"github.com/google/tink/go/keyset"
+	tinkpb "github.com/google/tink/proto/tink_go_proto"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -19,7 +24,16 @@ var googPublicKeyStr string = `{"key":[
 	}
 	],
 	"primaryKeyId":3962548922
-}` 
+}`
+
+func loadTestFileString(filename string) string {
+	path := filepath.Join("testdata", filename) // relative path
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	return string(bytes)
+}
 
 func TestGetTinkPublicKeySuccess(t *testing.T) {
 	httpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -59,5 +73,48 @@ func TestGetTinkPublicKeyGetFailure(t *testing.T) {
 	_, err := RetrieveTinkPublicKey(httpServer.URL)
 	if err == nil {
 		t.Errorf("Expected failure but call succeeded.")
+	}
+}
+
+func TestEncryptDocumentSuccess(t *testing.T) {
+	htmlStr := loadTestFileString("sample_encryption.html")
+	if htmlStr == "" {
+		t.Errorf("HTML file load failed.")
+	}
+	sr := strings.NewReader(googPublicKeyStr)
+	r := keyset.NewJSONReader(sr)
+	ks, err := r.Read()
+	if err != nil {
+		t.Errorf("Keyset load failed.")
+	}
+	pubKeys := map[string]tinkpb.Keyset{
+		"google.com": *ks,
+	}
+	encDoc, err := GenerateEncryptedDocument(htmlStr, "norcal.com:premium", pubKeys)
+	if err != nil {
+		t.Errorf("Error occured generating encrypted document.")
+	}
+	if !strings.Contains(encDoc, `<script type="application/octet-stream" ciphertext="">`) {
+		t.Errorf("Missing encrypted script.")
+	}
+	if !strings.Contains(encDoc, `<script type="application/json" cryptokeys="">`) {
+		t.Errorf("Missing cryptokeys script.")
+	}
+	if !strings.Contains(encDoc, "google.com") {
+		t.Errorf("Missing google.com key.")
+	}
+}
+
+func TestEncryptDocumentEmptyKeyset(t *testing.T) {
+	htmlStr := loadTestFileString("sample_encryption.html")
+	if htmlStr == "" {
+		t.Errorf("HTML file load failed.")
+	}
+	pubKeys := map[string]tinkpb.Keyset{
+		"google.com": tinkpb.Keyset{},
+	}
+	_, err := GenerateEncryptedDocument(htmlStr, "norcal.com:premium", pubKeys)
+	if err == nil {
+		t.Errorf("Error did not occur on empty Keyset.")
 	}
 }
