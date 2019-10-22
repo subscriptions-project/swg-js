@@ -27,7 +27,7 @@ import (
 
 /* Script to encrypt documents for the SwG Encryption Project.
 *
-* Golang script which takes in an input HTML document and encrypts
+* Script which takes in an input HTML document and encrypts
 * all content within <section subscriptions-section="content" encrypted>
 * tags using AES-GCM. The key used to encrypt the content is added
 * to the output document's head inside of a
@@ -40,8 +40,8 @@ import (
 *	--output_file=../tmp/sample-encryption-out.html \
 *	--google_public_key_url=https://news.google.com/swg/encryption/keys/{dev|prod}/tink/public_key \
 *	--access_requirement=norcal.com:premium \
-*	--publisher_public_key_url=nytimes.com,www.nytimes.com/scs/publickey \
-*	--publisher_public_key_url=wp.com,www.wp.com/scs/publickey
+*	--publisher_public_key_url=example.com,www.example.com/scs/publickey \
+*	--publisher_public_key_url=thenews.com,www.thenews.com/scs/publickey
  */
 type mapFlags map[string]string
 
@@ -57,7 +57,7 @@ func (m *mapFlags) String() string {
 func (m *mapFlags) Set(value string) error {
 	s := strings.Split(value, ",")
 	if len(s) != 2 {
-		return errors.New("Malformatted value inserted")
+		return errors.New("Malformed value inserted: " + value)
 	}
 	(*m)[s[0]] = s[1]
 	return nil
@@ -116,5 +116,4 @@ func main() {
 	}
 	f.WriteString(encryptedDoc)
 	log.Println("Encrypted HTML file generated successfully")
-	os.Exit(0)
 }

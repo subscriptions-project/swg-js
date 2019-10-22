@@ -40,73 +40,75 @@ const googPublicKeyStr string = `{"key":[
 	"primaryKeyId":3962548922
 }`
 
-func loadTestFileString(filename string) string {
+const googPrimaryKeyId uint32 = 3962548922
+
+func loadTestFileString(filename string) (string, error) {
 	path := filepath.Join("testdata", filename) // relative path
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return string(bytes)
+	return string(bytes), nil
 }
 
-func TestGetTinkPublicKeySuccess(t *testing.T) {
+func TestRetrieveTinkPublicKeySuccess(t *testing.T) {
 	httpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" {
-			t.Errorf("Download request was method %s; want GET", r.Method)
+			t.Fatalf("Download request was method %s; want GET", r.Method)
 		}
 
 		n, err := w.Write([]byte(googPublicKeyStr))
 		if err != nil {
-			t.Errorf("Failed to write fake response: %v", err)
+			t.Fatalf("Failed to write fake response: %v", err)
 		}
 		if n != len([]byte(googPublicKeyStr)) {
-			t.Errorf("Wrote %d bytes of fake response; want %d", n, len([]byte(googPublicKeyStr)))
+			t.Fatalf("Wrote %d bytes of fake response; want %d", n, len([]byte(googPublicKeyStr)))
 		}
 	}))
 	defer httpServer.Close()
 	pubKey, err := RetrieveTinkPublicKey(httpServer.URL)
 	if err != nil {
-		t.Errorf("Failed to retrieve Tink public key.")
+		t.Fatalf("Failed to retrieve Tink public key.")
 	}
-	if pubKey.PrimaryKeyId != 3962548922 {
-		t.Errorf("Invalid primary key ID: %d", pubKey.PrimaryKeyId)
+	if pubKey.PrimaryKeyId != googPrimaryKeyId {
+		t.Errorf("Invalid primary key ID %d. Want: %d", pubKey.PrimaryKeyId, googPrimaryKeyId)
 	}
-	if pubKey.Key[0].KeyId != 3962548922 {
-		t.Errorf("Invalid key ID found: %d", pubKey.Key[0].KeyId)
+	if pubKey.Key[0].KeyId != googPrimaryKeyId {
+		t.Errorf("Invalid key ID %d. Want: %d", pubKey.Key[0].KeyId, googPrimaryKeyId)
 	}
 }
 
-func TestGetTinkPublicKeyGetFailure(t *testing.T) {
+func TestRetrieveTinkPublicKeyGetFailure(t *testing.T) {
 	httpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" {
-			t.Errorf("Download request was method %s; want GET", r.Method)
+			t.Fatalf("Download request was method %s; want GET", r.Method)
 		}
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer httpServer.Close()
 	_, err := RetrieveTinkPublicKey(httpServer.URL)
 	if err == nil {
-		t.Errorf("Expected failure but call succeeded.")
+		t.Fatalf("Expected failure but call succeeded.")
 	}
 }
 
 func TestEncryptDocumentSuccess(t *testing.T) {
-	htmlStr := loadTestFileString("sample_encryption.html")
-	if htmlStr == "" {
-		t.Errorf("HTML file load failed.")
+	htmlStr, err := loadTestFileString("sample_encryption.html")
+	if err != nil {
+		t.Fatalf("HTML file load failed.")
 	}
 	sr := strings.NewReader(googPublicKeyStr)
 	r := keyset.NewJSONReader(sr)
 	ks, err := r.Read()
 	if err != nil {
-		t.Errorf("Keyset load failed.")
+		t.Fatalf("Keyset load failed.")
 	}
 	pubKeys := map[string]tinkpb.Keyset{
 		"google.com": *ks,
 	}
 	encDoc, err := GenerateEncryptedDocument(htmlStr, "norcal.com:premium", pubKeys)
 	if err != nil {
-		t.Errorf("Error occured generating encrypted document.")
+		t.Fatalf("Error occured generating encrypted document.")
 	}
 	if !strings.Contains(encDoc, `<script type="application/octet-stream" ciphertext="">`) {
 		t.Errorf("Missing encrypted script.")
@@ -120,15 +122,15 @@ func TestEncryptDocumentSuccess(t *testing.T) {
 }
 
 func TestEncryptDocumentEmptyKeyset(t *testing.T) {
-	htmlStr := loadTestFileString("sample_encryption.html")
-	if htmlStr == "" {
-		t.Errorf("HTML file load failed.")
+	htmlStr, err := loadTestFileString("sample_encryption.html")
+	if err != nil {
+		t.Fatalf("HTML file load failed.")
 	}
 	pubKeys := map[string]tinkpb.Keyset{
 		"google.com": tinkpb.Keyset{},
 	}
-	_, err := GenerateEncryptedDocument(htmlStr, "norcal.com:premium", pubKeys)
+	_, err = GenerateEncryptedDocument(htmlStr, "norcal.com:premium", pubKeys)
 	if err == nil {
-		t.Errorf("Error did not occur on empty Keyset.")
+		t.Fatalf("Error did not occur on empty Keyset.")
 	}
 }
