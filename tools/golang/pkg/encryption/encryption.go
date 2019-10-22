@@ -29,7 +29,6 @@ import (
 	tinkpb "github.com/google/tink/proto/tink_go_proto"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
-	"io"
 	"net/http"
 	"strings"
 	"unicode/utf8"
@@ -64,6 +63,9 @@ func GenerateEncryptedDocument(htmlStr, accessRequirement string, pubKeys map[st
 		return "", err
 	}
 	encryptedSections := getAllEncryptedSections(parsedHtml)
+	if len(encryptedSections) == 0 {
+		return "", errors.New("No encrypted sections found.")
+	}
 	if err = encryptAllSections(parsedHtml, encryptedSections, kh); err != nil {
 		return "", err
 	}
@@ -287,9 +289,7 @@ func addEncryptedDocumentKeyToHead(encryptedKeys map[string]string, parsedHtml *
 
 // Renders the input Node to a string.
 func renderNode(n *html.Node) string {
-	var buf bytes.Buffer
-	w := io.Writer(&buf)
-	html.Render(w, n)
-	s := buf.String()
-	return s
+	b := new(bytes.Buffer)
+	html.Render(b, n)
+	return b.String()
 }
