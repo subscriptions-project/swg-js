@@ -47,40 +47,50 @@ exports.compile = function(opt_opts) {
   mkdirSync('build/css');
 
   // Compile CSS because we need the css files in compileJs step.
-  return compileCss('./src/', './build/css', Object.assign({}, opts || {}))
-      .then(() => {
-        // For compilation with babel we start with the main-babel entry point,
-        // but then rename to the subscriptions.js which we've been using all along.
-        return Promise.all([
-          compileJs('./src/', 'main', './dist',
-              Object.assign({
-                toName: 'subscriptions.max.js',
-                minifiedName: opts.checkTypes ?
-                    'subscriptions.checktypes.js' :
-                    (argv.minifiedName || 'subscriptions.js'),
-                includePolyfills: true,
-                // If there is a sync JS error during initial load,
-                // at least try to unhide the body.
-                wrapper: '(function(){<%= contents %>})();',
-              }, opts)),
-        ]);
-      });
+  return compileCss(
+    './src/',
+    './build/css',
+    Object.assign({}, opts || {})
+  ).then(() => {
+    // For compilation with babel we start with the main-babel entry point,
+    // but then rename to the subscriptions.js which we've been using all along.
+    return Promise.all([
+      compileJs(
+        './src/',
+        'main',
+        './dist',
+        Object.assign(
+          {
+            toName: 'subscriptions.max.js',
+            minifiedName: opts.checkTypes
+              ? 'subscriptions.checktypes.js'
+              : argv.minifiedName || 'subscriptions.js',
+            includePolyfills: true,
+            // If there is a sync JS error during initial load,
+            // at least try to unhide the body.
+            wrapper: '(function(){<%= contents %>})();',
+          },
+          opts
+        )
+      ),
+    ]);
+  });
 };
-
 
 /**
  * @return {!Promise}
  */
 exports.checkTypes = function(opts) {
-  return exports.compile(Object.assign(opts || {}, {
-    toName: 'check-types.max.js',
-    minifiedName: 'check-types.js',
-    minify: true,
-    checkTypes: true,
-    includePolyfills: true,
-  }));
+  return exports.compile(
+    Object.assign(opts || {}, {
+      toName: 'check-types.max.js',
+      minifiedName: 'check-types.js',
+      minify: true,
+      checkTypes: true,
+      includePolyfills: true,
+    })
+  );
 };
-
 
 /**
  * Compile a javascript file
@@ -97,22 +107,28 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   if (options.minify) {
     const startTime = Date.now();
     return closureCompile(
-        srcDir + srcFilename + '.js', destDir, options.minifiedName, options)
-        .then(function() {
-          fs.writeFileSync(destDir + '/version.txt', internalRuntimeVersion);
-          if (options.latestName) {
-            fs.copySync(
-                destDir + '/' + options.minifiedName,
-                destDir + '/' + options.latestName);
-          }
-        })
-        .then(() => {
-          endBuildStep('Minified', srcFilename + '.js', startTime);
-        });
+      srcDir + srcFilename + '.js',
+      destDir,
+      options.minifiedName,
+      options
+    )
+      .then(function() {
+        fs.writeFileSync(destDir + '/version.txt', internalRuntimeVersion);
+        if (options.latestName) {
+          fs.copySync(
+            destDir + '/' + options.minifiedName,
+            destDir + '/' + options.latestName
+          );
+        }
+      })
+      .then(() => {
+        endBuildStep('Minified', srcFilename + '.js', startTime);
+      });
   }
 
-  let bundler = browserify(srcDir + srcFilename + '-babel.js', {debug: true})
-      .transform(babel, {loose: true});
+  let bundler = browserify(srcDir + srcFilename + '-babel.js', {
+    debug: true,
+  }).transform(babel, {loose: true});
   if (options.watch) {
     bundler = watchify(bundler);
   }
@@ -120,31 +136,49 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   const wrapper = options.wrapper || '<%= contents %>';
 
   let lazybuild = lazypipe()
-      .pipe(source, srcFilename + '-babel.js')
-      .pipe(buffer);
+    .pipe(
+      source,
+      srcFilename + '-babel.js'
+    )
+    .pipe(buffer);
 
   // Replacements.
   const replacements = resolveConfig();
   for (const k in replacements) {
     lazybuild = lazybuild.pipe(
-        $$.replace,
-        new RegExp('\\$' + k + '\\$', 'g'),
-        replacements[k]);
+      $$.replace,
+      new RegExp('\\$' + k + '\\$', 'g'),
+      replacements[k]
+    );
   }
 
   // Complete build with wrapper and sourcemaps.
   lazybuild = lazybuild
-      .pipe($$.wrap, wrapper)
-      .pipe($$.sourcemaps.init.bind($$.sourcemaps), {loadMaps: true});
+    .pipe(
+      $$.wrap,
+      wrapper
+    )
+    .pipe(
+      $$.sourcemaps.init.bind($$.sourcemaps),
+      {loadMaps: true}
+    );
 
   const lazywrite = lazypipe()
-      .pipe($$.sourcemaps.write.bind($$.sourcemaps), './')
-      .pipe(gulp.dest.bind(gulp), destDir);
+    .pipe(
+      $$.sourcemaps.write.bind($$.sourcemaps),
+      './'
+    )
+    .pipe(
+      gulp.dest.bind(gulp),
+      destDir
+    );
 
   const destFilename = options.toName || srcFilename + '.js';
   function rebundle() {
     const startTime = Date.now();
-    return toPromise(bundler.bundle()
+    return toPromise(
+      bundler
+        .bundle()
         .on('error', function(err) {
           if (err instanceof SyntaxError) {
             console.error(colors.red('Syntax error:', err.message));
@@ -155,10 +189,10 @@ function compileJs(srcDir, srcFilename, destDir, options) {
         .pipe(lazybuild())
         .pipe($$.rename(destFilename))
         .pipe(lazywrite())
-        .on('end', function() {
-        })).then(() => {
-          endBuildStep('Compiled', srcFilename, startTime);
-        });
+        .on('end', function() {})
+    ).then(() => {
+      endBuildStep('Compiled', srcFilename, startTime);
+    });
   }
 
   if (options.watch) {
@@ -184,7 +218,6 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   }
 }
 
-
 /**
  * Compile all the css and drop in the build folder.
  *
@@ -198,8 +231,7 @@ function compileCss(srcDir, outputDir, options) {
 
   if (options.watch) {
     $$.watch(srcDir + '**/*.css', function() {
-      compileCss(srcDir, outputDir,
-          Object.assign({}, options, {watch: false}));
+      compileCss(srcDir, outputDir, Object.assign({}, options, {watch: false}));
     });
   }
 
@@ -208,29 +240,31 @@ function compileCss(srcDir, outputDir, options) {
     glob('**/*.css', {cwd: srcDir}, function(er, files) {
       resolve(files);
     });
-  }).then(files => {
-    const promises = files.map(file => {
-      const srcFile = srcDir + file;
-      return jsifyCssAsync(srcFile).then(css => {
-        const targetFile = outputDir + '/' + file + '.js';
-        mkdirSync(pathLib.dirname(targetFile));
-        fs.writeFileSync(targetFile,
-            'export const CSS = ' + JSON.stringify(css) + ';');
+  })
+    .then(files => {
+      const promises = files.map(file => {
+        const srcFile = srcDir + file;
+        return jsifyCssAsync(srcFile).then(css => {
+          const targetFile = outputDir + '/' + file + '.js';
+          mkdirSync(pathLib.dirname(targetFile));
+          fs.writeFileSync(
+            targetFile,
+            'export const CSS = ' + JSON.stringify(css) + ';'
+          );
+        });
       });
+      return Promise.all(promises);
+    })
+    .then(() => {
+      endBuildStep('Recompiled CSS', '', startTime);
     });
-    return Promise.all(promises);
-  }).then(() => {
-    endBuildStep('Recompiled CSS', '', startTime);
-  });
 }
-
 
 function toPromise(readable) {
   return new Promise(function(resolve, reject) {
     readable.on('error', reject).on('end', resolve);
   });
 }
-
 
 /**
  * Stops the timer for the given build step and prints the execution time,
@@ -251,13 +285,9 @@ function endBuildStep(stepName, targetName, startTime) {
     timeString += secs + '.' + ms + ' s)';
   }
   if (!process.env.TRAVIS) {
-    log(
-        stepName,
-        colors.cyan(targetName),
-        colors.green(timeString));
+    log(stepName, colors.cyan(targetName), colors.green(timeString));
   }
 }
-
 
 function mkdirSync(path) {
   try {

@@ -205,7 +205,11 @@ describes.realWin('Dialog', {}, env => {
       expect(iframe.nodeName).to.equal('IFRAME');
 
       // Should have asked AMP to update fixed layer if needed
-      expect(fixedLayerSpy).to.be.called.once;
+      if (dialog.useFixedLayer_) {
+        expect(fixedLayerSpy).to.be.called.once;
+      } else {
+        expect(fixedLayerSpy).to.not.be.called;
+      }
 
       // Should have document loaded.
       const iframeDoc = openedDialog.getIframe().getDocument();

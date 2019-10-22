@@ -36,9 +36,7 @@ function serve() {
 
   nodemon({
     script: require.resolve('../server/server.js'),
-    watch: [
-      require.resolve('../server/server.js'),
-    ],
+    watch: [require.resolve('../server/server.js')],
     env: {
       'NODE_ENV': 'development',
       'SERVE_PORT': port,
@@ -49,14 +47,15 @@ function serve() {
       'SERVE_PUBID': publicationId,
       'SERVE_AMP_LOCAL': ampLocal,
     },
-  })
-      .once('quit', function() {
-        log(colors.green('Shutting down server'));
-      });
+  }).once('quit', function() {
+    log(colors.green('Shutting down server'));
+  });
   if (!quiet) {
-    log(colors.yellow('Run `gulp build` then go to '
-        + getHost() + '/examples/sample-pub/'
-    ));
+    log(
+      colors.yellow(
+        'Run `gulp build` then go to ' + getHost() + '/examples/sample-pub/'
+      )
+    );
   }
 }
 

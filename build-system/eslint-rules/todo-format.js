@@ -20,15 +20,20 @@ module.exports = function(context) {
     Program: function(node) {
       if (node.comments) {
         node.comments.forEach(function(comment) {
-          if (/TODO/.test(comment.value) &&
-                !/TODO\(@?\w+,\s*#\d{1,}\)/.test(comment.value) &&
-                !/TODO\(@?\w+,\s*\d{4}-\d{2}-\d{2}\)/.test(comment.value)) {
-            context.report(comment,
-                'TODOs must be in TODO(@username, #1234) or TODO(@username, MM/DD/YYYY) format. Found: "' +
-                comment.value.trim() + '"');
+          if (
+            /TODO/.test(comment.value) &&
+            !/TODO\(@?\w+,\s*#\d{1,}\)/.test(comment.value) &&
+            !/TODO\(@?\w+,\s*\d{4}-\d{2}-\d{2}\)/.test(comment.value)
+          ) {
+            context.report(
+              comment,
+              'TODOs must be in TODO(@username, #1234) or TODO(@username, MM/DD/YYYY) format. Found: "' +
+                comment.value.trim() +
+                '"'
+            );
           }
         });
       }
-    }
+    },
   };
 };
