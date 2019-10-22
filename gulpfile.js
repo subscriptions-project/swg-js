@@ -17,26 +17,15 @@
 const $$ = require('gulp-load-plugins')();
 const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
-const lazypipe = require('lazypipe');
-const minimist = require('minimist');
-const source = require('vinyl-source-stream');
-const touch = require('touch');
-const watchify = require('watchify');
 const {lint} = require('./build-system/tasks/lint');
-
-/**
- * @const {!Object}
- */
-const argv =
-    minimist(process.argv.slice(2), {boolean: ['strictBabelTransform']});
 
 /** @const {number} */
 const NODE_MIN_VERSION = 4;
 
 require('./build-system/tasks');
 
-const internalRuntimeVersion =
-    require('./build-system/tasks/internal-version').VERSION;
+const internalRuntimeVersion = require('./build-system/tasks/internal-version')
+  .VERSION;
 
 /**
  * Checks if installed local Node.js version is > NODE_MIN_VERSION.
@@ -51,8 +40,10 @@ checkMinVersion();
 function checkMinVersion() {
   const majorVersion = Number(process.version.replace(/v/, '').split('.')[0]);
   if (majorVersion < NODE_MIN_VERSION) {
-    $$.util.log('Please run Subscribe with Google with node.js version ' +
-        `${NODE_MIN_VERSION} or newer.`);
+    $$.util.log(
+      'Please run Subscribe with Google with node.js version ' +
+        `${NODE_MIN_VERSION} or newer.`
+    );
     $$.util.log('Your version is', process.version);
     process.exit(1);
   }
@@ -63,7 +54,6 @@ function printVersion() {
   return Promise.resolve();
 }
 printVersion.description = 'SwG version';
-
 
 // Gulp tasks.
 gulp.task('lint', lint);

@@ -137,18 +137,9 @@ describes.realWin('ActivityIframeView', {}, env => {
     });
 
     it('should send and receive messages', async () => {
-      let messageCallback;
       let onCb;
       let messageLabel;
-      let payload;
       let dataSent;
-      sandbox.stub(activityIframePort, 'onMessageDeprecated').callsFake(cb => {
-        messageCallback = cb;
-      });
-
-      sandbox.stub(activityIframePort, 'messageDeprecated').callsFake(data => {
-        payload = data;
-      });
 
       sandbox.stub(activityIframePort, 'execute').callsFake(data => {
         dataSent = data;
@@ -160,10 +151,6 @@ describes.realWin('ActivityIframeView', {}, env => {
       });
       const skuSelection = new SkuSelectedResponse();
       skuSelection.setSku('sku1');
-      activityIframeView.onMessageDeprecated(data => {
-        expect(data['test']).to.be.true;
-      });
-      activityIframeView.messageDeprecated({'test': true});
       activityIframeView.on(SkuSelectedResponse, skuSelected => {
         expect(skuSelected.getSku()).to.equal('sku1');
         expect(messageLabel).to.equal('SkuSelectedResponse');
@@ -171,9 +158,7 @@ describes.realWin('ActivityIframeView', {}, env => {
       activityIframeView.execute(skuSelection);
       await activityIframeView.init(dialog);
       await activityIframeView.getPortPromise_();
-      messageCallback({'test': true});
       onCb(skuSelection);
-      expect(payload).to.deep.equal({'test': true});
       expect(dataSent.label()).to.equal('SkuSelectedResponse');
       expect(dataSent.getSku()).to.equal('sku1');
     });

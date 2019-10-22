@@ -35,7 +35,6 @@ describes.realWin('AnalyticsService', {}, env => {
   let activityIframePort;
   let analyticsService;
   let pageConfig;
-  let messageCallback;
   let runtime;
   let registeredCallback;
 
@@ -70,10 +69,6 @@ describes.realWin('AnalyticsService', {}, env => {
     sandbox
       .stub(activityIframePort, 'whenReady')
       .callsFake(() => Promise.resolve(true));
-
-    sandbox.stub(activityIframePort, 'onMessageDeprecated').callsFake(cb => {
-      messageCallback = cb;
-    });
   });
 
   afterEach(() => {
@@ -102,31 +97,22 @@ describes.realWin('AnalyticsService', {}, env => {
   });
 
   describe('Communications', () => {
-    it('should yield onMessage callback and call openIframe', () => {
-      let messageReceived;
-      analyticsService.onMessage(data => {
-        messageReceived = data;
-      });
-      return analyticsService.lastAction_
-        .then(() => {
-          messageCallback({'something': 'irrelevant'});
-          expect(activityPorts.openIframe).to.have.been.calledOnce;
-          const firstArgument = activityPorts.openIframe.getCall(0).args[0];
-          expect(activityPorts.openIframe).to.have.been.calledOnce;
-          expect(firstArgument.nodeName).to.equal('IFRAME');
-          const secondArgument = activityPorts.openIframe.getCall(0).args[1];
-          expect(secondArgument).to.equal(feUrl(src));
-          const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
-          expect(thirdArgument).to.deep.equal(
-            feArgs({
-              publicationId: pageConfig.getPublicationId(),
-            })
-          );
-          return activityIframePort.whenReady();
+    it('should call openIframe after client event', () => {
+      analyticsService.handleClientEvent_(event);
+
+      expect(activityPorts.openIframe).to.have.been.calledOnce;
+      const firstArgument = activityPorts.openIframe.getCall(0).args[0];
+      expect(activityPorts.openIframe).to.have.been.calledOnce;
+      expect(firstArgument.nodeName).to.equal('IFRAME');
+      const secondArgument = activityPorts.openIframe.getCall(0).args[1];
+      expect(secondArgument).to.equal(feUrl(src));
+      const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
+      expect(thirdArgument).to.deep.equal(
+        feArgs({
+          publicationId: pageConfig.getPublicationId(),
         })
-        .then(() => {
-          expect(messageReceived).to.deep.equal({'something': 'irrelevant'});
-        });
+      );
+      return activityIframePort.whenReady();
     });
 
     it('should send message on port and openIframe called only once', () => {
