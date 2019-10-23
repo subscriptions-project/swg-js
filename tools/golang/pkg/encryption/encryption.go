@@ -58,30 +58,30 @@ func GenerateEncryptedDocument(htmlStr, accessRequirement string, pubKeys map[st
 	if err != nil {
 		return "", err
 	}
-	parsedHtml, err := html.Parse(strings.NewReader(htmlStr))
+	parsedHTML, err := html.Parse(strings.NewReader(htmlStr))
 	if err != nil {
 		return "", err
 	}
-	encryptedSections := getAllEncryptedSections(parsedHtml)
+	encryptedSections := getAllEncryptedSections(parsedHTML)
 	if len(encryptedSections) == 0 {
 		return "", errors.New("No encrypted sections found.")
 	}
-	if err = encryptAllSections(parsedHtml, encryptedSections, kh); err != nil {
+	if err = encryptAllSections(parsedHTML, encryptedSections, kh); err != nil {
 		return "", err
 	}
 	encryptedKeys, err := encryptDocumentKey(base64.StdEncoding.EncodeToString(ksEnc), accessRequirement, pubKeys)
 	if err != nil {
 		return "", err
 	}
-	if err = addEncryptedDocumentKeyToHead(encryptedKeys, parsedHtml); err != nil {
+	if err = addEncryptedDocumentKeyToHead(encryptedKeys, parsedHTML); err != nil {
 		return "", err
 	}
-	return renderNode(parsedHtml), nil
+	return renderNode(parsedHTML), nil
 }
 
 // Retrieves a Tink public key from the given URL.
-func RetrieveTinkPublicKey(publicKeyUrl string) (tinkpb.Keyset, error) {
-	resp, err := http.Get(publicKeyUrl)
+func RetrieveTinkPublicKey(publicKeyURL string) (tinkpb.Keyset, error) {
+	resp, err := http.Get(publicKeyURL)
 	if err != nil {
 		return tinkpb.Keyset{}, err
 	}
@@ -140,8 +140,8 @@ func createAesGcmKeyset(key []byte) tinkpb.Keyset {
 }
 
 // Retrieves all encrypted content sections from the parsed HTML tree.
-func getAllEncryptedSections(parsedHtml *html.Node) []*html.Node {
-	for n := parsedHtml.FirstChild; n != nil; n = n.NextSibling {
+func getAllEncryptedSections(parsedHTML *html.Node) []*html.Node {
+	for n := parsedHTML.FirstChild; n != nil; n = n.NextSibling {
 		if (n.DataAtom == atom.Html) && (len(n.Attr) != 0) {
 			for bn := n.FirstChild; bn != nil; bn = bn.NextSibling {
 				if bn.DataAtom == atom.Body {
@@ -186,7 +186,7 @@ func getEncryptedSectionsDfs(bodyNode *html.Node) []*html.Node {
 }
 
 // Encrypts the content inside of the input "encryptedSections" nodes.
-func encryptAllSections(parsedHtml *html.Node, encryptedSections []*html.Node, kh *keyset.Handle) error {
+func encryptAllSections(parsedHTML *html.Node, encryptedSections []*html.Node, kh *keyset.Handle) error {
 	cipher, err := aead.New(kh)
 	if err != nil {
 		return err
@@ -257,8 +257,8 @@ func encryptDocumentKey(docKeyset, accessRequirement string, pubKeys map[string]
 }
 
 // Adds the encrypted document keys to the output document's head.
-func addEncryptedDocumentKeyToHead(encryptedKeys map[string]string, parsedHtml *html.Node) error {
-	for n := parsedHtml.FirstChild; n != nil; n = n.NextSibling {
+func addEncryptedDocumentKeyToHead(encryptedKeys map[string]string, parsedHTML *html.Node) error {
+	for n := parsedHTML.FirstChild; n != nil; n = n.NextSibling {
 		if (n.DataAtom == atom.Html) && (len(n.Attr) != 0) {
 			for cn := n.FirstChild; cn != nil; cn = cn.NextSibling {
 				if cn.DataAtom == atom.Head {
