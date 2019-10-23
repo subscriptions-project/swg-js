@@ -18,7 +18,7 @@ function log() {
   if (!console || !console.log) {
     return;
   }
-  var var_args = Array.prototype.slice.call(arguments, 0);
+  const var_args = Array.prototype.slice.call(arguments, 0);
   var_args.unshift('[publisher.js]');
   console.log.apply(console, var_args);
 }
@@ -26,7 +26,7 @@ function log() {
 log('started');
 
 // Available for testing only. A very bad idea to have a global like this.
-var globalSubscriptions;
+let globalSubscriptions;
 
 /**
  * Add subsciptions when ready.
@@ -43,12 +43,15 @@ function whenReady(callback) {
 whenReady(function(subscriptions) {
   function eventCallback(eventName) {
     return function(value) {
-      var promise = Promise.resolve(value);
-      promise.then(function(response) {
-        log(eventName, response);
-      }, function(reason) {
-        log(eventName + 'failed', reason);
-      });
+      const promise = Promise.resolve(value);
+      promise.then(
+        function(response) {
+          log(eventName, response);
+        },
+        function(reason) {
+          log(eventName + 'failed', reason);
+        }
+      );
     };
   }
   subscriptions.setOnEntitlementsResponse(eventCallback('entitlements'));
@@ -62,28 +65,36 @@ whenReady(function(subscriptions) {
  * @param {!Promise<!SubscribeResponse>} promise
  * @private
  */
- function subscribeResponse_(promise) {
-  promise.then((function(response) {
-    // TODO: Start account creation flow.
-    log('got subscription response', response);
-    var toast = document.getElementById('creating_account_toast');
-    var userEl = document.getElementById('creating_account_toast_user');
-    userEl.textContent = response.userData.email;
-    toast.style.display = 'block';
-    // TODO: wait for account creation to be complete.
-    setTimeout((function() {
-      response.complete().then((function() {
-        log('subscription has been confirmed');
-        // Open the content.
-        this.subscriptions.reset();
-        this.start();
-      }).bind(this));
-      toast.style.display = 'none';
-    }).bind(this), 3000);
-  }).bind(this), function(reason) {
-    log('subscription response failed: ', reason);
-    throw reason;
-  });
+function subscribeResponse_(promise) {
+  promise.then(
+    function(response) {
+      // TODO: Start account creation flow.
+      log('got subscription response', response);
+      const toast = document.getElementById('creating_account_toast');
+      const userEl = document.getElementById('creating_account_toast_user');
+      userEl.textContent = response.userData.email;
+      toast.style.display = 'block';
+      // TODO: wait for account creation to be complete.
+      setTimeout(
+        function() {
+          response.complete().then(
+            function() {
+              log('subscription has been confirmed');
+              // Open the content.
+              this.subscriptions.reset();
+              this.start();
+            }.bind(this)
+          );
+          toast.style.display = 'none';
+        }.bind(this),
+        3000
+      );
+    }.bind(this),
+    function(reason) {
+      log('subscription response failed: ', reason);
+      throw reason;
+    }
+  );
 }
 
 /**
@@ -97,20 +108,20 @@ whenReady(function(subscriptions) {
 function startFlow(flow, var_args) {
   var_args = Array.prototype.slice.call(arguments, 1);
   whenReady(function(subscriptions) {
-    var flowFunc = subscriptions[flow];
-    var flows = Object.keys(subscriptions);
+    const flowFunc = subscriptions[flow];
+    const flows = Object.keys(subscriptions);
     if (!(typeof flowFunc == 'function')) {
       throw new Error(
-          'Flow "' + flow + '" not found: Available flows: "' + flows + '"');
+        'Flow "' + flow + '" not found: Available flows: "' + flows + '"'
+      );
     }
     log('starting flow', flow, '(', var_args, ')', ' {' + flows + '}');
-    var result = flowFunc.apply(subscriptions, var_args);
+    const result = flowFunc.apply(subscriptions, var_args);
     Promise.resolve(result).then(function() {
       log('flow complete', flow);
     });
   });
 }
-
 
 /**
  * Selects the flow based on the URL query parameter.
@@ -119,14 +130,14 @@ function startFlow(flow, var_args) {
  * Current valid values are: 'showOffers', 'linkAccount', 'getEntitlements'.
  */
 function startFlowAuto() {
-  var flow = (window.location.search || '').split('?')[1] || 'demo';
+  const flow = (window.location.search || '').split('?')[1] || 'demo';
   if (flow == 'none') {
     return;
   }
   if (flow == 'demo') {
     whenReady(function(subscriptions) {
       whenDemoReady(function() {
-        var controller = new DemoPaywallController(subscriptions);
+        const controller = new DemoPaywallController(subscriptions);
         controller.start();
       });
     });
@@ -135,28 +146,29 @@ function startFlowAuto() {
 
   if (flow == 'smartbutton') {
     whenReady(function(subsciptions) {
-      var subs = subsciptions;
+      const subs = subsciptions;
       whenDemoReady(function() {
-        var smartButton = document.querySelector('button#smartButton');
+        let smartButton = document.querySelector('button#smartButton');
         if (!smartButton) {
           // Create a DOM element for SmartButton demo.
           smartButton = document.createElement('button');
           smartButton.id = 'smartButton';
-          var firstParagraph = document.querySelector('.text');
-          var container = firstParagraph.parentNode;
+          const firstParagraph = document.querySelector('.text');
+          const container = firstParagraph.parentNode;
           container.insertBefore(smartButton, firstParagraph);
         }
 
         subs.attachSmartButton(
-            smartButton,
-            {
-              theme: 'light',
-              lang: 'en',
-              messageTextColor: 'rgba(66, 133, 244, 0.95)'
-            },
-            function() {
-              subs.showOffers({isClosable: true});
-            });
+          smartButton,
+          {
+            theme: 'light',
+            lang: 'en',
+            messageTextColor: 'rgba(66, 133, 244, 0.95)',
+          },
+          function() {
+            subs.showOffers({isClosable: true});
+          }
+        );
       });
     });
     return;
@@ -165,23 +177,23 @@ function startFlowAuto() {
   if (flow == 'button') {
     whenReady(function(subscriptions) {
       whenDemoReady(function() {
-        var button1 = subscriptions.createButton(function() {
+        const button1 = subscriptions.createButton(function() {
           log('SwG button clicked!');
         });
         document.body.appendChild(button1);
 
-        var button2 = document.createElement('button');
+        const button2 = document.createElement('button');
         document.body.appendChild(button2);
         subscriptions.attachButton(button2, {theme: 'dark'}, function() {
           log('SwG button2 clicked!');
         });
 
-        var button3 = subscriptions.createButton({lang: 'pt-br'}, function() {
+        const button3 = subscriptions.createButton({lang: 'pt-br'}, function() {
           log('SwG button clicked!');
         });
         document.body.appendChild(button3);
 
-        var button4 = document.createElement('button');
+        const button4 = document.createElement('button');
         button4.setAttribute('lang', 'jp');
         document.body.appendChild(button4);
         subscriptions.attachButton(button4, {theme: 'dark'}, function() {
@@ -194,7 +206,6 @@ function startFlowAuto() {
   startFlow(flow);
 }
 
-
 /**
  * @param {function()} callback
  */
@@ -202,7 +213,7 @@ function whenDemoReady(callback) {
   if (typeof DemoPaywallController == 'function') {
     callback();
   } else {
-    var attempts = 0;
+    let attempts = 0;
     var interval = setInterval(function() {
       attempts++;
       if (typeof DemoPaywallController == 'function') {
@@ -215,7 +226,6 @@ function whenDemoReady(callback) {
     }, 100);
   }
 }
-
 
 /** Initiates the flow, if valid */
 startFlowAuto();
