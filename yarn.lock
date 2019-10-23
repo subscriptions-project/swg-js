@@ -4168,10 +4168,10 @@ gulp-rename@1.4.0:
   resolved "https://registry.yarnpkg.com/gulp-rename/-/gulp-rename-1.4.0.tgz#de1c718e7c4095ae861f7296ef4f3248648240bd"
   integrity sha512-swzbIGb/arEoFK89tPY58vg3Ok1bw+d35PfUNwWqdo7KM4jkmuGA78JiDNqR+JeZFaeeHnRg9N7aihX3YPmsyg==
 
-gulp-replace@0.5.4:
-  version "0.5.4"
-  resolved "https://registry.yarnpkg.com/gulp-replace/-/gulp-replace-0.5.4.tgz#69a67914bbd13c562bff14f504a403796aa0daa9"
-  integrity sha1-aaZ5FLvRPFYr/xT1BKQDeWqg2qk=
+gulp-replace@0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/gulp-replace/-/gulp-replace-0.6.1.tgz#11bf8c8fce533e33e2f6a8f2f430b955ba0be066"
+  integrity sha1-Eb+Mj85TPjPi9qjy9DC5VboL4GY=
   dependencies:
     istextorbinary "1.0.2"
     readable-stream "^2.0.1"
