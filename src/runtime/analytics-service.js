@@ -243,16 +243,6 @@ export class AnalyticsService {
   }
 
   /**
-   * Handles the message received by the port.
-   * @param {function(!Object<string, string|boolean>)} callback
-   */
-  onMessage(callback) {
-    this.lastAction_ = this.start_().then(port => {
-      port.onMessageDeprecated(callback);
-    });
-  }
-
-  /**
    * @return {boolean}
    */
   shouldLogPublisherEvents_() {

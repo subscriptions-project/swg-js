@@ -166,7 +166,6 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     const result = new ActivityResult(
       ActivityResultCode.OK,
@@ -222,7 +221,6 @@ describes.realWin('LinkCompleteFlow', {}, env => {
 
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () =>
       Promise.reject(new DOMException('cancel', 'AbortError'));
@@ -248,7 +246,6 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     linkCompleteFlow = new LinkCompleteFlow(runtime, {});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
 
     const activityResult = new ActivityResult(
@@ -281,7 +278,6 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     dialogManagerMock.expects('popupClosed').once();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
     const resultPromise = new Promise(resolve => {
@@ -338,7 +334,6 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     dialogManagerMock.expects('popupClosed').once();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
     const resultPromise = new Promise(resolve => {
@@ -419,7 +414,6 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     dialogManagerMock.expects('popupClosed').once();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
     const resultPromise = new Promise(resolve => {
@@ -498,9 +492,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       'triggerLinkProgress'
     );
     port = new ActivityPort();
-    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     messageMap = {};
     sandbox.stub(port, 'on').callsFake((ctor, cb) => {
       const messageType = new ctor();

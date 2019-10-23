@@ -23,7 +23,6 @@ const log = require('fancy-log');
 const jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
 const pathLib = require('path');
 
-
 function distAssets() {
   mkdirSync('dist');
   fs.copySync('assets/loader.svg', 'dist/loader.svg', {overwrite: true});
@@ -34,7 +33,6 @@ function distAssets() {
     fs.copySync('assets/i18n/', 'dist/i18n/', {overwrite: true});
   });
 }
-
 
 /**
  * Compile all the css and drop in the build folder.
@@ -49,20 +47,24 @@ function compileCss(srcFile, outputFile, options) {
 
   if (options.watch) {
     $$.watch(srcFile, function() {
-      compileCss(srcFile, outputFile,
-          Object.assign({}, options, {watch: false}));
+      compileCss(
+        srcFile,
+        outputFile,
+        Object.assign({}, options, {watch: false})
+      );
     });
   }
 
   const startTime = Date.now();
-  return jsifyCssAsync(srcFile, options).then(css => {
-    mkdirSync(pathLib.dirname(outputFile));
-    fs.writeFileSync(outputFile, css);
-  }).then(() => {
-    endBuildStep('Recompiled CSS', '', startTime);
-  });
+  return jsifyCssAsync(srcFile, options)
+    .then(css => {
+      mkdirSync(pathLib.dirname(outputFile));
+      fs.writeFileSync(outputFile, css);
+    })
+    .then(() => {
+      endBuildStep('Recompiled CSS', '', startTime);
+    });
 }
-
 
 /**
  * Stops the timer for the given build step and prints the execution time,
@@ -83,13 +85,9 @@ function endBuildStep(stepName, targetName, startTime) {
     timeString += secs + '.' + ms + ' s)';
   }
   if (!process.env.TRAVIS) {
-    log(
-        stepName,
-        colors.cyan(targetName),
-        colors.green(timeString));
+    log(stepName, colors.cyan(targetName), colors.green(timeString));
   }
 }
-
 
 function mkdirSync(path) {
   try {
@@ -100,7 +98,6 @@ function mkdirSync(path) {
     }
   }
 }
-
 
 distAssets.description = 'Prepare assets';
 gulp.task('assets', distAssets);
