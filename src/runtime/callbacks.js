@@ -143,7 +143,7 @@ export class Callbacks {
    * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
    */
   setOnSubscribeResponse(callback) {
-    // Deprecation warning
+    console./*OK*/warn(`[swg.js:setOnSubscribeResponse]: This method has been deprecated, please swith usages to 'setOnPaymentResponse'`);
     this.setCallback_(CallbackId.PAYMENT_RESPONSE, callback);
   }
 
@@ -151,7 +151,7 @@ export class Callbacks {
    * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
    */
   setOnContributionResponse(callback) {
-    // Deprecation warning
+    console./*OK*/warn(`[swg.js:setOnContributionResponse]: This method has been deprecated, please swith usages to 'setOnPaymentResponse'`);
     this.setCallback_(CallbackId.PAYMENT_RESPONSE, callback);
   }
 
@@ -224,6 +224,9 @@ export class Callbacks {
    * @private
    */
   setCallback_(id, callback) {
+    if (this.callbacks_[id]) {
+      console./*OK*/warn(`[swg.js]: You have registered multiple callbacks for the same response.`);
+    }
     this.callbacks_[id] = callback;
     // If result already exist, execute the callback right away.
     if (id in this.resultBuffer_) {

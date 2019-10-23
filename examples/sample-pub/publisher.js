@@ -57,7 +57,7 @@ whenReady(function(subscriptions) {
   subscriptions.setOnEntitlementsResponse(eventCallback('entitlements'));
   subscriptions.setOnLinkComplete(eventCallback('link-complete'));
   subscriptions.setOnLoginRequest(eventCallback('login-request'));
-  subscriptions.setOnPaymentResponse(subscribeResponse);
+  subscriptions.setOnPaymentResponse(subscribeResponse_);
 });
 
 /**

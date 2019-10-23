@@ -117,14 +117,14 @@ describes.sandboxed('Callbacks', {}, () => {
     });
   });
 
-  it('should trigger and execute subscribeResponse', () => {
+  it('should trigger and execute paymentResponse', () => {
     const spy = sandbox.spy();
     const p = Promise.resolve();
     callbacks.setOnLinkComplete(spy); // Make sure there's no ID conflict.
-    callbacks.setOnSubscribeResponse(spy);
+    callbacks.setOnPaymentResponse(spy);
     expect(callbacks.hasLinkCompletePending()).to.be.false;
     expect(callbacks.hasPaymentResponsePending()).to.be.false;
-    expect(callbacks.triggerSubscribeResponse(p)).to.be.true;
+    expect(callbacks.triggerPaymentResponse(p)).to.be.true;
     expect(callbacks.hasPaymentResponsePending()).to.be.true;
     return skipMicro().then(() => {
       expect(spy).to.be.calledOnce.calledWith(p);

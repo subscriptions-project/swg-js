@@ -1069,7 +1069,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
         runtime
           .callbacks()
-          .triggerSubscribeResponse(
+          .triggerPaymentResponse(
             Promise.resolve(new SubscribeResponse('RaW'))
           );
         return promise.then(result => {
@@ -1604,7 +1604,7 @@ subscribe() method'
       expect(activityResultCallbacks['swg-pay']).to.exist;
       const stub = sandbox.stub(
         runtime.callbacks(),
-        'triggerSubscribeResponse'
+        'triggerPaymentResponse'
       );
       return (
         returnActivity('swg-pay', ActivityResultCode.OK)

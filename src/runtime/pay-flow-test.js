@@ -694,7 +694,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       startStub = sandbox.stub(PayCompleteFlow.prototype, 'start');
       triggerPromise = undefined;
       callbacksMock
-        .expects('triggerSubscribeResponse')
+        .expects('triggerPaymentResponse')
         .withExactArgs(
           sandbox.match(arg => {
             triggerPromise = arg;
