@@ -1638,10 +1638,10 @@ center-align@^0.1.1:
     align-text "^0.1.3"
     lazy-cache "^1.0.3"
 
-chai-as-promised@5.2.0:
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/chai-as-promised/-/chai-as-promised-5.2.0.tgz#a51b0314330c98d25f9372cf5d7fd3690964cf7b"
-  integrity sha1-pRsDFDMMmNJfk3LPXX/TaQlkz3s=
+chai-as-promised@5.3.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/chai-as-promised/-/chai-as-promised-5.3.0.tgz#09d7a402908aa70dfdbead53e5853fc79d3ef21c"
+  integrity sha1-CdekApCKpw39vq1T5YU/x50+8hw=
 
 chai@3.5.0:
   version "3.5.0"
