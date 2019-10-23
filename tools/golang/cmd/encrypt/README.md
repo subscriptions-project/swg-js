@@ -15,10 +15,10 @@ go get github.com/subscriptions-project/swg-js/tools/golang/cmd/encrypt && \
 $GOPATH/bin/encrypt \
     --input_html_file=../tmp/sample-encryption.html \
 	--output_file=../tmp/sample-encryption-out.html \
-	--google_public_key_url=https://news.google.com/swg/encryption/keys/{dev|prod}/tink/public_key \
 	--access_requirement=thenews.com:premium \
-	--publisher_public_key_url=example.com,www.example.com/scs/publickey \
-    --publisher_public_key_url=thenews.com,www.thenews.com/scs/publickey
+    --encryption_key_url=google.com,https://news.google.com/swg/encryption/keys/{dev|prod}/tink/public_key \
+	--encryption_key_url=example.com,www.example.com/scs/publickey \
+    --encryption_key_url=thenews.com,www.thenews.com/scs/publickey
 ```
     
 Or...
@@ -27,8 +27,8 @@ Or...
 go run swg-js/tools/golang/cmd/encrypt/script.go \
 	--input_html_file=../tmp/sample-encryption.html \
 	--output_file=../tmp/sample-encryption-out.html \
-	--google_public_key_url=https://news.google.com/swg/encryption/keys/{dev|prod}/tink/public_key \
-	--access_requirement=norcal.com:premium \
-	--publisher_public_key_url=example.com,www.example.com/scs/publickey \
-	--publisher_public_key_url=thenews.com,www.thenews.com/scs/publickey
+	--access_requirement=thenews.com:premium \
+    --encryption_key_url=google.com,https://news.google.com/swg/encryption/keys/{dev|prod}/tink/public_key \
+	--encryption_key_url=example.com,www.example.com/scs/publickey \
+	--encryption_key_url=thenews.com,www.thenews.com/scs/publickey
 ```
