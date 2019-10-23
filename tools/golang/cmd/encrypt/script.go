@@ -73,19 +73,15 @@ func main() {
 	// Retrieve all public keys from the input URLs.
 	pubKeys := make(map[string]tinkpb.Keyset)
 	var pubKey tinkpb.Keyset
+	if _, ok := mf["google.com"]; !ok {
+		mf["google.com"] = googleDevPublicKeyUrl
+	}
 	for domain, url := range mf {
 		pubKey, err = encryption.RetrieveTinkPublicKey(url)
 		if err != nil {
 			log.Fatal(err)
 		}
 		pubKeys[strings.ToLower(domain)] = pubKey
-	}
-	if _, ok := pubKeys["google.com"]; !ok {
-		googKey, err := encryption.RetrieveTinkPublicKey(googleDevPublicKeyUrl)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pubKeys["google.com"] = googKey
 	}
 	// Generate the encrypted document from the input HTML document.
 	encryptedDoc, err := encryption.GenerateEncryptedDocument(string(b), *accessRequirement, pubKeys)
