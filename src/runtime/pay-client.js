@@ -68,12 +68,14 @@ export class PayClient {
    * @param {!../runtime/analytics-service.AnalyticsService} analyticsService
    */
   constructor(win, activityPorts, dialogManager, analyticsService) {
-    // Generates a new Google Transaction ID.
-    this.googleTransactionId_ = analyticsService.getTransactionId();
-
     /** @const @private {!PayClientBindingDef} */
     this.binding_ = isExperimentOn(win, ExperimentFlags.GPAY_API)
-      ? new PayClientBindingPayjs(win, activityPorts, this.googleTransactionId_)
+      ? new PayClientBindingPayjs(
+          win,
+          activityPorts,
+          // Generates a new Google Transaction ID.
+          analyticsService.getTransactionId()
+        )
       : new PayClientBindingSwg(win, activityPorts, dialogManager);
   }
 
