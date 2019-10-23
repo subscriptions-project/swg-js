@@ -68,6 +68,7 @@ export class PayClient {
    * @param {!../runtime/analytics-service.AnalyticsService} analyticsService
    */
   constructor(win, activityPorts, dialogManager, analyticsService) {
+    // Generates a new Google Transaction ID.
     this.googleTransactionId_ = analyticsService.getTransactionId();
 
     /** @const @private {!PayClientBindingDef} */
@@ -272,6 +273,8 @@ export class PayClientBindingPayjs {
    * @private
    */
   createClient_(options, googleTransactionId, handler) {
+    // Assign Google Transaction ID to PaymentsAsyncClient.googleTransactionId_
+    // so it can be passed to gpay_async.js and stored in payment clearcut log.
     PaymentsAsyncClient.googleTransactionId_ = googleTransactionId;
     return new PaymentsAsyncClient(
       options,
