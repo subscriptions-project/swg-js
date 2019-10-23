@@ -15,42 +15,26 @@
  */
 'use strict';
 
-var $$ = require('gulp-load-plugins')();
-var babel = require('babelify');
-var browserify = require('browserify');
-var buffer = require('vinyl-buffer');
-var compile = require('./compile').compile;
-var compileCheckTypes = require('./compile').checkTypes;
-var del = require('del');
-var fs = require('fs-extra');
-var gulp = $$.help(require('gulp'));
-var lazypipe = require('lazypipe');
-var minimist = require('minimist');
-var source = require('vinyl-source-stream');
-var touch = require('touch');
-var watchify = require('watchify');
-
+const $$ = require('gulp-load-plugins')();
+const compile = require('./compile').compile;
+const compileCheckTypes = require('./compile').checkTypes;
+const del = require('del');
+const gulp = $$.help(require('gulp'));
 
 /**
  * Clean up the build artifacts.
  * @return {!Promise}
  */
 function clean() {
-  return del([
-    'dist',
-    'build',
-  ]);
+  return del(['dist', 'build']);
 }
-
 
 /**
  * Enables watching for file changes and re-compiles.
  * @return {!Promise}
  */
 function watch() {
-  return Promise.all([
-    compile({watch: true}),
-  ]);
+  return Promise.all([compile({watch: true})]);
 }
 
 /**
@@ -59,9 +43,7 @@ function watch() {
  */
 function build() {
   process.env.NODE_ENV = 'development';
-  return Promise.all([
-    compile(),
-  ]);
+  return Promise.all([compile()]);
 }
 
 /**
@@ -80,7 +62,6 @@ function dist() {
   });
 }
 
-
 /**
  * Type check path.
  * @return {!Promise}
@@ -89,7 +70,6 @@ function checkTypes() {
   process.env.NODE_ENV = 'production';
   return compileCheckTypes();
 }
-
 
 clean.description = 'Removes build output';
 gulp.task('clean', clean);
@@ -102,8 +82,9 @@ gulp.task('build', build);
 
 dist.description = 'Build production binaries';
 dist.flags = {
-  pseudo_names: 'Compiles with readable names. ' +
-      'Great for profiling and debugging production code.',
+  pseudo_names:
+    'Compiles with readable names. ' +
+    'Great for profiling and debugging production code.',
 };
 gulp.task('dist', dist);
 

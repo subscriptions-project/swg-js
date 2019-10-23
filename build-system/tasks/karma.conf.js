@@ -36,9 +36,7 @@ module.exports = {
   browserify: {
     watch: true,
     debug: true,
-    transform: [
-      ['babelify', {whitelist: ["es7.asyncFunctions"]}],
-    ],
+    transform: [['babelify', {whitelist: ['es7.asyncFunctions']}]],
     bundleDelay: 900,
   },
 
@@ -46,14 +44,14 @@ module.exports = {
 
   superDotsReporter: {
     color: {
-      success : 'green',
-      failure : 'red',
-      ignore  : 'yellow'
+      success: 'green',
+      failure: 'red',
+      ignore: 'yellow',
     },
     icon: {
-      success : '●',
-      failure : '●',
-      ignore  : '○',
+      success: '●',
+      failure: '●',
+      ignore: '○',
     },
   },
 
@@ -65,7 +63,7 @@ module.exports = {
       info: 'yellow',
     },
     symbols: {
-      success : '●',
+      success: '●',
       error: '●',
       info: '○',
     },
@@ -88,9 +86,7 @@ module.exports = {
 
   autoWatch: true,
 
-  browsers: [
-    process.env.TRAVIS ? 'Chrome_travis_ci' : 'Chrome_no_extensions',
-  ],
+  browsers: [process.env.TRAVIS ? 'Chrome_travis_ci' : 'Chrome_no_extensions'],
 
   // Number of sauce tests to start in parallel
   concurrency: 6,
