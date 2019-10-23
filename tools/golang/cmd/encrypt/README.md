@@ -1,4 +1,4 @@
-# Script to Encrypt Documents for the SwG Encryption Project.
+# Script to Encrypt Documents for the SwG Encryption Project
 
 ```script.go``` implements a script which takes in an input HTML document and encrypts
 all content within ```<section subscriptions-section="content" encrypted>```
