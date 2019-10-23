@@ -1602,10 +1602,7 @@ subscribe() method'
 
     it('should configure and start PayCompleteFlow', () => {
       expect(activityResultCallbacks['swg-pay']).to.exist;
-      const stub = sandbox.stub(
-        runtime.callbacks(),
-        'triggerPaymentResponse'
-      );
+      const stub = sandbox.stub(runtime.callbacks(), 'triggerPaymentResponse');
       return (
         returnActivity('swg-pay', ActivityResultCode.OK)
           // Succeeds or fails is not important for this test.

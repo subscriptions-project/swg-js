@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {warn} from '../utils/log';
 
 /** @enum {number} */
 const CallbackId = {
@@ -143,7 +144,9 @@ export class Callbacks {
    * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
    */
   setOnSubscribeResponse(callback) {
-    console./*OK*/warn(`[swg.js:setOnSubscribeResponse]: This method has been deprecated, please swith usages to 'setOnPaymentResponse'`);
+    warn(
+      `[swg.js:setOnSubscribeResponse]: This method has been deprecated, please switch usages to 'setOnPaymentResponse'`
+    );
     this.setCallback_(CallbackId.PAYMENT_RESPONSE, callback);
   }
 
@@ -151,7 +154,9 @@ export class Callbacks {
    * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
    */
   setOnContributionResponse(callback) {
-    console./*OK*/warn(`[swg.js:setOnContributionResponse]: This method has been deprecated, please swith usages to 'setOnPaymentResponse'`);
+    warn(
+      `[swg.js:setOnContributionResponse]: This method has been deprecated, please switch usages to 'setOnPaymentResponse'`
+    );
     this.setCallback_(CallbackId.PAYMENT_RESPONSE, callback);
   }
 
@@ -225,7 +230,9 @@ export class Callbacks {
    */
   setCallback_(id, callback) {
     if (this.callbacks_[id]) {
-      console./*OK*/warn(`[swg.js]: You have registered multiple callbacks for the same response.`);
+      warn(
+        `[swg.js]: You have registered multiple callbacks for the same response.`
+      );
     }
     this.callbacks_[id] = callback;
     // If result already exist, execute the callback right away.
