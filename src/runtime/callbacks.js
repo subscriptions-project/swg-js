@@ -18,13 +18,12 @@
 const CallbackId = {
   ENTITLEMENTS: 1,
   SUBSCRIBE_REQUEST: 2,
-  SUBSCRIBE_RESPONSE: 3,
+  PAYMENT_RESPONSE: 3,
   LOGIN_REQUEST: 4,
   LINK_PROGRESS: 5,
   LINK_COMPLETE: 6,
   FLOW_STARTED: 7,
   FLOW_CANCELED: 8,
-  CONTRIBUTION_RESPONSE: 9,
 };
 
 /**
@@ -144,34 +143,32 @@ export class Callbacks {
    * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
    */
   setOnSubscribeResponse(callback) {
-    this.setCallback_(CallbackId.SUBSCRIBE_RESPONSE, callback);
+    // Deprecation warning
+    this.setCallback_(CallbackId.PAYMENT_RESPONSE, callback);
   }
 
   /**
    * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
    */
   setOnContributionResponse(callback) {
-    this.setCallback_(CallbackId.CONTRIBUTION_RESPONSE, callback);
+    // Deprecation warning
+    this.setCallback_(CallbackId.PAYMENT_RESPONSE, callback);
+  }
+
+  /**
+   * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
+   */
+  setOnPaymentResponse(callback) {
+    this.setCallback_(CallbackId.PAYMENT_RESPONSE, callback);
   }
 
   /**
    * @param {!Promise<!../api/subscribe-response.SubscribeResponse>} responsePromise
    * @return {boolean} Whether the callback has been found.
    */
-  triggerSubscribeResponse(responsePromise) {
+  triggerPaymentResponse(responsePromise) {
     return this.trigger_(
-      CallbackId.SUBSCRIBE_RESPONSE,
-      responsePromise.then(res => res.clone())
-    );
-  }
-
-  /**
-   * @param {!Promise<!../api/subscribe-response.SubscribeResponse>} responsePromise
-   * @return {boolean} Whether the callback has been found.
-   */
-  triggerContributionResponse(responsePromise) {
-    return this.trigger_(
-      CallbackId.CONTRIBUTION_RESPONSE,
+      CallbackId.PAYMENT_RESPONSE,
       responsePromise.then(res => res.clone())
     );
   }
@@ -179,15 +176,8 @@ export class Callbacks {
   /**
    * @return {boolean}
    */
-  hasSubscribeResponsePending() {
-    return !!this.resultBuffer_[CallbackId.SUBSCRIBE_RESPONSE];
-  }
-
-  /**
-   * @return {boolean}
-   */
-  hasContributionResponsePending() {
-    return !!this.resultBuffer_[CallbackId.CONTRIBUTION_RESPONSE];
+  hasPaymentResponsePending() {
+    return !!this.resultBuffer_[CallbackId.PAYMENT_RESPONSE];
   }
 
   /**

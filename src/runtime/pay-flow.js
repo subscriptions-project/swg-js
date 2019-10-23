@@ -170,7 +170,7 @@ export class PayCompleteFlow {
         payPromise,
         flow.complete.bind(flow)
       );
-      deps.callbacks().triggerSubscribeResponse(promise);
+      deps.callbacks().triggerPaymentResponse(promise);
       return promise.then(
         response => {
           eventManager.logSwgEvent(
