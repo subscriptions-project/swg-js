@@ -36,12 +36,12 @@ import (
 
 // Helper functions for the SwG Encryption Script.
 
-const aesGcmKeyUrl string = "type.googleapis.com/google.crypto.tink.AesGcmKey"
-const aesGcmKeySize uint32 = 16
+const aesGCMKeyURL string = "type.googleapis.com/google.crypto.tink.AesGcmKey"
+const aesGCMKeySize uint32 = 16
 
 // Public function to generate an encrypted HTML document given the original.
 func GenerateEncryptedDocument(htmlStr, accessRequirement string, pubKeys map[string]tinkpb.Keyset) (string, error) {
-	km, err := registry.GetKeyManager(aesGcmKeyUrl)
+	km, err := registry.GetKeyManager(aesGCMKeyURL)
 	if err != nil {
 		return "", err
 	}
@@ -95,7 +95,7 @@ func RetrieveTinkPublicKey(publicKeyUrl string) (tinkpb.Keyset, error) {
 
 // Generates a new AES-GCM key.
 func generateNewAesGcmKey(km registry.KeyManager) ([]byte, error) {
-	p, err := proto.Marshal(&gcmpb.AesGcmKeyFormat{KeySize: aesGcmKeySize})
+	p, err := proto.Marshal(&gcmpb.AesGcmKeyFormat{KeySize: aesGCMKeySize})
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func generateNewAesGcmKey(km registry.KeyManager) ([]byte, error) {
 func createAesGcmKeyset(key []byte) tinkpb.Keyset {
 	keyData := tinkpb.KeyData{
 		KeyMaterialType: tinkpb.KeyData_SYMMETRIC,
-		TypeUrl:         aesGcmKeyUrl,
+		TypeUrl:         aesGCMKeyURL,
 		Value:           key,
 	}
 	keys := []*tinkpb.Keyset_Key{
