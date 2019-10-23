@@ -134,3 +134,64 @@ func TestEncryptDocumentEmptyKeyset(t *testing.T) {
 		t.Fatalf("Error did not occur on empty Keyset.")
 	}
 }
+
+func TestEncryptDocumentNoEncryptSections(t *testing.T) {
+	htmlStr := `<!doctype html><html ⚡>
+	<head>
+		<meta charset="utf-8">
+	</head>
+	</html>
+	<body>
+		<section subscriptions-section="content">
+			This is content that will not be encrypted
+		</section>
+	</body>`
+	sr := strings.NewReader(googPublicKeyStr)
+	r := keyset.NewJSONReader(sr)
+	ks, err := r.Read()
+	if err != nil {
+		t.Fatalf("Keyset load failed.")
+	}
+	pubKeys := map[string]tinkpb.Keyset{
+		"google.com": *ks,
+	}
+	encDoc, err := GenerateEncryptedDocument(htmlStr, "norcal.com:premium", pubKeys)
+	if err == nil {
+		t.Fatalf("Error did not occur on missing encrypted section. Output: " + encDoc)
+	}
+}
+
+func TestEncryptDocumentHebrew(t *testing.T) {
+	htmlStr := `<!doctype html><html ⚡>
+	<head>
+		<meta charset="utf-8">
+	</head>
+	</html>
+	<body>
+		<section subscriptions-section="content" encrypted>
+		אני אוהב לבדוק את גבולות המחשב
+		</section>
+	</body>`
+	sr := strings.NewReader(googPublicKeyStr)
+	r := keyset.NewJSONReader(sr)
+	ks, err := r.Read()
+	if err != nil {
+		t.Fatalf("Keyset load failed.")
+	}
+	pubKeys := map[string]tinkpb.Keyset{
+		"google.com": *ks,
+	}
+	encDoc, err := GenerateEncryptedDocument(htmlStr, "norcal.com:premium", pubKeys)
+	if err != nil {
+		t.Fatalf("Error occured generating encrypted document: %s", err.Error())
+	}
+	if !strings.Contains(encDoc, `<script type="application/octet-stream" ciphertext="">`) {
+		t.Errorf("Missing encrypted script.")
+	}
+	if !strings.Contains(encDoc, `<script type="application/json" cryptokeys="">`) {
+		t.Errorf("Missing cryptokeys script.")
+	}
+	if !strings.Contains(encDoc, "google.com") {
+		t.Errorf("Missing google.com key.")
+	}
+}
