@@ -5594,10 +5594,10 @@ lazy-cache@^1.0.3:
   resolved "https://registry.yarnpkg.com/lazy-cache/-/lazy-cache-1.0.4.tgz#a1d78fc3a50474cb80845d3b3b6e1da49a446e8e"
   integrity sha1-odePw6UEdMuAhF07O24dpJpEbo4=
 
-lazypipe@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/lazypipe/-/lazypipe-1.0.1.tgz#1471aef6b37a340d51c34df44699dcef064c1940"
-  integrity sha1-FHGu9rN6NA1Rw030Rpnc7wZMGUA=
+lazypipe@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/lazypipe/-/lazypipe-1.0.2.tgz#b66f64ed7fd8b04869f1f1bcb795dbbaa80e418c"
+  integrity sha512-CrU+NYdFHW8ElaeXCWz5IbmetiYVYq1fOCmpdAeZ8L+khbv1e7EnshyjlKqkO+pJbVPrsJQnHbVxEiLujG6qhQ==
   dependencies:
     stream-combiner "*"
 

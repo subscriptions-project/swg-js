@@ -89,7 +89,7 @@
     "karma-sauce-launcher": "2.0.2",
     "karma-sinon-chai": "2.0.2",
     "karma-super-dots-reporter": "0.2.0",
-    "lazypipe": "1.0.1",
+    "lazypipe": "1.0.2",
     "minimist": "1.2.0",
     "mocha": "6.2.0",
     "morgan": "1.9.1",
