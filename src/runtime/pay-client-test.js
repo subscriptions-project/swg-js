@@ -528,7 +528,6 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       'environment': '$payEnvironment$',
       'i': {
         'redirectKey': 'test_restore_key',
-        'googleTransactionId': GOOGLE_TRANSACTION_ID,
       },
     });
     expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;

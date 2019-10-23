@@ -254,7 +254,6 @@ export class PayClientBindingPayjs {
         environment: '$payEnvironment$',
         'i': {
           'redirectKey': this.redirectVerifierHelper_.restoreKey(),
-          'googleTransactionId': googleTransactionId,
         },
       },
       googleTransactionId,
@@ -267,7 +266,7 @@ export class PayClientBindingPayjs {
 
   /**
    * @param {!Object} options
-   * @param {!string} googleTransactionId
+   * @param {string} googleTransactionId
    * @param {function(!Promise<!Object>)} handler
    * @return {!PaymentsAsyncClient}
    * @private
