@@ -32,7 +32,7 @@ const googleDevPublicKeyUrl string = "https://news.google.com/swg/encryption/key
 func (m *mapFlags) String() string {
 	var strs []string
 	for key, val := range *m {
-		strs = append(strs, key, ";", val)
+		strs = append(strs, key, ",", val)
 	}
 	return strings.Join(strs, "\n")
 }
