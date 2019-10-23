@@ -95,7 +95,7 @@
     "morgan": "1.9.1",
     "nodemon": "1.11.0",
     "plugin-error": "1.0.1",
-    "postcss": "5.2.10",
+    "postcss": "5.2.18",
     "postcss-import": "9.1.0",
     "prettier": "1.18.2",
     "request": "2.88.0",
