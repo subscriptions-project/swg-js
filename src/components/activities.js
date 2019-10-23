@@ -18,7 +18,6 @@ import {
   ActivityPorts as WebActivityPorts,
   ActivityIframePort as WebActivityIframePort,
 } from 'web-activities/activity-ports';
-import {debugLog} from '../utils/log';
 
 /**
  * @interface
@@ -76,18 +75,6 @@ export class ActivityPort extends ActivityPortDef {
    * @param {function(number)} unusedCallback
    */
   onResizeRequest(unusedCallback) {}
-
-  /**
-   * Sends a message to the host.
-   * @param {!Object} unusedPayload
-   */
-  messageDeprecated(unusedPayload) {}
-
-  /**
-   * Registers a callback to receive messages from the host.
-   * @param {function(!Object)} unusedCallback
-   */
-  onMessageDeprecated(unusedCallback) {}
 
   /**
    * @param {!../proto/api_messages.Message} unusedRequest
@@ -214,24 +201,6 @@ export class ActivityIframePort {
    */
   onResizeRequest(callback) {
     return this.iframePort_.onResizeRequest(callback);
-  }
-
-  /**
-   * Sends a message to the host.
-   * @param {!Object} payload
-   */
-  messageDeprecated(payload) {
-    this.iframePort_.message(payload);
-    debugLog('WARNING: messageDeprecated() is deprecated');
-  }
-
-  /**
-   * Registers a callback to receive messages from the host.
-   * @param {function(!Object)} callback
-   */
-  onMessageDeprecated(callback) {
-    this.callbackOriginal_ = callback;
-    debugLog('WARNING: use of deprecated API onMessageDeprecated()');
   }
 
   /**

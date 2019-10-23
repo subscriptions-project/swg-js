@@ -68,7 +68,6 @@ describes.realWin('DeferredAccountFlow', {}, env => {
 
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     resultResolver = null;
     const resultPromise = new Promise(resolve => {
