@@ -518,24 +518,20 @@ export class ConfiguredRuntime {
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(this.win_);
 
-    /** @private @const {!AnalyticsService} */
-    this.analyticsService_ = new AnalyticsService(this);
-
-    /** @private @const {!PayClient} */
-    this.payClient_ = new PayClient(
-      this.win_,
-      this.activityPorts_,
-      this.dialogManager_,
-      this.analyticsService_
-    );
-
-    /** @private @const {!Callbacks} */
-    this.callbacks_ = new Callbacks();
-
     //NOTE: 'this' is passed in as a DepsDef.  Do not pass in 'this' before
     //analytics service and entitlements manager are constructed unless
     //you are certain they do not rely on them because they are part of that
     //definition.
+
+    /** @private @const {!AnalyticsService} */
+    this.analyticsService_ = new AnalyticsService(this);
+
+    /** @private @const {!PayClient} */
+    this.payClient_ = new PayClient(this);
+
+    /** @private @const {!Callbacks} */
+    this.callbacks_ = new Callbacks();
+
     /** @private @const {!Logger} */
     this.logger_ = new Logger(this);
 

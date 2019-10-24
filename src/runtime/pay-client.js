@@ -62,21 +62,31 @@ function payDecryptUrl() {
  */
 export class PayClient {
   /**
-   * @param {!Window} win
-   * @param {!../components/activities.ActivityPorts} activityPorts
-   * @param {!../components/dialog-manager.DialogManager} dialogManager
-   * @param {!../runtime/analytics-service.AnalyticsService} analyticsService
+   * @param {!./deps.DepsDef} deps
    */
-  constructor(win, activityPorts, dialogManager, analyticsService) {
+  constructor(deps) {
+    /** @private @const {!Window} */
+    this.win_ = deps.win();
+
+    /** @private @const {!../components/activities.ActivityPorts} */
+    this.activityPorts_ = deps.activities();
+
+    /** @private @const {!../components/dialog-manager.DialogManager} */
+    this.dialogManager_ = deps.dialogManager();
+
     /** @const @private {!PayClientBindingDef} */
-    this.binding_ = isExperimentOn(win, ExperimentFlags.GPAY_API)
+    this.binding_ = isExperimentOn(this.win_, ExperimentFlags.GPAY_API)
       ? new PayClientBindingPayjs(
-          win,
-          activityPorts,
+          this.win_,
+          this.activityPorts_,
           // Generates a new Google Transaction ID.
-          analyticsService.getTransactionId()
+          deps.analytics().getTransactionId()
         )
-      : new PayClientBindingSwg(win, activityPorts, dialogManager);
+      : new PayClientBindingSwg(
+          this.win_,
+          this.activityPorts_,
+          this.dialogManager_
+        );
   }
 
   /**
