@@ -60,7 +60,7 @@
     "gulp-git": "2.9.0",
     "gulp-help": "chmontgomery/gulp-help#gulp4",
     "gulp-if": "3.0.0",
-    "gulp-load-plugins": "1.6.0",
+    "gulp-load-plugins": "2.0.1",
     "gulp-rename": "1.4.0",
     "gulp-replace": "0.6.1",
     "gulp-sourcemaps": "2.6.5",
