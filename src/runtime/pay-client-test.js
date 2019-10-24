@@ -414,7 +414,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
 
-    activityPorts = new ActivityPorts(win);
+    activityPorts = runtime.activities();
 
     redirectVerifierHelperResults = {
       restoreKey: 'test_restore_key',
@@ -445,7 +445,8 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     };
 
     googleTransactionId = GOOGLE_TRANSACTION_ID;
-    analyticsService = new AnalyticsService(runtime);
+    // analyticsService = new AnalyticsService(runtime);
+    analyticsService = runtime.analytics();
     analyticsMock = sandbox.mock(analyticsService);
     sandbox.stub(analyticsService, 'getTransactionId').callsFake(() => {
       return googleTransactionId;
