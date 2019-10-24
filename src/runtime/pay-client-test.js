@@ -18,7 +18,7 @@ import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {ActivityPorts, ActivityPort} from '../components/activities';
+import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {DialogManager} from '../components/dialog-manager';
 import {ExperimentFlags} from './experiment-flags';
@@ -76,7 +76,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
 
     resultIdsAttached = [];
-    activityPorts = new ActivityPorts(win);
+    activityPorts = runtime.activities();
     activityPorts.onResult = (requestId, callback) => {
       if (requestId == 'swg-pay' || requestId == 'GPAY') {
         resultCallback = callback;
