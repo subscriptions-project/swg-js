@@ -138,7 +138,6 @@ export class PayStartFlow {
         'swg': swgPaymentRequest,
         'i': {
           'startTimeMs': Date.now(),
-          'googleTransactionId': this.analyticsService_.getTransactionId(),
           'productType': this.productType_,
         },
       },

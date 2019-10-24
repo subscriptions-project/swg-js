@@ -18,10 +18,12 @@ import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {ActivityPorts, ActivityPort} from '../components/activities';
+import {ActivityPort} from '../components/activities';
+import {ConfiguredRuntime} from './runtime';
 import {DialogManager} from '../components/dialog-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
+import {PageConfig} from '../model/page-config';
 import {
   PayClient,
   PayClientBindingPayjs,
@@ -55,18 +57,26 @@ const INTEGR_DATA_OBJ_DECODED = {
   },
 };
 
+const GOOGLE_TRANSACTION_ID = 'ABC12345-CDE0-XYZ1-ABAB-11609E6472E9';
+
 describes.realWin('PayClientBindingSwg', {}, env => {
   let win;
+  let pageConfig;
+  let runtime;
+
   let activityPorts, activitiesMock, port;
-  let dialogManagerMock;
+  let dialogManager, dialogManagerMock;
   let resultCallback, resultStub;
   let payClient;
   let resultIdsAttached;
 
   beforeEach(() => {
     win = env.win;
+    pageConfig = new PageConfig('pub1:label1');
+    runtime = new ConfiguredRuntime(win, pageConfig);
+
     resultIdsAttached = [];
-    activityPorts = new ActivityPorts(win);
+    activityPorts = runtime.activities();
     activityPorts.onResult = (requestId, callback) => {
       if (requestId == 'swg-pay' || requestId == 'GPAY') {
         resultCallback = callback;
@@ -74,10 +84,18 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       }
     };
     port = new ActivityPort();
+    sandbox.stub(runtime, 'activities').callsFake(() => {
+      return activityPorts;
+    });
     activitiesMock = sandbox.mock(activityPorts);
-    const dialogManager = new DialogManager(new GlobalDoc(win));
+
+    dialogManager = new DialogManager(new GlobalDoc(win));
+    sandbox.stub(runtime, 'dialogManager').callsFake(() => {
+      return dialogManager;
+    });
     dialogManagerMock = sandbox.mock(dialogManager);
-    payClient = new PayClient(win, activityPorts, dialogManager);
+    payClient = new PayClient(runtime);
+
     resultStub = sandbox.stub();
     payClient.onResponse(resultStub);
   });
@@ -379,16 +397,24 @@ describes.realWin('PayClientBindingSwg', {}, env => {
 
 describes.realWin('PayClientBindingPayjs', {}, env => {
   let win;
-  let resultStub;
+  let pageConfig;
+  let runtime;
   let activityPorts;
+  let analyticsService, analyticsMock;
+  let resultStub;
   let payClient;
   let payClientStubs;
   let redirectVerifierHelperStubs, redirectVerifierHelperResults;
   let responseHandler;
+  let googleTransactionId;
 
   beforeEach(() => {
     win = env.win;
-    activityPorts = new ActivityPorts(win);
+    pageConfig = new PageConfig('pub1:label1');
+    runtime = new ConfiguredRuntime(win, pageConfig);
+
+    activityPorts = runtime.activities();
+
     redirectVerifierHelperResults = {
       restoreKey: 'test_restore_key',
       verifier: 'test_verifier',
@@ -407,7 +433,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     payClientStubs = {
       create: sandbox
         .stub(PayClientBindingPayjs.prototype, 'createClient_')
-        .callsFake((options, handler) => {
+        .callsFake((options, googleTransactionId, handler) => {
           responseHandler = handler;
           return new PaymentsAsyncClient({});
         }),
@@ -416,13 +442,28 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
         'loadPaymentData'
       ),
     };
-    payClient = new PayClientBindingPayjs(win, activityPorts);
+
+    googleTransactionId = GOOGLE_TRANSACTION_ID;
+    // analyticsService = new AnalyticsService(runtime);
+    analyticsService = runtime.analytics();
+    analyticsMock = sandbox.mock(analyticsService);
+    sandbox.stub(analyticsService, 'getTransactionId').callsFake(() => {
+      return googleTransactionId;
+    });
+
+    payClient = new PayClientBindingPayjs(
+      win,
+      activityPorts,
+      googleTransactionId
+    );
+
     resultStub = sandbox.stub();
     payClient.onResponse(resultStub);
   });
 
   afterEach(() => {
     setExperimentsStringForTesting('');
+    analyticsMock.verify();
   });
 
   /**
@@ -438,7 +479,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
   it('should select the right binding', () => {
     expect(payClient.getType()).to.equal('PAYJS');
     setExperiment(win, ExperimentFlags.GPAY_API, true);
-    expect(new PayClient(win, activityPorts).getType()).to.equal('PAYJS');
+    expect(new PayClient(runtime).getType()).to.equal('PAYJS');
   });
 
   it('should initalize correctly', () => {

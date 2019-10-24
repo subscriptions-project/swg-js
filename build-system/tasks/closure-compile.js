@@ -18,6 +18,7 @@
 const fs = require('fs-extra');
 const argv = require('minimist')(process.argv.slice(2));
 const closureCompiler = require('gulp-closure-compiler');
+const colors = require('ansi-colors');
 const gulp = require('gulp');
 const rename = require('gulp-rename');
 const replace = require('gulp-replace');
@@ -78,7 +79,7 @@ exports.closureCompile = function(
 };
 
 function compile(entryModuleFilenames, outputDir, outputFilename, options) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve, opt_reject) {
     let entryModuleFilename;
     if (entryModuleFilenames instanceof Array) {
       entryModuleFilename = entryModuleFilenames[0];
