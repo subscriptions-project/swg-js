@@ -33,7 +33,6 @@ import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Xhr} from '../utils/xhr';
 import {isCancelError} from '../utils/errors';
 import {setExperiment, setExperimentsStringForTesting} from './experiments';
-import {AnalyticsService} from './analytics-service';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +

@@ -523,11 +523,11 @@ export class ConfiguredRuntime {
     //you are certain they do not rely on them because they are part of that
     //definition.
 
-    /** @private @const {!AnalyticsService} */
-    this.analyticsService_ = new AnalyticsService(this);
-
     /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(this);
+
+    /** @private @const {!AnalyticsService} */
+    this.analyticsService_ = new AnalyticsService(this);
 
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
