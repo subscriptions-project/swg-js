@@ -1,0 +1,45 @@
+<!doctype html>
+<html ⚡>
+<head>
+  <meta charset="utf-8">
+  <title>subscriptions example</title>
+  <link rel="canonical" href="amps.html">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+  <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+  <script async custom-element="amp-subscriptions" src="https://cdn.ampproject.org/v0/amp-subscriptions-0.1.js"></script>
+  <script async custom-element="amp-subscriptions-google" src="https://cdn.ampproject.org/v0/amp-subscriptions-google-0.1.js"></script>
+  <script async src="https://cdn.ampproject.org/v0.js"></script>
+  <script type="application/json" id="amp-subscriptions">
+    {
+      "services": [
+        {
+          "authorizationUrl": "//localhost:8000/subscription/2/entitlements",
+          "pingbackUrl": "//localhost:8000/subscription/pingback",
+          "actions":{
+            "login": "//localhost:8000/subscription/login",
+            "subscribe": "//localhost:8000/subscription/subscribe"
+          }
+        },
+        {
+          "serviceId": "subscribe.google.com"
+        }
+      ]
+    }
+  </script>
+</head>
+<body>
+  <main role="main">
+    <article>
+      <div class="content-container">
+        <div>
+          <h2>
+            <section subscriptions-section="content" encrypted>
+              This is some seriously premium content! I hope that it encrypts successfully!
+            </section>
+          </h2>
+        </div>
+      </div>
+    </article>
+  </main>
+</body>
+</html>
