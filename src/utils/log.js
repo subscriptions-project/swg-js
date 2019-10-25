@@ -111,5 +111,6 @@ function toString(val) {
 module.exports = {
   assert,
   debugLog,
+  warn,
   log
 };
