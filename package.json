@@ -25,7 +25,7 @@
     "dist": "gulp dist"
   },
   "dependencies": {
-    "promise-pjs": "1.1.4",
+    "promise-pjs": "1.1.5",
     "web-activities": "1.24.0"
   },
   "devDependencies": {
