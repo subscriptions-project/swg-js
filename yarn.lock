@@ -7706,10 +7706,10 @@ promise-pjs@1.1.3:
   resolved "https://registry.yarnpkg.com/promise-pjs/-/promise-pjs-1.1.3.tgz#c004936f110c66d3d116f82b181bd6a197e080d1"
   integrity sha1-wASTbxEMZtPRFvgrGBvWoZfggNE=
 
-promise-pjs@1.1.4:
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/promise-pjs/-/promise-pjs-1.1.4.tgz#69a69cb43fb2e58811a53a43e3eff8a216b5eabc"
-  integrity sha512-OyH4v6sheTi8DPVixLuV2oSpXjiY89pbhRLVJIs1xotO4iWnADX4xxMdqWzIUba4WJ71AnOMmb0WpLbu0lX4bA==
+promise-pjs@1.1.5:
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/promise-pjs/-/promise-pjs-1.1.5.tgz#4f8b0a8c6eac18951a5d796ee6302224ce237303"
+  integrity sha512-TaRXEbkLsIk+ni1w8qxbL/BJpdsjeMJqKnV5NtKjAKSa0czLiihdx+20fDxBJaznGvoMXerJ5+giwN2jNCZO1A==
 
 proxy-addr@~2.0.5:
   version "2.0.5"
