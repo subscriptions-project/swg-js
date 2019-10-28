@@ -41,7 +41,7 @@ describes.realWin('LoadingView', {}, env => {
 
   describe('loadingView', () => {
     it('should have rendered the loading indicator in <BODY>', () => {
-      expect(loadingView).to.be.defined;
+      expect(loadingView).to.be.exist;
       assert.isFunction(loadingView.show);
       assert.isFunction(loadingView.hide);
 
