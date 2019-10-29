@@ -173,6 +173,7 @@ function runTests(done) {
   } else {
     c.files = config.testPaths;
   }
+  c.files = c.files.concat(config.chaiAsPromised);
 
   // c.client is available in test browser via window.parent.karma.config
   c.client.subscriptions = {
