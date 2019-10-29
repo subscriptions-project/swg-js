@@ -42,6 +42,8 @@ const AnalyticsEvent = {
   IMPRESSION_SUBSCRIPTION_COMPLETE: 9,
   IMPRESSION_ACCOUNT_CHANGED: 10,
   IMPRESSION_PAGE_LOAD: 11,
+  IMPRESSION_SAVE_SUBSCRIPTION: 12,
+  IMPRESSION_SAVED_SUBSCRIPTION: 13,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -53,6 +55,10 @@ const AnalyticsEvent = {
   ACTION_VIEW_OFFERS: 1008,
   ACTION_ALREADY_SUBSCRIBED: 1009,
   ACTION_NEW_DEFERRED_ACCOUNT: 1010,
+  ACTION_SAVE_SUBSCRIPTION: 1011,
+  ACTION_DONT_SAVE_SUBSCRIPTION: 1012,
+  ACTION_SAVED_SUBSCRIPTION: 1013,
+  ACTION_USER_CANCELED_PAYFLOW: 1014,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
@@ -607,6 +613,9 @@ class EventParams {
 
     /** @private {?boolean} */
     this.hadLogged_ = (data[3] == null) ? null : data[3];
+
+    /** @private {?string} */
+    this.sku_ = (data[4] == null) ? null : data[4];
   }
 
   /**
@@ -652,6 +661,20 @@ class EventParams {
   }
 
   /**
+   * @return {?string}
+   */
+  getSku() {
+    return this.sku_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSku(value) {
+    this.sku_ = value;
+  }
+
+  /**
    * @return {!Array}
    * @override
    */
@@ -661,6 +684,7 @@ class EventParams {
       this.smartboxMessage_,  // field 1 - smartbox_message
       this.gpayTransactionId_,  // field 2 - gpay_transaction_id
       this.hadLogged_,  // field 3 - had_logged
+      this.sku_,  // field 4 - sku
     ];
   }
 
@@ -1054,3 +1078,4 @@ export {
   deserialize,
   getLabel,
 };
+
