@@ -37,6 +37,13 @@ function log(var_args) {
 }
 
 /**
+ * @param  {...*} var_args [description]
+ */
+function warn(var_args) {
+  console.warn.apply(console, arguments);
+}
+
+/**
  * Throws an error if the first argument isn't trueish.
  *
  * Supports argument substitution into the message via %s placeholders.
@@ -104,5 +111,6 @@ function toString(val) {
 module.exports = {
   assert,
   debugLog,
+  warn,
   log
 };

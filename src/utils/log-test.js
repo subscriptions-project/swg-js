@@ -16,7 +16,24 @@
 
 /* eslint-disable */
 
-import {assert, debugLog} from './log';
+import {assert, debugLog, warn} from './log';
+
+describes.realWin('warn', {}, () => {
+  let warnFn;
+
+  beforeEach(() => {
+    warnFn = sandbox.spy(console, 'warn');
+  });
+
+  afterEach(() => {
+    warnFn.restore();
+  });
+
+  it('should log a warning', () => {
+    warn('Hello World');
+    expect(console.warn.calledWith('Hello World')).to.be.true;
+  });
+});
 
 describes.realWin('debug log', {}, () => {
   let log;
