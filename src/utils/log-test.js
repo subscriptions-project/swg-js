@@ -16,7 +16,7 @@
 
 /* eslint-disable */
 
-import {assert, debugLog} from './log';
+import {assert, debugLog, warn} from './log';
 
 describes.realWin('warn', {}, () => {
   let log;
