@@ -19,14 +19,14 @@
 import {assert, debugLog, warn} from './log';
 
 describes.realWin('warn', {}, () => {
-  let log;
+  let warnFn;
 
   beforeEach(() => {
-    log = sandbox.spy(console, 'log');
+    warnFn = sandbox.spy(console, 'warn');
   });
 
   afterEach(() => {
-    log.restore();
+    warnFn.restore();
   });
 
   it('should log a warning', () => {
