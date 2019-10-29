@@ -48,6 +48,8 @@ const basicTestPaths = ['src/**/*-test.js'];
 
 const testPaths = commonTestPaths.concat(basicTestPaths);
 
+const chaiAsPromised = ['test/chai-as-promised/chai-as-promised.js'];
+
 const unitTestPaths = commonTestPaths.concat([
   'src/**/*-test.js',
   'test/functional/**/*.js',
@@ -62,6 +64,7 @@ module.exports = {
   commonTestPaths,
   basicTestPaths,
   testPaths,
+  chaiAsPromised,
   unitTestPaths,
   integrationTestPaths,
   lintGlobs: [
