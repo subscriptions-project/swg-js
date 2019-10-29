@@ -19,14 +19,7 @@
  * @param {!Object} config
  */
 module.exports = {
-  frameworks: [
-    'fixture',
-    'browserify',
-    'mocha',
-    'chai-as-promised',
-    'sinon-chai',
-    'chai',
-  ],
+  frameworks: ['fixture', 'browserify', 'mocha', 'sinon-chai', 'chai'],
 
   preprocessors: {
     'src/**/*.js': ['browserify'],
@@ -124,7 +117,6 @@ module.exports = {
   plugins: [
     'karma-browserify',
     'karma-chai',
-    'karma-chai-as-promised',
     'karma-chrome-launcher',
     'karma-coverage',
     'karma-edge-launcher',
