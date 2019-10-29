@@ -1641,7 +1641,7 @@ subscribe() method'
       });
       const resultPromise = runtime.saveSubscription(() => requestPromise);
       return runtime.documentParsed_.then(() => {
-        expect(linkSaveFlow.callback_()).to.equal.requestPromise;
+        expect(linkSaveFlow.callback_()).to.equal(requestPromise);
         return linkSaveFlow.callback_().then(request => {
           expect(request).to.deep.equal({token: 'test'});
         });
