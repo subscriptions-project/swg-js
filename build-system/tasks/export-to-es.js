@@ -28,7 +28,7 @@ const overrideConfig = require('./compile-config').overrideConfig;
 
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
-const exists = util.promisify(fs.exists);
+const exists = util.promisify(fs.pathExists);
 const mkdir = util.promisify(fs.mkdir);
 
 function runAllExportsToEs(opt_config, opt_outputs) {
@@ -136,7 +136,6 @@ async function exportCss(inputFile, outputFile) {
 async function mkdirs(paths) {
   for (const path of paths) {
     const pathExists = await exists(path);
-
     if (!pathExists) {
       await mkdir(path);
     }
