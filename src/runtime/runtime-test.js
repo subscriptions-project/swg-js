@@ -1069,7 +1069,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
         runtime
           .callbacks()
-          .triggerSubscribeResponse(
+          .triggerPaymentResponse(
             Promise.resolve(new SubscribeResponse('RaW'))
           );
         return promise.then(result => {
@@ -1602,10 +1602,7 @@ subscribe() method'
 
     it('should configure and start PayCompleteFlow', () => {
       expect(activityResultCallbacks['swg-pay']).to.exist;
-      const stub = sandbox.stub(
-        runtime.callbacks(),
-        'triggerSubscribeResponse'
-      );
+      const stub = sandbox.stub(runtime.callbacks(), 'triggerPaymentResponse');
       return (
         returnActivity('swg-pay', ActivityResultCode.OK)
           // Succeeds or fails is not important for this test.
