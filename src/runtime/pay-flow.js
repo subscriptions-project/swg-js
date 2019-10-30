@@ -175,16 +175,15 @@ export class PayCompleteFlow {
         payPromise,
         flow.complete.bind(flow)
       );
-      deps.callbacks().triggerSubscribeResponse(promise);
+      deps.callbacks().triggerPaymentResponse(promise);
       return promise.then(
         response => {
-          this.analyticsService_.setSku(
-            parseSkuFromPurchaseDataSafe(response.purchaseData)
-          );
+          const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
+          deps.analytics().setSku(sku || '');
           eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
-            getEventParams(parseSkuFromPurchaseDataSafe(response.purchaseData))
+            getEventParams(sku || '')
           );
           flow.start(response);
         },
@@ -251,7 +250,7 @@ export class PayCompleteFlow {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
       true,
-      getEventParams(this.sku_)
+      getEventParams(this.sku_ || '')
     );
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
@@ -309,7 +308,7 @@ export class PayCompleteFlow {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_ACCOUNT_CREATED,
       true,
-      getEventParams(this.sku_)
+      getEventParams(this.sku_ || '')
     );
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
@@ -326,7 +325,7 @@ export class PayCompleteFlow {
         this.eventManager_.logSwgEvent(
           AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
           true,
-          getEventParams(this.sku_)
+          getEventParams(this.sku_ || '')
         );
         this.deps_.entitlementsManager().setToastShown(true);
       });
