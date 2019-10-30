@@ -55,7 +55,7 @@ export const ReplaceSkuProrationModeMapping = {
  * @return {!EventParams}
  */
 function getEventParams(sku) {
-  return new EventParams([,,, sku]);
+  return new EventParams([, , , sku]);
 }
 
 /**
@@ -176,14 +176,15 @@ export class PayCompleteFlow {
         flow.complete.bind(flow)
       );
       deps.callbacks().triggerSubscribeResponse(promise);
-      const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
       return promise.then(
         response => {
-          this.analyticsService_.setSku(sku);
+          this.analyticsService_.setSku(
+            parseSkuFromPurchaseDataSafe(response.purchaseData)
+          );
           eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
-            getEventParams(sku)
+            getEventParams(parseSkuFromPurchaseDataSafe(response.purchaseData))
           );
           flow.start(response);
         },
@@ -192,19 +193,11 @@ export class PayCompleteFlow {
             deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
             deps
               .eventManager()
-              .logSwgEvent(
-                AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW,
-                false,
-                getEventParams(sku)
-              );
+              .logSwgEvent(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, false);
           } else {
             deps
               .eventManager()
-              .logSwgEvent(
-                AnalyticsEvent.EVENT_PAYMENT_FAILED,
-                false,
-                getEventParams(sku)
-              );
+              .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false);
             deps.jserror().error('Pay failed', reason);
           }
           throw reason;

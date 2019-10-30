@@ -17,7 +17,7 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionFlows, ProductType} from '../api/subscriptions';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {feArgs, feUrl} from './services';
 import {assert} from '../utils/log';
 import {
@@ -32,7 +32,7 @@ import {
  * @return {!EventParams}
  */
 function getEventParams(sku) {
-  return new EventParams([,,, sku]);
+  return new EventParams([, , , sku]);
 }
 
 /**
@@ -43,7 +43,6 @@ const OFFERS_VIEW_CLOSABLE = true;
 
 // The value logged when the offers screen shows all available SKUs.
 const ALL_SKUS = '*';
-
 
 /**
  * The class for Offers flow.
