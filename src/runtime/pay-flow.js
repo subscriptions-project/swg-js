@@ -179,6 +179,7 @@ export class PayCompleteFlow {
       const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
       return promise.then(
         response => {
+          this.analyticsService_.setSku(sku);
           eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
