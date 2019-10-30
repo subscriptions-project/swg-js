@@ -28,6 +28,14 @@ import {
 } from '../proto/api_messages';
 
 /**
+ * @param {string} sku
+ * @return {!EventParams}
+ */
+function getEventParams(sku) {
+  return new EventParams([,,, sku]);
+}
+
+/**
  * Offers view is closable when request was originated from 'AbbrvOfferFlow'
  * or from 'SubscribeOptionFlow'.
  */
@@ -62,13 +70,16 @@ export class OffersFlow {
       isClosable = false; // Default is to hide Close button.
     }
 
+    /** @private @const {?string} */
+    this.skus_ = (options && options.skus) || null;
+
     const feArgsObj = {
       'productId': deps.pageConfig().getProductId(),
       'publicationId': deps.pageConfig().getPublicationId(),
       'showNative': deps.callbacks().hasSubscribeRequestCallback(),
       'productType': ProductType.SUBSCRIPTION,
       'list': (options && options.list) || 'default',
-      'skus': (options && options.skus) || null,
+      'skus': this.skus_,
       'isClosable': isClosable,
     };
 
@@ -127,9 +138,13 @@ export class OffersFlow {
     const sku = response.getSku();
     const oldSku = response.getOldSku();
     if (sku) {
+      if (oldSku) {
+        this.deps_.analytics().setSku(oldSku);
+      }
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.ACTION_OFFER_SELECTED,
-        true
+        true,
+        getEventParams(sku)
       );
       let skuOrSubscriptionRequest;
       if (oldSku) {
@@ -196,7 +211,11 @@ export class OffersFlow {
         this.startNativeFlow_.bind(this)
       );
 
-      this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_OFFERS);
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.IMPRESSION_OFFERS,
+        null,
+        getEventParams(this.skus_)
+      );
 
       return this.dialogManager_.openView(this.activityIframeView_);
     }

@@ -51,6 +51,14 @@ export const ReplaceSkuProrationModeMapping = {
 };
 
 /**
+ * @param {string} sku
+ * @return {!EventParams}
+ */
+function getEventParams(sku) {
+  return new EventParams([,,, sku]);
+}
+
+/**
  * The flow to initiate payment process.
  */
 export class PayStartFlow {
@@ -107,8 +115,9 @@ export class PayStartFlow {
    * @return {!Promise}
    */
   start() {
+    const req = this.subscriptionRequest_;
     // Add the 'publicationId' key to the subscriptionRequest_ object.
-    const swgPaymentRequest = Object.assign({}, this.subscriptionRequest_, {
+    const swgPaymentRequest = Object.assign({}, req, {
       'publicationId': this.pageConfig_.getPublicationId(),
     });
 
@@ -117,17 +126,14 @@ export class PayStartFlow {
     }
 
     // Start/cancel events.
-    this.deps_
-      .callbacks()
-      .triggerFlowStarted(
-        SubscriptionFlows.SUBSCRIBE,
-        this.subscriptionRequest_
-      );
-    // TODO(chenshay): Create analytics for 'replace subscription'.
-    this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
+    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, req);
+    if (req.oldSku) {
+      this.analyticsService_.setSku(req.oldSku);
+    }
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
-      true
+      true,
+      getEventParams(req.skuId)
     );
     this.payClient_.start(
       {
@@ -170,21 +176,34 @@ export class PayCompleteFlow {
         flow.complete.bind(flow)
       );
       deps.callbacks().triggerSubscribeResponse(promise);
+      const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
       return promise.then(
         response => {
           eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-            true
+            true,
+            getEventParams(sku)
           );
           flow.start(response);
         },
         reason => {
           if (isCancelError(reason)) {
             deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
+            deps
+              .eventManager()
+              .logSwgEvent(
+                AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW,
+                false,
+                getEventParams(sku)
+              );
           } else {
             deps
               .eventManager()
-              .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false);
+              .logSwgEvent(
+                AnalyticsEvent.EVENT_PAYMENT_FAILED,
+                false,
+                getEventParams(sku)
+              );
             deps.jserror().error('Pay failed', reason);
           }
           throw reason;
@@ -223,6 +242,9 @@ export class PayCompleteFlow {
 
     /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
+
+    /** @private {?string} */
+    this.sku_ = null;
   }
 
   /**
@@ -231,18 +253,11 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   start(response) {
-    if (!this.analyticsService_.getSku()) {
-      // This is a redirect response. Extract the SKU if possible.
-      this.analyticsService_.addLabels(['redirect']);
-      const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
-      if (sku) {
-        this.analyticsService_.setSku(sku);
-      }
-    }
-
+    this.sku_ = parseSkuFromPurchaseDataSafe(response.purchaseData);
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
-      true
+      true,
+      getEventParams(this.sku_)
     );
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
@@ -297,7 +312,11 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   complete() {
-    this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+      true,
+      getEventParams(this.sku_)
+    );
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
       const accountCompletionRequest = new AccountCreationRequest();
@@ -312,7 +331,8 @@ export class PayCompleteFlow {
       .then(() => {
         this.eventManager_.logSwgEvent(
           AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-          true
+          true,
+          getEventParams(this.sku_)
         );
         this.deps_.entitlementsManager().setToastShown(true);
       });
