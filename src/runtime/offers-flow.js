@@ -32,7 +32,7 @@ import {
  * @return {!EventParams}
  */
 function getEventParams(sku) {
-  return new EventParams([, , , sku]);
+  return new EventParams([, , , , sku]);
 }
 
 /**

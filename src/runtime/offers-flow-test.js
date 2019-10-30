@@ -16,7 +16,7 @@
 
 import {ActivityResult} from 'web-activities/activity-ports';
 import {ActivityPort} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
@@ -30,6 +30,14 @@ import {
   ViewSubscriptionsResponse,
   SubscribeResponse,
 } from '../proto/api_messages';
+
+/**
+ * @param {string} sku
+ * @return {!EventParams}
+ */
+function getEventParams(sku) {
+  return new EventParams([, , , , sku]);
+}
 
 describes.realWin('OffersFlow', {}, env => {
   let win;
@@ -340,7 +348,11 @@ describes.realWin('OffersFlow', {}, env => {
   it('should log IMPRESSION_OFFERS on start', () => {
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_OFFERS);
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_OFFERS,
+        null,
+        getEventParams('*')
+      );
     offersFlow.start();
   });
 });

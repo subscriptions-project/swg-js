@@ -55,7 +55,7 @@ export const ReplaceSkuProrationModeMapping = {
  * @return {!EventParams}
  */
 function getEventParams(sku) {
-  return new EventParams([, , , sku]);
+  return new EventParams([, , , , sku]);
 }
 
 /**
@@ -192,7 +192,7 @@ export class PayCompleteFlow {
             deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
             deps
               .eventManager()
-              .logSwgEvent(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, false);
+              .logSwgEvent(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true);
           } else {
             deps
               .eventManager()
