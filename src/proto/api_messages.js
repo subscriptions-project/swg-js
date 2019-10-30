@@ -58,6 +58,7 @@ const AnalyticsEvent = {
   ACTION_SAVE_SUBSCRIPTION: 1011,
   ACTION_DONT_SAVE_SUBSCRIPTION: 1012,
   ACTION_SAVED_SUBSCRIPTION: 1013,
+  ACTION_USER_CANCELED_PAYFLOW: 1014,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
@@ -612,6 +613,9 @@ class EventParams {
 
     /** @private {?boolean} */
     this.hadLogged_ = (data[3] == null) ? null : data[3];
+
+    /** @private {?string} */
+    this.sku_ = (data[4] == null) ? null : data[4];
   }
 
   /**
@@ -657,6 +661,20 @@ class EventParams {
   }
 
   /**
+   * @return {?string}
+   */
+  getSku() {
+    return this.sku_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSku(value) {
+    this.sku_ = value;
+  }
+
+  /**
    * @return {!Array}
    * @override
    */
@@ -666,6 +684,7 @@ class EventParams {
       this.smartboxMessage_,  // field 1 - smartbox_message
       this.gpayTransactionId_,  // field 2 - gpay_transaction_id
       this.hadLogged_,  // field 3 - had_logged
+      this.sku_,  // field 4 - sku
     ];
   }
 
@@ -1059,3 +1078,4 @@ export {
   deserialize,
   getLabel,
 };
+
