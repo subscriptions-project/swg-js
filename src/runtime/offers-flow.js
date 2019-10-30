@@ -41,6 +41,10 @@ function getEventParams(sku) {
  */
 const OFFERS_VIEW_CLOSABLE = true;
 
+// The value logged when the offers screen shows all available SKUs.
+const ALL_SKUS = '*';
+
+
 /**
  * The class for Offers flow.
  */
@@ -70,16 +74,13 @@ export class OffersFlow {
       isClosable = false; // Default is to hide Close button.
     }
 
-    /** @private @const {?string} */
-    this.skus_ = (options && options.skus) || null;
-
     const feArgsObj = {
       'productId': deps.pageConfig().getProductId(),
       'publicationId': deps.pageConfig().getPublicationId(),
       'showNative': deps.callbacks().hasSubscribeRequestCallback(),
       'productType': ProductType.SUBSCRIPTION,
       'list': (options && options.list) || 'default',
-      'skus': this.skus_,
+      'skus': (options && options.skus) || null,
       'isClosable': isClosable,
     };
 
@@ -120,6 +121,10 @@ export class OffersFlow {
         return;
       }
     }
+
+    /** @private @const {!string} */
+    this.skus_ = (feArgsObj['skus'] || []).join(',') || ALL_SKUS;
+
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
