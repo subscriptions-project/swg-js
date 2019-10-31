@@ -19,7 +19,11 @@ import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isCancelError, createCancelError} from '../utils/errors';
-import {LinkingInfoResponse, LinkSaveTokenRequest} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  LinkingInfoResponse,
+  LinkSaveTokenRequest,
+} from '../proto/api_messages';
 
 const LINK_REQUEST_ID = 'swg-link';
 
@@ -61,6 +65,7 @@ export class LinkbackFlow {
       }),
       {}
     );
+    this.deps_.eventManager().logSwgEvent(AnalyticsEvent.IMPRESSION_LINKBACK);
     this.dialogManager_.popupOpened(opener && opener.targetWin);
     return Promise.resolve();
   }
@@ -90,11 +95,17 @@ export class LinkCompleteFlow {
       );
       return promise.then(
         response => {
+          deps
+            .eventManager()
+            .logSwgEvent(AnalyticsEvent.ACTION_LINKBACK_CONTINUE, true);
           const flow = new LinkCompleteFlow(deps, response);
           flow.start();
         },
         reason => {
           if (isCancelError(reason)) {
+            deps
+              .eventManager()
+              .logSwgEvent(AnalyticsEvent.ACTION_LINKBACK_CANCEL, true);
             deps
               .callbacks()
               .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
@@ -171,6 +182,12 @@ export class LinkCompleteFlow {
         // The flow is complete.
         this.dialogManager_.completeView(this.activityIframeView_);
       });
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.EVENT_LINKED_ACCOUNTS, true);
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.IMPRESSION_LINK_COMPLETE, true);
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 
@@ -179,6 +196,9 @@ export class LinkCompleteFlow {
    * @private
    */
   complete_(response) {
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.ACTION_LINK_COMPLETE_DISMISS, true);
     this.callbacks_.triggerLinkComplete();
     this.callbacks_.resetLinkProgress();
     this.entitlementsManager_.setToastShown(true);
@@ -259,9 +279,15 @@ export class LinkSaveFlow {
       // When linking succeeds, start link confirmation flow
       this.dialogManager_.popupClosed();
       this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.ACTION_LINKSAVE_CONTINUE, true);
       linkConfirm = new LinkCompleteFlow(this.deps_, result);
       startPromise = linkConfirm.start();
     } else {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.ACTION_LINKSAVE_CANCEL, true);
       startPromise = Promise.reject(createCancelError(this.win_, 'not linked'));
     }
     const completePromise = startPromise.then(() => {
@@ -336,6 +362,7 @@ export class LinkSaveFlow {
       this.activityIframeView_,
       /* hidden */ true
     );
+    this.deps_.eventManager().logSwgEvent(AnalyticsEvent.IMPRESSION_LINKSAVE);
     /** {!Promise<boolean>} */
     return this.activityIframeView_
       .acceptResultAndVerify(
@@ -351,6 +378,9 @@ export class LinkSaveFlow {
         this.complete_();
         // Handle cancellation from user, link confirm start or completion here
         if (isCancelError(reason)) {
+          this.deps_
+            .eventManager()
+            .logSwgEvent(AnalyticsEvent.ACTION_LINKSAVE_CANCEL, true);
           this.deps_
             .callbacks()
             .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
