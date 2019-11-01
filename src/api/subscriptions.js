@@ -28,7 +28,6 @@ import {LoggerApi} from './logger-api';
  * @interface
  */
 export class Subscriptions {
-
   /**
    * Optionally initializes the subscriptions runtime with publication or
    * product ID. If not called, the runtime will look for the initialization
@@ -146,7 +145,7 @@ export class Subscriptions {
    */
   setOnContributionResponse(callback) {}
 
-   /**
+  /**
    * Starts contributions purchase flow.
    * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
    */
@@ -191,8 +190,9 @@ export class Subscriptions {
   /**
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
+   * @param {{ampReaderId: (string|undefined)}=} params
    */
-  linkAccount() {}
+  linkAccount(params) {}
 
   /**
    * Notifies the client that a flow has been started. The name of the flow
@@ -221,11 +221,11 @@ export class Subscriptions {
    */
   setOnFlowCanceled(callback) {}
 
- /**
-  * Starts the save subscriptions flow.
-  * @param {!SaveSubscriptionRequestCallback} requestCallback
-  * @return {!Promise} a promise indicating flow is started
-  */
+  /**
+   * Starts the save subscriptions flow.
+   * @param {!SaveSubscriptionRequestCallback} requestCallback
+   * @return {!Promise} a promise indicating flow is started
+   */
   saveSubscription(requestCallback) {}
 
   /**
@@ -283,7 +283,6 @@ export const SubscriptionFlows = {
   SHOW_LOGIN_NOTIFICATION: 'showLoginNotification',
 };
 
-
 /**
  * Configuration properties:
  * - windowOpenMode - either "auto" or "redirect". The "redirect" value will
@@ -297,7 +296,7 @@ export const SubscriptionFlows = {
  *   both PropensityApi and LoggerApi.
  * - enablePropensity - If true events from the logger api are sent to the
  *   propensity server.  Note events from the legacy propensity endpoint are
- *   always sent. 
+ *   always sent.
  * @typedef {{
  *   experiments: (!Array<string>|undefined),
  *   windowOpenMode: (!WindowOpenMode|undefined),
@@ -374,14 +373,12 @@ export function defaultConfig() {
  */
 export let OffersRequest;
 
-
 /**
  * @typedef {{
  *   linkRequested: boolean,
  * }}
  */
 export let LoginRequest;
-
 
 /**
  * Properties:

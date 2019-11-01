@@ -389,8 +389,8 @@ export class Runtime {
   }
 
   /** @override */
-  linkAccount() {
-    return this.configured_(true).then(runtime => runtime.linkAccount());
+  linkAccount(params = {}) {
+    return this.configured_(true).then(runtime => runtime.linkAccount(params));
   }
 
   /** @override */
@@ -803,9 +803,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  linkAccount() {
+  linkAccount(params = {}) {
     return this.documentParsed_.then(() => {
-      return new LinkbackFlow(this).start();
+      return new LinkbackFlow(this).start(params);
     });
   }
 

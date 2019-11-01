@@ -1481,6 +1481,18 @@ new subscribers. Use the showOffers() method instead.'
       });
     });
 
+    it('should start LinkbackFlow with ampReaderId', () => {
+      const startStub = sandbox
+        .stub(LinkbackFlow.prototype, 'start')
+        .callsFake(params => {
+          expect(params.ampReaderId).to.equal('ari1');
+          return Promise.resolve();
+        });
+      return runtime.linkAccount({ampReaderId: 'ari1'}).then(() => {
+        expect(startStub).to.be.calledOnce;
+      });
+    });
+
     it('should configure and start LinkCompleteFlow for swg-link', () => {
       expect(activityResultCallbacks['swg-link']).to.exist;
       const startStub = sandbox
