@@ -190,7 +190,7 @@ export class Subscriptions {
   /**
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
-   * @param {{ampReaderId?: string}=} params
+   * @param {{ampReaderId: string|undefined}=} params
    */
   linkAccount(params = {}) {}
 
