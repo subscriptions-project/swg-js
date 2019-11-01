@@ -65,7 +65,7 @@ export class LinkbackFlow {
       }),
       {}
     );
-    this.deps_.eventManager().logSwgEvent(AnalyticsEvent.IMPRESSION_LINKBACK);
+    this.deps_.eventManager().logSwgEvent(AnalyticsEvent.IMPRESSION_LINK);
     this.dialogManager_.popupOpened(opener && opener.targetWin);
     return Promise.resolve();
   }
@@ -97,7 +97,7 @@ export class LinkCompleteFlow {
         response => {
           deps
             .eventManager()
-            .logSwgEvent(AnalyticsEvent.ACTION_LINKBACK_CONTINUE, true);
+            .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
           const flow = new LinkCompleteFlow(deps, response);
           flow.start();
         },
@@ -105,7 +105,7 @@ export class LinkCompleteFlow {
           if (isCancelError(reason)) {
             deps
               .eventManager()
-              .logSwgEvent(AnalyticsEvent.ACTION_LINKBACK_CANCEL, true);
+              .logSwgEvent(AnalyticsEvent.ACTION_LINK_CANCEL, true);
             deps
               .callbacks()
               .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
@@ -184,10 +184,10 @@ export class LinkCompleteFlow {
       });
     this.deps_
       .eventManager()
-      .logSwgEvent(AnalyticsEvent.EVENT_LINKED_ACCOUNTS, true);
+      .logSwgEvent(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
     this.deps_
       .eventManager()
-      .logSwgEvent(AnalyticsEvent.IMPRESSION_LINK_COMPLETE, true);
+      .logSwgEvent(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 
@@ -198,7 +198,7 @@ export class LinkCompleteFlow {
   complete_(response) {
     this.deps_
       .eventManager()
-      .logSwgEvent(AnalyticsEvent.ACTION_LINK_COMPLETE_DISMISS, true);
+      .logSwgEvent(AnalyticsEvent.ACTION_GOOGLE_UPDATED_DISMISS, true);
     this.callbacks_.triggerLinkComplete();
     this.callbacks_.resetLinkProgress();
     this.entitlementsManager_.setToastShown(true);
@@ -281,13 +281,16 @@ export class LinkSaveFlow {
       this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
       this.deps_
         .eventManager()
-        .logSwgEvent(AnalyticsEvent.ACTION_LINKSAVE_CONTINUE, true);
+        .logSwgEvent(
+          AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CONTINUE,
+          true
+        );
       linkConfirm = new LinkCompleteFlow(this.deps_, result);
       startPromise = linkConfirm.start();
     } else {
       this.deps_
         .eventManager()
-        .logSwgEvent(AnalyticsEvent.ACTION_LINKSAVE_CANCEL, true);
+        .logSwgEvent(AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL, true);
       startPromise = Promise.reject(createCancelError(this.win_, 'not linked'));
     }
     const completePromise = startPromise.then(() => {
@@ -362,7 +365,9 @@ export class LinkSaveFlow {
       this.activityIframeView_,
       /* hidden */ true
     );
-    this.deps_.eventManager().logSwgEvent(AnalyticsEvent.IMPRESSION_LINKSAVE);
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.IMPRESSION_SAVE_SUBSCR_TO_GOOGLE);
     /** {!Promise<boolean>} */
     return this.activityIframeView_
       .acceptResultAndVerify(
@@ -380,7 +385,10 @@ export class LinkSaveFlow {
         if (isCancelError(reason)) {
           this.deps_
             .eventManager()
-            .logSwgEvent(AnalyticsEvent.ACTION_LINKSAVE_CANCEL, true);
+            .logSwgEvent(
+              AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL,
+              true
+            );
           this.deps_
             .callbacks()
             .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
