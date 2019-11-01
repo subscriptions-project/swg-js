@@ -46,7 +46,7 @@ export class LinkbackFlow {
 
   /**
    * Starts the Link account flow.
-   * @param {{ampReaderId: string|undefined}=} params
+   * @param {{ampReaderId: (string|undefined)}=} params
    * @return {!Promise}
    */
   start(params = {}) {

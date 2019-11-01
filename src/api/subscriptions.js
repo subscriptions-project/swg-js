@@ -190,9 +190,9 @@ export class Subscriptions {
   /**
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
-   * @param {{ampReaderId: string|undefined}=} params
+   * @param {{ampReaderId: (string|undefined)}=} params
    */
-  linkAccount(params = {}) {}
+  linkAccount(params) {}
 
   /**
    * Notifies the client that a flow has been started. The name of the flow
