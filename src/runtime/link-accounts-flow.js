@@ -46,19 +46,26 @@ export class LinkbackFlow {
 
   /**
    * Starts the Link account flow.
+   * @param {{ampReaderId: (string|undefined)}=} params
    * @return {!Promise}
    */
-  start() {
+  start(params = {}) {
     this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
     const forceRedirect =
       this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT;
+    const args = params.ampReaderId
+      ? feArgs({
+          'publicationId': this.pageConfig_.getPublicationId(),
+          'ampReaderId': params.ampReaderId,
+        })
+      : feArgs({
+          'publicationId': this.pageConfig_.getPublicationId(),
+        });
     const opener = this.activityPorts_.open(
       LINK_REQUEST_ID,
       feUrl('/linkbackstart'),
       forceRedirect ? '_top' : '_blank',
-      feArgs({
-        'publicationId': this.pageConfig_.getPublicationId(),
-      }),
+      args,
       {}
     );
     this.dialogManager_.popupOpened(opener && opener.targetWin);
