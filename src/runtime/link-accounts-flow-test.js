@@ -93,6 +93,33 @@ describes.realWin('LinkbackFlow', {}, env => {
     );
   });
 
+  it('should pass along ampReaderId param', () => {
+    const popupWin = {};
+    dialogManagerMock
+      .expects('popupOpened')
+      .withExactArgs(popupWin)
+      .once();
+    activitiesMock
+      .expects('open')
+      .withExactArgs(
+        'swg-link',
+        '$frontend$/swg/_/ui/v1/linkbackstart?_=_',
+        '_blank',
+        {
+          '_client': 'SwG $internalRuntimeVersion$',
+          'publicationId': 'pub1',
+          'ampReaderId': 'ari1',
+        },
+        {}
+      )
+      .returns({targetWin: popupWin})
+      .once();
+    linkbackFlow.start({ampReaderId: 'ari1'});
+    expect(triggerFlowStartSpy).to.be.calledOnce.calledWithExactly(
+      'linkAccount'
+    );
+  });
+
   it('should force redirect mode', () => {
     runtime.configure({windowOpenMode: 'redirect'});
     dialogManagerMock
