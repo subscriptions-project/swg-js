@@ -81,6 +81,10 @@ export class OffersFlow {
       'list': (options && options.list) || 'default',
       'skus': (options && options.skus) || null,
       'isClosable': isClosable,
+      'analyticsContext': deps
+        .analytics()
+        .getContext()
+        .toArray(),
     };
 
     this.prorationMode = feArgsObj['replaceSkuProrationMode'] || undefined;
