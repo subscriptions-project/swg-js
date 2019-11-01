@@ -121,6 +121,9 @@ export class LinkCompleteFlow {
    * @param {?Object} response
    */
   constructor(deps, response) {
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -288,9 +291,6 @@ export class LinkSaveFlow {
       linkConfirm = new LinkCompleteFlow(this.deps_, result);
       startPromise = linkConfirm.start();
     } else {
-      this.deps_
-        .eventManager()
-        .logSwgEvent(AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL, true);
       startPromise = Promise.reject(createCancelError(this.win_, 'not linked'));
     }
     const completePromise = startPromise.then(() => {
