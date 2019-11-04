@@ -149,6 +149,7 @@ describe('api_messages', () => {
       eventparams.setSmartboxMessage('');
       eventparams.setGpayTransactionId('');
       eventparams.setHadLogged(false);
+      eventparams.setSku('');
       analyticsrequest.setParams(eventparams);
       const analyticsrequestSerialized = analyticsrequest.toArray();
       const analyticsrequestDeserialized = deserialize(
@@ -178,6 +179,7 @@ describe('api_messages', () => {
       eventparams.setSmartboxMessage('');
       eventparams.setGpayTransactionId('');
       eventparams.setHadLogged(false);
+      eventparams.setSku('');
       const eventparamsSerialized = eventparams.toArray();
       const eventparamsDeserialized = deserialize(
           eventparamsSerialized);
@@ -267,3 +269,4 @@ describe('api_messages', () => {
     });
   });
 });
+

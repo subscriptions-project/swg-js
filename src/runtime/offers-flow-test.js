@@ -16,7 +16,7 @@
 
 import {ActivityResult} from 'web-activities/activity-ports';
 import {ActivityPort} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
@@ -31,6 +31,14 @@ import {
   SubscribeResponse,
 } from '../proto/api_messages';
 
+/**
+ * @param {string} sku
+ * @return {!EventParams}
+ */
+function getEventParams(sku) {
+  return new EventParams([, , , , sku]);
+}
+
 describes.realWin('OffersFlow', {}, env => {
   let win;
   let offersFlow;
@@ -42,12 +50,14 @@ describes.realWin('OffersFlow', {}, env => {
   let port;
   let messageCallback;
   let messageMap;
+  let analyticsContext;
 
   beforeEach(() => {
     win = env.win;
     messageMap = {};
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
+    analyticsContext = runtime.analytics().getContext();
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     const eventManager = new ClientEventManager(Promise.resolve());
@@ -91,6 +101,7 @@ describes.realWin('OffersFlow', {}, env => {
           list: 'default',
           skus: null,
           isClosable: false,
+          analyticsContext: analyticsContext.toArray(),
         }
       )
       .returns(Promise.resolve(port));
@@ -122,6 +133,7 @@ describes.realWin('OffersFlow', {}, env => {
           list: 'default',
           skus: null,
           isClosable: false,
+          analyticsContext: analyticsContext.toArray(),
         }
       )
       .returns(Promise.resolve(port));
@@ -144,6 +156,7 @@ describes.realWin('OffersFlow', {}, env => {
           list: 'other',
           skus: null,
           isClosable: false,
+          analyticsContext: analyticsContext.toArray(),
         }
       )
       .returns(Promise.resolve(port));
@@ -166,6 +179,7 @@ describes.realWin('OffersFlow', {}, env => {
           list: 'default',
           skus: ['sku1', 'sku2'],
           isClosable: false,
+          analyticsContext: analyticsContext.toArray(),
         }
       )
       .returns(Promise.resolve(port));
@@ -192,6 +206,7 @@ describes.realWin('OffersFlow', {}, env => {
           skus: ['sku1', 'sku2'],
           oldSku: 'old_sku',
           isClosable: false,
+          analyticsContext: analyticsContext.toArray(),
         }
       )
       .returns(Promise.resolve(port));
@@ -230,6 +245,7 @@ describes.realWin('OffersFlow', {}, env => {
           skus: ['sku2', 'sku3'],
           oldSku: 'sku1',
           isClosable: false,
+          analyticsContext: analyticsContext.toArray(),
         }
       )
       .returns(Promise.resolve(port));
@@ -272,6 +288,7 @@ describes.realWin('OffersFlow', {}, env => {
           list: 'default',
           skus: null,
           isClosable: false,
+          analyticsContext: analyticsContext.toArray(),
         }
       )
       .returns(Promise.resolve(port));
@@ -340,7 +357,11 @@ describes.realWin('OffersFlow', {}, env => {
   it('should log IMPRESSION_OFFERS on start', () => {
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_OFFERS);
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_OFFERS,
+        null,
+        getEventParams('*')
+      );
     offersFlow.start();
   });
 });
