@@ -174,25 +174,20 @@ function compileJs(srcDir, srcFilename, destDir, options) {
     );
 
   const destFilename = options.toName || srcFilename + '.js';
-  function rebundle() {
+  async function rebundle() {
     const startTime = Date.now();
-    return toPromise(
+    await toPromise(
       bundler
         .bundle()
-        .on('error', function(err) {
-          if (err instanceof SyntaxError) {
-            console.error(colors.red('Syntax error:', err.message));
-          } else {
-            console.error(colors.red(err.message));
-          }
+        .on('error', err => {
+          console.error(colors.red(err));
         })
         .pipe(lazybuild())
         .pipe($$.rename(destFilename))
         .pipe(lazywrite())
-        .on('end', function() {})
-    ).then(() => {
-      endBuildStep('Compiled', srcFilename, startTime);
-    });
+    );
+
+    endBuildStep('Compiled', srcFilename, startTime);
   }
 
   if (options.watch) {
