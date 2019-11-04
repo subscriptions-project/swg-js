@@ -10,7 +10,7 @@ before_install:
   - unset _JAVA_OPTIONS  # JVM heap sizes break closure compiler. #11203.
   - sh -e /etc/init.d/xvfb start
   # Install yarn
-  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.17.3
+  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.19.1
   - export PATH=$HOME/.yarn/bin:$PATH
 before_script:
   - export PATH="`pwd`/node_modules/.bin:$PATH"
