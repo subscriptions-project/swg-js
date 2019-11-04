@@ -28,7 +28,7 @@ import {
 const LINK_REQUEST_ID = 'swg-link';
 
 /**
- * The flow to initiate linkback flow.
+ * The flow to link an existing publisher account to an existing google account.
  */
 export class LinkbackFlow {
   /**
@@ -227,7 +227,9 @@ export class LinkCompleteFlow {
 }
 
 /**
- * The flow to save subscription information.
+ * The flow to save subscription information from an existing publisher account
+ * to an existing google account.  The accounts may or may not already be
+ * linked.
  */
 export class LinkSaveFlow {
   /**
