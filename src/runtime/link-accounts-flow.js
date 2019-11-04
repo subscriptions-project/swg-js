@@ -102,9 +102,6 @@ export class LinkCompleteFlow {
       );
       return promise.then(
         response => {
-          deps
-            .eventManager()
-            .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
           const flow = new LinkCompleteFlow(deps, response);
           flow.start();
         },
