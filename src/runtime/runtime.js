@@ -361,6 +361,13 @@ export class Runtime {
   }
 
   /** @override */
+  setOnPaymentResponse(callback) {
+    return this.configured_(false).then(runtime =>
+      runtime.setOnPaymentResponse(callback)
+    );
+  }
+
+  /** @override */
   contribute(skuOrSubscriptionRequest) {
     return this.configured_(true).then(runtime =>
       runtime.contribute(skuOrSubscriptionRequest)
@@ -842,6 +849,11 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  setOnPaymentResponse(callback) {
+    this.callbacks_.setOnPaymentResponse(callback);
+  }
+
+  /** @override */
   subscribe(sku) {
     const errorMessage =
       'The subscribe() method can only take a sku as its parameter; ' +
@@ -986,6 +998,7 @@ function createPublicRuntime(runtime) {
     setOnNativeSubscribeRequest: runtime.setOnNativeSubscribeRequest.bind(
       runtime
     ),
+    setOnPaymentResponse: runtime.setOnPaymentResponse.bind(runtime),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
     setOnContributionResponse: runtime.setOnContributionResponse.bind(runtime),
     setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),

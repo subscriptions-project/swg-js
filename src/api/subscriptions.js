@@ -146,6 +146,12 @@ export class Subscriptions {
   setOnContributionResponse(callback) {}
 
   /**
+   * Set the payment complete callback.
+   * @param {function(!Promise<!SubscribeResponse>)} callback
+   */
+  setOnPaymentResponse(callback) {}
+
+  /**
    * Starts contributions purchase flow.
    * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
    */
