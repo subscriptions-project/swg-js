@@ -83,7 +83,7 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     });
   });
 
-  it('it should fail correctly', () => {
+  it('it should fail correctly', async () => {
     const noAccountFound = 'no account found';
     accountPromise = Promise.reject(noAccountFound);
     waitingApi = new WaitForSubscriptionLookupApi(runtime, accountPromise);
@@ -98,6 +98,21 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
       },
       reason => {
         expect(reason).to.equal(noAccountFound);
+      }
+    );
+  });
+
+  it('should reject null account promise', async () => {
+    waitingApi = new WaitForSubscriptionLookupApi(runtime);
+    dialogManagerMock.expects('completeView').once();
+    return waitingApi.start().then(
+      foundAccount => {
+        throw new Error(
+          'test failed. "' + foundAccount + '" should not be found'
+        );
+      },
+      reason => {
+        expect(reason).to.equal('No account promise provided');
       }
     );
   });
