@@ -205,7 +205,7 @@ export class LinkCompleteFlow {
   complete_(response) {
     this.deps_
       .eventManager()
-      .logSwgEvent(AnalyticsEvent.ACTION_GOOGLE_UPDATED_DISMISS, true);
+      .logSwgEvent(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
     this.callbacks_.triggerLinkComplete();
     this.callbacks_.resetLinkProgress();
     this.entitlementsManager_.setToastShown(true);
@@ -288,12 +288,6 @@ export class LinkSaveFlow {
       // When linking succeeds, start link confirmation flow
       this.dialogManager_.popupClosed();
       this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
-      this.deps_
-        .eventManager()
-        .logSwgEvent(
-          AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CONTINUE,
-          true
-        );
       linkConfirm = new LinkCompleteFlow(this.deps_, result);
       startPromise = linkConfirm.start();
     } else {
