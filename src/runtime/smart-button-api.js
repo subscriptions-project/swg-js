@@ -127,11 +127,6 @@ export class SmartSubscriptionButtonApi {
       'width': '100%',
     });
     this.button_.appendChild(this.iframe_);
-    const analyticsContext = this.deps_
-      .analytics()
-      .getContext()
-      .toArray();
-    this.args_['analyticsContext'] = analyticsContext;
     this.activityPorts_
       .openIframe(this.iframe_, this.src_, this.args_)
       .then(port => {

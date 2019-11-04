@@ -74,8 +74,8 @@ export class AnalyticsService {
      * @private @const {!AnalyticsContext}
      */
     this.context_ = new AnalyticsContext();
-
     this.context_.setTransactionId(getUuid());
+    this.activityPorts_.setAnalyticsContext(this.context_);
 
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;
@@ -184,10 +184,10 @@ export class AnalyticsService {
     if (!this.serviceReady_) {
       // TODO(sohanirao): Potentially do this even earlier
       this.doc_.getBody().appendChild(this.getElement());
+      this.setContext_();
       this.serviceReady_ = this.activityPorts_
         .openIframe(this.iframe_, this.src_, this.args_)
         .then(port => {
-          this.setContext_();
           return port.whenReady().then(() => port);
         });
     }

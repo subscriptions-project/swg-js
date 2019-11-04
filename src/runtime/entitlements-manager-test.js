@@ -26,6 +26,7 @@ import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {AnalyticsService} from './analytics-service';
 import {defaultConfig} from '../api/subscriptions';
 import {ClientEventManager} from './client-event-manager';
+import {ActivityPorts} from '../components/activities';
 
 describes.realWin('EntitlementsManager', {}, env => {
   let win;
@@ -60,6 +61,8 @@ describes.realWin('EntitlementsManager', {}, env => {
     sandbox.stub(deps, 'pageConfig').callsFake(() => pageConfig);
     sandbox.stub(deps, 'config').callsFake(() => config);
     sandbox.stub(deps, 'eventManager').callsFake(() => eventManager);
+    const activities = new ActivityPorts(win);
+    sandbox.stub(deps, 'activities').callsFake(() => activities);
     const analyticsService = new AnalyticsService(deps);
     analyticsMock = sandbox.mock(analyticsService);
     sandbox.stub(deps, 'analytics').callsFake(() => analyticsService);

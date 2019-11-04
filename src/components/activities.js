@@ -241,6 +241,33 @@ export class ActivityPorts {
   constructor(win) {
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
     this.activityPorts_ = new WebActivityPorts(win);
+
+    /** @private {?../proto/api_messages.AnalyticsContext} */
+    this.analyticsContext_ = null;
+  }
+
+  /**
+   *
+   * @param {!../proto/api_messages.AnalyticsContext} context
+   */
+  setAnalyticsContext(context) {
+    this.analyticsContext_ = context;
+  }
+  /**
+   * Adds universal arguments
+   * @param {?Object=} opt_args
+   * @return {!Object}
+   * @private
+   */
+  getArgs_(opt_args) {
+    opt_args = opt_args || {};
+    const context = this.analyticsContext_
+      ? this.analyticsContext_.toArray()
+      : null;
+    opt_args = Object.assign(opt_args, {
+      'analyticsContext': context,
+    });
+    return opt_args;
   }
 
   /**
@@ -251,6 +278,7 @@ export class ActivityPorts {
    * @return {!Promise<!ActivityIframePort>}
    */
   openIframe(iframe, url, opt_args) {
+    opt_args = this.getArgs_(opt_args);
     const activityPort = new ActivityIframePort(iframe, url, opt_args);
     return activityPort.connect().then(() => activityPort);
   }
@@ -281,6 +309,7 @@ export class ActivityPorts {
    * @return {{targetWin: ?Window}}
    */
   open(requestId, url, target, opt_args, opt_options) {
+    opt_args = this.getArgs_(opt_args);
     return this.activityPorts_.open(
       requestId,
       url,
