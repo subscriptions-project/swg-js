@@ -179,9 +179,8 @@ export class AnalyticsService {
 
   /**
    * @return {!Promise<!../components/activities.ActivityIframePort>}
-   * @private
    */
-  start_() {
+  start() {
     if (!this.serviceReady_) {
       // TODO(sohanirao): Potentially do this even earlier
       this.doc_.getBody().appendChild(this.getElement());
@@ -266,7 +265,7 @@ export class AnalyticsService {
     ) {
       return;
     }
-    this.lastAction_ = this.start_().then(port => {
+    this.lastAction_ = this.start().then(port => {
       const request = this.createLogRequest_(event);
       this.everLogged_ = true;
       port.execute(request);
