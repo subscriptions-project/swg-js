@@ -246,6 +246,13 @@ export class ActivityPorts {
     this.deps_ = deps;
   }
 
+  setDefault_(args, valueName, defaultValue) {
+    if (args[valueName]) {
+      return;
+    }
+    args[valueName] = defaultValue;
+  }
+
   /**
    * Adds universal arguments
    * @param {?Object=} args
@@ -256,11 +263,9 @@ export class ActivityPorts {
     const deps = this.deps_;
     const pageConfig = deps.pageConfig();
     args = args || {};
-    args = Object.assign(args, {
-      'analyticsContext': deps.analytics().getContext(),
-      'publicationId': pageConfig.getPublicationId(),
-      'productId': pageConfig.getProductId(),
-    });
+    this.setDefault_(args, 'analyticsContext', deps.analytics().getContext());
+    this.setDefault_(args, 'publicationId', pageConfig.getPublicationId());
+    this.setDefault_(args, 'productId', pageConfig.getProductId());
     return args;
   }
 
