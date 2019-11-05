@@ -46,29 +46,34 @@ describes.realWin('EntitlementsManager', {}, env => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
     fetcher = new XhrFetcher(win);
-    const eventManager = new ClientEventManager(Promise.resolve());
-    xhrMock = sandbox.mock(fetcher.xhr_);
-    config = defaultConfig();
-    deps = new DepsDef();
-    sandbox.stub(deps, 'win').callsFake(() => win);
-    const globalDoc = new GlobalDoc(win);
-    sandbox.stub(deps, 'doc').callsFake(() => globalDoc);
     callbacks = new Callbacks();
-    sandbox.stub(deps, 'callbacks').callsFake(() => callbacks);
+    deps = new DepsDef();
+    config = defaultConfig();
+
+    const globalDoc = new GlobalDoc(win);
+    const eventManager = new ClientEventManager(Promise.resolve());
     const storage = new Storage(win);
-    storageMock = sandbox.mock(storage);
+
+    sandbox.stub(deps, 'win').callsFake(() => win);
+    sandbox.stub(deps, 'doc').callsFake(() => globalDoc);
+    sandbox.stub(deps, 'callbacks').callsFake(() => callbacks);
     sandbox.stub(deps, 'storage').callsFake(() => storage);
     sandbox.stub(deps, 'pageConfig').callsFake(() => pageConfig);
     sandbox.stub(deps, 'config').callsFake(() => config);
     sandbox.stub(deps, 'eventManager').callsFake(() => eventManager);
-    const activities = new ActivityPorts(win);
     sandbox.stub(deps, 'activities').callsFake(() => activities);
-    const analyticsService = new AnalyticsService(deps);
-    analyticsMock = sandbox.mock(analyticsService);
     sandbox.stub(deps, 'analytics').callsFake(() => analyticsService);
+
+    const activities = new ActivityPorts(deps);
+    const analyticsService = new AnalyticsService(deps); // Relies on activites
+
+    analyticsMock = sandbox.mock(analyticsService);
+    xhrMock = sandbox.mock(fetcher.xhr_);
+    storageMock = sandbox.mock(storage);
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
+
     encryptedDocumentKey =
       '{"accessRequirements": ' +
       '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}';

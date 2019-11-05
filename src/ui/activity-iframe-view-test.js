@@ -20,6 +20,9 @@ import {ActivityPorts, ActivityIframePort} from '../components/activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {SkuSelectedResponse} from '../proto/api_messages';
+import {AnalyticsService} from '../runtime/analytics-service';
+import {PageConfig} from '../model/page-config';
+import {ClientEventManager} from '../runtime/client-event-manager';
 
 describes.realWin('ActivityIframeView', {}, env => {
   let win;
@@ -28,6 +31,7 @@ describes.realWin('ActivityIframeView', {}, env => {
   let activityIframePort;
   let activityIframeView;
   let dialog;
+  let analyticsServer;
 
   const activityArgs = {
     'publicationId': 'pub1',
@@ -39,7 +43,20 @@ describes.realWin('ActivityIframeView', {}, env => {
     win = env.win;
     src = '$frontend$/offersiframe';
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    activityPorts = new ActivityPorts(win);
+    const pageConfig = new PageConfig('pub1:label1');
+    const eventManager = new ClientEventManager(Promise.resolve());
+    const globalDoc = new GlobalDoc(win);
+    const deps = {
+      win: () => win,
+      analytics: () => analyticsServer,
+      pageConfig: () => pageConfig,
+      doc: () => globalDoc,
+      activities: () => activityPorts,
+      eventManager: () => eventManager,
+    };
+    activityPorts = new ActivityPorts(deps);
+    analyticsServer = new AnalyticsService(deps);
+
     activityIframePort = new ActivityIframePort(
       dialog.getElement(),
       src,

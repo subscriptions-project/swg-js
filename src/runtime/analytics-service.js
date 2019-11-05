@@ -75,7 +75,6 @@ export class AnalyticsService {
      */
     this.context_ = new AnalyticsContext();
     this.context_.setTransactionId(getUuid());
-    this.activityPorts_.setAnalyticsContext(this.context_);
 
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;

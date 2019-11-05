@@ -49,18 +49,19 @@ describes.realWin('ActivityPorts test', {}, env => {
 
   describe('ActivityPorts', () => {
     let activityPorts;
-    let analyticsService;
 
     beforeEach(() => {
-      activityPorts = new ActivityPorts(win);
+      let analyticsService = null;
       const deps = {
         doc: () => doc,
         activities: () => activityPorts,
         pageConfig: () => pageConfig,
         eventManager: () => eventManager,
+        win: () => win,
+        analytics: () => analyticsService,
       };
+      activityPorts = new ActivityPorts(deps);
       analyticsService = new AnalyticsService(deps);
-      activityPorts.setAnalyticsContext(analyticsService.getContext());
     });
 
     it('should delegate openIframe to ActivityIframePort', () => {
