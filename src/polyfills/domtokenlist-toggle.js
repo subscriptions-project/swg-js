@@ -15,16 +15,16 @@
  */
 
 /**
- * Polyfill for `DOMTokenList.prototype.toggle(token, opt_force)` method.
- * This is specially important because IE does not support `opt_force` attribute.
+ * Polyfill for `DOMTokenList.prototype.toggle(token, force)` method.
+ * This is specially important because IE does not support `force` attribute.
  * See https://goo.gl/hgKNYY for details.
  * @param {string} token
- * @param {boolean=} opt_force
+ * @param {boolean=} force
  * @this {DOMTokenList}
  * @return {boolean}
  */
-function domTokenListTogglePolyfill(token, opt_force) {
-  const remove = opt_force === undefined ? this.contains(token) : !opt_force;
+function domTokenListTogglePolyfill(token, force) {
+  const remove = force === undefined ? this.contains(token) : !force;
   if (remove) {
     this.remove(token);
     return false;
