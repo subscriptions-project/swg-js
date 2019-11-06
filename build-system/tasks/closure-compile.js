@@ -79,7 +79,7 @@ exports.closureCompile = function(
 };
 
 function compile(entryModuleFilenames, outputDir, outputFilename, options) {
-  return new Promise((resolve, unusedReject) => {
+  return new Promise(resolve => {
     let entryModuleFilename;
     if (entryModuleFilenames instanceof Array) {
       entryModuleFilename = entryModuleFilenames[0];
