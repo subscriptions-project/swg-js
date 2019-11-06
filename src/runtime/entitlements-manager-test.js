@@ -89,15 +89,15 @@ describes.realWin('EntitlementsManager', {}, env => {
       .once();
   }
 
-  function entitlementsResponse(entitlements, opt_options, opt_isReadyToPay) {
+  function entitlementsResponse(entitlements, options, isReadyToPay) {
     function enc(obj) {
       return base64UrlEncodeFromBytes(utf8EncodeSync(JSON.stringify(obj)));
     }
-    const options = Object.assign(
+    options = Object.assign(
       {
         exp: Math.floor(Date.now() / 1000) + 10, // 10 seconds in the future.
       },
-      opt_options || {}
+      options
     );
     const header = {};
     const payload = {
@@ -107,19 +107,19 @@ describes.realWin('EntitlementsManager', {}, env => {
     };
     return {
       'signedEntitlements': enc(header) + '.' + enc(payload) + '.SIG',
-      'isReadyToPay': opt_isReadyToPay,
+      'isReadyToPay': isReadyToPay,
     };
   }
 
-  function expectGoogleResponse(opt_options, opt_isReadyToPay) {
+  function expectGoogleResponse(options, isReadyToPay) {
     const resp = entitlementsResponse(
       {
         source: 'google',
         products: ['pub1:label1'],
         subscriptionToken: 's1',
       },
-      opt_options,
-      opt_isReadyToPay
+      options,
+      isReadyToPay
     );
     xhrMock
       .expects('fetch')
@@ -132,15 +132,15 @@ describes.realWin('EntitlementsManager', {}, env => {
     return resp;
   }
 
-  function expectNonGoogleResponse(opt_options, opt_isReadyToPay) {
+  function expectNonGoogleResponse(options, isReadyToPay) {
     const resp = entitlementsResponse(
       {
         source: 'pub1',
         products: ['pub1:label1'],
         subscriptionToken: 's2',
       },
-      opt_options,
-      opt_isReadyToPay
+      options,
+      isReadyToPay
     );
     xhrMock
       .expects('fetch')

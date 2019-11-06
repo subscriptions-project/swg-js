@@ -76,10 +76,9 @@ export function serializeQueryString(params) {
  * Consider the returned object immutable. This is enforced during
  * testing by freezing the object.
  * @param {string} url
- * @param {boolean=} opt_nocache
  * @return {!LocationDef}
  */
-export function parseUrl(url, opt_nocache) {
+export function parseUrl(url) {
   if (!a) {
     a = /** @type {!HTMLAnchorElement} */ (self.document.createElement('a'));
     cache = self.UrlCache || (self.UrlCache = Object.create(null));

@@ -194,13 +194,13 @@ export class Callbacks {
 
   /**
    * @param {string} flow
-   * @param {!Object=} opt_data
+   * @param {!Object=} data
    * @return {boolean} Whether the callback has been found.
    */
-  triggerFlowStarted(flow, opt_data) {
+  triggerFlowStarted(flow, data = {}) {
     return this.trigger_(CallbackId.FLOW_STARTED, {
       flow,
-      data: opt_data || {},
+      data,
     });
   }
 
@@ -213,13 +213,13 @@ export class Callbacks {
 
   /**
    * @param {string} flow
-   * @param {!Object=} opt_data
+   * @param {!Object=} data
    * @return {boolean} Whether the callback has been found.
    */
-  triggerFlowCanceled(flow, opt_data) {
+  triggerFlowCanceled(flow, data = {}) {
     return this.trigger_(CallbackId.FLOW_CANCELED, {
       flow,
-      data: opt_data || {},
+      data,
     });
   }
 

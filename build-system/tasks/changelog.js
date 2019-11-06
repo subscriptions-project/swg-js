@@ -44,15 +44,14 @@ const logger = require('fancy-log');
 let ReleaseMetadata;
 
 /**
- * @param {!Object=} opt_options
  * @return {!Promise}
  */
-function changelog(opt_options) {
+function changelog() {
   return getLastGithubRelease()
     .then(getGitLog)
     .then(getGithubPullRequestsMetadata)
     .then(buildChangelog)
-    .then(function(response) {
+    .then(response => {
       logger(colors.blue('\n' + response.changelog));
     })
     .catch(errHandler);

@@ -59,10 +59,10 @@ export class Subscriptions {
   clear() {}
 
   /**
-   * @param {?string=} opt_encryptedDocumentKey
+   * @param {?string=} encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements(opt_encryptedDocumentKey) {}
+  getEntitlements(encryptedDocumentKey) {}
 
   /**
    * Set the subscribe callback.
@@ -74,34 +74,34 @@ export class Subscriptions {
    * Returns a set of offers.
    * @param {{
    *   productId: (string|undefined),
-   * }=} opt_options
+   * }=} options
    * @return {!Promise<!Array<!Offer>>}
    */
-  getOffers(opt_options) {}
+  getOffers(options) {}
 
   /**
    * Starts the Offers flow.
-   * @param {!OffersRequest=} opt_options
+   * @param {!OffersRequest=} options
    */
-  showOffers(opt_options) {}
+  showOffers(options) {}
 
   /**
    * Starts the Offers flow for a subscription update.
-   * @param {!OffersRequest=} opt_options
+   * @param {!OffersRequest=} options
    */
-  showUpdateOffers(opt_options) {}
+  showUpdateOffers(options) {}
 
   /**
    * Show subscription option.
-   * @param {!OffersRequest=} opt_options
+   * @param {!OffersRequest=} options
    */
-  showSubscribeOption(opt_options) {}
+  showSubscribeOption(options) {}
 
   /**
    * Show abbreviated offers.
-   * @param {!OffersRequest=} opt_options
+   * @param {!OffersRequest=} options
    */
-  showAbbrvOffer(opt_options) {}
+  showAbbrvOffer(options) {}
 
   /**
    * Show contribution options for the users to select from.
@@ -110,9 +110,9 @@ export class Subscriptions {
    * to the publisher. These options are based on the SKUs defined in the Play
    * console for a given publication.
    * Each SKU has Amount, Period, SKUId and other attributes.
-   * @param {!OffersRequest=} opt_options
+   * @param {!OffersRequest=} options
    */
-  showContributionOptions(opt_options) {}
+  showContributionOptions(options) {}
 
   /**
    * Set the callback for the native subscribe request. Setting this callback
@@ -160,10 +160,10 @@ export class Subscriptions {
   /**
    * Starts the deferred account creation flow.
    * See `DeferredAccountCreationRequest` for more details.
-   * @param {?DeferredAccountCreationRequest=} opt_options
+   * @param {?DeferredAccountCreationRequest=} options
    * @return {!Promise<!DeferredAccountCreationResponse>}
    */
-  completeDeferredAccountCreation(opt_options) {}
+  completeDeferredAccountCreation(options) {}
 
   /**
    * @param {function(!LoginRequest)} callback
@@ -239,10 +239,10 @@ export class Subscriptions {
    * The default theme is "light".
    *
    * @param {!ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    * @return {!Element}
    */
-  createButton(optionsOrCallback, opt_callback) {}
+  createButton(optionsOrCallback, callback) {}
 
   /**
    * Attaches the SwG button style and the provided callback to an existing
@@ -250,9 +250,9 @@ export class Subscriptions {
    *
    * @param {!Element} button
    * @param {!ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    */
-  attachButton(button, optionsOrCallback, opt_callback) {}
+  attachButton(button, optionsOrCallback, callback) {}
 
   /**
    * Attaches smartButton element and the provided callback.
@@ -260,9 +260,9 @@ export class Subscriptions {
    *
    * @param {!Element} button
    * @param {!SmartButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    */
-  attachSmartButton(button, optionsOrCallback, opt_callback) {}
+  attachSmartButton(button, optionsOrCallback, callback) {}
 
   /**
    * Retrieves the propensity module that provides APIs to
