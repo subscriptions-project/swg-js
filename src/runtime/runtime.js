@@ -202,7 +202,7 @@ export class Runtime {
             new ConfiguredRuntime(
               this.doc_,
               pageConfig,
-              /* opt_integr */ {configPromise: this.configuredPromise_},
+              /* integr */ {configPromise: this.configuredPromise_},
               this.config_
             )
           );
@@ -265,9 +265,9 @@ export class Runtime {
   }
 
   /** @override */
-  getEntitlements(opt_encryptedDocumentKey) {
+  getEntitlements(encryptedDocumentKey) {
     return this.configured_(true).then(runtime =>
-      runtime.getEntitlements(opt_encryptedDocumentKey)
+      runtime.getEntitlements(encryptedDocumentKey)
     );
   }
 
@@ -279,44 +279,40 @@ export class Runtime {
   }
 
   /** @override */
-  getOffers(opt_options) {
+  getOffers(options) {
+    return this.configured_(true).then(runtime => runtime.getOffers(options));
+  }
+
+  /** @override */
+  showOffers(options) {
+    return this.configured_(true).then(runtime => runtime.showOffers(options));
+  }
+
+  /** @override */
+  showUpdateOffers(options) {
     return this.configured_(true).then(runtime =>
-      runtime.getOffers(opt_options)
+      runtime.showUpdateOffers(options)
     );
   }
 
   /** @override */
-  showOffers(opt_options) {
+  showSubscribeOption(options) {
     return this.configured_(true).then(runtime =>
-      runtime.showOffers(opt_options)
+      runtime.showSubscribeOption(options)
     );
   }
 
   /** @override */
-  showUpdateOffers(opt_options) {
+  showAbbrvOffer(options) {
     return this.configured_(true).then(runtime =>
-      runtime.showUpdateOffers(opt_options)
+      runtime.showAbbrvOffer(options)
     );
   }
 
   /** @override */
-  showSubscribeOption(opt_options) {
+  showContributionOptions(options) {
     return this.configured_(true).then(runtime =>
-      runtime.showSubscribeOption(opt_options)
-    );
-  }
-
-  /** @override */
-  showAbbrvOffer(opt_options) {
-    return this.configured_(true).then(runtime =>
-      runtime.showAbbrvOffer(opt_options)
-    );
-  }
-
-  /** @override */
-  showContributionOptions(opt_options) {
-    return this.configured_(true).then(runtime =>
-      runtime.showContributionOptions(opt_options)
+      runtime.showContributionOptions(options)
     );
   }
 
@@ -361,6 +357,13 @@ export class Runtime {
   }
 
   /** @override */
+  setOnPaymentResponse(callback) {
+    return this.configured_(false).then(runtime =>
+      runtime.setOnPaymentResponse(callback)
+    );
+  }
+
+  /** @override */
   contribute(skuOrSubscriptionRequest) {
     return this.configured_(true).then(runtime =>
       runtime.contribute(skuOrSubscriptionRequest)
@@ -368,9 +371,9 @@ export class Runtime {
   }
 
   /** @override */
-  completeDeferredAccountCreation(opt_options) {
+  completeDeferredAccountCreation(options) {
     return this.configured_(true).then(runtime =>
-      runtime.completeDeferredAccountCreation(opt_options)
+      runtime.completeDeferredAccountCreation(options)
     );
   }
 
@@ -389,8 +392,8 @@ export class Runtime {
   }
 
   /** @override */
-  linkAccount() {
-    return this.configured_(true).then(runtime => runtime.linkAccount());
+  linkAccount(params = {}) {
+    return this.configured_(true).then(runtime => runtime.linkAccount(params));
   }
 
   /** @override */
@@ -429,20 +432,20 @@ export class Runtime {
   }
 
   /** @override */
-  createButton(optionsOrCallback, opt_callback) {
-    return this.buttonApi_.create(optionsOrCallback, opt_callback);
+  createButton(optionsOrCallback, callback) {
+    return this.buttonApi_.create(optionsOrCallback, callback);
   }
 
   /** @override */
-  attachSmartButton(button, optionsOrCallback, opt_callback) {
+  attachSmartButton(button, optionsOrCallback, callback) {
     return this.configured_(true).then(runtime =>
-      runtime.attachSmartButton(button, optionsOrCallback, opt_callback)
+      runtime.attachSmartButton(button, optionsOrCallback, callback)
     );
   }
 
   /** @override */
-  attachButton(button, optionsOrCallback, opt_callback) {
-    return this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
+  attachButton(button, optionsOrCallback, callback) {
+    return this.buttonApi_.attach(button, optionsOrCallback, callback);
   }
 
   /** @override */
@@ -469,15 +472,15 @@ export class ConfiguredRuntime {
    * @param {{
    *     fetcher: (!Fetcher|undefined),
    *     configPromise: (!Promise|undefined),
-   *   }=} opt_integr
-   * @param {!../api/subscriptions.Config=} opt_config
+   *   }=} integr
+   * @param {!../api/subscriptions.Config=} config
    */
-  constructor(winOrDoc, pageConfig, opt_integr, opt_config) {
-    opt_integr = opt_integr || {};
-    opt_integr.configPromise = opt_integr.configPromise || Promise.resolve();
+  constructor(winOrDoc, pageConfig, integr, config) {
+    integr = integr || {};
+    integr.configPromise = integr.configPromise || Promise.resolve();
 
     /** @private @const {!ClientEventManager} */
-    this.eventManager_ = new ClientEventManager(opt_integr.configPromise);
+    this.eventManager_ = new ClientEventManager(integr.configPromise);
 
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
@@ -493,8 +496,8 @@ export class ConfiguredRuntime {
       // or move it to Web Activities.
       this.config_.windowOpenMode = WindowOpenMode.REDIRECT;
     }
-    if (opt_config) {
-      this.configure_(opt_config);
+    if (config) {
+      this.configure_(config);
     }
 
     /** @private @const {!../model/page-config.PageConfig} */
@@ -507,7 +510,7 @@ export class ConfiguredRuntime {
     this.jserror_ = new JsError(this.doc_);
 
     /** @private @const {!Fetcher} */
-    this.fetcher_ = opt_integr.fetcher || new XhrFetcher(this.win_);
+    this.fetcher_ = integr.fetcher || new XhrFetcher(this.win_);
 
     /** @private @const {!Storage} */
     this.storage_ = new Storage(this.win_);
@@ -528,6 +531,7 @@ export class ConfiguredRuntime {
 
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
+    this.analyticsService_.start();
 
     /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(this);
@@ -712,9 +716,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getEntitlements(opt_encryptedDocumentKey) {
+  getEntitlements(encryptedDocumentKey) {
     return this.entitlementsManager_
-      .getEntitlements(opt_encryptedDocumentKey)
+      .getEntitlements(encryptedDocumentKey)
       .then(entitlements => entitlements.clone());
   }
 
@@ -724,24 +728,24 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getOffers(opt_options) {
-    return this.offersApi_.getOffers(opt_options && opt_options.productId);
+  getOffers(options) {
+    return this.offersApi_.getOffers(options && options.productId);
   }
 
   /** @override */
-  showOffers(opt_options) {
+  showOffers(options) {
     return this.documentParsed_.then(() => {
       const errorMessage =
         'The showOffers() method cannot be used to update a subscription. ' +
         'Use the showUpdateOffers() method instead.';
-      assert(opt_options ? !opt_options['oldSku'] : true, errorMessage);
-      const flow = new OffersFlow(this, opt_options);
+      assert(options ? !options['oldSku'] : true, errorMessage);
+      const flow = new OffersFlow(this, options);
       return flow.start();
     });
   }
 
   /** @override */
-  showUpdateOffers(opt_options) {
+  showUpdateOffers(options) {
     assert(
       isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
       'Not yet launched!'
@@ -750,36 +754,36 @@ export class ConfiguredRuntime {
       const errorMessage =
         'The showUpdateOffers() method cannot be used for new subscribers. ' +
         'Use the showOffers() method instead.';
-      assert(opt_options ? !!opt_options['oldSku'] : false, errorMessage);
-      const flow = new OffersFlow(this, opt_options);
+      assert(options ? !!options['oldSku'] : false, errorMessage);
+      const flow = new OffersFlow(this, options);
       return flow.start();
     });
   }
 
   /** @override */
-  showSubscribeOption(opt_options) {
+  showSubscribeOption(options) {
     return this.documentParsed_.then(() => {
-      const flow = new SubscribeOptionFlow(this, opt_options);
+      const flow = new SubscribeOptionFlow(this, options);
       return flow.start();
     });
   }
 
   /** @override */
-  showAbbrvOffer(opt_options) {
+  showAbbrvOffer(options) {
     return this.documentParsed_.then(() => {
-      const flow = new AbbrvOfferFlow(this, opt_options);
+      const flow = new AbbrvOfferFlow(this, options);
       return flow.start();
     });
   }
 
   /** @override */
-  showContributionOptions(opt_options) {
+  showContributionOptions(options) {
     assert(
       isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
       'Not yet launched!'
     );
     return this.documentParsed_.then(() => {
-      const flow = new ContributionsFlow(this, opt_options);
+      const flow = new ContributionsFlow(this, options);
       return flow.start();
     });
   }
@@ -803,9 +807,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  linkAccount() {
+  linkAccount(params = {}) {
     return this.documentParsed_.then(() => {
-      return new LinkbackFlow(this).start();
+      return new LinkbackFlow(this).start(params);
     });
   }
 
@@ -838,6 +842,11 @@ export class ConfiguredRuntime {
   /** @override */
   setOnSubscribeResponse(callback) {
     this.callbacks_.setOnSubscribeResponse(callback);
+  }
+
+  /** @override */
+  setOnPaymentResponse(callback) {
+    this.callbacks_.setOnPaymentResponse(callback);
   }
 
   /** @override */
@@ -891,9 +900,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  completeDeferredAccountCreation(opt_options) {
+  completeDeferredAccountCreation(options) {
     return this.documentParsed_.then(() => {
-      return new DeferredAccountFlow(this, opt_options || null).start();
+      return new DeferredAccountFlow(this, options || null).start();
     });
   }
 
@@ -908,19 +917,19 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  createButton(optionsOrCallback, opt_callback) {
+  createButton(optionsOrCallback, callback) {
     // This is a minor duplication to allow this code to be sync.
-    return this.buttonApi_.create(optionsOrCallback, opt_callback);
+    return this.buttonApi_.create(optionsOrCallback, callback);
   }
 
   /** @override */
-  attachButton(button, optionsOrCallback, opt_callback) {
+  attachButton(button, optionsOrCallback, callback) {
     // This is a minor duplication to allow this code to be sync.
-    this.buttonApi_.attach(button, optionsOrCallback, opt_callback);
+    this.buttonApi_.attach(button, optionsOrCallback, callback);
   }
 
   /** @override */
-  attachSmartButton(button, optionsOrCallback, opt_callback) {
+  attachSmartButton(button, optionsOrCallback, callback) {
     assert(
       isExperimentOn(this.win_, ExperimentFlags.SMARTBOX),
       'Not yet launched!'
@@ -929,7 +938,7 @@ export class ConfiguredRuntime {
       this,
       button,
       optionsOrCallback,
-      opt_callback
+      callback
     );
   }
 
@@ -985,6 +994,7 @@ function createPublicRuntime(runtime) {
     setOnNativeSubscribeRequest: runtime.setOnNativeSubscribeRequest.bind(
       runtime
     ),
+    setOnPaymentResponse: runtime.setOnPaymentResponse.bind(runtime),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
     setOnContributionResponse: runtime.setOnContributionResponse.bind(runtime),
     setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),
