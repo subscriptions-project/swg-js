@@ -38,8 +38,7 @@ const argv = require('minimist')(process.argv.slice(2));
 /**
  * @return {!Promise}
  */
-exports.compile = function(opt_opts) {
-  const opts = opt_opts || {};
+exports.compile = async function(options = {}) {
   mkdirSync('build');
   mkdirSync('build/cc');
   mkdirSync('build/fake-module');
@@ -47,34 +46,30 @@ exports.compile = function(opt_opts) {
   mkdirSync('build/css');
 
   // Compile CSS because we need the css files in compileJs step.
-  return compileCss(
-    './src/',
-    './build/css',
-    Object.assign({}, opts || {})
-  ).then(() => {
-    // For compilation with babel we start with the main-babel entry point,
-    // but then rename to the subscriptions.js which we've been using all along.
-    return Promise.all([
-      compileJs(
-        './src/',
-        'main',
-        './dist',
-        Object.assign(
-          {
-            toName: 'subscriptions.max.js',
-            minifiedName: opts.checkTypes
-              ? 'subscriptions.checktypes.js'
-              : argv.minifiedName || 'subscriptions.js',
-            includePolyfills: true,
-            // If there is a sync JS error during initial load,
-            // at least try to unhide the body.
-            wrapper: '(function(){<%= contents %>})();',
-          },
-          opts
-        )
-      ),
-    ]);
-  });
+  await compileCss('./src/', './build/css', options);
+
+  // For compilation with babel we start with the main-babel entry point,
+  // but then rename to the subscriptions.js which we've been using all along.
+  await Promise.all([
+    compileJs(
+      './src/',
+      'main',
+      './dist',
+      Object.assign(
+        {
+          toName: 'subscriptions.max.js',
+          minifiedName: options.checkTypes
+            ? 'subscriptions.checktypes.js'
+            : argv.minifiedName || 'subscriptions.js',
+          includePolyfills: true,
+          // If there is a sync JS error during initial load,
+          // at least try to unhide the body.
+          wrapper: '(function(){<%= contents %>})();',
+        },
+        options
+      )
+    ),
+  ]);
 };
 
 /**

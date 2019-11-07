@@ -1019,12 +1019,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       setExperimentsStringForTesting('');
     });
 
-    function returnActivity(requestId, code, opt_dataOrError, opt_origin) {
+    function returnActivity(requestId, code, dataOrError, origin) {
       const activityResult = new ActivityResult(
         code,
-        opt_dataOrError,
+        dataOrError,
         'POPUP',
-        opt_origin || 'https://example.com',
+        origin || 'https://example.com',
         false,
         false
       );
@@ -1477,6 +1477,18 @@ new subscribers. Use the showOffers() method instead.'
         .stub(LinkbackFlow.prototype, 'start')
         .callsFake(() => Promise.resolve());
       return runtime.linkAccount().then(() => {
+        expect(startStub).to.be.calledOnce;
+      });
+    });
+
+    it('should start LinkbackFlow with ampReaderId', () => {
+      const startStub = sandbox
+        .stub(LinkbackFlow.prototype, 'start')
+        .callsFake(params => {
+          expect(params.ampReaderId).to.equal('ari1');
+          return Promise.resolve();
+        });
+      return runtime.linkAccount({ampReaderId: 'ari1'}).then(() => {
         expect(startStub).to.be.calledOnce;
       });
     });

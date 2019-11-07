@@ -29,7 +29,11 @@ import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {createCancelError} from '../utils/errors';
 import {ActivityPort} from '../components/activities';
-import {LinkingInfoResponse, LinkSaveTokenRequest} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  LinkingInfoResponse,
+  LinkSaveTokenRequest,
+} from '../proto/api_messages';
 
 describes.realWin('LinkbackFlow', {}, env => {
   let win;
@@ -39,6 +43,7 @@ describes.realWin('LinkbackFlow', {}, env => {
   let dialogManagerMock;
   let triggerFlowStartSpy;
   let linkbackFlow;
+  let eventManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -46,6 +51,7 @@ describes.realWin('LinkbackFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    eventManagerMock = sandbox.mock(runtime.eventManager());
     linkbackFlow = new LinkbackFlow(runtime);
     triggerFlowStartSpy = sandbox.stub(
       runtime.callbacks(),
@@ -55,6 +61,7 @@ describes.realWin('LinkbackFlow', {}, env => {
 
   afterEach(() => {
     activitiesMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should start correctly', () => {
@@ -77,7 +84,37 @@ describes.realWin('LinkbackFlow', {}, env => {
       )
       .returns({targetWin: popupWin})
       .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_LINK);
     linkbackFlow.start();
+    expect(triggerFlowStartSpy).to.be.calledOnce.calledWithExactly(
+      'linkAccount'
+    );
+  });
+
+  it('should pass along ampReaderId param', () => {
+    const popupWin = {};
+    dialogManagerMock
+      .expects('popupOpened')
+      .withExactArgs(popupWin)
+      .once();
+    activitiesMock
+      .expects('open')
+      .withExactArgs(
+        'swg-link',
+        '$frontend$/swg/_/ui/v1/linkbackstart?_=_',
+        '_blank',
+        {
+          '_client': 'SwG $internalRuntimeVersion$',
+          'publicationId': 'pub1',
+          'ampReaderId': 'ari1',
+        },
+        {}
+      )
+      .returns({targetWin: popupWin})
+      .once();
+    linkbackFlow.start({ampReaderId: 'ari1'});
     expect(triggerFlowStartSpy).to.be.calledOnce.calledWithExactly(
       'linkAccount'
     );
@@ -103,6 +140,9 @@ describes.realWin('LinkbackFlow', {}, env => {
       )
       .returns(undefined)
       .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_LINK);
     linkbackFlow.start();
   });
 });
@@ -117,6 +157,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   let linkCompleteFlow;
   let triggerLinkProgressSpy, triggerLinkCompleteSpy, triggerFlowCancelSpy;
   let port;
+  let eventManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -125,6 +166,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    eventManagerMock = sandbox.mock(runtime.eventManager());
     linkCompleteFlow = new LinkCompleteFlow(runtime, {'index': '1'});
     triggerLinkProgressSpy = sandbox.stub(
       runtime.callbacks(),
@@ -143,6 +185,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   afterEach(() => {
     activitiesMock.verify();
     entitlementsManagerMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should trigger on link response', () => {
@@ -271,6 +314,15 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       )
       .returns(Promise.resolve(port))
       .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
     return linkCompleteFlow.start();
   });
 
@@ -309,6 +361,15 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       .expects('unblockNextNotification')
       .withExactArgs()
       .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
     return linkCompleteFlow
       .start()
       .then(() => {
@@ -384,6 +445,15 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       .expects('unblockNextNotification')
       .withExactArgs()
       .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
     return linkCompleteFlow
       .start()
       .then(() => {
@@ -436,6 +506,15 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       .expects('unblockNextNotification')
       .withExactArgs()
       .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
     return linkCompleteFlow
       .start()
       .then(() => {
@@ -466,6 +545,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   let linkSaveFlow;
   let port;
   let dialogManagerMock;
+  let eventManagerMock;
   let resultResolver;
   let triggerFlowStartSpy;
   let triggerFlowCanceledSpy;
@@ -479,6 +559,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    eventManagerMock = sandbox.mock(runtime.eventManager());
     triggerFlowStartSpy = sandbox.stub(
       runtime.callbacks(),
       'triggerFlowStarted'
@@ -504,12 +585,16 @@ describes.realWin('LinkSaveFlow', {}, env => {
     });
     port.acceptResult = () => resultPromise;
     port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_SAVE_SUBSCR_TO_GOOGLE);
   });
 
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
     dialogManagerMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should have constructed valid LinkSaveFlow', () => {
@@ -555,6 +640,9 @@ describes.realWin('LinkSaveFlow', {}, env => {
     resultResolver(result);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     dialogManagerMock.expects('completeView').twice();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL, true);
     return linkSaveFlow.start().then(result => {
       expect(result).to.be.false;
       expect(triggerFlowStartSpy.notCalled).to.be.true;
@@ -567,10 +655,14 @@ describes.realWin('LinkSaveFlow', {}, env => {
     resultResolver(Promise.reject(createCancelError('linking failed')));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     dialogManagerMock.expects('completeView').twice();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL, true);
     return linkSaveFlow.start().then(result => {
       expect(result).to.be.false;
       expect(triggerFlowStartSpy.notCalled).to.be.true;
       expect(triggerFlowCanceledSpy.called).to.be.true;
+      return Promise.resolve();
     });
   });
 
@@ -806,6 +898,9 @@ describes.realWin('LinkSaveFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL, true);
     const startPromise = linkSaveFlow.start();
     linkSaveFlow.openPromise_.then(() => {
       const result = new ActivityResult(
@@ -846,6 +941,9 @@ describes.realWin('LinkSaveFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL, true);
     const startPromise = linkSaveFlow.start();
     linkSaveFlow.openPromise_.then(() => {
       const result = new ActivityResult(

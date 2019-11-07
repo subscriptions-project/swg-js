@@ -94,25 +94,24 @@ export class ButtonApi {
 
   /**
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    * @return {!Element}
    */
-  create(optionsOrCallback, opt_callback) {
+  create(optionsOrCallback, callback) {
     const button = createElement(this.doc_.getWin().document, 'button', {});
-    return this.attach(button, optionsOrCallback, opt_callback);
+    return this.attach(button, optionsOrCallback, callback);
   }
 
   /**
    * @param {!Element} button
    * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    * @return {!Element}
    */
-  attach(button, optionsOrCallback, opt_callback) {
+  attach(button, optionsOrCallback, callback) {
     const options = /** @type {!../api/subscriptions.ButtonOptions} */ (this.getOptions_(
       optionsOrCallback
     ));
-    const callback = this.getCallback_(optionsOrCallback, opt_callback);
 
     const theme = options['theme'];
     button.classList.add(`swg-button-${theme}`);
@@ -121,7 +120,10 @@ export class ButtonApi {
       button.setAttribute('lang', options['lang']);
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
-    button.addEventListener('click', callback);
+    button.addEventListener(
+      'click',
+      this.getCallback_(optionsOrCallback, callback)
+    );
     button.addEventListener('click', () => {
       this.configuredRuntimePromise_.then(configuredRuntime => {
         configuredRuntime
@@ -163,33 +165,33 @@ export class ButtonApi {
   /**
    *
    * @param {?../api/subscriptions.ButtonOptions|?../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    * @return {function()|function(Event):boolean}
    * @private
    */
-  getCallback_(optionsOrCallback, opt_callback) {
-    const callback =
+  getCallback_(optionsOrCallback, callback) {
+    return (
       /** @type {function()|function(Event):boolean} */ ((typeof optionsOrCallback ==
       'function'
         ? optionsOrCallback
-        : null) || opt_callback);
-    return callback;
+        : null) || callback)
+    );
   }
 
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!Element} button
    * @param {../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    * @return {!Element}
    */
-  attachSmartButton(deps, button, optionsOrCallback, opt_callback) {
+  attachSmartButton(deps, button, optionsOrCallback, callback) {
     const options = /** @type {!../api/subscriptions.SmartButtonOptions} */ (this.getOptions_(
       optionsOrCallback
     ));
-    const callback = /** @type {function()} */ (this.getCallback_(
+    const castedCallback = /** @type {function()} */ (this.getCallback_(
       optionsOrCallback,
-      opt_callback
+      callback
     ));
 
     // Add required CSS class, if missing.
@@ -209,7 +211,7 @@ export class ButtonApi {
       deps,
       button,
       options,
-      callback
+      castedCallback
     ).start();
   }
 }

@@ -121,11 +121,11 @@ export class ActivityIframePort {
   /**
    * @param {!HTMLIFrameElement} iframe
    * @param {string} url
-   * @param {?Object=} opt_args
+   * @param {?Object=} args
    */
-  constructor(iframe, url, opt_args) {
+  constructor(iframe, url, args) {
     /** @private @const {!web-activities/activity-ports.ActivityIframePort} */
-    this.iframePort_ = new WebActivityIframePort(iframe, url, opt_args);
+    this.iframePort_ = new WebActivityIframePort(iframe, url, args);
     /** @private @const {!Object<string, function(!Object)>} */
     this.callbackMap_ = {};
     /** @private {?function(!../proto/api_messages.Message)} */
@@ -247,11 +247,11 @@ export class ActivityPorts {
    * Start an activity within the specified iframe.
    * @param {!HTMLIFrameElement} iframe
    * @param {string} url
-   * @param {?Object=} opt_args
+   * @param {?Object=} args
    * @return {!Promise<!ActivityIframePort>}
    */
-  openIframe(iframe, url, opt_args) {
-    const activityPort = new ActivityIframePort(iframe, url, opt_args);
+  openIframe(iframe, url, args) {
+    const activityPort = new ActivityIframePort(iframe, url, args);
     return activityPort.connect().then(() => activityPort);
   }
 
@@ -276,18 +276,12 @@ export class ActivityPorts {
    * @param {string} requestId
    * @param {string} url
    * @param {string} target
-   * @param {?Object=} opt_args
-   * @param {?web-activities/activity-ports.ActivityOpenOptions=} opt_options
+   * @param {?Object=} args
+   * @param {?web-activities/activity-ports.ActivityOpenOptions=} options
    * @return {{targetWin: ?Window}}
    */
-  open(requestId, url, target, opt_args, opt_options) {
-    return this.activityPorts_.open(
-      requestId,
-      url,
-      target,
-      opt_args,
-      opt_options
-    );
+  open(requestId, url, target, args, options) {
+    return this.activityPorts_.open(requestId, url, target, args, options);
   }
 
   /**

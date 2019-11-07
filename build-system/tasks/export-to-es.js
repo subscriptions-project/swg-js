@@ -31,17 +31,17 @@ const writeFile = util.promisify(fs.writeFile);
 const exists = util.promisify(fs.pathExists);
 const mkdir = util.promisify(fs.mkdir);
 
-function runAllExportsToEs(opt_config, opt_outputs) {
-  if (opt_config) {
-    overrideConfig(opt_config);
+function runAllExportsToEs(config, outputs) {
+  if (config) {
+    overrideConfig(config);
   }
-  const outputs = Object.assign(
+  outputs = Object.assign(
     {
       config: 'dist/exports-config.js',
       swg: 'dist/exports-swg.js',
       button: 'dist/exports-swg-button.css',
     },
-    opt_outputs || {}
+    outputs
   );
   return Promise.resolve()
     .then(() => {
