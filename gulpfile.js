@@ -18,6 +18,7 @@ const $$ = require('gulp-load-plugins')();
 const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
 const {lint} = require('./build-system/tasks/lint');
+const {e2e} = require('./build-system/tasks/e2e');
 
 /** @const {number} */
 const NODE_MIN_VERSION = 4;
@@ -69,3 +70,5 @@ gulp.task('presubmit', presubmit);
 gulp.task('default', gulp.series(['watch', 'serve']));
 
 gulp.task('print-version', printVersion);
+
+gulp.task('e2e', e2e);
