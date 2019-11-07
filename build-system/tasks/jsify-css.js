@@ -60,7 +60,7 @@ const cssnano = cssnanoDecl({
  * @return {!Promise<string>} that resolves with the css content after
  *    processing
  */
-exports.jsifyCssAsync = async (filename, options) => {
+exports.jsifyCssAsync = async (filename, options = {}) => {
   options = Object.assign(
     {
       sourceMap: true,
