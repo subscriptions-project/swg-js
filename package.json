@@ -52,7 +52,7 @@
     "fancy-log": "1.3.3",
     "fetch-mock": "7.7.3",
     "fs-extra": "8.1.0",
-    "glob": "7.1.5",
+    "glob": "7.1.6",
     "gulp": "4.0.2",
     "gulp-closure-compiler": "0.4.0",
     "gulp-eslint": "6.0.0",
