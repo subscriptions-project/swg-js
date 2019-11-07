@@ -12,6 +12,7 @@ npm-debug.log
 .tm_properties
 .settings
 .vscode
+tests_output
 typings
 typings.json
 build-system/runner/TESTS-TestSuites.xml

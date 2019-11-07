@@ -82,5 +82,14 @@
     "prefer-const": 2,
     "prettier/prettier": 2,
     "radix": 2,
-  }
+  },
+  "overrides": [
+    {
+      "files": ["test/e2e/*.js", "test/e2e/**/*.js"],
+      "globals": {
+        "module": false,
+        "require": false
+      }
+    }
+  ]
 }
