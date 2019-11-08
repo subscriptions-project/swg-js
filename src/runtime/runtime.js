@@ -531,7 +531,6 @@ export class ConfiguredRuntime {
 
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
-    this.analyticsService_.start();
 
     /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(this);
