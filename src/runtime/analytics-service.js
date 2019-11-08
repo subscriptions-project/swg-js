@@ -74,8 +74,8 @@ export class AnalyticsService {
      * @private @const {!AnalyticsContext}
      */
     this.context_ = new AnalyticsContext();
-
     this.context_.setTransactionId(getUuid());
+    this.setContext_();
 
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;
@@ -187,7 +187,6 @@ export class AnalyticsService {
       this.serviceReady_ = this.activityPorts_
         .openIframe(this.iframe_, this.src_, this.args_)
         .then(port => {
-          this.setContext_();
           return port.whenReady().then(() => port);
         });
     }
