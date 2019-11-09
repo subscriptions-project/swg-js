@@ -17,7 +17,6 @@
 
 const $$ = require('gulp-load-plugins')();
 const fs = require('fs-extra');
-const gulp = $$.help(require('gulp'));
 const resolveConfig = require('./compile-config').resolveConfig;
 const version = require('./internal-version').VERSION;
 const rollup = require('rollup');
@@ -142,8 +141,9 @@ async function mkdirs(paths) {
   }
 }
 
+module.exports = {
+  runAllExportsToEs,
+  runAllExportsToAmp,
+};
 runAllExportsToEs.description = 'All exports to ES';
-gulp.task('export-to-es-all', runAllExportsToEs);
-
 runAllExportsToAmp.description = 'All exports to AMP';
-gulp.task('export-to-amp', runAllExportsToAmp);

@@ -18,12 +18,11 @@
 const $$ = require('gulp-load-plugins')();
 const colors = require('ansi-colors');
 const fs = require('fs-extra');
-const gulp = $$.help(require('gulp'));
 const log = require('fancy-log');
 const jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
 const pathLib = require('path');
 
-function distAssets() {
+function assets() {
   mkdirSync('dist');
   fs.copySync('assets/loader.svg', 'dist/loader.svg', {overwrite: true});
   return compileCss('assets/swg-button.css', 'dist/swg-button.css', {
@@ -99,5 +98,7 @@ function mkdirSync(path) {
   }
 }
 
-distAssets.description = 'Prepare assets';
-gulp.task('assets', distAssets);
+module.exports = {
+  assets,
+};
+assets.description = 'Prepare assets';
