@@ -71,11 +71,17 @@ function checkTypes() {
   return compileCheckTypes();
 }
 
-clean.description = 'Removes build output';
-gulp.task('clean', clean);
-
+module.exports = {
+  checkTypes,
+  clean,
+  dist,
+  watch,
+}
 watch.description = 'Watches for changes in files, re-build';
-gulp.task('watch', watch);
+
+checkTypes.description = 'Check JS types';
+
+clean.description = 'Removes build output';
 
 build.description = 'Builds the library';
 gulp.task('build', build);
@@ -86,7 +92,3 @@ dist.flags = {
     'Compiles with readable names. ' +
     'Great for profiling and debugging production code.',
 };
-gulp.task('dist', dist);
-
-checkTypes.description = 'Check JS types';
-gulp.task('check-types', checkTypes);

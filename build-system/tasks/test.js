@@ -260,6 +260,10 @@ if (!argv.nobuild) {
 }
 tasks.push(runTests);
 const test = gulp.series(...tasks);
+
+module.exports = {
+  test,
+};
 test.description = 'Runs tests';
 test.flags = {
   'verbose': '  With logging enabled',
@@ -281,4 +285,3 @@ test.flags = {
   'glob': '  Explicitly expands test paths using glob before passing to Karma',
   'nohelp': '  Silence help messages that are printed prior to test run',
 };
-gulp.task('test', test);
