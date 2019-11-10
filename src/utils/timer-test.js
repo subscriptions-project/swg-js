@@ -134,7 +134,10 @@ describes.realWin('Timer', {}, env => {
   it('timeoutPromise - race no timeout', () => {
     windowMock
       .expects('setTimeout')
-      .withExactArgs(sandbox.match(fn => typeof fn === 'function'), 111)
+      .withExactArgs(
+        sandbox.match(fn => typeof fn === 'function'),
+        111
+      )
       .returns(1)
       .once();
 
