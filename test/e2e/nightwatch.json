@@ -1,0 +1,21 @@
+{
+  "src_folders" : ["test/e2e/tests"],
+  "globals_path": "globalsModule.js",
+  "page_objects_path": "test/e2e/pages",
+
+  "webdriver" : {
+    "start_process": true,
+    "server_path": "node_modules/.bin/chromedriver",
+    "port": 9515
+  },
+
+  "test_settings" : {
+    "default" : {
+      "launch_url": "https://scenic-2017.appspot.com",
+      "custom_commands_path": "test/e2e/commands",
+      "desiredCapabilities": {
+        "browserName": "chrome"
+      }
+    }
+  }
+}

@@ -16,7 +16,6 @@
 'use strict';
 
 const argv = require('minimist')(process.argv.slice(2));
-const gulp = require('gulp-help')(require('gulp'));
 const colors = require('ansi-colors');
 const log = require('fancy-log');
 const nodemon = require('nodemon');
@@ -63,6 +62,9 @@ process.on('SIGINT', function() {
   process.exit();
 });
 
+module.exports = {
+  serve,
+};
 serve.description = 'Serves content in root dir over ' + getHost() + '/';
 serve.flags = {
   'host': '  Hostname or IP address to bind to (default: localhost)',
@@ -72,7 +74,6 @@ serve.flags = {
   'publicationId': '  Sample publicationId',
   'ampLocal': '  Run against local AMP installation',
 };
-gulp.task('serve', serve);
 
 function getHost() {
   return (useHttps ? 'https' : 'http') + '://' + host + ':' + port;

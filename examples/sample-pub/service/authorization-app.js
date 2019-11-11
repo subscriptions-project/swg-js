@@ -15,7 +15,6 @@
  */
 'use strict';
 
-
 /**
  * @fileoverview
  *
@@ -25,9 +24,8 @@
  */
 
 const {decrypt, fromBase64} = require('../utils/crypto');
-const app = module.exports = require('express').Router();
-app.use(require('cookie-parser')())
-
+const app = (module.exports = require('express').Router());
+app.use(require('cookie-parser')());
 
 /** @const {SubscriptionMetering} Default metering configuration. */
 const metering = {
@@ -37,27 +35,23 @@ const metering = {
   'display': true,
 };
 
-
 /** @const {SubscriptionResponse} Default metering configuration. */
 const DEFAULT_ENTITLEMENT = {'entitled': false};
-
 
 /**
  * @const {Object<string, SubscriptionResponse>} List of users and their auth
  *   state.
  */
 const users = {
-  'subscriber@gmail.com': { 'entitled': true, },
+  'subscriber@gmail.com': {'entitled': true},
   'metered@gmail.com': {
     entitled: false,
-    metering: map(metering)
+    metering: map(metering),
   },
 };
 
-
 /** @const {Object} Meta information about the users. */
 const meteringMeta = {};
-
 
 app.get('/', (req, res) => {
   const user = getUser(req);
@@ -68,20 +62,23 @@ app.get('/', (req, res) => {
     users[user]['metering'] = map(metering);
   }
   if (user && articleLink) {
-    let metering = users[user]['metering'];
-    if ((users[user] && users[user]['entitled']) ||
-        (metering && metering['quotaLeft'] == 0)) {
+    const metering = users[user]['metering'];
+    if (
+      (users[user] && users[user]['entitled']) ||
+      (metering && metering['quotaLeft'] == 0)
+    ) {
       // Nothing to do here.
     } else {
       // Not a subscribed user but has read access through metering. Update meta.
-      let articlesRead = meteringMeta[user] || [];
+      const articlesRead = meteringMeta[user] || [];
       if (articlesRead.indexOf(articleLink) == -1) {
         articlesRead.push(articleLink);
       }
       meteringMeta[user] = articlesRead;
-      users[user]['metering']['quotaLeft'] = Math.max(0,
-          metering.quotaMax - articlesRead.length);
-
+      users[user]['metering']['quotaLeft'] = Math.max(
+        0,
+        metering.quotaMax - articlesRead.length
+      );
     }
     response = users[user];
   }
@@ -93,11 +90,10 @@ app.get('/', (req, res) => {
   res.send(response);
 });
 
-
 app.get('/debug-subscribers', (req, res) => {
   const displayUsers = [];
   let i = 0;
-  for (let u in users) {
+  for (const u in users) {
     displayUsers[i] = map(users[u]);
     displayUsers[i]['id'] = u;
     displayUsers[i]['index'] = i + 1;
@@ -106,7 +102,6 @@ app.get('/debug-subscribers', (req, res) => {
   res.render('../examples/sample-pub/views/subscribers', {users: displayUsers});
 });
 
-
 function getUser(req) {
   if (!req.cookies || !req.cookies['G_PUB_USER']) {
     return '';
@@ -114,11 +109,10 @@ function getUser(req) {
   return decrypt(fromBase64(req.cookies['G_PUB_USER']));
 }
 
-
-function map(opt_initial) {
+function map(initial) {
   const obj = Object.create(null);
-  if (opt_initial) {
-    Object.assign(obj, opt_initial);
+  if (initial) {
+    Object.assign(obj, initial);
   }
   return obj;
 }

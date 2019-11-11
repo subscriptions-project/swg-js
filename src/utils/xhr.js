@@ -87,12 +87,12 @@ export class Xhr {
 
   /**
    * @param {string} input URL
-   * @param {?FetchInitDef} opt_init Fetch options object.
+   * @param {?FetchInitDef} init Fetch options object.
    * @return {!Promise<!FetchResponse>}
    */
-  fetch(input, opt_init) {
+  fetch(input, init) {
     // TODO (avimehta): Figure out if CORS needs be handled the way AMP does it.
-    const init = setupInit(opt_init);
+    init = setupInit(init);
     return this.fetch_(input, init)
       .then(
         response => response,
@@ -133,16 +133,16 @@ function normalizeMethod_(method) {
 /**
  * Sets up and normalizes the FetchInitDef
  *
- * @param {?FetchInitDef=} opt_init Fetch options object.
- * @param {string=} opt_accept The HTTP Accept header value.
+ * @param {?FetchInitDef=} init Fetch options object.
+ * @param {string=} accept The HTTP Accept header value.
  * @return {!FetchInitDef}
  */
-function setupInit(opt_init, opt_accept) {
-  const init = opt_init || /** @type {FetchInitDef} */ ({});
+function setupInit(init, accept) {
+  init = init || /** @type {FetchInitDef} */ ({});
   init.method = normalizeMethod_(init.method);
   init.headers = init.headers || {};
-  if (opt_accept) {
-    init.headers['Accept'] = opt_accept;
+  if (accept) {
+    init.headers['Accept'] = accept;
   }
   return init;
 }
