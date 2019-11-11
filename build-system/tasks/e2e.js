@@ -28,3 +28,4 @@ function e2e() {
 module.exports = {
   e2e,
 };
+e2e.description = 'Run e2e tests';

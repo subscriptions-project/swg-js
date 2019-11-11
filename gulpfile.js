@@ -21,13 +21,14 @@ const {lint} = require('./build-system/tasks/lint');
 const {e2e} = require('./build-system/tasks/e2e');
 const {changelog} = require('./build-system/tasks/changelog');
 const {checkRules} = require('./build-system/tasks/check-rules');
-const {checkTypes, clean, dist,watch} = require('./build-system/tasks/builders');
+const {build, checkTypes, clean, dist,watch} = require('./build-system/tasks/builders');
 const {serve} = require('./build-system/tasks/serve');
 const {test} = require('./build-system/tasks/test');
 const {runAllExportsToEs, runAllExportsToAmp} = require('./build-system/tasks/export-to-es');
 
 // Gulp tasks.
 gulp.task('assets', assets);
+gulp.task('build', build);
 gulp.task('changelog', changelog);
 gulp.task('lint', lint);
 gulp.task('check-types', checkTypes);
