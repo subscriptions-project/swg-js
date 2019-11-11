@@ -15,11 +15,9 @@
  */
 'use strict';
 
-const $$ = require('gulp-load-plugins')();
 const compile = require('./compile').compile;
 const compileCheckTypes = require('./compile').checkTypes;
 const del = require('del');
-const gulp = $$.help(require('gulp'));
 
 /**
  * Clean up the build artifacts.
@@ -72,6 +70,7 @@ function checkTypes() {
 }
 
 module.exports = {
+  build,
   checkTypes,
   clean,
   dist,
@@ -84,7 +83,6 @@ checkTypes.description = 'Check JS types';
 clean.description = 'Removes build output';
 
 build.description = 'Builds the library';
-gulp.task('build', build);
 
 dist.description = 'Build production binaries';
 dist.flags = {
