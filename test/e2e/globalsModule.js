@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
+/**
+ * @fileoverview Global settings for all tests.
+ */
 module.exports = {
   setupUrl: 'https://scenic-2017.appspot.com/setup',
 
