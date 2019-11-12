@@ -518,9 +518,6 @@ export class ConfiguredRuntime {
     /** @private @const {!DialogManager} */
     this.dialogManager_ = new DialogManager(this.doc_);
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = new ActivityPorts(this.win_);
-
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
@@ -528,6 +525,8 @@ export class ConfiguredRuntime {
     //analytics service and entitlements manager are constructed unless
     //you are certain they do not rely on them because they are part of that
     //definition.
+    /** @private @const {!../components/activities.ActivityPorts} */
+    this.activityPorts_ = new ActivityPorts(this);
 
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);

@@ -236,11 +236,34 @@ export class ActivityIframePort {
 
 export class ActivityPorts {
   /**
-   * @param {!Window} win
+   * @param {!../runtime/deps.DepsDef} deps
    */
-  constructor(win) {
+  constructor(deps) {
+    /** @private @const {!../runtime/deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = new WebActivityPorts(win);
+    this.activityPorts_ = new WebActivityPorts(deps.win());
+  }
+
+  /**
+   * Adds universal arguments
+   * @param {?Object=} args
+   * @return {!Object}
+   */
+  addDefaultArguments(args) {
+    const deps = this.deps_;
+    const pageConfig = deps.pageConfig();
+    const context = deps.analytics().getContext();
+    return Object.assign(
+      {
+        'analyticsContext': context.toArray(),
+        'publicationId': pageConfig.getPublicationId(),
+        'productId': pageConfig.getProductId(),
+        '_client': 'SwG $internalRuntimeVersion$',
+      },
+      args || {}
+    );
   }
 
   /**
@@ -248,9 +271,13 @@ export class ActivityPorts {
    * @param {!HTMLIFrameElement} iframe
    * @param {string} url
    * @param {?Object=} args
+   * @param {boolean=} addDefaultArguments
    * @return {!Promise<!ActivityIframePort>}
    */
-  openIframe(iframe, url, args) {
+  openIframe(iframe, url, args, addDefaultArguments = false) {
+    if (addDefaultArguments) {
+      args = this.addDefaultArguments(args);
+    }
     const activityPort = new ActivityIframePort(iframe, url, args);
     return activityPort.connect().then(() => activityPort);
   }
@@ -278,9 +305,13 @@ export class ActivityPorts {
    * @param {string} target
    * @param {?Object=} args
    * @param {?web-activities/activity-ports.ActivityOpenOptions=} options
+   * @param {boolean=} addDefaultArguments
    * @return {{targetWin: ?Window}}
    */
-  open(requestId, url, target, args, options) {
+  open(requestId, url, target, args, options, addDefaultArguments = false) {
+    if (addDefaultArguments) {
+      args = this.addDefaultArguments(args);
+    }
     return this.activityPorts_.open(requestId, url, target, args, options);
   }
 

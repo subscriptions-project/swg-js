@@ -25,13 +25,18 @@ import {ActivityPorts, ActivityIframePort} from './activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {AnalyticsRequest, AnalyticsEvent} from '../proto/api_messages';
+import {PageConfig} from '../model/page-config';
+import {AnalyticsService} from '../runtime/analytics-service';
+import {ClientEventManager} from '../runtime/client-event-manager';
 
-describes.realWin('ActivityPorts test', {}, env => {
+const publicationId = 'PUB_ID';
+
+describes.realWin('Activity Components', {}, env => {
   let win, iframe, url, dialog, doc;
 
   beforeEach(() => {
-    win = env.win;
     url = '/hello';
+    win = env.win;
     doc = new GlobalDoc(win);
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     iframe = dialog.getElement();
@@ -40,78 +45,212 @@ describes.realWin('ActivityPorts test', {}, env => {
 
   afterEach(() => {});
 
-  describe('test delegation', () => {
-    it('should delegate openIframe to ActivityIframePort', () => {
-      const activityPorts = new ActivityPorts(win);
-      sandbox
-        .stub(ActivityIframePort.prototype, 'connect')
-        .callsFake(() => Promise.resolve());
-      return activityPorts.openIframe(iframe, url).then(port => {
-        expect(port instanceof ActivityIframePort).to.be.true;
+  describe('ActivityPorts', () => {
+    let deps;
+    let activityPorts;
+    let analytics;
+    let pageConfig;
+
+    beforeEach(() => {
+      pageConfig = new PageConfig(publicationId, false);
+      deps = {
+        win: () => win,
+        pageConfig: () => pageConfig,
+        doc: () => doc,
+        eventManager: () => new ClientEventManager(Promise.resolve()),
+      };
+      activityPorts = new ActivityPorts(deps);
+      deps['activities'] = () => activityPorts;
+      analytics = new AnalyticsService(deps);
+      deps['analytics'] = () => analytics;
+    });
+
+    describe('default arguments', () => {
+      let expectedDefaults;
+
+      beforeEach(() => {
+        expectedDefaults = {
+          'analyticsContext': analytics.getContext().toArray(),
+          'publicationId': pageConfig.getPublicationId(),
+          'productId': pageConfig.getProductId(),
+          '_client': 'SwG $internalRuntimeVersion$',
+        };
+      });
+
+      it('should accept no arguments', () => {
+        expect(activityPorts.addDefaultArguments()).to.deep.equal(
+          expectedDefaults
+        );
+      });
+
+      it('should fill in an empty object', () => {
+        expect(activityPorts.addDefaultArguments({})).to.deep.equal(
+          expectedDefaults
+        );
+      });
+
+      it('should add to an existing object', () => {
+        const newArgs = {
+          aVal: 1,
+        };
+        expectedDefaults['aVal'] = 1;
+        expect(activityPorts.addDefaultArguments(newArgs)).to.deep.equal(
+          expectedDefaults
+        );
+      });
+
+      it('should not override passed values', () => {
+        const newArgs = {
+          productId: 55555555,
+        };
+        expectedDefaults['productId'] = 55555555;
+        expect(activityPorts.addDefaultArguments(newArgs)).to.deep.equal(
+          expectedDefaults
+        );
+      });
+
+      it('should not add them to open', () => {
+        let passedArgs = null;
+        sandbox
+          .stub(activityPorts.activityPorts_, 'open')
+          .callsFake((_r, _u, _t, args) => {
+            passedArgs = args;
+          });
+        activityPorts.open('', '', '');
+        expect(passedArgs).to.be.undefined;
+      });
+
+      it('should add them to open', () => {
+        let passedArgs;
+        sandbox
+          .stub(activityPorts.activityPorts_, 'open')
+          .callsFake((_r, _u, _t, args) => {
+            passedArgs = args;
+          });
+        activityPorts.open('', '', '', null, {}, true);
+        expect(passedArgs).to.deep.equal(expectedDefaults);
+      });
+
+      it('should not add them to openIframe', () => {
+        // The best test I could come up with was just to ensure it passed the
+        // arguments to addDefaultArguments and used the result.
+        let receivedArgs = null;
+        sandbox.stub(activityPorts, 'addDefaultArguments').callsFake(args => {
+          receivedArgs = args;
+          return args;
+        });
+        activityPorts.openIframe(iframe, url, {
+          a: 1,
+        });
+        expect(receivedArgs).to.be.null;
+      });
+
+      it('should add them to openIframe', () => {
+        // The best test I could come up with was just to ensure it passed the
+        // arguments to addDefaultArguments and used the result.
+        let receivedArgs;
+        sandbox.stub(activityPorts, 'addDefaultArguments').callsFake(args => {
+          receivedArgs = args;
+          return args;
+        });
+        const sentArgs = {
+          a: 1,
+        };
+        activityPorts.openIframe(iframe, url, sentArgs, true);
+        expect(sentArgs === receivedArgs).to.be.true;
       });
     });
 
-    it('should delegate open', () => {
-      const activityPorts = new ActivityPorts(win);
-      sandbox.stub(WebActivityPorts.prototype, 'open').callsFake(() => {
-        return {targetWin: null};
+    describe('function delegation', () => {
+      it('should delegate openIframe to ActivityIframePort', () => {
+        sandbox
+          .stub(ActivityIframePort.prototype, 'connect')
+          .callsFake(() => Promise.resolve());
+        return activityPorts.openIframe(iframe, url).then(port => {
+          expect(port instanceof ActivityIframePort).to.be.true;
+        });
       });
-      const opener = activityPorts.open(
-        'some_request_id',
-        '/someUrl',
-        '_top',
-        {}
-      );
-      expect(opener.targetWin).to.be.null;
-    });
 
-    it('must delegate onResult', () => {
-      const activityPorts = new ActivityPorts(win);
-      const resultHandler = portDef => {
-        return portDef.acceptResult().then(result => {
-          expect(result.data).to.deep.equal('test');
+      it('should delegate open', () => {
+        sandbox.stub(WebActivityPorts.prototype, 'open').callsFake(() => {
+          return {targetWin: null};
         });
-      };
-      let cb;
-      sandbox
-        .stub(WebActivityPorts.prototype, 'onResult')
-        .callsFake((requestId, handler) => {
-          expect(requestId).to.equal('result');
-          cb = handler;
-        });
-      activityPorts.onResult('result', resultHandler);
-      const activityPort = new WebActivityPort();
-      activityPort.acceptResult = () => {
-        const result = new ActivityResult();
-        result.data = 'test';
-        return Promise.resolve(result);
-      };
-      cb(activityPort);
-    });
+        const opener = activityPorts.open(
+          'some_request_id',
+          '/someUrl',
+          '_top',
+          {}
+        );
+        expect(opener.targetWin).to.be.null;
+      });
 
-    it('must delegate onRedirectError', () => {
-      const activityPorts = new ActivityPorts(win);
-      const redirectHandler = error => {
-        setTimeout(() => {
-          throw error;
-        });
-      };
-      sandbox
-        .stub(WebActivityPorts.prototype, 'onRedirectError')
-        .callsFake(handler => {
-          expect(handler).to.equal(redirectHandler);
-        });
-      activityPorts.onRedirectError(redirectHandler);
-    });
+      it('must delegate onResult', () => {
+        const resultHandler = portDef => {
+          return portDef.acceptResult().then(result => {
+            expect(result.data).to.deep.equal('test');
+          });
+        };
+        let cb;
+        sandbox
+          .stub(WebActivityPorts.prototype, 'onResult')
+          .callsFake((requestId, handler) => {
+            expect(requestId).to.equal('result');
+            cb = handler;
+          });
+        activityPorts.onResult('result', resultHandler);
+        const activityPort = new WebActivityPort();
+        activityPort.acceptResult = () => {
+          const result = new ActivityResult();
+          result.data = 'test';
+          return Promise.resolve(result);
+        };
+        cb(activityPort);
+      });
 
-    it('must delegate connect, disconnect and ready', () => {
-      const activityIframePort = new ActivityIframePort(iframe, url);
-      let connected = false;
-      let ready = false;
+      it('must delegate onRedirectError', () => {
+        const redirectHandler = error => {
+          setTimeout(() => {
+            throw error;
+          });
+        };
+        sandbox
+          .stub(WebActivityPorts.prototype, 'onRedirectError')
+          .callsFake(handler => {
+            expect(handler).to.equal(redirectHandler);
+          });
+        activityPorts.onRedirectError(redirectHandler);
+      });
+    });
+  });
+
+  describe('ActivityIframePort', () => {
+    let activityIframePort;
+    let connected;
+    let handler;
+    let analyticsRequest;
+    let serializedRequest;
+
+    beforeEach(() => {
+      handler = null;
+      connected = false;
       sandbox.stub(WebActivityIframePort.prototype, 'connect').callsFake(() => {
         connected = true;
         return Promise.resolve();
       });
+      sandbox
+        .stub(WebActivityIframePort.prototype, 'onMessage')
+        .callsFake(args => {
+          handler = args;
+        });
+
+      analyticsRequest = new AnalyticsRequest();
+      analyticsRequest.setEvent(AnalyticsEvent.UNKNOWN);
+      serializedRequest = analyticsRequest.toArray();
+      activityIframePort = new ActivityIframePort(iframe, url);
+    });
+
+    it('must delegate connect, disconnect and ready', () => {
+      let ready = false;
       sandbox
         .stub(WebActivityIframePort.prototype, 'disconnect')
         .callsFake(() => {
@@ -137,32 +276,19 @@ describes.realWin('ActivityPorts test', {}, env => {
     });
 
     it('should delegate getMode and attach callback to connect', () => {
-      const activityIframePort = new ActivityIframePort(iframe, url);
       sandbox
         .stub(WebActivityIframePort.prototype, 'getMode')
         .callsFake(() => ActivityMode.IFRAME);
       expect(activityIframePort.getMode()).to.equal(ActivityMode.IFRAME);
-      sandbox
-        .stub(WebActivityIframePort.prototype, 'connect')
-        .callsFake(() => Promise.resolve());
-      let handler = null;
-      sandbox
-        .stub(WebActivityIframePort.prototype, 'onMessage')
-        .callsFake(arg => {
-          handler = arg;
-        });
       return activityIframePort
         .connect()
-        .then(() => {
-          return handler;
-        })
+        .then(() => handler)
         .then(handler => {
           expect(handler).to.not.be.null;
         });
     });
 
     it('should handle resize request and delegate resized', () => {
-      const activityIframePort = new ActivityIframePort(iframe, url);
       let resized = false;
       sandbox.stub(WebActivityIframePort.prototype, 'resized').callsFake(() => {
         resized = true;
@@ -183,21 +309,9 @@ describes.realWin('ActivityPorts test', {}, env => {
     });
 
     it('should allow registering callback after connect', () => {
-      const activityIframePort = new ActivityIframePort(iframe, url);
-      let handler = null;
-      sandbox
-        .stub(WebActivityIframePort.prototype, 'connect')
-        .callsFake(() => Promise.resolve());
-      sandbox
-        .stub(WebActivityIframePort.prototype, 'onMessage')
-        .callsFake(arg => {
-          handler = arg;
-        });
       return activityIframePort
         .connect()
-        .then(() => {
-          return handler;
-        })
+        .then(() => handler)
         .then(handler => {
           expect(handler).to.not.be.null;
           handler({'sku': 'daily'});
@@ -209,10 +323,6 @@ describes.realWin('ActivityPorts test', {}, env => {
     });
 
     it('should test new messaging APIs', () => {
-      const activityIframePort = new ActivityIframePort(iframe, url);
-      const analyticsRequest = new AnalyticsRequest();
-      analyticsRequest.setEvent(AnalyticsEvent.UNKNOWN);
-      const serializedRequest = analyticsRequest.toArray();
       let payload;
       sandbox
         .stub(WebActivityIframePort.prototype, 'message')
@@ -224,20 +334,9 @@ describes.realWin('ActivityPorts test', {}, env => {
       activityIframePort.on(AnalyticsRequest, request => {
         expect(request.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
       });
-      sandbox
-        .stub(WebActivityIframePort.prototype, 'connect')
-        .callsFake(() => Promise.resolve());
-      let handler = null;
-      sandbox
-        .stub(WebActivityIframePort.prototype, 'onMessage')
-        .callsFake(args => {
-          handler = args;
-        });
       return activityIframePort
         .connect()
-        .then(() => {
-          return handler;
-        })
+        .then(() => handler)
         .then(handler => {
           expect(handler).to.not.be.null;
           handler({'RESPONSE': serializedRequest});
@@ -245,27 +344,13 @@ describes.realWin('ActivityPorts test', {}, env => {
     });
 
     it('should support on APIs', () => {
-      const activityIframePort = new ActivityIframePort(iframe, url);
-      const analyticsRequest = new AnalyticsRequest();
-      analyticsRequest.setEvent(AnalyticsEvent.UNKNOWN);
-      const serializedRequest = analyticsRequest.toArray();
       activityIframePort.on(AnalyticsRequest, request => {
         expect(request.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
       });
-      sandbox
-        .stub(WebActivityIframePort.prototype, 'connect')
-        .callsFake(() => Promise.resolve());
-      let handler = null;
-      sandbox
-        .stub(WebActivityIframePort.prototype, 'onMessage')
-        .callsFake(args => {
-          handler = args;
-        });
+
       return activityIframePort
         .connect()
-        .then(() => {
-          return handler;
-        })
+        .then(() => handler)
         .then(handler => {
           expect(handler).to.not.be.null;
           handler({'RESPONSE': serializedRequest});
