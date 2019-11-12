@@ -521,10 +521,12 @@ export class ConfiguredRuntime {
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
-    //NOTE: 'this' is passed in as a DepsDef.  Do not pass in 'this' before
-    //analytics service and entitlements manager are constructed unless
-    //you are certain they do not rely on them because they are part of that
-    //definition.
+    /* NOTE: 'this' is passed in as a DepsDef which is not yet a full complete
+     * object.  The order of sets here is very delicate for this reason.  Be
+     * cautious when modifying the order of operations until the ALL CLEAR
+     * comment below.  You should also be cautious when modifying any of these
+     * constructors (for the same reason).
+     */
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(this);
 
@@ -551,6 +553,8 @@ export class ConfiguredRuntime {
       this, // See note about 'this' above
       this.fetcher_
     );
+
+    // DepsDef definition now complete.  ALL CLEAR
 
     /** @private @const {!OffersApi} */
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
