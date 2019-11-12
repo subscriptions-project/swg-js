@@ -29,7 +29,7 @@
  *     describe('myTest', () => {
  *       // I gotta do this sandbox creation and restore for every test? Ugh...
  *       let sandbox;
- *       beforeEach(() => { sandbox = sinon.sandbox.create(); })
+ *       beforeEach(() => { sandbox = sinon.createSandbox(); })
  *       it('stubbing', () => { sandbox.stub(foo, 'bar'); });
  *       afterEach(() => { sandbox.restore(); });
  *     });
@@ -288,12 +288,10 @@ class SandboxFixture {
 
   /** @override */
   setup(env) {
-    const spec = this.spec;
-
     // Sandbox.
     let sandbox = global.sandbox;
     if (!sandbox) {
-      sandbox = global.sandbox = sinon.sandbox.create();
+      sandbox = global.sandbox = sinon.createSandbox();
       this.sandboxOwner_ = true;
     }
     env.sandbox = sandbox;

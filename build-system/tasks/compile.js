@@ -17,7 +17,6 @@
 
 const $$ = require('gulp-load-plugins')();
 const colors = require('ansi-colors');
-const log = require('fancy-log');
 const babel = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
@@ -34,6 +33,7 @@ const touch = require('touch');
 const watchify = require('watchify');
 const internalRuntimeVersion = require('./internal-version').VERSION;
 const argv = require('minimist')(process.argv.slice(2));
+const {endBuildStep, mkdirSync} = require('./helpers');
 
 /**
  * @return {!Promise}
@@ -254,37 +254,4 @@ function toPromise(readable) {
   return new Promise(function(resolve, reject) {
     readable.on('error', reject).on('end', resolve);
   });
-}
-
-/**
- * Stops the timer for the given build step and prints the execution time,
- * unless we are on Travis.
- * @param {string} stepName Name of the action, like 'Compiled' or 'Minified'
- * @param {string} targetName Name of the target, like a filename or path
- * @param {DOMHighResTimeStamp} startTime Start time of build step
- */
-function endBuildStep(stepName, targetName, startTime) {
-  const endTime = Date.now();
-  const executionTime = new Date(endTime - startTime);
-  const secs = executionTime.getSeconds();
-  const ms = executionTime.getMilliseconds().toString();
-  let timeString = '(';
-  if (secs === 0) {
-    timeString += ms + ' ms)';
-  } else {
-    timeString += secs + '.' + ms + ' s)';
-  }
-  if (!process.env.TRAVIS) {
-    log(stepName, colors.cyan(targetName), colors.green(timeString));
-  }
-}
-
-function mkdirSync(path) {
-  try {
-    fs.mkdirSync(path);
-  } catch (e) {
-    if (e.code != 'EEXIST') {
-      throw e;
-    }
-  }
 }
