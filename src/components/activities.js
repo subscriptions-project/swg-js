@@ -247,7 +247,7 @@ export class ActivityPorts {
   }
 
   /**
-   * Adds universal arguments
+   * Adds client version, publicaiton, product and logging context information.
    * @param {?Object=} args
    * @return {!Object}
    */
