@@ -247,7 +247,7 @@ export class ActivityPorts {
   }
 
   /**
-   * Adds client version, publicaiton, product and logging context information.
+   * Adds client version, publication, product and logging context information.
    * @param {?Object=} args
    * @return {!Object}
    */
