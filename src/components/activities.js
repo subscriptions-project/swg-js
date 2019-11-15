@@ -266,6 +266,18 @@ export class ActivityPorts {
     );
   }
 
+  /*
+   * Start an activity within the specified iframe.
+   * @param {!HTMLIFrameElement} iframe
+   * @param {string} url
+   * @param {?Object=} args
+   * @return {!Promise<!ActivityIframePort>}
+   */
+  openActivityIframePort_(iframe, url, args) {
+    const activityPort = new ActivityIframePort(iframe, url, args);
+    return activityPort.connect().then(() => activityPort);
+  }
+
   /**
    * Start an activity within the specified iframe.
    * @param {!HTMLIFrameElement} iframe
@@ -278,8 +290,7 @@ export class ActivityPorts {
     if (addDefaultArguments) {
       args = this.addDefaultArguments(args);
     }
-    const activityPort = new ActivityIframePort(iframe, url, args);
-    return activityPort.connect().then(() => activityPort);
+    return this.openActivityIframePort_(iframe, url, args);
   }
 
   /**

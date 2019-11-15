@@ -93,9 +93,9 @@ describes.realWin('Activity Components', {}, env => {
         const newArgs = {
           aVal: 1,
         };
-        expectedDefaults['aVal'] = 1;
+        const expectedObject = Object.assign({}, expectedDefaults, newArgs);
         expect(activityPorts.addDefaultArguments(newArgs)).to.deep.equal(
-          expectedDefaults
+          expectedObject
         );
       });
 
@@ -103,9 +103,9 @@ describes.realWin('Activity Components', {}, env => {
         const newArgs = {
           productId: 55555555,
         };
-        expectedDefaults['productId'] = 55555555;
+        const expectedObject = Object.assign({}, expectedDefaults, newArgs);
         expect(activityPorts.addDefaultArguments(newArgs)).to.deep.equal(
-          expectedDefaults
+          expectedObject
         );
       });
 
@@ -135,29 +135,37 @@ describes.realWin('Activity Components', {}, env => {
         // The best test I could come up with was just to ensure it passed the
         // arguments to addDefaultArguments and used the result.
         let receivedArgs = null;
-        sandbox.stub(activityPorts, 'addDefaultArguments').callsFake(args => {
-          receivedArgs = args;
-          return args;
-        });
-        activityPorts.openIframe(iframe, url, {
+        const sentArgs = {
           a: 1,
-        });
-        expect(receivedArgs).to.be.null;
+        };
+        sandbox
+          .stub(activityPorts, 'openActivityIframePort_')
+          .callsFake((_iframe, _url, args) => {
+            receivedArgs = args;
+            return args;
+          });
+
+        activityPorts.openIframe(iframe, url, sentArgs);
+        expect(receivedArgs).to.deep.equal(sentArgs);
       });
 
       it('should add them to openIframe', () => {
         // The best test I could come up with was just to ensure it passed the
         // arguments to addDefaultArguments and used the result.
         let receivedArgs;
-        sandbox.stub(activityPorts, 'addDefaultArguments').callsFake(args => {
-          receivedArgs = args;
-          return args;
-        });
         const sentArgs = {
           a: 1,
         };
+        sandbox
+          .stub(activityPorts, 'openActivityIframePort_')
+          .callsFake((_iframe, _url, args) => {
+            receivedArgs = args;
+            return args;
+          });
         activityPorts.openIframe(iframe, url, sentArgs, true);
-        expect(sentArgs === receivedArgs).to.be.true;
+        expect(receivedArgs).to.deep.equal(
+          activityPorts.addDefaultArguments(sentArgs)
+        );
       });
     });
 
