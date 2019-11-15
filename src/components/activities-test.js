@@ -113,7 +113,7 @@ describes.realWin('Activity Components', {}, env => {
         let passedArgs = null;
         sandbox
           .stub(activityPorts.activityPorts_, 'open')
-          .callsFake((_r, _u, _t, args) => {
+          .callsFake((_requestId, _url, _target, args) => {
             passedArgs = args;
           });
         activityPorts.open('', '', '');
@@ -124,7 +124,7 @@ describes.realWin('Activity Components', {}, env => {
         let passedArgs;
         sandbox
           .stub(activityPorts.activityPorts_, 'open')
-          .callsFake((_r, _u, _t, args) => {
+          .callsFake((_requestId, _url, _target, args) => {
             passedArgs = args;
           });
         activityPorts.open('', '', '', null, {}, true);
