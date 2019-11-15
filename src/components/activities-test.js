@@ -65,12 +65,11 @@ describes.realWin('ActivityPorts test', {}, env => {
       expect(opener.targetWin).to.be.null;
     });
 
-    it('must delegate onResult', () => {
+    it('must delegate onResult', async () => {
       const activityPorts = new ActivityPorts(win);
-      const resultHandler = portDef => {
-        return portDef.acceptResult().then(result => {
-          expect(result.data).to.deep.equal('test');
-        });
+      let result;
+      const resultHandler = async portDef => {
+        result = await portDef.acceptResult();
       };
       let cb;
       sandbox
@@ -86,7 +85,8 @@ describes.realWin('ActivityPorts test', {}, env => {
         result.data = 'test';
         return Promise.resolve(result);
       };
-      cb(activityPort);
+      await cb(activityPort);
+      expect(result.data).to.equal('test');
     });
 
     it('must delegate onRedirectError', () => {
