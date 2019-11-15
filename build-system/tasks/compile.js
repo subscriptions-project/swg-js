@@ -88,7 +88,7 @@ exports.checkTypes = function(opts) {
 };
 
 /**
- * Compile a javascript file
+ * Bundles (max) or compiles (min) a javascript file.
  *
  * @param {string} srcDir Path to the src directory
  * @param {string} srcFilename Name of the JS source file
@@ -121,9 +121,9 @@ function compileJs(srcDir, srcFilename, destDir, options) {
       });
   }
 
-  let bundler = browserify(srcDir + srcFilename + '-babel.js', {
+  let bundler = browserify(srcDir + srcFilename + '.js', {
     debug: true,
-  }).transform(babel, {loose: true});
+  }).transform(babel, {presets: ["@babel/preset-env"]});
   if (options.watch) {
     bundler = watchify(bundler);
   }
@@ -133,7 +133,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   let lazybuild = lazypipe()
     .pipe(
       source,
-      srcFilename + '-babel.js'
+      srcFilename + '.js'
     )
     .pipe(buffer);
 

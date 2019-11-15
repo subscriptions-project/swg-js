@@ -116,7 +116,6 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       'src/*.js',
       'src/**/*.js',
       '!src/*-babel.js',
-      '!third_party/babel/custom-babel-helpers.js',
       'third_party/gpay/**/*.js',
       'node_modules/promise-pjs/promise.js',
       'node_modules/web-activities/activity-ports.js',
