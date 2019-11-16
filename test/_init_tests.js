@@ -15,7 +15,6 @@
  */
 
 // This must load before all other tests.
-import '../third_party/babel/custom-babel-helpers';
 import '../src/polyfills';
 import * as describes from '../test/describes';
 import {CACHE_KEYS} from '../src/runtime/services';
