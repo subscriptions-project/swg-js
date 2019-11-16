@@ -31,7 +31,7 @@ export class SubscribeResponse {
    * @param {!string} productType
    * @param {function():!Promise} completeHandler
    */
-  constructor(raw, purchaseData, userData, entitlements, productType,
+  constructor(raw, purchaseData, userData, entitlements, oldSku, productType,
       completeHandler) {
     /** @const {string} */
     this.raw = raw;
