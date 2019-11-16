@@ -29,7 +29,7 @@ module.exports = {
   browserify: {
     watch: true,
     debug: true,
-    transform: [['babelify', {whitelist: ['es7.asyncFunctions']}]],
+    transform: [['babelify', {presets: ["@babel/preset-env"]}]],
     bundleDelay: 900,
   },
 

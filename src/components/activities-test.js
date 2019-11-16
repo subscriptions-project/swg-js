@@ -192,17 +192,17 @@ describes.realWin('Activity Components', {}, env => {
         expect(opener.targetWin).to.be.null;
       });
 
-      it('must delegate onResult', () => {
-        const resultHandler = portDef => {
-          return portDef.acceptResult().then(result => {
-            expect(result.data).to.deep.equal('test');
-          });
+      it('must delegate onResult', async () => {
+        let result;
+        const resultHandler = async portDef => {
+          result = await portDef.acceptResult();
         };
         let cb;
+        let requestId;
         sandbox
           .stub(WebActivityPorts.prototype, 'onResult')
-          .callsFake((requestId, handler) => {
-            expect(requestId).to.equal('result');
+          .callsFake((reqId, handler) => {
+            requestId = reqId;
             cb = handler;
           });
         activityPorts.onResult('result', resultHandler);
@@ -212,7 +212,10 @@ describes.realWin('Activity Components', {}, env => {
           result.data = 'test';
           return Promise.resolve(result);
         };
-        cb(activityPort);
+        await cb(activityPort);
+
+        expect(requestId).to.equal('result');
+        expect(result.data).to.equal('test');
       });
 
       it('must delegate onRedirectError', () => {
