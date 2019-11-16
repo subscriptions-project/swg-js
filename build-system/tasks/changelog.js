@@ -26,7 +26,6 @@ const colors = require('ansi-colors');
 const git = require('gulp-git');
 const gitExec = BBPromise.promisify(git.exec);
 const githubRequest = require('./github').githubRequest;
-const gulp = require('gulp-help')(require('gulp'));
 const logger = require('fancy-log');
 
 /**
@@ -44,15 +43,14 @@ const logger = require('fancy-log');
 let ReleaseMetadata;
 
 /**
- * @param {!Object=} opt_options
  * @return {!Promise}
  */
-function changelog(opt_options) {
+function changelog() {
   return getLastGithubRelease()
     .then(getGitLog)
     .then(getGithubPullRequestsMetadata)
     .then(buildChangelog)
-    .then(function(response) {
+    .then(response => {
       logger(colors.blue('\n' + response.changelog));
     })
     .catch(errHandler);
@@ -205,5 +203,7 @@ function errHandler(err) {
   logger(colors.red(msg));
 }
 
+module.exports = {
+  changelog,
+};
 changelog.description = 'Change log since last release';
-gulp.task('changelog', changelog);

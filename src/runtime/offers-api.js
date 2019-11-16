@@ -30,11 +30,10 @@ export class OffersApi {
   }
 
   /**
-   * @param {string=} opt_productId
+   * @param {?string=} productId
    * @return {!Promise<!Array<!../api/offer.Offer>>}
    */
-  getOffers(opt_productId) {
-    const productId = opt_productId || this.config_.getProductId();
+  getOffers(productId = this.config_.getProductId()) {
     if (!productId) {
       throw new Error('getOffers requires productId in config or arguments');
     }

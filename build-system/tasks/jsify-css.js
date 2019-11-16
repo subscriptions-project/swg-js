@@ -56,17 +56,16 @@ const cssnano = cssnanoDecl({
  * to the stylesheet
  *
  * @param {string} filename css file
- * @param {?Object=} opt_options
+ * @param {?Object=} options
  * @return {!Promise<string>} that resolves with the css content after
  *    processing
  */
-exports.jsifyCssAsync = async (filename, opt_options) => {
-  const options = Object.assign(
+exports.jsifyCssAsync = async (filename, options = {}) => {
+  options = Object.assign(
     {
       sourceMap: true,
     },
-    opt_options,
-    {}
+    options
   );
   const originalCss = fs.readFileSync(filename, 'utf8');
   const transformers = [cssprefixer, cssnano];

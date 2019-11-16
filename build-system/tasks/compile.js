@@ -17,7 +17,6 @@
 
 const $$ = require('gulp-load-plugins')();
 const colors = require('ansi-colors');
-const log = require('fancy-log');
 const babel = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
@@ -34,12 +33,12 @@ const touch = require('touch');
 const watchify = require('watchify');
 const internalRuntimeVersion = require('./internal-version').VERSION;
 const argv = require('minimist')(process.argv.slice(2));
+const {endBuildStep, mkdirSync} = require('./helpers');
 
 /**
  * @return {!Promise}
  */
-exports.compile = function(opt_opts) {
-  const opts = opt_opts || {};
+exports.compile = async function(options = {}) {
   mkdirSync('build');
   mkdirSync('build/cc');
   mkdirSync('build/fake-module');
@@ -47,34 +46,30 @@ exports.compile = function(opt_opts) {
   mkdirSync('build/css');
 
   // Compile CSS because we need the css files in compileJs step.
-  return compileCss(
-    './src/',
-    './build/css',
-    Object.assign({}, opts || {})
-  ).then(() => {
-    // For compilation with babel we start with the main-babel entry point,
-    // but then rename to the subscriptions.js which we've been using all along.
-    return Promise.all([
-      compileJs(
-        './src/',
-        'main',
-        './dist',
-        Object.assign(
-          {
-            toName: 'subscriptions.max.js',
-            minifiedName: opts.checkTypes
-              ? 'subscriptions.checktypes.js'
-              : argv.minifiedName || 'subscriptions.js',
-            includePolyfills: true,
-            // If there is a sync JS error during initial load,
-            // at least try to unhide the body.
-            wrapper: '(function(){<%= contents %>})();',
-          },
-          opts
-        )
-      ),
-    ]);
-  });
+  await compileCss('./src/', './build/css', options);
+
+  // For compilation with babel we start with the main-babel entry point,
+  // but then rename to the subscriptions.js which we've been using all along.
+  await Promise.all([
+    compileJs(
+      './src/',
+      'main',
+      './dist',
+      Object.assign(
+        {
+          toName: 'subscriptions.max.js',
+          minifiedName: options.checkTypes
+            ? 'subscriptions.checktypes.js'
+            : argv.minifiedName || 'subscriptions.js',
+          includePolyfills: true,
+          // If there is a sync JS error during initial load,
+          // at least try to unhide the body.
+          wrapper: '(function(){<%= contents %>})();',
+        },
+        options
+      )
+    ),
+  ]);
 };
 
 /**
@@ -259,37 +254,4 @@ function toPromise(readable) {
   return new Promise(function(resolve, reject) {
     readable.on('error', reject).on('end', resolve);
   });
-}
-
-/**
- * Stops the timer for the given build step and prints the execution time,
- * unless we are on Travis.
- * @param {string} stepName Name of the action, like 'Compiled' or 'Minified'
- * @param {string} targetName Name of the target, like a filename or path
- * @param {DOMHighResTimeStamp} startTime Start time of build step
- */
-function endBuildStep(stepName, targetName, startTime) {
-  const endTime = Date.now();
-  const executionTime = new Date(endTime - startTime);
-  const secs = executionTime.getSeconds();
-  const ms = executionTime.getMilliseconds().toString();
-  let timeString = '(';
-  if (secs === 0) {
-    timeString += ms + ' ms)';
-  } else {
-    timeString += secs + '.' + ms + ' s)';
-  }
-  if (!process.env.TRAVIS) {
-    log(stepName, colors.cyan(targetName), colors.green(timeString));
-  }
-}
-
-function mkdirSync(path) {
-  try {
-    fs.mkdirSync(path);
-  } catch (e) {
-    if (e.code != 'EEXIST') {
-      throw e;
-    }
-  }
 }

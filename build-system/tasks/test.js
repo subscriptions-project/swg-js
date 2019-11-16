@@ -31,6 +31,8 @@ const green = colors.green;
 const yellow = colors.yellow;
 const cyan = colors.cyan;
 
+const {build} = require('./builders');
+
 /**
  * Read in and process the configuration settings for karma
  * @return {!Object} Karma configuration
@@ -67,14 +69,6 @@ function printArgvMessages() {
     verbose: 'Enabling verbose mode. Expect lots of output!',
     testnames: 'Listing the names of all tests being run.',
     files: 'Running tests in the file(s): ' + cyan(argv.files),
-    integration:
-      'Running only the integration tests. Requires ' +
-      cyan('gulp build') +
-      ' to have been run first.',
-    unit:
-      'Running only the unit tests. Requires ' +
-      cyan('gulp css') +
-      ' to have been run first.',
     randomize: 'Randomizing the order in which tests are run.',
     seed: 'Randomizing test order with seed ' + cyan(argv.seed) + '.',
     compiled: 'Running tests against minified code.',
@@ -252,14 +246,14 @@ function runTests(done) {
 
 const tasks = [];
 if (!argv.nobuild) {
-  if (argv.unit) {
-    tasks.push('css');
-  } else {
-    tasks.push('build');
-  }
+  tasks.push(build);
 }
 tasks.push(runTests);
 const test = gulp.series(...tasks);
+
+module.exports = {
+  test,
+};
 test.description = 'Runs tests';
 test.flags = {
   'verbose': '  With logging enabled',
@@ -269,8 +263,6 @@ test.flags = {
   'firefox': '  Runs tests on Firefox',
   'edge': '  Runs tests on Edge',
   'ie': '  Runs tests on IE',
-  'unit': '  Run only unit tests.',
-  'integration': '  Run only integration tests.',
   'compiled':
     '  Changes integration tests to use production JS ' +
     'binaries for execution',
@@ -281,4 +273,3 @@ test.flags = {
   'glob': '  Explicitly expands test paths using glob before passing to Karma',
   'nohelp': '  Silence help messages that are printed prior to test run',
 };
-gulp.task('test', test);

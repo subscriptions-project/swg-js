@@ -121,11 +121,11 @@ export class ActivityIframePort {
   /**
    * @param {!HTMLIFrameElement} iframe
    * @param {string} url
-   * @param {?Object=} opt_args
+   * @param {?Object=} args
    */
-  constructor(iframe, url, opt_args) {
+  constructor(iframe, url, args) {
     /** @private @const {!web-activities/activity-ports.ActivityIframePort} */
-    this.iframePort_ = new WebActivityIframePort(iframe, url, opt_args);
+    this.iframePort_ = new WebActivityIframePort(iframe, url, args);
     /** @private @const {!Object<string, function(!Object)>} */
     this.callbackMap_ = {};
     /** @private {?function(!../proto/api_messages.Message)} */
@@ -236,23 +236,61 @@ export class ActivityIframePort {
 
 export class ActivityPorts {
   /**
-   * @param {!Window} win
+   * @param {!../runtime/deps.DepsDef} deps
    */
-  constructor(win) {
+  constructor(deps) {
+    /** @private @const {!../runtime/deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = new WebActivityPorts(win);
+    this.activityPorts_ = new WebActivityPorts(deps.win());
+  }
+
+  /**
+   * Adds client version, publication, product and logging context information.
+   * @param {?Object=} args
+   * @return {!Object}
+   */
+  addDefaultArguments(args) {
+    const deps = this.deps_;
+    const pageConfig = deps.pageConfig();
+    const context = deps.analytics().getContext();
+    return Object.assign(
+      {
+        'analyticsContext': context.toArray(),
+        'publicationId': pageConfig.getPublicationId(),
+        'productId': pageConfig.getProductId(),
+        '_client': 'SwG $internalRuntimeVersion$',
+      },
+      args || {}
+    );
+  }
+
+  /*
+   * Start an activity within the specified iframe.
+   * @param {!HTMLIFrameElement} iframe
+   * @param {string} url
+   * @param {?Object=} args
+   * @return {!Promise<!ActivityIframePort>}
+   */
+  openActivityIframePort_(iframe, url, args) {
+    const activityPort = new ActivityIframePort(iframe, url, args);
+    return activityPort.connect().then(() => activityPort);
   }
 
   /**
    * Start an activity within the specified iframe.
    * @param {!HTMLIFrameElement} iframe
    * @param {string} url
-   * @param {?Object=} opt_args
+   * @param {?Object=} args
+   * @param {boolean=} addDefaultArguments
    * @return {!Promise<!ActivityIframePort>}
    */
-  openIframe(iframe, url, opt_args) {
-    const activityPort = new ActivityIframePort(iframe, url, opt_args);
-    return activityPort.connect().then(() => activityPort);
+  openIframe(iframe, url, args, addDefaultArguments = false) {
+    if (addDefaultArguments) {
+      args = this.addDefaultArguments(args);
+    }
+    return this.openActivityIframePort_(iframe, url, args);
   }
 
   /**
@@ -276,18 +314,16 @@ export class ActivityPorts {
    * @param {string} requestId
    * @param {string} url
    * @param {string} target
-   * @param {?Object=} opt_args
-   * @param {?web-activities/activity-ports.ActivityOpenOptions=} opt_options
+   * @param {?Object=} args
+   * @param {?web-activities/activity-ports.ActivityOpenOptions=} options
+   * @param {boolean=} addDefaultArguments
    * @return {{targetWin: ?Window}}
    */
-  open(requestId, url, target, opt_args, opt_options) {
-    return this.activityPorts_.open(
-      requestId,
-      url,
-      target,
-      opt_args,
-      opt_options
-    );
+  open(requestId, url, target, args, options, addDefaultArguments = false) {
+    if (addDefaultArguments) {
+      args = this.addDefaultArguments(args);
+    }
+    return this.activityPorts_.open(requestId, url, target, args, options);
   }
 
   /**
