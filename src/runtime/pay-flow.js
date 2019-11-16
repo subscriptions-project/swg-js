@@ -254,11 +254,10 @@ export class PayCompleteFlow {
     );
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
-    // TODO(dianajing): find a way to specify whether response is a subscription update
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'productType': this.response_['productType'],
-      // 'isSubscriptionUpdate': !!response.oldSku,
+      'isSubscriptionUpdate': !!this.response_['oldSku'],
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
@@ -395,6 +394,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
   let swgData = null;
   let raw = null;
   let productType = null;
+  let oldSku = null;
   if (data) {
     if (typeof data == 'string') {
       raw = /** @type {string} */ (data);
@@ -409,6 +409,9 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
         swgData = /** @type {!Object} */ (json['swgCallbackData']);
       } else if ('integratorClientCallbackData' in json) {
         raw = json['integratorClientCallbackData'];
+      }
+      if ('swgRequest' in data) {
+        oldSku = data['swgRequest']['oldSku'] || null;
       }
     }
   }
@@ -431,6 +434,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     parsePurchaseData(swgData),
     parseUserData(swgData),
     parseEntitlements(deps, swgData),
+    oldSku,
     productType,
     completeHandler
   );
