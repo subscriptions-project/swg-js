@@ -213,6 +213,7 @@ describes.realWin('Activity Components', {}, env => {
           return Promise.resolve(result);
         };
         await cb(activityPort);
+
         expect(requestId).to.equal('result');
         expect(result.data).to.equal('test');
       });
