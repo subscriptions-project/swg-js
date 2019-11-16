@@ -319,15 +319,23 @@ describes.realWin('AnalyticsService', {}, env => {
      * originator if shouldLog is true.
      * @param {!EventOriginator} originator
      * @param {boolean} shouldLog
+     * @param {AnalyticsEvent=} eventType
      */
-    const testOriginator = function(originator, shouldLog) {
+    const testOriginator = function(originator, shouldLog, eventType) {
       const prevOriginator = event.eventOriginator;
+      const prevType = event.eventType;
       analyticsService.lastAction_ = null;
       event.eventOriginator = originator;
+      if (eventType) {
+        event.eventType = eventType;
+      }
       registeredCallback(event);
       const didLog = analyticsService.lastAction_ !== null;
       expect(shouldLog).to.equal(didLog);
       event.eventOriginator = prevOriginator;
+      if (eventType) {
+        event.eventType = prevType;
+      }
     };
 
     it('should not log publisher events by default', () => {
@@ -344,6 +352,14 @@ describes.realWin('AnalyticsService', {}, env => {
       testOriginator(EventOriginator.AMP_CLIENT, true);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
       testOriginator(EventOriginator.PUBLISHER_CLIENT, true);
+    });
+
+    it('should always log page load event in AMP', () => {
+      testOriginator(
+        EventOriginator.AMP_CLIENT,
+        true,
+        AnalyticsEvent.IMPRESSION_PAGE_LOAD
+      );
     });
   });
 
