@@ -17,7 +17,6 @@
 
 const $$ = require('gulp-load-plugins')();
 const fs = require('fs-extra');
-const gulp = $$.help(require('gulp'));
 const resolveConfig = require('./compile-config').resolveConfig;
 const version = require('./internal-version').VERSION;
 const rollup = require('rollup');
@@ -31,17 +30,17 @@ const writeFile = util.promisify(fs.writeFile);
 const exists = util.promisify(fs.pathExists);
 const mkdir = util.promisify(fs.mkdir);
 
-function runAllExportsToEs(opt_config, opt_outputs) {
-  if (opt_config) {
-    overrideConfig(opt_config);
+function runAllExportsToEs(config, outputs) {
+  if (config) {
+    overrideConfig(config);
   }
-  const outputs = Object.assign(
+  outputs = Object.assign(
     {
       config: 'dist/exports-config.js',
       swg: 'dist/exports-swg.js',
       button: 'dist/exports-swg-button.css',
     },
-    opt_outputs || {}
+    outputs
   );
   return Promise.resolve()
     .then(() => {
@@ -142,8 +141,9 @@ async function mkdirs(paths) {
   }
 }
 
+module.exports = {
+  runAllExportsToEs,
+  runAllExportsToAmp,
+};
 runAllExportsToEs.description = 'All exports to ES';
-gulp.task('export-to-es-all', runAllExportsToEs);
-
 runAllExportsToAmp.description = 'All exports to AMP';
-gulp.task('export-to-amp', runAllExportsToAmp);

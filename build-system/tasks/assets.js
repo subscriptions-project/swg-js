@@ -16,14 +16,12 @@
 'use strict';
 
 const $$ = require('gulp-load-plugins')();
-const colors = require('ansi-colors');
 const fs = require('fs-extra');
-const gulp = $$.help(require('gulp'));
-const log = require('fancy-log');
 const jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
 const pathLib = require('path');
+const {endBuildStep, mkdirSync} = require('./helpers');
 
-function distAssets() {
+function assets() {
   mkdirSync('dist');
   fs.copySync('assets/loader.svg', 'dist/loader.svg', {overwrite: true});
   return compileCss('assets/swg-button.css', 'dist/swg-button.css', {
@@ -66,38 +64,7 @@ function compileCss(srcFile, outputFile, options) {
     });
 }
 
-/**
- * Stops the timer for the given build step and prints the execution time,
- * unless we are on Travis.
- * @param {string} stepName Name of the action, like 'Compiled' or 'Minified'
- * @param {string} targetName Name of the target, like a filename or path
- * @param {DOMHighResTimeStamp} startTime Start time of build step
- */
-function endBuildStep(stepName, targetName, startTime) {
-  const endTime = Date.now();
-  const executionTime = new Date(endTime - startTime);
-  const secs = executionTime.getSeconds();
-  const ms = executionTime.getMilliseconds().toString();
-  let timeString = '(';
-  if (secs === 0) {
-    timeString += ms + ' ms)';
-  } else {
-    timeString += secs + '.' + ms + ' s)';
-  }
-  if (!process.env.TRAVIS) {
-    log(stepName, colors.cyan(targetName), colors.green(timeString));
-  }
-}
-
-function mkdirSync(path) {
-  try {
-    fs.mkdirSync(path);
-  } catch (e) {
-    if (e.code != 'EEXIST') {
-      throw e;
-    }
-  }
-}
-
-distAssets.description = 'Prepare assets';
-gulp.task('assets', distAssets);
+module.exports = {
+  assets,
+};
+assets.description = 'Prepare assets';

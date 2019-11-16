@@ -28,6 +28,7 @@ describes.realWin('ActivityIframeView', {}, env => {
   let activityIframePort;
   let activityIframeView;
   let dialog;
+  let deps;
 
   const activityArgs = {
     'publicationId': 'pub1',
@@ -39,7 +40,10 @@ describes.realWin('ActivityIframeView', {}, env => {
     win = env.win;
     src = '$frontend$/offersiframe';
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    activityPorts = new ActivityPorts(win);
+    deps = {
+      win: () => win,
+    };
+    activityPorts = new ActivityPorts(deps);
     activityIframePort = new ActivityIframePort(
       dialog.getElement(),
       src,

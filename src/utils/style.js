@@ -193,11 +193,11 @@ function getVendorJsPropertyName_(style, titleCase) {
  * @export
  * @param {!Object} style
  * @param {string} camelCase the camel cased version of a css property name
- * @param {boolean=} opt_bypassCache bypass the memoized cache of property
+ * @param {boolean=} bypassCache bypass the memoized cache of property
  *   mapping
  * @return {string}
  */
-export function getVendorJsPropertyName(style, camelCase, opt_bypassCache) {
+export function getVendorJsPropertyName(style, camelCase, bypassCache) {
   if (startsWith(camelCase, '--')) {
     // CSS vars are returned as is.
     return camelCase;
@@ -206,7 +206,7 @@ export function getVendorJsPropertyName(style, camelCase, opt_bypassCache) {
     propertyNameCache = map();
   }
   let propertyName = propertyNameCache[camelCase];
-  if (!propertyName || opt_bypassCache) {
+  if (!propertyName || bypassCache) {
     propertyName = camelCase;
     if (style[camelCase] === undefined) {
       const titleCase = camelCaseToTitleCase(camelCase);
@@ -216,7 +216,7 @@ export function getVendorJsPropertyName(style, camelCase, opt_bypassCache) {
         propertyName = prefixedPropertyName;
       }
     }
-    if (!opt_bypassCache) {
+    if (!bypassCache) {
       propertyNameCache[camelCase] = propertyName;
     }
   }
@@ -244,18 +244,18 @@ export function setImportantStyles(element, styles) {
  * @param {Element} element
  * @param {string} property
  * @param {?string|number|boolean} value
- * @param {string=} opt_units
- * @param {boolean=} opt_bypassCache
+ * @param {string=} units
+ * @param {boolean=} bypassCache
  */
-export function setStyle(element, property, value, opt_units, opt_bypassCache) {
+export function setStyle(element, property, value, units, bypassCache) {
   const propertyName = getVendorJsPropertyName(
     element.style,
     property,
-    opt_bypassCache
+    bypassCache
   );
   if (propertyName) {
-    element.style[propertyName] = /** @type {string} */ (opt_units
-      ? value + opt_units
+    element.style[propertyName] = /** @type {string} */ (units
+      ? value + units
       : value);
   }
 }
@@ -264,14 +264,14 @@ export function setStyle(element, property, value, opt_units, opt_bypassCache) {
  * Returns the value of the CSS style of the specified element.
  * @param {!Element} element
  * @param {string} property
- * @param {boolean=} opt_bypassCache
+ * @param {boolean=} bypassCache
  * @return {*}
  */
-export function getStyle(element, property, opt_bypassCache) {
+export function getStyle(element, property, bypassCache) {
   const propertyName = getVendorJsPropertyName(
     element.style,
     property,
-    opt_bypassCache
+    bypassCache
   );
   if (!propertyName) {
     return undefined;
@@ -294,13 +294,13 @@ export function setStyles(element, styles) {
 /**
  * Shows or hides the specified element.
  * @param {!Element} element
- * @param {boolean=} opt_display
+ * @param {boolean=} display
  */
-export function toggle(element, opt_display) {
-  if (opt_display === undefined) {
-    opt_display = getStyle(element, 'display') == 'none';
+export function toggle(element, display) {
+  if (display === undefined) {
+    display = getStyle(element, 'display') == 'none';
   }
-  setStyle(element, 'display', opt_display ? '' : 'none');
+  setStyle(element, 'display', display ? '' : 'none');
 }
 
 /**
@@ -327,20 +327,20 @@ export function translateX(value) {
 /**
  * Returns a "translateX" for CSS "transform" property.
  * @param {number|string} x
- * @param {(number|string)=} opt_y
+ * @param {(number|string)=} y
  * @return {string}
  */
-export function translate(x, opt_y) {
+export function translate(x, y) {
   if (typeof x == 'number') {
     x = px(x);
   }
-  if (opt_y === undefined) {
+  if (y === undefined) {
     return `translate(${x})`;
   }
-  if (typeof opt_y == 'number') {
-    opt_y = px(opt_y);
+  if (typeof y == 'number') {
+    y = px(y);
   }
-  return `translate(${x}, ${opt_y})`;
+  return `translate(${x}, ${y})`;
 }
 
 /**

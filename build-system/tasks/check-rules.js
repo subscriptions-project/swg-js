@@ -364,7 +364,7 @@ function isMissingTerms(file) {
  * Check a file for all the required terms and
  * any forbidden terms and log any errors found.
  */
-function checkForbiddenAndRequiredTerms() {
+function checkRules() {
   let forbiddenFound = false;
   let missingRequirements = false;
   return gulp
@@ -399,6 +399,8 @@ function checkForbiddenAndRequiredTerms() {
     });
 }
 
-checkForbiddenAndRequiredTerms.description =
+module.exports = {
+  checkRules,
+};
+checkRules.description =
   'Run validation against files to check for forbidden and required terms';
-gulp.task('check-rules', checkForbiddenAndRequiredTerms);
