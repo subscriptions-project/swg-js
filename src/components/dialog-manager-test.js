@@ -33,21 +33,17 @@ describes.realWin('DialogManager', {}, env => {
     dialogManager = new DialogManager(new GlobalDoc(win));
     currentView = null;
     initView = {
-      whenComplete: function() {
-        return Promise.resolve(true);
-      },
+      whenComplete: () => Promise.resolve(true),
     };
     dialogIfc = {
-      open: sandbox.stub(Dialog.prototype, 'open').callsFake(function() {
+      open: sandbox.stub(Dialog.prototype, 'open').callsFake(() => {
         return Promise.resolve(this);
       }),
-      close: sandbox.stub(Dialog.prototype, 'close').callsFake(function() {}),
-      openView: sandbox
-        .stub(Dialog.prototype, 'openView')
-        .callsFake(function(view) {
-          currentView = view;
-          return Promise.resolve();
-        }),
+      close: sandbox.stub(Dialog.prototype, 'close').callsFake(() => {}),
+      openView: sandbox.stub(Dialog.prototype, 'openView').callsFake(view => {
+        currentView = view;
+        return Promise.resolve();
+      }),
       getCurrentView: sandbox
         .stub(Dialog.prototype, 'getCurrentView')
         .callsFake(() => currentView),
