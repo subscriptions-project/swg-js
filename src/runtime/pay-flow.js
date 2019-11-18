@@ -434,9 +434,9 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     parsePurchaseData(swgData),
     parseUserData(swgData),
     parseEntitlements(deps, swgData),
-    oldSku,
     productType,
-    completeHandler
+    completeHandler,
+    oldSku,
   );
 }
 

@@ -27,12 +27,12 @@ export class SubscribeResponse {
    * @param {!PurchaseData} purchaseData
    * @param {?UserData} userData
    * @param {?Entitlements} entitlements
-   * @param {?string} oldSku
    * @param {!string} productType
    * @param {function():!Promise} completeHandler
+   * @param {?string?} oldSku
    */
-  constructor(raw, purchaseData, userData, entitlements, oldSku, productType,
-      completeHandler) {
+  constructor(raw, purchaseData, userData, entitlements, productType,
+      completeHandler, oldSku) {
     /** @const {string} */
     this.raw = raw;
     /** @const {!PurchaseData} */
@@ -41,12 +41,12 @@ export class SubscribeResponse {
     this.userData = userData;
     /** @const {?Entitlements} */
     this.entitlements = entitlements;
-    /** @const {?string} */
-    this.oldSku = oldSku;
     /** @const {string} */
     this.productType = productType;
     /** @private @const {function():!Promise} */
     this.completeHandler_ = completeHandler;
+    /** @const {?string} */
+    this.oldSku = oldSku;
   }
 
   /**
