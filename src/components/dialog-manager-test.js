@@ -86,10 +86,9 @@ describes.realWin('DialogManager', {}, env => {
   });
 
   it('should re-open the same dialog', async () => {
+    // Open dialog twice.
     const dialog1 = await dialogManager.openDialog();
-    // Repeat.
     const dialog2 = await dialogManager.openDialog();
-
     expect(dialog2).to.equal(dialog1);
     // `Dialog.open` is only called once.
     expect(dialogIfc.open).to.be.calledOnce;
@@ -112,12 +111,15 @@ describes.realWin('DialogManager', {}, env => {
   it('should complete view and close dialog', async () => {
     await dialogManager.openView(initView);
     expect(currentView).to.equal(initView);
+
     dialogManager.completeView(initView);
     expect(dialogIfc.close).to.not.be.called;
     expect(dialogManager.dialog_).to.exist;
+
     clock.tick(10);
     expect(dialogIfc.close).to.not.be.called;
     expect(dialogManager.dialog_).to.exist;
+
     clock.tick(100);
     expect(dialogIfc.close).to.be.calledOnce;
     expect(dialogManager.dialog_).to.not.exist;
@@ -135,10 +137,12 @@ describes.realWin('DialogManager', {}, env => {
     const view2 = Object.assign({}, initView);
     await dialogManager.openView(initView);
     expect(currentView).to.equal(initView);
+
     dialogManager.completeView(initView);
     clock.tick(10);
     expect(dialogIfc.close).to.not.be.called;
     expect(dialogManager.dialog_).to.exist;
+
     const oldDialog = dialogManager.dialog_;
     // New open view.
     await dialogManager.openView(view2);
@@ -152,6 +156,7 @@ describes.realWin('DialogManager', {}, env => {
     const view2 = Object.assign({}, initView);
     await dialogManager.openView(initView);
     expect(currentView).to.equal(initView);
+
     dialogManager.completeView(view2);
     clock.tick(110);
     expect(dialogIfc.close).to.not.be.called;
@@ -162,11 +167,13 @@ describes.realWin('DialogManager', {}, env => {
     const view2 = Object.assign({}, initView);
     await dialogManager.openView(initView);
     expect(currentView).to.equal(initView);
+
     dialogManager.completeView(initView);
     const oldDialog = dialogManager.dialog_;
     clock.tick(110);
     expect(dialogIfc.close).to.be.calledOnce;
     expect(dialogManager.dialog_).to.not.exist;
+
     // New open view.
     await dialogManager.openView(view2);
     clock.tick(100);
@@ -188,6 +195,7 @@ describes.realWin('DialogManager', {}, env => {
     dialogManager.popupOpened(popup);
     expect(graypaneStubs.isAttached()).to.be.true;
     expect(graypaneStubs.show).to.be.calledOnce;
+
     dialogManager.popupGraypane_.getElement().click();
     expect(popup.focus).to.be.calledOnce;
   });
@@ -195,6 +203,7 @@ describes.realWin('DialogManager', {}, env => {
   it('should close graypane', () => {
     dialogManager.popupOpened();
     expect(graypaneStubs.isAttached()).to.be.true;
+
     dialogManager.popupClosed();
     expect(graypaneStubs.hide).to.be.calledOnce;
   });
