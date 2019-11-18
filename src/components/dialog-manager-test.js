@@ -36,7 +36,7 @@ describes.realWin('DialogManager', {}, env => {
       whenComplete: () => Promise.resolve(true),
     };
     dialogIfc = {
-      open: sandbox.stub(Dialog.prototype, 'open').callsFake(() => {
+      open: sandbox.stub(Dialog.prototype, 'open').callsFake(function() {
         return Promise.resolve(this);
       }),
       close: sandbox.stub(Dialog.prototype, 'close').callsFake(() => {}),
