@@ -103,6 +103,7 @@ describe('api_messages', () => {
       analyticscontext.setSku('');
       analyticscontext.setReadyToPay(false);
       analyticscontext.setLabelList([]);
+      analyticscontext.setClientVersion('');
       const analyticscontextSerialized = analyticscontext.toArray();
       const analyticscontextDeserialized = deserialize(
           analyticscontextSerialized);
@@ -139,6 +140,7 @@ describe('api_messages', () => {
       analyticscontext.setSku('');
       analyticscontext.setReadyToPay(false);
       analyticscontext.setLabelList([]);
+      analyticscontext.setClientVersion('');
       analyticsrequest.setContext(analyticscontext);
       analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
       const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
