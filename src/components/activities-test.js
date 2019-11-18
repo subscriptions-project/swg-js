@@ -94,6 +94,7 @@ describes.realWin('Activity Components', {}, env => {
           aVal: 1,
         };
         const expectedObject = Object.assign({}, expectedDefaults, newArgs);
+
         expect(activityPorts.addDefaultArguments(newArgs)).to.deep.equal(
           expectedObject
         );
@@ -104,6 +105,7 @@ describes.realWin('Activity Components', {}, env => {
           productId: 55555555,
         };
         const expectedObject = Object.assign({}, expectedDefaults, newArgs);
+
         expect(activityPorts.addDefaultArguments(newArgs)).to.deep.equal(
           expectedObject
         );
@@ -117,6 +119,7 @@ describes.realWin('Activity Components', {}, env => {
             passedArgs = args;
           });
         activityPorts.open('', '', '');
+
         expect(passedArgs).to.be.undefined;
       });
 
@@ -128,6 +131,7 @@ describes.realWin('Activity Components', {}, env => {
             passedArgs = args;
           });
         activityPorts.open('', '', '', null, {}, true);
+
         expect(passedArgs).to.deep.equal(expectedDefaults);
       });
 
@@ -146,6 +150,7 @@ describes.realWin('Activity Components', {}, env => {
           });
 
         activityPorts.openIframe(iframe, url, sentArgs);
+
         expect(receivedArgs).to.deep.equal(sentArgs);
       });
 
@@ -163,6 +168,7 @@ describes.realWin('Activity Components', {}, env => {
             return args;
           });
         activityPorts.openIframe(iframe, url, sentArgs, true);
+
         expect(receivedArgs).to.deep.equal(
           activityPorts.addDefaultArguments(sentArgs)
         );
@@ -170,13 +176,13 @@ describes.realWin('Activity Components', {}, env => {
     });
 
     describe('function delegation', () => {
-      it('should delegate openIframe to ActivityIframePort', () => {
+      it('should delegate openIframe to ActivityIframePort', async () => {
         sandbox
           .stub(ActivityIframePort.prototype, 'connect')
           .callsFake(() => Promise.resolve());
-        return activityPorts.openIframe(iframe, url).then(port => {
-          expect(port instanceof ActivityIframePort).to.be.true;
-        });
+        const port = await activityPorts.openIframe(iframe, url);
+
+        expect(port instanceof ActivityIframePort).to.be.true;
       });
 
       it('should delegate open', () => {
@@ -189,6 +195,7 @@ describes.realWin('Activity Components', {}, env => {
           '_top',
           {}
         );
+
         expect(opener.targetWin).to.be.null;
       });
 
@@ -219,17 +226,21 @@ describes.realWin('Activity Components', {}, env => {
       });
 
       it('must delegate onRedirectError', () => {
-        const redirectHandler = error => {
+        let actualHandler;
+        sandbox
+          .stub(WebActivityPorts.prototype, 'onRedirectError')
+          .callsFake(handler => {
+            actualHandler = handler;
+          });
+
+        const expectedHandler = error => {
           setTimeout(() => {
             throw error;
           });
         };
-        sandbox
-          .stub(WebActivityPorts.prototype, 'onRedirectError')
-          .callsFake(handler => {
-            expect(handler).to.equal(redirectHandler);
-          });
-        activityPorts.onRedirectError(redirectHandler);
+        activityPorts.onRedirectError(expectedHandler);
+
+        expect(actualHandler).to.equal(expectedHandler);
       });
     });
   });
@@ -260,7 +271,7 @@ describes.realWin('Activity Components', {}, env => {
       activityIframePort = new ActivityIframePort(iframe, url);
     });
 
-    it('must delegate connect, disconnect and ready', () => {
+    it('must delegate connect, disconnect and ready', async () => {
       let ready = false;
       sandbox
         .stub(WebActivityIframePort.prototype, 'disconnect')
@@ -273,30 +284,25 @@ describes.realWin('Activity Components', {}, env => {
           ready = true;
           return Promise.resolve();
         });
-      return activityIframePort
-        .connect()
-        .then(() => {
-          expect(connected).to.be.true;
-          return activityIframePort.whenReady();
-        })
-        .then(() => {
-          expect(ready).to.be.true;
-          activityIframePort.disconnect();
-          expect(connected).to.be.false;
-        });
+      await activityIframePort.connect();
+      expect(connected).to.be.true;
+
+      await activityIframePort.whenReady();
+      expect(ready).to.be.true;
+
+      activityIframePort.disconnect();
+      expect(connected).to.be.false;
     });
 
-    it('should delegate getMode and attach callback to connect', () => {
+    it('should delegate getMode and attach callback to connect', async () => {
       sandbox
         .stub(WebActivityIframePort.prototype, 'getMode')
         .callsFake(() => ActivityMode.IFRAME);
       expect(activityIframePort.getMode()).to.equal(ActivityMode.IFRAME);
-      return activityIframePort
-        .connect()
-        .then(() => handler)
-        .then(handler => {
-          expect(handler).to.not.be.null;
-        });
+
+      expect(handler).to.be.null;
+      await activityIframePort.connect();
+      expect(handler).to.not.be.null;
     });
 
     it('should handle resize request and delegate resized', () => {
@@ -306,34 +312,36 @@ describes.realWin('Activity Components', {}, env => {
       });
       activityIframePort.resized();
       expect(resized).to.be.true;
+
       let handler = null;
       sandbox
         .stub(WebActivityIframePort.prototype, 'onResizeRequest')
         .callsFake(arg => {
           handler = arg;
         });
-      activityIframePort.onResizeRequest(num => {
-        expect(num).to.equal(1);
+      let num;
+
+      expect(handler).to.be.null;
+      activityIframePort.onResizeRequest(n => {
+        num = n;
       });
       expect(handler).to.not.be.null;
+
       handler(1);
+      expect(num).to.equal(1);
     });
 
-    it('should allow registering callback after connect', () => {
-      return activityIframePort
-        .connect()
-        .then(() => handler)
-        .then(handler => {
-          expect(handler).to.not.be.null;
-          handler({'sku': 'daily'});
-          return Promise.resolve();
-        })
-        .then(() => {
-          handler({'sku': 'daily'});
-        });
+    it('should allow registering callback after connect', async () => {
+      expect(handler).to.be.null;
+      await activityIframePort.connect();
+      expect(handler).to.not.be.null;
+
+      handler({'sku': 'daily'});
+      await 'Promises...';
+      handler({'sku': 'daily'});
     });
 
-    it('should test new messaging APIs', () => {
+    it('should test new messaging APIs', async () => {
       let payload;
       sandbox
         .stub(WebActivityIframePort.prototype, 'message')
@@ -342,30 +350,31 @@ describes.realWin('Activity Components', {}, env => {
         });
       activityIframePort.execute(analyticsRequest);
       expect(payload).to.deep.equal({'REQUEST': serializedRequest});
+
+      expect(handler).to.be.null;
+      await activityIframePort.connect();
+      expect(handler).to.not.be.null;
+
+      let event;
       activityIframePort.on(AnalyticsRequest, request => {
-        expect(request.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
+        event = request.getEvent();
       });
-      return activityIframePort
-        .connect()
-        .then(() => handler)
-        .then(handler => {
-          expect(handler).to.not.be.null;
-          handler({'RESPONSE': serializedRequest});
-        });
+
+      handler({'RESPONSE': serializedRequest});
+      expect(event).to.equal(AnalyticsEvent.UNKNOWN);
     });
 
-    it('should support on APIs', () => {
-      activityIframePort.on(AnalyticsRequest, request => {
-        expect(request.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
-      });
+    it('should support on APIs', async () => {
+      expect(handler).to.be.null;
+      await activityIframePort.connect();
+      expect(handler).to.not.be.null;
 
-      return activityIframePort
-        .connect()
-        .then(() => handler)
-        .then(handler => {
-          expect(handler).to.not.be.null;
-          handler({'RESPONSE': serializedRequest});
-        });
+      let event;
+      activityIframePort.on(AnalyticsRequest, request => {
+        event = request.getEvent();
+      });
+      handler({'RESPONSE': serializedRequest});
+      expect(event).to.equal(AnalyticsEvent.UNKNOWN);
     });
   });
 });
