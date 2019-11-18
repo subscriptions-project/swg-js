@@ -175,6 +175,7 @@ export class AnalyticsService {
     if (source) {
       this.context_.setUtmSource(source);
     }
+    this.context_.setClientVersion('SwG $internalRuntimeVersion$');
     this.addLabels(getOnExperiments(this.doc_.getWin()));
   }
 
