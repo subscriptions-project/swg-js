@@ -228,6 +228,9 @@ class AnalyticsContext {
 
     /** @private {!Array<string>} */
     this.label_ = data[9] || [];
+
+    /** @private {?string} */
+    this.clientVersion_ = (data[10] == null) ? null : data[10];
   }
 
   /**
@@ -357,6 +360,20 @@ class AnalyticsContext {
   }
 
   /**
+   * @return {?string}
+   */
+  getClientVersion() {
+    return this.clientVersion_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setClientVersion(value) {
+    this.clientVersion_ = value;
+  }
+
+  /**
    * @return {!Array}
    * @override
    */
@@ -372,6 +389,7 @@ class AnalyticsContext {
       this.sku_,  // field 7 - sku
       this.readyToPay_,  // field 8 - ready_to_pay
       this.label_,  // field 9 - label
+      this.clientVersion_,  // field 10 - client_version
     ];
   }
 
