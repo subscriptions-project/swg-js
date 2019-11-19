@@ -31,11 +31,12 @@ module.exports = {
   browserify: {
     watch: true,
     debug: true,
+    fast:true,
     transform: [['babelify', {presets: ["@babel/preset-env"]}]],
     bundleDelay: 900,
   },
 
-  reporters: isTravisBuild() ? ['super-dots', 'mocha'] : ['dots', 'mocha'],
+  reporters: ['super-dots', 'mocha'],
 
   superDotsReporter: {
     color: {

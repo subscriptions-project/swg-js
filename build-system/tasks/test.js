@@ -27,7 +27,7 @@ const karmaDefault = require('./karma.conf');
 const shuffleSeed = require('shuffle-seed');
 
 const {build} = require('./builders');
-const {green, yellow, cyan, red} = require('ansi-colors');
+const {green, yellow, cyan, red, blue} = require('ansi-colors');
 const {isTravisBuild} = require('../travis');
 
 /**
@@ -129,12 +129,10 @@ function getUnitTestsToRun(c) {
 
     const seed = argv.seed || Math.random();
     log(
-      yellow('Randomizing:'),
-      cyan('Seeding with value', seed),
-      yellow('To rerun same ordering, append'),
-      cyan(`--seed=${seed}`),
-      yellow('to your invocation of'),
-      cyan('gulp test')
+      yellow('Running tests in randomized order.'),
+      yellow('To rerun same ordering, use command'),
+      cyan('gulp unit'),
+      cyan(`--seed=${seed}`)
     );
     testFiles = shuffleSeed.shuffle(testFiles, seed);
 
@@ -226,7 +224,7 @@ function runTests(done) {
   }).start();
 }
 
-async function test() {
+async function unit() {
   printArgvMessages();
 
   if(!argv.nobuild) {
@@ -236,10 +234,10 @@ async function test() {
 }
 
 module.exports = {
-  test,
+  unit,
 };
-test.description = 'Runs tests';
-test.flags = {
+unit.description = 'Runs tests';
+unit.flags = {
   'verbose': '  With logging enabled',
   'testnames': '  Lists the name of each test being run',
   'watch': '  Watches for changes in files, runs corresponding test(s)',
