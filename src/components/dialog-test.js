@@ -260,10 +260,6 @@ describes.realWin('Dialog', {}, env => {
       const iframeDoc = openedDialog.getIframe().getDocument();
       const loadingContainer = iframeDoc.querySelector('swg-loading-container');
 
-      expect(loadingContainer.getAttribute('style')).to.equal(
-        'display: none !important;'
-      );
-
       let styleDuringInit;
       view.init = () => {
         styleDuringInit = loadingContainer.getAttribute('style');
