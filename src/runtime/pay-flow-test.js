@@ -447,7 +447,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       null,
       ProductType.SUBSCRIPTION,
       null,
-      'oldSku'
+      'sku_to_replace'
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
