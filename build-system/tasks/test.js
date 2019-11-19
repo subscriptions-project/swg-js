@@ -20,18 +20,14 @@ const gulp = require('gulp-help')(require('gulp'));
 const glob = require('glob');
 const Karma = require('karma').Server;
 const config = require('../config');
-const colors = require('ansi-colors');
 const log = require('fancy-log');
 const webserver = require('gulp-webserver');
 const app = require('../server/test-server').app;
 const karmaDefault = require('./karma.conf');
 const shuffleSeed = require('shuffle-seed');
 
-const green = colors.green;
-const yellow = colors.yellow;
-const cyan = colors.cyan;
-
 const {build} = require('./builders');
+const {green, yellow, cyan, red} = require('ansi-colors');
 
 /**
  * Read in and process the configuration settings for karma
@@ -105,7 +101,7 @@ function printArgvMessages() {
       log(yellow('--' + arg + ':'), green(message));
     }
   });
-  
+
 }
 
 /**
@@ -132,17 +128,17 @@ function getUnitTestsToRun(c) {
 
     const seed = argv.seed || Math.random();
     log(
-      colors.yellow('Randomizing:'),
-      colors.cyan('Seeding with value', seed),
-      colors.yellow('To rerun same ordering, append'),
-      colors.cyan(`--seed=${seed}`),
-      colors.yellow('to your invocation of'),
-      colors.cyan('gulp test')
+      yellow('Randomizing:'),
+      cyan('Seeding with value', seed),
+      yellow('To rerun same ordering, append'),
+      cyan(`--seed=${seed}`),
+      yellow('to your invocation of'),
+      cyan('gulp test')
     );
     testFiles = shuffleSeed.shuffle(testFiles, seed);
-    
+
     c.files = config.commonTestPaths.concat(testFiles);
-  } 
+  }
 }
 
 /**
@@ -175,7 +171,7 @@ function runTests(done) {
   }
 
   if (argv.coverage) {
-    log(colors.blue('Including code coverage tests'));
+    log(blue('Including code coverage tests'));
     c.browserify.transform.push([
       'browserify-istanbul',
       {instrumenterConfig: {embedSource: true}},
@@ -221,17 +217,17 @@ function runTests(done) {
     server.emit('kill');
     if (exitCode) {
       log(
-        colors.red('ERROR:'),
+        red('ERROR:'),
         yellow('Karma test failed with exit code', exitCode)
       );
       process.exit(exitCode);
-    } 
+    }
   }).start();
 }
 
 async function test() {
   printArgvMessages();
-  
+
   if(!argv.nobuild) {
     await build();
   }
