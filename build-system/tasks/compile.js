@@ -16,7 +16,6 @@
 'use strict';
 
 const $$ = require('gulp-load-plugins')();
-const colors = require('ansi-colors');
 const babel = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
@@ -34,6 +33,7 @@ const watchify = require('watchify');
 const internalRuntimeVersion = require('./internal-version').VERSION;
 const argv = require('minimist')(process.argv.slice(2));
 const {endBuildStep, mkdirSync} = require('./helpers');
+const {red} = require('ansi-colors');
 
 /**
  * @return {!Promise}
@@ -175,7 +175,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
       bundler
         .bundle()
         .on('error', err => {
-          console.error(colors.red(err));
+          console.error(red(err));
         })
         .pipe(lazybuild())
         .pipe($$.rename(destFilename))

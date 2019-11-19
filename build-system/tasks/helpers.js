@@ -15,9 +15,10 @@
  */
 'use strict';
 
-const colors = require('ansi-colors');
 const fs = require('fs-extra');
 const log = require('fancy-log');
+
+const {green, cyan} = require('ansi-colors');
 
 /**
  * Stops the timer for the given build step and prints the execution time,
@@ -38,7 +39,7 @@ function endBuildStep(stepName, targetName, startTime) {
     timeString += secs + '.' + ms + ' s)';
   }
   if (!process.env.TRAVIS) {
-    log(stepName, colors.cyan(targetName), colors.green(timeString));
+    log(stepName, cyan(targetName), green(timeString));
   }
 }
 

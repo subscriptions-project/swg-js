@@ -18,9 +18,10 @@
 const gulp = require('gulp-help')(require('gulp'));
 const path = require('path');
 const srcGlobs = require('../config').presubmitGlobs;
-const colors = require('ansi-colors');
 const log = require('fancy-log');
 const through2 = require('through2');
+
+const {red} = require('ansi-colors');
 
 const dedicatedCopyrightNoteSources = /(\.js|\.css|\.go)$/;
 
@@ -272,7 +273,7 @@ function matchTerms(file, terms) {
         }
 
         log(
-          colors.red(
+          red(
             'Found forbidden: "' +
               match[0] +
               '" in ' +
@@ -291,9 +292,9 @@ function matchTerms(file, terms) {
 
         // log the possible fix information if provided for the term.
         if (fix) {
-          log(colors.blue(fix));
+          log(blue(fix));
         }
-        log(colors.blue('=========='));
+        log(blue('=========='));
       }
 
       return hasTerm;
@@ -343,14 +344,14 @@ function isMissingTerms(file) {
       const matches = contents.match(new RegExp(term));
       if (!matches) {
         log(
-          colors.red(
+          red(
             'Did not find required: "' +
               term +
               '" in ' +
               normalizeRelativePath(file.relative)
           )
         );
-        log(colors.blue('=========='));
+        log(blue('=========='));
         return true;
       }
       return false;
@@ -379,7 +380,7 @@ function checkRules() {
     .on('end', function() {
       if (forbiddenFound) {
         log(
-          colors.blue(
+          blue(
             'Please remove these usages or consult with the Subscribe' +
               ' with Google team.'
           )
@@ -387,7 +388,7 @@ function checkRules() {
       }
       if (missingRequirements) {
         log(
-          colors.blue(
+          blue(
             'Adding these terms (e.g. by adding a required LICENSE ' +
               'to the file)'
           )

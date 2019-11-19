@@ -22,11 +22,12 @@
 
 const argv = require('minimist')(process.argv.slice(2));
 const BBPromise = require('bluebird');
-const colors = require('ansi-colors');
 const git = require('gulp-git');
 const gitExec = BBPromise.promisify(git.exec);
 const githubRequest = require('./github').githubRequest;
 const logger = require('fancy-log');
+
+const {yellow, red} = require('ansi-colors');
 
 /**
  * @typedef {{
@@ -51,7 +52,7 @@ function changelog() {
     .then(getGithubPullRequestsMetadata)
     .then(buildChangelog)
     .then(response => {
-      logger(colors.blue('\n' + response.changelog));
+      logger(blue('\n' + response.changelog));
     })
     .catch(errHandler);
 }
@@ -161,7 +162,7 @@ function getGithubPullRequestsMetadata(release) {
           };
         } else {
           // TODO(dvoytenko): try to find PR from the GitHub API.
-          logger.warn(colors.yellow('PR not found for commit: ' + log.sha));
+          logger.warn(yellow('PR not found for commit: ' + log.sha));
         }
         return BBPromise.resolve();
       });
@@ -200,7 +201,7 @@ function errHandler(err) {
   if (err.message) {
     msg = err.message;
   }
-  logger(colors.red(msg));
+  logger(red(msg));
 }
 
 module.exports = {
