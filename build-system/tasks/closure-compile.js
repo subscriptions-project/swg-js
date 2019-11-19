@@ -30,6 +30,7 @@ let inProgress = 0;
 const MAX_PARALLEL_CLOSURE_INVOCATIONS = 4;
 
 const {red} = require('ansi-colors');
+const {isTravisBuild} = require('../travis');
 
 // Compiles code with the closure compiler. This is intended only for
 // production use. During development we intent to continue using
@@ -47,7 +48,7 @@ exports.closureCompile = function(
       inProgress++;
       compile(entryModuleFilename, outputDir, outputFilename, options).then(
         function() {
-          if (process.env.TRAVIS) {
+          if (isTravisBuild()) {
             // When printing simplified log in travis, use dot for each task.
             process.stdout.write('.');
           }
@@ -65,7 +66,7 @@ exports.closureCompile = function(
       if (!queue.length) {
         // When printing simplified log in travis, print EOF after
         // all closure compiling task are done.
-        if (process.env.TRAVIS) {
+        if (isTravisBuild()) {
           process.stdout.write('\n');
         }
         return;

@@ -15,6 +15,8 @@
  */
 'use strict';
 
+const {isTravisBuild} = require('../travis');
+
 /**
  * @param {!Object} config
  */
@@ -33,7 +35,7 @@ module.exports = {
     bundleDelay: 900,
   },
 
-  reporters: process.env.TRAVIS ? ['super-dots', 'mocha'] : ['dots', 'mocha'],
+  reporters: isTravisBuild() ? ['super-dots', 'mocha'] : ['dots', 'mocha'],
 
   superDotsReporter: {
     color: {
@@ -79,7 +81,7 @@ module.exports = {
 
   autoWatch: true,
 
-  browsers: [process.env.TRAVIS ? 'Chrome_travis_ci' : 'Chrome_no_extensions'],
+  browsers: [isTravisBuild() ? 'Chrome_travis_ci' : 'Chrome_no_extensions'],
 
   // Number of sauce tests to start in parallel
   concurrency: 6,
@@ -101,7 +103,7 @@ module.exports = {
     mocha: {
       reporter: 'html',
       // Longer timeout on Travis; fail quickly at local.
-      timeout: process.env.TRAVIS ? 10000 : 2000,
+      timeout: isTravisBuild() ? 10000 : 2000,
     },
     captureConsole: false,
   },
