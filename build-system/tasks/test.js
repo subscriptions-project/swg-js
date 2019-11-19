@@ -28,6 +28,7 @@ const shuffleSeed = require('shuffle-seed');
 
 const {build} = require('./builders');
 const {green, yellow, cyan, red} = require('ansi-colors');
+const {isTravisBuild} = require('../travis');
 
 /**
  * Read in and process the configuration settings for karma
@@ -53,7 +54,7 @@ function getConfig() {
  * Prints help messages for args if tests are being run for local development.
  */
 function printArgvMessages() {
-  if (argv.nohelp || process.env.TRAVIS) {
+  if (argv.nohelp || isTravisBuild()) {
     return;
   }
 

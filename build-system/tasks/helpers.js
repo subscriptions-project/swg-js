@@ -19,6 +19,7 @@ const fs = require('fs-extra');
 const log = require('fancy-log');
 
 const {green, cyan} = require('ansi-colors');
+const {isTravisBuild} = require('../travis');
 
 /**
  * Stops the timer for the given build step and prints the execution time,
@@ -38,7 +39,7 @@ function endBuildStep(stepName, targetName, startTime) {
   } else {
     timeString += secs + '.' + ms + ' s)';
   }
-  if (!process.env.TRAVIS) {
+  if (!isTravisBuild()) {
     log(stepName, cyan(targetName), green(timeString));
   }
 }
