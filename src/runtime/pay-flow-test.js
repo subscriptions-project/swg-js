@@ -355,8 +355,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       userData,
       entitlements,
       ProductType.SUBSCRIPTION,
-      null
+      null,
     );
+    console.log('response: ', response);
     entitlementsManagerMock
       .expects('pushNextEntitlements')
       .withExactArgs(
@@ -386,6 +387,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           publicationId: 'pub1',
           idToken: 'ID_TOK',
           productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -426,6 +428,49 @@ describes.realWin('PayCompleteFlow', {}, env => {
           publicationId: 'pub1',
           loginHint: 'test@example.org',
           productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
+        }
+      )
+      .returns(Promise.resolve(port));
+    return flow.start(response);
+  });
+
+  it('should have valid flow constructed w/ oldSku', () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    const purchaseData = new PurchaseData();
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const response = new SubscribeResponse(
+      'RaW',
+      purchaseData,
+      userData,
+      null,
+      ProductType.SUBSCRIPTION,
+      null,
+      'oldSku',
+    );
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          loginHint: 'test@example.org',
+          productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: true,
         }
       )
       .returns(Promise.resolve(port));

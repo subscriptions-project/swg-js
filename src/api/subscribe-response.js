@@ -46,7 +46,7 @@ export class SubscribeResponse {
     /** @private @const {function():!Promise} */
     this.completeHandler_ = completeHandler;
     /** @const {?string} */
-    this.oldSku = oldSku;
+    this.oldSku = oldSku || null;
   }
 
   /**
@@ -58,9 +58,9 @@ export class SubscribeResponse {
         this.purchaseData,
         this.userData,
         this.entitlements,
-        this.oldSku,
         this.productType,
-        this.completeHandler_);
+        this.completeHandler_,
+        this.oldSku,);
   }
 
   /**
