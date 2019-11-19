@@ -32,7 +32,7 @@
     "@babel/core": "7.7.2",
     "@babel/preset-env": "7.7.1",
     "ansi-colors": "4.1.1",
-    "autoprefixer": "9.7.1",
+    "autoprefixer": "9.7.2",
     "babel-eslint": "10.0.3",
     "babelify": "10.0.0",
     "bluebird": "3.7.1",
