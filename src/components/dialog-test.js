@@ -259,14 +259,20 @@ describes.realWin('Dialog', {}, env => {
       const openedDialog = await dialog.open();
       const iframeDoc = openedDialog.getIframe().getDocument();
       const loadingContainer = iframeDoc.querySelector('swg-loading-container');
+
+      expect(loadingContainer.getAttribute('style')).to.equal(
+        'display: none !important;'
+      );
+
+      let styleDuringInit;
       view.init = () => {
-        expect(loadingContainer.getAttribute('style')).to.equal('');
+        styleDuringInit = loadingContainer.getAttribute('style');
         return Promise.resolve(dialog);
       };
-      view.hasLoadingIndicator = () => {
-        return true;
-      };
+      view.hasLoadingIndicator = () => true;
+
       await openedDialog.openView(view);
+      expect(styleDuringInit).to.equal('');
       expect(loadingContainer.getAttribute('style')).to.equal(
         'display: none !important;'
       );
@@ -285,17 +291,18 @@ describes.realWin('Dialog', {}, env => {
         shouldFadeBody: () => true,
         hasLoadingIndicator: () => false,
       };
+      let styleDuringInit;
       view2.init = () => {
-        const iframeDoc = openedDialog.getIframe().getDocument();
-        const loadingContainer = iframeDoc.querySelector(
-          'swg-loading-container'
-        );
-        expect(loadingContainer.getAttribute('style')).to.equal(
-          'display: none !important;'
-        );
+        styleDuringInit = openedDialog
+          .getIframe()
+          .getDocument()
+          .querySelector('swg-loading-container')
+          .getAttribute('style');
         return Promise.resolve(dialog);
       };
+
       await openedDialog.openView(view2);
+      expect(styleDuringInit).to.equal('display: none !important;');
     });
   });
 });
