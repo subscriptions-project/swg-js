@@ -355,9 +355,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       userData,
       entitlements,
       ProductType.SUBSCRIPTION,
-      null,
+      null
     );
-    console.log('response: ', response);
     entitlementsManagerMock
       .expects('pushNextEntitlements')
       .withExactArgs(
@@ -448,7 +447,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       null,
       ProductType.SUBSCRIPTION,
       null,
-      'oldSku',
+      'oldSku'
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
