@@ -436,7 +436,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     parseEntitlements(deps, swgData),
     productType,
     completeHandler,
-    oldSku,
+    oldSku
   );
 }
 
