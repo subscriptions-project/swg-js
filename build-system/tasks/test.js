@@ -57,6 +57,10 @@ function getConfig() {
  * Prints help messages for args if tests are being run for local development.
  */
 function printArgvMessages() {
+  if (argv.nohelp || process.env.TRAVIS) {
+    return;
+  }
+
   const argvMessages = {
     safari: 'Running tests on Safari.',
     firefox: 'Running tests on Firefox.',
@@ -69,63 +73,46 @@ function printArgvMessages() {
     verbose: 'Enabling verbose mode. Expect lots of output!',
     testnames: 'Listing the names of all tests being run.',
     files: 'Running tests in the file(s): ' + cyan(argv.files),
-    randomize: 'Randomizing the order in which tests are run.',
-    seed: 'Randomizing test order with seed ' + cyan(argv.seed) + '.',
     compiled: 'Running tests against minified code.',
     grep:
       'Only running tests that match the pattern "' + cyan(argv.grep) + '".',
   };
-  if (!process.env.TRAVIS) {
+
+  log(
+    green('Run'),
+    cyan('gulp help'),
+    green('to see a list of all test flags.')
+  );
+  log(green('⤷ Use'), cyan('--nohelp'), green('to silence these messages.'));
+
+  if (!argv.testnames && !argv.files) {
     log(
-      green(
-        'Run',
-        cyan('gulp help'),
-        'to see a list of all test flags. (Use',
-        cyan('--nohelp'),
-        'to silence these messages.)'
-      )
+      green('⤷ Use'),
+      cyan('--testnames'),
+      green('to see the names of all tests being run.')
     );
-    if (!argv.unit && !argv.integration && !argv.files) {
-      log(
-        green(
-          'Running all tests. Use',
-          cyan('--unit'),
-          'or',
-          cyan('--integration'),
-          'to run just the unit tests or integration tests.'
-        )
-      );
-    }
-    if (!argv.compiled) {
-      log(green('Running tests against unminified code.'));
-    }
-    Object.keys(argv).forEach(arg => {
-      const message = argvMessages[arg];
-      if (message) {
-        log(yellow('--' + arg + ':'), green(message));
-      }
-    });
   }
+
+  if (argv.compiled || !argv.nobuild) {
+    log(green('Running tests against minified code.'));
+  } else {
+    log(green('Running tests against unminified code.'));
+  }
+
+  Object.keys(argv).forEach(arg => {
+    const message = argvMessages[arg];
+    if (message) {
+      log(yellow('--' + arg + ':'), green(message));
+    }
+  });
+  
 }
 
 /**
- * Run tests.
+ * Get the set of unit tests that should be run.
+ * @param {!RuntimeTestConfig} c
  */
-function runTests(done) {
-  if (!argv.nohelp) {
-    printArgvMessages();
-  }
-
-  const c = getConfig();
-
-  if (argv.watch || argv.w) {
-    c.singleRun = false;
-  }
-
-  if (argv.verbose || argv.v) {
-    c.client.captureConsole = true;
-  }
-
+function getUnitTestsToRun(c) {
   if (argv.testnames) {
     c.reporters = ['mocha'];
     c.mochaReporter.output = 'full';
@@ -135,39 +122,39 @@ function runTests(done) {
     c.files = [].concat(config.commonTestPaths, argv.files);
     c.reporters = ['mocha'];
     c.mochaReporter.output = 'full';
-  } else if (argv.integration) {
-    c.files = config.integrationTestPaths;
-  } else if (argv.unit) {
-    c.files = config.unitTestPaths;
-  } else if (argv.randomize || argv.glob) {
-    const testPaths = config.basicTestPaths;
+  } else {
+    const unitTestPaths = config.basicTestPaths;
 
     let testFiles = [];
-    for (const index in testPaths) {
-      testFiles = testFiles.concat(glob.sync(testPaths[index]));
+    for (const index in unitTestPaths) {
+      testFiles = testFiles.concat(glob.sync(unitTestPaths[index]));
     }
 
-    if (argv.randomize) {
-      const seed = argv.seed || Math.random();
-      log(
-        colors.yellow('Randomizing:'),
-        colors.cyan('Seeding with value', seed)
-      );
-      log(
-        colors.yellow('To rerun same ordering, append'),
-        colors.cyan(`--seed=${seed}`),
-        colors.yellow('to your invocation of'),
-        colors.cyan('gulp test')
-      );
-      testFiles = shuffleSeed.shuffle(testFiles, seed);
-    }
-
-    testFiles.splice(testFiles.indexOf('test/_init_tests.js'), 1);
+    const seed = argv.seed || Math.random();
+    log(
+      colors.yellow('Randomizing:'),
+      colors.cyan('Seeding with value', seed),
+      colors.yellow('To rerun same ordering, append'),
+      colors.cyan(`--seed=${seed}`),
+      colors.yellow('to your invocation of'),
+      colors.cyan('gulp test')
+    );
+    testFiles = shuffleSeed.shuffle(testFiles, seed);
+    
     c.files = config.commonTestPaths.concat(testFiles);
-  } else {
-    c.files = config.testPaths;
-  }
-  c.files = c.files.concat(config.chaiAsPromised);
+  } 
+}
+
+/**
+ * Run tests.
+ */
+function runTests(done) {
+  const c = getConfig();
+
+  c.singleRun = !argv.watch && !argv.w;
+  c.client.captureConsole = !!argv.verbose || !!argv.v || !!argv.files;
+
+  getUnitTestsToRun(c);
 
   // c.client is available in test browser via window.parent.karma.config
   c.client.subscriptions = {
@@ -238,18 +225,18 @@ function runTests(done) {
         yellow('Karma test failed with exit code', exitCode)
       );
       process.exit(exitCode);
-    } else {
-      done();
-    }
+    } 
   }).start();
 }
 
-const tasks = [];
-if (!argv.nobuild) {
-  tasks.push(build);
+async function test() {
+  printArgvMessages();
+  
+  if(!argv.nobuild) {
+    await build();
+  }
+  runTests();
 }
-tasks.push(runTests);
-const test = gulp.series(...tasks);
 
 module.exports = {
   test,
@@ -268,8 +255,5 @@ test.flags = {
     'binaries for execution',
   'grep': '  Runs tests that match the pattern',
   'files': '  Runs tests for specific files',
-  'randomize': '  Runs entire test suite in random order',
-  'seed': '  Seeds the test order randomization. Use with --randomize',
-  'glob': '  Explicitly expands test paths using glob before passing to Karma',
   'nohelp': '  Silence help messages that are printed prior to test run',
 };
