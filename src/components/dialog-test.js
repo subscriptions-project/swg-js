@@ -43,28 +43,17 @@ describes.realWin('Dialog', {}, env => {
 
     element = doc.createElement('div');
     view = {
-      getElement: function() {
-        return element;
-      },
-      init: function(dialog) {
-        return Promise.resolve(dialog);
-      },
-      resized: function() {
-        return;
-      },
-      shouldFadeBody: function() {
-        return true;
-      },
-      hasLoadingIndicator: function() {
-        return false;
-      },
+      getElement: () => element,
+      init: dialog => Promise.resolve(dialog),
+      resized: () => {},
+      shouldFadeBody: () => true,
+      hasLoadingIndicator: () => false,
     };
   });
 
+  /** Updates `setTimeout` to immediately call its callback. */
   function immediate() {
-    win.setTimeout = function(callback) {
-      callback();
-    };
+    win.setTimeout = callback => callback();
   }
 
   describe('dialog', () => {
@@ -290,21 +279,11 @@ describes.realWin('Dialog', {}, env => {
       };
       await openedDialog.openView(view);
       const view2 = {
-        getElement: function() {
-          return element;
-        },
-        init: function(dialog) {
-          return Promise.resolve(dialog);
-        },
-        resized: function() {
-          return;
-        },
-        shouldFadeBody: function() {
-          return true;
-        },
-        hasLoadingIndicator: function() {
-          return false;
-        },
+        getElement: () => element,
+        init: dialog => Promise.resolve(dialog),
+        resized: () => {},
+        shouldFadeBody: () => true,
+        hasLoadingIndicator: () => false,
       };
       view2.init = () => {
         const iframeDoc = openedDialog.getIframe().getDocument();
