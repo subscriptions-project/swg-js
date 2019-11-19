@@ -60,7 +60,8 @@ export class SubscribeResponse {
         this.entitlements,
         this.productType,
         this.completeHandler_,
-        this.oldSku,);
+        this.oldSku
+    );
   }
 
   /**
