@@ -16,7 +16,6 @@
 'use strict';
 
 const argv = require('minimist')(process.argv.slice(2));
-const colors = require('ansi-colors');
 const log = require('fancy-log');
 const nodemon = require('nodemon');
 
@@ -27,11 +26,13 @@ const quiet = argv.quiet != undefined;
 const publicationId = argv.publicationId || 'com.appspot.scenic-2017-test';
 const ampLocal = argv.ampLocal != undefined;
 
+const {green, yellow} = require('ansi-colors');
+
 /**
  * Starts a simple http server at the repository root
  */
 function serve() {
-  log(colors.green('Serving unminified js'));
+  log(green('Serving unminified js'));
 
   nodemon({
     script: require.resolve('../server/server.js'),
@@ -47,11 +48,11 @@ function serve() {
       'SERVE_AMP_LOCAL': ampLocal,
     },
   }).once('quit', function() {
-    log(colors.green('Shutting down server'));
+    log(green('Shutting down server'));
   });
   if (!quiet) {
     log(
-      colors.yellow(
+      yellow(
         'Run `gulp build` then go to ' + getHost() + '/examples/sample-pub/'
       )
     );

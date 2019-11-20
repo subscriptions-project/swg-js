@@ -112,7 +112,8 @@ Use the following Gulp commands:
 | `gulp check-links --files foo.md,bar.md`                                | Reports dead links in `.md` files.                                                 |
 | `gulp clean`                                                            | Removes build output.                                                 |
 | `gulp watch`<sup>[[1]](#footnote-1)</sup>                               | Watches for changes in files, re-build.                               |
-| `gulp test`<sup>[[1]](#footnote-1)</sup>                                | Runs tests in Chrome.                                                 |
+| `gulp unit`<sup>[[1]](#footnote-1)</sup>                                | Runs unit tests in Chrome.                                                 |
+| `gulp e2e`<sup>[[1]](#footnote-1)</sup>                                 | Runs end-to-end tests in Chrome.
 
 <a id="footnote-1">[1]</a> On Windows, this command must be run as administrator.
 
