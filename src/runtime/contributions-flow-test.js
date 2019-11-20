@@ -59,7 +59,7 @@ describes.realWin('ContributionsFlow', {}, env => {
     callbacksMock.verify();
   });
 
-  it('should have valid ContributionsFlow constructed with a list', () => {
+  it('should have valid ContributionsFlow constructed with a list', async () => {
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     activitiesMock
       .expects('openIframe')
@@ -77,10 +77,10 @@ describes.realWin('ContributionsFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
-    return contributionsFlow.start();
+    await contributionsFlow.start();
   });
 
-  it('should have valid ContributionsFlow constructed with skus', () => {
+  it('should have valid ContributionsFlow constructed with skus', async () => {
     contributionsFlow = new ContributionsFlow(runtime, {
       skus: ['sku1', 'sku2'],
     });
@@ -100,10 +100,10 @@ describes.realWin('ContributionsFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
-    return contributionsFlow.start();
+    await contributionsFlow.start();
   });
 
-  it('should activate pay, login', () => {
+  it('should activate pay, login', async () => {
     const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     const nativeStub = sandbox.stub(
@@ -111,46 +111,46 @@ describes.realWin('ContributionsFlow', {}, env => {
       'triggerSubscribeRequest'
     );
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    return contributionsFlow.start().then(() => {
-      let callback = messageMap['SkuSelectedResponse'];
-      expect(callback).to.not.be.null;
-      // Unrelated message.
-      expect(payStub).to.not.be.called;
-      expect(loginStub).to.not.be.called;
-      expect(nativeStub).to.not.be.called;
-      const skuSelected = new SkuSelectedResponse();
-      skuSelected.setSku('sku1');
-      // Pay message.
-      callback(skuSelected);
-      expect(payStub).to.be.calledOnce;
-      expect(loginStub).to.not.be.called;
-      expect(nativeStub).to.not.be.called;
-      // Login message.
-      callback = messageMap['AlreadySubscribedResponse'];
-      const response = new AlreadySubscribedResponse();
-      response.setSubscriberOrMember(true);
-      response.setLinkRequested(false);
-      callback(response);
-      expect(loginStub).to.be.calledOnce.calledWithExactly({
-        linkRequested: false,
-      });
-      expect(payStub).to.be.calledOnce; // Dind't change.
-      expect(nativeStub).to.not.be.called;
+
+    await contributionsFlow.start();
+    let callback = messageMap['SkuSelectedResponse'];
+    expect(callback).to.not.be.null;
+    // Unrelated message.
+    expect(payStub).to.not.be.called;
+    expect(loginStub).to.not.be.called;
+    expect(nativeStub).to.not.be.called;
+    const skuSelected = new SkuSelectedResponse();
+    skuSelected.setSku('sku1');
+    // Pay message.
+    callback(skuSelected);
+    expect(payStub).to.be.calledOnce;
+    expect(loginStub).to.not.be.called;
+    expect(nativeStub).to.not.be.called;
+    // Login message.
+    callback = messageMap['AlreadySubscribedResponse'];
+    const response = new AlreadySubscribedResponse();
+    response.setSubscriberOrMember(true);
+    response.setLinkRequested(false);
+    callback(response);
+    expect(loginStub).to.be.calledOnce.calledWithExactly({
+      linkRequested: false,
     });
+    expect(payStub).to.be.calledOnce; // Didn't change.
+    expect(nativeStub).to.not.be.called;
   });
 
-  it('should activate login with linking', () => {
+  it('should activate login with linking', async () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    return contributionsFlow.start().then(() => {
-      const response = new AlreadySubscribedResponse();
-      response.setSubscriberOrMember(true);
-      response.setLinkRequested(true);
-      const callback = messageMap[response.label()];
-      callback(response);
-      expect(loginStub).to.be.calledOnce.calledWithExactly({
-        linkRequested: true,
-      });
+
+    await contributionsFlow.start();
+    const response = new AlreadySubscribedResponse();
+    response.setSubscriberOrMember(true);
+    response.setLinkRequested(true);
+    const callback = messageMap[response.label()];
+    callback(response);
+    expect(loginStub).to.be.calledOnce.calledWithExactly({
+      linkRequested: true,
     });
   });
 });

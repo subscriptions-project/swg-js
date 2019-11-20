@@ -161,7 +161,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     return flow.openPromise_;
   });
 
-  it('should handle cancel', () => {
+  it('should handle cancel', async () => {
     callbacksMock
       .expects('triggerFlowCanceled')
       .withExactArgs('completeDeferredAccountCreation')
@@ -169,36 +169,30 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
     dialogManagerMock.expects('completeView').once();
-    const promise = flow.start();
-    return promise.then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(isCancelError(reason)).to.be.true;
-      }
-    );
+    try {
+      await flow.start();
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(isCancelError(reason)).to.be.true;
+    }
   });
 
-  it('should handle failure', () => {
+  it('should handle failure', async () => {
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
-    const promise = flow.start();
-    return promise.then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/broken/);
-      }
-    );
+    try {
+      await flow.start();
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(() => {
+        throw reason;
+      }).to.throw(/broken/);
+    }
   });
 
-  it('should continue with confirmation flow', () => {
+  it('should continue with confirmation flow', async () => {
     const outputEnts = new Entitlements(
       'subscribe.google.com',
       'RaW',
@@ -233,34 +227,31 @@ describes.realWin('DeferredAccountFlow', {}, env => {
       .withExactArgs(AnalyticsEvent.ACTION_NEW_DEFERRED_ACCOUNT, true)
       .once();
 
-    return flow.start().then(response => {
-      expect(response.entitlements).to.equal(outputEnts);
-      expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
-      expect(response.userData.id).to.equal('ID_TOK');
-      expect(response.purchaseData.raw).to.equal('PURCHASE_DATA');
-      expect(response.purchaseData.signature).to.equal('SIG(PURCHASE_DATA)');
-      expect(response.purchaseDataList).to.have.length(1);
-      expect(response.purchaseDataList[0].raw).to.equal('PURCHASE_DATA');
-      expect(response.purchaseDataList[0].signature).to.equal(
-        'SIG(PURCHASE_DATA)'
-      );
+    const response = await flow.start();
+    expect(response.entitlements).to.equal(outputEnts);
+    expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+    expect(response.userData.id).to.equal('ID_TOK');
+    expect(response.purchaseData.raw).to.equal('PURCHASE_DATA');
+    expect(response.purchaseData.signature).to.equal('SIG(PURCHASE_DATA)');
+    expect(response.purchaseDataList).to.have.length(1);
+    expect(response.purchaseDataList[0].raw).to.equal('PURCHASE_DATA');
+    expect(response.purchaseDataList[0].signature).to.equal(
+      'SIG(PURCHASE_DATA)'
+    );
 
-      expect(confirmStartStub).to.be.calledOnce;
-      const confirmRequest = confirmStartStub.args[0][0];
-      expect(confirmRequest.entitlements).to.equal(response.entitlements);
-      expect(confirmRequest.userData).to.equal(response.userData);
-      expect(confirmRequest.purchaseData).to.equal(
-        response.purchaseDataList[0]
-      );
+    expect(confirmStartStub).to.be.calledOnce;
+    const confirmRequest = confirmStartStub.args[0][0];
+    expect(confirmRequest.entitlements).to.equal(response.entitlements);
+    expect(confirmRequest.userData).to.equal(response.userData);
+    expect(confirmRequest.purchaseData).to.equal(response.purchaseDataList[0]);
 
-      expect(confirmCompleteStub).to.not.be.called;
-      const completePromise = response.complete();
-      expect(confirmCompleteStub).to.be.calledOnce;
-      return completePromise;
-    });
+    expect(confirmCompleteStub).to.not.be.called;
+    const completePromise = response.complete();
+    expect(confirmCompleteStub).to.be.calledOnce;
+    await completePromise;
   });
 
-  it('should accept purchase data list', () => {
+  it('should accept purchase data list', async () => {
     const outputEnts = new Entitlements(
       'subscribe.google.com',
       'RaW',
@@ -301,34 +292,31 @@ describes.realWin('DeferredAccountFlow', {}, env => {
       .withExactArgs(AnalyticsEvent.ACTION_NEW_DEFERRED_ACCOUNT, true)
       .once();
 
-    return flow.start().then(response => {
-      expect(response.entitlements).to.equal(outputEnts);
-      expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
-      expect(response.userData.id).to.equal('ID_TOK');
-      expect(response.purchaseData.raw).to.equal('PURCHASE_DATA1');
-      expect(response.purchaseData.signature).to.equal('SIG(PURCHASE_DATA1)');
-      expect(response.purchaseDataList).to.have.length(2);
-      expect(response.purchaseDataList[0].raw).to.equal('PURCHASE_DATA1');
-      expect(response.purchaseDataList[0].signature).to.equal(
-        'SIG(PURCHASE_DATA1)'
-      );
-      expect(response.purchaseDataList[1].raw).to.equal('PURCHASE_DATA2');
-      expect(response.purchaseDataList[1].signature).to.equal(
-        'SIG(PURCHASE_DATA2)'
-      );
+    const response = await flow.start();
+    expect(response.entitlements).to.equal(outputEnts);
+    expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+    expect(response.userData.id).to.equal('ID_TOK');
+    expect(response.purchaseData.raw).to.equal('PURCHASE_DATA1');
+    expect(response.purchaseData.signature).to.equal('SIG(PURCHASE_DATA1)');
+    expect(response.purchaseDataList).to.have.length(2);
+    expect(response.purchaseDataList[0].raw).to.equal('PURCHASE_DATA1');
+    expect(response.purchaseDataList[0].signature).to.equal(
+      'SIG(PURCHASE_DATA1)'
+    );
+    expect(response.purchaseDataList[1].raw).to.equal('PURCHASE_DATA2');
+    expect(response.purchaseDataList[1].signature).to.equal(
+      'SIG(PURCHASE_DATA2)'
+    );
 
-      expect(confirmStartStub).to.be.calledOnce;
-      const confirmRequest = confirmStartStub.args[0][0];
-      expect(confirmRequest.entitlements).to.equal(response.entitlements);
-      expect(confirmRequest.userData).to.equal(response.userData);
-      expect(confirmRequest.purchaseData).to.equal(
-        response.purchaseDataList[0]
-      );
+    expect(confirmStartStub).to.be.calledOnce;
+    const confirmRequest = confirmStartStub.args[0][0];
+    expect(confirmRequest.entitlements).to.equal(response.entitlements);
+    expect(confirmRequest.userData).to.equal(response.userData);
+    expect(confirmRequest.purchaseData).to.equal(response.purchaseDataList[0]);
 
-      expect(confirmCompleteStub).to.not.be.called;
-      const completePromise = response.complete();
-      expect(confirmCompleteStub).to.be.calledOnce;
-      return completePromise;
-    });
+    expect(confirmCompleteStub).to.not.be.called;
+    const completePromise = response.complete();
+    expect(confirmCompleteStub).to.be.calledOnce;
+    await completePromise;
   });
 });
