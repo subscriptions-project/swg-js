@@ -254,30 +254,32 @@ describes.realWin('Propensity', {}, env => {
     expect(receivedEvent).to.be.null;
   });
 
-  it('should return propensity score from server', () => {
+  it('should return propensity score from server', async () => {
     const scoreDetails = [
       {
         score: 42,
         bucketed: false,
       },
     ];
-    sandbox.stub(PropensityServer.prototype, 'getPropensity').callsFake(() => {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve({
-            'header': {'ok': true},
-            'body': {'scores': scoreDetails},
-          });
-        }, 10);
-      });
-    }, 10);
-    return propensity.getPropensity().then(propensityScore => {
-      expect(propensityScore).to.not.be.null;
-      expect(propensityScore.header).to.not.be.null;
-      expect(propensityScore.header.ok).to.be.true;
-      expect(propensityScore.body).to.not.be.null;
-      expect(propensityScore.body.scores).to.not.be.null;
-      expect(propensityScore.body.scores[0].score).to.equal(42);
-    });
+    sandbox.stub(PropensityServer.prototype, 'getPropensity').callsFake(
+      () =>
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              'header': {'ok': true},
+              'body': {'scores': scoreDetails},
+            });
+          }, 10);
+        }),
+      10
+    );
+
+    const propensityScore = await propensity.getPropensity();
+    expect(propensityScore).to.not.be.null;
+    expect(propensityScore.header).to.not.be.null;
+    expect(propensityScore.header.ok).to.be.true;
+    expect(propensityScore.body).to.not.be.null;
+    expect(propensityScore.body.scores).to.not.be.null;
+    expect(propensityScore.body.scores[0].score).to.equal(42);
   });
 });
