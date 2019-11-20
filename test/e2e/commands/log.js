@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 const util = require('gulp-util');
-const colors = require('ansi-colors');
+const {blue} = require('ansi-colors');
 
 module.exports.command = function(message) {
   const infoSymbol = String.fromCharCode('9432') + '  ';
-  return this.perform(() => util.log(colors.blue.bold(infoSymbol) + message));
+  return this.perform(() => util.log(blue.bold(infoSymbol) + message));
 };
