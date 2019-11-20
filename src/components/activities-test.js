@@ -28,6 +28,7 @@ import {AnalyticsRequest, AnalyticsEvent} from '../proto/api_messages';
 import {PageConfig} from '../model/page-config';
 import {AnalyticsService} from '../runtime/analytics-service';
 import {ClientEventManager} from '../runtime/client-event-manager';
+import {tick} from '../../test/tick';
 
 const publicationId = 'PUB_ID';
 
@@ -337,7 +338,7 @@ describes.realWin('Activity Components', {}, env => {
       expect(handler).to.not.be.null;
 
       handler({'sku': 'daily'});
-      await 'Promises...';
+      await tick();
       handler({'sku': 'daily'});
     });
 
