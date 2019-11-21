@@ -23,7 +23,7 @@ const {changelog} = require('./build-system/tasks/changelog');
 const {checkRules} = require('./build-system/tasks/check-rules');
 const {build, checkTypes, clean, dist,watch} = require('./build-system/tasks/builders');
 const {serve} = require('./build-system/tasks/serve');
-const {test} = require('./build-system/tasks/test');
+const {unit} = require('./build-system/tasks/test');
 const {runAllExportsToEs, runAllExportsToAmp} = require('./build-system/tasks/export-to-es');
 
 // Gulp tasks.
@@ -33,7 +33,7 @@ gulp.task('changelog', changelog);
 gulp.task('lint', lint);
 gulp.task('check-types', checkTypes);
 gulp.task('check-rules', checkRules);
-gulp.task('test', test);
+gulp.task('unit', unit);
 gulp.task('watch', watch);
 gulp.task('serve', serve);
 gulp.task('clean', clean);
@@ -48,6 +48,6 @@ const check = gulp.series('lint', 'check-types', 'check-rules');
 check.description = 'Run through all checks';
 gulp.task('check', check);
 
-const presubmit = gulp.series('check', 'test');
+const presubmit = gulp.series('check', 'unit');
 presubmit.description = 'Run through all checks and tests';
 gulp.task('presubmit', presubmit);

@@ -23,6 +23,7 @@
 const https = require('https');
 const {getStdout} = require('./exec');
 const {log} = require('../src/utils/log');
+const {isTravisBuild} = require('./travis');
 
 const nodeDistributionsUrl = 'https://nodejs.org/dist/index.json';
 const yarnExecutable = 'npx yarn';
@@ -191,13 +192,13 @@ function getYarnStableVersion(infoJson) {
 
 function main() {
   // Yarn is already used by default on Travis, so there is nothing more to do.
-  if (process.env.TRAVIS) {
+  if (isTravisBuild()) {
     return 0;
   }
   ensureYarn();
   return checkNodeVersion().then(() => {
     checkYarnVersion();
-    if (!process.env.TRAVIS && updatesNeeded.size > 0) {
+    if (!isTravisBuild() && updatesNeeded.size > 0) {
       log(
         yellow('\nWARNING: Detected problems with'),
         cyan(Array.from(updatesNeeded).join(', '))
