@@ -57,7 +57,7 @@ describes.realWin('LoginPromptApi', {}, env => {
     dialogManagerMock.verify();
   });
 
-  it('should start the flow correctly', () => {
+  it('should start the flow correctly', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock
@@ -75,40 +75,33 @@ describes.realWin('LoginPromptApi', {}, env => {
       .returns(Promise.resolve(port));
 
     loginPromptApi.start();
-    return loginPromptApi.openViewPromise_;
+    await loginPromptApi.openViewPromise_;
   });
 
-  it('should handle cancel', () => {
+  it('should handle cancel', async () => {
     callbacksMock.expects('triggerFlowCanceled').once();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
 
     resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
     dialogManagerMock.expects('completeView').once();
-    return loginPromptApi.start().then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(isCancelError(reason)).to.be.true;
-      }
-    );
+    try {
+      await loginPromptApi.start();
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(isCancelError(reason)).to.be.true;
+    }
   });
 
-  it('should handle failure', () => {
+  it('should handle failure', async () => {
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
-    const promise = loginPromptApi.start();
-    return promise.then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/broken/);
-      }
-    );
+    try {
+      await loginPromptApi.start();
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.contain(/broken/);
+    }
   });
 });

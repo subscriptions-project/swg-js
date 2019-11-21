@@ -56,7 +56,7 @@ describes.realWin('LoginNotificationApi', {}, env => {
     dialogManagerMock.verify();
   });
 
-  it('should start the flow correctly', () => {
+  it('should start the flow correctly', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     activitiesMock
       .expects('openIframe')
@@ -73,22 +73,19 @@ describes.realWin('LoginNotificationApi', {}, env => {
       .returns(Promise.resolve(port));
 
     loginNotificationApi.start();
-    return loginNotificationApi.openViewPromise_;
+    await loginNotificationApi.openViewPromise_;
   });
 
-  it('should handle failure', () => {
+  it('should handle failure', async () => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
-    return loginNotificationApi.start().then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/broken/);
-      }
-    );
+
+    try {
+      await loginNotificationApi.start();
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.contain(/broken/);
+    }
   });
 });
