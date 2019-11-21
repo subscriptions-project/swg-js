@@ -122,7 +122,7 @@ export class ButtonApi {
       button.setAttribute('lang', options['lang']);
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
-    this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SWG_BUTTON, false);
+    this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SWG_BUTTON);
 
     return button;
   }
