@@ -126,7 +126,11 @@ export class PayStartFlow {
     }
 
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, req);
+    if (productType == ProductType.SUBSCRIPTION) {
+      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, req);
+    } else if(productType = ProductType.UI_CONTRIBUTION) {
+      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.CONTRIBUTE, req);
+    }
     if (req.oldSku) {
       this.analyticsService_.setSku(req.oldSku);
     }
