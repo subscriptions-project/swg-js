@@ -194,7 +194,7 @@ export class ButtonApi {
   setupButtonAndGetParams_(button, optionsOrCallback, callbackFun) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = this.getCallback_(optionsOrCallback, callbackFun);
-    const wasCalled = false;
+    let wasCalled = false;
     const clickFun = event => {
       if (wasCalled) {
         return;
