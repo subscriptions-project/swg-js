@@ -18,7 +18,6 @@ import {Toast} from './toast';
 import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from '../runtime/runtime';
 import {PageConfig} from '../model/page-config';
-import {getStyle} from '../utils/style';
 
 const src = '$frontend$/swglib/toastiframe?_=_';
 
