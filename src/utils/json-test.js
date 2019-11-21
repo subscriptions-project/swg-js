@@ -126,18 +126,22 @@ describe('json', () => {
     });
 
     it('should call onFailed for invalid and not call for valid json', () => {
+      let error;
       let onFailedCalled = false;
-      const validJson = '{"key": "value"}';
-      tryParseJson(validJson, () => {
+
+      function onFailure(e) {
+        error = e;
         onFailedCalled = true;
-      });
+      }
+
+      const validJson = '{"key": "value"}';
+      tryParseJson(validJson, onFailure);
+      expect(error).to.not.exist;
       expect(onFailedCalled).to.be.false;
 
       const invalidJson = '{"key": "val';
-      tryParseJson(invalidJson, err => {
-        onFailedCalled = true;
-        expect(err).to.exist;
-      });
+      tryParseJson(invalidJson, onFailure);
+      expect(error).to.exist;
       expect(onFailedCalled).to.be.true;
     });
   });
