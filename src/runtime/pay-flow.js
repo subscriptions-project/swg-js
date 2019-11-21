@@ -126,10 +126,14 @@ export class PayStartFlow {
     }
 
     // Start/cancel events.
-    if (productType == ProductType.SUBSCRIPTION) {
-      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, req);
-    } else if(productType = ProductType.UI_CONTRIBUTION) {
-      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.CONTRIBUTE, req);
+    if (this.productType_ == ProductType.SUBSCRIPTION) {
+      this.deps_
+        .callbacks()
+        .triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, req);
+    } else if (this.productType_ == ProductType.UI_CONTRIBUTION) {
+      this.deps_
+        .callbacks()
+        .triggerFlowStarted(SubscriptionFlows.CONTRIBUTE, req);
     }
     if (req.oldSku) {
       this.analyticsService_.setSku(req.oldSku);
@@ -193,7 +197,13 @@ export class PayCompleteFlow {
         },
         reason => {
           if (isCancelError(reason)) {
-            deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
+            if (this.productType_ == ProductType.SUBSCRIPTION) {
+              deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
+            } else if (this.productType_ == ProductType.UI_CONTRIBUTION) {
+              deps
+                .callbacks()
+                .triggerFlowCanceled(SubscriptionFlows.CONTRIBUTE);
+            }
             deps
               .eventManager()
               .logSwgEvent(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true);
