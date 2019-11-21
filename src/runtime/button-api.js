@@ -194,12 +194,7 @@ export class ButtonApi {
   setupButtonAndGetParams_(button, optionsOrCallback, callbackFun) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = this.getCallback_(optionsOrCallback, callbackFun);
-    let wasCalled = false;
     const clickFun = event => {
-      if (wasCalled) {
-        return;
-      }
-      wasCalled = true;
       this.logSwgEvent_(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true);
       if (typeof callback === 'function') {
         callback(event);
