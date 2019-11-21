@@ -50,6 +50,18 @@ const TITLE_LANG_MAP = {
   'zh-tw': '透過 Google 訂閱',
 };
 
+/*
+ * Properties:
+ * - lang: Sets the button SVG and title. Default is "en".
+ * - theme: "light" or "dark". Default is "light".
+ *
+ * @typedef {{
+ *   options: (!../api/subscriptions.SmartButtonOptions|!../api/subscriptions.ButtonOptions),
+ *   clickFun: (!function(Event):?),
+ * }}
+ */
+export let ButtonParams;
+
 /**
  * The button stylesheet can be found in the `/assets/swg-button.css`.
  * It's produced by the `gulp assets` task and deployed to
@@ -109,11 +121,11 @@ export class ButtonApi {
    * @return {!Element}
    */
   attach(button, optionsOrCallback, callback) {
-    const options = this.setupButtonAndGetOptions_(
+    const options = this.setupButtonAndGetParams_(
       button,
       optionsOrCallback,
       callback
-    );
+    ).options;
 
     const theme = options['theme'];
     button.classList.add(`swg-button-${theme}`);
@@ -177,18 +189,24 @@ export class ButtonApi {
    * @param {!Element} button
    * @param {../api/subscriptions.SmartButtonOptions|function()|../api/subscriptions.ButtonOptions} optionsOrCallback
    * @param {function()=} callbackFun
-   * @return {!../api/subscriptions.SmartButtonOptions|function()|../api/subscriptions.ButtonOptions}
+   * @return {ButtonParams}
    */
-  setupButtonAndGetOptions_(button, optionsOrCallback, callbackFun) {
+  setupButtonAndGetParams_(button, optionsOrCallback, callbackFun) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = this.getCallback_(optionsOrCallback, callbackFun);
-    button.addEventListener('click', event => {
+    const wasCalled = false;
+    const clickFun = event => {
+      if (wasCalled) {
+        return;
+      }
+      wasCalled = true;
       this.logSwgEvent_(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true);
       if (typeof callback === 'function') {
         callback(event);
       }
-    });
-    return options;
+    };
+    button.addEventListener('click', clickFun);
+    return {options, clickFun};
   }
 
   /**
@@ -199,7 +217,7 @@ export class ButtonApi {
    * @return {!Element}
    */
   attachSmartButton(deps, button, optionsOrCallback, callback) {
-    const options = this.setupButtonAndGetOptions_(
+    const params = this.setupButtonAndGetParams_(
       button,
       optionsOrCallback,
       callback
@@ -209,8 +227,8 @@ export class ButtonApi {
     return new SmartSubscriptionButtonApi(
       deps,
       button,
-      options,
-      function() {}
+      params.options,
+      params.clickFun
     ).start();
   }
 }
