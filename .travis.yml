@@ -23,8 +23,8 @@ jobs:
     - stage: unit
       name: 'Unit Tests'
       script:
-        - gulp test
-    - stage: e2e
+        - gulp unit
+    - stage: E2E
       name: 'End to End Tests'
       script:
         - gulp e2e

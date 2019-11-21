@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const util = require('gulp-util');
-const {blue} = require('ansi-colors');
 
-module.exports.command = function(message) {
-  const infoSymbol = String.fromCharCode('9432') + '  ';
-  return this.perform(() => util.log(blue.bold(infoSymbol) + message));
-};
+/** Waits for N event loop ticks. */
+export async function tick(n = 1) {
+  while (n--) {
+    await 'Event loop tick';
+  }
+}
