@@ -73,6 +73,7 @@ function printArgvMessages() {
     compiled: 'Running tests against minified code.',
     grep:
       'Only running tests that match the pattern "' + cyan(argv.grep) + '".',
+    coverage: 'Running tests in code coverage mode.',
   };
 
   log(
@@ -170,30 +171,32 @@ function runTests(done) {
   }
 
   if (argv.coverage) {
-    log(blue('Including code coverage tests'));
-    c.browserify.transform.push([
-      'browserify-istanbul',
-      {instrumenterConfig: {embedSource: true}},
-    ]);
-    c.reporters = c.reporters.concat(['progress', 'coverage']);
-    if (c.preprocessors['src/**/*.js']) {
-      c.preprocessors['src/**/*.js'].push('coverage');
-    }
-    c.coverageReporter = {
+    c.reporters.push('coverage-istanbul');
+    c.plugins.push('karma-coverage-istanbul-reporter');
+
+    c.coverageIstanbulReporter = {
       dir: 'test/coverage',
-      reporters: [
-        {type: 'html', subdir: 'report-html'},
-        {type: 'lcov', subdir: 'report-lcov'},
-        {type: 'lcovonly', subdir: '.', file: 'report-lcovonly.txt'},
-        {type: 'text', subdir: '.', file: 'text.txt'},
-        {type: 'text-summary', subdir: '.', file: 'text-summary.txt'},
-      ],
-      instrumenterOptions: {
-        istanbul: {
-          noCompact: true,
-        },
-      },
+      reports: isTravisBuild()
+      ? ['lcovonly']
+      : ['html', 'text', 'text-summary'],
+      'report-config': {lcovonly: {file: `lcov-unit.info`}},
     };
+
+    const instanbulPlugin = [
+      'istanbul',
+      {
+        exclude: [
+          'build-system/**/*.js',
+          'third_party/**/*.js',
+          'test/**/*.js',
+        ],
+      },
+    ];
+    const plugins = [instanbulPlugin];
+
+    c.browserify.transform = [
+      ['babelify', Object.assign({}, {presets: ["@babel/preset-env"]}, {plugins})],
+    ];
   }
 
   // Run fake-server to test XHR responses.
@@ -238,6 +241,7 @@ module.exports = {
 };
 unit.description = 'Runs tests';
 unit.flags = {
+  'coverage': '  Run tests in code coverage mode',
   'verbose': '  With logging enabled',
   'testnames': '  Lists the name of each test being run',
   'watch': '  Watches for changes in files, runs corresponding test(s)',
