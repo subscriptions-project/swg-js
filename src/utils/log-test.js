@@ -74,17 +74,16 @@ describes.realWin('asserts', {}, env => {
   });
 
   it('should fail', () => {
-    expect(function() {
+    expect(() => {
       assert(false, 'xyz');
     }).to.throw(/xyz/);
+
     try {
       assert(false, '123');
+      throw 'must have failed';
     } catch (e) {
       expect(e.message).to.equal('123');
-      return;
     }
-    // Unreachable
-    expect(false).to.be.true;
   });
 
   it('should not fail', () => {
@@ -94,16 +93,16 @@ describes.realWin('asserts', {}, env => {
   });
 
   it('should substitute', () => {
-    expect(function() {
+    expect(() => {
       assert(false, 'should fail %s', 'XYZ');
     }).to.throw(/should fail XYZ/);
-    expect(function() {
+    expect(() => {
       assert(false, 'should fail %s %s', 'XYZ', 'YYY');
     }).to.throw(/should fail XYZ YYY/);
     const div = win.document.createElement('div');
     div.id = 'abc';
     div.textContent = 'foo';
-    expect(function() {
+    expect(() => {
       assert(false, 'should fail %s', div);
     }).to.throw(/should fail div#abc/);
 
