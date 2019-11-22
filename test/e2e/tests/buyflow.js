@@ -31,11 +31,8 @@ module.exports = {
     publication
       .navigate()
       .viewFirstArticle()
-      .waitForElementPresent('@swgIFrame', 'Found SwG iFrame');
-
-    browser
-      .switchToFrame("[src*='about:blank']", 'SwG outer iFrame')
-      .switchToFrame("[src*='offersiframe']", 'SwG inner iFrame')
+      .waitForElementPresent('@swgIFrame', 'Found SwG iFrame')
+      .viewOffers()
       .assert.containsText('.K2Fgzb', 'Subscribe with your Google Account')
       .assert.containsText('.wlhaj.I3RyHc', 'Already subscribed?')
       .assert.containsText('.amekj', 'Basic Access')
@@ -44,5 +41,32 @@ module.exports = {
       .assert.containsText('.HJ9fUd', 'Free 7 day trial')
       .assert.containsText('.ZIHl3c', 'Price for the first 6 weeks')
       .end();
+  },
+  'User log in, select an offer and see gpay window': function(browser) {
+    const login = browser.page.login();
+    login.navigate().login();
+
+    const publication = browser.page.publication();
+    publication
+      .navigate()
+      .viewFirstArticle()
+      .selectOffer();
+    browser.checkPayment().end();
+  },
+  'User select an offer, log in and see gpay window': function(browser) {
+    const publication = browser.page.publication();
+    publication
+      .navigate()
+      .viewFirstArticle()
+      .selectOffer()
+      // Switch to the payment window.
+      .pause(1000)
+      .switchToWindow('login window')
+      .assert.containsText('#headingText', 'Sign in');
+
+    const login = browser.page.login();
+    login.login();
+
+    browser.checkPayment().end();
   },
 };
