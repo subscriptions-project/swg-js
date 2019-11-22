@@ -24,16 +24,16 @@ const login = {
   login: function() {
     this.api.pause(1000);
     return this.log('Signing into Google Account')
-      .setValue('@username', constants.username)
+      .setValue('@username', constants.login.username)
       .click('@usernameNext')
       .pause(2000)
-      .setValue('@password', constants.password)
+      .setValue('@password', constants.login.password)
       .click('@passwordNext');
   },
 };
 
 module.exports = {
-  url: 'https://accounts.google.com/ServiceLogin',
+  url: constants.login.url,
   commands: [login],
   elements: {
     username: {
