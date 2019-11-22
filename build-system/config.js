@@ -18,6 +18,7 @@
 const commonTestPaths = [
   'test/_init_tests.js',
   '!node_modules',
+  'test/chai-as-promised/chai-as-promised.js',
   {
     pattern: 'test/fixtures/*.html',
     included: false,
@@ -46,27 +47,13 @@ const commonTestPaths = [
 
 const basicTestPaths = ['src/**/*-test.js'];
 
-const testPaths = commonTestPaths.concat(basicTestPaths);
-
-const chaiAsPromised = ['test/chai-as-promised/chai-as-promised.js'];
-
-const unitTestPaths = commonTestPaths.concat([
-  'src/**/*-test.js',
-  'test/functional/**/*.js',
-]);
-
-const integrationTestPaths = commonTestPaths.concat([
-  'test/integration/**/*.js',
-]);
+const unitTestPaths = commonTestPaths.concat(basicTestPaths);
 
 /** @const  */
 module.exports = {
   commonTestPaths,
   basicTestPaths,
-  testPaths,
-  chaiAsPromised,
   unitTestPaths,
-  integrationTestPaths,
   lintGlobs: [
     '**/*.js',
     '!**/*.extern.js',

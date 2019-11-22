@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const util = require('gulp-util');
-const {blue} = require('ansi-colors');
 
-module.exports.command = function(message) {
-  const infoSymbol = String.fromCharCode('9432') + '  ';
-  return this.perform(() => util.log(blue.bold(infoSymbol) + message));
+/**
+ * @fileoverview Switching to the newest window opened.
+ */
+module.exports.command = function(windowName) {
+  return this.windowHandles(function(result) {
+    const newWindow = result.value[result.value.length - 1];
+    this.pause(1000)
+      .log(`Switching window to ${windowName}`)
+      .switchWindow(newWindow);
+  });
 };

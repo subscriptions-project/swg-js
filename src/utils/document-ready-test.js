@@ -20,6 +20,7 @@ import {
   whenDocumentReady,
   whenDocumentComplete,
 } from './document-ready';
+import {tick} from '../../test/tick';
 
 describes.sandboxed('documentReady', {}, () => {
   let testDoc;
@@ -97,7 +98,7 @@ describes.sandboxed('documentReady', {}, () => {
   });
 
   describe('whenDocumentReady', () => {
-    it('should call callback immediately when ready', () => {
+    it('should call callback immediately when ready', async () => {
       testDoc.readyState = 'complete';
       const spy = sandbox.spy();
       const spy2 = sandbox.spy();
@@ -113,52 +114,44 @@ describes.sandboxed('documentReady', {}, () => {
       expect(spy2).to.have.not.been.called;
       expect(spy3).to.have.not.been.called;
 
-      return Promise.resolve()
-        .then(() => {
-          // Skip microtask.
-          return Promise.resolve();
-        })
-        .then(() => {
-          expect(spy).to.be.calledOnce;
-          expect(spy.getCall(0).args).to.deep.equal([testDoc]);
-          expect(spy2).to.be.calledOnce;
-          expect(spy3).to.be.calledOnce;
-        });
+      await tick();
+      expect(spy).to.be.calledOnce;
+      expect(spy.getCall(0).args).to.deep.equal([testDoc]);
+      expect(spy2).to.be.calledOnce;
+      expect(spy3).to.be.calledOnce;
     });
 
-    it('should not call callback', () => {
+    it('should not call callback', async () => {
       const spy = sandbox.spy();
       whenDocumentReady(testDoc).then(spy);
       expect(spy).to.have.not.been.called;
-      return Promise.resolve().then(() => {
-        expect(spy).to.have.not.been.called;
-      });
+
+      await tick(99);
+      expect(spy).to.have.not.been.called;
     });
 
-    it('should wait to call callback until ready', () => {
+    it('should wait to call callback until ready', async () => {
       testDoc.readyState = 'loading';
       const callback = sandbox.spy();
       whenDocumentReady(testDoc).then(callback);
 
-      return Promise.resolve().then(() => {
-        expect(callback).to.have.not.been.called;
-        expect(eventListeners['readystatechange']).to.not.equal(undefined);
+      await tick(99);
+      expect(callback).to.have.not.been.called;
+      expect(eventListeners['readystatechange']).to.not.equal(undefined);
 
-        // Complete
-        testDoc.readyState = 'complete';
-        eventListeners['readystatechange']();
+      // Complete
+      testDoc.readyState = 'complete';
+      eventListeners['readystatechange']();
 
-        return Promise.resolve().then(() => {
-          expect(callback).to.be.calledOnce;
-          expect(callback.getCall(0).args).to.deep.equal([testDoc]);
-          expect(eventListeners['readystatechange']).to.equal(undefined);
-        });
-      });
+      await tick();
+      expect(callback).to.be.calledOnce;
+      expect(callback.getCall(0).args).to.deep.equal([testDoc]);
+      expect(eventListeners['readystatechange']).to.equal(undefined);
     });
   });
 
   describe('whenDocumentComplete', () => {
-    it('should call callback immediately when complete', () => {
+    it('should call callback immediately when complete', async () => {
       testDoc.readyState = 'complete';
       const spy = sandbox.spy();
       const spy2 = sandbox.spy();
@@ -174,56 +167,47 @@ describes.sandboxed('documentReady', {}, () => {
       expect(spy2).to.have.not.been.called;
       expect(spy3).to.have.not.been.called;
 
-      return Promise.resolve()
-        .then(() => {
-          // Skip microtask.
-          return Promise.resolve();
-        })
-        .then(() => {
-          expect(spy).to.be.calledOnce;
-          expect(spy.getCall(0).args).to.deep.equal([testDoc]);
-          expect(spy2).to.be.calledOnce;
-          expect(spy3).to.be.calledOnce;
-        });
+      await tick(99);
+      expect(spy).to.be.calledOnce;
+      expect(spy.getCall(0).args).to.deep.equal([testDoc]);
+      expect(spy2).to.be.calledOnce;
+      expect(spy3).to.be.calledOnce;
     });
 
-    it('should not call callback', () => {
+    it('should not call callback', async () => {
       const spy = sandbox.spy();
       whenDocumentComplete(testDoc).then(spy);
       expect(spy).to.have.not.been.called;
-      return Promise.resolve().then(() => {
-        expect(spy).to.have.not.been.called;
-      });
+
+      await tick();
+      expect(spy).to.have.not.been.called;
     });
 
-    it('should wait to call callback until ready', () => {
+    it('should wait to call callback until ready', async () => {
       testDoc.readyState = 'loading';
       const callback = sandbox.spy();
       whenDocumentComplete(testDoc).then(callback);
 
-      return Promise.resolve().then(() => {
-        expect(callback).to.have.not.been.called;
-        expect(eventListeners['readystatechange']).to.not.equal(undefined);
+      await tick();
+      expect(callback).to.have.not.been.called;
+      expect(eventListeners['readystatechange']).to.not.equal(undefined);
 
-        // interactive
-        testDoc.readyState = 'interactive';
-        eventListeners['readystatechange']();
+      // interactive
+      testDoc.readyState = 'interactive';
+      eventListeners['readystatechange']();
 
-        return Promise.resolve().then(() => {
-          expect(callback).to.have.not.been.called;
-          expect(eventListeners['readystatechange']).to.not.equal(undefined);
+      await tick();
+      expect(callback).to.have.not.been.called;
+      expect(eventListeners['readystatechange']).to.not.equal(undefined);
 
-          // Complete
-          testDoc.readyState = 'complete';
-          eventListeners['readystatechange']();
+      // Complete
+      testDoc.readyState = 'complete';
+      eventListeners['readystatechange']();
 
-          return Promise.resolve().then(() => {
-            expect(callback).to.be.calledOnce;
-            expect(callback.getCall(0).args).to.deep.equal([testDoc]);
-            expect(eventListeners['readystatechange']).to.equal(undefined);
-          });
-        });
-      });
+      await tick();
+      expect(callback).to.be.calledOnce;
+      expect(callback.getCall(0).args).to.deep.equal([testDoc]);
+      expect(eventListeners['readystatechange']).to.equal(undefined);
     });
   });
 });

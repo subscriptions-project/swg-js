@@ -115,7 +115,7 @@ describes.realWin('AnalyticsService', {}, env => {
       return activityIframePort.whenReady();
     });
 
-    it('should send message on port and openIframe called only once', () => {
+    it('should send message on port and openIframe called only once', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       registeredCallback({
         eventType: AnalyticsEvent.UNKNOWN,
@@ -123,54 +123,48 @@ describes.realWin('AnalyticsService', {}, env => {
         isFromUserAction: null,
         additionalParameters: null,
       });
-      return analyticsService.lastAction_
-        .then(() => {
-          return activityIframePort.whenReady();
+
+      await analyticsService.lastAction_;
+      await activityIframePort.whenReady();
+      expect(activityIframePort.execute).to.be.calledOnce;
+      const /* {?AnalyticsRequest} */ requestSent = activityIframePort.execute.getCall(
+          0
+        ).args[0];
+      expect(requestSent.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
+      expect(requestSent.getMeta().getEventOriginator()).to.deep.equal(
+        EventOriginator.UNKNOWN_CLIENT
+      );
+      expect(requestSent.getMeta().getIsFromUserAction()).to.be.null;
+      registeredCallback({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: {droppedData: true},
+      });
+
+      await analyticsService.lastAction_;
+      expect(activityPorts.openIframe).to.have.been.calledOnce;
+      const firstArgument = activityPorts.openIframe.getCall(0).args[0];
+      expect(activityPorts.openIframe).to.have.been.calledOnce;
+      expect(firstArgument.nodeName).to.equal('IFRAME');
+      const secondArgument = activityPorts.openIframe.getCall(0).args[1];
+      expect(secondArgument).to.equal(feUrl(src));
+      const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
+      expect(thirdArgument).to.deep.equal(
+        feArgs({
+          publicationId: pageConfig.getPublicationId(),
         })
-        .then(() => {
-          expect(activityIframePort.execute).to.be.calledOnce;
-          const /* {?AnalyticsRequest} */ requestSent = activityIframePort.execute.getCall(
-              0
-            ).args[0];
-          expect(requestSent.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
-          expect(requestSent.getMeta().getEventOriginator()).to.deep.equal(
-            EventOriginator.UNKNOWN_CLIENT
-          );
-          expect(requestSent.getMeta().getIsFromUserAction()).to.be.null;
-          registeredCallback({
-            eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-            eventOriginator: EventOriginator.SWG_CLIENT,
-            isFromUserAction: true,
-            additionalParameters: {droppedData: true},
-          });
-          return analyticsService.lastAction_;
-        })
-        .then(() => {
-          expect(activityPorts.openIframe).to.have.been.calledOnce;
-          const firstArgument = activityPorts.openIframe.getCall(0).args[0];
-          expect(activityPorts.openIframe).to.have.been.calledOnce;
-          expect(firstArgument.nodeName).to.equal('IFRAME');
-          const secondArgument = activityPorts.openIframe.getCall(0).args[1];
-          expect(secondArgument).to.equal(feUrl(src));
-          const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
-          expect(thirdArgument).to.deep.equal(
-            feArgs({
-              publicationId: pageConfig.getPublicationId(),
-            })
-          );
-          const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
-              1
-            ).args[0];
-          expect(request).to.not.be.null;
-          const meta = request.getMeta();
-          expect(request.getEvent()).to.deep.equal(
-            AnalyticsEvent.IMPRESSION_PAYWALL
-          );
-          expect(meta.getEventOriginator()).to.equal(
-            EventOriginator.SWG_CLIENT
-          );
-          expect(meta.getIsFromUserAction()).to.be.true;
-        });
+      );
+      const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
+          1
+        ).args[0];
+      expect(request).to.not.be.null;
+      const meta = request.getMeta();
+      expect(request.getEvent()).to.deep.equal(
+        AnalyticsEvent.IMPRESSION_PAYWALL
+      );
+      expect(meta.getEventOriginator()).to.equal(EventOriginator.SWG_CLIENT);
+      expect(meta.getIsFromUserAction()).to.be.true;
     });
   });
 
@@ -183,7 +177,7 @@ describes.realWin('AnalyticsService', {}, env => {
   });
 
   describe('Context, experiments & labels', () => {
-    it('should create correct context for logging', () => {
+    it('should create correct context for logging', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       AnalyticsService.prototype.getQueryString_ = () => {
         return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
@@ -194,108 +188,91 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.setReadyToPay(true);
       analyticsService.setSku('basic');
       registeredCallback(event);
-      return analyticsService.lastAction_
-        .then(() => {
-          return activityIframePort.whenReady();
-        })
-        .then(() => {
-          expect(activityIframePort.execute).to.be.calledOnce;
-          const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
-              0
-            ).args[0];
-          expect(request).to.not.be.null;
-          expect(request.getEvent()).to.deep.equal(defEventType);
-          expect(request.getContext()).to.not.be.null;
-          expect(request.getContext().getReferringOrigin()).to.equal(
-            'https://scenic-2017.appspot.com'
-          );
-          expect(request.getContext().getUtmMedium()).to.equal('email');
-          expect(request.getContext().getUtmSource()).to.equal('scenic');
-          expect(request.getContext().getUtmCampaign()).to.equal('campaign');
-          expect(request.getContext().getTransactionId()).to.match(
-            /^.{8}-.{4}-.{4}-.{4}-.{12}$/g
-          );
-          expect(request.getContext().getSku()).to.equal('basic');
-          expect(request.getContext().getReadyToPay()).to.be.true;
-        });
+
+      await analyticsService.lastAction_;
+      await activityIframePort.whenReady();
+      expect(activityIframePort.execute).to.be.calledOnce;
+      const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
+          0
+        ).args[0];
+      expect(request).to.not.be.null;
+      expect(request.getEvent()).to.deep.equal(defEventType);
+      expect(request.getContext()).to.not.be.null;
+      expect(request.getContext().getReferringOrigin()).to.equal(
+        'https://scenic-2017.appspot.com'
+      );
+      expect(request.getContext().getUtmMedium()).to.equal('email');
+      expect(request.getContext().getUtmSource()).to.equal('scenic');
+      expect(request.getContext().getUtmCampaign()).to.equal('campaign');
+      expect(request.getContext().getTransactionId()).to.match(
+        /^.{8}-.{4}-.{4}-.{4}-.{12}$/g
+      );
+      expect(request.getContext().getSku()).to.equal('basic');
+      expect(request.getContext().getReadyToPay()).to.be.true;
     });
 
-    it('should set context for empty experiments', () => {
+    it('should set context for empty experiments', async () => {
       setExperimentsStringForTesting('');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       registeredCallback(event);
-      return analyticsService.lastAction_
-        .then(() => {
-          return activityIframePort.whenReady();
-        })
-        .then(() => {
-          expect(activityIframePort.execute).to.be.calledOnce;
-          const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
-              0
-            ).args[0];
-          expect(request).to.not.be.null;
-          expect(request.getContext().getLabelList()).to.deep.equal([]);
-        });
+      await analyticsService.lastAction_;
+      await activityIframePort.whenReady();
+      expect(activityIframePort.execute).to.be.calledOnce;
+      const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
+          0
+        ).args[0];
+      expect(request).to.not.be.null;
+      expect(request.getContext().getLabelList()).to.deep.equal([]);
     });
 
-    it('should set context for non-empty experiments', () => {
+    it('should set context for non-empty experiments', async () => {
       setExperimentsStringForTesting('experiment-A,experiment-B');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       registeredCallback(event);
-      return analyticsService.lastAction_
-        .then(() => {
-          return activityIframePort.whenReady();
-        })
-        .then(() => {
-          expect(activityIframePort.execute).to.be.calledOnce;
-          const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
-              0
-            ).args[0];
-          expect(request).to.not.be.null;
-          expect(request.getContext().getLabelList()).to.deep.equal([
-            'experiment-A',
-            'experiment-B',
-          ]);
-        });
+      await analyticsService.lastAction_;
+      await activityIframePort.whenReady();
+      expect(activityIframePort.execute).to.be.calledOnce;
+      const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
+          0
+        ).args[0];
+      expect(request).to.not.be.null;
+      expect(request.getContext().getLabelList()).to.deep.equal([
+        'experiment-A',
+        'experiment-B',
+      ]);
     });
 
-    it('should add additional labels to experiments', () => {
+    it('should add additional labels to experiments', async () => {
       analyticsService.addLabels(['L1', 'L2']);
       setExperimentsStringForTesting('E1,E2');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       registeredCallback(event);
-      return analyticsService.lastAction_
-        .then(() => {
-          return activityIframePort.whenReady();
-        })
-        .then(() => {
-          const /** {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
-              0
-            ).args[0];
-          expect(request.getContext().getLabelList()).to.deep.equal([
-            'L1',
-            'L2',
-            'E1',
-            'E2',
-          ]);
+      await analyticsService.lastAction_;
+      await activityIframePort.whenReady();
+      const /** {?AnalyticsRequest} */ request1 = activityIframePort.execute.getCall(
+          0
+        ).args[0];
+      expect(request1.getContext().getLabelList()).to.deep.equal([
+        'L1',
+        'L2',
+        'E1',
+        'E2',
+      ]);
 
-          analyticsService.addLabels(['L3', 'L4']);
-          registeredCallback(event);
-          return analyticsService.lastAction_;
-        })
-        .then(() => {
-          const /** {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
-              1
-            ).args[0];
-          expect(request.getContext().getLabelList()).to.deep.equal([
-            'L1',
-            'L2',
-            'E1',
-            'E2',
-            'L3',
-            'L4',
-          ]);
-        });
+      analyticsService.addLabels(['L3', 'L4']);
+      registeredCallback(event);
+      await analyticsService.lastAction_;
+      const /** {?AnalyticsRequest} */ request2 = activityIframePort.execute.getCall(
+          1
+        ).args[0];
+      expect(request2.getContext().getLabelList()).to.deep.equal([
+        'L1',
+        'L2',
+        'E1',
+        'E2',
+        'L3',
+        'L4',
+      ]);
     });
 
     it('should dedupe duplicate labels', () => {
@@ -319,15 +296,23 @@ describes.realWin('AnalyticsService', {}, env => {
      * originator if shouldLog is true.
      * @param {!EventOriginator} originator
      * @param {boolean} shouldLog
+     * @param {AnalyticsEvent=} eventType
      */
-    const testOriginator = function(originator, shouldLog) {
+    const testOriginator = function(originator, shouldLog, eventType) {
       const prevOriginator = event.eventOriginator;
+      const prevType = event.eventType;
       analyticsService.lastAction_ = null;
       event.eventOriginator = originator;
+      if (eventType) {
+        event.eventType = eventType;
+      }
       registeredCallback(event);
       const didLog = analyticsService.lastAction_ !== null;
       expect(shouldLog).to.equal(didLog);
       event.eventOriginator = prevOriginator;
+      if (eventType) {
+        event.eventType = prevType;
+      }
     };
 
     it('should not log publisher events by default', () => {
@@ -344,6 +329,14 @@ describes.realWin('AnalyticsService', {}, env => {
       testOriginator(EventOriginator.AMP_CLIENT, true);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
       testOriginator(EventOriginator.PUBLISHER_CLIENT, true);
+    });
+
+    it('should always log page load event in AMP', () => {
+      testOriginator(
+        EventOriginator.AMP_CLIENT,
+        true,
+        AnalyticsEvent.IMPRESSION_PAGE_LOAD
+      );
     });
   });
 
@@ -366,7 +359,7 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(analyticsService.getHasLogged()).to.be.false;
     });
 
-    it('should remember it logged something', async function() {
+    it('should remember it logged something', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       analyticsService.handleClientEvent_(event);
       await analyticsService.lastAction_;

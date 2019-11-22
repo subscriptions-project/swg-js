@@ -43,28 +43,17 @@ describes.realWin('Dialog', {}, env => {
 
     element = doc.createElement('div');
     view = {
-      getElement: function() {
-        return element;
-      },
-      init: function(dialog) {
-        return Promise.resolve(dialog);
-      },
-      resized: function() {
-        return;
-      },
-      shouldFadeBody: function() {
-        return true;
-      },
-      hasLoadingIndicator: function() {
-        return false;
-      },
+      getElement: () => element,
+      init: dialog => Promise.resolve(dialog),
+      resized: () => {},
+      shouldFadeBody: () => true,
+      hasLoadingIndicator: () => false,
     };
   });
 
+  /** Updates `setTimeout` to immediately call its callback. */
   function immediate() {
-    win.setTimeout = function(callback) {
-      callback();
-    };
+    win.setTimeout = callback => callback();
   }
 
   describe('dialog', () => {
@@ -270,14 +259,16 @@ describes.realWin('Dialog', {}, env => {
       const openedDialog = await dialog.open();
       const iframeDoc = openedDialog.getIframe().getDocument();
       const loadingContainer = iframeDoc.querySelector('swg-loading-container');
+
+      let styleDuringInit;
       view.init = () => {
-        expect(loadingContainer.getAttribute('style')).to.equal('');
+        styleDuringInit = loadingContainer.getAttribute('style');
         return Promise.resolve(dialog);
       };
-      view.hasLoadingIndicator = () => {
-        return true;
-      };
+      view.hasLoadingIndicator = () => true;
+
       await openedDialog.openView(view);
+      expect(styleDuringInit).to.equal('');
       expect(loadingContainer.getAttribute('style')).to.equal(
         'display: none !important;'
       );
@@ -290,33 +281,24 @@ describes.realWin('Dialog', {}, env => {
       };
       await openedDialog.openView(view);
       const view2 = {
-        getElement: function() {
-          return element;
-        },
-        init: function(dialog) {
-          return Promise.resolve(dialog);
-        },
-        resized: function() {
-          return;
-        },
-        shouldFadeBody: function() {
-          return true;
-        },
-        hasLoadingIndicator: function() {
-          return false;
-        },
+        getElement: () => element,
+        init: dialog => Promise.resolve(dialog),
+        resized: () => {},
+        shouldFadeBody: () => true,
+        hasLoadingIndicator: () => false,
       };
+      let styleDuringInit;
       view2.init = () => {
-        const iframeDoc = openedDialog.getIframe().getDocument();
-        const loadingContainer = iframeDoc.querySelector(
-          'swg-loading-container'
-        );
-        expect(loadingContainer.getAttribute('style')).to.equal(
-          'display: none !important;'
-        );
+        styleDuringInit = openedDialog
+          .getIframe()
+          .getDocument()
+          .querySelector('swg-loading-container')
+          .getAttribute('style');
         return Promise.resolve(dialog);
       };
+
       await openedDialog.openView(view2);
+      expect(styleDuringInit).to.equal('display: none !important;');
     });
   });
 });

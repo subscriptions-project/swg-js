@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-// Entry point into library for compilation with babel. Just loads main.js
-// and Babel's helpers.
-
-import '../third_party/babel/custom-babel-helpers';
-import './main';
+/** Waits for N event loop ticks. */
+export async function tick(n = 1) {
+  while (n--) {
+    await 'Event loop tick';
+  }
+}

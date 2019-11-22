@@ -18,7 +18,6 @@ import {Toast} from './toast';
 import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from '../runtime/runtime';
 import {PageConfig} from '../model/page-config';
-import {getStyle} from '../utils/style';
 
 const src = '$frontend$/swglib/toastiframe?_=_';
 
@@ -35,6 +34,7 @@ describes.realWin('Toast', {}, env => {
   let pageConfig;
   let port;
   let toast;
+  let iframe;
 
   beforeEach(() => {
     win = env.win;
@@ -46,25 +46,8 @@ describes.realWin('Toast', {}, env => {
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
-  });
+    iframe = toast.getElement();
 
-  it('should have created Notification View', function() {
-    const iframe = toast.getElement();
-    toast.whenReady().then(() => {
-      expect(iframe.nodeType).to.equal(1);
-      expect(iframe.nodeName).to.equal('IFRAME');
-
-      expect(getStyle(iframe, 'opacity')).to.equal('1');
-      expect(getStyle(iframe, 'bottom')).to.equal('0px');
-      expect(getStyle(iframe, 'display')).to.equal('block');
-
-      // These two properties are not set !important.
-      expect(getStyle(iframe, 'width')).to.equal('100%');
-      expect(getStyle(iframe, 'left')).to.equal('0px');
-    });
-  });
-
-  it('should build the content of toast iframe', async () => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
@@ -77,6 +60,23 @@ describes.realWin('Toast', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
-    return toast.open();
+  });
+
+  it('should have created Notification View', async () => {
+    await toast.whenReady();
+    expect(iframe.nodeType).to.equal(1);
+    expect(iframe.nodeName).to.equal('IFRAME');
+  });
+
+  it('should build the content of toast iframe', async () => {
+    await toast.open();
+    const iframeStyles = getComputedStyle(iframe);
+    expect(iframeStyles.opacity).to.equal('1');
+    expect(iframeStyles.bottom).to.equal('0px');
+    expect(iframeStyles.display).to.equal('block');
+
+    // These two properties are not set !important.
+    expect(iframeStyles.width).to.equal('300px');
+    expect(iframeStyles.left).to.equal('0px');
   });
 });

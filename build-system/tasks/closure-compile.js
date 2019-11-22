@@ -18,7 +18,6 @@
 const fs = require('fs-extra');
 const argv = require('minimist')(process.argv.slice(2));
 const closureCompiler = require('gulp-closure-compiler');
-const colors = require('ansi-colors');
 const gulp = require('gulp');
 const rename = require('gulp-rename');
 const replace = require('gulp-replace');
@@ -29,6 +28,9 @@ const isProdBuild = !!argv.type;
 const queue = [];
 let inProgress = 0;
 const MAX_PARALLEL_CLOSURE_INVOCATIONS = 4;
+
+const {red} = require('ansi-colors');
+const {isTravisBuild} = require('../travis');
 
 // Compiles code with the closure compiler. This is intended only for
 // production use. During development we intent to continue using
@@ -46,7 +48,7 @@ exports.closureCompile = function(
       inProgress++;
       compile(entryModuleFilename, outputDir, outputFilename, options).then(
         function() {
-          if (process.env.TRAVIS) {
+          if (isTravisBuild()) {
             // When printing simplified log in travis, use dot for each task.
             process.stdout.write('.');
           }
@@ -55,7 +57,7 @@ exports.closureCompile = function(
           resolve();
         },
         function(e) {
-          console./*OK*/ error(colors.red('Compilation error', e.message));
+          console./*OK*/ error(red('Compilation error', e.message));
           process.exit(1);
         }
       );
@@ -64,7 +66,7 @@ exports.closureCompile = function(
       if (!queue.length) {
         // When printing simplified log in travis, print EOF after
         // all closure compiling task are done.
-        if (process.env.TRAVIS) {
+        if (isTravisBuild()) {
           process.stdout.write('\n');
         }
         return;
@@ -116,7 +118,6 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       'src/*.js',
       'src/**/*.js',
       '!src/*-babel.js',
-      '!third_party/babel/custom-babel-helpers.js',
       'third_party/gpay/**/*.js',
       'node_modules/promise-pjs/promise.js',
       'node_modules/web-activities/activity-ports.js',
@@ -239,9 +240,9 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       .pipe(closureCompiler(compilerOptions))
       .on('error', function(err) {
         console./*OK*/ error(
-          colors.red('Error compiling', entryModuleFilenames)
+          red('Error compiling', entryModuleFilenames)
         );
-        console./*OK*/ error(colors.red(err.message));
+        console./*OK*/ error(red(err.message));
         process.exit(1);
       });
 

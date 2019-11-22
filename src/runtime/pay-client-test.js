@@ -179,22 +179,19 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     );
   });
 
-  it('should catch mismatching channel', () => {
+  it('should catch mismatching channel', async () => {
     dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ);
-    return withResult(result).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/channel mismatch/);
-      }
-    );
+
+    try {
+      await withResult(result);
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.contain(/channel mismatch/);
+    }
   });
 
-  it('should require secure channel for unencrypted payload', () => {
+  it('should require secure channel for unencrypted payload', async () => {
     dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(
       ActivityResultCode.OK,
@@ -204,19 +201,16 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       true,
       false
     );
-    return withResult(result).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/channel mismatch/);
-      }
-    );
+
+    try {
+      await withResult(result);
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.contain(/channel mismatch/);
+    }
   });
 
-  it('should require secure channel for unverified payload', () => {
+  it('should require secure channel for unverified payload', async () => {
     dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(
       ActivityResultCode.OK,
@@ -226,19 +220,16 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       false,
       true
     );
-    return withResult(result).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/channel mismatch/);
-      }
-    );
+
+    try {
+      await withResult(result);
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.contain(/channel mismatch/);
+    }
   });
 
-  it('should accept a correct payment response', () => {
+  it('should accept a correct payment response', async () => {
     dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(
       ActivityResultCode.OK,
@@ -248,12 +239,12 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       true,
       true
     );
-    return withResult(result).then(data => {
-      expect(data).to.deep.equal(INTEGR_DATA_OBJ);
-    });
+
+    const data = await withResult(result);
+    expect(data).to.deep.equal(INTEGR_DATA_OBJ);
   });
 
-  it('should accept a correct payment response as decoded obj', () => {
+  it('should accept a correct payment response as decoded obj', async () => {
     dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(
       ActivityResultCode.OK,
@@ -263,58 +254,54 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       true,
       true
     );
-    return withResult(result).then(data => {
-      expect(data).to.deep.equal(INTEGR_DATA_OBJ_DECODED);
-    });
+
+    const data = await withResult(result);
+    expect(data).to.deep.equal(INTEGR_DATA_OBJ_DECODED);
   });
 
-  it(
-    'should accept a correct payment response as encrypted obj' +
-      ' in PRODUCTION',
-    () => {
-      dialogManagerMock.expects('popupClosed').once();
-      const encryptedData = 'ENCRYPTED';
-      const encryptedResponse = {
-        redirectEncryptedCallbackData: encryptedData,
-        environment: 'PRODUCTION',
-        other: 'OTHER',
-      };
-      const result = new ActivityResult(
-        ActivityResultCode.OK,
-        encryptedResponse,
-        'POPUP',
-        'PAY_ORIGIN',
-        true,
-        true
-      );
-      const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch').callsFake(() =>
-        Promise.resolve({
-          json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED),
-        })
-      );
-      return withResult(result).then(data => {
-        expect(data.swgCallbackData).to.deep.equal(
-          INTEGR_DATA_OBJ_DECODED.swgCallbackData
-        );
-        expect(data.environment).to.equal('PRODUCTION');
-        expect(data.other).to.equal('OTHER');
-        // Verify xhr call.
-        expect(xhrFetchStub).to.be.calledOnce;
-        expect(xhrFetchStub).to.be.calledWith(
-          'PAY_ORIGIN/gp/p/apis/buyflow/process',
-          {
-            method: 'post',
-            headers: {'Accept': 'text/plain, application/json'},
-            credentials: 'include',
-            body: encryptedData,
-            mode: 'cors',
-          }
-        );
-      });
-    }
-  );
+  it('should accept a correct payment response as encrypted obj in PRODUCTION', async () => {
+    dialogManagerMock.expects('popupClosed').once();
+    const encryptedData = 'ENCRYPTED';
+    const encryptedResponse = {
+      redirectEncryptedCallbackData: encryptedData,
+      environment: 'PRODUCTION',
+      other: 'OTHER',
+    };
+    const result = new ActivityResult(
+      ActivityResultCode.OK,
+      encryptedResponse,
+      'POPUP',
+      'PAY_ORIGIN',
+      true,
+      true
+    );
+    const xhrFetchStub = sandbox.stub(Xhr.prototype, 'fetch').callsFake(() =>
+      Promise.resolve({
+        json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED),
+      })
+    );
 
-  it('should accept a correct payment response as encrypted obj in SANDBOX', () => {
+    const data = await withResult(result);
+    expect(data.swgCallbackData).to.deep.equal(
+      INTEGR_DATA_OBJ_DECODED.swgCallbackData
+    );
+    expect(data.environment).to.equal('PRODUCTION');
+    expect(data.other).to.equal('OTHER');
+    // Verify xhr call.
+    expect(xhrFetchStub).to.be.calledOnce;
+    expect(xhrFetchStub).to.be.calledWith(
+      'PAY_ORIGIN/gp/p/apis/buyflow/process',
+      {
+        method: 'post',
+        headers: {'Accept': 'text/plain, application/json'},
+        credentials: 'include',
+        body: encryptedData,
+        mode: 'cors',
+      }
+    );
+  });
+
+  it('should accept a correct payment response as encrypted obj in SANDBOX', async () => {
     dialogManagerMock.expects('popupClosed').once();
     const encryptedData = 'ENCRYPTED';
     const encryptedResponse = {
@@ -334,27 +321,27 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       .callsFake(() =>
         Promise.resolve({json: () => Promise.resolve(INTEGR_DATA_OBJ_DECODED)})
       );
-    return withResult(result).then(data => {
-      expect(data.swgCallbackData).to.deep.equal(
-        INTEGR_DATA_OBJ_DECODED.swgCallbackData
-      );
-      expect(data.environment).to.equal('SANDBOX');
-      // Verify xhr call.
-      expect(xhrFetchStub).to.be.calledOnce;
-      expect(xhrFetchStub).to.be.calledWith(
-        'PAY_ORIGIN/gp/p/apis/buyflow/process',
-        {
-          method: 'post',
-          headers: {'Accept': 'text/plain, application/json'},
-          credentials: 'include',
-          body: encryptedData,
-          mode: 'cors',
-        }
-      );
-    });
+
+    const data = await withResult(result);
+    expect(data.swgCallbackData).to.deep.equal(
+      INTEGR_DATA_OBJ_DECODED.swgCallbackData
+    );
+    expect(data.environment).to.equal('SANDBOX');
+    // Verify xhr call.
+    expect(xhrFetchStub).to.be.calledOnce;
+    expect(xhrFetchStub).to.be.calledWith(
+      'PAY_ORIGIN/gp/p/apis/buyflow/process',
+      {
+        method: 'post',
+        headers: {'Accept': 'text/plain, application/json'},
+        credentials: 'include',
+        body: encryptedData,
+        mode: 'cors',
+      }
+    );
   });
 
-  it('should propagate cancelation', () => {
+  it('should propagate cancelation', async () => {
     dialogManagerMock.expects('popupClosed').once();
     sandbox
       .stub(port, 'acceptResult')
@@ -363,35 +350,29 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       );
     resultCallback(port);
     expect(resultStub).to.be.calledOnce;
-    return resultStub.args[0][0].then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/cancel/);
-      }
-    );
+
+    try {
+      await resultStub.args[0][0];
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.contain(/cancel/);
+    }
   });
 
-  it('should propagate an error', () => {
+  it('should propagate an error', async () => {
     dialogManagerMock.expects('popupClosed').once();
     sandbox
       .stub(port, 'acceptResult')
       .callsFake(() => Promise.reject(new Error('intentional')));
     resultCallback(port);
     expect(resultStub).to.be.calledOnce;
-    return resultStub.args[0][0].then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/intentional/);
-      }
-    );
+
+    try {
+      await resultStub.args[0][0];
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.contain(/intentional/);
+    }
   });
 });
 
@@ -530,47 +511,37 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     });
   });
 
-  it('should accept a correct payment response', () => {
-    return withResult(Promise.resolve(INTEGR_DATA_OBJ)).then(data => {
-      expect(data).to.deep.equal(INTEGR_DATA_OBJ);
+  it('should accept a correct payment response', async () => {
+    const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
+    expect(data).to.deep.equal(INTEGR_DATA_OBJ);
+  });
+
+  it('should accept a cancel signal', async () => {
+    try {
+      await withResult(Promise.reject({'statusCode': 'CANCELED'}));
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(isCancelError(reason)).to.be.true;
+    }
+  });
+
+  it('should accept other errors', async () => {
+    try {
+      await withResult(Promise.reject('intentional'));
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.equal('intentional');
+    }
+  });
+
+  it('should return response on initialization', async () => {
+    const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
+    expect(data).to.deep.equal(INTEGR_DATA_OBJ);
+
+    const response = await new Promise(resolve => {
+      payClient.onResponse(resolve);
     });
-  });
-
-  it('should accept a cancel signal', () => {
-    return withResult(Promise.reject({'statusCode': 'CANCELED'})).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(isCancelError(reason)).to.be.true;
-      }
-    );
-  });
-
-  it('should accept other errors', () => {
-    return withResult(Promise.reject('intentional')).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/intentional/);
-      }
-    );
-  });
-
-  it('should return response on initialization', () => {
-    return withResult(Promise.resolve(INTEGR_DATA_OBJ))
-      .then(data => {
-        expect(data).to.deep.equal(INTEGR_DATA_OBJ);
-        return new Promise(resolve => {
-          payClient.onResponse(resolve);
-        });
-      })
-      .then(data => {
-        expect(data).to.deep.equal(INTEGR_DATA_OBJ);
-      });
+    expect(response).to.deep.equal(INTEGR_DATA_OBJ);
   });
 
   describe('native support', () => {
@@ -674,11 +645,10 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
     return verifier;
   }
 
-  it('should create key/verifier pair', () => {
-    return useVerifierPromise().then(verifier => {
-      expect(verifier).to.equal(TEST_VERIFIER);
-      expect(helper.restoreKey()).to.equal(TEST_KEY);
-    });
+  it('should create key/verifier pair', async () => {
+    const verifier = await useVerifierPromise();
+    expect(verifier).to.equal(TEST_VERIFIER);
+    expect(helper.restoreKey()).to.equal(TEST_KEY);
   });
 
   it('should resolve verifier sync after prepare', () => {
@@ -688,34 +658,34 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
     });
   });
 
-  it('should tolerate storage failures', () => {
+  it('should tolerate storage failures', async () => {
     sandbox.stub(localStorage, 'setItem').callsFake(() => {
       throw new Error('intentional');
     });
-    return useVerifierPromise().then(verifier => {
-      expect(verifier).to.be.null;
-      expect(helper.restoreKey()).to.be.null;
-    });
+
+    const verifier = await useVerifierPromise();
+    expect(verifier).to.be.null;
+    expect(helper.restoreKey()).to.be.null;
   });
 
-  it('should tolerate random values failures', () => {
+  it('should tolerate random values failures', async () => {
     sandbox.stub(crypto, 'getRandomValues').callsFake(() => {
       throw new Error('intentional');
     });
-    return useVerifierPromise().then(verifier => {
-      expect(verifier).to.be.null;
-      expect(helper.restoreKey()).to.be.null;
-    });
+
+    const verifier = await useVerifierPromise();
+    expect(verifier).to.be.null;
+    expect(helper.restoreKey()).to.be.null;
   });
 
-  it('should tolerate hashing failures', () => {
-    sandbox.stub(subtle, 'digest').callsFake(() => {
-      return Promise.reject('intentional');
-    });
-    return useVerifierPromise().then(verifier => {
-      expect(verifier).to.be.null;
-      expect(helper.restoreKey()).to.be.null;
-    });
+  it('should tolerate hashing failures', async () => {
+    sandbox
+      .stub(subtle, 'digest')
+      .callsFake(() => Promise.reject('intentional'));
+
+    const verifier = await useVerifierPromise();
+    expect(verifier).to.be.null;
+    expect(helper.restoreKey()).to.be.null;
   });
 
   it('should tolerate storage retrieval failures', () => {

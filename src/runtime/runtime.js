@@ -518,16 +518,13 @@ export class ConfiguredRuntime {
     /** @private @const {!DialogManager} */
     this.dialogManager_ = new DialogManager(this.doc_);
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = new ActivityPorts(this.win_);
-
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
-    //NOTE: 'this' is passed in as a DepsDef.  Do not pass in 'this' before
-    //analytics service and entitlements manager are constructed unless
-    //you are certain they do not rely on them because they are part of that
-    //definition.
+    // WARNING: DepsDef ('this') is being progressively defined below.
+    // Constructors will crash if they rely on something that doesn't exist yet.
+    /** @private @const {!../components/activities.ActivityPorts} */
+    this.activityPorts_ = new ActivityPorts(this);
 
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
@@ -552,6 +549,8 @@ export class ConfiguredRuntime {
       this, // See note about 'this' above
       this.fetcher_
     );
+
+    // ALL CLEAR: DepsDef definition now complete.
 
     /** @private @const {!OffersApi} */
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);

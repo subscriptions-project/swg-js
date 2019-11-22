@@ -28,6 +28,7 @@ describes.realWin('ActivityIframeView', {}, env => {
   let activityIframePort;
   let activityIframeView;
   let dialog;
+  let deps;
 
   const activityArgs = {
     'publicationId': 'pub1',
@@ -39,7 +40,10 @@ describes.realWin('ActivityIframeView', {}, env => {
     win = env.win;
     src = '$frontend$/offersiframe';
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    activityPorts = new ActivityPorts(win);
+    deps = {
+      win: () => win,
+    };
+    activityPorts = new ActivityPorts(deps);
     activityIframePort = new ActivityIframePort(
       dialog.getElement(),
       src,
@@ -139,28 +143,31 @@ describes.realWin('ActivityIframeView', {}, env => {
     it('should send and receive messages', async () => {
       let onCb;
       let messageLabel;
-      let dataSent;
+      let messageFromExecuteFake;
+      let messageFromOnCallback;
 
-      sandbox.stub(activityIframePort, 'execute').callsFake(data => {
-        dataSent = data;
-      });
+      const message = new SkuSelectedResponse();
+      message.setSku('sku1');
 
-      sandbox.stub(activityIframePort, 'on').callsFake((messageCtor, cb) => {
-        messageLabel = new messageCtor().label();
+      sandbox.stub(activityIframePort, 'on').callsFake((Message, cb) => {
+        messageLabel = Message.prototype.label();
         onCb = cb;
       });
-      const skuSelection = new SkuSelectedResponse();
-      skuSelection.setSku('sku1');
-      activityIframeView.on(SkuSelectedResponse, skuSelected => {
-        expect(skuSelected.getSku()).to.equal('sku1');
-        expect(messageLabel).to.equal('SkuSelectedResponse');
+      activityIframeView.on(SkuSelectedResponse, message => {
+        messageFromOnCallback = message;
       });
-      activityIframeView.execute(skuSelection);
+
+      sandbox.stub(activityIframePort, 'execute').callsFake(message => {
+        messageFromExecuteFake = message;
+      });
+      activityIframeView.execute(message);
+
       await activityIframeView.init(dialog);
       await activityIframeView.getPortPromise_();
-      onCb(skuSelection);
-      expect(dataSent.label()).to.equal('SkuSelectedResponse');
-      expect(dataSent.getSku()).to.equal('sku1');
+      onCb(message);
+      expect(message).to.equal(messageFromExecuteFake);
+      expect(message).to.equal(messageFromOnCallback);
+      expect(messageLabel).to.equal('SkuSelectedResponse');
     });
 
     it('should await cancel callback', async () => {
@@ -173,7 +180,7 @@ describes.realWin('ActivityIframeView', {}, env => {
         activityIframeView.onCancel(resolve);
       });
       activityIframeView.init(dialog);
-      return cancelPromise;
+      await cancelPromise;
     });
 
     it('should cache loading indicator', async () => {

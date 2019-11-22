@@ -83,7 +83,7 @@ describes.realWin('Timer', {}, env => {
     timer.delay(done);
   });
 
-  it('promise', () => {
+  it('promise', async () => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
@@ -97,41 +97,38 @@ describes.realWin('Timer', {}, env => {
       .once();
 
     let c = 0;
-    return timer.promise(111).then(result => {
+    const result = await timer.promise(111);
+    c++;
+    expect(c).to.equal(1);
+    expect(result).to.be.undefined;
+  });
+
+  it('timeoutPromise - no race', async () => {
+    windowMock
+      .expects('setTimeout')
+      .withExactArgs(
+        sandbox.match(value => {
+          value();
+          return true;
+        }),
+        111
+      )
+      .returns(1)
+      .once();
+
+    let c = 0;
+    try {
+      const result = await timer.timeoutPromise(111);
+      c++;
+      assert.fail('must never be here: ' + result);
+    } catch (reason) {
       c++;
       expect(c).to.equal(1);
-      expect(result).to.be.undefined;
-    });
+      expect(reason.message).to.contain('timeout');
+    }
   });
 
-  it('timeoutPromise - no race', () => {
-    windowMock
-      .expects('setTimeout')
-      .withExactArgs(
-        sandbox.match(value => {
-          value();
-          return true;
-        }),
-        111
-      )
-      .returns(1)
-      .once();
-
-    let c = 0;
-    return timer
-      .timeoutPromise(111)
-      .then(result => {
-        c++;
-        assert.fail('must never be here: ' + result);
-      })
-      .catch(reason => {
-        c++;
-        expect(c).to.equal(1);
-        expect(reason.message).to.contain('timeout');
-      });
-  });
-
-  it('timeoutPromise - race no timeout', () => {
+  it('timeoutPromise - race no timeout', async () => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
@@ -142,14 +139,13 @@ describes.realWin('Timer', {}, env => {
       .once();
 
     let c = 0;
-    return timer.timeoutPromise(111, Promise.resolve('A')).then(result => {
-      c++;
-      expect(c).to.equal(1);
-      expect(result).to.equal('A');
-    });
+    const result = await timer.timeoutPromise(111, Promise.resolve('A'));
+    c++;
+    expect(c).to.equal(1);
+    expect(result).to.equal('A');
   });
 
-  it('timeoutPromise - race with timeout', () => {
+  it('timeoutPromise - race with timeout', async () => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
@@ -164,44 +160,32 @@ describes.realWin('Timer', {}, env => {
       .once();
 
     let c = 0;
-    return timer
-      .timeoutPromise(111, new Promise(() => {}))
-      .then(result => {
-        c++;
-        assert.fail('must never be here: ' + result);
-      })
-      .catch(reason => {
-        c++;
-        expect(c).to.equal(1);
-        expect(reason.message).to.contain('timeout');
-      });
+    try {
+      const result = await timer.timeoutPromise(111, new Promise(() => {}));
+      c++;
+      assert.fail('must never be here: ' + result);
+    } catch (reason) {
+      c++;
+      expect(c).to.equal(1);
+      expect(reason.message).to.contain('timeout');
+    }
   });
 
-  it('poll - resolves only when condition is true', () => {
+  it('poll - resolves only when condition is true', async () => {
     const realTimer = new Timer(env.win);
     let predicate = false;
     setTimeout(() => {
       predicate = true;
     }, 15);
-    return realTimer
-      .poll(10, () => {
-        return predicate;
-      })
-      .then(() => {
-        expect(predicate).to.be.true;
-      });
+    await realTimer.poll(10, () => predicate);
+    expect(predicate).to.be.true;
   });
 
-  it('poll - clears out interval when complete', () => {
+  it('poll - clears out interval when complete', async () => {
     const realTimer = new Timer(env.win);
     const clearIntervalStub = sandbox.stub();
     env.win.clearInterval = clearIntervalStub;
-    return realTimer
-      .poll(111, () => {
-        return true;
-      })
-      .then(() => {
-        expect(clearIntervalStub).to.have.been.calledOnce;
-      });
+    await realTimer.poll(111, () => true);
+    expect(clearIntervalStub).to.have.been.calledOnce;
   });
 });

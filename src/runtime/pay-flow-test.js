@@ -31,6 +31,7 @@ import {
 } from './pay-flow';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
+import {tick} from '../../test/tick';
 import {
   EntitlementsResponse,
   AccountCreationRequest,
@@ -122,7 +123,7 @@ describes.realWin('PayStartFlow', {}, env => {
     eventManagerMock.verify();
   });
 
-  it('should have valid flow constructed in payStartFlow', () => {
+  it('should have valid flow constructed in payStartFlow', async () => {
     const subscribeRequest = {
       skuId: 'sku1',
       publicationId: 'pub1',
@@ -159,10 +160,10 @@ describes.realWin('PayStartFlow', {}, env => {
         getEventParams('sku1')
       );
     const flowPromise = flow.start();
-    return expect(flowPromise).to.eventually.be.undefined;
+    await expect(flowPromise).to.eventually.be.undefined;
   });
 
-  it('should have valid replace flow constructed', () => {
+  it('should have valid replace flow constructed', async () => {
     const subscriptionRequest = {
       skuId: 'newSku',
       oldSku: 'oldSku',
@@ -210,10 +211,10 @@ describes.realWin('PayStartFlow', {}, env => {
         getEventParams('newSku')
       );
     const flowPromise = replaceFlow.start();
-    return expect(flowPromise).to.eventually.be.undefined;
+    await expect(flowPromise).to.eventually.be.undefined;
   });
 
-  it('should have valid replace flow constructed (no proration mode)', () => {
+  it('should have valid replace flow constructed (no proration mode)', async () => {
     const subscriptionRequest = {
       skuId: 'newSku',
       oldSku: 'oldSku',
@@ -259,7 +260,7 @@ describes.realWin('PayStartFlow', {}, env => {
         getEventParams('newSku')
       );
     const flowPromise = replaceFlowNoProrationMode.start();
-    return expect(flowPromise).to.eventually.be.undefined;
+    await expect(flowPromise).to.eventually.be.undefined;
   });
 
   it('should force redirect mode', () => {
@@ -343,7 +344,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     eventManagerMock.verify();
   });
 
-  it('should have valid flow constructed', () => {
+  it('should have valid flow constructed', async () => {
     const purchaseData = new PurchaseData();
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
@@ -359,11 +360,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     );
     entitlementsManagerMock
       .expects('pushNextEntitlements')
-      .withExactArgs(
-        sandbox.match(arg => {
-          return arg === 'RaW';
-        })
-      )
+      .withExactArgs(sandbox.match(arg => arg === 'RaW'))
       .once();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -386,13 +383,14 @@ describes.realWin('PayCompleteFlow', {}, env => {
           publicationId: 'pub1',
           idToken: 'ID_TOK',
           productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
         }
       )
       .returns(Promise.resolve(port));
-    return flow.start(response);
+    await flow.start(response);
   });
 
-  it('should have valid flow constructed w/o entitlements', () => {
+  it('should have valid flow constructed w/o entitlements', async () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     const purchaseData = new PurchaseData();
     const userData = new UserData('ID_TOK', {
@@ -426,13 +424,56 @@ describes.realWin('PayCompleteFlow', {}, env => {
           publicationId: 'pub1',
           loginHint: 'test@example.org',
           productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
         }
       )
       .returns(Promise.resolve(port));
-    return flow.start(response);
+    await flow.start(response);
   });
 
-  it('should complete the flow', () => {
+  it('should have valid flow constructed w/ oldSku', async () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    const purchaseData = new PurchaseData();
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const response = new SubscribeResponse(
+      'RaW',
+      purchaseData,
+      userData,
+      null,
+      ProductType.SUBSCRIPTION,
+      null,
+      'sku_to_replace'
+    );
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          loginHint: 'test@example.org',
+          productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: true,
+        }
+      )
+      .returns(Promise.resolve(port));
+    await flow.start(response);
+  });
+
+  it('should complete the flow', async () => {
     const purchaseData = new PurchaseData();
     const userData = new UserData('ID_TOK', {
       'email': 'test@example.org',
@@ -457,11 +498,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .once();
     entitlementsManagerMock
       .expects('pushNextEntitlements')
-      .withExactArgs(
-        sandbox.match(arg => {
-          return arg === 'RaW';
-        })
-      )
+      .withExactArgs(sandbox.match(arg => arg === 'RaW'))
       .once();
     entitlementsManagerMock
       .expects('setToastShown')
@@ -482,19 +519,15 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED, true, params);
     const messageStub = sandbox.stub(port, 'execute');
-    return flow
-      .start(response)
-      .then(() => {
-        return flow.complete();
-      })
-      .then(() => {
-        const accountCreationRequest = new AccountCreationRequest();
-        accountCreationRequest.setComplete(true);
-        expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
-      });
+
+    await flow.start(response);
+    await flow.complete();
+    const accountCreationRequest = new AccountCreationRequest();
+    accountCreationRequest.setComplete(true);
+    expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
   });
 
-  it('should complete the flow w/o entitlements', () => {
+  it('should complete the flow w/o entitlements', async () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     const purchaseData = new PurchaseData();
     const userData = new UserData('ID_TOK', {
@@ -537,19 +570,15 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true, params);
     const messageStub = sandbox.stub(port, 'execute');
-    return flow
-      .start(response)
-      .then(() => {
-        return flow.complete();
-      })
-      .then(() => {
-        const accountCreationRequest = new AccountCreationRequest();
-        accountCreationRequest.setComplete(true);
-        expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
-      });
+
+    await flow.start(response);
+    await flow.complete();
+    const accountCreationRequest = new AccountCreationRequest();
+    accountCreationRequest.setComplete(true);
+    expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
   });
 
-  it('should accept consistent entitlements via messaging', () => {
+  it('should accept consistent entitlements via messaging', async () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     const purchaseData = new PurchaseData();
     const userData = new UserData('ID_TOK', {
@@ -615,26 +644,23 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED, true, params);
     const messageStub = sandbox.stub(port, 'execute');
-    return flow
-      .start(response)
-      .then(() => {
-        const entitlementsResponse = new EntitlementsResponse();
-        entitlementsResponse.setJwt('ENTITLEMENTS_JWT');
-        expect(messageLabel).to.equal(entitlementsResponse.label());
-        const cb = messageMap[messageLabel];
-        cb(entitlementsResponse);
-        return flow.complete();
-      })
-      .then(() => {
-        const accountCreationRequest = new AccountCreationRequest();
-        accountCreationRequest.setComplete(true);
-        expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
-        // Order must be strict: first reset, then pushNextEntitlements.
-        expect(order).to.deep.equal(['reset', 'pushNextEntitlements']);
-      });
+
+    await flow.start(response);
+    const entitlementsResponse = new EntitlementsResponse();
+    entitlementsResponse.setJwt('ENTITLEMENTS_JWT');
+    expect(messageLabel).to.equal(entitlementsResponse.label());
+    const cb = messageMap[messageLabel];
+    cb(entitlementsResponse);
+
+    await flow.complete();
+    const accountCreationRequest = new AccountCreationRequest();
+    accountCreationRequest.setComplete(true);
+    expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
+    // Order must be strict: first reset, then pushNextEntitlements.
+    expect(order).to.deep.equal(['reset', 'pushNextEntitlements']);
   });
 
-  it('should restore a SKU for redirect', () => {
+  it('should restore a SKU for redirect', async () => {
     const purchaseData = new PurchaseData(
       '{"orderId":"ORDER", "productId":"SKU"}',
       'SIG'
@@ -661,10 +687,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
         getEventParams('SKU')
       )
       .once();
-    return flow.start(response);
+    await flow.start(response);
   });
 
-  it('should tolerate unparseable purchase data', () => {
+  it('should tolerate unparseable purchase data', async () => {
     const purchaseData = new PurchaseData('unparseable', 'SIG');
     analyticsMock.expects('setSku').never();
     const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
@@ -690,7 +716,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         getEventParams('')
       )
       .once();
-    return flow.start(response);
+    await flow.start(response);
   });
 
   describe('payments response', () => {
@@ -711,7 +737,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .once();
     });
 
-    it('should NOT start flow on a response failure', () => {
+    it('should NOT start flow on a response failure', async () => {
       const error = new Error('intentional');
       analyticsMock.expects('setTransactionId').never();
       analyticsMock.expects('addLabels').never();
@@ -723,54 +749,46 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .expects('error')
         .withExactArgs('Pay failed', error)
         .once();
-      return responseCallback(Promise.reject(error)).then(
-        () => {
-          throw new Error('must have failed');
-        },
-        reason => {
-          expect(() => {
-            throw reason;
-          }).to.throw(/intentional/);
-          expect(startStub).to.not.be.called;
-          expect(triggerPromise).to.exist;
-          return triggerPromise.then(
-            () => {
-              throw new Error('must have failed');
-            },
-            reason => {
-              expect(() => {
-                throw reason;
-              }).to.throw(/intentional/);
-            }
-          );
-        }
-      );
+
+      try {
+        await responseCallback(Promise.reject(error));
+        throw new Error('must have failed');
+      } catch (reason) {
+        expect(reason).to.contain(/intentional/);
+      }
+      expect(startStub).to.not.be.called;
+      expect(triggerPromise).to.exist;
+
+      try {
+        await triggerPromise;
+        throw new Error('must have failed');
+      } catch (reason) {
+        expect(reason).to.contain(/intentional/);
+      }
     });
 
-    it('should start flow on a correct payment response', () => {
+    it('should start flow on a correct payment response', async () => {
       analyticsMock.expects('setTransactionId').never();
       callbacksMock.expects('triggerFlowCanceled').never();
       entitlementsManagerMock.expects('blockNextNotification').once();
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
-      return responseCallback(Promise.resolve(INTEGR_DATA_OBJ))
-        .then(() => {
-          expect(startStub).to.be.calledOnce;
-          expect(startStub.args[0][0]).to.be.instanceof(SubscribeResponse);
-          expect(triggerPromise).to.exist;
-          return triggerPromise;
-        })
-        .then(response => {
-          expect(response).to.be.instanceof(SubscribeResponse);
-          expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-          expect(response.purchaseData.signature).to.equal('PD_SIG');
-          expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
-          expect(JSON.parse(response.raw)).to.deep.equal(
-            JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']
-          );
-          expect(completeStub).to.not.be.called;
-          response.complete();
-          expect(completeStub).to.be.calledOnce;
-        });
+
+      await responseCallback(Promise.resolve(INTEGR_DATA_OBJ));
+      expect(startStub).to.be.calledOnce;
+      expect(startStub.args[0][0]).to.be.instanceof(SubscribeResponse);
+      expect(triggerPromise).to.exist;
+
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+      expect(response.purchaseData.signature).to.equal('PD_SIG');
+      expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+      expect(JSON.parse(response.raw)).to.deep.equal(
+        JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']
+      );
+      expect(completeStub).to.not.be.called;
+      response.complete();
+      expect(completeStub).to.be.calledOnce;
     });
 
     describe('Transaction IDs', () => {
@@ -783,7 +801,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           .callsFake(() => hasLogged);
       });
 
-      it('should log a change in TX ID without previous logging', () => {
+      it('should log a change in TX ID without previous logging', async () => {
         analyticsMock
           .expects('setTransactionId')
           .withExactArgs('NEW_TRANSACTION_ID')
@@ -805,17 +823,14 @@ describes.realWin('PayCompleteFlow', {}, env => {
           );
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
         data['googleTransactionId'] = 'NEW_TRANSACTION_ID';
-        return responseCallback(Promise.resolve(data))
-          .then(() => {
-            return triggerPromise;
-          })
-          .then(response => {
-            expect(response).to.be.instanceof(SubscribeResponse);
-            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-          });
+
+        await responseCallback(Promise.resolve(data));
+        const response = await triggerPromise;
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
       });
 
-      it('should log a change in TX ID with previous logging', () => {
+      it('should log a change in TX ID with previous logging', async () => {
         hasLogged = true;
         const newTxId = 'NEW_TRANSACTION_ID';
         const eventParams = new EventParams();
@@ -833,17 +848,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
         data['googleTransactionId'] = newTxId;
 
-        return responseCallback(Promise.resolve(data))
-          .then(() => {
-            return triggerPromise;
-          })
-          .then(response => {
-            expect(response).to.be.instanceof(SubscribeResponse);
-            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-          });
+        await responseCallback(Promise.resolve(data));
+        const response = await triggerPromise;
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
       });
 
-      it('log no TX ID from gPay and that logging has occured', () => {
+      it('log no TX ID from gPay and that logging has occured', async () => {
         hasLogged = true;
         const eventParams = new EventParams();
         eventParams.setHadLogged(hasLogged);
@@ -859,17 +870,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
           );
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
 
-        return responseCallback(Promise.resolve(data))
-          .then(() => {
-            return triggerPromise;
-          })
-          .then(response => {
-            expect(response).to.be.instanceof(SubscribeResponse);
-            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-          });
+        await responseCallback(Promise.resolve(data));
+        const response = await triggerPromise;
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
       });
 
-      it('log no TX ID from gPay and that logging has not occured', () => {
+      it('log no TX ID from gPay and that logging has not occured', async () => {
         hasLogged = false;
         const eventParams = new EventParams();
         eventParams.setHadLogged(hasLogged);
@@ -885,97 +892,83 @@ describes.realWin('PayCompleteFlow', {}, env => {
           );
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
 
-        return responseCallback(Promise.resolve(data))
-          .then(() => {
-            return triggerPromise;
-          })
-          .then(response => {
-            expect(response).to.be.instanceof(SubscribeResponse);
-            expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-          });
+        await responseCallback(Promise.resolve(data));
+        const response = await triggerPromise;
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
       });
     });
 
-    it('should start flow on correct payment response w/o entitlements', () => {
+    it('should start flow on correct payment response w/o entitlements', async () => {
       // TODO(dvoytenko, #400): cleanup once entitlements is launched.
       callbacksMock.expects('triggerFlowCanceled').never();
       entitlementsManagerMock.expects('blockNextNotification').once();
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       const result = INTEGR_DATA_OBJ_NO_ENTITLEMENTS;
-      return responseCallback(Promise.resolve(result))
-        .then(() => {
-          expect(startStub).to.be.calledOnce;
-          expect(startStub.args[0][0]).to.be.instanceof(SubscribeResponse);
-          expect(triggerPromise).to.exist;
-          return triggerPromise;
-        })
-        .then(response => {
-          expect(response).to.be.instanceof(SubscribeResponse);
-          expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-          expect(response.purchaseData.signature).to.equal('PD_SIG');
-          expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
-          expect(JSON.parse(response.raw)).to.deep.equal(
-            JSON.parse(atob(INTEGR_DATA_STRING_NO_ENTITLEMENTS))[
-              'swgCallbackData'
-            ]
-          );
-          expect(completeStub).to.not.be.called;
-          response.complete();
-          expect(completeStub).to.be.calledOnce;
-        });
+
+      await responseCallback(Promise.resolve(result));
+      expect(startStub).to.be.calledOnce;
+      expect(startStub.args[0][0]).to.be.instanceof(SubscribeResponse);
+      expect(triggerPromise).to.exist;
+
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+      expect(response.purchaseData.signature).to.equal('PD_SIG');
+      expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+      expect(JSON.parse(response.raw)).to.deep.equal(
+        JSON.parse(atob(INTEGR_DATA_STRING_NO_ENTITLEMENTS))['swgCallbackData']
+      );
+      expect(completeStub).to.not.be.called;
+      response.complete();
+      expect(completeStub).to.be.calledOnce;
     });
 
-    it('should start flow on correct payment response as decoded obj', () => {
+    it('should start flow on correct payment response as decoded obj', async () => {
       analyticsMock.expects('setTransactionId').never();
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       const result = INTEGR_DATA_OBJ_DECODED;
-      return responseCallback(Promise.resolve(result))
-        .then(() => {
-          expect(startStub).to.be.calledOnce;
-          expect(triggerPromise).to.exist;
-          return triggerPromise;
-        })
-        .then(response => {
-          expect(response).to.be.instanceof(SubscribeResponse);
-          expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-          expect(response.purchaseData.signature).to.equal('PD_SIG');
-          expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
-          expect(JSON.parse(response.raw)).to.deep.equal(
-            JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']
-          );
-          expect(completeStub).to.not.be.called;
-          response.complete();
-          expect(completeStub).to.be.calledOnce;
-        });
+
+      await responseCallback(Promise.resolve(result));
+      expect(startStub).to.be.calledOnce;
+      expect(triggerPromise).to.exist;
+
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+      expect(response.purchaseData.signature).to.equal('PD_SIG');
+      expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+      expect(JSON.parse(response.raw)).to.deep.equal(
+        JSON.parse(atob(INTEGR_DATA_STRING))['swgCallbackData']
+      );
+      expect(completeStub).to.not.be.called;
+      response.complete();
+      expect(completeStub).to.be.calledOnce;
     });
 
-    it('should start flow on decoded response w/o entitlements', () => {
+    it('should start flow on decoded response w/o entitlements', async () => {
       // TODO(dvoytenko, #400): cleanup once entitlements is launched.
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
       const result = INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS;
-      return responseCallback(Promise.resolve(result))
-        .then(() => {
-          expect(startStub).to.be.calledOnce;
-          expect(triggerPromise).to.exist;
-          return triggerPromise;
-        })
-        .then(response => {
-          expect(response).to.be.instanceof(SubscribeResponse);
-          expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
-          expect(response.purchaseData.signature).to.equal('PD_SIG');
-          expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
-          expect(JSON.parse(response.raw)).to.deep.equal(
-            JSON.parse(atob(INTEGR_DATA_STRING_NO_ENTITLEMENTS))[
-              'swgCallbackData'
-            ]
-          );
-          expect(completeStub).to.not.be.called;
-          response.complete();
-          expect(completeStub).to.be.calledOnce;
-        });
+
+      await responseCallback(Promise.resolve(result));
+      expect(startStub).to.be.calledOnce;
+      expect(triggerPromise).to.exist;
+
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+      expect(response.purchaseData.signature).to.equal('PD_SIG');
+      expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+      expect(JSON.parse(response.raw)).to.deep.equal(
+        JSON.parse(atob(INTEGR_DATA_STRING_NO_ENTITLEMENTS))['swgCallbackData']
+      );
+      expect(completeStub).to.not.be.called;
+      response.complete();
+      expect(completeStub).to.be.calledOnce;
     });
 
-    it('should NOT start flow on cancelation', () => {
+    it('should NOT start flow on cancelation', async () => {
       analyticsMock.expects('setTransactionId').never();
       callbacksMock
         .expects('triggerFlowCanceled')
@@ -983,14 +976,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .once();
       const cancel = new DOMException('cancel', 'AbortError');
       responseCallback(Promise.reject(cancel));
-      return Promise.resolve()
-        .then(() => {
-          // Skip microtask.
-          return Promise.resolve();
-        })
-        .then(() => {
-          expect(startStub).to.not.be.called;
-        });
+
+      await tick(2);
+      expect(startStub).to.not.be.called;
     });
   });
 });

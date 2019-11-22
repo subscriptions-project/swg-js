@@ -16,10 +16,9 @@
  */
 'use strict';
 
-const colors = require('ansi-colors');
 const log = require('fancy-log');
 
-const {red, cyan} = colors;
+const {red, cyan} = require('ansi-colors');
 
 /**
  * @fileoverview Provides functions that extract various kinds of Travis state.

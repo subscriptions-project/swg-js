@@ -16,7 +16,6 @@
 'use strict';
 
 const $$ = require('gulp-load-plugins')();
-const colors = require('ansi-colors');
 const babel = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
@@ -34,6 +33,7 @@ const watchify = require('watchify');
 const internalRuntimeVersion = require('./internal-version').VERSION;
 const argv = require('minimist')(process.argv.slice(2));
 const {endBuildStep, mkdirSync} = require('./helpers');
+const {red} = require('ansi-colors');
 
 /**
  * @return {!Promise}
@@ -88,7 +88,7 @@ exports.checkTypes = function(opts) {
 };
 
 /**
- * Compile a javascript file
+ * Bundles (max) or compiles (min) a javascript file.
  *
  * @param {string} srcDir Path to the src directory
  * @param {string} srcFilename Name of the JS source file
@@ -121,9 +121,9 @@ function compileJs(srcDir, srcFilename, destDir, options) {
       });
   }
 
-  let bundler = browserify(srcDir + srcFilename + '-babel.js', {
+  let bundler = browserify(srcDir + srcFilename + '.js', {
     debug: true,
-  }).transform(babel, {loose: true});
+  }).transform(babel, {presets: ["@babel/preset-env"]});
   if (options.watch) {
     bundler = watchify(bundler);
   }
@@ -133,7 +133,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   let lazybuild = lazypipe()
     .pipe(
       source,
-      srcFilename + '-babel.js'
+      srcFilename + '.js'
     )
     .pipe(buffer);
 
@@ -175,7 +175,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
       bundler
         .bundle()
         .on('error', err => {
-          console.error(colors.red(err));
+          console.error(red(err));
         })
         .pipe(lazybuild())
         .pipe($$.rename(destFilename))

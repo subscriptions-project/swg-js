@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const util = require('gulp-util');
-const {blue} = require('ansi-colors');
 
-module.exports.command = function(message) {
-  const infoSymbol = String.fromCharCode('9432') + '  ';
-  return this.perform(() => util.log(blue.bold(infoSymbol) + message));
+/**
+ * @fileoverview Switch to gpay window and check its DOM elements.
+ */
+
+const constants = require('../constants');
+
+module.exports.command = function() {
+  return this.pause(1000)
+    .switchToWindow('gpay window')
+    .switchToFrame('[src*="about:blank"]', 'iFrame in payment window')
+    .assert.title(constants.gpay.title)
+    .assert.containsText('.b3-line-item-name', 'Basic Access (The Scenic)')
+    .assert.containsText('.b3-line-item-value', 'Free trial')
+    .assert.containsText('#ariaId_28', 'Select payment method');
 };

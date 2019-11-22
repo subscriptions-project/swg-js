@@ -15,6 +15,12 @@
  */
 
 module.exports = {
-  username: 'TheonGreyjoy.819362@gmail.com',
-  password: 'testing123456789',
+  login: {
+    url: 'https://accounts.google.com/ServiceLogin',
+    username: 'TheonGreyjoy.819362@gmail.com',
+    password: 'testing123456789',
+  },
+  gpay: {
+    title: 'Google Pay',
+  },
 };
