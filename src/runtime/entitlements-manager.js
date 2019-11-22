@@ -249,11 +249,13 @@ export class EntitlementsManager {
       this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, String(isReadyToPay));
     }
     const signedData = json['signedEntitlements'];
+    const decryptedDocumentKey = json['decryptedDocumentKey'];
     if (signedData) {
       const entitlements = this.getValidJwtEntitlements_(
         signedData,
         /* requireNonExpired */ false,
-        isReadyToPay
+        isReadyToPay,
+        decryptedDocumentKey
       );
       if (entitlements) {
         return entitlements;
@@ -261,7 +263,12 @@ export class EntitlementsManager {
     } else {
       const plainEntitlements = json['entitlements'];
       if (plainEntitlements) {
-        return this.createEntitlements_('', plainEntitlements, isReadyToPay);
+        return this.createEntitlements_(
+          '',
+          plainEntitlements,
+          isReadyToPay,
+          decryptedDocumentKey
+        );
       }
     }
     // Empty response.
