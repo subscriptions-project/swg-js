@@ -102,6 +102,9 @@ export class LinkCompleteFlow {
       );
       return promise.then(
         response => {
+          deps
+            .eventManager()
+            .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
           const flow = new LinkCompleteFlow(deps, response);
           flow.start();
         },
@@ -113,6 +116,11 @@ export class LinkCompleteFlow {
             deps
               .callbacks()
               .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
+          } else {
+            // The user chose to continue but there was an error.
+            deps
+              .eventManager()
+              .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
           }
         }
       );
@@ -344,15 +352,14 @@ export class LinkSaveFlow {
    * @return {!Promise}
    */
   start() {
-    const iframeArgs = {
-      'publicationId': this.deps_.pageConfig().getPublicationId(),
+    const iframeArgs = this.activityPorts_.addDefaultArguments({
       'isClosable': true,
-    };
+    });
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       feUrl('/linksaveiframe'),
-      feArgs(iframeArgs),
+      iframeArgs,
       /* shouldFadeBody */ false,
       /* hasLoadingIndicator */ true
     );
