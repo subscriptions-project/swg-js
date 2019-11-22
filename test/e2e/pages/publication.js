@@ -18,18 +18,29 @@
 /**
  * @fileoverview Page object for the publication on scenic.
  */
-const viewFirstArticle = {
+const commands = {
   viewFirstArticle: function() {
     this.api.pause(1000);
     return this.log('Visiting the first article')
       .click('@firstArticle')
       .assert.title('16 Top Spots for Hiking - The Scenic - USA');
   },
+  viewOffers: function() {
+    return this.log('Viewing offers')
+      .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
+      .switchToFrame('[src*="offersiframe"]', 'SwG inner iFrame');
+  },
+  selectOffer: function() {
+    return this.viewOffers()
+      .log('Selecting "Basic Access" offer')
+      .click('.qLPyoc')
+      .pause(1000);
+  },
 };
 
 module.exports = {
   url: 'https://scenic-2017.appspot.com',
-  commands: [viewFirstArticle],
+  commands: [commands],
   elements: {
     firstArticle: {
       selector: "a[href='./1?']",
