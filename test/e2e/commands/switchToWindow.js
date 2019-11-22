@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-module.exports = {
-  login: {
-    url: 'https://accounts.google.com/ServiceLogin',
-    username: 'TheonGreyjoy.819362@gmail.com',
-    password: 'testing123456789',
-  },
-  gpay: {
-    title: 'Google Pay',
-  },
+/**
+ * @fileoverview Switching to the newest window opened.
+ */
+module.exports.command = function(windowName) {
+  return this.windowHandles(function(result) {
+    const newWindow = result.value[result.value.length - 1];
+    this.pause(1000)
+      .log(`Switching window to ${windowName}`)
+      .switchWindow(newWindow);
+  });
 };
