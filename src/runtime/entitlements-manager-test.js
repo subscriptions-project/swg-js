@@ -274,6 +274,40 @@ describes.realWin('EntitlementsManager', {}, env => {
       expect(ents.decryptedDocumentKey).to.equal('ddk1');
     });
 
+    it('should handle null decrypted document key', async () => {
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('SIGNED_DATA')
+        .returns({
+          entitlements: {
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+          },
+        });
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+            encodeURIComponent(encryptedDocumentKey),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            json: () =>
+              Promise.resolve({
+                signedEntitlements: 'SIGNED_DATA',
+              }),
+          })
+        );
+
+      const ents = await manager.getEntitlements(encryptedDocumentKey);
+      expect(ents.decryptedDocumentKey).to.be.null;
+    });
+
     it('should fetch non-empty response', async () => {
       jwtHelperMock
         .expects('decode')
