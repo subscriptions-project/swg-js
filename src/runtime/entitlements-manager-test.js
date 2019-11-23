@@ -239,7 +239,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       expect(ents.enablesThis()).to.be.false;
     });
 
-    it('should receive decrypted document key', async () => {
+    it('should handle present decrypted document key', async () => {
       jwtHelperMock
         .expects('decode')
         .withExactArgs('SIGNED_DATA')
