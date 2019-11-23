@@ -274,7 +274,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       expect(ents.decryptedDocumentKey).to.equal('ddk1');
     });
 
-    it('should handle null decrypted document key', async () => {
+    it('should handle missing decrypted document key', async () => {
       jwtHelperMock
         .expects('decode')
         .withExactArgs('SIGNED_DATA')
