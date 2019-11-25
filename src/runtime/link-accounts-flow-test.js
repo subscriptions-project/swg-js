@@ -44,7 +44,7 @@ describes.realWin('LinkbackFlow', {}, env => {
   let dialogManagerMock;
   let triggerFlowStartSpy;
   let linkbackFlow;
-  let eventManagerMock;
+  let receivedType;
 
   beforeEach(() => {
     win = env.win;
@@ -52,7 +52,10 @@ describes.realWin('LinkbackFlow', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    eventManagerMock = sandbox.mock(runtime.eventManager());
+    receivedType = null;
+    sandbox.stub(runtime.eventManager(), 'logSwgEvent').callsFake(type => {
+      receivedType = type;
+    });
     linkbackFlow = new LinkbackFlow(runtime);
     triggerFlowStartSpy = sandbox.stub(
       runtime.callbacks(),
@@ -62,7 +65,6 @@ describes.realWin('LinkbackFlow', {}, env => {
 
   afterEach(() => {
     activitiesMock.verify();
-    eventManagerMock.verify();
   });
 
   it('should start correctly', () => {
@@ -85,10 +87,8 @@ describes.realWin('LinkbackFlow', {}, env => {
       )
       .returns({targetWin: popupWin})
       .once();
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_LINK);
     linkbackFlow.start();
+    expect(receivedType).to.equal(AnalyticsEvent.IMPRESSION_LINK);
     expect(triggerFlowStartSpy).to.be.calledOnce.calledWithExactly(
       'linkAccount'
     );
@@ -116,6 +116,7 @@ describes.realWin('LinkbackFlow', {}, env => {
       .returns({targetWin: popupWin})
       .once();
     linkbackFlow.start({ampReaderId: 'ari1'});
+    expect(receivedType).to.equal(AnalyticsEvent.IMPRESSION_LINK);
     expect(triggerFlowStartSpy).to.be.calledOnce.calledWithExactly(
       'linkAccount'
     );
@@ -141,10 +142,8 @@ describes.realWin('LinkbackFlow', {}, env => {
       )
       .returns(undefined)
       .once();
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_LINK);
     linkbackFlow.start();
+    expect(receivedType).to.equal(AnalyticsEvent.IMPRESSION_LINK);
   });
 });
 
@@ -539,11 +538,15 @@ describes.realWin('LinkSaveFlow', {}, env => {
   let triggerFlowCanceledSpy;
   let triggerLinkProgressSpy;
   let messageMap;
+  let defaultArguments;
 
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
+    defaultArguments = runtime
+      .activities()
+      .addDefaultArguments({isClosable: true});
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
@@ -592,11 +595,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          isClosable: true,
-        }
+        defaultArguments
       )
       .returns(Promise.resolve(port));
     linkSaveFlow.start();
@@ -813,11 +812,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          isClosable: true,
-        }
+        defaultArguments
       )
       .returns(Promise.resolve(port));
     const startPromise = linkSaveFlow.start();
@@ -851,11 +846,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          isClosable: true,
-        }
+        defaultArguments
       )
       .returns(Promise.resolve(port));
     eventManagerMock
@@ -894,11 +885,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          isClosable: true,
-        }
+        defaultArguments
       )
       .returns(Promise.resolve(port));
     eventManagerMock
