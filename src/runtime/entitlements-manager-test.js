@@ -89,7 +89,12 @@ describes.realWin('EntitlementsManager', {}, env => {
       .once();
   }
 
-  function entitlementsResponse(entitlements, options, isReadyToPay) {
+  function entitlementsResponse(
+    entitlements,
+    options,
+    isReadyToPay,
+    decryptedDocumentKey
+  ) {
     function enc(obj) {
       return base64UrlEncodeFromBytes(utf8EncodeSync(JSON.stringify(obj)));
     }
@@ -105,13 +110,17 @@ describes.realWin('EntitlementsManager', {}, env => {
       'exp': options.exp,
       'entitlements': entitlements,
     };
-    return {
+    const response = {
       'signedEntitlements': enc(header) + '.' + enc(payload) + '.SIG',
       'isReadyToPay': isReadyToPay,
     };
+    if (decryptedDocumentKey) {
+      response.decryptedDocumentKey = decryptedDocumentKey;
+    }
+    return response;
   }
 
-  function expectGoogleResponse(options, isReadyToPay) {
+  function expectGoogleResponse(options, isReadyToPay, decryptedDocumentKey) {
     const resp = entitlementsResponse(
       {
         source: 'google',
@@ -119,7 +128,8 @@ describes.realWin('EntitlementsManager', {}, env => {
         subscriptionToken: 's1',
       },
       options,
-      isReadyToPay
+      isReadyToPay,
+      decryptedDocumentKey
     );
     xhrMock
       .expects('fetch')
@@ -132,7 +142,11 @@ describes.realWin('EntitlementsManager', {}, env => {
     return resp;
   }
 
-  function expectNonGoogleResponse(options, isReadyToPay) {
+  function expectNonGoogleResponse(
+    options,
+    isReadyToPay,
+    decryptedDocumentKey
+  ) {
     const resp = entitlementsResponse(
       {
         source: 'pub1',
@@ -140,7 +154,8 @@ describes.realWin('EntitlementsManager', {}, env => {
         subscriptionToken: 's2',
       },
       options,
-      isReadyToPay
+      isReadyToPay,
+      decryptedDocumentKey
     );
     xhrMock
       .expects('fetch')
@@ -222,6 +237,75 @@ describes.realWin('EntitlementsManager', {}, env => {
       expect(ents.entitlements).to.deep.equal([]);
       expect(ents.product_).to.equal('pub1:label1');
       expect(ents.enablesThis()).to.be.false;
+    });
+
+    it('should handle present decrypted document key', async () => {
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('SIGNED_DATA')
+        .returns({
+          entitlements: {
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+          },
+        });
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+            encodeURIComponent(encryptedDocumentKey),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            json: () =>
+              Promise.resolve({
+                signedEntitlements: 'SIGNED_DATA',
+                decryptedDocumentKey: 'ddk1',
+              }),
+          })
+        );
+
+      const ents = await manager.getEntitlements(encryptedDocumentKey);
+      expect(ents.decryptedDocumentKey).to.equal('ddk1');
+    });
+
+    it('should handle missing decrypted document key', async () => {
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('SIGNED_DATA')
+        .returns({
+          entitlements: {
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+          },
+        });
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+            encodeURIComponent(encryptedDocumentKey),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            json: () =>
+              Promise.resolve({
+                signedEntitlements: 'SIGNED_DATA',
+              }),
+          })
+        );
+
+      const ents = await manager.getEntitlements(encryptedDocumentKey);
+      expect(ents.decryptedDocumentKey).to.be.null;
     });
 
     it('should fetch non-empty response', async () => {
