@@ -23,7 +23,7 @@ jobs:
     - stage: unit
       name: 'Unit Tests'
       script:
-        - gulp unit
+        - gulp unit --coverage
     - stage: E2E
       name: 'End to End Tests'
       script:
@@ -40,8 +40,10 @@ matrix:
         hosts:
           - pub.localhost
           - sp.localhost
--cache:
+cache:
   directories:
     - node_modules
   bundler: true
   yarn: true
+after_success:
+  - ./node_modules/.bin/codecov -f test/coverage/lcov-unit.info
