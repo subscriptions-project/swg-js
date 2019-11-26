@@ -32,10 +32,8 @@ describe('stringToBytes', function() {
     expect(bytes[2]).to.equal(255);
   });
 
-  it('should signal an error with a character >255', () => {
-    expect(() => {
-      return stringToBytes('ab☺');
-    }).to.throw();
+  it('should signal an error with a character >255', async () => {
+    expect(() => stringToBytes('ab☺')).to.throw();
   });
 
   it('should convert bytes array to string', () => {

@@ -67,154 +67,135 @@ describes.sandboxed('acceptPortResultData', {}, () => {
     });
   }
 
-  it('should resolve success with everything required ', () => {
+  it('should resolve success with everything required ', async () => {
     result(OK, 'A', ORIGIN, VERIFIED, SECURE);
-    return acceptPortResultData(
+    const data = await acceptPortResultData(
       port,
       ORIGIN,
       REQUIRE_VERIFIED,
       REQUIRE_SECURE
-    ).then(data => {
-      expect(data).to.equal('A');
-    });
+    );
+    expect(data).to.equal('A');
   });
 
-  it('should fail success on wrong origin', () => {
+  it('should fail success on wrong origin', async () => {
     result(OK, 'A', OTHER_ORIGIN, VERIFIED, SECURE);
-    return acceptPortResultData(
-      port,
-      ORIGIN,
-      REQUIRE_VERIFIED,
-      REQUIRE_SECURE
-    ).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/channel mismatch/);
-      }
-    );
+
+    try {
+      await acceptPortResultData(
+        port,
+        ORIGIN,
+        REQUIRE_VERIFIED,
+        REQUIRE_SECURE
+      );
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.contain(/channel mismatch/);
+    }
   });
 
-  it('should fail success on not verified', () => {
+  it('should fail success on not verified', async () => {
     result(OK, 'A', ORIGIN, NOT_VERIFIED, SECURE);
-    return acceptPortResultData(
-      port,
-      ORIGIN,
-      REQUIRE_VERIFIED,
-      REQUIRE_SECURE
-    ).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/channel mismatch/);
-      }
-    );
+
+    try {
+      await acceptPortResultData(
+        port,
+        ORIGIN,
+        REQUIRE_VERIFIED,
+        REQUIRE_SECURE
+      );
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.contain(/channel mismatch/);
+    }
   });
 
-  it('should allow success on not verified', () => {
+  it('should allow success on not verified', async () => {
     result(OK, 'A', ORIGIN, NOT_VERIFIED, SECURE);
-    return acceptPortResultData(
+    const data = await acceptPortResultData(
       port,
       ORIGIN,
       DONT_REQUIRE_VERIFIED,
       REQUIRE_SECURE
-    ).then(data => {
-      expect(data).to.equal('A');
-    });
-  });
-
-  it('should fail success on not secure channel', () => {
-    result(OK, 'A', ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResultData(
-      port,
-      ORIGIN,
-      REQUIRE_VERIFIED,
-      REQUIRE_SECURE
-    ).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/channel mismatch/);
-      }
     );
+    expect(data).to.equal('A');
   });
 
-  it('should allow success on not secure channel', () => {
+  it('should fail success on not secure channel', async () => {
     result(OK, 'A', ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResultData(
+
+    try {
+      await acceptPortResultData(
+        port,
+        ORIGIN,
+        REQUIRE_VERIFIED,
+        REQUIRE_SECURE
+      );
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.contain(/channel mismatch/);
+    }
+  });
+
+  it('should allow success on not secure channel', async () => {
+    result(OK, 'A', ORIGIN, VERIFIED, NOT_SECURE);
+    const data = await acceptPortResultData(
       port,
       ORIGIN,
       REQUIRE_VERIFIED,
       DONT_REQUIRE_SECURE
-    ).then(data => {
-      expect(data).to.equal('A');
-    });
+    );
+    expect(data).to.equal('A');
   });
 
-  it('should resolve unexpected failure', () => {
+  it('should resolve unexpected failure', async () => {
     sandbox
       .stub(port, 'acceptResult')
       .callsFake(() => Promise.reject(new Error('intentional')));
-    return acceptPortResultData(
-      port,
-      ORIGIN,
-      REQUIRE_VERIFIED,
-      REQUIRE_SECURE
-    ).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/intentional/);
-      }
-    );
+
+    try {
+      await acceptPortResultData(
+        port,
+        ORIGIN,
+        REQUIRE_VERIFIED,
+        REQUIRE_SECURE
+      );
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason).to.contain(/intentional/);
+    }
   });
 
-  it('should resolve cancel', () => {
+  it('should resolve cancel', async () => {
     result(CANCELED, null, ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResultData(
-      port,
-      ORIGIN,
-      REQUIRE_VERIFIED,
-      DONT_REQUIRE_SECURE
-    ).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(reason.name).to.equal('AbortError');
-      }
-    );
+
+    try {
+      await acceptPortResultData(
+        port,
+        ORIGIN,
+        REQUIRE_VERIFIED,
+        DONT_REQUIRE_SECURE
+      );
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason.name).to.equal('AbortError');
+    }
   });
 
-  it('should resolve failure', () => {
+  it('should resolve failure', async () => {
     result(FAILED, 'failure', ORIGIN, VERIFIED, NOT_SECURE);
-    return acceptPortResultData(
-      port,
-      ORIGIN,
-      REQUIRE_VERIFIED,
-      DONT_REQUIRE_SECURE
-    ).then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(reason.name).to.not.equal('AbortError');
-        expect(() => {
-          throw reason;
-        }).to.throw(/failure/);
-      }
-    );
+
+    try {
+      await acceptPortResultData(
+        port,
+        ORIGIN,
+        REQUIRE_VERIFIED,
+        DONT_REQUIRE_SECURE
+      );
+      throw new Error('must have failed');
+    } catch (reason) {
+      expect(reason.name).to.not.equal('AbortError');
+      expect(reason).to.contain(/failure/);
+    }
   });
 });
