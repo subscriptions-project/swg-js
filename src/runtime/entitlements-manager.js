@@ -116,6 +116,10 @@ export class EntitlementsManager {
       this.responsePromise_ = this.getEntitlementsFlow_(encryptedDocumentKey);
     }
     return this.responsePromise_.then(response => {
+      if (encryptedDocumentKey != null && response.decryptedDocumentKey == null) {
+        // Fail to avoid cases of malicious keys.
+        return Promise.reject(new Error('Missing encrypted doc key in entitlements response.'));
+      }
       if (response.isReadyToPay != null) {
         this.analyticsService_.setReadyToPay(response.isReadyToPay);
       }
