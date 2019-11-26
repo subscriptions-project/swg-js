@@ -120,9 +120,9 @@ export class EntitlementsManager {
         encryptedDocumentKey != null &&
         response.decryptedDocumentKey == null
       ) {
-        // Fail to avoid cases of malicious keys.
+        // Fail to avoid cases where we expose undecryptable ciphertext.
         return Promise.reject(
-          new Error('Missing encrypted doc key in entitlements response.')
+          new Error('Missing decrypted doc key in entitlements response.')
         );
       }
       if (response.isReadyToPay != null) {
