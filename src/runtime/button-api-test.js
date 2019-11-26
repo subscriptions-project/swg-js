@@ -212,7 +212,7 @@ describes.realWin('ButtonApi', {}, env => {
   it('should log button impression on create', async () => {
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_SWG_BUTTON)
+      .withExactArgs(AnalyticsEvent.IMPRESSION_SWG_BUTTON, undefined)
       .once();
     buttonApi.create(handler);
   });
@@ -220,7 +220,7 @@ describes.realWin('ButtonApi', {}, env => {
   it('should log button impression on attach', async () => {
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_SWG_BUTTON)
+      .withExactArgs(AnalyticsEvent.IMPRESSION_SWG_BUTTON, undefined)
       .once();
     const button = doc.createElement('button');
     buttonApi.attach(button, {}, handler);

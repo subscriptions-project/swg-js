@@ -35,84 +35,83 @@ describes.realWin('Storage', {}, env => {
     storage = new Storage(win);
   });
 
-  it('should return fresh value from the storage', () => {
+  it('should return fresh value from the storage', async () => {
     sessionStorageMock
       .expects('getItem')
       .withExactArgs('subscribe.google.com:a')
       .returns('one')
       .once();
-    return expect(storage.get('a')).to.be.eventually.equal('one');
+
+    await expect(storage.get('a')).to.be.eventually.equal('one');
   });
 
-  it('should return null value if not in the storage', () => {
+  it('should return null value if not in the storage', async () => {
     sessionStorageMock
       .expects('getItem')
       .withExactArgs('subscribe.google.com:a')
       .returns(null)
       .once();
-    return expect(storage.get('a')).to.be.eventually.be.null;
+
+    await expect(storage.get('a')).to.be.eventually.be.null;
   });
 
-  it('should return cached value from the storage', () => {
+  it('should return cached value from the storage', async () => {
     sessionStorageMock
       .expects('getItem')
       .withExactArgs('subscribe.google.com:a')
       .returns('one')
       .once(); // Only executed once.
-    return storage
-      .get('a')
-      .then(value => {
-        expect(value).to.equal('one');
-        return storage.get('a');
-      })
-      .then(value => {
-        expect(value).to.equal('one');
-      });
+
+    await expect(storage.get('a')).to.eventually.equal('one');
+    await expect(storage.get('a')).to.eventually.equal('one');
   });
 
-  it('should return null if storage is not available', () => {
+  it('should return null if storage is not available', async () => {
     Object.defineProperty(win, 'sessionStorage', {value: null});
     sessionStorageMock.expects('getItem').never();
-    return expect(storage.get('a')).to.be.eventually.be.null;
+    await expect(storage.get('a')).to.be.eventually.be.null;
   });
 
-  it('should return null value if storage fails', () => {
+  it('should return null value if storage fails', async () => {
     sessionStorageMock
       .expects('getItem')
       .withExactArgs('subscribe.google.com:a')
       .throws(new Error('intentional'))
       .once();
-    return expect(storage.get('a')).to.be.eventually.be.null;
+
+    await expect(storage.get('a')).to.be.eventually.be.null;
   });
 
-  it('should set a value', () => {
+  it('should set a value', async () => {
     sessionStorageMock
       .expects('setItem')
       .withExactArgs('subscribe.google.com:a', 'one')
       .once();
-    return expect(storage.set('a', 'one')).to.be.eventually.be.undefined;
+
+    await expect(storage.set('a', 'one')).to.be.eventually.be.undefined;
   });
 
-  it('should set a value with no storage', () => {
+  it('should set a value with no storage', async () => {
     sessionStorageMock.expects('getItem').never();
     sessionStorageMock.expects('setItem').never();
     Object.defineProperty(win, 'sessionStorage', {value: null});
     storage.set('a', 'one');
-    return expect(storage.get('a')).to.be.eventually.equal('one');
+
+    await expect(storage.get('a')).to.be.eventually.equal('one');
   });
 
-  it('should set a value with failing storage', () => {
+  it('should set a value with failing storage', async () => {
     sessionStorageMock
       .expects('setItem')
       .withExactArgs('subscribe.google.com:a', 'one')
       .throws(new Error('intentional'))
       .once();
-    return storage.set('a', 'one').then(() => {
-      return expect(storage.get('a')).to.be.eventually.equal('one');
-    });
+
+    await storage.set('a', 'one');
+    await expect(storage.get('a')).to.be.eventually.equal('one');
   });
 
-  it('should remove a value', () => {
+  it('should remove a value', async () => {
     storage.set('a', 'one');
     sessionStorageMock
       .expects('getItem')
@@ -123,21 +122,22 @@ describes.realWin('Storage', {}, env => {
       .expects('removeItem')
       .withExactArgs('subscribe.google.com:a')
       .once();
-    return storage.remove('a').then(() => {
-      return expect(storage.get('a')).to.be.eventually.be.null;
-    });
+
+    await storage.remove('a');
+    await expect(storage.get('a')).to.be.eventually.be.null;
   });
 
-  it('should remove a value with no storage', () => {
+  it('should remove a value with no storage', async () => {
     sessionStorageMock.expects('getItem').never();
     sessionStorageMock.expects('removeItem').never();
     Object.defineProperty(win, 'sessionStorage', {value: null});
     storage.set('a', 'one');
     storage.remove('a');
-    return expect(storage.get('a')).to.be.eventually.null;
+
+    await expect(storage.get('a')).to.be.eventually.null;
   });
 
-  it('should remove a value with failing storage', () => {
+  it('should remove a value with failing storage', async () => {
     sessionStorageMock
       .expects('removeItem')
       .withExactArgs('subscribe.google.com:a')
@@ -149,8 +149,8 @@ describes.realWin('Storage', {}, env => {
       .returns(null)
       .once();
     storage.set('a', 'one');
-    return storage.remove('a').then(() => {
-      return expect(storage.get('a')).to.be.eventually.null;
-    });
+
+    await storage.remove('a');
+    await expect(storage.get('a')).to.be.eventually.null;
   });
 });

@@ -214,11 +214,11 @@ export const Event = {
  *         enum listed in the Event enum above.
  *
  *  @typedef {{
-  *    name: string,
-  *    active: boolean,
-  *    data: ?JsonObject,
-  * }}
-  */
+ *    name: string,
+ *    active: boolean,
+ *    data: ?JsonObject,
+ * }}
+ */
 export let PublisherEvent;
 
 /**
@@ -227,12 +227,14 @@ export let PublisherEvent;
 export class LoggerApi {
   /**
    * Send a buy-flow event that occurred on the publisher's site to Google.  The
-   * ultimate destination is controlled by configuration settings.  Data is
-   * sent to Propensity if the Propensity module is fetched from runtime and to
-   * Google's analytics service if you activate buy-flow comparative analysis.
+   * ultimate destination is controlled by configuration settings.  Publisher
+   * configuration available:
+   *   enablePropensity - Sends data to the Propensity to Subscribe ads server.
+   *   enableSwgAnalytics - Sends data to Google's analytics server for buy-flow
+   *     comparison purposes.
    * @param {!PublisherEvent} userEvent
    */
-  sendEvent(userEvent) { }
+  sendEvent(userEvent) {}
 
   /**
    * Send user subscription state upon initial discovery.
