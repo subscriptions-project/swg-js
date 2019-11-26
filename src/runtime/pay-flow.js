@@ -130,7 +130,7 @@ export class PayStartFlow {
       this.deps_
         .callbacks()
         .triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, req);
-    } else if (this.productType_ == ProductType.UI_CONTRIBUTION) {
+    } else if ((this.productType_ == ProductType.UI_CONTRIBUTION)) {
       this.deps_
         .callbacks()
         .triggerFlowStarted(SubscriptionFlows.CONTRIBUTE, req);
@@ -197,13 +197,7 @@ export class PayCompleteFlow {
         },
         reason => {
           if (isCancelError(reason)) {
-            if (this.productType_ == ProductType.SUBSCRIPTION) {
-              deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
-            } else if (this.productType_ == ProductType.UI_CONTRIBUTION) {
-              deps
-                .callbacks()
-                .triggerFlowCanceled(SubscriptionFlows.CONTRIBUTE);
-            }
+            deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
             deps
               .eventManager()
               .logSwgEvent(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true);
