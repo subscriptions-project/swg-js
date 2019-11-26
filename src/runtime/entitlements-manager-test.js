@@ -304,8 +304,9 @@ describes.realWin('EntitlementsManager', {}, env => {
           })
         );
 
-      const ents = await manager.getEntitlements(encryptedDocumentKey);
-      expect(ents.decryptedDocumentKey).to.be.null;
+      expect(manager.getEntitlements(encryptedDocumentKey)).to.be.rejectedWith(
+        'Missing encrypted doc key in entitlements response.'
+      );
     });
 
     it('should fetch non-empty response', async () => {
