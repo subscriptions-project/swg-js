@@ -26,7 +26,7 @@ function expectOpenIframe(activitiesMock, port, args) {
   activitiesMock
     .expects('openIframe')
     .withExactArgs(
-      sandbox.match(arg => arg.tagName == 'IFRAME'),
+      sandbox.match(arg => arg.tagName === 'IFRAME'),
       '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
       args
     )
