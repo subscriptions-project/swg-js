@@ -130,7 +130,7 @@ export class PayStartFlow {
       this.deps_
         .callbacks()
         .triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, req);
-    } else if ((this.productType_ == ProductType.UI_CONTRIBUTION)) {
+    } else if (this.productType_ == ProductType.UI_CONTRIBUTION) {
       this.deps_
         .callbacks()
         .triggerFlowStarted(SubscriptionFlows.CONTRIBUTE, req);
