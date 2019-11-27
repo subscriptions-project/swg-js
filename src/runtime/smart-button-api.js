@@ -119,16 +119,10 @@ export class SmartSubscriptionButtonApi {
       'width': '100%',
     });
     this.button_.appendChild(this.iframe_);
-    const analyticsContext = this.deps_
-      .analytics()
-      .getContext()
-      .toArray();
-    this.args_['analyticsContext'] = analyticsContext;
-    this.activityPorts_
-      .openIframe(this.iframe_, this.src_, this.args_)
-      .then(port => {
-        port.on(SmartBoxMessage, this.handleSmartBoxClick_.bind(this));
-      });
+    const args = this.activityPorts_.addDefaultArguments(this.args_);
+    this.activityPorts_.openIframe(this.iframe_, this.src_, args).then(port => {
+      port.on(SmartBoxMessage, this.handleSmartBoxClick_.bind(this));
+    });
     return this.iframe_;
   }
 }
