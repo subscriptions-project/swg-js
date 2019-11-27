@@ -8,6 +8,5 @@ coverage:
         threshold: null
     patch:
       default:
-        base: auto
-        target: 100%
-        threshold: null
+        enabled: no
+        if_not_found: success
