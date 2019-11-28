@@ -845,6 +845,9 @@ class SkuSelectedResponse {
 
     /** @private {?string} */
     this.oldSku_ = (data[2] == null) ? null : data[2];
+
+    /** @private {?boolean} */
+    this.oneTime_ = (data[3] == null) ? null : data[3];
   }
 
   /**
@@ -876,6 +879,20 @@ class SkuSelectedResponse {
   }
 
   /**
+   * @return {?boolean}
+   */
+  getOneTime() {
+    return this.oneTime_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setOneTime(value) {
+    this.oneTime_ = value;
+  }
+
+  /**
    * @return {!Array}
    * @override
    */
@@ -884,6 +901,7 @@ class SkuSelectedResponse {
       this.label(),  // message label
       this.sku_,  // field 1 - sku
       this.oldSku_,  // field 2 - old_sku
+      this.oneTime_,  // field 3 - one_time
     ];
   }
 
@@ -1100,4 +1118,3 @@ export {
   deserialize,
   getLabel,
 };
-
