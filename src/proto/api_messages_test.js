@@ -223,6 +223,7 @@ describe('api_messages', () => {
       const /** !SkuSelectedResponse  */ skuselectedresponse = new SkuSelectedResponse();
       skuselectedresponse.setSku('');
       skuselectedresponse.setOldSku('');
+      skuselectedresponse.setOneTime(false);
       const skuselectedresponseSerialized = skuselectedresponse.toArray();
       const skuselectedresponseDeserialized = deserialize(
           skuselectedresponseSerialized);
@@ -271,4 +272,3 @@ describe('api_messages', () => {
     });
   });
 });
-
