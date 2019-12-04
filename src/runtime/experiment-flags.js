@@ -37,6 +37,12 @@ export const ExperimentFlags = {
   REPLACE_SUBSCRIPTION: 'replace-subscription',
 
   /**
+   * Enables the contributions feature.
+   * DEPRECATED. This flag can be removed once not used by anyone.
+   */
+  CONTRIBUTIONS: 'contributions',
+
+  /**
    * Enables the Propensity feature
    */
   PROPENSITY: 'propensity',
