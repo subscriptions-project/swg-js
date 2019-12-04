@@ -175,6 +175,31 @@ export class Entitlements {
   ack() {
     this.ackHandler_(this);
   }
+
+  /**
+   * Converts the whole set of entitlements into a single SKU.
+   * Returns the first SKU that enables this page.
+   * TODO: come up with a better way of picking the right SKU when there are
+   * multiple
+   * @return {?string}
+   */
+  getSingleEntitlement() {
+    if (!this.entitlements) {
+      return null;
+    }
+    for (let i = 0; i < this.entitlements.length; i++) {
+      const ent = this.entitlements[i];
+      const sku = ent.getSku();
+      if (!sku) {
+        continue;
+      }
+      if (this.product_ && !ent.enables(this.product_)) {
+        continue;
+      }
+      return sku;
+    }
+    return null;
+  }
 }
 
 /**
@@ -262,5 +287,17 @@ export class Entitlement {
       ? /** @type {!Array<Object>} */ (json)
       : [json];
     return jsonList.map(json => Entitlement.parseFromJson(json));
+  }
+
+  /**
+   * Returns the SKU associated with this entitlement.
+   * @return {?string}
+   */
+  getSku() {
+    try {
+      return JSON.parse(this.subscriptionToken).productId;
+    } catch (ex) {
+      return null;
+    }
   }
 }

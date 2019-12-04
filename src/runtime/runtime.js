@@ -717,7 +717,17 @@ export class ConfiguredRuntime {
   getEntitlements(encryptedDocumentKey) {
     return this.entitlementsManager_
       .getEntitlements(encryptedDocumentKey)
-      .then(entitlements => entitlements.clone());
+      .then(entitlements => {
+        // Auto update internal things tracking the user's current SKU.
+        if (entitlements) {
+          let sku = null;
+          try {
+            sku = entitlements.getSingleEntitlement().getSku();
+          } catch (ex) {}
+          this.analyticsService_.setSku(sku);
+        }
+        return entitlements.clone();
+      });
   }
 
   /** @override */
