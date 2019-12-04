@@ -27,4 +27,6 @@ module.exports = {
   after: function() {
     stopServer();
   },
+  // Let tests to continue if an assertion fails.
+  abortOnAssertionFailure: false,
 };
