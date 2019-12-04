@@ -1,5 +1,3 @@
-import {parseJson} from '../utils/json';
-
 /**
  * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
  *
@@ -15,6 +13,8 @@ import {parseJson} from '../utils/json';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import {getPropertyFromJsonString} from '../utils/json';
 
 /**
  * The holder of the entitlements for a service.
@@ -177,31 +177,6 @@ export class Entitlements {
   ack() {
     this.ackHandler_(this);
   }
-
-  /**
-   * Converts the whole set of entitlements into a single SKU.
-   * Returns the first SKU that enables this page.
-   * TODO: come up with a better way of picking the right SKU when there are
-   * multiple
-   * @return {?Entitlement}
-   */
-  getSingleEntitlement() {
-    if (!this.entitlements) {
-      return null;
-    }
-    for (let i = 0; i < this.entitlements.length; i++) {
-      const entitlement = this.entitlements[i];
-      const sku = entitlement.getSku();
-      if (!sku) {
-        continue;
-      }
-      if (this.product_ && !entitlement.enables(this.product_)) {
-        continue;
-      }
-      return this.entitlements[i];
-    }
-    return null;
-  }
 }
 
 /**
@@ -296,12 +271,6 @@ export class Entitlement {
    * @return {?string}
    */
   getSku() {
-    try {
-      const jsn = parseJson(this.subscriptionToken);
-      if (jsn) {
-        return jsn['productId'] || null;
-      }
-    } catch (ex) {}
-    return null;
+    return getPropertyFromJsonString(this.subscriptionToken, 'productId');
   }
 }

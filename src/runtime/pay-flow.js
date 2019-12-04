@@ -34,7 +34,7 @@ import {
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
-import {parseJson, tryParseJson} from '../utils/json';
+import {parseJson, getPropertyFromJsonString} from '../utils/json';
 import {
   EntitlementsResponse,
   AccountCreationRequest,
@@ -482,6 +482,5 @@ export function parseEntitlements(deps, swgData) {
  * @return {?string}
  */
 function parseSkuFromPurchaseDataSafe(purchaseData) {
-  const json = tryParseJson(purchaseData.raw);
-  return (json && json['productId']) || null;
+  return getPropertyFromJsonString(purchaseData.raw, 'productId');
 }
