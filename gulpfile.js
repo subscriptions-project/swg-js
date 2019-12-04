@@ -23,7 +23,7 @@ const {changelog} = require('./build-system/tasks/changelog');
 const {checkRules} = require('./build-system/tasks/check-rules');
 const {build, checkTypes, clean, dist,watch} = require('./build-system/tasks/builders');
 const {serve} = require('./build-system/tasks/serve');
-const {unit} = require('./build-system/tasks/test');
+const {unit} = require('./build-system/tasks/unit');
 const {runAllExportsToEs, runAllExportsToAmp} = require('./build-system/tasks/export-to-es');
 
 // Gulp tasks.

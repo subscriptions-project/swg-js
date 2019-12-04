@@ -112,8 +112,11 @@ Use the following Gulp commands:
 | `gulp check-links --files foo.md,bar.md`                                | Reports dead links in `.md` files.                                                 |
 | `gulp clean`                                                            | Removes build output.                                                 |
 | `gulp watch`<sup>[[1]](#footnote-1)</sup>                               | Watches for changes in files, re-build.                               |
-| `gulp unit`<sup>[[1]](#footnote-1)</sup>                                | Runs unit tests in Chrome.                                                 |
-| `gulp e2e`<sup>[[1]](#footnote-1)</sup>                                 | Runs end-to-end tests in Chrome.
+| `gulp unit`                                | Runs unit tests in Chrome.
+| `gulp unit --coverage`                     | Runs unit tests in code coverage mode. After running, the report will be available at test/coverage/index.html|
+| `gulp e2e`                                 | Runs end-to-end tests in Chrome.
+| `gulp serve`                               | Serves Scenic site on http://localhost:8000/.                    |
+| `gulp serve --quiet`                       | Same as `serve`, with logging silenced.
 
 <a id="footnote-1">[1]</a> On Windows, this command must be run as administrator.
 

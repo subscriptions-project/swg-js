@@ -11,7 +11,7 @@
 
   "test_settings" : {
     "default" : {
-      "launch_url": "https://scenic-2017.appspot.com",
+      "launch_url": "http://localhost:8000",
       "custom_commands_path": "test/e2e/commands",
       "desiredCapabilities": {
         "browserName": "chrome"
