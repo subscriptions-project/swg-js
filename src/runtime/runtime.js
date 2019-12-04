@@ -776,10 +776,6 @@ export class ConfiguredRuntime {
 
   /** @override */
   showContributionOptions(options) {
-    assert(
-      isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
-      'Not yet launched!'
-    );
     return this.documentParsed_.then(() => {
       const flow = new ContributionsFlow(this, options);
       return flow.start();
@@ -883,11 +879,6 @@ export class ConfiguredRuntime {
 
   /** @override */
   contribute(skuOrSubscriptionRequest) {
-    assert(
-      isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
-      'Not yet launched!'
-    );
-
     return this.documentParsed_.then(() => {
       return new PayStartFlow(
         this,
