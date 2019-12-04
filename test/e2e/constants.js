@@ -17,10 +17,13 @@
 module.exports = {
   login: {
     url: 'https://accounts.google.com/ServiceLogin',
-    username: 'TheonGreyjoy.819362@gmail.com',
+    username: 'hodorlannister.620564.us@gmail.com',
     password: 'testing123456789',
   },
   gpay: {
     title: 'Google Pay',
+  },
+  setup: {
+    url: 'http://localhost:8000/examples/sample-pub/setup',
   },
 };
