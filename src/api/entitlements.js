@@ -190,12 +190,12 @@ export class Entitlements {
       return null;
     }
     for (let i = 0; i < this.entitlements.length; i++) {
-      const ent = this.entitlements[i];
-      const sku = ent.getSku();
+      const entitlement = this.entitlements[i];
+      const sku = entitlement.getSku();
       if (!sku) {
         continue;
       }
-      if (this.product_ && !ent.enables(this.product_)) {
+      if (this.product_ && !entitlement.enables(this.product_)) {
         continue;
       }
       return this.entitlements[i];
