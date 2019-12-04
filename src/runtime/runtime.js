@@ -723,7 +723,7 @@ export class ConfiguredRuntime {
           try {
             let skus = '';
             for (let i = 0; i < entitlements.entitlements.length; i++) {
-              skus += entitlements.entitlements.getSku() + ',';
+              skus += entitlements.entitlements[i].getSku() + ',';
             }
             if (skus) {
               this.analyticsService_.setSku(skus.substr(0, skus.length - 1));

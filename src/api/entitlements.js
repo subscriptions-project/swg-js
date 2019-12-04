@@ -271,6 +271,11 @@ export class Entitlement {
    * @return {?string}
    */
   getSku() {
-    return getPropertyFromJsonString(this.subscriptionToken, 'productId');
+    return (
+      /** @type {?string} */ (getPropertyFromJsonString(
+        this.subscriptionToken,
+        'productId'
+      ) || null)
+    );
   }
 }
