@@ -1249,7 +1249,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       const entitlements = new Entitlements(
         'service',
         'raw',
-        [new Entitlement('', ['product1'], 'token1')],
+        [new Entitlement('', ['product1'], '{"productId":"token1"}')],
         'product1',
         () => {}
       );
@@ -1257,6 +1257,10 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         .expects('getEntitlements')
         .withExactArgs(undefined)
         .returns(Promise.resolve(entitlements))
+        .once();
+      analyticsMock
+        .expects('setSku')
+        .withExactArgs('token1')
         .once();
       await runtime.start();
     });

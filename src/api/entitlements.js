@@ -1,3 +1,5 @@
+import {parseJson} from '../utils/json';
+
 /**
  * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
  *
@@ -181,7 +183,7 @@ export class Entitlements {
    * Returns the first SKU that enables this page.
    * TODO: come up with a better way of picking the right SKU when there are
    * multiple
-   * @return {?string}
+   * @return {?Entitlement}
    */
   getSingleEntitlement() {
     if (!this.entitlements) {
@@ -196,7 +198,7 @@ export class Entitlements {
       if (this.product_ && !ent.enables(this.product_)) {
         continue;
       }
-      return sku;
+      return this.entitlements[i];
     }
     return null;
   }
@@ -295,9 +297,11 @@ export class Entitlement {
    */
   getSku() {
     try {
-      return JSON.parse(this.subscriptionToken).productId;
-    } catch (ex) {
-      return null;
-    }
+      const jsn = parseJson(this.subscriptionToken);
+      if (jsn) {
+        return jsn['productId'] || null;
+      }
+    } catch (ex) {}
+    return null;
   }
 }

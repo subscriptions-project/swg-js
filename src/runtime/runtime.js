@@ -719,13 +719,14 @@ export class ConfiguredRuntime {
       .getEntitlements(encryptedDocumentKey)
       .then(entitlements => {
         // Auto update internal things tracking the user's current SKU.
-        let sku = null;
         if (entitlements) {
           try {
-            sku = entitlements.getSingleEntitlement().getSku();
+            const sku = entitlements.getSingleEntitlement().getSku();
+            if (sku) {
+              this.analyticsService_.setSku(sku);
+            }
           } catch (ex) {}
         }
-        this.analyticsService_.setSku(sku);
         return entitlements.clone();
       });
   }
