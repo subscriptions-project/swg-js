@@ -37,11 +37,6 @@ export const ExperimentFlags = {
   REPLACE_SUBSCRIPTION: 'replace-subscription',
 
   /**
-   * Enables the contributions feature.
-   */
-  CONTRIBUTIONS: 'contributions',
-
-  /**
    * Enables the Propensity feature
    */
   PROPENSITY: 'propensity',
