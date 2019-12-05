@@ -74,19 +74,13 @@ export class PayClient {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @const @private {!PayClientBindingDef} */
-    this.binding_ = isExperimentOn(this.win_, ExperimentFlags.GPAY_API)
-      ? new PayClientBindingPayjs(
+    /** @const @private {!PayClientBindingPayJs} */
+    this.binding_ = new PayClientBindingPayjs(
           this.win_,
           this.activityPorts_,
           // Generates a new Google Transaction ID.
           deps.analytics().getTransactionId()
-        )
-      : new PayClientBindingSwg(
-          this.win_,
-          this.activityPorts_,
-          this.dialogManager_
-        );
+    );
   }
 
   /**
@@ -124,114 +118,6 @@ export class PayClient {
    */
   onResponse(callback) {
     this.binding_.onResponse(callback);
-  }
-}
-
-/**
- * TODO(dvoytenko, #406): remove delegated class once GPay launches.
- * @interface
- */
-class PayClientBindingDef {
-  /**
-   * @return {string}
-   */
-  getType() {}
-
-  /**
-   * @param {!Object} unusedPaymentRequest
-   * @param {!PayOptionsDef} unusedOptions
-   */
-  start(unusedPaymentRequest, unusedOptions) {}
-
-  /**
-   * @param {function(!Promise<!Object>)} unusedCallback
-   */
-  onResponse(unusedCallback) {}
-}
-
-/**
- * @implements {PayClientBindingDef}
- */
-class PayClientBindingSwg {
-  /**
-   * @param {!Window} win
-   * @param {!../components/activities.ActivityPorts} activityPorts
-   * @param {!../components/dialog-manager.DialogManager} dialogManager
-   */
-  constructor(win, activityPorts, dialogManager) {
-    /** @private @const {!Window} */
-    this.win_ = win;
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = activityPorts;
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = dialogManager;
-  }
-
-  /** @override */
-  getType() {
-    return 'SWG';
-  }
-
-  /** @override */
-  start(paymentRequest, options) {
-    const opener = this.activityPorts_.open(
-      GPAY_ACTIVITY_REQUEST,
-      payUrl(),
-      options.forceRedirect ? '_top' : '_blank',
-      feArgs(paymentRequest),
-      {}
-    );
-    this.dialogManager_.popupOpened((opener && opener.targetWin) || null);
-  }
-
-  /** @override */
-  onResponse(callback) {
-    const responseCallback = port => {
-      this.dialogManager_.popupClosed();
-      callback(this.validatePayResponse_(port));
-    };
-    this.activityPorts_.onResult(GPAY_ACTIVITY_REQUEST, responseCallback);
-    this.activityPorts_.onResult(PAY_REQUEST_ID, responseCallback);
-  }
-
-  /**
-   * @param {!../components/activities.ActivityPortDef} port
-   * @return {!Promise<!Object>}
-   * @private
-   */
-  validatePayResponse_(port) {
-    // Do not require security immediately: it will be checked below.
-    return port.acceptResult().then(result => {
-      if (result.origin != payOrigin()) {
-        throw new Error('channel mismatch');
-      }
-      const data = /** @type {!Object} */ (result.data);
-      if (data['redirectEncryptedCallbackData']) {
-        // Data is supplied as an encrypted blob.
-        const xhr = new Xhr(this.win_);
-        const url = payDecryptUrl();
-        const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-          method: 'post',
-          headers: {'Accept': 'text/plain, application/json'},
-          credentials: 'include',
-          body: data['redirectEncryptedCallbackData'],
-          mode: 'cors',
-        });
-        return xhr
-          .fetch(url, init)
-          .then(response => response.json())
-          .then(response => {
-            const dataClone = Object.assign({}, data);
-            delete dataClone['redirectEncryptedCallbackData'];
-            return Object.assign(dataClone, response);
-          });
-      }
-      // Data is supplied directly: must be a verified and secure channel.
-      if (result.originVerified && result.secureChannel) {
-        return data;
-      }
-      throw new Error('channel mismatch');
-    });
   }
 }
 
