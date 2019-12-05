@@ -38,6 +38,7 @@ export const ExperimentFlags = {
 
   /**
    * Enables the contributions feature.
+   * DEPRECATED. This flag can be removed once not used by anyone.
    */
   CONTRIBUTIONS: 'contributions',
 
