@@ -15,15 +15,15 @@
  */
 
 import {ActivityPort} from '../components/activities';
+import {
+  AlreadySubscribedResponse,
+  SkuSelectedResponse,
+} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {ContributionsFlow} from './contributions-flow';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
-import {
-  SkuSelectedResponse,
-  AlreadySubscribedResponse,
-} from '../proto/api_messages';
 
 describes.realWin('ContributionsFlow', {}, env => {
   let win;

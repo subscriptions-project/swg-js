@@ -15,55 +15,55 @@
  */
 
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
+import {ActivityPorts} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {
+  AnalyticsMode,
+  ProductType,
+  ReplaceSkuProrationMode,
+  Subscriptions,
+} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
+import {ClientEventManager} from './client-event-manager';
 import {
   ConfiguredRuntime,
   Runtime,
-  installRuntime,
   getRuntime,
+  installRuntime,
 } from './runtime';
 import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
+import {Event} from '../api/logger-api';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
-import {JsError} from './jserror';
 import {GlobalDoc} from '../model/doc';
+import {JsError} from './jserror';
 import {
   LinkCompleteFlow,
-  LinkbackFlow,
   LinkSaveFlow,
+  LinkbackFlow,
 } from './link-accounts-flow';
-import {LoginPromptApi} from './login-prompt-api';
+import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
-import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
+import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PayStartFlow} from './pay-flow';
+import {Propensity} from './propensity';
 import {SubscribeResponse} from '../api/subscribe-response';
-import {
-  AnalyticsMode,
-  ReplaceSkuProrationMode,
-  Subscriptions,
-  ProductType,
-} from '../api/subscriptions';
+import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {createElement} from '../utils/dom';
 import {
   isExperimentOn,
   setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
-import {Propensity} from './propensity';
-import {ClientEventManager} from './client-event-manager';
-import {Logger} from './logger';
-import {Event} from '../api/logger-api';
 
 const EDGE_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0)' +

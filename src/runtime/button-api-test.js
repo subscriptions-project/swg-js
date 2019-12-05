@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+import {ActivityPort} from '../components/activities';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {ButtonApi} from './button-api';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
-import {AnalyticsEvent} from '../proto/api_messages';
-import {ActivityPort} from '../components/activities';
 
 function expectOpenIframe(activitiesMock, port, args) {
   activitiesMock
