@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
+import {ActivityPort} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {ConfiguredRuntime} from './runtime';
-import {
-  LinkCompleteFlow,
-  LinkbackFlow,
-  LinkSaveFlow,
-} from './link-accounts-flow';
-import {PageConfig} from '../model/page-config';
-import {Dialog} from '../components/dialog';
-import {GlobalDoc} from '../model/doc';
-import {createCancelError} from '../utils/errors';
-import {ActivityPort} from '../components/activities';
 import {
   AnalyticsEvent,
-  LinkingInfoResponse,
   LinkSaveTokenRequest,
+  LinkingInfoResponse,
 } from '../proto/api_messages';
+import {ConfiguredRuntime} from './runtime';
+import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
+import {
+  LinkCompleteFlow,
+  LinkSaveFlow,
+  LinkbackFlow,
+} from './link-accounts-flow';
+import {PageConfig} from '../model/page-config';
+import {createCancelError} from '../utils/errors';
 import {tick} from '../../test/tick';
 
 describes.realWin('LinkbackFlow', {}, env => {

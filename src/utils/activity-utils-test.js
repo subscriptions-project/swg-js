@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
+import {ActivityPortDef} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {acceptPortResultData} from './activity-utils';
-import {ActivityPortDef} from '../components/activities';
 
 const OK = ActivityResultCode.OK;
 const CANCELED = ActivityResultCode.CANCELED;

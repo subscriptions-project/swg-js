@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {createElement} from '../utils/dom';
-import {setImportantStyles} from '../utils/style';
-import {feArgs, feUrl} from './services';
 import {SmartBoxMessage} from '../proto/api_messages';
+import {createElement} from '../utils/dom';
+import {feArgs, feUrl} from './services';
+import {setImportantStyles} from '../utils/style';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
