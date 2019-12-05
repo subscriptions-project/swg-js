@@ -176,7 +176,6 @@ describes.realWin('PayStartFlow', {}, env => {
       .withExactArgs('subscribe', subscriptionRequest)
       .once();
     callbacksMock.expects('triggerFlowCanceled').never();
-    analyticsMock.expects('setSku').withExactArgs('oldSku');
     payClientMock
       .expects('start')
       .withExactArgs(
