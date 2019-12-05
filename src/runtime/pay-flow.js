@@ -50,6 +50,11 @@ export const ReplaceSkuProrationModeMapping = {
   'IMMEDIATE_WITH_TIME_PRORATION': 1,
 };
 
+export const RecurrenceMapping = {
+  'AUTO': 1,
+  'ONE_TIME': 2,
+}
+
 /**
  * @param {string} sku
  * @return {!EventParams}
@@ -108,6 +113,13 @@ export class PayStartFlow {
       this.prorationEnum =
         ReplaceSkuProrationModeMapping['IMMEDIATE_WITH_TIME_PRORATION'];
     }
+
+    // Assign one-time recurrence enum if applicable
+    this.oneTimeContribution = false;
+    this.recurrenceEnum = 0;
+    if (this.subscriptionRequest_.oneTime) {
+      this.recurrenceEnum = RecurrenceMapping['ONE_TIME'];
+    }
   }
 
   /**
@@ -123,6 +135,10 @@ export class PayStartFlow {
 
     if (this.prorationEnum) {
       swgPaymentRequest.replaceSkuProrationMode = this.prorationEnum;
+    }
+
+    if (this.recurrenceEnum) {
+      swgPaymentRequest.oneTime = this.recurrenceEnum;
     }
 
     // Start/cancel events.

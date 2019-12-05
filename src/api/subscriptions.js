@@ -445,6 +445,7 @@ export let SmartButtonOptions;
  *    skuId: string,
  *    oldSku: (string|undefined),
  *    replaceSkuProrationMode: (ReplaceSkuProrationMode|undefined),
+ *    oneTime: (boolean|undefined),
  * }}
  */
 export let SubscriptionRequest;
