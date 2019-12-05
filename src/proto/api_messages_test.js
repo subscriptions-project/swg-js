@@ -224,6 +224,8 @@ describe('api_messages', () => {
       skuselectedresponse.setSku('');
       skuselectedresponse.setOldSku('');
       skuselectedresponse.setOneTime(false);
+      skuselectedresponse.setPlayOffer('');
+      skuselectedresponse.setOldPlayOffer('');
       const skuselectedresponseSerialized = skuselectedresponse.toArray();
       const skuselectedresponseDeserialized = deserialize(
           skuselectedresponseSerialized);
