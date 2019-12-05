@@ -24,8 +24,5 @@ module.exports.command = function() {
   return this.pause(1000)
     .switchToWindow('gpay window')
     .switchToFrame('[src*="about:blank"]', 'iFrame in payment window')
-    .assert.title(constants.gpay.title)
-    .assert.containsText('.b3-line-item-name', 'Basic Access (The Scenic)')
-    .assert.containsText('.b3-line-item-value', 'Free trial')
-    .assert.containsText('#ariaId_28', 'Select payment method');
+    .assert.title(constants.gpay.title);
 };
