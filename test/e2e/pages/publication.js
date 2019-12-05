@@ -23,10 +23,11 @@ const commands = {
     this.api.pause(1000);
     return this.log('Visiting the first article')
       .click('@firstArticle')
-      .assert.title('16 Top Spots for Hiking - The Scenic - USA');
+      .assert.title('16 Top Spots for Hiking - The Scenic');
   },
   viewOffers: function() {
-    return this.log('Viewing offers')
+    return this.pause(1000)
+      .log('Viewing offers')
       .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
       .switchToFrame('[src*="offersiframe"]', 'SwG inner iFrame');
   },
@@ -39,7 +40,7 @@ const commands = {
 };
 
 module.exports = {
-  url: 'https://scenic-2017.appspot.com',
+  url: 'http://localhost:8000',
   commands: [commands],
   elements: {
     firstArticle: {
