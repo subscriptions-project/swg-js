@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import {Fetcher} from './fetcher';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
-import {Fetcher} from './fetcher';
 
 describes.realWin('OffersApi', {}, () => {
   let offersApi;

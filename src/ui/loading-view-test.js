@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+import {CSS as LOADING_VIEW_CSS} from '../../build/css/ui/ui.css';
+import {LoadingView} from './loading-view';
 import {injectStyleSheet} from '../utils/dom';
 import {resolveDoc} from '../model/doc';
-import {LoadingView} from './loading-view';
-import {CSS as LOADING_VIEW_CSS} from '../../build/css/ui/ui.css';
 
 describes.realWin('LoadingView', {}, env => {
   let doc;

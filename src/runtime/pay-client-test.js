@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+import {ActivityPort} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {DialogManager} from '../components/dialog-manager';
 import {ExperimentFlags} from './experiment-flags';

@@ -15,9 +15,9 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
+import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
-import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
 
 /**
  * The button title should match that of button's SVG.

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {LoginNotificationApi} from './login-notification-api';
 import {PageConfig} from '../model/page-config';
-import {ActivityPort} from '../components/activities';
 
 describes.realWin('LoginNotificationApi', {}, env => {
   let win;
