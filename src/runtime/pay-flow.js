@@ -53,7 +53,7 @@ export const ReplaceSkuProrationModeMapping = {
 export const RecurrenceMapping = {
   'AUTO': 1,
   'ONE_TIME': 2,
-}
+};
 
 /**
  * @param {string} sku
