@@ -2,6 +2,7 @@
 .g4ignore
 build
 c
+chromedriver.log
 /dist
 dist.3p
 dist.tools
