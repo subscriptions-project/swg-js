@@ -88,7 +88,11 @@ export class ContributionsFlow {
         const contributionRequest = {};
         contributionRequest.skuId = sku;
         contributionRequest.oneTime = isOneTime;
-        new PayStartFlow(this.deps_, contributionRequest, ProductType.UI_CONTRIBUTION).start();
+        new PayStartFlow(
+          this.deps_,
+          contributionRequest,
+          ProductType.UI_CONTRIBUTION
+        ).start();
       } else {
         new PayStartFlow(this.deps_, sku, ProductType.UI_CONTRIBUTION).start();
       }
