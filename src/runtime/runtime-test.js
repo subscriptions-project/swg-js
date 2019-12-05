@@ -1445,7 +1445,6 @@ new subscribers. Use the showOffers() method instead.'
     });
 
     it('should call "showContributionOptions" with options', async () => {
-      setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
       let contributionFlow;
       sandbox.stub(ContributionsFlow.prototype, 'start').callsFake(function() {
         contributionFlow = this;
@@ -1604,7 +1603,6 @@ subscribe() method'
     });
 
     it('should start PayStartFlow for contribution', async () => {
-      setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
       let flowInstance;
       const startStub = sandbox
         .stub(PayStartFlow.prototype, 'start')
