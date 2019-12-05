@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsMode} from '../api/subscriptions';
+import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
-import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
+import {ClientEventManager} from './client-event-manager';
 import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {DepsDef} from './deps';
@@ -30,41 +33,38 @@ import {Fetcher, XhrFetcher} from './fetcher';
 import {JsError} from './jserror';
 import {
   LinkCompleteFlow,
-  LinkbackFlow,
   LinkSaveFlow,
+  LinkbackFlow,
 } from './link-accounts-flow';
-import {LoginPromptApi} from './login-prompt-api';
+import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
-import {PayClient} from './pay-client';
-import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
+import {LoginPromptApi} from './login-prompt-api';
 import {OffersApi} from './offers-api';
-import {OffersFlow, SubscribeOptionFlow, AbbrvOfferFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {
   PageConfigResolver,
   getControlFlag,
 } from '../model/page-config-resolver';
-import {PayStartFlow, PayCompleteFlow} from './pay-flow';
+import {PayClient} from './pay-client';
+import {PayCompleteFlow, PayStartFlow} from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
-import {Storage} from './storage';
 import {
+  ProductType,
   Subscriptions,
   WindowOpenMode,
   defaultConfig,
-  ProductType,
 } from '../api/subscriptions';
+import {Propensity} from './propensity';
+import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
+import {Storage} from './storage';
+import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
+import {assert} from '../utils/log';
 import {debugLog} from '../utils/log';
 import {injectStyleSheet, isEdgeBrowser} from '../utils/dom';
 import {isArray} from '../utils/types';
+import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {setExperiment} from './experiments';
-import {AnalyticsService} from './analytics-service';
-import {AnalyticsMode} from '../api/subscriptions';
-import {Propensity} from './propensity';
-import {ClientEventManager} from './client-event-manager';
-import {Logger} from './logger';
-import {assert} from '../utils/log';
-import {isBoolean} from '../utils/types';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE

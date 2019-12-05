@@ -25,7 +25,7 @@
  * @returns {function(...*)}
  */
 
-import {throttle, debounce} from './rate-limit';
+import {debounce, throttle} from './rate-limit';
 
 describes.realWin('function utils', {}, env => {
   let clock;

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {ConfiguredRuntime} from './runtime';
-import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
-import {PageConfig} from '../model/page-config';
 import {ActivityPort} from '../components/activities';
+import {ConfiguredRuntime} from './runtime';
+import {PageConfig} from '../model/page-config';
+import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 
 describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
   let win;
