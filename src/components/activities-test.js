@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
+import {ActivityIframePort, ActivityPorts} from './activities';
 import {
-  ActivityPorts as WebActivityPorts,
-  ActivityIframePort as WebActivityIframePort,
-  ActivityPort as WebActivityPort,
   ActivityMode,
   ActivityResult,
+  ActivityIframePort as WebActivityIframePort,
+  ActivityPort as WebActivityPort,
+  ActivityPorts as WebActivityPorts,
 } from 'web-activities/activity-ports';
-import {ActivityPorts, ActivityIframePort} from './activities';
-import {Dialog} from '../components/dialog';
-import {GlobalDoc} from '../model/doc';
-import {AnalyticsRequest, AnalyticsEvent} from '../proto/api_messages';
-import {PageConfig} from '../model/page-config';
+import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
 import {AnalyticsService} from '../runtime/analytics-service';
 import {ClientEventManager} from '../runtime/client-event-manager';
+import {Dialog} from '../components/dialog';
+import {GlobalDoc} from '../model/doc';
+import {PageConfig} from '../model/page-config';
 import {tick} from '../../test/tick';
 
 const publicationId = 'PUB_ID';

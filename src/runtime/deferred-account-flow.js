@@ -15,6 +15,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
 import {JwtHelper} from '../utils/jwt';
 import {PayCompleteFlow} from './pay-flow';
@@ -23,7 +24,6 @@ import {SubscriptionFlows} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
-import {AnalyticsEvent} from '../proto/api_messages';
 
 /**
  * The flow to initiate deferred account process.

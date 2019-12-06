@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import * as EventManagerApi from '../api/client-event-manager-api';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 
 const DEFAULT_TYPE = AnalyticsEvent.IMPRESSION_AD;

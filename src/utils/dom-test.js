@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {resolveDoc} from '../model/doc';
 import * as dom from './dom';
+import {resolveDoc} from '../model/doc';
 
 describes.realWin('Dom', {}, env => {
   let doc;

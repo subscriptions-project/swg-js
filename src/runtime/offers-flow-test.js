@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import {ActivityResult} from 'web-activities/activity-ports';
+import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPort} from '../components/activities';
+import {ActivityResult} from 'web-activities/activity-ports';
+import {
+  AlreadySubscribedResponse,
+  SkuSelectedResponse,
+  SubscribeResponse,
+  ViewSubscriptionsResponse,
+} from '../proto/api_messages';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
-import {acceptPortResultData} from './../utils/activity-utils';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
-import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
-import {
-  SkuSelectedResponse,
-  AlreadySubscribedResponse,
-  ViewSubscriptionsResponse,
-  SubscribeResponse,
-} from '../proto/api_messages';
+import {acceptPortResultData} from './../utils/activity-utils';
 
 /**
  * @param {string} sku

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Xhr, fetchPolyfill, FetchResponse, assertSuccess} from './xhr';
+import {FetchResponse, Xhr, assertSuccess, fetchPolyfill} from './xhr';
 
 describes.realWin('test', {}, () => {
   describe('XHR', function() {

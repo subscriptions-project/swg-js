@@ -15,11 +15,11 @@
  */
 import * as PropensityApi from '../api/propensity-api';
 import {Event, SubscriptionState} from '../api/logger-api';
-import {PropensityServer} from './propensity-server';
-import {isObject, isEnumValue} from '../utils/types';
 import {EventOriginator} from '../proto/api_messages';
-import {publisherEventToAnalyticsEvent} from './event-type-mapping';
+import {PropensityServer} from './propensity-server';
 import {isBoolean} from '../utils/types';
+import {isEnumValue, isObject} from '../utils/types';
+import {publisherEventToAnalyticsEvent} from './event-type-mapping';
 
 /**
  * @implements {PropensityApi.PropensityApi}

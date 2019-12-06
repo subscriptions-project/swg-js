@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {PropensityServer} from './propensity-server';
 import * as PropensityApi from '../api/propensity-api';
-import {Event, SubscriptionState} from '../api/logger-api';
-import {parseQueryString} from '../utils/url';
 import * as ServiceUrl from './services';
-import {ClientEventManager} from './client-event-manager';
 import {
   AnalyticsEvent,
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
+import {ClientEventManager} from './client-event-manager';
+import {Event, SubscriptionState} from '../api/logger-api';
 import {PageConfig} from '../model/page-config';
+import {PropensityServer} from './propensity-server';
+import {parseQueryString} from '../utils/url';
 
 /**
  * Converts the URL sent to the propensity server into the propensity event
