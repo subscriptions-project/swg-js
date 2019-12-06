@@ -721,12 +721,11 @@ export class ConfiguredRuntime {
         // Auto update internal things tracking the user's current SKU.
         if (entitlements) {
           try {
-            let skus = '';
-            for (let i = 0; i < entitlements.entitlements.length; i++) {
-              skus += entitlements.entitlements[i].getSku() + ',';
-            }
-            if (skus) {
-              this.analyticsService_.setSku(skus.substr(0, skus.length - 1));
+            const skus = entitlements.entitlements.map(entitlement =>
+              entitlement.getSku()
+            );
+            if (skus.length > 0) {
+              this.analyticsService_.setSku(skus.join(','));
             }
           } catch (ex) {}
         }

@@ -37,12 +37,9 @@ import {
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
+import {getPropertyFromJsonString, parseJson} from '../utils/json';
 import {isCancelError} from '../utils/errors';
-import {parseJson, getPropertyFromJsonString} from '../utils/json';
-import {
-  EntitlementsResponse,
-  AccountCreationRequest,
-} from '../proto/api_messages';
+
 /**
  * String values input by the publisher are mapped to the number values.
  * @type {!Object<string, number>}
