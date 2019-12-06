@@ -15,20 +15,20 @@
  */
 
 import {
-  AnalyticsRequest,
   AnalyticsContext,
-  AnalyticsEventMeta,
   AnalyticsEvent,
-  EventParams,
+  AnalyticsEventMeta,
+  AnalyticsRequest,
   EventOriginator,
+  EventParams,
 } from '../proto/api_messages';
+import {ClientEventManager} from './client-event-manager';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
 import {getOnExperiments} from './experiments';
+import {getUuid} from '../utils/string';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
-import {getUuid} from '../utils/string';
-import {ClientEventManager} from './client-event-manager';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {

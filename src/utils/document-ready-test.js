@@ -17,8 +17,8 @@
 import {
   isDocumentReady,
   onDocumentReady,
-  whenDocumentReady,
   whenDocumentComplete,
+  whenDocumentReady,
 } from './document-ready';
 import {tick} from '../../test/tick';
 

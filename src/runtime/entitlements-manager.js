@@ -17,8 +17,8 @@
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
-import {serviceUrl} from './services';
 import {feArgs, feUrl} from '../runtime/services';
+import {serviceUrl} from './services';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';

@@ -15,13 +15,13 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows, ProductType} from '../api/subscriptions';
-import {feArgs, feUrl} from './services';
 import {
-  SkuSelectedResponse,
   AlreadySubscribedResponse,
+  SkuSelectedResponse,
 } from '../proto/api_messages';
+import {PayStartFlow} from './pay-flow';
+import {ProductType, SubscriptionFlows} from '../api/subscriptions';
+import {feArgs, feUrl} from './services';
 
 /**
  * The class for Contributions flow.

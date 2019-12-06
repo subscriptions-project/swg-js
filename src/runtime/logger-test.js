@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Propensity} from './propensity';
-import {Event, SubscriptionState} from '../api/logger-api';
-import {PageConfig} from '../model/page-config';
-import {PropensityServer} from './propensity-server';
-import {ClientEventManager} from './client-event-manager';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {XhrFetcher} from './fetcher';
+import {ClientEventManager} from './client-event-manager';
+import {Event, SubscriptionState} from '../api/logger-api';
 import {Logger} from './logger';
+import {PageConfig} from '../model/page-config';
+import {Propensity} from './propensity';
+import {PropensityServer} from './propensity-server';
+import {XhrFetcher} from './fetcher';
 
 describes.realWin('Logger', {}, env => {
   let win;

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {adsUrl} from './services';
 import {
   AnalyticsEvent,
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
-import {isObject, isBoolean} from '../utils/types';
+import {adsUrl} from './services';
 import {analyticsEventToPublisherEvent} from './event-type-mapping';
+import {isBoolean, isObject} from '../utils/types';
 
 /**
  * Implements interface to Propensity server

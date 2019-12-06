@@ -15,15 +15,15 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
-import {acceptPortResultData} from '../utils/activity-utils';
-import {feArgs, feOrigin, feUrl} from './services';
-import {isCancelError, createCancelError} from '../utils/errors';
 import {
   AnalyticsEvent,
-  LinkingInfoResponse,
   LinkSaveTokenRequest,
+  LinkingInfoResponse,
 } from '../proto/api_messages';
+import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
+import {acceptPortResultData} from '../utils/activity-utils';
+import {createCancelError, isCancelError} from '../utils/errors';
+import {feArgs, feOrigin, feUrl} from './services';
 
 const LINK_REQUEST_ID = 'swg-link';
 
