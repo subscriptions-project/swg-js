@@ -440,6 +440,8 @@ export let SmartButtonOptions;
  * - prorationMode: Optional. When replacing a subscription you can decide on a
  *  specific proration mode to charge the user.
  *  The default is IMMEDIATE_WITH_TIME_PRORATION.
+ * - oneTime: Optional. When a user chooses a contribution, they have the option
+ *  to make it non-recurring.
  *
  *  @typedef {{
  *    skuId: string,

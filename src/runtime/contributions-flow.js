@@ -85,10 +85,10 @@ export class ContributionsFlow {
     const isOneTime = response.getOneTime();
     if (sku) {
       if (isOneTime) {
-        const contributionRequest = {
-          skuId: sku,
-          oneTime: isOneTime,
-        };
+        const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest = {
+            skuId: sku,
+            oneTime: isOneTime,
+          };
         new PayStartFlow(
           this.deps_,
           contributionRequest,
