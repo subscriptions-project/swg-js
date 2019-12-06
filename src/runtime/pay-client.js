@@ -255,6 +255,9 @@ export class PayClientBindingPayjs {
     /** @private {?function(!Promise<!Object>)} */
     this.responseCallback_ = null;
 
+    /** @private {!Object} */
+    this.request_ = null;
+
     /** @private {?Promise<!Object>} */
     this.response_ = null;
 
@@ -303,6 +306,8 @@ export class PayClientBindingPayjs {
 
   /** @override */
   start(paymentRequest, options) {
+    this.request_ = paymentRequest;
+
     if (options.forceRedirect) {
       paymentRequest = Object.assign(paymentRequest, {
         'forceRedirect': options.forceRedirect || false,
@@ -333,7 +338,7 @@ export class PayClientBindingPayjs {
     if (response) {
       Promise.resolve().then(() => {
         if (response) {
-          callback(this.convertResponse_(response));
+          callback(this.convertResponse_(response, this.request_));
         }
       });
     }
@@ -346,17 +351,21 @@ export class PayClientBindingPayjs {
   handleResponse_(responsePromise) {
     this.response_ = responsePromise;
     if (this.responseCallback_) {
-      this.responseCallback_(this.convertResponse_(this.response_));
+      this.responseCallback_(this.convertResponse_(this.response_, this.request_));
     }
   }
 
   /**
    * @param {!Promise<!Object>} response
+   * @param {!Object} request
    * @return {!Promise<!Object>}
    * @private
    */
-  convertResponse_(response) {
-    return response.catch(reason => {
+  convertResponse_(response, request) {
+    return response
+	.then(response =>
+	      Object.assign(response, {'swgRequest': request}))
+	.catch(reason => {
       if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
         return Promise.reject(createCancelError(this.win_));
       }
