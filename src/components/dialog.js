@@ -15,7 +15,7 @@
  */
 
 import {CSS as DIALOG_CSS} from '../../build/css/ui/ui.css';
-import {resolveDoc} from '../model/doc';
+import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
 import {LoadingView} from '../ui/loading-view';
 import {
@@ -24,9 +24,9 @@ import {
   removeChildren,
   removeElement,
 } from '../utils/dom';
-import {setStyles, setImportantStyles} from '../utils/style';
+import {resolveDoc} from '../model/doc';
+import {setImportantStyles, setStyles} from '../utils/style';
 import {transition} from '../utils/animation';
-import {FriendlyIframe} from './friendly-iframe';
 
 const Z_INDEX = 2147483647;
 

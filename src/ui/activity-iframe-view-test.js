@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityIframeView} from './activity-iframe-view';
 import {ActivityResult} from 'web-activities/activity-ports';
-import {ActivityPorts, ActivityIframePort} from '../components/activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {SkuSelectedResponse} from '../proto/api_messages';

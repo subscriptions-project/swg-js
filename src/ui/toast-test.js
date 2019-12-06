@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {Toast} from './toast';
 import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from '../runtime/runtime';
 import {PageConfig} from '../model/page-config';
+import {Toast} from './toast';
 
 const src = '$frontend$/swglib/toastiframe?_=_';
 

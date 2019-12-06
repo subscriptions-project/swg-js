@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
+import {ClientEventManager} from './client-event-manager';
 import {DepsDef} from './deps';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
@@ -23,9 +25,7 @@ import {Storage} from './storage';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
-import {AnalyticsService} from './analytics-service';
 import {defaultConfig} from '../api/subscriptions';
-import {ClientEventManager} from './client-event-manager';
 
 describes.realWin('EntitlementsManager', {}, env => {
   let win;

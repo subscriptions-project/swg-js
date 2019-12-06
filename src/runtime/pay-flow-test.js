@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
+import {
+  AccountCreationRequest,
+  EntitlementsResponse,
+} from '../proto/api_messages';
 import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
-import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {PayClient} from './pay-client';
 import {
-  PayStartFlow,
   PayCompleteFlow,
+  PayStartFlow,
   ReplaceSkuProrationModeMapping,
   parseEntitlements,
   parseSubscriptionResponse,
   parseUserData,
 } from './pay-flow';
+import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import {tick} from '../../test/tick';
-import {
-  EntitlementsResponse,
-  AccountCreationRequest,
-} from '../proto/api_messages';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +

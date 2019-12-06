@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {FilterResult} from '../api/client-event-manager-api';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
+import {FilterResult} from '../api/client-event-manager-api';
+import {isBoolean, isEnumValue, isFunction, isObject} from '../utils/types';
 import {log} from '../utils/log';
 
 /**

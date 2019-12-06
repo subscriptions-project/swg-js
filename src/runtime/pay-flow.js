@@ -22,15 +22,19 @@
  * In other words, Flow = Payments + Account Creation.
  */
 
+import {
+  AccountCreationRequest,
+  EntitlementsResponse,
+} from '../proto/api_messages';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
-import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {
   ProductType,
   SubscriptionFlows,
   WindowOpenMode,
 } from '../api/subscriptions';
+import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';

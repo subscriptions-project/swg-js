@@ -15,17 +15,17 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows, ProductType} from '../api/subscriptions';
-import {AnalyticsEvent, EventParams} from '../proto/api_messages';
-import {feArgs, feUrl} from './services';
-import {assert} from '../utils/log';
 import {
-  SkuSelectedResponse,
   AlreadySubscribedResponse,
-  ViewSubscriptionsResponse,
+  SkuSelectedResponse,
   SubscribeResponse,
+  ViewSubscriptionsResponse,
 } from '../proto/api_messages';
+import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {PayStartFlow} from './pay-flow';
+import {ProductType, SubscriptionFlows} from '../api/subscriptions';
+import {assert} from '../utils/log';
+import {feArgs, feUrl} from './services';
 
 /**
  * @param {string} sku
