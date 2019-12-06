@@ -1245,24 +1245,47 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(triggerStub).to.not.be.called;
     });
 
-    it('should start entitlements flow with success', async () => {
-      const entitlements = new Entitlements(
-        'service',
-        'raw',
-        [new Entitlement('', ['product1'], '{"productId":"token1"}')],
-        'product1',
-        () => {}
-      );
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .withExactArgs(undefined)
-        .returns(Promise.resolve(entitlements))
-        .once();
-      analyticsMock
-        .expects('setSku')
-        .withExactArgs('token1')
-        .once();
-      await runtime.start();
+    describe('Entitlements Success', () => {
+      let entitlements;
+
+      afterEach(async function() {
+        const promise = Promise.resolve(
+          new Entitlements('service', 'raw', entitlements, 'product1', () => {})
+        );
+        entitlementsManagerMock
+          .expects('getEntitlements')
+          .withExactArgs(undefined)
+          .returns(promise)
+          .once();
+        await runtime.start();
+      });
+
+      it('work for 1 entitlement', async () => {
+        entitlements = [
+          new Entitlement('', ['product1'], '{"productId":"token1"}'),
+        ];
+        analyticsMock
+          .expects('setSku')
+          .withExactArgs('token1')
+          .once();
+      });
+
+      it('work for multiple entitlement', async () => {
+        entitlements = [
+          new Entitlement('', ['product1'], '{"productId":"token1"}'),
+          new Entitlement('', ['product2'], '{"productId":"token2"}'),
+          new Entitlement('', ['product3'], '{"productId":"token3"}'),
+        ];
+        analyticsMock
+          .expects('setSku')
+          .withExactArgs('token1,token2,token3')
+          .once();
+      });
+
+      it('work for no entitlements', async () => {
+        entitlements = [];
+        analyticsMock.expects('setSku').never();
+      });
     });
 
     it('should start entitlements flow with failure', async () => {
