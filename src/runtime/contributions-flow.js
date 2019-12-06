@@ -85,9 +85,10 @@ export class ContributionsFlow {
     const isOneTime = response.getOneTime();
     if (sku) {
       if (isOneTime) {
-        const contributionRequest = {};
-        contributionRequest.skuId = sku;
-        contributionRequest.oneTime = isOneTime;
+        const contributionRequest = {
+          skuId: sku,
+          oneTime: isOneTime,
+        };
         new PayStartFlow(
           this.deps_,
           contributionRequest,
