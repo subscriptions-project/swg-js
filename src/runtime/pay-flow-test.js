@@ -27,8 +27,8 @@ import {PayClient} from './pay-client';
 import {
   PayCompleteFlow,
   PayStartFlow,
-  ReplaceSkuProrationModeMapping,
   RecurrenceMapping,
+  ReplaceSkuProrationModeMapping,
   parseEntitlements,
   parseSubscriptionResponse,
   parseUserData,
