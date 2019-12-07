@@ -22,13 +22,12 @@
 
 const https = require('https');
 const {getStdout} = require('./exec');
-const {log} = require('../src/utils/log');
-const {isTravisBuild} = require('./travis');
 
 const nodeDistributionsUrl = 'https://nodejs.org/dist/index.json';
 const yarnExecutable = 'npx yarn';
 const warningDelaySecs = 10;
 const updatesNeeded = new Set();
+const log = console /*OK*/.log;
 
 // Color formatting libraries may not be available when this script is run.
 function red(text) {
@@ -192,13 +191,13 @@ function getYarnStableVersion(infoJson) {
 
 function main() {
   // Yarn is already used by default on Travis, so there is nothing more to do.
-  if (isTravisBuild()) {
+  if (process.env.TRAVIS) {
     return 0;
   }
   ensureYarn();
   return checkNodeVersion().then(() => {
     checkYarnVersion();
-    if (!isTravisBuild() && updatesNeeded.size > 0) {
+    if (!process.env.TRAVIS && updatesNeeded.size > 0) {
       log(
         yellow('\nWARNING: Detected problems with'),
         cyan(Array.from(updatesNeeded).join(', '))
