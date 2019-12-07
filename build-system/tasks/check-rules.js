@@ -21,7 +21,7 @@ const srcGlobs = require('../config').presubmitGlobs;
 const log = require('fancy-log');
 const through2 = require('through2');
 
-const {red} = require('ansi-colors');
+const {red, blue} = require('ansi-colors');
 
 const dedicatedCopyrightNoteSources = /(\.js|\.css|\.go)$/;
 
