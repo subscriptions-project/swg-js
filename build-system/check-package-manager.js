@@ -27,6 +27,7 @@ const nodeDistributionsUrl = 'https://nodejs.org/dist/index.json';
 const yarnExecutable = 'npx yarn';
 const warningDelaySecs = 10;
 const updatesNeeded = new Set();
+const log = console /*OK*/.log;
 
 // Color formatting libraries may not be available when this script is run.
 function red(text) {
@@ -45,34 +46,19 @@ function yellow(text) {
 // If npm is being run, print a message and cause 'npm install' to fail.
 function ensureYarn() {
   if (process.env.npm_execpath.indexOf('yarn') === -1) {
-    console.log(
-      red('*** The SwG project uses yarn for package management ***'),
-      '\n'
-    );
-    console.log(yellow('To install the stable version of Yarn:'));
-    console.log(
-      cyan('$'),
-      'curl -o- -L https://yarnpkg.com/install.sh | bash',
-      '\n'
-    );
-    console.log(yellow('To install all packages:'));
-    console.log(cyan('$'), 'yarn', '\n');
-    console.log(
-      yellow('To install a new (runtime) package to "dependencies":')
-    );
-    console.log(cyan('$'), 'yarn add --exact [package_name@version]', '\n');
-    console.log(
-      yellow('To install a new (toolset) package to "devDependencies":')
-    );
-    console.log(
-      cyan('$'),
-      'yarn add --dev --exact [package_name@version]',
-      '\n'
-    );
-    console.log(yellow('To upgrade a package:'));
-    console.log(cyan('$'), 'yarn upgrade --exact [package_name@version]', '\n');
-    console.log(yellow('To remove a package:'));
-    console.log(cyan('$'), 'yarn remove [package_name]', '\n');
+    log(red('*** The SwG project uses yarn for package management ***'), '\n');
+    log(yellow('To install the stable version of Yarn:'));
+    log(cyan('$'), 'curl -o- -L https://yarnpkg.com/install.sh | bash', '\n');
+    log(yellow('To install all packages:'));
+    log(cyan('$'), 'yarn', '\n');
+    log(yellow('To install a new (runtime) package to "dependencies":'));
+    log(cyan('$'), 'yarn add --exact [package_name@version]', '\n');
+    log(yellow('To install a new (toolset) package to "devDependencies":'));
+    log(cyan('$'), 'yarn add --dev --exact [package_name@version]', '\n');
+    log(yellow('To upgrade a package:'));
+    log(cyan('$'), 'yarn upgrade --exact [package_name@version]', '\n');
+    log(yellow('To remove a package:'));
+    log(cyan('$'), 'yarn remove [package_name]', '\n');
     process.exit(1);
   }
 }
@@ -92,20 +78,20 @@ function checkNodeVersion() {
           const distributionsJson = JSON.parse(distributions);
           const latestLtsVersion = getNodeLatestLtsVersion(distributionsJson);
           if (latestLtsVersion === '') {
-            console.log(
+            log(
               yellow(
                 'WARNING: Something went wrong. ' +
                   'Could not determine the latest LTS version of node.'
               )
             );
           } else if (nodeVersion !== latestLtsVersion) {
-            console.log(
+            log(
               yellow('WARNING: Detected node version'),
               cyan(nodeVersion) +
                 yellow('. Recommended (latest LTS) version is'),
               cyan(latestLtsVersion) + yellow('.')
             );
-            console.log(
+            log(
               yellow('⤷ To fix this, run'),
               cyan('"nvm install --lts"'),
               yellow('or see'),
@@ -114,7 +100,7 @@ function checkNodeVersion() {
             );
             updatesNeeded.add('node');
           } else {
-            console.log(
+            log(
               green('Detected'),
               cyan('node'),
               green('version'),
@@ -125,7 +111,7 @@ function checkNodeVersion() {
         });
       })
       .on('error', () => {
-        console.log(
+        log(
           yellow(
             'WARNING: Something went wrong. ' +
               'Could not download node version info from ' +
@@ -133,10 +119,7 @@ function checkNodeVersion() {
               yellow('.')
           )
         );
-        console.log(
-          yellow('⤷ Detected node version'),
-          cyan(nodeVersion) + yellow('.')
-        );
+        log(yellow('⤷ Detected node version'), cyan(nodeVersion) + yellow('.'));
         resolve();
       });
   });
@@ -164,19 +147,19 @@ function checkYarnVersion() {
   const yarnInfoJson = JSON.parse(yarnInfo.split('\n')[0]); // First line
   const stableVersion = getYarnStableVersion(yarnInfoJson);
   if (stableVersion === '') {
-    console.log(
+    log(
       yellow(
         'WARNING: Something went wrong. ' +
           'Could not determine the stable version of yarn.'
       )
     );
   } else if (yarnVersion !== stableVersion) {
-    console.log(
+    log(
       yellow('WARNING: Detected yarn version'),
       cyan(yarnVersion) + yellow('. Recommended (stable) version is'),
       cyan(stableVersion) + yellow('.')
     );
-    console.log(
+    log(
       yellow('⤷ To fix this, run'),
       cyan('"curl -o- -L https://yarnpkg.com/install.sh | bash"'),
       yellow('or see'),
@@ -185,7 +168,7 @@ function checkYarnVersion() {
     );
     updatesNeeded.add('yarn');
   } else {
-    console.log(
+    log(
       green('Detected'),
       cyan('yarn'),
       green('version'),
@@ -215,26 +198,22 @@ function main() {
   return checkNodeVersion().then(() => {
     checkYarnVersion();
     if (!process.env.TRAVIS && updatesNeeded.size > 0) {
-      console.log(
+      log(
         yellow('\nWARNING: Detected problems with'),
         cyan(Array.from(updatesNeeded).join(', '))
       );
-      console.log(
+      log(
         yellow('⤷ Continuing install in'),
         cyan(warningDelaySecs),
         yellow('seconds...')
       );
-      console.log(
-        yellow('⤷ Press'),
-        cyan('Ctrl + C'),
-        yellow('to abort and fix...')
-      );
+      log(yellow('⤷ Press'), cyan('Ctrl + C'), yellow('to abort and fix...'));
       let resolver;
       const deferred = new Promise(resolverIn => {
         resolver = resolverIn;
       });
       setTimeout(() => {
-        console.log(yellow('\nAttempting to install packages...'));
+        log(yellow('\nAttempting to install packages...'));
         resolver();
       }, warningDelaySecs * 1000);
       return deferred;
