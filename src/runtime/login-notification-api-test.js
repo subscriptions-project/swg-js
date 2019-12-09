@@ -81,11 +81,6 @@ describes.realWin('LoginNotificationApi', {}, env => {
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
 
-    try {
-      await loginNotificationApi.start();
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/broken/);
-    }
+    await expect(loginNotificationApi.start()).to.be.rejectedWith(/broken/);
   });
 });
