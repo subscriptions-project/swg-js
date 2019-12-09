@@ -89,26 +89,14 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     resultResolver(Promise.reject(new Error(noAccountFound)));
 
     dialogManagerMock.expects('completeView').once();
-    try {
-      const foundAccount = await waitingApi.start();
-      throw new Error(
-        'test failed. "' + foundAccount + '" should not be found'
-      );
-    } catch (reason) {
-      expect(reason).to.equal(noAccountFound);
-    }
+    await expect(waitingApi.start()).to.be.rejectedWith(noAccountFound);
   });
 
   it('should reject null account promise', async () => {
     waitingApi = new WaitForSubscriptionLookupApi(runtime);
     dialogManagerMock.expects('completeView').once();
-    try {
-      const foundAccount = await waitingApi.start();
-      throw new Error(
-        'test failed. "' + foundAccount + '" should not be found'
-      );
-    } catch (reason) {
-      expect(reason).to.equal('No account promise provided');
-    }
+    await expect(waitingApi.start()).to.be.rejectedWith(
+      'No account promise provided'
+    );
   });
 });
