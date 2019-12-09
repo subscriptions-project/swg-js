@@ -27,10 +27,8 @@ describes.realWin('Propensity', {}, env => {
   let propensity;
   let pageConfig;
   let eventManager;
-  const config = {};
   const fakeDeps = {
     pageConfig: () => pageConfig,
-    config: () => config,
     eventManager: () => eventManager,
   };
 

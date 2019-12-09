@@ -28,6 +28,7 @@ module.exports = {
       .viewFirstArticle()
       .waitForElementPresent('@swgIFrame', 'Found SwG iFrame')
       .viewOffers()
+      .waitForElementPresent('.K2Fgzb', 10000, 'Found Subscribe button')
       .assert.containsText('.K2Fgzb', 'Subscribe with your Google Account')
       .assert.containsText('.wlhaj.I3RyHc', 'Already subscribed?')
       .assert.containsText('.amekj', 'Basic access')
