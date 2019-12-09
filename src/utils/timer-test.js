@@ -73,7 +73,7 @@ describes.realWin('Timer', {}, env => {
   it('cancel default', done => {
     windowMock.expects('setTimeout').never();
     windowMock.expects('clearTimeout').never();
-    const mock = sinon.mock();
+    const mock = sandbox.mock();
     const id = timer.delay(mock);
     timer.cancel(id);
 
