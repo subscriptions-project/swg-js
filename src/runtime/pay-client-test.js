@@ -183,12 +183,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     dialogManagerMock.expects('popupClosed').once();
     const result = new ActivityResult(ActivityResultCode.OK, INTEGR_DATA_OBJ);
 
-    try {
-      await withResult(result);
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/channel mismatch/);
-    }
+    await expect(withResult(result)).to.be.rejectedWith(/channel mismatch/);
   });
 
   it('should require secure channel for unencrypted payload', async () => {
@@ -202,12 +197,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       false
     );
 
-    try {
-      await withResult(result);
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/channel mismatch/);
-    }
+    await expect(withResult(result)).to.be.rejectedWith(/channel mismatch/);
   });
 
   it('should require secure channel for unverified payload', async () => {
@@ -221,12 +211,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       true
     );
 
-    try {
-      await withResult(result);
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/channel mismatch/);
-    }
+    await expect(withResult(result)).to.be.rejectedWith(/channel mismatch/);
   });
 
   it('should accept a correct payment response', async () => {
@@ -351,12 +336,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     resultCallback(port);
     expect(resultStub).to.be.calledOnce;
 
-    try {
-      await resultStub.args[0][0];
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/cancel/);
-    }
+    await expect(resultStub.args[0][0]).to.be.rejectedWith(/cancel/);
   });
 
   it('should propagate an error', async () => {
@@ -367,12 +347,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     resultCallback(port);
     expect(resultStub).to.be.calledOnce;
 
-    try {
-      await resultStub.args[0][0];
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/intentional/);
-    }
+    await expect(resultStub.args[0][0]).to.be.rejectedWith(/intentional/);
   });
 });
 
@@ -517,21 +492,15 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
   });
 
   it('should accept a cancel signal', async () => {
-    try {
-      await withResult(Promise.reject({'statusCode': 'CANCELED'}));
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(isCancelError(reason)).to.be.true;
-    }
+    await expect(
+      withResult(Promise.reject({'statusCode': 'CANCELED'}))
+    ).to.be.rejectedWith(/AbortError/);
   });
 
   it('should accept other errors', async () => {
-    try {
-      await withResult(Promise.reject('intentional'));
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.equal('intentional');
-    }
+    await expect(withResult(Promise.reject('intentional'))).to.be.rejectedWith(
+      /intentional/
+    );
   });
 
   it('should return response on initialization', async () => {
