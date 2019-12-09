@@ -73,14 +73,14 @@ describes.realWin('Timer', {}, env => {
   it('cancel default', done => {
     windowMock.expects('setTimeout').never();
     windowMock.expects('clearTimeout').never();
-    const id = timer.delay(() => {
-      throw new Error('should have been cancelled');
-    });
+    const mock = sinon.mock();
+    const id = timer.delay(mock);
     timer.cancel(id);
 
     // This makes sure the error has time to throw while this test
     // is still running.
     timer.delay(done);
+    expect(mock).to.not.have.been.called;
   });
 
   it('promise', async () => {
@@ -96,10 +96,7 @@ describes.realWin('Timer', {}, env => {
       .returns(1)
       .once();
 
-    let c = 0;
     const result = await timer.promise(111);
-    c++;
-    expect(c).to.equal(1);
     expect(result).to.be.undefined;
   });
 
@@ -116,16 +113,7 @@ describes.realWin('Timer', {}, env => {
       .returns(1)
       .once();
 
-    let c = 0;
-    try {
-      const result = await timer.timeoutPromise(111);
-      c++;
-      assert.fail('must never be here: ' + result);
-    } catch (reason) {
-      c++;
-      expect(c).to.equal(1);
-      expect(reason.message).to.contain('timeout');
-    }
+    await expect(timer.timeoutPromise(111)).to.be.rejectedWith(/timeout/);
   });
 
   it('timeoutPromise - race no timeout', async () => {
@@ -138,10 +126,7 @@ describes.realWin('Timer', {}, env => {
       .returns(1)
       .once();
 
-    let c = 0;
     const result = await timer.timeoutPromise(111, Promise.resolve('A'));
-    c++;
-    expect(c).to.equal(1);
     expect(result).to.equal('A');
   });
 
@@ -159,16 +144,9 @@ describes.realWin('Timer', {}, env => {
       .returns(1)
       .once();
 
-    let c = 0;
-    try {
-      const result = await timer.timeoutPromise(111, new Promise(() => {}));
-      c++;
-      assert.fail('must never be here: ' + result);
-    } catch (reason) {
-      c++;
-      expect(c).to.equal(1);
-      expect(reason.message).to.contain('timeout');
-    }
+    await expect(
+      timer.timeoutPromise(111, new Promise(() => {}))
+    ).to.be.rejectedWith(/timeout/);
   });
 
   it('poll - resolves only when condition is true', async () => {
