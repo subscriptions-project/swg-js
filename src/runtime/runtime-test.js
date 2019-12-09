@@ -427,7 +427,9 @@ describes.realWin('Runtime', {}, env => {
     it('should fail when config lookup fails', async () => {
       configPromise = Promise.reject('config broken');
 
-      expect(runtime.configured_(true)).to.be.rejectedWith(/config broken/);
+      await expect(runtime.configured_(true)).to.be.rejectedWith(
+        /config broken/
+      );
     });
 
     it('should propagate construction config', async () => {
@@ -457,7 +459,7 @@ describes.realWin('Runtime', {}, env => {
     it('should not return Propensity module when config not available', async () => {
       configPromise = Promise.reject('config not available');
 
-      expect(runtime.getPropensityModule()).to.be.rejectedWith(
+      await expect(runtime.getPropensityModule()).to.be.rejectedWith(
         'config not available'
       );
     });
@@ -1328,7 +1330,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     });
 
     it('should throw an error if showOffers is used with an oldSku', async () => {
-      expect(
+      await expect(
         runtime.showOffers({skuId: 'newSku', oldSku: 'oldSku'})
       ).to.be.rejectedWith(
         'The showOffers() method cannot be used to update \
@@ -1338,7 +1340,7 @@ a subscription. Use the showUpdateOffers() method instead.'
 
     it('should call "showUpdateOffers"', async () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-      expect(runtime.showUpdateOffers()).to.be.rejectedWith(
+      await expect(runtime.showUpdateOffers()).to.be.rejectedWith(
         'The showUpdateOffers() method cannot be used for \
 new subscribers. Use the showOffers() method instead.'
       );
@@ -1359,7 +1361,9 @@ new subscribers. Use the showOffers() method instead.'
 
     it('should throw an error if showUpdateOffers is used without an oldSku', async () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-      expect(runtime.showUpdateOffers({skuId: 'newSku'})).to.be.rejectedWith(
+      await expect(
+        runtime.showUpdateOffers({skuId: 'newSku'})
+      ).to.be.rejectedWith(
         'The showUpdateOffers() method cannot be used for \
 new subscribers. Use the showOffers() method instead.'
       );
