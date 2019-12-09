@@ -972,15 +972,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       redirectErrorHandler = null;
       sandbox
         .stub(ActivityPorts.prototype, 'onResult')
-        .callsFake(function(requestId, callback) {
-          if (activityResultCallbacks[requestId]) {
-            throw new Error('duplicate');
+        .callsFake((requestId, callback) => {
+          if (!activityResultCallbacks[requestId]) {
+            activityResultCallbacks[requestId] = callback;
           }
-          activityResultCallbacks[requestId] = callback;
         });
       sandbox
         .stub(ActivityPorts.prototype, 'onRedirectError')
-        .callsFake(function(handler) {
+        .callsFake(handler => {
           redirectErrorHandler = handler;
         });
       runtime = new ConfiguredRuntime(win, config);

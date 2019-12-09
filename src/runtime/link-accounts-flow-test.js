@@ -691,12 +691,9 @@ describes.realWin('LinkSaveFlow', {}, env => {
     cb(response);
     dialogManagerMock.expects('completeView').once();
 
-    try {
-      await linkSaveFlow.getRequestPromise();
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/Both authCode and token are available/);
-    }
+    await expect(linkSaveFlow.getRequestPromise()).to.be.rejectedWith(
+      /Both authCode and token are available/
+    );
   });
 
   it('should fail if neither token nor authCode is present', async () => {
@@ -711,12 +708,9 @@ describes.realWin('LinkSaveFlow', {}, env => {
     cb(response);
     dialogManagerMock.expects('completeView').once();
 
-    try {
-      await linkSaveFlow.getRequestPromise();
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/Neither token or authCode is available/);
-    }
+    await expect(linkSaveFlow.getRequestPromise()).to.be.rejectedWith(
+      /Neither token or authCode is available/
+    );
   });
 
   it('should respond with subscription request with token', async () => {
@@ -773,12 +767,9 @@ describes.realWin('LinkSaveFlow', {}, env => {
     cb(response);
     dialogManagerMock.expects('completeView').once();
 
-    try {
-      await linkSaveFlow.getRequestPromise();
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.equal('no token');
-    }
+    await expect(linkSaveFlow.getRequestPromise()).to.be.rejectedWith(
+      /no token/
+    );
   });
 
   it('should callback synchronous error should close dialog', async () => {
@@ -795,12 +786,9 @@ describes.realWin('LinkSaveFlow', {}, env => {
     cb(response);
     dialogManagerMock.expects('completeView').once();
 
-    try {
-      await linkSaveFlow.getRequestPromise();
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/callback failed/);
-    }
+    await expect(linkSaveFlow.getRequestPromise()).to.be.rejectedWith(
+      /callback failed/
+    );
   });
 
   it('should test link complete flow start', async () => {

@@ -89,12 +89,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       .once();
   }
 
-  function entitlementsResponse(
-    entitlements,
-    options,
-    isReadyToPay,
-    decryptedDocumentKey
-  ) {
+  function entitlementsResponse(entitlements, options, isReadyToPay) {
     function enc(obj) {
       return base64UrlEncodeFromBytes(utf8EncodeSync(JSON.stringify(obj)));
     }
@@ -110,14 +105,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       'exp': options.exp,
       'entitlements': entitlements,
     };
-    const response = {
+    return {
       'signedEntitlements': enc(header) + '.' + enc(payload) + '.SIG',
       'isReadyToPay': isReadyToPay,
     };
-    if (decryptedDocumentKey) {
-      response.decryptedDocumentKey = decryptedDocumentKey;
-    }
-    return response;
   }
 
   function expectGoogleResponse(options, isReadyToPay, decryptedDocumentKey) {
