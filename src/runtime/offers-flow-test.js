@@ -779,8 +779,11 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     const offersStartStub = sandbox.stub(OffersFlow.prototype, 'start');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     expect(offersStartStub).to.not.be.called;
-    const error = new Error('abort');
-    sandbox.stub(port, 'acceptResult').callsFake(() => Promise.reject(error));
+    sandbox
+      .stub(port, 'acceptResult')
+      .callsFake(() =>
+        Promise.reject(new DOMException('cancel', 'AbortError'))
+      );
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -791,7 +794,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
 
     await expect(
       acceptPortResultData(port, 'https://example.com', true, true)
-    ).to.be.rejectedWith(/abort/);
+    ).to.be.rejectedWith(/cancel/);
   });
 
   it('should trigger offers flow with options', async () => {
