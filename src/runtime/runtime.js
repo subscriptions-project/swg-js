@@ -960,10 +960,47 @@ export class ConfiguredRuntime {
  * @return {!Subscriptions}
  */
 function createPublicRuntime(runtime) {
-  const publicRuntime = {};
-  const props = Object.getOwnPropertyNames(Subscriptions.prototype);
-  props.forEach(prop => (publicRuntime[prop] = runtime[prop].bind(runtime)));
-  return /** @type {!Subscriptions} */ (publicRuntime);
+  return /** @type {!Subscriptions} */ ({
+    init: runtime.init.bind(runtime),
+    configure: runtime.configure.bind(runtime),
+    start: runtime.start.bind(runtime),
+    reset: runtime.reset.bind(runtime),
+    clear: runtime.clear.bind(runtime),
+    getEntitlements: runtime.getEntitlements.bind(runtime),
+    linkAccount: runtime.linkAccount.bind(runtime),
+    showLoginPrompt: runtime.showLoginPrompt.bind(runtime),
+    showLoginNotification: runtime.showLoginNotification.bind(runtime),
+    getOffers: runtime.getOffers.bind(runtime),
+    showOffers: runtime.showOffers.bind(runtime),
+    showUpdateOffers: runtime.showUpdateOffers.bind(runtime),
+    showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
+    showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
+    showContributionOptions: runtime.showContributionOptions.bind(runtime),
+    waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),
+    subscribe: runtime.subscribe.bind(runtime),
+    updateSubscription: runtime.updateSubscription.bind(runtime),
+    contribute: runtime.contribute.bind(runtime),
+    completeDeferredAccountCreation: runtime.completeDeferredAccountCreation.bind(
+      runtime
+    ),
+    setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
+    setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
+    setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
+    setOnNativeSubscribeRequest: runtime.setOnNativeSubscribeRequest.bind(
+      runtime
+    ),
+    setOnPaymentResponse: runtime.setOnPaymentResponse.bind(runtime),
+    setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
+    setOnContributionResponse: runtime.setOnContributionResponse.bind(runtime),
+    setOnFlowStarted: runtime.setOnFlowStarted.bind(runtime),
+    setOnFlowCanceled: runtime.setOnFlowCanceled.bind(runtime),
+    saveSubscription: runtime.saveSubscription.bind(runtime),
+    createButton: runtime.createButton.bind(runtime),
+    attachButton: runtime.attachButton.bind(runtime),
+    attachSmartButton: runtime.attachSmartButton.bind(runtime),
+    getPropensityModule: runtime.getPropensityModule.bind(runtime),
+    getLogger: runtime.getLogger.bind(runtime),
+  });
 }
 
 /**
