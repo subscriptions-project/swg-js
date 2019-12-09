@@ -22,7 +22,6 @@ import {DeferredAccountFlow} from './deferred-account-flow';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {PageConfig} from '../model/page-config';
 import {PayCompleteFlow} from './pay-flow';
-import {isCancelError} from '../utils/errors';
 
 const EMPTY_ID_TOK =
   'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJRF9UT0sifQ.SIG';
@@ -169,12 +168,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
     dialogManagerMock.expects('completeView').once();
-    try {
-      await flow.start();
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(isCancelError(reason)).to.be.true;
-    }
+    await expect(flow.start()).to.be.rejectedWith(/cancel/);
   });
 
   it('should handle failure', async () => {
@@ -182,14 +176,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
-    try {
-      await flow.start();
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(() => {
-        throw reason;
-      }).to.throw(/broken/);
-    }
+    await expect(flow.start()).to.be.rejectedWith(/broken/);
   });
 
   it('should continue with confirmation flow', async () => {

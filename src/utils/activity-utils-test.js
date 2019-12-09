@@ -59,9 +59,7 @@ describes.sandboxed('acceptPortResultData', {}, () => {
         return Promise.resolve(result);
       }
       if (result.code == CANCELED) {
-        const error = new Error();
-        error.name = 'AbortError';
-        return Promise.reject(error);
+        return Promise.reject(new DOMException('cancel', 'AbortError'));
       }
       return Promise.reject(result.error);
     });
@@ -81,33 +79,17 @@ describes.sandboxed('acceptPortResultData', {}, () => {
   it('should fail success on wrong origin', async () => {
     result(OK, 'A', OTHER_ORIGIN, VERIFIED, SECURE);
 
-    try {
-      await acceptPortResultData(
-        port,
-        ORIGIN,
-        REQUIRE_VERIFIED,
-        REQUIRE_SECURE
-      );
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/channel mismatch/);
-    }
+    await expect(
+      acceptPortResultData(port, ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE)
+    ).to.be.rejectedWith(/channel mismatch/);
   });
 
   it('should fail success on not verified', async () => {
     result(OK, 'A', ORIGIN, NOT_VERIFIED, SECURE);
 
-    try {
-      await acceptPortResultData(
-        port,
-        ORIGIN,
-        REQUIRE_VERIFIED,
-        REQUIRE_SECURE
-      );
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/channel mismatch/);
-    }
+    await expect(
+      acceptPortResultData(port, ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE)
+    ).to.be.rejectedWith(/channel mismatch/);
   });
 
   it('should allow success on not verified', async () => {
@@ -124,17 +106,9 @@ describes.sandboxed('acceptPortResultData', {}, () => {
   it('should fail success on not secure channel', async () => {
     result(OK, 'A', ORIGIN, VERIFIED, NOT_SECURE);
 
-    try {
-      await acceptPortResultData(
-        port,
-        ORIGIN,
-        REQUIRE_VERIFIED,
-        REQUIRE_SECURE
-      );
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/channel mismatch/);
-    }
+    await expect(
+      acceptPortResultData(port, ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE)
+    ).to.be.rejectedWith(/channel mismatch/);
   });
 
   it('should allow success on not secure channel', async () => {
@@ -153,49 +127,24 @@ describes.sandboxed('acceptPortResultData', {}, () => {
       .stub(port, 'acceptResult')
       .callsFake(() => Promise.reject(new Error('intentional')));
 
-    try {
-      await acceptPortResultData(
-        port,
-        ORIGIN,
-        REQUIRE_VERIFIED,
-        REQUIRE_SECURE
-      );
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/intentional/);
-    }
+    await expect(
+      acceptPortResultData(port, ORIGIN, REQUIRE_VERIFIED, REQUIRE_SECURE)
+    ).to.be.rejectedWith(/intentional/);
   });
 
   it('should resolve cancel', async () => {
     result(CANCELED, null, ORIGIN, VERIFIED, NOT_SECURE);
 
-    try {
-      await acceptPortResultData(
-        port,
-        ORIGIN,
-        REQUIRE_VERIFIED,
-        DONT_REQUIRE_SECURE
-      );
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason.name).to.equal('AbortError');
-    }
+    await expect(
+      acceptPortResultData(port, ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE)
+    ).to.be.rejectedWith('cancel');
   });
 
   it('should resolve failure', async () => {
     result(FAILED, 'failure', ORIGIN, VERIFIED, NOT_SECURE);
 
-    try {
-      await acceptPortResultData(
-        port,
-        ORIGIN,
-        REQUIRE_VERIFIED,
-        DONT_REQUIRE_SECURE
-      );
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason.name).to.not.equal('AbortError');
-      expect(reason).to.contain(/failure/);
-    }
+    await expect(
+      acceptPortResultData(port, ORIGIN, REQUIRE_VERIFIED, DONT_REQUIRE_SECURE)
+    ).to.be.rejectedWith(/failure/);
   });
 });
