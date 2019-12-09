@@ -138,9 +138,9 @@ describes.realWin('installRuntime', {}, env => {
     installRuntime(win);
 
     const subscriptions = await promise;
-    for (const k in Subscriptions.prototype) {
-      expect(subscriptions).to.contain(k);
-    }
+    Object.getOwnPropertyNames(Subscriptions.prototype).forEach(key => {
+      expect(subscriptions[key]).to.exist;
+    });
   });
 
   it('handles recursive calls after installation', async () => {
@@ -873,9 +873,10 @@ describes.realWin('Runtime', {}, env => {
       const fetchStub = sandbox
         .stub(otherFetcher, 'fetchCredentialedJson')
         .callsFake(() => Promise.resolve(ents));
-      const xhrFetchStub = sandbox
-        .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
-        .callsFake(() => Promise.resolve(ents));
+      const xhrFetchStub = sandbox.stub(
+        XhrFetcher.prototype,
+        'fetchCredentialedJson'
+      );
       runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
         fetcher: otherFetcher,
       });
@@ -1334,30 +1335,28 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
     });
 
-    it('should throw an error if showOffers is used with an oldSku', () => {
+    it('should throw an error if showOffers is used with an oldSku', async () => {
       try {
-        runtime.showOffers({skuId: 'newSku', oldSku: 'oldSku'});
+        await runtime.showOffers({skuId: 'newSku', oldSku: 'oldSku'});
+        throw new Error('must have failed');
       } catch (err) {
-        expect(err)
-          .to.be.an.instanceOf(Error)
-          .with.property(
-            'The showOffers() method cannot be used to update \
+        expect(err.toString()).to.contain(
+          'The showOffers() method cannot be used to update \
 a subscription. Use the showUpdateOffers() method instead.'
-          );
+        );
       }
     });
 
-    it('should call "showUpdateOffers"', () => {
+    it('should call "showUpdateOffers"', async () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
       try {
-        runtime.showUpdateOffers();
+        await runtime.showUpdateOffers();
+        throw new Error('must have failed');
       } catch (err) {
-        expect(err)
-          .to.be.an.instanceOf(Error)
-          .with.property(
-            'The showUpdateOffers() method cannot be used for \
+        expect(err.toString()).to.contain(
+          'The showUpdateOffers() method cannot be used for \
 new subscribers. Use the showOffers() method instead.'
-          );
+        );
       }
     });
 
@@ -1374,17 +1373,16 @@ new subscribers. Use the showOffers() method instead.'
       expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
     });
 
-    it('should throw an error if showUpdateOffers is used without an oldSku', () => {
+    it('should throw an error if showUpdateOffers is used without an oldSku', async () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
       try {
-        runtime.showUpdateOffers({skuId: 'newSku'});
+        await runtime.showUpdateOffers({skuId: 'newSku'});
+        throw new Error('must have failed');
       } catch (err) {
-        expect(err)
-          .to.be.an.instanceOf(Error)
-          .with.property(
-            'The showUpdateOffers() method cannot be used for \
+        expect(err.toString()).to.contain(
+          'The showUpdateOffers() method cannot be used for \
 new subscribers. Use the showOffers() method instead.'
-          );
+        );
       }
     });
 
