@@ -187,8 +187,7 @@ function isTestFile(file) {
   const isTestFile =
     /^test-/.test(basename) ||
     /^_init_tests/.test(basename) ||
-    /-test\.js$/.test(basename) ||
-    /_test\.js$/.test(basename);
+    /-test\.js$/.test(basename);
 
   const dirs = normalizeRelativePath(file.relative).split('/');
   return isTestFile || dirs.indexOf('test') >= 0;
