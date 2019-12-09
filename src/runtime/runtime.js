@@ -69,7 +69,10 @@ import {setExperiment} from './experiments';
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
 
-/** @private {!Runtime} */
+/**
+ * Reference to the runtime, for testing.
+ * @private {!Runtime}
+ */
 let runtimeInstance_;
 
 /**
@@ -84,43 +87,52 @@ export function getRuntime() {
 }
 
 /**
+ * Installs SwG runtime.
  * @param {!Window} win
  */
 export function installRuntime(win) {
+  // Only install the SwG runtime once.
   if (win[RUNTIME_PROP] && !isArray(win[RUNTIME_PROP])) {
     return;
   }
 
+  // Create a SwG runtime.
   const runtime = new Runtime(win);
 
-  const waitingArray = [].concat(win[RUNTIME_PROP], win[RUNTIME_LEGACY_PROP]);
-
-  // Public runtime.
+  // Create a public version of the SwG runtime.
   const publicRuntime = createPublicRuntime(runtime);
 
-  const dependencyInstaller = {};
-
   /**
+   * Executes a callback when SwG runtime is ready.
    * @param {function(!Subscriptions)} callback
    */
-  function pushDependency(callback) {
+  function callWhenRuntimeIsReady(callback) {
     if (!callback) {
       return;
     }
+
     runtime.whenReady().then(() => {
       callback(publicRuntime);
     });
   }
-  Object.defineProperty(dependencyInstaller, 'push', {
-    get: () => pushDependency,
-    configurable: false,
-  });
-  win[RUNTIME_PROP] = dependencyInstaller;
-  win[RUNTIME_LEGACY_PROP] = dependencyInstaller;
-  if (waitingArray) {
-    waitingArray.forEach(pushDependency);
-  }
+
+  // Queue up any callbacks the publication might have provided.
+  const waitingCallbacks = [].concat(
+    win[RUNTIME_PROP],
+    win[RUNTIME_LEGACY_PROP]
+  );
+  waitingCallbacks.forEach(callWhenRuntimeIsReady);
+
+  // If any more callbacks are `push`ed to the global SwG variables,
+  // they'll be queued up to receive the SwG runtime when it's ready.
+  win[RUNTIME_PROP] = win[RUNTIME_LEGACY_PROP] = {
+    push: callWhenRuntimeIsReady,
+  };
+
+  // Set variable for testing.
   runtimeInstance_ = runtime;
+
+  // Kick off subscriptions flow.
   runtime.startSubscriptionsFlowIfNeeded();
 }
 

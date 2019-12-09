@@ -138,9 +138,9 @@ describes.realWin('installRuntime', {}, env => {
     installRuntime(win);
 
     const subscriptions = await promise;
-    for (const k in Subscriptions.prototype) {
-      expect(subscriptions).to.contain(k);
-    }
+    Object.getOwnPropertyNames(Subscriptions.prototype).forEach(key => {
+      expect(subscriptions[key]).to.exist;
+    });
   });
 
   it('handles recursive calls after installation', async () => {
@@ -427,12 +427,9 @@ describes.realWin('Runtime', {}, env => {
     it('should fail when config lookup fails', async () => {
       configPromise = Promise.reject('config broken');
 
-      try {
-        runtime.configured_(true);
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/config broken/);
-      }
+      await expect(runtime.configured_(true)).to.be.rejectedWith(
+        /config broken/
+      );
     });
 
     it('should propagate construction config', async () => {
@@ -462,12 +459,9 @@ describes.realWin('Runtime', {}, env => {
     it('should not return Propensity module when config not available', async () => {
       configPromise = Promise.reject('config not available');
 
-      try {
-        await runtime.getPropensityModule();
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain('config not available');
-      }
+      await expect(runtime.getPropensityModule()).to.be.rejectedWith(
+        'config not available'
+      );
     });
 
     it('should return a working logger', async () => {
@@ -873,9 +867,10 @@ describes.realWin('Runtime', {}, env => {
       const fetchStub = sandbox
         .stub(otherFetcher, 'fetchCredentialedJson')
         .callsFake(() => Promise.resolve(ents));
-      const xhrFetchStub = sandbox
-        .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
-        .callsFake(() => Promise.resolve(ents));
+      const xhrFetchStub = sandbox.stub(
+        XhrFetcher.prototype,
+        'fetchCredentialedJson'
+      );
       runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
         fetcher: otherFetcher,
       });
@@ -1333,31 +1328,21 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
     });
 
-    it('should throw an error if showOffers is used with an oldSku', () => {
-      try {
-        runtime.showOffers({skuId: 'newSku', oldSku: 'oldSku'});
-      } catch (err) {
-        expect(err)
-          .to.be.an.instanceOf(Error)
-          .with.property(
-            'The showOffers() method cannot be used to update \
+    it('should throw an error if showOffers is used with an oldSku', async () => {
+      await expect(
+        runtime.showOffers({skuId: 'newSku', oldSku: 'oldSku'})
+      ).to.be.rejectedWith(
+        'The showOffers() method cannot be used to update \
 a subscription. Use the showUpdateOffers() method instead.'
-          );
-      }
+      );
     });
 
-    it('should call "showUpdateOffers"', () => {
+    it('should call "showUpdateOffers"', async () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-      try {
-        runtime.showUpdateOffers();
-      } catch (err) {
-        expect(err)
-          .to.be.an.instanceOf(Error)
-          .with.property(
-            'The showUpdateOffers() method cannot be used for \
+      await expect(runtime.showUpdateOffers()).to.be.rejectedWith(
+        'The showUpdateOffers() method cannot be used for \
 new subscribers. Use the showOffers() method instead.'
-          );
-      }
+      );
     });
 
     it('should call "showUpdateOffers" with options', async () => {
@@ -1373,18 +1358,14 @@ new subscribers. Use the showOffers() method instead.'
       expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
     });
 
-    it('should throw an error if showUpdateOffers is used without an oldSku', () => {
+    it('should throw an error if showUpdateOffers is used without an oldSku', async () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-      try {
-        runtime.showUpdateOffers({skuId: 'newSku'});
-      } catch (err) {
-        expect(err)
-          .to.be.an.instanceOf(Error)
-          .with.property(
-            'The showUpdateOffers() method cannot be used for \
+      await expect(
+        runtime.showUpdateOffers({skuId: 'newSku'})
+      ).to.be.rejectedWith(
+        'The showUpdateOffers() method cannot be used for \
 new subscribers. Use the showOffers() method instead.'
-          );
-      }
+      );
     });
 
     it('should call "showAbbrvOffer"', async () => {
