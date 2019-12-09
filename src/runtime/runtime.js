@@ -117,8 +117,11 @@ export function installRuntime(win) {
   }
 
   // Queue up any callbacks the publication might have provided.
-  const callbacks = [].concat(win[RUNTIME_PROP], win[RUNTIME_LEGACY_PROP]);
-  callbacks.forEach(callWhenRuntimeIsReady);
+  const waitingCallbacks = [].concat(
+    win[RUNTIME_PROP],
+    win[RUNTIME_LEGACY_PROP]
+  );
+  waitingCallbacks.forEach(callWhenRuntimeIsReady);
 
   // If any more callbacks are `push`ed to the global SwG variables,
   // they'll be queued up to receive the SwG runtime when it's ready.
