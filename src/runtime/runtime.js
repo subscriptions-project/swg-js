@@ -106,7 +106,7 @@ export function installRuntime(win) {
    * Executes a callback when SwG runtime is ready.
    * @param {function(!Subscriptions)} callback
    */
-  function push(callback) {
+  function callWhenRuntimeIsReady(callback) {
     if (!callback) {
       return;
     }
@@ -117,11 +117,14 @@ export function installRuntime(win) {
   }
 
   // Queue up any callbacks the publication might have provided.
-  [].concat(win[RUNTIME_PROP], win[RUNTIME_LEGACY_PROP]).forEach(push);
+  const callbacks = [].concat(win[RUNTIME_PROP], win[RUNTIME_LEGACY_PROP]);
+  callbacks.forEach(callWhenRuntimeIsReady);
 
   // If any more callbacks are `push`ed to the global SwG variables,
   // they'll be queued up to receive the SwG runtime when it's ready.
-  win[RUNTIME_PROP] = win[RUNTIME_LEGACY_PROP] = {push};
+  win[RUNTIME_PROP] = win[RUNTIME_LEGACY_PROP] = {
+    push: callWhenRuntimeIsReady,
+  };
 
   // Set variable for testing.
   runtimeInstance_ = runtime;
