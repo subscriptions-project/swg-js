@@ -119,6 +119,7 @@ export class PayStartFlow {
     this.recurrenceEnum = 0;
     if (this.subscriptionRequest_.oneTime) {
       this.recurrenceEnum = RecurrenceMapping['ONE_TIME'];
+      delete this.subscriptionRequest_.oneTime;
     }
   }
 
@@ -138,7 +139,7 @@ export class PayStartFlow {
     }
 
     if (this.recurrenceEnum) {
-      swgPaymentRequest.oneTime = this.recurrenceEnum;
+      swgPaymentRequest.paymentRecurrence = this.recurrenceEnum;
     }
 
     // Start/cancel events.
