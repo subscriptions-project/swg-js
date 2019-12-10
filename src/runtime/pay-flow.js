@@ -22,23 +22,23 @@
  * In other words, Flow = Payments + Account Creation.
  */
 
+import {
+  AccountCreationRequest,
+  EntitlementsResponse,
+} from '../proto/api_messages';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
-import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {
   ProductType,
   SubscriptionFlows,
   WindowOpenMode,
 } from '../api/subscriptions';
+import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseJson, tryParseJson} from '../utils/json';
-import {
-  EntitlementsResponse,
-  AccountCreationRequest,
-} from '../proto/api_messages';
 /**
  * String values input by the publisher are mapped to the number values.
  * @type {!Object<string, number>}
@@ -48,6 +48,11 @@ export const ReplaceSkuProrationModeMapping = {
   // be prorated and credited to the user. This is the current default
   // behavior.
   'IMMEDIATE_WITH_TIME_PRORATION': 1,
+};
+
+export const RecurrenceMapping = {
+  'AUTO': 1,
+  'ONE_TIME': 2,
 };
 
 /**
@@ -108,6 +113,14 @@ export class PayStartFlow {
       this.prorationEnum =
         ReplaceSkuProrationModeMapping['IMMEDIATE_WITH_TIME_PRORATION'];
     }
+
+    // Assign one-time recurrence enum if applicable
+    this.oneTimeContribution = false;
+    this.recurrenceEnum = 0;
+    if (this.subscriptionRequest_.oneTime) {
+      this.recurrenceEnum = RecurrenceMapping['ONE_TIME'];
+      delete this.subscriptionRequest_.oneTime;
+    }
   }
 
   /**
@@ -123,6 +136,10 @@ export class PayStartFlow {
 
     if (this.prorationEnum) {
       swgPaymentRequest.replaceSkuProrationMode = this.prorationEnum;
+    }
+
+    if (this.recurrenceEnum) {
+      swgPaymentRequest.paymentRecurrence = this.recurrenceEnum;
     }
 
     // Start/cancel events.

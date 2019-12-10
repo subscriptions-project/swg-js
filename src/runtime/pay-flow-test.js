@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
+import {
+  AccountCreationRequest,
+  EntitlementsResponse,
+} from '../proto/api_messages';
 import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
-import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {PayClient} from './pay-client';
 import {
-  PayStartFlow,
   PayCompleteFlow,
+  PayStartFlow,
+  RecurrenceMapping,
   ReplaceSkuProrationModeMapping,
   parseEntitlements,
   parseSubscriptionResponse,
   parseUserData,
 } from './pay-flow';
+import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import {tick} from '../../test/tick';
-import {
-  EntitlementsResponse,
-  AccountCreationRequest,
-} from '../proto/api_messages';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -160,6 +161,52 @@ describes.realWin('PayStartFlow', {}, env => {
         getEventParams('sku1')
       );
     const flowPromise = flow.start();
+    await expect(flowPromise).to.eventually.be.undefined;
+  });
+
+  it('should have valid flow constructed for one time', async () => {
+    const subscriptionRequest = {
+      skuId: 'newSku',
+      oneTime: true,
+      publicationId: 'pub1',
+    };
+    const replaceFlow = new PayStartFlow(runtime, subscriptionRequest);
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('subscribe', subscriptionRequest)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    payClientMock
+      .expects('start')
+      .withExactArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            skuId: 'newSku',
+            paymentRecurrence: RecurrenceMapping['ONE_TIME'],
+            publicationId: 'pub1',
+          },
+          'i': {
+            'startTimeMs': sandbox.match.any,
+            'productType': sandbox.match(productTypeRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+        }
+      )
+      .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('newSku')
+      );
+    const flowPromise = replaceFlow.start();
     await expect(flowPromise).to.eventually.be.undefined;
   });
 

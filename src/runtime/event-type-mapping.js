@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {Event} from '../api/logger-api';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {Event} from '../api/logger-api';
 
 /** @const {!Object<string,AnalyticsEvent>} */
 const PublisherEventToAnalyticsEvent = {

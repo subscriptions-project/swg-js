@@ -75,7 +75,7 @@ module.exports = {
   clean,
   dist,
   watch,
-}
+};
 watch.description = 'Watches for changes in files, re-build';
 
 checkTypes.description = 'Check JS types';

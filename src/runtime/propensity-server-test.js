@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {PropensityServer} from './propensity-server';
 import * as PropensityApi from '../api/propensity-api';
-import {Event, SubscriptionState} from '../api/logger-api';
-import {parseQueryString} from '../utils/url';
 import * as ServiceUrl from './services';
-import {ClientEventManager} from './client-event-manager';
 import {
   AnalyticsEvent,
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
+import {ClientEventManager} from './client-event-manager';
+import {Event, SubscriptionState} from '../api/logger-api';
 import {PageConfig} from '../model/page-config';
+import {PropensityServer} from './propensity-server';
+import {parseQueryString} from '../utils/url';
 
 /**
  * Converts the URL sent to the propensity server into the propensity event
@@ -95,15 +95,12 @@ describes.realWin('PropensityServer', {}, env => {
       });
       PropensityServer.prototype.getDocumentCookie_ = () => '__gads=aaaaaa';
 
-      try {
-        await propensityServer.sendSubscriptionState(
+      await expect(
+        propensityServer.sendSubscriptionState(
           SubscriptionState.SUBSCRIBER,
           JSON.stringify(productsOrSkus)
-        );
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/Publisher not whitelisted/);
-      }
+        )
+      ).to.be.rejectedWith(/Publisher not whitelisted/);
 
       const path = new URL(capturedUrl);
       expect(path.pathname).to.equal('/subopt/data');
@@ -194,15 +191,12 @@ describes.realWin('PropensityServer', {}, env => {
       });
       PropensityServer.prototype.getDocumentCookie_ = () => '__gads=aaaaaa';
 
-      try {
-        await propensityServer.getPropensity(
+      await expect(
+        propensityServer.getPropensity(
           '/hello',
           PropensityApi.PropensityType.GENERAL
-        );
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/Invalid request/);
-      }
+        )
+      ).to.be.rejectedWith(/Invalid request/);
 
       const queryString = capturedUrl.split('?')[1];
       const queries = parseQueryString(queryString);
@@ -344,15 +338,12 @@ describes.realWin('PropensityServer', {}, env => {
       });
       PropensityServer.prototype.getDocumentCookie_ = () => '__gads=aaaaaa';
 
-      try {
-        await propensityServer.getPropensity(
+      await expect(
+        propensityServer.getPropensity(
           '/hello',
           PropensityApi.PropensityType.GENERAL
-        );
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/Invalid request/);
-      }
+        )
+      ).to.be.rejectedWith(/Invalid request/);
 
       const queryString = capturedUrl.split('?')[1];
       const queries = parseQueryString(queryString);
@@ -381,15 +372,12 @@ describes.realWin('PropensityServer', {}, env => {
       PropensityServer.prototype.getDocumentCookie_ = () =>
         '__someonelsescookie=abcd';
 
-      try {
-        await propensityServer.getPropensity(
+      await expect(
+        propensityServer.getPropensity(
           '/hello',
           PropensityApi.PropensityType.GENERAL
-        );
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/Invalid request/);
-      }
+        )
+      ).to.be.rejectedWith(/Invalid request/);
 
       const path = new URL(capturedUrl);
       expect(path.pathname).to.equal('/subopt/pts');

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,21 @@
  */
 'use strict';
 
-require('./assets');
-require('./builders');
-require('./changelog');
-require('./check-rules');
-require('./compile');
-require('./export-to-es');
-require('./lint');
-require('./serve');
-require('./unit');
+/**
+ * @fileoverview Page object for Scenic setup page.
+ */
+const constants = require('../constants');
+
+const setup = {
+  select: function(mode) {
+    return this.log('Selecting local mode')
+      .waitForElementVisible('form')
+      .click(`input[value=${mode}]`)
+      .submitForm('input[value=Update]');
+  },
+};
+
+module.exports = {
+  url: constants.setup.url,
+  commands: [setup],
+};

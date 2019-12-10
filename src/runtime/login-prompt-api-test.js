@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
+import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
-import {isCancelError} from '../utils/errors';
-import {ActivityPort} from '../components/activities';
 
 describes.realWin('LoginPromptApi', {}, env => {
   let win;
@@ -84,12 +83,7 @@ describes.realWin('LoginPromptApi', {}, env => {
 
     resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
     dialogManagerMock.expects('completeView').once();
-    try {
-      await loginPromptApi.start();
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(isCancelError(reason)).to.be.true;
-    }
+    await expect(loginPromptApi.start()).to.be.rejectedWith(/cancel/);
   });
 
   it('should handle failure', async () => {
@@ -97,11 +91,6 @@ describes.realWin('LoginPromptApi', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
-    try {
-      await loginPromptApi.start();
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.contain(/broken/);
-    }
+    await expect(loginPromptApi.start()).to.be.rejectedWith(/broken/);
   });
 });

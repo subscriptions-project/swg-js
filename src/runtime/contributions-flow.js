@@ -15,13 +15,13 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows, ProductType} from '../api/subscriptions';
-import {feArgs, feUrl} from './services';
 import {
-  SkuSelectedResponse,
   AlreadySubscribedResponse,
+  SkuSelectedResponse,
 } from '../proto/api_messages';
+import {PayStartFlow} from './pay-flow';
+import {ProductType, SubscriptionFlows} from '../api/subscriptions';
+import {feArgs, feUrl} from './services';
 
 /**
  * The class for Contributions flow.
@@ -82,8 +82,21 @@ export class ContributionsFlow {
    */
   startPayFlow_(response) {
     const sku = response.getSku();
+    const isOneTime = response.getOneTime();
     if (sku) {
-      new PayStartFlow(this.deps_, sku, ProductType.UI_CONTRIBUTION).start();
+      if (isOneTime) {
+        const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest = {
+            skuId: sku,
+            oneTime: isOneTime,
+          };
+        new PayStartFlow(
+          this.deps_,
+          contributionRequest,
+          ProductType.UI_CONTRIBUTION
+        ).start();
+      } else {
+        new PayStartFlow(this.deps_, sku, ProductType.UI_CONTRIBUTION).start();
+      }
     }
   }
 

@@ -47,10 +47,7 @@ const rootDir = path.dirname(path.dirname(__dirname));
 function initializeStream(globs, streamOptions) {
   let stream = gulp.src(globs, streamOptions);
   if (isWatching) {
-    const watcher = lazypipe().pipe(
-      watch,
-      globs
-    );
+    const watcher = lazypipe().pipe(watch, globs);
     stream = stream.pipe(watcher());
   }
   return stream;
@@ -109,15 +106,11 @@ function runLinter(filePath, stream, options) {
       eslint.results(function(results) {
         if (results.errorCount == 0 && results.warningCount == 0) {
           if (!isTravisBuild()) {
-            logOnSameLine(
-              green('SUCCESS: ') + 'No linter warnings or errors.'
-            );
+            logOnSameLine(green('SUCCESS: ') + 'No linter warnings or errors.');
           }
         } else {
           const prefix =
-            results.errorCount == 0
-              ? yellow('WARNING: ')
-              : red('ERROR: ');
+            results.errorCount == 0 ? yellow('WARNING: ') : red('ERROR: ');
           logOnSameLine(
             prefix +
               'Found ' +

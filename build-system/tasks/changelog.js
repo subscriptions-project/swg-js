@@ -27,7 +27,7 @@ const gitExec = BBPromise.promisify(git.exec);
 const githubRequest = require('./github').githubRequest;
 const logger = require('fancy-log');
 
-const {yellow, red} = require('ansi-colors');
+const {blue, red, yellow} = require('ansi-colors');
 
 /**
  * @typedef {{

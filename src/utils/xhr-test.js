@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Xhr, fetchPolyfill, FetchResponse, assertSuccess} from './xhr';
+import {FetchResponse, Xhr, assertSuccess, fetchPolyfill} from './xhr';
 
 describes.realWin('test', {}, () => {
   describe('XHR', function() {
@@ -49,10 +49,10 @@ describes.realWin('test', {}, () => {
       for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i].trim();
         const eq = cookie.indexOf('=');
-        if (eq == -1) {
-          continue;
-        }
-        if (decodeURIComponent(cookie.substring(0, eq).trim()) == name) {
+        if (
+          eq > -1 &&
+          decodeURIComponent(cookie.substring(0, eq).trim()) === name
+        ) {
           const value = cookie.substring(eq + 1).trim();
           return decodeURIComponent(value, value);
         }
@@ -161,9 +161,7 @@ describes.realWin('test', {}, () => {
 
         describe('assertSuccess', () => {
           function createResponseInstance(body, init) {
-            if (test.desc == 'Native' && 'Response' in Window) {
-              return new Response(body, init);
-            } else {
+            if (test.desc !== 'Native' || !('Response' in Window)) {
               init.responseText = body;
               return new FetchResponse(init);
             }
@@ -173,7 +171,6 @@ describes.realWin('test', {}, () => {
             headers: {
               'Content-Type': 'plain/text',
             },
-            getResponseHeader: () => '',
           };
 
           it('should resolve if success', async () => {
@@ -231,22 +228,12 @@ describes.realWin('test', {}, () => {
 
         it('should fail fetch for 400-error', async () => {
           const url = 'http://localhost:31862/status/404';
-          try {
-            await xhr.fetch(url);
-            throw new Error('UNREACHABLE');
-          } catch (error) {
-            expect(error.message).to.contain('HTTP error 404');
-          }
+          await expect(xhr.fetch(url)).to.be.rejectedWith('HTTP error 404');
         });
 
         it('should fail fetch for 500-error', async () => {
           const url = 'http://localhost:31862/status/500?CID=cid';
-          try {
-            await xhr.fetch(url);
-            throw new Error('UNREACHABLE');
-          } catch (error) {
-            expect(error.message).to.contain('HTTP error 500');
-          }
+          await expect(xhr.fetch(url)).to.be.rejectedWith('HTTP error 500');
         });
 
         it('should NOT succeed CORS setting cookies without credentials', async () => {
@@ -284,13 +271,9 @@ describes.realWin('test', {}, () => {
 
         it('should omit request details for privacy', async () => {
           // NOTE THIS IS A BAD PORT ON PURPOSE.
-          try {
-            await xhr.fetch('http://localhost:31862/status/500');
-            throw new Error('UNREACHABLE');
-          } catch (error) {
-            const message = error.message;
-            expect(message).to.equal('HTTP error 500');
-          }
+          await expect(
+            xhr.fetch('http://localhost:31862/status/500')
+          ).to.be.rejectedWith('HTTP error 500');
         });
       });
     });
