@@ -21,13 +21,13 @@
  */
 
 /** @const */
-let SENTINEL = '__FIXTURE__';
+const SENTINEL = '__FIXTURE__';
 
 /**
  * @param {!Window} win
  * @constructor
  */
-let Fixture = function(win) {
+const Fixture = function(win) {
   /** @const {!Window} */
   this.win = win;
 
@@ -76,14 +76,12 @@ Fixture.prototype.handleMessage_ = function(event) {
   if (!event.data || event.data['sentinel'] != SENTINEL) {
     return;
   }
-  let type = event.data['type'];
-  let payload = event.data['payload'];
-  let handlers = this.handlers_[type];
+  const type = event.data['type'];
+  const payload = event.data['payload'];
+  const handlers = this.handlers_[type];
   if (handlers) {
     handlers.forEach(function(handler) {
       handler(payload);
     });
   }
 };
-
-let fixture = new Fixture(window);
