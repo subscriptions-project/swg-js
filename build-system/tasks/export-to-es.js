@@ -15,7 +15,6 @@
  */
 'use strict';
 
-const $$ = require('gulp-load-plugins')();
 const fs = require('fs-extra');
 const resolveConfig = require('./compile-config').resolveConfig;
 const version = require('./internal-version').VERSION;
@@ -80,10 +79,9 @@ function runAllExportsToAmp() {
 async function exportToEs6(inputFile, outputFile) {
   await mkdirs(['build', 'dist', 'dist/amp']);
 
-  const license = (await readFile(
-    'build-system/tasks/license-header.txt',
-    'utf8'
-  )).trim();
+  const license = (
+    await readFile('build-system/tasks/license-header.txt', 'utf8')
+  ).trim();
   const bundle = await rollup.rollup({
     input: inputFile,
     plugins: [

@@ -27,7 +27,7 @@ const karmaDefault = require('./karma.conf');
 const shuffleSeed = require('shuffle-seed');
 
 const {build} = require('./builders');
-const {green, yellow, cyan, red, blue} = require('ansi-colors');
+const {green, yellow, cyan, red} = require('ansi-colors');
 const {isTravisBuild} = require('../travis');
 
 /**
@@ -103,7 +103,6 @@ function printArgvMessages() {
       log(yellow('--' + arg + ':'), green(message));
     }
   });
-
 }
 
 /**
@@ -144,7 +143,7 @@ function getUnitTestsToRun(c) {
 /**
  * Run tests.
  */
-function runTests(done) {
+function runTests() {
   const c = getConfig();
 
   c.singleRun = !argv.watch && !argv.w;
@@ -177,8 +176,8 @@ function runTests(done) {
     c.coverageIstanbulReporter = {
       dir: 'test/coverage',
       reports: isTravisBuild()
-      ? ['lcovonly']
-      : ['html', 'text', 'text-summary'],
+        ? ['lcovonly']
+        : ['html', 'text', 'text-summary'],
       'report-config': {lcovonly: {file: `lcov-unit.info`}},
     };
 
@@ -195,7 +194,10 @@ function runTests(done) {
     const plugins = [instanbulPlugin];
 
     c.browserify.transform = [
-      ['babelify', Object.assign({}, {presets: ["@babel/preset-env"]}, {plugins})],
+      [
+        'babelify',
+        Object.assign({}, {presets: ['@babel/preset-env']}, {plugins}),
+      ],
     ];
   }
 
@@ -218,10 +220,7 @@ function runTests(done) {
   new Karma(c, function(exitCode) {
     server.emit('kill');
     if (exitCode) {
-      log(
-        red('ERROR:'),
-        yellow('Karma test failed with exit code', exitCode)
-      );
+      log(red('ERROR:'), yellow('Karma test failed with exit code', exitCode));
       process.exit(exitCode);
     }
   }).start();
@@ -230,7 +229,7 @@ function runTests(done) {
 async function unit() {
   printArgvMessages();
 
-  if(!argv.nobuild) {
+  if (!argv.nobuild) {
     await build();
   }
   runTests();

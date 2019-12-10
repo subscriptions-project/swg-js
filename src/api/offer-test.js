@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
-const gulp = require('gulp');
-const nightwatch = require('gulp-nightwatch');
-const {build} = require('./builders');
+import {Offer} from './offer';
 
-async function e2e() {
-  // Compile js and css so e2e tests will run against local js and css.
-  await build();
-  return gulp.src('gulpfile.js').pipe(
-    nightwatch({
-      configFile: 'test/e2e/nightwatch.json',
-    })
-  );
-}
-
-module.exports = {
-  e2e,
-};
-e2e.description = 'Run e2e tests';
+describes.realWin('Offer', {}, () => {
+  it('should be constructed correctly', () => {
+    const offer = new Offer('si1', 't1', 'd1', 'p1');
+    expect(offer.description).to.equal('d1');
+    expect(offer.skuId).to.equal('si1');
+    expect(offer.title).to.equal('t1');
+    expect(offer.price).to.equal('p1');
+  });
+});

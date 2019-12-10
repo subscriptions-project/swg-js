@@ -27,6 +27,7 @@ import {PayClient} from './pay-client';
 import {
   PayCompleteFlow,
   PayStartFlow,
+  RecurrenceMapping,
   ReplaceSkuProrationModeMapping,
   parseEntitlements,
   parseSubscriptionResponse,
@@ -160,6 +161,52 @@ describes.realWin('PayStartFlow', {}, env => {
         getEventParams('sku1')
       );
     const flowPromise = flow.start();
+    await expect(flowPromise).to.eventually.be.undefined;
+  });
+
+  it('should have valid flow constructed for one time', async () => {
+    const subscriptionRequest = {
+      skuId: 'newSku',
+      oneTime: true,
+      publicationId: 'pub1',
+    };
+    const replaceFlow = new PayStartFlow(runtime, subscriptionRequest);
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('subscribe', subscriptionRequest)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    payClientMock
+      .expects('start')
+      .withExactArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            skuId: 'newSku',
+            paymentRecurrence: RecurrenceMapping['ONE_TIME'],
+            publicationId: 'pub1',
+          },
+          'i': {
+            'startTimeMs': sandbox.match.any,
+            'productType': sandbox.match(productTypeRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+        }
+      )
+      .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('newSku')
+      );
+    const flowPromise = replaceFlow.start();
     await expect(flowPromise).to.eventually.be.undefined;
   });
 
