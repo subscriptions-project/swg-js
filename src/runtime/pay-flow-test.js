@@ -186,7 +186,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'playEnvironment': '$playEnvironment$',
           'swg': {
             skuId: 'newSku',
-            oneTime: RecurrenceMapping['ONE_TIME'],
+            paymentRecurrence: RecurrenceMapping['ONE_TIME'],
             publicationId: 'pub1',
           },
           'i': {
