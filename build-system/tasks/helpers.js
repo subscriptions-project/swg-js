@@ -62,4 +62,4 @@ function mkdirSync(path) {
 module.exports = {
   endBuildStep,
   mkdirSync,
-}
+};

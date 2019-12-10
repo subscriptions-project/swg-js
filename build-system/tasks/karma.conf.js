@@ -31,8 +31,8 @@ module.exports = {
   browserify: {
     watch: true,
     debug: true,
-    fast:true,
-    transform: [['babelify', {presets: ["@babel/preset-env"]}]],
+    fast: true,
+    transform: [['babelify', {presets: ['@babel/preset-env']}]],
     bundleDelay: 900,
   },
 
