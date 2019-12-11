@@ -200,7 +200,11 @@ export class OffersFlow {
     if (this.activityIframeView_) {
       // So no error if skipped to payment screen.
       // Start/cancel events.
-      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS);
+      // The second parameter is required by Propensity in AMP.
+      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS, {
+        skus: this.skus_,
+        source: 'SwG',
+      });
       this.activityIframeView_.onCancel(() => {
         this.deps_
           .callbacks()
