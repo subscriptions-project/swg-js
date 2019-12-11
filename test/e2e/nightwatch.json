@@ -11,7 +11,7 @@
 
   "test_settings" : {
     "default" : {
-      "launch_url": "http://localhost:8000",
+      "launch_url": "http://localhost:8000/examples/sample-pub/1",
       "custom_commands_path": "test/e2e/commands",
       "skip_testcases_on_fail": false,
       "desiredCapabilities": {
