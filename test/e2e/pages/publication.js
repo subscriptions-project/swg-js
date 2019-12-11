@@ -21,9 +21,9 @@
 const commands = {
   viewFirstArticle: function() {
     this.api.pause(1000);
-    return this.log('Visiting the first article')
-      .click('@firstArticle')
-      .assert.title('16 Top Spots for Hiking - The Scenic');
+    return this.log('Visiting the first article').assert.title(
+      '16 Top Spots for Hiking - The Scenic'
+    );
   },
   viewOffers: function() {
     return this.pause(1000)
@@ -40,12 +40,11 @@ const commands = {
 };
 
 module.exports = {
-  url: 'http://localhost:8000',
+  url: function() {
+    return this.api.launchUrl;
+  },
   commands: [commands],
   elements: {
-    firstArticle: {
-      selector: "a[href='./1?']",
-    },
     swgIFrame: {
       selector: 'iframe.swg-dialog',
     },
