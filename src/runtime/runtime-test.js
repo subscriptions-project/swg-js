@@ -1280,6 +1280,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         entitlements = [];
         analyticsMock.expects('setSku').never();
       });
+
+      it('kind of work for non-JSON entitlement', async () => {
+        entitlements = [new Entitlement('', ['product1'], 'token1')];
+        analyticsMock
+          .expects('setSku')
+          .withExactArgs('unknown')
+          .once();
+      });
     });
 
     it('should start entitlements flow with failure', async () => {
