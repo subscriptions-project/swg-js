@@ -40,7 +40,7 @@ function getEventParams(sku) {
 }
 
 const SHOW_OFFERS_ARGS = {
-  skus: '*',
+  skus: ['*'],
   source: 'SwG',
 };
 
