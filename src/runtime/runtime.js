@@ -734,7 +734,7 @@ export class ConfiguredRuntime {
         if (entitlements) {
           try {
             const skus = entitlements.entitlements.map(
-              entitlement => entitlement.getSku() || 'unknown'
+              entitlement => entitlement.getSku() || 'unknown subscriptionToken'
             );
             if (skus.length > 0) {
               this.analyticsService_.setSku(skus.join(','));

@@ -1285,7 +1285,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         entitlements = [new Entitlement('', ['product1'], 'token1')];
         analyticsMock
           .expects('setSku')
-          .withExactArgs('unknown')
+          .withExactArgs('unknown subscriptionToken')
           .once();
       });
     });
