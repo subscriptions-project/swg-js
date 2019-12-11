@@ -23,7 +23,7 @@ const host = argv.host || 'localhost';
 const port = argv.port || process.env.PORT || 8000;
 const useHttps = argv.https != undefined;
 const quiet = argv.quiet != undefined;
-const publicationId = argv.publicationId || 'com.appspot.scenic-2017-test';
+const publicationId = argv.publicationId || 'scenic-2017.appspot.com';
 const ampLocal = argv.ampLocal != undefined;
 
 const {green} = require('ansi-colors');
