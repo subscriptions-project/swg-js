@@ -125,8 +125,8 @@ export class OffersFlow {
       }
     }
 
-    /** @private @const {!string} */
-    this.skus_ = (feArgsObj['skus'] || []).join(',') || ALL_SKUS;
+    /** @private  @const {!Array<!string>} */
+    this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -226,7 +226,7 @@ export class OffersFlow {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.IMPRESSION_OFFERS,
         null,
-        getEventParams(this.skus_)
+        getEventParams(this.skus_.join(','))
       );
 
       return this.dialogManager_.openView(this.activityIframeView_);
