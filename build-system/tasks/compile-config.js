@@ -19,7 +19,7 @@ const argv = require('minimist')(process.argv.slice(2));
 const internalRuntimeVersion = require('./internal-version').VERSION;
 
 const ASSETS = '/assets';
-const FRONTEND = 'https://subscribe-qual.sandbox.google.com';
+const FRONTEND = 'https://news.google.com';
 const FRONTEND_CACHE = 'nocache';
 const PAY_ENVIRONMENT = 'SANDBOX';
 const PLAY_ENVIRONMENT = 'STAGING';
