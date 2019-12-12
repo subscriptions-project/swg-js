@@ -128,6 +128,7 @@ export class DeferredAccountFlow {
     // Parse the response.
     const entitlementsJwt = data['entitlements'];
     const idToken = data['idToken'];
+    const productType = data['productType'];
     const entitlements = this.deps_
       .entitlementsManager()
       .parseEntitlements({'signedEntitlements': entitlementsJwt});
@@ -170,6 +171,7 @@ export class DeferredAccountFlow {
         purchaseDataList[0],
         userData,
         entitlements,
+        productType,
         () => Promise.resolve() // completeHandler doesn't matter in this case
       )
     );

@@ -421,6 +421,8 @@ function validatePayResponse(deps, payPromise, completeHandler) {
 export function parseSubscriptionResponse(deps, data, completeHandler) {
   let swgData = null;
   let raw = null;
+  let productType = null;
+  let oldSku = null;
   if (data) {
     if (typeof data == 'string') {
       raw = /** @type {string} */ (data);
@@ -428,10 +430,16 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
       // Assume it's a json object in the format:
       // `{integratorClientCallbackData: "..."}` or `{swgCallbackData: "..."}`.
       const json = /** @type {!Object} */ (data);
+      if ('productType' in data) {
+        productType = data['productType'];
+      }
       if ('swgCallbackData' in json) {
         swgData = /** @type {!Object} */ (json['swgCallbackData']);
       } else if ('integratorClientCallbackData' in json) {
         raw = json['integratorClientCallbackData'];
+      }
+      if ('swgRequest' in data) {
+        oldSku = data['swgRequest']['oldSku'] || null;
       }
     }
   }
@@ -451,7 +459,9 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     parsePurchaseData(swgData),
     parseUserData(swgData),
     parseEntitlements(deps, swgData),
-    completeHandler
+    productType,
+    completeHandler,
+    oldSku
   );
 }
 
