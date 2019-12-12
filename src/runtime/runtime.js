@@ -729,7 +729,20 @@ export class ConfiguredRuntime {
   getEntitlements(encryptedDocumentKey) {
     return this.entitlementsManager_
       .getEntitlements(encryptedDocumentKey)
-      .then(entitlements => entitlements.clone());
+      .then(entitlements => {
+        // Auto update internal things tracking the user's current SKU.
+        if (entitlements) {
+          try {
+            const skus = entitlements.entitlements.map(
+              entitlement => entitlement.getSku() || 'unknown subscriptionToken'
+            );
+            if (skus.length > 0) {
+              this.analyticsService_.setSku(skus.join(','));
+            }
+          } catch (ex) {}
+        }
+        return entitlements.clone();
+      });
   }
 
   /** @override */
