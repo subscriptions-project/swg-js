@@ -24,7 +24,7 @@ jobs:
       name: 'Unit Tests'
       script:
         - gulp unit --coverage
-    - stage: E2E
+    - # in the same stage as unit
       name: 'End to End Tests'
       script:
         - gulp e2e
