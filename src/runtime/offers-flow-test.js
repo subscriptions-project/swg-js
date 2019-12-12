@@ -39,6 +39,11 @@ function getEventParams(sku) {
   return new EventParams([, , , , sku]);
 }
 
+const SHOW_OFFERS_ARGS = {
+  skus: ['*'],
+  source: 'SwG',
+};
+
 describes.realWin('OffersFlow', {}, env => {
   let win;
   let offersFlow;
@@ -84,7 +89,7 @@ describes.realWin('OffersFlow', {}, env => {
   it('should have valid OffersFlow constructed', async () => {
     callbacksMock
       .expects('triggerFlowStarted')
-      .withExactArgs('showOffers')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
       .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock
@@ -111,7 +116,7 @@ describes.realWin('OffersFlow', {}, env => {
   it('should trigger on cancel', async () => {
     callbacksMock
       .expects('triggerFlowStarted')
-      .withExactArgs('showOffers')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
       .once();
     callbacksMock
       .expects('triggerFlowCanceled')

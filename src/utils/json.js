@@ -120,3 +120,15 @@ function hasOwnProperty(obj, key) {
     key
   );
 }
+
+/**
+ * Converts the passed string into a JSON object (if possible) and returns the
+ * value of the propertyName on that object.
+ * @param {string} jsonString
+ * @param {string} propertyName
+ * @return {*}
+ */
+export function getPropertyFromJsonString(jsonString, propertyName) {
+  const json = tryParseJson(jsonString);
+  return (json && json[propertyName]) || null;
+}
