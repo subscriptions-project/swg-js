@@ -194,20 +194,23 @@ export class PayCompleteFlow {
       );
 
       deps.callbacks().triggerPaymentResponse(subscribeResponsePromise);
-      return Promise.all([
-	subscribeResponsePromise,
-	payPromise])
-	  .then(responses => {
-	    const subscribeResponse = /** @type {!SubscribeResponse} */ (responses[0]);
-	    const paymentRequest = /** @type {!Object} */ (responses[1] && responses[1]['paymentRequest']);
-          const sku = parseSkuFromPurchaseDataSafe(subscribeResponse.purchaseData);
+      return Promise.all([subscribeResponsePromise, payPromise]).then(
+        responses => {
+          const subscribeResponse =
+            /** @type {!SubscribeResponse} */ (responses[0]);
+          const paymentRequest =
+            /** @type {!Object} */ (responses[1] &&
+            responses[1]['paymentRequest']);
+          const sku = parseSkuFromPurchaseDataSafe(
+            subscribeResponse.purchaseData
+          );
           deps.analytics().setSku(sku || '');
           eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
             getEventParams(sku || '')
           );
-            flow.start(paymentRequesst, subscribeResponse);
+          flow.start(subscribeResponse, paymentRequest);
         },
         reason => {
           if (isCancelError(reason)) {
@@ -264,11 +267,11 @@ export class PayCompleteFlow {
 
   /**
    * Starts the payments completion flow.
-   * @param {!Object} paymentRequest
    * @param {!SubscribeResponse} response
+   * @param {?Object=} paymentRequest
    * @return {!Promise}
    */
-  start(paymentRequest, response) {
+  start(response, paymentRequest={}) {
     this.sku_ = parseSkuFromPurchaseDataSafe(response.purchaseData);
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
@@ -279,8 +282,8 @@ export class PayCompleteFlow {
     this.response_ = response;
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'productType': this.paymentRequest['i']['productType'],
-      'isSubscriptionUpdate': !!this.paymentRequest['swg']['oldSku'],
+      'productType': (paymentRequest['i'] || {})['productType'] || ProductType.SUBSCRIPTION,
+      'isSubscriptionUpdate': !!(paymentRequest['swg'] || {})['oldSku']
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
@@ -408,16 +411,6 @@ function validatePayResponse(deps, payPromise, completeHandler) {
 }
 
 /**
- * @param {!Promise<!Object>} payPromise
- * @return {!Promise<!Object>}
- */
-function extractPayRequest(payPromise) {
-  return payPromise.then(data => {
-    return data['paymentRequest'] || {}
-  });
-}
-
-/**
  * @param {!./deps.DepsDef} deps
  * @param {*} data
  * @param {function():!Promise} completeHandler
@@ -456,7 +449,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     parsePurchaseData(swgData),
     parseUserData(swgData),
     parseEntitlements(deps, swgData),
-    completeHandler,
+    completeHandler
   );
 }
 
