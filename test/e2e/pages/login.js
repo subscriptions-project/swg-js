@@ -24,10 +24,14 @@ const login = {
   login: function() {
     this.api.pause(1000);
     return this.log('Signing into Google Account')
+      .waitForElementPresent('@username')
       .setValue('@username', constants.login.username)
+      .waitForElementPresent('@usernameNext')
       .click('@usernameNext')
-      .pause(2000)
+      .waitForElementPresent('@password')
+      .pause(5000)
       .setValue('@password', constants.login.password)
+      .waitForElementPresent('@password')
       .click('@passwordNext');
   },
 };
