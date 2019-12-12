@@ -402,7 +402,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       entitlements,
-      ProductType.SUBSCRIPTION,
       null
     );
     entitlementsManagerMock
@@ -448,7 +447,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       null,
-      ProductType.SUBSCRIPTION,
       null
     );
     port = new ActivityPort();
@@ -489,9 +487,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       null,
-      ProductType.SUBSCRIPTION,
       null,
-      'sku_to_replace'
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -531,7 +527,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       entitlements,
-      ProductType.SUBSCRIPTION,
       null
     );
     const port = new ActivityPort();
@@ -585,7 +580,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       null,
-      ProductType.SUBSCRIPTION,
       null
     );
     port = new ActivityPort();
@@ -636,7 +630,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       null,
-      ProductType.SUBSCRIPTION,
       null
     );
     port = new ActivityPort();
@@ -747,7 +740,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       entitlements,
-      ProductType.SUBSCRIPTION,
       null
     );
     port = new ActivityPort();

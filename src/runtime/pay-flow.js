@@ -187,22 +187,27 @@ export class PayCompleteFlow {
     deps.payClient().onResponse(payPromise => {
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
-      const promise = validatePayResponse(
+      const subscribeResponsePromise = validatePayResponse(
         deps,
         payPromise,
         flow.complete.bind(flow)
       );
-      deps.callbacks().triggerPaymentResponse(promise);
-      return promise.then(
-        response => {
-          const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
+
+      deps.callbacks().triggerPaymentResponse(subscribeResponsePromise);
+      return Promise.all([
+	subscribeResponsePromise,
+	payPromise])
+	  .then(responses => {
+	    const subscribeResponse = /** @type {!SubscribeResponse} */ (responses[0]);
+	    const paymentRequest = /** @type {!Object} */ (responses[1] && responses[1]['paymentRequest']);
+          const sku = parseSkuFromPurchaseDataSafe(subscribeResponse.purchaseData);
           deps.analytics().setSku(sku || '');
           eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
             getEventParams(sku || '')
           );
-          flow.start(response);
+            flow.start(paymentRequesst, subscribeResponse);
         },
         reason => {
           if (isCancelError(reason)) {
@@ -259,10 +264,11 @@ export class PayCompleteFlow {
 
   /**
    * Starts the payments completion flow.
+   * @param {!Object} paymentRequest
    * @param {!SubscribeResponse} response
    * @return {!Promise}
    */
-  start(response) {
+  start(paymentRequest, response) {
     this.sku_ = parseSkuFromPurchaseDataSafe(response.purchaseData);
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
@@ -273,8 +279,8 @@ export class PayCompleteFlow {
     this.response_ = response;
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'productType': this.response_['productType'],
-      'isSubscriptionUpdate': !!this.response_['oldSku'],
+      'productType': this.paymentRequest['i']['productType'],
+      'isSubscriptionUpdate': !!this.paymentRequest['swg']['oldSku'],
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
@@ -402,6 +408,16 @@ function validatePayResponse(deps, payPromise, completeHandler) {
 }
 
 /**
+ * @param {!Promise<!Object>} payPromise
+ * @return {!Promise<!Object>}
+ */
+function extractPayRequest(payPromise) {
+  return payPromise.then(data => {
+    return data['paymentRequest'] || {}
+  });
+}
+
+/**
  * @param {!./deps.DepsDef} deps
  * @param {*} data
  * @param {function():!Promise} completeHandler
@@ -410,8 +426,6 @@ function validatePayResponse(deps, payPromise, completeHandler) {
 export function parseSubscriptionResponse(deps, data, completeHandler) {
   let swgData = null;
   let raw = null;
-  let productType = null;
-  let oldSku = null;
   if (data) {
     if (typeof data == 'string') {
       raw = /** @type {string} */ (data);
@@ -419,21 +433,12 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
       // Assume it's a json object in the format:
       // `{integratorClientCallbackData: "..."}` or `{swgCallbackData: "..."}`.
       const json = /** @type {!Object} */ (data);
-      if ('productType' in data) {
-        productType = data['productType'];
-      }
       if ('swgCallbackData' in json) {
         swgData = /** @type {!Object} */ (json['swgCallbackData']);
       } else if ('integratorClientCallbackData' in json) {
         raw = json['integratorClientCallbackData'];
       }
-      if ('swgRequest' in data) {
-        oldSku = data['swgRequest']['oldSku'] || null;
-      }
     }
-  }
-  if (!productType) {
-    productType = ProductType.SUBSCRIPTION;
   }
   if (raw && !swgData) {
     raw = atob(raw);
@@ -451,9 +456,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     parsePurchaseData(swgData),
     parseUserData(swgData),
     parseEntitlements(deps, swgData),
-    productType,
     completeHandler,
-    oldSku
   );
 }
 

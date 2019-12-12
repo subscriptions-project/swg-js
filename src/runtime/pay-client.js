@@ -351,26 +351,40 @@ export class PayClientBindingPayjs {
   handleResponse_(responsePromise) {
     this.response_ = responsePromise;
     if (this.responseCallback_) {
-      this.responseCallback_(this.convertResponse_(this.response_, this.request_));
+      this.responseCallback_(
+        this.convertResponse_(this.response_, this.request_)
+      );
     }
   }
 
   /**
    * @param {!Promise<!Object>} response
-   * @param {!Object} request
+   * @param {?Object} request
    * @return {!Promise<!Object>}
    * @private
    */
   convertResponse_(response, request) {
     return response
-	.then(response =>
-	      Object.assign(response, {'swgRequest': request}))
-	.catch(reason => {
-      if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
-        return Promise.reject(createCancelError(this.win_));
-      }
-      return Promise.reject(reason);
-    });
+      .then(
+        // Temporary client side solution to remember the
+        // input params. TODO: Remove this once server-side
+        // input preservation is done and is part of the response.
+        res => {
+          if (request) {
+            // deep copy.
+            const merge = JSON.parse(JSON.stringify(res));
+            merge['paymentRequest'] = request;
+            return merge;
+          }
+          return res;
+        }
+      )
+      .catch(reason => {
+        if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
+          return Promise.reject(createCancelError(this.win_));
+        }
+        return Promise.reject(reason);
+      });
   }
 
   /**
