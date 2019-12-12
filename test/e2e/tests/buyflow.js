@@ -31,11 +31,11 @@ module.exports = {
       .waitForElementPresent('.K2Fgzb', 10000, 'Found Subscribe button')
       .assert.containsText('.K2Fgzb', 'Subscribe with your Google Account')
       .assert.containsText('.wlhaj.I3RyHc', 'Already subscribed?')
-      .assert.containsText('.amekj', 'Basic access')
-      .assert.containsText('.mojnzf', '$0.99/week')
-      .assert.containsText('.a02uaf', 'Unlimited access, anywhere anytime')
-      .assert.containsText('.HJ9fUd', 'Free one month trial')
-      .assert.containsText('.ZIHl3c', 'Price for the first week')
+      .assert.containsText('.amekj', 'Basic Access')
+      .assert.containsText('.mojnzf', '$1.99/week')
+      .assert.containsText('.a02uaf', 'Basic access charged weekly')
+      .assert.containsText('.HJ9fUd', 'Free 7 day trial')
+      .assert.containsText('.ZIHl3c', 'Price for the first 6 weeks')
       .end();
   },
   'User log in, select an offer and see gpay window': function(browser) {
@@ -49,5 +49,15 @@ module.exports = {
       .selectOffer();
 
     browser.checkPayment().end();
+  },
+  'User log in AMP page, click SwG button and see offers': function(browser) {
+    const login = browser.page.login();
+    login.navigate().login();
+
+    const amp = browser.page.amp();
+    amp
+      .navigate()
+      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
+      .end();
   },
 };
