@@ -27,12 +27,9 @@ export class SubscribeResponse {
    * @param {!PurchaseData} purchaseData
    * @param {?UserData} userData
    * @param {?Entitlements} entitlements
-   * @param {!string} productType
    * @param {function():!Promise} completeHandler
-   * @param {?string=} oldSku
    */
-  constructor(raw, purchaseData, userData, entitlements, productType,
-      completeHandler, oldSku = null) {
+  constructor(raw, purchaseData, userData, entitlements, completeHandler) {
     /** @const {string} */
     this.raw = raw;
     /** @const {!PurchaseData} */
@@ -41,12 +38,8 @@ export class SubscribeResponse {
     this.userData = userData;
     /** @const {?Entitlements} */
     this.entitlements = entitlements;
-    /** @const {string} */
-    this.productType = productType;
     /** @private @const {function():!Promise} */
     this.completeHandler_ = completeHandler;
-    /** @const {?string} */
-    this.oldSku = oldSku;
   }
 
   /**
@@ -58,9 +51,7 @@ export class SubscribeResponse {
         this.purchaseData,
         this.userData,
         this.entitlements,
-        this.productType,
         this.completeHandler_,
-        this.oldSku
     );
   }
 
@@ -72,8 +63,6 @@ export class SubscribeResponse {
       'purchaseData': this.purchaseData.json(),
       'userData': this.userData ? this.userData.json() : null,
       'entitlements': this.entitlements ? this.entitlements.json() : null,
-      'oldSku' : this.oldSku,
-      'productType': this.productType,
     };
   }
 
