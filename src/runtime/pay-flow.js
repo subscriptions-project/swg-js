@@ -271,7 +271,7 @@ export class PayCompleteFlow {
    * @param {?Object=} paymentRequest
    * @return {!Promise}
    */
-  start(response, paymentRequest={}) {
+  start(response, paymentRequest = {}) {
     this.sku_ = parseSkuFromPurchaseDataSafe(response.purchaseData);
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
@@ -282,8 +282,9 @@ export class PayCompleteFlow {
     this.response_ = response;
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'productType': (paymentRequest['i'] || {})['productType'] || ProductType.SUBSCRIPTION,
-      'isSubscriptionUpdate': !!(paymentRequest['swg'] || {})['oldSku']
+      'productType':
+        (paymentRequest['i'] || {})['productType'] || ProductType.SUBSCRIPTION,
+      'isSubscriptionUpdate': !!(paymentRequest['swg'] || {})['oldSku'],
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
