@@ -490,7 +490,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     expect(data).to.deep.equal(INTEGR_DATA_OBJ);
   });
 
-  it('should propagate the swg params in correct response', async () => {
+  it('should preserve the paymentRequest in correct response', async () => {
     const paymentArgs = {'swg': {'sku': 'basic'}, 'i': {'a': 1}};
     payClient.start(paymentArgs, {});
     const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
