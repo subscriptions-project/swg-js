@@ -255,7 +255,7 @@ export class PayClientBindingPayjs {
     /** @private {?function(!Promise<!Object>)} */
     this.responseCallback_ = null;
 
-    /** @private {!Object} */
+    /** @private {?Object} */
     this.request_ = null;
 
     /** @private {?Promise<!Object>} */
@@ -371,10 +371,7 @@ export class PayClientBindingPayjs {
         // input preservation is done and is part of the response.
         res => {
           if (request) {
-            // deep copy.
-            const merge = JSON.parse(JSON.stringify(res));
-            merge['paymentRequest'] = request;
-            return merge;
+            res['paymentRequest'] = request;
           }
           return res;
         }
