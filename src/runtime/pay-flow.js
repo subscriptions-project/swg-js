@@ -37,8 +37,9 @@ import {
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
+import {getPropertyFromJsonString, parseJson} from '../utils/json';
 import {isCancelError} from '../utils/errors';
-import {parseJson, tryParseJson} from '../utils/json';
+
 /**
  * String values input by the publisher are mapped to the number values.
  * @type {!Object<string, number>}
@@ -496,6 +497,10 @@ export function parseEntitlements(deps, swgData) {
  * @return {?string}
  */
 function parseSkuFromPurchaseDataSafe(purchaseData) {
-  const json = tryParseJson(purchaseData.raw);
-  return (json && json['productId']) || null;
+  return (
+    /** @type {?string} */ (getPropertyFromJsonString(
+      purchaseData.raw,
+      'productId'
+    ) || null)
+  );
 }
