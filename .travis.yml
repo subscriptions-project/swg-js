@@ -20,11 +20,11 @@ jobs:
       name: 'Check'
       script:
         - gulp check
-    - stage: unit
+    - stage: test
       name: 'Unit Tests'
       script:
         - gulp unit --coverage
-    - # in the same stage as unit
+    - # run unit tests and e2e tests parallel
       name: 'End to End Tests'
       script:
         - gulp e2e
