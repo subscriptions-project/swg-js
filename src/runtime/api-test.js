@@ -272,20 +272,18 @@ describes.sandboxed('SubscribeResponse', {}, () => {
     entitlements = new Entitlements('service1', 'RaW', [], null, function() {});
     promise = Promise.resolve();
     complete = () => promise;
-    sr = new SubscribeResponse('SR_RAW', pd, ud, entitlements, null, complete);
+    sr = new SubscribeResponse('SR_RAW', pd, ud, entitlements, complete);
   });
 
   it('should still support absent entitlements', () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
-    sr = new SubscribeResponse('SR_RAW', pd, ud, null, null, complete);
+    sr = new SubscribeResponse('SR_RAW', pd, ud, null, complete);
     expect(sr.entitlements).to.be.null;
     expect(sr.clone().entitlements).to.be.null;
     expect(sr.json()).to.deep.equal({
       'purchaseData': pd.json(),
       'userData': ud.json(),
       'entitlements': null,
-      'productType': null,
-      'oldSku': null,
     });
     expect(sr.complete()).to.equal(promise);
   });
@@ -314,8 +312,6 @@ describes.sandboxed('SubscribeResponse', {}, () => {
       'purchaseData': pd.json(),
       'userData': ud.json(),
       'entitlements': entitlements.json(),
-      'productType': null,
-      'oldSku': null,
     });
   });
 });
