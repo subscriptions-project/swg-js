@@ -28,10 +28,10 @@ const login = {
       .setValue('@username', constants.login.username)
       .waitForElementPresent('@usernameNext')
       .click('@usernameNext')
-      .waitForElementPresent('@password')
       .pause(5000)
-      .setValue('@password', constants.login.password)
       .waitForElementPresent('@password')
+      .setValue('@password', constants.login.password)
+      .waitForElementPresent('@passwordNext')
       .click('@passwordNext');
   },
 };
