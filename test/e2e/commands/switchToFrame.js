@@ -16,6 +16,7 @@
 
 module.exports.command = function(iframeSrcString, iframeMsg, callback) {
   return this.element('css selector', `iframe${iframeSrcString}`, frame => {
+    this.pause(2000);
     this.frame({ELEMENT: frame.value.ELEMENT}, () => {
       this.log(`Switching to ${iframeMsg}`);
       callback && callback();
