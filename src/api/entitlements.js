@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {getPropertyFromJsonString} from '../utils/json';
+
 /**
  * The holder of the entitlements for a service.
  */
@@ -262,5 +264,18 @@ export class Entitlement {
       ? /** @type {!Array<Object>} */ (json)
       : [json];
     return jsonList.map(json => Entitlement.parseFromJson(json));
+  }
+
+  /**
+   * Returns the SKU associated with this entitlement.
+   * @return {?string}
+   */
+  getSku() {
+    return (
+      /** @type {?string} */ (getPropertyFromJsonString(
+        this.subscriptionToken,
+        'productId'
+      ) || null)
+    );
   }
 }

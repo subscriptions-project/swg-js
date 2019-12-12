@@ -125,8 +125,8 @@ export class OffersFlow {
       }
     }
 
-    /** @private @const {!string} */
-    this.skus_ = (feArgsObj['skus'] || []).join(',') || ALL_SKUS;
+    /** @private  @const {!Array<!string>} */
+    this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -200,7 +200,11 @@ export class OffersFlow {
     if (this.activityIframeView_) {
       // So no error if skipped to payment screen.
       // Start/cancel events.
-      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS);
+      // The second parameter is required by Propensity in AMP.
+      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS, {
+        skus: this.skus_,
+        source: 'SwG',
+      });
       this.activityIframeView_.onCancel(() => {
         this.deps_
           .callbacks()
@@ -222,7 +226,7 @@ export class OffersFlow {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.IMPRESSION_OFFERS,
         null,
-        getEventParams(this.skus_)
+        getEventParams(this.skus_.join(','))
       );
 
       return this.dialogManager_.openView(this.activityIframeView_);
