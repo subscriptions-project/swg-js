@@ -402,6 +402,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       entitlements,
+      ProductType.SUBSCRIPTION,
       null
     );
     entitlementsManagerMock
@@ -447,6 +448,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       null,
+      ProductType.SUBSCRIPTION,
       null
     );
     port = new ActivityPort();
@@ -487,9 +489,10 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       null,
-      null
+      ProductType.SUBSCRIPTION,
+      null,
+      'sku_to_replace'
     );
-    const request = {'swg': {'oldSku': 'sku_to_replace'}};
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -514,48 +517,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
-    await flow.start(response, request);
-  });
-
-  it('should have valid contribution flow constructed', async () => {
-    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
-    const purchaseData = new PurchaseData();
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
-    const response = new SubscribeResponse(
-      'RaW',
-      purchaseData,
-      userData,
-      null,
-      null
-    );
-    const request = {'i': {'productType': ProductType.UI_CONTRIBUTION}};
-    port = new ActivityPort();
-    port.onResizeRequest = () => {};
-    port.whenReady = () => Promise.resolve();
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
-        true,
-        getEventParams('')
-      );
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          loginHint: 'test@example.org',
-          productType: ProductType.UI_CONTRIBUTION,
-          isSubscriptionUpdate: false,
-        }
-      )
-      .returns(Promise.resolve(port));
-    await flow.start(response, request);
+    await flow.start(response);
   });
 
   it('should complete the flow', async () => {
@@ -569,6 +531,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       entitlements,
+      ProductType.SUBSCRIPTION,
       null
     );
     const port = new ActivityPort();
@@ -622,6 +585,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       null,
+      ProductType.SUBSCRIPTION,
       null
     );
     port = new ActivityPort();
@@ -672,6 +636,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       null,
+      ProductType.SUBSCRIPTION,
       null
     );
     port = new ActivityPort();
@@ -782,6 +747,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       entitlements,
+      ProductType.SUBSCRIPTION,
       null
     );
     port = new ActivityPort();
