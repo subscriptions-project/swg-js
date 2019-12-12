@@ -17,11 +17,9 @@
 import {Entitlements} from './entitlements';
 import {UserData} from './user-data';
 
-
 /**
  */
 export class SubscribeResponse {
-
   /**
    * @param {string} raw
    * @param {!PurchaseData} purchaseData
@@ -47,11 +45,11 @@ export class SubscribeResponse {
    */
   clone() {
     return new SubscribeResponse(
-        this.raw,
-        this.purchaseData,
-        this.userData,
-        this.entitlements,
-        this.completeHandler_,
+      this.raw,
+      this.purchaseData,
+      this.userData,
+      this.entitlements,
+      this.completeHandler_
     );
   }
 
@@ -84,11 +82,9 @@ export class SubscribeResponse {
   }
 }
 
-
 /**
  */
 export class PurchaseData {
-
   /**
    * @param {string} raw
    * @param {string} signature
