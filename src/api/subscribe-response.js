@@ -17,22 +17,17 @@
 import {Entitlements} from './entitlements';
 import {UserData} from './user-data';
 
-
 /**
  */
 export class SubscribeResponse {
-
   /**
    * @param {string} raw
    * @param {!PurchaseData} purchaseData
    * @param {?UserData} userData
    * @param {?Entitlements} entitlements
-   * @param {!string} productType
    * @param {function():!Promise} completeHandler
-   * @param {?string=} oldSku
    */
-  constructor(raw, purchaseData, userData, entitlements, productType,
-      completeHandler, oldSku = null) {
+  constructor(raw, purchaseData, userData, entitlements, completeHandler) {
     /** @const {string} */
     this.raw = raw;
     /** @const {!PurchaseData} */
@@ -41,12 +36,8 @@ export class SubscribeResponse {
     this.userData = userData;
     /** @const {?Entitlements} */
     this.entitlements = entitlements;
-    /** @const {string} */
-    this.productType = productType;
     /** @private @const {function():!Promise} */
     this.completeHandler_ = completeHandler;
-    /** @const {?string} */
-    this.oldSku = oldSku;
   }
 
   /**
@@ -54,13 +45,11 @@ export class SubscribeResponse {
    */
   clone() {
     return new SubscribeResponse(
-        this.raw,
-        this.purchaseData,
-        this.userData,
-        this.entitlements,
-        this.productType,
-        this.completeHandler_,
-        this.oldSku
+      this.raw,
+      this.purchaseData,
+      this.userData,
+      this.entitlements,
+      this.completeHandler_
     );
   }
 
@@ -72,8 +61,6 @@ export class SubscribeResponse {
       'purchaseData': this.purchaseData.json(),
       'userData': this.userData ? this.userData.json() : null,
       'entitlements': this.entitlements ? this.entitlements.json() : null,
-      'oldSku' : this.oldSku,
-      'productType': this.productType,
     };
   }
 
@@ -95,11 +82,9 @@ export class SubscribeResponse {
   }
 }
 
-
 /**
  */
 export class PurchaseData {
-
   /**
    * @param {string} raw
    * @param {string} signature
