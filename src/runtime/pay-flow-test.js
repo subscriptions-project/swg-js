@@ -493,7 +493,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       null,
       'sku_to_replace'
     );
-    const request = {'swg': {'oldSku': 'sku_to_replace'}};
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -518,7 +517,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
-    await flow.start(response, request);
+    await flow.start(response);
   });
 
   it('should have valid contribution flow constructed', async () => {
@@ -535,7 +534,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
       ProductType.UI_CONTRIBUTION,
       null
     );
-    const request = {'i': {'productType': ProductType.UI_CONTRIBUTION}};
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -560,7 +558,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         }
       )
       .returns(Promise.resolve(port));
-    await flow.start(response, request);
+    await flow.start(response);
   });
 
   it('should complete the flow', async () => {

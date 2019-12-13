@@ -188,30 +188,23 @@ export class PayCompleteFlow {
     deps.payClient().onResponse(payPromise => {
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
-      const subscribeResponsePromise = validatePayResponse(
+      const promise = validatePayResponse(
         deps,
         payPromise,
         flow.complete.bind(flow)
       );
 
-      deps.callbacks().triggerPaymentResponse(subscribeResponsePromise);
-      return Promise.all([subscribeResponsePromise, payPromise]).then(
-        responses => {
-          const subscribeResponse =
-            /** @type {!SubscribeResponse} */ (responses[0]);
-          const paymentRequest =
-            /** @type {!Object} */ (responses[1] &&
-            responses[1]['paymentRequest']);
-          const sku = parseSkuFromPurchaseDataSafe(
-            subscribeResponse.purchaseData
-          );
+      deps.callbacks().triggerPaymentResponse(promise);
+      return promise.then(
+        response => {
+          const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
           deps.analytics().setSku(sku || '');
           eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
             getEventParams(sku || '')
           );
-          flow.start(subscribeResponse, paymentRequest);
+          flow.start(response);
         },
         reason => {
           if (isCancelError(reason)) {
@@ -269,10 +262,9 @@ export class PayCompleteFlow {
   /**
    * Starts the payments completion flow.
    * @param {!SubscribeResponse} response
-   * @param {?Object=} paymentRequest
    * @return {!Promise}
    */
-  start(response, paymentRequest = {}) {
+  start(response) {
     this.sku_ = parseSkuFromPurchaseDataSafe(response.purchaseData);
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
@@ -283,9 +275,8 @@ export class PayCompleteFlow {
     this.response_ = response;
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'productType':
-        (paymentRequest['i'] || {})['productType'] || ProductType.SUBSCRIPTION,
-      'isSubscriptionUpdate': !!(paymentRequest['swg'] || {})['oldSku'],
+      'productType': this.response_['productType'],
+      'isSubscriptionUpdate': !!this.response_['oldSku'],
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
@@ -430,16 +421,16 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
       // Assume it's a json object in the format:
       // `{integratorClientCallbackData: "..."}` or `{swgCallbackData: "..."}`.
       const json = /** @type {!Object} */ (data);
-      if ('productType' in data) {
-        productType = data['productType'];
-      }
       if ('swgCallbackData' in json) {
         swgData = /** @type {!Object} */ (json['swgCallbackData']);
       } else if ('integratorClientCallbackData' in json) {
         raw = json['integratorClientCallbackData'];
       }
-      if ('swgRequest' in data) {
-        oldSku = data['swgRequest']['oldSku'] || null;
+      if ('paymentRequest' in data) {
+        oldSku = (data['paymentRequest']['swg'] || {})['oldSku'];
+        productType =
+          (data['productType']['i'] || {})['productType'] ||
+          ProductType.SUBSCRIPTION;
       }
     }
   }
