@@ -34,7 +34,7 @@ const commands = {
   selectOffer: function() {
     return this.viewOffers()
       .log('Selecting "Basic Access" offer')
-      .pause(5000)
+      .pause(10000)
       .waitForElementPresent('.qLPyoc', 10000)
       .click('.qLPyoc')
       .pause(1000);

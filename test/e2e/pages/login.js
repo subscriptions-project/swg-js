@@ -24,6 +24,7 @@ const login = {
   login: function(browser) {
     this.api.pause(1000);
     return this.log('Signing into Google Account')
+      .assert.containsText('@headingText', 'Sign in')
       .waitForElementPresent('@username')
       .setValue('@username', [constants.login.username, browser.Keys.ENTER])
       .assert.elementPresent('@profileIdentifier')
@@ -38,6 +39,9 @@ module.exports = {
   url: constants.login.url,
   commands: [login],
   elements: {
+    headingText: {
+      selector: '#headingText',
+    },
     username: {
       selector: 'input[type=email]',
     },
