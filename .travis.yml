@@ -29,6 +29,8 @@ jobs:
 branches:
   only:
     - master
+addons:
+  chrome: stable
 matrix:
   include:
     - env: BUILD_SHARD="unit_tests"
