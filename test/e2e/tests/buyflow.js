@@ -20,7 +20,7 @@ module.exports = {
     setup.navigate().select('local');
 
     const login = browser.page.login();
-    login.navigate().login();
+    login.navigate().login(browser);
 
     const publication = browser.page.publication();
     publication
@@ -41,7 +41,7 @@ module.exports = {
   },
   'User log in, select an offer and see gpay window': function(browser) {
     const login = browser.page.login();
-    login.navigate().login();
+    login.navigate().login(browser);
 
     const publication = browser.page.publication();
     publication
@@ -53,7 +53,7 @@ module.exports = {
   },
   'User log in AMP page, click SwG button and see offers': function(browser) {
     const login = browser.page.login();
-    login.navigate().login();
+    login.navigate().login(browser);
 
     const amp = browser.page.amp();
     amp
