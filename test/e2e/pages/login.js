@@ -29,7 +29,7 @@ const login = {
       .setValue('@username', [constants.login.username, browser.Keys.ENTER])
       .assert.elementPresent('@profileIdentifier')
       .waitForElementPresent('@password')
-      .pause(5000)
+      .pause(10000)
       .setValue('@password', [constants.login.password, browser.Keys.ENTER])
       .assert.containsText('h1', 'Welcome');
   },
