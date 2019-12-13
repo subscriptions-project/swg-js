@@ -21,19 +21,16 @@
 const constants = require('../constants');
 
 const login = {
-  login: function() {
+  login: function(browser) {
     this.api.pause(1000);
     return this.log('Signing into Google Account')
       .waitForElementPresent('@username')
-      .setValue('@username', constants.login.username)
-      .waitForElementPresent('@usernameNext')
-      .click('@usernameNext')
+      .setValue('@username', [constants.login.username, browser.Keys.ENTER])
       .assert.elementPresent('@profileIdentifier')
       .waitForElementPresent('@password')
       .pause(5000)
-      .setValue('@password', constants.login.password)
-      .waitForElementPresent('@passwordNext')
-      .click('@passwordNext');
+      .setValue('@password', [constants.login.password, browser.Keys.ENTER])
+      .assert.containsText('h1', 'Welcome');
   },
 };
 
