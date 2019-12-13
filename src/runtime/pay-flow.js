@@ -193,7 +193,6 @@ export class PayCompleteFlow {
         payPromise,
         flow.complete.bind(flow)
       );
-
       deps.callbacks().triggerPaymentResponse(promise);
       return promise.then(
         response => {
@@ -412,8 +411,9 @@ function validatePayResponse(deps, payPromise, completeHandler) {
 export function parseSubscriptionResponse(deps, data, completeHandler) {
   let swgData = null;
   let raw = null;
-  let productType = null;
+  let productType = ProductType.SUBSCRIPTION;
   let oldSku = null;
+
   if (data) {
     if (typeof data == 'string') {
       raw = /** @type {string} */ (data);
@@ -429,7 +429,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
       if ('paymentRequest' in data) {
         oldSku = (data['paymentRequest']['swg'] || {})['oldSku'];
         productType =
-          (data['productType']['i'] || {})['productType'] ||
+          (data['paymentRequest']['i'] || {})['productType'] ||
           ProductType.SUBSCRIPTION;
       }
     }

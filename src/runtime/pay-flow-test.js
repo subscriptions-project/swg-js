@@ -520,47 +520,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     await flow.start(response);
   });
 
-  it('should have valid contribution flow constructed', async () => {
-    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
-    const purchaseData = new PurchaseData();
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
-    const response = new SubscribeResponse(
-      'RaW',
-      purchaseData,
-      userData,
-      null,
-      ProductType.UI_CONTRIBUTION,
-      null
-    );
-    port = new ActivityPort();
-    port.onResizeRequest = () => {};
-    port.whenReady = () => Promise.resolve();
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
-        true,
-        getEventParams('')
-      );
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          loginHint: 'test@example.org',
-          productType: ProductType.UI_CONTRIBUTION,
-          isSubscriptionUpdate: false,
-        }
-      )
-      .returns(Promise.resolve(port));
-    await flow.start(response);
-  });
-
   it('should complete the flow', async () => {
     const purchaseData = new PurchaseData();
     const userData = new UserData('ID_TOK', {
@@ -1034,6 +993,31 @@ describes.realWin('PayCompleteFlow', {}, env => {
       expect(completeStub).to.be.calledOnce;
     });
 
+    it('should start flow with data from request', async () => {
+      analyticsMock.expects('setTransactionId').never();
+      callbacksMock.expects('triggerFlowCanceled').never();
+      entitlementsManagerMock.expects('blockNextNotification').once();
+      const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
+
+      const data = Object.assign({}, INTEGR_DATA_OBJ);
+      data['paymentRequest'] = {
+	'swg': {'oldSku': 'sku_to_replace'},
+	'i': {'productType': ProductType.UI_CONTRIBUTION}};
+
+      await responseCallback(Promise.resolve(data));
+      expect(startStub).to.be.calledOnce;
+      expect(startStub.args[0][0]).to.be.instanceof(SubscribeResponse);
+      expect(triggerPromise).to.exist;
+
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.productType).to.equal(ProductType.UI_CONTRIBUTION);
+      expect(response.oldSku).to.equal('sku_to_replace');
+      expect(completeStub).to.not.be.called;
+      response.complete();
+      expect(completeStub).to.be.calledOnce;
+    });
+
     it('should start flow on decoded response w/o entitlements', async () => {
       // TODO(dvoytenko, #400): cleanup once entitlements is launched.
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
@@ -1134,6 +1118,8 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(sr.purchaseData.signature).to.equal('PD_SIG');
     expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
     expect(sr.entitlements.raw).to.equal(ENTITLEMENTS_JWT);
+    expect(sr.productType).to.equal(ProductType.SUBSCRIPTION);
+    expect(sr.oldSku).to.be.null;
   });
 
   it('should parse a json response w/o entitlements', () => {
@@ -1177,6 +1163,16 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(sr.entitlements).to.be.null;
   });
 
+  it('should parse productType and oldSku', () => {
+    const data = Object.assign({}, INTEGR_DATA_OBJ);
+    data['paymentRequest'] = {
+      'swg': {'oldSku': 'sku_to_replace'},
+      'i': {'productType': ProductType.UI_CONTRIBUTION}};
+    const sr = parseSubscriptionResponse(runtime, data);
+    expect(sr.productType).to.equal(ProductType.UI_CONTRIBUTION);
+    expect(sr.oldSku).to.equal('sku_to_replace');
+  });
+
   it('should parse complete idToken', () => {
     const idToken =
       'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NS' +
@@ -1206,4 +1202,5 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(ent.raw).to.equal(ENTITLEMENTS_JWT);
     expect(ent.entitlements[0].source).to.equal('TEST');
   });
+
 });
