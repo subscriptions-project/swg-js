@@ -21,5 +21,6 @@ module.exports.command = function(iframeSrcString, iframeMsg, callback) {
       this.log(`Switching to ${iframeMsg}`);
       callback && callback();
     });
+    this.pause(2000);
   });
 };
