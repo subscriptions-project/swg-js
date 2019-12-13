@@ -719,7 +719,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       'RaW',
       purchaseData,
       userData,
-      entitlements
+      entitlements,
+      ProductType.SUBSCRIPTION,
+      null
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -993,6 +995,32 @@ describes.realWin('PayCompleteFlow', {}, env => {
       expect(completeStub).to.be.calledOnce;
     });
 
+    it('should start flow with data from request', async () => {
+      analyticsMock.expects('setTransactionId').never();
+      callbacksMock.expects('triggerFlowCanceled').never();
+      entitlementsManagerMock.expects('blockNextNotification').once();
+      const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
+
+      const data = Object.assign({}, INTEGR_DATA_OBJ);
+      data['paymentRequest'] = {
+        'swg': {'oldSku': 'sku_to_replace'},
+        'i': {'productType': ProductType.UI_CONTRIBUTION},
+      };
+
+      await responseCallback(Promise.resolve(data));
+      expect(startStub).to.be.calledOnce;
+      expect(startStub.args[0][0]).to.be.instanceof(SubscribeResponse);
+      expect(triggerPromise).to.exist;
+
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.productType).to.equal(ProductType.UI_CONTRIBUTION);
+      expect(response.oldSku).to.equal('sku_to_replace');
+      expect(completeStub).to.not.be.called;
+      response.complete();
+      expect(completeStub).to.be.calledOnce;
+    });
+
     it('should start flow on decoded response w/o entitlements', async () => {
       // TODO(dvoytenko, #400): cleanup once entitlements is launched.
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
@@ -1093,6 +1121,8 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(sr.purchaseData.signature).to.equal('PD_SIG');
     expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
     expect(sr.entitlements.raw).to.equal(ENTITLEMENTS_JWT);
+    expect(sr.productType).to.equal(ProductType.SUBSCRIPTION);
+    expect(sr.oldSku).to.be.null;
   });
 
   it('should parse a json response w/o entitlements', () => {
@@ -1134,6 +1164,17 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(sr.purchaseData.signature).to.equal('PD_SIG');
     expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
     expect(sr.entitlements).to.be.null;
+  });
+
+  it('should parse productType and oldSku', () => {
+    const data = Object.assign({}, INTEGR_DATA_OBJ);
+    data['paymentRequest'] = {
+      'swg': {'oldSku': 'sku_to_replace'},
+      'i': {'productType': ProductType.UI_CONTRIBUTION},
+    };
+    const sr = parseSubscriptionResponse(runtime, data);
+    expect(sr.productType).to.equal(ProductType.UI_CONTRIBUTION);
+    expect(sr.oldSku).to.equal('sku_to_replace');
   });
 
   it('should parse complete idToken', () => {
