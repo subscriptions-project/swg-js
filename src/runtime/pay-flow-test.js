@@ -720,7 +720,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       entitlements,
-      ProductType.SUBSCRIPTION
+      ProductType.SUBSCRIPTION,
+      null
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -748,6 +749,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       entitlements,
+      ProductType.SUBSCRIPTION,
       null
     );
     port = new ActivityPort();
@@ -1001,8 +1003,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
 
       const data = Object.assign({}, INTEGR_DATA_OBJ);
       data['paymentRequest'] = {
-	'swg': {'oldSku': 'sku_to_replace'},
-	'i': {'productType': ProductType.UI_CONTRIBUTION}};
+        'swg': {'oldSku': 'sku_to_replace'},
+        'i': {'productType': ProductType.UI_CONTRIBUTION},
+      };
 
       await responseCallback(Promise.resolve(data));
       expect(startStub).to.be.calledOnce;
@@ -1167,7 +1170,8 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     const data = Object.assign({}, INTEGR_DATA_OBJ);
     data['paymentRequest'] = {
       'swg': {'oldSku': 'sku_to_replace'},
-      'i': {'productType': ProductType.UI_CONTRIBUTION}};
+      'i': {'productType': ProductType.UI_CONTRIBUTION},
+    };
     const sr = parseSubscriptionResponse(runtime, data);
     expect(sr.productType).to.equal(ProductType.UI_CONTRIBUTION);
     expect(sr.oldSku).to.equal('sku_to_replace');
@@ -1202,5 +1206,4 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(ent.raw).to.equal(ENTITLEMENTS_JWT);
     expect(ent.entitlements[0].source).to.equal('TEST');
   });
-
 });
