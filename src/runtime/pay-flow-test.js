@@ -626,6 +626,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       null,
+      ProductType.SUBSCRIPTION,
       null
     );
     port = new ActivityPort();
@@ -676,6 +677,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       purchaseData,
       userData,
       null,
+      ProductType.SUBSCRIPTION,
       null
     );
     port = new ActivityPort();
@@ -758,7 +760,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       'RaW',
       purchaseData,
       userData,
-      entitlements
+      entitlements,
+      ProductType.SUBSCRIPTION
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
