@@ -23,5 +23,6 @@ module.exports.command = function(windowName) {
     this.pause(1000)
       .log(`Switching window to ${windowName}`)
       .switchWindow(newWindow);
+    this.pause(2000);
   });
 };
