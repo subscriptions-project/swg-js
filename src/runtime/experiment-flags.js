@@ -25,12 +25,6 @@ export const ExperimentFlags = {
   GPAY_API: 'gpay-api',
 
   /**
-   * Enables GPay native support.
-   * Cleanup issue: #441.
-   */
-  GPAY_NATIVE: 'gpay-native',
-
-  /**
    * Enables the feature that allows you to replace one subscription
    * for another in the subscribe() API.
    */
