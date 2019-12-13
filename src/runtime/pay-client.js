@@ -318,9 +318,7 @@ export class PayClientBindingPayjs {
       'disableNative',
       // The page cannot be iframed at this time. May be relaxed later
       // for AMP and similar contexts.
-      this.win_ != this.top_() ||
-        // Experiment must be enabled.
-        !isExperimentOn(this.win_, ExperimentFlags.GPAY_NATIVE)
+      this.win_ != this.top_()
     );
     // Notice that the callback for verifier may execute asynchronously.
     this.redirectVerifierHelper_.useVerifier(verifier => {

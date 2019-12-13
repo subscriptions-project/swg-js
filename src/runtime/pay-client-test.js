@@ -527,7 +527,6 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     beforeEach(() => {
       top = win;
       sandbox.stub(payClient, 'top_').callsFake(() => top);
-      setExperiment(win, ExperimentFlags.GPAY_NATIVE, true);
     });
 
     it('should enable native mode', () => {
@@ -542,17 +541,6 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
 
     it('should disable native mode for iframes', () => {
       top = {};
-      payClient.start({}, {});
-      expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
-        'i': {
-          'redirectVerifier': redirectVerifierHelperResults.verifier,
-          'disableNative': true,
-        },
-      });
-    });
-
-    it('should disable native mode w/o experiment', () => {
-      setExperiment(win, ExperimentFlags.GPAY_NATIVE, false);
       payClient.start({}, {});
       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
         'i': {
