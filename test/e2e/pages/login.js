@@ -28,8 +28,9 @@ const login = {
       .setValue('@username', constants.login.username)
       .waitForElementPresent('@usernameNext')
       .click('@usernameNext')
-      .pause(5000)
+      .assert.elementPresent("@profileIdentifier")
       .waitForElementPresent('@password')
+      .pause(2000)
       .setValue('@password', constants.login.password)
       .waitForElementPresent('@passwordNext')
       .click('@passwordNext');
@@ -52,5 +53,8 @@ module.exports = {
     passwordNext: {
       selector: '#passwordNext',
     },
+    profileIdentifier: {
+      selector: '#profileIdentifier',
+    }
   },
 };
