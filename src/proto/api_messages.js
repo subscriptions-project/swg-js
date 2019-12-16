@@ -728,6 +728,71 @@ class EventParams {
 /**
  * @implements {Message}
  */
+class FinishedLoggingResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.complete_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?string} */
+    this.error_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getComplete() {
+    return this.complete_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setComplete(value) {
+    this.complete_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getError() {
+    return this.error_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setError(value) {
+    this.error_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.complete_,  // field 1 - complete
+      this.error_,  // field 2 - error
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'FinishedLoggingResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class LinkSaveTokenRequest {
  /**
   * @param {!Array=} data
@@ -1105,6 +1170,7 @@ const PROTO_MAP = {
   'AnalyticsRequest': AnalyticsRequest,
   'EntitlementsResponse': EntitlementsResponse,
   'EventParams': EventParams,
+  'FinishedLoggingResponse': FinishedLoggingResponse,
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
   'LinkingInfoResponse': LinkingInfoResponse,
   'SkuSelectedResponse': SkuSelectedResponse,
@@ -1150,6 +1216,7 @@ export {
   EntitlementsResponse,
   EventOriginator,
   EventParams,
+  FinishedLoggingResponse,
   LinkSaveTokenRequest,
   LinkingInfoResponse,
   Message,

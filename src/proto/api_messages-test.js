@@ -24,6 +24,7 @@ import {
     EntitlementsResponse,
     EventOriginator,
     EventParams,
+    FinishedLoggingResponse,
     LinkSaveTokenRequest,
     LinkingInfoResponse,
     SkuSelectedResponse,
@@ -188,6 +189,20 @@ describe('api_messages', () => {
       expect(eventparamsDeserialized).to.not.be.null;
       expect(isEqual(eventparams.toArray(),
           eventparamsDeserialized.toArray())).to.be.true;
+    });
+  });
+
+  describe('test_FinishedLoggingResponse', () => {
+    it('should deserialize correctly', () => {
+      const /** !FinishedLoggingResponse  */ finishedloggingresponse = new FinishedLoggingResponse();
+      finishedloggingresponse.setComplete(false);
+      finishedloggingresponse.setError('');
+      const finishedloggingresponseSerialized = finishedloggingresponse.toArray();
+      const finishedloggingresponseDeserialized = deserialize(
+          finishedloggingresponseSerialized);
+      expect(finishedloggingresponseDeserialized).to.not.be.null;
+      expect(isEqual(finishedloggingresponse.toArray(),
+          finishedloggingresponseDeserialized.toArray())).to.be.true;
     });
   });
 
