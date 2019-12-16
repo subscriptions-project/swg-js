@@ -174,6 +174,22 @@ class PayClientBindingSwg {
 
   /** @override */
   start(paymentRequest, options) {
+    if (options.forceRedirect) {
+      // This resolves an issue with logging where the page redirects before
+      // logs get sent to the server.  Ultimately we need a logging promise to
+      // resolve prior to redirecting but that is not possible right now.
+      const start = this.start_.bind(this);
+      this.win_.setTimeout(() => start(paymentRequest, options), 500);
+    } else {
+      this.start_(paymentRequest, options);
+    }
+  }
+
+  /**
+   * @param {!Object} paymentRequest
+   * @param {!PayOptionsDef} options
+   */
+  start_(paymentRequest, options) {
     const opener = this.activityPorts_.open(
       GPAY_ACTIVITY_REQUEST,
       payUrl(),
