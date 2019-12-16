@@ -93,7 +93,9 @@ describes.realWin('PropensityServer', {}, env => {
         capturedRequest = init;
         return Promise.reject(new Error('Publisher not whitelisted'));
       });
-      PropensityServer.prototype.getDocumentCookie_ = () => '__gads=aaaaaa';
+      sandbox
+        .stub(PropensityServer.prototype, 'getDocumentCookie_')
+        .callsFake(() => '__gads=aaaaaa');
 
       await expect(
         propensityServer.sendSubscriptionState(
@@ -151,6 +153,12 @@ describes.realWin('PropensityServer', {}, env => {
   });
 
   describe('Communications', () => {
+    beforeEach(() => {
+      sandbox
+        .stub(PropensityServer.prototype, 'getDocumentCookie_')
+        .callsFake(() => '__gads=aaaaaa');
+    });
+
     it('should send events', () => {
       let capturedUrl;
       let capturedRequest;
@@ -159,7 +167,6 @@ describes.realWin('PropensityServer', {}, env => {
         capturedRequest = init;
         return Promise.reject(new Error('Not sent from allowed origin'));
       });
-      PropensityServer.prototype.getDocumentCookie_ = () => '__gads=aaaaaa';
       const eventParam = {'is_active': false, 'offers_shown': ['a', 'b', 'c']};
       defaultEvent.additionalParameters = eventParam;
       registeredCallback(defaultEvent);
@@ -189,7 +196,6 @@ describes.realWin('PropensityServer', {}, env => {
         capturedRequest = init;
         return Promise.reject(new Error('Invalid request'));
       });
-      PropensityServer.prototype.getDocumentCookie_ = () => '__gads=aaaaaa';
 
       await expect(
         propensityServer.getPropensity(
@@ -328,6 +334,12 @@ describes.realWin('PropensityServer', {}, env => {
   });
 
   describe('ClientId', () => {
+    it('should return the document cookies', () => {
+      expect(propensityServer.getDocumentCookie_()).to.equal(
+        win.document.cookie
+      );
+    });
+
     it('should test getting right clientID with user consent', async () => {
       let capturedUrl;
       let capturedRequest;
