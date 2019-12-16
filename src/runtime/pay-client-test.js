@@ -58,6 +58,8 @@ const INTEGR_DATA_OBJ_DECODED = {
 
 const GOOGLE_TRANSACTION_ID = 'ABC12345-CDE0-XYZ1-ABAB-11609E6472E9';
 
+const REDIRECT_DELAY = 300;
+
 describes.realWin('PayClientBindingSwg', {}, env => {
   let win;
   let pageConfig;
@@ -177,10 +179,9 @@ describes.realWin('PayClientBindingSwg', {}, env => {
       }
     );
     // This forces the test to wait .5s for the redirect to occur.
-    const expectedTimeout = 600;
     let resolver = null;
     const waiter = new Promise(resolve => (resolver = resolve));
-    win.setTimeout(() => resolver(true), expectedTimeout);
+    win.setTimeout(() => resolver(true), REDIRECT_DELAY);
     await waiter;
   });
 
@@ -481,10 +482,9 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       }
     );
     // This forces the test to wait .5s for the redirect to occur.
-    const expectedTimeout = 600;
     let resolver = null;
     const waiter = new Promise(resolve => (resolver = resolve));
-    win.setTimeout(() => resolver(true), expectedTimeout);
+    win.setTimeout(() => resolver(true), REDIRECT_DELAY);
     await waiter;
     expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
     expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
