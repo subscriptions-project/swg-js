@@ -24,7 +24,7 @@ import {isExperimentOn} from './experiments';
 
 const PAY_REQUEST_ID = 'swg-pay';
 const GPAY_ACTIVITY_REQUEST = 'GPAY';
-const REDIRECT_DELAY = 500;
+const REDIRECT_DELAY = 250;
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
 /**
