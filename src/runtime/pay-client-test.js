@@ -149,7 +149,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
     });
   });
 
-  it('should force redirect mode', () => {
+  it('should force redirect mode', async function() {
     dialogManagerMock
       .expects('popupOpened')
       .withExactArgs(null)
@@ -176,6 +176,12 @@ describes.realWin('PayClientBindingSwg', {}, env => {
         forceRedirect: true,
       }
     );
+    // This forces the test to wait .5s for the redirect to occur.
+    const expectedTimeout = 600;
+    let resolver = null;
+    const waiter = new Promise(resolve => (resolver = resolve));
+    win.setTimeout(() => resolver(true), expectedTimeout);
+    await waiter;
   });
 
   it('should catch mismatching channel', async () => {
@@ -465,7 +471,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     });
   });
 
-  it('should force redirect mode', () => {
+  it('should force redirect mode', async function() {
     payClient.start(
       {
         'paymentArgs': {'a': 1},
@@ -474,6 +480,12 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
         forceRedirect: true,
       }
     );
+    // This forces the test to wait .5s for the redirect to occur.
+    const expectedTimeout = 600;
+    let resolver = null;
+    const waiter = new Promise(resolve => (resolver = resolve));
+    win.setTimeout(() => resolver(true), expectedTimeout);
+    await waiter;
     expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
     expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
       'paymentArgs': {'a': 1},

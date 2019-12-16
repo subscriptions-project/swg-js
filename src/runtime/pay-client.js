@@ -24,7 +24,7 @@ import {isExperimentOn} from './experiments';
 
 const PAY_REQUEST_ID = 'swg-pay';
 const GPAY_ACTIVITY_REQUEST = 'GPAY';
-
+const REDIRECT_DELAY = 500;
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
 /**
@@ -174,6 +174,25 @@ class PayClientBindingSwg {
 
   /** @override */
   start(paymentRequest, options) {
+    if (options.forceRedirect) {
+      // This resolves an issue with logging where the page redirects before
+      // logs get sent to the server.  Ultimately we need a logging promise to
+      // resolve prior to redirecting but that is not possible right now.
+      const start = this.start_.bind(this);
+      this.win_.setTimeout(
+        () => start(paymentRequest, options),
+        REDIRECT_DELAY
+      );
+    } else {
+      this.start_(paymentRequest, options);
+    }
+  }
+
+  /**
+   * @param {!Object} paymentRequest
+   * @param {!PayOptionsDef} options
+   */
+  start_(paymentRequest, options) {
     const opener = this.activityPorts_.open(
       GPAY_ACTIVITY_REQUEST,
       payUrl(),
@@ -325,7 +344,15 @@ export class PayClientBindingPayjs {
       if (verifier) {
         setInternalParam(paymentRequest, 'redirectVerifier', verifier);
       }
-      this.client_.loadPaymentData(paymentRequest);
+      if (options.forceRedirect) {
+        const client = this.client_;
+        this.win_.setTimeout(
+          () => client.loadPaymentData(paymentRequest),
+          REDIRECT_DELAY
+        );
+      } else {
+        this.client_.loadPaymentData(paymentRequest);
+      }
     });
   }
 
