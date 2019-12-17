@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Event, SubscriptionState} from '../api/logger-api';
-import {isObject, isEnumValue, isBoolean} from '../utils/types';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {Event, SubscriptionState} from '../api/logger-api';
+import {isBoolean, isEnumValue, isObject} from '../utils/types';
 import {publisherEventToAnalyticsEvent} from './event-type-mapping';
 
 /**

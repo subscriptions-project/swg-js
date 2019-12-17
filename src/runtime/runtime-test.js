@@ -15,55 +15,55 @@
  */
 
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
+import {ActivityPorts} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {
+  AnalyticsMode,
+  ProductType,
+  ReplaceSkuProrationMode,
+  Subscriptions,
+} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
+import {ClientEventManager} from './client-event-manager';
 import {
   ConfiguredRuntime,
   Runtime,
-  installRuntime,
   getRuntime,
+  installRuntime,
 } from './runtime';
 import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
+import {Event} from '../api/logger-api';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
-import {JsError} from './jserror';
 import {GlobalDoc} from '../model/doc';
+import {JsError} from './jserror';
 import {
   LinkCompleteFlow,
-  LinkbackFlow,
   LinkSaveFlow,
+  LinkbackFlow,
 } from './link-accounts-flow';
-import {LoginPromptApi} from './login-prompt-api';
+import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
-import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
+import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PayStartFlow} from './pay-flow';
+import {Propensity} from './propensity';
 import {SubscribeResponse} from '../api/subscribe-response';
-import {
-  AnalyticsMode,
-  ReplaceSkuProrationMode,
-  Subscriptions,
-  ProductType,
-} from '../api/subscriptions';
+import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {createElement} from '../utils/dom';
 import {
   isExperimentOn,
   setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
-import {Propensity} from './propensity';
-import {ClientEventManager} from './client-event-manager';
-import {Logger} from './logger';
-import {Event} from '../api/logger-api';
 
 const EDGE_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0)' +
@@ -138,9 +138,9 @@ describes.realWin('installRuntime', {}, env => {
     installRuntime(win);
 
     const subscriptions = await promise;
-    for (const k in Subscriptions.prototype) {
-      expect(subscriptions).to.contain(k);
-    }
+    Object.getOwnPropertyNames(Subscriptions.prototype).forEach(key => {
+      expect(subscriptions[key]).to.exist;
+    });
   });
 
   it('handles recursive calls after installation', async () => {
@@ -427,12 +427,9 @@ describes.realWin('Runtime', {}, env => {
     it('should fail when config lookup fails', async () => {
       configPromise = Promise.reject('config broken');
 
-      try {
-        runtime.configured_(true);
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/config broken/);
-      }
+      await expect(runtime.configured_(true)).to.be.rejectedWith(
+        /config broken/
+      );
     });
 
     it('should propagate construction config', async () => {
@@ -462,12 +459,9 @@ describes.realWin('Runtime', {}, env => {
     it('should not return Propensity module when config not available', async () => {
       configPromise = Promise.reject('config not available');
 
-      try {
-        await runtime.getPropensityModule();
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain('config not available');
-      }
+      await expect(runtime.getPropensityModule()).to.be.rejectedWith(
+        'config not available'
+      );
     });
 
     it('should return a working logger', async () => {
@@ -873,9 +867,10 @@ describes.realWin('Runtime', {}, env => {
       const fetchStub = sandbox
         .stub(otherFetcher, 'fetchCredentialedJson')
         .callsFake(() => Promise.resolve(ents));
-      const xhrFetchStub = sandbox
-        .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
-        .callsFake(() => Promise.resolve(ents));
+      const xhrFetchStub = sandbox.stub(
+        XhrFetcher.prototype,
+        'fetchCredentialedJson'
+      );
       runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
         fetcher: otherFetcher,
       });
@@ -977,15 +972,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       redirectErrorHandler = null;
       sandbox
         .stub(ActivityPorts.prototype, 'onResult')
-        .callsFake(function(requestId, callback) {
-          if (activityResultCallbacks[requestId]) {
-            throw new Error('duplicate');
+        .callsFake((requestId, callback) => {
+          if (!activityResultCallbacks[requestId]) {
+            activityResultCallbacks[requestId] = callback;
           }
-          activityResultCallbacks[requestId] = callback;
         });
       sandbox
         .stub(ActivityPorts.prototype, 'onRedirectError')
-        .callsFake(function(handler) {
+        .callsFake(handler => {
           redirectErrorHandler = handler;
         });
       runtime = new ConfiguredRuntime(win, config);
@@ -1245,20 +1239,55 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(triggerStub).to.not.be.called;
     });
 
-    it('should start entitlements flow with success', async () => {
-      const entitlements = new Entitlements(
-        'service',
-        'raw',
-        [new Entitlement('', ['product1'], 'token1')],
-        'product1',
-        () => {}
-      );
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .withExactArgs(undefined)
-        .returns(Promise.resolve(entitlements))
-        .once();
-      await runtime.start();
+    describe('Entitlements Success', () => {
+      let entitlements;
+
+      afterEach(async function() {
+        const promise = Promise.resolve(
+          new Entitlements('service', 'raw', entitlements, 'product1', () => {})
+        );
+        entitlementsManagerMock
+          .expects('getEntitlements')
+          .withExactArgs(undefined)
+          .returns(promise)
+          .once();
+        await runtime.start();
+      });
+
+      it('work for 1 entitlement', async () => {
+        entitlements = [
+          new Entitlement('', ['product1'], '{"productId":"token1"}'),
+        ];
+        analyticsMock
+          .expects('setSku')
+          .withExactArgs('token1')
+          .once();
+      });
+
+      it('work for multiple entitlement', async () => {
+        entitlements = [
+          new Entitlement('', ['product1'], '{"productId":"token1"}'),
+          new Entitlement('', ['product2'], '{"productId":"token2"}'),
+          new Entitlement('', ['product3'], '{"productId":"token3"}'),
+        ];
+        analyticsMock
+          .expects('setSku')
+          .withExactArgs('token1,token2,token3')
+          .once();
+      });
+
+      it('work for no entitlements', async () => {
+        entitlements = [];
+        analyticsMock.expects('setSku').never();
+      });
+
+      it('kind of work for non-JSON entitlement', async () => {
+        entitlements = [new Entitlement('', ['product1'], 'token1')];
+        analyticsMock
+          .expects('setSku')
+          .withExactArgs('unknown subscriptionToken')
+          .once();
+      });
     });
 
     it('should start entitlements flow with failure', async () => {
@@ -1334,31 +1363,21 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
     });
 
-    it('should throw an error if showOffers is used with an oldSku', () => {
-      try {
-        runtime.showOffers({skuId: 'newSku', oldSku: 'oldSku'});
-      } catch (err) {
-        expect(err)
-          .to.be.an.instanceOf(Error)
-          .with.property(
-            'The showOffers() method cannot be used to update \
+    it('should throw an error if showOffers is used with an oldSku', async () => {
+      await expect(
+        runtime.showOffers({skuId: 'newSku', oldSku: 'oldSku'})
+      ).to.be.rejectedWith(
+        'The showOffers() method cannot be used to update \
 a subscription. Use the showUpdateOffers() method instead.'
-          );
-      }
+      );
     });
 
-    it('should call "showUpdateOffers"', () => {
+    it('should call "showUpdateOffers"', async () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-      try {
-        runtime.showUpdateOffers();
-      } catch (err) {
-        expect(err)
-          .to.be.an.instanceOf(Error)
-          .with.property(
-            'The showUpdateOffers() method cannot be used for \
+      await expect(runtime.showUpdateOffers()).to.be.rejectedWith(
+        'The showUpdateOffers() method cannot be used for \
 new subscribers. Use the showOffers() method instead.'
-          );
-      }
+      );
     });
 
     it('should call "showUpdateOffers" with options', async () => {
@@ -1374,18 +1393,14 @@ new subscribers. Use the showOffers() method instead.'
       expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
     });
 
-    it('should throw an error if showUpdateOffers is used without an oldSku', () => {
+    it('should throw an error if showUpdateOffers is used without an oldSku', async () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-      try {
-        runtime.showUpdateOffers({skuId: 'newSku'});
-      } catch (err) {
-        expect(err)
-          .to.be.an.instanceOf(Error)
-          .with.property(
-            'The showUpdateOffers() method cannot be used for \
+      await expect(
+        runtime.showUpdateOffers({skuId: 'newSku'})
+      ).to.be.rejectedWith(
+        'The showUpdateOffers() method cannot be used for \
 new subscribers. Use the showOffers() method instead.'
-          );
-      }
+      );
     });
 
     it('should call "showAbbrvOffer"', async () => {
@@ -1441,7 +1456,6 @@ new subscribers. Use the showOffers() method instead.'
     });
 
     it('should call "showContributionOptions" with options', async () => {
-      setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
       let contributionFlow;
       sandbox.stub(ContributionsFlow.prototype, 'start').callsFake(function() {
         contributionFlow = this;
@@ -1600,7 +1614,6 @@ subscribe() method'
     });
 
     it('should start PayStartFlow for contribution', async () => {
-      setExperiment(win, ExperimentFlags.CONTRIBUTIONS, true);
       let flowInstance;
       const startStub = sandbox
         .stub(PayStartFlow.prototype, 'start')

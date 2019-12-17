@@ -21,12 +21,12 @@ import {
   EventParams,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
+import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {feArgs, feUrl} from './services';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting} from './experiments';
-import {ClientEventManager} from './client-event-manager';
 
 describes.realWin('AnalyticsService', {}, env => {
   let win;

@@ -15,19 +15,18 @@
  */
 'use strict';
 
+const {startServer, stopServer} = require('../../build-system/tasks/serve');
+
 /**
  * @fileoverview Global settings for all tests.
  */
 module.exports = {
-  setupUrl: 'https://scenic-2017.appspot.com/setup',
-
-  // Select Prod mode before each test suite is started.
-  beforeEach: function(browser, done) {
-    browser
-      .url(this.setupUrl)
-      .waitForElementVisible('form')
-      .expect.element('body').to.be.present;
-    browser.click('input[value=prod]').submitForm('input[value=Update]');
-    done();
+  before: function() {
+    startServer();
   },
+  after: function() {
+    stopServer();
+  },
+  // Let tests to continue if an assertion fails.
+  abortOnAssertionFailure: false,
 };

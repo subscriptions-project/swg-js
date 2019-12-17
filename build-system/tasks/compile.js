@@ -123,7 +123,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
 
   let bundler = browserify(srcDir + srcFilename + '.js', {
     debug: true,
-  }).transform(babel, {presets: ["@babel/preset-env"]});
+  }).transform(babel, {presets: ['@babel/preset-env']});
   if (options.watch) {
     bundler = watchify(bundler);
   }
@@ -131,10 +131,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   const wrapper = options.wrapper || '<%= contents %>';
 
   let lazybuild = lazypipe()
-    .pipe(
-      source,
-      srcFilename + '.js'
-    )
+    .pipe(source, srcFilename + '.js')
     .pipe(buffer);
 
   // Replacements.
@@ -149,24 +146,12 @@ function compileJs(srcDir, srcFilename, destDir, options) {
 
   // Complete build with wrapper and sourcemaps.
   lazybuild = lazybuild
-    .pipe(
-      $$.wrap,
-      wrapper
-    )
-    .pipe(
-      $$.sourcemaps.init.bind($$.sourcemaps),
-      {loadMaps: true}
-    );
+    .pipe($$.wrap, wrapper)
+    .pipe($$.sourcemaps.init.bind($$.sourcemaps), {loadMaps: true});
 
   const lazywrite = lazypipe()
-    .pipe(
-      $$.sourcemaps.write.bind($$.sourcemaps),
-      './'
-    )
-    .pipe(
-      gulp.dest.bind(gulp),
-      destDir
-    );
+    .pipe($$.sourcemaps.write.bind($$.sourcemaps), './')
+    .pipe(gulp.dest.bind(gulp), destDir);
 
   const destFilename = options.toName || srcFilename + '.js';
   async function rebundle() {

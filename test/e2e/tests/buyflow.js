@@ -15,17 +15,12 @@
  */
 
 module.exports = {
-  'Show Offers Automatically for an anonymous user': function(browser) {
-    const publication = browser.page.publication();
-    publication
-      .navigate()
-      .viewFirstArticle()
-      .waitForElementPresent('@swgIFrame', 'Found SwG iFrame')
-      .end();
-  },
   'Show offers Automatically for a logged in user': function(browser) {
+    const setup = browser.page.setup();
+    setup.navigate().select('local');
+
     const login = browser.page.login();
-    login.navigate().login();
+    login.navigate().login(browser);
 
     const publication = browser.page.publication();
     publication
@@ -33,6 +28,8 @@ module.exports = {
       .viewFirstArticle()
       .waitForElementPresent('@swgIFrame', 'Found SwG iFrame')
       .viewOffers()
+      .pause(5000)
+      .waitForElementPresent('.K2Fgzb', 10000, 'Found offer carousel')
       .assert.containsText('.K2Fgzb', 'Subscribe with your Google Account')
       .assert.containsText('.wlhaj.I3RyHc', 'Already subscribed?')
       .assert.containsText('.amekj', 'Basic Access')
@@ -44,29 +41,24 @@ module.exports = {
   },
   'User log in, select an offer and see gpay window': function(browser) {
     const login = browser.page.login();
-    login.navigate().login();
+    login.navigate().login(browser);
 
     const publication = browser.page.publication();
     publication
       .navigate()
       .viewFirstArticle()
       .selectOffer();
+
     browser.checkPayment().end();
   },
-  'User select an offer, log in and see gpay window': function(browser) {
-    const publication = browser.page.publication();
-    publication
-      .navigate()
-      .viewFirstArticle()
-      .selectOffer()
-      // Switch to the payment window.
-      .pause(1000)
-      .switchToWindow('login window')
-      .assert.containsText('#headingText', 'Sign in');
-
+  'User log in AMP page, click SwG button and see offers': function(browser) {
     const login = browser.page.login();
-    login.login();
+    login.navigate().login(browser);
 
-    browser.checkPayment().end();
+    const amp = browser.page.amp();
+    amp
+      .navigate()
+      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
+      .end();
   },
 };

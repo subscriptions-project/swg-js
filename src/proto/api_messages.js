@@ -45,6 +45,10 @@ const AnalyticsEvent = {
   IMPRESSION_LINK: 12,
   IMPRESSION_SAVE_SUBSCR_TO_GOOGLE: 13,
   IMPRESSION_GOOGLE_UPDATED: 14,
+  IMPRESSION_SHOW_OFFERS_SMARTBOX: 15,
+  IMPRESSION_SHOW_OFFERS_SWG_BUTTON: 16,
+  IMPRESSION_SELECT_OFFER_SMARTBOX: 17,
+  IMPRESSION_SELECT_OFFER_SWG_BUTTON: 18,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -62,6 +66,8 @@ const AnalyticsEvent = {
   ACTION_USER_CANCELED_PAYFLOW: 1014,
   ACTION_SAVE_SUBSCR_TO_GOOGLE_CONTINUE: 1015,
   ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL: 1016,
+  ACTION_SWG_BUTTON_SHOW_OFFERS_CLICK: 1017,
+  ACTION_SWG_BUTTON_SELECT_OFFER_CLICK: 1018,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
@@ -722,6 +728,71 @@ class EventParams {
 /**
  * @implements {Message}
  */
+class FinishedLoggingResponse {
+ /**
+  * @param {!Array=} data
+  */
+  constructor(data = []) {
+
+    /** @private {?boolean} */
+    this.complete_ = (data[1] == null) ? null : data[1];
+
+    /** @private {?string} */
+    this.error_ = (data[2] == null) ? null : data[2];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getComplete() {
+    return this.complete_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setComplete(value) {
+    this.complete_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getError() {
+    return this.error_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setError(value) {
+    this.error_ = value;
+  }
+
+  /**
+   * @return {!Array}
+   * @override
+   */
+  toArray() {
+    return [
+      this.label(),  // message label
+      this.complete_,  // field 1 - complete
+      this.error_,  // field 2 - error
+    ];
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'FinishedLoggingResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class LinkSaveTokenRequest {
  /**
   * @param {!Array=} data
@@ -845,6 +916,15 @@ class SkuSelectedResponse {
 
     /** @private {?string} */
     this.oldSku_ = (data[2] == null) ? null : data[2];
+
+    /** @private {?boolean} */
+    this.oneTime_ = (data[3] == null) ? null : data[3];
+
+    /** @private {?string} */
+    this.playOffer_ = (data[4] == null) ? null : data[4];
+
+    /** @private {?string} */
+    this.oldPlayOffer_ = (data[5] == null) ? null : data[5];
   }
 
   /**
@@ -876,6 +956,48 @@ class SkuSelectedResponse {
   }
 
   /**
+   * @return {?boolean}
+   */
+  getOneTime() {
+    return this.oneTime_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setOneTime(value) {
+    this.oneTime_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getPlayOffer() {
+    return this.playOffer_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setPlayOffer(value) {
+    this.playOffer_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getOldPlayOffer() {
+    return this.oldPlayOffer_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setOldPlayOffer(value) {
+    this.oldPlayOffer_ = value;
+  }
+
+  /**
    * @return {!Array}
    * @override
    */
@@ -884,6 +1006,9 @@ class SkuSelectedResponse {
       this.label(),  // message label
       this.sku_,  // field 1 - sku
       this.oldSku_,  // field 2 - old_sku
+      this.oneTime_,  // field 3 - one_time
+      this.playOffer_,  // field 4 - play_offer
+      this.oldPlayOffer_,  // field 5 - old_play_offer
     ];
   }
 
@@ -1045,6 +1170,7 @@ const PROTO_MAP = {
   'AnalyticsRequest': AnalyticsRequest,
   'EntitlementsResponse': EntitlementsResponse,
   'EventParams': EventParams,
+  'FinishedLoggingResponse': FinishedLoggingResponse,
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
   'LinkingInfoResponse': LinkingInfoResponse,
   'SkuSelectedResponse': SkuSelectedResponse,
@@ -1090,6 +1216,7 @@ export {
   EntitlementsResponse,
   EventOriginator,
   EventParams,
+  FinishedLoggingResponse,
   LinkSaveTokenRequest,
   LinkingInfoResponse,
   Message,
@@ -1100,4 +1227,3 @@ export {
   deserialize,
   getLabel,
 };
-

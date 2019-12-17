@@ -17,8 +17,8 @@
 import {
   addQueryParam,
   getHostUrl,
-  parseUrl,
   parseQueryString,
+  parseUrl,
   serializeQueryString,
 } from './url';
 

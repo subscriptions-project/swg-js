@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import {ActivityResult} from 'web-activities/activity-ports';
+import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPort} from '../components/activities';
+import {ActivityResult} from 'web-activities/activity-ports';
+import {
+  AlreadySubscribedResponse,
+  SkuSelectedResponse,
+  SubscribeResponse,
+  ViewSubscriptionsResponse,
+} from '../proto/api_messages';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
-import {acceptPortResultData} from './../utils/activity-utils';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
-import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
-import {
-  SkuSelectedResponse,
-  AlreadySubscribedResponse,
-  ViewSubscriptionsResponse,
-  SubscribeResponse,
-} from '../proto/api_messages';
+import {acceptPortResultData} from './../utils/activity-utils';
 
 /**
  * @param {string} sku
@@ -38,6 +38,11 @@ import {
 function getEventParams(sku) {
   return new EventParams([, , , , sku]);
 }
+
+const SHOW_OFFERS_ARGS = {
+  skus: ['*'],
+  source: 'SwG',
+};
 
 describes.realWin('OffersFlow', {}, env => {
   let win;
@@ -84,7 +89,7 @@ describes.realWin('OffersFlow', {}, env => {
   it('should have valid OffersFlow constructed', async () => {
     callbacksMock
       .expects('triggerFlowStarted')
-      .withExactArgs('showOffers')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
       .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock
@@ -111,7 +116,7 @@ describes.realWin('OffersFlow', {}, env => {
   it('should trigger on cancel', async () => {
     callbacksMock
       .expects('triggerFlowStarted')
-      .withExactArgs('showOffers')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
       .once();
     callbacksMock
       .expects('triggerFlowCanceled')
@@ -779,9 +784,11 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     const offersStartStub = sandbox.stub(OffersFlow.prototype, 'start');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     expect(offersStartStub).to.not.be.called;
-    const error = new Error();
-    error.name = 'AbortError';
-    sandbox.stub(port, 'acceptResult').callsFake(() => Promise.reject(error));
+    sandbox
+      .stub(port, 'acceptResult')
+      .callsFake(() =>
+        Promise.reject(new DOMException('cancel', 'AbortError'))
+      );
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -790,12 +797,9 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
 
     await abbrvOfferFlow.start();
 
-    try {
-      await acceptPortResultData(port, 'https://example.com', true, true);
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason.name).to.equal('AbortError');
-    }
+    await expect(
+      acceptPortResultData(port, 'https://example.com', true, true)
+    ).to.be.rejectedWith(/cancel/);
   });
 
   it('should trigger offers flow with options', async () => {

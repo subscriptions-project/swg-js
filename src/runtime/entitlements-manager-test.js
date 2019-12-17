@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
+import {ClientEventManager} from './client-event-manager';
 import {DepsDef} from './deps';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
@@ -23,9 +25,7 @@ import {Storage} from './storage';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
-import {AnalyticsService} from './analytics-service';
 import {defaultConfig} from '../api/subscriptions';
-import {ClientEventManager} from './client-event-manager';
 
 describes.realWin('EntitlementsManager', {}, env => {
   let win;
@@ -89,12 +89,7 @@ describes.realWin('EntitlementsManager', {}, env => {
       .once();
   }
 
-  function entitlementsResponse(
-    entitlements,
-    options,
-    isReadyToPay,
-    decryptedDocumentKey
-  ) {
+  function entitlementsResponse(entitlements, options, isReadyToPay) {
     function enc(obj) {
       return base64UrlEncodeFromBytes(utf8EncodeSync(JSON.stringify(obj)));
     }
@@ -110,14 +105,10 @@ describes.realWin('EntitlementsManager', {}, env => {
       'exp': options.exp,
       'entitlements': entitlements,
     };
-    const response = {
+    return {
       'signedEntitlements': enc(header) + '.' + enc(payload) + '.SIG',
       'isReadyToPay': isReadyToPay,
     };
-    if (decryptedDocumentKey) {
-      response.decryptedDocumentKey = decryptedDocumentKey;
-    }
-    return response;
   }
 
   function expectGoogleResponse(options, isReadyToPay, decryptedDocumentKey) {

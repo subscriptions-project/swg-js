@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
+import {
+  AccountCreationRequest,
+  EntitlementsResponse,
+} from '../proto/api_messages';
 import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
-import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {PayClient} from './pay-client';
 import {
-  PayStartFlow,
   PayCompleteFlow,
+  PayStartFlow,
+  RecurrenceMapping,
   ReplaceSkuProrationModeMapping,
   parseEntitlements,
   parseSubscriptionResponse,
   parseUserData,
 } from './pay-flow';
+import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import {tick} from '../../test/tick';
-import {
-  EntitlementsResponse,
-  AccountCreationRequest,
-} from '../proto/api_messages';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -160,6 +161,52 @@ describes.realWin('PayStartFlow', {}, env => {
         getEventParams('sku1')
       );
     const flowPromise = flow.start();
+    await expect(flowPromise).to.eventually.be.undefined;
+  });
+
+  it('should have valid flow constructed for one time', async () => {
+    const subscriptionRequest = {
+      skuId: 'newSku',
+      oneTime: true,
+      publicationId: 'pub1',
+    };
+    const replaceFlow = new PayStartFlow(runtime, subscriptionRequest);
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('subscribe', subscriptionRequest)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    payClientMock
+      .expects('start')
+      .withExactArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            skuId: 'newSku',
+            paymentRecurrence: RecurrenceMapping['ONE_TIME'],
+            publicationId: 'pub1',
+          },
+          'i': {
+            'startTimeMs': sandbox.match.any,
+            'productType': sandbox.match(productTypeRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+        }
+      )
+      .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('newSku')
+      );
+    const flowPromise = replaceFlow.start();
     await expect(flowPromise).to.eventually.be.undefined;
   });
 
@@ -672,7 +719,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       'RaW',
       purchaseData,
       userData,
-      entitlements
+      entitlements,
+      ProductType.SUBSCRIPTION,
+      null
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -946,6 +995,32 @@ describes.realWin('PayCompleteFlow', {}, env => {
       expect(completeStub).to.be.calledOnce;
     });
 
+    it('should start flow with data from request', async () => {
+      analyticsMock.expects('setTransactionId').never();
+      callbacksMock.expects('triggerFlowCanceled').never();
+      entitlementsManagerMock.expects('blockNextNotification').once();
+      const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
+
+      const data = Object.assign({}, INTEGR_DATA_OBJ);
+      data['paymentRequest'] = {
+        'swg': {'oldSku': 'sku_to_replace'},
+        'i': {'productType': ProductType.UI_CONTRIBUTION},
+      };
+
+      await responseCallback(Promise.resolve(data));
+      expect(startStub).to.be.calledOnce;
+      expect(startStub.args[0][0]).to.be.instanceof(SubscribeResponse);
+      expect(triggerPromise).to.exist;
+
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.productType).to.equal(ProductType.UI_CONTRIBUTION);
+      expect(response.oldSku).to.equal('sku_to_replace');
+      expect(completeStub).to.not.be.called;
+      response.complete();
+      expect(completeStub).to.be.calledOnce;
+    });
+
     it('should start flow on decoded response w/o entitlements', async () => {
       // TODO(dvoytenko, #400): cleanup once entitlements is launched.
       const completeStub = sandbox.stub(PayCompleteFlow.prototype, 'complete');
@@ -1046,6 +1121,8 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(sr.purchaseData.signature).to.equal('PD_SIG');
     expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
     expect(sr.entitlements.raw).to.equal(ENTITLEMENTS_JWT);
+    expect(sr.productType).to.equal(ProductType.SUBSCRIPTION);
+    expect(sr.oldSku).to.be.null;
   });
 
   it('should parse a json response w/o entitlements', () => {
@@ -1087,6 +1164,17 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(sr.purchaseData.signature).to.equal('PD_SIG');
     expect(sr.userData.idToken).to.equal(EMPTY_ID_TOK);
     expect(sr.entitlements).to.be.null;
+  });
+
+  it('should parse productType and oldSku', () => {
+    const data = Object.assign({}, INTEGR_DATA_OBJ);
+    data['paymentRequest'] = {
+      'swg': {'oldSku': 'sku_to_replace'},
+      'i': {'productType': ProductType.UI_CONTRIBUTION},
+    };
+    const sr = parseSubscriptionResponse(runtime, data);
+    expect(sr.productType).to.equal(ProductType.UI_CONTRIBUTION);
+    expect(sr.oldSku).to.equal('sku_to_replace');
   });
 
   it('should parse complete idToken', () => {

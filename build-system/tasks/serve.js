@@ -23,15 +23,20 @@ const host = argv.host || 'localhost';
 const port = argv.port || process.env.PORT || 8000;
 const useHttps = argv.https != undefined;
 const quiet = argv.quiet != undefined;
-const publicationId = argv.publicationId || 'com.appspot.scenic-2017-test';
+const publicationId = argv.publicationId || 'scenic-2017.appspot.com';
 const ampLocal = argv.ampLocal != undefined;
 
-const {green, yellow} = require('ansi-colors');
+const {green} = require('ansi-colors');
 
 /**
  * Starts a simple http server at the repository root
  */
-function serve() {
+function serve(done) {
+  startServer();
+  done();
+}
+
+function startServer() {
   log(green('Serving unminified js'));
 
   nodemon({
@@ -47,24 +52,21 @@ function serve() {
       'SERVE_PUBID': publicationId,
       'SERVE_AMP_LOCAL': ampLocal,
     },
-  }).once('quit', function() {
-    log(green('Shutting down server'));
-  });
-  if (!quiet) {
-    log(
-      yellow(
-        'Run `gulp build` then go to ' + getHost() + '/examples/sample-pub/'
-      )
-    );
-  }
+  }).once('quit', stopServer);
 }
 
-process.on('SIGINT', function() {
+/**
+ * Stops the currently running server
+ */
+function stopServer() {
+  log(green('Shutting down server'));
   process.exit();
-});
+}
 
 module.exports = {
   serve,
+  startServer,
+  stopServer,
 };
 serve.description = 'Serves content in root dir over ' + getHost() + '/';
 serve.flags = {

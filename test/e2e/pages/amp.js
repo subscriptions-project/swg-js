@@ -1,5 +1,8 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * @fileoverview Description of this file.
+ */
+/**
+ * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +18,16 @@
  */
 'use strict';
 
-require('./assets');
-require('./builders');
-require('./changelog');
-require('./check-rules');
-require('./compile');
-require('./export-to-es');
-require('./lint');
-require('./serve');
-require('./unit');
+/**
+ * @fileoverview Page object for the AMP page on scenic.
+ */
+module.exports = {
+  url: function() {
+    return this.api.launchUrl + '.amp';
+  },
+  elements: {
+    swgDialog: {
+      selector: '.subs-dialog',
+    },
+  },
+};

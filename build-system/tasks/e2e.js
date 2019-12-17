@@ -17,12 +17,16 @@
 
 const gulp = require('gulp');
 const nightwatch = require('gulp-nightwatch');
+const {build} = require('./builders');
 
-function e2e() {
-  return gulp.src('gulpfile.js')
-    .pipe(nightwatch({
-      configFile: 'test/e2e/nightwatch.json'
-    }));
+async function e2e() {
+  // Compile js and css so e2e tests will run against local js and css.
+  await build();
+  return gulp.src('gulpfile.js').pipe(
+    nightwatch({
+      configFile: 'test/e2e/nightwatch.json',
+    })
+  );
 }
 
 module.exports = {

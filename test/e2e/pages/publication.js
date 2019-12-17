@@ -21,30 +21,32 @@
 const commands = {
   viewFirstArticle: function() {
     this.api.pause(1000);
-    return this.log('Visiting the first article')
-      .click('@firstArticle')
-      .assert.title('16 Top Spots for Hiking - The Scenic - USA');
+    return this.log('Visiting the first article').assert.title(
+      '16 Top Spots for Hiking - The Scenic'
+    );
   },
   viewOffers: function() {
-    return this.log('Viewing offers')
+    return this.pause(1000)
+      .log('Viewing offers')
       .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
       .switchToFrame('[src*="offersiframe"]', 'SwG inner iFrame');
   },
   selectOffer: function() {
     return this.viewOffers()
       .log('Selecting "Basic Access" offer')
+      .pause(10000)
+      .waitForElementPresent('.qLPyoc', 10000)
       .click('.qLPyoc')
       .pause(1000);
   },
 };
 
 module.exports = {
-  url: 'https://scenic-2017.appspot.com',
+  url: function() {
+    return this.api.launchUrl;
+  },
   commands: [commands],
   elements: {
-    firstArticle: {
-      selector: "a[href='./1?']",
-    },
     swgIFrame: {
       selector: 'iframe.swg-dialog',
     },

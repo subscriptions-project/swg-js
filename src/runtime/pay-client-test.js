@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+import {ActivityPort} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {DialogManager} from '../components/dialog-manager';
 import {ExperimentFlags} from './experiment-flags';
@@ -31,7 +31,6 @@ import {
 } from './pay-client';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Xhr} from '../utils/xhr';
-import {isCancelError} from '../utils/errors';
 import {setExperiment, setExperimentsStringForTesting} from './experiments';
 
 const INTEGR_DATA_STRING =
@@ -58,6 +57,8 @@ const INTEGR_DATA_OBJ_DECODED = {
 };
 
 const GOOGLE_TRANSACTION_ID = 'ABC12345-CDE0-XYZ1-ABAB-11609E6472E9';
+
+const REDIRECT_DELAY = 300;
 
 describes.realWin('PayClientBindingPayjs', {}, env => {
   let win;
@@ -172,7 +173,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     });
   });
 
-  it('should force redirect mode', () => {
+  it('should force redirect mode', async function() {
     payClient.start(
       {
         'paymentArgs': {'a': 1},
@@ -181,6 +182,11 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
         forceRedirect: true,
       }
     );
+    // This forces the test to wait .5s for the redirect to occur.
+    let resolver = null;
+    const waiter = new Promise(resolve => (resolver = resolve));
+    win.setTimeout(() => resolver(true), REDIRECT_DELAY);
+    await waiter;
     expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
     expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
       'paymentArgs': {'a': 1},
@@ -197,22 +203,25 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     expect(data).to.deep.equal(INTEGR_DATA_OBJ);
   });
 
+  it('should preserve the paymentRequest in correct response', async () => {
+    const paymentArgs = {'swg': {'sku': 'basic'}, 'i': {'a': 1}};
+    payClient.start(paymentArgs, {});
+    const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
+    const expectedData = Object.assign({}, INTEGR_DATA_OBJ);
+    expectedData['paymentRequest'] = paymentArgs;
+    expect(data).to.deep.equal(expectedData);
+  });
+
   it('should accept a cancel signal', async () => {
-    try {
-      await withResult(Promise.reject({'statusCode': 'CANCELED'}));
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(isCancelError(reason)).to.be.true;
-    }
+    await expect(
+      withResult(Promise.reject({'statusCode': 'CANCELED'}))
+    ).to.be.rejectedWith(/AbortError/);
   });
 
   it('should accept other errors', async () => {
-    try {
-      await withResult(Promise.reject('intentional'));
-      throw new Error('must have failed');
-    } catch (reason) {
-      expect(reason).to.equal('intentional');
-    }
+    await expect(withResult(Promise.reject('intentional'))).to.be.rejectedWith(
+      /intentional/
+    );
   });
 
   it('should return response on initialization', async () => {
@@ -231,7 +240,6 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     beforeEach(() => {
       top = win;
       sandbox.stub(payClient, 'top_').callsFake(() => top);
-      setExperiment(win, ExperimentFlags.GPAY_NATIVE, true);
     });
 
     it('should enable native mode', () => {
@@ -246,17 +254,6 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
 
     it('should disable native mode for iframes', () => {
       top = {};
-      payClient.start({}, {});
-      expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
-        'i': {
-          'redirectVerifier': redirectVerifierHelperResults.verifier,
-          'disableNative': true,
-        },
-      });
-    });
-
-    it('should disable native mode w/o experiment', () => {
-      setExperiment(win, ExperimentFlags.GPAY_NATIVE, false);
       payClient.start({}, {});
       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
         'i': {

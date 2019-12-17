@@ -239,9 +239,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       .src(srcs)
       .pipe(closureCompiler(compilerOptions))
       .on('error', function(err) {
-        console./*OK*/ error(
-          red('Error compiling', entryModuleFilenames)
-        );
+        console./*OK*/ error(red('Error compiling', entryModuleFilenames));
         console./*OK*/ error(red(err.message));
         process.exit(1);
       });

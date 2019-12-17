@@ -1,0 +1,12 @@
+comment: false
+coverage:
+  status:
+    project:
+      default:
+        base: auto
+        target: auto
+        threshold: null
+    patch:
+      default:
+        enabled: no
+        if_not_found: success

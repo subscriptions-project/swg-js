@@ -24,7 +24,7 @@ import {isExperimentOn} from './experiments';
 
 const PAY_REQUEST_ID = 'swg-pay';
 const GPAY_ACTIVITY_REQUEST = 'GPAY';
-
+const REDIRECT_DELAY = 250;
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
 /**
@@ -74,72 +74,11 @@ export class PayClient {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @const @private {!PayClientBindingPayJs} */
-    this.binding_ = new PayClientBindingPayjs(
-          this.win_,
-          this.activityPorts_,
-          // Generates a new Google Transaction ID.
-          deps.analytics().getTransactionId()
-    );
-  }
-
-  /**
-   * @param {!../utils/preconnect.Preconnect} pre
-   */
-  preconnect(pre) {
-    pre.prefetch(payUrl());
-    pre.prefetch(
-      'https://payments.google.com/payments/v4/js/integrator.js?ss=md'
-    );
-    pre.prefetch('https://clients2.google.com/gr/gr_full_2.0.6.js');
-    pre.preconnect('https://www.gstatic.com/');
-    pre.preconnect('https://fonts.googleapis.com/');
-    pre.preconnect('https://www.google.com/');
-  }
-
-  /**
-   * @return {string}
-   */
-  getType() {
-    // TODO(dvoytenko, #406): remove once GPay API is launched.
-    return this.binding_.getType();
-  }
-
-  /**
-   * @param {!Object} paymentRequest
-   * @param {!PayOptionsDef=} options
-   */
-  start(paymentRequest, options = {}) {
-    this.binding_.start(paymentRequest, options);
-  }
-
-  /**
-   * @param {function(!Promise<!Object>)} callback
-   */
-  onResponse(callback) {
-    this.binding_.onResponse(callback);
-  }
-}
-
-/**
- * Binding based on the https://github.com/google/payjs.
- * @implements {PayClientBindingDef}
- * @package Visible for testing only.
- */
-export class PayClientBindingPayjs {
-  /**
-   * @param {!Window} win
-   * @param {!../components/activities.ActivityPorts} activityPorts
-   * @param {!string} googleTransactionId
-   */
-  constructor(win, activityPorts, googleTransactionId) {
-    /** @private @const {!Window} */
-    this.win_ = win;
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = activityPorts;
-
     /** @private {?function(!Promise<!Object>)} */
     this.responseCallback_ = null;
+
+    /** @private {?Object} */
+    this.request_ = null;
 
     /** @private {?Promise<!Object>} */
     this.response_ = null;
@@ -155,7 +94,8 @@ export class PayClientBindingPayjs {
           'redirectKey': this.redirectVerifierHelper_.restoreKey(),
         },
       },
-      googleTransactionId,
+      // Generates a new Google Transaction ID.
+      deps.analytics().getTransactionId()
       this.handleResponse_.bind(this)
     );
 
@@ -182,13 +122,35 @@ export class PayClientBindingPayjs {
     );
   }
 
-  /** @override */
+  /**
+   * @param {!../utils/preconnect.Preconnect} pre
+   */
+  preconnect(pre) {
+    pre.prefetch(payUrl());
+    pre.prefetch(
+      'https://payments.google.com/payments/v4/js/integrator.js?ss=md'
+    );
+    pre.prefetch('https://clients2.google.com/gr/gr_full_2.0.6.js');
+    pre.preconnect('https://www.gstatic.com/');
+    pre.preconnect('https://fonts.googleapis.com/');
+    pre.preconnect('https://www.google.com/');
+  }
+
+  /**
+   * @return {string}
+   */
   getType() {
+    // TODO(alin04): remove once all references removed.
     return 'PAYJS';
   }
 
-  /** @override */
-  start(paymentRequest, options) {
+  /**
+   * @param {!Object} paymentRequest
+   * @param {!PayOptionsDef=} options
+   */
+  start(paymentRequest, options = {}) {
+    this.request_ = paymentRequest;
+
     if (options.forceRedirect) {
       paymentRequest = Object.assign(paymentRequest, {
         'forceRedirect': options.forceRedirect || false,
@@ -199,27 +161,35 @@ export class PayClientBindingPayjs {
       'disableNative',
       // The page cannot be iframed at this time. May be relaxed later
       // for AMP and similar contexts.
-      this.win_ != this.top_() ||
-        // Experiment must be enabled.
-        !isExperimentOn(this.win_, ExperimentFlags.GPAY_NATIVE)
+      this.win_ != this.top_()
     );
     // Notice that the callback for verifier may execute asynchronously.
     this.redirectVerifierHelper_.useVerifier(verifier => {
       if (verifier) {
         setInternalParam(paymentRequest, 'redirectVerifier', verifier);
       }
-      this.client_.loadPaymentData(paymentRequest);
+      if (options.forceRedirect) {
+        const client = this.client_;
+        this.win_.setTimeout(
+          () => client.loadPaymentData(paymentRequest),
+          REDIRECT_DELAY
+        );
+      } else {
+        this.client_.loadPaymentData(paymentRequest);
+      }
     });
   }
 
-  /** @override */
+  /**
+   * @param {function(!Promise<!Object>)} callback
+   */
   onResponse(callback) {
     this.responseCallback_ = callback;
     const response = this.response_;
     if (response) {
       Promise.resolve().then(() => {
         if (response) {
-          callback(this.convertResponse_(response));
+          callback(this.convertResponse_(response, this.request_));
         }
       });
     }
@@ -232,22 +202,37 @@ export class PayClientBindingPayjs {
   handleResponse_(responsePromise) {
     this.response_ = responsePromise;
     if (this.responseCallback_) {
-      this.responseCallback_(this.convertResponse_(this.response_));
+      this.responseCallback_(
+        this.convertResponse_(this.response_, this.request_)
+      );
     }
   }
 
   /**
    * @param {!Promise<!Object>} response
+   * @param {?Object} request
    * @return {!Promise<!Object>}
    * @private
    */
-  convertResponse_(response) {
-    return response.catch(reason => {
-      if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
-        return Promise.reject(createCancelError(this.win_));
-      }
-      return Promise.reject(reason);
-    });
+  convertResponse_(response, request) {
+    return response
+      .then(
+        // Temporary client side solution to remember the
+        // input params. TODO: Remove this once server-side
+        // input preservation is done and is part of the response.
+        res => {
+          if (request) {
+            res['paymentRequest'] = request;
+          }
+          return res;
+        }
+      )
+      .catch(reason => {
+        if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
+          return Promise.reject(createCancelError(this.win_));
+        }
+        return Promise.reject(reason);
+      });
   }
 
   /**
@@ -445,9 +430,4 @@ function setInternalParam(paymentRequest, param, value) {
   paymentRequest['i'] = Object.assign(paymentRequest['i'] || {}, {
     [param]: value,
   });
-}
-
-// TODO(dvoytenko, #406): Remove once GPay API is supported.
-export function getPayjsBindingForTesting() {
-  return PayClientBindingPayjs;
 }

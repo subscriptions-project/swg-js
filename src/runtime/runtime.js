@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsMode} from '../api/subscriptions';
+import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
-import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Callbacks} from './callbacks';
+import {ClientEventManager} from './client-event-manager';
 import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {DepsDef} from './deps';
@@ -30,46 +33,46 @@ import {Fetcher, XhrFetcher} from './fetcher';
 import {JsError} from './jserror';
 import {
   LinkCompleteFlow,
-  LinkbackFlow,
   LinkSaveFlow,
+  LinkbackFlow,
 } from './link-accounts-flow';
-import {LoginPromptApi} from './login-prompt-api';
+import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
-import {PayClient} from './pay-client';
-import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
+import {LoginPromptApi} from './login-prompt-api';
 import {OffersApi} from './offers-api';
-import {OffersFlow, SubscribeOptionFlow, AbbrvOfferFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {
   PageConfigResolver,
   getControlFlag,
 } from '../model/page-config-resolver';
-import {PayStartFlow, PayCompleteFlow} from './pay-flow';
+import {PayClient} from './pay-client';
+import {PayCompleteFlow, PayStartFlow} from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
-import {Storage} from './storage';
 import {
+  ProductType,
   Subscriptions,
   WindowOpenMode,
   defaultConfig,
-  ProductType,
 } from '../api/subscriptions';
+import {Propensity} from './propensity';
+import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
+import {Storage} from './storage';
+import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
+import {assert} from '../utils/log';
 import {debugLog} from '../utils/log';
 import {injectStyleSheet, isEdgeBrowser} from '../utils/dom';
 import {isArray} from '../utils/types';
+import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {setExperiment} from './experiments';
-import {AnalyticsService} from './analytics-service';
-import {AnalyticsMode} from '../api/subscriptions';
-import {Propensity} from './propensity';
-import {ClientEventManager} from './client-event-manager';
-import {Logger} from './logger';
-import {assert} from '../utils/log';
-import {isBoolean} from '../utils/types';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
 
-/** @private {!Runtime} */
+/**
+ * Reference to the runtime, for testing.
+ * @private {!Runtime}
+ */
 let runtimeInstance_;
 
 /**
@@ -84,43 +87,52 @@ export function getRuntime() {
 }
 
 /**
+ * Installs SwG runtime.
  * @param {!Window} win
  */
 export function installRuntime(win) {
+  // Only install the SwG runtime once.
   if (win[RUNTIME_PROP] && !isArray(win[RUNTIME_PROP])) {
     return;
   }
 
+  // Create a SwG runtime.
   const runtime = new Runtime(win);
 
-  const waitingArray = [].concat(win[RUNTIME_PROP], win[RUNTIME_LEGACY_PROP]);
-
-  // Public runtime.
+  // Create a public version of the SwG runtime.
   const publicRuntime = createPublicRuntime(runtime);
 
-  const dependencyInstaller = {};
-
   /**
+   * Executes a callback when SwG runtime is ready.
    * @param {function(!Subscriptions)} callback
    */
-  function pushDependency(callback) {
+  function callWhenRuntimeIsReady(callback) {
     if (!callback) {
       return;
     }
+
     runtime.whenReady().then(() => {
       callback(publicRuntime);
     });
   }
-  Object.defineProperty(dependencyInstaller, 'push', {
-    get: () => pushDependency,
-    configurable: false,
-  });
-  win[RUNTIME_PROP] = dependencyInstaller;
-  win[RUNTIME_LEGACY_PROP] = dependencyInstaller;
-  if (waitingArray) {
-    waitingArray.forEach(pushDependency);
-  }
+
+  // Queue up any callbacks the publication might have provided.
+  const waitingCallbacks = [].concat(
+    win[RUNTIME_PROP],
+    win[RUNTIME_LEGACY_PROP]
+  );
+  waitingCallbacks.forEach(callWhenRuntimeIsReady);
+
+  // If any more callbacks are `push`ed to the global SwG variables,
+  // they'll be queued up to receive the SwG runtime when it's ready.
+  win[RUNTIME_PROP] = win[RUNTIME_LEGACY_PROP] = {
+    push: callWhenRuntimeIsReady,
+  };
+
+  // Set variable for testing.
   runtimeInstance_ = runtime;
+
+  // Kick off subscriptions flow.
   runtime.startSubscriptionsFlowIfNeeded();
 }
 
@@ -717,7 +729,20 @@ export class ConfiguredRuntime {
   getEntitlements(encryptedDocumentKey) {
     return this.entitlementsManager_
       .getEntitlements(encryptedDocumentKey)
-      .then(entitlements => entitlements.clone());
+      .then(entitlements => {
+        // Auto update internal things tracking the user's current SKU.
+        if (entitlements) {
+          try {
+            const skus = entitlements.entitlements.map(
+              entitlement => entitlement.getSku() || 'unknown subscriptionToken'
+            );
+            if (skus.length > 0) {
+              this.analyticsService_.setSku(skus.join(','));
+            }
+          } catch (ex) {}
+        }
+        return entitlements.clone();
+      });
   }
 
   /** @override */
@@ -776,10 +801,6 @@ export class ConfiguredRuntime {
 
   /** @override */
   showContributionOptions(options) {
-    assert(
-      isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
-      'Not yet launched!'
-    );
     return this.documentParsed_.then(() => {
       const flow = new ContributionsFlow(this, options);
       return flow.start();
@@ -883,11 +904,6 @@ export class ConfiguredRuntime {
 
   /** @override */
   contribute(skuOrSubscriptionRequest) {
-    assert(
-      isExperimentOn(this.win_, ExperimentFlags.CONTRIBUTIONS),
-      'Not yet launched!'
-    );
-
     return this.documentParsed_.then(() => {
       return new PayStartFlow(
         this,

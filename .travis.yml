@@ -1,17 +1,15 @@
 language: node_js
-sudo: required  # See http://docs.travis-ci.com/user/trusty-ci-environment/
-dist: trusty
+dist: xenial
+services:
+  - xvfb
 node_js:
   - "lts/*"
 python:
   - "2.7"
 before_install:
-  - export DISPLAY=:99.0
-  - unset _JAVA_OPTIONS  # JVM heap sizes break closure compiler. #11203.
-  - sh -e /etc/init.d/xvfb start
-  # Install yarn
-  - curl -o- -L https://yarnpkg.com/install.sh | bash
-  - export PATH=$HOME/.yarn/bin:$PATH
+  # Override Xenial's default Java version (github.com/travis-ci/travis-ci/issues/10290)
+  - export PATH=$(echo "$PATH" | sed -e 's/:\/usr\/local\/lib\/jvm\/openjdk11\/bin//')
+  - export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 before_script:
   - export PATH="`pwd`/node_modules/.bin:$PATH"
 jobs:
@@ -20,11 +18,11 @@ jobs:
       name: 'Check'
       script:
         - gulp check
-    - stage: unit
+    - stage: test
       name: 'Unit Tests'
       script:
         - gulp unit --coverage
-    - stage: E2E
+    - # run unit tests and e2e tests parallel
       name: 'End to End Tests'
       script:
         - gulp e2e

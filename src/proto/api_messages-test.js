@@ -24,6 +24,7 @@ import {
     EntitlementsResponse,
     EventOriginator,
     EventParams,
+    FinishedLoggingResponse,
     LinkSaveTokenRequest,
     LinkingInfoResponse,
     SkuSelectedResponse,
@@ -191,6 +192,20 @@ describe('api_messages', () => {
     });
   });
 
+  describe('test_FinishedLoggingResponse', () => {
+    it('should deserialize correctly', () => {
+      const /** !FinishedLoggingResponse  */ finishedloggingresponse = new FinishedLoggingResponse();
+      finishedloggingresponse.setComplete(false);
+      finishedloggingresponse.setError('');
+      const finishedloggingresponseSerialized = finishedloggingresponse.toArray();
+      const finishedloggingresponseDeserialized = deserialize(
+          finishedloggingresponseSerialized);
+      expect(finishedloggingresponseDeserialized).to.not.be.null;
+      expect(isEqual(finishedloggingresponse.toArray(),
+          finishedloggingresponseDeserialized.toArray())).to.be.true;
+    });
+  });
+
   describe('test_LinkSaveTokenRequest', () => {
     it('should deserialize correctly', () => {
       const /** !LinkSaveTokenRequest  */ linksavetokenrequest = new LinkSaveTokenRequest();
@@ -223,6 +238,9 @@ describe('api_messages', () => {
       const /** !SkuSelectedResponse  */ skuselectedresponse = new SkuSelectedResponse();
       skuselectedresponse.setSku('');
       skuselectedresponse.setOldSku('');
+      skuselectedresponse.setOneTime(false);
+      skuselectedresponse.setPlayOffer('');
+      skuselectedresponse.setOldPlayOffer('');
       const skuselectedresponseSerialized = skuselectedresponse.toArray();
       const skuselectedresponseDeserialized = deserialize(
           skuselectedresponseSerialized);
@@ -271,4 +289,3 @@ describe('api_messages', () => {
     });
   });
 });
-
