@@ -21,12 +21,14 @@ import {
   AnalyticsRequest,
   EventOriginator,
   EventParams,
+  FinishedLoggingResponse,
 } from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
 import {getOnExperiments} from './experiments';
 import {getUuid} from '../utils/string';
+import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 
@@ -89,6 +91,12 @@ export class AnalyticsService {
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
     );
+
+    /** @private {!int} */
+    this.sent_ = 0;
+
+    /** @private {!Array<!function()>} */
+    this.loggingResolvers_ = [];
   }
 
   /**
@@ -189,6 +197,7 @@ export class AnalyticsService {
       this.serviceReady_ = this.activityPorts_
         .openIframe(this.iframe_, this.src_, this.args_)
         .then(port => {
+          port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
           this.setContext_();
           return port.whenReady().then(() => port);
         });
@@ -288,7 +297,38 @@ export class AnalyticsService {
     this.lastAction_ = this.start().then(port => {
       const request = this.createLogRequest_(event);
       this.everLogged_ = true;
+      this.sent_++;
       port.execute(request);
+    });
+  }
+
+  /**
+   * @param {!FinishedLoggingResponse} response
+   */
+  afterLogging_(response) {
+    const success = response.getComplete();
+    if (!success) {
+      log('Error when logging:' + response.getError());
+    }
+
+    this.sent_--;
+    if (this.sent_ === 0) {
+      for (let i = 0; i < this.loggingResolvers_.length; i++) {
+        this.loggingResolvers_[i](success);
+      }
+      this.loggingResolvers_ = [];
+    }
+  }
+
+  /**
+   * @return {!Promise}
+   */
+  getLoggingPromise() {
+    if (this.sent_ === 0) {
+      return Promise.resolve(true);
+    }
+    return new Promise(resolve => {
+      this.loggingResolvers_.push(resolve);
     });
   }
 }
