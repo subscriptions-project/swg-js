@@ -413,16 +413,4 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(analyticsService.getHasLogged()).to.be.true;
     });
   });
-
-  describe('Logging promise', () => {
-    it('should create a valid logging promise', () => {
-      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      eventManagerCallback({
-        eventType: AnalyticsEvent.UNKNOWN,
-        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
-      });
-    });
-  });
 });
