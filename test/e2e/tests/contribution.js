@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
-
-/**
- * @fileoverview Global settings for all tests.
- */
-const childProcess = require('child_process');
-const {startServer, stopServer} = require('../../build-system/tasks/serve');
 
 module.exports = {
-  before: function() {
-    startServer();
-  },
-  after: function() {
-    // Chromedriver does not automatically exit after test ends.
-    childProcess.exec('pkill chromedriver');
+  '@tags': ['contribution'],
+  'Show contribution options': function(browser) {
+    const setup = browser.page.setup();
+    setup.navigate().select('local');
 
-    stopServer();
+    const login = browser.page.login();
+    login.navigate().login(browser);
+
+    const contribution = browser.page.contribution();
+    contribution
+      .navigate()
+      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
+      .end();
   },
-  // Let tests to continue if an assertion fails.
-  abortOnAssertionFailure: false,
 };
