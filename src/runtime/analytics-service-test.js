@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as Logs from '../utils/log';
 import {ActivityIframePort} from '../components/activities';
 import {
   AnalyticsEvent,
@@ -38,6 +39,8 @@ describes.realWin('AnalyticsService', {}, env => {
   let pageConfig;
   let runtime;
   let eventManagerCallback;
+  let pretendPortWorks;
+  let loggedErrors;
 
   const productId = 'pub1:label1';
   const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
@@ -62,14 +65,25 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.getElement(),
       feUrl(src)
     );
+    pretendPortWorks = true;
+    sandbox.stub(activityPorts, 'openIframe').callsFake(() => {
+      if (pretendPortWorks) {
+        return Promise.resolve(activityIframePort);
+      }
+      return Promise.reject('');
+    });
 
-    sandbox
-      .stub(activityPorts, 'openIframe')
-      .callsFake(() => Promise.resolve(activityIframePort));
+    sandbox.stub(activityIframePort, 'whenReady').callsFake(() => {
+      if (pretendPortWorks) {
+        return Promise.resolve(true);
+      }
+      return Promise.reject('');
+    });
 
-    sandbox
-      .stub(activityIframePort, 'whenReady')
-      .callsFake(() => Promise.resolve(true));
+    sandbox.stub(console, 'log').callsFake(error => {
+      loggedErrors.push(error);
+    });
+    loggedErrors = [];
   });
 
   afterEach(() => {
@@ -212,6 +226,43 @@ describes.realWin('AnalyticsService', {}, env => {
       // Ensure it is done waiting
       await p;
       await analyticsService.getLoggingPromise();
+      expect(loggedErrors.length).to.equal(0);
+    });
+  });
+
+  describe('Promise to log when things are broken', () => {
+    beforeEach(() => {
+      // This ensure nothing gets sent to the server.
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+    });
+
+    it('should not wait forever when port is broken', async function() {
+      pretendPortWorks = false;
+      // This sends another event and waits for it to be sent
+      eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      });
+      await analyticsService.getLoggingPromise();
+      expect(loggedErrors.length).to.equal(2);
+      expect(analyticsService.loggingBroken_).to.be.true;
+    });
+
+    it('should not wait forever when things seem functional', async function() {
+      // This sends another event and waits for it to be sent
+      eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      });
+      // Tests will not automatically inform analytics service when they are
+      // done logging the way a real setup would (no inner iframe for tests).
+      // So waiting should trigger a timeout error and resolve the promise.
+      await analyticsService.getLoggingPromise();
+      expect(loggedErrors.length).to.equal(1);
     });
   });
 

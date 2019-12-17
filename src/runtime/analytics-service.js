@@ -37,6 +37,14 @@ const iframeStyles = {
   display: 'none',
 };
 
+// We will wait up to 750 ms for the initial log event (iframe must load)
+const MAX_WAIT_BEFORE_LOAD = 750;
+
+// We will wait up to 100 ms for subsequent log events (which are messaged)
+// to the iframe code that's already loaded.
+const MAX_WAIT_AFTER_LOAD = 100;
+const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
+
 export class AnalyticsService {
   /**
    * @param {!./deps.DepsDef} deps
@@ -92,6 +100,8 @@ export class AnalyticsService {
       this.handleClientEvent_.bind(this)
     );
 
+    // This code creates a 'promise to log' that we can use to ensure all
+    // logging is finished prior to redirecting the page.
     /** @private {!number} */
     this.unfinishedLogs_ = 0;
 
@@ -100,6 +110,18 @@ export class AnalyticsService {
 
     /** @private {?Promise} */
     this.promiseToLog_ = null;
+
+    // If logging doesn't work don't force the user to wait
+    /** @private {!boolean} */
+    this.loggingBroken_ = false;
+
+    // If logging exceeds the timeouts (see const comments above) don't make
+    // the user wait too long.
+    /** @private {?number} */
+    this.timeout_ = null;
+
+    /** @private {!number} */
+    this.maxWait_ = MAX_WAIT_BEFORE_LOAD;
   }
 
   /**
@@ -199,11 +221,27 @@ export class AnalyticsService {
       this.doc_.getBody().appendChild(this.getElement());
       this.serviceReady_ = this.activityPorts_
         .openIframe(this.iframe_, this.src_, this.args_)
-        .then(port => {
-          port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
-          this.setContext_();
-          return port.whenReady().then(() => port);
-        });
+        .then(
+          port => {
+            // Register a listener for the logging to code indicate it is
+            // finished logging.
+            port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
+            this.setContext_();
+            return port.whenReady().then(() => {
+              //after the iframe loads we can reduce the max wait time
+              this.maxWait_ = MAX_WAIT_AFTER_LOAD;
+              return port;
+            });
+          },
+          message => {
+            // If the port doesn't open register that logging is broken so
+            // nothing is just waiting.
+            log('Error attempting to open logging port: ' + message);
+            this.loggingBroken_ = true;
+            // Ensure nothing is waiting for something that will never finish
+            this.afterLogging_();
+          }
+        );
     }
     return this.serviceReady_;
   }
@@ -297,25 +335,50 @@ export class AnalyticsService {
     ) {
       return;
     }
-    this.lastAction_ = this.start().then(port => {
-      const request = this.createLogRequest_(event);
-      this.everLogged_ = true;
-      this.unfinishedLogs_++;
-      port.execute(request);
-    });
+    // Register that we've logged and are waiting for something to finish logs
+    this.unfinishedLogs_++;
+    this.everLogged_ = true;
+    this.lastAction_ = this.start().then(
+      port => {
+        // The port should call this.afterLogging_ automatically.
+        port.execute(this.createLogRequest_(event));
+      },
+      message => {
+        // If we fail to get a port log that logging is broken and ensure
+        // nothing is waiting for it to finish.
+        log('Error attempting to log: ' + message);
+        this.loggingBroken_ = true;
+        // Ensure nothing is waiting for something that will never finish
+        this.afterLogging_();
+      }
+    );
   }
 
   /**
-   * @param {!FinishedLoggingResponse} response
+   * @param {FinishedLoggingResponse=} response
    */
   afterLogging_(response) {
-    const success = response.getComplete() || false;
+    const success = (response && response.getComplete()) || false;
+    const error = (response && response.getError()) || 'Unknown logging Error';
     if (!success) {
-      log('Error when logging:' + response.getError());
+      log('Error when logging:' + error);
     }
 
     this.unfinishedLogs_--;
-    if (this.unfinishedLogs_ === 0 && this.loggingResolver_ !== null) {
+    // Nothing is waiting
+    if (this.loggingResolver_ === null) {
+      return;
+    }
+
+    if (
+      this.unfinishedLogs_ === 0 || // All logs finished
+      this.loggingBroken_ || // Logs will never finished
+      error === TIMEOUT_ERROR // Someone waited too long for logging to finish
+    ) {
+      if (this.timeout_ !== null) {
+        clearTimeout(this.timeout_);
+        this.timeout_ = null;
+      }
       this.loggingResolver_(success);
       this.promiseToLog_ = null;
       this.loggingResolver_ = null;
@@ -323,17 +386,33 @@ export class AnalyticsService {
   }
 
   /**
+   * Please note that logs sent after getLoggingPromise is called are not
+   * guaranteed to be finished when the promise is resolved.  You should call
+   * this function just prior to redirecting the page after SwG is finished
+   * logging.
    * @return {!Promise}
    */
   getLoggingPromise() {
-    if (this.unfinishedLogs_ === 0) {
+    if (this.unfinishedLogs_ === 0 || this.loggingBroken_) {
       return Promise.resolve(true);
     }
     if (this.promiseToLog_ === null) {
       this.promiseToLog_ = new Promise(resolve => {
         this.loggingResolver_ = resolve;
       });
+
+      // The promise above should not wait forever if things go wrong.  Let
+      // the user proceed!
+      const whenDone = this.afterLogging_.bind(this);
+      this.timeout_ = setTimeout(() => {
+        this.timeout_ = null;
+        const response = new FinishedLoggingResponse();
+        response.setComplete(false);
+        response.setError(TIMEOUT_ERROR);
+        whenDone(response);
+      }, this.maxWait_);
     }
+
     return this.promiseToLog_;
   }
 }
