@@ -15,6 +15,7 @@
  */
 'use strict';
 
+const argv = require('minimist')(process.argv.slice(2));
 const gulp = require('gulp');
 const nightwatch = require('gulp-nightwatch');
 const {build} = require('./builders');
@@ -25,6 +26,10 @@ async function e2e() {
   return gulp.src('gulpfile.js').pipe(
     nightwatch({
       configFile: 'test/e2e/nightwatch.json',
+      cliArgs: {
+        tag: argv.tag,
+        skiptags: argv.skiptags,
+      },
     })
   );
 }
@@ -33,3 +38,10 @@ module.exports = {
   e2e,
 };
 e2e.description = 'Run e2e tests';
+e2e.flags = {
+  'tag':
+    ' Filter test modules by tags. Only tests that have the specified will be' +
+    ' loaded',
+  'skiptags':
+    ' Skips tests that have the specified tag or tags (comma separated).',
+};

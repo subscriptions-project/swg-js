@@ -15,6 +15,7 @@
  */
 
 module.exports = {
+  '@tags': ['buyflow'],
   'Show offers Automatically for a logged in user': function(browser) {
     const setup = browser.page.setup();
     setup.navigate().select('local');
