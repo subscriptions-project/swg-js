@@ -361,7 +361,7 @@ export class AnalyticsService {
     const success = (response && response.getComplete()) || false;
     const error = (response && response.getError()) || 'Unknown logging Error';
     if (!success) {
-      log('Error when logging:' + error);
+      log('Error when logging: ' + error);
     }
 
     this.unfinishedLogs_--;

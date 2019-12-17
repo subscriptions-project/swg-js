@@ -230,9 +230,20 @@ describes.realWin('AnalyticsService', {}, env => {
   });
 
   describe('Promise to log when things are broken', () => {
+    let iframeCallback;
+
     beforeEach(() => {
       // This ensure nothing gets sent to the server.
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+
+      iframeCallback = null;
+      sandbox
+        .stub(activityIframePort, 'on')
+        .callsFake((constructor, callback) => {
+          if (constructor === FinishedLoggingResponse) {
+            iframeCallback = callback;
+          }
+        });
     });
 
     it('should not wait forever when port is broken', async function() {
@@ -262,6 +273,26 @@ describes.realWin('AnalyticsService', {}, env => {
       // So waiting should trigger a timeout error and resolve the promise.
       await analyticsService.getLoggingPromise();
       expect(loggedErrors.length).to.equal(1);
+    });
+
+    it('should report error with log', async function() {
+      const err = 'Fake error';
+      eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      });
+      const loggingResponse = new FinishedLoggingResponse();
+      loggingResponse.setComplete(false);
+      loggingResponse.setError(err);
+      await analyticsService.lastAction_;
+      await activityIframePort.whenReady();
+      const p = analyticsService.getLoggingPromise();
+      iframeCallback(loggingResponse);
+      await p;
+      expect(loggedErrors.length).to.equal(1);
+      expect(loggedErrors[0]).to.equal('Error when logging: ' + err);
     });
   });
 
