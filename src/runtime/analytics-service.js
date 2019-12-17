@@ -93,10 +93,13 @@ export class AnalyticsService {
     );
 
     /** @private {!number} */
-    this.sent_ = 0;
+    this.unfinishedLogs_ = 0;
 
-    /** @private {!Array<!function(boolean)>} */
-    this.loggingResolvers_ = [];
+    /** @private {?function(boolean)} */
+    this.loggingResolver_ = null;
+
+    /** @private {?Promise} */
+    this.promiseToLog_ = null;
   }
 
   /**
@@ -297,7 +300,7 @@ export class AnalyticsService {
     this.lastAction_ = this.start().then(port => {
       const request = this.createLogRequest_(event);
       this.everLogged_ = true;
-      this.sent_++;
+      this.unfinishedLogs_++;
       port.execute(request);
     });
   }
@@ -311,12 +314,11 @@ export class AnalyticsService {
       log('Error when logging:' + response.getError());
     }
 
-    this.sent_--;
-    if (this.sent_ === 0) {
-      for (let i = 0; i < this.loggingResolvers_.length; i++) {
-        this.loggingResolvers_[i](success);
-      }
-      this.loggingResolvers_ = [];
+    this.unfinishedLogs_--;
+    if (this.unfinishedLogs_ === 0 && this.loggingResolver_ !== null) {
+      this.loggingResolver_(success);
+      this.promiseToLog_ = null;
+      this.loggingResolver_ = null;
     }
   }
 
@@ -324,11 +326,14 @@ export class AnalyticsService {
    * @return {!Promise}
    */
   getLoggingPromise() {
-    if (this.sent_ === 0) {
+    if (this.unfinishedLogs_ === 0) {
       return Promise.resolve(true);
     }
-    return new Promise(resolve => {
-      this.loggingResolvers_.push(resolve);
-    });
+    if (this.promiseToLog_ === null) {
+      this.promiseToLog_ = new Promise(resolve => {
+        this.loggingResolver_ = resolve;
+      });
+    }
+    return this.promiseToLog_;
   }
 }
