@@ -92,10 +92,10 @@ export class AnalyticsService {
       this.handleClientEvent_.bind(this)
     );
 
-    /** @private {!int} */
+    /** @private {!number} */
     this.sent_ = 0;
 
-    /** @private {!Array<!function()>} */
+    /** @private {!Array<!function(boolean)>} */
     this.loggingResolvers_ = [];
   }
 
@@ -306,7 +306,7 @@ export class AnalyticsService {
    * @param {!FinishedLoggingResponse} response
    */
   afterLogging_(response) {
-    const success = response.getComplete();
+    const success = response.getComplete() || false;
     if (!success) {
       log('Error when logging:' + response.getError());
     }
