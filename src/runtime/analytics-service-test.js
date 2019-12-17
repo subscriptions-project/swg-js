@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as Logs from '../utils/log';
 import {ActivityIframePort} from '../components/activities';
 import {
   AnalyticsEvent,
