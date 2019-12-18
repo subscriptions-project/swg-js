@@ -144,7 +144,12 @@ export class PayStartFlow {
     }
 
     // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SUBSCRIBE, req);
+    const flow =
+      this.productType_ == ProductType.UI_CONTRIBUTION
+        ? SubscriptionFlows.CONTRIBUTE
+        : SubscriptionFlows.SUBSCRIBE;
+
+    this.deps_.callbacks().triggerFlowStarted(flow, req);
     if (req.oldSku) {
       this.analyticsService_.setSku(req.oldSku);
     }
