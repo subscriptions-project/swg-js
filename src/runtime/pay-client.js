@@ -24,7 +24,6 @@ import {isExperimentOn} from './experiments';
 
 const PAY_REQUEST_ID = 'swg-pay';
 const GPAY_ACTIVITY_REQUEST = 'GPAY';
-const REDIRECT_DELAY = 250;
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
 /**
@@ -79,13 +78,13 @@ export class PayClient {
       ? new PayClientBindingPayjs(
           this.win_,
           this.activityPorts_,
-          // Generates a new Google Transaction ID.
-          deps.analytics().getTransactionId()
+          deps.analytics()
         )
       : new PayClientBindingSwg(
           this.win_,
           this.activityPorts_,
-          this.dialogManager_
+          this.dialogManager_,
+          deps.analytics()
         );
   }
 
@@ -157,14 +156,17 @@ class PayClientBindingSwg {
    * @param {!Window} win
    * @param {!../components/activities.ActivityPorts} activityPorts
    * @param {!../components/dialog-manager.DialogManager} dialogManager
+   * @param {!./analytics-service.AnalyticsService} analyticsService
    */
-  constructor(win, activityPorts, dialogManager) {
+  constructor(win, activityPorts, dialogManager, analyticsService) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = activityPorts;
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = dialogManager;
+    /** @private @const {!./analytics-service.AnalyticsService} */
+    this.analytics_ = analyticsService;
   }
 
   /** @override */
@@ -179,10 +181,9 @@ class PayClientBindingSwg {
       // logs get sent to the server.  Ultimately we need a logging promise to
       // resolve prior to redirecting but that is not possible right now.
       const start = this.start_.bind(this);
-      this.win_.setTimeout(
-        () => start(paymentRequest, options),
-        REDIRECT_DELAY
-      );
+      this.analytics_
+        .getLoggingPromise()
+        .then(() => start(paymentRequest, options));
     } else {
       this.start_(paymentRequest, options);
     }
@@ -263,9 +264,9 @@ export class PayClientBindingPayjs {
   /**
    * @param {!Window} win
    * @param {!../components/activities.ActivityPorts} activityPorts
-   * @param {!string} googleTransactionId
+   * @param {!./analytics-service.AnalyticsService} analyticsService
    */
-  constructor(win, activityPorts, googleTransactionId) {
+  constructor(win, activityPorts, analyticsService) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private @const {!../components/activities.ActivityPorts} */
@@ -280,6 +281,9 @@ export class PayClientBindingPayjs {
     /** @private {?Promise<!Object>} */
     this.response_ = null;
 
+    /** @private @const {!./analytics-service.AnalyticsService} */
+    this.analytics_ = analyticsService;
+
     /** @private @const {!RedirectVerifierHelper} */
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
 
@@ -291,7 +295,7 @@ export class PayClientBindingPayjs {
           'redirectKey': this.redirectVerifierHelper_.restoreKey(),
         },
       },
-      googleTransactionId,
+      analyticsService.getTransactionId(),
       this.handleResponse_.bind(this)
     );
 
@@ -346,10 +350,9 @@ export class PayClientBindingPayjs {
       }
       if (options.forceRedirect) {
         const client = this.client_;
-        this.win_.setTimeout(
-          () => client.loadPaymentData(paymentRequest),
-          REDIRECT_DELAY
-        );
+        this.analytics_
+          .getLoggingPromise()
+          .then(() => client.loadPaymentData(paymentRequest));
       } else {
         this.client_.loadPaymentData(paymentRequest);
       }

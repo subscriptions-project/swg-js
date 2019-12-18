@@ -413,11 +413,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       return googleTransactionId;
     });
 
-    payClient = new PayClientBindingPayjs(
-      win,
-      activityPorts,
-      googleTransactionId
-    );
+    payClient = new PayClientBindingPayjs(win, activityPorts, analyticsService);
 
     resultStub = sandbox.stub();
     payClient.onResponse(resultStub);
