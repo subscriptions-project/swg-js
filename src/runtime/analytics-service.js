@@ -45,6 +45,18 @@ const MAX_WAIT_BEFORE_LOAD = 750;
 const MAX_WAIT_AFTER_LOAD = 100;
 const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
 
+/**
+ *
+ * @param {!string} error
+ * @param {boolean=} success
+ */
+function createResponse(error, success = false) {
+  const response = new FinishedLoggingResponse();
+  response.setComplete(success);
+  response.setError(error);
+  return response;
+}
+
 export class AnalyticsService {
   /**
    * @param {!./deps.DepsDef} deps
@@ -236,10 +248,10 @@ export class AnalyticsService {
           message => {
             // If the port doesn't open register that logging is broken so
             // nothing is just waiting.
-            log('Error attempting to open logging port: ' + message);
             this.loggingBroken_ = true;
-            // Ensure nothing is waiting for something that will never finish
-            this.afterLogging_();
+            this.afterLogging_(
+              createResponse('Could not connect [' + message + ']')
+            );
           }
         );
     }
@@ -335,26 +347,15 @@ export class AnalyticsService {
     ) {
       return;
     }
-    // Register that we've logged and are waiting for something to finish logs
+    // Register we sent a log, the port will call this.afterLogging_ when done.
     this.unfinishedLogs_++;
     this.everLogged_ = true;
-    this.lastAction_ = this.start().then(
-      port => {
-        // The port should call this.afterLogging_ automatically.
-        port.execute(this.createLogRequest_(event));
-      },
-      message => {
-        // If we fail to get a port log that logging is broken and ensure
-        // nothing is waiting for it to finish.
-        log('Error attempting to log: ' + message);
-        this.loggingBroken_ = true;
-        // Ensure nothing is waiting for something that will never finish
-        this.afterLogging_();
-      }
-    );
+    const request = this.createLogRequest_(event);
+    this.lastAction_ = this.start().then(port => port.execute(request));
   }
 
   /**
+   * This function is called by the iframe after it sends the log to the server.
    * @param {FinishedLoggingResponse=} response
    */
   afterLogging_(response) {
@@ -406,10 +407,7 @@ export class AnalyticsService {
       const whenDone = this.afterLogging_.bind(this);
       this.timeout_ = setTimeout(() => {
         this.timeout_ = null;
-        const response = new FinishedLoggingResponse();
-        response.setComplete(false);
-        response.setError(TIMEOUT_ERROR);
-        whenDone(response);
+        whenDone(createResponse(TIMEOUT_ERROR));
       }, this.maxWait_);
     }
 

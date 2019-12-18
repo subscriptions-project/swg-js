@@ -69,15 +69,12 @@ describes.realWin('AnalyticsService', {}, env => {
       if (pretendPortWorks) {
         return Promise.resolve(activityIframePort);
       }
-      return Promise.reject('');
+      return Promise.reject('Could not open iframe');
     });
 
-    sandbox.stub(activityIframePort, 'whenReady').callsFake(() => {
-      if (pretendPortWorks) {
-        return Promise.resolve(true);
-      }
-      return Promise.reject('');
-    });
+    sandbox
+      .stub(activityIframePort, 'whenReady')
+      .callsFake(() => Promise.resolve(true));
 
     sandbox.stub(console, 'log').callsFake(error => {
       loggedErrors.push(error);
@@ -256,7 +253,7 @@ describes.realWin('AnalyticsService', {}, env => {
         additionalParameters: null,
       });
       await analyticsService.getLoggingPromise();
-      expect(loggedErrors.length).to.equal(2);
+      expect(loggedErrors.length).to.equal(1);
       expect(analyticsService.loggingBroken_).to.be.true;
     });
 
