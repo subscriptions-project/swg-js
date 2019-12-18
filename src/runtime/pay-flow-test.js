@@ -169,7 +169,11 @@ describes.realWin('PayStartFlow', {}, env => {
       skuId: 'sku1',
       publicationId: 'pub1',
     };
-    const flow = new PayStartFlow(runtime, subscriptionRequest, ProductType.UI_CONTRIBUTION);
+    const flow = new PayStartFlow(
+      runtime,
+      subscriptionRequest,
+      ProductType.UI_CONTRIBUTION
+    );
     callbacksMock
       .expects('triggerFlowStarted')
       .withExactArgs('contribute', subscriptionRequest)
