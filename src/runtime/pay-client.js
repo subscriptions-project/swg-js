@@ -95,7 +95,7 @@ export class PayClient {
         },
       },
       // Generates a new Google Transaction ID.
-      deps.analytics().getTransactionId()
+      deps.analytics().getTransactionId(),
       this.handleResponse_.bind(this)
     );
 
