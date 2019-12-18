@@ -48,7 +48,7 @@ const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
  */
 function createErrorResponse(error) {
   const response = new FinishedLoggingResponse();
-  response.setComplete(true);
+  response.setComplete(false);
   response.setError(error);
   return response;
 }
