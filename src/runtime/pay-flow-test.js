@@ -164,6 +164,51 @@ describes.realWin('PayStartFlow', {}, env => {
     await expect(flowPromise).to.eventually.be.undefined;
   });
 
+  it('should trigger the contribution flow if given contribution productType', async () => {
+    const subscriptionRequest = {
+      skuId: 'sku1',
+      publicationId: 'pub1',
+    };
+    const flow = new PayStartFlow(
+      runtime,
+      subscriptionRequest,
+      ProductType.UI_CONTRIBUTION
+    );
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('contribute', subscriptionRequest)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    payClientMock
+      .expects('start')
+      .withExactArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': subscriptionRequest,
+          'i': {
+            'startTimeMs': sandbox.match.any,
+            'productType': sandbox.match(productTypeRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+        }
+      )
+      .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('sku1')
+      );
+    const flowPromise = flow.start();
+    await expect(flowPromise).to.eventually.be.undefined;
+  });
+
   it('should have valid flow constructed for one time', async () => {
     const subscriptionRequest = {
       skuId: 'newSku',
