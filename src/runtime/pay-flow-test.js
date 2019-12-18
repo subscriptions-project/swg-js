@@ -165,14 +165,14 @@ describes.realWin('PayStartFlow', {}, env => {
   });
 
   it('should trigger the contribution flow if given contribution productType', async () => {
-    const subscribeRequest = {
+    const subscriptionRequest = {
       skuId: 'sku1',
       publicationId: 'pub1',
-      productType: ProductType.UI_CONTRIBUTION,
     };
+    const flow = new PayStartFlow(runtime, subscriptionRequest, ProductType.UI_CONTRIBUTION);
     callbacksMock
       .expects('triggerFlowStarted')
-      .withExactArgs('contribute', {skuId: 'sku1'})
+      .withExactArgs('contribute', subscriptionRequest)
       .once();
     callbacksMock.expects('triggerFlowCanceled').never();
     payClientMock
@@ -183,7 +183,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
-          'swg': subscribeRequest,
+          'swg': subscriptionRequest,
           'i': {
             'startTimeMs': sandbox.match.any,
             'productType': sandbox.match(productTypeRegex),
