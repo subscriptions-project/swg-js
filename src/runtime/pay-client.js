@@ -113,9 +113,10 @@ export class PayClient {
   /**
    * @param {!Object} paymentRequest
    * @param {!PayOptionsDef=} options
+   * @return {!Promise}
    */
   start(paymentRequest, options = {}) {
-    this.binding_.start(paymentRequest, options);
+    return this.binding_.start(paymentRequest, options);
   }
 
   /**
@@ -139,6 +140,7 @@ class PayClientBindingDef {
   /**
    * @param {!Object} unusedPaymentRequest
    * @param {!PayOptionsDef} unusedOptions
+   * @return {!Promise}
    */
   start(unusedPaymentRequest, unusedOptions) {}
 
@@ -181,11 +183,12 @@ class PayClientBindingSwg {
       // logs get sent to the server.  Ultimately we need a logging promise to
       // resolve prior to redirecting but that is not possible right now.
       const start = this.start_.bind(this);
-      this.analytics_
+      return this.analytics_
         .getLoggingPromise()
         .then(() => start(paymentRequest, options));
     } else {
       this.start_(paymentRequest, options);
+      return Promise.resolve(true);
     }
   }
 
@@ -343,6 +346,8 @@ export class PayClientBindingPayjs {
       // for AMP and similar contexts.
       this.win_ != this.top_()
     );
+    let resolver = null;
+    const promise = new Promise(resolve => (resolver = resolve));
     // Notice that the callback for verifier may execute asynchronously.
     this.redirectVerifierHelper_.useVerifier(verifier => {
       if (verifier) {
@@ -350,13 +355,17 @@ export class PayClientBindingPayjs {
       }
       if (options.forceRedirect) {
         const client = this.client_;
-        this.analytics_
-          .getLoggingPromise()
-          .then(() => client.loadPaymentData(paymentRequest));
+
+        return this.analytics_.getLoggingPromise().then(() => {
+          client.loadPaymentData(paymentRequest);
+          resolver(true);
+        });
       } else {
         this.client_.loadPaymentData(paymentRequest);
+        resolver(true);
       }
     });
+    return promise;
   }
 
   /** @override */
