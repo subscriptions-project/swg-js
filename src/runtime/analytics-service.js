@@ -37,12 +37,9 @@ const iframeStyles = {
   display: 'none',
 };
 
-// We will wait up to 750 ms for the initial log event (iframe must load)
-const MAX_WAIT_BEFORE_LOAD = 750;
-
 // We will wait up to 100 ms for subsequent log events (which are messaged)
 // to the iframe code that's already loaded.
-const MAX_WAIT_AFTER_LOAD = 100;
+const MAX_WAIT = 100;
 const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
 
 /**
@@ -131,9 +128,6 @@ export class AnalyticsService {
     // the user wait too long.
     /** @private {?number} */
     this.timeout_ = null;
-
-    /** @private {!number} */
-    this.maxWait_ = MAX_WAIT_BEFORE_LOAD;
   }
 
   /**
@@ -239,11 +233,7 @@ export class AnalyticsService {
             // finished logging.
             port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
             this.setContext_();
-            return port.whenReady().then(() => {
-              //after the iframe loads we can reduce the max wait time
-              this.maxWait_ = MAX_WAIT_AFTER_LOAD;
-              return port;
-            });
+            return port.whenReady().then(() => port);
           },
           message => {
             // If the port doesn't open register that logging is broken so
@@ -408,7 +398,7 @@ export class AnalyticsService {
       this.timeout_ = setTimeout(() => {
         this.timeout_ = null;
         whenDone(createResponse(TIMEOUT_ERROR));
-      }, this.maxWait_);
+      }, MAX_WAIT);
     }
 
     return this.promiseToLog_;
