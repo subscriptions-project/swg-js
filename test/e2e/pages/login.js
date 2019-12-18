@@ -28,8 +28,11 @@ const login = {
       .waitForElementPresent('@username')
       .setValue('@username', [constants.login.username, browser.Keys.ENTER])
       .assert.elementPresent('@profileIdentifier')
-      .waitForElementPresent('@password')
-      .pause(10000)
+      .waitForElementPresent({
+        selector: '@password',
+        retryInterval: 100,
+      })
+      .waitForElementVisible('@password')
       .setValue('@password', [constants.login.password, browser.Keys.ENTER])
       .assert.containsText('h1', 'Welcome');
   },

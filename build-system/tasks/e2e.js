@@ -29,6 +29,7 @@ async function e2e() {
       cliArgs: {
         tag: argv.tag,
         skiptags: argv.skiptags,
+        retries: argv.retries,
       },
     })
   );
@@ -44,4 +45,6 @@ e2e.flags = {
     ' loaded',
   'skiptags':
     ' Skips tests that have the specified tag or tags (comma separated).',
+  'retries':
+    ' Retries failed or errored testcases up to the specified number of times.',
 };
