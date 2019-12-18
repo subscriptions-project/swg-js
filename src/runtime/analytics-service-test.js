@@ -160,7 +160,7 @@ describes.realWin('AnalyticsService', {}, env => {
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
 
-      // These enusre the right event was communicated.
+      // These ensure the right event was communicated.
       expect(activityIframePort.execute).to.be.calledOnce;
       const /* {?AnalyticsRequest} */ requestSent = activityIframePort.execute.getCall(
           0

@@ -45,11 +45,10 @@ const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
 /**
  *
  * @param {!string} error
- * @param {boolean=} success
  */
-function createResponse(error, success = false) {
+function createErrorResponse(error) {
   const response = new FinishedLoggingResponse();
-  response.setComplete(success);
+  response.setComplete(true);
   response.setError(error);
   return response;
 }
@@ -240,7 +239,7 @@ export class AnalyticsService {
             // nothing is just waiting.
             this.loggingBroken_ = true;
             this.afterLogging_(
-              createResponse('Could not connect [' + message + ']')
+              createErrorResponse('Could not connect [' + message + ']')
             );
           }
         );
@@ -397,7 +396,7 @@ export class AnalyticsService {
       const whenDone = this.afterLogging_.bind(this);
       this.timeout_ = setTimeout(() => {
         this.timeout_ = null;
-        whenDone(createResponse(TIMEOUT_ERROR));
+        whenDone(createErrorResponse(TIMEOUT_ERROR));
       }, MAX_WAIT);
     }
 
