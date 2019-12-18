@@ -19,6 +19,7 @@ import {
   AnalyticsEvent,
   EventOriginator,
   EventParams,
+  FinishedLoggingResponse,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
@@ -36,7 +37,9 @@ describes.realWin('AnalyticsService', {}, env => {
   let analyticsService;
   let pageConfig;
   let runtime;
-  let registeredCallback;
+  let eventManagerCallback;
+  let pretendPortWorks;
+  let loggedErrors;
 
   const productId = 'pub1:label1';
   const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
@@ -50,7 +53,7 @@ describes.realWin('AnalyticsService', {}, env => {
   beforeEach(() => {
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
-      .callsFake(callback => (registeredCallback = callback));
+      .callsFake(callback => (eventManagerCallback = callback));
     win = env.win;
     src = '/serviceiframe';
     pageConfig = new PageConfig(productId);
@@ -61,14 +64,22 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.getElement(),
       feUrl(src)
     );
-
-    sandbox
-      .stub(activityPorts, 'openIframe')
-      .callsFake(() => Promise.resolve(activityIframePort));
+    pretendPortWorks = true;
+    sandbox.stub(activityPorts, 'openIframe').callsFake(() => {
+      if (pretendPortWorks) {
+        return Promise.resolve(activityIframePort);
+      }
+      return Promise.reject('Could not open iframe');
+    });
 
     sandbox
       .stub(activityIframePort, 'whenReady')
       .callsFake(() => Promise.resolve(true));
+
+    sandbox.stub(console, 'log').callsFake(error => {
+      loggedErrors.push(error);
+    });
+    loggedErrors = [];
   });
 
   afterEach(() => {
@@ -77,7 +88,7 @@ describes.realWin('AnalyticsService', {}, env => {
 
   describe('Construction', () => {
     it('should be listening for events from events manager', () => {
-      expect(registeredCallback).to.not.be.null;
+      expect(eventManagerCallback).to.not.be.null;
     });
 
     it('should have analyticsService constructed', () => {
@@ -97,6 +108,24 @@ describes.realWin('AnalyticsService', {}, env => {
   });
 
   describe('Communications', () => {
+    let iframeCallback;
+
+    beforeEach(() => {
+      iframeCallback = null;
+      sandbox
+        .stub(activityIframePort, 'on')
+        .callsFake((constructor, callback) => {
+          if (constructor === FinishedLoggingResponse) {
+            iframeCallback = callback;
+          }
+        });
+    });
+    afterEach(() => {
+      // Ensure that analytics service registers a callback to listen for when
+      // logging is finished.
+      expect(iframeCallback).to.not.be.null;
+    });
+
     it('should call openIframe after client event', () => {
       analyticsService.handleClientEvent_(event);
 
@@ -116,16 +145,22 @@ describes.realWin('AnalyticsService', {}, env => {
     });
 
     it('should send message on port and openIframe called only once', async () => {
+      // This ensure nothing gets sent to the server.
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      registeredCallback({
+
+      // This triggers an event.
+      eventManagerCallback({
         eventType: AnalyticsEvent.UNKNOWN,
         eventOriginator: EventOriginator.UNKNOWN_CLIENT,
         isFromUserAction: null,
         additionalParameters: null,
       });
 
+      // These wait for analytics server to be ready to send data.
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
+
+      // These ensure the right event was communicated.
       expect(activityIframePort.execute).to.be.calledOnce;
       const /* {?AnalyticsRequest} */ requestSent = activityIframePort.execute.getCall(
           0
@@ -135,17 +170,19 @@ describes.realWin('AnalyticsService', {}, env => {
         EventOriginator.UNKNOWN_CLIENT
       );
       expect(requestSent.getMeta().getIsFromUserAction()).to.be.null;
-      registeredCallback({
+
+      // This sends another event and waits for it to be sent
+      eventManagerCallback({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: true,
         additionalParameters: {droppedData: true},
       });
-
       await analyticsService.lastAction_;
+
+      // This ensures communications were successful
       expect(activityPorts.openIframe).to.have.been.calledOnce;
       const firstArgument = activityPorts.openIframe.getCall(0).args[0];
-      expect(activityPorts.openIframe).to.have.been.calledOnce;
       expect(firstArgument.nodeName).to.equal('IFRAME');
       const secondArgument = activityPorts.openIframe.getCall(0).args[1];
       expect(secondArgument).to.equal(feUrl(src));
@@ -165,13 +202,101 @@ describes.realWin('AnalyticsService', {}, env => {
       );
       expect(meta.getEventOriginator()).to.equal(EventOriginator.SWG_CLIENT);
       expect(meta.getIsFromUserAction()).to.be.true;
+
+      // It should have a working logging promise
+      const p = analyticsService.getLoggingPromise();
+
+      // It should be waiting for 2 logging responses
+      expect(p).to.not.deep.equal(Promise.resolve());
+      const loggingResponse = new FinishedLoggingResponse();
+      loggingResponse.setComplete(true);
+      // Simulate 1 logging response
+      iframeCallback(loggingResponse);
+
+      // It should still be waiting for 1
+      expect(analyticsService.getLoggingPromise()).to.not.deep.equal(
+        Promise.resolve()
+      );
+      iframeCallback(loggingResponse);
+
+      // Ensure it is done waiting
+      await p;
+      await analyticsService.getLoggingPromise();
+      expect(loggedErrors.length).to.equal(0);
+    });
+  });
+
+  describe('Promise to log when things are broken', () => {
+    let iframeCallback;
+
+    beforeEach(() => {
+      // This ensure nothing gets sent to the server.
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+
+      iframeCallback = null;
+      sandbox
+        .stub(activityIframePort, 'on')
+        .callsFake((constructor, callback) => {
+          if (constructor === FinishedLoggingResponse) {
+            iframeCallback = callback;
+          }
+        });
+    });
+
+    it('should not wait forever when port is broken', async function() {
+      pretendPortWorks = false;
+      // This sends another event and waits for it to be sent
+      eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      });
+      await analyticsService.getLoggingPromise();
+      expect(loggedErrors.length).to.equal(1);
+      expect(analyticsService.loggingBroken_).to.be.true;
+    });
+
+    it('should not wait forever when things seem functional', async function() {
+      // This sends another event and waits for it to be sent
+      eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      });
+      // Tests will not automatically inform analytics service when they are
+      // done logging the way a real setup would (no inner iframe for tests).
+      // So waiting should trigger a timeout error and resolve the promise.
+      await analyticsService.getLoggingPromise();
+      expect(loggedErrors.length).to.equal(1);
+    });
+
+    it('should report error with log', async function() {
+      const err = 'Fake error';
+      eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      });
+      const loggingResponse = new FinishedLoggingResponse();
+      loggingResponse.setComplete(false);
+      loggingResponse.setError(err);
+      await analyticsService.lastAction_;
+      await activityIframePort.whenReady();
+      const p = analyticsService.getLoggingPromise();
+      iframeCallback(loggingResponse);
+      await p;
+      expect(loggedErrors.length).to.equal(1);
+      expect(loggedErrors[0]).to.equal('Error when logging: ' + err);
     });
   });
 
   it('should not log the subscription state change event', () => {
     analyticsService.lastAction_ = null;
     event.eventType = AnalyticsEvent.EVENT_SUBSCRIPTION_STATE;
-    registeredCallback(event);
+    eventManagerCallback(event);
     expect(analyticsService.lastAction_).to.be.null;
     event.eventType = defEventType;
   });
@@ -187,7 +312,7 @@ describes.realWin('AnalyticsService', {}, env => {
       };
       analyticsService.setReadyToPay(true);
       analyticsService.setSku('basic');
-      registeredCallback(event);
+      eventManagerCallback(event);
 
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
@@ -214,7 +339,7 @@ describes.realWin('AnalyticsService', {}, env => {
     it('should set context for empty experiments', async () => {
       setExperimentsStringForTesting('');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      registeredCallback(event);
+      eventManagerCallback(event);
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
@@ -228,7 +353,7 @@ describes.realWin('AnalyticsService', {}, env => {
     it('should set context for non-empty experiments', async () => {
       setExperimentsStringForTesting('experiment-A,experiment-B');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      registeredCallback(event);
+      eventManagerCallback(event);
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
@@ -246,7 +371,7 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.addLabels(['L1', 'L2']);
       setExperimentsStringForTesting('E1,E2');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      registeredCallback(event);
+      eventManagerCallback(event);
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       const /** {?AnalyticsRequest} */ request1 = activityIframePort.execute.getCall(
@@ -260,7 +385,7 @@ describes.realWin('AnalyticsService', {}, env => {
       ]);
 
       analyticsService.addLabels(['L3', 'L4']);
-      registeredCallback(event);
+      eventManagerCallback(event);
       await analyticsService.lastAction_;
       const /** {?AnalyticsRequest} */ request2 = activityIframePort.execute.getCall(
           1
@@ -306,7 +431,7 @@ describes.realWin('AnalyticsService', {}, env => {
       if (eventType) {
         event.eventType = eventType;
       }
-      registeredCallback(event);
+      eventManagerCallback(event);
       const didLog = analyticsService.lastAction_ !== null;
       expect(shouldLog).to.equal(didLog);
       event.eventOriginator = prevOriginator;

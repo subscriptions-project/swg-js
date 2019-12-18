@@ -21,12 +21,14 @@ import {
   AnalyticsRequest,
   EventOriginator,
   EventParams,
+  FinishedLoggingResponse,
 } from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
 import {getOnExperiments} from './experiments';
 import {getUuid} from '../utils/string';
+import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 
@@ -34,6 +36,22 @@ import {setImportantStyles} from '../utils/style';
 const iframeStyles = {
   display: 'none',
 };
+
+// We will wait up to 100 ms for subsequent log events (which are messaged)
+// to the iframe code that's already loaded.
+const MAX_WAIT = 100;
+const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
+
+/**
+ *
+ * @param {!string} error
+ */
+function createErrorResponse(error) {
+  const response = new FinishedLoggingResponse();
+  response.setComplete(false);
+  response.setError(error);
+  return response;
+}
 
 export class AnalyticsService {
   /**
@@ -89,6 +107,26 @@ export class AnalyticsService {
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
     );
+
+    // This code creates a 'promise to log' that we can use to ensure all
+    // logging is finished prior to redirecting the page.
+    /** @private {!number} */
+    this.unfinishedLogs_ = 0;
+
+    /** @private {?function(boolean)} */
+    this.loggingResolver_ = null;
+
+    /** @private {?Promise} */
+    this.promiseToLog_ = null;
+
+    // If logging doesn't work don't force the user to wait
+    /** @private {!boolean} */
+    this.loggingBroken_ = false;
+
+    // If logging exceeds the timeouts (see const comments above) don't make
+    // the user wait too long.
+    /** @private {?number} */
+    this.timeout_ = null;
   }
 
   /**
@@ -188,10 +226,23 @@ export class AnalyticsService {
       this.doc_.getBody().appendChild(this.getElement());
       this.serviceReady_ = this.activityPorts_
         .openIframe(this.iframe_, this.src_, this.args_)
-        .then(port => {
-          this.setContext_();
-          return port.whenReady().then(() => port);
-        });
+        .then(
+          port => {
+            // Register a listener for the logging to code indicate it is
+            // finished logging.
+            port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
+            this.setContext_();
+            return port.whenReady().then(() => port);
+          },
+          message => {
+            // If the port doesn't open register that logging is broken so
+            // nothing is just waiting.
+            this.loggingBroken_ = true;
+            this.afterLogging_(
+              createErrorResponse('Could not connect [' + message + ']')
+            );
+          }
+        );
     }
     return this.serviceReady_;
   }
@@ -285,10 +336,70 @@ export class AnalyticsService {
     ) {
       return;
     }
-    this.lastAction_ = this.start().then(port => {
-      const request = this.createLogRequest_(event);
-      this.everLogged_ = true;
-      port.execute(request);
-    });
+    // Register we sent a log, the port will call this.afterLogging_ when done.
+    this.unfinishedLogs_++;
+    this.everLogged_ = true;
+    const request = this.createLogRequest_(event);
+    this.lastAction_ = this.start().then(port => port.execute(request));
+  }
+
+  /**
+   * This function is called by the iframe after it sends the log to the server.
+   * @param {FinishedLoggingResponse=} response
+   */
+  afterLogging_(response) {
+    const success = (response && response.getComplete()) || false;
+    const error = (response && response.getError()) || 'Unknown logging Error';
+    if (!success) {
+      log('Error when logging: ' + error);
+    }
+
+    this.unfinishedLogs_--;
+    // Nothing is waiting
+    if (this.loggingResolver_ === null) {
+      return;
+    }
+
+    if (
+      this.unfinishedLogs_ === 0 || // All logs finished
+      this.loggingBroken_ || // Logs will never finished
+      error === TIMEOUT_ERROR // Someone waited too long for logging to finish
+    ) {
+      if (this.timeout_ !== null) {
+        clearTimeout(this.timeout_);
+        this.timeout_ = null;
+      }
+      this.loggingResolver_(success);
+      this.promiseToLog_ = null;
+      this.loggingResolver_ = null;
+    }
+  }
+
+  /**
+   * Please note that logs sent after getLoggingPromise is called are not
+   * guaranteed to be finished when the promise is resolved.  You should call
+   * this function just prior to redirecting the page after SwG is finished
+   * logging.
+   * @return {!Promise}
+   */
+  getLoggingPromise() {
+    if (this.unfinishedLogs_ === 0 || this.loggingBroken_) {
+      return Promise.resolve(true);
+    }
+    if (this.promiseToLog_ === null) {
+      this.promiseToLog_ = new Promise(resolve => {
+        this.loggingResolver_ = resolve;
+      });
+
+      // The promise above should not wait forever if things go wrong.  Let
+      // the user proceed!
+      const whenDone = this.afterLogging_.bind(this);
+      this.timeout_ = setTimeout(() => {
+        this.timeout_ = null;
+        whenDone(createErrorResponse(TIMEOUT_ERROR));
+      }, MAX_WAIT);
+    }
+
+    return this.promiseToLog_;
   }
 }
