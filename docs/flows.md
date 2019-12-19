@@ -18,7 +18,7 @@ limitations under the License.
 
 The [Subscriptions APIs](./core-apis.md) use cases be summarized in a few flows:
 
-1. [Entitlements flow](./entitlements-flow.md). This flow would notify the publication site when SwG believes that the reader is entitled to read the content, e.g. due to previously pruchased subscription.
+1. [Entitlements flow](./entitlements-flow.md). This flow would notify the publication site when SwG believes that the reader is entitled to read the content, e.g. due to a previously purchased subscription.
 2. [Subscribe flow](./subscribe-flow.md). This flow shows the payment form, accepts payment, records subscription and updates the reader's entitlements.
 3. [Deferred account creation flow](./deferred-account-flow.md). This flow allows the publisher site to continue account creation process for deferred subscriptions - subscriptions that the publisher doesn't have related account information/consent on their side. These kind of subscriptions could be created on other partner platforms.
 4. [Offers flow](./offers-flow.md). This flow allows the publication site to display numerous flow to purchase the subscription.
