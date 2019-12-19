@@ -118,8 +118,7 @@ export class PayStartFlow {
     if (prorationMode) {
       swgPaymentRequest['replaceSkuProrationMode'] =
         ReplaceSkuProrationModeMapping[prorationMode];
-    }
-    if (swgPaymentRequest['oldSku']) {
+    } else if (swgPaymentRequest['oldSku']) {
       swgPaymentRequest['replaceSkuProrationMode'] =
         ReplaceSkuProrationModeMapping['IMMEDIATE_WITH_TIME_PRORATION'];
     }
