@@ -177,9 +177,14 @@ export class Callbacks {
   triggerPaymentResponse(responsePromise) {
     this.paymentResponsePromise_ = responsePromise.then(
       res => {
-        this.trigger_(CallbackId.PAYMENT_RESPONSE, res);
+        debugger;
+        this.trigger_(
+          CallbackId.PAYMENT_RESPONSE,
+          Promise.resolve(res.clone())
+        );
       },
       reason => {
+        debugger;
         if (isCancelError(reason)) {
           return;
         }
@@ -259,6 +264,7 @@ export class Callbacks {
    * @private
    */
   trigger_(id, data) {
+    debugger;
     this.resultBuffer_[id] = data;
     const callback = this.callbacks_[id];
     if (callback) {

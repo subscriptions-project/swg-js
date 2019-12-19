@@ -132,12 +132,14 @@ describes.sandboxed('Callbacks', {}, () => {
     });
 
     it('should work with a response', async () => {
-      await resolver({});
+      await resolver({
+        clone: () => {},
+      });
       // Now its pending until the next tick
       expect(callbacks.hasPaymentResponsePending()).to.be.true;
       await callbacks.paymentResponsePromise_;
       // Now everything should execute
-      expect(spy).to.be.calledOnce.calledWith({});
+      expect(spy).to.be.calledOnce.calledWith(Promise.resolve({}));
       expect(callbacks.hasPaymentResponsePending()).to.be.false;
     });
 
