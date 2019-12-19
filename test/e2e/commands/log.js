@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 const log = require('fancy-log');
-const {blue} = require('ansi-colors');
+const {blue, red} = require('ansi-colors');
 
-module.exports.command = function(message) {
-  const infoSymbol = String.fromCharCode('9432') + '  ';
-  return this.perform(() => log(blue.bold(infoSymbol) + message));
+const getMessage = function(color, message) {
+  return color.bold(String.fromCharCode('9432')) + ' ' + color(message);
+};
+
+module.exports.command = function(message, error = false) {
+  const msg = error ? getMessage(red, message) : getMessage(blue, message);
+  return this.perform(() => log(msg));
 };
