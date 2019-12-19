@@ -24,7 +24,6 @@ import {isExperimentOn} from './experiments';
 
 const PAY_REQUEST_ID = 'swg-pay';
 const GPAY_ACTIVITY_REQUEST = 'GPAY';
-const REDIRECT_DELAY = 250;
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
 /**
@@ -83,6 +82,9 @@ export class PayClient {
     /** @private {?Promise<!Object>} */
     this.response_ = null;
 
+    /** @private @const {!./analytics-service.AnalyticsService} */
+    this.analytics_ = deps.analytics();
+
     /** @private @const {!RedirectVerifierHelper} */
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
 
@@ -95,7 +97,7 @@ export class PayClient {
         },
       },
       // Generates a new Google Transaction ID.
-      deps.analytics().getTransactionId(),
+      analyticsService.getTransactionId(),
       this.handleResponse_.bind(this)
     );
 
@@ -163,6 +165,8 @@ export class PayClient {
       // for AMP and similar contexts.
       this.win_ != this.top_()
     );
+    let resolver = null;
+    const promise = new Promise(resolve => (resolver = resolve));
     // Notice that the callback for verifier may execute asynchronously.
     this.redirectVerifierHelper_.useVerifier(verifier => {
       if (verifier) {
@@ -170,14 +174,17 @@ export class PayClient {
       }
       if (options.forceRedirect) {
         const client = this.client_;
-        this.win_.setTimeout(
-          () => client.loadPaymentData(paymentRequest),
-          REDIRECT_DELAY
-        );
+
+        return this.analytics_.getLoggingPromise().then(() => {
+          client.loadPaymentData(paymentRequest);
+          resolver(true);
+        });
       } else {
         this.client_.loadPaymentData(paymentRequest);
+        resolver(true);
       }
     });
+    return promise;
   }
 
   /**

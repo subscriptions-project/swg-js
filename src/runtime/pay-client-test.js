@@ -58,8 +58,6 @@ const INTEGR_DATA_OBJ_DECODED = {
 
 const GOOGLE_TRANSACTION_ID = 'ABC12345-CDE0-XYZ1-ABAB-11609E6472E9';
 
-const REDIRECT_DELAY = 300;
-
 describes.realWin('PayClientBindingPayjs', {}, env => {
   let win;
   let pageConfig;
@@ -115,11 +113,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       return googleTransactionId;
     });
 
-    payClient = new PayClientBindingPayjs(
-      win,
-      activityPorts,
-      googleTransactionId
-    );
+    payClient = new PayClientBindingPayjs(win, activityPorts, analyticsService);
 
     resultStub = sandbox.stub();
     payClient.onResponse(resultStub);
@@ -174,7 +168,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
   });
 
   it('should force redirect mode', async function() {
-    payClient.start(
+    await payClient.start(
       {
         'paymentArgs': {'a': 1},
       },
@@ -182,11 +176,6 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
         forceRedirect: true,
       }
     );
-    // This forces the test to wait .5s for the redirect to occur.
-    let resolver = null;
-    const waiter = new Promise(resolve => (resolver = resolve));
-    win.setTimeout(() => resolver(true), REDIRECT_DELAY);
-    await waiter;
     expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
     expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
       'paymentArgs': {'a': 1},

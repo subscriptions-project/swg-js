@@ -1,4 +1,7 @@
 /**
+ * @fileoverview Description of this file.
+ */
+/**
  * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,21 +19,25 @@
 'use strict';
 
 /**
- * @fileoverview Global settings for all tests.
+ * @fileoverview Page object for the first article with contribution on scenic.
  */
-const childProcess = require('child_process');
-const {startServer, stopServer} = require('../../build-system/tasks/serve');
+const commands = {
+  viewContributionOptions: function() {
+    return this.pause(1000)
+      .log('Viewing contribution options')
+      .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
+      .switchToFrame('[src*="offersiframe"]', 'SwG inner iFrame');
+  },
+};
 
 module.exports = {
-  before: function() {
-    startServer();
+  url: function() {
+    return this.api.launchUrl + '?showContributionOptions';
   },
-  after: function() {
-    // Chromedriver does not automatically exit after test ends.
-    childProcess.exec('pkill chromedriver');
-
-    stopServer();
+  commands: [commands],
+  elements: {
+    swgDialog: {
+      selector: '.swg-dialog',
+    },
   },
-  // Let tests to continue if an assertion fails.
-  abortOnAssertionFailure: false,
 };

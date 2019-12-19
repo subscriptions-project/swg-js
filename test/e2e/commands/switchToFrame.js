@@ -16,11 +16,12 @@
 
 module.exports.command = function(iframeSrcString, iframeMsg, callback) {
   return this.element('css selector', `iframe${iframeSrcString}`, frame => {
-    this.pause(2000);
+    if (frame.status == -1) {
+      this.log(frame.error, true);
+    }
     this.frame({ELEMENT: frame.value.ELEMENT}, () => {
       this.log(`Switching to ${iframeMsg}`);
       callback && callback();
     });
-    this.pause(2000);
   });
 };
