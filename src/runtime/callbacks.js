@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {isCancelError} from '../utils/errors';
 import {warn} from '../utils/log';
 
 /** @enum {number} */
@@ -37,6 +38,8 @@ export class Callbacks {
     this.callbacks_ = {};
     /** @private @const {!Object<CallbackId, *>} */
     this.resultBuffer_ = {};
+    /** @private {?Promise} */
+    this.paymentResponsePromise_ = null;
   }
 
   /**
@@ -172,10 +175,18 @@ export class Callbacks {
    * @return {boolean} Whether the callback has been found.
    */
   triggerPaymentResponse(responsePromise) {
-    return this.trigger_(
-      CallbackId.PAYMENT_RESPONSE,
-      responsePromise.then(res => res.clone())
+    this.paymentResponsePromise_ = responsePromise.then(
+      res => {
+        this.trigger_(CallbackId.PAYMENT_RESPONSE, res);
+      },
+      reason => {
+        if (isCancelError(reason)) {
+          return;
+        }
+        throw reason;
+      }
     );
+    return !!this.callbacks_[CallbackId.PAYMENT_RESPONSE];
   }
 
   /**
