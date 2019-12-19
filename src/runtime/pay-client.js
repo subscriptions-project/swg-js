@@ -403,7 +403,9 @@ export class PayClientBindingPayjs {
       )
       .catch(reason => {
         if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
-          return Promise.reject(createCancelError(this.win_));
+          let error = createCancelError(this.win_);
+          error['productType'] = this.request_.i.productType;
+          return Promise.reject(error);
         }
         return Promise.reject(reason);
       });
