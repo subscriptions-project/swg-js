@@ -113,7 +113,7 @@ describes.realWin('PayStartFlow', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     analyticsMock = sandbox.mock(runtime.analytics());
     eventManagerMock = sandbox.mock(runtime.eventManager());
-    flow = new PayStartFlow(runtime, 'sku1');
+    flow = new PayStartFlow(runtime, {'skuId': 'sku1'});
   });
 
   afterEach(() => {
@@ -125,10 +125,6 @@ describes.realWin('PayStartFlow', {}, env => {
   });
 
   it('should have valid flow constructed in payStartFlow', async () => {
-    const subscribeRequest = {
-      skuId: 'sku1',
-      publicationId: 'pub1',
-    };
     callbacksMock
       .expects('triggerFlowStarted')
       .withExactArgs('subscribe', {skuId: 'sku1'})
@@ -142,7 +138,10 @@ describes.realWin('PayStartFlow', {}, env => {
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
-          'swg': subscribeRequest,
+          'swg': {
+            skuId: 'sku1',
+            publicationId: 'pub1',
+          },
           'i': {
             'startTimeMs': sandbox.match.any,
             'productType': sandbox.match(productTypeRegex),
