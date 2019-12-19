@@ -25,7 +25,7 @@ jobs:
     - # run unit tests and e2e tests parallel
       name: 'End to End Tests'
       script:
-        - gulp e2e
+        - gulp e2e --retries=3
 branches:
   only:
     - master
