@@ -1605,14 +1605,6 @@ subscribe() method'
       ).to.equal(ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
     });
 
-    it('should configure and start PayCompleteFlow', async () => {
-      expect(activityResultCallbacks['swg-pay']).to.exist;
-      const stub = sandbox.stub(runtime.callbacks(), 'triggerPaymentResponse');
-
-      await returnActivity('swg-pay', ActivityResultCode.OK);
-      expect(stub).to.be.calledOnce;
-    });
-
     it('should start PayStartFlow for contribution', async () => {
       let flowInstance;
       const startStub = sandbox

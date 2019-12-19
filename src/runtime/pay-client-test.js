@@ -14,24 +14,11 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
-import {
-  ActivityResult,
-  ActivityResultCode,
-} from 'web-activities/activity-ports';
 import {ConfiguredRuntime} from './runtime';
-import {DialogManager} from '../components/dialog-manager';
-import {ExperimentFlags} from './experiment-flags';
-import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
-import {
-  PayClient,
-  PayClientBindingPayjs,
-  RedirectVerifierHelper,
-} from './pay-client';
+import {PayClient, RedirectVerifierHelper} from './pay-client';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
-import {Xhr} from '../utils/xhr';
-import {setExperiment, setExperimentsStringForTesting} from './experiments';
+import {setExperimentsStringForTesting} from './experiments';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -41,28 +28,16 @@ const INTEGR_DATA_STRING =
   'SXNJblI1Y0NJNklrcFhWQ0o5LmV5SmxiblJwZEd4bGJXVnVkSE1pT2x0N0luTnZkWEpqWl' +
   'NJNklsUkZVMVFpZlYxOS5TSUcifX0=';
 
-const EMPTY_ID_TOK =
-  'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJRF9UT0sifQ.SIG';
-
 const INTEGR_DATA_OBJ = {
   'integratorClientCallbackData': INTEGR_DATA_STRING,
 };
 
-const INTEGR_DATA_OBJ_DECODED = {
-  'swgCallbackData': {
-    'purchaseData': '{"orderId":"ORDER"}',
-    'purchaseDataSignature': 'PD_SIG',
-    'idToken': EMPTY_ID_TOK,
-  },
-};
-
 const GOOGLE_TRANSACTION_ID = 'ABC12345-CDE0-XYZ1-ABAB-11609E6472E9';
 
-describes.realWin('PayClientBindingPayjs', {}, env => {
+describes.realWin('PayClient', {}, env => {
   let win;
   let pageConfig;
   let runtime;
-  let activityPorts;
   let analyticsService, analyticsMock;
   let resultStub;
   let payClient;
@@ -75,8 +50,6 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
-
-    activityPorts = runtime.activities();
 
     redirectVerifierHelperResults = {
       restoreKey: 'test_restore_key',
@@ -95,7 +68,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     };
     payClientStubs = {
       create: sandbox
-        .stub(PayClientBindingPayjs.prototype, 'createClient_')
+        .stub(PayClient.prototype, 'createClient_')
         .callsFake((options, googleTransactionId, handler) => {
           responseHandler = handler;
           return new PaymentsAsyncClient({});
@@ -113,7 +86,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
       return googleTransactionId;
     });
 
-    payClient = new PayClientBindingPayjs(win, activityPorts, analyticsService);
+    payClient = new PayClient(runtime);
 
     resultStub = sandbox.stub();
     payClient.onResponse(resultStub);
@@ -134,29 +107,15 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     return resultStub.args[0][0];
   }
 
-  it('should select the right binding', () => {
-    expect(payClient.getType()).to.equal('PAYJS');
-    expect(new PayClient(runtime).getType()).to.equal('PAYJS');
-  });
-
   it('should initalize correctly', () => {
-    expect(payClientStubs.create).to.be.calledOnce.calledWith({
-      'environment': '$payEnvironment$',
-      'i': {
-        'redirectKey': 'test_restore_key',
-      },
-    });
-    expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
+    expect(payClient.getType()).to.equal('PAYJS');
     expect(redirectVerifierHelperStubs.prepare).to.be.calledOnce;
   });
 
   it('should have valid flow constructed', () => {
-    payClient.start(
-      {
-        'paymentArgs': {'a': 1},
-      },
-      {}
-    );
+    payClient.start({
+      'paymentArgs': {'a': 1},
+    });
     expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
     expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
       'paymentArgs': {'a': 1},
@@ -188,13 +147,14 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
   });
 
   it('should accept a correct payment response', async () => {
+    payClient.start({});
     const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
     expect(data).to.deep.equal(INTEGR_DATA_OBJ);
   });
 
   it('should preserve the paymentRequest in correct response', async () => {
     const paymentArgs = {'swg': {'sku': 'basic'}, 'i': {'a': 1}};
-    payClient.start(paymentArgs, {});
+    payClient.start(paymentArgs);
     const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
     const expectedData = Object.assign({}, INTEGR_DATA_OBJ);
     expectedData['paymentRequest'] = paymentArgs;
@@ -202,18 +162,21 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
   });
 
   it('should accept a cancel signal', async () => {
+    payClient.start({});
     await expect(
       withResult(Promise.reject({'statusCode': 'CANCELED'}))
     ).to.be.rejectedWith(/AbortError/);
   });
 
   it('should accept other errors', async () => {
+    payClient.start({});
     await expect(withResult(Promise.reject('intentional'))).to.be.rejectedWith(
       /intentional/
     );
   });
 
   it('should return response on initialization', async () => {
+    payClient.start({});
     const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
     expect(data).to.deep.equal(INTEGR_DATA_OBJ);
 
@@ -232,7 +195,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
     });
 
     it('should enable native mode', () => {
-      payClient.start({}, {});
+      payClient.start({});
       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
         'i': {
           'redirectVerifier': redirectVerifierHelperResults.verifier,
@@ -243,7 +206,7 @@ describes.realWin('PayClientBindingPayjs', {}, env => {
 
     it('should disable native mode for iframes', () => {
       top = {};
-      payClient.start({}, {});
+      payClient.start({});
       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
         'i': {
           'redirectVerifier': redirectVerifierHelperResults.verifier,

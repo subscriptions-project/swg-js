@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
-import {Xhr} from '../utils/xhr';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
-import {feArgs, feCached} from './services';
-import {isExperimentOn} from './experiments';
+import {feCached} from './services';
 
-const PAY_REQUEST_ID = 'swg-pay';
-const GPAY_ACTIVITY_REQUEST = 'GPAY';
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
 /**
@@ -43,18 +38,8 @@ export const PAY_ORIGIN = {
 };
 
 /** @return {string} */
-function payOrigin() {
-  return PAY_ORIGIN['$payEnvironment$'];
-}
-
-/** @return {string} */
 function payUrl() {
   return feCached(PAY_ORIGIN['$payEnvironment$'] + '/gp/p/ui/pay');
-}
-
-/** @return {string} */
-function payDecryptUrl() {
-  return PAY_ORIGIN['$payEnvironment$'] + '/gp/p/apis/buyflow/process';
 }
 
 /**
@@ -70,9 +55,6 @@ export class PayClient {
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
-
     /** @private {?function(!Promise<!Object>)} */
     this.responseCallback_ = null;
 
@@ -87,19 +69,6 @@ export class PayClient {
 
     /** @private @const {!RedirectVerifierHelper} */
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
-
-    /** @private @const {!PaymentsAsyncClient} */
-    this.client_ = this.createClient_(
-      {
-        environment: '$payEnvironment$',
-        'i': {
-          'redirectKey': this.redirectVerifierHelper_.restoreKey(),
-        },
-      },
-      // Generates a new Google Transaction ID.
-      analyticsService.getTransactionId(),
-      this.handleResponse_.bind(this)
-    );
 
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
@@ -153,6 +122,17 @@ export class PayClient {
   start(paymentRequest, options = {}) {
     this.request_ = paymentRequest;
 
+    const client = this.createClient_(
+      {
+        environment: '$payEnvironment$',
+        'i': {
+          'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+        },
+      },
+      this.analytics_.getTransactionId(),
+      this.handleResponse_.bind(this)
+    );
+
     if (options.forceRedirect) {
       paymentRequest = Object.assign(paymentRequest, {
         'forceRedirect': options.forceRedirect || false,
@@ -173,14 +153,12 @@ export class PayClient {
         setInternalParam(paymentRequest, 'redirectVerifier', verifier);
       }
       if (options.forceRedirect) {
-        const client = this.client_;
-
         return this.analytics_.getLoggingPromise().then(() => {
           client.loadPaymentData(paymentRequest);
           resolver(true);
         });
       } else {
-        this.client_.loadPaymentData(paymentRequest);
+        client.loadPaymentData(paymentRequest);
         resolver(true);
       }
     });
