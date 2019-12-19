@@ -109,19 +109,71 @@ describes.sandboxed('Callbacks', {}, () => {
     expect(callbacks.hasSubscribeRequestCallback()).to.be.true;
   });
 
-  it('should trigger and execute paymentResponse', async () => {
-    const spy = sandbox.spy();
-    const p = Promise.resolve();
-    callbacks.setOnLinkComplete(spy); // Make sure there's no ID conflict.
-    callbacks.setOnPaymentResponse(spy);
-    expect(callbacks.hasLinkCompletePending()).to.be.false;
-    expect(callbacks.hasPaymentResponsePending()).to.be.false;
-    expect(callbacks.triggerPaymentResponse(p)).to.be.true;
-    expect(callbacks.hasPaymentResponsePending()).to.be.true;
+  describe('paymentResponse triggering', () => {
+    let spy;
+    let resolver;
+    let failer;
+    let paymentResponsePromise;
 
-    await tick();
-    expect(spy).to.be.calledOnce.calledWith(p);
-    expect(callbacks.hasPaymentResponsePending()).to.be.false;
+    beforeEach(() => {
+      spy = sandbox.spy();
+      paymentResponsePromise = new Promise((resolve, fail) => {
+        resolver = resolve;
+        failer = fail;
+      });
+      callbacks.setOnLinkComplete(spy); // Make sure there's no ID conflict.
+      callbacks.setOnPaymentResponse(spy);
+      expect(callbacks.hasLinkCompletePending()).to.be.false;
+      expect(callbacks.hasPaymentResponsePending()).to.be.false;
+      expect(callbacks.triggerPaymentResponse(paymentResponsePromise)).to.be
+        .true;
+      // Should wait for the passed promise to resolve.
+      expect(callbacks.hasPaymentResponsePending()).to.be.false;
+    });
+
+    it('should work with a response', async () => {
+      await resolver({
+        clone: () => {},
+      });
+      // Now its pending until the next tick
+      expect(callbacks.hasPaymentResponsePending()).to.be.true;
+      await callbacks.paymentResponsePromise_;
+      // Now everything should execute
+      expect(spy).to.be.calledOnce.calledWith(Promise.resolve({}));
+      expect(callbacks.hasPaymentResponsePending()).to.be.false;
+    });
+
+    it('should not throw user canceled errors', async function() {
+      await failer({name: 'AbortError'});
+      let receivedReason = null;
+      await callbacks.paymentResponsePromise_.then(
+        () => {},
+        reason => {
+          receivedReason = reason;
+        }
+      );
+      await tick();
+      // Now everything should execute
+      expect(spy).to.not.be.called;
+      expect(receivedReason).to.be.null;
+      expect(callbacks.hasPaymentResponsePending()).to.be.false;
+    });
+
+    it('should throw other errors', async function() {
+      await failer({name: 'OtherError'});
+      let receivedReason = null;
+      await callbacks.paymentResponsePromise_.then(
+        () => {},
+        reason => {
+          receivedReason = reason;
+        }
+      );
+      await tick();
+      // Now everything should execute
+      expect(spy).to.not.be.called;
+      expect(receivedReason).to.deep.equal({name: 'OtherError'});
+      expect(callbacks.hasPaymentResponsePending()).to.be.false;
+    });
   });
 
   it('should trigger and execute entitlementsResponse', async () => {
