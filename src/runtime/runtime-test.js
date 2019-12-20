@@ -1256,7 +1256,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
       it('work for 1 entitlement', async () => {
         entitlements = [
-          new Entitlement('', ['product1'], '{"productId":"token1"}'),
+          new Entitlement('google', ['product1'], '{"productId":"token1"}'),
         ];
         analyticsMock
           .expects('setSku')
@@ -1266,9 +1266,9 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
       it('work for multiple entitlement', async () => {
         entitlements = [
-          new Entitlement('', ['product1'], '{"productId":"token1"}'),
-          new Entitlement('', ['product2'], '{"productId":"token2"}'),
-          new Entitlement('', ['product3'], '{"productId":"token3"}'),
+          new Entitlement('google', ['product1'], '{"productId":"token1"}'),
+          new Entitlement('google', ['product2'], '{"productId":"token2"}'),
+          new Entitlement('google', ['product3'], '{"productId":"token3"}'),
         ];
         analyticsMock
           .expects('setSku')
@@ -1283,6 +1283,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
       it('kind of work for non-JSON entitlement', async () => {
         entitlements = [new Entitlement('', ['product1'], 'token1')];
+        analyticsMock
+          .expects('setSku')
+          .withExactArgs('unknown subscriptionToken')
+          .once();
+      });
+
+      it('missing product ID in SwG entitlement', async () => {
+        entitlements = [new Entitlement('google', ['product1'], 'token1')];
         analyticsMock
           .expects('setSku')
           .withExactArgs('unknown subscriptionToken')
