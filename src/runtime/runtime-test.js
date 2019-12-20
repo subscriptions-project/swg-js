@@ -1288,6 +1288,14 @@ describes.realWin('ConfiguredRuntime', {}, env => {
           .withExactArgs('unknown subscriptionToken')
           .once();
       });
+
+      it('missing product ID in SwG entitlement', async () => {
+        entitlements = [new Entitlement('google', ['product1'], 'token1')];
+	analyticsMock
+          .expects('setSku')
+          .withExactArgs('unknown subscriptionToken')
+          .once();
+      });
     });
 
     it('should start entitlements flow with failure', async () => {
