@@ -410,9 +410,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     pageConfig = new PageConfig('pub1');
     responseCallback = null;
     sandbox.stub(PayClient.prototype, 'onResponse').callsFake(callback => {
-      if (responseCallback) {
-        throw new Error('duplicated onResponse');
-      }
       responseCallback = callback;
     });
     messageMap = {};
@@ -433,6 +430,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     analyticsMock.verify();
     jserrorMock.verify();
     eventManagerMock.verify();
+    expect(PayClient.prototype.onResponse).to.be.calledOnce;
   });
 
   it('should have valid flow constructed', async () => {
@@ -843,21 +841,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .withExactArgs('Pay failed', error)
         .once();
 
-      try {
-        await responseCallback(Promise.reject(error));
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/intentional/);
-      }
+      await expect(responseCallback(Promise.reject(error))).to.be.rejectedWith(
+        /intentional/
+      );
       expect(startStub).to.not.be.called;
       expect(triggerPromise).to.exist;
 
-      try {
-        await triggerPromise;
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/intentional/);
-      }
+      await expect(triggerPromise).to.be.rejectedWith(/intentional/);
     });
 
     it('should start flow on a correct payment response', async () => {
