@@ -19,33 +19,19 @@
 'use strict';
 
 /**
- * @fileoverview Page object for the first article with contribution on scenic.
+ * @fileoverview Page object for the first article with smart button.
  */
-const commands = {
-  viewContributionOptions: function() {
-    return this.pause(1000)
-      .log('Viewing contribution options')
-      .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
-      .switchToFrame('[src*="contributionsiframe"]', 'SwG inner iFrame');
-  },
-  contribute: function() {
-    return this.log('Clicking contribution button')
-      .assert.containsText('@contributionBtn', 'Contribute $0.99/week')
-      .click('@contributionBtn');
-  },
-};
-
 module.exports = {
   url: function() {
-    return this.api.launchUrl + '?showContributionOptions';
+    return this.api.launchUrl + '?smartbutton#swg.experiments=smartbox';
   },
-  commands: [commands],
+  // commands: [commands],
   elements: {
-    swgDialog: {
-      selector: '.swg-dialog',
+    smartButton: {
+      selector: '#smartButton',
     },
-    contributionBtn: {
-      selector: '.ContributionButtonText',
+    smartButtonLabel: {
+      selector: '.swg-button-light',
     },
   },
 };

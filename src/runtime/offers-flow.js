@@ -87,13 +87,8 @@ export class OffersFlow {
         .toArray(),
     };
 
-    this.prorationMode = feArgsObj['replaceSkuProrationMode'] || undefined;
-
     if (options && options.oldSku) {
       feArgsObj['oldSku'] = options.oldSku;
-    }
-
-    if (feArgsObj['oldSku']) {
       assert(feArgsObj['skus'], 'Need a sku list if old sku is provided!');
 
       // Remove old sku from offers if in list.
@@ -116,11 +111,10 @@ export class OffersFlow {
       // so we need to check for oldSku to decide if it needs to be sent.
       // Otherwise we might accidentally block a regular subscription request.
       if (oldSku) {
-        new PayStartFlow(this.deps_, {
-          skuId: sku,
-          oldSku,
-          replaceSkuProrationMode: this.prorationMode,
-        }).start();
+        const skuSelectedResponse = new SkuSelectedResponse();
+        skuSelectedResponse.setSku(sku);
+        skuSelectedResponse.setOldSku(oldSku);
+        this.startPayFlow_(skuSelectedResponse);
         return;
       }
     }
@@ -144,9 +138,13 @@ export class OffersFlow {
    */
   startPayFlow_(response) {
     const sku = response.getSku();
-    const oldSku = response.getOldSku();
     if (sku) {
+      const /** @type {../api/subscriptions.SubscriptionRequest} */ subscriptionRequest = {
+          'skuId': sku,
+        };
+      const oldSku = response.getOldSku();
       if (oldSku) {
+        subscriptionRequest['oldSku'] = oldSku;
         this.deps_.analytics().setSku(oldSku);
       }
       this.eventManager_.logSwgEvent(
@@ -154,15 +152,7 @@ export class OffersFlow {
         true,
         getEventParams(sku)
       );
-      let skuOrSubscriptionRequest;
-      if (oldSku) {
-        skuOrSubscriptionRequest = {};
-        skuOrSubscriptionRequest['skuId'] = sku;
-        skuOrSubscriptionRequest['oldSku'] = oldSku;
-      } else {
-        skuOrSubscriptionRequest = sku;
-      }
-      new PayStartFlow(this.deps_, skuOrSubscriptionRequest).start();
+      new PayStartFlow(this.deps_, subscriptionRequest).start();
     }
   }
 
