@@ -265,7 +265,6 @@ describes.realWin('OffersFlow', {}, env => {
       .withExactArgs('subscribe', {
         skuId: 'sku2',
         oldSku: 'sku1',
-        replaceSkuProrationMode: undefined,
       })
       .once();
     offersFlow = new OffersFlow(runtime, {

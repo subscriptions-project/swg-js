@@ -875,7 +875,7 @@ export class ConfiguredRuntime {
       'for subscription updates please use the updateSubscription() method';
     assert(typeof sku === 'string', errorMessage);
     return this.documentParsed_.then(() => {
-      return new PayStartFlow(this, sku).start();
+      return new PayStartFlow(this, {'skuId': sku}).start();
     });
   }
 
@@ -904,10 +904,15 @@ export class ConfiguredRuntime {
 
   /** @override */
   contribute(skuOrSubscriptionRequest) {
+    /** @type {!../api/subscriptions.SubscriptionRequest} */
+    const request =
+      typeof skuOrSubscriptionRequest == 'string'
+        ? {'skuId': skuOrSubscriptionRequest}
+        : skuOrSubscriptionRequest;
     return this.documentParsed_.then(() => {
       return new PayStartFlow(
         this,
-        skuOrSubscriptionRequest,
+        request,
         ProductType.UI_CONTRIBUTION
       ).start();
     });
