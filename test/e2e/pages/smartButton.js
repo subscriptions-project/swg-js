@@ -1,4 +1,7 @@
 /**
+ * @fileoverview Description of this file.
+ */
+/**
  * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,37 +19,19 @@
 'use strict';
 
 /**
- * @fileoverview Page object for the publication on scenic.
+ * @fileoverview Page object for the first article with smart button.
  */
-const commands = {
-  viewFirstArticle: function() {
-    this.api.pause(1000);
-    return this.log('Visiting the first article').assert.title(
-      '16 Top Spots for Hiking - The Scenic'
-    );
-  },
-  selectOffer: function() {
-    return this.viewOffers()
-      .log('Selecting "Basic Access" offer')
-      .pause(10000)
-      .waitForElementPresent({
-        selector: '.qLPyoc',
-        time: 10000,
-        poll: 100,
-      })
-      .click('.qLPyoc')
-      .pause(1000);
-  },
-};
-
 module.exports = {
   url: function() {
-    return this.api.launchUrl;
+    return this.api.launchUrl + '?smartbutton#swg.experiments=smartbox';
   },
-  commands: [commands],
+  // commands: [commands],
   elements: {
-    swgIFrame: {
-      selector: 'iframe.swg-dialog',
+    smartButton: {
+      selector: '#smartButton',
+    },
+    smartButtonLabel: {
+      selector: '.swg-button-light',
     },
   },
 };
