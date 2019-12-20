@@ -272,7 +272,7 @@ export class Entitlement {
    * @return {?string}
    */
   getSku() {
-    if (entitlement.source !== 'google') {
+    if (this.source !== 'google') {
       return null;
     }
     const sku = (
