@@ -1291,7 +1291,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
       it('missing product ID in SwG entitlement', async () => {
         entitlements = [new Entitlement('google', ['product1'], 'token1')];
-	analyticsMock
+        analyticsMock
           .expects('setSku')
           .withExactArgs('unknown subscriptionToken')
           .once();
