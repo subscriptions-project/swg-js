@@ -214,7 +214,7 @@ describes.realWin('PayStartFlow', {}, env => {
       oneTime: true,
       publicationId: 'pub1',
     };
-    const replaceFlow = new PayStartFlow(runtime, subscriptionRequest);
+    const oneTimeFlow = new PayStartFlow(runtime, subscriptionRequest);
     callbacksMock
       .expects('triggerFlowStarted')
       .withExactArgs('subscribe', subscriptionRequest)
@@ -250,14 +250,14 @@ describes.realWin('PayStartFlow', {}, env => {
         true,
         getEventParams('newSku')
       );
-    const flowPromise = replaceFlow.start();
+    const flowPromise = oneTimeFlow.start();
     await expect(flowPromise).to.eventually.be.undefined;
   });
 
   it('should have valid replace flow constructed', async () => {
     const subscriptionRequest = {
-      skuId: 'newSku',
-      oldSku: 'oldSku',
+      skuId: 'newSku1',
+      oldSku: 'oldSku1',
       publicationId: 'pub1',
       replaceSkuProrationMode:
         ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
@@ -268,7 +268,7 @@ describes.realWin('PayStartFlow', {}, env => {
       .withExactArgs('subscribe', subscriptionRequest)
       .once();
     callbacksMock.expects('triggerFlowCanceled').never();
-    analyticsMock.expects('setSku').withExactArgs('oldSku');
+    analyticsMock.expects('setSku').withExactArgs('oldSku1');
     payClientMock
       .expects('start')
       .withExactArgs(
@@ -278,8 +278,8 @@ describes.realWin('PayStartFlow', {}, env => {
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
           'swg': {
-            skuId: 'newSku',
-            oldSku: 'oldSku',
+            skuId: 'newSku1',
+            oldSku: 'oldSku1',
             publicationId: 'pub1',
             replaceSkuProrationMode:
               ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
@@ -299,7 +299,7 @@ describes.realWin('PayStartFlow', {}, env => {
       .withExactArgs(
         AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         true,
-        getEventParams('newSku')
+        getEventParams('newSku1')
       );
     const flowPromise = replaceFlow.start();
     await expect(flowPromise).to.eventually.be.undefined;
@@ -307,8 +307,8 @@ describes.realWin('PayStartFlow', {}, env => {
 
   it('should have valid replace flow constructed (no proration mode)', async () => {
     const subscriptionRequest = {
-      skuId: 'newSku',
-      oldSku: 'oldSku',
+      skuId: 'newSku2',
+      oldSku: 'oldSku2',
       publicationId: 'pub1',
     };
     const replaceFlowNoProrationMode = new PayStartFlow(
@@ -328,7 +328,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
-          'swg': Object.assign(subscriptionRequest, {
+          'swg': Object.assign({}, subscriptionRequest, {
             replaceSkuProrationMode:
               ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
           }),
@@ -342,13 +342,13 @@ describes.realWin('PayStartFlow', {}, env => {
         }
       )
       .once();
-    analyticsMock.expects('setSku').withExactArgs('oldSku');
+    analyticsMock.expects('setSku').withExactArgs('oldSku2');
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
         AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         true,
-        getEventParams('newSku')
+        getEventParams('newSku2')
       );
     const flowPromise = replaceFlowNoProrationMode.start();
     await expect(flowPromise).to.eventually.be.undefined;
