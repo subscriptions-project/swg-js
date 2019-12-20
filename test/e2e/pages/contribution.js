@@ -26,7 +26,12 @@ const commands = {
     return this.pause(1000)
       .log('Viewing contribution options')
       .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
-      .switchToFrame('[src*="offersiframe"]', 'SwG inner iFrame');
+      .switchToFrame('[src*="contributionsiframe"]', 'SwG inner iFrame');
+  },
+  contribute: function() {
+    return this.log('Clicking contribution button')
+      .assert.containsText('@contributionBtn', 'Contribute $0.99/week')
+      .click('@contributionBtn');
   },
 };
 
@@ -38,6 +43,9 @@ module.exports = {
   elements: {
     swgDialog: {
       selector: '.swg-dialog',
+    },
+    contributionBtn: {
+      selector: '.ContributionButtonText',
     },
   },
 };

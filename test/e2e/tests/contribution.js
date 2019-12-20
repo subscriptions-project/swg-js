@@ -27,6 +27,13 @@ module.exports = {
     contribution
       .navigate()
       .waitForElementPresent('@swgDialog', 'Found SwG dialog')
+      .waitForElementVisible('@swgDialog')
+      .viewContributionOptions()
+      .assert.containsText('.K2Fgzb', 'Contribute with your Google Account')
+      .assert.containsText('.qnhoke', 'Weekly')
+      .assert.containsText('.Borcjc', '$0.99')
+      .contribute()
+      .checkPayment()
       .end();
   },
 };
