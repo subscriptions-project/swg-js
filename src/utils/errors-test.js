@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ErrorUtils, isCancelError } from './errors';
+import { ErrorUtils, isCancelError, createCancelError } from './errors';
 
 describes.realWin('errors', {}, env => {
   describe('isCancelError', () => {
@@ -37,6 +37,13 @@ describes.realWin('errors', {}, env => {
     it('should return false for a unrelated error', () => {
       expect(isCancelError(new Error())).to.be.false;
     });
+  });
+
+  describe('createCancelError', () => {
+    const error = createCancelError(window, 'custom message');
+    expect(error.code).to.equal(20);
+    expect(error.message).to.equal('AbortError: custom message');
+    expect(error.name).to.equal('AbortError');
   });
 
   describe('ErrorUtils', () => {
