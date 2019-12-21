@@ -861,6 +861,39 @@ describes.realWin('PayCompleteFlow', {}, env => {
       }
     });
 
+    it('should indicate contribution product type when canceled by contribution flow', async () => {
+      const error = new Error('intentional');
+      analyticsMock.expects('setTransactionId').never();
+      analyticsMock.expects('addLabels').never();
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false)
+        .once();
+      jserrorMock
+        .expects('error')
+        .withExactArgs('Pay failed', error)
+        .once();
+      callbacksMock
+        .expects('triggerFlowCanceled')
+        .withExactArgs('contribute')
+        .once();
+      try {
+        await responseCallback(Promise.reject(error));
+        throw new Error('must have failed');
+      } catch (reason) {
+        expect(reason).to.contain(/intentional/);
+      }
+      expect(startStub).to.not.be.called;
+      expect(triggerPromise).to.exist;
+
+      try {
+        await triggerPromise;
+        throw new Error('must have failed');
+      } catch (reason) {
+        expect(reason).to.contain(/intentional/);
+      }
+    });
+
     it('should start flow on a correct payment response', async () => {
       analyticsMock.expects('setTransactionId').never();
       callbacksMock.expects('triggerFlowCanceled').never();
