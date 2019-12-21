@@ -64,9 +64,12 @@ describe('getRandomInts', () => {
   });
 
   it('should use polyfill if `crypto.getRandomValues` is not available', () => {
+    // Mock missing `crypto.getRandomValues` function.
     const getRandomValues = crypto.getRandomValues;
     crypto.getRandomValues = null;
     testRand(1000);
+
+    // Restore `crypto.getRandomValues` function.
     crypto.getRandomValues = getRandomValues;
   });
 });
