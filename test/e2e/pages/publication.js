@@ -25,12 +25,6 @@ const commands = {
       '16 Top Spots for Hiking - The Scenic'
     );
   },
-  viewOffers: function() {
-    return this.pause(1000)
-      .log('Viewing offers')
-      .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
-      .switchToFrame('[src*="offersiframe"]', 'SwG inner iFrame');
-  },
   selectOffer: function() {
     return this.viewOffers()
       .log('Selecting "Basic Access" offer')

@@ -143,23 +143,16 @@ describes.sandboxed('Callbacks', {}, () => {
       expect(callbacks.hasPaymentResponsePending()).to.be.false;
     });
 
-    it('should not throw user canceled errors', async function() {
+    it('should not throw user canceled errors', async () => {
       await failer({name: 'AbortError'});
-      let receivedReason = null;
-      await callbacks.paymentResponsePromise_.then(
-        () => {},
-        reason => {
-          receivedReason = reason;
-        }
-      );
+      await callbacks.paymentResponsePromise_;
       await tick();
       // Now everything should execute
       expect(spy).to.not.be.called;
-      expect(receivedReason).to.be.null;
       expect(callbacks.hasPaymentResponsePending()).to.be.false;
     });
 
-    it('should throw other errors', async function() {
+    it('should throw other errors', async () => {
       await failer({name: 'OtherError'});
       let receivedReason = null;
       await callbacks.paymentResponsePromise_.then(
