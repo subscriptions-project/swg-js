@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { ErrorUtils, isCancelError, createCancelError } from './errors';
+import {ErrorUtils, createCancelError, isCancelError} from './errors';
 
-describes.realWin('errors', {}, env => {
+describes.realWin('errors', {}, () => {
   describe('isCancelError', () => {
     it('should return true for an abort error', () => {
       const e = new DOMException('cancel', 'AbortError');
@@ -40,7 +40,7 @@ describes.realWin('errors', {}, env => {
   });
 
   describe('createCancelError', () => {
-    const error = createCancelError(window, 'custom message');
+    const error = createCancelError(this, 'custom message');
     expect(error.code).to.equal(20);
     expect(error.message).to.equal('AbortError: custom message');
     expect(error.name).to.equal('AbortError');
@@ -50,11 +50,9 @@ describes.realWin('errors', {}, env => {
     describe('throwAsync', () => {
       it('throws error after a timeout', () => {
         let callback;
-        sandbox
-          .stub(window, 'setTimeout')
-          .callsFake(cb => {
-            callback = cb;
-          });
+        sandbox.stub(this, 'setTimeout').callsFake(cb => {
+          callback = cb;
+        });
 
         ErrorUtils.throwAsync(new Error('delayed error'));
 
