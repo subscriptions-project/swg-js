@@ -16,7 +16,7 @@
 
 import {ErrorUtils, createCancelError, isCancelError} from './errors';
 
-describes.realWin('errors', {}, () => {
+describe('errors', () => {
   describe('isCancelError', () => {
     it('should return true for an abort error', () => {
       const e = new DOMException('cancel', 'AbortError');
@@ -40,23 +40,29 @@ describes.realWin('errors', {}, () => {
   });
 
   describe('createCancelError', () => {
-    const error = createCancelError(this, 'custom message');
-    expect(error.code).to.equal(20);
-    expect(error.message).to.equal('AbortError: custom message');
-    expect(error.name).to.equal('AbortError');
+    it('creates error', () => {
+      const error = createCancelError(self, 'custom message');
+      expect(error.code).to.equal(20);
+      expect(error.message).to.equal('AbortError: custom message');
+      expect(error.name).to.equal('AbortError');
+    });
   });
 
   describe('ErrorUtils', () => {
     describe('throwAsync', () => {
       it('throws error after a timeout', () => {
+        // Mock `setTimeout`
         let callback;
-        sandbox.stub(this, 'setTimeout').callsFake(cb => {
+        const setTimeout = self.setTimeout;
+        self.setTimeout = cb => {
           callback = cb;
-        });
+        };
 
         ErrorUtils.throwAsync(new Error('delayed error'));
-
         expect(callback).to.throw(/delayed/);
+
+        // Restore `setTimeout`
+        self.setTimeout = setTimeout;
       });
     });
   });
