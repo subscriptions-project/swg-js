@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {isCancelError} from './errors';
+import {ErrorUtils, createCancelError, isCancelError} from './errors';
 
 describe('errors', () => {
   describe('isCancelError', () => {
@@ -36,6 +36,34 @@ describe('errors', () => {
 
     it('should return false for a unrelated error', () => {
       expect(isCancelError(new Error())).to.be.false;
+    });
+  });
+
+  describe('createCancelError', () => {
+    it('creates error', () => {
+      const error = createCancelError(self, 'custom message');
+      expect(error.code).to.equal(20);
+      expect(error.message).to.equal('AbortError: custom message');
+      expect(error.name).to.equal('AbortError');
+    });
+  });
+
+  describe('ErrorUtils', () => {
+    describe('throwAsync', () => {
+      it('throws error after a timeout', () => {
+        // Mock `setTimeout`
+        let callback;
+        const setTimeout = self.setTimeout;
+        self.setTimeout = cb => {
+          callback = cb;
+        };
+
+        ErrorUtils.throwAsync(new Error('delayed error'));
+        expect(callback).to.throw(/delayed/);
+
+        // Restore `setTimeout`
+        self.setTimeout = setTimeout;
+      });
     });
   });
 });
