@@ -15,14 +15,14 @@
  */
 'use strict';
 
-const fs = require('fs-extra');
-const resolveConfig = require('./compile-config').resolveConfig;
-const version = require('./internal-version').VERSION;
-const rollup = require('rollup');
-const resolveNodeModules = require('rollup-plugin-node-resolve');
 const commonJS = require('rollup-plugin-commonjs');
-const util = require('util');
+const fs = require('fs-extra');
 const overrideConfig = require('./compile-config').overrideConfig;
+const resolveConfig = require('./compile-config').resolveConfig;
+const resolveNodeModules = require('rollup-plugin-node-resolve');
+const rollup = require('rollup');
+const util = require('util');
+const version = require('./internal-version').VERSION;
 
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
@@ -130,13 +130,19 @@ async function exportCss(inputFile, outputFile) {
   return writeFile(outputFile, css);
 }
 
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+}
+
 async function mkdirs(paths) {
-  for (const path of paths) {
+  asyncForEach(paths, async path => {
     const pathExists = await exists(path);
     if (!pathExists) {
       await mkdir(path);
     }
-  }
+  });
 }
 
 module.exports = {

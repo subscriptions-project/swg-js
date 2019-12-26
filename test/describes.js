@@ -59,8 +59,8 @@
  * objects. See the type definitions for `sandboxed` and `realWin` below.
  */
 
-import fetchMock from 'fetch-mock';
 import * as sinon from 'sinon';
+import fetchMock from 'fetch-mock';
 
 /** Should have something in the name, otherwise nothing is shown. */
 const SUB = ' ';

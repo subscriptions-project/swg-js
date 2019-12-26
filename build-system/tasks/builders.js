@@ -86,7 +86,7 @@ build.description = 'Builds the library';
 
 dist.description = 'Build production binaries';
 dist.flags = {
-  pseudo_names:
+  pseudoNames:
     'Compiles with readable names. ' +
     'Great for profiling and debugging production code.',
 };
