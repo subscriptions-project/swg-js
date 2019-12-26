@@ -14,103 +14,9 @@
  * limitations under the License.
  */
 
-import {getValueForExpr, recreateNonProtoObject, tryParseJson} from './json';
+import {getPropertyFromJsonString, tryParseJson} from './json';
 
 describe('json', () => {
-  describe('getValueForExpr', () => {
-    it('should return self for "."', () => {
-      const obj = {str: 'A', num: 1, bool: true, val: null};
-      expect(getValueForExpr(obj, '.')).to.equal(obj);
-    });
-
-    it('should return a simple value', () => {
-      const obj = {str: 'A', num: 1, bool: true, val: null};
-      expect(getValueForExpr(obj, 'str')).to.equal('A');
-      expect(getValueForExpr(obj, 'num')).to.equal(1);
-      expect(getValueForExpr(obj, 'bool')).to.equal(true);
-      expect(getValueForExpr(obj, 'val')).to.be.null;
-      expect(getValueForExpr(obj, 'other')).to.be.undefined;
-    });
-
-    it('should return a nested value', () => {
-      const child = {str: 'A', num: 1, bool: true, val: null};
-      const obj = {child};
-      expect(getValueForExpr(obj, 'child')).to.deep.equal(child);
-      expect(getValueForExpr(obj, 'child.str')).to.equal('A');
-      expect(getValueForExpr(obj, 'child.num')).to.equal(1);
-      expect(getValueForExpr(obj, 'child.bool')).to.equal(true);
-      expect(getValueForExpr(obj, 'child.val')).to.be.null;
-      expect(getValueForExpr(obj, 'child.other')).to.be.undefined;
-    });
-
-    it('should return a nested value without proto', () => {
-      const child = {str: 'A', num: 1, bool: true, val: null};
-      const obj = recreateNonProtoObject({child});
-      expect(getValueForExpr(obj, 'child')).to.deep.equal(child);
-      expect(getValueForExpr(obj, 'child.str')).to.equal('A');
-      expect(getValueForExpr(obj, 'child.num')).to.equal(1);
-      expect(getValueForExpr(obj, 'child.bool')).to.equal(true);
-      expect(getValueForExpr(obj, 'child.val')).to.be.null;
-      expect(getValueForExpr(obj, 'child.other')).to.be.undefined;
-    });
-
-    it('should shortcircuit if a parent in chain missing', () => {
-      const child = {str: 'A'};
-      const obj = {child};
-      expect(getValueForExpr(obj, 'child.str')).to.equal('A');
-      expect(getValueForExpr(obj, 'unknown.str')).to.be.undefined;
-      expect(getValueForExpr(obj, 'unknown.chain.str')).to.be.undefined;
-    });
-
-    it('should shortcircuit if a parent in chain is not an object', () => {
-      const child = {str: 'A'};
-      const obj = {child, nonobj: 'B'};
-      expect(getValueForExpr(obj, 'child.str')).to.equal('A');
-      expect(getValueForExpr(obj, 'nonobj')).to.equal('B');
-      expect(getValueForExpr(obj, 'nonobj.str')).to.be.undefined;
-    });
-
-    it('should only search in own properties', () => {
-      const ancestor = {num: 1};
-      const obj = Object.create(ancestor);
-      obj.str = 'A';
-      expect(getValueForExpr(obj, 'str')).to.equal('A');
-      expect(getValueForExpr(ancestor, 'num')).to.equal(1);
-      expect(getValueForExpr(obj, 'num')).to.be.undefined;
-      expect(getValueForExpr(obj, '__proto__')).to.be.undefined;
-    });
-  });
-
-  describe('recreateNonProtoObject', () => {
-    it('should recreate an empty object', () => {
-      const original = {};
-      const copy = recreateNonProtoObject(original);
-      expect(copy).to.deep.equal(original);
-      expect(copy === original).to.be.false;
-      expect(copy.__proto__).to.be.undefined;
-    });
-
-    it('should recreate an object', () => {
-      const original = {str: 'A', num: 1, bool: true, val: null};
-      const copy = recreateNonProtoObject(original);
-      expect(copy).to.deep.equal(original);
-      expect(copy === original).to.be.false;
-      expect(copy.__proto__).to.be.undefined;
-      expect(copy.val).to.be.null;
-    });
-
-    it('should recreate a nested object', () => {
-      const original = {child: {str: 'A', num: 1, bool: true, val: null}};
-      const copy = recreateNonProtoObject(original);
-      expect(copy).to.deep.equal(original);
-      expect(copy === original).to.be.false;
-      expect(copy.__proto__).to.be.undefined;
-      expect(copy.child).to.deep.equal(original.child);
-      expect(copy.child === original.child).to.be.false;
-      expect(copy.child.__proto__).to.be.undefined;
-    });
-  });
-
   describe('tryParseJson', () => {
     it('should return object for valid json', () => {
       const json = '{"key": "value"}';
@@ -143,6 +49,18 @@ describe('json', () => {
       tryParseJson(invalidJson, onFailure);
       expect(error).to.exist;
       expect(onFailedCalled).to.be.true;
+    });
+  });
+
+  describe('getPropertyFromJsonString', () => {
+    it('gets value', () => {
+      const value = getPropertyFromJsonString('{"x":1}', 'x');
+      expect(value).to.equal(1);
+    });
+
+    it('returns null if value was not found', () => {
+      const value = getPropertyFromJsonString('{}', 'x');
+      expect(value).to.equal(null);
     });
   });
 });
