@@ -60,14 +60,12 @@ module.exports = {
     '!exports/*.js', // Exports only.
     '!src/api/*.js', // Avoid "unused" prefixes in APIs.
     '!src/proto/*.js', // Auto generated code,
-    '!{node_modules,build,dist,third_party,build-system}/**/*.*',
+    '!{node_modules,build,dist,third_party}/**/*.*',
     '!{testing,examples}/**/*.*',
-    '!test/describes.js',
-    '!test/fixtures/**/*.*',
     '!eslint-rules/**/*.*',
-    '!gulpfile.js',
-    '!karma.conf.js',
     '!test/coverage/**/*.*',
+    '!test/describes.js',
+    '!build-system/extern.js',
   ],
   jsonGlobs: [
     '**/*.json',

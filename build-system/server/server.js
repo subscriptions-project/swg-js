@@ -20,8 +20,8 @@
  * files and list directories for use with the gulp live server
  */
 const app = require(require.resolve('./server-app'));
-const isRunning = require('is-running');
 const gulp = require('gulp-help')(require('gulp'));
+const isRunning = require('is-running');
 const log = require('fancy-log');
 const webserver = require('gulp-webserver');
 

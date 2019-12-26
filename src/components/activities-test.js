@@ -234,11 +234,7 @@ describes.realWin('Activity Components', {}, env => {
             actualHandler = handler;
           });
 
-        const expectedHandler = error => {
-          setTimeout(() => {
-            throw error;
-          });
-        };
+        const expectedHandler = sandbox.mock();
         activityPorts.onRedirectError(expectedHandler);
 
         expect(actualHandler).to.equal(expectedHandler);

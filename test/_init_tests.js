@@ -19,31 +19,10 @@ import '../src/polyfills';
 import * as describes from '../test/describes';
 import {CACHE_KEYS} from '../src/runtime/services';
 import {PAY_ORIGIN} from '../src/runtime/pay-client';
-import {installYieldIt} from '../test/yield';
 import stringify from 'json-stable-stringify';
 
 // All exposed describes.
 global.describes = describes;
-
-installYieldIt(it);
-
-// Used to check if an unrestored sandbox exists
-const sandboxes = [];
-const create = sinon.sandbox.create;
-sinon.sandbox.create = function(config) {
-  const sandbox = create.call(sinon.sandbox, config);
-  sandboxes.push(sandbox);
-
-  const restore = sandbox.restore;
-  sandbox.restore = function() {
-    const i = sandboxes.indexOf(sandbox);
-    if (i > -1) {
-      sandboxes.splice(i, 1);
-    }
-    return restore.call(sandbox);
-  };
-  return sandbox;
-};
 
 beforeEach(function() {
   this.timeout(5000);
@@ -63,10 +42,6 @@ afterEach(function() {
     // The error will be thrown later to give possibly other sandboxes a
     // chance to restore themselves.
     delete global.sandbox;
-  }
-  if (sandboxes.length > 0) {
-    sandboxes.splice(0, sandboxes.length).forEach(sb => sb.restore());
-    throw new Error('You forgot to restore your sandbox!');
   }
   if (forgotGlobal) {
     throw new Error('You forgot to clear global sandbox!');
