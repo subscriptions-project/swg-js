@@ -62,14 +62,14 @@ export function bytesToString(bytes) {
 
 /**
  * Interpret a byte array as a UTF-8 string.
- * @param {!BufferSource} bytes
+ * @param {!Uint8Array} bytes
  * @return {string}
  */
 export function utf8DecodeSync(bytes) {
   if (typeof TextDecoder !== 'undefined') {
     return new TextDecoder('utf-8').decode(bytes);
   }
-  const asciiString = bytesToString(new Uint8Array(bytes.buffer || bytes));
+  const asciiString = bytesToString(new Uint8Array(bytes));
   return decodeURIComponent(escape(asciiString));
 }
 
