@@ -16,6 +16,7 @@
 'use strict';
 
 const $$ = require('gulp-load-plugins')();
+const argv = require('minimist')(process.argv.slice(2));
 const babel = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
@@ -23,6 +24,7 @@ const closureCompile = require('./closure-compile').closureCompile;
 const fs = require('fs-extra');
 const glob = require('glob');
 const gulp = $$.help(require('gulp'));
+const internalRuntimeVersion = require('./internal-version').VERSION;
 const jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
 const lazypipe = require('lazypipe');
 const pathLib = require('path');
@@ -30,8 +32,6 @@ const resolveConfig = require('./compile-config').resolveConfig;
 const source = require('vinyl-source-stream');
 const touch = require('touch');
 const watchify = require('watchify');
-const internalRuntimeVersion = require('./internal-version').VERSION;
-const argv = require('minimist')(process.argv.slice(2));
 const {endBuildStep, mkdirSync} = require('./helpers');
 const {red} = require('ansi-colors');
 

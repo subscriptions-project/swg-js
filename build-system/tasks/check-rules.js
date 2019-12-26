@@ -16,9 +16,9 @@
 'use strict';
 
 const gulp = require('gulp-help')(require('gulp'));
+const log = require('fancy-log');
 const path = require('path');
 const srcGlobs = require('../config').presubmitGlobs;
-const log = require('fancy-log');
 const through2 = require('through2');
 
 const {red, blue} = require('ansi-colors');

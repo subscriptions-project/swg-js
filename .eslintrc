@@ -5,13 +5,15 @@
     "swg-internal",
     "google-camelcase",
     "prettier",
-    "sort-imports-es6-autofix"
+    "sort-imports-es6-autofix",
+    "sort-requires"
   ],
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module"
   },
   "env": {
+    "amd": true,
     "es6": true,
     "browser": true
   },
@@ -87,7 +89,8 @@
       "ignoreCase": false,
       "ignoreMemberSort": false,
       "memberSyntaxSortOrder": ["none", "all", "multiple", "single"]
-    }]
+    }],
+    "sort-requires/sort-requires": 2
   },
   "overrides": [
     {
