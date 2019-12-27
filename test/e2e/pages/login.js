@@ -23,18 +23,25 @@ const constants = require('../constants');
 const login = {
   login: function(browser) {
     this.api.pause(1000);
-    return this.log('Signing into Google Account')
-      .assert.containsText('@headingText', 'Sign in')
-      .waitForElementPresent('@username')
-      .setValue('@username', [constants.login.username, browser.Keys.ENTER])
-      .assert.elementPresent('@profileIdentifier')
-      .waitForElementPresent({
-        selector: '@password',
-        retryInterval: 100,
-      })
-      .waitForElementVisible('@password')
-      .setValue('@password', [constants.login.password, browser.Keys.ENTER])
-      .assert.containsText('h1', 'Welcome');
+
+    return browser.getTitle(title => {
+      if (title === 'Google Account') {
+        return this.log('Already signed into Google Account');
+      }
+
+      return this.log('Signing into Google Account')
+        .assert.containsText('@headingText', 'Sign in')
+        .waitForElementPresent('@username')
+        .setValue('@username', [constants.login.username, browser.Keys.ENTER])
+        .assert.elementPresent('@profileIdentifier')
+        .waitForElementPresent({
+          selector: '@password',
+          retryInterval: 100,
+        })
+        .waitForElementVisible('@password')
+        .setValue('@password', [constants.login.password, browser.Keys.ENTER])
+        .assert.containsText('h1', 'Welcome');
+    });
   },
 };
 
