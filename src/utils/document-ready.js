@@ -51,27 +51,28 @@ export function onDocumentReady(doc, callback) {
 }
 
 /**
- * Calls the callback when document's state satisfies the stateFn.
+ * Calls the callback once when document's state satisfies the condition.
  * @param {!Document} doc
- * @param {function(!Document):boolean} stateFn
+ * @param {function(!Document):boolean} condition
  * @param {function(!Document)} callback
  */
-function onDocumentState(doc, stateFn, callback) {
-  let ready = stateFn(doc);
-  if (ready) {
+function onDocumentState(doc, condition, callback) {
+  if (condition(doc)) {
+    // Execute callback right now.
     callback(doc);
-  } else {
-    const readyListener = () => {
-      if (stateFn(doc)) {
-        if (!ready) {
-          ready = true;
-          callback(doc);
-        }
-        doc.removeEventListener('readystatechange', readyListener);
-      }
-    };
-    doc.addEventListener('readystatechange', readyListener);
+    return;
   }
+
+  // Execute callback (once!) after condition is satisfied.
+  let callbackHasExecuted = false;
+  const readyListener = () => {
+    if (condition(doc) && !callbackHasExecuted) {
+      callback(doc);
+      callbackHasExecuted = true;
+      doc.removeEventListener('readystatechange', readyListener);
+    }
+  };
+  doc.addEventListener('readystatechange', readyListener);
 }
 
 /**
