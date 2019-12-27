@@ -18,7 +18,6 @@ import {Doc, resolveDoc} from './doc';
 import {PageConfig} from './page-config';
 import {debugLog} from '../utils/log';
 import {hasNextNodeInDocumentOrder} from '../utils/dom';
-import {isArray} from '../utils/types';
 import {tryParseJson} from '../utils/json';
 
 const ALREADY_SEEN = '__SWG-SEEN__';
@@ -158,7 +157,7 @@ class TypeChecker {
    * @private
    */
   toArray_(value) {
-    return isArray(value) ? value : [value];
+    return Array.isArray(value) ? value : [value];
   }
 }
 
@@ -334,7 +333,7 @@ class JsonLdParser {
     if (value == null || value === '') {
       return null;
     }
-    return isArray(value) ? value : [value];
+    return Array.isArray(value) ? value : [value];
   }
 
   /**

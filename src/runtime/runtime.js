@@ -61,7 +61,6 @@ import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {assert} from '../utils/log';
 import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
-import {isArray} from '../utils/types';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {setExperiment} from './experiments';
@@ -92,7 +91,7 @@ export function getRuntime() {
  */
 export function installRuntime(win) {
   // Only install the SwG runtime once.
-  if (win[RUNTIME_PROP] && !isArray(win[RUNTIME_PROP])) {
+  if (win[RUNTIME_PROP] && !Array.isArray(win[RUNTIME_PROP])) {
     return;
   }
 

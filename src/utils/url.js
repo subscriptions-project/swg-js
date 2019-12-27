@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import {isArray} from './types';
-
 /**
   @typedef {{
     href: string,
@@ -57,7 +55,7 @@ export function serializeQueryString(params) {
     const v = params[k];
     if (v == null) {
       continue;
-    } else if (isArray(v)) {
+    } else if (Array.isArray(v)) {
       for (let i = 0; i < v.length; i++) {
         const sv = /** @type {string} */ (v[i]);
         s.push(`${encodeURIComponent(k)}=${encodeURIComponent(sv)}`);
