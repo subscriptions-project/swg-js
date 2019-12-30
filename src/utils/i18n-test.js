@@ -40,6 +40,7 @@ describes.realWin('FriendlyIframe', {}, env => {
   it('should to default to en', () => {
     expect(msg(LANG_MAP, null)).to.equal('English');
     expect(msg(LANG_MAP, '')).to.equal('English');
+    expect(msg(LANG_MAP, 'pirate')).to.equal('English');
     expect(msg(LANG_MAP, elementNoLang)).to.equal('English');
     expect(msg(LANG_MAP, {})).to.equal('English');
     expect(msg(LANG_MAP, 'en')).to.equal('English');
