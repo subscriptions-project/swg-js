@@ -88,4 +88,19 @@ describes.realWin('JsError', {}, env => {
     expect(params['error']).to.equal('Error: A B');
     expect(params['trace']).to.match(/browserify.js/);
   });
+
+  it('should handle DOMExceptions', async () => {
+    const error = new DOMException('whateva');
+
+    await jsError.error(error);
+    expect(elements).to.have.length(1);
+    expect(elements[0].name).to.equal('img');
+    const src = parseUrl(elements[0].src);
+    const params = parseQueryString(src.search);
+    expect(src.pathname).to.equal(
+      '/$frontend$/_/SubscribewithgoogleClientUi/jserror'
+    );
+    expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
+    expect(params['error']).to.equal('Error: whateva');
+  });
 });
