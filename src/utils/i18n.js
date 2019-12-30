@@ -27,7 +27,7 @@ export function msg(map, langOrElement) {
     : langOrElement.lang ||
       (langOrElement.ownerDocument &&
         langOrElement.ownerDocument.documentElement.lang);
-  let search = ((lang && lang.toLowerCase()) || 'en').replace(/_/g, '-');
+  let search = ((lang && lang.toLowerCase()) || '').replace(/_/g, '-');
   while (search) {
     if (search in map) {
       return map[search];
