@@ -60,7 +60,7 @@ export function msg(map, languageCodeOrElement) {
 }
 
 /**
- * Gets a language code (ex: "en-US") from a given Element.
+ * Gets a language code (ex: "en-US") from a given HTMLElement.
  * @param {!HTMLElement} element
  * @return {string}
  */
