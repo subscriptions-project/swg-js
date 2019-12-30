@@ -60,8 +60,8 @@ export function msg(map, languageCodeOrElement) {
 }
 
 /**
- * Gets a language code (ex: "en-US") from a given HTMLElement.
- * @param {!HTMLElement} element
+ * Gets a language code (ex: "en-US") from a given Element.
+ * @param {!Element} element
  * @return {string}
  */
 function getLanguageCodeFromElement(element) {
@@ -70,7 +70,7 @@ function getLanguageCodeFromElement(element) {
     return element.lang;
   }
 
-  if (element.ownerDocument) {
+  if (element.ownerDocument && element.ownerDocument.documentElement.lang) {
     // Get language from element's document.
     return element.ownerDocument.documentElement.lang;
   }
