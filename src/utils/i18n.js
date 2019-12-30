@@ -46,11 +46,12 @@ export function msg(map, languageCodeOrElement) {
   const languageCodeSegments = languageCode.split('-');
   while (languageCodeSegments.length) {
     const key = languageCodeSegments.join('-');
-
     if (key in map) {
       return map[key];
     }
 
+    // Simplify language code.
+    // Ex: "en-US-SF" => "en-US"
     languageCodeSegments.pop();
   }
 
