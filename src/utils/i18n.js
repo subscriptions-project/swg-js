@@ -14,27 +14,66 @@
  * limitations under the License.
  */
 
+/** English is the default language. */
+const DEFAULT_LANGUAGE_CODE = 'en';
+
 /**
+ * Gets a message for a given language code, from a map of messages.
  * @param {!Object<string, string>} map
- * @param {?string|?Element} langOrElement
+ * @param {?string|?Element} languageCodeOrElement
  * @return {?string}
  */
-export function msg(map, langOrElement) {
-  const lang = !langOrElement
-    ? ''
-    : typeof langOrElement == 'string'
-    ? langOrElement
-    : langOrElement.lang ||
-      (langOrElement.ownerDocument &&
-        langOrElement.ownerDocument.documentElement.lang);
-  let search = ((lang && lang.toLowerCase()) || '').replace(/_/g, '-');
-  while (search) {
-    if (search in map) {
-      return map[search];
-    }
-    const dash = search.lastIndexOf('-');
-    search = dash != -1 ? search.substring(0, dash) : '';
+export function msg(map, languageCodeOrElement) {
+  const defaultMsg = map[DEFAULT_LANGUAGE_CODE];
+
+  // Verify params.
+  if (typeof map !== 'object' || !languageCodeOrElement) {
+    return defaultMsg;
   }
-  // "en" is always default.
-  return map['en'];
+
+  // Get language code.
+  let languageCode =
+    typeof languageCodeOrElement === 'string'
+      ? languageCodeOrElement
+      : getLanguageCodeFromElement(languageCodeOrElement);
+
+  // Normalize language code.
+  languageCode = languageCode.toLowerCase();
+  languageCode = languageCode.replace(/_/g, '-');
+
+  // Search for a message matching the language code.
+  // If a message can't be found, try again with a less specific language code.
+  const languageCodeSegments = languageCode.split('-');
+  while (languageCodeSegments.length) {
+    const key = languageCodeSegments.join('-');
+
+    if (key in map) {
+      return map[key];
+    }
+
+    languageCodeSegments.pop();
+  }
+
+  // There was an attempt.
+  return defaultMsg;
+}
+
+/**
+ * Gets a language code (ex: "en-US") from a given Element.
+ * @param {!HTMLElement} element
+ * @return {string}
+ */
+function getLanguageCodeFromElement(element) {
+  if (element.lang) {
+    // Get language from element itself.
+    return element.lang;
+  }
+
+  if (element.ownerDocument) {
+    // Get language from element's document.
+    return element.ownerDocument.documentElement.lang;
+  }
+
+  // There was an attempt.
+  return DEFAULT_LANGUAGE_CODE;
 }
