@@ -32,15 +32,12 @@ const login = {
       return this.log('Signing into Google Account')
         .assert.containsText('@headingText', 'Sign in')
         .waitForElementPresent('@username')
+        .waitForElementVisible('@username')
         .setValue('@username', [constants.login.username, browser.Keys.ENTER])
-        .assert.elementPresent('@profileIdentifier')
-        .waitForElementPresent({
-          selector: '@password',
-          retryInterval: 100,
-        })
+        .waitForElementPresent('@password')
         .waitForElementVisible('@password')
         .setValue('@password', [constants.login.password, browser.Keys.ENTER])
-        .assert.containsText('h1', 'Welcome');
+        .waitForElementNotPresent('@password');
     });
   },
 };
