@@ -89,8 +89,8 @@ export class AnalyticsService {
     /** @private @type {!boolean} */
     this.everStartedLog_ = false;
 
-    /** @private {!boolean} */
-    this.eventFinishedLog_ = false;
+    /** @private @type {!boolean} */
+    this.everFinishedLog_ = false;
 
     /**
      * @private @const {!AnalyticsContext}
@@ -358,7 +358,7 @@ export class AnalyticsService {
 
     this.unfinishedLogs_--;
     if (!isTimeout) {
-      this.eventFinishedLog_ = true;
+      this.everFinishedLog_ = true;
     }
 
     // Nothing is waiting
@@ -404,7 +404,7 @@ export class AnalyticsService {
           this.timeout_ = null;
           whenDone(createErrorResponse(TIMEOUT_ERROR));
         },
-        this.eventFinishedLog_ ? MAX_WAIT : MAX_FIRST_WAIT
+        this.everFinishedLog_ ? MAX_WAIT : MAX_FIRST_WAIT
       );
     }
 

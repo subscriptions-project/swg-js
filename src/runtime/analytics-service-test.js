@@ -122,6 +122,7 @@ describes.realWin('AnalyticsService', {}, env => {
 
   describe('Communications', () => {
     let iframeCallback;
+    let expectOpenIframe;
 
     beforeEach(() => {
       iframeCallback = null;
@@ -132,22 +133,25 @@ describes.realWin('AnalyticsService', {}, env => {
             iframeCallback = callback;
           }
         });
+      expectOpenIframe = false;
     });
-    afterEach(() => {
+    afterEach(async () => {
       // Ensure that analytics service registers a callback to listen for when
       // logging is finished.
       expect(iframeCallback).to.not.be.null;
+      if (expectOpenIframe) {
+        expect(activityPorts.openIframe).to.have.been.calledOnce;
+        const args = activityPorts.openIframe.getCall(0).args;
+        expect(args[0].nodeName).to.equal('IFRAME');
+        expect(args[1]).to.equal(feUrl(src));
+        expect(args[2]).to.be.null;
+        expect(args[3]).to.be.true;
+      }
     });
 
     it('should call openIframe after client event', () => {
       analyticsService.handleClientEvent_(event);
-
-      expect(activityPorts.openIframe).to.have.been.calledOnce;
-      const args = activityPorts.openIframe.getCall(0).args;
-      expect(args[0].nodeName).to.equal('IFRAME');
-      expect(args[1]).to.equal(feUrl(src));
-      expect(args[2]).to.be.null;
-      expect(args[3]).to.be.true;
+      expectOpenIframe = true;
       return activityIframePort.whenReady();
     });
 
@@ -168,7 +172,7 @@ describes.realWin('AnalyticsService', {}, env => {
       await activityIframePort.whenReady();
 
       // These ensure the right event was communicated.
-      expect(activityIframePort.execute).to.be.calledOnce;
+      expectOpenIframe = true;
       const call1 = activityIframePort.execute.getCall(0);
       const /* {?AnalyticsRequest} */ request1 = call1.args[0];
       expect(request1.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
@@ -187,12 +191,6 @@ describes.realWin('AnalyticsService', {}, env => {
       await analyticsService.lastAction_;
 
       // This ensures communications were successful
-      expect(activityPorts.openIframe).to.have.been.calledOnce;
-      const args1 = activityPorts.openIframe.getCall(0).args;
-      expect(args1[0].nodeName).to.equal('IFRAME');
-      expect(args1[1]).to.equal(feUrl(src));
-      expect(args1[2]).to.be.null;
-      expect(args1[3]).to.be.true;
       const call2 = activityIframePort.execute.getCall(1);
       const /* {?AnalyticsRequest} */ request2 = call2.args[0];
       expect(request2).to.not.be.null;
