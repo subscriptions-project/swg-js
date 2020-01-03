@@ -36,10 +36,10 @@ import {setImportantStyles} from '../utils/style';
 const iframeStyles = {
   opacity: '0',
   position: 'absolute',
-  top: -10,
-  height: 1,
-  width: 1,
-  left: -10,
+  top: '-10px',
+  left: '-10px',
+  height: '1px',
+  width: '1px',
 };
 
 // The initial iframe load takes ~500 ms.  We will wait at least that long
