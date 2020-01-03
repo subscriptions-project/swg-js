@@ -45,11 +45,10 @@ const iframeStyles = {
 // The initial iframe load takes ~500 ms.  We will wait at least that long
 // before a page redirect.  Subsequent logs are much faster.  We will wait at
 // most 100 ms.
-const MAX_FIRST_WAIT = 250;
-const MAX_WAIT = 100;
+const MAX_FIRST_WAIT = 500;
+const MAX_WAIT = 200;
 // If we logged and rapidly redirected, we will add a short delay in case
 // a message hasn't been transmitted yet.
-const EXTRA_WAIT_FOR_LOGS = 25;
 const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
 
 /**
@@ -371,12 +370,9 @@ export class AnalyticsService {
         clearTimeout(this.timeout_);
         this.timeout_ = null;
       }
-      const f = () => {
-        this.loggingResolver_(success);
-        this.promiseToLog_ = null;
-        this.loggingResolver_ = null;
-      };
-      setTimeout(f.bind(this), EXTRA_WAIT_FOR_LOGS);
+      this.loggingResolver_(success);
+      this.promiseToLog_ = null;
+      this.loggingResolver_ = null;
     }
   }
 
