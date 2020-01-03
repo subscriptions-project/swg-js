@@ -25,7 +25,7 @@ import {
 } from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {createElement} from '../utils/dom';
-import {feArgs, feUrl} from './services';
+import {feUrl} from './services';
 import {getOnExperiments} from './experiments';
 import {getUuid} from '../utils/string';
 import {log} from '../utils/log';
@@ -34,12 +34,22 @@ import {setImportantStyles} from '../utils/style';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
-  display: 'none',
+  opacity: '0',
+  position: 'absolute',
+  top: -10,
+  height: 1,
+  width: 1,
+  left: -10,
 };
 
-// We will wait up to 100 ms for subsequent log events (which are messaged)
-// to the iframe code that's already loaded.
+// The initial iframe load takes ~500 ms.  We will wait at least that long
+// before a page redirect.  Subsequent logs are much faster.  We will wait at
+// most 100 ms.
+const MAX_FIRST_WAIT = 250;
 const MAX_WAIT = 100;
+// If we logged and rapidly redirected, we will add a short delay in case
+// a message hasn't been transmitted yet.
+const EXTRA_WAIT_FOR_LOGS = 25;
 const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
 
 /**
@@ -73,27 +83,19 @@ export class AnalyticsService {
       'iframe',
       {}
     ));
-
     setImportantStyles(this.iframe_, iframeStyles);
-
-    /** @private @const {string} */
-    this.src_ = feUrl('/serviceiframe');
-
-    /** @private @const {string} */
-    this.publicationId_ = deps.pageConfig().getPublicationId();
-
-    this.args_ = feArgs({
-      publicationId: this.publicationId_,
-    });
+    this.doc_.getBody().appendChild(this.getElement());
 
     /** @private @type {!boolean} */
-    this.everLogged_ = false;
+    this.everStartedLog_ = false;
+
+    /** @private {!boolean} */
+    this.eventFinishedLog_ = false;
 
     /**
      * @private @const {!AnalyticsContext}
      */
     this.context_ = new AnalyticsContext();
-
     this.context_.setTransactionId(getUuid());
 
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
@@ -222,10 +224,8 @@ export class AnalyticsService {
    */
   start() {
     if (!this.serviceReady_) {
-      // TODO(sohanirao): Potentially do this even earlier
-      this.doc_.getBody().appendChild(this.getElement());
       this.serviceReady_ = this.activityPorts_
-        .openIframe(this.iframe_, this.src_, this.args_)
+        .openIframe(this.iframe_, feUrl('/serviceiframe'), null, true)
         .then(
           port => {
             // Register a listener for the logging to code indicate it is
@@ -272,7 +272,7 @@ export class AnalyticsService {
    * @return {boolean}
    */
   getHasLogged() {
-    return this.everLogged_;
+    return this.everStartedLog_;
   }
 
   /**
@@ -338,7 +338,7 @@ export class AnalyticsService {
     }
     // Register we sent a log, the port will call this.afterLogging_ when done.
     this.unfinishedLogs_++;
-    this.everLogged_ = true;
+    this.everStartedLog_ = true;
     const request = this.createLogRequest_(event);
     this.lastAction_ = this.start().then(port => port.execute(request));
   }
@@ -350,28 +350,33 @@ export class AnalyticsService {
   afterLogging_(response) {
     const success = (response && response.getComplete()) || false;
     const error = (response && response.getError()) || 'Unknown logging Error';
+    const isTimeout = error === TIMEOUT_ERROR;
+
     if (!success) {
       log('Error when logging: ' + error);
     }
 
     this.unfinishedLogs_--;
+    if (!isTimeout) {
+      this.eventFinishedLog_ = true;
+    }
+
     // Nothing is waiting
     if (this.loggingResolver_ === null) {
       return;
     }
 
-    if (
-      this.unfinishedLogs_ === 0 || // All logs finished
-      this.loggingBroken_ || // Logs will never finished
-      error === TIMEOUT_ERROR // Someone waited too long for logging to finish
-    ) {
+    if (this.unfinishedLogs_ === 0 || this.loggingBroken_ || isTimeout) {
       if (this.timeout_ !== null) {
         clearTimeout(this.timeout_);
         this.timeout_ = null;
       }
-      this.loggingResolver_(success);
-      this.promiseToLog_ = null;
-      this.loggingResolver_ = null;
+      const f = () => {
+        this.loggingResolver_(success);
+        this.promiseToLog_ = null;
+        this.loggingResolver_ = null;
+      };
+      setTimeout(f.bind(this), EXTRA_WAIT_FOR_LOGS);
     }
   }
 
@@ -394,10 +399,13 @@ export class AnalyticsService {
       // The promise above should not wait forever if things go wrong.  Let
       // the user proceed!
       const whenDone = this.afterLogging_.bind(this);
-      this.timeout_ = setTimeout(() => {
-        this.timeout_ = null;
-        whenDone(createErrorResponse(TIMEOUT_ERROR));
-      }, MAX_WAIT);
+      this.timeout_ = setTimeout(
+        () => {
+          this.timeout_ = null;
+          whenDone(createErrorResponse(TIMEOUT_ERROR));
+        },
+        this.eventFinishedLog_ ? MAX_WAIT : MAX_FIRST_WAIT
+      );
     }
 
     return this.promiseToLog_;
