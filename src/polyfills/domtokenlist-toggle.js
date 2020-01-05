@@ -23,7 +23,7 @@
  * @this {DOMTokenList}
  * @return {boolean}
  */
-function domTokenListTogglePolyfill(token, force) {
+export function toggle(token, force) {
   const remove = force === undefined ? this.contains(token) : !force;
   if (remove) {
     this.remove(token);
@@ -44,7 +44,7 @@ export function install(win) {
       enumerable: false,
       configurable: true,
       writable: true,
-      value: domTokenListTogglePolyfill,
+      value: toggle,
     });
   }
 }

@@ -22,7 +22,7 @@
  * @return {boolean}
  * @this {Array}
  */
-function includes(value, fromIndex = 0) {
+export function includes(value, fromIndex = 0) {
   const len = this.length;
   let i = fromIndex >= 0 ? fromIndex : Math.max(len + fromIndex, 0);
   for (; i < len; i++) {
