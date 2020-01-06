@@ -331,11 +331,12 @@ describes.realWin('installRuntime legacy', {}, env => {
 describes.realWin('Runtime', {}, env => {
   let win;
   let runtime;
-  const loggedEvents = [];
+  let loggedEvents = [];
 
   beforeEach(() => {
     win = env.win;
     runtime = new Runtime(win);
+    loggedEvents = [];
     sandbox
       .stub(ClientEventManager.prototype, 'logEvent')
       .callsFake(event => loggedEvents.push(event));
@@ -471,11 +472,25 @@ describes.realWin('Runtime', {}, env => {
         active: null,
         data: null,
       });
-      expect(loggedEvents.length).to.equal(1);
-      expect(loggedEvents[0]).to.deep.equal({
+      expect(loggedEvents.length).to.equal(2);
+      const payEvent =
+        loggedEvents[0].eventType === AnalyticsEvent.IMPRESSION_PAYWALL
+          ? loggedEvents[0]
+          : loggedEvents[1];
+      const startEvent =
+        loggedEvents[0].eventType === AnalyticsEvent.IMPRESSION_PAGE_LOAD
+          ? loggedEvents[0]
+          : loggedEvents[1];
+      expect(payEvent).to.deep.equal({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
         eventOriginator: EventOriginator.PUBLISHER_CLIENT,
         isFromUserAction: null,
+        additionalParameters: null,
+      });
+      expect(startEvent).to.deep.equal({
+        eventType: AnalyticsEvent.IMPRESSION_PAGE_LOAD,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
         additionalParameters: null,
       });
       expect(logger).to.be.instanceOf(Logger);
@@ -938,7 +953,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       try {
         await configPromise;
       } catch (e) {}
-      expect(eventCount).to.equal(1);
+      expect(eventCount).to.equal(2);
     });
 
     it('should not log when config rejected', async () => {
