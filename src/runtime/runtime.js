@@ -539,6 +539,7 @@ export class ConfiguredRuntime {
 
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
+    this.analyticsService_.start();
 
     /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(this);
@@ -562,6 +563,7 @@ export class ConfiguredRuntime {
     );
 
     // ALL CLEAR: DepsDef definition now complete.
+    this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_PAGE_LOAD, false);
 
     /** @private @const {!OffersApi} */
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);

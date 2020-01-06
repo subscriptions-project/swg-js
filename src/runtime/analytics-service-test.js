@@ -25,7 +25,7 @@ import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
-import {feArgs, feUrl} from './services';
+import {feUrl} from './services';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting} from './experiments';
 
@@ -48,6 +48,15 @@ describes.realWin('AnalyticsService', {}, env => {
     eventOriginator: EventOriginator.SWG_CLIENT,
     isFromUserAction: null,
     additionalParameters: {},
+  };
+
+  const IFRAME_STYLES = {
+    opacity: '0',
+    position: 'absolute',
+    top: '-10px',
+    left: '-10px',
+    height: '1px',
+    width: '1px',
   };
 
   beforeEach(() => {
@@ -100,7 +109,11 @@ describes.realWin('AnalyticsService', {}, env => {
       );
       expect(activityIframe.nodeType).to.equal(1);
       expect(activityIframe.nodeName).to.equal('IFRAME');
-      expect(getStyle(activityIframe, 'display')).to.equal('none');
+      for (const key in IFRAME_STYLES) {
+        if (typeof IFRAME_STYLES[key] === 'string') {
+          expect(getStyle(activityIframe, key)).to.equal(IFRAME_STYLES[key]);
+        }
+      }
       const txId = 'tx-id-101';
       analyticsService.setTransactionId(txId);
       expect(analyticsService.getTransactionId()).to.equal(txId);
@@ -109,6 +122,7 @@ describes.realWin('AnalyticsService', {}, env => {
 
   describe('Communications', () => {
     let iframeCallback;
+    let expectOpenIframe;
 
     beforeEach(() => {
       iframeCallback = null;
@@ -119,28 +133,25 @@ describes.realWin('AnalyticsService', {}, env => {
             iframeCallback = callback;
           }
         });
+      expectOpenIframe = false;
     });
-    afterEach(() => {
+    afterEach(async () => {
       // Ensure that analytics service registers a callback to listen for when
       // logging is finished.
       expect(iframeCallback).to.not.be.null;
+      if (expectOpenIframe) {
+        expect(activityPorts.openIframe).to.have.been.calledOnce;
+        const args = activityPorts.openIframe.getCall(0).args;
+        expect(args[0].nodeName).to.equal('IFRAME');
+        expect(args[1]).to.equal(feUrl(src));
+        expect(args[2]).to.be.null;
+        expect(args[3]).to.be.true;
+      }
     });
 
     it('should call openIframe after client event', () => {
       analyticsService.handleClientEvent_(event);
-
-      expect(activityPorts.openIframe).to.have.been.calledOnce;
-      const firstArgument = activityPorts.openIframe.getCall(0).args[0];
-      expect(activityPorts.openIframe).to.have.been.calledOnce;
-      expect(firstArgument.nodeName).to.equal('IFRAME');
-      const secondArgument = activityPorts.openIframe.getCall(0).args[1];
-      expect(secondArgument).to.equal(feUrl(src));
-      const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
-      expect(thirdArgument).to.deep.equal(
-        feArgs({
-          publicationId: pageConfig.getPublicationId(),
-        })
-      );
+      expectOpenIframe = true;
       return activityIframePort.whenReady();
     });
 
@@ -161,15 +172,14 @@ describes.realWin('AnalyticsService', {}, env => {
       await activityIframePort.whenReady();
 
       // These ensure the right event was communicated.
-      expect(activityIframePort.execute).to.be.calledOnce;
-      const /* {?AnalyticsRequest} */ requestSent = activityIframePort.execute.getCall(
-          0
-        ).args[0];
-      expect(requestSent.getEvent()).to.deep.equal(AnalyticsEvent.UNKNOWN);
-      expect(requestSent.getMeta().getEventOriginator()).to.deep.equal(
+      expectOpenIframe = true;
+      const call1 = activityIframePort.execute.getCall(0);
+      const /* {?AnalyticsRequest} */ request1 = call1.args[0];
+      expect(request1.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
+      expect(request1.getMeta().getEventOriginator()).to.equal(
         EventOriginator.UNKNOWN_CLIENT
       );
-      expect(requestSent.getMeta().getIsFromUserAction()).to.be.null;
+      expect(request1.getMeta().getIsFromUserAction()).to.be.null;
 
       // This sends another event and waits for it to be sent
       eventManagerCallback({
@@ -181,25 +191,11 @@ describes.realWin('AnalyticsService', {}, env => {
       await analyticsService.lastAction_;
 
       // This ensures communications were successful
-      expect(activityPorts.openIframe).to.have.been.calledOnce;
-      const firstArgument = activityPorts.openIframe.getCall(0).args[0];
-      expect(firstArgument.nodeName).to.equal('IFRAME');
-      const secondArgument = activityPorts.openIframe.getCall(0).args[1];
-      expect(secondArgument).to.equal(feUrl(src));
-      const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
-      expect(thirdArgument).to.deep.equal(
-        feArgs({
-          publicationId: pageConfig.getPublicationId(),
-        })
-      );
-      const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
-          1
-        ).args[0];
-      expect(request).to.not.be.null;
-      const meta = request.getMeta();
-      expect(request.getEvent()).to.deep.equal(
-        AnalyticsEvent.IMPRESSION_PAYWALL
-      );
+      const call2 = activityIframePort.execute.getCall(1);
+      const /* {?AnalyticsRequest} */ request2 = call2.args[0];
+      expect(request2).to.not.be.null;
+      const meta = request2.getMeta();
+      expect(request2.getEvent()).to.equal(AnalyticsEvent.IMPRESSION_PAYWALL);
       expect(meta.getEventOriginator()).to.equal(EventOriginator.SWG_CLIENT);
       expect(meta.getIsFromUserAction()).to.be.true;
 
