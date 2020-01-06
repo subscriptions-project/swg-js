@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
-/**
- * @fileoverview Global settings for all tests.
- */
-const childProcess = require('child_process');
-const {startServer, stopServer} = require('../../build-system/tasks/serve');
+import {Entitlement} from './entitlements';
 
-module.exports = {
-  before: function() {
-    startServer();
-  },
-  after: function() {
-    // Chromedriver does not automatically exit after test ends.
-    childProcess.exec('pkill chromedriver');
+describes.realWin('Entitlements', {}, () => {
+  let entitlements;
 
-    stopServer();
-  },
-  // Let tests to continue if an assertion fails.
-  abortOnAssertionFailure: false,
+  beforeEach(() => {
+    entitlements = Entitlement.parseFromJson(null);
+  });
 
-  // Wait 30 seconds for conditions to become true.
-  waitForConditionTimeout: 30000,
-};
+  describe('enables', () => {
+    it('handles falsy `product` param', () => {
+      expect(entitlements.enables(null)).to.be.false;
+    });
+  });
+});

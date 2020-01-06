@@ -16,15 +16,24 @@
 
 const $$ = require('gulp-load-plugins')();
 const gulp = $$.help(require('gulp'));
+const {
+  build,
+  checkTypes,
+  clean,
+  dist,
+  watch,
+} = require('./build-system/tasks/builders');
+const {
+  runAllExportsToEs,
+  runAllExportsToAmp,
+} = require('./build-system/tasks/export-to-es');
 const {assets} = require('./build-system/tasks/assets');
-const {lint} = require('./build-system/tasks/lint');
-const {e2e} = require('./build-system/tasks/e2e');
 const {changelog} = require('./build-system/tasks/changelog');
 const {checkRules} = require('./build-system/tasks/check-rules');
-const {build, checkTypes, clean, dist,watch} = require('./build-system/tasks/builders');
+const {e2e} = require('./build-system/tasks/e2e');
+const {lint} = require('./build-system/tasks/lint');
 const {serve} = require('./build-system/tasks/serve');
 const {unit} = require('./build-system/tasks/unit');
-const {runAllExportsToEs, runAllExportsToAmp} = require('./build-system/tasks/export-to-es');
 
 // Gulp tasks.
 gulp.task('assets', assets);

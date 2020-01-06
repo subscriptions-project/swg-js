@@ -15,8 +15,8 @@
  */
 'use strict';
 
-const {isTravisBuild} = require('../travis');
 const through = require('through2');
+const {isTravisBuild} = require('../travis');
 
 /**
  * @param {!Object} config
@@ -35,13 +35,14 @@ module.exports = {
     fast: true,
     transform: [
       ['babelify', {presets: ['@babel/preset-env']}],
-      (file) => {
-        return through(function (buf, enc, next) {
+      () =>
+        through(function(buf, enc, next) {
           // Set Pay environment to indicate we're in a Karma test.
-          this.push(buf.toString('utf8').replace(/\$payEnvironment\$/g, 'TEST'));
+          this.push(
+            buf.toString('utf8').replace(/\$payEnvironment\$/g, 'TEST')
+          );
           next();
-        });
-      }
+        }),
     ],
     bundleDelay: 900,
   },

@@ -60,8 +60,7 @@ import {Storage} from './storage';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {assert} from '../utils/log';
 import {debugLog} from '../utils/log';
-import {injectStyleSheet, isEdgeBrowser} from '../utils/dom';
-import {isArray} from '../utils/types';
+import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {setExperiment} from './experiments';
@@ -92,7 +91,7 @@ export function getRuntime() {
  */
 export function installRuntime(win) {
   // Only install the SwG runtime once.
-  if (win[RUNTIME_PROP] && !isArray(win[RUNTIME_PROP])) {
+  if (win[RUNTIME_PROP] && !Array.isArray(win[RUNTIME_PROP])) {
     return;
   }
 
@@ -503,7 +502,7 @@ export class ConfiguredRuntime {
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
 
-    if (isEdgeBrowser(this.win_)) {
+    if (isLegacyEdgeBrowser(this.win_)) {
       // TODO(dvoytenko, b/120607343): Find a way to remove this restriction
       // or move it to Web Activities.
       this.config_.windowOpenMode = WindowOpenMode.REDIRECT;

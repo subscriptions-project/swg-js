@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {values} from './object-values';
+import {install, values} from './object-values';
 
 describes.sandboxed('Object.values polyfill', {}, () => {
   it('should disallow null and undefined', () => {
@@ -35,5 +35,30 @@ describes.sandboxed('Object.values polyfill', {}, () => {
 
   it('should return values of objects', () => {
     expect(values({a: 1, b: 2, c: 1})).to.deep.equal([1, 2, 1]);
+  });
+
+  it('should only return own values', () => {
+    const obj = {x: 1};
+    obj.__proto__ = {y: 2};
+    expect(values(obj)).to.deep.equal([1]);
+  });
+
+  it('should install if necessary', () => {
+    // Polyfill won't be installed if it isn't needed.
+    expect(self.Object.values).to.not.equal(values);
+    install(self);
+    expect(self.Object.values).to.not.equal(values);
+
+    // Delete native method.
+    const backup = self.Object.values;
+    delete self.Object.values;
+
+    // Install polyfill.
+    install(self);
+    expect(self.Object.values).to.equal(values);
+
+    // Restore native method.
+    self.Object.values = backup;
+    expect(self.Object.values).to.not.equal(values);
   });
 });

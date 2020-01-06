@@ -15,16 +15,16 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
-const gulp = require('gulp-help')(require('gulp'));
-const glob = require('glob');
-const Karma = require('karma').Server;
-const config = require('../config');
-const log = require('fancy-log');
-const webserver = require('gulp-webserver');
 const app = require('../server/test-server').app;
+const argv = require('minimist')(process.argv.slice(2));
+const config = require('../config');
+const glob = require('glob');
+const gulp = require('gulp-help')(require('gulp'));
+const Karma = require('karma').Server;
 const karmaDefault = require('./karma.conf');
+const log = require('fancy-log');
 const shuffleSeed = require('shuffle-seed');
+const webserver = require('gulp-webserver');
 
 const {build} = require('./builders');
 const {green, yellow, cyan, red} = require('ansi-colors');
