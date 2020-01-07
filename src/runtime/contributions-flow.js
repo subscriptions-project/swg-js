@@ -84,19 +84,17 @@ export class ContributionsFlow {
     const sku = response.getSku();
     const isOneTime = response.getOneTime();
     if (sku) {
+      const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest = {
+          'skuId': sku,
+        };
       if (isOneTime) {
-        const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest = {
-            skuId: sku,
-            oneTime: isOneTime,
-          };
-        new PayStartFlow(
-          this.deps_,
-          contributionRequest,
-          ProductType.UI_CONTRIBUTION
-        ).start();
-      } else {
-        new PayStartFlow(this.deps_, sku, ProductType.UI_CONTRIBUTION).start();
+        contributionRequest['oneTime'] = isOneTime;
       }
+      new PayStartFlow(
+        this.deps_,
+        contributionRequest,
+        ProductType.UI_CONTRIBUTION
+      ).start();
     }
   }
 

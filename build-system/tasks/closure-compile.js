@@ -15,22 +15,22 @@
  */
 'use strict';
 
-const fs = require('fs-extra');
 const argv = require('minimist')(process.argv.slice(2));
 const closureCompiler = require('gulp-closure-compiler');
+const fs = require('fs-extra');
 const gulp = require('gulp');
+const internalRuntimeVersion = require('./internal-version').VERSION;
 const rename = require('gulp-rename');
 const replace = require('gulp-replace');
 const resolveConfig = require('./compile-config').resolveConfig;
-const internalRuntimeVersion = require('./internal-version').VERSION;
 
 const isProdBuild = !!argv.type;
 const queue = [];
 let inProgress = 0;
 const MAX_PARALLEL_CLOSURE_INVOCATIONS = 4;
 
-const {red} = require('ansi-colors');
 const {isTravisBuild} = require('../travis');
+const {red} = require('ansi-colors');
 
 // Compiles code with the closure compiler. This is intended only for
 // production use. During development we intent to continue using
@@ -224,7 +224,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       compilerOptions.compilerFlags.new_type_inf = true;
       compilerOptions.compilerFlags.jscomp_off.push('newCheckTypesExtraChecks');
     }
-    if (argv.pseudo_names) {
+    if (argv.pseudoNames) {
       compilerOptions.compilerFlags.define.push('PSEUDO_NAMES=true');
     }
     if (argv.fortesting) {

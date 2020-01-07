@@ -21,8 +21,8 @@
  * deployment to GAE.
  */
 
-const express = require('express');
 const app = require(require.resolve('./server-app'));
+const express = require('express');
 const port = process.env.PORT || 8080;
 
 // View cache.

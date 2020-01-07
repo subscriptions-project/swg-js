@@ -113,7 +113,7 @@ describes.realWin('PayStartFlow', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     analyticsMock = sandbox.mock(runtime.analytics());
     eventManagerMock = sandbox.mock(runtime.eventManager());
-    flow = new PayStartFlow(runtime, 'sku1');
+    flow = new PayStartFlow(runtime, {'skuId': 'sku1'});
   });
 
   afterEach(() => {
@@ -125,10 +125,6 @@ describes.realWin('PayStartFlow', {}, env => {
   });
 
   it('should have valid flow constructed in payStartFlow', async () => {
-    const subscribeRequest = {
-      skuId: 'sku1',
-      publicationId: 'pub1',
-    };
     callbacksMock
       .expects('triggerFlowStarted')
       .withExactArgs('subscribe', {skuId: 'sku1'})
@@ -142,7 +138,10 @@ describes.realWin('PayStartFlow', {}, env => {
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
-          'swg': subscribeRequest,
+          'swg': {
+            skuId: 'sku1',
+            publicationId: 'pub1',
+          },
           'i': {
             'startTimeMs': sandbox.match.any,
             'productType': sandbox.match(productTypeRegex),
@@ -215,7 +214,7 @@ describes.realWin('PayStartFlow', {}, env => {
       oneTime: true,
       publicationId: 'pub1',
     };
-    const replaceFlow = new PayStartFlow(runtime, subscriptionRequest);
+    const oneTimeFlow = new PayStartFlow(runtime, subscriptionRequest);
     callbacksMock
       .expects('triggerFlowStarted')
       .withExactArgs('subscribe', subscriptionRequest)
@@ -251,14 +250,14 @@ describes.realWin('PayStartFlow', {}, env => {
         true,
         getEventParams('newSku')
       );
-    const flowPromise = replaceFlow.start();
+    const flowPromise = oneTimeFlow.start();
     await expect(flowPromise).to.eventually.be.undefined;
   });
 
   it('should have valid replace flow constructed', async () => {
     const subscriptionRequest = {
-      skuId: 'newSku',
-      oldSku: 'oldSku',
+      skuId: 'newSku1',
+      oldSku: 'oldSku1',
       publicationId: 'pub1',
       replaceSkuProrationMode:
         ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
@@ -269,7 +268,7 @@ describes.realWin('PayStartFlow', {}, env => {
       .withExactArgs('subscribe', subscriptionRequest)
       .once();
     callbacksMock.expects('triggerFlowCanceled').never();
-    analyticsMock.expects('setSku').withExactArgs('oldSku');
+    analyticsMock.expects('setSku').withExactArgs('oldSku1');
     payClientMock
       .expects('start')
       .withExactArgs(
@@ -279,8 +278,8 @@ describes.realWin('PayStartFlow', {}, env => {
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
           'swg': {
-            skuId: 'newSku',
-            oldSku: 'oldSku',
+            skuId: 'newSku1',
+            oldSku: 'oldSku1',
             publicationId: 'pub1',
             replaceSkuProrationMode:
               ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
@@ -300,7 +299,7 @@ describes.realWin('PayStartFlow', {}, env => {
       .withExactArgs(
         AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         true,
-        getEventParams('newSku')
+        getEventParams('newSku1')
       );
     const flowPromise = replaceFlow.start();
     await expect(flowPromise).to.eventually.be.undefined;
@@ -308,8 +307,8 @@ describes.realWin('PayStartFlow', {}, env => {
 
   it('should have valid replace flow constructed (no proration mode)', async () => {
     const subscriptionRequest = {
-      skuId: 'newSku',
-      oldSku: 'oldSku',
+      skuId: 'newSku2',
+      oldSku: 'oldSku2',
       publicationId: 'pub1',
     };
     const replaceFlowNoProrationMode = new PayStartFlow(
@@ -329,7 +328,7 @@ describes.realWin('PayStartFlow', {}, env => {
           'allowedPaymentMethods': ['CARD'],
           'environment': '$payEnvironment$',
           'playEnvironment': '$playEnvironment$',
-          'swg': Object.assign(subscriptionRequest, {
+          'swg': Object.assign({}, subscriptionRequest, {
             replaceSkuProrationMode:
               ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
           }),
@@ -343,13 +342,13 @@ describes.realWin('PayStartFlow', {}, env => {
         }
       )
       .once();
-    analyticsMock.expects('setSku').withExactArgs('oldSku');
+    analyticsMock.expects('setSku').withExactArgs('oldSku2');
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
         AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         true,
-        getEventParams('newSku')
+        getEventParams('newSku2')
       );
     const flowPromise = replaceFlowNoProrationMode.start();
     await expect(flowPromise).to.eventually.be.undefined;
@@ -411,9 +410,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     pageConfig = new PageConfig('pub1');
     responseCallback = null;
     sandbox.stub(PayClient.prototype, 'onResponse').callsFake(callback => {
-      if (responseCallback) {
-        throw new Error('duplicated onResponse');
-      }
       responseCallback = callback;
     });
     messageMap = {};
@@ -434,6 +430,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     analyticsMock.verify();
     jserrorMock.verify();
     eventManagerMock.verify();
+    expect(PayClient.prototype.onResponse).to.be.calledOnce;
   });
 
   it('should have valid flow constructed', async () => {
@@ -844,21 +841,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .withExactArgs('Pay failed', error)
         .once();
 
-      try {
-        await responseCallback(Promise.reject(error));
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/intentional/);
-      }
+      await expect(responseCallback(Promise.reject(error))).to.be.rejectedWith(
+        /intentional/
+      );
       expect(startStub).to.not.be.called;
       expect(triggerPromise).to.exist;
 
-      try {
-        await triggerPromise;
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/intentional/);
-      }
+      await expect(triggerPromise).to.be.rejectedWith(/intentional/);
     });
 
     it('should start flow on a correct payment response', async () => {

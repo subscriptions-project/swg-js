@@ -15,6 +15,7 @@
  */
 
 import {getPropertyFromJsonString} from '../utils/json';
+import {warn} from '../utils/log';
 
 /**
  * The holder of the entitlements for a service.
@@ -271,11 +272,18 @@ export class Entitlement {
    * @return {?string}
    */
   getSku() {
-    return (
-      /** @type {?string} */ (getPropertyFromJsonString(
-        this.subscriptionToken,
-        'productId'
-      ) || null)
+    if (this.source !== 'google') {
+      return null;
+    }
+    const sku = (
+        /** @type {?string} */ (getPropertyFromJsonString(
+            this.subscriptionToken,
+            'productId'
+        ) || null)
     );
+    if (!sku) {
+      warn('Unable to retrieve SKU from SwG subscription token');
+    }
+    return sku;
   }
 }

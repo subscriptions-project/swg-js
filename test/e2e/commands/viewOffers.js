@@ -13,27 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
 /**
- * @fileoverview Global settings for all tests.
+ * @fileoverview View subscribe offers.
  */
-const childProcess = require('child_process');
-const {startServer, stopServer} = require('../../build-system/tasks/serve');
-
-module.exports = {
-  before: function() {
-    startServer();
-  },
-  after: function() {
-    // Chromedriver does not automatically exit after test ends.
-    childProcess.exec('pkill chromedriver');
-
-    stopServer();
-  },
-  // Let tests to continue if an assertion fails.
-  abortOnAssertionFailure: false,
-
-  // Wait 30 seconds for conditions to become true.
-  waitForConditionTimeout: 30000,
+module.exports.command = function() {
+  return this.pause(1000)
+    .log('Viewing offers')
+    .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
+    .switchToFrame('[src*="offersiframe"]', 'SwG inner iFrame');
 };

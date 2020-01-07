@@ -125,19 +125,6 @@ describes.realWin('Dom', {}, env => {
       }).to.throw(/Unsupported content/);
     });
 
-    it('should remove element', () => {
-      const element = dom.createElement(doc, 'div', {});
-      const childElement = dom.createElement(doc, 'div', {});
-      element.appendChild(childElement);
-
-      expect(element.children.length).to.equal(1);
-      expect(element.firstChild).to.not.equal(null);
-
-      dom.removeElement(childElement);
-      expect(element.children.length).to.equal(0);
-      expect(element.firstChild).to.equal(null);
-    });
-
     it('should remove all the children', () => {
       const element = dom.createElement(doc, 'div', {});
       element.textContent = 'Some text';
@@ -152,6 +139,26 @@ describes.realWin('Dom', {}, env => {
       dom.removeChildren(element);
       expect(element.children.length).to.equal(0);
       expect(element.firstChild).to.equal(null);
+    });
+  });
+
+  describe('removeElement', () => {
+    it('should remove element', () => {
+      const element = dom.createElement(doc, 'div', {});
+      const childElement = dom.createElement(doc, 'div', {});
+      element.appendChild(childElement);
+
+      expect(element.children.length).to.equal(1);
+      expect(element.firstChild).to.not.equal(null);
+
+      dom.removeElement(childElement);
+      expect(element.children.length).to.equal(0);
+      expect(element.firstChild).to.equal(null);
+    });
+
+    it('should not throw when passed an orphaned element', () => {
+      const element = dom.createElement(doc, 'div', {});
+      dom.removeElement(element);
     });
   });
 
@@ -217,6 +224,30 @@ describes.realWin('Dom', {}, env => {
       expect(dom.isConnected(node)).to.be.true;
       doc.body.removeChild(node);
       expect(dom.isConnected(node)).to.be.false;
+    });
+  });
+
+  describe('isLegacyEdgeBrowser', () => {
+    it('should return true for legacy Edge browsers', () => {
+      const legacyEdgeWindow = {
+        navigator: {
+          userAgent:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36 Edge/40.15063.0',
+        },
+      };
+      const isLegacyEdge = dom.isLegacyEdgeBrowser(legacyEdgeWindow);
+      expect(isLegacyEdge).to.be.true;
+    });
+
+    it('should return false for other browsers', () => {
+      const newEdgeWindow = {
+        navigator: {
+          userAgent:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36 Edg/44.18362.449.0',
+        },
+      };
+      const isLegacyEdge = dom.isLegacyEdgeBrowser(newEdgeWindow);
+      expect(isLegacyEdge).to.be.false;
     });
   });
 });

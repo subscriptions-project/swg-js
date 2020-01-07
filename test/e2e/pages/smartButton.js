@@ -1,4 +1,7 @@
 /**
+ * @fileoverview Description of this file.
+ */
+/**
  * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,24 +19,19 @@
 'use strict';
 
 /**
- * @fileoverview Global settings for all tests.
+ * @fileoverview Page object for the first article with smart button.
  */
-const childProcess = require('child_process');
-const {startServer, stopServer} = require('../../build-system/tasks/serve');
-
 module.exports = {
-  before: function() {
-    startServer();
+  url: function() {
+    return this.api.launchUrl + '?smartbutton#swg.experiments=smartbox';
   },
-  after: function() {
-    // Chromedriver does not automatically exit after test ends.
-    childProcess.exec('pkill chromedriver');
-
-    stopServer();
+  // commands: [commands],
+  elements: {
+    smartButton: {
+      selector: '#smartButton',
+    },
+    smartButtonLabel: {
+      selector: '.swg-button-light',
+    },
   },
-  // Let tests to continue if an assertion fails.
-  abortOnAssertionFailure: false,
-
-  // Wait 30 seconds for conditions to become true.
-  waitForConditionTimeout: 30000,
 };

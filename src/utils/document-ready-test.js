@@ -27,19 +27,32 @@ describes.sandboxed('documentReady', {}, () => {
   let eventListeners;
 
   beforeEach(() => {
-    eventListeners = {};
+    eventListeners = {
+      readystatechange: [],
+    };
+
     testDoc = {
       readyState: 'loading',
       addEventListener: (eventType, handler) => {
-        eventListeners[eventType] = handler;
+        eventListeners[eventType].push(handler);
       },
       removeEventListener: (eventType, handler) => {
-        if (eventListeners[eventType] == handler) {
-          delete eventListeners[eventType];
-        }
+        eventListeners[eventType] = eventListeners[eventType].filter(
+          fn => fn !== handler
+        );
       },
     };
   });
+
+  /** Calls listeners of the `readystatechange` event. */
+  function callListeners() {
+    eventListeners['readystatechange'].forEach(listener => listener());
+  }
+
+  /** Counts listeners of the `readystatechange` event. */
+  function countListeners() {
+    return eventListeners['readystatechange'].length;
+  }
 
   it('should interpret readyState correctly', () => {
     expect(isDocumentReady(testDoc)).to.equal(false);
@@ -67,14 +80,14 @@ describes.sandboxed('documentReady', {}, () => {
     const callback = sandbox.spy();
     onDocumentReady(testDoc, callback);
     expect(callback).to.have.not.been.called;
-    expect(eventListeners['readystatechange']).to.not.equal(undefined);
+    expect(countListeners()).to.equal(1);
 
     // Complete
     testDoc.readyState = 'complete';
-    eventListeners['readystatechange']();
+    callListeners();
     expect(callback).to.be.calledOnce;
     expect(callback.getCall(0).args).to.deep.equal([testDoc]);
-    expect(eventListeners['readystatechange']).to.equal(undefined);
+    expect(countListeners()).to.equal(0);
   });
 
   it('should wait to call callback for several loading events', () => {
@@ -82,19 +95,19 @@ describes.sandboxed('documentReady', {}, () => {
     const callback = sandbox.spy();
     onDocumentReady(testDoc, callback);
     expect(callback).to.have.not.been.called;
-    expect(eventListeners['readystatechange']).to.not.equal(undefined);
+    expect(countListeners()).to.equal(1);
 
     // Still loading
-    eventListeners['readystatechange']();
+    callListeners();
     expect(callback).to.have.not.been.called;
-    expect(eventListeners['readystatechange']).to.not.equal(undefined);
+    expect(countListeners()).to.equal(1);
 
     // Complete
     testDoc.readyState = 'complete';
-    eventListeners['readystatechange']();
+    callListeners();
     expect(callback).to.be.calledOnce;
     expect(callback.getCall(0).args).to.deep.equal([testDoc]);
-    expect(eventListeners['readystatechange']).to.equal(undefined);
+    expect(countListeners()).to.equal(0);
   });
 
   describe('whenDocumentReady', () => {
@@ -137,16 +150,16 @@ describes.sandboxed('documentReady', {}, () => {
 
       await tick(99);
       expect(callback).to.have.not.been.called;
-      expect(eventListeners['readystatechange']).to.not.equal(undefined);
+      expect(countListeners()).to.equal(1);
 
       // Complete
       testDoc.readyState = 'complete';
-      eventListeners['readystatechange']();
+      callListeners();
 
       await tick();
       expect(callback).to.be.calledOnce;
       expect(callback.getCall(0).args).to.deep.equal([testDoc]);
-      expect(eventListeners['readystatechange']).to.equal(undefined);
+      expect(countListeners()).to.equal(0);
     });
   });
 
@@ -190,24 +203,24 @@ describes.sandboxed('documentReady', {}, () => {
 
       await tick();
       expect(callback).to.have.not.been.called;
-      expect(eventListeners['readystatechange']).to.not.equal(undefined);
+      expect(countListeners()).to.equal(1);
 
       // interactive
       testDoc.readyState = 'interactive';
-      eventListeners['readystatechange']();
+      callListeners();
 
       await tick();
       expect(callback).to.have.not.been.called;
-      expect(eventListeners['readystatechange']).to.not.equal(undefined);
+      expect(countListeners()).to.equal(1);
 
       // Complete
       testDoc.readyState = 'complete';
-      eventListeners['readystatechange']();
+      callListeners();
 
       await tick();
       expect(callback).to.be.calledOnce;
       expect(callback.getCall(0).args).to.deep.equal([testDoc]);
-      expect(eventListeners['readystatechange']).to.equal(undefined);
+      expect(countListeners()).to.equal(0);
     });
   });
 });

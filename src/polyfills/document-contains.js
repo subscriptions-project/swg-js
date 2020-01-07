@@ -22,7 +22,7 @@
  * @return {boolean}
  * @this {Node}
  */
-function documentContainsPolyfill(node) {
+export function contains(node) {
   // Per spec, "contains" method is inclusionary
   // i.e. `node.contains(node) == true`. However, we still need to test
   // equality to the document itself.
@@ -39,7 +39,7 @@ export function install(win) {
       enumerable: false,
       configurable: true,
       writable: true,
-      value: documentContainsPolyfill,
+      value: contains,
     });
   }
 }

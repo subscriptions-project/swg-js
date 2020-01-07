@@ -62,4 +62,14 @@ describe('getRandomInts', () => {
   it('should generate random large ints that respect boundaries', () => {
     testRand(4000000);
   });
+
+  it('should use polyfill if `crypto.getRandomValues` is not available', () => {
+    // Mock missing `crypto.getRandomValues` function.
+    const getRandomValues = crypto.getRandomValues;
+    crypto.getRandomValues = null;
+    testRand(1000);
+
+    // Restore `crypto.getRandomValues` function.
+    crypto.getRandomValues = getRandomValues;
+  });
 });

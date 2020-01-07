@@ -16,76 +16,7 @@
 
 import * as types from './types';
 
-describes.realWin('Types', {}, env => {
-  let win;
-
-  beforeEach(() => {
-    win = env.win;
-  });
-
-  describe('toArray', () => {
-    it('should return empty array if null is passed', () => {
-      expect(types.toArray(null).length).to.equal(0);
-      expect(types.toArray(undefined).length).to.equal(0);
-    });
-
-    it('should convert NodeList to array', () => {
-      const parent = win.document.createElement('div');
-      parent.appendChild(win.document.createElement('p'));
-      parent.appendChild(win.document.createElement('span'));
-      parent.appendChild(win.document.createElement('div'));
-      const arr = types.toArray(parent.childNodes);
-      expect(arr[0]).to.equal(parent.childNodes[0]);
-      expect(arr.length).to.equal(3);
-      expect(Array.isArray(arr)).to.be.true;
-    });
-
-    it('should convert HTMLCollection to array', () => {
-      const parent = win.document.createElement('div');
-      parent.appendChild(win.document.createElement('form'));
-      parent.appendChild(win.document.createElement('form'));
-      win.document.body.appendChild(parent);
-      const arr = types.toArray(win.document.forms);
-      expect(arr[0]).to.equal(win.document.forms[0]);
-      expect(arr.length).to.equal(2);
-      expect(Array.isArray(arr)).to.be.true;
-      win.document.body.removeChild(parent);
-    });
-
-    it('should convert HTMLOptionsCollection to array', () => {
-      const parent = win.document.createElement('select');
-      parent.appendChild(win.document.createElement('option'));
-      parent.appendChild(win.document.createElement('option'));
-      parent.appendChild(win.document.createElement('option'));
-      parent.appendChild(win.document.createElement('option'));
-      const arr = types.toArray(parent.options);
-      expect(arr[0]).to.equal(parent.options[0]);
-      expect(arr.length).to.equal(4);
-      expect(Array.isArray(arr)).to.be.true;
-    });
-  });
-
-  describe('isFiniteNumber', () => {
-    it('should yield false for non-numbers', () => {
-      expect(types.isFiniteNumber(null)).to.be.false;
-      expect(types.isFiniteNumber(undefined)).to.be.false;
-      expect(types.isFiniteNumber('')).to.be.false;
-      expect(types.isFiniteNumber('2')).to.be.false;
-      expect(types.isFiniteNumber([])).to.be.false;
-      expect(types.isFiniteNumber([2])).to.be.false;
-      expect(types.isFiniteNumber({})).to.be.false;
-      expect(types.isFiniteNumber({'a': 2})).to.be.false;
-      expect(types.isFiniteNumber(true)).to.be.false;
-      expect(types.isFiniteNumber(NaN)).to.be.false;
-    });
-
-    it('should yield true for numbers', () => {
-      expect(types.isFiniteNumber(3)).to.be.true;
-      expect(types.isFiniteNumber(3.2)).to.be.true;
-      expect(types.isFiniteNumber(123e5)).to.be.true;
-    });
-  });
-
+describes.realWin('Types', {}, () => {
   describe('isEnumValue', () => {
     /** @enum {string} */
     const enumObj = {
@@ -103,20 +34,108 @@ describes.realWin('Types', {}, env => {
 
     it('should return false for non-enum values', () => {
       [
-        'a',
+        '',
         'X',
-        'Z',
-        {'x': 'x'},
-        ['y'],
+        [],
+        [1, 2, 3],
+        {},
+        {x: 1},
+        /Hi/,
+        0,
+        1,
+        true,
+        false,
+        function() {},
+        () => {},
         null,
         undefined,
-        [],
-        /x/,
-        /y/,
-        42,
       ].forEach(value => {
         expect(types.isEnumValue(enumObj, value), 'enum value = ' + value).to.be
           .false;
+      });
+    });
+  });
+
+  describe('isObject', () => {
+    it('identifies objects', () => {
+      [{}, {x: 1}].forEach(value => {
+        expect(types.isObject(value)).to.be.true;
+      });
+    });
+
+    it('identifies non-objects', () => {
+      [
+        '',
+        'X',
+        [],
+        [1, 2, 3],
+        /Hi/,
+        0,
+        1,
+        true,
+        false,
+        function() {},
+        () => {},
+        null,
+        undefined,
+      ].forEach(value => {
+        expect(types.isObject(value)).to.be.false;
+      });
+    });
+  });
+
+  describe('isFunction', () => {
+    it('identifies functions', () => {
+      [function() {}, () => {}].forEach(value => {
+        expect(types.isFunction(value)).to.be.true;
+      });
+    });
+
+    it('identifies non-functions', () => {
+      [
+        '',
+        'X',
+        [],
+        [1, 2, 3],
+        {},
+        {x: 1},
+        /Hi/,
+        0,
+        1,
+        true,
+        false,
+        null,
+        undefined,
+      ].forEach(value => {
+        expect(types.isFunction(value)).to.be.false;
+      });
+    });
+  });
+
+  describe('isBoolean', () => {
+    it('identifies booleans', () => {
+      [true, false].forEach(value => {
+        expect(types.isBoolean(value)).to.be.true;
+      });
+    });
+
+    it('identifies non-booleans', () => {
+      [
+        '',
+        'X',
+        [],
+        [1, 2, 3],
+        {},
+        {x: 1},
+        /Hi/,
+        0,
+        1,
+        function() {},
+        () => {},
+        null,
+        undefined,
+      ].forEach(value => {
+        expect(types.isBoolean(value)).to.be.false;
       });
     });
   });

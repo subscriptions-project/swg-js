@@ -41,7 +41,6 @@ const {blue, red, yellow} = require('ansi-colors');
  *   changelog: string,
  * }}
  */
-let ReleaseMetadata;
 
 /**
  * @return {!Promise}
@@ -157,6 +156,7 @@ function getGithubPullRequestsMetadata(release) {
             id: pr['number'],
             title: pr['title'],
             body: pr['body'],
+            // eslint-disable-next-line google-camelcase/google-camelcase
             merge_commit_sha: pr['merge_commit_sha'],
             url: pr['_links']['self']['href'],
           };
