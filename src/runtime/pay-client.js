@@ -70,6 +70,18 @@ export class PayClient {
     /** @private @const {!RedirectVerifierHelper} */
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
 
+    /** @private @const {!PaymentsAsyncClient} */
+    this.client_ = this.createClient_(
+      {
+        environment: '$payEnvironment$',
+        'i': {
+          'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+        },
+      },
+      this.analytics_.getTransactionId(),
+      this.handleResponse_.bind(this)
+    );
+
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
   }
@@ -122,17 +134,6 @@ export class PayClient {
   start(paymentRequest, options = {}) {
     this.request_ = paymentRequest;
 
-    const client = this.createClient_(
-      {
-        environment: '$payEnvironment$',
-        'i': {
-          'redirectKey': this.redirectVerifierHelper_.restoreKey(),
-        },
-      },
-      this.analytics_.getTransactionId(),
-      this.handleResponse_.bind(this)
-    );
-
     if (options.forceRedirect) {
       paymentRequest = Object.assign(paymentRequest, {
         'forceRedirect': options.forceRedirect || false,
@@ -153,12 +154,13 @@ export class PayClient {
         setInternalParam(paymentRequest, 'redirectVerifier', verifier);
       }
       if (options.forceRedirect) {
+        const client = this.client_;
         return this.analytics_.getLoggingPromise().then(() => {
           client.loadPaymentData(paymentRequest);
           resolver(true);
         });
       } else {
-        client.loadPaymentData(paymentRequest);
+        this.client_.loadPaymentData(paymentRequest);
         resolver(true);
       }
     });
