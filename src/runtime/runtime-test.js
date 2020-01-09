@@ -52,6 +52,7 @@ import {
 import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
+import {PayClient} from './pay-client';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PayStartFlow} from './pay-flow';
@@ -1199,6 +1200,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(runtime.entitlementsManager().blockNextNotification_).to.be.false;
       expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
       expect(runtime.jserror()).to.be.instanceOf(JsError);
+      expect(runtime.payClient()).to.be.instanceOf(PayClient);
     });
 
     it('should report the redirect failure', () => {
@@ -1626,6 +1628,10 @@ subscribe() method'
       expect(
         flowInstance.subscriptionRequest_.replaceSkuProrationMode
       ).to.equal(ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
+    });
+
+    it('should register PayClient response callback', async () => {
+      expect(runtime.payClient().responseCallback_).to.not.be.null;
     });
 
     it('should start PayStartFlow for contribution', async () => {

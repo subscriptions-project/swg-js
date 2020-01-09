@@ -107,8 +107,15 @@ describes.realWin('PayClient', {}, env => {
     return resultStub.args[0][0];
   }
 
-  it('should initalize correctly', () => {
+  it('should initialize correctly', () => {
     expect(payClient.getType()).to.equal('PAYJS');
+    expect(payClientStubs.create).to.be.calledOnce.calledWith({
+      'environment': '$payEnvironment$',
+      'i': {
+        'redirectKey': 'test_restore_key',
+      },
+    });
+    expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
     expect(redirectVerifierHelperStubs.prepare).to.be.calledOnce;
   });
 
