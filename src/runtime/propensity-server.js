@@ -103,15 +103,18 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    const stateParam = 'states=' + this.publicationId_ + ':' + state;
-    const extrainfoParam = '&extrainfo=';
+    let stateParam = this.publicationId_ + ':' + state;
+    let extrainfoParam = '&extrainfo=';
     if (productsOrSkus) {
       const skus = encodeURIComponent(productsOrSkus);
       extrainfoParam += skus;
       //TODO: Remove this once propensity officially moves over to the new param
       stateParam += ':' + skus;
     }
-    const url = adsUrl('/subopt/data?') + stateParam + extrainfoParam;
+    const url =
+      adsUrl('/subopt/data?states=') +
+      encodeURIComponent(stateParam) +
+      extrainfoParam;
     return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
@@ -125,15 +128,19 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    const eventParam = 'events=' + this.publicationId_ + ':' + event;
-    const extrainfoParam = '&extrainfo=';
+    let eventParam = this.publicationId_ + ':' + event;
+    let extrainfoParam = '&extrainfo=';
     if (context) {
       const extraInfo = encodeURIComponent(context);
       extrainfoParam += extraInfo;
       //TODO: Remove this once propensity officially moves over to the new param
       eventParam += ':' + extraInfo;
     }
-    const url = adsUrl('/subopt/data?') + eventParam + extrainfoParam;
+    const url =
+      adsUrl('/subopt/data?') +
+      'events=' +
+      encodeURIComponent(eventParam) +
+      extrainfoParam;
     return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 

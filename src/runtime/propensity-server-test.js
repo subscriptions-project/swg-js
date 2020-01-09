@@ -119,6 +119,7 @@ describes.realWin('PropensityServer', {}, env => {
       expect(userState).to.equal('pub1:subscriber');
       const products = decodeURIComponent(queries['states'].split(':')[2]);
       expect(products).to.equal(JSON.stringify(productsOrSkus));
+      expect(queries['extrainfo']).to.equal(JSON.stringify(productsOrSkus));
       expect(capturedRequest.credentials).to.equal('include');
       expect(capturedRequest.method).to.equal('GET');
     });
@@ -183,6 +184,7 @@ describes.realWin('PropensityServer', {}, env => {
       expect('events' in queries).to.be.true;
       const events = decodeURIComponent(queries['events'].split(':')[2]);
       expect(events).to.equal(JSON.stringify(eventParam));
+      expect(queries['extrainfo']).to.equal(JSON.stringify(eventParam));
       expect(capturedRequest.credentials).to.equal('include');
       expect(capturedRequest.method).to.equal('GET');
       defaultEvent.additionalParameters = defaultParameters;
