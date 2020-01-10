@@ -865,7 +865,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .withExactArgs('contribute')
         .once();
 
-      await expect(responseCallback(Promise.reject(error))).to.eventually.equal(undefined);
+      await expect(responseCallback(Promise.reject(error))).to.eventually.equal(
+        undefined
+      );
 
       expect(startStub).to.not.be.called;
 
