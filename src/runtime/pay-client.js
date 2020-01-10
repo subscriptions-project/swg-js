@@ -194,7 +194,7 @@ class PayClientBindingSwg {
       // This resolves an issue with logging where the page redirects before
       // logs get sent to the server.  Ultimately we need a logging promise to
       // resolve prior to redirecting but that is not possible right now.
-      this.eventManager_.getReadyPromise().then(() => {
+      return this.eventManager_.getReadyPromise().then(() => {
         this.analytics_.getLoggingPromise().then(() => {
           this.start_(paymentRequest, options);
         });

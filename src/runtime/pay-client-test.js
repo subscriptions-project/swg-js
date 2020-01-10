@@ -19,6 +19,7 @@ import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
+import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {DialogManager} from '../components/dialog-manager';
 import {ExperimentFlags} from './experiment-flags';
@@ -72,6 +73,7 @@ describes.realWin('PayClientBindingSwg', {}, env => {
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
+    sandbox.stub(ClientEventManager.prototype, 'logEvent').callsFake(() => {});
     runtime = new ConfiguredRuntime(win, pageConfig);
 
     resultIdsAttached = [];
