@@ -850,37 +850,26 @@ describes.realWin('PayCompleteFlow', {}, env => {
       await expect(triggerPromise).to.be.rejectedWith(/intentional/);
     });
 
-    it('should indicate contribution product type when canceled by contribution flow', async () => {
+    it('should indicate contribution product type if error indicates it', async () => {
       const error = new Error('intentional');
+      error.name = 'AbortError';
+      error.productType = ProductType.UI_CONTRIBUTION;
       analyticsMock.expects('setTransactionId').never();
       analyticsMock.expects('addLabels').never();
       eventManagerMock
         .expects('logSwgEvent')
-        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false)
-        .once();
-      jserrorMock
-        .expects('error')
-        .withExactArgs('Pay failed', error)
+        .withExactArgs(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true)
         .once();
       callbacksMock
         .expects('triggerFlowCanceled')
         .withExactArgs('contribute')
         .once();
-      try {
-        await responseCallback(Promise.reject(error));
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/intentional/);
-      }
-      expect(startStub).to.not.be.called;
-      expect(triggerPromise).to.exist;
 
-      try {
-        await triggerPromise;
-        throw new Error('must have failed');
-      } catch (reason) {
-        expect(reason).to.contain(/intentional/);
-      }
+      await expect(responseCallback(Promise.reject(error))).to.eventually.equal(undefined);
+
+      expect(startStub).to.not.be.called;
+
+      await expect(triggerPromise).to.be.rejectedWith(/intentional/);
     });
 
     it('should start flow on a correct payment response', async () => {

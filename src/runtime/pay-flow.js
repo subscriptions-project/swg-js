@@ -196,6 +196,7 @@ export class PayCompleteFlow {
           flow.start(response);
         },
         reason => {
+          console.log('reason: ', reason);
           if (isCancelError(reason)) {
             const flow =
               reason.productType == ProductType.UI_CONTRIBUTION
