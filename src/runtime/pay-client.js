@@ -417,7 +417,9 @@ export class PayClientBindingPayjs {
         if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
           const error = createCancelError(this.win_);
           if (this.request_) {
-            error['productType'] = this.request_.i.productType;
+            error['productType'] = /** @type {!Object} */ (this.request_)['i'][
+              'productType'
+            ];
           }
           return Promise.reject(error);
         }

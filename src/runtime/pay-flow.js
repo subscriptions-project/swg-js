@@ -197,8 +197,9 @@ export class PayCompleteFlow {
         },
         reason => {
           if (isCancelError(reason)) {
+            const productType = /** @type {!Object} */ (reason)['productType'];
             const flow =
-              reason.productType == ProductType.UI_CONTRIBUTION
+              productType == ProductType.UI_CONTRIBUTION
                 ? SubscriptionFlows.CONTRIBUTE
                 : SubscriptionFlows.SUBSCRIBE;
             deps.callbacks().triggerFlowCanceled(flow);
