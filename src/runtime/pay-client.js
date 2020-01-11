@@ -78,13 +78,15 @@ export class PayClient {
       ? new PayClientBindingPayjs(
           this.win_,
           this.activityPorts_,
-          deps.analytics()
+          deps.analytics(),
+          deps.eventManager()
         )
       : new PayClientBindingSwg(
           this.win_,
           this.activityPorts_,
           this.dialogManager_,
-          deps.analytics()
+          deps.analytics(),
+          deps.eventManager()
         );
   }
 
@@ -159,8 +161,15 @@ class PayClientBindingSwg {
    * @param {!../components/activities.ActivityPorts} activityPorts
    * @param {!../components/dialog-manager.DialogManager} dialogManager
    * @param {!./analytics-service.AnalyticsService} analyticsService
+   * @param {!./client-event-manager.ClientEventManager} eventManager
    */
-  constructor(win, activityPorts, dialogManager, analyticsService) {
+  constructor(
+    win,
+    activityPorts,
+    dialogManager,
+    analyticsService,
+    eventManager
+  ) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private @const {!../components/activities.ActivityPorts} */
@@ -169,6 +178,9 @@ class PayClientBindingSwg {
     this.dialogManager_ = dialogManager;
     /** @private @const {!./analytics-service.AnalyticsService} */
     this.analytics_ = analyticsService;
+
+    /** @private @const {!./client-event-manager.ClientEventManager} */
+    this.eventManager_ = eventManager;
   }
 
   /** @override */
@@ -182,10 +194,11 @@ class PayClientBindingSwg {
       // This resolves an issue with logging where the page redirects before
       // logs get sent to the server.  Ultimately we need a logging promise to
       // resolve prior to redirecting but that is not possible right now.
-      const start = this.start_.bind(this);
-      return this.analytics_
-        .getLoggingPromise()
-        .then(() => start(paymentRequest, options));
+      return this.eventManager_.getReadyPromise().then(() => {
+        this.analytics_.getLoggingPromise().then(() => {
+          this.start_(paymentRequest, options);
+        });
+      });
     } else {
       this.start_(paymentRequest, options);
       return Promise.resolve(true);
@@ -268,8 +281,9 @@ export class PayClientBindingPayjs {
    * @param {!Window} win
    * @param {!../components/activities.ActivityPorts} activityPorts
    * @param {!./analytics-service.AnalyticsService} analyticsService
+   * @param {!./client-event-manager.ClientEventManager} eventManager
    */
-  constructor(win, activityPorts, analyticsService) {
+  constructor(win, activityPorts, analyticsService, eventManager) {
     /** @private @const {!Window} */
     this.win_ = win;
     /** @private @const {!../components/activities.ActivityPorts} */
@@ -304,6 +318,9 @@ export class PayClientBindingPayjs {
 
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
+
+    /** @private @const {!./client-event-manager.ClientEventManager} */
+    this.eventManager_ = eventManager;
   }
 
   /**
@@ -355,10 +372,11 @@ export class PayClientBindingPayjs {
       }
       if (options.forceRedirect) {
         const client = this.client_;
-
-        return this.analytics_.getLoggingPromise().then(() => {
-          client.loadPaymentData(paymentRequest);
-          resolver(true);
+        this.eventManager_.getReadyPromise().then(() => {
+          this.analytics_.getLoggingPromise().then(() => {
+            client.loadPaymentData(paymentRequest);
+            resolver(true);
+          });
         });
       } else {
         this.client_.loadPaymentData(paymentRequest);
