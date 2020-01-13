@@ -55,13 +55,13 @@ export class PayClient {
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
-    /** @private {?function(!Promise<!Object>)} */
+    /** @private {?function(!Promise<!PaymentData>)} */
     this.responseCallback_ = null;
 
-    /** @private {?Object} */
+    /** @private {?PaymentDataRequest} */
     this.request_ = null;
 
-    /** @private {?Promise<!Object>} */
+    /** @private {?Promise<!PaymentData>} */
     this.response_ = null;
 
     /** @private @const {!./analytics-service.AnalyticsService} */
@@ -72,12 +72,13 @@ export class PayClient {
 
     /** @private @const {!PaymentsAsyncClient} */
     this.client_ = this.createClient_(
-      {
+      /** @type {!PaymentOptions} */
+      ({
         environment: '$payEnvironment$',
         'i': {
           'redirectKey': this.redirectVerifierHelper_.restoreKey(),
         },
-      },
+      }),
       this.analytics_.getTransactionId(),
       this.handleResponse_.bind(this)
     );
@@ -90,9 +91,9 @@ export class PayClient {
   }
 
   /**
-   * @param {!Object} options
+   * @param {!PaymentOptions} options
    * @param {string} googleTransactionId
-   * @param {function(!Promise<!Object>)} handler
+   * @param {function(!Promise<!PaymentData>)} handler
    * @return {!PaymentsAsyncClient}
    * @private
    */
@@ -131,7 +132,7 @@ export class PayClient {
   }
 
   /**
-   * @param {!Object} paymentRequest
+   * @param {!PaymentDataRequest} paymentRequest
    * @param {!PayOptionsDef=} options
    */
   start(paymentRequest, options = {}) {
@@ -173,7 +174,7 @@ export class PayClient {
   }
 
   /**
-   * @param {function(!Promise<!Object>)} callback
+   * @param {function(!Promise<!PaymentData>)} callback
    */
   onResponse(callback) {
     this.responseCallback_ = callback;
@@ -188,7 +189,7 @@ export class PayClient {
   }
 
   /**
-   * @param {!Promise<!Object>} responsePromise
+   * @param {!Promise<!PaymentData>} responsePromise
    * @private
    */
   handleResponse_(responsePromise) {
@@ -201,9 +202,9 @@ export class PayClient {
   }
 
   /**
-   * @param {!Promise<!Object>} response
-   * @param {?Object} request
-   * @return {!Promise<!Object>}
+   * @param {!Promise<!PaymentData>} response
+   * @param {?PaymentDataRequest} request
+   * @return {!Promise<!PaymentData>}
    * @private
    */
   convertResponse_(response, request) {
@@ -414,7 +415,7 @@ export class RedirectVerifierHelper {
 }
 
 /**
- * @param {!Object} paymentRequest
+ * @param {!PaymentDataRequest} paymentRequest
  * @param {string} param
  * @param {*} value
  */
