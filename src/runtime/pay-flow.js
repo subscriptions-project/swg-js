@@ -144,7 +144,8 @@ export class PayStartFlow {
       getEventParams(swgPaymentRequest['skuId'])
     );
     this.payClient_.start(
-      {
+      /** @type {!PaymentDataRequest} */
+      ({
         'apiVersion': 1,
         'allowedPaymentMethods': ['CARD'],
         'environment': '$payEnvironment$',
@@ -154,7 +155,7 @@ export class PayStartFlow {
           'startTimeMs': Date.now(),
           'productType': this.productType_,
         },
-      },
+      }),
       {
         forceRedirect:
           this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT,
