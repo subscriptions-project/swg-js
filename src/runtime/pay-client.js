@@ -55,7 +55,6 @@ export class PayClient {
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
-
     /** @private {?function(!Promise<!Object>)} */
     this.responseCallback_ = null;
 
@@ -87,7 +86,7 @@ export class PayClient {
     this.redirectVerifierHelper_.prepare();
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
-    this.eventManager_ = eventManager;
+    this.eventManager_ = deps.eventManager();
   }
 
   /**
