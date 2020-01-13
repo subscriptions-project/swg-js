@@ -159,4 +159,9 @@ export class ClientEventManager {
       additionalParameters: eventParams,
     });
   }
+
+  /** @return {!Promise<null>} */
+  getReadyPromise() {
+    return this.isReadyPromise_;
+  }
 }

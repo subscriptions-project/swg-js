@@ -35,59 +35,7 @@ const INTEGR_DATA_OBJ = {
 const GOOGLE_TRANSACTION_ID = 'ABC12345-CDE0-XYZ1-ABAB-11609E6472E9';
 
 describes.realWin('PayClient', {}, env => {
-  let win;
-  let pageConfig;
-  let runtime;
-  let analyticsService, analyticsMock;
-  let resultStub;
-  let payClient;
-  let payClientStubs;
-  let redirectVerifierHelperStubs, redirectVerifierHelperResults;
-  let responseHandler;
-  let googleTransactionId;
-
-  beforeEach(() => {
-    win = env.win;
-    pageConfig = new PageConfig('pub1:label1');
-    runtime = new ConfiguredRuntime(win, pageConfig);
-
-    redirectVerifierHelperResults = {
-      restoreKey: 'test_restore_key',
-      verifier: 'test_verifier',
-    };
-    redirectVerifierHelperStubs = {
-      restoreKey: sandbox
-        .stub(RedirectVerifierHelper.prototype, 'restoreKey')
-        .callsFake(() => redirectVerifierHelperResults.restoreKey),
-      prepare: sandbox.stub(RedirectVerifierHelper.prototype, 'prepare'),
-      useVerifier: sandbox
-        .stub(RedirectVerifierHelper.prototype, 'useVerifier')
-        .callsFake(callback => {
-          callback(redirectVerifierHelperResults.verifier);
-        }),
-    };
-    payClientStubs = {
-      create: sandbox
-        .stub(PayClient.prototype, 'createClient_')
-        .callsFake((options, googleTransactionId, handler) => {
-          responseHandler = handler;
-          return new PaymentsAsyncClient({});
-        }),
-      loadPaymentData: sandbox.stub(
-        PaymentsAsyncClient.prototype,
-        'loadPaymentData'
-      ),
-    };
-
-    googleTransactionId = GOOGLE_TRANSACTION_ID;
-    analyticsService = runtime.analytics();
-    analyticsMock = sandbox.mock(analyticsService);
-    sandbox.stub(analyticsService, 'getTransactionId').callsFake(() => {
-      return googleTransactionId;
-    });
-
     payClient = new PayClient(runtime);
-
     resultStub = sandbox.stub();
     payClient.onResponse(resultStub);
   });

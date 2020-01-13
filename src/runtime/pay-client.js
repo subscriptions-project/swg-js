@@ -55,6 +55,7 @@ export class PayClient {
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
+
     /** @private {?function(!Promise<!Object>)} */
     this.responseCallback_ = null;
 
@@ -84,6 +85,9 @@ export class PayClient {
 
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
+
+    /** @private @const {!./client-event-manager.ClientEventManager} */
+    this.eventManager_ = eventManager;
   }
 
   /**
@@ -155,9 +159,11 @@ export class PayClient {
       }
       if (options.forceRedirect) {
         const client = this.client_;
-        return this.analytics_.getLoggingPromise().then(() => {
-          client.loadPaymentData(paymentRequest);
-          resolver(true);
+        this.eventManager_.getReadyPromise().then(() => {
+          this.analytics_.getLoggingPromise().then(() => {
+            client.loadPaymentData(paymentRequest);
+            resolver(true);
+          });
         });
       } else {
         this.client_.loadPaymentData(paymentRequest);
