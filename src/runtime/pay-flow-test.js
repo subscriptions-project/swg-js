@@ -875,13 +875,13 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     describe('Transaction IDs', () => {
-      let hasLogged;
+      let isWaitingOnGpay;
 
       beforeEach(() => {
-        hasLogged = false;
+        isWaitingOnGpay = false;
         sandbox
-          .stub(runtime.analytics(), 'getHasLogged')
-          .callsFake(() => hasLogged);
+          .stub(runtime.analytics(), 'getWaitingOnGpay')
+          .callsFake(() => isWaitingOnGpay);
       });
 
       it('should log a change in TX ID without previous logging', async () => {
@@ -914,7 +914,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
 
       it('should log a change in TX ID with previous logging', async () => {
-        hasLogged = true;
+        isWaitingOnGpay = true;
         const newTxId = 'NEW_TRANSACTION_ID';
         const eventParams = new EventParams();
         eventParams.setGpayTransactionId(newTxId);
@@ -938,9 +938,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
 
       it('log no TX ID from gPay and that logging has occured', async () => {
-        hasLogged = true;
+        isWaitingOnGpay = true;
         const eventParams = new EventParams();
-        eventParams.setHadLogged(hasLogged);
+        eventParams.setHadLogged(isWaitingOnGpay);
         eventManagerMock
           .expects('logSwgEvent')
           .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);
@@ -960,9 +960,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
 
       it('log no TX ID from gPay and that logging has not occured', async () => {
-        hasLogged = false;
+        isWaitingOnGpay = false;
         const eventParams = new EventParams();
-        eventParams.setHadLogged(hasLogged);
+        eventParams.setHadLogged(isWaitingOnGpay);
         eventManagerMock
           .expects('logSwgEvent')
           .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);

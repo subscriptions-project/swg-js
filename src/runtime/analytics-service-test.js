@@ -40,15 +40,10 @@ describes.realWin('AnalyticsService', {}, env => {
   let eventManagerCallback;
   let pretendPortWorks;
   let loggedErrors;
+  let event;
 
   const productId = 'pub1:label1';
   const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
-  const event = {
-    eventType: defEventType,
-    eventOriginator: EventOriginator.SWG_CLIENT,
-    isFromUserAction: null,
-    additionalParameters: {},
-  };
 
   const IFRAME_STYLES = {
     opacity: '0',
@@ -60,6 +55,12 @@ describes.realWin('AnalyticsService', {}, env => {
   };
 
   beforeEach(() => {
+    event = {
+      eventType: defEventType,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: {},
+    };
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
       .callsFake(callback => (eventManagerCallback = callback));
@@ -294,7 +295,6 @@ describes.realWin('AnalyticsService', {}, env => {
     event.eventType = AnalyticsEvent.EVENT_SUBSCRIPTION_STATE;
     eventManagerCallback(event);
     expect(analyticsService.lastAction_).to.be.null;
-    event.eventType = defEventType;
   });
 
   describe('Context, experiments & labels', () => {
@@ -471,20 +471,23 @@ describes.realWin('AnalyticsService', {}, env => {
       event.additionalParameters = new EventParams();
       const logRequest = analyticsService.createLogRequest_(event);
       expect(logRequest.getParams()).to.be.instanceOf(EventParams);
-      event.additionalParameters = {};
     });
   });
 
   describe('getHasLogged', () => {
-    it('should initially not have logged anything', () => {
-      expect(analyticsService.getHasLogged()).to.be.false;
+    it('should initially not have sent you to gpay', () => {
+      expect(analyticsService.getWaitingOnGpay()).to.be.false;
     });
 
-    it('should remember it logged something', async () => {
+    it('should remember it sent you to gpay', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+      event.eventType = AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED;
       analyticsService.handleClientEvent_(event);
       await analyticsService.lastAction_;
-      expect(analyticsService.getHasLogged()).to.be.true;
+      expect(analyticsService.getWaitingOnGpay()).to.be.true;
+      // It should respect the call to done waiting
+      analyticsService.setDoneWaitingOnGpay();
+      expect(analyticsService.getWaitingOnGpay()).to.be.false;
     });
   });
 });

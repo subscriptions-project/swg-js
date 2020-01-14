@@ -86,7 +86,7 @@ export class AnalyticsService {
     this.doc_.getBody().appendChild(this.getElement());
 
     /** @private @type {!boolean} */
-    this.everStartedLog_ = false;
+    this.waitingOnGpay_ = false;
 
     /** @private @type {!boolean} */
     this.everFinishedLog_ = false;
@@ -267,11 +267,16 @@ export class AnalyticsService {
   }
 
   /**
-   * Returns true if any logs have already be sent to the analytics server.
+   * Returns true if the user was sent to gPay (and not redirected).
    * @return {boolean}
    */
-  getHasLogged() {
-    return this.everStartedLog_;
+  getWaitingOnGpay() {
+    return this.waitingOnGpay_;
+  }
+
+  /** */
+  setDoneWaitingOnGpay() {
+    this.waitingOnGpay_ = false;
   }
 
   /**
@@ -322,12 +327,6 @@ export class AnalyticsService {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
-    //this event is just used to communicate information internally.  It should
-    //not be reported to the SwG analytics service.
-    if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
-      return;
-    }
-
     if (
       ClientEventManager.isPublisherEvent(event) &&
       !this.shouldLogPublisherEvents_() &&
@@ -335,9 +334,24 @@ export class AnalyticsService {
     ) {
       return;
     }
+
+    switch (event.eventType) {
+      //this event is just used to communicate information internally.  It should
+      //not be reported to the SwG analytics service.
+      case AnalyticsEvent.EVENT_SUBSCRIPTION_STATE:
+        return;
+      case AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED:
+        if (this.waitingOnGpay_) {
+          //TODO: Consider a permanent log event for this
+          log('User was sent to gPay multiple times without returning');
+        }
+        this.waitingOnGpay_ = true;
+        break;
+      default:
+    }
+
     // Register we sent a log, the port will call this.afterLogging_ when done.
     this.unfinishedLogs_++;
-    this.everStartedLog_ = true;
     const request = this.createLogRequest_(event);
     this.lastAction_ = this.start().then(port => port.execute(request));
   }

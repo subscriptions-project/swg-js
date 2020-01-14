@@ -197,6 +197,7 @@ export class PayCompleteFlow {
           flow.start(response);
         },
         reason => {
+          deps.analytics().setDoneWaitingOnGpay();
           if (isCancelError(reason)) {
             deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
             deps
@@ -352,8 +353,10 @@ function validatePayResponse(deps, payPromise, completeHandler) {
     //    anonymously.
     // 2) If there was a redirect to gPay, we may have lost our stored TX ID.
     // 3) Pay service is supposed to give us the TX ID it logged against.
-
-    const hasLogged = deps.analytics().getHasLogged();
+    // 4) If we logged a "start payment" event, it means it was not a redirect
+    //    and we already have the original TX ID.  Otherwise, the original TX ID
+    //    may have been lost.
+    const loggedStartPaymentEvent = deps.analytics().getWaitingOnGpay();
     let eventType = AnalyticsEvent.UNKNOWN;
     let eventParams = undefined;
     if (typeof data !== 'object' || !data['googleTransactionId']) {
@@ -363,13 +366,13 @@ function validatePayResponse(deps, payPromise, completeHandler) {
       // lost all connection to the events that preceded the payment event and
       // we at least want to know why that data was lost.
       eventParams = new EventParams();
-      eventParams.setHadLogged(hasLogged);
+      eventParams.setHadLogged(loggedStartPaymentEvent);
       eventType = AnalyticsEvent.EVENT_GPAY_NO_TX_ID;
     } else {
       const oldTxId = deps.analytics().getTransactionId();
       const newTxId = data['googleTransactionId'];
 
-      if (!hasLogged) {
+      if (!loggedStartPaymentEvent) {
         // This is the expected case for full redirects.  It may be happening
         // unexpectedly at other times too though and we want to be aware of it
         // if it does.
@@ -389,6 +392,7 @@ function validatePayResponse(deps, payPromise, completeHandler) {
       }
     }
     deps.eventManager().logSwgEvent(eventType, true, eventParams);
+    deps.analytics().setDoneWaitingOnGpay();
     return parseSubscriptionResponse(deps, data, completeHandler);
   });
 }
