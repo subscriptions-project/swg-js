@@ -19,12 +19,6 @@
  */
 export const ExperimentFlags = {
   /**
-   * Enables GPay API in SwG.
-   * Cleanup issue: #406.
-   */
-  GPAY_API: 'gpay-api',
-
-  /**
    * Enables the feature that allows you to replace one subscription
    * for another in the subscribe() API.
    */
