@@ -16,6 +16,7 @@
 
 import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
+import {ProductType} from '../api/subscriptions';
 import {Xhr} from '../utils/xhr';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
@@ -438,6 +439,8 @@ export class PayClientBindingPayjs {
             error['productType'] = /** @type {!Object} */ (this.request_)['i'][
               'productType'
             ];
+          } else {
+            error['productType'] = ProductType.SUBSCRIPTION;
           }
           return Promise.reject(error);
         }
