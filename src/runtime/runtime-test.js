@@ -54,6 +54,7 @@ import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
+import {PayClient} from './pay-client';
 import {PayStartFlow} from './pay-flow';
 import {Propensity} from './propensity';
 import {SubscribeResponse} from '../api/subscribe-response';
@@ -1199,6 +1200,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       expect(runtime.entitlementsManager().blockNextNotification_).to.be.false;
       expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
       expect(runtime.jserror()).to.be.instanceOf(JsError);
+      expect(runtime.payClient()).to.be.instanceOf(PayClient);
     });
 
     it('should report the redirect failure', () => {
@@ -1628,12 +1630,8 @@ subscribe() method'
       ).to.equal(ReplaceSkuProrationMode.IMMEDIATE_WITH_TIME_PRORATION);
     });
 
-    it('should configure and start PayCompleteFlow', async () => {
-      expect(activityResultCallbacks['swg-pay']).to.exist;
-      const stub = sandbox.stub(runtime.callbacks(), 'triggerPaymentResponse');
-
-      await returnActivity('swg-pay', ActivityResultCode.OK);
-      expect(stub).to.be.calledOnce;
+    it('should register PayClient response callback', async () => {
+      expect(runtime.payClient().responseCallback_).to.not.be.null;
     });
 
     it('should start PayStartFlow for contribution', async () => {
