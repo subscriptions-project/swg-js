@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {ProductType} from '../api/subscriptions';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
+import {ProductType} from '../api/subscriptions';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
