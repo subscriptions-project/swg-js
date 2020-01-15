@@ -477,6 +477,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       )
       .returns(Promise.resolve(port));
     await flow.start(response);
+    expect(PayCompleteFlow.waitingForGpay_).to.be.true;
   });
 
   it('should have valid flow constructed w/o entitlements', async () => {
@@ -875,15 +876,6 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     describe('Transaction IDs', () => {
-      let hasLogged;
-
-      beforeEach(() => {
-        hasLogged = false;
-        sandbox
-          .stub(runtime.analytics(), 'getHasLogged')
-          .callsFake(() => hasLogged);
-      });
-
       it('should log a change in TX ID without previous logging', async () => {
         analyticsMock
           .expects('setTransactionId')
@@ -914,7 +906,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
 
       it('should log a change in TX ID with previous logging', async () => {
-        hasLogged = true;
+        PayCompleteFlow.waitingForGpay_ = true;
         const newTxId = 'NEW_TRANSACTION_ID';
         const eventParams = new EventParams();
         eventParams.setGpayTransactionId(newTxId);
@@ -938,9 +930,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
 
       it('log no TX ID from gPay and that logging has occured', async () => {
-        hasLogged = true;
+        PayCompleteFlow.waitingForGpay_ = true;
         const eventParams = new EventParams();
-        eventParams.setHadLogged(hasLogged);
+        eventParams.setHadLogged(true);
         eventManagerMock
           .expects('logSwgEvent')
           .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);
@@ -960,9 +952,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
 
       it('log no TX ID from gPay and that logging has not occured', async () => {
-        hasLogged = false;
         const eventParams = new EventParams();
-        eventParams.setHadLogged(hasLogged);
+        eventParams.setHadLogged(false);
         eventManagerMock
           .expects('logSwgEvent')
           .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);
