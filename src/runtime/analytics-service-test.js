@@ -294,6 +294,25 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(loggedErrors.length).to.equal(1);
       expect(loggedErrors[0]).to.equal('Error when logging: ' + err);
     });
+
+    it('Should work without any promises', async () => {
+      // This sends another event and waits for it to be sent
+      eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: {droppedData: true},
+      });
+      await analyticsService.lastAction_;
+      const loggingResponse = new FinishedLoggingResponse();
+      loggingResponse.setComplete(true);
+      // Simulate 1 logging response
+      iframeCallback(loggingResponse);
+      expect(analyticsService.unfinishedLogs_).to.equal(0);
+      return analyticsService.getLoggingPromise().then(val => {
+        expect(val).to.be.true;
+      });
+    });
   });
 
   it('should not log the subscription state change event', () => {
