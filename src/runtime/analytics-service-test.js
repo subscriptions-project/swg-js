@@ -118,6 +118,13 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.setTransactionId(txId);
       expect(analyticsService.getTransactionId()).to.equal(txId);
     });
+
+    it('should close', () => {
+      const activityIframe = analyticsService.getElement();
+      expect(activityIframe.parentNode === runtime.doc().getBody()).to.true;
+      analyticsService.close();
+      expect(activityIframe.parentNode === null).to.true;
+    });
   });
 
   describe('Communications', () => {
@@ -222,7 +229,7 @@ describes.realWin('AnalyticsService', {}, env => {
     });
   });
 
-  describe('Promise to log when things are broken', () => {
+  describe('Promise to log', () => {
     let iframeCallback;
 
     beforeEach(() => {
@@ -330,6 +337,7 @@ describes.realWin('AnalyticsService', {}, env => {
       );
       expect(request.getContext().getSku()).to.equal('basic');
       expect(request.getContext().getReadyToPay()).to.be.true;
+      expect(analyticsService.getSku()).to.equal('basic');
     });
 
     it('should set context for empty experiments', async () => {
