@@ -1223,6 +1223,17 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(sr.oldSku).to.equal('sku_to_replace');
   });
 
+  it('should throw error', () => {
+    try {
+      parseSubscriptionResponse(runtime, null);
+    } catch (ex) {
+      expect(ex.toString()).to.equal('Error: unexpected payment response');
+      return;
+    }
+    // Should never reach this line
+    expect(null).to.not.be.null;
+  });
+
   it('should parse complete idToken', () => {
     const idToken =
       'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NS' +
@@ -1239,6 +1250,10 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(ud.givenName).to.equal('Test');
     expect(ud.familyName).to.equal('One');
     expect(ud.pictureUrl).to.equal('https://example.org/avatar/test');
+  });
+
+  it('should return null for bad token', () => {
+    expect(parseUserData({})).to.be.null;
   });
 
   it('should parse absent entitlements', () => {
