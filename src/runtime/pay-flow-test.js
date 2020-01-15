@@ -1224,14 +1224,13 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
   });
 
   it('should throw error', () => {
+    let err = null;
     try {
       parseSubscriptionResponse(runtime, null);
     } catch (ex) {
-      expect(ex.toString()).to.equal('Error: unexpected payment response');
-      return;
+      err = ex.toString();
     }
-    // Should never reach this line
-    expect(null).to.not.be.null;
+    expect(err).to.equal('Error: unexpected payment response');
   });
 
   it('should parse complete idToken', () => {
