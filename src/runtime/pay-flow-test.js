@@ -876,7 +876,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     describe('Transaction IDs', () => {
-      it('should log a change in TX ID without previous logging', async () => {
+      it('should log cannot confirm TX ID for redirect case', async () => {
         analyticsMock
           .expects('setTransactionId')
           .withExactArgs('NEW_TRANSACTION_ID')
@@ -905,7 +905,28 @@ describes.realWin('PayCompleteFlow', {}, env => {
         expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
       });
 
-      it('should log a change in TX ID with previous logging', async () => {
+      it('should log confirm TX ID for non-redirect case', async () => {
+        PayCompleteFlow.waitingForGpay_ = true;
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(
+            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+            true,
+            getEventParams('')
+          );
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+        data['googleTransactionId'] = runtime.analytics().getTransactionId();
+
+        await responseCallback(Promise.resolve(data));
+        const response = await triggerPromise;
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+      });
+
+      it('should log a change in TX ID for non-redirect case', async () => {
         PayCompleteFlow.waitingForGpay_ = true;
         const newTxId = 'NEW_TRANSACTION_ID';
         const eventParams = new EventParams();

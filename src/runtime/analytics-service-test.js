@@ -295,7 +295,7 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(loggedErrors[0]).to.equal('Error when logging: ' + err);
     });
 
-    it('Should work without any promises', async () => {
+    it('Should work without waiting for the promise', async () => {
       // This sends another event and waits for it to be sent
       eventManagerCallback({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -306,7 +306,8 @@ describes.realWin('AnalyticsService', {}, env => {
       await analyticsService.lastAction_;
       const loggingResponse = new FinishedLoggingResponse();
       loggingResponse.setComplete(true);
-      // Simulate 1 logging response
+      // Simulate 1 logging response that occurs before anyone calls
+      // getLoggingPromise
       iframeCallback(loggingResponse);
       expect(analyticsService.unfinishedLogs_).to.equal(0);
       return analyticsService.getLoggingPromise().then(val => {
