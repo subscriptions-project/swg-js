@@ -474,17 +474,4 @@ describes.realWin('AnalyticsService', {}, env => {
       event.additionalParameters = {};
     });
   });
-
-  describe('getHasLogged', () => {
-    it('should initially not have logged anything', () => {
-      expect(analyticsService.getHasLogged()).to.be.false;
-    });
-
-    it('should remember it logged something', async () => {
-      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      analyticsService.handleClientEvent_(event);
-      await analyticsService.lastAction_;
-      expect(analyticsService.getHasLogged()).to.be.true;
-    });
-  });
 });
