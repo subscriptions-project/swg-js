@@ -338,8 +338,9 @@ export class AnalyticsService {
     // Register we sent a log, the port will call this.afterLogging_ when done.
     this.unfinishedLogs_++;
     this.everStartedLog_ = true;
-    const request = this.createLogRequest_(event);
-    this.lastAction_ = this.start().then(port => port.execute(request));
+    this.lastAction_ = this.start().then(port =>
+      port.execute(this.createLogRequest_(event))
+    );
   }
 
   /**
