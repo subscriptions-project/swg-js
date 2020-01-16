@@ -70,6 +70,7 @@ describes.realWin('Activity Components', {}, env => {
           'publicationId': pageConfig.getPublicationId(),
           'productId': pageConfig.getProductId(),
           '_client': 'SwG $internalRuntimeVersion$',
+          'supportsClientLogging': true,
         };
       });
 

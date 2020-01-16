@@ -282,6 +282,7 @@ export class ActivityPorts {
         'publicationId': pageConfig.getPublicationId(),
         'productId': pageConfig.getProductId(),
         '_client': 'SwG $internalRuntimeVersion$',
+        'supportsClientLogging': true,
       },
       args || {}
     );
