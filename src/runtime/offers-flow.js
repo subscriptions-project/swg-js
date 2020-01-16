@@ -213,12 +213,6 @@ export class OffersFlow {
         this.startNativeFlow_.bind(this)
       );
 
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.IMPRESSION_OFFERS,
-        null,
-        getEventParams(this.skus_.join(','))
-      );
-
       return this.dialogManager_.openView(this.activityIframeView_);
     }
     return Promise.resolve();
