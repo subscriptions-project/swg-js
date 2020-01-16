@@ -47,14 +47,12 @@ describes.realWin('OffersFlow', {}, env => {
   let port;
   let messageCallback;
   let messageMap;
-  let analyticsContext;
 
   beforeEach(() => {
     win = env.win;
     messageMap = {};
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
-    analyticsContext = runtime.analytics().getContext();
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     const eventManager = new ClientEventManager(Promise.resolve());
@@ -89,17 +87,13 @@ describes.realWin('OffersFlow', {}, env => {
       .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
+        runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
           list: 'default',
           skus: null,
           isClosable: false,
-          analyticsContext: analyticsContext.toArray(),
-        }
+        })
       )
       .returns(Promise.resolve(port));
     await offersFlow.start();
@@ -121,17 +115,13 @@ describes.realWin('OffersFlow', {}, env => {
       .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
+        runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
           list: 'default',
           skus: null,
           isClosable: false,
-          analyticsContext: analyticsContext.toArray(),
-        }
+        })
       )
       .returns(Promise.resolve(port));
     await offersFlow.start();
@@ -144,17 +134,13 @@ describes.realWin('OffersFlow', {}, env => {
       .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
+        runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
           list: 'other',
           skus: null,
           isClosable: false,
-          analyticsContext: analyticsContext.toArray(),
-        }
+        })
       )
       .returns(Promise.resolve(port));
     await offersFlow.start();
@@ -167,17 +153,13 @@ describes.realWin('OffersFlow', {}, env => {
       .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
+        runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
           list: 'default',
           skus: ['sku1', 'sku2'],
           isClosable: false,
-          analyticsContext: analyticsContext.toArray(),
-        }
+        })
       )
       .returns(Promise.resolve(port));
     await offersFlow.start();
@@ -193,18 +175,14 @@ describes.realWin('OffersFlow', {}, env => {
       .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
+        runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
           list: 'default',
           skus: ['sku1', 'sku2'],
           oldSku: 'old_sku',
           isClosable: false,
-          analyticsContext: analyticsContext.toArray(),
-        }
+        })
       )
       .returns(Promise.resolve(port));
     await offersFlow.start();
@@ -232,18 +210,14 @@ describes.realWin('OffersFlow', {}, env => {
       .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
+        runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
           list: 'default',
           skus: ['sku2', 'sku3'],
           oldSku: 'sku1',
           isClosable: false,
-          analyticsContext: analyticsContext.toArray(),
-        }
+        })
       )
       .returns(Promise.resolve(port));
     await offersFlow.start();
@@ -275,17 +249,13 @@ describes.realWin('OffersFlow', {}, env => {
       .withExactArgs(
         sandbox.match(arg => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
+        runtime.activities().addDefaultArguments({
           showNative: true,
           productType: ProductType.SUBSCRIPTION,
           list: 'default',
           skus: null,
           isClosable: false,
-          analyticsContext: analyticsContext.toArray(),
-        }
+        })
       )
       .returns(Promise.resolve(port));
     offersFlow = new OffersFlow(runtime);
