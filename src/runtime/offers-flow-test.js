@@ -23,21 +23,13 @@ import {
   SubscribeResponse,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
-import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
 import {acceptPortResultData} from './../utils/activity-utils';
-
-/**
- * @param {string} sku
- * @return {!EventParams}
- */
-function getEventParams(sku) {
-  return new EventParams([, , , , sku]);
-}
 
 const SHOW_OFFERS_ARGS = {
   skus: ['*'],
@@ -359,17 +351,6 @@ describes.realWin('OffersFlow', {}, env => {
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: true,
     });
-  });
-
-  it('should log IMPRESSION_OFFERS on start', () => {
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.IMPRESSION_OFFERS,
-        null,
-        getEventParams('*')
-      );
-    offersFlow.start();
   });
 });
 
