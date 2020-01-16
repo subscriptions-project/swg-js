@@ -234,7 +234,10 @@ export class ActivityIframePort {
     let label = null;
     try {
       label = getLabel(message);
-    } catch (ex) {}
+    } catch (ex) {
+      // Thrown is message is not a proto object
+      label = null;
+    }
     if (!label) {
       throw new Error('Invalid data type');
     } else if (this.callbackMap_[label]) {
