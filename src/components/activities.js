@@ -134,8 +134,6 @@ export class ActivityIframePort {
     this.iframePort_ = new WebActivityIframePort(iframe, url, args);
     /** @private @const {!Object<string, function(!Object)>} */
     this.callbackMap_ = {};
-    /** @private {?function(!../proto/api_messages.Message)} */
-    this.callbackOriginal_ = null;
 
     /** @private @const {../runtime/deps.DepsDef} */
     this.deps_ = deps;
@@ -158,9 +156,6 @@ export class ActivityIframePort {
     return this.iframePort_.connect().then(() => {
       // Attach a callback to receive messages after connection complete
       this.iframePort_.onMessage(data => {
-        if (this.callbackOriginal_) {
-          this.callbackOriginal_(data);
-        }
         const response = data && data['RESPONSE'];
         if (!response) {
           return;
@@ -173,9 +168,6 @@ export class ActivityIframePort {
 
       if (this.deps_ && this.deps_.eventManager()) {
         this.on(AnalyticsRequest, request => {
-          if (!request) {
-            return;
-          }
           this.deps_.eventManager().logEvent({
             eventType: request.getEvent(),
             eventOriginator: EventOriginator.SWG_SERVER,
