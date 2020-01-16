@@ -228,7 +228,7 @@ export class PayClient {
             error['productType'] =
               /** @type {!PaymentDataRequest} */ (request)['i']['productType'];
           } else {
-            error['productType'] = ProductType.SUBSCRIPTION;
+            error['productType'] = null;
           }
           return Promise.reject(error);
         }
