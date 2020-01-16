@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 import {
+  AnalyticsRequest,
+  EventOriginator,
+  deserialize,
+  getLabel,
+} from '../proto/api_messages';
+import {
   ActivityIframePort as WebActivityIframePort,
   ActivityPorts as WebActivityPorts,
 } from 'web-activities/activity-ports';
-import {deserialize, getLabel} from '../proto/api_messages';
 
 /**
  * @interface
@@ -121,15 +126,19 @@ export class ActivityIframePort {
   /**
    * @param {!HTMLIFrameElement} iframe
    * @param {string} url
+   * @param {!../runtime/deps.DepsDef} deps
    * @param {?Object=} args
    */
-  constructor(iframe, url, args) {
+  constructor(iframe, url, deps, args) {
     /** @private @const {!web-activities/activity-ports.ActivityIframePort} */
     this.iframePort_ = new WebActivityIframePort(iframe, url, args);
     /** @private @const {!Object<string, function(!Object)>} */
     this.callbackMap_ = {};
     /** @private {?function(!../proto/api_messages.Message)} */
     this.callbackOriginal_ = null;
+
+    /** @private @const {../runtime/deps.DepsDef} */
+    this.deps_ = deps;
   }
 
   /**
@@ -161,6 +170,20 @@ export class ActivityIframePort {
           cb(deserialize(response));
         }
       });
+
+      if (this.deps_ && this.deps_.eventManager()) {
+        this.on(AnalyticsRequest, request => {
+          if (!request) {
+            return;
+          }
+          this.deps_.eventManager().logEvent({
+            eventType: request.getEvent(),
+            eventOriginator: EventOriginator.SWG_SERVER,
+            isFromUserAction: request.getMeta().getIsFromUserAction(),
+            additionalParameters: request.getParams(),
+          });
+        });
+      }
     });
   }
 
@@ -274,7 +297,7 @@ export class ActivityPorts {
    * @return {!Promise<!ActivityIframePort>}
    */
   openActivityIframePort_(iframe, url, args) {
-    const activityPort = new ActivityIframePort(iframe, url, args);
+    const activityPort = new ActivityIframePort(iframe, url, this.deps_, args);
     return activityPort.connect().then(() => activityPort);
   }
 
