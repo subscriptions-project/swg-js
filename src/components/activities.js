@@ -235,7 +235,7 @@ export class ActivityIframePort {
     try {
       label = getLabel(message);
     } catch (ex) {
-      // Thrown is message is not a proto object
+      // Thrown if message is not a proto object and has no label
       label = null;
     }
     if (!label) {
