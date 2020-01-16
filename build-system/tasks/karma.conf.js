@@ -121,7 +121,7 @@ module.exports = {
   },
 
   singleRun: true,
-  browserDisconnectTimeout: 1000000,
+  browserDisconnectTimeout: 10000,
   browserDisconnectTolerance: 2,
   browserNoActivityTimeout: 400 * 60 * 1000,
   captureTimeout: 4 * 60 * 1000,
