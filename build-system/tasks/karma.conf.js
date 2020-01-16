@@ -123,7 +123,7 @@ module.exports = {
   singleRun: true,
   browserDisconnectTimeout: 10000,
   browserDisconnectTolerance: 2,
-  browserNoActivityTimeout: 400 * 60 * 1000,
+  browserNoActivityTimeout: 4 * 60 * 1000,
   captureTimeout: 4 * 60 * 1000,
 
   // Import our gulp webserver as a Karma server middleware
