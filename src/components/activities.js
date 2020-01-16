@@ -231,7 +231,10 @@ export class ActivityIframePort {
    * @template T
    */
   on(message, callback) {
-    const label = getLabel(message);
+    let label = null;
+    try {
+      label = getLabel(message);
+    } catch (ex) {}
     if (!label) {
       throw new Error('Invalid data type');
     } else if (this.callbackMap_[label]) {

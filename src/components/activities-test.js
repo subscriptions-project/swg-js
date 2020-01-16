@@ -367,5 +367,19 @@ describes.realWin('Activity Components', {}, env => {
       handler({'RESPONSE': serializedRequest});
       expect(event).to.equal(AnalyticsEvent.UNKNOWN);
     });
+
+    it('should complain about multiple listeners', async () => {
+      await activityIframePort.connect();
+      expect(() => activityIframePort.on(AnalyticsRequest, () => {})).to.throw(
+        /Invalid type or duplicate callback for /
+      );
+    });
+
+    it('should complain about bad request types', async () => {
+      class fakeMe {}
+      expect(() => activityIframePort.on(fakeMe, () => {})).to.throw(
+        /Invalid data type/
+      );
+    });
   });
 });
