@@ -71,7 +71,8 @@ describes.realWin('AnalyticsService', {}, env => {
     analyticsService = new AnalyticsService(runtime);
     activityIframePort = new ActivityIframePort(
       analyticsService.getElement(),
-      feUrl(src)
+      feUrl(src),
+      runtime
     );
     pretendPortWorks = true;
     sandbox.stub(activityPorts, 'openIframe').callsFake(() => {
