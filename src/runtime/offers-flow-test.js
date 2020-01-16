@@ -47,14 +47,12 @@ describes.realWin('OffersFlow', {}, env => {
   let port;
   let messageCallback;
   let messageMap;
-  let analyticsContext;
 
   beforeEach(() => {
     win = env.win;
     messageMap = {};
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
-    analyticsContext = runtime.analytics().getContext();
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     const eventManager = new ClientEventManager(Promise.resolve());
