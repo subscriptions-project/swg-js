@@ -121,7 +121,7 @@ describes.realWin('AnalyticsService', {}, env => {
 
     it('should close', () => {
       const activityIframe = analyticsService.getElement();
-      expect(activityIframe.parentNode === runtime.doc().getBody()).to.true;
+      expect(activityIframe.parentNode).to.equal(runtime.doc().getBody());
       analyticsService.close();
       expect(activityIframe.parentNode === null).to.true;
     });
@@ -175,6 +175,7 @@ describes.realWin('AnalyticsService', {}, env => {
       });
 
       // These wait for analytics server to be ready to send data.
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
 
@@ -195,6 +196,7 @@ describes.realWin('AnalyticsService', {}, env => {
         isFromUserAction: true,
         additionalParameters: {droppedData: true},
       });
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
 
       // This ensures communications were successful
@@ -286,6 +288,7 @@ describes.realWin('AnalyticsService', {}, env => {
       const loggingResponse = new FinishedLoggingResponse();
       loggingResponse.setComplete(false);
       loggingResponse.setError(err);
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       const p = analyticsService.getLoggingPromise();
@@ -303,6 +306,7 @@ describes.realWin('AnalyticsService', {}, env => {
         isFromUserAction: true,
         additionalParameters: {droppedData: true},
       });
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       const loggingResponse = new FinishedLoggingResponse();
       loggingResponse.setComplete(true);
@@ -337,6 +341,7 @@ describes.realWin('AnalyticsService', {}, env => {
       analyticsService.setSku('basic');
       eventManagerCallback(event);
 
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
@@ -364,6 +369,7 @@ describes.realWin('AnalyticsService', {}, env => {
       setExperimentsStringForTesting('');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       eventManagerCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
@@ -378,6 +384,7 @@ describes.realWin('AnalyticsService', {}, env => {
       setExperimentsStringForTesting('experiment-A,experiment-B');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       eventManagerCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
@@ -396,6 +403,7 @@ describes.realWin('AnalyticsService', {}, env => {
       setExperimentsStringForTesting('E1,E2');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       eventManagerCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       const /** {?AnalyticsRequest} */ request1 = activityIframePort.execute.getCall(
@@ -410,6 +418,7 @@ describes.realWin('AnalyticsService', {}, env => {
 
       analyticsService.addLabels(['L3', 'L4']);
       eventManagerCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       const /** {?AnalyticsRequest} */ request2 = activityIframePort.execute.getCall(
           1
