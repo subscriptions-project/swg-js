@@ -73,19 +73,13 @@ export class OffersFlow {
       isClosable = false; // Default is to hide Close button.
     }
 
-    const feArgsObj = {
-      'productId': deps.pageConfig().getProductId(),
-      'publicationId': deps.pageConfig().getPublicationId(),
+    const feArgsObj = deps.activities().addDefaultArguments({
       'showNative': deps.callbacks().hasSubscribeRequestCallback(),
       'productType': ProductType.SUBSCRIPTION,
       'list': (options && options.list) || 'default',
       'skus': (options && options.skus) || null,
       'isClosable': isClosable,
-      'analyticsContext': deps
-        .analytics()
-        .getContext()
-        .toArray(),
-    };
+    });
 
     if (options && options.oldSku) {
       feArgsObj['oldSku'] = options.oldSku;
@@ -127,7 +121,7 @@ export class OffersFlow {
       this.win_,
       this.activityPorts_,
       feUrl('/offersiframe'),
-      feArgs(feArgsObj),
+      feArgsObj,
       /* shouldFadeBody */ true
     );
   }
