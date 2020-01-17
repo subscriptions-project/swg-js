@@ -241,6 +241,9 @@ class AnalyticsContext {
 
     /** @private {?string} */
     this.clientVersion_ = (data[10] == null) ? null : data[10];
+
+    /** @private {?string} */
+    this.url_ = (data[11] == null) ? null : data[11];
   }
 
   /**
@@ -384,6 +387,20 @@ class AnalyticsContext {
   }
 
   /**
+   * @return {?string}
+   */
+  getUrl() {
+    return this.url_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setUrl(value) {
+    this.url_ = value;
+  }
+
+  /**
    * @return {!Array}
    * @override
    */
@@ -400,6 +417,7 @@ class AnalyticsContext {
       this.readyToPay_,  // field 8 - ready_to_pay
       this.label_,  // field 9 - label
       this.clientVersion_,  // field 10 - client_version
+      this.url_,  // field 11 - url
     ];
   }
 
@@ -1231,4 +1249,3 @@ export {
   deserialize,
   getLabel,
 };
-
