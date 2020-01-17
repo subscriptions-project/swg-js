@@ -33,7 +33,8 @@ import {tick} from '../../test/tick';
 const publicationId = 'PUB_ID';
 
 describes.realWin('Activity Components', {}, env => {
-  let win, iframe, url, dialog, doc;
+  let win, iframe, url, dialog, doc, deps, pageConfig, analytics, activityPorts;
+  let eventManager;
 
   beforeEach(() => {
     url = '/hello';
@@ -42,30 +43,24 @@ describes.realWin('Activity Components', {}, env => {
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     iframe = dialog.getElement();
     doc.getBody().appendChild(iframe);
+    eventManager = new ClientEventManager(Promise.resolve());
+
+    pageConfig = new PageConfig(publicationId, false);
+    deps = {
+      win: () => win,
+      pageConfig: () => pageConfig,
+      doc: () => doc,
+      eventManager: () => eventManager,
+    };
+    activityPorts = new ActivityPorts(deps);
+    deps['activities'] = () => activityPorts;
+    analytics = new AnalyticsService(deps);
+    deps['analytics'] = () => analytics;
   });
 
   afterEach(() => {});
 
   describe('ActivityPorts', () => {
-    let deps;
-    let activityPorts;
-    let analytics;
-    let pageConfig;
-
-    beforeEach(() => {
-      pageConfig = new PageConfig(publicationId, false);
-      deps = {
-        win: () => win,
-        pageConfig: () => pageConfig,
-        doc: () => doc,
-        eventManager: () => new ClientEventManager(Promise.resolve()),
-      };
-      activityPorts = new ActivityPorts(deps);
-      deps['activities'] = () => activityPorts;
-      analytics = new AnalyticsService(deps);
-      deps['analytics'] = () => analytics;
-    });
-
     describe('default arguments', () => {
       let expectedDefaults;
 
@@ -75,6 +70,7 @@ describes.realWin('Activity Components', {}, env => {
           'publicationId': pageConfig.getPublicationId(),
           'productId': pageConfig.getProductId(),
           '_client': 'SwG $internalRuntimeVersion$',
+          'supportsEventManager': true,
         };
       });
 
@@ -265,7 +261,7 @@ describes.realWin('Activity Components', {}, env => {
       analyticsRequest = new AnalyticsRequest();
       analyticsRequest.setEvent(AnalyticsEvent.UNKNOWN);
       serializedRequest = analyticsRequest.toArray();
-      activityIframePort = new ActivityIframePort(iframe, url);
+      activityIframePort = new ActivityIframePort(iframe, url, deps);
     });
 
     it('must delegate connect, disconnect and ready', async () => {
@@ -338,13 +334,17 @@ describes.realWin('Activity Components', {}, env => {
       handler({'sku': 'daily'});
     });
 
-    it('should test new messaging APIs', async () => {
+    it('should test new messaging APIs and auto register logging', async () => {
       let payload;
+      let event = null;
       sandbox
         .stub(WebActivityIframePort.prototype, 'message')
         .callsFake(args => {
           payload = args;
         });
+      sandbox.stub(deps.eventManager(), 'logEvent').callsFake(clientEvent => {
+        event = clientEvent.eventType;
+      });
       activityIframePort.execute(analyticsRequest);
       expect(payload).to.deep.equal({'REQUEST': serializedRequest});
 
@@ -352,26 +352,35 @@ describes.realWin('Activity Components', {}, env => {
       await activityIframePort.connect();
       expect(handler).to.not.be.null;
 
-      let event;
-      activityIframePort.on(AnalyticsRequest, request => {
-        event = request.getEvent();
-      });
-
       handler({'RESPONSE': serializedRequest});
       expect(event).to.equal(AnalyticsEvent.UNKNOWN);
     });
 
-    it('should support on APIs', async () => {
+    it('should support on APIs and register logging', async () => {
       expect(handler).to.be.null;
       await activityIframePort.connect();
       expect(handler).to.not.be.null;
 
       let event;
-      activityIframePort.on(AnalyticsRequest, request => {
-        event = request.getEvent();
+      sandbox.stub(deps.eventManager(), 'logEvent').callsFake(clientEvent => {
+        event = clientEvent.eventType;
       });
       handler({'RESPONSE': serializedRequest});
       expect(event).to.equal(AnalyticsEvent.UNKNOWN);
+    });
+
+    it('should complain about multiple listeners', async () => {
+      await activityIframePort.connect();
+      expect(() => activityIframePort.on(AnalyticsRequest, () => {})).to.throw(
+        /Invalid type or duplicate callback for /
+      );
+    });
+
+    it('should complain about bad request types', async () => {
+      class fakeMe {}
+      expect(() => activityIframePort.on(fakeMe, () => {})).to.throw(
+        /Invalid data type/
+      );
     });
   });
 });
