@@ -674,6 +674,7 @@ export class ConfiguredRuntime {
           break;
         case 'experiments':
           v.forEach(experiment => setExperiment(this.win_, experiment, true));
+          this.analytics().addLabels(v);
           break;
         case 'analyticsMode':
           if (v != AnalyticsMode.DEFAULT && v != AnalyticsMode.IMPRESSIONS) {
