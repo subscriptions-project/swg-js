@@ -360,3 +360,4 @@ describe('ViewSubscriptionsResponse', () => {
         viewsubscriptionsresponse.getNative());
   });
 });
+
