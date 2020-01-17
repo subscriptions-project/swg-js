@@ -124,7 +124,7 @@ describes.realWin('AnalyticsService', {}, env => {
       const activityIframe = analyticsService.getElement();
       expect(activityIframe.parentNode).to.equal(runtime.doc().getBody());
       analyticsService.close();
-      expect(activityIframe.parentNode === null).to.true;
+      expect(activityIframe.parentNode).to.be.null;
     });
   });
 
