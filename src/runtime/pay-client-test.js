@@ -175,6 +175,12 @@ describes.realWin('PayClient', {}, env => {
     ).to.be.rejectedWith(/AbortError/);
   });
 
+  it('should propogate productType with cancel signal', async () => {
+    await expect(withResult(Promise.reject({'statusCode': 'CANCELED'})))
+      .to.be.rejectedWith(/AbortError/)
+      .and.eventually.have.property('productType');
+  });
+
   it('should accept other errors', async () => {
     payClient.start({});
     await expect(withResult(Promise.reject('intentional'))).to.be.rejectedWith(
