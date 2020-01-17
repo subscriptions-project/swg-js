@@ -86,9 +86,6 @@ export class AnalyticsService {
     this.doc_.getBody().appendChild(this.getElement());
 
     /** @private @type {!boolean} */
-    this.everStartedLog_ = false;
-
-    /** @private @type {!boolean} */
     this.everFinishedLog_ = false;
 
     /**
@@ -278,14 +275,6 @@ export class AnalyticsService {
   }
 
   /**
-   * Returns true if any logs have already be sent to the analytics server.
-   * @return {boolean}
-   */
-  getHasLogged() {
-    return this.everStartedLog_;
-  }
-
-  /**
    * @param {!../api/client-event-manager-api.ClientEvent} event
    * @return {!AnalyticsRequest}
    */
@@ -348,7 +337,6 @@ export class AnalyticsService {
     }
     // Register we sent a log, the port will call this.afterLogging_ when done.
     this.unfinishedLogs_++;
-    this.everStartedLog_ = true;
     this.lastAction_ = this.start().then(port =>
       port.execute(this.createLogRequest_(event))
     );
