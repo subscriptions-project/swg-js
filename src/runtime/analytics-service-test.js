@@ -37,9 +37,15 @@ describes.realWin('AnalyticsService', {}, env => {
   let analyticsService;
   let pageConfig;
   let runtime;
-  let eventManagerCallback;
+  let eventManagerCallbacks;
   let pretendPortWorks;
   let loggedErrors;
+
+  function eventManagerCallback(event) {
+    for (let i = 0; i < eventManagerCallbacks.length; i++) {
+      eventManagerCallbacks[i](event);
+    }
+  }
 
   const productId = 'pub1:label1';
   const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
@@ -60,6 +66,12 @@ describes.realWin('AnalyticsService', {}, env => {
   };
 
   beforeEach(() => {
+    AnalyticsService.prototype.getQueryString_ = () => {
+      return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
+    };
+    AnalyticsService.prototype.getReferrer_ = () => {
+      return 'https://scenic-2017.appspot.com/landing.html';
+    };
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
       .callsFake(callback => (eventManagerCallback = callback));
@@ -301,14 +313,9 @@ describes.realWin('AnalyticsService', {}, env => {
   describe('Context, experiments & labels', () => {
     it('should create correct context for logging', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      AnalyticsService.prototype.getQueryString_ = () => {
-        return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
-      };
-      AnalyticsService.prototype.getReferrer_ = () => {
-        return 'https://scenic-2017.appspot.com/landing.html';
-      };
       analyticsService.setReadyToPay(true);
       analyticsService.setSku('basic');
+      analyticsService.addLabels(['label']);
       eventManagerCallback(event);
 
       await analyticsService.lastAction_;
@@ -319,18 +326,22 @@ describes.realWin('AnalyticsService', {}, env => {
         ).args[0];
       expect(request).to.not.be.null;
       expect(request.getEvent()).to.deep.equal(defEventType);
-      expect(request.getContext()).to.not.be.null;
-      expect(request.getContext().getReferringOrigin()).to.equal(
+      const context = request.getContext();
+      expect(context).to.not.be.null;
+      expect(context.getReferringOrigin()).to.equal(
         'https://scenic-2017.appspot.com'
       );
-      expect(request.getContext().getUtmMedium()).to.equal('email');
-      expect(request.getContext().getUtmSource()).to.equal('scenic');
-      expect(request.getContext().getUtmCampaign()).to.equal('campaign');
-      expect(request.getContext().getTransactionId()).to.match(
+      expect(context.getUtmMedium()).to.equal('email');
+      expect(context.getUtmSource()).to.equal('scenic');
+      expect(context.getUtmCampaign()).to.equal('campaign');
+      expect(context.getTransactionId()).to.match(
         /^.{8}-.{4}-.{4}-.{4}-.{12}$/g
       );
-      expect(request.getContext().getSku()).to.equal('basic');
-      expect(request.getContext().getReadyToPay()).to.be.true;
+      expect(context.getSku()).to.equal('basic');
+      expect(context.getReadyToPay()).to.be.true;
+      const labels = context.getLabelList();
+      expect(labels.length).to.equal(1);
+      expect(labels[0]).to.equal('label');
     });
 
     it('should set context for empty experiments', async () => {
@@ -350,9 +361,9 @@ describes.realWin('AnalyticsService', {}, env => {
     it('should set context for non-empty experiments', async () => {
       setExperimentsStringForTesting('experiment-A,experiment-B');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+      await activityIframePort.whenReady();
       eventManagerCallback(event);
       await analyticsService.lastAction_;
-      await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
       const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
           0

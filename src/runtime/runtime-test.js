@@ -1148,18 +1148,28 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
 
       it('should set experiments', () => {
-        runtime.configure({experiments: ['exp1', 'exp2']});
+        const arr = ['exp1', 'exp2'];
+        analyticsMock
+          .expects('addLabels')
+          .withExactArgs(arr)
+          .once();
+        runtime.configure({experiments: arr});
         expect(isExperimentOn(win, 'exp1')).to.be.true;
         expect(isExperimentOn(win, 'exp2')).to.be.true;
         expect(isExperimentOn(win, 'exp3')).to.be.false;
       });
 
       it('should set experiments after initialization', () => {
+        const arr = ['exp1', 'exp2'];
         expect(isExperimentOn(win, 'exp1')).to.be.false;
         expect(isExperimentOn(win, 'exp2')).to.be.false;
         expect(isExperimentOn(win, 'exp3')).to.be.false;
 
-        runtime.configure({experiments: ['exp1', 'exp2']});
+        analyticsMock
+          .expects('addLabels')
+          .withExactArgs(arr)
+          .once();
+        runtime.configure({experiments: arr});
         expect(isExperimentOn(win, 'exp1')).to.be.true;
         expect(isExperimentOn(win, 'exp2')).to.be.true;
         expect(isExperimentOn(win, 'exp3')).to.be.false;
