@@ -37,15 +37,9 @@ describes.realWin('AnalyticsService', {}, env => {
   let analyticsService;
   let pageConfig;
   let runtime;
-  let eventManagerCallbacks;
+  let eventManagerCallback;
   let pretendPortWorks;
   let loggedErrors;
-
-  function eventManagerCallback(event) {
-    for (let i = 0; i < eventManagerCallbacks.length; i++) {
-      eventManagerCallbacks[i](event);
-    }
-  }
 
   const productId = 'pub1:label1';
   const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
