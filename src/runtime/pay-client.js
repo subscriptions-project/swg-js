@@ -222,7 +222,14 @@ export class PayClient {
       )
       .catch(reason => {
         if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
-          return Promise.reject(createCancelError(this.win_));
+          const error = createCancelError(this.win_);
+          if (request) {
+            error['productType'] =
+              /** @type {!PaymentDataRequest} */ (request)['i']['productType'];
+          } else {
+            error['productType'] = null;
+          }
+          return Promise.reject(error);
         }
         return Promise.reject(reason);
       });

@@ -851,6 +851,30 @@ describes.realWin('PayCompleteFlow', {}, env => {
       await expect(triggerPromise).to.be.rejectedWith(/intentional/);
     });
 
+    it('should indicate contribution product type if error indicates it', async () => {
+      const error = new Error('intentional');
+      error.name = 'AbortError';
+      error.productType = ProductType.UI_CONTRIBUTION;
+      analyticsMock.expects('setTransactionId').never();
+      analyticsMock.expects('addLabels').never();
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true)
+        .once();
+      callbacksMock
+        .expects('triggerFlowCanceled')
+        .withExactArgs('contribute')
+        .once();
+
+      await expect(responseCallback(Promise.reject(error))).to.eventually.equal(
+        undefined
+      );
+
+      expect(startStub).to.not.be.called;
+
+      await expect(triggerPromise).to.be.rejectedWith(/intentional/);
+    });
+
     it('should start flow on a correct payment response', async () => {
       analyticsMock.expects('setTransactionId').never();
       callbacksMock.expects('triggerFlowCanceled').never();
