@@ -60,6 +60,12 @@ describes.realWin('AnalyticsService', {}, env => {
   };
 
   beforeEach(() => {
+    AnalyticsService.prototype.getQueryString_ = () => {
+      return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
+    };
+    AnalyticsService.prototype.getReferrer_ = () => {
+      return 'https://scenic-2017.appspot.com/landing.html';
+    };
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
       .callsFake(callback => (eventManagerCallback = callback));
@@ -71,7 +77,8 @@ describes.realWin('AnalyticsService', {}, env => {
     analyticsService = new AnalyticsService(runtime);
     activityIframePort = new ActivityIframePort(
       analyticsService.getElement(),
-      feUrl(src)
+      feUrl(src),
+      runtime
     );
     pretendPortWorks = true;
     sandbox.stub(activityPorts, 'openIframe').callsFake(() => {
@@ -117,6 +124,13 @@ describes.realWin('AnalyticsService', {}, env => {
       const txId = 'tx-id-101';
       analyticsService.setTransactionId(txId);
       expect(analyticsService.getTransactionId()).to.equal(txId);
+    });
+
+    it('should close', () => {
+      const activityIframe = analyticsService.getElement();
+      expect(activityIframe.parentNode).to.equal(runtime.doc().getBody());
+      analyticsService.close();
+      expect(activityIframe.parentNode).to.be.null;
     });
   });
 
@@ -168,6 +182,7 @@ describes.realWin('AnalyticsService', {}, env => {
       });
 
       // These wait for analytics server to be ready to send data.
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
 
@@ -188,6 +203,7 @@ describes.realWin('AnalyticsService', {}, env => {
         isFromUserAction: true,
         additionalParameters: {droppedData: true},
       });
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
 
       // This ensures communications were successful
@@ -222,7 +238,7 @@ describes.realWin('AnalyticsService', {}, env => {
     });
   });
 
-  describe('Promise to log when things are broken', () => {
+  describe('Promise to log', () => {
     let iframeCallback;
 
     beforeEach(() => {
@@ -279,6 +295,7 @@ describes.realWin('AnalyticsService', {}, env => {
       const loggingResponse = new FinishedLoggingResponse();
       loggingResponse.setComplete(false);
       loggingResponse.setError(err);
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       const p = analyticsService.getLoggingPromise();
@@ -286,6 +303,27 @@ describes.realWin('AnalyticsService', {}, env => {
       await p;
       expect(loggedErrors.length).to.equal(1);
       expect(loggedErrors[0]).to.equal('Error when logging: ' + err);
+    });
+
+    it('Should work without waiting for the promise', async () => {
+      // This sends another event and waits for it to be sent
+      eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: {droppedData: true},
+      });
+      expect(analyticsService.lastAction_).to.not.be.null;
+      await analyticsService.lastAction_;
+      const loggingResponse = new FinishedLoggingResponse();
+      loggingResponse.setComplete(true);
+      // Simulate 1 logging response that occurs before anyone calls
+      // getLoggingPromise
+      iframeCallback(loggingResponse);
+      expect(analyticsService.unfinishedLogs_).to.equal(0);
+      return analyticsService.getLoggingPromise().then(val => {
+        expect(val).to.be.true;
+      });
     });
   });
 
@@ -300,16 +338,12 @@ describes.realWin('AnalyticsService', {}, env => {
   describe('Context, experiments & labels', () => {
     it('should create correct context for logging', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      AnalyticsService.prototype.getQueryString_ = () => {
-        return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
-      };
-      AnalyticsService.prototype.getReferrer_ = () => {
-        return 'https://scenic-2017.appspot.com/landing.html';
-      };
       analyticsService.setReadyToPay(true);
       analyticsService.setSku('basic');
+      analyticsService.addLabels(['label']);
       eventManagerCallback(event);
 
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
@@ -318,24 +352,30 @@ describes.realWin('AnalyticsService', {}, env => {
         ).args[0];
       expect(request).to.not.be.null;
       expect(request.getEvent()).to.deep.equal(defEventType);
-      expect(request.getContext()).to.not.be.null;
-      expect(request.getContext().getReferringOrigin()).to.equal(
+      const context = request.getContext();
+      expect(context).to.not.be.null;
+      expect(context.getReferringOrigin()).to.equal(
         'https://scenic-2017.appspot.com'
       );
-      expect(request.getContext().getUtmMedium()).to.equal('email');
-      expect(request.getContext().getUtmSource()).to.equal('scenic');
-      expect(request.getContext().getUtmCampaign()).to.equal('campaign');
-      expect(request.getContext().getTransactionId()).to.match(
+      expect(context.getUtmMedium()).to.equal('email');
+      expect(context.getUtmSource()).to.equal('scenic');
+      expect(context.getUtmCampaign()).to.equal('campaign');
+      expect(context.getTransactionId()).to.match(
         /^.{8}-.{4}-.{4}-.{4}-.{12}$/g
       );
-      expect(request.getContext().getSku()).to.equal('basic');
-      expect(request.getContext().getReadyToPay()).to.be.true;
+      expect(context.getSku()).to.equal('basic');
+      expect(analyticsService.getSku()).to.equal('basic');
+      expect(context.getReadyToPay()).to.be.true;
+      const labels = context.getLabelList();
+      expect(labels.length).to.equal(1);
+      expect(labels[0]).to.equal('label');
     });
 
     it('should set context for empty experiments', async () => {
       setExperimentsStringForTesting('');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       eventManagerCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
@@ -349,9 +389,10 @@ describes.realWin('AnalyticsService', {}, env => {
     it('should set context for non-empty experiments', async () => {
       setExperimentsStringForTesting('experiment-A,experiment-B');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      eventManagerCallback(event);
-      await analyticsService.lastAction_;
       await activityIframePort.whenReady();
+      eventManagerCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
+      await analyticsService.lastAction_;
       expect(activityIframePort.execute).to.be.calledOnce;
       const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
           0
@@ -368,6 +409,7 @@ describes.realWin('AnalyticsService', {}, env => {
       setExperimentsStringForTesting('E1,E2');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       eventManagerCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       const /** {?AnalyticsRequest} */ request1 = activityIframePort.execute.getCall(
@@ -382,6 +424,7 @@ describes.realWin('AnalyticsService', {}, env => {
 
       analyticsService.addLabels(['L3', 'L4']);
       eventManagerCallback(event);
+      expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       const /** {?AnalyticsRequest} */ request2 = activityIframePort.execute.getCall(
           1
@@ -472,19 +515,6 @@ describes.realWin('AnalyticsService', {}, env => {
       const logRequest = analyticsService.createLogRequest_(event);
       expect(logRequest.getParams()).to.be.instanceOf(EventParams);
       event.additionalParameters = {};
-    });
-  });
-
-  describe('getHasLogged', () => {
-    it('should initially not have logged anything', () => {
-      expect(analyticsService.getHasLogged()).to.be.false;
-    });
-
-    it('should remember it logged something', async () => {
-      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      analyticsService.handleClientEvent_(event);
-      await analyticsService.lastAction_;
-      expect(analyticsService.getHasLogged()).to.be.true;
     });
   });
 });

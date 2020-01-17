@@ -143,8 +143,10 @@ export class PayStartFlow {
       true,
       getEventParams(swgPaymentRequest['skuId'])
     );
+    PayCompleteFlow.waitingForPayClient_ = true;
     this.payClient_.start(
-      {
+      /** @type {!PaymentDataRequest} */
+      ({
         'apiVersion': 1,
         'allowedPaymentMethods': ['CARD'],
         'environment': '$payEnvironment$',
@@ -154,7 +156,7 @@ export class PayStartFlow {
           'startTimeMs': Date.now(),
           'productType': this.productType_,
         },
-      },
+      }),
       {
         forceRedirect:
           this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT,
@@ -197,7 +199,12 @@ export class PayCompleteFlow {
         },
         reason => {
           if (isCancelError(reason)) {
-            deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
+            const productType = /** @type {!Object} */ (reason)['productType'];
+            const flow =
+              productType == ProductType.UI_CONTRIBUTION
+                ? SubscriptionFlows.CONTRIBUTE
+                : SubscriptionFlows.SUBSCRIBE;
+            deps.callbacks().triggerFlowCanceled(flow);
             deps
               .eventManager()
               .logSwgEvent(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true);
@@ -339,6 +346,9 @@ export class PayCompleteFlow {
   }
 }
 
+/** @private {boolean} */
+PayCompleteFlow.waitingForPayClient_ = false;
+
 /**
  * @param {!./deps.DepsDef} deps
  * @param {!Promise<!Object>} payPromise
@@ -346,13 +356,13 @@ export class PayCompleteFlow {
  * @return {!Promise<!SubscribeResponse>}
  */
 function validatePayResponse(deps, payPromise, completeHandler) {
+  const wasRedirect = !PayCompleteFlow.waitingForPayClient_;
+  PayCompleteFlow.waitingForPayClient_ = false;
   return payPromise.then(data => {
     // 1) We log against a random TX ID which is how we track a specific user
     //    anonymously.
     // 2) If there was a redirect to gPay, we may have lost our stored TX ID.
     // 3) Pay service is supposed to give us the TX ID it logged against.
-
-    const hasLogged = deps.analytics().getHasLogged();
     let eventType = AnalyticsEvent.UNKNOWN;
     let eventParams = undefined;
     if (typeof data !== 'object' || !data['googleTransactionId']) {
@@ -362,16 +372,16 @@ function validatePayResponse(deps, payPromise, completeHandler) {
       // lost all connection to the events that preceded the payment event and
       // we at least want to know why that data was lost.
       eventParams = new EventParams();
-      eventParams.setHadLogged(hasLogged);
+      eventParams.setHadLogged(!wasRedirect);
       eventType = AnalyticsEvent.EVENT_GPAY_NO_TX_ID;
     } else {
       const oldTxId = deps.analytics().getTransactionId();
       const newTxId = data['googleTransactionId'];
 
-      if (!hasLogged) {
+      if (wasRedirect) {
         // This is the expected case for full redirects.  It may be happening
-        // unexpectedly at other times too though and we want to be aware of it
-        // if it does.
+        // unexpectedly at other times too though and we want to be aware of
+        // it if it does.
         deps.analytics().setTransactionId(newTxId);
         eventType = AnalyticsEvent.EVENT_GPAY_CANNOT_CONFIRM_TX_ID;
       } else {

@@ -86,16 +86,13 @@ export class AnalyticsService {
     this.doc_.getBody().appendChild(this.getElement());
 
     /** @private @type {!boolean} */
-    this.everStartedLog_ = false;
-
-    /** @private @type {!boolean} */
     this.everFinishedLog_ = false;
 
     /**
      * @private @const {!AnalyticsContext}
      */
     this.context_ = new AnalyticsContext();
-    this.context_.setTransactionId(getUuid());
+    this.setStaticContext_();
 
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;
@@ -199,23 +196,26 @@ export class AnalyticsService {
   /**
    * @private
    */
-  setContext_() {
+  setStaticContext_() {
+    const context = this.context_;
+    // These values should all be available during page load.
+    context.setTransactionId(getUuid());
+    context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
+    context.setClientVersion('SwG $internalRuntimeVersion$');
+
     const utmParams = parseQueryString(this.getQueryString_());
-    this.context_.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     const campaign = utmParams['utm_campaign'];
     const medium = utmParams['utm_medium'];
     const source = utmParams['utm_source'];
     if (campaign) {
-      this.context_.setUtmCampaign(campaign);
+      context.setUtmCampaign(campaign);
     }
     if (medium) {
-      this.context_.setUtmMedium(medium);
+      context.setUtmMedium(medium);
     }
     if (source) {
-      this.context_.setUtmSource(source);
+      context.setUtmSource(source);
     }
-    this.context_.setClientVersion('SwG $internalRuntimeVersion$');
-    this.addLabels(getOnExperiments(this.doc_.getWin()));
   }
 
   /**
@@ -223,6 +223,10 @@ export class AnalyticsService {
    */
   start() {
     if (!this.serviceReady_) {
+      // Please note that currently openIframe reads the current analytics
+      // context and that it may not contain experiments activated late during
+      // the publishers code lifecycle.
+      this.addLabels(getOnExperiments(this.doc_.getWin()));
       this.serviceReady_ = this.activityPorts_
         .openIframe(this.iframe_, feUrl('/serviceiframe'), null, true)
         .then(
@@ -230,8 +234,12 @@ export class AnalyticsService {
             // Register a listener for the logging to code indicate it is
             // finished logging.
             port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
-            this.setContext_();
-            return port.whenReady().then(() => port);
+            return port.whenReady().then(() => {
+              // The publisher should be done setting experiments but runtime
+              // will forward them here if they aren't.
+              this.addLabels(getOnExperiments(this.doc_.getWin()));
+              return port;
+            });
           },
           message => {
             // If the port doesn't open register that logging is broken so
@@ -264,14 +272,6 @@ export class AnalyticsService {
    */
   getContext() {
     return this.context_;
-  }
-
-  /**
-   * Returns true if any logs have already be sent to the analytics server.
-   * @return {boolean}
-   */
-  getHasLogged() {
-    return this.everStartedLog_;
   }
 
   /**
@@ -337,9 +337,9 @@ export class AnalyticsService {
     }
     // Register we sent a log, the port will call this.afterLogging_ when done.
     this.unfinishedLogs_++;
-    this.everStartedLog_ = true;
-    const request = this.createLogRequest_(event);
-    this.lastAction_ = this.start().then(port => port.execute(request));
+    this.lastAction_ = this.start().then(port =>
+      port.execute(this.createLogRequest_(event))
+    );
   }
 
   /**

@@ -477,6 +477,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       )
       .returns(Promise.resolve(port));
     await flow.start(response);
+    expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
   });
 
   it('should have valid flow constructed w/o entitlements', async () => {
@@ -850,6 +851,30 @@ describes.realWin('PayCompleteFlow', {}, env => {
       await expect(triggerPromise).to.be.rejectedWith(/intentional/);
     });
 
+    it('should indicate contribution product type if error indicates it', async () => {
+      const error = new Error('intentional');
+      error.name = 'AbortError';
+      error.productType = ProductType.UI_CONTRIBUTION;
+      analyticsMock.expects('setTransactionId').never();
+      analyticsMock.expects('addLabels').never();
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true)
+        .once();
+      callbacksMock
+        .expects('triggerFlowCanceled')
+        .withExactArgs('contribute')
+        .once();
+
+      await expect(responseCallback(Promise.reject(error))).to.eventually.equal(
+        undefined
+      );
+
+      expect(startStub).to.not.be.called;
+
+      await expect(triggerPromise).to.be.rejectedWith(/intentional/);
+    });
+
     it('should start flow on a correct payment response', async () => {
       analyticsMock.expects('setTransactionId').never();
       callbacksMock.expects('triggerFlowCanceled').never();
@@ -875,16 +900,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     });
 
     describe('Transaction IDs', () => {
-      let hasLogged;
-
-      beforeEach(() => {
-        hasLogged = false;
-        sandbox
-          .stub(runtime.analytics(), 'getHasLogged')
-          .callsFake(() => hasLogged);
-      });
-
-      it('should log a change in TX ID without previous logging', async () => {
+      it('should log cannot confirm TX ID for redirect case', async () => {
         analyticsMock
           .expects('setTransactionId')
           .withExactArgs('NEW_TRANSACTION_ID')
@@ -913,8 +929,29 @@ describes.realWin('PayCompleteFlow', {}, env => {
         expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
       });
 
-      it('should log a change in TX ID with previous logging', async () => {
-        hasLogged = true;
+      it('should log confirm TX ID for non-redirect case', async () => {
+        PayCompleteFlow.waitingForPayClient_ = true;
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(
+            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+            true,
+            getEventParams('')
+          );
+        const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+        data['googleTransactionId'] = runtime.analytics().getTransactionId();
+
+        await responseCallback(Promise.resolve(data));
+        const response = await triggerPromise;
+        expect(response).to.be.instanceof(SubscribeResponse);
+        expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
+      });
+
+      it('should log a change in TX ID for non-redirect case', async () => {
+        PayCompleteFlow.waitingForPayClient_ = true;
         const newTxId = 'NEW_TRANSACTION_ID';
         const eventParams = new EventParams();
         eventParams.setGpayTransactionId(newTxId);
@@ -938,9 +975,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
 
       it('log no TX ID from gPay and that logging has occured', async () => {
-        hasLogged = true;
+        PayCompleteFlow.waitingForPayClient_ = true;
         const eventParams = new EventParams();
-        eventParams.setHadLogged(hasLogged);
+        eventParams.setHadLogged(true);
         eventManagerMock
           .expects('logSwgEvent')
           .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);
@@ -960,9 +997,8 @@ describes.realWin('PayCompleteFlow', {}, env => {
       });
 
       it('log no TX ID from gPay and that logging has not occured', async () => {
-        hasLogged = false;
         const eventParams = new EventParams();
-        eventParams.setHadLogged(hasLogged);
+        eventParams.setHadLogged(false);
         eventManagerMock
           .expects('logSwgEvent')
           .withExactArgs(AnalyticsEvent.EVENT_GPAY_NO_TX_ID, true, eventParams);
@@ -1211,6 +1247,16 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(sr.oldSku).to.equal('sku_to_replace');
   });
 
+  it('should throw error', () => {
+    let err = null;
+    try {
+      parseSubscriptionResponse(runtime, null);
+    } catch (ex) {
+      err = ex.toString();
+    }
+    expect(err).to.equal('Error: unexpected payment response');
+  });
+
   it('should parse complete idToken', () => {
     const idToken =
       'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NS' +
@@ -1227,6 +1273,10 @@ describes.realWin('parseSubscriptionResponse', {}, env => {
     expect(ud.givenName).to.equal('Test');
     expect(ud.familyName).to.equal('One');
     expect(ud.pictureUrl).to.equal('https://example.org/avatar/test');
+  });
+
+  it('should return null for bad token', () => {
+    expect(parseUserData({})).to.be.null;
   });
 
   it('should parse absent entitlements', () => {

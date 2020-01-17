@@ -191,14 +191,16 @@ function runTests() {
         ],
       },
     ];
-    const plugins = [instanbulPlugin];
 
-    c.browserify.transform = [
-      [
-        'babelify',
-        Object.assign({}, {presets: ['@babel/preset-env']}, {plugins}),
-      ],
-    ];
+    // Install Instanbul plugin.
+    c.browserify.transform.forEach(transform => {
+      if (transform[0] === 'babelify') {
+        if (!transform[1].plugins) {
+          transform[1].plugins = [];
+        }
+        transform[1].plugins.push(instanbulPlugin);
+      }
+    });
   }
 
   // Run fake-server to test XHR responses.
