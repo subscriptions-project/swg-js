@@ -143,7 +143,7 @@ export class PayStartFlow {
       true,
       getEventParams(swgPaymentRequest['skuId'])
     );
-    PayCompleteFlow.waitingForGpay_ = true;
+    PayCompleteFlow.waitingForPayClient_ = true;
     this.payClient_.start(
       /** @type {!PaymentDataRequest} */
       ({
@@ -347,7 +347,7 @@ export class PayCompleteFlow {
 }
 
 /** @private {boolean} */
-PayCompleteFlow.waitingForGpay_ = false;
+PayCompleteFlow.waitingForPayClient_ = false;
 
 /**
  * @param {!./deps.DepsDef} deps
@@ -356,8 +356,8 @@ PayCompleteFlow.waitingForGpay_ = false;
  * @return {!Promise<!SubscribeResponse>}
  */
 function validatePayResponse(deps, payPromise, completeHandler) {
-  const wasRedirect = !PayCompleteFlow.waitingForGpay_;
-  PayCompleteFlow.waitingForGpay_ = false;
+  const wasRedirect = !PayCompleteFlow.waitingForPayClient_;
+  PayCompleteFlow.waitingForPayClient_ = false;
   return payPromise.then(data => {
     // 1) We log against a random TX ID which is how we track a specific user
     //    anonymously.
