@@ -18,6 +18,7 @@ import {
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
+import {addQueryParam} from '../utils/url';
 import {adsUrl} from './services';
 import {analyticsEventToPublisherEvent} from './event-type-mapping';
 import {isBoolean, isObject} from '../utils/types';
@@ -85,12 +86,13 @@ export class PropensityServer {
    * @return {string}
    */
   propensityUrl_(url) {
-    url = url + '&u_tz=240&v=' + this.version_;
+    url = addQueryParam(url, 'u_tz', '240');
+    url = addQueryParam(url, 'v', String(this.version_));
     const clientId = this.getClientId_();
     if (clientId) {
-      url = url + '&cookie=' + clientId;
+      url = addQueryParam(url, 'cookie', clientId);
     }
-    url = url + '&cdm=' + this.win_.location.hostname;
+    url = addQueryParam(url, 'cdm', this.win_.location.hostname);
     return url;
   }
 
@@ -103,18 +105,11 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    let stateParam = this.publicationId_ + ':' + state;
-    let extrainfoParam = '&extrainfo=';
+    let url = adsUrl('/subopt/data');
+    url = addQueryParam(url, 'states', this.publicationId_ + ':' + state);
     if (productsOrSkus) {
-      const skus = encodeURIComponent(productsOrSkus);
-      extrainfoParam += skus;
-      //TODO: Remove this once propensity officially moves over to the new param
-      stateParam += ':' + skus;
+      url = addQueryParam(url, 'extrainfo', productsOrSkus);
     }
-    const url =
-      adsUrl('/subopt/data?states=') +
-      encodeURIComponent(stateParam) +
-      extrainfoParam;
     return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
@@ -128,19 +123,11 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    let eventParam = this.publicationId_ + ':' + event;
-    let extrainfoParam = '&extrainfo=';
+    let url = adsUrl('/subopt/data');
+    url = addQueryParam(url, 'events', this.publicationId_ + ':' + event);
     if (context) {
-      const extraInfo = encodeURIComponent(context);
-      extrainfoParam += extraInfo;
-      //TODO: Remove this once propensity officially moves over to the new param
-      eventParam += ':' + extraInfo;
+      url = addQueryParam(url, 'extrainfo', context);
     }
-    const url =
-      adsUrl('/subopt/data?') +
-      'events=' +
-      encodeURIComponent(eventParam) +
-      extrainfoParam;
     return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
