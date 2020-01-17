@@ -81,6 +81,7 @@ describe('AnalyticsContext', () => {
     analyticscontext.setReadyToPay(false);
     analyticscontext.setLabelList([]);
     analyticscontext.setClientVersion('');
+    analyticscontext.setUrl('');
 
     // Verify serialized arrays.
     const analyticscontextDeserialized = deserialize(
@@ -109,6 +110,8 @@ describe('AnalyticsContext', () => {
         analyticscontext.getLabelList());
     expect(analyticscontextDeserialized.getClientVersion()).to.deep.equal(
         analyticscontext.getClientVersion());
+    expect(analyticscontextDeserialized.getUrl()).to.deep.equal(
+        analyticscontext.getUrl());
   });
 });
 
@@ -146,6 +149,7 @@ describe('AnalyticsRequest', () => {
     analyticscontext.setReadyToPay(false);
     analyticscontext.setLabelList([]);
     analyticscontext.setClientVersion('');
+    analyticscontext.setUrl('');
     analyticsrequest.setContext(analyticscontext);
     analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
     const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
