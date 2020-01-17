@@ -33,15 +33,14 @@ import {parseQueryString} from '../utils/url';
  * @return {!PropensityApi.PropensityEvent}
  */
 function getPropensityEventFromUrl(capturedUrl) {
-  const queryString = capturedUrl.split('?')[1];
-  const eventsStr = decodeURIComponent(parseQueryString(queryString)['events']);
-  const startType = eventsStr.indexOf(':');
-  const endType = eventsStr.indexOf(':', startType + 1);
-  const eventParam = JSON.parse(eventsStr.substring(endType + 1));
+  const queryString = parseQueryString(capturedUrl.split('?')[1]);
+  const eventsStr = decodeURIComponent(queryString['events']).split(':');
+  const extrainfoStr = decodeURIComponent(queryString['extrainfo']);
+  const data = JSON.parse(extrainfoStr);
   return /* @typedef {PropensityEvent} */ {
-    name: eventsStr.substring(startType + 1, endType),
-    active: eventParam['is_active'],
-    data: eventParam,
+    name: eventsStr[1],
+    active: data['is_active'],
+    data,
   };
 }
 
@@ -115,10 +114,12 @@ describes.realWin('PropensityServer', {}, env => {
       expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
       expect(queries['cdm']).to.not.be.null;
       expect('states' in queries).to.be.true;
-      const userState = 'pub1:' + queries['states'].split(':')[1];
-      expect(userState).to.equal('pub1:subscriber');
-      const products = decodeURIComponent(queries['states'].split(':')[2]);
+      const states = queries['states'].split(':');
+      expect(states[0]).to.equal('pub1');
+      expect(states[1]).to.equal('subscriber');
+      const products = decodeURIComponent(queries['extrainfo']);
       expect(products).to.equal(JSON.stringify(productsOrSkus));
+      expect(queries['extrainfo']).to.equal(JSON.stringify(productsOrSkus));
       expect(capturedRequest.credentials).to.equal('include');
       expect(capturedRequest.method).to.equal('GET');
     });
@@ -181,8 +182,10 @@ describes.realWin('PropensityServer', {}, env => {
       expect(parseInt(queries['v'], 10)).to.equal(propensityServer.version_);
       expect(queries['cdm']).to.not.be.null;
       expect('events' in queries).to.be.true;
-      const events = decodeURIComponent(queries['events'].split(':')[2]);
-      expect(events).to.equal(JSON.stringify(eventParam));
+      const events = queries['events'].split(':');
+      expect(events[0]).to.equal('pub1');
+      expect(events[1]).to.equal('offers_shown');
+      expect(queries['extrainfo']).to.equal(JSON.stringify(eventParam));
       expect(capturedRequest.credentials).to.equal('include');
       expect(capturedRequest.method).to.equal('GET');
       defaultEvent.additionalParameters = defaultParameters;
