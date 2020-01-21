@@ -921,15 +921,12 @@ describes.realWin('ConfiguredRuntime', {}, env => {
   });
 
   it('should allow experiments to be set in config', () => {
-    let err = null;
-    try {
-      runtime = new ConfiguredRuntime(win, config, null, {
-        experiments: ['a'],
-      });
-    } catch (ex) {
-      err = ex;
-    }
-    expect(err).to.be.null;
+    expect(
+      () =>
+        new ConfiguredRuntime(win, config, null, {
+          experiments: ['a'],
+        })
+    ).to.not.throw();
   });
 
   describe('while configuring', () => {
