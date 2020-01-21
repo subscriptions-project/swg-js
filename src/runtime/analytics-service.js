@@ -156,6 +156,13 @@ export class AnalyticsService {
   }
 
   /**
+   * @param {string} url
+   */
+  setUrl(url) {
+    this.context_.setUrl(url);
+  }
+
+  /**
    * @param {!Array<string>} labels
    */
   addLabels(labels) {
@@ -215,6 +222,13 @@ export class AnalyticsService {
     }
     if (source) {
       context.setUtmSource(source);
+    }
+
+    const urlNode = this.doc_
+      .getRootNode()
+      .querySelector("link[rel='canonical']");
+    if (urlNode && urlNode.href) {
+      context.setUrl(urlNode.href);
     }
   }
 

@@ -29,6 +29,8 @@ import {feUrl} from './services';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting} from './experiments';
 
+const URL = 'www.news.com';
+
 describes.realWin('AnalyticsService', {}, env => {
   let win;
   let src;
@@ -74,6 +76,13 @@ describes.realWin('AnalyticsService', {}, env => {
     pageConfig = new PageConfig(productId);
     runtime = new ConfiguredRuntime(win, pageConfig);
     activityPorts = runtime.activities();
+    sandbox.stub(runtime.doc(), 'getRootNode').callsFake(() => {
+      return {
+        querySelector: () => {
+          return {href: URL};
+        },
+      };
+    });
     analyticsService = new AnalyticsService(runtime);
     activityIframePort = new ActivityIframePort(
       analyticsService.getElement(),
@@ -124,6 +133,7 @@ describes.realWin('AnalyticsService', {}, env => {
       const txId = 'tx-id-101';
       analyticsService.setTransactionId(txId);
       expect(analyticsService.getTransactionId()).to.equal(txId);
+      expect(analyticsService.getContext().getUrl()).to.equal(URL);
     });
 
     it('should close', () => {
@@ -354,18 +364,19 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(request.getEvent()).to.deep.equal(defEventType);
       const context = request.getContext();
       expect(context).to.not.be.null;
-      expect(context.getReferringOrigin()).to.equal(
-        'https://scenic-2017.appspot.com'
-      );
       expect(context.getUtmMedium()).to.equal('email');
       expect(context.getUtmSource()).to.equal('scenic');
       expect(context.getUtmCampaign()).to.equal('campaign');
+      expect(context.getSku()).to.equal('basic');
+      expect(context.getUrl()).to.equal(URL);
+      expect(context.getReadyToPay()).to.be.true;
       expect(context.getTransactionId()).to.match(
         /^.{8}-.{4}-.{4}-.{4}-.{12}$/g
       );
-      expect(context.getSku()).to.equal('basic');
+      expect(context.getReferringOrigin()).to.equal(
+        'https://scenic-2017.appspot.com'
+      );
       expect(analyticsService.getSku()).to.equal('basic');
-      expect(context.getReadyToPay()).to.be.true;
       const labels = context.getLabelList();
       expect(labels.length).to.equal(1);
       expect(labels[0]).to.equal('label');
@@ -451,6 +462,19 @@ describes.realWin('AnalyticsService', {}, env => {
         'L2',
         'L3',
       ]);
+    });
+
+    it('should respect custom URL set by AMP', async () => {
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+      analyticsService.setUrl('diffUrl');
+      eventManagerCallback(event);
+      await analyticsService.lastAction_;
+      await activityIframePort.whenReady();
+      expect(activityIframePort.execute).to.be.calledOnce;
+      const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
+          0
+        ).args[0];
+      expect(request.getContext().getUrl()).to.equal('diffUrl');
     });
   });
 
