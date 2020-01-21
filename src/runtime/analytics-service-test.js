@@ -463,6 +463,19 @@ describes.realWin('AnalyticsService', {}, env => {
         'L3',
       ]);
     });
+
+    it('should respect custom URL set by AMP', async () => {
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+      analyticsService.setUrl('diffUrl');
+      eventManagerCallback(event);
+      await analyticsService.lastAction_;
+      await activityIframePort.whenReady();
+      expect(activityIframePort.execute).to.be.calledOnce;
+      const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
+          0
+        ).args[0];
+      expect(request.getContext().getUrl()).to.equal('diffUrl');
+    });
   });
 
   describe('Publisher Events', () => {
