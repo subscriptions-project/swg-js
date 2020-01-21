@@ -920,6 +920,18 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     config = new PageConfig('pub1:label1', true);
   });
 
+  it('should allow experiments to be set in config', () => {
+    let err = null;
+    try {
+      runtime = new ConfiguredRuntime(win, config, null, {
+        experiments: ['a'],
+      });
+    } catch (ex) {
+      err = ex;
+    }
+    expect(err).to.be.null;
+  });
+
   describe('while configuring', () => {
     let resolveConfig;
     let rejectConfig;
