@@ -40,14 +40,14 @@ describes.sandboxed('EventManager', {}, () => {
     let indicateConfigurationSucceeded;
     let indicateConfigurationFailed;
     let events;
+    let configurationPromise;
 
     beforeEach(() => {
-      eventManager = new ClientEventManager(
-        new Promise((resolve, reject) => {
-          indicateConfigurationSucceeded = resolve;
-          indicateConfigurationFailed = reject;
-        })
-      );
+      configurationPromise = new Promise((resolve, reject) => {
+        indicateConfigurationSucceeded = resolve;
+        indicateConfigurationFailed = reject;
+      });
+      eventManager = new ClientEventManager(configurationPromise);
       events = [];
       eventManager.registerEventListener(e => events.push(e));
     });
@@ -81,6 +81,10 @@ describes.sandboxed('EventManager', {}, () => {
       // Event should not be logged.
       await tick();
       expect(events).to.deep.equal([]);
+    });
+
+    it('returns ready promise', () => {
+      expect(eventManager.getReadyPromise()).to.equal(configurationPromise);
     });
   });
 
@@ -235,83 +239,106 @@ describes.sandboxed('EventManager', {}, () => {
   });
 
   describe('event management', () => {
-    let eventMan;
-    let counter;
+    let eventManager;
+    let events;
 
     beforeEach(() => {
-      eventMan = new ClientEventManager(RESOLVED_PROMISE);
-      counter = 0;
-      eventMan.registerEventListener(() => counter++);
+      eventManager = new ClientEventManager(RESOLVED_PROMISE);
+      events = [];
+      eventManager.registerEventListener(event => events.push(event));
     });
 
-    it('should be able to listen for events', async () => {
-      //verify it supports 1 listener
+    it('throws if listener is not a function', async () => {
+      expect(() => {
+        eventManager.registerEventListener('Hey guys');
+      }).to.throw(/must be a function/);
+    });
 
-      eventMan.logEvent(DEFAULT_EVENT);
-      await eventMan.lastAction_;
-      expect(counter).to.equal(1);
+    it('supports a single listener', async () => {
+      eventManager.logEvent(DEFAULT_EVENT);
+      await tick();
+      expect(events).to.deep.equal([DEFAULT_EVENT]);
+    });
 
-      //verify it supports multiple listeners
-      eventMan.registerEventListener(() => counter++);
-      eventMan.logEvent(DEFAULT_EVENT);
-      await eventMan.lastAction_;
-      expect(counter).to.equal(3);
+    it('supports additional listeners', async () => {
+      eventManager.registerEventListener(event => events.push(event));
+
+      eventManager.logEvent(DEFAULT_EVENT);
+      await tick();
+      expect(events).to.deep.equal([DEFAULT_EVENT, DEFAULT_EVENT]);
+    });
+
+    it('should throw if filterer is not a function', async () => {
+      expect(() => {
+        eventManager.registerEventFilterer(null);
+      }).to.throw(/must be a function/);
     });
 
     it('should be able to filter out some events', async () => {
-      //filter out the default origin
-      eventMan.registerEventFilterer(event =>
+      // Filter out the default origin.
+      eventManager.registerEventFilterer(event =>
         event.eventOriginator === DEFAULT_ORIGIN
           ? EventManagerApi.FilterResult.CANCEL_EVENT
           : EventManagerApi.FilterResult.PROCESS_EVENT
       );
 
-      //ensure the default origin is filtered out
-      eventMan.logEvent(DEFAULT_EVENT);
-      await eventMan.lastAction_;
-      expect(counter).to.equal(0);
+      // Ensure the default origin is filtered out.
+      eventManager.logEvent(DEFAULT_EVENT);
+      await tick();
+      expect(events).to.deep.equal([]);
 
-      //ensure the other origin is not filtered out
-      DEFAULT_EVENT.eventOriginator = OTHER_ORIGIN;
-      eventMan.logEvent(DEFAULT_EVENT);
-      await eventMan.lastAction_;
-      expect(counter).to.equal(1);
-      eventMan.eventOriginator = DEFAULT_ORIGIN;
+      // Ensure the other origin is not filtered out.
+      const event = Object.assign({}, DEFAULT_EVENT, {
+        eventOriginator: OTHER_ORIGIN,
+      });
+      eventManager.logEvent(event);
+      await tick();
+      expect(events).to.deep.equal([event]);
     });
   });
 
   describe('helpers', () => {
-    let eventMan;
+    let eventManager;
 
     beforeEach(() => {
-      eventMan = new ClientEventManager(RESOLVED_PROMISE);
+      eventManager = new ClientEventManager(RESOLVED_PROMISE);
     });
 
     it('should identify publisher events', () => {
-      const testIsPublisherEvent = function(originator, isPublisherEvent) {
-        DEFAULT_EVENT.eventOriginator = originator;
-        expect(ClientEventManager.isPublisherEvent(DEFAULT_EVENT)).to.equal(
-          isPublisherEvent
-        );
-      };
-      testIsPublisherEvent(EventOriginator.SWG_CLIENT, false);
-      testIsPublisherEvent(EventOriginator.SWG_SERVER, false);
-      testIsPublisherEvent(EventOriginator.UNKNOWN_CLIENT, false);
-      testIsPublisherEvent(EventOriginator.AMP_CLIENT, true);
-      testIsPublisherEvent(EventOriginator.PROPENSITY_CLIENT, true);
-      testIsPublisherEvent(EventOriginator.PUBLISHER_CLIENT, true);
+      const publisherEvents = [
+        EventOriginator.AMP_CLIENT,
+        EventOriginator.PROPENSITY_CLIENT,
+        EventOriginator.PUBLISHER_CLIENT,
+      ];
+      publisherEvents.forEach(eventOriginator => {
+        const event = Object.assign({}, DEFAULT_EVENT, {eventOriginator});
+        expect(ClientEventManager.isPublisherEvent(event)).to.equal(true);
+      });
+    });
+
+    it('should identify non-publisher events', () => {
+      const nonPublisherEvents = [
+        EventOriginator.SWG_CLIENT,
+        EventOriginator.SWG_SERVER,
+        EventOriginator.UNKNOWN_CLIENT,
+      ];
+      nonPublisherEvents.forEach(eventOriginator => {
+        const event = Object.assign({}, DEFAULT_EVENT, {eventOriginator});
+        expect(ClientEventManager.isPublisherEvent(event)).to.equal(false);
+      });
     });
 
     describe('logSwgEvent', () => {
       let event;
+
       beforeEach(() => {
-        sandbox
-          .stub(ClientEventManager.prototype, 'logEvent')
-          .callsFake(evt => (event = evt));
+        sandbox.stub(ClientEventManager.prototype, 'logEvent').callsFake(e => {
+          event = e;
+        });
       });
 
       it('should have appropriate defaults', () => {
-        eventMan.logSwgEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
+        eventManager.logSwgEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED);
         expect(event).to.deep.equal({
           eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
           eventOriginator: EventOriginator.SWG_CLIENT,
@@ -321,8 +348,9 @@ describes.sandboxed('EventManager', {}, () => {
       });
 
       it('should respect isFromUserAction', () => {
-        const testIsFromUserAction = function(isFromUserAction) {
-          eventMan.logSwgEvent(
+        const possibleValues = [true, false, null];
+        possibleValues.forEach(isFromUserAction => {
+          eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_ACCOUNT_CREATED,
             isFromUserAction
           );
@@ -332,15 +360,13 @@ describes.sandboxed('EventManager', {}, () => {
             isFromUserAction,
             additionalParameters: null,
           });
-        };
-        testIsFromUserAction(true);
-        testIsFromUserAction(false);
-        testIsFromUserAction(null);
+        });
       });
 
       it('should respect additionalParameters', () => {
-        const testAdditionalParams = function(additionalParameters) {
-          eventMan.logSwgEvent(
+        const possibleValues = [{}, null, {fig: true}];
+        possibleValues.forEach(additionalParameters => {
+          eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_ACCOUNT_CREATED,
             null,
             additionalParameters
@@ -351,10 +377,7 @@ describes.sandboxed('EventManager', {}, () => {
             isFromUserAction: null,
             additionalParameters,
           });
-        };
-        testAdditionalParams({});
-        testAdditionalParams(null);
-        testAdditionalParams({fig: true});
+        });
       });
     });
   });
