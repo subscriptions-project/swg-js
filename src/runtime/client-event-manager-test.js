@@ -186,8 +186,6 @@ describes.sandboxed('EventManager', {}, () => {
       });
 
       it('should handle valid additionalParameters values', () => {
-        // @REVIEWER: Should `null` be a valid value?
-        // The previous version of this test seemed to suggest it shouldn't be.
         const validValues = [{IAmValid: 5}, null];
 
         validValues.forEach(additionalParameters => {
