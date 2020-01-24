@@ -39,7 +39,7 @@ describes.realWin('Logger', {}, env => {
     eventManager = new ClientEventManager(Promise.resolve());
     fetcher = new XhrFetcher(win);
 
-    //we aren't testing event manager - this suppresses the promises
+    // We aren't testing event manager - this suppresses the promises.
     sandbox
       .stub(eventManager, 'registerEventListener')
       .callsFake(listener => (propensityServerListener = listener));
@@ -60,7 +60,7 @@ describes.realWin('Logger', {}, env => {
     };
     logger = new Logger(fakeDeps);
 
-    //this ensures propensity server is listening
+    // This ensures propensity server is listening.
     new Propensity(win, fakeDeps, fetcher);
   });
 
@@ -72,10 +72,15 @@ describes.realWin('Logger', {}, env => {
         ' active or expired subscriptions';
       const productsOrSkus = {'product': 'basic-monthly'};
 
+      let receivedEvent;
+
       beforeEach(() => {
         sandbox
           .stub(PropensityServer.prototype, 'sendSubscriptionState')
           .callsFake(() => {});
+
+        receivedEvent = null;
+        propensityServerListener = event => (receivedEvent = event);
       });
 
       it('subscription state', () => {
@@ -88,39 +93,43 @@ describes.realWin('Logger', {}, env => {
         }).to.not.throw(errSubscState);
       });
 
-      it('productsOrSkus for subscribed users', () => {
-        expect(() => {
-          logger.sendSubscriptionState(SubscriptionState.SUBSCRIBER);
-        }).to.throw(errEntitlements);
-        expect(() => {
-          logger.sendSubscriptionState(SubscriptionState.PAST_SUBSCRIBER);
-        }).to.throw(errEntitlements);
+      it('productsOrSkus are required for subscribed users', () => {
+        const subscriptionStates = [
+          SubscriptionState.SUBSCRIBER,
+          SubscriptionState.PAST_SUBSCRIBER,
+        ];
+        for (const subscriptionState of subscriptionStates) {
+          expect(() => {
+            logger.sendSubscriptionState(subscriptionState);
+          }).to.throw(errEntitlements);
+        }
+      });
 
-        expect(() => {
-          logger.sendSubscriptionState(
-            SubscriptionState.SUBSCRIBER,
-            productsOrSkus
-          );
-        }).not.throw(errEntitlements);
-
-        expect(() => {
-          logger.sendSubscriptionState(
-            SubscriptionState.PAST_SUBSCRIBER,
-            productsOrSkus
-          );
-        }).not.throw(errEntitlements);
-
+      it('productsOrSkus must be an object', () => {
         expect(() => {
           const productsOrSkus = ['basic-monthly'];
           logger.sendSubscriptionState(
             SubscriptionState.SUBSCRIBER,
             productsOrSkus
           );
-        }).throw(/Entitlements must be an Object/);
+        }).to.throw(/Entitlements must be an Object/);
+      });
+
+      it('productsOrSkus for subscribed users', () => {
+        const subscriptionStates = [
+          SubscriptionState.SUBSCRIBER,
+          SubscriptionState.PAST_SUBSCRIBER,
+        ];
+        for (const subscriptionState of subscriptionStates) {
+          logger.sendSubscriptionState(subscriptionState, productsOrSkus);
+          expect(receivedEvent.additionalParameters.state).to.equal(
+            subscriptionState
+          );
+        }
       });
     });
 
-    it('should send subscription state', async function() {
+    it('should send subscription state', async () => {
       let subscriptionState = null;
       sandbox
         .stub(PropensityServer.prototype, 'sendSubscriptionState')
@@ -130,7 +139,7 @@ describes.realWin('Logger', {}, env => {
       expect(subscriptionState).to.equal(SubscriptionState.UNKNOWN);
     });
 
-    it('should report server errors', async function() {
+    it('should report server errors', async () => {
       const SENT_ERR = new Error('publisher not whitelisted');
       //note that actual event manager will cause the error to be logged to the
       //console instead of being immediately thrown.
@@ -150,7 +159,7 @@ describes.realWin('Logger', {}, env => {
       propensityServerListener = event => (receivedEvent = event);
     });
 
-    it('should send events to event manager', async function() {
+    it('should send events to event manager', async () => {
       logger.sendEvent({
         name: Event.IMPRESSION_PAYWALL,
       });
@@ -166,7 +175,7 @@ describes.realWin('Logger', {}, env => {
     describe('validation and defaults', () => {
       let hasError;
 
-      const testSend = async function(event) {
+      const testSend = async event => {
         try {
           hasError = false;
           receivedEvent = null;
@@ -178,8 +187,7 @@ describes.realWin('Logger', {}, env => {
       };
 
       describe('name', () => {
-        it('should reject invalid', async function() {
-          //ensure it rejects invalid Propensity.Event enum values
+        it('should reject invalid values', async () => {
           testSend({
             name: 'invalid name',
           });
@@ -187,9 +195,9 @@ describes.realWin('Logger', {}, env => {
           expect(receivedEvent).to.be.null;
         });
 
-        it('should allow valid', async function() {
-          //ensure it takes a valid enum with nothing else and fills in
-          //appropriate defaults for other values
+        it('should allow valid values', async () => {
+          // Ensure it takes a valid enum with nothing else and fills in
+          // appropriate defaults for other values.
           await testSend({
             name: Event.IMPRESSION_PAYWALL,
           });
@@ -204,11 +212,12 @@ describes.realWin('Logger', {}, env => {
       });
 
       describe('active', () => {
-        it('should set default', async function() {
-          //ensure it respects the active flag
+        it('should set default', async () => {
+          // Ensure it respects the active flag.
           await testSend({
             name: Event.IMPRESSION_OFFERS,
           });
+          expect(hasError).to.be.false;
           expect(receivedEvent).to.deep.equal({
             eventType: AnalyticsEvent.IMPRESSION_OFFERS,
             eventOriginator: EventOriginator.PUBLISHER_CLIENT,
@@ -217,68 +226,67 @@ describes.realWin('Logger', {}, env => {
           });
         });
 
-        it('should allow valid and set is_active', async function() {
-          await testSend({
-            name: Event.IMPRESSION_OFFERS,
-            active: null,
-          });
-          expect(hasError).to.be.false;
-          expect(receivedEvent).to.deep.equal({
-            eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-            eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-            isFromUserAction: null,
-            additionalParameters: null,
-          });
+        it('should allow valid `active` values and set is_active', async () => {
+          const validValues = [null, true, false];
+          for (const active of validValues) {
+            await testSend({
+              name: Event.IMPRESSION_OFFERS,
+              active,
+            });
+            expect(hasError).to.be.false;
+            expect(receivedEvent).to.deep.equal({
+              eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+              eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+              isFromUserAction: active,
+              additionalParameters:
+                active != null ? {'is_active': active} : active,
+            });
+          }
+        });
 
+        it('should handle invalid `active` values', async () => {
+          const invalidValues = ['hey', 1];
+          for (const active of invalidValues) {
+            await testSend({
+              name: Event.IMPRESSION_OFFERS,
+              active,
+            });
+            expect(hasError).to.be.true;
+            expect(receivedEvent).to.be.null;
+          }
+        });
+
+        it('should allow `data` along with `active` flag', async () => {
+          const active = true;
+          const data = {'someData': 1};
           await testSend({
             name: Event.IMPRESSION_OFFERS,
-            active: true,
+            data,
+            active,
           });
           expect(hasError).to.be.false;
           expect(receivedEvent).to.deep.equal({
             eventType: AnalyticsEvent.IMPRESSION_OFFERS,
             eventOriginator: EventOriginator.PUBLISHER_CLIENT,
             isFromUserAction: true,
-            additionalParameters: {'is_active': true},
+            additionalParameters: {'someData': 1, 'is_active': active},
           });
-
-          await testSend({
-            name: Event.IMPRESSION_OFFERS,
-            active: false,
-          });
-          expect(hasError).to.be.false;
-          expect(receivedEvent).to.deep.equal({
-            eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-            eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-            isFromUserAction: false,
-            additionalParameters: {'is_active': false},
-          });
-        });
-
-        it('should reject invalid', async function() {
-          await testSend({
-            name: Event.IMPRESSION_OFFERS,
-            active: 'BAD STRING',
-          });
-          expect(hasError).to.be.true;
-          expect(receivedEvent).to.be.null;
         });
       });
 
       describe('data', () => {
-        it('should reject invalid', () => {
-          //ensure it rejects invalid data objects
+        it('should reject invalid values', () => {
+          const data = 'all_offers';
           testSend({
             name: Event.IMPRESSION_OFFERS,
-            data: 'all_offers',
+            data,
           });
           expect(hasError).to.be.true;
           expect(receivedEvent).to.be.null;
         });
 
-        it('should allow valid', async function() {
+        it('should allow valid values', async () => {
           const data = {'someData': 1};
-          //ensure it rejects invalid data objects
           await testSend({
             name: Event.IMPRESSION_OFFERS,
             data,
@@ -292,8 +300,7 @@ describes.realWin('Logger', {}, env => {
           });
         });
 
-        it('should set default', async function() {
-          //ensure it rejects invalid data objects
+        it('should set default', async () => {
           await testSend({
             name: Event.IMPRESSION_OFFERS,
           });

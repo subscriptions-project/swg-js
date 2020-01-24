@@ -77,8 +77,7 @@ export class Logger {
       if (!isObject(userEvent.data)) {
         throw new Error('Event data must be an Object(' + userEvent.data + ')');
       } else {
-        data = {};
-        Object.assign(data, userEvent.data);
+        data = Object.assign({}, data, userEvent.data);
       }
     }
 
