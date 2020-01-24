@@ -99,6 +99,12 @@
         "module": false,
         "require": false
       }
+    },
+    {
+      "files": ["src/**/*test.js"],
+      "rules": {
+        "swg-internal/no-for-of-statement": 0
+      }
     }
   ]
 }

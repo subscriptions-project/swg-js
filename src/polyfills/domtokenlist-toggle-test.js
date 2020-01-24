@@ -51,15 +51,15 @@ describes.sandboxed('DOMTokenList.prototype.toggle polyfill', {}, () => {
   it('should determine whether array includes given value', () => {
     const tokenParams = ['a', 'b', 'c'];
     const forceParams = [undefined, false, true];
-    tokenParams.forEach(token => {
-      forceParams.forEach(force => {
+    for (const token of tokenParams) {
+      for (const force of forceParams) {
         expect(toggle.call(createList(), token, force).toString()).to.equal(
           DOMTokenList.prototype.toggle
             .call(createList(), token, force)
             .toString()
         );
-      });
-    });
+      }
+    }
   });
 
   it('should install if necessary', () => {

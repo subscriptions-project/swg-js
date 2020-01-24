@@ -103,97 +103,97 @@ describes.sandboxed('EventManager', {}, () => {
       it('should handle invalid eventType values', () => {
         const invalidValues = [BAD_VALUE, null];
 
-        invalidValues.forEach(eventType => {
+        for (const eventType of invalidValues) {
           const event = Object.assign({}, DEFAULT_EVENT, {
             eventType,
           });
           expect(() => eventManager.logEvent(event)).to.throw(
             `Event has an invalid eventType(${eventType})`
           );
-        });
+        }
       });
 
       it('should handle valid eventType values', () => {
         const validValues = [OTHER_TYPE];
 
-        validValues.forEach(eventType => {
+        for (const eventType of validValues) {
           const event = Object.assign({}, DEFAULT_EVENT, {
             eventType,
           });
           expect(() => eventManager.logEvent(event)).not.to.throw();
-        });
+        }
       });
 
       it('should handle invalid eventOriginator values', () => {
         const invalidValues = [BAD_VALUE, null];
 
-        invalidValues.forEach(eventOriginator => {
+        for (const eventOriginator of invalidValues) {
           const event = Object.assign({}, DEFAULT_EVENT, {
             eventOriginator,
           });
           expect(() => eventManager.logEvent(event)).to.throw(
             `Event has an invalid eventOriginator(${eventOriginator})`
           );
-        });
+        }
       });
 
       it('should handle valid eventOriginator values', () => {
         const validValues = [OTHER_ORIGIN, DEFAULT_ORIGIN];
 
-        validValues.forEach(eventOriginator => {
+        for (const eventOriginator of validValues) {
           const event = Object.assign({}, DEFAULT_EVENT, {
             eventOriginator,
           });
           expect(() => eventManager.logEvent(event)).to.not.throw();
-        });
+        }
       });
 
       it('should handle invalid isFromUserAction values', () => {
         const invalidValues = [BAD_VALUE];
 
-        invalidValues.forEach(isFromUserAction => {
+        for (const isFromUserAction of invalidValues) {
           const event = Object.assign({}, DEFAULT_EVENT, {
             isFromUserAction,
           });
           expect(() => eventManager.logEvent(event)).to.throw(
             `Event has an invalid isFromUserAction(${isFromUserAction})`
           );
-        });
+        }
       });
 
       it('should handle valid isFromUserAction values', () => {
         const validValues = [true, false, null];
 
-        validValues.forEach(isFromUserAction => {
+        for (const isFromUserAction of validValues) {
           const event = Object.assign({}, DEFAULT_EVENT, {
             isFromUserAction,
           });
           expect(() => eventManager.logEvent(event)).to.not.throw();
-        });
+        }
       });
 
       it('should handle invalid additionalParameters values', () => {
         const invalidValues = [BAD_VALUE];
 
-        invalidValues.forEach(additionalParameters => {
+        for (const additionalParameters of invalidValues) {
           const event = Object.assign({}, DEFAULT_EVENT, {
             additionalParameters,
           });
           expect(() => eventManager.logEvent(event)).to.throw(
             `Event has an invalid additionalParameters(${additionalParameters})`
           );
-        });
+        }
       });
 
       it('should handle valid additionalParameters values', () => {
         const validValues = [{IAmValid: 5}, null];
 
-        validValues.forEach(additionalParameters => {
+        for (const additionalParameters of validValues) {
           const event = Object.assign({}, DEFAULT_EVENT, {
             additionalParameters,
           });
           expect(() => eventManager.logEvent(event)).to.not.throw();
-        });
+        }
       });
 
       it('should not allow null events', () => {
@@ -308,10 +308,10 @@ describes.sandboxed('EventManager', {}, () => {
         EventOriginator.PROPENSITY_CLIENT,
         EventOriginator.PUBLISHER_CLIENT,
       ];
-      publisherEvents.forEach(eventOriginator => {
+      for (const eventOriginator of publisherEvents) {
         const event = Object.assign({}, DEFAULT_EVENT, {eventOriginator});
         expect(ClientEventManager.isPublisherEvent(event)).to.equal(true);
-      });
+      }
     });
 
     it('should identify non-publisher events', () => {
@@ -320,10 +320,10 @@ describes.sandboxed('EventManager', {}, () => {
         EventOriginator.SWG_SERVER,
         EventOriginator.UNKNOWN_CLIENT,
       ];
-      nonPublisherEvents.forEach(eventOriginator => {
+      for (const eventOriginator of nonPublisherEvents) {
         const event = Object.assign({}, DEFAULT_EVENT, {eventOriginator});
         expect(ClientEventManager.isPublisherEvent(event)).to.equal(false);
-      });
+      }
     });
 
     describe('logSwgEvent', () => {
@@ -347,7 +347,7 @@ describes.sandboxed('EventManager', {}, () => {
 
       it('should respect isFromUserAction', () => {
         const possibleValues = [true, false, null];
-        possibleValues.forEach(isFromUserAction => {
+        for (const isFromUserAction of possibleValues) {
           eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_ACCOUNT_CREATED,
             isFromUserAction
@@ -358,12 +358,12 @@ describes.sandboxed('EventManager', {}, () => {
             isFromUserAction,
             additionalParameters: null,
           });
-        });
+        }
       });
 
       it('should respect additionalParameters', () => {
         const possibleValues = [{}, null, {fig: true}];
-        possibleValues.forEach(additionalParameters => {
+        for (const additionalParameters of possibleValues) {
           eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_ACCOUNT_CREATED,
             null,
@@ -375,7 +375,7 @@ describes.sandboxed('EventManager', {}, () => {
             isFromUserAction: null,
             additionalParameters,
           });
-        });
+        }
       });
     });
   });
