@@ -46,7 +46,9 @@ describes.sandboxed('documentReady', {}, () => {
 
   /** Calls listeners of the `readystatechange` event. */
   function callListeners() {
-    eventListeners['readystatechange'].forEach(listener => listener());
+    for (const listener of eventListeners['readystatechange']) {
+      listener();
+    }
   }
 
   /** Counts listeners of the `readystatechange` event. */

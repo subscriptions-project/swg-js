@@ -24,11 +24,11 @@ describes.sandboxed('HTMLDocument.prototype.contains polyfill', {}, () => {
     doc.body.appendChild(connectedEl);
     const disconnectedEl = doc.createElement('div');
     const valueParams = [connectedEl, disconnectedEl];
-    valueParams.forEach(val => {
+    for (const val of valueParams) {
       expect(contains.call(doc, val)).to.deep.equal(
         HTMLDocument.prototype.contains.call(doc, val)
       );
-    });
+    }
   });
 
   it('should install if necessary', () => {

@@ -18,9 +18,10 @@ import {install, sign} from './math-sign';
 
 describes.sandboxed('Math.sign polyfill', {}, () => {
   it('should determine sign', () => {
-    [-8, 0, 8, null, undefined, '', () => {}].forEach(val => {
+    const values = [-8, 0, 8, null, undefined, '', () => {}];
+    for (const val of values) {
       expect(sign(val)).to.deep.equal(Math.sign(val));
-    });
+    }
   });
 
   it('should install if necessary', () => {

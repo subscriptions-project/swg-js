@@ -64,7 +64,7 @@ describes.realWin('test', {}, () => {
       location.href = 'https://acme.com/path';
     });
 
-    scenarios.forEach(test => {
+    for (const test of scenarios) {
       let xhr;
       let mockXhr;
       let xhrCreated;
@@ -276,9 +276,9 @@ describes.realWin('test', {}, () => {
           ).to.be.rejectedWith('HTTP error 500');
         });
       });
-    });
+    }
 
-    scenarios.forEach(test => {
+    for (const test of scenarios) {
       const url = 'http://localhost:31862/post';
 
       describe(test.desc + ' POST', () => {
@@ -303,7 +303,7 @@ describes.realWin('test', {}, () => {
           });
         });
       });
-    });
+    }
 
     describe('FetchResponse', () => {
       const TEST_TEXT = 'this is some test text';

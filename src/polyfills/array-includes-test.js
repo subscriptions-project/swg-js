@@ -21,13 +21,13 @@ describes.sandboxed('Array.prototype.includes polyfill', {}, () => {
     const valueParams = [0, 1, 2, 7, NaN];
     const fromParams = [undefined, -1, 0, 1, 2];
     const list = [0, 1, 2, 3, 4, 5, 6, NaN];
-    valueParams.forEach(val => {
-      fromParams.forEach(from => {
+    for (const val of valueParams) {
+      for (const from of fromParams) {
         expect(includes.call(list, val, from)).to.deep.equal(
           Array.prototype.includes.call(list, val, from)
         );
-      });
-    });
+      }
+    }
   });
 
   it('should install if necessary', () => {
