@@ -83,6 +83,10 @@ describes.realWin('Logger', {}, env => {
         expect(() => {
           logger.sendSubscriptionState('past');
         }).to.throw('Invalid subscription state provided');
+
+        expect(() => {
+          logger.sendSubscriptionState(SubscriptionState.UNKNOWN);
+        }).to.not.throw();
       });
 
       it('productsOrSkus are required for subscribed users', () => {
