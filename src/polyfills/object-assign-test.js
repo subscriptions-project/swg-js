@@ -30,11 +30,12 @@ describes.sandboxed('Object.assign polyfill', {}, () => {
   });
 
   it('should throw if passed undefined or null object', () => {
-    [null, undefined].forEach(val => {
+    const values = [null, undefined];
+    for (const val of values) {
       expect(() => assign(val)).to.throw(
         'Cannot convert undefined or null to object'
       );
-    });
+    }
   });
 
   it('should install if necessary', () => {

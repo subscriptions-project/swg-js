@@ -26,14 +26,15 @@ describes.realWin('Types', {}, () => {
     };
 
     it('should return true for valid enum values', () => {
-      ['x', 'y', 'z'].forEach(value => {
+      const values = ['x', 'y', 'z'];
+      for (const value of values) {
         expect(types.isEnumValue(enumObj, value), 'enum value = ' + value).to.be
           .true;
-      });
+      }
     });
 
     it('should return false for non-enum values', () => {
-      [
+      const values = [
         '',
         'X',
         [],
@@ -49,22 +50,24 @@ describes.realWin('Types', {}, () => {
         () => {},
         null,
         undefined,
-      ].forEach(value => {
+      ];
+      for (const value of values) {
         expect(types.isEnumValue(enumObj, value), 'enum value = ' + value).to.be
           .false;
-      });
+      }
     });
   });
 
   describe('isObject', () => {
     it('identifies objects', () => {
-      [{}, {x: 1}].forEach(value => {
+      const values = [{}, {x: 1}];
+      for (const value of values) {
         expect(types.isObject(value)).to.be.true;
-      });
+      }
     });
 
     it('identifies non-objects', () => {
-      [
+      const values = [
         '',
         'X',
         [],
@@ -78,21 +81,23 @@ describes.realWin('Types', {}, () => {
         () => {},
         null,
         undefined,
-      ].forEach(value => {
+      ];
+      for (const value of values) {
         expect(types.isObject(value)).to.be.false;
-      });
+      }
     });
   });
 
   describe('isFunction', () => {
     it('identifies functions', () => {
-      [function() {}, () => {}].forEach(value => {
+      const values = [function() {}, () => {}];
+      for (const value of values) {
         expect(types.isFunction(value)).to.be.true;
-      });
+      }
     });
 
     it('identifies non-functions', () => {
-      [
+      const values = [
         '',
         'X',
         [],
@@ -106,21 +111,23 @@ describes.realWin('Types', {}, () => {
         false,
         null,
         undefined,
-      ].forEach(value => {
+      ];
+      for (const value of values) {
         expect(types.isFunction(value)).to.be.false;
-      });
+      }
     });
   });
 
   describe('isBoolean', () => {
     it('identifies booleans', () => {
-      [true, false].forEach(value => {
+      const values = [true, false];
+      for (const value of values) {
         expect(types.isBoolean(value)).to.be.true;
-      });
+      }
     });
 
     it('identifies non-booleans', () => {
-      [
+      const values = [
         '',
         'X',
         [],
@@ -134,9 +141,10 @@ describes.realWin('Types', {}, () => {
         () => {},
         null,
         undefined,
-      ].forEach(value => {
+      ];
+      for (const value of values) {
         expect(types.isBoolean(value)).to.be.false;
-      });
+      }
     });
   });
 });

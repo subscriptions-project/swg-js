@@ -139,9 +139,10 @@ describes.realWin('installRuntime', {}, env => {
     installRuntime(win);
 
     const subscriptions = await promise;
-    Object.getOwnPropertyNames(Subscriptions.prototype).forEach(key => {
+    const keys = Object.getOwnPropertyNames(Subscriptions.prototype);
+    for (const key of keys) {
       expect(subscriptions[key]).to.exist;
-    });
+    }
   });
 
   it('handles recursive calls after installation', async () => {
@@ -198,12 +199,12 @@ describes.realWin('installRuntime', {}, env => {
     });
 
     const names = Object.getOwnPropertyNames(Subscriptions.prototype);
-    names.forEach(name => {
+    for (const name of names) {
       if (name == 'constructor') {
-        return;
+        continue;
       }
       expect(subscriptions).to.have.property(name);
-    });
+    }
   });
 });
 
@@ -320,12 +321,12 @@ describes.realWin('installRuntime legacy', {}, env => {
       dep(resolve);
     });
     const names = Object.getOwnPropertyNames(Subscriptions.prototype);
-    names.forEach(name => {
+    for (const name of names) {
       if (name == 'constructor') {
-        return;
+        continue;
       }
       expect(subscriptions).to.have.property(name);
-    });
+    }
   });
 });
 
