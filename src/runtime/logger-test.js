@@ -66,10 +66,6 @@ describes.realWin('Logger', {}, env => {
 
   describe('subscription state', () => {
     describe('validation', () => {
-      const errSubscState = 'Invalid subscription state provided';
-      const errEntitlements =
-        'Entitlements must be provided for users with' +
-        ' active or expired subscriptions';
       const productsOrSkus = {'product': 'basic-monthly'};
 
       let receivedEvent;
@@ -83,14 +79,10 @@ describes.realWin('Logger', {}, env => {
         propensityServerListener = event => (receivedEvent = event);
       });
 
-      it('subscription state', () => {
+      it('subscription state is validated', () => {
         expect(() => {
           logger.sendSubscriptionState('past');
-        }).to.throw(errSubscState);
-
-        expect(() => {
-          logger.sendSubscriptionState(SubscriptionState.UNKNOWN);
-        }).to.not.throw(errSubscState);
+        }).to.throw('Invalid subscription state provided');
       });
 
       it('productsOrSkus are required for subscribed users', () => {
@@ -101,7 +93,10 @@ describes.realWin('Logger', {}, env => {
         for (const subscriptionState of subscriptionStates) {
           expect(() => {
             logger.sendSubscriptionState(subscriptionState);
-          }).to.throw(errEntitlements);
+          }).to.throw(
+            'Entitlements must be provided for users with' +
+              ' active or expired subscriptions'
+          );
         }
       });
 
