@@ -41,4 +41,8 @@ describes.sandboxed('findInArray', {}, () => {
     expect(spy.args[0][2]).to.equal(array);
     expect(spy.args[0][3]).to.be.undefined;
   });
+
+  it('should return null if nothing is passed', () => {
+    expect(findInArray()).to.be.null;
+  });
 });
