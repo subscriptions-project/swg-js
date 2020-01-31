@@ -78,12 +78,13 @@ describes.realWin('asserts', {}, env => {
       assert(false, 'xyz');
     }).to.throw(/xyz/);
 
-    try {
+    expect(() => {
       assert(false, '123');
-      throw 'must have failed';
-    } catch (e) {
-      expect(e.message).to.equal('123');
-    }
+    }).to.throw(/123/);
+
+    expect(() => {
+      assert(false);
+    }).to.throw(/Assertion failed/);
   });
 
   it('should not fail', () => {
