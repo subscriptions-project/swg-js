@@ -262,7 +262,7 @@ describe('addQueryParam', () => {
 });
 
 describe('serializeMessageForUrl', () => {
-  it.only('should serialize message', () => {
+  it('should serialize message', () => {
     const inputArray = [
       null,
       'embed',
