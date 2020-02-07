@@ -15,6 +15,7 @@
  */
 
 import {Xhr} from '../utils/xhr';
+import {addQueryParam, serializeMessageForUrl} from '../utils/url';
 
 /**
  * @interface
@@ -32,6 +33,13 @@ export class Fetcher {
    * @return {!Promise<!../utils/xhr.FetchResponse>}
    */
   fetch(unusedUrl, unusedInit) {}
+
+  /**
+   * POST data to a URL endpoint, do not wait for a response.
+   * @param {!string} unusedUrl
+   * @param {!string|!Object} unusedData
+   */
+  sendBeacon(unusedUrl, unusedData) {}
 }
 
 /**
@@ -59,5 +67,20 @@ export class XhrFetcher {
   /** @override */
   fetch(url, init) {
     return this.xhr_.fetch(url, init);
+  }
+
+  /** @override */
+  sendBeacon(url, data) {
+    url = addQueryParam(url, 'f.req', serializeMessageForUrl(data));
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(url);
+      return;
+    }
+    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+      method: 'POST',
+      headers: {'Accept': 'text/plain, application/json'},
+      credentials: 'include',
+    });
+    return this.xhr_.fetch(url, init).then(response => response.json());
   }
 }
