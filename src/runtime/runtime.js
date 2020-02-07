@@ -538,7 +538,7 @@ export class ConfiguredRuntime {
     this.activityPorts_ = new ActivityPorts(this);
 
     /** @private @const {!AnalyticsService} */
-    this.analyticsService_ = new AnalyticsService(this);
+    this.analyticsService_ = new AnalyticsService(this, this.fetcher_);
     this.analyticsService_.start();
 
     /** @private @const {!PayClient} */

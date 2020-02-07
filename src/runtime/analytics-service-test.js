@@ -24,7 +24,9 @@ import {
 import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
+import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
+import {XhrFetcher} from './fetcher';
 import {feUrl} from './services';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting} from './experiments';
@@ -42,6 +44,7 @@ describes.realWin('AnalyticsService', {}, env => {
   let eventManagerCallback;
   let pretendPortWorks;
   let loggedErrors;
+  let eventsLoggedToService;
 
   const productId = 'pub1:label1';
   const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
@@ -62,6 +65,14 @@ describes.realWin('AnalyticsService', {}, env => {
   };
 
   beforeEach(() => {
+    setExperimentsStringForTesting('');
+    eventsLoggedToService = [];
+    sandbox
+      .stub(XhrFetcher.prototype, 'sendBeacon')
+      .callsFake((unusedUrl, message) => {
+        eventsLoggedToService.push(message);
+      });
+
     AnalyticsService.prototype.getQueryString_ = () => {
       return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
     };
@@ -83,7 +94,7 @@ describes.realWin('AnalyticsService', {}, env => {
         },
       };
     });
-    analyticsService = new AnalyticsService(runtime);
+    analyticsService = new AnalyticsService(runtime, runtime.fetcher_);
     activityIframePort = new ActivityIframePort(
       analyticsService.getElement(),
       feUrl(src),
@@ -105,10 +116,6 @@ describes.realWin('AnalyticsService', {}, env => {
       loggedErrors.push(error);
     });
     loggedErrors = [];
-  });
-
-  afterEach(() => {
-    setExperimentsStringForTesting('');
   });
 
   describe('Construction', () => {
@@ -245,6 +252,39 @@ describes.realWin('AnalyticsService', {}, env => {
       await p;
       await analyticsService.getLoggingPromise();
       expect(loggedErrors.length).to.equal(0);
+    });
+
+    describe('SwG Clearcut Service Experiment', () => {
+      let expectedEventCount;
+
+      beforeEach(() => {
+        // This ensure nothing gets sent to the server.
+        sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+        expectedEventCount = 0;
+      });
+
+      afterEach(async () => {
+        // This triggers an event.
+        eventManagerCallback({
+          eventType: AnalyticsEvent.UNKNOWN,
+          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+
+        // These wait for analytics server to be ready to send data.
+        expect(analyticsService.lastAction_).to.not.be.null;
+        await analyticsService.lastAction_;
+        await activityIframePort.whenReady();
+
+        expectOpenIframe = true;
+        expect(eventsLoggedToService.length).to.equal(expectedEventCount);
+      });
+      it('should not log to clearcut if experiment off', () => {});
+      it('should not log to clearcut if experiment on', () => {
+        setExperimentsStringForTesting(ExperimentFlags.LOGGING_BEACON);
+        expectedEventCount = 1;
+      });
     });
   });
 
@@ -475,6 +515,12 @@ describes.realWin('AnalyticsService', {}, env => {
           0
         ).args[0];
       expect(request.getContext().getUrl()).to.equal('diffUrl');
+    });
+  });
+
+  describe('SwG Clearcut Logging Experiment', () => {
+    it('should not double log by default', () => {
+      sandbox.stub();
     });
   });
 

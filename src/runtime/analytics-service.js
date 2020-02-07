@@ -24,12 +24,14 @@ import {
   FinishedLoggingResponse,
 } from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
+import {ExperimentFlags} from './experiment-flags';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
-import {getOnExperiments} from './experiments';
+import {getOnExperiments, isExperimentOn} from './experiments';
 import {getUuid} from '../utils/string';
 import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
+import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 
 /** @const {!Object<string, string>} */
@@ -65,8 +67,15 @@ function createErrorResponse(error) {
 export class AnalyticsService {
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {!./fetcher.Fetcher} fetcher
    */
-  constructor(deps) {
+  constructor(deps, fetcher) {
+    /** @private @const {!./fetcher.Fetcher} */
+    this.fetcher_ = fetcher;
+
+    /** @private @const {string} */
+    this.publicationId_ = deps.pageConfig().getPublicationId();
+
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
@@ -351,9 +360,14 @@ export class AnalyticsService {
     }
     // Register we sent a log, the port will call this.afterLogging_ when done.
     this.unfinishedLogs_++;
-    this.lastAction_ = this.start().then(port =>
-      port.execute(this.createLogRequest_(event))
-    );
+    this.lastAction_ = this.start().then(port => {
+      const analyticsRequest = this.createLogRequest_(event);
+      port.execute(analyticsRequest);
+      if (!isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_BEACON)) {
+        return;
+      }
+      this.sendBeacon_(analyticsRequest);
+    });
   }
 
   /**
@@ -419,5 +433,14 @@ export class AnalyticsService {
     }
 
     return this.promiseToLog_;
+  }
+
+  /**
+   * @param {!AnalyticsRequest} analyticsRequest
+   */
+  sendBeacon_(analyticsRequest) {
+    const pubId = encodeURIComponent(this.publicationId_);
+    const url = serviceUrl('/publication/' + pubId + '/clientlogs');
+    this.fetcher_.sendBeacon(url, analyticsRequest);
   }
 }
