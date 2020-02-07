@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {isMessage} from '../utils/types';
+
 /**
   @typedef {{
     href: string,
@@ -193,6 +195,47 @@ export function addQueryParam(url, param, value) {
   }
   url += encodeURIComponent(param) + '=' + encodeURIComponent(value);
   return url + fragment;
+}
+
+/**
+ * @param {!../proto/api_messages.Message} data
+ * @return {*}
+ */
+function prepForSerialization(data) {
+  if (data === null || data === undefined) {
+    return undefined;
+  }
+  let arr = null;
+  switch (typeof data) {
+    case 'boolean':
+      return data ? 1 : 0;
+    case 'object':
+      if (Array.isArray(data)) {
+        arr = data;
+      } else if (!isMessage(data)) {
+        return data;
+      } else {
+        arr = data.toArray();
+      }
+      break;
+    default:
+      return data;
+  }
+  arr.shift();
+  for (let i = 0; i < arr.length; i++) {
+    arr[i] = prepForSerialization(arr[i]);
+  }
+  return arr;
+}
+
+/**
+ * @param {!../proto/api_messages.Message} message
+ * @return {string}
+ */
+export function serializeMessageForUrl(message) {
+  return JSON.stringify(
+    /** @type {JsonObject} */ (prepForSerialization(message))
+  );
 }
 
 /**

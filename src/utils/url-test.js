@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+import {AnalyticsContext} from '../proto/api_messages';
 import {
   addQueryParam,
   getHostUrl,
   parseQueryString,
   parseUrl,
+  serializeMessageForUrl,
   serializeQueryString,
 } from './url';
 
@@ -256,5 +258,42 @@ describe('addQueryParam', () => {
     expect(addQueryParam('file#f', 'a', 'b')).to.equal('file?a=b#f');
     expect(addQueryParam('file?#f', 'a', 'b')).to.equal('file?a=b#f');
     expect(addQueryParam('file?d=e#f', 'a', 'b')).to.equal('file?d=e&a=b#f');
+  });
+});
+
+describe('serializeMessageForUrl', () => {
+  it.only('should serialize message', () => {
+    const inputArray = [
+      null,
+      'embed',
+      'tx',
+      'refer',
+      'utmS',
+      'utmC',
+      'utmM',
+      'sku',
+      true,
+      [],
+      'version',
+      'baseUrl',
+    ];
+    const inputContext = new AnalyticsContext(inputArray);
+    const outputStr = serializeMessageForUrl(inputContext);
+    const outputArr = JSON.parse(outputStr);
+    // serialize removed the first element, add it back
+    outputArr.unshift(null);
+    // serialize changed true to 1
+    outputArr[8] = true;
+    const outputContext = new AnalyticsContext(outputArr);
+
+    expect(outputArr).to.deep.equal(inputArray);
+
+    expect(outputContext).to.deep.equal(inputContext);
+
+    // reformat input array to the way we expect it to look after serialize
+    inputArray[8] = 1;
+    inputArray.shift();
+    const expectedStr = JSON.stringify(inputArray);
+    expect(expectedStr).to.equal(outputStr);
   });
 });
