@@ -76,6 +76,7 @@ export class XhrFetcher {
       navigator.sendBeacon(url);
       return;
     }
+    // Only newer browsers support beacon.  Fallback to standard XHR POST.
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'POST',
       headers: {'Accept': 'text/plain, application/json'},
