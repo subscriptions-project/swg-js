@@ -15,7 +15,7 @@
  */
 
 import {Xhr} from '../utils/xhr';
-import {addQueryParam, serializeMessageForUrl} from '../utils/url';
+import {addQueryParam, serializeProtoMessageForUrl} from '../utils/url';
 
 /**
  * @interface
@@ -71,7 +71,7 @@ export class XhrFetcher {
 
   /** @override */
   sendBeacon(url, data) {
-    url = addQueryParam(url, 'f.req', serializeMessageForUrl(data));
+    url = addQueryParam(url, 'f.req', serializeProtoMessageForUrl(data));
     if (navigator.sendBeacon) {
       navigator.sendBeacon(url);
       return;

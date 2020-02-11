@@ -20,7 +20,7 @@ import {
   getHostUrl,
   parseQueryString,
   parseUrl,
-  serializeMessageForUrl,
+  serializeProtoMessageForUrl,
   serializeQueryString,
 } from './url';
 
@@ -261,7 +261,7 @@ describe('addQueryParam', () => {
   });
 });
 
-describe('serializeMessageForUrl', () => {
+describe('serializeProtoMessageForUrl', () => {
   it('should serialize message', () => {
     const inputArray = [
       null,
@@ -278,12 +278,10 @@ describe('serializeMessageForUrl', () => {
       'baseUrl',
     ];
     const inputContext = new AnalyticsContext(inputArray);
-    const outputStr = serializeMessageForUrl(inputContext);
+    const outputStr = serializeProtoMessageForUrl(inputContext);
     const outputArr = JSON.parse(outputStr);
     // serialize removed the first element, add it back
     outputArr.unshift(null);
-    // serialize changed true to 1
-    outputArr[8] = true;
     const outputContext = new AnalyticsContext(outputArr);
 
     expect(outputArr).to.deep.equal(inputArray);
@@ -291,9 +289,48 @@ describe('serializeMessageForUrl', () => {
     expect(outputContext).to.deep.equal(inputContext);
 
     // reformat input array to the way we expect it to look after serialize
-    inputArray[8] = 1;
     inputArray.shift();
     const expectedStr = JSON.stringify(inputArray);
     expect(expectedStr).to.equal(outputStr);
+  });
+
+  it('should serialize message with experiments in array', () => {
+    const inputArray = [
+      null,
+      'embed',
+      'tx',
+      'refer',
+      'utmS',
+      'utmC',
+      'utmM',
+      'sku',
+      true,
+      ['exp1', 'exp2'],
+      'version',
+      'baseUrl',
+    ];
+    const inputContext = new AnalyticsContext(inputArray);
+    const outputStr = serializeProtoMessageForUrl(inputContext);
+    const outputArr = JSON.parse(outputStr);
+    // serialize removed the first element, add it back
+    outputArr.unshift(null);
+    const outputContext = new AnalyticsContext(outputArr);
+
+    expect(outputArr).to.deep.equal(inputArray);
+
+    expect(outputContext).to.deep.equal(inputContext);
+
+    // reformat input array to the way we expect it to look after serialize
+    inputArray.shift();
+    const expectedStr = JSON.stringify(inputArray);
+    expect(expectedStr).to.equal(outputStr);
+
+    const inputLabels = inputContext.getLabelList();
+    expect(inputLabels[0]).to.equal('exp1');
+    expect(inputLabels[1]).to.equal('exp2');
+
+    const outputLabels = outputContext.getLabelList();
+    expect(outputLabels[0]).to.equal('exp1');
+    expect(outputLabels[1]).to.equal('exp2');
   });
 });

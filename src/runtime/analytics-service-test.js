@@ -187,7 +187,7 @@ describes.realWin('AnalyticsService', {}, env => {
     });
 
     it('should send message on port and openIframe called only once', async () => {
-      // This ensure nothing gets sent to the server.
+      // This ensures nothing gets sent to the server.
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
 
       // This triggers an event.
@@ -255,15 +255,10 @@ describes.realWin('AnalyticsService', {}, env => {
     });
 
     describe('SwG Clearcut Service Experiment', () => {
-      let expectedEventCount;
-
-      beforeEach(() => {
-        // This ensure nothing gets sent to the server.
-        sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-        expectedEventCount = 0;
-      });
-
-      afterEach(async () => {
+      /**
+       * @param {number} expectedEventCount
+       */
+      async function verifyExpectedEventCount(expectedEventCount) {
         // This triggers an event.
         eventManagerCallback({
           eventType: AnalyticsEvent.UNKNOWN,
@@ -279,11 +274,19 @@ describes.realWin('AnalyticsService', {}, env => {
 
         expectOpenIframe = true;
         expect(eventsLoggedToService.length).to.equal(expectedEventCount);
+      }
+
+      beforeEach(() => {
+        // This ensure nothing gets sent to the server.
+        sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       });
-      it('should not log to clearcut if experiment off', () => {});
-      it('should not log to clearcut if experiment on', () => {
+
+      afterEach(async () => {});
+      it('should not log to clearcut if experiment off', async () =>
+        await verifyExpectedEventCount(0));
+      it('should not log to clearcut if experiment on', async () => {
         setExperimentsStringForTesting(ExperimentFlags.LOGGING_BEACON);
-        expectedEventCount = 1;
+        await verifyExpectedEventCount(1);
       });
     });
   });
@@ -515,12 +518,6 @@ describes.realWin('AnalyticsService', {}, env => {
           0
         ).args[0];
       expect(request.getContext().getUrl()).to.equal('diffUrl');
-    });
-  });
-
-  describe('SwG Clearcut Logging Experiment', () => {
-    it('should not double log by default', () => {
-      sandbox.stub();
     });
   });
 

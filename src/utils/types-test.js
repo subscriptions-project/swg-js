@@ -149,15 +149,15 @@ describes.realWin('Types', {}, () => {
     });
   });
 
-  describe('isMessage', () => {
+  describe('isProtoMessage', () => {
     it('identifies API messages', () => {
-      expect(types.isMessage(new AnalyticsContext())).to.be.true;
-      expect(types.isMessage(new AnalyticsRequest())).to.be.true;
+      expect(types.isProtoMessage(new AnalyticsContext())).to.be.true;
+      expect(types.isProtoMessage(new AnalyticsRequest())).to.be.true;
     });
 
     it('identifies non API messages', () => {
-      expect(types.isMessage({})).to.be.false;
-      expect(types.isMessage(AnalyticsContext)).to.be.false;
+      expect(types.isProtoMessage({})).to.be.false;
+      expect(types.isProtoMessage(AnalyticsContext)).to.be.false;
     });
   });
 });

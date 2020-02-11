@@ -63,6 +63,11 @@ export function isBoolean(value) {
  * @param {?*} data
  * @return {boolean}
  */
-export function isMessage(data) {
-  return !!data && typeof data.toArray === 'function';
+export function isProtoMessage(data) {
+  return (
+    !!data &&
+    isObject(data) &&
+    typeof data.toArray === 'function' &&
+    typeof data.label === 'function'
+  );
 }
