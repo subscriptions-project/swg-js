@@ -73,9 +73,6 @@ export class AnalyticsService {
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
 
-    /** @private @const {string} */
-    this.publicationId_ = deps.pageConfig().getPublicationId();
-
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
@@ -440,7 +437,9 @@ export class AnalyticsService {
    * @param {!AnalyticsRequest} analyticsRequest
    */
   sendBeacon_(analyticsRequest) {
-    const pubId = encodeURIComponent(this.publicationId_);
+    const pubId = encodeURIComponent(
+      this.deps_.pageConfig().getPublicationId()
+    );
     const url = serviceUrl('/publication/' + pubId + '/clientlogs');
     this.fetcher_.sendBeacon(url, analyticsRequest);
   }

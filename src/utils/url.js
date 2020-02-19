@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {isObject, isProtoMessage} from '../utils/types';
+import {isProtoMessage} from '../utils/types';
 
 /**
   @typedef {{
@@ -198,40 +198,11 @@ export function addQueryParam(url, param, value) {
 }
 
 /**
- * @param {!../proto/api_messages.Message} data
- * @return {*}
- */
-function prepForSerialization(data) {
-  if (data === null || data === undefined) {
-    return undefined;
-  } else if (!isObject(data)) {
-    return data;
-  }
-
-  let arr = null;
-
-  if (Array.isArray(data)) {
-    arr = data;
-  } else if (!isProtoMessage(data)) {
-    return data;
-  } else {
-    arr = data.toArray();
-  }
-  arr.shift();
-  for (let i = 0; i < arr.length; i++) {
-    arr[i] = prepForSerialization(arr[i]);
-  }
-  return arr;
-}
-
-/**
  * @param {!../proto/api_messages.Message} message
  * @return {string}
  */
 export function serializeProtoMessageForUrl(message) {
-  return JSON.stringify(
-    /** @type {JsonObject} */ (prepForSerialization(message))
-  );
+  return JSON.stringify(/** @type {JsonObject} */ (message.toArray(false)));
 }
 
 /**
