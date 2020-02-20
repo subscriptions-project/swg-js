@@ -295,7 +295,7 @@ describes.realWin('AnalyticsService', {}, env => {
         await activityIframePort.whenReady();
 
         expectOpenIframe = true;
-        expect(eventsLoggedToService.length).to.equal(0);
+        expect(eventsLoggedToService.length).to.equal(1);
       });
     });
   });
