@@ -54,14 +54,22 @@ export class XhrFetcher {
     this.xhr_ = new Xhr(win);
   }
 
-  /** @override */
-  fetchCredentialedJson(url) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-      method: 'GET',
+  /**
+   *
+   * @param {string=} method
+   * @return {!../utils/xhr.FetchInitDef}
+   */
+  getCredentialedInit_(method) {
+    return /** @type {!../utils/xhr.FetchInitDef} */ ({
+      method: method || 'GET',
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
     });
-    return this.xhr_.fetch(url, init).then(response => response.json());
+  }
+
+  /** @override */
+  fetchCredentialedJson(url) {
+    return this.fetch(url, this.getCredentialedInit_());
   }
 
   /** @override */
@@ -71,17 +79,17 @@ export class XhrFetcher {
 
   /** @override */
   sendBeacon(url, data) {
-    url = addQueryParam(url, 'f.req', serializeProtoMessageForUrl(data));
+    const newUrl = addQueryParam(
+      url,
+      'f.req',
+      serializeProtoMessageForUrl(data)
+    );
     if (navigator.sendBeacon) {
-      navigator.sendBeacon(url);
+      navigator.sendBeacon(newUrl);
       return;
     }
     // Only newer browsers support beacon.  Fallback to standard XHR POST.
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-      method: 'POST',
-      headers: {'Accept': 'text/plain, application/json'},
-      credentials: 'include',
-    });
-    return this.xhr_.fetch(url, init).then(response => response.json());
+    this.fetch(newUrl, this.getCredentialedInit_('POST'));
+    return;
   }
 }

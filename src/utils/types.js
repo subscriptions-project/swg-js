@@ -58,16 +58,3 @@ export function isFunction(value) {
 export function isBoolean(value) {
   return typeof value === 'boolean';
 }
-
-/**
- * @param {?*} data
- * @return {boolean}
- */
-export function isProtoMessage(data) {
-  return (
-    !!data &&
-    isObject(data) &&
-    typeof data.toArray === 'function' &&
-    typeof data.label === 'function'
-  );
-}

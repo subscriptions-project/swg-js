@@ -15,7 +15,6 @@
  */
 
 import * as types from './types';
-import {AnalyticsContext, AnalyticsRequest} from '../proto/api_messages';
 
 describes.realWin('Types', {}, () => {
   describe('isEnumValue', () => {
@@ -146,18 +145,6 @@ describes.realWin('Types', {}, () => {
       for (const value of values) {
         expect(types.isBoolean(value)).to.be.false;
       }
-    });
-  });
-
-  describe('isProtoMessage', () => {
-    it('identifies API messages', () => {
-      expect(types.isProtoMessage(new AnalyticsContext())).to.be.true;
-      expect(types.isProtoMessage(new AnalyticsRequest())).to.be.true;
-    });
-
-    it('identifies non API messages', () => {
-      expect(types.isProtoMessage({})).to.be.false;
-      expect(types.isProtoMessage(AnalyticsContext)).to.be.false;
     });
   });
 });

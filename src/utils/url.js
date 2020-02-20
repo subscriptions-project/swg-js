@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import {isProtoMessage} from '../utils/types';
-
 /**
   @typedef {{
     href: string,
