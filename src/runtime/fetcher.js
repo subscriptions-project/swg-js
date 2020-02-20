@@ -81,17 +81,12 @@ export class XhrFetcher {
 
   /** @override */
   sendBeacon(url, data) {
-    const newUrl = addQueryParam(
-      url,
-      'f.req',
-      serializeProtoMessageForUrl(data)
-    );
+    url = addQueryParam(url, 'f.req', serializeProtoMessageForUrl(data));
     if (navigator.sendBeacon) {
-      navigator.sendBeacon(newUrl);
+      navigator.sendBeacon(url);
       return;
     }
     // Only newer browsers support beacon.  Fallback to standard XHR POST.
-    this.fetch(newUrl, this.getCredentialedInit_('POST'));
-    return;
+    this.fetch(url, this.getCredentialedInit_('POST'));
   }
 }

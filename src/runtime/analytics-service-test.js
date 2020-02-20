@@ -255,10 +255,12 @@ describes.realWin('AnalyticsService', {}, env => {
     });
 
     describe('SwG Clearcut Service Experiment', () => {
-      /**
-       * @param {number} expectedEventCount
-       */
-      async function verifyExpectedEventCount(expectedEventCount) {
+      beforeEach(() => {
+        // This ensures nothing gets sent to the server.
+        void sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+      });
+
+      it('should not log to clearcut if experiment off', async () => {
         // This triggers an event.
         eventManagerCallback({
           eventType: AnalyticsEvent.UNKNOWN,
@@ -273,20 +275,27 @@ describes.realWin('AnalyticsService', {}, env => {
         await activityIframePort.whenReady();
 
         expectOpenIframe = true;
-        expect(eventsLoggedToService.length).to.equal(expectedEventCount);
-      }
-
-      beforeEach(() => {
-        // This ensure nothing gets sent to the server.
-        sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+        expect(eventsLoggedToService.length).to.equal(0);
       });
 
-      afterEach(async () => {});
-      it('should not log to clearcut if experiment off', async () =>
-        await verifyExpectedEventCount(0));
       it('should not log to clearcut if experiment on', async () => {
         setExperimentsStringForTesting(ExperimentFlags.LOGGING_BEACON);
-        await verifyExpectedEventCount(1);
+
+        // This triggers an event.
+        eventManagerCallback({
+          eventType: AnalyticsEvent.UNKNOWN,
+          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+
+        // These wait for analytics server to be ready to send data.
+        expect(analyticsService.lastAction_).to.not.be.null;
+        await analyticsService.lastAction_;
+        await activityIframePort.whenReady();
+
+        expectOpenIframe = true;
+        expect(eventsLoggedToService.length).to.equal(0);
       });
     });
   });
