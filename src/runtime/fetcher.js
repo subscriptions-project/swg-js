@@ -69,7 +69,9 @@ export class XhrFetcher {
 
   /** @override */
   fetchCredentialedJson(url) {
-    return this.fetch(url, this.getCredentialedInit_());
+    return this.fetch(url, this.getCredentialedInit_()).then(response =>
+      response.json()
+    );
   }
 
   /** @override */
