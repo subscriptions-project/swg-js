@@ -15,6 +15,7 @@
  */
 
 import {Xhr} from '../utils/xhr';
+import {addQueryParam, serializeProtoMessageForUrl} from '../utils/url';
 
 /**
  * @interface
@@ -32,6 +33,13 @@ export class Fetcher {
    * @return {!Promise<!../utils/xhr.FetchResponse>}
    */
   fetch(unusedUrl, unusedInit) {}
+
+  /**
+   * POST data to a URL endpoint, do not wait for a response.
+   * @param {!string} unusedUrl
+   * @param {!string|!Object} unusedData
+   */
+  sendBeacon(unusedUrl, unusedData) {}
 }
 
 /**
@@ -46,18 +54,40 @@ export class XhrFetcher {
     this.xhr_ = new Xhr(win);
   }
 
-  /** @override */
-  fetchCredentialedJson(url) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-      method: 'GET',
+  /**
+   *
+   * @param {string=} method
+   * @return {!../utils/xhr.FetchInitDef}
+   */
+  getCredentialedInit_(method) {
+    return /** @type {!../utils/xhr.FetchInitDef} */ ({
+      method: method || 'GET',
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
     });
-    return this.xhr_.fetch(url, init).then(response => response.json());
+  }
+
+  /** @override */
+  fetchCredentialedJson(url) {
+    return this.fetch(url, this.getCredentialedInit_()).then(response =>
+      response.json()
+    );
   }
 
   /** @override */
   fetch(url, init) {
     return this.xhr_.fetch(url, init);
+  }
+
+  /** @override */
+  sendBeacon(url, data) {
+    // TODO: Use post body instead of query string parameter.
+    url = addQueryParam(url, 'f.req', serializeProtoMessageForUrl(data));
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(url);
+      return;
+    }
+    // Only newer browsers support beacon.  Fallback to standard XHR POST.
+    this.fetch(url, this.getCredentialedInit_('POST'));
   }
 }
