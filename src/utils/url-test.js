@@ -284,23 +284,29 @@ describe('serializeProtoMessageForUrl', () => {
     const outputStr = serializeProtoMessageForUrl(inputContext);
     const outputArr = JSON.parse(outputStr);
     // serialize removed the first element, add it back
-    outputArr.unshift(null);
+    outputArr.unshift('AnalyticsRequest');
+    outputArr[1].unshift('AnalyticsContext');
+    outputArr[3].unshift('AnalyticsEventMeta');
+    outputArr[4].unshift('EventParams');
     const outputContext = new AnalyticsRequest(outputArr);
-
     expect(outputArr).to.deep.equal(inputArray);
 
     expect(outputContext).to.deep.equal(inputContext);
 
     // reformat input array to the way we expect it to look after serialize
+    inputArray[1].shift();
+    inputArray[3].shift();
+    inputArray[4].shift();
     inputArray.shift();
+
     const expectedStr = JSON.stringify(inputArray);
     expect(expectedStr).to.equal(outputStr);
 
-    const inputLabels = inputContext.getLabelList();
+    const inputLabels = inputContext.getContext().getLabelList();
     expect(inputLabels[0]).to.equal('exp1');
     expect(inputLabels[1]).to.equal('exp2');
 
-    const outputLabels = outputContext.getLabelList();
+    const outputLabels = outputContext.getContext().getLabelList();
     expect(outputLabels[0]).to.equal('exp1');
     expect(outputLabels[1]).to.equal('exp2');
   });
