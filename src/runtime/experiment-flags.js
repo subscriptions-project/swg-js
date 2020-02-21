@@ -47,6 +47,7 @@ export const ExperimentFlags = {
 
   /** Enables logging to both the new SwG Clearcut service and the pre-existing
    *  Clearcut iframe while we verify the new logging system works.
+   *  Publishers should not activate this experiment.
    */
   LOGGING_BEACON: 'logging-beacon',
 };
