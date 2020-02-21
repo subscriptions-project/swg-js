@@ -257,7 +257,7 @@ describes.realWin('AnalyticsService', {}, env => {
     describe('SwG Clearcut Service Experiment', () => {
       beforeEach(() => {
         // This ensures nothing gets sent to the server.
-        void sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+        sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       });
 
       it('should not log to clearcut if experiment off', async () => {
@@ -278,7 +278,7 @@ describes.realWin('AnalyticsService', {}, env => {
         expect(eventsLoggedToService.length).to.equal(0);
       });
 
-      it('should not log to clearcut if experiment on', async () => {
+      it('should log to clearcut if experiment on', async () => {
         setExperimentsStringForTesting(ExperimentFlags.LOGGING_BEACON);
 
         // This triggers an event.

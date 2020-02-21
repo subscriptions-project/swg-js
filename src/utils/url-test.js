@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AnalyticsContext} from '../proto/api_messages';
+import {AnalyticsRequest} from '../proto/api_messages';
 import {
   addQueryParam,
   getHostUrl,
@@ -262,41 +262,9 @@ describe('addQueryParam', () => {
 });
 
 describe('serializeProtoMessageForUrl', () => {
-  it('should serialize message', () => {
-    const inputArray = [
-      null,
-      'embed',
-      'tx',
-      'refer',
-      'utmS',
-      'utmC',
-      'utmM',
-      'sku',
-      true,
-      [],
-      'version',
-      'baseUrl',
-    ];
-    const inputContext = new AnalyticsContext(inputArray);
-    const outputStr = serializeProtoMessageForUrl(inputContext);
-    const outputArr = JSON.parse(outputStr);
-    // serialize removed the first element, add it back
-    outputArr.unshift(null);
-    const outputContext = new AnalyticsContext(outputArr);
-
-    expect(outputArr).to.deep.equal(inputArray);
-
-    expect(outputContext).to.deep.equal(inputContext);
-
-    // reformat input array to the way we expect it to look after serialize
-    inputArray.shift();
-    const expectedStr = JSON.stringify(inputArray);
-    expect(expectedStr).to.equal(outputStr);
-  });
-
   it('should serialize message with experiments in array', () => {
-    const inputArray = [
-      null,
+    const context = [
+      'AnalyticsContext',
       'embed',
       'tx',
       'refer',
@@ -309,12 +277,15 @@ describe('serializeProtoMessageForUrl', () => {
       'version',
       'baseUrl',
     ];
-    const inputContext = new AnalyticsContext(inputArray);
+    const meta = ['AnalyticsEventMeta', 1, true];
+    const params = ['EventParams', 'smartbox', 'gpay', false, 'sku'];
+    const inputArray = ['AnalyticsRequest', context, 11, meta, params];
+    const inputContext = new AnalyticsRequest(inputArray);
     const outputStr = serializeProtoMessageForUrl(inputContext);
     const outputArr = JSON.parse(outputStr);
     // serialize removed the first element, add it back
     outputArr.unshift(null);
-    const outputContext = new AnalyticsContext(outputArr);
+    const outputContext = new AnalyticsRequest(outputArr);
 
     expect(outputArr).to.deep.equal(inputArray);
 

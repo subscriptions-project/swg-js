@@ -127,7 +127,7 @@ class AccountCreationRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.complete_, // field 1 - complete
+      this.complete_, // field 1 - complete
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -197,8 +197,8 @@ class AlreadySubscribedResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.subscriberOrMember_, // field 1 - subscriber_or_member
-        this.linkRequested_, // field 2 - link_requested
+      this.subscriberOrMember_, // field 1 - subscriber_or_member
+      this.linkRequested_, // field 2 - link_requested
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -421,17 +421,17 @@ class AnalyticsContext {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.embedderOrigin_, // field 1 - embedder_origin
-        this.transactionId_, // field 2 - transaction_id
-        this.referringOrigin_, // field 3 - referring_origin
-        this.utmSource_, // field 4 - utm_source
-        this.utmCampaign_, // field 5 - utm_campaign
-        this.utmMedium_, // field 6 - utm_medium
-        this.sku_, // field 7 - sku
-        this.readyToPay_, // field 8 - ready_to_pay
-        this.label_, // field 9 - label
-        this.clientVersion_, // field 10 - client_version
-        this.url_, // field 11 - url
+      this.embedderOrigin_, // field 1 - embedder_origin
+      this.transactionId_, // field 2 - transaction_id
+      this.referringOrigin_, // field 3 - referring_origin
+      this.utmSource_, // field 4 - utm_source
+      this.utmCampaign_, // field 5 - utm_campaign
+      this.utmMedium_, // field 6 - utm_medium
+      this.sku_, // field 7 - sku
+      this.readyToPay_, // field 8 - ready_to_pay
+      this.label_, // field 9 - label
+      this.clientVersion_, // field 10 - client_version
+      this.url_, // field 11 - url
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -501,8 +501,8 @@ class AnalyticsEventMeta {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.eventOriginator_, // field 1 - event_originator
-        this.isFromUserAction_, // field 2 - is_from_user_action
+      this.eventOriginator_, // field 1 - event_originator
+      this.isFromUserAction_, // field 2 - is_from_user_action
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -615,10 +615,10 @@ class AnalyticsRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.context_ ? this.context_.toArray(includeLabel) : [], // field 1 - context
-        this.event_, // field 2 - event
-        this.meta_ ? this.meta_.toArray(includeLabel) : [], // field 3 - meta
-        this.params_ ? this.params_.toArray(includeLabel) : [], // field 4 - params
+      this.context_ ? this.context_.toArray(includeLabel) : [], // field 1 - context
+      this.event_, // field 2 - event
+      this.meta_ ? this.meta_.toArray(includeLabel) : [], // field 3 - meta
+      this.params_ ? this.params_.toArray(includeLabel) : [], // field 4 - params
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -671,7 +671,7 @@ class EntitlementsResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.jwt_, // field 1 - jwt
+      this.jwt_, // field 1 - jwt
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -775,10 +775,10 @@ class EventParams {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.smartboxMessage_, // field 1 - smartbox_message
-        this.gpayTransactionId_, // field 2 - gpay_transaction_id
-        this.hadLogged_, // field 3 - had_logged
-        this.sku_, // field 4 - sku
+      this.smartboxMessage_, // field 1 - smartbox_message
+      this.gpayTransactionId_, // field 2 - gpay_transaction_id
+      this.hadLogged_, // field 3 - had_logged
+      this.sku_, // field 4 - sku
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -848,8 +848,8 @@ class FinishedLoggingResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.complete_, // field 1 - complete
-        this.error_, // field 2 - error
+      this.complete_, // field 1 - complete
+      this.error_, // field 2 - error
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -919,8 +919,8 @@ class LinkSaveTokenRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.authCode_, // field 1 - auth_code
-        this.token_, // field 2 - token
+      this.authCode_, // field 1 - auth_code
+      this.token_, // field 2 - token
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -973,7 +973,7 @@ class LinkingInfoResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.requested_, // field 1 - requested
+      this.requested_, // field 1 - requested
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1094,11 +1094,11 @@ class SkuSelectedResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.sku_, // field 1 - sku
-        this.oldSku_, // field 2 - old_sku
-        this.oneTime_, // field 3 - one_time
-        this.playOffer_, // field 4 - play_offer
-        this.oldPlayOffer_, // field 5 - old_play_offer
+      this.sku_, // field 1 - sku
+      this.oldSku_, // field 2 - old_sku
+      this.oneTime_, // field 3 - one_time
+      this.playOffer_, // field 4 - play_offer
+      this.oldPlayOffer_, // field 5 - old_play_offer
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1151,7 +1151,7 @@ class SmartBoxMessage {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.isClicked_, // field 1 - is_clicked
+      this.isClicked_, // field 1 - is_clicked
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1204,7 +1204,7 @@ class SubscribeResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.subscribe_, // field 1 - subscribe
+      this.subscribe_, // field 1 - subscribe
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1257,7 +1257,7 @@ class ViewSubscriptionsResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.native_, // field 1 - native
+      this.native_, // field 1 - native
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1339,4 +1339,3 @@ export {
   deserialize,
   getLabel,
 };
-

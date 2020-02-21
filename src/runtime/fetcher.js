@@ -81,6 +81,7 @@ export class XhrFetcher {
 
   /** @override */
   sendBeacon(url, data) {
+    // TODO: Use post body instead of query string parameter.
     url = addQueryParam(url, 'f.req', serializeProtoMessageForUrl(data));
     if (navigator.sendBeacon) {
       navigator.sendBeacon(url);
