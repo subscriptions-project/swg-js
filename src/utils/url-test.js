@@ -263,7 +263,7 @@ describe('addQueryParam', () => {
 
 describe('serializeProtoMessageForUrl', () => {
   it('should serialize message with experiments in array', () => {
-    // Create an AnalyticsRequest with array representations of the message its submessages.
+    // Create an AnalyticsRequest, using arrays to represent the message and its submessages.
     const analyticsContextArray = [
       'AnalyticsContext',
       'embed',
