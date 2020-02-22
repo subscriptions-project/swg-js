@@ -289,7 +289,7 @@ describe('serializeProtoMessageForUrl', () => {
     ];
     const analyticsRequest = new AnalyticsRequest(analyticsRequestArray);
 
-    // Serialized and deserialize the AnalyticsRequest.
+    // Serialize and deserialize the AnalyticsRequest.
     const serializedAnalyticsRequest = serializeProtoMessageForUrl(
       analyticsRequest
     );
