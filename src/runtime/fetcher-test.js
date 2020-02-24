@@ -17,11 +17,11 @@
 import {AnalyticsContext} from '../proto/api_messages';
 import {Xhr} from '../utils/xhr';
 import {XhrFetcher} from './fetcher';
-import {parseQueryString} from '../utils/url';
+import {serializeProtoMessageForUrl} from '../utils/url';
 import {serviceUrl} from './services';
 
 const CONTEXT = new AnalyticsContext([
-  null,
+  'AnalyticsContext',
   'embed',
   'tx',
   'refer',
@@ -39,31 +39,15 @@ describes.realWin('XhrFetcher', {}, env => {
   let fetcher;
   let win;
   let fetchInit;
-  let fetchArray;
   let fetchUrl;
-
-  function getFormData(url) {
-    const qry = parseQueryString(url.split('?')[1]);
-    return JSON.parse(decodeURIComponent(qry['f.req']));
-  }
-
-  function testFormData(formData, originalValue) {
-    formData.unshift(null);
-    const newValues = new AnalyticsContext(formData);
-    // booleans are converted to 1/0; convert it back.
-    newValues.setReadyToPay(!!newValues.getReadyToPay());
-    expect(newValues).to.deep.equal(originalValue);
-  }
 
   beforeEach(() => {
     win = env.win;
     fetchInit = null;
-    fetchArray = null;
     fetchUrl = null;
     sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
       fetchInit = init;
       fetchUrl = url;
-      fetchArray = getFormData(url);
       return Promise.resolve({});
     });
     fetcher = new XhrFetcher(win);
@@ -71,26 +55,38 @@ describes.realWin('XhrFetcher', {}, env => {
 
   describe('Beacon', () => {
     it('should send beacon', () => {
-      let beaconArray = null;
-      sandbox
-        .stub(navigator, 'sendBeacon')
-        .callsFake(url => (beaconArray = getFormData(url)));
-      fetcher.sendBeacon(serviceUrl('clientlogs'), CONTEXT);
-      expect(beaconArray).to.not.be.null;
-      expect(fetchArray).to.be.null;
-      testFormData(beaconArray, CONTEXT);
+      let receivedUrl = null;
+      let receivedBody = null;
+      sandbox.stub(navigator, 'sendBeacon').callsFake((url, body) => {
+        receivedUrl = url;
+        receivedBody = body;
+      });
+
+      const sentUrl = serviceUrl('clientlogs');
+      fetcher.sendBeacon(sentUrl, CONTEXT);
+
+      const expectedBlob = new Blob(
+        ['f.req=' + serializeProtoMessageForUrl(CONTEXT)],
+        {type: 'application/x-www-form-urlencoded;charset=UTF-8'}
+      );
+      expect(receivedBody).to.deep.equal(expectedBlob);
+      expect(receivedUrl).to.equal(sentUrl);
     });
 
     it('should fallback to standard POST', () => {
       navigator.sendBeacon = null;
-      fetcher.sendBeacon(serviceUrl('clientlogs'), CONTEXT);
-      expect(fetchArray).to.not.be.null;
+      const url = serviceUrl('clientlogs');
+      fetcher.sendBeacon(url, CONTEXT);
+
+      const type = 'application/x-www-form-urlencoded;charset=UTF-8';
+      const body = 'f.req=' + serializeProtoMessageForUrl(CONTEXT);
       expect(fetchInit).to.deep.equal({
         method: 'POST',
-        headers: {'Accept': 'text/plain, application/json'},
+        headers: {'Content-Type': type},
         credentials: 'include',
+        body,
       });
-      testFormData(fetchArray, CONTEXT);
+      expect(fetchUrl).to.equal(url);
     });
   });
 
