@@ -263,7 +263,8 @@ describe('addQueryParam', () => {
 
 describe('serializeProtoMessageForUrl', () => {
   it('should serialize message with experiments in array', () => {
-    const context = [
+    // Create an AnalyticsRequest, using arrays to represent the message and its submessages.
+    const analyticsContextArray = [
       'AnalyticsContext',
       'embed',
       'tx',
@@ -277,37 +278,33 @@ describe('serializeProtoMessageForUrl', () => {
       'version',
       'baseUrl',
     ];
-    const meta = ['AnalyticsEventMeta', 1, true];
-    const params = ['EventParams', 'smartbox', 'gpay', false, 'sku'];
-    const inputArray = ['AnalyticsRequest', context, 11, meta, params];
-    const inputContext = new AnalyticsRequest(inputArray);
-    const outputStr = serializeProtoMessageForUrl(inputContext);
-    const outputArr = JSON.parse(outputStr);
-    // serialize removed the first element, add it back
-    outputArr.unshift('AnalyticsRequest');
-    outputArr[1].unshift('AnalyticsContext');
-    outputArr[3].unshift('AnalyticsEventMeta');
-    outputArr[4].unshift('EventParams');
-    const outputContext = new AnalyticsRequest(outputArr);
-    expect(outputArr).to.deep.equal(inputArray);
+    const analyticsEventMetaArray = ['AnalyticsEventMeta', 1, true];
+    const eventParamsArray = ['EventParams', 'smartbox', 'gpay', false, 'sku'];
+    const analyticsRequestArray = [
+      'AnalyticsRequest',
+      analyticsContextArray,
+      11,
+      analyticsEventMetaArray,
+      eventParamsArray,
+    ];
+    const analyticsRequest = new AnalyticsRequest(analyticsRequestArray);
 
-    expect(outputContext).to.deep.equal(inputContext);
+    // Serialize and deserialize the AnalyticsRequest.
+    const serializedAnalyticsRequest = serializeProtoMessageForUrl(
+      analyticsRequest
+    );
+    const deserializedAnalyticsRequestArray = JSON.parse(
+      serializedAnalyticsRequest
+    );
 
-    // reformat input array to the way we expect it to look after serialize
-    inputArray[1].shift();
-    inputArray[3].shift();
-    inputArray[4].shift();
-    inputArray.shift();
-
-    const expectedStr = JSON.stringify(inputArray);
-    expect(expectedStr).to.equal(outputStr);
-
-    const inputLabels = inputContext.getContext().getLabelList();
-    expect(inputLabels[0]).to.equal('exp1');
-    expect(inputLabels[1]).to.equal('exp2');
-
-    const outputLabels = outputContext.getContext().getLabelList();
-    expect(outputLabels[0]).to.equal('exp1');
-    expect(outputLabels[1]).to.equal('exp2');
+    // Add back the labels that were removed during serialization.
+    // After doing so, the deserialized array should match the original array.
+    deserializedAnalyticsRequestArray.unshift('AnalyticsRequest');
+    deserializedAnalyticsRequestArray[1].unshift('AnalyticsContext');
+    deserializedAnalyticsRequestArray[3].unshift('AnalyticsEventMeta');
+    deserializedAnalyticsRequestArray[4].unshift('EventParams');
+    expect(deserializedAnalyticsRequestArray).to.deep.equal(
+      analyticsRequestArray
+    );
   });
 });
