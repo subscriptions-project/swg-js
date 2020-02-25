@@ -305,6 +305,7 @@ describe('AnalyticsRequest', () => {
     eventparams.setGpayTransactionId('');
     eventparams.setHadLogged(false);
     eventparams.setSku('');
+    eventparams.setOldTransactionId('');
     analyticsrequest.setParams(eventparams);
 
     let analyticsrequestDeserialized;
@@ -409,6 +410,7 @@ describe('EventParams', () => {
     eventparams.setGpayTransactionId('');
     eventparams.setHadLogged(false);
     eventparams.setSku('');
+    eventparams.setOldTransactionId('');
 
     let eventparamsDeserialized;
 
@@ -428,6 +430,8 @@ describe('EventParams', () => {
         eventparams.getHadLogged());
     expect(eventparamsDeserialized.getSku()).to.deep.equal(
         eventparams.getSku());
+    expect(eventparamsDeserialized.getOldTransactionId()).to.deep.equal(
+        eventparams.getOldTransactionId());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -445,6 +449,8 @@ describe('EventParams', () => {
         eventparams.getHadLogged());
     expect(eventparamsDeserialized.getSku()).to.deep.equal(
         eventparams.getSku());
+    expect(eventparamsDeserialized.getOldTransactionId()).to.deep.equal(
+        eventparams.getOldTransactionId());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -461,6 +467,8 @@ describe('EventParams', () => {
         eventparams.getHadLogged());
     expect(eventparamsDeserialized.getSku()).to.deep.equal(
         eventparams.getSku());
+    expect(eventparamsDeserialized.getOldTransactionId()).to.deep.equal(
+        eventparams.getOldTransactionId());
   });
 });
 
@@ -792,4 +800,3 @@ describe('ViewSubscriptionsResponse', () => {
         viewsubscriptionsresponse.getNative());
   });
 });
-
