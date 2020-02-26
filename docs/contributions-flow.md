@@ -95,6 +95,7 @@ The SubscriptionResponse object has the following structure:
     "givenName": "",
     "familyName": "",
     "pictureUrl": ""
+  }
 }
 ```
 
