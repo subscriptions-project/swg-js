@@ -21,11 +21,16 @@ This flow allows the publication site to display a flow where users can contribu
 First, please setup the contribution response callback via `setOnPaymentResponse`:
 
 ```js
-subscriptions.setOnPaymentResponse(function(response) {
-  // 1. Handle contribution response.
-  // 2. Once contribution is processed (ex: account created):
-  response.complete().then(function() {
-    // 3. The contribution is fully processed.
+subscriptions.setOnPaymentResponse(function(paymentResponse) {
+  paymentResponse.then(function(response) {
+    // Handle the payment response.
+    // Some websites would create or update a user
+    // at this point.
+    response.complete().then(function() {
+      // The payment is fully processed.
+      // Some websites would update their UI
+      // if content had been unlocked at this point.
+    });
   });
 });
 ```
