@@ -87,7 +87,7 @@ The SubscriptionResponse object has the following structure:
   "productType": "UI_CONTRIBUTION",
   "userData": {
     "idToken" : "...",
-    "data": { ... },
+    "data": { },
     "id": "",
     "email": "",
     "emailVerified": true,
