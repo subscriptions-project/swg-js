@@ -15,7 +15,7 @@
  */
 
 import {Xhr} from '../utils/xhr';
-import {addQueryParam, serializeProtoMessageForUrl} from '../utils/url';
+import {serializeProtoMessageForUrl} from '../utils/url';
 
 /**
  * @interface
@@ -54,24 +54,14 @@ export class XhrFetcher {
     this.xhr_ = new Xhr(win);
   }
 
-  /**
-   *
-   * @param {string=} method
-   * @return {!../utils/xhr.FetchInitDef}
-   */
-  getCredentialedInit_(method) {
-    return /** @type {!../utils/xhr.FetchInitDef} */ ({
-      method: method || 'GET',
+  /** @override */
+  fetchCredentialedJson(url) {
+    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+      method: 'GET',
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
     });
-  }
-
-  /** @override */
-  fetchCredentialedJson(url) {
-    return this.fetch(url, this.getCredentialedInit_()).then(response =>
-      response.json()
-    );
+    return this.fetch(url, init).then(response => response.json());
   }
 
   /** @override */
@@ -81,13 +71,21 @@ export class XhrFetcher {
 
   /** @override */
   sendBeacon(url, data) {
-    // TODO: Use post body instead of query string parameter.
-    url = addQueryParam(url, 'f.req', serializeProtoMessageForUrl(data));
+    const contentType = 'application/x-www-form-urlencoded;charset=UTF-8';
+    const body = 'f.req=' + serializeProtoMessageForUrl(data);
     if (navigator.sendBeacon) {
-      navigator.sendBeacon(url);
+      const blob = new Blob([body], {type: contentType});
+      navigator.sendBeacon(url, blob);
       return;
     }
+
     // Only newer browsers support beacon.  Fallback to standard XHR POST.
-    this.fetch(url, this.getCredentialedInit_('POST'));
+    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+      method: 'POST',
+      headers: {'Content-Type': contentType},
+      credentials: 'include',
+      body,
+    });
+    this.fetch(url, init);
   }
 }
