@@ -137,7 +137,14 @@ export class AnalyticsService {
    * @param {string} transactionId
    */
   setTransactionId(transactionId) {
+    const oldTransactionId = this.context_.getTransactionId();
     this.context_.setTransactionId(transactionId);
+    if (oldTransactionId != null) {
+      const eventType = AnalyticsEvent.EVENT_NEW_TX_ID;
+      const eventParams = new EventParams();
+      eventParams.setOldTransactionId(oldTransactionId);
+      this.eventManager_.logSwgEvent(eventType, true /** isFromUserAction*/, eventParams);
+    }
   }
 
   /**
