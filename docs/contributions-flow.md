@@ -18,16 +18,14 @@ limitations under the License.
 
 This flow allows the publication site to display a flow where users can contribute money to the publisher. See [Contributions APIs](./core-apis.md).
 
-First, please setup the contribution response callback via `setOnContributionResponse`:
+First, please setup the contribution response callback via `setOnPaymentResponse`:
 
 ```js
-subscriptions.setOnContributionResponse(function(subscriptionPromise) {
-  subscriptionPromise.then(function(response) {
-    // 1. Handle contribution response.
-    // 2. Once contribution is processed (account created):
-    response.complete().then(function() {
-      // 3. The contribution is fully processed.
-    });
+subscriptions.setOnPaymentResponse(function(response) {
+  // 1. Handle contribution response.
+  // 2. Once contribution is processed (ex: account created):
+  response.complete().then(function() {
+    // 3. The contribution is fully processed.
   });
 });
 ```
@@ -43,7 +41,7 @@ To activate contribution flow itself, call the `contribute` method with the desi
 subscriptions.contribute(sku);
 ```
 
-The `setOnContributionResponse` callback will be called once the contribution is complete, or when the previously executed contribution is recovered.
+The `setOnPaymentResponse` callback will be called once the contribution is complete, or when the previously executed contribution is recovered.
 
 Another way to trigger the contributions flow is by first presenting a dialog with a set of amounts user can contribute to.
 A user will get a choice to either select one of the amounts to contribute to, or try request login to claim an existing contribution. This feature may not be available initially.
@@ -68,10 +66,10 @@ The above mentioned API `showContributionsOptions` accepts a list of SKUs to be 
 subscriptions.showContributions({skus: ['sku1', 'sku2']});
 ```
 
-The `setOnContributionResponse` callback will be called once the contribution is complete, or when the previously executed contribution is recovered.
+The `setOnPaymentResponse` callback will be called once the contribution is complete, or when the previously executed contribution is recovered.
 
 ## Contribution response
-The response returned by the `setOnContributionResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data.
+The response returned by the `setOnPaymentResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data.
 
 ### Structure
 The SubscriptionResponse object has the following structure:
@@ -98,4 +96,4 @@ The SubscriptionResponse object has the following structure:
 For details, please refer to [Subscription flow](./subscribe-flow.md)
 
 
-*Important!* Please ensure you set up the `setOnContributionResponse` on any page where you accept purchases, not just before you call `subscribe` or `showContributions`. The SwG client ensures it can recover contributions even when browsers unload pages.
+*Important!* Please ensure you set up the `setOnPaymentResponse` on any page where you accept purchases, not just before you call `contribute` or `showContributions`. The SwG client ensures it can recover contributions even when browsers unload pages.
