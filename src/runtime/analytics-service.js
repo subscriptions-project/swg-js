@@ -143,7 +143,11 @@ export class AnalyticsService {
       const eventType = AnalyticsEvent.EVENT_NEW_TX_ID;
       const eventParams = new EventParams();
       eventParams.setOldTransactionId(oldTransactionId);
-      this.eventManager_.logSwgEvent(eventType, true /** isFromUserAction*/, eventParams);
+      this.eventManager_.logSwgEvent(
+        eventType,
+        true /** isFromUserAction*/,
+        eventParams
+      );
     }
   }
 
