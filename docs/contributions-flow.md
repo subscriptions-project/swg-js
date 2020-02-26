@@ -97,7 +97,7 @@ The SubscriptionResponse object has the following structure:
     "pictureUrl": ""
 }
 ```
-For details, please refer to [Subscription flow](./subscribe-flow.md)
 
+For details, please refer to [Subscription flow](./subscribe-flow.md)
 
 *Important!* Please ensure you set up the `setOnPaymentResponse` on any page where you accept purchases, not just before you call `contribute` or `showContributions`. The SwG client ensures it can recover contributions even when browsers unload pages.
