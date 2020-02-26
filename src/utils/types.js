@@ -58,3 +58,31 @@ export function isFunction(value) {
 export function isBoolean(value) {
   return typeof value === 'boolean';
 }
+
+/**
+ * @param {?Array<string>} arr1
+ * @param {?Array<string>} arr2
+ * @return {boolean}
+ */
+export function doArraysMatch(arr1, arr2) {
+  const validArrayCount = (arr1 ? 1 : 0) + (arr2 ? 1 : 0);
+  if (validArrayCount === 0) {
+    // Neither array exists making them equal
+    return true;
+  } else if (validArrayCount === 1) {
+    // One exists and the other doesn't making them not equal
+    return false;
+  }
+  // Check if the arrays are the same length
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+
+  // Check if all items exist and are in the same order
+  for (let i = 0; arr1.length < i; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+  return true;
+}

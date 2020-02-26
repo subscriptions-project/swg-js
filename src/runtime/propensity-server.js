@@ -18,10 +18,12 @@ import {
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
+import {TC_STRING_UNAVAILABLE} from './gdpr-tcfv2-constants';
+import {TcfV2} from './gdpr-tcfv2';
 import {addQueryParam} from '../utils/url';
 import {adsUrl} from './services';
 import {analyticsEventToPublisherEvent} from './event-type-mapping';
-import {isBoolean, isObject} from '../utils/types';
+import {doArraysMatch, isBoolean, isObject} from '../utils/types';
 
 /**
  * Implements interface to Propensity server
@@ -40,8 +42,6 @@ export class PropensityServer {
     this.win_ = win;
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
-    /** @private @const {string} */
-    this.publicationId_ = this.deps_.pageConfig().getPublicationId();
     /** @private {?string} */
     this.clientId_ = null;
     /** @private @const {!./fetcher.Fetcher} */
@@ -52,6 +52,13 @@ export class PropensityServer {
     this.deps_
       .eventManager()
       .registerEventListener(this.handleClientEvent_.bind(this));
+
+    /** @private {?Promise<!./gdpr-tcfv2-constants.TCData>} */
+    this.consentStringPromise_ = null;
+    /** @private {?TcfV2} */
+    this.gdpr_ = null;
+    /** @private {?Array<string>} */
+    this.vendors_ = null;
   }
 
   /**
@@ -101,16 +108,13 @@ export class PropensityServer {
    * @param {?string} productsOrSkus
    */
   sendSubscriptionState(state, productsOrSkus) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-      method: 'GET',
-      credentials: 'include',
-    });
     let url = adsUrl('/subopt/data');
-    url = addQueryParam(url, 'states', this.publicationId_ + ':' + state);
+    const pubId = this.deps_.pageConfig().getPublicationId();
+    url = addQueryParam(url, 'states', pubId + ':' + state);
     if (productsOrSkus) {
       url = addQueryParam(url, 'extrainfo', productsOrSkus);
     }
-    return this.fetcher_.fetch(this.propensityUrl_(url), init);
+    return this.fetchWithGdpr_(url);
   }
 
   /**
@@ -119,16 +123,13 @@ export class PropensityServer {
    * @private
    */
   sendEvent_(event, context) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-      method: 'GET',
-      credentials: 'include',
-    });
     let url = adsUrl('/subopt/data');
-    url = addQueryParam(url, 'events', this.publicationId_ + ':' + event);
+    const pubId = this.deps_.pageConfig().getPublicationId();
+    url = addQueryParam(url, 'events', pubId + ':' + event);
     if (context) {
       url = addQueryParam(url, 'extrainfo', context);
     }
-    return this.fetcher_.fetch(this.propensityUrl_(url), init);
+    return this.fetchWithGdpr_(url);
   }
 
   /**
@@ -238,18 +239,71 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    const url =
-      adsUrl('/subopt/pts?products=') +
-      this.publicationId_ +
-      '&type=' +
-      type +
-      '&ref=' +
-      referrer;
+    const pubId = this.deps_.pageConfig().getPublicationId();
+    let url = addQueryParam(adsUrl('/subopt/pts'), 'products', pubId);
+    url = addQueryParam(url, 'type', type);
+    url = addQueryParam(url, 'ref', referrer);
     return this.fetcher_
       .fetch(this.propensityUrl_(url), init)
       .then(result => result.json())
       .then(response => {
         return this.parsePropensityResponse_(response);
       });
+  }
+
+  /**
+   * @param {string} url
+   * @private
+   */
+  fetchWithGdpr_(url) {
+    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+      method: 'GET',
+      credentials: 'include',
+    });
+    url = this.propensityUrl_(url);
+    this.validateGDPR_();
+    if (this.consentStringPromise_ === null) {
+      return this.fetcher_.fetch(url, init);
+    }
+    return this.consentStringPromise_.then(tcdata => {
+      url = addQueryParam(url, 'gdpr_consent', tcdata.tcString || '');
+      url = addQueryParam(url, 'gdpr', tcdata.gdprApplies ? '1' : '0');
+      return this.fetcher_.fetch(url, init);
+    });
+  }
+
+  /**
+   * Calling this function ensures GDPR consent is obtained prior to submitting
+   * data to Propensity as long as the gdprVendorIds are set in config.
+   * @private
+   */
+  validateGDPR_() {
+    const vendors = this.deps_.config().gdprVendorIds;
+    if (!vendors) {
+      this.vendors_ = null;
+      this.consentStringPromise_ = null;
+      this.gdpr_ = null;
+      return;
+    }
+    if (
+      this.consentStringPromise_ !== null &&
+      doArraysMatch(vendors, this.vendors_)
+    ) {
+      return;
+    }
+    this.vendors_ = vendors;
+    this.gdpr_ = new TcfV2(this.win_);
+    let resolver;
+    this.consentStringPromise_ = new Promise(
+      resolve => void (resolver = resolve)
+    );
+    const callback = TCData => {
+      if (TCData.tcString === TC_STRING_UNAVAILABLE) {
+        this.gdpr_.getTCData(callback, vendors);
+        return;
+      }
+      resolver(TCData);
+    };
+    this.gdpr_.getTCData(callback, vendors);
   }
 }

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import {Entitlements} from './entitlements';
-import {Offer} from './offer';
 import {
   DeferredAccountCreationRequest,
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
-import {SubscribeResponse} from './subscribe-response';
-import {PropensityApi} from './propensity-api';
+import {Entitlements} from './entitlements';
 import {LoggerApi} from './logger-api';
+import {Offer} from './offer';
+import {PropensityApi} from './propensity-api';
+import {SubscribeResponse} from './subscribe-response';
 
 /**
  * @interface
@@ -32,16 +32,16 @@ export class Subscriptions {
    * Optionally initializes the subscriptions runtime with publication or
    * product ID. If not called, the runtime will look for the initialization
    * parameters in the page's markup.
-   * @param {string} productOrPublicationId
+   * @param {string} unusedProductOrPublicationId
    */
-  init(productOrPublicationId) {}
+  init(unusedProductOrPublicationId) {}
 
   /**
    * Optionally configures the runtime with non-default properties. See
    * `Config` definition for details.
-   * @param {!Config} config
+   * @param {!Config} unusedConfig
    */
-  configure(config) {}
+  configure(unusedConfig) {}
 
   /**
    * Starts the entitlement flow.
@@ -59,49 +59,49 @@ export class Subscriptions {
   clear() {}
 
   /**
-   * @param {?string=} encryptedDocumentKey
+   * @param {?string=} unusedEncryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements(encryptedDocumentKey) {}
+  getEntitlements(unusedEncryptedDocumentKey) {}
 
   /**
    * Set the subscribe callback.
-   * @param {function(!Promise<!Entitlements>)} callback
+   * @param {function(!Promise<!Entitlements>)} unusedCallback
    */
-  setOnEntitlementsResponse(callback) {}
+  setOnEntitlementsResponse(unusedCallback) {}
 
   /**
    * Returns a set of offers.
    * @param {{
    *   productId: (string|undefined),
-   * }=} options
+   * }=} unusedOptions
    * @return {!Promise<!Array<!Offer>>}
    */
-  getOffers(options) {}
+  getOffers(unusedOptions) {}
 
   /**
    * Starts the Offers flow.
-   * @param {!OffersRequest=} options
+   * @param {!OffersRequest=} unusedOptions
    */
-  showOffers(options) {}
+  showOffers(unusedOptions) {}
 
   /**
    * Starts the Offers flow for a subscription update.
-   * @param {!OffersRequest=} options
+   * @param {!OffersRequest=} unusedOptions
    */
-  showUpdateOffers(options) {}
+  showUpdateOffers(unusedOptions) {}
 
   /**
    * Show subscription option.
-   * @param {!OffersRequest=} options
+   * @param {!OffersRequest=} unusedOptions
    */
-  showSubscribeOption(options) {}
+  showSubscribeOption(unusedOptions) {}
 
   /**
    * Show abbreviated offers.
-   * @param {!OffersRequest=} options
+   * @param {!OffersRequest=} unusedOptions
    */
-  showAbbrvOffer(options) {}
+  showAbbrvOffer(unusedOptions) {}
 
   /**
    * Show contribution options for the users to select from.
@@ -110,65 +110,65 @@ export class Subscriptions {
    * to the publisher. These options are based on the SKUs defined in the Play
    * console for a given publication.
    * Each SKU has Amount, Period, SKUId and other attributes.
-   * @param {!OffersRequest=} options
+   * @param {!OffersRequest=} unusedOptions
    */
-  showContributionOptions(options) {}
+  showContributionOptions(unusedOptions) {}
 
   /**
    * Set the callback for the native subscribe request. Setting this callback
    * triggers the "native" option in the offers flow.
-   * @param {function()} callback
+   * @param {function()} unusedOptions
    */
-  setOnNativeSubscribeRequest(callback) {}
+  setOnNativeSubscribeRequest(unusedOptions) {}
 
   /**
    * Set the subscribe complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponse>)} unusedOptions
    */
-  setOnSubscribeResponse(callback) {}
+  setOnSubscribeResponse(unusedOptions) {}
 
   /**
    * Starts subscription purchase flow.
-   * @param {string} sku
+   * @param {string} unusedSku
    */
-  subscribe(sku) {}
+  subscribe(unusedSku) {}
 
   /**
    * Starts subscription purchase flow.
-   * @param {SubscriptionRequest} subscriptionRequest
+   * @param {SubscriptionRequest} unusedSubscriptionRequest
    */
-  updateSubscription(subscriptionRequest) {}
+  updateSubscription(unusedSubscriptionRequest) {}
 
   /**
    * Set the contribution complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponse>)} unusedCallback
    */
-  setOnContributionResponse(callback) {}
+  setOnContributionResponse(unusedCallback) {}
 
   /**
    * Set the payment complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponse>)} unusedCallback
    */
-  setOnPaymentResponse(callback) {}
+  setOnPaymentResponse(unusedCallback) {}
 
   /**
    * Starts contributions purchase flow.
-   * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
+   * @param {string|SubscriptionRequest} unusedSkuOrSubscriptionRequest
    */
-  contribute(skuOrSubscriptionRequest) {}
+  contribute(unusedSkuOrSubscriptionRequest) {}
 
   /**
    * Starts the deferred account creation flow.
    * See `DeferredAccountCreationRequest` for more details.
-   * @param {?DeferredAccountCreationRequest=} options
+   * @param {?DeferredAccountCreationRequest=} unusedOptions
    * @return {!Promise<!DeferredAccountCreationResponse>}
    */
-  completeDeferredAccountCreation(options) {}
+  completeDeferredAccountCreation(unusedOptions) {}
 
   /**
-   * @param {function(!LoginRequest)} callback
+   * @param {function(!LoginRequest)} unusedCallback
    */
-  setOnLoginRequest(callback) {}
+  setOnLoginRequest(unusedCallback) {}
 
   /**
    * Starts the login prompt flow.
@@ -183,22 +183,22 @@ export class Subscriptions {
   showLoginNotification() {}
 
   /**
-   * @param {function()} callback
+   * @param {function()} unusedCallback
    */
-  setOnLinkComplete(callback) {}
+  setOnLinkComplete(unusedCallback) {}
 
   /**
-   * @param {!Promise} accountPromise Publisher's promise to lookup account.
+   * @param {!Promise} unusedAccountPromise Publisher's promise to lookup account.
    * @return {!Promise}
    */
-  waitForSubscriptionLookup(accountPromise) {}
+  waitForSubscriptionLookup(unusedAccountPromise) {}
 
   /**
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
-   * @param {{ampReaderId: (string|undefined)}=} params
+   * @param {{ampReaderId: (string|undefined)}=} unusedParams
    */
-  linkAccount(params) {}
+  linkAccount(unusedParams) {}
 
   /**
    * Notifies the client that a flow has been started. The name of the flow
@@ -208,9 +208,9 @@ export class Subscriptions {
    *
    * Also see `setOnFlowCanceled` method.
    *
-   * @param {function({flow: string, data: !Object})} callback
+   * @param {function({flow: string, data: !Object})} unusedCallback
    */
-  setOnFlowStarted(callback) {}
+  setOnFlowStarted(unusedCallback) {}
 
   /**
    * Notifies the client that a flow has been canceled. The name of the flow
@@ -223,46 +223,46 @@ export class Subscriptions {
    *
    * Also see `setOnFlowStarted` method.
    *
-   * @param {function({flow: string, data: !Object})} callback
+   * @param {function({flow: string, data: !Object})} unusedCallback
    */
-  setOnFlowCanceled(callback) {}
+  setOnFlowCanceled(unusedCallback) {}
 
   /**
    * Starts the save subscriptions flow.
-   * @param {!SaveSubscriptionRequestCallback} requestCallback
+   * @param {!SaveSubscriptionRequestCallback} unusedCallback
    * @return {!Promise} a promise indicating flow is started
    */
-  saveSubscription(requestCallback) {}
+  saveSubscription(unusedCallback) {}
 
   /**
    * Creates an element with the SwG button style and the provided callback.
    * The default theme is "light".
    *
-   * @param {!ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
+   * @param {!ButtonOptions|function()} unusedOptionsOrCallback
+   * @param {function()=} unusedCallback
    * @return {!Element}
    */
-  createButton(optionsOrCallback, callback) {}
+  createButton(unusedOptionsOrCallback, unusedCallback) {}
 
   /**
    * Attaches the SwG button style and the provided callback to an existing
    * DOM element. The default theme is "light".
    *
-   * @param {!Element} button
-   * @param {!ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
+   * @param {!Element} unusedButton
+   * @param {!ButtonOptions|function()} unusedOptionsOrCallback
+   * @param {function()=} unusedCallback
    */
-  attachButton(button, optionsOrCallback, callback) {}
+  attachButton(unusedButton, unusedOptionsOrCallback, unusedCallback) {}
 
   /**
    * Attaches smartButton element and the provided callback.
    * The default theme is "light".
    *
-   * @param {!Element} button
-   * @param {!SmartButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
+   * @param {!Element} unusedButton
+   * @param {!SmartButtonOptions|function()} unusedOptionsOrCallback
+   * @param {function()=} unusedCallback
    */
-  attachSmartButton(button, optionsOrCallback, callback) {}
+  attachSmartButton(unusedButton, unusedOptionsOrCallback, unusedCallback) {}
 
   /**
    * Retrieves the propensity module that provides APIs to
@@ -309,6 +309,7 @@ export const SubscriptionFlows = {
  *   analyticsMode: (!AnalyticsMode|undefined),
  *   enableSwgAnalytics: (boolean|undefined),
  *   enablePropensity: (boolean|undefined),
+ *   gdprVendorIds: (!Array<string>|undefined),
  * }}
  */
 export let Config;
