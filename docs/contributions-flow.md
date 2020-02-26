@@ -29,7 +29,7 @@ subscriptions.setOnPaymentResponse(function(paymentResponse) {
     response.complete().then(function() {
       // The payment is fully processed.
       // Some websites would update their UI
-      // if content had been unlocked at this point.
+      // at this point if content was unlocked.
     });
   });
 });
