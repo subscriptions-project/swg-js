@@ -279,7 +279,7 @@ describe('serializeProtoMessageForUrl', () => {
       'baseUrl',
     ];
     const analyticsEventMetaArray = ['AnalyticsEventMeta', 1, true];
-    const eventParamsArray = ['EventParams', 'smartbox', 'gpay', false, 'sku'];
+    const eventParamsArray = ['EventParams', 'smartbox', 'gpay', false, 'sku', 'othertxid'];
     const analyticsRequestArray = [
       'AnalyticsRequest',
       analyticsContextArray,

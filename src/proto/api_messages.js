@@ -79,6 +79,7 @@ const AnalyticsEvent = {
   EVENT_GPAY_NO_TX_ID: 3003,
   EVENT_GPAY_CANNOT_CONFIRM_TX_ID: 3004,
   EVENT_GOOGLE_UPDATED: 3005,
+  EVENT_NEW_TX_ID: 3006,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -710,6 +711,9 @@ class EventParams {
 
     /** @private {?string} */
     this.sku_ = data[3 + base] == null ? null : data[3 + base];
+
+    /** @private {?string} */
+    this.oldTransactionId_ = data[4 + base] == null ? null : data[4 + base];
   }
 
   /**
@@ -769,6 +773,20 @@ class EventParams {
   }
 
   /**
+   * @return {?string}
+   */
+  getOldTransactionId() {
+    return this.oldTransactionId_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setOldTransactionId(value) {
+    this.oldTransactionId_ = value;
+  }
+
+  /**
    * @param {boolean} includeLabel
    * @return {!Array}
    * @override
@@ -779,6 +797,7 @@ class EventParams {
       this.gpayTransactionId_, // field 2 - gpay_transaction_id
       this.hadLogged_, // field 3 - had_logged
       this.sku_, // field 4 - sku
+      this.oldTransactionId_, // field 5 - old_transaction_id
     ];
     if (includeLabel) {
       arr.unshift(this.label());
