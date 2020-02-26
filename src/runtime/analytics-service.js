@@ -139,7 +139,7 @@ export class AnalyticsService {
   setTransactionId(transactionId) {
     const oldTransactionId = this.context_.getTransactionId();
     this.context_.setTransactionId(transactionId);
-    if (oldTransactionId != null) {
+    if (oldTransactionId != null && oldTransactionId != transactionId) {
       const eventType = AnalyticsEvent.EVENT_NEW_TX_ID;
       const eventParams = new EventParams();
       eventParams.setOldTransactionId(oldTransactionId);
