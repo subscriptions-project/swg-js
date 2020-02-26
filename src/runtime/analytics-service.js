@@ -145,7 +145,7 @@ export class AnalyticsService {
       eventParams.setOldTransactionId(oldTransactionId);
       this.eventManager_.logSwgEvent(
         eventType,
-        true /** isFromUserAction*/,
+        /* isFromUserAction= */ true,
         eventParams
       );
     }
