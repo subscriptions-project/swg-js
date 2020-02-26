@@ -24,12 +24,11 @@ First, please setup the contribution response callback via `setOnPaymentResponse
 subscriptions.setOnPaymentResponse(function(paymentResponse) {
   paymentResponse.then(function(response) {
     // Handle the payment response.
-    // Some websites would create or update a user
-    // at this point.
+    // Some websites would create or update a user at this point.
     response.complete().then(function() {
       // The payment is fully processed.
-      // Some websites would update their UI
-      // at this point if content was unlocked.
+      // Some websites would update their UI at this point,
+      // if the purchase unlocked content.
     });
   });
 });
