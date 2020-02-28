@@ -53,12 +53,12 @@ export class PropensityServer {
       .eventManager()
       .registerEventListener(this.handleClientEvent_.bind(this));
 
-    /** @private {?Promise<!./gdpr-tcfv2-constants.TCData>} */
-    this.consentStringPromise_ = null;
+    /** @private {!Promise<?./gdpr-tcfv2-constants.TCData>} */
+    this.tcDataPromise_ = Promise.resolve(null);
     /** @private {?TcfV2} */
     this.gdpr_ = null;
-    /** @private {?Array<string>} */
-    this.vendors_ = null;
+    /** @private {!Array<string>|undefined} */
+    this.vendors_ = undefined;
   }
 
   /**
@@ -114,7 +114,7 @@ export class PropensityServer {
     if (productsOrSkus) {
       url = addQueryParam(url, 'extrainfo', productsOrSkus);
     }
-    return this.fetchWithGdpr_(url);
+    this.sendBeacon_(url);
   }
 
   /**
@@ -129,7 +129,7 @@ export class PropensityServer {
     if (context) {
       url = addQueryParam(url, 'extrainfo', context);
     }
-    return this.fetchWithGdpr_(url);
+    this.sendBeacon_(url);
   }
 
   /**
@@ -174,6 +174,53 @@ export class PropensityServer {
       propEvent,
       JSON.stringify(/** @type {?JsonObject} */ (additionalParameters))
     );
+  }
+
+  /**
+   * @param {string} url
+   * @private
+   */
+  sendBeacon_(url) {
+    this.setupGDPR_();
+    this.tcDataPromise_.then(tcdata => {
+      if (tcdata) {
+        url = addQueryParam(url, 'gdpr_consent', tcdata.tcString || '');
+        url = addQueryParam(url, 'gdpr', tcdata.gdprApplies ? '1' : '0');
+      }
+      this.fetcher_.sendBeacon(this.propensityUrl_(url));
+    });
+  }
+
+  /**
+   * Reads config and sets GDPR support as appropriate.
+   * @private
+   */
+  setupGDPR_() {
+    const vendors = this.deps_.config().gdprVendorIds || undefined;
+    if (doArraysMatch(vendors, this.vendors_)) {
+      return;
+    }
+
+    if (!vendors) {
+      this.vendors_ = undefined;
+      this.tcDataPromise_ = Promise.resolve(null);
+      this.gdpr_.disposeInternal();
+      this.gdpr_ = null;
+      return;
+    }
+
+    let resolver;
+    this.tcDataPromise_ = new Promise(resolve => void (resolver = resolve));
+    const callback = TCData => {
+      if (TCData.tcString === TC_STRING_UNAVAILABLE) {
+        this.gdpr_.getTCData(callback, vendors);
+        return;
+      }
+      resolver(TCData);
+    };
+    this.vendors_ = vendors;
+    this.gdpr_ = new TcfV2(this.win_);
+    this.gdpr_.getTCData(callback, vendors);
   }
 
   /**
@@ -249,61 +296,5 @@ export class PropensityServer {
       .then(response => {
         return this.parsePropensityResponse_(response);
       });
-  }
-
-  /**
-   * @param {string} url
-   * @private
-   */
-  fetchWithGdpr_(url) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-      method: 'GET',
-      credentials: 'include',
-    });
-    url = this.propensityUrl_(url);
-    this.validateGDPR_();
-    if (this.consentStringPromise_ === null) {
-      return this.fetcher_.fetch(url, init);
-    }
-    return this.consentStringPromise_.then(tcdata => {
-      url = addQueryParam(url, 'gdpr_consent', tcdata.tcString || '');
-      url = addQueryParam(url, 'gdpr', tcdata.gdprApplies ? '1' : '0');
-      return this.fetcher_.fetch(url, init);
-    });
-  }
-
-  /**
-   * Calling this function ensures GDPR consent is obtained prior to submitting
-   * data to Propensity as long as the gdprVendorIds are set in config.
-   * @private
-   */
-  validateGDPR_() {
-    const vendors = this.deps_.config().gdprVendorIds;
-    if (!vendors) {
-      this.vendors_ = null;
-      this.consentStringPromise_ = null;
-      this.gdpr_ = null;
-      return;
-    }
-    if (
-      this.consentStringPromise_ !== null &&
-      doArraysMatch(vendors, this.vendors_)
-    ) {
-      return;
-    }
-    this.vendors_ = vendors;
-    this.gdpr_ = new TcfV2(this.win_);
-    let resolver;
-    this.consentStringPromise_ = new Promise(
-      resolve => void (resolver = resolve)
-    );
-    const callback = TCData => {
-      if (TCData.tcString === TC_STRING_UNAVAILABLE) {
-        this.gdpr_.getTCData(callback, vendors);
-        return;
-      }
-      resolver(TCData);
-    };
-    this.gdpr_.getTCData(callback, vendors);
   }
 }

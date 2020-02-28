@@ -196,11 +196,15 @@ export function addQueryParam(url, param, value) {
 }
 
 /**
- * @param {!../proto/api_messages.Message} message
+ * @param {?../proto/api_messages.Message} message
  * @return {string}
  */
 export function serializeProtoMessageForUrl(message) {
-  return JSON.stringify(/** @type {JsonObject} */ (message.toArray(false)));
+  if (message && message.toArray) {
+    return JSON.stringify(/** @type {JsonObject} */ (message.toArray(false)));
+  } else {
+    return '';
+  }
 }
 
 /**

@@ -37,7 +37,7 @@ export class Fetcher {
   /**
    * POST data to a URL endpoint, do not wait for a response.
    * @param {!string} unusedUrl
-   * @param {!string|!Object} unusedData
+   * @param {!string|!Object|undefined} unusedData
    */
   sendBeacon(unusedUrl, unusedData) {}
 }
@@ -72,10 +72,13 @@ export class XhrFetcher {
   /** @override */
   sendBeacon(url, data) {
     const contentType = 'application/x-www-form-urlencoded;charset=UTF-8';
-    const body = 'f.req=' + serializeProtoMessageForUrl(data);
+    let body = data ? 'f.req=' + serializeProtoMessageForUrl(data) : undefined;
+
     if (navigator.sendBeacon) {
-      const blob = new Blob([body], {type: contentType});
-      navigator.sendBeacon(url, blob);
+      if (body) {
+        body = new Blob([body], {type: contentType});
+      }
+      navigator.sendBeacon(url, body);
       return;
     }
 

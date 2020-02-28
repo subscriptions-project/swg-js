@@ -361,6 +361,7 @@ export function defaultConfig() {
     analyticsMode: AnalyticsMode.DEFAULT,
     enableSwgAnalytics: false,
     enablePropensity: false,
+    gdprVendorIds: undefined,
   };
 }
 

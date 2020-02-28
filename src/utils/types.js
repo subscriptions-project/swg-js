@@ -60,8 +60,8 @@ export function isBoolean(value) {
 }
 
 /**
- * @param {?Array<string>} arr1
- * @param {?Array<string>} arr2
+ * @param {?Array<string>=} arr1
+ * @param {?Array<string>=} arr2
  * @return {boolean}
  */
 export function doArraysMatch(arr1, arr2) {
