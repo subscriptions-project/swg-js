@@ -372,9 +372,16 @@ export class RedirectVerifierHelper {
     // b. WebCrypto (crypto.subtle);
     // c. Crypto random (crypto.getRandomValues);
     // d. SHA284 (crypto.subtle.digest).
+    let canUseLocalStorage;
+    try {
+      canUseLocalStorage = !!this.win_.localStorage;
+    } catch (e) {
+      // Local storage wasn't accessible.
+      canUseLocalStorage = false;
+    }
     const crypto = this.win_.crypto;
     if (
-      this.win_.localStorage &&
+      canUseLocalStorage &&
       crypto &&
       crypto.getRandomValues &&
       crypto.subtle &&
