@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {user} from '../utils/error-logger';
+
 /**
  */
 export class PageConfig {
@@ -30,7 +32,7 @@ export class PageConfig {
       publicationId = productId.substring(0, div);
       label = productId.substring(div + 1);
       if (label == '*') {
-        throw new Error('wildcard disallowed');
+        user().expectedError('wildcard disallowed');
       }
     } else {
       // The argument is a publication id.

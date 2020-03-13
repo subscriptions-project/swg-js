@@ -15,6 +15,17 @@
  */
 
 /**
+ * Triple zero width space.
+ *
+ * This is added to user error messages, so that we can later identify
+ * them, when the only thing that we have is the message. This is the
+ * case in many browsers when the global exception handler is invoked.
+ *
+ * @const {string}
+ */
+export const AMP_USER_ERROR_SENTINEL = '\u200B\u200B\u200B';
+
+/**
  * Some exceptions (DOMException, namely) have read-only message.
  * @param {!Error} error
  * @return {!Error}
@@ -146,3 +157,9 @@ export class ErrorLogger {
     throw this.createExpectedError.apply(this, arguments);
   }
 }
+
+const userLogger = new ErrorLogger(window.__AMP_TOP ? AMP_USER_ERROR_SENTINEL : '');
+const devLogger = new ErrorLogger();
+
+export const user = () => userLogger;
+export const dev = () => devLogger;
