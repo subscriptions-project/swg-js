@@ -87,11 +87,38 @@ export class ErrorLogger {
   }
 
   /**
+   * Creates an error object with its expected property set to true. Used for
+   * expected failure states (ex. incorrect configuration, localStorage
+   * unavailable due to browser settings, etc.) as opposed to unexpected
+   * breakages/failures.
+   * @param {...*} var_args
+   * @return {!Error}
+   */
+  createExpectedError(var_args) {
+    const error = createErrorVargs.apply(
+      null,
+      Array.prototype.slice.call(arguments)
+    );
+    this.prepareError_(error);
+    error.expected = true;
+    return error;
+  }
+
+  /**
    * Throws an error.
    * @param {...*} var_args
    * @throws {!Error}
    */
   error(var_args) {
     throw this.createError.apply(this, arguments);
+  }
+
+  /**
+   * Throws an error and marks with an expected property.
+   * @param {...*} var_args
+   * @throws {!Error}
+   */
+  expectedError(var_args) {
+    throw this.createExpectedError.apply(this, arguments);
   }
 }

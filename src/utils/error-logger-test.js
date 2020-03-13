@@ -52,6 +52,40 @@ describe('error logger', () => {
     });
   });
 
+  describe('createExpectedError', () => {
+    it('reuses errors when possible', () => {
+      let error = new Error('test');
+
+      let createdError = log.createExpectedError(error);
+      expect(createdError).to.equal(error);
+      expect(error.message).to.equal('test');
+
+      createdError = log.createExpectedError('should fail', 'XYZ', error);
+      expect(createdError).to.equal(error);
+      expect(error.message).to.equal('should fail XYZ: test');
+
+      try {
+        // This is an intentionally bad query selector
+        document.body.querySelector('#');
+      } catch (e) {
+        error = e;
+      }
+
+      createdError = log.createExpectedError(error);
+      expect(createdError).not.to.equal(error);
+      expect(createdError.message).to.equal(error.message);
+
+      createdError = log.createExpectedError('should fail', 'XYZ', error);
+      expect(createdError).not.to.equal(error);
+      expect(createdError.message).to.contain('should fail XYZ:');
+    });
+
+    it('sets expected property', () => {
+      const error = log.createExpectedError('test');
+      expect(error.expected).to.be.true;
+    });
+  });
+
   describe('error', () => {
     it('throws an error', () => {
       expect(() => {
@@ -61,6 +95,18 @@ describe('error logger', () => {
       expect(() => {
         log.error(new Error('Oof!'));
       }).to.throw(/Oof!/)
+    });
+  });
+
+  describe('expectedError', () => {
+    it('throws an error with the expected property set', done => {
+      try {
+        log.expectedError('Invalid configuration key')
+      } catch (e) {
+        expect(e.message).to.equal('Invalid configuration key');
+        expect(e.expected).to.be.true;
+        done();
+      }
     });
   });
 });
