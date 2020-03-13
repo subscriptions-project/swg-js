@@ -66,11 +66,35 @@ function createErrorVargs(var_args) {
 /** Helper class for throwing standardized errors. */
 export class ErrorLogger {
   /**
+   * Constructor.
+   *
+   * opt_suffix will be appended to error message to identify the type of the
+   * error message. We can't rely on the error object to pass along the type
+   * because some browsers do not have this param in its window.onerror API.
+   * See:
+   * https://blog.sentry.io/2016/01/04/client-javascript-reporting-window-onerror.html
+   *
+   * @param {string=} opt_suffix
+   */
+  constructor(opt_suffix = '') {
+    /** @private @const {string} */
+    this.suffix_ = opt_suffix;
+  }
+
+  /**
    * Modifies an error before reporting, such as to add metadata.
    * @param {!Error} error
    * @private
    */
-  prepareError_(error) {}
+  prepareError_(error) {
+    if (this.suffix_) {
+      if (!error.message) {
+        error.message = this.suffix_;
+      } else if (error.message.indexOf(this.suffix_) === -1) {
+        error.message = this.suffix_
+      }
+    }
+  }
 
   /**
    * Creates an error.

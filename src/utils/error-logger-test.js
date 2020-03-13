@@ -19,7 +19,7 @@ import {ErrorLogger} from './error-logger';
 describe('error logger', () => {
   let log;
 
-  beforeEach(function() {
+  beforeEach(() => {
     log = new ErrorLogger();
   });
 
@@ -50,6 +50,12 @@ describe('error logger', () => {
       expect(createdError).not.to.equal(error);
       expect(createdError.message).to.contain('should fail XYZ:');
     });
+
+    it('includes the suffix in the error message', () => {
+      log = new ErrorLogger('TEST_SUFFIX');
+      const error = log.createError('Uh-oh!');
+      expect(error.message).to.match(/TEST_SUFFIX$/);
+    })
   });
 
   describe('createExpectedError', () => {
@@ -79,6 +85,12 @@ describe('error logger', () => {
       expect(createdError).not.to.equal(error);
       expect(createdError.message).to.contain('should fail XYZ:');
     });
+
+    it('includes the suffix in the error message', () => {
+      log = new ErrorLogger('TEST_SUFFIX');
+      const error = log.createExpectedError('Uh-oh!');
+      expect(error.message).to.match(/TEST_SUFFIX$/);
+    })
 
     it('sets expected property', () => {
       const error = log.createExpectedError('test');
