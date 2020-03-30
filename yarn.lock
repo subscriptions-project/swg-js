@@ -6972,10 +6972,10 @@ karma-safari-launcher@1.0.0:
   resolved "https://registry.yarnpkg.com/karma-safari-launcher/-/karma-safari-launcher-1.0.0.tgz#96982a2cc47d066aae71c553babb28319115a2ce"
   integrity sha1-lpgqLMR9BmquccVTursoMZEVos4=
 
-karma-sauce-launcher@4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/karma-sauce-launcher/-/karma-sauce-launcher-4.1.1.tgz#4c3b6f442fc3fb72d98d5cd85af0c56355ed91a6"
-  integrity sha512-0GHRnlRvAj3mct8DSIrDSswpwx4utwXzcjDyfi5n0dUPRF4zxR9h8UOQRjy+RmD0RrM0LhLLLTNapHo87nLdtw==
+karma-sauce-launcher@4.1.2:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/karma-sauce-launcher/-/karma-sauce-launcher-4.1.2.tgz#b451e65e9edc761ca896d167067118f6d81b94bc"
+  integrity sha512-Q7RCwn+5MW0RDdlKqko9uSHF0ksiuIdV7xBqCkA6Zy5ZKwoE4IqVQ6eSnkeCDSz/2TVSRIknUExuSfCdAFJ9dA==
   dependencies:
     sauce-connect-launcher "^1.2.4"
     saucelabs "^1.5.0"
