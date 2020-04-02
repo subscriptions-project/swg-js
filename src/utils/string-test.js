@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {dashToCamelCase, endsWith, expandTemplate, getUuid} from './string';
+import {dashToCamelCase, endsWith, expandTemplate, getUuid, getSwgTransactionId} from './string';
 
 describe('dashToCamelCase', () => {
   it('should transform dashes to camel case.', () => {
@@ -136,6 +136,23 @@ describe('uuid', () => {
       isValidUuid(uuid);
       expect(uuids[uuid]).to.be.undefined;
       uuids[uuid] = 1;
+    }
+  });
+});
+
+describe('swgTransactionId', () => {
+  it('should generate a valid SwG transaction ID on the form uuid.swg', () => {
+    // Flakiness warning: could randomly generate the same one every now and
+    // then.
+    const swgTransactionIds = {};
+    for (let i = 0; i < 100; i++) {
+      const swgTransactionId = getSwgTransactionId();
+      const deconstructedId = swgTransactionId.split('.');
+      expect(deconstructedId.length).to.equal(2);
+      isValidUuid(deconstructedId[0]);
+      expect(deconstructedId[1]).to.equal('swg');
+      expect(swgTransactionIds[swgTransactionId]).to.be.undefined;
+      swgTransactionIds[swgTransactionId] = 1;
     }
   });
 });
