@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+import {AnalyticsRequest} from '../proto/api_messages';
 import {
   addQueryParam,
   getHostUrl,
   parseQueryString,
   parseUrl,
+  serializeProtoMessageForUrl,
   serializeQueryString,
 } from './url';
 
@@ -256,5 +258,60 @@ describe('addQueryParam', () => {
     expect(addQueryParam('file#f', 'a', 'b')).to.equal('file?a=b#f');
     expect(addQueryParam('file?#f', 'a', 'b')).to.equal('file?a=b#f');
     expect(addQueryParam('file?d=e#f', 'a', 'b')).to.equal('file?d=e&a=b#f');
+  });
+});
+
+describe('serializeProtoMessageForUrl', () => {
+  it('should serialize message with experiments in array', () => {
+    // Create an AnalyticsRequest, using arrays to represent the message and its submessages.
+    const analyticsContextArray = [
+      'AnalyticsContext',
+      'embed',
+      'tx',
+      'refer',
+      'utmS',
+      'utmC',
+      'utmM',
+      'sku',
+      true,
+      ['exp1', 'exp2'],
+      'version',
+      'baseUrl',
+    ];
+    const analyticsEventMetaArray = ['AnalyticsEventMeta', 1, true];
+    const eventParamsArray = [
+      'EventParams',
+      'smartbox',
+      'gpay',
+      false,
+      'sku',
+      'othertxid',
+    ];
+    const analyticsRequestArray = [
+      'AnalyticsRequest',
+      analyticsContextArray,
+      11,
+      analyticsEventMetaArray,
+      eventParamsArray,
+    ];
+    const analyticsRequest = new AnalyticsRequest(analyticsRequestArray);
+
+    // Serialize and deserialize the AnalyticsRequest.
+    const serializedAnalyticsRequest = serializeProtoMessageForUrl(
+      analyticsRequest
+    );
+    const deserializedAnalyticsRequestArray = JSON.parse(
+      serializedAnalyticsRequest
+    );
+
+    // Add back the labels that were removed during serialization.
+    // After doing so, the deserialized array should match the original array.
+    deserializedAnalyticsRequestArray.unshift('AnalyticsRequest');
+    deserializedAnalyticsRequestArray[1].unshift('AnalyticsContext');
+    deserializedAnalyticsRequestArray[3].unshift('AnalyticsEventMeta');
+    deserializedAnalyticsRequestArray[4].unshift('EventParams');
+    expect(deserializedAnalyticsRequestArray).to.deep.equal(
+      analyticsRequestArray
+    );
   });
 });

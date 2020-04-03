@@ -196,6 +196,14 @@ export function addQueryParam(url, param, value) {
 }
 
 /**
+ * @param {!../proto/api_messages.Message} message
+ * @return {string}
+ */
+export function serializeProtoMessageForUrl(message) {
+  return JSON.stringify(/** @type {JsonObject} */ (message.toArray(false)));
+}
+
+/**
  * Returns the Url including the path and search, without fregment.
  * @param {string} url
  * @return {string}

@@ -171,7 +171,7 @@ const forbiddenTermsSrcInclusive = {
 
 // Terms that must appear in a source file.
 const requiredTerms = {
-  'Copyright 20(17|18|19) The Subscribe with Google Authors\\.': dedicatedCopyrightNoteSources,
+  'Copyright 20(17|18|19|20) The Subscribe with Google Authors\\.': dedicatedCopyrightNoteSources,
   'Licensed under the Apache License, Version 2\\.0': dedicatedCopyrightNoteSources,
   'http\\://www\\.apache\\.org/licenses/LICENSE-2\\.0': dedicatedCopyrightNoteSources,
 };

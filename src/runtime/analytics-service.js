@@ -24,12 +24,14 @@ import {
   FinishedLoggingResponse,
 } from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
+import {ExperimentFlags} from './experiment-flags';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
-import {getOnExperiments} from './experiments';
+import {getOnExperiments, isExperimentOn} from './experiments';
 import {getUuid} from '../utils/string';
 import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
+import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 
 /** @const {!Object<string, string>} */
@@ -65,8 +67,12 @@ function createErrorResponse(error) {
 export class AnalyticsService {
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {!./fetcher.Fetcher} fetcher
    */
-  constructor(deps) {
+  constructor(deps, fetcher) {
+    /** @private @const {!./fetcher.Fetcher} */
+    this.fetcher_ = fetcher;
+
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
@@ -131,7 +137,18 @@ export class AnalyticsService {
    * @param {string} transactionId
    */
   setTransactionId(transactionId) {
+    const oldTransactionId = this.context_.getTransactionId();
     this.context_.setTransactionId(transactionId);
+    if (oldTransactionId != null && oldTransactionId != transactionId) {
+      const eventType = AnalyticsEvent.EVENT_NEW_TX_ID;
+      const eventParams = new EventParams();
+      eventParams.setOldTransactionId(oldTransactionId);
+      this.eventManager_.logSwgEvent(
+        eventType,
+        /* isFromUserAction= */ true,
+        eventParams
+      );
+    }
   }
 
   /**
@@ -351,9 +368,13 @@ export class AnalyticsService {
     }
     // Register we sent a log, the port will call this.afterLogging_ when done.
     this.unfinishedLogs_++;
-    this.lastAction_ = this.start().then(port =>
-      port.execute(this.createLogRequest_(event))
-    );
+    this.lastAction_ = this.start().then(port => {
+      const analyticsRequest = this.createLogRequest_(event);
+      port.execute(analyticsRequest);
+      if (isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_BEACON)) {
+        this.sendBeacon_(analyticsRequest);
+      }
+    });
   }
 
   /**
@@ -419,5 +440,18 @@ export class AnalyticsService {
     }
 
     return this.promiseToLog_;
+  }
+
+  /**
+   * A beacon is a rapid fire browser request that does not wait for a response
+   * from the server.  It is guaranteed to go out before the page redirects.
+   * @param {!AnalyticsRequest} analyticsRequest
+   */
+  sendBeacon_(analyticsRequest) {
+    const pubId = encodeURIComponent(
+      this.deps_.pageConfig().getPublicationId()
+    );
+    const url = serviceUrl('/publication/' + pubId + '/clientlogs');
+    this.fetcher_.sendBeacon(url, analyticsRequest);
   }
 }
