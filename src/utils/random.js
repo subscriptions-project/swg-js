@@ -30,7 +30,7 @@ export function getRandomInts(numInts, maxVal) {
       : new Uint32Array(numInts);
 
   const isIE = !!self['msCrypto'];
-  const localCrypto = isIE ? self['msCrypto'] : self['crypto'];
+  const localCrypto = isIE ? self['msCrypto'] : self.crypto;
   if (localCrypto && localCrypto.getRandomValues) {
     localCrypto.getRandomValues(arr);
     for (let i = arr.length - 1; i > -1; i--) {
