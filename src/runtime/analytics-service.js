@@ -28,7 +28,7 @@ import {ExperimentFlags} from './experiment-flags';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
 import {getOnExperiments, isExperimentOn} from './experiments';
-import {getUuid} from '../utils/string';
+import {getSwgTransactionId, getUuid} from '../utils/string';
 import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
@@ -223,7 +223,16 @@ export class AnalyticsService {
   setStaticContext_() {
     const context = this.context_;
     // These values should all be available during page load.
-    context.setTransactionId(getUuid());
+    if (
+      isExperimentOn(
+        this.doc_.getWin(),
+        ExperimentFlags.UPDATE_GOOGLE_TRANSACTION_ID
+      )
+    ) {
+      context.setTransactionId(getSwgTransactionId());
+    } else {
+      context.setTransactionId(getUuid());
+    }
     context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     context.setClientVersion('SwG $internalRuntimeVersion$');
 
