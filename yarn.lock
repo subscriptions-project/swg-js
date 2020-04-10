@@ -7048,10 +7048,10 @@ karma-super-dots-reporter@0.2.0:
     chalk "^0.5.1"
     log-symbols "^1.0.1"
 
-karma@5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/karma/-/karma-5.0.0.tgz#bcf327c3b17956df78fa7bbc59a1a3cafb8d83f0"
-  integrity sha512-iM0nREt/RLcF0yDvjdSLdTZ0twL/qBCJEJLbzd+BVokxPkEjtDq4HxKqRuxqlNCh8Y1jz+q54sERBEIjQBHxxA==
+karma@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/karma/-/karma-5.0.1.tgz#cd516f56d99ecd83e925a405b8003abebb72a074"
+  integrity sha512-xrDGtZ0mykEQjx1BUHOP1ITi39MDsCGocmSvLJWHxUQpxuKwxk3ZUrC6HI2VWh1plLC6+7cA3B19m12yzO/FRw==
   dependencies:
     body-parser "^1.16.1"
     braces "^3.0.2"
