@@ -21,14 +21,11 @@ import {
   FilterResult,
 } from '../src/api/client-event-manager-api';
 import {ConfiguredRuntime} from '../src/runtime/runtime';
-import {
-  DeferredAccountCreationResponse,
-  PurchaseData,
-  UserData,
-} from '../src/proto/deferred-account-creation';
+import {DeferredAccountCreationResponse} from '../src/api/deferred-account-creation';
 import {Entitlement, Entitlements} from '../src/api/entitlements';
 import {Fetcher} from '../src/runtime/fetcher';
-import {SubscribeResponse} from '../src/api/subscribe-response';
+import {PurchaseData, SubscribeResponse} from '../src/api/subscribe-response';
+import {UserData} from '../src/api/user-data';
 
 export {
   ConfiguredRuntime,
