@@ -103,7 +103,7 @@
     "plugin-error": "1.0.1",
     "postcss": "7.0.27",
     "postcss-import": "12.0.1",
-    "prettier": "2.0.4",
+    "prettier": "2.0.5",
     "request": "2.88.2",
     "rollup": "2.6.1",
     "rollup-plugin-commonjs": "10.1.0",
