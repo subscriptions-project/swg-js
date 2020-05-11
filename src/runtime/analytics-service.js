@@ -15,32 +15,69 @@
  */
 
 import {
-  AnalyticsRequest,
   AnalyticsContext,
-  EventOriginator,
+  AnalyticsEvent,
   AnalyticsEventMeta,
+  AnalyticsRequest,
+  EventOriginator,
+  EventParams,
+  FinishedLoggingResponse,
 } from '../proto/api_messages';
-import {createElement} from '../utils/dom';
-import {feArgs, feUrl} from './services';
-import {getOnExperiments, isExperimentOn} from './experiments';
-import {parseQueryString, parseUrl} from '../utils/url';
-import {setImportantStyles} from '../utils/style';
-import {uuidFast} from '../../third_party/random_uuid/uuid-swg';
+import {ClientEventManager} from './client-event-manager';
 import {ExperimentFlags} from './experiment-flags';
-import {isBoolean} from '../utils/types';
+import {createElement} from '../utils/dom';
+import {feUrl} from './services';
+import {getOnExperiments, isExperimentOn} from './experiments';
+import {getSwgTransactionId, getUuid} from '../utils/string';
+import {log} from '../utils/log';
+import {parseQueryString, parseUrl} from '../utils/url';
+import {serviceUrl} from './services';
+import {setImportantStyles} from '../utils/style';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
-  display: 'none',
+  opacity: '0',
+  position: 'absolute',
+  top: '-10px',
+  left: '-10px',
+  height: '1px',
+  width: '1px',
 };
+
+// The initial iframe load takes ~500 ms.  We will wait at least that long
+// before a page redirect.  Subsequent logs are much faster.  We will wait at
+// most 100 ms.
+const MAX_FIRST_WAIT = 500;
+const MAX_WAIT = 200;
+// If we logged and rapidly redirected, we will add a short delay in case
+// a message hasn't been transmitted yet.
+const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
+
+/**
+ *
+ * @param {!string} error
+ */
+function createErrorResponse(error) {
+  const response = new FinishedLoggingResponse();
+  response.setComplete(false);
+  response.setError(error);
+  return response;
+}
 
 export class AnalyticsService {
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {!./fetcher.Fetcher} fetcher
    */
-  constructor(deps) {
+  constructor(deps, fetcher) {
+    /** @private @const {!./fetcher.Fetcher} */
+    this.fetcher_ = fetcher;
+
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
+
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
 
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
@@ -51,25 +88,17 @@ export class AnalyticsService {
       'iframe',
       {}
     ));
-
     setImportantStyles(this.iframe_, iframeStyles);
+    this.doc_.getBody().appendChild(this.getElement());
 
-    /** @private @const {string} */
-    this.src_ = feUrl('/serviceiframe');
-
-    /** @private @const {string} */
-    this.publicationId_ = deps.pageConfig().getPublicationId();
-
-    this.args_ = feArgs({
-      publicationId: this.publicationId_,
-    });
+    /** @private @type {!boolean} */
+    this.everFinishedLog_ = false;
 
     /**
      * @private @const {!AnalyticsContext}
      */
     this.context_ = new AnalyticsContext();
-
-    this.context_.setTransactionId(uuidFast());
+    this.setStaticContext_();
 
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;
@@ -77,27 +106,49 @@ export class AnalyticsService {
     /** @private {?Promise} */
     this.lastAction_ = null;
 
-    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
+    /** @private @const {!ClientEventManager} */
     this.eventManager_ = deps.eventManager();
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
     );
 
-    /** @private @const {!boolean} */
-    this.logPropensityExperiment_ = isExperimentOn(
-      deps.win(),
-      ExperimentFlags.LOG_PROPENSITY_TO_SWG
-    );
+    // This code creates a 'promise to log' that we can use to ensure all
+    // logging is finished prior to redirecting the page.
+    /** @private {!number} */
+    this.unfinishedLogs_ = 0;
 
+    /** @private {?function(boolean)} */
+    this.loggingResolver_ = null;
+
+    /** @private {?Promise} */
+    this.promiseToLog_ = null;
+
+    // If logging doesn't work don't force the user to wait
     /** @private {!boolean} */
-    this.logPropensityConfig_ = false;
+    this.loggingBroken_ = false;
+
+    // If logging exceeds the timeouts (see const comments above) don't make
+    // the user wait too long.
+    /** @private {?number} */
+    this.timeout_ = null;
   }
 
   /**
    * @param {string} transactionId
    */
   setTransactionId(transactionId) {
+    const oldTransactionId = this.context_.getTransactionId();
     this.context_.setTransactionId(transactionId);
+    if (oldTransactionId != null && oldTransactionId != transactionId) {
+      const eventType = AnalyticsEvent.EVENT_NEW_TX_ID;
+      const eventParams = new EventParams();
+      eventParams.setOldTransactionId(oldTransactionId);
+      this.eventManager_.logSwgEvent(
+        eventType,
+        /* isFromUserAction= */ true,
+        eventParams
+      );
+    }
   }
 
   /**
@@ -119,6 +170,13 @@ export class AnalyticsService {
    */
   setSku(sku) {
     this.context_.setSku(sku);
+  }
+
+  /**
+   * @param {string} url
+   */
+  setUrl(url) {
+    this.context_.setUrl(url);
   }
 
   /**
@@ -162,38 +220,76 @@ export class AnalyticsService {
   /**
    * @private
    */
-  setContext_() {
+  setStaticContext_() {
+    const context = this.context_;
+    // These values should all be available during page load.
+    if (
+      isExperimentOn(
+        this.doc_.getWin(),
+        ExperimentFlags.UPDATE_GOOGLE_TRANSACTION_ID
+      )
+    ) {
+      context.setTransactionId(getSwgTransactionId());
+    } else {
+      context.setTransactionId(getUuid());
+    }
+    context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
+    context.setClientVersion('SwG $internalRuntimeVersion$');
+
     const utmParams = parseQueryString(this.getQueryString_());
-    this.context_.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     const campaign = utmParams['utm_campaign'];
     const medium = utmParams['utm_medium'];
     const source = utmParams['utm_source'];
     if (campaign) {
-      this.context_.setUtmCampaign(campaign);
+      context.setUtmCampaign(campaign);
     }
     if (medium) {
-      this.context_.setUtmMedium(medium);
+      context.setUtmMedium(medium);
     }
     if (source) {
-      this.context_.setUtmSource(source);
+      context.setUtmSource(source);
     }
-    this.addLabels(getOnExperiments(this.doc_.getWin()));
+
+    const urlNode = this.doc_
+      .getRootNode()
+      .querySelector("link[rel='canonical']");
+    if (urlNode && urlNode.href) {
+      context.setUrl(urlNode.href);
+    }
   }
 
   /**
    * @return {!Promise<!../components/activities.ActivityIframePort>}
-   * @private
    */
-  start_() {
+  start() {
     if (!this.serviceReady_) {
-      // TODO(sohanirao): Potentially do this even earlier
-      this.doc_.getBody().appendChild(this.getElement());
+      // Please note that currently openIframe reads the current analytics
+      // context and that it may not contain experiments activated late during
+      // the publishers code lifecycle.
+      this.addLabels(getOnExperiments(this.doc_.getWin()));
       this.serviceReady_ = this.activityPorts_
-        .openIframe(this.iframe_, this.src_, this.args_)
-        .then(port => {
-          this.setContext_();
-          return port.whenReady().then(() => port);
-        });
+        .openIframe(this.iframe_, feUrl('/serviceiframe'), null, true)
+        .then(
+          port => {
+            // Register a listener for the logging to code indicate it is
+            // finished logging.
+            port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
+            return port.whenReady().then(() => {
+              // The publisher should be done setting experiments but runtime
+              // will forward them here if they aren't.
+              this.addLabels(getOnExperiments(this.doc_.getWin()));
+              return port;
+            });
+          },
+          message => {
+            // If the port doesn't open register that logging is broken so
+            // nothing is just waiting.
+            this.loggingBroken_ = true;
+            this.afterLogging_(
+              createErrorResponse('Could not connect [' + message + ']')
+            );
+          }
+        );
     }
     return this.serviceReady_;
   }
@@ -223,7 +319,6 @@ export class AnalyticsService {
    * @return {!AnalyticsRequest}
    */
   createLogRequest_(event) {
-    //ignore event.additionalParameters.  It may have data we shouldn't log
     const meta = new AnalyticsEventMeta();
     meta.setEventOriginator(event.eventOriginator);
     meta.setIsFromUserAction(event.isFromUserAction);
@@ -232,37 +327,34 @@ export class AnalyticsService {
     request.setEvent(event.eventType);
     request.setContext(this.context_);
     request.setMeta(meta);
+    if (event.additionalParameters instanceof EventParams) {
+      request.setParams(event.additionalParameters);
+    } // Ignore event.additionalParameters.  It may have data we shouldn't log.
     return request;
   }
 
   /**
-   * This function can be used to log a buy-flow event from SwG.
-   * It exists as a helper and to ensure backwards compatability,
-   * you have additional parameters available if you call eventManager.logEvent
-   * directly.
-   * @param {!../proto/api_messages.AnalyticsEvent} eventTypeIn
-   * @param {!boolean=} isFromUserActionIn
+   * @return {boolean}
    */
-  logEvent(eventTypeIn, isFromUserActionIn) {
-    this.eventManager_.logEvent({
-      eventType: eventTypeIn,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      /** @type {?boolean} */
-      isFromUserAction: (isBoolean(isFromUserActionIn)
-        ? !!isFromUserActionIn
-        : null),
-      additionalParameters: null,
-    });
+  shouldLogPublisherEvents_() {
+    return this.deps_.config().enableSwgAnalytics === true;
   }
 
   /**
-   * Handles the message received by the port.
-   * @param {function(!Object<string, string|boolean>)} callback
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @return {boolean}
    */
-  onMessage(callback) {
-    this.lastAction_ = this.start_().then(port => {
-      port.onMessageDeprecated(callback);
-    });
+  shouldAlwaysLogEvent_(event) {
+    /* AMP_CLIENT events are considered publisher events and we generally only
+     * log those if the publisher decided to enable publisher event logging for
+     * privacy purposes.  The page load event is not private and is necessary
+     * just so we know the user is in AMP, so we will log it regardless of
+     * configuration.
+     */
+    return (
+      event.eventType === AnalyticsEvent.IMPRESSION_PAGE_LOAD &&
+      event.eventOriginator === EventOriginator.AMP_CLIENT
+    );
   }
 
   /**
@@ -270,19 +362,105 @@ export class AnalyticsService {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
+    //this event is just used to communicate information internally.  It should
+    //not be reported to the SwG analytics service.
+    if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
+      return;
+    }
+
     if (
-      !(this.logPropensityExperiment_ && this.logPropensityConfig_) &&
-      event.eventOriginator === EventOriginator.PROPENSITY_CLIENT
+      ClientEventManager.isPublisherEvent(event) &&
+      !this.shouldLogPublisherEvents_() &&
+      !this.shouldAlwaysLogEvent_(event)
     ) {
       return;
     }
-    this.lastAction_ = this.start_().then(port => {
-      const request = this.createLogRequest_(event);
-      port.execute(request);
+    // Register we sent a log, the port will call this.afterLogging_ when done.
+    this.unfinishedLogs_++;
+    this.lastAction_ = this.start().then(port => {
+      const analyticsRequest = this.createLogRequest_(event);
+      port.execute(analyticsRequest);
+      if (isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_BEACON)) {
+        this.sendBeacon_(analyticsRequest);
+      }
     });
   }
 
-  enableLoggingForPropensity() {
-    this.logPropensityConfig_ = true;
+  /**
+   * This function is called by the iframe after it sends the log to the server.
+   * @param {FinishedLoggingResponse=} response
+   */
+  afterLogging_(response) {
+    const success = (response && response.getComplete()) || false;
+    const error = (response && response.getError()) || 'Unknown logging Error';
+    const isTimeout = error === TIMEOUT_ERROR;
+
+    if (!success) {
+      log('Error when logging: ' + error);
+    }
+
+    this.unfinishedLogs_--;
+    if (!isTimeout) {
+      this.everFinishedLog_ = true;
+    }
+
+    // Nothing is waiting
+    if (this.loggingResolver_ === null) {
+      return;
+    }
+
+    if (this.unfinishedLogs_ === 0 || this.loggingBroken_ || isTimeout) {
+      if (this.timeout_ !== null) {
+        clearTimeout(this.timeout_);
+        this.timeout_ = null;
+      }
+      this.loggingResolver_(success);
+      this.promiseToLog_ = null;
+      this.loggingResolver_ = null;
+    }
+  }
+
+  /**
+   * Please note that logs sent after getLoggingPromise is called are not
+   * guaranteed to be finished when the promise is resolved.  You should call
+   * this function just prior to redirecting the page after SwG is finished
+   * logging.
+   * @return {!Promise}
+   */
+  getLoggingPromise() {
+    if (this.unfinishedLogs_ === 0 || this.loggingBroken_) {
+      return Promise.resolve(true);
+    }
+    if (this.promiseToLog_ === null) {
+      this.promiseToLog_ = new Promise(resolve => {
+        this.loggingResolver_ = resolve;
+      });
+
+      // The promise above should not wait forever if things go wrong.  Let
+      // the user proceed!
+      const whenDone = this.afterLogging_.bind(this);
+      this.timeout_ = setTimeout(
+        () => {
+          this.timeout_ = null;
+          whenDone(createErrorResponse(TIMEOUT_ERROR));
+        },
+        this.everFinishedLog_ ? MAX_WAIT : MAX_FIRST_WAIT
+      );
+    }
+
+    return this.promiseToLog_;
+  }
+
+  /**
+   * A beacon is a rapid fire browser request that does not wait for a response
+   * from the server.  It is guaranteed to go out before the page redirects.
+   * @param {!AnalyticsRequest} analyticsRequest
+   */
+  sendBeacon_(analyticsRequest) {
+    const pubId = encodeURIComponent(
+      this.deps_.pageConfig().getPublicationId()
+    );
+    const url = serviceUrl('/publication/' + pubId + '/clientlogs');
+    this.fetcher_.sendBeacon(url, analyticsRequest);
   }
 }

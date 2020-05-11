@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Xhr, fetchPolyfill, FetchResponse, assertSuccess} from './xhr';
+import {FetchResponse, Xhr, assertSuccess, fetchPolyfill} from './xhr';
 
 describes.realWin('test', {}, () => {
   describe('XHR', function() {
@@ -49,10 +49,10 @@ describes.realWin('test', {}, () => {
       for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i].trim();
         const eq = cookie.indexOf('=');
-        if (eq == -1) {
-          continue;
-        }
-        if (decodeURIComponent(cookie.substring(0, eq).trim()) == name) {
+        if (
+          eq > -1 &&
+          decodeURIComponent(cookie.substring(0, eq).trim()) === name
+        ) {
           const value = cookie.substring(eq + 1).trim();
           return decodeURIComponent(value, value);
         }
@@ -64,7 +64,7 @@ describes.realWin('test', {}, () => {
       location.href = 'https://acme.com/path';
     });
 
-    scenarios.forEach(test => {
+    for (const test of scenarios) {
       let xhr;
       let mockXhr;
       let xhrCreated;
@@ -130,25 +130,28 @@ describes.realWin('test', {}, () => {
             expect(JSON.stringify.called).to.be.false;
           });
 
-          it('should do `GET` as default method', () => {
+          it('should do `GET` as default method', async () => {
             xhr.fetch('/get?k=v1');
             // expect(server.requests[0].method).to.equal('GET');
-            return xhrCreated.then(xhr => expect(xhr.method).to.equal('GET'));
+            const request = await xhrCreated;
+            expect(request.method).to.equal('GET');
           });
 
-          it('should normalize GET method names to uppercase', () => {
+          it('should normalize GET method names to uppercase', async () => {
             xhr.fetch('/abc');
-            return xhrCreated.then(xhr => expect(xhr.method).to.equal('GET'));
+            const request = await xhrCreated;
+            expect(request.method).to.equal('GET');
           });
 
-          it('should normalize POST method names to uppercase', () => {
+          it('should normalize POST method names to uppercase', async () => {
             xhr.fetch('/abc', {
               method: 'post',
               body: JSON.stringify({
                 hello: 'world',
               }),
             });
-            return xhrCreated.then(xhr => expect(xhr.method).to.equal('POST'));
+            const request = await xhrCreated;
+            expect(request.method).to.equal('POST');
           });
         });
       }
@@ -158,9 +161,7 @@ describes.realWin('test', {}, () => {
 
         describe('assertSuccess', () => {
           function createResponseInstance(body, init) {
-            if (test.desc == 'Native' && 'Response' in Window) {
-              return new Response(body, init);
-            } else {
+            if (test.desc !== 'Native' || !('Response' in Window)) {
               init.responseText = body;
               return new FetchResponse(init);
             }
@@ -170,119 +171,96 @@ describes.realWin('test', {}, () => {
             headers: {
               'Content-Type': 'plain/text',
             },
-            getResponseHeader: () => '',
           };
 
-          it('should resolve if success', () => {
+          it('should resolve if success', async () => {
             mockXhr.status = 200;
-            return assertSuccess(createResponseInstance('', mockXhr)).then(
-              response => {
-                expect(response.status).to.equal(200);
-              }
-            ).should.not.be.rejected;
-          });
-
-          it('should reject if error', () => {
-            mockXhr.status = 500;
-            return assertSuccess(createResponseInstance('', mockXhr)).should.be
-              .rejected;
-          });
-
-          it('should include response in error', () => {
-            mockXhr.status = 500;
-            return assertSuccess(createResponseInstance('', mockXhr)).catch(
-              error => {
-                expect(error.response).to.exist;
-                expect(error.response.status).to.equal(500);
-              }
+            const response = await assertSuccess(
+              createResponseInstance('', mockXhr)
             );
+            expect(response.status).to.equal(200);
           });
 
-          it('should not resolve after rejecting promise', () => {
+          it('should reject if error', async () => {
+            mockXhr.status = 500;
+            const promise = assertSuccess(createResponseInstance('', mockXhr));
+            await expect(promise).to.eventually.throw;
+          });
+
+          it('should include response in error', async () => {
+            mockXhr.status = 500;
+            try {
+              await assertSuccess(createResponseInstance('', mockXhr));
+            } catch (reason) {
+              expect(reason.response).to.exist;
+              expect(reason.response.status).to.equal(500);
+            }
+          });
+
+          it('should not resolve after rejecting promise', async () => {
             mockXhr.status = 500;
             mockXhr.responseText = '{"a": "hello"}';
             mockXhr.headers['Content-Type'] = 'application/json';
             mockXhr.getResponseHeader = () => 'application/json';
-            return assertSuccess(createResponseInstance('{"a": 2}', mockXhr))
+            await assertSuccess(createResponseInstance('{"a": 2}', mockXhr))
               .should.not.be.fulfilled;
           });
         });
 
-        it('should do simple JSON fetch', () => {
-          return xhr
+        it('should do simple JSON fetch', async () => {
+          const response = await xhr
             .fetch('http://localhost:31862/get?k=v1')
-            .then(res => res.json())
-            .then(res => {
-              expect(res).to.exist;
-              expect(res['args']['k']).to.equal('v1');
-            });
+            .then(res => res.json());
+          expect(response).to.exist;
+          expect(response['args']['k']).to.equal('v1');
         });
 
-        it('should redirect fetch', () => {
+        it('should redirect fetch', async () => {
           const url =
             'http://localhost:31862/redirect-to?url=' +
             encodeURIComponent('http://localhost:31862/get?k=v2');
-          return xhr
+          const response = await xhr
             .fetch(url, {ampCors: false})
-            .then(res => res.json())
-            .then(res => {
-              expect(res).to.exist;
-              expect(res['args']['k']).to.equal('v2');
-            });
+            .then(res => res.json());
+          expect(response).to.exist;
+          expect(response['args']['k']).to.equal('v2');
         });
 
-        it('should fail fetch for 400-error', () => {
+        it('should fail fetch for 400-error', async () => {
           const url = 'http://localhost:31862/status/404';
-          return xhr.fetch(url).then(
-            () => {
-              throw new Error('UNREACHABLE');
-            },
-            error => {
-              expect(error.message).to.contain('HTTP error 404');
-            }
-          );
+          await expect(xhr.fetch(url)).to.be.rejectedWith('HTTP error 404');
         });
 
-        it('should fail fetch for 500-error', () => {
+        it('should fail fetch for 500-error', async () => {
           const url = 'http://localhost:31862/status/500?CID=cid';
-          return xhr.fetch(url).then(
-            () => {
-              throw new Error('UNREACHABLE');
-            },
-            error => {
-              expect(error.message).to.contain('HTTP error 500');
-            }
-          );
+          await expect(xhr.fetch(url)).to.be.rejectedWith('HTTP error 500');
         });
 
-        it('should NOT succeed CORS setting cookies without credentials', () => {
+        it('should NOT succeed CORS setting cookies without credentials', async () => {
           const cookieName = 'TEST_CORS_' + Math.round(Math.random() * 10000);
           const url =
             'http://localhost:31862/cookies/set?' + cookieName + '=v1';
-          return xhr.fetch(url).then(res => {
-            expect(res).to.exist;
-            expect(getCookie(self, cookieName)).to.be.null;
-          });
+          const response = await xhr.fetch(url);
+          expect(response).to.exist;
+          expect(getCookie(self, cookieName)).to.be.null;
         });
 
-        it('should succeed CORS setting cookies with credentials', () => {
+        it('should succeed CORS setting cookies with credentials', async () => {
           const cookieName = 'TEST_CORS_' + Math.round(Math.random() * 10000);
           const url =
             'http://localhost:31862/cookies/set?' + cookieName + '=v1';
-          return xhr.fetch(url, {credentials: 'include'}).then(res => {
-            expect(res).to.exist;
-            expect(getCookie(self, cookieName)).to.equal('v1');
-          });
+          const response = await xhr.fetch(url, {credentials: 'include'});
+          expect(response).to.exist;
+          expect(getCookie(self, cookieName)).to.equal('v1');
         });
 
-        it('should ignore CORS setting cookies w/omit credentials', () => {
+        it('should ignore CORS setting cookies w/omit credentials', async () => {
           const cookieName = 'TEST_CORS_' + Math.round(Math.random() * 10000);
           const url =
             'http://localhost:31862/cookies/set?' + cookieName + '=v1';
-          return xhr.fetch(url, {credentials: 'omit'}).then(res => {
-            expect(res).to.exist;
-            expect(getCookie(self, cookieName)).to.be.null;
-          });
+          const response = await xhr.fetch(url, {credentials: 'omit'});
+          expect(response).to.exist;
+          expect(getCookie(self, cookieName)).to.be.null;
         });
 
         it('should NOT succeed CORS with invalid credentials', () => {
@@ -293,20 +271,14 @@ describes.realWin('test', {}, () => {
 
         it('should omit request details for privacy', async () => {
           // NOTE THIS IS A BAD PORT ON PURPOSE.
-          return xhr.fetch('http://localhost:31862/status/500').then(
-            () => {
-              throw new Error('UNREACHABLE');
-            },
-            error => {
-              const message = error.message;
-              expect(message).to.equal('HTTP error 500');
-            }
-          );
+          await expect(
+            xhr.fetch('http://localhost:31862/status/500')
+          ).to.be.rejectedWith('HTTP error 500');
         });
       });
-    });
+    }
 
-    scenarios.forEach(test => {
+    for (const test of scenarios) {
       const url = 'http://localhost:31862/post';
 
       describe(test.desc + ' POST', () => {
@@ -314,8 +286,8 @@ describes.realWin('test', {}, () => {
 
         beforeEach(() => (xhr = new Xhr(test.win)));
 
-        it("should get an echo'd response back", () => {
-          return xhr
+        it("should get an echo'd response back", async () => {
+          const response = await xhr
             .fetch(url, {
               method: 'POST',
               body: JSON.stringify({
@@ -325,15 +297,13 @@ describes.realWin('test', {}, () => {
                 'Content-Type': 'application/json;charset=utf-8',
               },
             })
-            .then(res => res.json())
-            .then(res => {
-              expect(res.json).to.jsonEqual({
-                hello: 'world',
-              });
-            });
+            .then(res => res.json());
+          expect(response.json).to.jsonEqual({
+            hello: 'world',
+          });
         });
       });
-    });
+    }
 
     describe('FetchResponse', () => {
       const TEST_TEXT = 'this is some test text';
@@ -342,41 +312,37 @@ describes.realWin('test', {}, () => {
         responseText: TEST_TEXT,
       };
 
-      it('should provide text', () => {
+      it('should provide text', async () => {
         const response = new FetchResponse(mockXhr);
-        return response.text().then(result => {
-          expect(result).to.equal(TEST_TEXT);
-        });
+        const result = await response.text();
+        expect(result).to.equal(TEST_TEXT);
       });
 
-      it('should provide text only once', () => {
+      it('should provide text only once', async () => {
         const response = new FetchResponse(mockXhr);
-        return response.text().then(result => {
-          expect(result).to.equal(TEST_TEXT);
-          expect(response.text.bind(response), 'should throw').to.throw(
-            Error,
-            /Body already used/
-          );
-        });
+        const result = await response.text();
+        expect(result).to.equal(TEST_TEXT);
+        expect(response.text.bind(response), 'should throw').to.throw(
+          Error,
+          /Body already used/
+        );
       });
 
-      it('should be cloneable and each instance should provide text', () => {
+      it('should be cloneable and each instance should provide text', async () => {
         const response = new FetchResponse(mockXhr);
         const clone = response.clone();
-        return Promise.all([response.text(), clone.text()]).then(results => {
-          expect(results[0]).to.equal(TEST_TEXT);
-          expect(results[1]).to.equal(TEST_TEXT);
-        });
+        const results = await Promise.all([response.text(), clone.text()]);
+        expect(results[0]).to.equal(TEST_TEXT);
+        expect(results[1]).to.equal(TEST_TEXT);
       });
 
-      it('should not be cloneable if body is already accessed', () => {
+      it('should not be cloneable if body is already accessed', async () => {
         const response = new FetchResponse(mockXhr);
-        return response.text().then(() => {
-          expect(() => response.clone(), 'should throw').to.throw(
-            Error,
-            /Body already used/
-          );
-        });
+        await response.text();
+        expect(() => response.clone(), 'should throw').to.throw(
+          Error,
+          /Body already used/
+        );
       });
     });
   });

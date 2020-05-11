@@ -57,17 +57,17 @@ export class Preconnect {
   /**
    * @param {string} url
    * @param {string} rel
-   * @param {?string=} opt_as
+   * @param {?string=} as
    * @private
    */
-  pre_(url, rel, opt_as) {
+  pre_(url, rel, as) {
     // <link rel="prefetch" href="..." as="">
     const linkEl = createElement(this.doc_, 'link', {
       'rel': rel,
       'href': url,
     });
-    if (opt_as) {
-      linkEl.setAttribute('as', opt_as);
+    if (as) {
+      linkEl.setAttribute('as', as);
     }
     this.doc_.head.appendChild(linkEl);
   }

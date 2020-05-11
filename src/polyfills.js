@@ -18,13 +18,13 @@
  * @fileoverview Loads all polyfills needed by the project.
  * This list should not get longer without a very good reason.
  */
+import {install as installArrayIncludes} from './polyfills/array-includes';
 import {install as installDOMTokenListToggle} from './polyfills/domtokenlist-toggle';
 import {install as installDocContains} from './polyfills/document-contains';
 import {install as installMathSign} from './polyfills/math-sign';
 import {install as installObjectAssign} from './polyfills/object-assign';
 import {install as installObjectValues} from './polyfills/object-values';
 import {install as installPromise} from './polyfills/promise';
-import {install as installArrayIncludes} from './polyfills/array-includes';
 
 installDOMTokenListToggle(self);
 installMathSign(self);

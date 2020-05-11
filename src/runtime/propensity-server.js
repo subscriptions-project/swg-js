@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
+import {addQueryParam} from '../utils/url';
 import {adsUrl} from './services';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {isObject, isBoolean} from '../utils/types';
-import {ExperimentFlags} from './experiment-flags';
-import {isExperimentOn} from './experiments';
 import {analyticsEventToPublisherEvent} from './event-type-mapping';
+import {isBoolean, isObject} from '../utils/types';
 
 /**
  * Implements interface to Propensity server
@@ -29,15 +32,16 @@ export class PropensityServer {
    * is available, publication ID is therefore used
    * in constructor for the server interface.
    * @param {!Window} win
-   * @param {string} publicationId
-   * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
+   * @param {!./deps.DepsDef} deps
    * @param {!./fetcher.Fetcher} fetcher
    */
-  constructor(win, publicationId, eventManager, fetcher) {
+  constructor(win, deps, fetcher) {
     /** @private @const {!Window} */
     this.win_ = win;
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
     /** @private @const {string} */
-    this.publicationId_ = publicationId;
+    this.publicationId_ = this.deps_.pageConfig().getPublicationId();
     /** @private {?string} */
     this.clientId_ = null;
     /** @private @const {!./fetcher.Fetcher} */
@@ -45,17 +49,9 @@ export class PropensityServer {
     /** @private @const {number} */
     this.version_ = 1;
 
-    eventManager.registerEventListener(this.handleClientEvent_.bind(this));
-
-    // TODO(mborof): b/133519525
-    /** @private @const {!boolean} */
-    this.logSwgEventsExperiment_ = isExperimentOn(
-      win,
-      ExperimentFlags.LOG_SWG_TO_PROPENSITY
-    );
-
-    /** @private {!boolean} */
-    this.logSwgEventsConfig_ = false;
+    this.deps_
+      .eventManager()
+      .registerEventListener(this.handleClientEvent_.bind(this));
   }
 
   /**
@@ -90,12 +86,13 @@ export class PropensityServer {
    * @return {string}
    */
   propensityUrl_(url) {
-    url = url + '&u_tz=240&v=' + this.version_;
+    url = addQueryParam(url, 'u_tz', '240');
+    url = addQueryParam(url, 'v', String(this.version_));
     const clientId = this.getClientId_();
     if (clientId) {
-      url = url + '&cookie=' + clientId;
+      url = addQueryParam(url, 'cookie', clientId);
     }
-    url = url + '&cdm=' + this.win_.location.hostname;
+    url = addQueryParam(url, 'cdm', this.win_.location.hostname);
     return url;
   }
 
@@ -108,11 +105,11 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    let userState = this.publicationId_ + ':' + state;
+    let url = adsUrl('/subopt/data');
+    url = addQueryParam(url, 'states', this.publicationId_ + ':' + state);
     if (productsOrSkus) {
-      userState = userState + ':' + encodeURIComponent(productsOrSkus);
+      url = addQueryParam(url, 'extrainfo', productsOrSkus);
     }
-    const url = adsUrl('/subopt/data?states=') + encodeURIComponent(userState);
     return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
@@ -126,11 +123,11 @@ export class PropensityServer {
       method: 'GET',
       credentials: 'include',
     });
-    let eventInfo = this.publicationId_ + ':' + event;
+    let url = adsUrl('/subopt/data');
+    url = addQueryParam(url, 'events', this.publicationId_ + ':' + event);
     if (context) {
-      eventInfo = eventInfo + ':' + encodeURIComponent(context);
+      url = addQueryParam(url, 'extrainfo', context);
     }
-    const url = adsUrl('/subopt/data?events=') + encodeURIComponent(eventInfo);
     return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
@@ -139,6 +136,17 @@ export class PropensityServer {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
+    /**
+     * Does a live check of the config because we don't know when publisher
+     * called to enable (it may be after a consent dialog).
+     */
+    if (
+      !this.deps_.config().enablePropensity &&
+      event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT
+    ) {
+      return;
+    }
+
     if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
       this.sendSubscriptionState(
         event.additionalParameters['state'],
@@ -150,14 +158,11 @@ export class PropensityServer {
     if (propEvent == null) {
       return;
     }
-    if (
-      !(this.logSwgEventsExperiment_ && this.logSwgEventsConfig_) &&
-      event.eventOriginator !== EventOriginator.PROPENSITY_CLIENT
-    ) {
-      return;
-    }
     let additionalParameters = event.additionalParameters;
-
+    // The EventParams object is private to SwG analytics.  Do not send.
+    if (additionalParameters instanceof EventParams) {
+      additionalParameters = undefined;
+    }
     if (isBoolean(event.isFromUserAction)) {
       if (!isObject(additionalParameters)) {
         additionalParameters = {};
@@ -246,9 +251,5 @@ export class PropensityServer {
       .then(response => {
         return this.parsePropensityResponse_(response);
       });
-  }
-
-  enableLoggingSwgEvents() {
-    this.logSwgEventsConfig_ = true;
   }
 }

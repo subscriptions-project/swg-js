@@ -285,6 +285,7 @@ describes.sandboxed('SubscribeResponse', {}, () => {
       'userData': ud.json(),
       'entitlements': null,
       'productType': null,
+      'oldSku': null,
     });
     expect(sr.complete()).to.equal(promise);
   });
@@ -314,6 +315,7 @@ describes.sandboxed('SubscribeResponse', {}, () => {
       'userData': ud.json(),
       'entitlements': entitlements.json(),
       'productType': null,
+      'oldSku': null,
     });
   });
 });

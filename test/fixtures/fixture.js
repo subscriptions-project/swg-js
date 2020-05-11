@@ -21,14 +21,13 @@
  */
 
 /** @const */
-var SENTINEL = '__FIXTURE__';
-
+const SENTINEL = '__FIXTURE__';
 
 /**
  * @param {!Window} win
  * @constructor
  */
-var Fixture = function(win) {
+const Fixture = function(win) {
   /** @const {!Window} */
   this.win = win;
 
@@ -55,15 +54,18 @@ Fixture.prototype.on = function(type, handler) {
 
 /**
  * @param {string} type
- * @param {*} opt_payload
+ * @param {*} payload
  * @private
  */
-Fixture.prototype.send = function(type, opt_payload) {
-  this.win.parent.postMessage({
-    'sentinel': SENTINEL,
-    'type': type,
-    'payload': opt_payload
-  }, '*');
+Fixture.prototype.send = function(type, payload) {
+  this.win.parent.postMessage(
+    {
+      'sentinel': SENTINEL,
+      'type': type,
+      'payload': payload,
+    },
+    '*'
+  );
 };
 
 /**
@@ -74,15 +76,12 @@ Fixture.prototype.handleMessage_ = function(event) {
   if (!event.data || event.data['sentinel'] != SENTINEL) {
     return;
   }
-  var type = event.data['type'];
-  var payload = event.data['payload'];
-  var handlers = this.handlers_[type];
+  const type = event.data['type'];
+  const payload = event.data['payload'];
+  const handlers = this.handlers_[type];
   if (handlers) {
     handlers.forEach(function(handler) {
       handler(payload);
     });
   }
 };
-
-
-var fixture = new Fixture(window);

@@ -21,8 +21,24 @@ import {PaymentsRequestDelegate} from './payments_request_delegate.js';
 import {PaymentsWebActivityDelegate} from './payments_web_activity_delegate.js';
 import {UpiHandler} from './upi_handler.js';
 import {ActivityPorts} from 'web-activities/activity-ports';
-import {BuyFlowActivityMode, PayFrameHelper, PostMessageEventType, PublicErrorCode} from './pay_frame_helper.js';
-import {apiV2DoesMerchantSupportSpecifiedCardType, chromeSupportsPaymentHandler, chromeSupportsPaymentRequest, doesMerchantSupportOnlyTokenizedCards, getUpiPaymentMethod, validatePaymentOptions, validateIsReadyToPayRequest, validatePaymentDataRequest, validateSecureContext} from './validator.js';
+import {
+  BuyFlowActivityMode,
+  BuyFlowMode,
+  PayFrameHelper,
+  PostMessageEventType,
+  PublicErrorCode,
+} from './pay_frame_helper.js';
+import {
+  apiV2DoesMerchantSupportSpecifiedCardType,
+  chromeSupportsPaymentHandler,
+  chromeSupportsPaymentRequest,
+  doesMerchantSupportOnlyTokenizedCards,
+  getUpiPaymentMethod,
+  validatePaymentOptions,
+  validateIsReadyToPayRequest,
+  validatePaymentDataRequest,
+  validateSecureContext,
+} from './validator.js';
 
 import {createGoogleTransactionId} from './utils.js';
 
@@ -51,12 +67,11 @@ class PaymentsAsyncClient {
   /**
    * @param {!PaymentOptions} paymentOptions
    * @param {function(!Promise<!PaymentData>)} onPaymentResponse
-   * @param {boolean=} opt_useIframe
-   * @param {!ActivityPorts=} opt_activities Can be used to provide a shared
+   * @param {boolean=} useIframe
+   * @param {!ActivityPorts=} activities Can be used to provide a shared
    *   activities manager. By default, the new manager is created.
    */
-  constructor(paymentOptions, onPaymentResponse, opt_useIframe,
-             opt_activities) {
+  constructor(paymentOptions, onPaymentResponse, useIframe, activities) {
     this.onPaymentResponse_ = onPaymentResponse;
 
     validatePaymentOptions(paymentOptions);
@@ -66,14 +81,14 @@ class PaymentsAsyncClient {
 
     /** @private @const {string} */
     this.environment_ =
-        paymentOptions.environment || Constants.Environment.TEST;
+      paymentOptions.environment || Constants.Environment.TEST;
     if (!PaymentsAsyncClient.googleTransactionId_) {
       PaymentsAsyncClient.googleTransactionId_ =
-          /** @type {string} */ (
-              (this.isInTrustedDomain_() && paymentOptions['i'] &&
-               paymentOptions['i']['googleTransactionId']) ?
-                  paymentOptions['i']['googleTransactionId'] :
-                  createGoogleTransactionId(this.environment_));
+        /** @type {string} */ (this.isInTrustedDomain_() &&
+        paymentOptions['i'] &&
+        paymentOptions['i']['googleTransactionId']
+          ? paymentOptions['i']['googleTransactionId']
+          : createGoogleTransactionId(this.environment_));
     }
 
     /** @private @const {!PaymentOptions} */
@@ -81,17 +96,24 @@ class PaymentsAsyncClient {
 
     /** @private @const {!PaymentsClientDelegateInterface} */
     this.webActivityDelegate_ = new PaymentsWebActivityDelegate(
-        this.environment_, PaymentsAsyncClient.googleTransactionId_,
-        opt_useIframe, opt_activities,
-        paymentOptions['i'] && paymentOptions['i']['redirectKey']);
+      this.environment_,
+      PaymentsAsyncClient.googleTransactionId_,
+      useIframe,
+      activities,
+      paymentOptions['i'] && paymentOptions['i']['redirectKey']
+    );
+
+    /** @private {number} */
+    this.buyFlowMode_ = BuyFlowMode.PAY_WITH_GOOGLE;
 
     const paymentRequestSupported = chromeSupportsPaymentRequest();
     // TODO: Remove the temporary hack that disable payments
     // request for inline flow.
     /** @private @const {?PaymentsClientDelegateInterface} */
-    this.delegate_ = paymentRequestSupported && !opt_useIframe ?
-        new PaymentsRequestDelegate(this.environment_) :
-        this.webActivityDelegate_;
+    this.delegate_ =
+      paymentRequestSupported && !useIframe
+        ? new PaymentsRequestDelegate(this.environment_)
+        : this.webActivityDelegate_;
 
     this.upiHandler_ = new UpiHandler();
 
@@ -102,20 +124,23 @@ class PaymentsAsyncClient {
     // activity delegate when load payment data is called.
     if (chromeSupportsPaymentHandler()) {
       PayFrameHelper.setBuyFlowActivityMode(
-          BuyFlowActivityMode.PAYMENT_HANDLER);
+        BuyFlowActivityMode.PAYMENT_HANDLER
+      );
     } else if (paymentRequestSupported) {
       PayFrameHelper.setBuyFlowActivityMode(BuyFlowActivityMode.ANDROID_NATIVE);
     }
 
     PayFrameHelper.setGoogleTransactionId(
-        PaymentsAsyncClient.googleTransactionId_);
+      PaymentsAsyncClient.googleTransactionId_
+    );
     PayFrameHelper.postMessage({
       'eventType': PostMessageEventType.LOG_INITIALIZE_PAYMENTS_CLIENT,
       'clientLatencyStartMs': Date.now(),
     });
 
-    window.addEventListener(
-        'message', event => this.handleMessageEvent_(event));
+    window.addEventListener('message', event =>
+      this.handleMessageEvent_(event)
+    );
   }
 
   /**
@@ -129,13 +154,17 @@ class PaymentsAsyncClient {
   isReadyToPay(isReadyToPayRequest) {
     // Merge with paymentOptions, preferring values from isReadyToPayRequest
     if (isReadyToPayRequest) {
-      isReadyToPayRequest =
-          Object.assign({}, this.paymentOptions_, isReadyToPayRequest);
+      isReadyToPayRequest = Object.assign(
+        {},
+        this.paymentOptions_,
+        isReadyToPayRequest
+      );
     }
     const startTimeMs = Date.now();
     /** @type {?string} */
-    const errorMessage = validateSecureContext() ||
-        validateIsReadyToPayRequest(isReadyToPayRequest);
+    const errorMessage =
+      validateSecureContext() ||
+      validateIsReadyToPayRequest(isReadyToPayRequest);
     if (errorMessage) {
       return new Promise((resolve, reject) => {
         PaymentsAsyncClient.logDevErrorToConsole_('isReadyToPay', errorMessage);
@@ -145,7 +174,7 @@ class PaymentsAsyncClient {
         });
         reject({
           'statusCode': Constants.ResponseStatus.DEVELOPER_ERROR,
-          'statusMessage': errorMessage
+          'statusMessage': errorMessage,
         });
       });
     }
@@ -176,21 +205,27 @@ class PaymentsAsyncClient {
     if (this.upiHandler_.isUpiRequest(isReadyToPayRequest)) {
       return this.upiHandler_.isReadyToPay(isReadyToPayRequest);
     }
-    if (chromeSupportsPaymentRequest() &&
-       !isNativeDisabledInRequest(isReadyToPayRequest)) {
+    if (
+      chromeSupportsPaymentRequest() &&
+      !isNativeDisabledInRequest(isReadyToPayRequest)
+    ) {
       if (isReadyToPayRequest.apiVersion >= 2) {
         return this.isReadyToPayApiV2ForChromePaymentRequest_(
-            isReadyToPayRequest);
+          isReadyToPayRequest
+        );
       } else {
         // This is the apiVersion 1 branch.
         // If the merchant supports only Tokenized cards then just rely on
         // delegate to give us the result.
         // This will need to change once b/78519188 is fixed.
-        const webPromise =
-            this.webActivityDelegate_.isReadyToPay(isReadyToPayRequest);
+        const webPromise = this.webActivityDelegate_.isReadyToPay(
+          isReadyToPayRequest
+        );
         const nativePromise = this.delegate_.isReadyToPay(isReadyToPayRequest);
-        if (doesMerchantSupportOnlyTokenizedCards(isReadyToPayRequest) &&
-            !chromeSupportsPaymentHandler()) {
+        if (
+          doesMerchantSupportOnlyTokenizedCards(isReadyToPayRequest) &&
+          !chromeSupportsPaymentHandler()
+        ) {
           return nativePromise;
         }
         // Return webIsReadyToPay only if delegateIsReadyToPay has been
@@ -198,8 +233,9 @@ class PaymentsAsyncClient {
         return nativePromise.then(() => webPromise);
       }
     }
-    const webPromise =
-        this.webActivityDelegate_.isReadyToPay(isReadyToPayRequest);
+    const webPromise = this.webActivityDelegate_.isReadyToPay(
+      isReadyToPayRequest
+    );
     return webPromise;
   }
 
@@ -214,26 +250,35 @@ class PaymentsAsyncClient {
   isReadyToPayApiV2ForChromePaymentRequest_(isReadyToPayRequest) {
     let defaultPromise = Promise.resolve({'result': false});
     if (isReadyToPayRequest.existingPaymentMethodRequired) {
-      defaultPromise =
-          Promise.resolve({'result': false, 'paymentMethodPresent': false});
+      defaultPromise = Promise.resolve({
+        'result': false,
+        'paymentMethodPresent': false,
+      });
     }
 
     let nativePromise = defaultPromise;
-    if (apiV2DoesMerchantSupportSpecifiedCardType(
-            isReadyToPayRequest, Constants.AuthMethod.CRYPTOGRAM_3DS)) {
+    if (
+      apiV2DoesMerchantSupportSpecifiedCardType(
+        isReadyToPayRequest,
+        Constants.AuthMethod.CRYPTOGRAM_3DS
+      )
+    ) {
       // If the merchant supports tokenized cards.
       // Make a separate call to gms core to check if the user isReadyToPay
       // with just tokenized cards. We can't pass in PAN_ONLY here
       // because gms core always returns true for PAN_ONLY.
       // Leave other payment methods as is.
-      const nativeRtpRequest = /** @type {!IsReadyToPayRequest} */
-          (JSON.parse(JSON.stringify(isReadyToPayRequest)));
-      for (var i = 0; i < nativeRtpRequest.allowedPaymentMethods.length; i++) {
-        if (nativeRtpRequest.allowedPaymentMethods[i].type ==
-            Constants.PaymentMethod.CARD) {
-          nativeRtpRequest.allowedPaymentMethods[i]
-              .parameters['allowedAuthMethods'] =
-              [Constants.AuthMethod.CRYPTOGRAM_3DS];
+      const nativeRtpRequest /** @type {!IsReadyToPayRequest} */ = JSON.parse(
+        JSON.stringify(isReadyToPayRequest)
+      );
+      for (let i = 0; i < nativeRtpRequest.allowedPaymentMethods.length; i++) {
+        if (
+          nativeRtpRequest.allowedPaymentMethods[i].type ==
+          Constants.PaymentMethod.CARD
+        ) {
+          nativeRtpRequest.allowedPaymentMethods[i].parameters[
+            'allowedAuthMethods'
+          ] = [Constants.AuthMethod.CRYPTOGRAM_3DS];
         }
       }
 
@@ -241,8 +286,12 @@ class PaymentsAsyncClient {
     }
 
     let webPromise = defaultPromise;
-    if (apiV2DoesMerchantSupportSpecifiedCardType(
-            isReadyToPayRequest, Constants.AuthMethod.PAN_ONLY)) {
+    if (
+      apiV2DoesMerchantSupportSpecifiedCardType(
+        isReadyToPayRequest,
+        Constants.AuthMethod.PAN_ONLY
+      )
+    ) {
       webPromise = this.webActivityDelegate_.isReadyToPay(isReadyToPayRequest);
     }
 
@@ -272,16 +321,20 @@ class PaymentsAsyncClient {
    */
   prefetchPaymentData(paymentDataRequest) {
     /** @type {?string} */
-    const errorMessage = validateSecureContext() ||
-        validatePaymentDataRequest(paymentDataRequest);
+    const errorMessage =
+      validateSecureContext() || validatePaymentDataRequest(paymentDataRequest);
     if (errorMessage) {
       PaymentsAsyncClient.logDevErrorToConsole_(
-          'prefetchPaymentData', errorMessage);
+        'prefetchPaymentData',
+        errorMessage
+      );
       return;
     }
     this.assignInternalParams_(paymentDataRequest);
-    if (chromeSupportsPaymentRequest()
-       && !isNativeDisabledInRequest(paymentDataRequest)) {
+    if (
+      chromeSupportsPaymentRequest() &&
+      !isNativeDisabledInRequest(paymentDataRequest)
+    ) {
       this.delegate_.prefetchPaymentData(paymentDataRequest);
     } else {
       // For non chrome supports always use the hosting page.
@@ -301,21 +354,30 @@ class PaymentsAsyncClient {
     PayFrameHelper.postMessage({
       'eventType': PostMessageEventType.LOG_BUTTON_CLICK,
     });
-    const errorMessage = validateSecureContext() ||
-        validatePaymentDataRequest(paymentDataRequest);
+    const errorMessage =
+      validateSecureContext() || validatePaymentDataRequest(paymentDataRequest);
+    this.buyFlowMode_ =
+      paymentDataRequest && paymentDataRequest.swg
+        ? BuyFlowMode.SUBSCRIBE_WITH_GOOGLE
+        : BuyFlowMode.PAY_WITH_GOOGLE;
     if (errorMessage) {
-      this.onPaymentResponse_(new Promise((resolve, reject) => {
-        PayFrameHelper.postMessage({
-          'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
-          'error': PublicErrorCode.DEVELOPER_ERROR,
-        });
-        PaymentsAsyncClient.logDevErrorToConsole_(
-            'loadPaymentData', errorMessage);
-        reject({
-          'statusCode': Constants.ResponseStatus.DEVELOPER_ERROR,
-          'statusMessage': errorMessage
-        });
-      }));
+      this.onPaymentResponse_(
+        new Promise((resolve, reject) => {
+          PayFrameHelper.postMessage({
+            'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
+            'error': PublicErrorCode.DEVELOPER_ERROR,
+            'buyFlowMode': this.buyFlowMode_,
+          });
+          PaymentsAsyncClient.logDevErrorToConsole_(
+            'loadPaymentData',
+            errorMessage
+          );
+          reject({
+            'statusCode': Constants.ResponseStatus.DEVELOPER_ERROR,
+            'statusMessage': errorMessage,
+          });
+        })
+      );
       return;
     }
 
@@ -325,19 +387,25 @@ class PaymentsAsyncClient {
     const upiPaymentMethod = getUpiPaymentMethod(paymentDataRequest);
     if (upiPaymentMethod) {
       this.upiHandler_.loadPaymentData(
-          paymentDataRequest, upiPaymentMethod, this.onResult_.bind(this));
+        paymentDataRequest,
+        upiPaymentMethod,
+        this.onResult_.bind(this)
+      );
       return;
     }
 
-    const isReadyToPayResult =
-        window.sessionStorage.getItem(Constants.IS_READY_TO_PAY_RESULT_KEY);
+    const isReadyToPayResult = window.sessionStorage.getItem(
+      Constants.IS_READY_TO_PAY_RESULT_KEY
+    );
     this.loadPaymentDataApiStartTimeMs_ = Date.now();
     this.assignInternalParams_(paymentDataRequest);
     // We want to fall back to the web delegate if payment handler is supported
     // and isReadyToPay bit is not explicitly set to true (fallback to web if
     // isReadyToPay wasn't called for PH)
-    if ((chromeSupportsPaymentHandler() && isReadyToPayResult !== 'true')
-       || isNativeDisabledInRequest(paymentDataRequest)) {
+    if (
+      (chromeSupportsPaymentHandler() && isReadyToPayResult !== 'true') ||
+      isNativeDisabledInRequest(paymentDataRequest)
+    ) {
       this.webActivityDelegate_.loadPaymentData(paymentDataRequest);
     } else {
       this.delegate_.loadPaymentData(paymentDataRequest);
@@ -363,7 +431,7 @@ class PaymentsAsyncClient {
    * @export
    */
   createButton(options = {}) {
-    let button = null;
+    const button = null;
     // Only log if button was created successfully
     const startTimeMs = Date.now();
     PayFrameHelper.postMessage({
@@ -402,26 +470,29 @@ class PaymentsAsyncClient {
    */
   onResult_(response) {
     response
-        .then(result => {
+      .then(result => {
+        PayFrameHelper.postMessage({
+          'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
+          'clientLatencyStartMs': this.loadPaymentDataApiStartTimeMs_,
+          'buyFlowMode': this.buyFlowMode_,
+        });
+      })
+      .catch(result => {
+        if (result['errorCode']) {
           PayFrameHelper.postMessage({
             'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
-            'clientLatencyStartMs': this.loadPaymentDataApiStartTimeMs_,
+            'error': /** @type {!PublicErrorCode} */ (result['errorCode']),
+            'buyFlowMode': this.buyFlowMode_,
           });
-        })
-        .catch(result => {
-          if (result['errorCode']) {
-            PayFrameHelper.postMessage({
-              'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
-              'error': /** @type {!PublicErrorCode} */ (result['errorCode']),
-            });
-          } else {
-            // If user closes window we don't get a error code
-            PayFrameHelper.postMessage({
-              'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
-              'error': PublicErrorCode.BUYER_CANCEL,
-            });
-          }
-        });
+        } else {
+          // If user closes window we don't get a error code
+          PayFrameHelper.postMessage({
+            'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
+            'error': PublicErrorCode.BUYER_CANCEL,
+            'buyFlowMode': this.buyFlowMode_,
+          });
+        }
+      });
     this.onPaymentResponse_(response);
   }
 
@@ -435,16 +506,15 @@ class PaymentsAsyncClient {
       'startTimeMs': Date.now(),
       'googleTransactionId': PaymentsAsyncClient.googleTransactionId_,
     };
-    paymentDataRequest['i'] = paymentDataRequest['i'] ?
-        Object.assign(internalParam, paymentDataRequest['i']) :
-        internalParam;
+    paymentDataRequest['i'] = paymentDataRequest['i']
+      ? Object.assign(internalParam, paymentDataRequest['i'])
+      : internalParam;
     return paymentDataRequest;
   }
 }
 
 /** @const {?string} */
 PaymentsAsyncClient.googleTransactionId_;
-
 
 /**
  * Whether the request specifies that the native support has to be disabled.
@@ -455,6 +525,5 @@ PaymentsAsyncClient.googleTransactionId_;
 function isNativeDisabledInRequest(request) {
   return (request['i'] && request['i']['disableNative']) === true;
 }
-
 
 export {PaymentsAsyncClient};

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import {Fetcher} from './fetcher';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
-import {Fetcher} from './fetcher';
 
 describes.realWin('OffersApi', {}, () => {
   let offersApi;
@@ -34,7 +34,7 @@ describes.realWin('OffersApi', {}, () => {
     fetcherMock.verify();
   });
 
-  it('should fetch with default product', () => {
+  it('should fetch with default product', async () => {
     const expectedUrl =
       '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
     fetcherMock
@@ -42,12 +42,12 @@ describes.realWin('OffersApi', {}, () => {
       .withExactArgs(expectedUrl)
       .returns(Promise.resolve({offers: [{skuId: '1'}, {skuId: '2'}]}))
       .once();
-    return offersApi.getOffers().then(offers => {
-      expect(offers).to.deep.equal([{skuId: '1'}, {skuId: '2'}]);
-    });
+
+    const offers = await offersApi.getOffers();
+    expect(offers).to.deep.equal([{skuId: '1'}, {skuId: '2'}]);
   });
 
-  it('should fetch with a different product', () => {
+  it('should fetch with a different product', async () => {
     const expectedUrl =
       '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel2';
     fetcherMock
@@ -55,12 +55,12 @@ describes.realWin('OffersApi', {}, () => {
       .withExactArgs(expectedUrl)
       .returns(Promise.resolve({offers: [{skuId: '1'}, {skuId: '2'}]}))
       .once();
-    return offersApi.getOffers('pub1:label2').then(offers => {
-      expect(offers).to.deep.equal([{skuId: '1'}, {skuId: '2'}]);
-    });
+
+    const offers = await offersApi.getOffers('pub1:label2');
+    expect(offers).to.deep.equal([{skuId: '1'}, {skuId: '2'}]);
   });
 
-  it('should fetch empty response', () => {
+  it('should fetch empty response', async () => {
     const expectedUrl =
       '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
     fetcherMock
@@ -68,8 +68,8 @@ describes.realWin('OffersApi', {}, () => {
       .withExactArgs(expectedUrl)
       .returns(Promise.resolve({}))
       .once();
-    return offersApi.getOffers().then(offers => {
-      expect(offers).to.deep.equal([]);
-    });
+
+    const offers = await offersApi.getOffers();
+    expect(offers).to.deep.equal([]);
   });
 });

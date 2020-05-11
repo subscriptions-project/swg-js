@@ -18,7 +18,10 @@
  * Debug logger, only log message if #swg.log=1
  * @param {...*} var_args [decription]
  */
-export function debugLog(var_args) {
+
+/* eslint-disable */
+
+function debugLog(var_args) {
   if (/swg.debug=1/.test(self.location.hash)) {
     const logArgs = Array.prototype.slice.call(arguments, 0);
     logArgs.unshift('[Subscriptions]');
@@ -29,8 +32,15 @@ export function debugLog(var_args) {
 /**
  * @param  {...*} var_args [description]
  */
-export function log(var_args) {
+function log(var_args) {
   console.log.apply(console, arguments);
+}
+
+/**
+ * @param  {...*} var_args [description]
+ */
+function warn(var_args) {
+  console.warn.apply(console, arguments);
 }
 
 /**
@@ -47,15 +57,15 @@ export function log(var_args) {
  *
  * @param {T} shouldBeTrueish The value to assert. The assert fails if it does
  *     not evaluate to true.
- * @param {string=} opt_message The assertion message
+ * @param {string=} message The assertion message
  * @param {...*} var_args Arguments substituted into %s in the message.
  * @return {T} The value of shouldBeTrueish.
  * @template T
  */
-export function assert(shouldBeTrueish, opt_message, var_args) {
+function assert(shouldBeTrueish, message, var_args) {
   let firstElement;
   if (!shouldBeTrueish) {
-    const message = opt_message || 'Assertion failed';
+    message = message || 'Assertion failed';
     const splitMessage = message.split('%s');
     const first = splitMessage.shift();
     let formatted = first;
@@ -97,3 +107,10 @@ function toString(val) {
   }
   return /** @type {string} */ (val);
 }
+
+module.exports = {
+  assert,
+  debugLog,
+  warn,
+  log
+};

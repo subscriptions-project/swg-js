@@ -16,7 +16,6 @@
 'use strict';
 
 require('./assets');
-require('./babel-helpers');
 require('./builders');
 require('./changelog');
 require('./check-rules');
@@ -24,4 +23,4 @@ require('./compile');
 require('./export-to-es');
 require('./lint');
 require('./serve');
-require('./test');
+require('./unit');

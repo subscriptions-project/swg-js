@@ -19,62 +19,6 @@
  * {@link http://json.org/}.
  */
 
-import {isObject} from './types';
-
-/**
- * Recreates objects with prototype-less copies.
- * @param {!JsonObject} obj
- * @return {!JsonObject}
- */
-export function recreateNonProtoObject(obj) {
-  const copy = Object.create(null);
-  for (const k in obj) {
-    if (!hasOwnProperty(obj, k)) {
-      continue;
-    }
-    const v = obj[k];
-    copy[k] = isObject(v) ? recreateNonProtoObject(v) : v;
-  }
-  return /** @type {!JsonObject} */ (copy);
-}
-
-/**
- * Returns a value from an object for a field-based expression. The expression
- * is a simple nested dot-notation of fields, such as `field1.field2`. If any
- * field in a chain does not exist or is not an object, the returned value will
- * be `undefined`.
- *
- * @param {!JsonObject} obj
- * @param {string} expr
- * @return {*}
- */
-export function getValueForExpr(obj, expr) {
-  // The `.` indicates "the object itself".
-  if (expr == '.') {
-    return obj;
-  }
-  // Otherwise, navigate via properties.
-  const parts = expr.split('.');
-  let value = obj;
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i];
-    if (!part) {
-      value = undefined;
-      break;
-    }
-    if (
-      !isObject(value) ||
-      value[part] === undefined ||
-      !hasOwnProperty(value, part)
-    ) {
-      value = undefined;
-      break;
-    }
-    value = value[part];
-  }
-  return value;
-}
-
 /**
  * Simple wrapper around JSON.parse that casts the return value
  * to JsonObject.
@@ -91,32 +35,29 @@ export function parseJson(json) {
  * Returns `undefined` if parsing fails.
  * Returns the `Object` corresponding to the JSON string when parsing succeeds.
  * @param {*} json JSON string to parse
- * @param {function(!Error)=} opt_onFailed Optional function that will be called
+ * @param {function(!Error)=} onFailed Optional function that will be called
  *     with the error if parsing fails.
  * @return {?JsonObject|undefined} May be extend to parse arrays.
  */
-export function tryParseJson(json, opt_onFailed) {
+export function tryParseJson(json, onFailed) {
   try {
     return parseJson(json);
   } catch (e) {
-    if (opt_onFailed) {
-      opt_onFailed(e);
+    if (onFailed) {
+      onFailed(e);
     }
     return undefined;
   }
 }
 
 /**
- * @param {*} obj
- * @param {string} key
- * @return {boolean}
+ * Converts the passed string into a JSON object (if possible) and returns the
+ * value of the propertyName on that object.
+ * @param {string} jsonString
+ * @param {string} propertyName
+ * @return {*}
  */
-function hasOwnProperty(obj, key) {
-  if (obj == null || typeof obj != 'object') {
-    return false;
-  }
-  return Object.prototype.hasOwnProperty.call(
-    /** @type {!Object} */ (obj),
-    key
-  );
+export function getPropertyFromJsonString(jsonString, propertyName) {
+  const json = tryParseJson(jsonString);
+  return (json && json[propertyName]) || null;
 }

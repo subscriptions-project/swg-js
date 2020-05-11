@@ -15,56 +15,60 @@
  */
 'use strict';
 
-const $$ = require('gulp-load-plugins')();
-const BBPromise = require('bluebird');
-const exec = BBPromise.promisify(require('child_process').exec);
-const fs = require('fs-extra');
-const gulp = $$.help(require('gulp'));
-const resolveConfig = require('./compile-config').resolveConfig;
-const version = require('./internal-version').VERSION;
-const rollup = require('rollup');
-const resolveNodeModules = require('rollup-plugin-node-resolve');
 const commonJS = require('rollup-plugin-commonjs');
-const util = require('util');
-const cleanup = require('rollup-plugin-cleanup');
+const fs = require('fs-extra');
 const overrideConfig = require('./compile-config').overrideConfig;
+const resolveConfig = require('./compile-config').resolveConfig;
+const resolveNodeModules = require('rollup-plugin-node-resolve');
+const rollup = require('rollup');
+const util = require('util');
+const version = require('./internal-version').VERSION;
 
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
-const exists = util.promisify(fs.exists);
+const exists = util.promisify(fs.pathExists);
 const mkdir = util.promisify(fs.mkdir);
 
-function runAllExportsToEs(opt_config, opt_outputs) {
-  if (opt_config) {
-    overrideConfig(opt_config);
+function runAllExportsToEs(config, outputs) {
+  if (config) {
+    overrideConfig(config);
   }
-  const outputs = Object.assign({
-    config: 'dist/exports-config.js',
-    swg: 'dist/exports-swg.js',
-    button: 'dist/exports-swg-button.css',
-  }, opt_outputs || {});
-  return Promise.resolve().then(() => {
-    return exportToEs6('exports/config.js', outputs.config);
-  }).then(() => {
-    return exportToEs6('exports/swg.js', outputs.swg);
-  }).then(() => {
-    return exportCss('assets/swg-button.css', outputs.button);
-  });
+  outputs = Object.assign(
+    {
+      config: 'dist/exports-config.js',
+      swg: 'dist/exports-swg.js',
+      button: 'dist/exports-swg-button.css',
+    },
+    outputs
+  );
+  return Promise.resolve()
+    .then(() => {
+      return exportToEs6('exports/config.js', outputs.config);
+    })
+    .then(() => {
+      return exportToEs6('exports/swg.js', outputs.swg);
+    })
+    .then(() => {
+      return exportCss('assets/swg-button.css', outputs.button);
+    });
 }
 
 function runAllExportsToAmp() {
-  return runAllExportsToEs({
-    'frontend': 'https://news.google.com',
-    'frontendCache': 'hr1',
-    'assets': 'https://news.google.com/swg/js/v1',
-    'payEnvironment': 'PRODUCTION',
-    'playEnvironment': 'PROD',
-    'adsServer': 'https://pubads.g.doubleclick.net',
-  }, {
-    config: 'dist/amp/config.js',
-    swg: 'dist/amp/swg.js',
-    button: 'dist/amp/swg-button.css',
-  });
+  return runAllExportsToEs(
+    {
+      'frontend': 'https://news.google.com',
+      'frontendCache': 'hr1',
+      'assets': 'https://news.google.com/swg/js/v1',
+      'payEnvironment': 'PRODUCTION',
+      'playEnvironment': 'PROD',
+      'adsServer': 'https://pubads.g.doubleclick.net',
+    },
+    {
+      config: 'dist/amp/config.js',
+      swg: 'dist/amp/swg.js',
+      button: 'dist/amp/swg-button.css',
+    }
+  );
 }
 
 /**
@@ -75,8 +79,9 @@ function runAllExportsToAmp() {
 async function exportToEs6(inputFile, outputFile) {
   await mkdirs(['build', 'dist', 'dist/amp']);
 
-  const license = (await
-    readFile('build-system/tasks/license-header.txt', 'utf8')).trim();
+  const license = (
+    await readFile('build-system/tasks/license-header.txt', 'utf8')
+  ).trim();
   const bundle = await rollup.rollup({
     input: inputFile,
     plugins: [
@@ -88,24 +93,19 @@ async function exportToEs6(inputFile, outputFile) {
       // cleanup({comments:'none'}),
     ],
   });
-  const {code} = await bundle.generate({
-    format: 'es',
+  const {output} = await bundle.generate({
+    format: 'esm',
     sourcemap: true,
   });
 
-  let output = `${license}\n/** Version: ${version} */\n${code}`;
+  let js = `${license}\n/** Version: ${version} */\n${output[0].code}`;
   // Replacements (TBD Rollup Plugin replacements instead)
   const replacements = resolveConfig();
   for (const k in replacements) {
-    output = output.replace(
-        new RegExp('\\$' + k + '\\$', 'g'), replacements[k]
-    );
+    js = js.replace(new RegExp('\\$' + k + '\\$', 'g'), replacements[k]);
   }
 
-  // Change the export format.
-  output = output.replace(/module.exports\s*\=\s*\{/g, 'export {');
-
-  return writeFile(outputFile, output);
+  return writeFile(outputFile, js);
 }
 
 /**
@@ -115,9 +115,9 @@ async function exportToEs6(inputFile, outputFile) {
 async function exportCss(inputFile, outputFile) {
   await mkdirs(['build', 'dist']);
 
-  let css = (await readFile(inputFile, 'utf8'));
+  let css = await readFile(inputFile, 'utf8');
   // Resolve all URLs to absolute paths.
-  css = css.replace(/url\(([^)]*)\)/ig, (match, value) => {
+  css = css.replace(/url\(([^)]*)\)/gi, (match, value) => {
     if (value[0] == '"') {
       value = value.substring(1, value.length - 1);
     }
@@ -130,19 +130,24 @@ async function exportCss(inputFile, outputFile) {
   return writeFile(outputFile, css);
 }
 
-async function mkdirs(paths) {
-  for (const path of paths) {
-    const pathExists = await exists(path);
-
-    if (!pathExists) {
-      await mkdir(path);
-    }
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
   }
 }
 
+async function mkdirs(paths) {
+  asyncForEach(paths, async path => {
+    const pathExists = await exists(path);
+    if (!pathExists) {
+      await mkdir(path);
+    }
+  });
+}
 
+module.exports = {
+  runAllExportsToEs,
+  runAllExportsToAmp,
+};
 runAllExportsToEs.description = 'All exports to ES';
-gulp.task('export-to-es-all', runAllExportsToEs);
-
 runAllExportsToAmp.description = 'All exports to AMP';
-gulp.task('export-to-amp', runAllExportsToAmp);

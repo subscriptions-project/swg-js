@@ -23,11 +23,11 @@ class Message {
   label() {}
 
   /**
-   * @return {!Array}
+   * @param {boolean=} unusedIncludeLabel
+   * @return {!Array<*>}
    */
-  toArray() {}
+  toArray(unusedIncludeLabel = true) {}
 }
-
 /** @enum {number} */
 const AnalyticsEvent = {
   UNKNOWN: 0,
@@ -37,6 +37,20 @@ const AnalyticsEvent = {
   IMPRESSION_SUBSCRIBE_BUTTON: 4,
   IMPRESSION_SMARTBOX: 5,
   IMPRESSION_SWG_BUTTON: 6,
+  IMPRESSION_CLICK_TO_SHOW_OFFERS: 7,
+  IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED: 8,
+  IMPRESSION_SUBSCRIPTION_COMPLETE: 9,
+  IMPRESSION_ACCOUNT_CHANGED: 10,
+  IMPRESSION_PAGE_LOAD: 11,
+  IMPRESSION_LINK: 12,
+  IMPRESSION_SAVE_SUBSCR_TO_GOOGLE: 13,
+  IMPRESSION_GOOGLE_UPDATED: 14,
+  IMPRESSION_SHOW_OFFERS_SMARTBOX: 15,
+  IMPRESSION_SHOW_OFFERS_SWG_BUTTON: 16,
+  IMPRESSION_SELECT_OFFER_SMARTBOX: 17,
+  IMPRESSION_SELECT_OFFER_SWG_BUTTON: 18,
+  IMPRESSION_SHOW_CONTRIBUTIONS_SWG_BUTTON: 19,
+  IMPRESSION_SELECT_CONTRIBUTION_SWG_BUTTON: 20,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -45,8 +59,27 @@ const AnalyticsEvent = {
   ACTION_PAYMENT_FLOW_STARTED: 1005,
   ACTION_OFFER_SELECTED: 1006,
   ACTION_SWG_BUTTON_CLICK: 1007,
+  ACTION_VIEW_OFFERS: 1008,
+  ACTION_ALREADY_SUBSCRIBED: 1009,
+  ACTION_NEW_DEFERRED_ACCOUNT: 1010,
+  ACTION_LINK_CONTINUE: 1011,
+  ACTION_LINK_CANCEL: 1012,
+  ACTION_GOOGLE_UPDATED_CLOSE: 1013,
+  ACTION_USER_CANCELED_PAYFLOW: 1014,
+  ACTION_SAVE_SUBSCR_TO_GOOGLE_CONTINUE: 1015,
+  ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL: 1016,
+  ACTION_SWG_BUTTON_SHOW_OFFERS_CLICK: 1017,
+  ACTION_SWG_BUTTON_SELECT_OFFER_CLICK: 1018,
+  ACTION_SWG_BUTTON_SHOW_CONTRIBUTIONS_CLICK: 1019,
+  ACTION_SWG_BUTTON_SELECT_CONTRIBUTION_CLICK: 1020,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_CUSTOM: 3000,
+  EVENT_CONFIRM_TX_ID: 3001,
+  EVENT_CHANGED_TX_ID: 3002,
+  EVENT_GPAY_NO_TX_ID: 3003,
+  EVENT_GPAY_CANNOT_CONFIRM_TX_ID: 3004,
+  EVENT_GOOGLE_UPDATED: 3005,
+  EVENT_NEW_TX_ID: 3006,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -62,38 +95,170 @@ const EventOriginator = {
 /**
  * @implements {Message}
  */
-class AnalyticsContext {
- /**
-  * @param {!Array=} data
-  */
-  constructor(data = []) {
-
-    /** @private {?string} */
-    this.embedderOrigin_ = (data[1] == null) ? null : data[1];
-
-    /** @private {?string} */
-    this.transactionId_ = (data[2] == null) ? null : data[2];
-
-    /** @private {?string} */
-    this.referringOrigin_ = (data[3] == null) ? null : data[3];
-
-    /** @private {?string} */
-    this.utmSource_ = (data[4] == null) ? null : data[4];
-
-    /** @private {?string} */
-    this.utmCampaign_ = (data[5] == null) ? null : data[5];
-
-    /** @private {?string} */
-    this.utmMedium_ = (data[6] == null) ? null : data[6];
-
-    /** @private {?string} */
-    this.sku_ = (data[7] == null) ? null : data[7];
+class AccountCreationRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
 
     /** @private {?boolean} */
-    this.readyToPay_ = (data[8] == null) ? null : data[8];
+    this.complete_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getComplete() {
+    return this.complete_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setComplete(value) {
+    this.complete_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+      this.complete_, // field 1 - complete
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AccountCreationRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class AlreadySubscribedResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?boolean} */
+    this.subscriberOrMember_ = data[base] == null ? null : data[base];
+
+    /** @private {?boolean} */
+    this.linkRequested_ = data[1 + base] == null ? null : data[1 + base];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getSubscriberOrMember() {
+    return this.subscriberOrMember_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setSubscriberOrMember(value) {
+    this.subscriberOrMember_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getLinkRequested() {
+    return this.linkRequested_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setLinkRequested(value) {
+    this.linkRequested_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+      this.subscriberOrMember_, // field 1 - subscriber_or_member
+      this.linkRequested_, // field 2 - link_requested
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AlreadySubscribedResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class AnalyticsContext {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.embedderOrigin_ = data[base] == null ? null : data[base];
+
+    /** @private {?string} */
+    this.transactionId_ = data[1 + base] == null ? null : data[1 + base];
+
+    /** @private {?string} */
+    this.referringOrigin_ = data[2 + base] == null ? null : data[2 + base];
+
+    /** @private {?string} */
+    this.utmSource_ = data[3 + base] == null ? null : data[3 + base];
+
+    /** @private {?string} */
+    this.utmCampaign_ = data[4 + base] == null ? null : data[4 + base];
+
+    /** @private {?string} */
+    this.utmMedium_ = data[5 + base] == null ? null : data[5 + base];
+
+    /** @private {?string} */
+    this.sku_ = data[6 + base] == null ? null : data[6 + base];
+
+    /** @private {?boolean} */
+    this.readyToPay_ = data[7 + base] == null ? null : data[7 + base];
 
     /** @private {!Array<string>} */
-    this.label_ = data[9] || [];
+    this.label_ = data[8 + base] || [];
+
+    /** @private {?string} */
+    this.clientVersion_ = data[9 + base] == null ? null : data[9 + base];
+
+    /** @private {?string} */
+    this.url_ = data[10 + base] == null ? null : data[10 + base];
   }
 
   /**
@@ -223,22 +388,56 @@ class AnalyticsContext {
   }
 
   /**
+   * @return {?string}
+   */
+  getClientVersion() {
+    return this.clientVersion_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setClientVersion(value) {
+    this.clientVersion_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getUrl() {
+    return this.url_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setUrl(value) {
+    this.url_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
    * @return {!Array}
    * @override
    */
-  toArray() {
-    return [
-      this.label(),  // message label
-      this.embedderOrigin_,  // field 1 - embedder_origin
-      this.transactionId_,  // field 2 - transaction_id
-      this.referringOrigin_,  // field 3 - referring_origin
-      this.utmSource_,  // field 4 - utm_source
-      this.utmCampaign_,  // field 5 - utm_campaign
-      this.utmMedium_,  // field 6 - utm_medium
-      this.sku_,  // field 7 - sku
-      this.readyToPay_,  // field 8 - ready_to_pay
-      this.label_,  // field 9 - label
+  toArray(includeLabel = true) {
+    const arr = [
+      this.embedderOrigin_, // field 1 - embedder_origin
+      this.transactionId_, // field 2 - transaction_id
+      this.referringOrigin_, // field 3 - referring_origin
+      this.utmSource_, // field 4 - utm_source
+      this.utmCampaign_, // field 5 - utm_campaign
+      this.utmMedium_, // field 6 - utm_medium
+      this.sku_, // field 7 - sku
+      this.readyToPay_, // field 8 - ready_to_pay
+      this.label_, // field 9 - label
+      this.clientVersion_, // field 10 - client_version
+      this.url_, // field 11 - url
     ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
   }
 
   /**
@@ -254,16 +453,18 @@ class AnalyticsContext {
  * @implements {Message}
  */
 class AnalyticsEventMeta {
- /**
-  * @param {!Array=} data
-  */
-  constructor(data = []) {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
 
     /** @private {?EventOriginator} */
-    this.eventOriginator_ = (data[1] == null) ? null : data[1];
+    this.eventOriginator_ = data[base] == null ? null : data[base];
 
     /** @private {?boolean} */
-    this.isFromUserAction_ = (data[2] == null) ? null : data[2];
+    this.isFromUserAction_ = data[1 + base] == null ? null : data[1 + base];
   }
 
   /**
@@ -295,15 +496,19 @@ class AnalyticsEventMeta {
   }
 
   /**
+   * @param {boolean} includeLabel
    * @return {!Array}
    * @override
    */
-  toArray() {
-    return [
-      this.label(),  // message label
-      this.eventOriginator_,  // field 1 - event_originator
-      this.isFromUserAction_,  // field 2 - is_from_user_action
+  toArray(includeLabel = true) {
+    const arr = [
+      this.eventOriginator_, // field 1 - event_originator
+      this.isFromUserAction_, // field 2 - is_from_user_action
     ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
   }
 
   /**
@@ -319,25 +524,33 @@ class AnalyticsEventMeta {
  * @implements {Message}
  */
 class AnalyticsRequest {
- /**
-  * @param {!Array=} data
-  */
-  constructor(data = []) {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
 
     /** @private {?AnalyticsContext} */
-    this.context_ = (data[1] == null || data[1] == undefined) ? null : new
-        AnalyticsContext(data[1]);
+    this.context_ =
+      data[base] == null || data[base] == undefined
+        ? null
+        : new AnalyticsContext(data[base], includesLabel);
 
     /** @private {?AnalyticsEvent} */
-    this.event_ = (data[2] == null) ? null : data[2];
+    this.event_ = data[1 + base] == null ? null : data[1 + base];
 
     /** @private {?AnalyticsEventMeta} */
-    this.meta_ = (data[3] == null || data[3] == undefined) ? null : new
-        AnalyticsEventMeta(data[3]);
+    this.meta_ =
+      data[2 + base] == null || data[2 + base] == undefined
+        ? null
+        : new AnalyticsEventMeta(data[2 + base], includesLabel);
 
     /** @private {?EventParams} */
-    this.params_ = (data[4] == null || data[4] == undefined) ? null : new
-        EventParams(data[4]);
+    this.params_ =
+      data[3 + base] == null || data[3 + base] == undefined
+        ? null
+        : new EventParams(data[3 + base], includesLabel);
   }
 
   /**
@@ -397,17 +610,21 @@ class AnalyticsRequest {
   }
 
   /**
+   * @param {boolean} includeLabel
    * @return {!Array}
    * @override
    */
-  toArray() {
-    return [
-      this.label(),  // message label
-      this.context_ ? this.context_.toArray() : [], // field 1 - context
-      this.event_,  // field 2 - event
-      this.meta_ ? this.meta_.toArray() : [], // field 3 - meta
-      this.params_ ? this.params_.toArray() : [], // field 4 - params
+  toArray(includeLabel = true) {
+    const arr = [
+      this.context_ ? this.context_.toArray(includeLabel) : [], // field 1 - context
+      this.event_, // field 2 - event
+      this.meta_ ? this.meta_.toArray(includeLabel) : [], // field 3 - meta
+      this.params_ ? this.params_.toArray(includeLabel) : [], // field 4 - params
     ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
   }
 
   /**
@@ -422,14 +639,81 @@ class AnalyticsRequest {
 /**
  * @implements {Message}
  */
-class EventParams {
- /**
-  * @param {!Array=} data
-  */
-  constructor(data = []) {
+class EntitlementsResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
 
     /** @private {?string} */
-    this.smartboxMessage_ = (data[1] == null) ? null : data[1];
+    this.jwt_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getJwt() {
+    return this.jwt_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setJwt(value) {
+    this.jwt_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+      this.jwt_, // field 1 - jwt
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'EntitlementsResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class EventParams {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.smartboxMessage_ = data[base] == null ? null : data[base];
+
+    /** @private {?string} */
+    this.gpayTransactionId_ = data[1 + base] == null ? null : data[1 + base];
+
+    /** @private {?boolean} */
+    this.hadLogged_ = data[2 + base] == null ? null : data[2 + base];
+
+    /** @private {?string} */
+    this.sku_ = data[3 + base] == null ? null : data[3 + base];
+
+    /** @private {?string} */
+    this.oldTransactionId_ = data[4 + base] == null ? null : data[4 + base];
   }
 
   /**
@@ -447,14 +731,78 @@ class EventParams {
   }
 
   /**
+   * @return {?string}
+   */
+  getGpayTransactionId() {
+    return this.gpayTransactionId_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setGpayTransactionId(value) {
+    this.gpayTransactionId_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getHadLogged() {
+    return this.hadLogged_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setHadLogged(value) {
+    this.hadLogged_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getSku() {
+    return this.sku_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSku(value) {
+    this.sku_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getOldTransactionId() {
+    return this.oldTransactionId_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setOldTransactionId(value) {
+    this.oldTransactionId_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
    * @return {!Array}
    * @override
    */
-  toArray() {
-    return [
-      this.label(),  // message label
-      this.smartboxMessage_,  // field 1 - smartbox_message
+  toArray(includeLabel = true) {
+    const arr = [
+      this.smartboxMessage_, // field 1 - smartbox_message
+      this.gpayTransactionId_, // field 2 - gpay_transaction_id
+      this.hadLogged_, // field 3 - had_logged
+      this.sku_, // field 4 - sku
+      this.oldTransactionId_, // field 5 - old_transaction_id
     ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
   }
 
   /**
@@ -469,14 +817,336 @@ class EventParams {
 /**
  * @implements {Message}
  */
-class SmartBoxMessage {
- /**
-  * @param {!Array=} data
-  */
-  constructor(data = []) {
+class FinishedLoggingResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
 
     /** @private {?boolean} */
-    this.isClicked_ = (data[1] == null) ? null : data[1];
+    this.complete_ = data[base] == null ? null : data[base];
+
+    /** @private {?string} */
+    this.error_ = data[1 + base] == null ? null : data[1 + base];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getComplete() {
+    return this.complete_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setComplete(value) {
+    this.complete_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getError() {
+    return this.error_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setError(value) {
+    this.error_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+      this.complete_, // field 1 - complete
+      this.error_, // field 2 - error
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'FinishedLoggingResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class LinkSaveTokenRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.authCode_ = data[base] == null ? null : data[base];
+
+    /** @private {?string} */
+    this.token_ = data[1 + base] == null ? null : data[1 + base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getAuthCode() {
+    return this.authCode_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setAuthCode(value) {
+    this.authCode_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getToken() {
+    return this.token_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setToken(value) {
+    this.token_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+      this.authCode_, // field 1 - auth_code
+      this.token_, // field 2 - token
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'LinkSaveTokenRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class LinkingInfoResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?boolean} */
+    this.requested_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getRequested() {
+    return this.requested_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setRequested(value) {
+    this.requested_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+      this.requested_, // field 1 - requested
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'LinkingInfoResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SkuSelectedResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.sku_ = data[base] == null ? null : data[base];
+
+    /** @private {?string} */
+    this.oldSku_ = data[1 + base] == null ? null : data[1 + base];
+
+    /** @private {?boolean} */
+    this.oneTime_ = data[2 + base] == null ? null : data[2 + base];
+
+    /** @private {?string} */
+    this.playOffer_ = data[3 + base] == null ? null : data[3 + base];
+
+    /** @private {?string} */
+    this.oldPlayOffer_ = data[4 + base] == null ? null : data[4 + base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getSku() {
+    return this.sku_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSku(value) {
+    this.sku_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getOldSku() {
+    return this.oldSku_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setOldSku(value) {
+    this.oldSku_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getOneTime() {
+    return this.oneTime_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setOneTime(value) {
+    this.oneTime_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getPlayOffer() {
+    return this.playOffer_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setPlayOffer(value) {
+    this.playOffer_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getOldPlayOffer() {
+    return this.oldPlayOffer_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setOldPlayOffer(value) {
+    this.oldPlayOffer_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+      this.sku_, // field 1 - sku
+      this.oldSku_, // field 2 - old_sku
+      this.oneTime_, // field 3 - one_time
+      this.playOffer_, // field 4 - play_offer
+      this.oldPlayOffer_, // field 5 - old_play_offer
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SkuSelectedResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SmartBoxMessage {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?boolean} */
+    this.isClicked_ = data[base] == null ? null : data[base];
   }
 
   /**
@@ -494,14 +1164,18 @@ class SmartBoxMessage {
   }
 
   /**
+   * @param {boolean} includeLabel
    * @return {!Array}
    * @override
    */
-  toArray() {
-    return [
-      this.label(),  // message label
-      this.isClicked_,  // field 1 - is_clicked
+  toArray(includeLabel = true) {
+    const arr = [
+      this.isClicked_, // field 1 - is_clicked
     ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
   }
 
   /**
@@ -513,17 +1187,132 @@ class SmartBoxMessage {
   }
 }
 
+/**
+ * @implements {Message}
+ */
+class SubscribeResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?boolean} */
+    this.subscribe_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getSubscribe() {
+    return this.subscribe_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setSubscribe(value) {
+    this.subscribe_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+      this.subscribe_, // field 1 - subscribe
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SubscribeResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class ViewSubscriptionsResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?boolean} */
+    this.native_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getNative() {
+    return this.native_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setNative(value) {
+    this.native_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+      this.native_, // field 1 - native
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'ViewSubscriptionsResponse';
+  }
+}
+
 const PROTO_MAP = {
+  'AccountCreationRequest': AccountCreationRequest,
+  'AlreadySubscribedResponse': AlreadySubscribedResponse,
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
+  'EntitlementsResponse': EntitlementsResponse,
   'EventParams': EventParams,
+  'FinishedLoggingResponse': FinishedLoggingResponse,
+  'LinkSaveTokenRequest': LinkSaveTokenRequest,
+  'LinkingInfoResponse': LinkingInfoResponse,
+  'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
+  'SubscribeResponse': SubscribeResponse,
+  'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
 };
 
 /**
  * Utility to deserialize a buffer
- * @param {!Array} data
+ * @param {!Array<*>} data
  * @return {!Message}
  */
 function deserialize(data) {
@@ -549,14 +1338,23 @@ function getLabel(messageType) {
 }
 
 export {
+  AccountCreationRequest,
+  AlreadySubscribedResponse,
   AnalyticsContext,
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
+  EntitlementsResponse,
   EventOriginator,
   EventParams,
+  FinishedLoggingResponse,
+  LinkSaveTokenRequest,
+  LinkingInfoResponse,
   Message,
+  SkuSelectedResponse,
   SmartBoxMessage,
+  SubscribeResponse,
+  ViewSubscriptionsResponse,
   deserialize,
   getLabel,
 };

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+import {CSS as LOADING_VIEW_CSS} from '../../build/css/ui/ui.css';
+import {LoadingView} from './loading-view';
 import {injectStyleSheet} from '../utils/dom';
 import {resolveDoc} from '../model/doc';
-import {LoadingView} from './loading-view';
-import {CSS as LOADING_VIEW_CSS} from '../../build/css/ui/ui.css';
 
 describes.realWin('LoadingView', {}, env => {
   let doc;
@@ -41,7 +41,7 @@ describes.realWin('LoadingView', {}, env => {
 
   describe('loadingView', () => {
     it('should have rendered the loading indicator in <BODY>', () => {
-      expect(loadingView).to.be.defined;
+      expect(loadingView).to.exist;
       assert.isFunction(loadingView.show);
       assert.isFunction(loadingView.hide);
 

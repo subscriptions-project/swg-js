@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
+import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityIframeView} from './activity-iframe-view';
 import {ActivityResult} from 'web-activities/activity-ports';
-import {ActivityPorts, ActivityIframePort} from '../components/activities';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
+import {SkuSelectedResponse} from '../proto/api_messages';
 
 describes.realWin('ActivityIframeView', {}, env => {
   let win;
@@ -27,6 +28,8 @@ describes.realWin('ActivityIframeView', {}, env => {
   let activityIframePort;
   let activityIframeView;
   let dialog;
+  let deps;
+
   const activityArgs = {
     'publicationId': 'pub1',
     'requestId': 'request1-complete',
@@ -37,7 +40,10 @@ describes.realWin('ActivityIframeView', {}, env => {
     win = env.win;
     src = '$frontend$/offersiframe';
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
-    activityPorts = new ActivityPorts(win);
+    deps = {
+      win: () => win,
+    };
+    activityPorts = new ActivityPorts(deps);
     activityIframePort = new ActivityIframePort(
       dialog.getElement(),
       src,
@@ -47,10 +53,6 @@ describes.realWin('ActivityIframeView', {}, env => {
     sandbox
       .stub(activityIframePort, 'whenReady')
       .callsFake(() => Promise.resolve(true));
-
-    sandbox.stub(activityIframePort, 'onMessageDeprecated').callsFake(() => {
-      return Promise.resolve(true);
-    });
 
     sandbox
       .stub(activityPorts, 'openIframe')
@@ -74,13 +76,13 @@ describes.realWin('ActivityIframeView', {}, env => {
       expect(activityIframe.getAttribute('frameborder')).to.equal('0');
     });
 
-    it('should initialize and open an iframe', function*() {
-      const openedDialog = yield dialog.open();
+    it('should initialize and open an iframe', async () => {
+      const openedDialog = await dialog.open();
 
       // The iframe should be inside DOM to call init().
       dialog.getContainer().appendChild(activityIframeView.getElement());
 
-      const activityResponse = yield activityIframeView.init(openedDialog);
+      const activityResponse = await activityIframeView.init(openedDialog);
       expect(activityResponse).to.be.true;
       expect(activityPorts.openIframe).to.have.been.calledOnce;
 
@@ -95,22 +97,22 @@ describes.realWin('ActivityIframeView', {}, env => {
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
     });
 
-    it('should accept port and result', function*() {
+    it('should accept port and result', async () => {
       const result = new ActivityResult('OK');
       sandbox
         .stub(activityIframePort, 'acceptResult')
         .callsFake(() => Promise.resolve(result));
 
-      yield activityIframeView.init(dialog);
+      await activityIframeView.init(dialog);
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
 
-      const actualPort = yield activityIframeView.getPortPromise_();
-      const actualResult = yield activityIframeView.acceptResult();
+      const actualPort = await activityIframeView.getPortPromise_();
+      const actualResult = await activityIframeView.acceptResult();
       expect(actualPort).to.equal(activityIframePort);
       expect(actualResult).to.equal(result);
     });
 
-    it('should accept port and result and verify', function*() {
+    it('should accept port and result and verify', async () => {
       const ORIGIN = 'https://example.com';
       const VERIFIED = true;
       const SECURE = true;
@@ -125,11 +127,11 @@ describes.realWin('ActivityIframeView', {}, env => {
       sandbox
         .stub(activityIframePort, 'acceptResult')
         .callsFake(() => Promise.resolve(result));
-      yield activityIframeView.init(dialog);
+      await activityIframeView.init(dialog);
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
 
-      const actualPort = yield activityIframeView.getPortPromise_();
-      const actualResult = yield activityIframeView.acceptResultAndVerify(
+      const actualPort = await activityIframeView.getPortPromise_();
+      const actualResult = await activityIframeView.acceptResultAndVerify(
         ORIGIN,
         VERIFIED,
         SECURE
@@ -138,7 +140,37 @@ describes.realWin('ActivityIframeView', {}, env => {
       expect(actualResult).to.equal(result.data);
     });
 
-    it('should yield cancel callback', function*() {
+    it('should send and receive messages', async () => {
+      let onCb;
+      let messageLabel;
+      let messageFromExecuteFake;
+      let messageFromOnCallback;
+
+      const message = new SkuSelectedResponse();
+      message.setSku('sku1');
+
+      sandbox.stub(activityIframePort, 'on').callsFake((Message, cb) => {
+        messageLabel = Message.prototype.label();
+        onCb = cb;
+      });
+      activityIframeView.on(SkuSelectedResponse, message => {
+        messageFromOnCallback = message;
+      });
+
+      sandbox.stub(activityIframePort, 'execute').callsFake(message => {
+        messageFromExecuteFake = message;
+      });
+      activityIframeView.execute(message);
+
+      await activityIframeView.init(dialog);
+      await activityIframeView.getPortPromise_();
+      onCb(message);
+      expect(message).to.equal(messageFromExecuteFake);
+      expect(message).to.equal(messageFromOnCallback);
+      expect(messageLabel).to.equal('SkuSelectedResponse');
+    });
+
+    it('should await cancel callback', async () => {
       sandbox
         .stub(activityIframePort, 'acceptResult')
         .callsFake(() =>
@@ -148,10 +180,10 @@ describes.realWin('ActivityIframeView', {}, env => {
         activityIframeView.onCancel(resolve);
       });
       activityIframeView.init(dialog);
-      return cancelPromise;
+      await cancelPromise;
     });
 
-    it('should cache loading indicator', function*() {
+    it('should cache loading indicator', async () => {
       expect(activityIframeView.hasLoadingIndicator()).to.be.false;
       const activityIframeView2 = new ActivityIframeView(
         win,

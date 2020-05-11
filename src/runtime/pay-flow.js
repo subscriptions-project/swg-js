@@ -22,19 +22,23 @@
  * In other words, Flow = Payments + Account Creation.
  */
 
+import {
+  AccountCreationRequest,
+  EntitlementsResponse,
+} from '../proto/api_messages';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
-import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {
   ProductType,
   SubscriptionFlows,
   WindowOpenMode,
 } from '../api/subscriptions';
+import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
+import {getPropertyFromJsonString, parseJson} from '../utils/json';
 import {isCancelError} from '../utils/errors';
-import {parseJson, tryParseJson} from '../utils/json';
 
 /**
  * String values input by the publisher are mapped to the number values.
@@ -47,18 +51,31 @@ export const ReplaceSkuProrationModeMapping = {
   'IMMEDIATE_WITH_TIME_PRORATION': 1,
 };
 
+export const RecurrenceMapping = {
+  'AUTO': 1,
+  'ONE_TIME': 2,
+};
+
+/**
+ * @param {string} sku
+ * @return {!EventParams}
+ */
+function getEventParams(sku) {
+  return new EventParams([, , , , sku]);
+}
+
 /**
  * The flow to initiate payment process.
  */
 export class PayStartFlow {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!../api/subscriptions.SubscriptionRequest|string} skuOrSubscriptionRequest
+   * @param {!../api/subscriptions.SubscriptionRequest} subscriptionRequest
    * @param {!../api/subscriptions.ProductType} productType
    */
   constructor(
     deps,
-    skuOrSubscriptionRequest,
+    subscriptionRequest,
     productType = ProductType.SUBSCRIPTION
   ) {
     /** @private @const {!./deps.DepsDef} */
@@ -74,10 +91,7 @@ export class PayStartFlow {
     this.dialogManager_ = deps.dialogManager();
 
     /** @private @const {!../api/subscriptions.SubscriptionRequest} */
-    this.subscriptionRequest_ =
-      typeof skuOrSubscriptionRequest == 'string'
-        ? {'skuId': skuOrSubscriptionRequest}
-        : skuOrSubscriptionRequest;
+    this.subscriptionRequest_ = subscriptionRequest;
 
     /**@private @const {!ProductType} */
     this.productType_ = productType;
@@ -100,27 +114,39 @@ export class PayStartFlow {
     });
 
     // Map the proration mode to the enum value (if proration exists).
-    const prorationMode = this.subscriptionRequest_.replaceSkuProrationMode;
+    const prorationMode = swgPaymentRequest['replaceSkuProrationMode'];
     if (prorationMode) {
-      swgPaymentRequest.replaceSkuProrationMode =
+      swgPaymentRequest['replaceSkuProrationMode'] =
         ReplaceSkuProrationModeMapping[prorationMode];
+    } else if (swgPaymentRequest['oldSku']) {
+      swgPaymentRequest['replaceSkuProrationMode'] =
+        ReplaceSkuProrationModeMapping['IMMEDIATE_WITH_TIME_PRORATION'];
+    }
+    // Assign one-time recurrence enum if applicable
+    if (swgPaymentRequest['oneTime']) {
+      swgPaymentRequest['paymentRecurrence'] = RecurrenceMapping['ONE_TIME'];
+      delete swgPaymentRequest['oneTime'];
     }
 
     // Start/cancel events.
-    this.deps_
-      .callbacks()
-      .triggerFlowStarted(
-        SubscriptionFlows.SUBSCRIBE,
-        this.subscriptionRequest_
-      );
-    // TODO(chenshay): Create analytics for 'replace subscription'.
-    this.analyticsService_.setSku(this.subscriptionRequest_.skuId);
+    const flow =
+      this.productType_ == ProductType.UI_CONTRIBUTION
+        ? SubscriptionFlows.CONTRIBUTE
+        : SubscriptionFlows.SUBSCRIBE;
+
+    this.deps_.callbacks().triggerFlowStarted(flow, this.subscriptionRequest_);
+    if (swgPaymentRequest['oldSku']) {
+      this.analyticsService_.setSku(swgPaymentRequest['oldSku']);
+    }
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
-      true
+      true,
+      getEventParams(swgPaymentRequest['skuId'])
     );
+    PayCompleteFlow.waitingForPayClient_ = true;
     this.payClient_.start(
-      {
+      /** @type {!PaymentDataRequest} */
+      ({
         'apiVersion': 1,
         'allowedPaymentMethods': ['CARD'],
         'environment': '$payEnvironment$',
@@ -128,10 +154,9 @@ export class PayStartFlow {
         'swg': swgPaymentRequest,
         'i': {
           'startTimeMs': Date.now(),
-          'googleTransactionId': this.analyticsService_.getTransactionId(),
           'productType': this.productType_,
         },
-      },
+      }),
       {
         forceRedirect:
           this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT,
@@ -149,6 +174,9 @@ export class PayCompleteFlow {
    * @param {!./deps.DepsDef} deps
    */
   static configurePending(deps) {
+    /** @const @type {./client-event-manager.ClientEventManager} */
+    const eventManager = deps.eventManager();
+
     deps.payClient().onResponse(payPromise => {
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
@@ -157,21 +185,36 @@ export class PayCompleteFlow {
         payPromise,
         flow.complete.bind(flow)
       );
-      deps.callbacks().triggerSubscribeResponse(promise);
+      deps.callbacks().triggerPaymentResponse(promise);
       return promise.then(
         response => {
+          const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
+          deps.analytics().setSku(sku || '');
+          eventManager.logSwgEvent(
+            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+            true,
+            getEventParams(sku || '')
+          );
           flow.start(response);
         },
         reason => {
           if (isCancelError(reason)) {
-            deps.callbacks().triggerFlowCanceled(SubscriptionFlows.SUBSCRIBE);
+            const productType = /** @type {!Object} */ (reason)['productType'];
+            const flow =
+              productType == ProductType.UI_CONTRIBUTION
+                ? SubscriptionFlows.CONTRIBUTE
+                : SubscriptionFlows.SUBSCRIBE;
+            deps.callbacks().triggerFlowCanceled(flow);
+            deps
+              .eventManager()
+              .logSwgEvent(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true);
           } else {
             deps
               .eventManager()
               .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false);
             deps.jserror().error('Pay failed', reason);
+            throw reason;
           }
-          throw reason;
         }
       );
     });
@@ -207,6 +250,9 @@ export class PayCompleteFlow {
 
     /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
+
+    /** @private {?string} */
+    this.sku_ = null;
   }
 
   /**
@@ -215,24 +261,18 @@ export class PayCompleteFlow {
    * @return {!Promise}
    */
   start(response) {
-    if (!this.analyticsService_.getSku()) {
-      // This is a redirect response. Extract the SKU if possible.
-      this.analyticsService_.addLabels(['redirect']);
-      const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
-      if (sku) {
-        this.analyticsService_.setSku(sku);
-      }
-    }
-
+    this.sku_ = parseSkuFromPurchaseDataSafe(response.purchaseData);
     this.eventManager_.logSwgEvent(
-      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-      true
+      AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+      true,
+      getEventParams(this.sku_ || '')
     );
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'productType': this.response_['productType'],
+      'isSubscriptionUpdate': !!this.response_['oldSku'],
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
@@ -250,14 +290,12 @@ export class PayCompleteFlow {
       feArgs(args),
       /* shouldFadeBody */ true
     );
-    this.activityIframeView_.onMessageDeprecated(data => {
-      if (data['entitlements']) {
-        this.deps_
-          .entitlementsManager()
-          .pushNextEntitlements(/** @type {string} */ (data['entitlements']));
-        return;
-      }
-    });
+
+    this.activityIframeView_.on(
+      EntitlementsResponse,
+      this.handleEntitlementsResponse_.bind(this)
+    );
+
     this.activityIframeView_.acceptResult().then(() => {
       // The flow is complete.
       this.dialogManager_.completeView(this.activityIframeView_);
@@ -267,13 +305,30 @@ export class PayCompleteFlow {
   }
 
   /**
+   * @param {!EntitlementsResponse} response
+   * @private
+   */
+  handleEntitlementsResponse_(response) {
+    const jwt = response.getJwt();
+    if (jwt) {
+      this.deps_.entitlementsManager().pushNextEntitlements(jwt);
+    }
+  }
+
+  /**
    * @return {!Promise}
    */
   complete() {
-    this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_ACCOUNT_CREATED, true);
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+      true,
+      getEventParams(this.sku_ || '')
+    );
     this.deps_.entitlementsManager().unblockNextNotification();
     this.readyPromise_.then(() => {
-      this.activityIframeView_.messageDeprecated({'complete': true});
+      const accountCompletionRequest = new AccountCreationRequest();
+      accountCompletionRequest.setComplete(true);
+      this.activityIframeView_.execute(accountCompletionRequest);
     });
     return this.activityIframeView_
       .acceptResult()
@@ -283,12 +338,16 @@ export class PayCompleteFlow {
       .then(() => {
         this.eventManager_.logSwgEvent(
           AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-          true
+          true,
+          getEventParams(this.sku_ || '')
         );
         this.deps_.entitlementsManager().setToastShown(true);
       });
   }
 }
+
+/** @private {boolean} */
+PayCompleteFlow.waitingForPayClient_ = false;
 
 /**
  * @param {!./deps.DepsDef} deps
@@ -297,15 +356,48 @@ export class PayCompleteFlow {
  * @return {!Promise<!SubscribeResponse>}
  */
 function validatePayResponse(deps, payPromise, completeHandler) {
+  const wasRedirect = !PayCompleteFlow.waitingForPayClient_;
+  PayCompleteFlow.waitingForPayClient_ = false;
   return payPromise.then(data => {
-    // If there was a redirect, we may have lost our stored transaction
-    // ID. Pay service is supposed to send back the transaction ID that
-    // was sent in the request and so, ideally it should be the same.
-    // In any case, we must remember and use this transaction ID going
-    // forward and assume whatever memory we had before redirect is lost.
-    if (typeof data == 'object' && data['googleTransactionId']) {
-      deps.analytics().setTransactionId(data['googleTransactionId']);
+    // 1) We log against a random TX ID which is how we track a specific user
+    //    anonymously.
+    // 2) If there was a redirect to gPay, we may have lost our stored TX ID.
+    // 3) Pay service is supposed to give us the TX ID it logged against.
+    let eventType = AnalyticsEvent.UNKNOWN;
+    let eventParams = undefined;
+    if (typeof data !== 'object' || !data['googleTransactionId']) {
+      // If gPay doesn't give us a TX ID it means that something may
+      // be wrong.  If we previously logged then we are at least continuing to
+      // log against the same TX ID.  If we didn't previously log then we have
+      // lost all connection to the events that preceded the payment event and
+      // we at least want to know why that data was lost.
+      eventParams = new EventParams();
+      eventParams.setHadLogged(!wasRedirect);
+      eventType = AnalyticsEvent.EVENT_GPAY_NO_TX_ID;
+    } else {
+      const oldTxId = deps.analytics().getTransactionId();
+      const newTxId = data['googleTransactionId'];
+
+      if (wasRedirect) {
+        // This is the expected case for full redirects.  It may be happening
+        // unexpectedly at other times too though and we want to be aware of
+        // it if it does.
+        deps.analytics().setTransactionId(newTxId);
+        eventType = AnalyticsEvent.EVENT_GPAY_CANNOT_CONFIRM_TX_ID;
+      } else {
+        if (oldTxId === newTxId) {
+          // This is the expected case for non-redirect pay events
+          eventType = AnalyticsEvent.EVENT_CONFIRM_TX_ID;
+        } else {
+          // This is an unexpected case: gPay rejected our TX ID and created
+          // its own.  Log the gPay TX ID but keep our logging consistent.
+          eventParams = new EventParams();
+          eventParams.setGpayTransactionId(newTxId);
+          eventType = AnalyticsEvent.EVENT_CHANGED_TX_ID;
+        }
+      }
     }
+    deps.eventManager().logSwgEvent(eventType, true, eventParams);
     return parseSubscriptionResponse(deps, data, completeHandler);
   });
 }
@@ -319,7 +411,9 @@ function validatePayResponse(deps, payPromise, completeHandler) {
 export function parseSubscriptionResponse(deps, data, completeHandler) {
   let swgData = null;
   let raw = null;
-  let productType = null;
+  let productType = ProductType.SUBSCRIPTION;
+  let oldSku = null;
+
   if (data) {
     if (typeof data == 'string') {
       raw = /** @type {string} */ (data);
@@ -327,18 +421,18 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
       // Assume it's a json object in the format:
       // `{integratorClientCallbackData: "..."}` or `{swgCallbackData: "..."}`.
       const json = /** @type {!Object} */ (data);
-      if ('productType' in data) {
-        productType = data['productType'];
-      }
       if ('swgCallbackData' in json) {
         swgData = /** @type {!Object} */ (json['swgCallbackData']);
       } else if ('integratorClientCallbackData' in json) {
         raw = json['integratorClientCallbackData'];
       }
+      if ('paymentRequest' in data) {
+        oldSku = (data['paymentRequest']['swg'] || {})['oldSku'];
+        productType =
+          (data['paymentRequest']['i'] || {})['productType'] ||
+          ProductType.SUBSCRIPTION;
+      }
     }
-  }
-  if (!productType) {
-    productType = ProductType.SUBSCRIPTION;
   }
   if (raw && !swgData) {
     raw = atob(raw);
@@ -357,7 +451,8 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     parseUserData(swgData),
     parseEntitlements(deps, swgData),
     productType,
-    completeHandler
+    completeHandler,
+    oldSku
   );
 }
 
@@ -403,6 +498,10 @@ export function parseEntitlements(deps, swgData) {
  * @return {?string}
  */
 function parseSkuFromPurchaseDataSafe(purchaseData) {
-  const json = tryParseJson(purchaseData.raw);
-  return (json && json['productId']) || null;
+  return (
+    /** @type {?string} */ (getPropertyFromJsonString(
+      purchaseData.raw,
+      'productId'
+    ) || null)
+  );
 }

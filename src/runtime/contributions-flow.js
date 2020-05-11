@@ -15,8 +15,12 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {
+  AlreadySubscribedResponse,
+  SkuSelectedResponse,
+} from '../proto/api_messages';
 import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows, ProductType} from '../api/subscriptions';
+import {ProductType, SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 /**
@@ -63,6 +67,38 @@ export class ContributionsFlow {
   }
 
   /**
+   * @param {AlreadySubscribedResponse} response
+   */
+  handleLinkRequest_(response) {
+    if (response.getSubscriberOrMember()) {
+      this.deps_.callbacks().triggerLoginRequest({
+        linkRequested: !!response.getLinkRequested(),
+      });
+    }
+  }
+
+  /**
+   * @param {SkuSelectedResponse} response
+   */
+  startPayFlow_(response) {
+    const sku = response.getSku();
+    const isOneTime = response.getOneTime();
+    if (sku) {
+      const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest = {
+          'skuId': sku,
+        };
+      if (isOneTime) {
+        contributionRequest['oneTime'] = isOneTime;
+      }
+      new PayStartFlow(
+        this.deps_,
+        contributionRequest,
+        ProductType.UI_CONTRIBUTION
+      ).start();
+    }
+  }
+
+  /**
    * Starts the contributions flow or alreadyMember flow.
    * @return {!Promise}
    */
@@ -76,24 +112,14 @@ export class ContributionsFlow {
         .callbacks()
         .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     });
-
-    // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.onMessageDeprecated(result => {
-      if (result['alreadyMember']) {
-        this.deps_.callbacks().triggerLoginRequest({
-          linkRequested: !!result['linkRequested'],
-        });
-        return;
-      }
-      if (result['sku']) {
-        new PayStartFlow(
-          this.deps_,
-          /** @type {string} */ (result['sku']),
-          ProductType.UI_CONTRIBUTION
-        ).start();
-        return;
-      }
-    });
+    this.activityIframeView_.on(
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
+    );
+    this.activityIframeView_.on(
+      SkuSelectedResponse,
+      this.startPayFlow_.bind(this)
+    );
 
     return this.dialogManager_.openView(this.activityIframeView_);
   }

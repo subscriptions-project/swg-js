@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
+import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
-import {isCancelError} from '../utils/errors';
-import {ActivityPort} from '../components/activities';
 
 describes.realWin('LoginPromptApi', {}, env => {
   let win;
@@ -41,9 +40,7 @@ describes.realWin('LoginPromptApi', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
-    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     loginPromptApi = new LoginPromptApi(runtime);
     resultResolver = null;
@@ -59,7 +56,7 @@ describes.realWin('LoginPromptApi', {}, env => {
     dialogManagerMock.verify();
   });
 
-  it('should start the flow correctly', () => {
+  it('should start the flow correctly', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock
@@ -77,40 +74,23 @@ describes.realWin('LoginPromptApi', {}, env => {
       .returns(Promise.resolve(port));
 
     loginPromptApi.start();
-    return loginPromptApi.openViewPromise_;
+    await loginPromptApi.openViewPromise_;
   });
 
-  it('should handle cancel', () => {
+  it('should handle cancel', async () => {
     callbacksMock.expects('triggerFlowCanceled').once();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
 
     resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
     dialogManagerMock.expects('completeView').once();
-    return loginPromptApi.start().then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(isCancelError(reason)).to.be.true;
-      }
-    );
+    await expect(loginPromptApi.start()).to.be.rejectedWith(/cancel/);
   });
 
-  it('should handle failure', () => {
+  it('should handle failure', async () => {
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
-    const promise = loginPromptApi.start();
-    return promise.then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/broken/);
-      }
-    );
+    await expect(loginPromptApi.start()).to.be.rejectedWith(/broken/);
   });
 });

@@ -15,9 +15,9 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
+import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
-import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
 
 /**
  * The button title should match that of button's SVG.
@@ -49,6 +49,18 @@ const TITLE_LANG_MAP = {
   'uk': 'Підписатися через Google',
   'zh-tw': '透過 Google 訂閱',
 };
+
+/*
+ * Properties:
+ * - lang: Sets the button SVG and title. Default is "en".
+ * - theme: "light" or "dark". Default is "light".
+ *
+ * @typedef {{
+ *   options: (!../api/subscriptions.SmartButtonOptions|!../api/subscriptions.ButtonOptions),
+ *   clickFun: (!function(Event):?),
+ * }}
+ */
+export let ButtonParams;
 
 /**
  * The button stylesheet can be found in the `/assets/swg-button.css`.
@@ -94,25 +106,26 @@ export class ButtonApi {
 
   /**
    * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    * @return {!Element}
    */
-  create(optionsOrCallback, opt_callback) {
+  create(optionsOrCallback, callback) {
     const button = createElement(this.doc_.getWin().document, 'button', {});
-    return this.attach(button, optionsOrCallback, opt_callback);
+    return this.attach(button, optionsOrCallback, callback);
   }
 
   /**
    * @param {!Element} button
    * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    * @return {!Element}
    */
-  attach(button, optionsOrCallback, opt_callback) {
-    const options = /** @type {!../api/subscriptions.ButtonOptions} */ (this.getOptions_(
-      optionsOrCallback
-    ));
-    const callback = this.getCallback_(optionsOrCallback, opt_callback);
+  attach(button, optionsOrCallback, callback) {
+    const options = this.setupButtonAndGetParams_(
+      button,
+      optionsOrCallback,
+      callback
+    ).options;
 
     const theme = options['theme'];
     button.classList.add(`swg-button-${theme}`);
@@ -121,23 +134,19 @@ export class ButtonApi {
       button.setAttribute('lang', options['lang']);
     }
     button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
-    button.addEventListener('click', callback);
-    button.addEventListener('click', () => {
-      this.configuredRuntimePromise_.then(configuredRuntime => {
-        configuredRuntime
-          .eventManager()
-          .logSwgEvent(
-            AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
-            /* isFromUserAction */ true
-          );
-      });
-    });
-    this.configuredRuntimePromise_.then(configuredRuntime => {
-      configuredRuntime
-        .eventManager()
-        .logSwgEvent(AnalyticsEvent.IMPRESSION_SWG_BUTTON);
-    });
+    this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SWG_BUTTON);
+
     return button;
+  }
+
+  /**
+   * @param {!AnalyticsEvent} eventType
+   * @param {boolean=} isFromUserAction
+   */
+  logSwgEvent_(eventType, isFromUserAction) {
+    this.configuredRuntimePromise_.then(configuredRuntime => {
+      configuredRuntime.eventManager().logSwgEvent(eventType, isFromUserAction);
+    });
   }
 
   /**
@@ -163,53 +172,58 @@ export class ButtonApi {
   /**
    *
    * @param {?../api/subscriptions.ButtonOptions|?../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    * @return {function()|function(Event):boolean}
    * @private
    */
-  getCallback_(optionsOrCallback, opt_callback) {
-    const callback =
+  getCallback_(optionsOrCallback, callback) {
+    return (
       /** @type {function()|function(Event):boolean} */ ((typeof optionsOrCallback ==
       'function'
         ? optionsOrCallback
-        : null) || opt_callback);
-    return callback;
+        : null) || callback)
+    );
+  }
+
+  /**
+   * @param {!Element} button
+   * @param {../api/subscriptions.SmartButtonOptions|function()|../api/subscriptions.ButtonOptions} optionsOrCallback
+   * @param {function()=} callbackFun
+   * @return {ButtonParams}
+   */
+  setupButtonAndGetParams_(button, optionsOrCallback, callbackFun) {
+    const options = this.getOptions_(optionsOrCallback);
+    const callback = this.getCallback_(optionsOrCallback, callbackFun);
+    const clickFun = event => {
+      this.logSwgEvent_(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true);
+      if (typeof callback === 'function') {
+        callback(event);
+      }
+    };
+    button.addEventListener('click', clickFun);
+    return {options, clickFun};
   }
 
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!Element} button
    * @param {../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    * @return {!Element}
    */
-  attachSmartButton(deps, button, optionsOrCallback, opt_callback) {
-    const options = /** @type {!../api/subscriptions.SmartButtonOptions} */ (this.getOptions_(
-      optionsOrCallback
-    ));
-    const callback = /** @type {function()} */ (this.getCallback_(
+  attachSmartButton(deps, button, optionsOrCallback, callback) {
+    const params = this.setupButtonAndGetParams_(
+      button,
       optionsOrCallback,
-      opt_callback
-    ));
-
+      callback
+    );
     // Add required CSS class, if missing.
     button.classList.add('swg-smart-button');
-    button.addEventListener('click', () =>
-      this.configuredRuntimePromise_.then(configuredRuntime =>
-        configuredRuntime
-          .eventManager()
-          .logSwgEvent(
-            AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
-            /* isFromUserAction */ true
-          )
-      )
-    );
-
     return new SmartSubscriptionButtonApi(
       deps,
       button,
-      options,
-      callback
+      params.options,
+      params.clickFun
     ).start();
   }
 }

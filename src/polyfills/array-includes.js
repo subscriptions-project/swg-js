@@ -18,12 +18,11 @@
  * Returns true if the element is in the array and false otherwise.
  *
  * @param {*} value
- * @param {number=} opt_fromIndex
+ * @param {number=} fromIndex
  * @return {boolean}
  * @this {Array}
  */
-function includes(value, opt_fromIndex) {
-  const fromIndex = opt_fromIndex || 0;
+export function includes(value, fromIndex = 0) {
   const len = this.length;
   let i = fromIndex >= 0 ? fromIndex : Math.max(len + fromIndex, 0);
   for (; i < len; i++) {

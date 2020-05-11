@@ -58,23 +58,23 @@ export function addAttributesToElement(element, attributes) {
  * @param {!Document} doc
  * @param {string} tagName
  * @param {!Object<string, string>} attributes
- * @param {?(string|!Node|!ArrayLike<!Node>|!Array<!Node>)=} opt_content
+ * @param {?(string|!Node|!ArrayLike<!Node>|!Array<!Node>)=} content
  * @return {!Element} created element.
  */
-export function createElement(doc, tagName, attributes, opt_content) {
+export function createElement(doc, tagName, attributes, content) {
   const element = doc.createElement(tagName);
   addAttributesToElement(element, attributes);
-  if (opt_content != null) {
-    if (typeof opt_content == 'string') {
-      element.textContent = opt_content;
-    } else if (opt_content.nodeType) {
-      element.appendChild(opt_content);
-    } else if ('length' in opt_content) {
-      for (let i = 0; i < opt_content.length; i++) {
-        element.appendChild(opt_content[i]);
+  if (content != null) {
+    if (typeof content == 'string') {
+      element.textContent = content;
+    } else if (content.nodeType) {
+      element.appendChild(content);
+    } else if ('length' in content) {
+      for (let i = 0; i < content.length; i++) {
+        element.appendChild(content[i]);
       }
     } else {
-      assert(false, 'Unsupported content: %s', opt_content);
+      assert(false, 'Unsupported content: %s', content);
     }
   }
   return element;
@@ -119,10 +119,10 @@ export function injectStyleSheet(doc, styleText) {
  *  a. The element itself has a nextSibling.
  *  b. Any of the element ancestors has a nextSibling.
  * @param {!Element} element
- * @param {?Node=} opt_stopNode
+ * @param {?Node=} stopNode
  * @return {boolean}
  */
-export function hasNextNodeInDocumentOrder(element, opt_stopNode) {
+export function hasNextNodeInDocumentOrder(element, stopNode) {
   let currentElement = element;
   do {
     if (currentElement.nextSibling) {
@@ -130,7 +130,7 @@ export function hasNextNodeInDocumentOrder(element, opt_stopNode) {
     }
   } while (
     (currentElement = currentElement.parentNode) &&
-    currentElement != opt_stopNode
+    currentElement != stopNode
   );
   return false;
 }
@@ -154,10 +154,16 @@ export function isConnected(node) {
 }
 
 /**
+ * Returns true if current browser is a legacy version of Edge.
+ *
+ * Starting in January 2020, new versions of Edge will use the Chromium engine.
+ * These versions won't include the word "Edge" in their useragent.
+ * Instead, they'll include the word "Edg".
+ * So far, it seems safe to avoid detecting these new versions of Edge.
  * @param {!Window} win
  * @return {boolean}
  */
-export function isEdgeBrowser(win) {
+export function isLegacyEdgeBrowser(win) {
   const nav = win.navigator;
   return /Edge/i.test(nav && nav.userAgent);
 }

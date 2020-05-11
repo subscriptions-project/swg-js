@@ -2,6 +2,7 @@
 .g4ignore
 build
 c
+chromedriver.log
 /dist
 dist.3p
 dist.tools
@@ -12,6 +13,7 @@ npm-debug.log
 .tm_properties
 .settings
 .vscode
+tests_output
 typings
 typings.json
 build-system/runner/TESTS-TestSuites.xml

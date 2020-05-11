@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {createElement} from '../utils/dom';
-import {setImportantStyles} from '../utils/style';
-import {feArgs, feUrl} from './services';
 import {SmartBoxMessage} from '../proto/api_messages';
+import {createElement} from '../utils/dom';
+import {feArgs, feUrl} from './services';
+import {setImportantStyles} from '../utils/style';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
@@ -108,14 +108,6 @@ export class SmartSubscriptionButtonApi {
    * @return {!Element}
    */
   start() {
-    /**
-     * Add a callback to the button itself to fire the iframe's button click
-     * action when user tabs to the container button and hits enter.
-     */
-    this.button_.addEventListener('click', () => {
-      this.callback_();
-    });
-
     setImportantStyles(this.iframe_, {
       'opacity': 1,
       'position': 'absolute',
@@ -127,16 +119,10 @@ export class SmartSubscriptionButtonApi {
       'width': '100%',
     });
     this.button_.appendChild(this.iframe_);
-    const analyticsContext = this.deps_
-      .analytics()
-      .getContext()
-      .toArray();
-    this.args_['analyticsContext'] = analyticsContext;
-    this.activityPorts_
-      .openIframe(this.iframe_, this.src_, this.args_)
-      .then(port => {
-        port.on(SmartBoxMessage, this.handleSmartBoxClick_.bind(this));
-      });
+    const args = this.activityPorts_.addDefaultArguments(this.args_);
+    this.activityPorts_.openIframe(this.iframe_, this.src_, args).then(port => {
+      port.on(SmartBoxMessage, this.handleSmartBoxClick_.bind(this));
+    });
     return this.iframe_;
   }
 }

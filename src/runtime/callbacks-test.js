@@ -15,6 +15,7 @@
  */
 
 import {Callbacks} from './callbacks';
+import {tick} from '../../test/tick';
 
 describes.sandboxed('Callbacks', {}, () => {
   let callbacks;
@@ -23,42 +24,33 @@ describes.sandboxed('Callbacks', {}, () => {
     callbacks = new Callbacks();
   });
 
-  function skipMicro() {
-    return Promise.resolve().then(() => {
-      return Promise.resolve().then(() => {});
-    });
-  }
-
-  it('should schedule and trigger callback', () => {
+  it('should schedule and trigger callback', async () => {
     const spy1 = sandbox.spy();
     const spy2 = sandbox.spy();
     callbacks.setCallback_(1, spy1);
     callbacks.setCallback_(2, spy2);
     expect(spy1).to.not.be.called;
     expect(spy2).to.not.be.called;
-    return skipMicro()
-      .then(() => {
-        expect(spy1).to.not.be.called;
-        expect(spy2).to.not.be.called;
-        expect(callbacks.trigger_(1, 'one')).to.be.true;
-        return skipMicro();
-      })
-      .then(() => {
-        expect(spy1).to.be.calledOnce;
-        expect(spy1).to.be.calledWith('one');
-        expect(spy2).to.not.be.called;
-        expect(callbacks.trigger_(2, 'two')).to.be.true;
-        return skipMicro();
-      })
-      .then(() => {
-        expect(spy1).to.be.calledOnce;
-        expect(spy1).to.be.calledWith('one');
-        expect(spy2).to.be.calledOnce;
-        expect(spy2).to.be.calledWith('two');
-      });
+
+    await tick();
+    expect(spy1).to.not.be.called;
+    expect(spy2).to.not.be.called;
+    expect(callbacks.trigger_(1, 'one')).to.be.true;
+
+    await tick();
+    expect(spy1).to.be.calledOnce;
+    expect(spy1).to.be.calledWith('one');
+    expect(spy2).to.not.be.called;
+    expect(callbacks.trigger_(2, 'two')).to.be.true;
+
+    await tick();
+    expect(spy1).to.be.calledOnce;
+    expect(spy1).to.be.calledWith('one');
+    expect(spy2).to.be.calledOnce;
+    expect(spy2).to.be.calledWith('two');
   });
 
-  it('should trigger first can callback later', () => {
+  it('should trigger first can callback later', async () => {
     const spy1 = sandbox.spy();
     const spy2 = sandbox.spy();
     expect(callbacks.trigger_(1, 'one')).to.be.false;
@@ -67,133 +59,163 @@ describes.sandboxed('Callbacks', {}, () => {
     callbacks.setCallback_(2, spy2);
     expect(spy1).to.not.be.called;
     expect(spy2).to.not.be.called;
-    return skipMicro().then(() => {
-      expect(spy1).to.be.calledOnce;
-      expect(spy1).to.be.calledWith('one');
-      expect(spy2).to.be.calledOnce;
-      expect(spy2).to.be.calledWith('two');
-    });
+
+    await tick();
+    expect(spy1).to.be.calledOnce;
+    expect(spy1).to.be.calledWith('one');
+    expect(spy2).to.be.calledOnce;
+    expect(spy2).to.be.calledWith('two');
   });
 
-  it('should trigger and execute linkProgress', () => {
+  it('should trigger and execute linkProgress', async () => {
     const spy = sandbox.spy();
     callbacks.setOnLinkProgress(spy);
     expect(callbacks.triggerLinkProgress()).to.be.true;
-    return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWithExactly(true);
-    });
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWithExactly(true);
   });
 
-  it('should trigger and execute linkComplete', () => {
+  it('should trigger and execute linkComplete', async () => {
     const spy = sandbox.spy();
     callbacks.setOnLinkComplete(spy);
     expect(callbacks.hasLinkCompletePending()).to.be.false;
     expect(callbacks.triggerLinkComplete()).to.be.true;
     expect(callbacks.hasLinkCompletePending()).to.be.true;
-    return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWithExactly(true);
-      expect(callbacks.hasLinkCompletePending()).to.be.false;
-    });
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWithExactly(true);
+    expect(callbacks.hasLinkCompletePending()).to.be.false;
   });
 
-  it('should trigger and execute loginRequest', () => {
+  it('should trigger and execute loginRequest', async () => {
     const spy = sandbox.spy();
     callbacks.setOnLoginRequest(spy);
     expect(callbacks.triggerLoginRequest({linkRequested: true})).to.be.true;
-    return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWith({linkRequested: true});
-    });
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWith({linkRequested: true});
   });
 
-  it('should trigger and execute subscribeRequest', () => {
+  it('should trigger and execute subscribeRequest', async () => {
     const spy = sandbox.spy();
     expect(callbacks.hasSubscribeRequestCallback()).to.be.false;
     callbacks.setOnSubscribeRequest(spy);
     expect(callbacks.hasSubscribeRequestCallback()).to.be.true;
     expect(callbacks.triggerSubscribeRequest()).to.be.true;
-    return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWithExactly(true);
-      expect(callbacks.hasSubscribeRequestCallback()).to.be.true;
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWithExactly(true);
+    expect(callbacks.hasSubscribeRequestCallback()).to.be.true;
+  });
+
+  describe('paymentResponse triggering', () => {
+    let spy;
+    let resolver;
+    let failer;
+    let paymentResponsePromise;
+
+    beforeEach(() => {
+      spy = sandbox.spy();
+      paymentResponsePromise = new Promise((resolve, fail) => {
+        resolver = resolve;
+        failer = fail;
+      });
+      callbacks.setOnLinkComplete(spy); // Make sure there's no ID conflict.
+      callbacks.setOnPaymentResponse(spy);
+      expect(callbacks.hasLinkCompletePending()).to.be.false;
+      expect(callbacks.hasPaymentResponsePending()).to.be.false;
+      expect(callbacks.triggerPaymentResponse(paymentResponsePromise)).to.be
+        .true;
+      // Should wait for the passed promise to resolve.
+      expect(callbacks.hasPaymentResponsePending()).to.be.false;
+    });
+
+    it('should work with a response', async () => {
+      await resolver({
+        clone: () => {},
+      });
+      // Now its pending until the next tick
+      expect(callbacks.hasPaymentResponsePending()).to.be.true;
+      await callbacks.paymentResponsePromise_;
+      // Now everything should execute
+      expect(spy).to.be.calledOnce.calledWith(Promise.resolve({}));
+      expect(callbacks.hasPaymentResponsePending()).to.be.false;
+    });
+
+    it('should not throw user canceled errors', async () => {
+      await failer({name: 'AbortError'});
+      await callbacks.paymentResponsePromise_;
+      await tick();
+      // Now everything should execute
+      expect(spy).to.not.be.called;
+      expect(callbacks.hasPaymentResponsePending()).to.be.false;
+    });
+
+    it('should throw other errors', async () => {
+      await failer({name: 'OtherError'});
+      let receivedReason = null;
+      await callbacks.paymentResponsePromise_.then(
+        () => {},
+        reason => {
+          receivedReason = reason;
+        }
+      );
+      await tick();
+      // Now everything should execute
+      expect(spy).to.not.be.called;
+      expect(receivedReason).to.deep.equal({name: 'OtherError'});
+      expect(callbacks.hasPaymentResponsePending()).to.be.false;
     });
   });
 
-  it('should trigger and execute subscribeResponse', () => {
-    const spy = sandbox.spy();
-    const p = Promise.resolve();
-    callbacks.setOnLinkComplete(spy); // Make sure there's no ID conflict.
-    callbacks.setOnSubscribeResponse(spy);
-    expect(callbacks.hasLinkCompletePending()).to.be.false;
-    expect(callbacks.hasSubscribeResponsePending()).to.be.false;
-    expect(callbacks.triggerSubscribeResponse(p)).to.be.true;
-    expect(callbacks.hasSubscribeResponsePending()).to.be.true;
-    return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWith(p);
-      expect(callbacks.hasSubscribeResponsePending()).to.be.false;
-    });
-  });
-
-  it('should trigger and execute ContributionResponse', () => {
-    const spy = sandbox.spy();
-    const p = Promise.resolve();
-    callbacks.setOnLinkComplete(spy); // Make sure there's no ID conflict.
-    callbacks.setOnContributionResponse(spy);
-    expect(callbacks.hasLinkCompletePending()).to.be.false;
-    expect(callbacks.hasSubscribeResponsePending()).to.be.false;
-    expect(callbacks.triggerContributionResponse(p)).to.be.true;
-    expect(callbacks.hasContributionResponsePending()).to.be.true;
-    return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWith(p);
-      expect(callbacks.hasContributionResponsePending()).to.be.false;
-    });
-  });
-
-  it('should trigger and execute entitlementsResponse', () => {
+  it('should trigger and execute entitlementsResponse', async () => {
     const spy = sandbox.spy();
     const p = Promise.resolve();
     callbacks.setOnLinkComplete(spy); // Make sure there's no ID conflict.
     callbacks.setOnEntitlementsResponse(spy);
     expect(callbacks.triggerEntitlementsResponse(p)).to.be.true;
     expect(callbacks.hasLinkCompletePending()).to.be.false;
-    return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWith(p);
-    });
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWith(p);
   });
 
-  it('should trigger and execute flowStarted', () => {
+  it('should trigger and execute flowStarted', async () => {
     const spy = sandbox.spy();
     callbacks.setOnFlowCanceled(spy); // Make sure there's no ID conflict.
     callbacks.setOnFlowStarted(spy);
     expect(callbacks.triggerFlowStarted('flow1')).to.be.true;
-    return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {}});
-    });
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {}});
   });
 
-  it('should trigger and execute flowStarted with data', () => {
+  it('should trigger and execute flowStarted with data', async () => {
     const spy = sandbox.spy();
     callbacks.setOnFlowStarted(spy);
     callbacks.triggerFlowStarted('flow1', {a: 1});
-    return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {a: 1}});
-    });
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {a: 1}});
   });
 
-  it('should trigger and execute flowCanceled', () => {
+  it('should trigger and execute flowCanceled', async () => {
     const spy = sandbox.spy();
     callbacks.setOnFlowStarted(spy); // Make sure there's no ID conflict.
     callbacks.setOnFlowCanceled(spy);
     expect(callbacks.triggerFlowCanceled('flow1')).to.be.true;
-    return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {}});
-    });
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {}});
   });
 
-  it('should trigger and execute flowCanceled with data', () => {
+  it('should trigger and execute flowCanceled with data', async () => {
     const spy = sandbox.spy();
     callbacks.setOnFlowCanceled(spy);
     callbacks.triggerFlowCanceled('flow1', {a: 1});
-    return skipMicro().then(() => {
-      expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {a: 1}});
-    });
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWith({flow: 'flow1', data: {a: 1}});
   });
 });

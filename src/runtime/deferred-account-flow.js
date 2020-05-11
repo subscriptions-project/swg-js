@@ -15,6 +15,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
 import {JwtHelper} from '../utils/jwt';
 import {PayCompleteFlow} from './pay-flow';
@@ -158,6 +159,10 @@ export class DeferredAccountFlow {
       purchaseDataList,
       completeHandler
     );
+
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.ACTION_NEW_DEFERRED_ACCOUNT, true);
 
     // Start the "sync" flow.
     creatingFlow.start(

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {FilterResult} from '../api/client-event-manager-api';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {isObject, isFunction, isEnumValue, isBoolean} from '../utils/types';
+import {FilterResult} from '../api/client-event-manager-api';
+import {isBoolean, isEnumValue, isFunction, isObject} from '../utils/types';
 import {log} from '../utils/log';
 
 /**
@@ -69,6 +69,18 @@ function validateEvent(event) {
 
 /** @implements {../api/client-event-manager-api.ClientEventManagerApi} */
 export class ClientEventManager {
+  /**
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @return {boolean}
+   */
+  static isPublisherEvent(event) {
+    return (
+      event.eventOriginator === EventOriginator.PROPENSITY_CLIENT ||
+      event.eventOriginator === EventOriginator.PUBLISHER_CLIENT ||
+      event.eventOriginator === EventOriginator.AMP_CLIENT
+    );
+  }
+
   /**
    *
    * @param {!Promise} configuredPromise
@@ -137,18 +149,19 @@ export class ClientEventManager {
    * Creates an event with the arguments provided and calls logEvent.
    * @param {!AnalyticsEvent} eventType
    * @param {?boolean=} isFromUserAction
-   * @param {?Object=} additionalParameters
+   * @param {../proto/api_messages.EventParams=} eventParams
    */
-  logSwgEvent(
-    eventType,
-    isFromUserAction = false,
-    additionalParameters = null
-  ) {
+  logSwgEvent(eventType, isFromUserAction = false, eventParams = null) {
     this.logEvent({
       eventType,
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction,
-      additionalParameters,
+      additionalParameters: eventParams,
     });
+  }
+
+  /** @return {!Promise<null>} */
+  getReadyPromise() {
+    return this.isReadyPromise_;
   }
 }

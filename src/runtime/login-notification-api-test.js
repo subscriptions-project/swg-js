@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {LoginNotificationApi} from './login-notification-api';
 import {PageConfig} from '../model/page-config';
-import {ActivityPort} from '../components/activities';
 
 describes.realWin('LoginNotificationApi', {}, env => {
   let win;
@@ -40,9 +40,7 @@ describes.realWin('LoginNotificationApi', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
-    port.Deprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     loginNotificationApi = new LoginNotificationApi(runtime);
     resultResolver = null;
@@ -58,7 +56,7 @@ describes.realWin('LoginNotificationApi', {}, env => {
     dialogManagerMock.verify();
   });
 
-  it('should start the flow correctly', () => {
+  it('should start the flow correctly', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     activitiesMock
       .expects('openIframe')
@@ -75,22 +73,14 @@ describes.realWin('LoginNotificationApi', {}, env => {
       .returns(Promise.resolve(port));
 
     loginNotificationApi.start();
-    return loginNotificationApi.openViewPromise_;
+    await loginNotificationApi.openViewPromise_;
   });
 
-  it('should handle failure', () => {
+  it('should handle failure', async () => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
-    return loginNotificationApi.start().then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/broken/);
-      }
-    );
+
+    await expect(loginNotificationApi.start()).to.be.rejectedWith(/broken/);
   });
 });

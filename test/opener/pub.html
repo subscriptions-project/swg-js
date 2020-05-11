@@ -57,15 +57,15 @@ function tryAndPrint(target, callback) {
   }
 }
 
-function doOpen(name, opt_options) {
+function doOpen(name, options) {
   var popup = window.open('//sp.localhost:8000/test/opener/sp-' + name + '.html',
       '_blank');
-  if (opt_options && opt_options.indexOf('noopener') != -1) {
+  if (options && options.indexOf('noopener') != -1) {
     popup.opener = null;
   }
   return popup;
 }
-function doOpenViaBlank(name, opt_options) {
+function doOpenViaBlank(name, options) {
   var popup = window.open('about:blank', '_blank');
   popup.document.write('Wait...');
   setTimeout(function() {

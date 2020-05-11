@@ -48,7 +48,7 @@ rm -rf "$IMPORT_DIR"/third_party/web_activities
 # Replace imports of Web Activities.
 cat "$WORK_DIR_PROJ"/src/payments_web_activity_delegate.js \
     | sed "s/\.\.\/third_party\/web_activities\/activity-ports.js/web-activities\/activity-ports/" \
-    | sed "s/this.useIframe_ = opt_useIframe || false;//" \
+    | sed "s/this.useIframe_ = useIframe || false;//" \
     | sed "s/this.useIframe_/null/" \
     > "$IMPORT_DIR"/src/payments_web_activity_delegate.js
 

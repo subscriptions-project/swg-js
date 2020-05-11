@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-
 /** @externs */
 
 /**
  * @template T
  * @constructor
  */
-var ArrayLike = function() {}
+const ArrayLike = function() {};
 
 /**
  * @type {number}
  */
 ArrayLike.prototype.length;
-
 
 /**
  * A type for Objects that can be JSON serialized or that come from

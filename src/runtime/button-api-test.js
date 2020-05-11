@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
+import {ActivityPort} from '../components/activities';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {ButtonApi} from './button-api';
-import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
-import {AnalyticsEvent, AnalyticsContext} from '../proto/api_messages';
-import {ActivityPort} from '../components/activities';
+
+function expectOpenIframe(activitiesMock, port, args) {
+  activitiesMock
+    .expects('openIframe')
+    .withExactArgs(
+      sandbox.match(arg => arg.tagName === 'IFRAME'),
+      '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
+      args
+    )
+    .returns(Promise.resolve(port));
+}
 
 describes.realWin('ButtonApi', {}, env => {
   let win;
@@ -31,9 +41,9 @@ describes.realWin('ButtonApi', {}, env => {
   let port;
   let analyticsMock;
   let activitiesMock;
-  let eventManagerMock;
   let buttonApi;
   let handler;
+  let events;
 
   beforeEach(() => {
     win = env.win;
@@ -42,342 +52,201 @@ describes.realWin('ButtonApi', {}, env => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     analyticsMock = sandbox.mock(runtime.analytics());
     activitiesMock = sandbox.mock(runtime.activities());
-    eventManagerMock = sandbox.mock(runtime.eventManager());
+    sandbox
+      .stub(ButtonApi.prototype, 'logSwgEvent_')
+      .callsFake((eventType, isFromUserAction, params) => {
+        events.push({eventType, isFromUserAction, params});
+      });
     buttonApi = new ButtonApi(resolveDoc(doc), Promise.resolve(runtime));
     port = new ActivityPort();
     handler = sandbox.spy();
+    events = [];
   });
 
   afterEach(() => {
     activitiesMock.verify();
     analyticsMock.verify();
-    eventManagerMock.verify();
   });
 
-  it('should inject stylesheet', () => {
-    buttonApi.init();
-    const links = doc.querySelectorAll('link[href="$assets$/swg-button.css"]');
-    expect(links).to.have.length(1);
-    const link = links[0];
-    expect(link.getAttribute('rel')).to.equal('stylesheet');
-    expect(link.getAttribute('type')).to.equal('text/css');
-    expect(link.getAttribute('href')).to.equal('$assets$/swg-button.css');
+  describe('init', () => {
+    it('should inject stylesheet', () => {
+      buttonApi.init();
+      const links = doc.querySelectorAll(
+        'link[href="$assets$/swg-button.css"]'
+      );
+      expect(links).to.have.length(1);
+      const link = links[0];
+      expect(link.getAttribute('rel')).to.equal('stylesheet');
+      expect(link.getAttribute('type')).to.equal('text/css');
+      expect(link.getAttribute('href')).to.equal('$assets$/swg-button.css');
+    });
+
+    it('should inject stylesheet only once', () => {
+      new ButtonApi(resolveDoc(doc), Promise.resolve(runtime)).init();
+      buttonApi.init();
+      const links = doc.querySelectorAll(
+        'link[href="$assets$/swg-button.css"]'
+      );
+      expect(links).to.have.length(1);
+    });
   });
 
-  it('should inject stylesheet only once', () => {
-    new ButtonApi(resolveDoc(doc), Promise.resolve(runtime)).init();
-    buttonApi.init();
-    const links = doc.querySelectorAll('link[href="$assets$/swg-button.css"]');
-    expect(links).to.have.length(1);
+  describe('Create and Attach', () => {
+    let button;
+    let isDarkMode;
+    let expectedTitle;
+
+    beforeEach(() => {
+      isDarkMode = false;
+      expectedTitle = 'Subscribe with Google';
+    });
+
+    afterEach(async () => {
+      if (isDarkMode) {
+        expect(button).to.not.have.class('swg-button-light');
+        expect(button).to.have.class('swg-button-dark');
+      } else {
+        expect(button).to.have.class('swg-button-light');
+        expect(button).to.not.have.class('swg-button-dark');
+      }
+
+      expect(button.getAttribute('role')).to.equal('button');
+      expect(button.getAttribute('title')).to.equal(expectedTitle);
+      expect(handler).to.not.be.called;
+      await button.click();
+      expect(handler).to.be.calledOnce;
+
+      expect(events.length).to.equal(2);
+      expect(events[0]).to.deep.equal({
+        eventType: AnalyticsEvent.IMPRESSION_SWG_BUTTON,
+        isFromUserAction: undefined,
+        params: undefined,
+      });
+
+      expect(events[1]).to.deep.equal({
+        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+        isFromUserAction: true,
+        params: undefined,
+      });
+    });
+
+    it('should create button w/o options', () => {
+      button = buttonApi.create(handler);
+      expect(button.nodeType).to.equal(1);
+      expect(button.tagName).to.equal('BUTTON');
+      expect(button.ownerDocument).to.equal(doc);
+    });
+
+    it('should attach button w/o options', () => {
+      button = doc.createElement('button');
+      button.className = 'button1';
+      buttonApi.attach(button, handler);
+    });
+
+    it('should create button with empty options', () => {
+      button = buttonApi.create({}, handler);
+    });
+
+    it('should attach button with empty options', () => {
+      button = doc.createElement('button');
+      button.className = 'button1';
+      buttonApi.attach(button, {}, handler);
+    });
+
+    it('should create button as light', () => {
+      button = buttonApi.create({theme: Theme.LIGHT}, handler);
+    });
+
+    it('should attach button as light', () => {
+      button = doc.createElement('button');
+      button.className = 'button1';
+      buttonApi.attach(button, {theme: Theme.LIGHT}, handler);
+    });
+
+    it('should create button with options', () => {
+      isDarkMode = true;
+      button = buttonApi.create({theme: 'dark'}, handler);
+    });
+
+    it('should attach button with options', () => {
+      button = doc.createElement('button');
+      button.className = 'button1';
+      buttonApi.attach(button, {theme: Theme.DARK}, handler);
+      isDarkMode = true;
+      expect(button).to.have.class('button1');
+    });
+
+    it('should create button with lang', () => {
+      button = buttonApi.create({lang: 'es'}, handler);
+      expect(button.lang).to.equal('es');
+      expectedTitle = 'Suscríbete con Google';
+    });
+
+    it('should attach button with lang', () => {
+      button = doc.createElement('button');
+      buttonApi.attach(button, {lang: 'es'}, handler);
+      expect(button.lang).to.equal('es');
+      expectedTitle = 'Suscríbete con Google';
+    });
+
+    it('should pick an existing lang', () => {
+      button = doc.createElement('button');
+      button.setAttribute('lang', 'fr');
+      buttonApi.attach(button, {}, handler);
+      expect(button.lang).to.equal('fr');
+      expectedTitle = "S'abonner avec Google";
+    });
   });
 
-  it('should create button w/o options', () => {
-    const button = buttonApi.create(handler);
-    expect(button.nodeType).to.equal(1);
-    expect(button.tagName).to.equal('BUTTON');
-    expect(button.ownerDocument).to.equal(doc);
-    expect(button).to.have.class('swg-button-light'); // Default.
-    expect(button.getAttribute('role')).to.equal('button');
-    expect(button.getAttribute('title')).to.equal('Subscribe with Google');
+  describe('SmartButton', () => {
+    let button;
+    let args;
 
-    expect(handler).to.not.be.called;
-    button.click();
-    expect(handler).to.be.calledOnce;
-  });
+    beforeEach(() => {
+      button = doc.createElement('button');
+      button.className = 'swg-smart-button';
+      expect(button.nodeType).to.equal(1);
+      args = runtime
+        .activities()
+        .addDefaultArguments({theme: 'light', lang: 'en'});
+    });
 
-  it('should attach button w/o options', () => {
-    const button = doc.createElement('button');
-    button.className = 'button1';
-    buttonApi.attach(button, handler);
-    expect(button).to.have.class('swg-button-light'); // Default.
-    expect(button.getAttribute('role')).to.equal('button');
-    expect(button.getAttribute('title')).to.equal('Subscribe with Google');
+    afterEach(async () => {
+      expect(handler).to.not.be.called;
+      await button.click();
+      expect(handler).to.be.calledOnce;
+      activitiesMock.verify();
+      expect(events.length).to.equal(1);
+      expect(events[0]).to.deep.equal({
+        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+        isFromUserAction: true,
+        params: undefined,
+      });
+    });
 
-    expect(handler).to.not.be.called;
-    button.click();
-    expect(handler).to.be.calledOnce;
-  });
+    it('work with no options', () => {
+      expectOpenIframe(activitiesMock, port, args);
+      buttonApi.attachSmartButton(runtime, button, {}, handler);
+    });
 
-  it('should create button with empty options', () => {
-    const button = buttonApi.create({}, handler);
-    expect(button).to.have.class('swg-button-light');
-    expect(button.getAttribute('role')).to.equal('button');
-    expect(button.getAttribute('title')).to.equal('Subscribe with Google');
+    it('work without options parameter', () => {
+      expectOpenIframe(activitiesMock, port, args);
+      buttonApi.attachSmartButton(runtime, button, handler);
+    });
 
-    expect(handler).to.not.be.called;
-    button.click();
-    expect(handler).to.be.calledOnce;
-  });
-
-  it('should create button with options', () => {
-    const button = buttonApi.create({theme: 'dark'}, handler);
-    expect(button).to.have.class('swg-button-dark');
-    expect(button).to.not.have.class('swg-button-light');
-    expect(button.getAttribute('role')).to.equal('button');
-    expect(button.getAttribute('title')).to.equal('Subscribe with Google');
-
-    expect(handler).to.not.be.called;
-    button.click();
-    expect(handler).to.be.calledOnce;
-  });
-
-  it('should create button as light', () => {
-    const button = buttonApi.create({theme: Theme.LIGHT}, handler);
-    expect(button).to.have.class('swg-button-light');
-    expect(button).to.not.have.class('swg-button-dark');
-  });
-
-  it('should create button with lang', () => {
-    const button = buttonApi.create({lang: 'es'}, handler);
-    expect(button.lang).to.equal('es');
-    expect(button.getAttribute('title')).to.equal('Suscríbete con Google');
-  });
-
-  it('should attach button with empty options', () => {
-    const button = doc.createElement('button');
-    button.className = 'button1';
-    buttonApi.attach(button, {}, handler);
-    expect(button).to.have.class('swg-button-light');
-    expect(button).to.have.class('button1');
-    expect(button.getAttribute('role')).to.equal('button');
-    expect(button.getAttribute('title')).to.equal('Subscribe with Google');
-
-    expect(handler).to.not.be.called;
-    button.click();
-    expect(handler).to.be.calledOnce;
-  });
-
-  it('should attach button with options', () => {
-    const button = doc.createElement('button');
-    button.className = 'button1';
-    buttonApi.attach(button, {theme: Theme.DARK}, handler);
-    expect(button).to.have.class('swg-button-dark');
-    expect(button).to.not.have.class('swg-button-light');
-    expect(button).to.have.class('button1');
-    expect(button.getAttribute('role')).to.equal('button');
-    expect(button.getAttribute('title')).to.equal('Subscribe with Google');
-
-    expect(handler).to.not.be.called;
-    button.click();
-    expect(handler).to.be.calledOnce;
-  });
-
-  it('should attach button as light', () => {
-    const button = doc.createElement('button');
-    button.className = 'button1';
-    buttonApi.attach(button, {theme: Theme.LIGHT}, handler);
-    expect(button).to.have.class('swg-button-light');
-    expect(button).to.not.have.class('swg-button-dark');
-    expect(button).to.have.class('button1');
-  });
-
-  it('should attach button with lang', () => {
-    const button = doc.createElement('button');
-    buttonApi.attach(button, {lang: 'es'}, handler);
-    expect(button.lang).to.equal('es');
-    expect(button.getAttribute('title')).to.equal('Suscríbete con Google');
-  });
-
-  it('should pick an existing lang', () => {
-    const button = doc.createElement('button');
-    button.setAttribute('lang', 'fr');
-    buttonApi.attach(button, {}, handler);
-    expect(button.lang).to.equal('fr');
-    expect(button.getAttribute('title')).to.equal("S'abonner avec Google");
-  });
-
-  it('should log button click on create.', async () => {
-    const button = buttonApi.create(handler);
-    let count = 0;
-    sandbox
-      .stub(ClientEventManager.prototype, 'logSwgEvent')
-      .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
-      .callsFake(() => count++);
-    await button.click();
-    expect(count).to.equal(1);
-  });
-
-  it('should log button click on attach.', async () => {
-    const button = doc.createElement('button');
-    buttonApi.attach(button, {}, handler);
-    let count = 0;
-    sandbox
-      .stub(ClientEventManager.prototype, 'logSwgEvent')
-      .withArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
-      .callsFake(() => count++);
-    await button.click();
-    expect(count).to.equal(1);
-  });
-
-  it('should log button impression on create', async () => {
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_SWG_BUTTON)
-      .once();
-    buttonApi.create(handler);
-  });
-
-  it('should log button impression on attach', async () => {
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_SWG_BUTTON)
-      .once();
-    const button = doc.createElement('button');
-    buttonApi.attach(button, {}, handler);
-  });
-
-  it('should attach a smart button with no options', () => {
-    const button = doc.createElement('button');
-    button.className = 'swg-smart-button';
-    expect(button.nodeType).to.equal(1);
-
-    const expAnalyticsContext = new AnalyticsContext();
-    expAnalyticsContext.setEmbedderOrigin('google.com');
-    analyticsMock
-      .expects('getContext')
-      .returns(expAnalyticsContext)
-      .once();
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
-          theme: 'light',
-          lang: 'en',
-          analyticsContext: expAnalyticsContext.toArray(),
-        }
-      )
-      .returns(Promise.resolve(port));
-    buttonApi.attachSmartButton(runtime, button, {}, handler);
-    expect(handler).to.not.be.called;
-    button.click();
-    expect(handler).to.be.calledOnce;
-    activitiesMock.verify();
-  });
-
-  it('should attach a smart button without options parameter', () => {
-    const button = doc.createElement('button');
-    button.className = 'swg-smart-button';
-    expect(button.nodeType).to.equal(1);
-
-    const expAnalyticsContext = new AnalyticsContext();
-    expAnalyticsContext.setEmbedderOrigin('google.com');
-    analyticsMock
-      .expects('getContext')
-      .returns(expAnalyticsContext)
-      .once();
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
-          theme: 'light',
-          lang: 'en',
-          analyticsContext: expAnalyticsContext.toArray(),
-        }
-      )
-      .returns(Promise.resolve(port));
-    buttonApi.attachSmartButton(runtime, button, handler);
-    expect(handler).to.not.be.called;
-    button.click();
-    expect(handler).to.be.calledOnce;
-    activitiesMock.verify();
-  });
-
-  it('should attach a smart button with options and lang', () => {
-    const button = doc.createElement('button');
-    button.className = 'swg-smart-button';
-    expect(button.nodeType).to.equal(1);
-
-    const expAnalyticsContext = new AnalyticsContext();
-    expAnalyticsContext.setEmbedderOrigin('google.com');
-    analyticsMock
-      .expects('getContext')
-      .returns(expAnalyticsContext)
-      .once();
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
-          theme: 'dark',
-          lang: 'fr',
-          messageTextColor: '#411',
-          analyticsContext: expAnalyticsContext.toArray(),
-        }
-      )
-      .returns(Promise.resolve(port));
-    buttonApi.attachSmartButton(
-      runtime,
-      button,
-      {
+    it('work with options and lang', () => {
+      const myArgs = {
         theme: 'dark',
         lang: 'fr',
         messageTextColor: '#411',
-      },
-      handler
-    );
-    expect(handler).to.not.be.called;
-    button.click();
-    expect(handler).to.be.calledOnce;
-    activitiesMock.verify();
-  });
+      };
+      expectOpenIframe(activitiesMock, port, Object.assign(args, myArgs));
+      buttonApi.attachSmartButton(runtime, button, myArgs, handler);
+    });
 
-  it('should attach a smart button with default theme when invalid value', () => {
-    const button = doc.createElement('button');
-    button.className = 'swg-smart-button';
-    expect(button.nodeType).to.equal(1);
-
-    const expAnalyticsContext = new AnalyticsContext();
-    expAnalyticsContext.setEmbedderOrigin('google.com');
-    analyticsMock
-      .expects('getContext')
-      .returns(expAnalyticsContext)
-      .once();
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId: 'pub1',
-          productId: 'pub1:label1',
-          theme: 'light',
-          lang: 'en',
-          analyticsContext: expAnalyticsContext.toArray(),
-        }
-      )
-      .returns(Promise.resolve(port));
-    buttonApi.attachSmartButton(runtime, button, {theme: 'INVALID'}, handler);
-    expect(handler).to.not.be.called;
-    button.click();
-    expect(handler).to.be.calledOnce;
-    activitiesMock.verify();
-  });
-
-  it('should log smart button click', async () => {
-    const button = doc.createElement('button');
-    button.className = 'swg-smart-button';
-    analyticsMock.expects('getContext').returns(new AnalyticsContext());
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    buttonApi.attachSmartButton(runtime, button, {}, handler);
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true)
-      .once();
-    button.click();
+    it('work set with default theme when invalid value', () => {
+      expectOpenIframe(activitiesMock, port, args);
+      buttonApi.attachSmartButton(runtime, button, {theme: 'INVALID'}, handler);
+    });
   });
 });

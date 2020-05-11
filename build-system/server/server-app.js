@@ -20,7 +20,7 @@ const app = express();
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 
 app.set('view engine', 'html');
 app.engine('html', require('hogan-express'));
@@ -29,9 +29,10 @@ app.locals.delimiters = '<% %>';
 // HTTPS redirect.
 app.use((req, res, next) => {
   let host = req.headers.host || req.host;
-  const secure = (req.secure ||
-      req.connection.encrypted ||
-      req.get('X-Forwarded-Proto') === 'https');
+  const secure =
+    req.secure ||
+    req.connection.encrypted ||
+    req.get('X-Forwarded-Proto') === 'https';
   if (secure || host.indexOf('localhost') != -1) {
     // Skip localhost or if already secure.
     next();
@@ -63,9 +64,11 @@ app.use((req, res, next) => {
  * Redirect to sample-pub.
  */
 app.get('/', (req, res) => {
-  res.redirect(302,
-      '/examples/sample-pub/'
-      + (req.query.test !== undefined ? `?test=${req.query.test}` : ''));
+  res.redirect(
+    302,
+    '/examples/sample-pub/' +
+      (req.query.test !== undefined ? `?test=${req.query.test}` : '')
+  );
 });
 
 /**
@@ -76,13 +79,19 @@ app.get('/env', (req, res) => {
   });
 });
 
-app.use('/examples/sample-pub',
-    require('../../examples/sample-pub/sample-pub-app'));
+app.use(
+  '/examples/sample-pub',
+  require('../../examples/sample-pub/sample-pub-app')
+);
 
-app.use('/examples/sample-sp',
-    require('../../examples/sample-sp/sample-sp-app'));
+app.use(
+  '/examples/sample-sp',
+  require('../../examples/sample-sp/sample-sp-app')
+);
 
-app.use('/test/auth-header/service',
-    require('../../test/auth-header/service-app'));
+app.use(
+  '/test/auth-header/service',
+  require('../../test/auth-header/service-app')
+);
 
 module.exports = app;

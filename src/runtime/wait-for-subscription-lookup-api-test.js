@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {ConfiguredRuntime} from './runtime';
-import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
-import {PageConfig} from '../model/page-config';
 import {ActivityPort} from '../components/activities';
+import {ConfiguredRuntime} from './runtime';
+import {PageConfig} from '../model/page-config';
+import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 
 describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
   let win;
@@ -42,9 +42,7 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
-    port.messageDeprecated = () => {};
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     accountPromise = Promise.resolve(account);
     waitingApi = new WaitForSubscriptionLookupApi(runtime, accountPromise);
@@ -61,7 +59,7 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     dialogManagerMock.verify();
   });
 
-  it('should start the flow correctly', () => {
+  it('should start the flow correctly', async () => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
@@ -76,31 +74,29 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
       .returns(Promise.resolve(port));
     dialogManagerMock.expects('completeView').once();
     waitingApi.start();
-    return waitingApi.openViewPromise_;
+    await waitingApi.openViewPromise_;
   });
 
-  it('should return the account on success', () => {
-    return waitingApi.start().then(foundAccount => {
-      expect(foundAccount).to.equal(account);
-    });
+  it('should return the account on success', async () => {
+    const foundAccount = await waitingApi.start();
+    expect(foundAccount).to.equal(account);
   });
 
-  it('it should fail correctly', () => {
+  it('it should fail correctly', async () => {
     const noAccountFound = 'no account found';
     accountPromise = Promise.reject(noAccountFound);
     waitingApi = new WaitForSubscriptionLookupApi(runtime, accountPromise);
     resultResolver(Promise.reject(new Error(noAccountFound)));
 
     dialogManagerMock.expects('completeView').once();
-    return waitingApi.start().then(
-      foundAccount => {
-        throw new Error(
-          'test failed. "' + foundAccount + '" should not be found'
-        );
-      },
-      reason => {
-        expect(reason).to.equal(noAccountFound);
-      }
+    await expect(waitingApi.start()).to.be.rejectedWith(noAccountFound);
+  });
+
+  it('should reject null account promise', async () => {
+    waitingApi = new WaitForSubscriptionLookupApi(runtime);
+    dialogManagerMock.expects('completeView').once();
+    await expect(waitingApi.start()).to.be.rejectedWith(
+      'No account promise provided'
     );
   });
 });

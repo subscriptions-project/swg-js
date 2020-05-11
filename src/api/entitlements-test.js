@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 
-// Entry point into library for compilation with babel. Just loads main.js
-// and Babel's helpers.
+import {Entitlement} from './entitlements';
 
-import '../third_party/babel/custom-babel-helpers';
-import './main';
+describes.realWin('Entitlements', {}, () => {
+  let entitlements;
+
+  beforeEach(() => {
+    entitlements = Entitlement.parseFromJson(null);
+  });
+
+  describe('enables', () => {
+    it('handles falsy `product` param', () => {
+      expect(entitlements.enables(null)).to.be.false;
+    });
+  });
+});

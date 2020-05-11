@@ -15,15 +15,20 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {
+  AnalyticsEvent,
+  LinkSaveTokenRequest,
+  LinkingInfoResponse,
+} from '../proto/api_messages';
 import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {acceptPortResultData} from '../utils/activity-utils';
+import {createCancelError, isCancelError} from '../utils/errors';
 import {feArgs, feOrigin, feUrl} from './services';
-import {isCancelError, createCancelError} from '../utils/errors';
 
 const LINK_REQUEST_ID = 'swg-link';
 
 /**
- * The flow to initiate linkback flow.
+ * The flow to link an existing publisher account to an existing google account.
  */
 export class LinkbackFlow {
   /**
@@ -45,21 +50,29 @@ export class LinkbackFlow {
 
   /**
    * Starts the Link account flow.
+   * @param {{ampReaderId: (string|undefined)}=} params
    * @return {!Promise}
    */
-  start() {
+  start(params = {}) {
     this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
     const forceRedirect =
       this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT;
+    const args = params.ampReaderId
+      ? feArgs({
+          'publicationId': this.pageConfig_.getPublicationId(),
+          'ampReaderId': params.ampReaderId,
+        })
+      : feArgs({
+          'publicationId': this.pageConfig_.getPublicationId(),
+        });
     const opener = this.activityPorts_.open(
       LINK_REQUEST_ID,
       feUrl('/linkbackstart'),
       forceRedirect ? '_top' : '_blank',
-      feArgs({
-        'publicationId': this.pageConfig_.getPublicationId(),
-      }),
+      args,
       {}
     );
+    this.deps_.eventManager().logSwgEvent(AnalyticsEvent.IMPRESSION_LINK);
     this.dialogManager_.popupOpened(opener && opener.targetWin);
     return Promise.resolve();
   }
@@ -89,14 +102,25 @@ export class LinkCompleteFlow {
       );
       return promise.then(
         response => {
+          deps
+            .eventManager()
+            .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
           const flow = new LinkCompleteFlow(deps, response);
           flow.start();
         },
         reason => {
           if (isCancelError(reason)) {
             deps
+              .eventManager()
+              .logSwgEvent(AnalyticsEvent.ACTION_LINK_CANCEL, true);
+            deps
               .callbacks()
               .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
+          } else {
+            // The user chose to continue but there was an error.
+            deps
+              .eventManager()
+              .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
           }
         }
       );
@@ -109,6 +133,9 @@ export class LinkCompleteFlow {
    * @param {?Object} response
    */
   constructor(deps, response) {
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
@@ -170,6 +197,12 @@ export class LinkCompleteFlow {
         // The flow is complete.
         this.dialogManager_.completeView(this.activityIframeView_);
       });
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 
@@ -178,6 +211,9 @@ export class LinkCompleteFlow {
    * @private
    */
   complete_(response) {
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
     this.callbacks_.triggerLinkComplete();
     this.callbacks_.resetLinkProgress();
     this.entitlementsManager_.setToastShown(true);
@@ -196,7 +232,9 @@ export class LinkCompleteFlow {
 }
 
 /**
- * The flow to save subscription information.
+ * The flow to save subscription information from an existing publisher account
+ * to an existing google account.  The accounts may or may not already be
+ * linked.
  */
 export class LinkSaveFlow {
   /**
@@ -274,6 +312,39 @@ export class LinkSaveFlow {
   }
 
   /**
+   * @param {LinkingInfoResponse} response
+   * @private
+   */
+  sendLinkSaveToken_(response) {
+    if (!response || !response.getRequested()) {
+      return;
+    }
+    this.requestPromise_ = new Promise(resolve => {
+      resolve(this.callback_());
+    })
+      .then(request => {
+        const saveRequest = new LinkSaveTokenRequest();
+        if (request && request.token) {
+          if (request.authCode) {
+            throw new Error('Both authCode and token are available');
+          } else {
+            saveRequest.setToken(request.token);
+          }
+        } else if (request && request.authCode) {
+          saveRequest.setAuthCode(request.authCode);
+        } else {
+          throw new Error('Neither token or authCode is available');
+        }
+        this.activityIframeView_.execute(saveRequest);
+      })
+      .catch(reason => {
+        // The flow is complete.
+        this.complete_();
+        throw reason;
+      });
+  }
+
+  /**
    * @return {?Promise}
    */
   /**
@@ -281,50 +352,29 @@ export class LinkSaveFlow {
    * @return {!Promise}
    */
   start() {
-    const iframeArgs = {
-      'publicationId': this.deps_.pageConfig().getPublicationId(),
+    const iframeArgs = this.activityPorts_.addDefaultArguments({
       'isClosable': true,
-    };
+    });
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       feUrl('/linksaveiframe'),
-      feArgs(iframeArgs),
+      iframeArgs,
       /* shouldFadeBody */ false,
       /* hasLoadingIndicator */ true
     );
-    this.activityIframeView_.onMessageDeprecated(data => {
-      if (data['getLinkingInfo']) {
-        this.requestPromise_ = new Promise(resolve => {
-          resolve(this.callback_());
-        })
-          .then(request => {
-            let saveRequest;
-            if (request && request.token) {
-              if (request.authCode) {
-                throw new Error('Both authCode and token are available');
-              } else {
-                saveRequest = {'token': request.token};
-              }
-            } else if (request && request.authCode) {
-              saveRequest = {'authCode': request.authCode};
-            } else {
-              throw new Error('Neither token or authCode is available');
-            }
-            this.activityIframeView_.messageDeprecated(saveRequest);
-          })
-          .catch(reason => {
-            // The flow is complete.
-            this.complete_();
-            throw reason;
-          });
-      }
-    });
+    this.activityIframeView_.on(
+      LinkingInfoResponse,
+      this.sendLinkSaveToken_.bind(this)
+    );
 
     this.openPromise_ = this.dialogManager_.openView(
       this.activityIframeView_,
       /* hidden */ true
     );
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.IMPRESSION_SAVE_SUBSCR_TO_GOOGLE);
     /** {!Promise<boolean>} */
     return this.activityIframeView_
       .acceptResultAndVerify(
@@ -340,6 +390,12 @@ export class LinkSaveFlow {
         this.complete_();
         // Handle cancellation from user, link confirm start or completion here
         if (isCancelError(reason)) {
+          this.deps_
+            .eventManager()
+            .logSwgEvent(
+              AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL,
+              true
+            );
           this.deps_
             .callbacks()
             .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);

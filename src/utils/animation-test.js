@@ -33,7 +33,7 @@ describes.sandboxed('transition', {}, () => {
     doc.body.removeChild(el);
   });
 
-  it('should set transition', () => {
+  it('should set transition', async () => {
     const promise = transition(
       el,
       {
@@ -48,8 +48,8 @@ describes.sandboxed('transition', {}, () => {
     expect(transitionStyle.includes('transform 100ms ease-in')).to.be.true;
     expect(transitionStyle.includes('opacity 100ms ease-in')).to.be.true;
     clock.tick(100);
-    return promise.then(() => {
-      expect(getStyle(el, 'transition')).to.equal('');
-    });
+
+    await promise;
+    expect(getStyle(el, 'transition')).to.equal('');
   });
 });

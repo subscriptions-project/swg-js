@@ -15,7 +15,7 @@
  */
 
 import {CSS as DIALOG_CSS} from '../../build/css/ui/ui.css';
-import {resolveDoc} from '../model/doc';
+import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
 import {LoadingView} from '../ui/loading-view';
 import {
@@ -24,9 +24,9 @@ import {
   removeChildren,
   removeElement,
 } from '../utils/dom';
-import {setStyles, setImportantStyles} from '../utils/style';
+import {resolveDoc} from '../model/doc';
+import {setImportantStyles, setStyles} from '../utils/style';
 import {transition} from '../utils/animation';
-import {FriendlyIframe} from './friendly-iframe';
 
 const Z_INDEX = 2147483647;
 
@@ -126,6 +126,9 @@ export class Dialog {
 
     /** @private {?./view.View} */
     this.previousProgressView_ = null;
+
+    /** @private {boolean} */
+    this.useFixedLayer_ = false;
   }
 
   /**
@@ -141,6 +144,7 @@ export class Dialog {
 
     // Attach.
     this.doc_.getBody().appendChild(iframe.getElement()); // Fires onload.
+
     this.graypane_.attach();
 
     if (hidden) {
@@ -153,10 +157,20 @@ export class Dialog {
       this.show_();
     }
 
-    return iframe.whenReady().then(() => {
-      this.buildIframe_();
-      return this;
-    });
+    if (this.useFixedLayer_) {
+      return this.doc_
+        .addToFixedLayer(iframe.getElement())
+        .then(() => iframe.whenReady())
+        .then(() => {
+          this.buildIframe_();
+          return this;
+        });
+    } else {
+      return iframe.whenReady().then(() => {
+        this.buildIframe_();
+        return this;
+      });
+    }
   }
 
   /**
@@ -204,7 +218,9 @@ export class Dialog {
       animating = Promise.resolve();
     }
     return animating.then(() => {
-      this.doc_.getBody().removeChild(this.iframe_.getElement());
+      const iframeEl = this.iframe_.getElement();
+      iframeEl.parentNode.removeChild(iframeEl);
+
       this.removePaddingToHtml_();
       this.graypane_.destroy();
     });

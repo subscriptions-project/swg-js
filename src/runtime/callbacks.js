@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {isCancelError} from '../utils/errors';
+import {warn} from '../utils/log';
 
 /** @enum {number} */
 const CallbackId = {
   ENTITLEMENTS: 1,
   SUBSCRIBE_REQUEST: 2,
-  SUBSCRIBE_RESPONSE: 3,
+  PAYMENT_RESPONSE: 3,
   LOGIN_REQUEST: 4,
   LINK_PROGRESS: 5,
   LINK_COMPLETE: 6,
   FLOW_STARTED: 7,
   FLOW_CANCELED: 8,
-  CONTRIBUTION_RESPONSE: 9,
 };
 
 /**
@@ -37,6 +38,8 @@ export class Callbacks {
     this.callbacks_ = {};
     /** @private @const {!Object<CallbackId, *>} */
     this.resultBuffer_ = {};
+    /** @private {?Promise} */
+    this.paymentResponsePromise_ = null;
   }
 
   /**
@@ -144,50 +147,56 @@ export class Callbacks {
    * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
    */
   setOnSubscribeResponse(callback) {
-    this.setCallback_(CallbackId.SUBSCRIBE_RESPONSE, callback);
+    warn(
+      `[swg.js:setOnSubscribeResponse]: This method has been deprecated, please switch usages to 'setOnPaymentResponse'`
+    );
+    this.setCallback_(CallbackId.PAYMENT_RESPONSE, callback);
   }
 
   /**
    * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
    */
   setOnContributionResponse(callback) {
-    this.setCallback_(CallbackId.CONTRIBUTION_RESPONSE, callback);
+    warn(
+      `[swg.js:setOnContributionResponse]: This method has been deprecated, please switch usages to 'setOnPaymentResponse'`
+    );
+    this.setCallback_(CallbackId.PAYMENT_RESPONSE, callback);
+  }
+
+  /**
+   * @param {function(!Promise<!../api/subscribe-response.SubscribeResponse>)} callback
+   */
+  setOnPaymentResponse(callback) {
+    this.setCallback_(CallbackId.PAYMENT_RESPONSE, callback);
   }
 
   /**
    * @param {!Promise<!../api/subscribe-response.SubscribeResponse>} responsePromise
    * @return {boolean} Whether the callback has been found.
    */
-  triggerSubscribeResponse(responsePromise) {
-    return this.trigger_(
-      CallbackId.SUBSCRIBE_RESPONSE,
-      responsePromise.then(res => res.clone())
+  triggerPaymentResponse(responsePromise) {
+    this.paymentResponsePromise_ = responsePromise.then(
+      res => {
+        this.trigger_(
+          CallbackId.PAYMENT_RESPONSE,
+          Promise.resolve(res.clone())
+        );
+      },
+      reason => {
+        if (isCancelError(reason)) {
+          return;
+        }
+        throw reason;
+      }
     );
-  }
-
-  /**
-   * @param {!Promise<!../api/subscribe-response.SubscribeResponse>} responsePromise
-   * @return {boolean} Whether the callback has been found.
-   */
-  triggerContributionResponse(responsePromise) {
-    return this.trigger_(
-      CallbackId.CONTRIBUTION_RESPONSE,
-      responsePromise.then(res => res.clone())
-    );
+    return !!this.callbacks_[CallbackId.PAYMENT_RESPONSE];
   }
 
   /**
    * @return {boolean}
    */
-  hasSubscribeResponsePending() {
-    return !!this.resultBuffer_[CallbackId.SUBSCRIBE_RESPONSE];
-  }
-
-  /**
-   * @return {boolean}
-   */
-  hasContributionResponsePending() {
-    return !!this.resultBuffer_[CallbackId.CONTRIBUTION_RESPONSE];
+  hasPaymentResponsePending() {
+    return !!this.resultBuffer_[CallbackId.PAYMENT_RESPONSE];
   }
 
   /**
@@ -199,13 +208,13 @@ export class Callbacks {
 
   /**
    * @param {string} flow
-   * @param {!Object=} opt_data
+   * @param {!Object=} data
    * @return {boolean} Whether the callback has been found.
    */
-  triggerFlowStarted(flow, opt_data) {
+  triggerFlowStarted(flow, data = {}) {
     return this.trigger_(CallbackId.FLOW_STARTED, {
       flow,
-      data: opt_data || {},
+      data,
     });
   }
 
@@ -218,13 +227,13 @@ export class Callbacks {
 
   /**
    * @param {string} flow
-   * @param {!Object=} opt_data
+   * @param {!Object=} data
    * @return {boolean} Whether the callback has been found.
    */
-  triggerFlowCanceled(flow, opt_data) {
+  triggerFlowCanceled(flow, data = {}) {
     return this.trigger_(CallbackId.FLOW_CANCELED, {
       flow,
-      data: opt_data || {},
+      data,
     });
   }
 
@@ -234,6 +243,11 @@ export class Callbacks {
    * @private
    */
   setCallback_(id, callback) {
+    if (this.callbacks_[id]) {
+      warn(
+        `[swg.js]: You have registered multiple callbacks for the same response.`
+      );
+    }
     this.callbacks_[id] = callback;
     // If result already exist, execute the callback right away.
     if (id in this.resultBuffer_) {

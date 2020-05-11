@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
-import {Xhr} from '../utils/xhr';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
-import {feArgs, feCached} from './services';
-import {isExperimentOn} from './experiments';
-
-const PAY_REQUEST_ID = 'swg-pay';
-const GPAY_ACTIVITY_REQUEST = 'GPAY';
+import {feCached} from './services';
 
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
@@ -44,33 +38,75 @@ export const PAY_ORIGIN = {
 };
 
 /** @return {string} */
-function payOrigin() {
-  return PAY_ORIGIN['$payEnvironment$'];
-}
-
-/** @return {string} */
 function payUrl() {
   return feCached(PAY_ORIGIN['$payEnvironment$'] + '/gp/p/ui/pay');
-}
-
-/** @return {string} */
-function payDecryptUrl() {
-  return PAY_ORIGIN['$payEnvironment$'] + '/gp/p/apis/buyflow/process';
 }
 
 /**
  */
 export class PayClient {
   /**
-   * @param {!Window} win
-   * @param {!../components/activities.ActivityPorts} activityPorts
-   * @param {!../components/dialog-manager.DialogManager} dialogManager
+   * @param {!./deps.DepsDef} deps
    */
-  constructor(win, activityPorts, dialogManager) {
-    /** @const @private {!PayClientBindingDef} */
-    this.binding_ = isExperimentOn(win, ExperimentFlags.GPAY_API)
-      ? new PayClientBindingPayjs(win, activityPorts)
-      : new PayClientBindingSwg(win, activityPorts, dialogManager);
+  constructor(deps) {
+    /** @private @const {!Window} */
+    this.win_ = deps.win();
+
+    /** @private @const {!../components/activities.ActivityPorts} */
+    this.activityPorts_ = deps.activities();
+
+    /** @private {?function(!Promise<!PaymentData>)} */
+    this.responseCallback_ = null;
+
+    /** @private {?PaymentDataRequest} */
+    this.request_ = null;
+
+    /** @private {?Promise<!PaymentData>} */
+    this.response_ = null;
+
+    /** @private @const {!./analytics-service.AnalyticsService} */
+    this.analytics_ = deps.analytics();
+
+    /** @private @const {!RedirectVerifierHelper} */
+    this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
+
+    /** @private @const {!PaymentsAsyncClient} */
+    this.client_ = this.createClient_(
+      /** @type {!PaymentOptions} */
+      ({
+        environment: '$payEnvironment$',
+        'i': {
+          'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+        },
+      }),
+      this.analytics_.getTransactionId(),
+      this.handleResponse_.bind(this)
+    );
+
+    // Prepare new verifier pair.
+    this.redirectVerifierHelper_.prepare();
+
+    /** @private @const {!./client-event-manager.ClientEventManager} */
+    this.eventManager_ = deps.eventManager();
+  }
+
+  /**
+   * @param {!PaymentOptions} options
+   * @param {string} googleTransactionId
+   * @param {function(!Promise<!PaymentData>)} handler
+   * @return {!PaymentsAsyncClient}
+   * @private
+   */
+  createClient_(options, googleTransactionId, handler) {
+    // Assign Google Transaction ID to PaymentsAsyncClient.googleTransactionId_
+    // so it can be passed to gpay_async.js and stored in payment clearcut log.
+    PaymentsAsyncClient.googleTransactionId_ = googleTransactionId;
+    return new PaymentsAsyncClient(
+      options,
+      handler,
+      /* useIframe */ false,
+      this.activityPorts_.getOriginalWebActivityPorts()
+    );
   }
 
   /**
@@ -91,196 +127,17 @@ export class PayClient {
    * @return {string}
    */
   getType() {
-    // TODO(dvoytenko, #406): remove once GPay API is launched.
-    return this.binding_.getType();
-  }
-
-  /**
-   * @param {!Object} paymentRequest
-   * @param {!PayOptionsDef=} options
-   */
-  start(paymentRequest, options = {}) {
-    this.binding_.start(paymentRequest, options);
-  }
-
-  /**
-   * @param {function(!Promise<!Object>)} callback
-   */
-  onResponse(callback) {
-    this.binding_.onResponse(callback);
-  }
-}
-
-/**
- * TODO(dvoytenko, #406): remove delegated class once GPay launches.
- * @interface
- */
-class PayClientBindingDef {
-  /**
-   * @return {string}
-   */
-  getType() {}
-
-  /**
-   * @param {!Object} unusedPaymentRequest
-   * @param {!PayOptionsDef} unusedOptions
-   */
-  start(unusedPaymentRequest, unusedOptions) {}
-
-  /**
-   * @param {function(!Promise<!Object>)} unusedCallback
-   */
-  onResponse(unusedCallback) {}
-}
-
-/**
- * @implements {PayClientBindingDef}
- */
-class PayClientBindingSwg {
-  /**
-   * @param {!Window} win
-   * @param {!../components/activities.ActivityPorts} activityPorts
-   * @param {!../components/dialog-manager.DialogManager} dialogManager
-   */
-  constructor(win, activityPorts, dialogManager) {
-    /** @private @const {!Window} */
-    this.win_ = win;
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = activityPorts;
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = dialogManager;
-  }
-
-  /** @override */
-  getType() {
-    return 'SWG';
-  }
-
-  /** @override */
-  start(paymentRequest, options) {
-    const opener = this.activityPorts_.open(
-      GPAY_ACTIVITY_REQUEST,
-      payUrl(),
-      options.forceRedirect ? '_top' : '_blank',
-      feArgs(paymentRequest),
-      {}
-    );
-    this.dialogManager_.popupOpened((opener && opener.targetWin) || null);
-  }
-
-  /** @override */
-  onResponse(callback) {
-    const responseCallback = port => {
-      this.dialogManager_.popupClosed();
-      callback(this.validatePayResponse_(port));
-    };
-    this.activityPorts_.onResult(GPAY_ACTIVITY_REQUEST, responseCallback);
-    this.activityPorts_.onResult(PAY_REQUEST_ID, responseCallback);
-  }
-
-  /**
-   * @param {!../components/activities.ActivityPortDef} port
-   * @return {!Promise<!Object>}
-   * @private
-   */
-  validatePayResponse_(port) {
-    // Do not require security immediately: it will be checked below.
-    return port.acceptResult().then(result => {
-      if (result.origin != payOrigin()) {
-        throw new Error('channel mismatch');
-      }
-      const data = /** @type {!Object} */ (result.data);
-      if (data['redirectEncryptedCallbackData']) {
-        // Data is supplied as an encrypted blob.
-        const xhr = new Xhr(this.win_);
-        const url = payDecryptUrl();
-        const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
-          method: 'post',
-          headers: {'Accept': 'text/plain, application/json'},
-          credentials: 'include',
-          body: data['redirectEncryptedCallbackData'],
-          mode: 'cors',
-        });
-        return xhr
-          .fetch(url, init)
-          .then(response => response.json())
-          .then(response => {
-            const dataClone = Object.assign({}, data);
-            delete dataClone['redirectEncryptedCallbackData'];
-            return Object.assign(dataClone, response);
-          });
-      }
-      // Data is supplied directly: must be a verified and secure channel.
-      if (result.originVerified && result.secureChannel) {
-        return data;
-      }
-      throw new Error('channel mismatch');
-    });
-  }
-}
-
-/**
- * Binding based on the https://github.com/google/payjs.
- * @implements {PayClientBindingDef}
- * @package Visible for testing only.
- */
-export class PayClientBindingPayjs {
-  /**
-   * @param {!Window} win
-   * @param {!../components/activities.ActivityPorts} activityPorts
-   */
-  constructor(win, activityPorts) {
-    /** @private @const {!Window} */
-    this.win_ = win;
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = activityPorts;
-
-    /** @private {?function(!Promise<!Object>)} */
-    this.responseCallback_ = null;
-
-    /** @private {?Promise<!Object>} */
-    this.response_ = null;
-
-    /** @private @const {!RedirectVerifierHelper} */
-    this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
-
-    /** @private @const {!PaymentsAsyncClient} */
-    this.client_ = this.createClient_(
-      {
-        environment: '$payEnvironment$',
-        'i': {
-          'redirectKey': this.redirectVerifierHelper_.restoreKey(),
-        },
-      },
-      this.handleResponse_.bind(this)
-    );
-
-    // Prepare new verifier pair.
-    this.redirectVerifierHelper_.prepare();
-  }
-
-  /**
-   * @param {!Object} options
-   * @param {function(!Promise<!Object>)} handler
-   * @return {!PaymentsAsyncClient}
-   * @private
-   */
-  createClient_(options, handler) {
-    return new PaymentsAsyncClient(
-      options,
-      handler,
-      /* useIframe */ false,
-      this.activityPorts_.getOriginalWebActivityPorts()
-    );
-  }
-
-  /** @override */
-  getType() {
+    // TODO(alin04): remove once all references removed.
     return 'PAYJS';
   }
 
-  /** @override */
-  start(paymentRequest, options) {
+  /**
+   * @param {!PaymentDataRequest} paymentRequest
+   * @param {!PayOptionsDef=} options
+   */
+  start(paymentRequest, options = {}) {
+    this.request_ = paymentRequest;
+
     if (options.forceRedirect) {
       paymentRequest = Object.assign(paymentRequest, {
         'forceRedirect': options.forceRedirect || false,
@@ -291,55 +148,91 @@ export class PayClientBindingPayjs {
       'disableNative',
       // The page cannot be iframed at this time. May be relaxed later
       // for AMP and similar contexts.
-      this.win_ != this.top_() ||
-        // Experiment must be enabled.
-        !isExperimentOn(this.win_, ExperimentFlags.GPAY_NATIVE)
+      this.win_ != this.top_()
     );
+    let resolver = null;
+    const promise = new Promise(resolve => (resolver = resolve));
     // Notice that the callback for verifier may execute asynchronously.
     this.redirectVerifierHelper_.useVerifier(verifier => {
       if (verifier) {
         setInternalParam(paymentRequest, 'redirectVerifier', verifier);
       }
-      this.client_.loadPaymentData(paymentRequest);
+      if (options.forceRedirect) {
+        const client = this.client_;
+        this.eventManager_.getReadyPromise().then(() => {
+          this.analytics_.getLoggingPromise().then(() => {
+            client.loadPaymentData(paymentRequest);
+            resolver(true);
+          });
+        });
+      } else {
+        this.client_.loadPaymentData(paymentRequest);
+        resolver(true);
+      }
     });
+    return promise;
   }
 
-  /** @override */
+  /**
+   * @param {function(!Promise<!PaymentData>)} callback
+   */
   onResponse(callback) {
     this.responseCallback_ = callback;
     const response = this.response_;
     if (response) {
       Promise.resolve().then(() => {
         if (response) {
-          callback(this.convertResponse_(response));
+          callback(this.convertResponse_(response, this.request_));
         }
       });
     }
   }
 
   /**
-   * @param {!Promise<!Object>} responsePromise
+   * @param {!Promise<!PaymentData>} responsePromise
    * @private
    */
   handleResponse_(responsePromise) {
     this.response_ = responsePromise;
     if (this.responseCallback_) {
-      this.responseCallback_(this.convertResponse_(this.response_));
+      this.responseCallback_(
+        this.convertResponse_(this.response_, this.request_)
+      );
     }
   }
 
   /**
-   * @param {!Promise<!Object>} response
-   * @return {!Promise<!Object>}
+   * @param {!Promise<!PaymentData>} response
+   * @param {?PaymentDataRequest} request
+   * @return {!Promise<!PaymentData>}
    * @private
    */
-  convertResponse_(response) {
-    return response.catch(reason => {
-      if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
-        return Promise.reject(createCancelError(this.win_));
-      }
-      return Promise.reject(reason);
-    });
+  convertResponse_(response, request) {
+    return response
+      .then(
+        // Temporary client side solution to remember the
+        // input params. TODO: Remove this once server-side
+        // input preservation is done and is part of the response.
+        res => {
+          if (request) {
+            res['paymentRequest'] = request;
+          }
+          return res;
+        }
+      )
+      .catch(reason => {
+        if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
+          const error = createCancelError(this.win_);
+          if (request) {
+            error['productType'] =
+              /** @type {!PaymentDataRequest} */ (request)['i']['productType'];
+          } else {
+            error['productType'] = null;
+          }
+          return Promise.reject(error);
+        }
+        return Promise.reject(reason);
+      });
   }
 
   /**
@@ -479,9 +372,16 @@ export class RedirectVerifierHelper {
     // b. WebCrypto (crypto.subtle);
     // c. Crypto random (crypto.getRandomValues);
     // d. SHA284 (crypto.subtle.digest).
+    let supportsLocalStorage;
+    try {
+      supportsLocalStorage = !!this.win_.localStorage;
+    } catch (e) {
+      // Note: This can happen when cookies are disabled.
+      supportsLocalStorage = false;
+    }
     const crypto = this.win_.crypto;
     if (
-      this.win_.localStorage &&
+      supportsLocalStorage &&
       crypto &&
       crypto.getRandomValues &&
       crypto.subtle &&
@@ -529,7 +429,7 @@ export class RedirectVerifierHelper {
 }
 
 /**
- * @param {!Object} paymentRequest
+ * @param {!PaymentDataRequest} paymentRequest
  * @param {string} param
  * @param {*} value
  */
@@ -537,9 +437,4 @@ function setInternalParam(paymentRequest, param, value) {
   paymentRequest['i'] = Object.assign(paymentRequest['i'] || {}, {
     [param]: value,
   });
-}
-
-// TODO(dvoytenko, #406): Remove once GPay API is supported.
-export function getPayjsBindingForTesting() {
-  return PayClientBindingPayjs;
 }

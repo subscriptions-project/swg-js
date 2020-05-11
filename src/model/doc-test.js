@@ -25,7 +25,7 @@ describes.realWin('Doc', {}, env => {
   });
 
   describe('constructor', () => {
-    it('should create based on a window', () => {
+    it('should create based on a window', async () => {
       const gd = new GlobalDoc(win);
       expect(gd.getWin()).to.equal(win);
       expect(gd.getRootNode()).to.equal(doc);
@@ -33,10 +33,10 @@ describes.realWin('Doc', {}, env => {
       expect(gd.getHead()).to.equal(doc.head);
       expect(gd.getBody()).to.equal(doc.body);
       expect(gd.isReady()).to.be.true;
-      return gd.whenReady();
+      await gd.whenReady();
     });
 
-    it('should create based on a document', () => {
+    it('should create based on a document', async () => {
       const gd = new GlobalDoc(doc);
       expect(gd.getWin()).to.equal(win);
       expect(gd.getRootNode()).to.equal(doc);
@@ -44,10 +44,10 @@ describes.realWin('Doc', {}, env => {
       expect(gd.getHead()).to.equal(doc.head);
       expect(gd.getBody()).to.equal(doc.body);
       expect(gd.isReady()).to.be.true;
-      return gd.whenReady();
+      await gd.whenReady();
     });
 
-    it('should create non-ready doc', () => {
+    it('should create non-ready doc', async () => {
       doc = {readyState: 'loading', head: null, body: null};
       const eventHandlers = {};
       doc.addEventListener = (type, callback) => {
@@ -63,14 +63,15 @@ describes.realWin('Doc', {}, env => {
       expect(gd.getHead()).to.be.null;
       expect(gd.getBody()).to.be.null;
       expect(gd.isReady()).to.be.false;
+
       const readyPromise = gd.whenReady();
       expect(eventHandlers['readystatechange']).to.exist;
+
       doc.readyState = 'interactive';
       eventHandlers['readystatechange']();
-      return readyPromise.then(() => {
-        expect(gd.isReady()).to.be.true;
-        expect(eventHandlers['readystatechange']).to.not.exist;
-      });
+      await readyPromise;
+      expect(gd.isReady()).to.be.true;
+      expect(eventHandlers['readystatechange']).to.not.exist;
     });
   });
 

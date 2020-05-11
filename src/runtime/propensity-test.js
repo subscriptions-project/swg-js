@@ -13,30 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Propensity} from './propensity';
 import * as PropensityApi from '../api/propensity-api';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {ClientEventManager} from './client-event-manager';
 import {Event, SubscriptionState} from '../api/logger-api';
 import {PageConfig} from '../model/page-config';
+import {Propensity} from './propensity';
 import {PropensityServer} from './propensity-server';
-import {ClientEventManager} from './client-event-manager';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {XhrFetcher} from './fetcher';
 
 describes.realWin('Propensity', {}, env => {
   let win;
-  let config;
   let propensity;
+  let pageConfig;
+  let eventManager;
+  const fakeDeps = {
+    pageConfig: () => pageConfig,
+    eventManager: () => eventManager,
+  };
 
   beforeEach(() => {
     win = env.win;
-    config = new PageConfig('pub1', true);
+    pageConfig = new PageConfig('pub1', true);
+    eventManager = new ClientEventManager();
     // Note: tests here don't use the fetcher (that's in propensity-server-test)
-    propensity = new Propensity(
-      win,
-      config,
-      new ClientEventManager(),
-      new XhrFetcher(win)
-    );
+    propensity = new Propensity(win, fakeDeps, new XhrFetcher(win));
   });
 
   it('should provide valid subscription state', () => {
@@ -251,30 +252,32 @@ describes.realWin('Propensity', {}, env => {
     expect(receivedEvent).to.be.null;
   });
 
-  it('should return propensity score from server', () => {
+  it('should return propensity score from server', async () => {
     const scoreDetails = [
       {
         score: 42,
         bucketed: false,
       },
     ];
-    sandbox.stub(PropensityServer.prototype, 'getPropensity').callsFake(() => {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve({
-            'header': {'ok': true},
-            'body': {'scores': scoreDetails},
-          });
-        }, 10);
-      });
-    }, 10);
-    return propensity.getPropensity().then(propensityScore => {
-      expect(propensityScore).to.not.be.null;
-      expect(propensityScore.header).to.not.be.null;
-      expect(propensityScore.header.ok).to.be.true;
-      expect(propensityScore.body).to.not.be.null;
-      expect(propensityScore.body.scores).to.not.be.null;
-      expect(propensityScore.body.scores[0].score).to.equal(42);
-    });
+    sandbox.stub(PropensityServer.prototype, 'getPropensity').callsFake(
+      () =>
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              'header': {'ok': true},
+              'body': {'scores': scoreDetails},
+            });
+          }, 10);
+        }),
+      10
+    );
+
+    const propensityScore = await propensity.getPropensity();
+    expect(propensityScore).to.not.be.null;
+    expect(propensityScore.header).to.not.be.null;
+    expect(propensityScore.header.ok).to.be.true;
+    expect(propensityScore.body).to.not.be.null;
+    expect(propensityScore.body.scores).to.not.be.null;
+    expect(propensityScore.body.scores[0].score).to.equal(42);
   });
 });

@@ -27,7 +27,7 @@ function DemoPaywallController(subscriptions) {
       this.onEntitlements_.bind(this));
   this.subscriptions.setOnLoginRequest(this.loginRequest_.bind(this));
   this.subscriptions.setOnLinkComplete(this.linkComplete_.bind(this));
-  this.subscriptions.setOnSubscribeResponse(
+  this.subscriptions.setOnPaymentResponse(
       this.subscribeResponse_.bind(this));
 
   /** @const {?Entitlements} */

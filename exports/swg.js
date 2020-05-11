@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-import {ConfiguredRuntime} from '../src/runtime/runtime';
+import {AnalyticsEvent, EventOriginator} from '../src/proto/api_messages';
 import {
-  Entitlements,
-  Entitlement,
-} from '../src/api/entitlements';
+  ClientEvent,
+  ClientEventManagerApi,
+  FilterResult,
+} from '../src/api/client-event-manager-api';
+import {ConfiguredRuntime} from '../src/runtime/runtime';
+import {DeferredAccountCreationResponse} from '../src/api/deferred-account-creation';
+import {Entitlement, Entitlements} from '../src/api/entitlements';
 import {Fetcher} from '../src/runtime/fetcher';
-import {SubscribeResponse} from '../src/api/subscribe-response';
-import {ClientEventManagerApi,ClientEvent,FilterResult}
-    from '../src/api/client-event-manager-api';
-import {AnalyticsEvent,EventOriginator} from '../src/proto/api_messages';
+import {PurchaseData, SubscribeResponse} from '../src/api/subscribe-response';
+import {UserData} from '../src/api/user-data';
 
-module.exports = {
+export {
   ConfiguredRuntime,
   Entitlements,
   Entitlement,
@@ -36,4 +38,7 @@ module.exports = {
   FilterResult,
   AnalyticsEvent,
   EventOriginator,
+  DeferredAccountCreationResponse,
+  PurchaseData,
+  UserData,
 };

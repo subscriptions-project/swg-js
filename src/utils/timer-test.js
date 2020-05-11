@@ -73,17 +73,17 @@ describes.realWin('Timer', {}, env => {
   it('cancel default', done => {
     windowMock.expects('setTimeout').never();
     windowMock.expects('clearTimeout').never();
-    const id = timer.delay(() => {
-      throw new Error('should have been cancelled');
-    });
+    const mock = sandbox.mock();
+    const id = timer.delay(mock);
     timer.cancel(id);
 
     // This makes sure the error has time to throw while this test
     // is still running.
     timer.delay(done);
+    expect(mock).to.not.have.been.called;
   });
 
-  it('promise', () => {
+  it('promise', async () => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
@@ -96,15 +96,11 @@ describes.realWin('Timer', {}, env => {
       .returns(1)
       .once();
 
-    let c = 0;
-    return timer.promise(111).then(result => {
-      c++;
-      expect(c).to.equal(1);
-      expect(result).to.be.undefined;
-    });
+    const result = await timer.promise(111);
+    expect(result).to.be.undefined;
   });
 
-  it('timeoutPromise - no race', () => {
+  it('timeoutPromise - no race', async () => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
@@ -117,36 +113,24 @@ describes.realWin('Timer', {}, env => {
       .returns(1)
       .once();
 
-    let c = 0;
-    return timer
-      .timeoutPromise(111)
-      .then(result => {
-        c++;
-        assert.fail('must never be here: ' + result);
-      })
-      .catch(reason => {
-        c++;
-        expect(c).to.equal(1);
-        expect(reason.message).to.contain('timeout');
-      });
+    await expect(timer.timeoutPromise(111)).to.be.rejectedWith(/timeout/);
   });
 
-  it('timeoutPromise - race no timeout', () => {
+  it('timeoutPromise - race no timeout', async () => {
     windowMock
       .expects('setTimeout')
-      .withExactArgs(sandbox.match(fn => typeof fn === 'function'), 111)
+      .withExactArgs(
+        sandbox.match(fn => typeof fn === 'function'),
+        111
+      )
       .returns(1)
       .once();
 
-    let c = 0;
-    return timer.timeoutPromise(111, Promise.resolve('A')).then(result => {
-      c++;
-      expect(c).to.equal(1);
-      expect(result).to.equal('A');
-    });
+    const result = await timer.timeoutPromise(111, Promise.resolve('A'));
+    expect(result).to.equal('A');
   });
 
-  it('timeoutPromise - race with timeout', () => {
+  it('timeoutPromise - race with timeout', async () => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
@@ -160,45 +144,26 @@ describes.realWin('Timer', {}, env => {
       .returns(1)
       .once();
 
-    let c = 0;
-    return timer
-      .timeoutPromise(111, new Promise(() => {}))
-      .then(result => {
-        c++;
-        assert.fail('must never be here: ' + result);
-      })
-      .catch(reason => {
-        c++;
-        expect(c).to.equal(1);
-        expect(reason.message).to.contain('timeout');
-      });
+    await expect(
+      timer.timeoutPromise(111, new Promise(() => {}))
+    ).to.be.rejectedWith(/timeout/);
   });
 
-  it('poll - resolves only when condition is true', () => {
+  it('poll - resolves only when condition is true', async () => {
     const realTimer = new Timer(env.win);
     let predicate = false;
     setTimeout(() => {
       predicate = true;
     }, 15);
-    return realTimer
-      .poll(10, () => {
-        return predicate;
-      })
-      .then(() => {
-        expect(predicate).to.be.true;
-      });
+    await realTimer.poll(10, () => predicate);
+    expect(predicate).to.be.true;
   });
 
-  it('poll - clears out interval when complete', () => {
+  it('poll - clears out interval when complete', async () => {
     const realTimer = new Timer(env.win);
     const clearIntervalStub = sandbox.stub();
     env.win.clearInterval = clearIntervalStub;
-    return realTimer
-      .poll(111, () => {
-        return true;
-      })
-      .then(() => {
-        expect(clearIntervalStub).to.have.been.calledOnce;
-      });
+    await realTimer.poll(111, () => true);
+    expect(clearIntervalStub).to.have.been.calledOnce;
   });
 });

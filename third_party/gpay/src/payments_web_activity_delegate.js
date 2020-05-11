@@ -18,16 +18,23 @@
 import {Constants} from './constants.js';
 import {Graypane} from './graypane.js';
 import {PaymentsClientDelegateInterface} from './payments_client_delegate_interface.js';
-import {ActivityPort, ActivityPorts, ActivityIframePort} from 'web-activities/activity-ports';
-import {BuyFlowActivityMode, PayFrameHelper, PostMessageEventType} from './pay_frame_helper.js';
+import {
+  ActivityPort,
+  ActivityPorts,
+  ActivityIframePort,
+} from 'web-activities/activity-ports';
+import {
+  BuyFlowActivityMode,
+  PayFrameHelper,
+  PostMessageEventType,
+} from './pay_frame_helper.js';
 import {doesMerchantSupportOnlyTokenizedCards} from './validator.js';
 import {injectStyleSheet, injectIframe} from './element_injector.js';
 
 const GPAY_ACTIVITY_REQUEST = 'GPAY';
 const IFRAME_CLOSE_DURATION_IN_MS = 250;
 const IFRAME_SHOW_UP_DURATION_IN_MS = 250;
-const IFRAME_SMOOTH_HEIGHT_TRANSITION =
-    `height ${IFRAME_SHOW_UP_DURATION_IN_MS}ms`;
+const IFRAME_SMOOTH_HEIGHT_TRANSITION = `height ${IFRAME_SHOW_UP_DURATION_IN_MS}ms`;
 const ERROR_PREFIX = 'Error: ';
 
 /**
@@ -41,7 +48,6 @@ const BrowserUserAgent = {
   SAFARI: 'Safari',
 };
 
-
 /**
  * Resizing payload including resize height and transition style.
  *
@@ -52,7 +58,6 @@ const BrowserUserAgent = {
  */
 let ResizePayload;
 
-
 /**
  * An implementation of PaymentsClientDelegateInterface that uses the custom
  * hosting page along with web activities to actually get to the hosting page.
@@ -62,18 +67,23 @@ class PaymentsWebActivityDelegate {
   /**
    * @param {string} environment
    * @param {string} googleTransactionId
-   * @param {boolean=} opt_useIframe
-   * @param {!ActivityPorts=} opt_activities Can be used to provide a shared
+   * @param {boolean=} useIframe
+   * @param {!ActivityPorts=} activities Can be used to provide a shared
    *   activities manager. By default, the new manager is created.
-   * @param {?string=} opt_redirectKey The redirect key used for redirect mode.
+   * @param {?string=} redirectKey The redirect key used for redirect mode.
    */
-  constructor(environment, googleTransactionId, opt_useIframe,
-             opt_activities, opt_redirectKey) {
+  constructor(
+    environment,
+    googleTransactionId,
+    useIframe,
+    activities,
+    redirectKey
+  ) {
     this.environment_ = environment;
     /** @private @const {boolean} */
-    
+
     /** @const {!ActivityPorts} */
-    this.activities = opt_activities || new ActivityPorts(window);
+    this.activities = activities || new ActivityPorts(window);
     /** @const @private {!Graypane} */
     this.graypane_ = new Graypane(window.document);
     /** @private {?function(!Promise<!PaymentData>)} */
@@ -95,7 +105,7 @@ class PaymentsWebActivityDelegate {
     /** @const @private {string} */
     this.googleTransactionId_ = googleTransactionId;
     /** @const @private {?string} */
-    this.redirectKey_ = opt_redirectKey || null;
+    this.redirectKey_ = redirectKey || null;
 
     /**
      * @private {?ResizePayload}
@@ -117,8 +127,10 @@ class PaymentsWebActivityDelegate {
       return;
     }
     this.callback_ = callback;
-    this.activities.onResult(GPAY_ACTIVITY_REQUEST,
-                             this.onActivityResult_.bind(this));
+    this.activities.onResult(
+      GPAY_ACTIVITY_REQUEST,
+      this.onActivityResult_.bind(this)
+    );
   }
 
   /**
@@ -129,24 +141,24 @@ class PaymentsWebActivityDelegate {
     // Hide the graypane.
     this.graypane_.hide();
     // Only verified origins are allowed.
-    this.callback_(port.acceptResult().then(
-        (result) => {
+    this.callback_(
+      port.acceptResult().then(
+        result => {
           // Origin must always match: popup, iframe or redirect.
           if (result.origin != this.getOrigin_()) {
             throw new Error('channel mismatch');
           }
           const data = /** @type {!PaymentData} */ (result.data);
           if (data['redirectEncryptedCallbackData']) {
-            PayFrameHelper.setBuyFlowActivityMode(
-                BuyFlowActivityMode.REDIRECT);
+            PayFrameHelper.setBuyFlowActivityMode(BuyFlowActivityMode.REDIRECT);
             return this.fetchRedirectResponse_(
-                data['redirectEncryptedCallbackData'])
-                .then((decrypedJson) => {
-                  // Merge other non-encrypted fields into the final response.
-                  const clone = Object.assign({}, data);
-                  delete clone['redirectEncryptedCallbackData'];
-                  return Object.assign(clone, decrypedJson);
-                });
+              data['redirectEncryptedCallbackData']
+            ).then(decrypedJson => {
+              // Merge other non-encrypted fields into the final response.
+              const clone = Object.assign({}, data);
+              delete clone['redirectEncryptedCallbackData'];
+              return Object.assign(clone, decrypedJson);
+            });
           }
           // Unencrypted data supplied: must be a verified and secure channel.
           if (!result.originVerified || !result.secureChannel) {
@@ -154,20 +166,23 @@ class PaymentsWebActivityDelegate {
           }
           return data;
         },
-        (error) => {
+        error => {
           // TODO: Log the original and the inferred error to eye3.
-          let originalError = error['message'];
+          const originalError = error['message'];
           let inferredError = error['message'];
           try {
             // Try to parse the error message to a structured error, if it's
             // not possible, fallback to use the error message string.
-            inferredError =
-                JSON.parse(originalError.substring(ERROR_PREFIX.length));
-          } catch (e) {
-          }
-          if (inferredError['statusCode'] && [
-                'DEVELOPER_ERROR', 'MERCHANT_ACCOUNT_ERROR'
-              ].indexOf(inferredError['statusCode']) == -1) {
+            inferredError = JSON.parse(
+              originalError.substring(ERROR_PREFIX.length)
+            );
+          } catch (e) {}
+          if (
+            inferredError['statusCode'] &&
+            ['DEVELOPER_ERROR', 'MERCHANT_ACCOUNT_ERROR'].indexOf(
+              inferredError['statusCode']
+            ) == -1
+          ) {
             inferredError = {
               'statusCode': 'CANCELED',
             };
@@ -178,7 +193,9 @@ class PaymentsWebActivityDelegate {
             };
           }
           return Promise.reject(inferredError);
-        }));
+        }
+      )
+    );
   }
 
   /**
@@ -237,8 +254,9 @@ class PaymentsWebActivityDelegate {
         return;
       }
       const userAgent = window.navigator.userAgent;
-      const isIosGsa = userAgent.indexOf('GSA/') > 0 &&
-          userAgent.indexOf(BrowserUserAgent.SAFARI) > 0;
+      const isIosGsa =
+        userAgent.indexOf('GSA/') > 0 &&
+        userAgent.indexOf(BrowserUserAgent.SAFARI) > 0;
       // pop up in IGSA doesn't work.
       if (isIosGsa && !null) {
         resolve({'result': false});
@@ -249,24 +267,31 @@ class PaymentsWebActivityDelegate {
         resolve({'result': false});
         return;
       }
-      const isSupported = userAgent.indexOf(BrowserUserAgent.CHROME) > 0 ||
-          userAgent.indexOf(BrowserUserAgent.FIREFOX) > 0 ||
-          userAgent.indexOf(BrowserUserAgent.SAFARI) > 0;
-      if (isSupported && isReadyToPayRequest.apiVersion >= 2 &&
-          isReadyToPayRequest.existingPaymentMethodRequired) {
+      const isSupported =
+        userAgent.indexOf(BrowserUserAgent.CHROME) > 0 ||
+        userAgent.indexOf(BrowserUserAgent.FIREFOX) > 0 ||
+        userAgent.indexOf(BrowserUserAgent.SAFARI) > 0;
+      if (
+        isSupported &&
+        isReadyToPayRequest.apiVersion >= 2 &&
+        isReadyToPayRequest.existingPaymentMethodRequired
+      ) {
         isReadyToPayRequest.environment = this.environment_;
         PayFrameHelper.sendAndWaitForResponse(
-            isReadyToPayRequest, PostMessageEventType.IS_READY_TO_PAY,
-            'isReadyToPayResponse', function(event) {
-              const response = {
-                'result': isSupported,
-              };
-              if (isReadyToPayRequest.existingPaymentMethodRequired) {
-                response['paymentMethodPresent'] =
-                    event.data['isReadyToPayResponse'] == 'READY_TO_PAY';
-              }
-              resolve(response);
-            });
+          isReadyToPayRequest,
+          PostMessageEventType.IS_READY_TO_PAY,
+          'isReadyToPayResponse',
+          function(event) {
+            const response = {
+              'result': isSupported,
+            };
+            if (isReadyToPayRequest.existingPaymentMethodRequired) {
+              response['paymentMethodPresent'] =
+                event.data['isReadyToPayResponse'] == 'READY_TO_PAY';
+            }
+            resolve(response);
+          }
+        );
       } else {
         resolve({'result': isSupported});
       }
@@ -281,8 +306,10 @@ class PaymentsWebActivityDelegate {
     }
     const containerAndFrame = this.injectIframe_(paymentDataRequest);
     const paymentDataPromise = this.openIframe_(
-        containerAndFrame['container'], containerAndFrame['iframe'],
-        paymentDataRequest);
+      containerAndFrame['container'],
+      containerAndFrame['iframe'],
+      paymentDataRequest
+    );
     this.prefetchedObjects_ = {
       'container': containerAndFrame['container'],
       'iframe': containerAndFrame['iframe'],
@@ -313,14 +340,18 @@ class PaymentsWebActivityDelegate {
       } else {
         containerAndFrame = this.injectIframe_(paymentDataRequest);
         paymentDataPromise = this.openIframe_(
-            containerAndFrame['container'], containerAndFrame['iframe'],
-            paymentDataRequest);
+          containerAndFrame['container'],
+          containerAndFrame['iframe'],
+          paymentDataRequest
+        );
       }
       this.showContainerAndIframeWithAnimation_(
-          containerAndFrame['container'], containerAndFrame['iframe'],
-          paymentDataRequest);
+        containerAndFrame['container'],
+        containerAndFrame['iframe'],
+        paymentDataRequest
+      );
       history.pushState({}, '', '');
-      const onPopState = (e) => {
+      const onPopState = e => {
         e.preventDefault();
         this.backButtonHandler_(containerAndFrame);
         window.removeEventListener('popstate', onPopState);
@@ -333,12 +364,17 @@ class PaymentsWebActivityDelegate {
       return;
     }
     PayFrameHelper.setBuyFlowActivityMode(
-        paymentDataRequest['forceRedirect'] ? BuyFlowActivityMode.REDIRECT :
-                                              BuyFlowActivityMode.POPUP);
+      paymentDataRequest['forceRedirect']
+        ? BuyFlowActivityMode.REDIRECT
+        : BuyFlowActivityMode.POPUP
+    );
     const opener = this.activities.open(
-        GPAY_ACTIVITY_REQUEST, this.getHostingPageUrl_(),
-        this.getRenderMode_(paymentDataRequest), paymentDataRequest,
-        {'width': 600, 'height': 600});
+      GPAY_ACTIVITY_REQUEST,
+      this.getHostingPageUrl_(),
+      this.getRenderMode_(paymentDataRequest),
+      paymentDataRequest,
+      {'width': 600, 'height': 600}
+    );
     this.graypane_.show(opener && opener.targetWin);
   }
 
@@ -350,9 +386,7 @@ class PaymentsWebActivityDelegate {
    * @private
    */
   getRenderMode_(paymentDataRequest) {
-    return paymentDataRequest['forceRedirect'] ?
-        '_top' :
-        'gp-js-popup';
+    return paymentDataRequest['forceRedirect'] ? '_top' : 'gp-js-popup';
   }
 
   /**
@@ -366,7 +400,7 @@ class PaymentsWebActivityDelegate {
       return '';
     }
 
-    var baseDomain;
+    let baseDomain;
     if (this.environment_ == Constants.Environment.PREPROD) {
       baseDomain = 'pay-preprod.sandbox';
     } else if (this.environment_ == Constants.Environment.SANDBOX) {
@@ -430,9 +464,11 @@ class PaymentsWebActivityDelegate {
     // TODO: These should be compile time constants and not dependent
     // on the environment.
     let iframeUrl = `https://pay.google.com/gp/p/ui/pay?origin=${origin}`;
-    if (environment == Constants.Environment.SANDBOX ||
-        environment == Constants.Environment.PREPROD) {
-      iframeUrl =   `https://pay'+  (environment == Constants.Environment.PREPROD ? '-preprod' : '')+  '.sandbox.google.com/gp/p/ui/pay?origin=${origin}`;
+    if (
+      environment == Constants.Environment.SANDBOX ||
+      environment == Constants.Environment.PREPROD
+    ) {
+      iframeUrl = `https://pay'+  (environment == Constants.Environment.PREPROD ? '-preprod' : '')+  '.sandbox.google.com/gp/p/ui/pay?origin=${origin}`;
     }
     return iframeUrl;
   }
@@ -463,19 +499,22 @@ class PaymentsWebActivityDelegate {
    */
   injectIframe_(paymentDataRequest) {
     const containerAndFrame = injectIframe(
-        this.isVerticalCenterExperimentEnabled_(paymentDataRequest) ?
-            Constants.IFRAME_STYLE_CENTER_CLASS :
-            Constants.IFRAME_STYLE_CLASS);
+      this.isVerticalCenterExperimentEnabled_(paymentDataRequest)
+        ? Constants.IFRAME_STYLE_CENTER_CLASS
+        : Constants.IFRAME_STYLE_CLASS
+    );
     const iframe = containerAndFrame['iframe'];
     const container = containerAndFrame['container'];
     container.addEventListener(
-        'click', this.closeActionHandler_.bind(this, containerAndFrame));
+      'click',
+      this.closeActionHandler_.bind(this, containerAndFrame)
+    );
     // Hide iframe and disable resize at initialize.
     container.style.display = 'none';
     iframe.style.display = 'none';
     iframe.height = '0px';
     const transitionStyle =
-        'all ' + IFRAME_SHOW_UP_DURATION_IN_MS + 'ms ease 0s';
+      'all ' + IFRAME_SHOW_UP_DURATION_IN_MS + 'ms ease 0s';
     this.setTransition_(iframe, transitionStyle);
     this.shouldHandleResizing_ = false;
     return containerAndFrame;
@@ -515,7 +554,9 @@ class PaymentsWebActivityDelegate {
       // payment data request is not the same.
       this.dismissPromiseResolver_(Promise.reject({'errorCode': 'CANCELED'}));
       this.removeIframeAndContainer_(
-          containerAndFrame['container'], containerAndFrame['iframe']);
+        containerAndFrame['container'],
+        containerAndFrame['iframe']
+      );
       this.port_ && this.port_.disconnect();
     }
   }
@@ -526,9 +567,11 @@ class PaymentsWebActivityDelegate {
    * @private
    */
   isVerticalCenterExperimentEnabled_(paymentDataRequest) {
-    return null
-        && paymentDataRequest['i']
-        && paymentDataRequest['i'].renderContainerCenter;
+    return (
+      null &&
+      paymentDataRequest['i'] &&
+      paymentDataRequest['i'].renderContainerCenter
+    );
   }
 
   /**
@@ -589,54 +632,62 @@ class PaymentsWebActivityDelegate {
     }
     paymentDataRequest.environment = this.environment_;
     let iframeLoadStartTime;
-    const trustedUrl =
-        this.getIframeUrl(this.environment_, window.location.origin);
-    return this.activities.openIframe(iframe, trustedUrl, paymentDataRequest)
-        .then(port => {
-          // Handle custom resize message.
-          this.port_ = port;
-          port.onMessage(payload => {
-            if (payload['type'] !== 'resize' || !this.shouldHandleResizing_) {
-              // Save the resize event later after initial animation is finished
-              this.savedResizePayload_ = {
-                'height': payload['height'],
-                'transition': payload['transition']
-              };
-              return;
-            }
-            // b/111310899: Smooth out initial iFrame loading
-            if (!iframeLoadStartTime) {
-              iframeLoadStartTime = Date.now();
-            }
-            if (Date.now() <
-                iframeLoadStartTime + IFRAME_SHOW_UP_DURATION_IN_MS) {
-              this.setTransition_(iframe, payload['transition'] + ', '
-                  + IFRAME_SMOOTH_HEIGHT_TRANSITION);
-            } else {
-              this.setTransition_(iframe, payload['transition']);
-            }
-            iframe.height = payload['height'];
-          });
-          return /** @type {!Promise<!Object>} */ (port.acceptResult());
-        })
-        .then(
-            /**
-             * @param {!Object} result
-             * @return {!PaymentData}
-             */
-            result => {
-              this.removeIframeAndContainer_(container, iframe);
-              // This is only for popping the state we pushed earlier.
-              history.back();
-              const data = /** @type {!PaymentData} */ (result['data']);
-              return data;
-            },
-            error => {
-              this.removeIframeAndContainer_(container, iframe);
-              // This is only for popping the state we pushed earlier.
-              history.back();
-              return Promise.reject(error);
-            });
+    const trustedUrl = this.getIframeUrl(
+      this.environment_,
+      window.location.origin
+    );
+    return this.activities
+      .openIframe(iframe, trustedUrl, paymentDataRequest)
+      .then(port => {
+        // Handle custom resize message.
+        this.port_ = port;
+        port.onMessage(payload => {
+          if (payload['type'] !== 'resize' || !this.shouldHandleResizing_) {
+            // Save the resize event later after initial animation is finished
+            this.savedResizePayload_ = {
+              'height': payload['height'],
+              'transition': payload['transition'],
+            };
+            return;
+          }
+          // b/111310899: Smooth out initial iFrame loading
+          if (!iframeLoadStartTime) {
+            iframeLoadStartTime = Date.now();
+          }
+          if (
+            Date.now() <
+            iframeLoadStartTime + IFRAME_SHOW_UP_DURATION_IN_MS
+          ) {
+            this.setTransition_(
+              iframe,
+              payload['transition'] + ', ' + IFRAME_SMOOTH_HEIGHT_TRANSITION
+            );
+          } else {
+            this.setTransition_(iframe, payload['transition']);
+          }
+          iframe.height = payload['height'];
+        });
+        return /** @type {!Promise<!Object>} */ (port.acceptResult());
+      })
+      .then(
+        /**
+         * @param {!Object} result
+         * @return {!PaymentData}
+         */
+        result => {
+          this.removeIframeAndContainer_(container, iframe);
+          // This is only for popping the state we pushed earlier.
+          history.back();
+          const data = /** @type {!PaymentData} */ (result['data']);
+          return data;
+        },
+        error => {
+          this.removeIframeAndContainer_(container, iframe);
+          // This is only for popping the state we pushed earlier.
+          history.back();
+          return Promise.reject(error);
+        }
+      );
   }
 }
 

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
+import {getPropertyFromJsonString} from '../utils/json';
+import {warn} from '../utils/log';
 
 /**
  * The holder of the entitlements for a service.
  */
 export class Entitlements {
-
   /**
    * @param {string} service
    * @param {string} raw
@@ -29,9 +30,15 @@ export class Entitlements {
    * @param {?boolean|undefined} isReadyToPay
    * @param {?string|undefined} decryptedDocumentKey
    */
-  constructor(service, raw, entitlements, currentProduct, ackHandler,
-    isReadyToPay, decryptedDocumentKey) {
-
+  constructor(
+    service,
+    raw,
+    entitlements,
+    currentProduct,
+    ackHandler,
+    isReadyToPay,
+    decryptedDocumentKey
+  ) {
     /** @const {string} */
     this.service = service;
     /** @const {string} */
@@ -54,13 +61,14 @@ export class Entitlements {
    */
   clone() {
     return new Entitlements(
-        this.service,
-        this.raw,
-        this.entitlements.map(ent => ent.clone()),
-        this.product_,
-        this.ackHandler_,
-        this.isReadyToPay,
-        this.decryptedDocumentKey);
+      this.service,
+      this.raw,
+      this.entitlements.map(ent => ent.clone()),
+      this.product_,
+      this.ackHandler_,
+      this.isReadyToPay,
+      this.decryptedDocumentKey
+    );
   }
 
   /**
@@ -75,21 +83,23 @@ export class Entitlements {
   }
 
   /**
-   * @param {string=} opt_source
+   * @param {string=} source
    * @return {boolean}
    */
-  enablesThis(opt_source) {
-    return this.enables(this.product_, opt_source);
+  enablesThis(source) {
+    return this.enables(this.product_, source);
   }
 
   /**
-   * @param {string=} opt_source
+   * @param {string=} source
    * @return {boolean}
    */
-  enablesAny(opt_source) {
+  enablesAny(source) {
     for (let i = 0; i < this.entitlements.length; i++) {
-      if (this.entitlements[i].products.length > 0 &&
-          (!opt_source || opt_source == this.entitlements[i].source)) {
+      if (
+        this.entitlements[i].products.length > 0 &&
+        (!source || source == this.entitlements[i].source)
+      ) {
         return true;
       }
     }
@@ -100,38 +110,40 @@ export class Entitlements {
    * Whether these entitlements enable the specified product, optionally also
    * restricting the source.
    * @param {?string} product
-   * @param {string=} opt_source
+   * @param {string=} source
    * @return {boolean}
    */
-  enables(product, opt_source) {
+  enables(product, source) {
     if (!product) {
       return false;
     }
-    return !!this.getEntitlementFor(product, opt_source);
+    return !!this.getEntitlementFor(product, source);
   }
 
   /**
    * Returns the first matching entitlement for the current product,
    * optionally also matching the specified source.
-   * @param {string=} opt_source
+   * @param {string=} source
    * @return {?Entitlement}
    */
-  getEntitlementForThis(opt_source) {
-    return this.getEntitlementFor(this.product_, opt_source);
+  getEntitlementForThis(source) {
+    return this.getEntitlementFor(this.product_, source);
   }
 
   /**
    * Returns the first matching entitlement for the specified product,
    * optionally also matching the specified source.
    * @param {?string} product
-   * @param {string=} opt_source
+   * @param {string=} source
    * @return {?Entitlement}
    */
-  getEntitlementFor(product, opt_source) {
+  getEntitlementFor(product, source) {
     if (product && this.entitlements.length > 0) {
       for (let i = 0; i < this.entitlements.length; i++) {
-        if (this.entitlements[i].enables(product) &&
-            (!opt_source || opt_source == this.entitlements[i].source)) {
+        if (
+          this.entitlements[i].enables(product) &&
+          (!source || source == this.entitlements[i].source)
+        ) {
           return this.entitlements[i];
         }
       }
@@ -148,8 +160,10 @@ export class Entitlements {
   getEntitlementForSource(source) {
     if (this.entitlements.length > 0) {
       for (let i = 0; i < this.entitlements.length; i++) {
-        if (this.entitlements[i].subscriptionToken &&
-            (source == this.entitlements[i].source)) {
+        if (
+          this.entitlements[i].subscriptionToken &&
+          source == this.entitlements[i].source
+        ) {
           return this.entitlements[i];
         }
       }
@@ -166,12 +180,10 @@ export class Entitlements {
   }
 }
 
-
 /**
  * The single entitlement object.
  */
 export class Entitlement {
-
   /**
    * @param {string} source
    * @param {!Array<string>} products
@@ -191,9 +203,10 @@ export class Entitlement {
    */
   clone() {
     return new Entitlement(
-        this.source,
-        this.products.slice(0),
-        this.subscriptionToken);
+      this.source,
+      this.products.slice(0),
+      this.subscriptionToken
+    );
   }
 
   /**
@@ -217,8 +230,10 @@ export class Entitlement {
     }
     // Wildcard allows this product.
     const eq = product.indexOf(':');
-    if (eq != -1 &&
-        this.products.includes(product.substring(0, eq + 1) + '*')) {
+    if (
+      eq != -1 &&
+      this.products.includes(product.substring(0, eq + 1) + '*')
+    ) {
       return true;
     }
     return this.products.includes(product);
@@ -246,8 +261,29 @@ export class Entitlement {
    * @return {!Array<!Entitlement>}
    */
   static parseListFromJson(json) {
-    const jsonList = Array.isArray(json) ?
-        /** @type {!Array<Object>} */ (json) : [json];
+    const jsonList = Array.isArray(json)
+      ? /** @type {!Array<Object>} */ (json)
+      : [json];
     return jsonList.map(json => Entitlement.parseFromJson(json));
+  }
+
+  /**
+   * Returns the SKU associated with this entitlement.
+   * @return {?string}
+   */
+  getSku() {
+    if (this.source !== 'google') {
+      return null;
+    }
+    const sku = (
+        /** @type {?string} */ (getPropertyFromJsonString(
+            this.subscriptionToken,
+            'productId'
+        ) || null)
+    );
+    if (!sku) {
+      warn('Unable to retrieve SKU from SwG subscription token');
+    }
+    return sku;
   }
 }

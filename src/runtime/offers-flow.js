@@ -15,15 +15,34 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {
+  AlreadySubscribedResponse,
+  SkuSelectedResponse,
+  SubscribeResponse,
+  ViewSubscriptionsResponse,
+} from '../proto/api_messages';
+import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {PayStartFlow} from './pay-flow';
-import {SubscriptionFlows, ProductType} from '../api/subscriptions';
+import {ProductType, SubscriptionFlows} from '../api/subscriptions';
+import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
+
+/**
+ * @param {string} sku
+ * @return {!EventParams}
+ */
+function getEventParams(sku) {
+  return new EventParams([, , , , sku]);
+}
 
 /**
  * Offers view is closable when request was originated from 'AbbrvOfferFlow'
  * or from 'SubscribeOptionFlow'.
  */
 const OFFERS_VIEW_CLOSABLE = true;
+
+// The value logged when the offers screen shows all available SKUs.
+const ALL_SKUS = '*';
 
 /**
  * The class for Offers flow.
@@ -46,27 +65,115 @@ export class OffersFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
+    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
+    this.eventManager_ = deps.eventManager();
+
     let isClosable = options && options.isClosable;
     if (isClosable == undefined) {
       isClosable = false; // Default is to hide Close button.
     }
+
+    const feArgsObj = deps.activities().addDefaultArguments({
+      'showNative': deps.callbacks().hasSubscribeRequestCallback(),
+      'productType': ProductType.SUBSCRIPTION,
+      'list': (options && options.list) || 'default',
+      'skus': (options && options.skus) || null,
+      'isClosable': isClosable,
+    });
+
+    if (options && options.oldSku) {
+      feArgsObj['oldSku'] = options.oldSku;
+      assert(feArgsObj['skus'], 'Need a sku list if old sku is provided!');
+
+      // Remove old sku from offers if in list.
+      let skuList = feArgsObj['skus'];
+      const /** @type {string} */ oldSku = feArgsObj['oldSku'];
+      skuList = skuList.filter(sku => sku !== oldSku);
+
+      assert(
+        skuList.length > 0,
+        'Sku list only contained offer user already has'
+      );
+      feArgsObj['skus'] = skuList;
+    }
+
+    // Redirect to payments if only one upgrade option is passed.
+    if (feArgsObj['skus'] && feArgsObj['skus'].length === 1) {
+      const sku = feArgsObj['skus'][0];
+      const /** @type {string|undefined} */ oldSku = feArgsObj['oldSku'];
+      // Update subscription triggers experimental flag if oldSku is passed,
+      // so we need to check for oldSku to decide if it needs to be sent.
+      // Otherwise we might accidentally block a regular subscription request.
+      if (oldSku) {
+        const skuSelectedResponse = new SkuSelectedResponse();
+        skuSelectedResponse.setSku(sku);
+        skuSelectedResponse.setOldSku(oldSku);
+        this.startPayFlow_(skuSelectedResponse);
+        return;
+      }
+    }
+
+    /** @private  @const {!Array<!string>} */
+    this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       feUrl('/offersiframe'),
-      feArgs({
-        'productId': deps.pageConfig().getProductId(),
-        'publicationId': deps.pageConfig().getPublicationId(),
-        'showNative': deps.callbacks().hasSubscribeRequestCallback(),
-        'productType': ProductType.SUBSCRIPTION,
-        'list': (options && options.list) || 'default',
-        'skus': (options && options.skus) || null,
-        'isClosable': isClosable,
-      }),
+      feArgsObj,
       /* shouldFadeBody */ true
     );
+  }
+
+  /**
+   * @param {SkuSelectedResponse} response
+   * @private
+   */
+  startPayFlow_(response) {
+    const sku = response.getSku();
+    if (sku) {
+      const /** @type {../api/subscriptions.SubscriptionRequest} */ subscriptionRequest = {
+          'skuId': sku,
+        };
+      const oldSku = response.getOldSku();
+      if (oldSku) {
+        subscriptionRequest['oldSku'] = oldSku;
+        this.deps_.analytics().setSku(oldSku);
+      }
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.ACTION_OFFER_SELECTED,
+        true,
+        getEventParams(sku)
+      );
+      new PayStartFlow(this.deps_, subscriptionRequest).start();
+    }
+  }
+
+  /**
+   * @param {AlreadySubscribedResponse} response
+   * @private
+   */
+  handleLinkRequest_(response) {
+    if (response.getSubscriberOrMember()) {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.ACTION_ALREADY_SUBSCRIBED,
+        true
+      );
+      this.deps_.callbacks().triggerLoginRequest({
+        linkRequested: !!response.getLinkRequested(),
+      });
+    }
+  }
+
+  /**
+   * @param {ViewSubscriptionsResponse} response
+   * @private
+   */
+  startNativeFlow_(response) {
+    if (response.getNative()) {
+      this.deps_.callbacks().triggerSubscribeRequest();
+    }
   }
 
   /**
@@ -74,34 +181,35 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
-    // Start/cancel events.
-    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS);
-    this.activityIframeView_.onCancel(() => {
-      this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
-    });
+    if (this.activityIframeView_) {
+      // So no error if skipped to payment screen.
+      // Start/cancel events.
+      // The second parameter is required by Propensity in AMP.
+      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS, {
+        skus: this.skus_,
+        source: 'SwG',
+      });
+      this.activityIframeView_.onCancel(() => {
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
+      });
+      this.activityIframeView_.on(
+        SkuSelectedResponse,
+        this.startPayFlow_.bind(this)
+      );
+      this.activityIframeView_.on(
+        AlreadySubscribedResponse,
+        this.handleLinkRequest_.bind(this)
+      );
+      this.activityIframeView_.on(
+        ViewSubscriptionsResponse,
+        this.startNativeFlow_.bind(this)
+      );
 
-    // If result is due to OfferSelection, redirect to payments.
-    this.activityIframeView_.onMessageDeprecated(result => {
-      if (result['alreadySubscribed']) {
-        this.deps_.callbacks().triggerLoginRequest({
-          linkRequested: !!result['linkRequested'],
-        });
-        return;
-      }
-      if (result['sku']) {
-        new PayStartFlow(
-          this.deps_,
-          /** @type {string} */ (result['sku'])
-        ).start();
-        return;
-      }
-      if (result['native']) {
-        this.deps_.callbacks().triggerSubscribeRequest();
-        return;
-      }
-    });
-
-    return this.dialogManager_.openView(this.activityIframeView_);
+      return this.dialogManager_.openView(this.activityIframeView_);
+    }
+    return Promise.resolve();
   }
 }
 
@@ -125,6 +233,9 @@ export class SubscribeOptionFlow {
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
+
+    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
+    this.eventManager_ = deps.eventManager();
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -156,32 +267,42 @@ export class SubscribeOptionFlow {
         .callbacks()
         .triggerFlowCanceled(SubscriptionFlows.SHOW_SUBSCRIBE_OPTION);
     });
+    this.activityIframeView_.on(
+      SubscribeResponse,
+      this.maybeOpenOffersFlow_.bind(this)
+    );
 
-    this.activityIframeView_.onMessageDeprecated(data => {
-      this.maybeOpenOffersFlow_(data);
-    });
     this.activityIframeView_.acceptResult().then(
       result => {
-        this.maybeOpenOffersFlow_(result.data);
+        const data = result.data;
+        const response = new SubscribeResponse();
+        if (data['subscribe']) {
+          response.setSubscribe(true);
+        }
+        this.maybeOpenOffersFlow_(response);
       },
       reason => {
         this.dialogManager_.completeView(this.activityIframeView_);
         throw reason;
       }
     );
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS
+    );
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 
   /**
-   * @param {*} data
+   * @param {SubscribeResponse} response
    * @private
    */
-  maybeOpenOffersFlow_(data) {
-    if (data && data['subscribe']) {
+  maybeOpenOffersFlow_(response) {
+    if (response.getSubscribe()) {
       const options = this.options_ || {};
       if (options.isClosable == undefined) {
         options.isClosable = OFFERS_VIEW_CLOSABLE;
       }
+      this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
       new OffersFlow(this.deps_, options).start();
     }
   }
@@ -212,6 +333,9 @@ export class AbbrvOfferFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
+    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
+    this.eventManager_ = deps.eventManager();
+
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
@@ -230,6 +354,22 @@ export class AbbrvOfferFlow {
   }
 
   /**
+   * @param {AlreadySubscribedResponse} response
+   * @private
+   */
+  handleLinkRequest_(response) {
+    if (response.getSubscriberOrMember()) {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.ACTION_ALREADY_SUBSCRIBED,
+        true
+      );
+      this.deps_.callbacks().triggerLoginRequest({
+        linkRequested: !!response.getLinkRequested(),
+      });
+    }
+  }
+
+  /**
    * Starts the offers flow
    * @return {!Promise}
    */
@@ -245,14 +385,11 @@ export class AbbrvOfferFlow {
     });
 
     // If the user is already subscribed, trigger login flow
-    this.activityIframeView_.onMessageDeprecated(data => {
-      if (data['alreadySubscribed']) {
-        this.deps_.callbacks().triggerLoginRequest({
-          linkRequested: !!data['linkRequested'],
-        });
-        return;
-      }
-    });
+    this.activityIframeView_.on(
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
+    );
+
     // If result is due to requesting offers, redirect to offers flow
     this.activityIframeView_.acceptResult().then(result => {
       if (result.data['viewOffers']) {
@@ -260,6 +397,7 @@ export class AbbrvOfferFlow {
         if (options.isClosable == undefined) {
           options.isClosable = OFFERS_VIEW_CLOSABLE;
         }
+        this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
         new OffersFlow(this.deps_, options).start();
         return;
       }
@@ -270,6 +408,10 @@ export class AbbrvOfferFlow {
         return;
       }
     });
+
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS_OR_ALREADY_SUBSCRIBED
+    );
 
     return this.dialogManager_.openView(this.activityIframeView_);
   }

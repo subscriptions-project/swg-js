@@ -111,6 +111,10 @@ function apiV2DoesMerchantSupportSpecifiedCardType(
  * message.
  */
 function validateSecureContext() {
+  if (window.location.hostname.endsWith(Constants.TRUSTED_DOMAIN)) {
+    // This is for local development.
+    return null;
+  }
   if (window.isSecureContext === undefined) {
     // Browser not support isSecureContext, figure out a way to validate this
     // for the unsupported browser.
@@ -132,7 +136,7 @@ function validatePaymentOptions(paymentOptions) {
            .includes(paymentOptions.environment)) {
     throw new Error(
         'Parameter environment in PaymentOptions can optionally be set to ' +
-        'PRODUCTION, otherwise it defaults to TEST.');
+        'PRODUCTION, otherwise it defaults to TEST. ' + paymentOptions.environment);
   }
 }
 

@@ -42,11 +42,11 @@ export class Timer {
    *
    * Returns the timer ID that can be used to cancel the timer (cancel method).
    * @param {!function()} callback
-   * @param {number=} opt_delay
+   * @param {number=} delay
    * @return {number|string}
    */
-  delay(callback, opt_delay) {
-    if (!opt_delay) {
+  delay(callback, delay) {
+    if (!delay) {
       // For a delay of zero,  schedule a promise based micro task since
       // they are predictably fast.
       const id = 'p' + this.taskCount_++;
@@ -69,7 +69,7 @@ export class Timer {
         throw e;
       }
     };
-    return this.win.setTimeout(wrapped, opt_delay);
+    return this.win.setTimeout(wrapped, delay);
   }
 
   /**
@@ -86,14 +86,14 @@ export class Timer {
 
   /**
    * Returns a promise that will resolve after the delay. Optionally, the
-   * resolved value can be provided as opt_result argument.
-   * @param {number=} opt_delay
+   * resolved value can be provided as result argument.
+   * @param {number=} delay
    * @return {!Promise}
    */
-  promise(opt_delay) {
+  promise(delay) {
     return new Promise(resolve => {
       // Avoid wrapping in closure if no specific result is produced.
-      const timerKey = this.delay(resolve, opt_delay);
+      const timerKey = this.delay(resolve, delay);
       if (timerKey == -1) {
         throw new Error('Failed to schedule timer.');
       }
@@ -102,34 +102,34 @@ export class Timer {
 
   /**
    * Returns a promise that will fail after the specified delay. Optionally,
-   * this method can take opt_racePromise parameter. In this case, the
+   * this method can take racePromise parameter. In this case, the
    * resulting promise will either fail when the specified delay expires or
-   * will resolve based on the opt_racePromise, whichever happens first.
+   * will resolve based on the racePromise, whichever happens first.
    * @param {number} delay
-   * @param {?Promise<RESULT>|undefined} opt_racePromise
-   * @param {string=} opt_message
+   * @param {?Promise<RESULT>|undefined} racePromise
+   * @param {string=} message
    * @return {!Promise<RESULT>}
    * @template RESULT
    */
-  timeoutPromise(delay, opt_racePromise, opt_message) {
+  timeoutPromise(delay, racePromise, message) {
     let timerKey;
     const delayPromise = new Promise((_resolve, reject) => {
       timerKey = this.delay(() => {
-        reject(new Error(opt_message || 'timeout'));
+        reject(new Error(message || 'timeout'));
       }, delay);
 
       if (timerKey == -1) {
         throw new Error('Failed to schedule timer.');
       }
     });
-    if (!opt_racePromise) {
+    if (!racePromise) {
       return delayPromise;
     }
     const cancel = () => {
       this.cancel(timerKey);
     };
-    opt_racePromise.then(cancel, cancel);
-    return Promise.race([delayPromise, opt_racePromise]);
+    racePromise.then(cancel, cancel);
+    return Promise.race([delayPromise, racePromise]);
   }
 
   /**

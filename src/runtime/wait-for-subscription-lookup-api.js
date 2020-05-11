@@ -18,6 +18,8 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
 import {feArgs, feUrl} from './services';
 
+const NO_PROMISE_ERR = 'No account promise provided';
+
 export class WaitForSubscriptionLookupApi {
   /**
    * @param {!./deps.DepsDef} deps
@@ -39,8 +41,8 @@ export class WaitForSubscriptionLookupApi {
     /** @private {?Promise} */
     this.openViewPromise_ = null;
 
-    /** @private {?Promise} */
-    this.accountPromise_ = accountPromise || null;
+    /** @private {!Promise} */
+    this.accountPromise_ = accountPromise || Promise.reject(NO_PROMISE_ERR);
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(

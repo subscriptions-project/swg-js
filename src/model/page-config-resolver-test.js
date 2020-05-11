@@ -50,30 +50,27 @@ describes.realWin('PageConfigResolver', {}, env => {
   }
 
   describe('parse meta', () => {
-    it('should parse publication id and product', () => {
+    it('should parse publication id and product', async () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
-      return new PageConfigResolver(gd).resolveConfig().then(config => {
-        expect(config.getProductId()).to.equal('pub1:label1');
-        expect(config.getPublicationId()).to.equal('pub1');
-        expect(config.getLabel()).to.equal('label1');
-      });
+      const config = await new PageConfigResolver(gd).resolveConfig();
+      expect(config.getProductId()).to.equal('pub1:label1');
+      expect(config.getPublicationId()).to.equal('pub1');
+      expect(config.getLabel()).to.equal('label1');
     });
 
-    it('should parse publication id and null product', () => {
+    it('should parse publication id and null product', async () => {
       addMeta('subscriptions-product-id', 'pub1');
-      return new PageConfigResolver(gd).resolveConfig().then(config => {
-        expect(config.getPublicationId()).to.equal('pub1');
-        expect(config.getProductId()).to.be.null;
-        expect(config.getLabel()).to.be.null;
-      });
+      const config = await new PageConfigResolver(gd).resolveConfig();
+      expect(config.getPublicationId()).to.equal('pub1');
+      expect(config.getProductId()).to.be.null;
+      expect(config.getLabel()).to.be.null;
     });
 
-    it('should default locked to false', () => {
+    it('should default locked to false', async () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
-      return new PageConfigResolver(gd).resolveConfig().then(config => {
-        expect(config.isLocked()).to.be.false;
-        expect(config.getProductId()).to.equal('pub1:label1');
-      });
+      const config = await new PageConfigResolver(gd).resolveConfig();
+      expect(config.isLocked()).to.be.false;
+      expect(config.getProductId()).to.equal('pub1:label1');
     });
   });
 
@@ -96,16 +93,15 @@ describes.realWin('PageConfigResolver', {}, env => {
       Object.defineProperty(doc, 'readyState', {get: () => readyState});
     });
 
-    it('should discover parse properties from schema', () => {
+    it('should discover parse properties from schema', async () => {
       addJsonLd(schema);
       readyState = 'complete';
-      return new PageConfigResolver(gd).resolveConfig().then(config => {
-        expect(config.isLocked()).to.be.true;
-        expect(config.getProductId()).to.equal('pub1:basic');
-      });
+      const config = await new PageConfigResolver(gd).resolveConfig();
+      expect(config.isLocked()).to.be.true;
+      expect(config.getProductId()).to.equal('pub1:basic');
     });
 
-    it('should wait until the element is ready (not empty)', () => {
+    it('should wait until the element is ready (not empty)', async () => {
       const resolver = new PageConfigResolver(gd);
       const element = createElement(doc, 'script', {
         type: 'application/ld+json',
@@ -122,10 +118,10 @@ describes.realWin('PageConfigResolver', {}, env => {
       config = resolver.check();
       expect(config).to.be.ok;
       expect(config.getProductId()).to.equal('pub1:basic');
-      return expect(resolver.resolveConfig()).to.eventually.equal(config);
+      await expect(resolver.resolveConfig()).to.eventually.equal(config);
     });
 
-    it('should wait until the element is ready (next sibling)', () => {
+    it('should wait until the element is ready (next sibling)', async () => {
       const resolver = new PageConfigResolver(gd);
       addJsonLd(schema);
 
@@ -138,10 +134,10 @@ describes.realWin('PageConfigResolver', {}, env => {
       config = resolver.check();
       expect(config).to.be.ok;
       expect(config.getProductId()).to.equal('pub1:basic');
-      return expect(resolver.resolveConfig()).to.eventually.equal(config);
+      await expect(resolver.resolveConfig()).to.eventually.equal(config);
     });
 
-    it('should wait until the element is ready (dom ready)', () => {
+    it('should wait until the element is ready (dom ready)', async () => {
       const resolver = new PageConfigResolver(gd);
       addJsonLd(schema);
 
@@ -154,7 +150,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       config = resolver.check();
       expect(config).to.be.ok;
       expect(config.getProductId()).to.equal('pub1:basic');
-      return expect(resolver.resolveConfig()).to.eventually.equal(config);
+      await expect(resolver.resolveConfig()).to.eventually.equal(config);
     });
 
     it('should ignore wrong script type', () => {
@@ -325,7 +321,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       Object.defineProperty(doc, 'readyState', {get: () => readyState});
     });
 
-    it('should handle multiple item types', () => {
+    it('should handle multiple item types', async () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
         '<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other"> \
@@ -340,10 +336,9 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       const resolver = new PageConfigResolver(gd);
-      return resolver.resolveConfig().then(config => {
-        expect(config.isLocked()).to.be.false;
-        expect(config.getProductId()).to.equal('pub1:premium');
-      });
+      const config = await resolver.resolveConfig();
+      expect(config.isLocked()).to.be.false;
+      expect(config.getProductId()).to.equal('pub1:premium');
     });
 
     it('should retur null for multiple invalid types', () => {
@@ -364,7 +359,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       expect(resolver.check()).to.be.null;
     });
 
-    it('should handle alternate item types', () => {
+    it('should handle alternate item types', async () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
         '<div itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Other"> \
@@ -379,13 +374,12 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       const resolver = new PageConfigResolver(gd);
-      return resolver.resolveConfig().then(config => {
-        expect(config.isLocked()).to.be.false;
-        expect(config.getProductId()).to.equal('pub1:premium');
-      });
+      const config = await resolver.resolveConfig();
+      expect(config.isLocked()).to.be.false;
+      expect(config.getProductId()).to.equal('pub1:premium');
     });
 
-    it('should parse unlocked access when available', () => {
+    it('should parse unlocked access when available', async () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
         '<div itemscope itemtype="http://schema.org/NewsArticle"> \
@@ -400,13 +394,12 @@ describes.realWin('PageConfigResolver', {}, env => {
           </div>';
       addMicrodata(divElement);
       const resolver = new PageConfigResolver(gd);
-      return resolver.resolveConfig().then(config => {
-        expect(config.isLocked()).to.be.false;
-        expect(config.getProductId()).to.equal('pub1:premium');
-      });
+      const config = await resolver.resolveConfig();
+      expect(config.isLocked()).to.be.false;
+      expect(config.getProductId()).to.equal('pub1:premium');
     });
 
-    it('should not default unlocked access when dom is not ready', () => {
+    it('should not default unlocked access when dom is not ready', async () => {
       const resolver = new PageConfigResolver(gd);
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
@@ -441,7 +434,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       expect(config).to.be.ok;
       expect(config.isLocked()).to.be.true;
       expect(config.getProductId()).to.equal('pub1:premium');
-      return expect(resolver.resolveConfig()).to.eventually.equal(config);
+      await expect(resolver.resolveConfig()).to.eventually.equal(config);
     });
 
     it('malformed microdata no productId', () => {
@@ -504,7 +497,7 @@ describes.realWin('PageConfigResolver', {}, env => {
       expect(resolver.check()).to.be.null;
     });
 
-    it('multiple product info but one valid', () => {
+    it('multiple product info but one valid', async () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML = `<div itemscope itemtype="http://schema.org/NewsArticle">
            <div itemscope itemtype="http://schema.org/Section">
@@ -526,13 +519,12 @@ describes.realWin('PageConfigResolver', {}, env => {
             </div>
           </div>`;
       addMicrodata(divElement);
-      return new PageConfigResolver(gd).resolveConfig().then(config => {
-        expect(config.isLocked()).to.be.true;
-        expect(config.getProductId()).to.equal('pub1:premium');
-      });
+      const config = await new PageConfigResolver(gd).resolveConfig();
+      expect(config.isLocked()).to.be.true;
+      expect(config.getProductId()).to.equal('pub1:premium');
     });
 
-    it('multiple access info but one valid', () => {
+    it('multiple access info but one valid', async () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML = `<div itemscope itemtype="http://schema.org/NewsArticle">
             <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
@@ -552,39 +544,35 @@ describes.realWin('PageConfigResolver', {}, env => {
             </div>
           </div>`;
       addMicrodata(divElement);
-      return new PageConfigResolver(gd).resolveConfig().then(config => {
-        expect(config.isLocked()).to.be.true;
-        expect(config.getProductId()).to.equal('pub1:premium');
-      });
+      const config = await new PageConfigResolver(gd).resolveConfig();
+      expect(config.isLocked()).to.be.true;
+      expect(config.getProductId()).to.equal('pub1:premium');
     });
   });
 
   describe('locked', () => {
-    it('should parse locked', () => {
+    it('should parse locked', async () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
       addMeta('subscriptions-accessible-for-free', 'false');
-      return new PageConfigResolver(gd).resolveConfig().then(config => {
-        expect(config.isLocked()).to.be.true;
-        expect(config.getProductId()).to.equal('pub1:label1');
-      });
+      const config = await new PageConfigResolver(gd).resolveConfig();
+      expect(config.isLocked()).to.be.true;
+      expect(config.getProductId()).to.equal('pub1:label1');
     });
 
-    it('should parse locked in other forms', () => {
+    it('should parse locked in other forms', async () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
       addMeta('subscriptions-accessible-for-free', 'FALSE');
-      return new PageConfigResolver(gd).resolveConfig().then(config => {
-        expect(config.isLocked()).to.be.true;
-        expect(config.getProductId()).to.equal('pub1:label1');
-      });
+      const config = await new PageConfigResolver(gd).resolveConfig();
+      expect(config.isLocked()).to.be.true;
+      expect(config.getProductId()).to.equal('pub1:label1');
     });
 
-    it('should parse unlocked', () => {
+    it('should parse unlocked', async () => {
       addMeta('subscriptions-product-id', 'pub1:label1');
       addMeta('subscriptions-accessible-for-free', 'true');
-      return new PageConfigResolver(gd).resolveConfig().then(config => {
-        expect(config.isLocked()).to.be.false;
-        expect(config.getProductId()).to.equal('pub1:label1');
-      });
+      const config = await new PageConfigResolver(gd).resolveConfig();
+      expect(config.isLocked()).to.be.false;
+      expect(config.getProductId()).to.equal('pub1:label1');
     });
   });
 

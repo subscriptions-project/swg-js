@@ -15,43 +15,24 @@
  */
 'use strict';
 
-var $$ = require('gulp-load-plugins')();
-var babel = require('babelify');
-var browserify = require('browserify');
-var buffer = require('vinyl-buffer');
-var compile = require('./compile').compile;
-var compileCheckTypes = require('./compile').checkTypes;
-var del = require('del');
-var fs = require('fs-extra');
-var gulp = $$.help(require('gulp'));
-var lazypipe = require('lazypipe');
-var minimatch = require('minimatch');
-var minimist = require('minimist');
-var source = require('vinyl-source-stream');
-var touch = require('touch');
-var watchify = require('watchify');
-
+const compile = require('./compile').compile;
+const compileCheckTypes = require('./compile').checkTypes;
+const del = require('del');
 
 /**
  * Clean up the build artifacts.
  * @return {!Promise}
  */
 function clean() {
-  return del([
-    'dist',
-    'build',
-  ]);
+  return del(['dist', 'build']);
 }
-
 
 /**
  * Enables watching for file changes and re-compiles.
  * @return {!Promise}
  */
 function watch() {
-  return Promise.all([
-    compile({watch: true}),
-  ]);
+  return Promise.all([compile({watch: true})]);
 }
 
 /**
@@ -60,9 +41,7 @@ function watch() {
  */
 function build() {
   process.env.NODE_ENV = 'development';
-  return Promise.all([
-    compile(),
-  ]);
+  return Promise.all([compile()]);
 }
 
 /**
@@ -81,7 +60,6 @@ function dist() {
   });
 }
 
-
 /**
  * Type check path.
  * @return {!Promise}
@@ -91,22 +69,24 @@ function checkTypes() {
   return compileCheckTypes();
 }
 
+module.exports = {
+  build,
+  checkTypes,
+  clean,
+  dist,
+  watch,
+};
+watch.description = 'Watches for changes in files, re-build';
+
+checkTypes.description = 'Check JS types';
 
 clean.description = 'Removes build output';
-gulp.task('clean', clean);
-
-watch.description = 'Watches for changes in files, re-build';
-gulp.task('watch', watch);
 
 build.description = 'Builds the library';
-gulp.task('build', build);
 
 dist.description = 'Build production binaries';
 dist.flags = {
-  pseudo_names: 'Compiles with readable names. ' +
-      'Great for profiling and debugging production code.',
+  pseudoNames:
+    'Compiles with readable names. ' +
+    'Great for profiling and debugging production code.',
 };
-gulp.task('dist', dist);
-
-checkTypes.description = 'Check JS types';
-gulp.task('check-types', checkTypes);

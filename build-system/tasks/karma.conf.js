@@ -15,46 +15,50 @@
  */
 'use strict';
 
+const through = require('through2');
+const {isTravisBuild} = require('../travis');
+
 /**
  * @param {!Object} config
  */
 module.exports = {
-  frameworks: [
-    'fixture',
-    'browserify',
-    'mocha',
-    'chai-as-promised',
-    'sinon-chai',
-    'chai',
-  ],
+  frameworks: ['fixture', 'browserify', 'mocha', 'sinon-chai', 'chai'],
 
   preprocessors: {
     'src/**/*.js': ['browserify'],
     'test/**/*.js': ['browserify'],
-    'third_party/random_uuid/*.js': ['browserify'],
   },
 
   browserify: {
     watch: true,
     debug: true,
+    fast: true,
     transform: [
-      ['babelify', {whitelist: ["es7.asyncFunctions"]}],
+      ['babelify', {presets: ['@babel/preset-env']}],
+      () =>
+        through(function(buf, enc, next) {
+          // Set Pay environment to indicate we're in a Karma test.
+          this.push(
+            buf.toString('utf8').replace(/\$payEnvironment\$/g, 'TEST')
+          );
+          next();
+        }),
     ],
     bundleDelay: 900,
   },
 
-  reporters: process.env.TRAVIS ? ['super-dots', 'mocha'] : ['dots', 'mocha'],
+  reporters: ['super-dots', 'mocha'],
 
   superDotsReporter: {
     color: {
-      success : 'green',
-      failure : 'red',
-      ignore  : 'yellow'
+      success: 'green',
+      failure: 'red',
+      ignore: 'yellow',
     },
     icon: {
-      success : '●',
-      failure : '●',
-      ignore  : '○',
+      success: '●',
+      failure: '●',
+      ignore: '○',
     },
   },
 
@@ -66,7 +70,7 @@ module.exports = {
       info: 'yellow',
     },
     symbols: {
-      success : '●',
+      success: '●',
       error: '●',
       info: '○',
     },
@@ -89,9 +93,7 @@ module.exports = {
 
   autoWatch: true,
 
-  browsers: [
-    process.env.TRAVIS ? 'Chrome_travis_ci' : 'Chrome_no_extensions',
-  ],
+  browsers: [isTravisBuild() ? 'Chrome_travis_ci' : 'Chrome_no_extensions'],
 
   // Number of sauce tests to start in parallel
   concurrency: 6,
@@ -113,7 +115,7 @@ module.exports = {
     mocha: {
       reporter: 'html',
       // Longer timeout on Travis; fail quickly at local.
-      timeout: process.env.TRAVIS ? 10000 : 2000,
+      timeout: isTravisBuild() ? 10000 : 2000,
     },
     captureConsole: false,
   },
@@ -129,7 +131,6 @@ module.exports = {
   plugins: [
     'karma-browserify',
     'karma-chai',
-    'karma-chai-as-promised',
     'karma-chrome-launcher',
     'karma-coverage',
     'karma-edge-launcher',

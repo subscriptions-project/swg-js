@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {getStyle, setStyles, setImportantStyles} from '../utils/style';
 import {FriendlyIframe} from './friendly-iframe';
+import {getStyle, setImportantStyles, setStyles} from '../utils/style';
 
 /** @const {!Object<string, string|number} */
 const importantStyles = {

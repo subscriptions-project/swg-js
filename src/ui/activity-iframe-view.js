@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
+import {Message} from '../proto/api_messages'; // eslint-disable-line no-unused-vars
 import {View} from '../components/view';
+import {acceptPortResultData} from '../utils/activity-utils';
 import {createElement} from '../utils/dom';
 import {isCancelError} from '../utils/errors';
-import {acceptPortResultData} from '../utils/activity-utils';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
@@ -146,21 +147,22 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * @param {!Object} data
+   * @param {!function(new: T)}  message
+   * @param {function(../proto/api_messages.Message)} callback
+   * @template T
    */
-  messageDeprecated(data) {
+  on(message, callback) {
     this.getPortPromise_().then(port => {
-      port.messageDeprecated(data);
+      port.on(message, callback);
     });
   }
 
   /**
-   * Handles the message received by the port.
-   * @param {function(!Object<string, string|boolean>)} callback
+   * @param {!../proto/api_messages.Message} request
    */
-  onMessageDeprecated(callback) {
+  execute(request) {
     this.getPortPromise_().then(port => {
-      port.onMessageDeprecated(callback);
+      port.execute(request);
     });
   }
 

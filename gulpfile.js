@@ -15,67 +15,48 @@
  */
 
 const $$ = require('gulp-load-plugins')();
-const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
-const lazypipe = require('lazypipe');
-const minimatch = require('minimatch');
-const minimist = require('minimist');
-const source = require('vinyl-source-stream');
-const touch = require('touch');
-const watchify = require('watchify');
+const {
+  build,
+  checkTypes,
+  clean,
+  dist,
+  watch,
+} = require('./build-system/tasks/builders');
+const {
+  runAllExportsToEs,
+  runAllExportsToAmp,
+} = require('./build-system/tasks/export-to-es');
+const {assets} = require('./build-system/tasks/assets');
+const {changelog} = require('./build-system/tasks/changelog');
+const {checkRules} = require('./build-system/tasks/check-rules');
+const {e2e} = require('./build-system/tasks/e2e');
 const {lint} = require('./build-system/tasks/lint');
-
-/**
- * @const {!Object}
- */
-const argv =
-    minimist(process.argv.slice(2), {boolean: ['strictBabelTransform']});
-
-/** @const {number} */
-const NODE_MIN_VERSION = 4;
-
-require('./build-system/tasks');
-
-const internalRuntimeVersion =
-    require('./build-system/tasks/internal-version').VERSION;
-
-/**
- * Checks if installed local Node.js version is > NODE_MIN_VERSION.
- */
-checkMinVersion();
-
-/**
- * Exits the process if gulp is running with a node version lower than
- * the required version. This has to run very early to avoid parse
- * errors from modules that e.g. use let.
- */
-function checkMinVersion() {
-  const majorVersion = Number(process.version.replace(/v/, '').split('.')[0]);
-  if (majorVersion < NODE_MIN_VERSION) {
-    $$.util.log('Please run Subscribe with Google with node.js version ' +
-        `${NODE_MIN_VERSION} or newer.`);
-    $$.util.log('Your version is', process.version);
-    process.exit(1);
-  }
-}
-
-function printVersion() {
-  fs.writeFileSync('dist/version.txt', internalRuntimeVersion);
-}
-printVersion.description = 'SwG version';
-
+const {serve} = require('./build-system/tasks/serve');
+const {unit} = require('./build-system/tasks/unit');
 
 // Gulp tasks.
+gulp.task('assets', assets);
+gulp.task('build', build);
+gulp.task('changelog', changelog);
 gulp.task('lint', lint);
+gulp.task('check-types', checkTypes);
+gulp.task('check-rules', checkRules);
+gulp.task('unit', unit);
+gulp.task('watch', watch);
+gulp.task('serve', serve);
+gulp.task('clean', clean);
+gulp.task('e2e', e2e);
+gulp.task('dist', dist);
+gulp.task('export-to-es-all', runAllExportsToEs);
+gulp.task('export-to-amp', runAllExportsToAmp);
+
+gulp.task('default', gulp.series(['watch', 'serve']));
 
 const check = gulp.series('lint', 'check-types', 'check-rules');
 check.description = 'Run through all checks';
 gulp.task('check', check);
 
-const presubmit = gulp.series('check', 'test');
+const presubmit = gulp.series('check', 'unit');
 presubmit.description = 'Run through all checks and tests';
 gulp.task('presubmit', presubmit);
-
-gulp.task('default', gulp.series(['watch', 'serve']));
-
-gulp.task('print-version', printVersion);

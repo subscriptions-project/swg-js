@@ -65,15 +65,15 @@ describes.realWin('Graypane', {}, env => {
     expect(getStyle(element, 'opacity')).to.equal('1');
   });
 
-  it('should show w/animation', () => {
+  it('should show w/animation', async () => {
     graypane.attach();
     const p = graypane.show(ANIMATE);
     expect(p).to.exist;
     expect(getStyle(element, 'display')).to.equal('block');
     expect(getStyle(element, 'opacity')).to.equal('0');
-    return p.then(() => {
-      expect(getStyle(element, 'opacity')).to.equal('1');
-    });
+
+    await p;
+    expect(getStyle(element, 'opacity')).to.equal('1');
   });
 
   it('should hide w/o animation', () => {
@@ -84,16 +84,16 @@ describes.realWin('Graypane', {}, env => {
     expect(getStyle(element, 'display')).to.equal('none');
   });
 
-  it('should hide w/animation', () => {
+  it('should hide w/animation', async () => {
     graypane.attach();
     graypane.show(NO_ANIMATE);
     const p = graypane.hide(ANIMATE);
     expect(p).to.exist;
     expect(getStyle(element, 'display')).to.equal('block');
     expect(getStyle(element, 'opacity')).to.equal('1');
-    return p.then(() => {
-      expect(getStyle(element, 'display')).to.equal('none');
-      expect(getStyle(element, 'opacity')).to.equal('0');
-    });
+
+    await p;
+    expect(getStyle(element, 'display')).to.equal('none');
+    expect(getStyle(element, 'opacity')).to.equal('0');
   });
 });

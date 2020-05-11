@@ -32,10 +32,8 @@ describe('stringToBytes', function() {
     expect(bytes[2]).to.equal(255);
   });
 
-  it('should signal an error with a character >255', () => {
-    expect(() => {
-      return stringToBytes('ab☺');
-    }).to.throw();
+  it('should signal an error with a character >255', async () => {
+    expect(() => stringToBytes('ab☺')).to.throw();
   });
 
   it('should convert bytes array to string', () => {
@@ -329,13 +327,13 @@ describe('utf8', function() {
     ],
   ];
 
-  it('should encode given string into utf-8 byte array', () => {
+  function encoderTest() {
     for (let i = 0; i < strings.length; i++) {
       utf8EncodeSync(strings[i]).should.deep.equal(new Uint8Array(bytes[i]));
     }
-  });
+  }
 
-  it('should decode correctly', () => {
+  function decoderTest() {
     for (let i = 0; i < strings.length; i++) {
       const data = strings[i];
       const utf8Bytes = utf8EncodeSync(data);
@@ -346,5 +344,30 @@ describe('utf8', function() {
       const decoded = utf8DecodeSync(decodedUtf8Bytes);
       expect(decoded).to.equal(data);
     }
+  }
+
+  it('should encode given string into utf-8 byte array', encoderTest);
+
+  it('should decode correctly', decoderTest);
+
+  describe('polyfills', () => {
+    let TextDecoder;
+    let TextEncoder;
+
+    beforeEach(() => {
+      TextDecoder = self.TextDecoder;
+      TextEncoder = self.TextEncoder;
+      self.TextDecoder = undefined;
+      self.TextEncoder = undefined;
+    });
+
+    afterEach(() => {
+      self.TextDecoder = TextDecoder;
+      self.TextEncoder = TextEncoder;
+    });
+
+    it('should encode given string into utf-8 byte array', encoderTest);
+
+    it('should decode correctly', decoderTest);
   });
 });

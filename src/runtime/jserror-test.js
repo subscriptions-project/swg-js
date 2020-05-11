@@ -34,59 +34,73 @@ describes.realWin('JsError', {}, env => {
     });
   });
 
-  it('should report an error', () => {
+  it('should report an error', async () => {
     const error = new Error('broken');
-    return jsError.error(error).then(() => {
-      expect(elements).to.have.length(1);
-      expect(elements[0].name).to.equal('img');
-      const src = parseUrl(elements[0].src);
-      const params = parseQueryString(src.search);
-      expect(src.pathname).to.equal(
-        '/$frontend$/_/SubscribewithgoogleClientUi/jserror'
-      );
-      expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
-      expect(params['error']).to.equal('Error: broken');
-      expect(params['trace']).to.match(/browserify.js/);
-      expect(error.reported).to.be.true;
-    });
+
+    await jsError.error(error);
+    expect(elements).to.have.length(1);
+    expect(elements[0].name).to.equal('img');
+    const src = parseUrl(elements[0].src);
+    const params = parseQueryString(src.search);
+    expect(src.pathname).to.equal(
+      '/$frontend$/_/SubscribewithgoogleClientUi/jserror'
+    );
+    expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
+    expect(params['error']).to.equal('Error: broken');
+    expect(params['trace']).to.match(/browserify.js/);
+    expect(error.reported).to.be.true;
   });
 
-  it('should ignore an already reported error', () => {
+  it('should ignore an already reported error', async () => {
     const error = new Error('broken');
     error.reported = true;
-    return jsError.error(error).then(() => {
-      expect(elements).to.have.length(0);
-    });
+
+    await jsError.error(error);
+    expect(elements).to.have.length(0);
   });
 
-  it('should concatenate all args', () => {
+  it('should concatenate all args', async () => {
     const error = new Error('broken');
-    return jsError.error('A', error, 'B').then(() => {
-      expect(elements).to.have.length(1);
-      expect(elements[0].name).to.equal('img');
-      const src = parseUrl(elements[0].src);
-      const params = parseQueryString(src.search);
-      expect(src.pathname).to.equal(
-        '/$frontend$/_/SubscribewithgoogleClientUi/jserror'
-      );
-      expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
-      expect(params['error']).to.equal('Error: A B: broken');
-      expect(params['trace']).to.match(/browserify.js/);
-    });
+
+    await jsError.error('A', error, 'B');
+    expect(elements).to.have.length(1);
+    expect(elements[0].name).to.equal('img');
+    const src = parseUrl(elements[0].src);
+    const params = parseQueryString(src.search);
+    expect(src.pathname).to.equal(
+      '/$frontend$/_/SubscribewithgoogleClientUi/jserror'
+    );
+    expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
+    expect(params['error']).to.equal('Error: A B: broken');
+    expect(params['trace']).to.match(/browserify.js/);
   });
 
-  it('should create an error if one not provided', () => {
-    return jsError.error('A', 'B').then(() => {
-      expect(elements).to.have.length(1);
-      expect(elements[0].name).to.equal('img');
-      const src = parseUrl(elements[0].src);
-      const params = parseQueryString(src.search);
-      expect(src.pathname).to.equal(
-        '/$frontend$/_/SubscribewithgoogleClientUi/jserror'
-      );
-      expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
-      expect(params['error']).to.equal('Error: A B');
-      expect(params['trace']).to.match(/browserify.js/);
-    });
+  it('should create an error if one not provided', async () => {
+    await jsError.error('A', 'B');
+    expect(elements).to.have.length(1);
+    expect(elements[0].name).to.equal('img');
+    const src = parseUrl(elements[0].src);
+    const params = parseQueryString(src.search);
+    expect(src.pathname).to.equal(
+      '/$frontend$/_/SubscribewithgoogleClientUi/jserror'
+    );
+    expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
+    expect(params['error']).to.equal('Error: A B');
+    expect(params['trace']).to.match(/browserify.js/);
+  });
+
+  it('should handle DOMExceptions', async () => {
+    const error = new DOMException('whateva');
+
+    await jsError.error(error);
+    expect(elements).to.have.length(1);
+    expect(elements[0].name).to.equal('img');
+    const src = parseUrl(elements[0].src);
+    const params = parseQueryString(src.search);
+    expect(src.pathname).to.equal(
+      '/$frontend$/_/SubscribewithgoogleClientUi/jserror'
+    );
+    expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
+    expect(params['error']).to.equal('Error: whateva');
   });
 });

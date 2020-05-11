@@ -23,6 +23,6 @@ const packageVersion = packageJson.version;
 
 // Used to e.g. references the ads binary from the runtime to get
 // version lock.
-exports.VERSION = argv.swgVersion ?
-    String(argv.swgVersion) :
-    packageVersion + '-' + (argv.subversion || Date.now());
+exports.VERSION = argv.swgVersion
+  ? String(argv.swgVersion)
+  : packageVersion + '-' + (argv.subversion || Date.now());

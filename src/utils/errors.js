@@ -30,11 +30,11 @@ export function isCancelError(error) {
  * Creates or emulates a DOMException of AbortError type.
  * See https://heycam.github.io/webidl/#aborterror.
  * @param {!Window} win
- * @param {string=} opt_message
+ * @param {string=} message
  * @return {!DOMException}
  */
-export function createCancelError(win, opt_message) {
-  return createAbortError(win, opt_message);
+export function createCancelError(win, message) {
+  return createAbortError(win, message);
 }
 
 /**

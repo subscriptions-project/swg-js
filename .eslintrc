@@ -5,12 +5,15 @@
     "swg-internal",
     "google-camelcase",
     "prettier",
+    "sort-imports-es6-autofix",
+    "sort-requires"
   ],
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module"
   },
   "env": {
+    "amd": true,
     "es6": true,
     "browser": true
   },
@@ -46,6 +49,7 @@
     "google-camelcase/google-camelcase": 2,
     "no-alert": 2,
     "no-cond-assign": 2,
+    "no-console": 2,
     "no-debugger": 2,
     "no-div-regex": 2,
     "no-dupe-keys": 2,
@@ -65,7 +69,7 @@
     "no-throw-literal": 2,
     "no-unused-expressions": 0,
     "no-unused-vars": [2, {
-      "argsIgnorePattern": "^var_|opt_|unused",
+      "argsIgnorePattern": "^var_|unused",
       "varsIgnorePattern": "Def|Interface$"
     }],
     "no-useless-call": 2,
@@ -81,5 +85,26 @@
     "prefer-const": 2,
     "prettier/prettier": 2,
     "radix": 2,
-  }
+    "sort-imports-es6-autofix/sort-imports-es6": [2, {
+      "ignoreCase": false,
+      "ignoreMemberSort": false,
+      "memberSyntaxSortOrder": ["none", "all", "multiple", "single"]
+    }],
+    "sort-requires/sort-requires": 2
+  },
+  "overrides": [
+    {
+      "files": ["test/e2e/*.js", "test/e2e/**/*.js"],
+      "globals": {
+        "module": false,
+        "require": false
+      }
+    },
+    {
+      "files": ["src/**/*test.js"],
+      "rules": {
+        "swg-internal/no-for-of-statement": 0
+      }
+    }
+  ]
 }

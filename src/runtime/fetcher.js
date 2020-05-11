@@ -15,6 +15,7 @@
  */
 
 import {Xhr} from '../utils/xhr';
+import {serializeProtoMessageForUrl} from '../utils/url';
 
 /**
  * @interface
@@ -32,6 +33,13 @@ export class Fetcher {
    * @return {!Promise<!../utils/xhr.FetchResponse>}
    */
   fetch(unusedUrl, unusedInit) {}
+
+  /**
+   * POST data to a URL endpoint, do not wait for a response.
+   * @param {!string} unusedUrl
+   * @param {!string|!Object} unusedData
+   */
+  sendBeacon(unusedUrl, unusedData) {}
 }
 
 /**
@@ -53,11 +61,31 @@ export class XhrFetcher {
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
     });
-    return this.xhr_.fetch(url, init).then(response => response.json());
+    return this.fetch(url, init).then(response => response.json());
   }
 
   /** @override */
   fetch(url, init) {
     return this.xhr_.fetch(url, init);
+  }
+
+  /** @override */
+  sendBeacon(url, data) {
+    const contentType = 'application/x-www-form-urlencoded;charset=UTF-8';
+    const body = 'f.req=' + serializeProtoMessageForUrl(data);
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], {type: contentType});
+      navigator.sendBeacon(url, blob);
+      return;
+    }
+
+    // Only newer browsers support beacon.  Fallback to standard XHR POST.
+    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+      method: 'POST',
+      headers: {'Content-Type': contentType},
+      credentials: 'include',
+      body,
+    });
+    this.fetch(url, init);
   }
 }

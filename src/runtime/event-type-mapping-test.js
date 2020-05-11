@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Event} from '../api/propensity-api';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {Event} from '../api/propensity-api';
 import {
-  publisherEventToAnalyticsEvent,
   analyticsEventToPublisherEvent,
+  publisherEventToAnalyticsEvent,
 } from './event-type-mapping';
 
 describes.realWin('PropensityServer', {}, () => {

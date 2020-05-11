@@ -16,33 +16,22 @@
 'use strict';
 
 const gulp = require('gulp-help')(require('gulp'));
+const log = require('fancy-log');
 const path = require('path');
 const srcGlobs = require('../config').presubmitGlobs;
-const util = require('gulp-util');
 const through2 = require('through2');
+
+const {red, blue} = require('ansi-colors');
 
 const dedicatedCopyrightNoteSources = /(\.js|\.css|\.go)$/;
 
-const es6polyfill = 'Not available because we do not currently' +
-    ' ship with a needed ES6 polyfill.';
-
 const requiresReviewPrivacy =
-    'Usage of this API requires dedicated review due to ' +
-    'being privacy sensitive. Please file an issue asking for permission' +
-    ' to use if you have not yet done so.';
-
-const privateServiceFactory = 'This service should only be installed in ' +
-    'the whitelisted files. Other modules should use a public function ' +
-    'typically called serviceNameFor.';
+  'Usage of this API requires dedicated review due to ' +
+  'being privacy sensitive. Please file an issue asking for permission' +
+  ' to use if you have not yet done so.';
 
 const shouldNeverBeUsed =
-    'Usage of this API is not allowed - only for internal purposes.';
-
-const backwardCompat = 'This method must not be called. It is only retained ' +
-    'for backward compatibility during rollout.';
-
-const realiasGetMode = 'Do not re-alias getMode or its return so it can be ' +
-    'DCE\'d. Use explicitly like "getMode().localDev" instead.';
+  'Usage of this API is not allowed - only for internal purposes.';
 
 // Terms that must not appear in our source files.
 const forbiddenTerms = {
@@ -50,7 +39,7 @@ const forbiddenTerms = {
   'describe\\.only': '',
   'describes.*\\.only': '',
   'it\\.only': '',
-  'Math\.random[^;()]*=': 'Use Sinon to stub!!!',
+  'Math.random[^;()]*=': 'Use Sinon to stub!!!',
   'sinon\\.(spy|stub|mock)\\(': {
     message: 'Use a sandbox instead to avoid repeated `#restore` calls',
   },
@@ -61,18 +50,15 @@ const forbiddenTerms = {
     message: 'Use a sandbox instead to avoid repeated `#restore` calls',
   },
   'console\\.\\w+\\(': {
-    message: 'If you run against this, use console/*OK*/.log to ' +
+    message:
+      'If you run against this, use console/*OK*/.log to ' +
       'whitelist a legit case.',
-    whitelist: [
-      'src/main.js',
-    ],
+    whitelist: ['src/main.js', 'src/components/activities.js'],
     checkInTestFolder: true,
   },
   '(?:var|let|const) +IS_DEV +=': {
     message: 'IS_DEV local var only allowed in mode.js',
-    whitelist: [
-      'src/mode.js',
-    ],
+    whitelist: ['src/mode.js'],
   },
   'cookie\\W': {
     message: requiresReviewPrivacy,
@@ -85,36 +71,27 @@ const forbiddenTerms = {
   },
   'getCookie\\W': {
     message: requiresReviewPrivacy,
-    whitelist: [
-    ],
+    whitelist: [],
   },
   'setCookie\\W': {
     message: requiresReviewPrivacy,
-    whitelist: [
-    ],
+    whitelist: [],
   },
   'eval\\(': {
     message: shouldNeverBeUsed,
-    whitelist: [
-    ],
+    whitelist: [],
   },
   'localStorage': {
     message: requiresReviewPrivacy,
-    whitelist: [
-      'src/runtime/pay-client.js',
-    ],
+    whitelist: ['src/runtime/pay-client.js'],
   },
   'sessionStorage': {
     message: requiresReviewPrivacy,
-    whitelist: [
-      'src/runtime/experiments.js',
-      'src/runtime/storage.js',
-    ],
+    whitelist: ['src/runtime/experiments.js', 'src/runtime/storage.js'],
   },
   'indexedDB': {
     message: requiresReviewPrivacy,
-    whitelist: [
-    ],
+    whitelist: [],
   },
   'openDatabase': requiresReviewPrivacy,
   'requestFileSystem': requiresReviewPrivacy,
@@ -122,28 +99,29 @@ const forbiddenTerms = {
   'debugger': '',
   'style\\.\\w+ = ': {
     message: 'Use setStyle instead!',
-    whitelist: [
-    ],
+    whitelist: [],
   },
   'data:image/svg(?!\\+xml;charset=utf-8,)[^,|;]*,': {
-    message: 'SVG data images must use charset=utf-8: ' +
-        '"data:image/svg+xml;charset=utf-8,..."',
+    message:
+      'SVG data images must use charset=utf-8: ' +
+      '"data:image/svg+xml;charset=utf-8,..."',
   },
 };
 
-const bannedTermsHelpString = 'Please review viewport service for helper ' +
-    'methods or mark with `/*OK*/` or `/*REVIEW*/` and consult the Subscribe' +
-    'with Google team. Most of the forbidden property/method access banned ' +
-    'on the `forbiddenTermsSrcInclusive` object can be found in ' +
-    '[What forces layout / reflow gist by Paul Irish]' +
-    '(https://gist.github.com/paulirish/5d52fb081b3570c81e3a). ' +
-    'These properties/methods when read/used require the browser ' +
-    'to have the up-to-date value to return which might possibly be an ' +
-    'expensive computation and could also be triggered multiple times ' +
-    'if we are not careful. Please mark the call with ' +
-    '`object./*OK*/property` if you explicitly need to read or update the ' +
-    'forbidden property/method or mark it with `object./*REVIEW*/property` ' +
-    'if you are unsure and so that it stands out in code reviews.';
+const bannedTermsHelpString =
+  'Please review viewport service for helper ' +
+  'methods or mark with `/*OK*/` or `/*REVIEW*/` and consult the Subscribe' +
+  'with Google team. Most of the forbidden property/method access banned ' +
+  'on the `forbiddenTermsSrcInclusive` object can be found in ' +
+  '[What forces layout / reflow gist by Paul Irish]' +
+  '(https://gist.github.com/paulirish/5d52fb081b3570c81e3a). ' +
+  'These properties/methods when read/used require the browser ' +
+  'to have the up-to-date value to return which might possibly be an ' +
+  'expensive computation and could also be triggered multiple times ' +
+  'if we are not careful. Please mark the call with ' +
+  '`object./*OK*/property` if you explicitly need to read or update the ' +
+  'forbidden property/method or mark it with `object./*REVIEW*/property` ' +
+  'if you are unsure and so that it stands out in code reviews.';
 
 const forbiddenTermsSrcInclusive = {
   '\\.innerHTML(?!_)': bannedTermsHelpString,
@@ -164,22 +142,20 @@ const forbiddenTermsSrcInclusive = {
   '\\.webkitConvertPointFromNodeToPage\\(': bannedTermsHelpString,
   '\\.webkitConvertPointFromPageToNode\\(': bannedTermsHelpString,
   'Text(Encoder|Decoder)\\(': {
-    message: 'TextEncoder/TextDecoder is not supported in all browsers.' +
-        'Please use UTF8 utilities from src/bytes.js',
-    whitelist: [
-      'src/utils/bytes.js',
-    ],
+    message:
+      'TextEncoder/TextDecoder is not supported in all browsers.' +
+      'Please use UTF8 utilities from src/bytes.js',
+    whitelist: ['src/utils/bytes.js'],
   },
   'reject\\(\\)': {
-    message: 'Always supply a reason in rejections. ' +
-    'error.cancellation() may be applicable.',
-    whitelist: [
-    ],
+    message:
+      'Always supply a reason in rejections. ' +
+      'error.cancellation() may be applicable.',
+    whitelist: [],
   },
   '\\.getTime\\(\\)': {
     message: 'Unless you do weird date math (whitelist), use Date.now().',
-    whitelist: [
-    ],
+    whitelist: [],
   },
   '\\<\\<\\<\\<\\<\\<': {
     message: 'Unresolved merge conflict.',
@@ -189,21 +165,16 @@ const forbiddenTermsSrcInclusive = {
   },
   '\\.trim(Left|Right)\\(\\)': {
     message: 'Unsupported on IE; use trim() or a helper instead.',
-    whitelist: [
-    ],
+    whitelist: [],
   },
 };
 
 // Terms that must appear in a source file.
 const requiredTerms = {
-  'Copyright 20(17|18|19) The Subscribe with Google Authors\\.':
-      dedicatedCopyrightNoteSources,
-  'Licensed under the Apache License, Version 2\\.0':
-      dedicatedCopyrightNoteSources,
-  'http\\://www\\.apache\\.org/licenses/LICENSE-2\\.0':
-      dedicatedCopyrightNoteSources,
+  'Copyright 20(17|18|19|20) The Subscribe with Google Authors\\.': dedicatedCopyrightNoteSources,
+  'Licensed under the Apache License, Version 2\\.0': dedicatedCopyrightNoteSources,
+  'http\\://www\\.apache\\.org/licenses/LICENSE-2\\.0': dedicatedCopyrightNoteSources,
 };
-
 
 /**
  * Check if root of path is test/ or file is in a folder named test.
@@ -213,8 +184,10 @@ const requiredTerms = {
 function isTestFile(file) {
   const pathname = file.path;
   const basename = path.basename(pathname);
-  const isTestFile = /^test-/.test(basename) || /^_init_tests/.test(basename)
-      || /-test\.js$/.test(basename);
+  const isTestFile =
+    /^test-/.test(basename) ||
+    /^_init_tests/.test(basename) ||
+    /-test\.js$/.test(basename);
 
   const dirs = normalizeRelativePath(file.relative).split('/');
   return isTestFile || dirs.indexOf('test') >= 0;
@@ -237,7 +210,6 @@ function stripComments(contents) {
   return contents.replace(/( |}|;|^) *\/\/.*/g, '$1');
 }
 
-
 /**
  * Normalizes relative paths, to support developers using Windows machines.
  * ex: "src\runtime\file.js" => "src/runtime/file.js"
@@ -248,7 +220,6 @@ function stripComments(contents) {
 function normalizeRelativePath(path) {
   return path.replace(/\\/g, '/');
 }
-
 
 /**
  * Logs any issues found in the contents of file based on terms (regex
@@ -264,60 +235,74 @@ function normalizeRelativePath(path) {
 function matchTerms(file, terms) {
   const contents = stripComments(file.contents.toString());
   const relative = normalizeRelativePath(file.relative);
-  return Object.keys(terms).map(function(term) {
-    let fix;
-    const whitelist = terms[term].whitelist;
-    const checkInTestFolder = terms[term].checkInTestFolder;
-    // NOTE: we could do a glob test instead of exact check in the future
-    // if needed but that might be too permissive.
-    if (Array.isArray(whitelist) && (whitelist.indexOf(relative) != -1 ||
-        isTestFile(file) && !checkInTestFolder)) {
-      return false;
-    }
-    // we can't optimize building the `RegExp` objects early unless we build
-    // another mapping of term -> regexp object to be able to get back to the
-    // original term to get the possible fix value. This is ok as the
-    // presubmit doesn't have to be blazing fast and this is most likely
-    // negligible.
-    const regex = new RegExp(term, 'gm');
-    let index = 0;
-    let line = 1;
-    let column = 0;
-    let match;
-    let hasTerm = false;
+  return Object.keys(terms)
+    .map(function(term) {
+      let fix;
+      const whitelist = terms[term].whitelist;
+      const checkInTestFolder = terms[term].checkInTestFolder;
+      // NOTE: we could do a glob test instead of exact check in the future
+      // if needed but that might be too permissive.
+      if (
+        Array.isArray(whitelist) &&
+        (whitelist.indexOf(relative) != -1 ||
+          (isTestFile(file) && !checkInTestFolder))
+      ) {
+        return false;
+      }
+      // we can't optimize building the `RegExp` objects early unless we build
+      // another mapping of term -> regexp object to be able to get back to the
+      // original term to get the possible fix value. This is ok as the
+      // presubmit doesn't have to be blazing fast and this is most likely
+      // negligible.
+      const regex = new RegExp(term, 'gm');
+      let index = 0;
+      let line = 1;
+      let column = 0;
+      let match;
+      let hasTerm = false;
 
-    while ((match = regex.exec(contents))) {
-      hasTerm = true;
-      for (index; index < match.index; index++) {
-        if (contents[index] === '\n') {
-          line++;
-          column = 1;
-        } else {
-          column++;
+      while ((match = regex.exec(contents))) {
+        hasTerm = true;
+        for (index; index < match.index; index++) {
+          if (contents[index] === '\n') {
+            line++;
+            column = 1;
+          } else {
+            column++;
+          }
         }
+
+        log(
+          red(
+            'Found forbidden: "' +
+              match[0] +
+              '" in ' +
+              relative +
+              ':' +
+              line +
+              ':' +
+              column
+          )
+        );
+        if (typeof terms[term] == 'string') {
+          fix = terms[term];
+        } else {
+          fix = terms[term].message;
+        }
+
+        // log the possible fix information if provided for the term.
+        if (fix) {
+          log(blue(fix));
+        }
+        log(blue('=========='));
       }
 
-      util.log(util.colors.red('Found forbidden: "' + match[0] +
-          '" in ' + relative + ':' + line + ':' + column));
-      if (typeof terms[term] == 'string') {
-        fix = terms[term];
-      } else {
-        fix = terms[term].message;
-      }
-
-      // log the possible fix information if provided for the term.
-      if (fix) {
-        util.log(util.colors.blue(fix));
-      }
-      util.log(util.colors.blue('=========='));
-    }
-
-    return hasTerm;
-  }).some(function(hasAnyTerm) {
-    return hasAnyTerm;
-  });
+      return hasTerm;
+    })
+    .some(function(hasAnyTerm) {
+      return hasAnyTerm;
+    });
 }
-
 
 /**
  * Test if a file's contents match any of the
@@ -349,56 +334,74 @@ function hasAnyTerms(file) {
  */
 function isMissingTerms(file) {
   const contents = file.contents.toString();
-  return Object.keys(requiredTerms).map(function(term) {
-    const filter = requiredTerms[term];
-    if (!filter.test(file.path)) {
-      return false;
-    }
+  return Object.keys(requiredTerms)
+    .map(function(term) {
+      const filter = requiredTerms[term];
+      if (!filter.test(file.path)) {
+        return false;
+      }
 
-    const matches = contents.match(new RegExp(term));
-    if (!matches) {
-      util.log(util.colors.red('Did not find required: "' + term +
-          '" in ' + normalizeRelativePath(file.relative)));
-      util.log(util.colors.blue('=========='));
-      return true;
-    }
-    return false;
-  }).some(function(hasMissingTerm) {
-    return hasMissingTerm;
-  });
+      const matches = contents.match(new RegExp(term));
+      if (!matches) {
+        log(
+          red(
+            'Did not find required: "' +
+              term +
+              '" in ' +
+              normalizeRelativePath(file.relative)
+          )
+        );
+        log(blue('=========='));
+        return true;
+      }
+      return false;
+    })
+    .some(function(hasMissingTerm) {
+      return hasMissingTerm;
+    });
 }
 
 /**
  * Check a file for all the required terms and
  * any forbidden terms and log any errors found.
  */
-function checkForbiddenAndRequiredTerms() {
+function checkRules() {
   let forbiddenFound = false;
   let missingRequirements = false;
-  return gulp.src(srcGlobs)
-      .pipe(through2.obj(function(file, enc, cb) {
+  return gulp
+    .src(srcGlobs)
+    .pipe(
+      through2.obj(function(file, enc, cb) {
         forbiddenFound = hasAnyTerms(file) || forbiddenFound;
         missingRequirements = isMissingTerms(file) || missingRequirements;
         cb();
-      }))
-      .on('end', function() {
-        if (forbiddenFound) {
-          util.log(util.colors.blue(
-              'Please remove these usages or consult with the Subscribe' +
-              ' with Google team.'));
-        }
-        if (missingRequirements) {
-          util.log(util.colors.blue(
-              'Adding these terms (e.g. by adding a required LICENSE ' +
-            'to the file)'));
-        }
-        if (forbiddenFound || missingRequirements) {
-          process.exit(1);
-        }
-      });
+      })
+    )
+    .on('end', function() {
+      if (forbiddenFound) {
+        log(
+          blue(
+            'Please remove these usages or consult with the Subscribe' +
+              ' with Google team.'
+          )
+        );
+      }
+      if (missingRequirements) {
+        log(
+          blue(
+            'Adding these terms (e.g. by adding a required LICENSE ' +
+              'to the file)'
+          )
+        );
+      }
+      if (forbiddenFound || missingRequirements) {
+        process.exit(1);
+      }
+    });
 }
 
-
-checkForbiddenAndRequiredTerms.description =
-    'Run validation against files to check for forbidden and required terms';
-gulp.task('check-rules', checkForbiddenAndRequiredTerms);
+module.exports = {
+  checkRules,
+};
+checkRules.description =
+  'Run validation against files to check for forbidden and required terms';

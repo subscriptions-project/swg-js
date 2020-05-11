@@ -1,26 +1,36 @@
 language: node_js
-sudo: required  # See http://docs.travis-ci.com/user/trusty-ci-environment/
-dist: trusty
+dist: xenial
+services:
+  - xvfb
 node_js:
   - "lts/*"
 python:
   - "2.7"
 before_install:
-  - export CHROME_BIN=google-chrome
-  - export DISPLAY=:99.0
-  - unset _JAVA_OPTIONS  # JVM heap sizes break closure compiler. #11203.
-  - sh -e /etc/init.d/xvfb start
-  - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-  - sudo dpkg -i google-chrome*.deb
-  # Install yarn
-  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.17.3
-  - export PATH=$HOME/.yarn/bin:$PATH
+  # Override Xenial's default Java version (github.com/travis-ci/travis-ci/issues/10290)
+  - export PATH=$(echo "$PATH" | sed -e 's/:\/usr\/local\/lib\/jvm\/openjdk11\/bin//')
+  - export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 before_script:
   - export PATH="`pwd`/node_modules/.bin:$PATH"
-script: gulp presubmit
+jobs:
+  include:
+    - stage: check
+      name: 'Check'
+      script:
+        - gulp check
+    - stage: test
+      name: 'Unit Tests'
+      script:
+        - gulp unit --coverage
+    - # run unit tests and e2e tests parallel
+      name: 'End to End Tests'
+      script:
+        - gulp e2e --retries=3
 branches:
   only:
     - master
+addons:
+  chrome: stable
 matrix:
   include:
     - env: BUILD_SHARD="unit_tests"
@@ -28,8 +38,10 @@ matrix:
         hosts:
           - pub.localhost
           - sp.localhost
--cache:
+cache:
   directories:
-  - node_modules
+    - node_modules
   bundler: true
   yarn: true
+after_success:
+  - ./node_modules/.bin/codecov -f test/coverage/lcov-unit.info

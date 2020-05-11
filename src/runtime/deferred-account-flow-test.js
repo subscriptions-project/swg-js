@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
+import {ActivityPort} from '../components/activities';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {PageConfig} from '../model/page-config';
 import {PayCompleteFlow} from './pay-flow';
-import {isCancelError} from '../utils/errors';
-import {ActivityPort} from '../components/activities';
 
 const EMPTY_ID_TOK =
   'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJRF9UT0sifQ.SIG';
@@ -39,6 +39,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
   let port;
   let resultResolver;
   let flow;
+  let eventManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -48,6 +49,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     callbacksMock = sandbox.mock(runtime.callbacks());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
+    eventManagerMock = sandbox.mock(runtime.eventManager());
 
     ents = new Entitlements(
       'subscribe.google.com',
@@ -65,7 +67,6 @@ describes.realWin('DeferredAccountFlow', {}, env => {
 
     port = new ActivityPort();
     port.onResizeRequest = () => {};
-    port.onMessageDeprecated = () => {};
     port.whenReady = () => Promise.resolve();
     resultResolver = null;
     const resultPromise = new Promise(resolve => {
@@ -79,6 +80,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     dialogManagerMock.verify();
     callbacksMock.verify();
     entitlementsManagerMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should initialize options', () => {
@@ -158,7 +160,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     return flow.openPromise_;
   });
 
-  it('should handle cancel', () => {
+  it('should handle cancel', async () => {
     callbacksMock
       .expects('triggerFlowCanceled')
       .withExactArgs('completeDeferredAccountCreation')
@@ -166,36 +168,18 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
     dialogManagerMock.expects('completeView').once();
-    const promise = flow.start();
-    return promise.then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(isCancelError(reason)).to.be.true;
-      }
-    );
+    await expect(flow.start()).to.be.rejectedWith(/cancel/);
   });
 
-  it('should handle failure', () => {
+  it('should handle failure', async () => {
     callbacksMock.expects('triggerFlowCanceled').never();
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
-    const promise = flow.start();
-    return promise.then(
-      () => {
-        throw new Error('must have failed');
-      },
-      reason => {
-        expect(() => {
-          throw reason;
-        }).to.throw(/broken/);
-      }
-    );
+    await expect(flow.start()).to.be.rejectedWith(/broken/);
   });
 
-  it('should continue with confirmation flow', () => {
+  it('should continue with confirmation flow', async () => {
     const outputEnts = new Entitlements(
       'subscribe.google.com',
       'RaW',
@@ -224,34 +208,37 @@ describes.realWin('DeferredAccountFlow', {}, env => {
         },
       },
     });
-    return flow.start().then(response => {
-      expect(response.entitlements).to.equal(outputEnts);
-      expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
-      expect(response.userData.id).to.equal('ID_TOK');
-      expect(response.purchaseData.raw).to.equal('PURCHASE_DATA');
-      expect(response.purchaseData.signature).to.equal('SIG(PURCHASE_DATA)');
-      expect(response.purchaseDataList).to.have.length(1);
-      expect(response.purchaseDataList[0].raw).to.equal('PURCHASE_DATA');
-      expect(response.purchaseDataList[0].signature).to.equal(
-        'SIG(PURCHASE_DATA)'
-      );
 
-      expect(confirmStartStub).to.be.calledOnce;
-      const confirmRequest = confirmStartStub.args[0][0];
-      expect(confirmRequest.entitlements).to.equal(response.entitlements);
-      expect(confirmRequest.userData).to.equal(response.userData);
-      expect(confirmRequest.purchaseData).to.equal(
-        response.purchaseDataList[0]
-      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_NEW_DEFERRED_ACCOUNT, true)
+      .once();
 
-      expect(confirmCompleteStub).to.not.be.called;
-      const completePromise = response.complete();
-      expect(confirmCompleteStub).to.be.calledOnce;
-      return completePromise;
-    });
+    const response = await flow.start();
+    expect(response.entitlements).to.equal(outputEnts);
+    expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+    expect(response.userData.id).to.equal('ID_TOK');
+    expect(response.purchaseData.raw).to.equal('PURCHASE_DATA');
+    expect(response.purchaseData.signature).to.equal('SIG(PURCHASE_DATA)');
+    expect(response.purchaseDataList).to.have.length(1);
+    expect(response.purchaseDataList[0].raw).to.equal('PURCHASE_DATA');
+    expect(response.purchaseDataList[0].signature).to.equal(
+      'SIG(PURCHASE_DATA)'
+    );
+
+    expect(confirmStartStub).to.be.calledOnce;
+    const confirmRequest = confirmStartStub.args[0][0];
+    expect(confirmRequest.entitlements).to.equal(response.entitlements);
+    expect(confirmRequest.userData).to.equal(response.userData);
+    expect(confirmRequest.purchaseData).to.equal(response.purchaseDataList[0]);
+
+    expect(confirmCompleteStub).to.not.be.called;
+    const completePromise = response.complete();
+    expect(confirmCompleteStub).to.be.calledOnce;
+    await completePromise;
   });
 
-  it('should accept purchase data list', () => {
+  it('should accept purchase data list', async () => {
     const outputEnts = new Entitlements(
       'subscribe.google.com',
       'RaW',
@@ -286,34 +273,37 @@ describes.realWin('DeferredAccountFlow', {}, env => {
         ],
       },
     });
-    return flow.start().then(response => {
-      expect(response.entitlements).to.equal(outputEnts);
-      expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
-      expect(response.userData.id).to.equal('ID_TOK');
-      expect(response.purchaseData.raw).to.equal('PURCHASE_DATA1');
-      expect(response.purchaseData.signature).to.equal('SIG(PURCHASE_DATA1)');
-      expect(response.purchaseDataList).to.have.length(2);
-      expect(response.purchaseDataList[0].raw).to.equal('PURCHASE_DATA1');
-      expect(response.purchaseDataList[0].signature).to.equal(
-        'SIG(PURCHASE_DATA1)'
-      );
-      expect(response.purchaseDataList[1].raw).to.equal('PURCHASE_DATA2');
-      expect(response.purchaseDataList[1].signature).to.equal(
-        'SIG(PURCHASE_DATA2)'
-      );
 
-      expect(confirmStartStub).to.be.calledOnce;
-      const confirmRequest = confirmStartStub.args[0][0];
-      expect(confirmRequest.entitlements).to.equal(response.entitlements);
-      expect(confirmRequest.userData).to.equal(response.userData);
-      expect(confirmRequest.purchaseData).to.equal(
-        response.purchaseDataList[0]
-      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_NEW_DEFERRED_ACCOUNT, true)
+      .once();
 
-      expect(confirmCompleteStub).to.not.be.called;
-      const completePromise = response.complete();
-      expect(confirmCompleteStub).to.be.calledOnce;
-      return completePromise;
-    });
+    const response = await flow.start();
+    expect(response.entitlements).to.equal(outputEnts);
+    expect(response.userData.idToken).to.equal(EMPTY_ID_TOK);
+    expect(response.userData.id).to.equal('ID_TOK');
+    expect(response.purchaseData.raw).to.equal('PURCHASE_DATA1');
+    expect(response.purchaseData.signature).to.equal('SIG(PURCHASE_DATA1)');
+    expect(response.purchaseDataList).to.have.length(2);
+    expect(response.purchaseDataList[0].raw).to.equal('PURCHASE_DATA1');
+    expect(response.purchaseDataList[0].signature).to.equal(
+      'SIG(PURCHASE_DATA1)'
+    );
+    expect(response.purchaseDataList[1].raw).to.equal('PURCHASE_DATA2');
+    expect(response.purchaseDataList[1].signature).to.equal(
+      'SIG(PURCHASE_DATA2)'
+    );
+
+    expect(confirmStartStub).to.be.calledOnce;
+    const confirmRequest = confirmStartStub.args[0][0];
+    expect(confirmRequest.entitlements).to.equal(response.entitlements);
+    expect(confirmRequest.userData).to.equal(response.userData);
+    expect(confirmRequest.purchaseData).to.equal(response.purchaseDataList[0]);
+
+    expect(confirmCompleteStub).to.not.be.called;
+    const completePromise = response.complete();
+    expect(confirmCompleteStub).to.be.calledOnce;
+    await completePromise;
   });
 });

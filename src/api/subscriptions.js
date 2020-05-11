@@ -28,7 +28,6 @@ import {LoggerApi} from './logger-api';
  * @interface
  */
 export class Subscriptions {
-
   /**
    * Optionally initializes the subscriptions runtime with publication or
    * product ID. If not called, the runtime will look for the initialization
@@ -60,10 +59,10 @@ export class Subscriptions {
   clear() {}
 
   /**
-   * @param {?string=} opt_encryptedDocumentKey
+   * @param {?string=} encryptedDocumentKey
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements(opt_encryptedDocumentKey) {}
+  getEntitlements(encryptedDocumentKey) {}
 
   /**
    * Set the subscribe callback.
@@ -75,28 +74,34 @@ export class Subscriptions {
    * Returns a set of offers.
    * @param {{
    *   productId: (string|undefined),
-   * }=} opt_options
+   * }=} options
    * @return {!Promise<!Array<!Offer>>}
    */
-  getOffers(opt_options) {}
+  getOffers(options) {}
 
   /**
    * Starts the Offers flow.
-   * @param {!OffersRequest=} opt_options
+   * @param {!OffersRequest=} options
    */
-  showOffers(opt_options) {}
+  showOffers(options) {}
+
+  /**
+   * Starts the Offers flow for a subscription update.
+   * @param {!OffersRequest=} options
+   */
+  showUpdateOffers(options) {}
 
   /**
    * Show subscription option.
-   * @param {!OffersRequest=} opt_options
+   * @param {!OffersRequest=} options
    */
-  showSubscribeOption(opt_options) {}
+  showSubscribeOption(options) {}
 
   /**
    * Show abbreviated offers.
-   * @param {!OffersRequest=} opt_options
+   * @param {!OffersRequest=} options
    */
-  showAbbrvOffer(opt_options) {}
+  showAbbrvOffer(options) {}
 
   /**
    * Show contribution options for the users to select from.
@@ -105,9 +110,9 @@ export class Subscriptions {
    * to the publisher. These options are based on the SKUs defined in the Play
    * console for a given publication.
    * Each SKU has Amount, Period, SKUId and other attributes.
-   * @param {!OffersRequest=} opt_options
+   * @param {!OffersRequest=} options
    */
-  showContributionOptions(opt_options) {}
+  showContributionOptions(options) {}
 
   /**
    * Set the callback for the native subscribe request. Setting this callback
@@ -124,9 +129,15 @@ export class Subscriptions {
 
   /**
    * Starts subscription purchase flow.
-   * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
+   * @param {string} sku
    */
-  subscribe(skuOrSubscriptionRequest) {}
+  subscribe(sku) {}
+
+  /**
+   * Starts subscription purchase flow.
+   * @param {SubscriptionRequest} subscriptionRequest
+   */
+  updateSubscription(subscriptionRequest) {}
 
   /**
    * Set the contribution complete callback.
@@ -134,7 +145,13 @@ export class Subscriptions {
    */
   setOnContributionResponse(callback) {}
 
-   /**
+  /**
+   * Set the payment complete callback.
+   * @param {function(!Promise<!SubscribeResponse>)} callback
+   */
+  setOnPaymentResponse(callback) {}
+
+  /**
    * Starts contributions purchase flow.
    * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
    */
@@ -143,10 +160,10 @@ export class Subscriptions {
   /**
    * Starts the deferred account creation flow.
    * See `DeferredAccountCreationRequest` for more details.
-   * @param {?DeferredAccountCreationRequest=} opt_options
+   * @param {?DeferredAccountCreationRequest=} options
    * @return {!Promise<!DeferredAccountCreationResponse>}
    */
-  completeDeferredAccountCreation(opt_options) {}
+  completeDeferredAccountCreation(options) {}
 
   /**
    * @param {function(!LoginRequest)} callback
@@ -179,8 +196,9 @@ export class Subscriptions {
   /**
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
+   * @param {{ampReaderId: (string|undefined)}=} params
    */
-  linkAccount() {}
+  linkAccount(params) {}
 
   /**
    * Notifies the client that a flow has been started. The name of the flow
@@ -209,11 +227,11 @@ export class Subscriptions {
    */
   setOnFlowCanceled(callback) {}
 
- /**
-  * Starts the save subscriptions flow.
-  * @param {!SaveSubscriptionRequestCallback} requestCallback
-  * @return {!Promise} a promise indicating flow is started
-  */
+  /**
+   * Starts the save subscriptions flow.
+   * @param {!SaveSubscriptionRequestCallback} requestCallback
+   * @return {!Promise} a promise indicating flow is started
+   */
   saveSubscription(requestCallback) {}
 
   /**
@@ -221,10 +239,10 @@ export class Subscriptions {
    * The default theme is "light".
    *
    * @param {!ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    * @return {!Element}
    */
-  createButton(optionsOrCallback, opt_callback) {}
+  createButton(optionsOrCallback, callback) {}
 
   /**
    * Attaches the SwG button style and the provided callback to an existing
@@ -232,9 +250,9 @@ export class Subscriptions {
    *
    * @param {!Element} button
    * @param {!ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    */
-  attachButton(button, optionsOrCallback, opt_callback) {}
+  attachButton(button, optionsOrCallback, callback) {}
 
   /**
    * Attaches smartButton element and the provided callback.
@@ -242,9 +260,9 @@ export class Subscriptions {
    *
    * @param {!Element} button
    * @param {!SmartButtonOptions|function()} optionsOrCallback
-   * @param {function()=} opt_callback
+   * @param {function()=} callback
    */
-  attachSmartButton(button, optionsOrCallback, opt_callback) {}
+  attachSmartButton(button, optionsOrCallback, callback) {}
 
   /**
    * Retrieves the propensity module that provides APIs to
@@ -271,18 +289,26 @@ export const SubscriptionFlows = {
   SHOW_LOGIN_NOTIFICATION: 'showLoginNotification',
 };
 
-
 /**
  * Configuration properties:
  * - windowOpenMode - either "auto" or "redirect". The "redirect" value will
  *   force redirect flow for any window.open operation, including payments.
  *   The "auto" value either uses a redirect or a popup flow depending on
  *   what's possible on a specific environment. Defaults to "auto".
- *
+ * - enableSwgAnalytics - if set to true then events logged by the publisher's
+ *   client will be sent to Google's SwG analytics service.  This information is
+ *   used to compare the effectiveness of Google's buy-flow events to those
+ *   generated by the publisher's client code.  This includes events sent to
+ *   both PropensityApi and LoggerApi.
+ * - enablePropensity - If true events from the logger api are sent to the
+ *   propensity server.  Note events from the legacy propensity endpoint are
+ *   always sent.
  * @typedef {{
  *   experiments: (!Array<string>|undefined),
  *   windowOpenMode: (!WindowOpenMode|undefined),
  *   analyticsMode: (!AnalyticsMode|undefined),
+ *   enableSwgAnalytics: (boolean|undefined),
+ *   enablePropensity: (boolean|undefined),
  * }}
  */
 export let Config;
@@ -332,9 +358,10 @@ export function defaultConfig() {
   return {
     windowOpenMode: WindowOpenMode.AUTO,
     analyticsMode: AnalyticsMode.DEFAULT,
+    enableSwgAnalytics: false,
+    enablePropensity: false,
   };
 }
-
 
 /**
  * Properties:
@@ -352,14 +379,12 @@ export function defaultConfig() {
  */
 export let OffersRequest;
 
-
 /**
  * @typedef {{
  *   linkRequested: boolean,
  * }}
  */
 export let LoginRequest;
-
 
 /**
  * Properties:
@@ -415,11 +440,14 @@ export let SmartButtonOptions;
  * - prorationMode: Optional. When replacing a subscription you can decide on a
  *  specific proration mode to charge the user.
  *  The default is IMMEDIATE_WITH_TIME_PRORATION.
+ * - oneTime: Optional. When a user chooses a contribution, they have the option
+ *  to make it non-recurring.
  *
  *  @typedef {{
  *    skuId: string,
- *    oldSkuId: (string|undefined),
+ *    oldSku: (string|undefined),
  *    replaceSkuProrationMode: (ReplaceSkuProrationMode|undefined),
+ *    oneTime: (boolean|undefined),
  * }}
  */
 export let SubscriptionRequest;

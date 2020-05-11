@@ -19,7 +19,7 @@ const argv = require('minimist')(process.argv.slice(2));
 const internalRuntimeVersion = require('./internal-version').VERSION;
 
 const ASSETS = '/assets';
-const FRONTEND = 'https://subscribe-qual.sandbox.google.com';
+const FRONTEND = 'https://news.google.com';
 const FRONTEND_CACHE = 'nocache';
 const PAY_ENVIRONMENT = 'SANDBOX';
 const PLAY_ENVIRONMENT = 'STAGING';
@@ -27,7 +27,6 @@ const ADS_SERVER = 'https://pubads.g.doubleclick.net';
 const EXPERIMENTS = '';
 
 const overrides = {};
-
 
 /**
  * @return {!Object<string, string>}
@@ -44,8 +43,7 @@ exports.resolveConfig = function() {
     'adsServer': argv.adsServer || ADS_SERVER,
   };
   return Object.assign(config, overrides);
-}
-
+};
 
 /**
  * @param {!Object<string, string>} config
@@ -54,4 +52,4 @@ exports.overrideConfig = function(config) {
   for (const k in config) {
     overrides[k] = config[k];
   }
-}
+};

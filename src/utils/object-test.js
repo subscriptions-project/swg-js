@@ -19,7 +19,7 @@ import {findInArray, map} from './object';
 describe('map', () => {
   it('should return a map-like object', () => {
     const obj = {a: 1, b: 2};
-    expect(map(obj)).should.be.an.object;
+    expect(map(obj)).should.be.an('object');
     expect(map(obj)).to.deep.equal(obj);
     expect(map()).to.deep.equal({});
   });

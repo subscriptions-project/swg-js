@@ -29,7 +29,7 @@
  *     describe('myTest', () => {
  *       // I gotta do this sandbox creation and restore for every test? Ugh...
  *       let sandbox;
- *       beforeEach(() => { sandbox = sinon.sandbox.create(); })
+ *       beforeEach(() => { sandbox = sinon.createSandbox(); })
  *       it('stubbing', () => { sandbox.stub(foo, 'bar'); });
  *       afterEach(() => { sandbox.restore(); });
  *     });
@@ -59,23 +59,20 @@
  * objects. See the type definitions for `sandboxed` and `realWin` below.
  */
 
-import fetchMock from 'fetch-mock';
 import * as sinon from 'sinon';
+import fetchMock from 'fetch-mock';
 
 /** Should have something in the name, otherwise nothing is shown. */
 const SUB = ' ';
 
-
 /** @type {number} */
 let iframeCount = 0;
-
 
 /**
  * @typedef {{
  * }}
  */
 export let TestSpec;
-
 
 /**
  * A test with a sandbox.
@@ -84,7 +81,6 @@ export let TestSpec;
  * @param {function()} fn
  */
 export const sandboxed = describeEnv(spec => []);
-
 
 /**
  * A test with a real (iframed) window.
@@ -95,10 +91,7 @@ export const sandboxed = describeEnv(spec => []);
  *   iframe: !HTMLIFrameElement,
  * })} fn
  */
-export const realWin = describeEnv(spec => [
-  new RealWinFixture(spec),
-]);
-
+export const realWin = describeEnv(spec => [new RealWinFixture(spec)]);
 
 /**
  * A test with a real fixture window.
@@ -114,7 +107,6 @@ export const fixture = describeEnv(spec => [
   new RealWinFixture(Object.assign(spec, {allowExternalResources: true})),
   new IntegrationFixture(spec),
 ]);
-
 
 /**
  * A repeating test.
@@ -154,12 +146,11 @@ export const repeated = (function() {
    * @param {function(string, *)} fn
    */
   mainFunc.only = function(name, variants, fn) {
-    return templateFunc(name, variants, fn, describe./*OK*/only);
+    return templateFunc(name, variants, fn, describe./*OK*/ only);
   };
 
   return mainFunc;
 })();
-
 
 /**
  * Mocks Window.fetch in the given environment and exposes `env.fetchMock`. For
@@ -176,7 +167,6 @@ function attachFetchMock(env) {
   env.fetchMock = fetchMock;
   env.expectFetch = fetchMock.mock.bind(fetchMock);
 }
-
 
 /**
  * Returns a wrapped version of Mocha's describe(), it() and only() methods
@@ -219,9 +209,12 @@ function describeEnv(factory) {
 
       afterEach(() => {
         // Tear down all fixtures.
-        fixtures.slice(0).reverse().forEach(fixture => {
-          fixture.teardown(env);
-        });
+        fixtures
+          .slice(0)
+          .reverse()
+          .forEach(fixture => {
+            fixture.teardown(env);
+          });
 
         // Delete all other keys.
         for (const key in env) {
@@ -250,7 +243,7 @@ function describeEnv(factory) {
    * @param {function(!Object)} fn
    */
   mainFunc.only = function(name, spec, fn) {
-    return templateFunc(name, spec, fn, describe./*OK*/only);
+    return templateFunc(name, spec, fn, describe./*OK*/ only);
   };
 
   mainFunc.skip = function(name, variants, fn) {
@@ -260,10 +253,8 @@ function describeEnv(factory) {
   return mainFunc;
 }
 
-
 /** @interface */
 class Fixture {
-
   /** @return {boolean} */
   isOn() {}
 
@@ -279,10 +270,8 @@ class Fixture {
   teardown(env) {}
 }
 
-
 /** @implements {Fixture} */
 class SandboxFixture {
-
   /** @param {!TestSpec} spec */
   constructor(spec) {
     /** @const */
@@ -299,12 +288,10 @@ class SandboxFixture {
 
   /** @override */
   setup(env) {
-    const spec = this.spec;
-
     // Sandbox.
     let sandbox = global.sandbox;
     if (!sandbox) {
-      sandbox = global.sandbox = sinon.sandbox.create();
+      sandbox = global.sandbox = sinon.createSandbox();
       this.sandboxOwner_ = true;
     }
     env.sandbox = sandbox;
@@ -321,13 +308,11 @@ class SandboxFixture {
   }
 }
 
-
 /** @implements {Fixture} */
 class RealWinFixture {
-
   /** @param {!{
-  *   allowExternalResources: boolean,
-  * }} spec */
+   *   allowExternalResources: boolean,
+   * }} spec */
   constructor(spec) {
     /** @const */
     this.spec = spec;
@@ -375,15 +360,13 @@ class RealWinFixture {
       env.iframe.parentNode.removeChild(env.iframe);
     }
     if (this.spec.mockFetch !== false) {
-      fetchMock./*OK*/restore();
+      fetchMock./*OK*/ restore();
     }
   }
 }
 
-
 /** @implements {Fixture} */
 class IntegrationFixture {
-
   /**
    * @param {!{}} spec
    */
@@ -399,18 +382,21 @@ class IntegrationFixture {
 
   /** @override */
   setup(env) {
-    const spec = this.spec;
-    const containerIframe = env.iframe;
     const win = env.win;
     const iframe = win.document.createElement('iframe');
     env.iframe = iframe;
     iframe.name = 'test_' + iframeCount++;
-    env.fixtureUrl = function(name, opt_hostPrefix) {
+    env.fixtureUrl = function(name, hostPrefix) {
       const loc = win.top.location;
-      return loc.protocol + '//' +
-        (opt_hostPrefix ? opt_hostPrefix + '.' : '') +
+      return (
+        loc.protocol +
+        '//' +
+        (hostPrefix ? hostPrefix + '.' : '') +
         loc.host +
-        '/test/fixtures/' + name + '.html';
+        '/test/fixtures/' +
+        name +
+        '.html'
+      );
     };
     const fixture = new IntegrationFixtureController(win, iframe);
     env.fixture = fixture;
@@ -428,11 +414,9 @@ class IntegrationFixture {
   }
 }
 
-
 /**
  */
 class IntegrationFixtureController {
-
   /**
    * @param {!Window} parent
    * @param {!HTMLIFrameElement} iframe
@@ -468,9 +452,11 @@ class IntegrationFixtureController {
    * @private
    */
   handleMessage_(event) {
-    if (event.source != this.iframe.contentWindow ||
-        !event.data ||
-        event.data['sentinel'] != '__FIXTURE__') {
+    if (
+      event.source != this.iframe.contentWindow ||
+      !event.data ||
+      event.data['sentinel'] != '__FIXTURE__'
+    ) {
       return;
     }
     if (!this.win) {
@@ -509,14 +495,16 @@ class IntegrationFixtureController {
    * @param {*} data
    */
   send(type, payload) {
-    this.win.postMessage({
-      sentinel: '__FIXTURE__',
-      type,
-      payload,
-    }, '*');
+    this.win.postMessage(
+      {
+        sentinel: '__FIXTURE__',
+        type,
+        payload,
+      },
+      '*'
+    );
   }
 }
-
 
 /**
  * For the given iframe, makes the creation of iframes and images
@@ -542,7 +530,7 @@ function doNotLoadExternalResourcesInTest(win) {
         },
         get: function() {
           return this.fakeSrc;
-        }
+        },
       });
       // Triggers a load event on the element in the next micro task.
       element.triggerLoad = function() {

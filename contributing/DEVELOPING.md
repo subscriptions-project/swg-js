@@ -73,7 +73,20 @@ gulp
 
 Running the `gulp` command will compile the code and start up a Node.js server listening on port 8000.  Once you see a message like `Finished 'default'` you can access the local server in your browser at [http://localhost:8000](http://localhost:8000)
 
-You can browse the [http://localhost:8000/examples](http://localhost:8000/examples) directory to see some demo pages for various AMP components and combination of components.
+You can browse the [http://localhost:8000/examples](http://localhost:8000/examples) directory to see some demo pages for various SwG components and combination of components.
+
+## Code quality and style
+
+SwG uses [Eslint](https://eslint.org/) to ensure code quality and [Prettier](https://prettier.io/) to standardize code style. For easy development, here are two recommendations:
+- Use a code editor with Eslint support to make sure that your code satisfies all of SwG's quality and style rules. [Here](https://eslint.org/docs/user-guide/integrations#editors) is a list of editors with Eslint extension support.
+- Set your editor to automatically fix Eslint errors in your code on save.
+
+For example, if you use [Visual Studio Code](https://code.visualstudio.com/), you can install its [Eslint plugin](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint), and enable the `eslint.autoFixOnSave` setting.
+
+Alternatively, you can manually fix lint errors in your code by running:
+```
+gulp lint --local_changes --fix
+```
 
 ## DNS Aliases
 
@@ -99,7 +112,11 @@ Use the following Gulp commands:
 | `gulp check-links --files foo.md,bar.md`                                | Reports dead links in `.md` files.                                                 |
 | `gulp clean`                                                            | Removes build output.                                                 |
 | `gulp watch`<sup>[[1]](#footnote-1)</sup>                               | Watches for changes in files, re-build.                               |
-| `gulp test`<sup>[[1]](#footnote-1)</sup>                                | Runs tests in Chrome.                                                 |
+| `gulp unit`                                | Runs unit tests in Chrome.
+| `gulp unit --coverage`                     | Runs unit tests in code coverage mode. After running, the report will be available at test/coverage/index.html|
+| `gulp e2e`                                 | Runs end-to-end tests in Chrome.
+| `gulp serve`                               | Serves Scenic site on http://localhost:8000/.                    |
+| `gulp serve --quiet`                       | Same as `serve`, with logging silenced.
 
 <a id="footnote-1">[1]</a> On Windows, this command must be run as administrator.
 

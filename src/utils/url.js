@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import {isArray} from './types';
-
 /**
   @typedef {{
     href: string,
@@ -57,7 +55,7 @@ export function serializeQueryString(params) {
     const v = params[k];
     if (v == null) {
       continue;
-    } else if (isArray(v)) {
+    } else if (Array.isArray(v)) {
       for (let i = 0; i < v.length; i++) {
         const sv = /** @type {string} */ (v[i]);
         s.push(`${encodeURIComponent(k)}=${encodeURIComponent(sv)}`);
@@ -76,10 +74,9 @@ export function serializeQueryString(params) {
  * Consider the returned object immutable. This is enforced during
  * testing by freezing the object.
  * @param {string} url
- * @param {boolean=} opt_nocache
  * @return {!LocationDef}
  */
-export function parseUrl(url, opt_nocache) {
+export function parseUrl(url) {
   if (!a) {
     a = /** @type {!HTMLAnchorElement} */ (self.document.createElement('a'));
     cache = self.UrlCache || (self.UrlCache = Object.create(null));
@@ -196,6 +193,14 @@ export function addQueryParam(url, param, value) {
   }
   url += encodeURIComponent(param) + '=' + encodeURIComponent(value);
   return url + fragment;
+}
+
+/**
+ * @param {!../proto/api_messages.Message} message
+ * @return {string}
+ */
+export function serializeProtoMessageForUrl(message) {
+  return JSON.stringify(/** @type {JsonObject} */ (message.toArray(false)));
 }
 
 /**
