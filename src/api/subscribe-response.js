@@ -30,9 +30,10 @@ export class SubscribeResponse {
    * @param {!string} productType
    * @param {function():!Promise} completeHandler
    * @param {?string=} oldSku
+   * @param {?enum=} paymentRecurrence
    */
   constructor(raw, purchaseData, userData, entitlements, productType,
-      completeHandler, oldSku = null) {
+      completeHandler, oldSku = null, paymentRecurrence) {
     /** @const {string} */
     this.raw = raw;
     /** @const {!PurchaseData} */
@@ -47,6 +48,8 @@ export class SubscribeResponse {
     this.completeHandler_ = completeHandler;
     /** @const {?string} */
     this.oldSku = oldSku;
+    /** @const {?enum} */
+    this.paymentRecurrence = paymentRecurrence;
   }
 
   /**

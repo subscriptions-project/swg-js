@@ -269,10 +269,12 @@ export class PayCompleteFlow {
     );
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
+    // TODO(dianajing): future-proof isOneTime flag
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'productType': this.response_['productType'],
       'isSubscriptionUpdate': !!this.response_['oldSku'],
+      'isOneTime': !!this.response_['paymentRecurrence'],
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
@@ -413,6 +415,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
   let raw = null;
   let productType = ProductType.SUBSCRIPTION;
   let oldSku = null;
+  let paymentRecurrence = null;
 
   if (data) {
     if (typeof data == 'string') {
@@ -428,6 +431,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
       }
       if ('paymentRequest' in data) {
         oldSku = (data['paymentRequest']['swg'] || {})['oldSku'];
+        paymentRecurrence = (data['paymentRequest']['swg'] || {})['paymentRecurrence'];
         productType =
           (data['paymentRequest']['i'] || {})['productType'] ||
           ProductType.SUBSCRIPTION;
@@ -452,7 +456,8 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     parseEntitlements(deps, swgData),
     productType,
     completeHandler,
-    oldSku
+    oldSku,
+    paymentRecurrence,
   );
 }
 
