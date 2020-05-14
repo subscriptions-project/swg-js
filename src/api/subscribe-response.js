@@ -17,11 +17,9 @@
 import {Entitlements} from './entitlements';
 import {UserData} from './user-data';
 
-
 /**
  */
 export class SubscribeResponse {
-
   /**
    * @param {string} raw
    * @param {!PurchaseData} purchaseData
@@ -30,10 +28,18 @@ export class SubscribeResponse {
    * @param {!string} productType
    * @param {function():!Promise} completeHandler
    * @param {?string=} oldSku
-   * @param {?enum=} paymentRecurrence
+   * @param {?number=} paymentRecurrence
    */
-  constructor(raw, purchaseData, userData, entitlements, productType,
-      completeHandler, oldSku = null, paymentRecurrence) {
+  constructor(
+    raw,
+    purchaseData,
+    userData,
+    entitlements,
+    productType,
+    completeHandler,
+    oldSku = null,
+    paymentRecurrence = null
+  ) {
     /** @const {string} */
     this.raw = raw;
     /** @const {!PurchaseData} */
@@ -48,7 +54,7 @@ export class SubscribeResponse {
     this.completeHandler_ = completeHandler;
     /** @const {?string} */
     this.oldSku = oldSku;
-    /** @const {?enum} */
+    /** @const {?number} */
     this.paymentRecurrence = paymentRecurrence;
   }
 
@@ -57,13 +63,13 @@ export class SubscribeResponse {
    */
   clone() {
     return new SubscribeResponse(
-        this.raw,
-        this.purchaseData,
-        this.userData,
-        this.entitlements,
-        this.productType,
-        this.completeHandler_,
-        this.oldSku
+      this.raw,
+      this.purchaseData,
+      this.userData,
+      this.entitlements,
+      this.productType,
+      this.completeHandler_,
+      this.oldSku
     );
   }
 
@@ -75,7 +81,7 @@ export class SubscribeResponse {
       'purchaseData': this.purchaseData.json(),
       'userData': this.userData ? this.userData.json() : null,
       'entitlements': this.entitlements ? this.entitlements.json() : null,
-      'oldSku' : this.oldSku,
+      'oldSku': this.oldSku,
       'productType': this.productType,
     };
   }
@@ -98,11 +104,9 @@ export class SubscribeResponse {
   }
 }
 
-
 /**
  */
 export class PurchaseData {
-
   /**
    * @param {string} raw
    * @param {string} signature
