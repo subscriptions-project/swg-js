@@ -49,7 +49,15 @@ Using JSON-LD, the markup would look like:
 Thus, notice that:
  1. The product ID is "norcal_tribune.com:basic" (`"productID": "norcal_tribune.com:basic"`).
  2. This document is currently locked (`"isAccessibleForFree": false`)
-
+ 3. isPartOf["@types"] must include "Product". It also must include "CreativeWork" or one of the following more specific types of CreativeWork: 
+    - Article
+    - NewsArticle
+    - Blog
+    - Comment
+    - Course
+    - HowTo
+    - Message
+    - Review
 
 ## Microdata markup
 
