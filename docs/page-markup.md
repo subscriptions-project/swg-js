@@ -56,7 +56,7 @@ Thus, notice that:
     - `HowTo`
     - `Message`
     - `Review`
-2. `"isAccessibleForFree"` is a required field. Its value can be true or false. `isAccessibleForFree": false` indicates that content is available for free. 
+2. `"isAccessibleForFree"` is a required field. Its value can be true or false. `isAccessibleForFree": true` indicates that content is available for free. 
 3. The type in `isPartOf` must include "Product". 
 4. The product ID is [pulbication]:[label], for example `"productID": "norcal_tribune.com:basic"`.
 
@@ -87,8 +87,8 @@ In this example:
     - `HowTo`
     - `Message`
     - `Review`
- 2. `"isAccessibleForFree"` can be true or false. `isAccessibleForFree": false` indicates that content is available for free. 
- 2. The product ID is [pulbication]:[label], for example `"productID": "norcal_tribune.com:basic"`.
+ 2. `"isAccessibleForFree"` can be true or false. `isAccessibleForFree": true` indicates that content is available for free. 
+ 2. The product ID is [publication]:[label], for example `"productID": "norcal_tribune.com:basic"`.
 
 The configuration is resolved as soon as `productID` and `isAccessibleForFree` are found. It is, therefore,
 advised to place the configuration as high up in the DOM tree as possible.
