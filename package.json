@@ -29,8 +29,8 @@
     "web-activities": "1.24.0"
   },
   "devDependencies": {
-    "@babel/core": "7.9.6",
-    "@babel/preset-env": "7.9.6",
+    "@babel/core": "7.10.0",
+    "@babel/preset-env": "7.10.0",
     "ansi-colors": "4.1.1",
     "autoprefixer": "9.8.0",
     "babel-eslint": "10.1.0",
