@@ -18,17 +18,19 @@ limitations under the License.
 
 This flow shows the payment form, accepts payment, records subscription and updates the reader's entitlements. See [Subscriptions APIs](./core-apis.md).
 
-*Important!* Please ensure you set up the `setOnSubscribeResponse` on any page where you accept purchases, not just before you call `subscribe` or `showOffers`. SwG client ensures it can recover subscriptions even when browsers unload pages.
+*Important!* Please ensure you set up the `setOnPaymentResponse` on any page where you accept purchases, not just before you call `subscribe` or `showOffers`. SwG client ensures it can recover subscriptions even when browsers unload pages.
 
-First, please setup the subscription response callback via `setOnSubscribeResponse`:
+First, please setup the subscription response callback via `setOnPaymentResponse`:
 
 ```js
-subscriptions.setOnSubscribeResponse(function(subscriptionPromise) {
-  subscriptionPromise.then(function(response) {
-    // 1. Handle subscription response.
-    // 2. Once subscription is processed (account created):
+subscriptions.setOnPaymentResponse(function(paymentResponse) {
+  paymentResponse.then(function(response) {
+    // Handle the payment response.
+    // Some websites would create or update a user at this point.
     response.complete().then(function() {
-      // 3. The subscription is fully processed.
+      // The payment is fully processed.
+      // Some websites would update their UI at this point,
+      // if the purchase unlocked content.
     });
   });
 });
@@ -48,10 +50,10 @@ subscriptions.subscribe(sku);
 
 Another way to trigger the subscribe flow is by starting [Offers flow](./offers-flow.md).
 
-The `setOnSubscribeResponse` callback will be called once the subscription is complete, or when the previously executed subscription is recovered.
+The `setOnPaymentResponse` callback will be called once the subscription is complete, or when the previously executed subscription is recovered.
 
 ## Subscribe response
-The response returned by the `setOnSubscribeResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data.
+The response returned by the `setOnPaymentResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data.
 ### Structure
 The SubscriptionResponse object has the following structure:
 ```json
@@ -64,7 +66,7 @@ The SubscriptionResponse object has the following structure:
   "productType": "SUBSCRIPTION",
   "userData": {
     "idToken" : "...",
-    "data": { ... },
+    "data": { },
     "id": "",
     "email": "",
     "emailVerified": true,
@@ -72,6 +74,7 @@ The SubscriptionResponse object has the following structure:
     "givenName": "",
     "familyName": "",
     "pictureUrl": ""
+  }
 }
 ```
 ### `purchaseData` properties
@@ -117,7 +120,7 @@ The `purchaseData.raw` fields are identical to the fields from an Android In-App
       "email_verified": true,
       "name": "GivenName FamilyName",
       "given_name": "GivenName",
-      "family_name": "FamilyName"
+      "family_name": "FamilyName",
       "picture": "https://...jpg",
     },
     "id": "000000000000000000000",
