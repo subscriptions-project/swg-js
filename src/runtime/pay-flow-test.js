@@ -473,6 +473,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           idToken: 'ID_TOK',
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: false,
+          isOneTime: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -515,6 +516,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
           loginHint: 'test@example.org',
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: false,
+          isOneTime: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -557,6 +559,51 @@ describes.realWin('PayCompleteFlow', {}, env => {
           loginHint: 'test@example.org',
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: true,
+          isOneTime: false,
+        }
+      )
+      .returns(Promise.resolve(port));
+    await flow.start(response);
+  });
+
+  it('should have valid flow constructed w/ one time contributions', async () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    const purchaseData = new PurchaseData();
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const response = new SubscribeResponse(
+      'RaW',
+      purchaseData,
+      userData,
+      null,
+      ProductType.UI_CONTRIBUTION,
+      null,
+      null,
+      2,
+    );
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          loginHint: 'test@example.org',
+          productType: ProductType.UI_CONTRIBUTION,
+          isSubscriptionUpdate: false,
+          isOneTime: true,
         }
       )
       .returns(Promise.resolve(port));
