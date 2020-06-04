@@ -22,7 +22,7 @@ import {Propensity} from './propensity';
 import {PropensityServer} from './propensity-server';
 import {XhrFetcher} from './fetcher';
 
-describes.realWin('Logger', {}, env => {
+describes.realWin('Logger', {}, (env) => {
   let win;
   let pageConfig;
   let logger;
@@ -42,8 +42,8 @@ describes.realWin('Logger', {}, env => {
     // We aren't testing event manager - this suppresses the promises.
     sandbox
       .stub(eventManager, 'registerEventListener')
-      .callsFake(listener => (propensityServerListener = listener));
-    sandbox.stub(eventManager, 'logEvent').callsFake(event => {
+      .callsFake((listener) => (propensityServerListener = listener));
+    sandbox.stub(eventManager, 'logEvent').callsFake((event) => {
       try {
         propensityServerListener(event);
       } catch (e) {
@@ -76,7 +76,7 @@ describes.realWin('Logger', {}, env => {
           .callsFake(() => {});
 
         receivedEvent = null;
-        propensityServerListener = event => (receivedEvent = event);
+        propensityServerListener = (event) => (receivedEvent = event);
       });
 
       it('subscription state is validated', () => {
@@ -132,14 +132,14 @@ describes.realWin('Logger', {}, env => {
       let subscriptionState = null;
       sandbox
         .stub(PropensityServer.prototype, 'sendSubscriptionState')
-        .callsFake(state => (subscriptionState = state));
+        .callsFake((state) => (subscriptionState = state));
       logger.sendSubscriptionState(SubscriptionState.UNKNOWN);
       await logger.eventManagerPromise_;
       expect(subscriptionState).to.equal(SubscriptionState.UNKNOWN);
     });
 
     it('should report server errors', async () => {
-      const SENT_ERR = new Error('publisher not whitelisted');
+      const SENT_ERR = new Error('publisher not allowlisted');
       //note that actual event manager will cause the error to be logged to the
       //console instead of being immediately thrown.
       sandbox.stub(fetcher, 'fetch').callsFake(() => {
@@ -156,7 +156,7 @@ describes.realWin('Logger', {}, env => {
 
     beforeEach(() => {
       receivedEvent = null;
-      propensityServerListener = event => (receivedEvent = event);
+      propensityServerListener = (event) => (receivedEvent = event);
     });
 
     it('should send events to event manager', async () => {
