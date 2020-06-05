@@ -52,17 +52,17 @@ const forbiddenTerms = {
   'console\\.\\w+\\(': {
     message:
       'If you run against this, use console/*OK*/.log to ' +
-      'whitelist a legit case.',
-    whitelist: ['src/main.js', 'src/components/activities.js'],
+      'allowlist a legit case.',
+    allowlist: ['src/main.js', 'src/components/activities.js'],
     checkInTestFolder: true,
   },
   '(?:var|let|const) +IS_DEV +=': {
     message: 'IS_DEV local var only allowed in mode.js',
-    whitelist: ['src/mode.js'],
+    allowlist: ['src/mode.js'],
   },
   'cookie\\W': {
     message: requiresReviewPrivacy,
-    whitelist: [
+    allowlist: [
       'examples/sample-pub/sample-pub-app.js',
       'examples/sample-pub/service/sample-pub-oauth-app.js',
       'examples/sample-pub/service/authorization-app.js',
@@ -71,27 +71,27 @@ const forbiddenTerms = {
   },
   'getCookie\\W': {
     message: requiresReviewPrivacy,
-    whitelist: [],
+    allowlist: [],
   },
   'setCookie\\W': {
     message: requiresReviewPrivacy,
-    whitelist: [],
+    allowlist: [],
   },
   'eval\\(': {
     message: shouldNeverBeUsed,
-    whitelist: [],
+    allowlist: [],
   },
   'localStorage': {
     message: requiresReviewPrivacy,
-    whitelist: ['src/runtime/pay-client.js'],
+    allowlist: ['src/runtime/pay-client.js'],
   },
   'sessionStorage': {
     message: requiresReviewPrivacy,
-    whitelist: ['src/runtime/experiments.js', 'src/runtime/storage.js'],
+    allowlist: ['src/runtime/experiments.js', 'src/runtime/storage.js'],
   },
   'indexedDB': {
     message: requiresReviewPrivacy,
-    whitelist: [],
+    allowlist: [],
   },
   'openDatabase': requiresReviewPrivacy,
   'requestFileSystem': requiresReviewPrivacy,
@@ -99,7 +99,7 @@ const forbiddenTerms = {
   'debugger': '',
   'style\\.\\w+ = ': {
     message: 'Use setStyle instead!',
-    whitelist: [],
+    allowlist: [],
   },
   'data:image/svg(?!\\+xml;charset=utf-8,)[^,|;]*,': {
     message:
@@ -145,17 +145,17 @@ const forbiddenTermsSrcInclusive = {
     message:
       'TextEncoder/TextDecoder is not supported in all browsers.' +
       'Please use UTF8 utilities from src/bytes.js',
-    whitelist: ['src/utils/bytes.js'],
+    allowlist: ['src/utils/bytes.js'],
   },
   'reject\\(\\)': {
     message:
       'Always supply a reason in rejections. ' +
       'error.cancellation() may be applicable.',
-    whitelist: [],
+    allowlist: [],
   },
   '\\.getTime\\(\\)': {
-    message: 'Unless you do weird date math (whitelist), use Date.now().',
-    whitelist: [],
+    message: 'Unless you do weird date math (allowlist), use Date.now().',
+    allowlist: [],
   },
   '\\<\\<\\<\\<\\<\\<': {
     message: 'Unresolved merge conflict.',
@@ -165,7 +165,7 @@ const forbiddenTermsSrcInclusive = {
   },
   '\\.trim(Left|Right)\\(\\)': {
     message: 'Unsupported on IE; use trim() or a helper instead.',
-    whitelist: [],
+    allowlist: [],
   },
 };
 
@@ -195,7 +195,7 @@ function isTestFile(file) {
 
 function stripComments(contents) {
   // Multi-line comments
-  contents = contents.replace(/\/\*(?!.*\*\/)(.|\n)*?\*\//g, function(match) {
+  contents = contents.replace(/\/\*(?!.*\*\/)(.|\n)*?\*\//g, function (match) {
     // Preserve the newlines
     const newlines = [];
     for (let i = 0; i < match.length; i++) {
@@ -236,15 +236,15 @@ function matchTerms(file, terms) {
   const contents = stripComments(file.contents.toString());
   const relative = normalizeRelativePath(file.relative);
   return Object.keys(terms)
-    .map(function(term) {
+    .map(function (term) {
       let fix;
-      const whitelist = terms[term].whitelist;
+      const allowlist = terms[term].allowlist;
       const checkInTestFolder = terms[term].checkInTestFolder;
       // NOTE: we could do a glob test instead of exact check in the future
       // if needed but that might be too permissive.
       if (
-        Array.isArray(whitelist) &&
-        (whitelist.indexOf(relative) != -1 ||
+        Array.isArray(allowlist) &&
+        (allowlist.indexOf(relative) != -1 ||
           (isTestFile(file) && !checkInTestFolder))
       ) {
         return false;
@@ -299,7 +299,7 @@ function matchTerms(file, terms) {
 
       return hasTerm;
     })
-    .some(function(hasAnyTerm) {
+    .some(function (hasAnyTerm) {
       return hasAnyTerm;
     });
 }
@@ -335,7 +335,7 @@ function hasAnyTerms(file) {
 function isMissingTerms(file) {
   const contents = file.contents.toString();
   return Object.keys(requiredTerms)
-    .map(function(term) {
+    .map(function (term) {
       const filter = requiredTerms[term];
       if (!filter.test(file.path)) {
         return false;
@@ -356,7 +356,7 @@ function isMissingTerms(file) {
       }
       return false;
     })
-    .some(function(hasMissingTerm) {
+    .some(function (hasMissingTerm) {
       return hasMissingTerm;
     });
 }
@@ -371,13 +371,13 @@ function checkRules() {
   return gulp
     .src(srcGlobs)
     .pipe(
-      through2.obj(function(file, enc, cb) {
+      through2.obj(function (file, enc, cb) {
         forbiddenFound = hasAnyTerms(file) || forbiddenFound;
         missingRequirements = isMissingTerms(file) || missingRequirements;
         cb();
       })
     )
-    .on('end', function() {
+    .on('end', function () {
       if (forbiddenFound) {
         log(
           blue(
