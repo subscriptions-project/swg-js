@@ -49,7 +49,6 @@ export class LoginPromptApi {
         productId: deps.pageConfig().getProductId(),
         // First ask the user if they want us to log them in.
         userConsent: true,
-        // TODO(chenshay): Pass entitlements value here.
       }),
       /* shouldFadeBody */ true
     );

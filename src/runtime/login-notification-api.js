@@ -48,7 +48,6 @@ export class LoginNotificationApi {
         productId: deps.pageConfig().getProductId(),
         // No need to ask the user. Just tell them you're logging them in.
         userConsent: false,
-        // TODO(chenshay): Pass entitlements value here.
       }),
       /* shouldFadeBody */ true
     );
