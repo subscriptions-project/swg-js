@@ -23,7 +23,7 @@ import {
   utf8EncodeSync,
 } from './bytes';
 
-describe('stringToBytes', function() {
+describe('stringToBytes', function () {
   it('should map a sample string appropriately', () => {
     const bytes = stringToBytes('abÿ');
     expect(bytes.length).to.equal(3);
@@ -42,7 +42,7 @@ describe('stringToBytes', function() {
   });
 });
 
-describe('utf8', function() {
+describe('utf8', function () {
   // Examples here courtesy of StackOverflow:
   // http://stackoverflow.com/questions/478201/how-to-test-an-application-for
   // -correct-encoding-e-g-utf-8

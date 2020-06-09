@@ -50,7 +50,7 @@ function changelog() {
     .then(getGitLog)
     .then(getGithubPullRequestsMetadata)
     .then(buildChangelog)
-    .then(response => {
+    .then((response) => {
       logger(blue('\n' + response.changelog));
     })
     .catch(errHandler);
@@ -63,7 +63,7 @@ function changelog() {
 function getLastGithubRelease() {
   return githubRequest({
     path: '/releases/latest',
-  }).then(res => {
+  }).then((res) => {
     const id = res['id'];
     const tag = res['tag_name'];
     if (res['draft']) {
@@ -94,7 +94,7 @@ function getGitLog(release) {
   const tag = release.tag;
   return gitExec({
     args: `log ${tag}... --pretty=oneline --first-parent`,
-  }).then(function(logs) {
+  }).then(function (logs) {
     if (!logs) {
       throw new Error(
         'No logs found "git log ' +
@@ -105,8 +105,8 @@ function getGitLog(release) {
           'from remote upstream.'
       );
     }
-    const commits = logs.split('\n').filter(log => !!log.length);
-    release.logs = commits.map(log => {
+    const commits = logs.split('\n').filter((log) => !!log.length);
+    release.logs = commits.map((log) => {
       const words = log.split(' ');
       return {
         sha: words.shift(),
@@ -144,13 +144,13 @@ function getGithubPullRequestsMetadata(release) {
     getClosedPullRequests(2),
     getClosedPullRequests(3),
   ])
-    .then(requests => {
+    .then((requests) => {
       return [].concat.apply([], requests);
     })
-    .then(prs => {
+    .then((prs) => {
       release.prs = prs;
-      const githubPrRequest = release.logs.map(log => {
-        const pr = prs.filter(pr => pr.merge_commit_sha == log.sha)[0];
+      const githubPrRequest = release.logs.map((log) => {
+        const pr = prs.filter((pr) => pr.merge_commit_sha == log.sha)[0];
         if (pr) {
           log.pr = {
             id: pr['number'],
@@ -186,7 +186,7 @@ function buildChangelog(release) {
 
   // Append all titles.
   changelog += release.logs
-    .map(log => {
+    .map((log) => {
       const pr = log.pr;
       return '  - ' + (pr ? `${pr.title.trim()} (#${pr.id})` : log.title);
     })

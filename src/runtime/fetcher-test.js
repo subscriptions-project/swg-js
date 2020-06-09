@@ -35,7 +35,7 @@ const CONTEXT = new AnalyticsContext([
   'baseUrl',
 ]);
 
-describes.realWin('XhrFetcher', {}, env => {
+describes.realWin('XhrFetcher', {}, (env) => {
   let fetcher;
   let win;
   let fetchInit;

@@ -18,7 +18,7 @@ import {Dialog} from './dialog';
 import {DialogManager} from './dialog-manager';
 import {GlobalDoc} from '../model/doc';
 
-describes.realWin('DialogManager', {}, env => {
+describes.realWin('DialogManager', {}, (env) => {
   let clock;
   let win;
   let dialogManager;
@@ -36,11 +36,11 @@ describes.realWin('DialogManager', {}, env => {
       whenComplete: () => Promise.resolve(true),
     };
     dialogIfc = {
-      open: sandbox.stub(Dialog.prototype, 'open').callsFake(function() {
+      open: sandbox.stub(Dialog.prototype, 'open').callsFake(function () {
         return Promise.resolve(this);
       }),
       close: sandbox.stub(Dialog.prototype, 'close').callsFake(() => {}),
-      openView: sandbox.stub(Dialog.prototype, 'openView').callsFake(view => {
+      openView: sandbox.stub(Dialog.prototype, 'openView').callsFake((view) => {
         currentView = view;
         return Promise.resolve();
       }),

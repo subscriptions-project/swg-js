@@ -155,7 +155,7 @@ export class ActivityIframePort {
   connect() {
     return this.iframePort_.connect().then(() => {
       // Attach a callback to receive messages after connection complete
-      this.iframePort_.onMessage(data => {
+      this.iframePort_.onMessage((data) => {
         const response = data && data['RESPONSE'];
         if (!response) {
           return;
@@ -167,7 +167,7 @@ export class ActivityIframePort {
       });
 
       if (this.deps_ && this.deps_.eventManager()) {
-        this.on(AnalyticsRequest, request => {
+        this.on(AnalyticsRequest, (request) => {
           this.deps_.eventManager().logEvent({
             eventType: request.getEvent(),
             eventOriginator: EventOriginator.SWG_SERVER,
@@ -380,7 +380,7 @@ export class ActivityPorts {
    * @param {function(!ActivityPortDef)} callback
    */
   onResult(requestId, callback) {
-    this.activityPorts_.onResult(requestId, port => {
+    this.activityPorts_.onResult(requestId, (port) => {
       callback(new ActivityPortDeprecated(port));
     });
   }

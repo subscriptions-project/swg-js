@@ -92,7 +92,7 @@ function getEventParams(sku) {
   return new EventParams([, , , , sku]);
 }
 
-describes.realWin('PayStartFlow', {}, env => {
+describes.realWin('PayStartFlow', {}, (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -382,7 +382,7 @@ describes.realWin('PayStartFlow', {}, env => {
   });
 });
 
-describes.realWin('PayCompleteFlow', {}, env => {
+describes.realWin('PayCompleteFlow', {}, (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -409,7 +409,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     win = env.win;
     pageConfig = new PageConfig('pub1');
     responseCallback = null;
-    sandbox.stub(PayClient.prototype, 'onResponse').callsFake(callback => {
+    sandbox.stub(PayClient.prototype, 'onResponse').callsFake((callback) => {
       responseCallback = callback;
     });
     messageMap = {};
@@ -449,7 +449,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     );
     entitlementsManagerMock
       .expects('pushNextEntitlements')
-      .withExactArgs(sandbox.match(arg => arg === 'RaW'))
+      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
       .once();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -465,7 +465,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -508,7 +508,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -551,7 +551,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -580,7 +580,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       ProductType.UI_CONTRIBUTION,
       null,
       null,
-      2,
+      2
     );
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -595,7 +595,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -635,12 +635,9 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .once();
     entitlementsManagerMock
       .expects('pushNextEntitlements')
-      .withExactArgs(sandbox.match(arg => arg === 'RaW'))
+      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
       .once();
-    entitlementsManagerMock
-      .expects('setToastShown')
-      .withExactArgs(true)
-      .once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     entitlementsManagerMock
       .expects('unblockNextNotification')
       .withExactArgs()
@@ -688,10 +685,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       .withExactArgs(true) // Expected positive.
       .once();
     entitlementsManagerMock.expects('pushNextEntitlements').never();
-    entitlementsManagerMock
-      .expects('setToastShown')
-      .withExactArgs(true)
-      .once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     entitlementsManagerMock
       .expects('unblockNextNotification')
       .withExactArgs()
@@ -743,7 +737,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock
       .expects('reset')
       .withExactArgs(
-        sandbox.match(arg => {
+        sandbox.match((arg) => {
           if (order.indexOf('reset') == -1) {
             order.push('reset');
           }
@@ -754,7 +748,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
     entitlementsManagerMock
       .expects('pushNextEntitlements')
       .withExactArgs(
-        sandbox.match(arg => {
+        sandbox.match((arg) => {
           if (order.indexOf('pushNextEntitlements') == -1) {
             order.push('pushNextEntitlements');
           }
@@ -762,10 +756,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         })
       )
       .once();
-    entitlementsManagerMock
-      .expects('setToastShown')
-      .withExactArgs(true)
-      .once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     entitlementsManagerMock
       .expects('unblockNextNotification')
       .withExactArgs()
@@ -868,7 +859,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
       callbacksMock
         .expects('triggerPaymentResponse')
         .withExactArgs(
-          sandbox.match(arg => {
+          sandbox.match((arg) => {
             triggerPromise = arg;
             return true;
           })
@@ -884,10 +875,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
         .expects('logSwgEvent')
         .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false)
         .once();
-      jserrorMock
-        .expects('error')
-        .withExactArgs('Pay failed', error)
-        .once();
+      jserrorMock.expects('error').withExactArgs('Pay failed', error).once();
 
       await expect(responseCallback(Promise.reject(error))).to.be.rejectedWith(
         /intentional/
@@ -1175,7 +1163,7 @@ describes.realWin('PayCompleteFlow', {}, env => {
   });
 });
 
-describes.realWin('parseSubscriptionResponse', {}, env => {
+describes.realWin('parseSubscriptionResponse', {}, (env) => {
   let pageConfig;
   let runtime;
 

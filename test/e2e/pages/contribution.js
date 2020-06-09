@@ -22,13 +22,13 @@
  * @fileoverview Page object for the first article with contribution on scenic.
  */
 const commands = {
-  viewContributionOptions: function() {
+  viewContributionOptions: function () {
     return this.pause(1000)
       .log('Viewing contribution options')
       .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
       .switchToFrame('[src*="contributionsiframe"]', 'SwG inner iFrame');
   },
-  contribute: function() {
+  contribute: function () {
     return this.log('Clicking contribution button')
       .assert.containsText('@contributionBtn', 'Contribute $0.99/week')
       .click('@contributionBtn');
@@ -36,7 +36,7 @@ const commands = {
 };
 
 module.exports = {
-  url: function() {
+  url: function () {
     return this.api.launchUrl + '?showContributionOptions';
   },
   commands: [commands],

@@ -33,7 +33,7 @@ import {setExperimentsStringForTesting} from './experiments';
 
 const URL = 'www.news.com';
 
-describes.realWin('AnalyticsService', {}, env => {
+describes.realWin('AnalyticsService', {}, (env) => {
   let win;
   let src;
   let activityPorts;
@@ -81,7 +81,7 @@ describes.realWin('AnalyticsService', {}, env => {
     };
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
-      .callsFake(callback => (eventManagerCallback = callback));
+      .callsFake((callback) => (eventManagerCallback = callback));
     win = env.win;
     src = '/serviceiframe';
     pageConfig = new PageConfig(productId);
@@ -112,7 +112,7 @@ describes.realWin('AnalyticsService', {}, env => {
       .stub(activityIframePort, 'whenReady')
       .callsFake(() => Promise.resolve(true));
 
-    sandbox.stub(console, 'log').callsFake(error => {
+    sandbox.stub(console, 'log').callsFake((error) => {
       loggedErrors.push(error);
     });
     loggedErrors = [];
@@ -317,7 +317,7 @@ describes.realWin('AnalyticsService', {}, env => {
         });
     });
 
-    it('should not wait forever when port is broken', async function() {
+    it('should not wait forever when port is broken', async function () {
       pretendPortWorks = false;
       // This sends another event and waits for it to be sent
       eventManagerCallback({
@@ -331,7 +331,7 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(analyticsService.loggingBroken_).to.be.true;
     });
 
-    it('should not wait forever when things seem functional', async function() {
+    it('should not wait forever when things seem functional', async function () {
       // This sends another event and waits for it to be sent
       eventManagerCallback({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -346,7 +346,7 @@ describes.realWin('AnalyticsService', {}, env => {
       expect(loggedErrors.length).to.equal(1);
     });
 
-    it('should report error with log', async function() {
+    it('should report error with log', async function () {
       const err = 'Fake error';
       eventManagerCallback({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -383,7 +383,7 @@ describes.realWin('AnalyticsService', {}, env => {
       // getLoggingPromise
       iframeCallback(loggingResponse);
       expect(analyticsService.unfinishedLogs_).to.equal(0);
-      return analyticsService.getLoggingPromise().then(val => {
+      return analyticsService.getLoggingPromise().then((val) => {
         expect(val).to.be.true;
       });
     });
@@ -538,7 +538,7 @@ describes.realWin('AnalyticsService', {}, env => {
      * @param {boolean} shouldLog
      * @param {AnalyticsEvent=} eventType
      */
-    const testOriginator = function(originator, shouldLog, eventType) {
+    const testOriginator = function (originator, shouldLog, eventType) {
       const prevOriginator = event.eventOriginator;
       const prevType = event.eventType;
       analyticsService.lastAction_ = null;

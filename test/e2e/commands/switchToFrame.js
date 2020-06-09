@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-module.exports.command = function(iframeSrcString, iframeMsg, callback) {
-  return this.element('css selector', `iframe${iframeSrcString}`, frame => {
+module.exports.command = function (iframeSrcString, iframeMsg, callback) {
+  return this.element('css selector', `iframe${iframeSrcString}`, (frame) => {
     if (frame.status == -1) {
       this.log(frame.error, true);
     }

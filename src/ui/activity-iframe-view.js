@@ -89,7 +89,7 @@ export class ActivityIframeView extends View {
      * @private @const
      * {!Promise<!web-activities/activity-ports.ActivityIframePort>}
      */
-    this.portPromise_ = new Promise(resolve => {
+    this.portPromise_ = new Promise((resolve) => {
       this.portResolver_ = resolve;
     });
   }
@@ -103,7 +103,7 @@ export class ActivityIframeView extends View {
   init(dialog) {
     return this.activityPorts_
       .openIframe(this.iframe_, this.src_, this.args_)
-      .then(port => this.onOpenIframeResponse_(port, dialog));
+      .then((port) => this.onOpenIframeResponse_(port, dialog));
   }
 
   /**
@@ -131,7 +131,7 @@ export class ActivityIframeView extends View {
     this.port_ = port;
     this.portResolver_(port);
 
-    this.port_.onResizeRequest(height => {
+    this.port_.onResizeRequest((height) => {
       dialog.resizeView(this, height);
     });
 
@@ -152,7 +152,7 @@ export class ActivityIframeView extends View {
    * @template T
    */
   on(message, callback) {
-    this.getPortPromise_().then(port => {
+    this.getPortPromise_().then((port) => {
       port.on(message, callback);
     });
   }
@@ -161,7 +161,7 @@ export class ActivityIframeView extends View {
    * @param {!../proto/api_messages.Message} request
    */
   execute(request) {
-    this.getPortPromise_().then(port => {
+    this.getPortPromise_().then((port) => {
       port.execute(request);
     });
   }
@@ -171,7 +171,7 @@ export class ActivityIframeView extends View {
    * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
    */
   acceptResult() {
-    return this.getPortPromise_().then(port => port.acceptResult());
+    return this.getPortPromise_().then((port) => port.acceptResult());
   }
 
   /**
@@ -186,7 +186,7 @@ export class ActivityIframeView extends View {
     requireOriginVerified,
     requireSecureChannel
   ) {
-    return this.getPortPromise_().then(port => {
+    return this.getPortPromise_().then((port) => {
       return acceptPortResultData(
         port,
         requireOrigin,
@@ -208,7 +208,7 @@ export class ActivityIframeView extends View {
    * @param {function()} callback
    */
   onCancel(callback) {
-    this.acceptResult().catch(reason => {
+    this.acceptResult().catch((reason) => {
       if (isCancelError(reason)) {
         callback();
       }

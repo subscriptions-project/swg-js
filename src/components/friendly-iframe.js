@@ -46,7 +46,7 @@ export class FriendlyIframe {
     resetAllStyles(this.iframe_);
 
     /** @private @const {!Promise} */
-    this.ready_ = new Promise(resolve => {
+    this.ready_ = new Promise((resolve) => {
       this.iframe_.onload = resolve;
     });
   }

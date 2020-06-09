@@ -73,13 +73,13 @@ export class DialogManager {
    * @return {!Promise}
    */
   openView(view, hidden = false) {
-    view.whenComplete().catch(reason => {
+    view.whenComplete().catch((reason) => {
       if (isCancelError(reason)) {
         this.completeView(view);
       }
       throw reason;
     });
-    return this.openDialog(hidden).then(dialog => {
+    return this.openDialog(hidden).then((dialog) => {
       return dialog.openView(view);
     });
   }

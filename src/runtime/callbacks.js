@@ -55,7 +55,7 @@ export class Callbacks {
   triggerEntitlementsResponse(promise) {
     return this.trigger_(
       CallbackId.ENTITLEMENTS,
-      promise.then(res => res.clone())
+      promise.then((res) => res.clone())
     );
   }
 
@@ -176,13 +176,13 @@ export class Callbacks {
    */
   triggerPaymentResponse(responsePromise) {
     this.paymentResponsePromise_ = responsePromise.then(
-      res => {
+      (res) => {
         this.trigger_(
           CallbackId.PAYMENT_RESPONSE,
           Promise.resolve(res.clone())
         );
       },
-      reason => {
+      (reason) => {
         if (isCancelError(reason)) {
           return;
         }

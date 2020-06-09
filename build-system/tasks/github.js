@@ -24,7 +24,7 @@ const GITHUB_BASE = 'https://api.github.com/repos/subscriptions-project/swg-js';
 /**
  * @param {!{path: string}} req
  */
-exports.githubRequest = function(req) {
+exports.githubRequest = function (req) {
   return request({
     url: GITHUB_BASE + req.path,
     qs: Object.assign(
@@ -37,7 +37,7 @@ exports.githubRequest = function(req) {
       'User-Agent': 'swg-changelog-gulp-task',
       'Accept': 'application/vnd.github.v3+json',
     },
-  }).then(res => {
+  }).then((res) => {
     return JSON.parse(res.body);
   });
 };

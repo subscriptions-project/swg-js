@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-import {dashToCamelCase, endsWith, expandTemplate, getUuid, getSwgTransactionId} from './string';
+import {
+  dashToCamelCase,
+  endsWith,
+  expandTemplate,
+  getSwgTransactionId,
+  getUuid,
+} from './string';
 
 describe('dashToCamelCase', () => {
   it('should transform dashes to camel case.', () => {

@@ -94,7 +94,7 @@ function getExperiments(win) {
 
     // Format:
     // - experimentString = (experimentSpec,)*
-    combinedExperimentString.split(',').forEach(s => {
+    combinedExperimentString.split(',').forEach((s) => {
       s = s.trim();
       if (!s) {
         return;

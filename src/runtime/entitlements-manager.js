@@ -115,7 +115,7 @@ export class EntitlementsManager {
     if (!this.responsePromise_) {
       this.responsePromise_ = this.getEntitlementsFlow_(encryptedDocumentKey);
     }
-    return this.responsePromise_.then(response => {
+    return this.responsePromise_.then((response) => {
       if (response.isReadyToPay != null) {
         this.analyticsService_.setReadyToPay(response.isReadyToPay);
       }
@@ -148,7 +148,7 @@ export class EntitlementsManager {
    */
   getEntitlementsFlow_(encryptedDocumentKey) {
     return this.fetchEntitlementsWithCaching_(encryptedDocumentKey).then(
-      entitlements => {
+      (entitlements) => {
         this.onEntitlementsFetched_(entitlements);
         return entitlements;
       }
@@ -164,7 +164,7 @@ export class EntitlementsManager {
     return Promise.all([
       this.storage_.get(ENTS_STORAGE_KEY),
       this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY),
-    ]).then(cachedValues => {
+    ]).then((cachedValues) => {
       const raw = cachedValues[0];
       const irtp = cachedValues[1];
       // Try cache first.
@@ -181,7 +181,7 @@ export class EntitlementsManager {
         }
       }
       // If cache didn't match, perform fetch.
-      return this.fetchEntitlements_(encryptedDocumentKey).then(ents => {
+      return this.fetchEntitlements_(encryptedDocumentKey).then((ents) => {
         // If entitlements match the product, store them in cache.
         if (ents && ents.enablesThis() && ents.raw) {
           this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
@@ -202,11 +202,11 @@ export class EntitlementsManager {
     this.positiveRetries_ = 0;
     const attempt = () => {
       positiveRetries--;
-      return this.fetch_(encryptedDocumentKey).then(entitlements => {
+      return this.fetch_(encryptedDocumentKey).then((entitlements) => {
         if (entitlements.enablesThis() || positiveRetries <= 0) {
           return entitlements;
         }
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           this.win_.setTimeout(() => {
             resolve(attempt());
           }, 550);
@@ -372,7 +372,7 @@ export class EntitlementsManager {
     }
     // Check if storage bit is set. It's only set by the `Entitlements.ack`
     // method.
-    return this.storage_.get(TOAST_STORAGE_KEY).then(value => {
+    return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
       if (value == '1') {
         // Already shown;
         return;
@@ -425,7 +425,7 @@ export class EntitlementsManager {
     }
     return this.fetcher_
       .fetchCredentialedJson(serviceUrl(url))
-      .then(json => this.parseEntitlements(json));
+      .then((json) => this.parseEntitlements(json));
   }
 }
 

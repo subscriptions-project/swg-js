@@ -18,7 +18,7 @@ import {JsError} from './jserror';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {resolveDoc} from '../model/doc';
 
-describes.realWin('JsError', {}, env => {
+describes.realWin('JsError', {}, (env) => {
   let doc;
   let jsError;
   let elements;
@@ -27,7 +27,7 @@ describes.realWin('JsError', {}, env => {
     doc = env.win.document;
     jsError = new JsError(resolveDoc(doc));
     elements = [];
-    sandbox.stub(doc, 'createElement').callsFake(name => {
+    sandbox.stub(doc, 'createElement').callsFake((name) => {
       const element = {name};
       elements.push(element);
       return element;

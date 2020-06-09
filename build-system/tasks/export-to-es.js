@@ -137,7 +137,7 @@ async function asyncForEach(array, callback) {
 }
 
 async function mkdirs(paths) {
-  asyncForEach(paths, async path => {
+  asyncForEach(paths, async (path) => {
     const pathExists = await exists(path);
     if (!pathExists) {
       await mkdir(path);

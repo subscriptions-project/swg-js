@@ -19,7 +19,7 @@ import {ConfiguredRuntime} from './runtime';
 import {LoginNotificationApi} from './login-notification-api';
 import {PageConfig} from '../model/page-config';
 
-describes.realWin('LoginNotificationApi', {}, env => {
+describes.realWin('LoginNotificationApi', {}, (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -44,7 +44,7 @@ describes.realWin('LoginNotificationApi', {}, env => {
     port.whenReady = () => Promise.resolve();
     loginNotificationApi = new LoginNotificationApi(runtime);
     resultResolver = null;
-    const resultPromise = new Promise(resolve => {
+    const resultPromise = new Promise((resolve) => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
@@ -61,7 +61,7 @@ describes.realWin('LoginNotificationApi', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/loginiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',

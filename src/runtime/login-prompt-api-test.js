@@ -19,7 +19,7 @@ import {ConfiguredRuntime} from './runtime';
 import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 
-describes.realWin('LoginPromptApi', {}, env => {
+describes.realWin('LoginPromptApi', {}, (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -44,7 +44,7 @@ describes.realWin('LoginPromptApi', {}, env => {
     port.whenReady = () => Promise.resolve();
     loginPromptApi = new LoginPromptApi(runtime);
     resultResolver = null;
-    const resultPromise = new Promise(resolve => {
+    const resultPromise = new Promise((resolve) => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
@@ -62,7 +62,7 @@ describes.realWin('LoginPromptApi', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/loginiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',

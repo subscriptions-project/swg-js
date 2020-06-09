@@ -15,9 +15,9 @@
  */
 'use strict';
 
-module.exports = function(context) {
+module.exports = function (context) {
   return {
-    SpreadElement: function(node) {
+    SpreadElement: function (node) {
       context.report(node, 'No spread element allowed.');
     },
   };

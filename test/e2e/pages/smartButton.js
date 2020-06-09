@@ -22,7 +22,7 @@
  * @fileoverview Page object for the first article with smart button.
  */
 module.exports = {
-  url: function() {
+  url: function () {
     return this.api.launchUrl + '?smartbutton#swg.experiments=smartbox';
   },
   // commands: [commands],

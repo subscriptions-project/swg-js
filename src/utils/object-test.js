@@ -28,7 +28,7 @@ describe('map', () => {
 describes.sandboxed('findInArray', {}, () => {
   it('should find a value', () => {
     const array = [1, 2, 3, 4];
-    expect(findInArray(array, num => num > 2)).to.equal(3);
+    expect(findInArray(array, (num) => num > 2)).to.equal(3);
   });
 
   it('should supply all arguments', () => {

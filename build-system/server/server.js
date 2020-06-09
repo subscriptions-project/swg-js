@@ -34,7 +34,7 @@ const quiet = process.env.SERVE_QUIET == 'true' ? true : false;
 const {red} = require('ansi-colors');
 
 // Exit if the port is in use.
-process.on('uncaughtException', function(err) {
+process.on('uncaughtException', function (err) {
   if (err.errno === 'EADDRINUSE') {
     log(red('Port', port, 'in use, shutting down server'));
   } else {
@@ -45,7 +45,7 @@ process.on('uncaughtException', function(err) {
 });
 
 // Exit in the event of a crash in the parent gulp process.
-setInterval(function() {
+setInterval(function () {
   if (!isRunning(gulpProcess)) {
     process.exit(1);
   }
