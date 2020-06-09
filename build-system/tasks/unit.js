@@ -97,7 +97,7 @@ function printArgvMessages() {
     log(green('Running tests against unminified code.'));
   }
 
-  Object.keys(argv).forEach(arg => {
+  Object.keys(argv).forEach((arg) => {
     const message = argvMessages[arg];
     if (message) {
       log(yellow('--' + arg + ':'), green(message));
@@ -193,7 +193,7 @@ function runTests() {
     ];
 
     // Install Instanbul plugin.
-    c.browserify.transform.forEach(transform => {
+    c.browserify.transform.forEach((transform) => {
       if (transform[0] === 'babelify') {
         if (!transform[1].plugins) {
           transform[1].plugins = [];
@@ -210,16 +210,16 @@ function runTests() {
       host: 'localhost',
       directoryListing: true,
       middleware: [app],
-    }).on('kill', function() {
+    }).on('kill', function () {
       log(yellow('Shutting down test responses server on localhost:31862'));
-      process.nextTick(function() {
+      process.nextTick(function () {
         process.exit();
       });
     })
   );
   log(yellow('Started test responses server on localhost:31862'));
 
-  new Karma(c, function(exitCode) {
+  new Karma(c, function (exitCode) {
     server.emit('kill');
     if (exitCode) {
       log(red('ERROR:'), yellow('Karma test failed with exit code', exitCode));

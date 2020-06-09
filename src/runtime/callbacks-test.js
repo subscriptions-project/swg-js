@@ -157,7 +157,7 @@ describes.sandboxed('Callbacks', {}, () => {
       let receivedReason = null;
       await callbacks.paymentResponsePromise_.then(
         () => {},
-        reason => {
+        (reason) => {
           receivedReason = reason;
         }
       );

@@ -17,7 +17,7 @@
 /**
  * @fileoverview View subscribe offers.
  */
-module.exports.command = function() {
+module.exports.command = function () {
   return this.pause(1000)
     .log('Viewing offers')
     .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')

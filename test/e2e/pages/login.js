@@ -21,10 +21,10 @@
 const constants = require('../constants');
 
 const login = {
-  login: function(browser) {
+  login: function (browser) {
     this.api.pause(1000);
 
-    return browser.getTitle(title => {
+    return browser.getTitle((title) => {
       if (title === 'Google Account') {
         return this.log('Already signed into Google Account');
       }

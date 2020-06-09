@@ -72,7 +72,7 @@ export class LoginPromptApi {
         // The consent part is complete.
         this.dialogManager_.completeView(this.activityIframeView_);
       },
-      reason => {
+      (reason) => {
         if (isCancelError(reason)) {
           this.deps_
             .callbacks()

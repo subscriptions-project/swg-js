@@ -16,7 +16,7 @@
 
 import {GlobalDoc, resolveDoc} from './doc';
 
-describes.realWin('Doc', {}, env => {
+describes.realWin('Doc', {}, (env) => {
   let win, doc;
 
   beforeEach(() => {

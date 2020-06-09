@@ -31,7 +31,7 @@ const overrides = {};
 /**
  * @return {!Object<string, string>}
  */
-exports.resolveConfig = function() {
+exports.resolveConfig = function () {
   const config = {
     'internalRuntimeVersion': internalRuntimeVersion,
     'frontend': argv.frontend || FRONTEND,
@@ -48,7 +48,7 @@ exports.resolveConfig = function() {
 /**
  * @param {!Object<string, string>} config
  */
-exports.overrideConfig = function(config) {
+exports.overrideConfig = function (config) {
   for (const k in config) {
     overrides[k] = config[k];
   }

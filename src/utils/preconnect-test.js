@@ -16,7 +16,7 @@
 
 import {Preconnect} from './preconnect';
 
-describes.realWin('preconnect', {}, env => {
+describes.realWin('preconnect', {}, (env) => {
   let doc;
   let preconnect;
 

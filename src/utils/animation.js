@@ -27,7 +27,7 @@ import {setImportantStyles} from './style';
 export function transition(el, props, durationMillis, curve) {
   const win = el.ownerDocument.defaultView;
   const previousTransitionValue = el.style.transition || '';
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     win.setTimeout(() => {
       win.setTimeout(resolve, durationMillis);
       const tr = `${durationMillis}ms ${curve}`;

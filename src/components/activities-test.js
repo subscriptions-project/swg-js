@@ -32,7 +32,7 @@ import {tick} from '../../test/tick';
 
 const publicationId = 'PUB_ID';
 
-describes.realWin('Activity Components', {}, env => {
+describes.realWin('Activity Components', {}, (env) => {
   let win, iframe, url, dialog, doc, deps, pageConfig, analytics, activityPorts;
   let eventManager;
 
@@ -198,7 +198,7 @@ describes.realWin('Activity Components', {}, env => {
 
       it('must delegate onResult', async () => {
         let result;
-        const resultHandler = async portDef => {
+        const resultHandler = async (portDef) => {
           result = await portDef.acceptResult();
         };
         let cb;
@@ -226,7 +226,7 @@ describes.realWin('Activity Components', {}, env => {
         let actualHandler;
         sandbox
           .stub(WebActivityPorts.prototype, 'onRedirectError')
-          .callsFake(handler => {
+          .callsFake((handler) => {
             actualHandler = handler;
           });
 
@@ -254,7 +254,7 @@ describes.realWin('Activity Components', {}, env => {
       });
       sandbox
         .stub(WebActivityIframePort.prototype, 'onMessage')
-        .callsFake(args => {
+        .callsFake((args) => {
           handler = args;
         });
 
@@ -309,13 +309,13 @@ describes.realWin('Activity Components', {}, env => {
       let handler = null;
       sandbox
         .stub(WebActivityIframePort.prototype, 'onResizeRequest')
-        .callsFake(arg => {
+        .callsFake((arg) => {
           handler = arg;
         });
       let num;
 
       expect(handler).to.be.null;
-      activityIframePort.onResizeRequest(n => {
+      activityIframePort.onResizeRequest((n) => {
         num = n;
       });
       expect(handler).to.not.be.null;
@@ -339,10 +339,10 @@ describes.realWin('Activity Components', {}, env => {
       let event = null;
       sandbox
         .stub(WebActivityIframePort.prototype, 'message')
-        .callsFake(args => {
+        .callsFake((args) => {
           payload = args;
         });
-      sandbox.stub(deps.eventManager(), 'logEvent').callsFake(clientEvent => {
+      sandbox.stub(deps.eventManager(), 'logEvent').callsFake((clientEvent) => {
         event = clientEvent.eventType;
       });
       activityIframePort.execute(analyticsRequest);
@@ -362,7 +362,7 @@ describes.realWin('Activity Components', {}, env => {
       expect(handler).to.not.be.null;
 
       let event;
-      sandbox.stub(deps.eventManager(), 'logEvent').callsFake(clientEvent => {
+      sandbox.stub(deps.eventManager(), 'logEvent').callsFake((clientEvent) => {
         event = clientEvent.eventType;
       });
       handler({'RESPONSE': serializedRequest});

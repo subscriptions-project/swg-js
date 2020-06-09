@@ -49,7 +49,7 @@ describes.sandboxed('EventManager', {}, () => {
       });
       eventManager = new ClientEventManager(configurationPromise);
       events = [];
-      eventManager.registerEventListener(e => events.push(e));
+      eventManager.registerEventListener((e) => events.push(e));
     });
 
     it('should not log events before configuration succeeds', async () => {
@@ -243,7 +243,7 @@ describes.sandboxed('EventManager', {}, () => {
     beforeEach(() => {
       eventManager = new ClientEventManager(RESOLVED_PROMISE);
       events = [];
-      eventManager.registerEventListener(event => events.push(event));
+      eventManager.registerEventListener((event) => events.push(event));
     });
 
     it('throws if listener is not a function', async () => {
@@ -259,7 +259,7 @@ describes.sandboxed('EventManager', {}, () => {
     });
 
     it('supports additional listeners', async () => {
-      eventManager.registerEventListener(event => events.push(event));
+      eventManager.registerEventListener((event) => events.push(event));
 
       eventManager.logEvent(DEFAULT_EVENT);
       await tick();
@@ -274,7 +274,7 @@ describes.sandboxed('EventManager', {}, () => {
 
     it('should be able to filter out some events', async () => {
       // Filter out the default origin.
-      eventManager.registerEventFilterer(event =>
+      eventManager.registerEventFilterer((event) =>
         event.eventOriginator === DEFAULT_ORIGIN
           ? EventManagerApi.FilterResult.CANCEL_EVENT
           : EventManagerApi.FilterResult.PROCESS_EVENT
@@ -330,9 +330,11 @@ describes.sandboxed('EventManager', {}, () => {
       let event;
 
       beforeEach(() => {
-        sandbox.stub(ClientEventManager.prototype, 'logEvent').callsFake(e => {
-          event = e;
-        });
+        sandbox
+          .stub(ClientEventManager.prototype, 'logEvent')
+          .callsFake((e) => {
+            event = e;
+          });
       });
 
       it('should have appropriate defaults', () => {

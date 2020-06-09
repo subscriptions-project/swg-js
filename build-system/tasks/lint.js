@@ -81,13 +81,13 @@ function runLinter(filePath, stream, options) {
   return stream
     .pipe(eslint(options))
     .pipe(
-      eslint.formatEach('stylish', function(msg) {
+      eslint.formatEach('stylish', function (msg) {
         logOnSameLine(msg.trim() + '\n');
       })
     )
     .pipe(eslintIfFixed(filePath))
     .pipe(
-      eslint.result(function(result) {
+      eslint.result(function (result) {
         if (!isTravisBuild()) {
           logOnSameLine(green('Linted: ') + result.filePath);
         }
@@ -103,7 +103,7 @@ function runLinter(filePath, stream, options) {
       })
     )
     .pipe(
-      eslint.results(function(results) {
+      eslint.results(function (results) {
         if (results.errorCount == 0 && results.warningCount == 0) {
           if (!isTravisBuild()) {
             logOnSameLine(green('SUCCESS: ') + 'No linter warnings or errors.');
@@ -145,7 +145,7 @@ function runLinter(filePath, stream, options) {
         }
         if (options.fix && Object.keys(fixedFiles).length > 0) {
           log(green('INFO: ') + 'Summary of fixes:');
-          Object.keys(fixedFiles).forEach(file => {
+          Object.keys(fixedFiles).forEach((file) => {
             log(fixedFiles[file] + cyan(file));
           });
         }
@@ -160,7 +160,7 @@ function runLinter(filePath, stream, options) {
  * @return {!Array<string>}
  */
 function jsFilesChanged() {
-  return gitDiffNameOnlyMaster().filter(function(file) {
+  return gitDiffNameOnlyMaster().filter(function (file) {
     return fs.existsSync(file) && path.extname(file) == '.js';
   });
 }
@@ -173,7 +173,7 @@ function jsFilesChanged() {
  */
 function eslintRulesChanged() {
   return (
-    gitDiffNameOnlyMaster().filter(function(file) {
+    gitDiffNameOnlyMaster().filter(function (file) {
       return (
         path.basename(file).includes('.eslintrc') ||
         path.dirname(file) === 'build-system/eslint-rules'
@@ -189,11 +189,11 @@ function eslintRulesChanged() {
  */
 function setFilesToLint(files) {
   config.lintGlobs = config.lintGlobs
-    .filter(e => e !== '**/*.js')
+    .filter((e) => e !== '**/*.js')
     .concat(files);
   if (!isTravisBuild()) {
     log(green('INFO: ') + 'Running lint on the following files:');
-    files.forEach(file => {
+    files.forEach((file) => {
       log(cyan(file));
     });
   }

@@ -101,14 +101,14 @@ export class LinkCompleteFlow {
         /* requireSecureChannel */ false
       );
       return promise.then(
-        response => {
+        (response) => {
           deps
             .eventManager()
             .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
           const flow = new LinkCompleteFlow(deps, response);
           flow.start();
         },
-        reason => {
+        (reason) => {
           if (isCancelError(reason)) {
             deps
               .eventManager()
@@ -168,7 +168,7 @@ export class LinkCompleteFlow {
     this.completeResolver_ = null;
 
     /** @private @const {!Promise} */
-    this.completePromise_ = new Promise(resolve => {
+    this.completePromise_ = new Promise((resolve) => {
       this.completeResolver_ = resolve;
     });
   }
@@ -184,10 +184,10 @@ export class LinkCompleteFlow {
       /* requireSecureChannel */ true
     );
     promise
-      .then(response => {
+      .then((response) => {
         this.complete_(response);
       })
-      .catch(reason => {
+      .catch((reason) => {
         // Rethrow async.
         setTimeout(() => {
           throw reason;
@@ -319,10 +319,10 @@ export class LinkSaveFlow {
     if (!response || !response.getRequested()) {
       return;
     }
-    this.requestPromise_ = new Promise(resolve => {
+    this.requestPromise_ = new Promise((resolve) => {
       resolve(this.callback_());
     })
-      .then(request => {
+      .then((request) => {
         const saveRequest = new LinkSaveTokenRequest();
         if (request && request.token) {
           if (request.authCode) {
@@ -337,7 +337,7 @@ export class LinkSaveFlow {
         }
         this.activityIframeView_.execute(saveRequest);
       })
-      .catch(reason => {
+      .catch((reason) => {
         // The flow is complete.
         this.complete_();
         throw reason;
@@ -382,10 +382,10 @@ export class LinkSaveFlow {
         /* requireOriginVerified */ true,
         /* requireSecureChannel */ true
       )
-      .then(result => {
+      .then((result) => {
         return this.handleLinkSaveResponse_(result);
       })
-      .catch(reason => {
+      .catch((reason) => {
         // In case this flow wasn't complete, complete it here
         this.complete_();
         // Handle cancellation from user, link confirm start or completion here

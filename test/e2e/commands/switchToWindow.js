@@ -17,8 +17,8 @@
 /**
  * @fileoverview Switching to the newest window opened.
  */
-module.exports.command = function(windowName) {
-  return this.windowHandles(function(result) {
+module.exports.command = function (windowName) {
+  return this.windowHandles(function (result) {
     const newWindow = result.value[result.value.length - 1];
     this.pause(1000)
       .log(`Switching window to ${windowName}`)

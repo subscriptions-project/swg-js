@@ -21,7 +21,7 @@ import {getStyle} from '../utils/style';
 const NO_ANIMATE = false;
 const ANIMATE = true;
 
-describes.realWin('Graypane', {}, env => {
+describes.realWin('Graypane', {}, (env) => {
   let win;
   let graypane;
   let element;

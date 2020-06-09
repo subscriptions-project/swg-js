@@ -32,7 +32,7 @@ const importantStyles = {
   'box-sizing': 'border-box',
 };
 
-describes.realWin('FriendlyIframe', {}, env => {
+describes.realWin('FriendlyIframe', {}, (env) => {
   let doc;
   let friendlyIframe;
 

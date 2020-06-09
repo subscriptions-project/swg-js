@@ -27,7 +27,7 @@ const args = {
   source: 'google',
 };
 
-describes.realWin('Toast', {}, env => {
+describes.realWin('Toast', {}, (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -51,7 +51,7 @@ describes.realWin('Toast', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swglib/toastiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',

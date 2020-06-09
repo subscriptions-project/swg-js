@@ -46,7 +46,7 @@ describes.realWin('Types', {}, () => {
         1,
         true,
         false,
-        function() {},
+        function () {},
         () => {},
         null,
         undefined,
@@ -77,7 +77,7 @@ describes.realWin('Types', {}, () => {
         1,
         true,
         false,
-        function() {},
+        function () {},
         () => {},
         null,
         undefined,
@@ -90,7 +90,7 @@ describes.realWin('Types', {}, () => {
 
   describe('isFunction', () => {
     it('identifies functions', () => {
-      const values = [function() {}, () => {}];
+      const values = [function () {}, () => {}];
       for (const value of values) {
         expect(types.isFunction(value)).to.be.true;
       }
@@ -137,7 +137,7 @@ describes.realWin('Types', {}, () => {
         /Hi/,
         0,
         1,
-        function() {},
+        function () {},
         () => {},
         null,
         undefined,

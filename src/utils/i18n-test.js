@@ -24,7 +24,7 @@ const LANG_MAP = {
   'es-latn-other': 'Spanish Latin Other',
 };
 
-describes.realWin('FriendlyIframe', {}, env => {
+describes.realWin('FriendlyIframe', {}, (env) => {
   let doc;
   let elementNoLang;
   let elementEs;

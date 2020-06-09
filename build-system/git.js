@@ -35,7 +35,7 @@ const {getStdout} = require('./exec');
  * On local branches, this is merge base of the current branch off of master.
  * @return {string}
  */
-exports.gitBranchCreationPoint = function() {
+exports.gitBranchCreationPoint = function () {
   if (isTravisBuild()) {
     const traviPrSha = travisPullRequestSha();
     return getStdout(
@@ -49,7 +49,7 @@ exports.gitBranchCreationPoint = function() {
  * Returns the `master` parent of the merge commit (current HEAD) on Travis.
  * @return {string}
  */
-exports.gitTravisMasterBaseline = function() {
+exports.gitTravisMasterBaseline = function () {
   return getStdout('git rev-parse origin/master').trim();
 };
 
@@ -58,7 +58,7 @@ exports.gitTravisMasterBaseline = function() {
  * @param {string} sha 40 characters SHA.
  * @return {string} 7 characters SHA.
  */
-exports.shortSha = function(sha) {
+exports.shortSha = function (sha) {
   return sha.substr(0, 7);
 };
 
@@ -67,11 +67,9 @@ exports.shortSha = function(sha) {
  * one on each line.
  * @return {!Array<string>}
  */
-exports.gitDiffNameOnlyMaster = function() {
+exports.gitDiffNameOnlyMaster = function () {
   const masterBaseline = gitMasterBaseline();
-  return getStdout(`git diff --name-only ${masterBaseline}`)
-    .trim()
-    .split('\n');
+  return getStdout(`git diff --name-only ${masterBaseline}`).trim().split('\n');
 };
 
 /**
@@ -79,7 +77,7 @@ exports.gitDiffNameOnlyMaster = function() {
  * in diffstat format.
  * @return {string}
  */
-exports.gitDiffStatMaster = function() {
+exports.gitDiffStatMaster = function () {
   const masterBaseline = gitMasterBaseline();
   return getStdout(`git -c color.ui=always diff --stat ${masterBaseline}`);
 };
@@ -91,7 +89,7 @@ exports.gitDiffStatMaster = function() {
  *
  * @return {string}
  */
-exports.gitDiffCommitLog = function() {
+exports.gitDiffCommitLog = function () {
   const branchCreationPoint = exports.gitBranchCreationPoint();
   const commitLog = getStdout(`git -c color.ui=always log --graph \
 --pretty=format:"%C(red)%h%C(reset) %C(bold cyan)%an%C(reset) \
@@ -105,7 +103,7 @@ exports.gitDiffCommitLog = function() {
  * point off of master, one on each line.
  * @return {!Array<string>}
  */
-exports.gitDiffAddedNameOnlyMaster = function() {
+exports.gitDiffAddedNameOnlyMaster = function () {
   const branchPoint = gitMergeBaseLocalMaster();
   return getStdout(`git diff --name-only --diff-filter=ARC ${branchPoint}`)
     .trim()
@@ -116,7 +114,7 @@ exports.gitDiffAddedNameOnlyMaster = function() {
  * Returns the full color diff of the uncommited changes on the local branch.
  * @return {string}
  */
-exports.gitDiffColor = function() {
+exports.gitDiffColor = function () {
   return getStdout('git -c color.ui=always diff').trim();
 };
 
@@ -124,7 +122,7 @@ exports.gitDiffColor = function() {
  * Returns the name of the branch from which the PR originated.
  * @return {string}
  */
-exports.gitBranchName = function() {
+exports.gitBranchName = function () {
   return isTravisPullRequestBuild()
     ? travisPullRequestBranch()
     : getStdout('git rev-parse --abbrev-ref HEAD').trim();
@@ -134,7 +132,7 @@ exports.gitBranchName = function() {
  * Returns the commit hash of the latest commit.
  * @return {string}
  */
-exports.gitCommitHash = function() {
+exports.gitCommitHash = function () {
   if (isTravisPullRequestBuild()) {
     return travisPullRequestSha();
   }
@@ -145,7 +143,7 @@ exports.gitCommitHash = function() {
  * Returns the email of the author of the latest commit on the local branch.
  * @return {string}
  */
-exports.gitCommitterEmail = function() {
+exports.gitCommitterEmail = function () {
   return getStdout('git log -1 --pretty=format:"%ae"').trim();
 };
 
@@ -153,7 +151,7 @@ exports.gitCommitterEmail = function() {
  * Returns the timestamp of the latest commit on the local branch.
  * @return {number}
  */
-exports.gitCommitFormattedTime = function() {
+exports.gitCommitFormattedTime = function () {
   return getStdout(
     'TZ=UTC git log -1 --pretty="%cd" --date=format-local:%y%m%d%H%M%S'
   ).trim();

@@ -24,7 +24,7 @@ import stringify from 'json-stable-stringify';
 // All exposed describes.
 global.describes = describes;
 
-beforeEach(function() {
+beforeEach(function () {
   this.timeout(5000);
   window.TEST = true;
   CACHE_KEYS['$frontendCache$'] = 0;
@@ -33,7 +33,7 @@ beforeEach(function() {
 
 // Global cleanup of tags added during tests. Cool to add more
 // to selector.
-afterEach(function() {
+afterEach(function () {
   this.timeout(5000);
   delete window.TEST;
 
@@ -54,7 +54,7 @@ afterEach(function() {
   }
 });
 
-chai.Assertion.addMethod('attribute', function(attr) {
+chai.Assertion.addMethod('attribute', function (attr) {
   const obj = this._obj;
   const tagName = obj.tagName.toLowerCase();
   this.assert(
@@ -66,7 +66,7 @@ chai.Assertion.addMethod('attribute', function(attr) {
   );
 });
 
-chai.Assertion.addMethod('class', function(className) {
+chai.Assertion.addMethod('class', function (className) {
   const obj = this._obj;
   const tagName = obj.tagName.toLowerCase();
   this.assert(
@@ -78,7 +78,7 @@ chai.Assertion.addMethod('class', function(className) {
   );
 });
 
-chai.Assertion.addProperty('visible', function() {
+chai.Assertion.addProperty('visible', function () {
   const obj = this._obj;
   const computedStyle = window.getComputedStyle(obj);
   const visibility = computedStyle.getPropertyValue('visibility');
@@ -100,7 +100,7 @@ chai.Assertion.addProperty('visible', function() {
   );
 });
 
-chai.Assertion.addProperty('hidden', function() {
+chai.Assertion.addProperty('hidden', function () {
   const obj = this._obj;
   const computedStyle = window.getComputedStyle(obj);
   const visibility = computedStyle.getPropertyValue('visibility');
@@ -121,7 +121,7 @@ chai.Assertion.addProperty('hidden', function() {
   );
 });
 
-chai.Assertion.addMethod('display', function(display) {
+chai.Assertion.addMethod('display', function (display) {
   const obj = this._obj;
   const value = window.getComputedStyle(obj).getPropertyValue('display');
   const tagName = obj.tagName.toLowerCase();
@@ -134,7 +134,7 @@ chai.Assertion.addMethod('display', function(display) {
   );
 });
 
-chai.Assertion.addMethod('jsonEqual', function(compare) {
+chai.Assertion.addMethod('jsonEqual', function (compare) {
   const obj = this._obj;
   const a = stringify(compare);
   const b = stringify(obj);
