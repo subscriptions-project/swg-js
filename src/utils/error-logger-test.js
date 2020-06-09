@@ -37,7 +37,7 @@ describe('error logger', () => {
 
       try {
         // This is an intentionally bad query selector
-        document.body.querySelector('#');
+        self.document.body.querySelector('#');
       } catch (e) {
         error = e;
       }
@@ -55,7 +55,7 @@ describe('error logger', () => {
       log = new ErrorLogger('TEST_SUFFIX');
       const error = log.createError('Uh-oh!');
       expect(error.message).to.match(/TEST_SUFFIX$/);
-    })
+    });
   });
 
   describe('createExpectedError', () => {
@@ -72,7 +72,7 @@ describe('error logger', () => {
 
       try {
         // This is an intentionally bad query selector
-        document.body.querySelector('#');
+        self.document.body.querySelector('#');
       } catch (e) {
         error = e;
       }
@@ -90,7 +90,7 @@ describe('error logger', () => {
       log = new ErrorLogger('TEST_SUFFIX');
       const error = log.createExpectedError('Uh-oh!');
       expect(error.message).to.match(/TEST_SUFFIX$/);
-    })
+    });
 
     it('sets expected property', () => {
       const error = log.createExpectedError('test');
@@ -102,18 +102,18 @@ describe('error logger', () => {
     it('throws an error', () => {
       expect(() => {
         log.error('Oof!');
-      }).to.throw(/Oof!/)
+      }).to.throw(/Oof!/);
 
       expect(() => {
         log.error(new Error('Oof!'));
-      }).to.throw(/Oof!/)
+      }).to.throw(/Oof!/);
     });
   });
 
   describe('expectedError', () => {
-    it('throws an error with the expected property set', done => {
+    it('throws an error with the expected property set', (done) => {
       try {
-        log.expectedError('Invalid configuration key')
+        log.expectedError('Invalid configuration key');
       } catch (e) {
         expect(e.message).to.equal('Invalid configuration key');
         expect(e.expected).to.be.true;
