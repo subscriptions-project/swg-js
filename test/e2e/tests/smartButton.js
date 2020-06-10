@@ -16,7 +16,7 @@
 
 module.exports = {
   '@tags': ['smart'],
-  'Show Smart Button': function(browser) {
+  'Show Smart Button': function (browser) {
     const setup = browser.page.setup();
     setup.navigate().select('local');
 
@@ -41,7 +41,7 @@ module.exports = {
       )
       .end();
   },
-  'Show offers after clicking smart button': function(browser) {
+  'Show offers after clicking smart button': function (browser) {
     const login = browser.page.login();
     login.navigate().login(browser);
 
@@ -49,7 +49,7 @@ module.exports = {
     smartButton
       .navigate()
       .switchToFrame('[src*="smartboxiframe"]', 'SwG Smart Button iFrame')
-      .click('.swg-button-light', function(result) {
+      .click('.swg-button-light', function (result) {
         this.assert.strictEqual(result.status, 0);
         this.log('Clicking smart button.');
       })

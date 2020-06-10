@@ -144,7 +144,7 @@ export class ButtonApi {
    * @param {boolean=} isFromUserAction
    */
   logSwgEvent_(eventType, isFromUserAction) {
-    this.configuredRuntimePromise_.then(configuredRuntime => {
+    this.configuredRuntimePromise_.then((configuredRuntime) => {
       configuredRuntime.eventManager().logSwgEvent(eventType, isFromUserAction);
     });
   }
@@ -156,11 +156,10 @@ export class ButtonApi {
    * @private
    */
   getOptions_(optionsOrCallback) {
-    const options =
-      /** @type {!../api/subscriptions.ButtonOptions|!../api/subscriptions.SmartButtonOptions} */ (optionsOrCallback &&
-      typeof optionsOrCallback != 'function'
-        ? optionsOrCallback
-        : {'theme': Theme.LIGHT});
+    const options = /** @type {!../api/subscriptions.ButtonOptions|!../api/subscriptions.SmartButtonOptions} */ (optionsOrCallback &&
+    typeof optionsOrCallback != 'function'
+      ? optionsOrCallback
+      : {'theme': Theme.LIGHT});
 
     const theme = options['theme'];
     if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
@@ -177,12 +176,10 @@ export class ButtonApi {
    * @private
    */
   getCallback_(optionsOrCallback, callback) {
-    return (
-      /** @type {function()|function(Event):boolean} */ ((typeof optionsOrCallback ==
-      'function'
-        ? optionsOrCallback
-        : null) || callback)
-    );
+    return /** @type {function()|function(Event):boolean} */ ((typeof optionsOrCallback ==
+    'function'
+      ? optionsOrCallback
+      : null) || callback);
   }
 
   /**
@@ -194,7 +191,7 @@ export class ButtonApi {
   setupButtonAndGetParams_(button, optionsOrCallback, callbackFun) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = this.getCallback_(optionsOrCallback, callbackFun);
-    const clickFun = event => {
+    const clickFun = (event) => {
       this.logSwgEvent_(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true);
       if (typeof callback === 'function') {
         callback(event);

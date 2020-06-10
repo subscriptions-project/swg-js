@@ -102,7 +102,7 @@ export class ErrorLogger {
       if (!error.message) {
         error.message = this.suffix_;
       } else if (error.message.indexOf(this.suffix_) === -1) {
-        error.message = this.suffix_
+        error.message = this.suffix_;
       }
     }
   }
@@ -158,7 +158,9 @@ export class ErrorLogger {
   }
 }
 
-const userLogger = new ErrorLogger(window.__AMP_TOP ? AMP_USER_ERROR_SENTINEL : '');
+const userLogger = new ErrorLogger(
+  self.__AMP_TOP ? AMP_USER_ERROR_SENTINEL : ''
+);
 const devLogger = new ErrorLogger();
 
 export const user = () => userLogger;

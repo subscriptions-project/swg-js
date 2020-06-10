@@ -22,10 +22,10 @@ const childProcess = require('child_process');
 const {startServer, stopServer} = require('../../build-system/tasks/serve');
 
 module.exports = {
-  before: function() {
+  before: function () {
     startServer();
   },
-  after: function() {
+  after: function () {
     // Chromedriver does not automatically exit after test ends.
     childProcess.exec('pkill chromedriver');
 

@@ -151,9 +151,9 @@ export class PayClient {
       this.win_ != this.top_()
     );
     let resolver = null;
-    const promise = new Promise(resolve => (resolver = resolve));
+    const promise = new Promise((resolve) => (resolver = resolve));
     // Notice that the callback for verifier may execute asynchronously.
-    this.redirectVerifierHelper_.useVerifier(verifier => {
+    this.redirectVerifierHelper_.useVerifier((verifier) => {
       if (verifier) {
         setInternalParam(paymentRequest, 'redirectVerifier', verifier);
       }
@@ -213,19 +213,20 @@ export class PayClient {
         // Temporary client side solution to remember the
         // input params. TODO: Remove this once server-side
         // input preservation is done and is part of the response.
-        res => {
+        (res) => {
           if (request) {
             res['paymentRequest'] = request;
           }
           return res;
         }
       )
-      .catch(reason => {
+      .catch((reason) => {
         if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
           const error = createCancelError(this.win_);
           if (request) {
-            error['productType'] =
-              /** @type {!PaymentDataRequest} */ (request)['i']['productType'];
+            error['productType'] = /** @type {!PaymentDataRequest} */ (request)[
+              'i'
+            ]['productType'];
           } else {
             error['productType'] = null;
           }
@@ -309,7 +310,7 @@ export class RedirectVerifierHelper {
    * @param {function(?string)} callback
    */
   useVerifier(callback) {
-    this.getOrCreatePair_(pair => {
+    this.getOrCreatePair_((pair) => {
       if (pair) {
         try {
           this.win_.localStorage.setItem(REDIRECT_STORAGE_KEY, pair.key);
@@ -352,7 +353,7 @@ export class RedirectVerifierHelper {
       callback(this.pair_);
     } else if (this.pairPromise_) {
       // Otherwise wait for it to be created.
-      this.pairPromise_.then(pair => callback(pair));
+      this.pairPromise_.then((pair) => callback(pair));
     }
     return this.pairPromise_;
   }
@@ -397,7 +398,7 @@ export class RedirectVerifierHelper {
 
         // 3. Create a hash.
         crypto.subtle.digest({name: 'SHA-384'}, stringToBytes(key)).then(
-          buffer => {
+          (buffer) => {
             const verifier = btoa(
               bytesToString(
                 new Uint8Array(/** @type {!ArrayBuffer} */ (buffer))
@@ -405,7 +406,7 @@ export class RedirectVerifierHelper {
             );
             resolve({key, verifier});
           },
-          reason => {
+          (reason) => {
             reject(reason);
           }
         );
@@ -415,7 +416,7 @@ export class RedirectVerifierHelper {
           // recoverable.
           return null;
         })
-        .then(pair => {
+        .then((pair) => {
           this.pairCreated_ = true;
           this.pair_ = pair;
           return pair;

@@ -21,7 +21,7 @@ import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {SkuSelectedResponse} from '../proto/api_messages';
 
-describes.realWin('ActivityIframeView', {}, env => {
+describes.realWin('ActivityIframeView', {}, (env) => {
   let win;
   let src;
   let activityPorts;
@@ -153,11 +153,11 @@ describes.realWin('ActivityIframeView', {}, env => {
         messageLabel = Message.prototype.label();
         onCb = cb;
       });
-      activityIframeView.on(SkuSelectedResponse, message => {
+      activityIframeView.on(SkuSelectedResponse, (message) => {
         messageFromOnCallback = message;
       });
 
-      sandbox.stub(activityIframePort, 'execute').callsFake(message => {
+      sandbox.stub(activityIframePort, 'execute').callsFake((message) => {
         messageFromExecuteFake = message;
       });
       activityIframeView.execute(message);
@@ -176,7 +176,7 @@ describes.realWin('ActivityIframeView', {}, env => {
         .callsFake(() =>
           Promise.reject(new DOMException('cancel', 'AbortError'))
         );
-      const cancelPromise = new Promise(resolve => {
+      const cancelPromise = new Promise((resolve) => {
         activityIframeView.onCancel(resolve);
       });
       activityIframeView.init(dialog);

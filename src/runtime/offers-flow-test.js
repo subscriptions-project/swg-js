@@ -36,7 +36,7 @@ const SHOW_OFFERS_ARGS = {
   source: 'SwG',
 };
 
-describes.realWin('OffersFlow', {}, env => {
+describes.realWin('OffersFlow', {}, (env) => {
   let win;
   let offersFlow;
   let runtime;
@@ -85,7 +85,7 @@ describes.realWin('OffersFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
@@ -113,7 +113,7 @@ describes.realWin('OffersFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
@@ -132,7 +132,7 @@ describes.realWin('OffersFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
@@ -151,7 +151,7 @@ describes.realWin('OffersFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
@@ -173,7 +173,7 @@ describes.realWin('OffersFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
@@ -208,7 +208,7 @@ describes.realWin('OffersFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
@@ -247,7 +247,7 @@ describes.realWin('OffersFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: true,
@@ -324,7 +324,7 @@ describes.realWin('OffersFlow', {}, env => {
   });
 });
 
-describes.realWin('SubscribeOptionFlow', {}, env => {
+describes.realWin('SubscribeOptionFlow', {}, (env) => {
   let win;
   let offersFlow;
   let runtime;
@@ -372,7 +372,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -404,7 +404,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -430,7 +430,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -473,7 +473,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
     const options = {list: 'other'};
     const optionFlow = new SubscribeOptionFlow(runtime, options);
     let offersFlow;
-    sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
+    sandbox.stub(OffersFlow.prototype, 'start').callsFake(function () {
       offersFlow = this;
       return Promise.resolve();
     });
@@ -494,7 +494,7 @@ describes.realWin('SubscribeOptionFlow', {}, env => {
   });
 });
 
-describes.realWin('AbbrvOfferFlow', {}, env => {
+describes.realWin('AbbrvOfferFlow', {}, (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -543,7 +543,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -565,12 +565,12 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
   });
 
   it('should have valid AbbrvOfferFlow constructed w/native', async () => {
-    runtime.callbacks().setOnSubscribeRequest(function() {});
+    runtime.callbacks().setOnSubscribeRequest(function () {});
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -605,7 +605,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -634,7 +634,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -756,7 +756,7 @@ describes.realWin('AbbrvOfferFlow', {}, env => {
     const options = {list: 'other'};
     const optionFlow = new AbbrvOfferFlow(runtime, options);
     let offersFlow;
-    sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
+    sandbox.stub(OffersFlow.prototype, 'start').callsFake(function () {
       offersFlow = this;
       return Promise.resolve();
     });

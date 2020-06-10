@@ -44,7 +44,7 @@ function compileCss(srcFile, outputFile, options) {
   options = options || {};
 
   if (options.watch) {
-    $$.watch(srcFile, function() {
+    $$.watch(srcFile, function () {
       compileCss(
         srcFile,
         outputFile,
@@ -55,7 +55,7 @@ function compileCss(srcFile, outputFile, options) {
 
   const startTime = Date.now();
   return jsifyCssAsync(srcFile, options)
-    .then(css => {
+    .then((css) => {
       mkdirSync(pathLib.dirname(outputFile));
       fs.writeFileSync(outputFile, css);
     })

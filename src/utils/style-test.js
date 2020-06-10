@@ -16,7 +16,7 @@
 
 import * as st from './style';
 
-describes.realWin('Types', {}, env => {
+describes.realWin('Types', {}, (env) => {
   let win;
   let doc;
 

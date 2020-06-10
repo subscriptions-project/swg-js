@@ -72,7 +72,7 @@ export class Toast {
     setImportantStyles(this.iframe_, toastImportantStyles);
 
     /** @private @const {!Promise} */
-    this.ready_ = new Promise(resolve => {
+    this.ready_ = new Promise((resolve) => {
       this.iframe_.onload = resolve;
     });
   }
@@ -101,7 +101,7 @@ export class Toast {
     const toastDurationSeconds = 7;
     return this.activityPorts_
       .openIframe(this.iframe_, this.src_, this.args_)
-      .then(port => {
+      .then((port) => {
         return port.whenReady();
       })
       .then(() => {

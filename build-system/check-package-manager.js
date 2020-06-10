@@ -66,12 +66,12 @@ function ensureYarn() {
 // Check the node version and print a warning if it is not the latest LTS.
 function checkNodeVersion() {
   const nodeVersion = getStdout('node --version').trim();
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     https
-      .get(nodeDistributionsUrl, res => {
+      .get(nodeDistributionsUrl, (res) => {
         res.setEncoding('utf8');
         let distributions = '';
-        res.on('data', data => {
+        res.on('data', (data) => {
           distributions += data;
         });
         res.on('end', () => {
@@ -128,7 +128,7 @@ function checkNodeVersion() {
 function getNodeLatestLtsVersion(distributionsJson) {
   if (distributionsJson) {
     // Versions are in descending order, so the first match is the latest lts.
-    return distributionsJson.find(function(distribution) {
+    return distributionsJson.find(function (distribution) {
       return (
         distribution.hasOwnProperty('version') &&
         distribution.hasOwnProperty('lts') &&
@@ -209,7 +209,7 @@ function main() {
       );
       log(yellow('⤷ Press'), cyan('Ctrl + C'), yellow('to abort and fix...'));
       let resolver;
-      const deferred = new Promise(resolverIn => {
+      const deferred = new Promise((resolverIn) => {
         resolver = resolverIn;
       });
       setTimeout(() => {

@@ -36,7 +36,7 @@ module.exports = {
     transform: [
       ['babelify', {presets: ['@babel/preset-env']}],
       () =>
-        through(function(buf, enc, next) {
+        through(function (buf, enc, next) {
           // Set Pay environment to indicate we're in a Karma test.
           this.push(
             buf.toString('utf8').replace(/\$payEnvironment\$/g, 'TEST')

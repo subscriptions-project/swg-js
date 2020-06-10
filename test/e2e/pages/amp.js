@@ -22,7 +22,7 @@
  * @fileoverview Page object for the AMP page on scenic.
  */
 module.exports = {
-  url: function() {
+  url: function () {
     return this.api.launchUrl + '.amp';
   },
   elements: {

@@ -38,7 +38,7 @@ describes.sandboxed('documentReady', {}, () => {
       },
       removeEventListener: (eventType, handler) => {
         eventListeners[eventType] = eventListeners[eventType].filter(
-          fn => fn !== handler
+          (fn) => fn !== handler
         );
       },
     };
@@ -119,9 +119,7 @@ describes.sandboxed('documentReady', {}, () => {
       const spy2 = sandbox.spy();
       const spy3 = sandbox.spy();
 
-      whenDocumentReady(testDoc)
-        .then(spy)
-        .then(spy2);
+      whenDocumentReady(testDoc).then(spy).then(spy2);
 
       whenDocumentReady(testDoc).then(spy3);
 
@@ -172,9 +170,7 @@ describes.sandboxed('documentReady', {}, () => {
       const spy2 = sandbox.spy();
       const spy3 = sandbox.spy();
 
-      whenDocumentComplete(testDoc)
-        .then(spy)
-        .then(spy2);
+      whenDocumentComplete(testDoc).then(spy).then(spy2);
 
       whenDocumentComplete(testDoc).then(spy3);
 

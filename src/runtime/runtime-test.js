@@ -71,7 +71,7 @@ const EDGE_USER_AGENT =
   ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135' +
   ' Safari/537.36 Edge/12.10136';
 
-describes.realWin('installRuntime', {}, env => {
+describes.realWin('installRuntime', {}, (env) => {
   let win;
 
   beforeEach(() => {
@@ -85,10 +85,10 @@ describes.realWin('installRuntime', {}, env => {
   it('should chain and execute dependencies in order', async () => {
     // Before runtime is installed.
     let progress = '';
-    dep(function() {
+    dep(function () {
       progress += '1';
     });
-    dep(function() {
+    dep(function () {
       progress += '2';
     });
     expect(progress).to.equal('');
@@ -99,10 +99,10 @@ describes.realWin('installRuntime', {}, env => {
     } catch (e) {
       // Page doesn't have valid subscription and hence this function throws.
     }
-    dep(function() {
+    dep(function () {
       progress += '3';
     });
-    dep(function() {
+    dep(function () {
       progress += '4';
     });
 
@@ -111,10 +111,10 @@ describes.realWin('installRuntime', {}, env => {
     expect(progress).to.equal('1234');
 
     // Few more.
-    dep(function() {
+    dep(function () {
       progress += '5';
     });
-    dep(function() {
+    dep(function () {
       progress += '6';
     });
     await getRuntime().whenReady();
@@ -133,7 +133,7 @@ describes.realWin('installRuntime', {}, env => {
   });
 
   it('should implement Subscriptions interface', async () => {
-    const promise = new Promise(resolve => {
+    const promise = new Promise((resolve) => {
       dep(resolve);
     });
     installRuntime(win);
@@ -194,7 +194,7 @@ describes.realWin('installRuntime', {}, env => {
   it('should implement all APIs', async () => {
     installRuntime(win);
 
-    const subscriptions = await new Promise(resolve => {
+    const subscriptions = await new Promise((resolve) => {
       dep(resolve);
     });
 
@@ -208,7 +208,7 @@ describes.realWin('installRuntime', {}, env => {
   });
 });
 
-describes.realWin('installRuntime legacy', {}, env => {
+describes.realWin('installRuntime legacy', {}, (env) => {
   let win;
 
   beforeEach(() => {
@@ -222,10 +222,10 @@ describes.realWin('installRuntime legacy', {}, env => {
   it('should chain and execute dependencies in order', async () => {
     // Before runtime is installed.
     let progress = '';
-    dep(function() {
+    dep(function () {
       progress += '1';
     });
-    dep(function() {
+    dep(function () {
       progress += '2';
     });
     expect(progress).to.equal('');
@@ -236,10 +236,10 @@ describes.realWin('installRuntime legacy', {}, env => {
     } catch (e) {
       // Page doesn't have valid subscription and hence this function throws.
     }
-    dep(function() {
+    dep(function () {
       progress += '3';
     });
-    dep(function() {
+    dep(function () {
       progress += '4';
     });
 
@@ -248,10 +248,10 @@ describes.realWin('installRuntime legacy', {}, env => {
     expect(progress).to.equal('1234');
 
     // Few more.
-    dep(function() {
+    dep(function () {
       progress += '5';
     });
-    dep(function() {
+    dep(function () {
       progress += '6';
     });
     await getRuntime().whenReady();
@@ -317,7 +317,7 @@ describes.realWin('installRuntime legacy', {}, env => {
 
   it('should implement all APIs', async () => {
     installRuntime(win);
-    const subscriptions = await new Promise(resolve => {
+    const subscriptions = await new Promise((resolve) => {
       dep(resolve);
     });
     const names = Object.getOwnPropertyNames(Subscriptions.prototype);
@@ -330,7 +330,7 @@ describes.realWin('installRuntime legacy', {}, env => {
   });
 });
 
-describes.realWin('Runtime', {}, env => {
+describes.realWin('Runtime', {}, (env) => {
   let win;
   let runtime;
   let loggedEvents = [];
@@ -341,7 +341,7 @@ describes.realWin('Runtime', {}, env => {
     loggedEvents = [];
     sandbox
       .stub(ClientEventManager.prototype, 'logEvent')
-      .callsFake(event => loggedEvents.push(event));
+      .callsFake((event) => loggedEvents.push(event));
   });
 
   describe('startSubscriptionsFlowIfNeeded', () => {
@@ -589,10 +589,7 @@ describes.realWin('Runtime', {}, env => {
 
     it('should delegate "getOffers" with options', async () => {
       const opts = {productId: 'abc'};
-      configuredRuntimeMock
-        .expects('getOffers')
-        .withExactArgs(opts)
-        .once();
+      configuredRuntimeMock.expects('getOffers').withExactArgs(opts).once();
 
       await runtime.getOffers(opts);
       expect(configureStub).to.be.calledOnce.calledWith(true);
@@ -610,10 +607,7 @@ describes.realWin('Runtime', {}, env => {
 
     it('should delegate "showOffers" with options', async () => {
       const options = {list: 'other'};
-      configuredRuntimeMock
-        .expects('showOffers')
-        .withExactArgs(options)
-        .once();
+      configuredRuntimeMock.expects('showOffers').withExactArgs(options).once();
 
       await runtime.showOffers(options);
       expect(configureStub).to.be.calledOnce.calledWith(true);
@@ -683,10 +677,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "subscribe"', async () => {
-      configuredRuntimeMock
-        .expects('subscribe')
-        .withExactArgs('sku1')
-        .once();
+      configuredRuntimeMock.expects('subscribe').withExactArgs('sku1').once();
 
       await runtime.subscribe('sku1');
       expect(configureStub).to.be.calledOnce.calledWith(true);
@@ -718,7 +709,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "setOnEntitlementsResponse"', async () => {
-      const callback = function() {};
+      const callback = function () {};
       configuredRuntimeMock
         .expects('setOnEntitlementsResponse')
         .withExactArgs(callback)
@@ -729,7 +720,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "setOnNativeSubscribeRequest"', async () => {
-      const callback = function() {};
+      const callback = function () {};
       configuredRuntimeMock
         .expects('setOnNativeSubscribeRequest')
         .withExactArgs(callback)
@@ -740,7 +731,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "setOnSubscribeResponse"', async () => {
-      const callback = function() {};
+      const callback = function () {};
       configuredRuntimeMock
         .expects('setOnSubscribeResponse')
         .withExactArgs(callback)
@@ -751,7 +742,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "setOnLoginRequest"', async () => {
-      const callback = function() {};
+      const callback = function () {};
       configuredRuntimeMock
         .expects('setOnLoginRequest')
         .withExactArgs(callback)
@@ -762,7 +753,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "setOnLinkComplete"', async () => {
-      const callback = function() {};
+      const callback = function () {};
       configuredRuntimeMock
         .expects('setOnLinkComplete')
         .withExactArgs(callback)
@@ -773,7 +764,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "setOnFlowStarted"', async () => {
-      const callback = function() {};
+      const callback = function () {};
       configuredRuntimeMock
         .expects('setOnFlowStarted')
         .withExactArgs(callback)
@@ -784,7 +775,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "setOnFlowCanceled"', async () => {
-      const callback = function() {};
+      const callback = function () {};
       configuredRuntimeMock
         .expects('setOnFlowCanceled')
         .withExactArgs(callback)
@@ -808,7 +799,7 @@ describes.realWin('Runtime', {}, env => {
     });
 
     it('should delegate "saveSubscription" with authCode', async () => {
-      const requestPromise = new Promise(resolve => {
+      const requestPromise = new Promise((resolve) => {
         resolve({authCode: 'testCode'});
       });
       const requestCallback = () => requestPromise;
@@ -911,7 +902,7 @@ describes.realWin('Runtime', {}, env => {
   });
 });
 
-describes.realWin('ConfiguredRuntime', {}, env => {
+describes.realWin('ConfiguredRuntime', {}, (env) => {
   let win;
   let config;
   let runtime;
@@ -1005,7 +996,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         });
       sandbox
         .stub(ActivityPorts.prototype, 'onRedirectError')
-        .callsFake(handler => {
+        .callsFake((handler) => {
           redirectErrorHandler = handler;
         });
       runtime = new ConfiguredRuntime(win, config);
@@ -1050,7 +1041,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     describe('callbacks', () => {
       it('should trigger entitlements callback', async () => {
-        const promise = new Promise(resolve => {
+        const promise = new Promise((resolve) => {
           runtime.setOnEntitlementsResponse(resolve);
         });
         runtime
@@ -1064,7 +1055,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
 
       it('should trigger native subscribe request', async () => {
-        const promise = new Promise(resolve => {
+        const promise = new Promise((resolve) => {
           runtime.setOnNativeSubscribeRequest(resolve);
         });
         runtime.callbacks().triggerSubscribeRequest();
@@ -1072,7 +1063,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
 
       it('should trigger subscribe response', async () => {
-        const promise = new Promise(resolve => {
+        const promise = new Promise((resolve) => {
           runtime.setOnSubscribeResponse(resolve);
         });
         runtime
@@ -1086,7 +1077,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
 
       it('should trigger login request', async () => {
-        const promise = new Promise(resolve => {
+        const promise = new Promise((resolve) => {
           runtime.setOnLoginRequest(resolve);
         });
         runtime.callbacks().triggerLoginRequest({linkRequested: true});
@@ -1096,7 +1087,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
 
       it('should trigger link complete', async () => {
-        const promise = new Promise(resolve => {
+        const promise = new Promise((resolve) => {
           runtime.setOnLinkComplete(resolve);
         });
         runtime.callbacks().triggerLinkComplete();
@@ -1104,7 +1095,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
 
       it('should trigger flow started callback', async () => {
-        const promise = new Promise(resolve => {
+        const promise = new Promise((resolve) => {
           runtime.setOnFlowStarted(resolve);
         });
         runtime.callbacks().triggerFlowStarted('flow1', {a: 1});
@@ -1114,7 +1105,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       });
 
       it('should trigger flow canceled callback', async () => {
-        const promise = new Promise(resolve => {
+        const promise = new Promise((resolve) => {
           runtime.setOnFlowCanceled(resolve);
         });
         runtime.callbacks().triggerFlowCanceled('flow1', {b: 2});
@@ -1159,10 +1150,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
       it('should set experiments', () => {
         const arr = ['exp1', 'exp2'];
-        analyticsMock
-          .expects('addLabels')
-          .withExactArgs(arr)
-          .once();
+        analyticsMock.expects('addLabels').withExactArgs(arr).once();
         runtime.configure({experiments: arr});
         expect(isExperimentOn(win, 'exp1')).to.be.true;
         expect(isExperimentOn(win, 'exp2')).to.be.true;
@@ -1175,10 +1163,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         expect(isExperimentOn(win, 'exp2')).to.be.false;
         expect(isExperimentOn(win, 'exp3')).to.be.false;
 
-        analyticsMock
-          .expects('addLabels')
-          .withExactArgs(arr)
-          .once();
+        analyticsMock.expects('addLabels').withExactArgs(arr).once();
         runtime.configure({experiments: arr});
         expect(isExperimentOn(win, 'exp1')).to.be.true;
         expect(isExperimentOn(win, 'exp2')).to.be.true;
@@ -1225,10 +1210,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should report the redirect failure', () => {
       const error = new Error('intentional');
-      analyticsMock
-        .expects('addLabels')
-        .withExactArgs(['redirect'])
-        .once();
+      analyticsMock.expects('addLabels').withExactArgs(['redirect']).once();
       eventManagerMock
         .expects('logSwgEvent')
         .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false)
@@ -1279,7 +1261,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
     describe('Entitlements Success', () => {
       let entitlements;
 
-      afterEach(async function() {
+      afterEach(async function () {
         const promise = Promise.resolve(
           new Entitlements('service', 'raw', entitlements, 'product1', () => {})
         );
@@ -1295,10 +1277,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
         entitlements = [
           new Entitlement('google', ['product1'], '{"productId":"token1"}'),
         ];
-        analyticsMock
-          .expects('setSku')
-          .withExactArgs('token1')
-          .once();
+        analyticsMock.expects('setSku').withExactArgs('token1').once();
       });
 
       it('work for multiple entitlement', async () => {
@@ -1358,11 +1337,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should call offers API with productId', () => {
       const p = Promise.resolve();
-      offersApiMock
-        .expects('getOffers')
-        .withExactArgs('p1')
-        .returns(p)
-        .once();
+      offersApiMock.expects('getOffers').withExactArgs('p1').returns(p).once();
       expect(runtime.getOffers({productId: 'p1'})).to.equal(p);
     });
 
@@ -1373,7 +1348,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
       let flow;
       const startStub = sandbox
         .stub(DeferredAccountFlow.prototype, 'start')
-        .callsFake(function() {
+        .callsFake(function () {
           flow = this;
           return Promise.resolve(resp);
         });
@@ -1386,7 +1361,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should call "showOffers"', async () => {
       let offersFlow;
-      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
+      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function () {
         offersFlow = this;
         return new Promise(() => {});
       });
@@ -1398,7 +1373,7 @@ describes.realWin('ConfiguredRuntime', {}, env => {
 
     it('should call "showOffers" with options', async () => {
       let offersFlow;
-      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
+      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function () {
         offersFlow = this;
         return new Promise(() => {});
       });
@@ -1428,7 +1403,7 @@ new subscribers. Use the showOffers() method instead.'
     it('should call "showUpdateOffers" with options', async () => {
       setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
       let offersFlow;
-      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function() {
+      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function () {
         offersFlow = this;
         return new Promise(() => {});
       });
@@ -1450,7 +1425,7 @@ new subscribers. Use the showOffers() method instead.'
 
     it('should call "showAbbrvOffer"', async () => {
       let offersFlow;
-      sandbox.stub(AbbrvOfferFlow.prototype, 'start').callsFake(function() {
+      sandbox.stub(AbbrvOfferFlow.prototype, 'start').callsFake(function () {
         offersFlow = this;
         return new Promise(() => {});
       });
@@ -1462,7 +1437,7 @@ new subscribers. Use the showOffers() method instead.'
 
     it('should call "showAbbrvOffer" with options', async () => {
       let offersFlow;
-      sandbox.stub(AbbrvOfferFlow.prototype, 'start').callsFake(function() {
+      sandbox.stub(AbbrvOfferFlow.prototype, 'start').callsFake(function () {
         offersFlow = this;
         return new Promise(() => {});
       });
@@ -1476,7 +1451,7 @@ new subscribers. Use the showOffers() method instead.'
       let offersFlow;
       sandbox
         .stub(SubscribeOptionFlow.prototype, 'start')
-        .callsFake(function() {
+        .callsFake(function () {
           offersFlow = this;
           return new Promise(() => {});
         });
@@ -1490,7 +1465,7 @@ new subscribers. Use the showOffers() method instead.'
       let offersFlow;
       sandbox
         .stub(SubscribeOptionFlow.prototype, 'start')
-        .callsFake(function() {
+        .callsFake(function () {
           offersFlow = this;
           return new Promise(() => {});
         });
@@ -1502,7 +1477,7 @@ new subscribers. Use the showOffers() method instead.'
 
     it('should call "showContributionOptions" with options', async () => {
       let contributionFlow;
-      sandbox.stub(ContributionsFlow.prototype, 'start').callsFake(function() {
+      sandbox.stub(ContributionsFlow.prototype, 'start').callsFake(function () {
         contributionFlow = this;
         return new Promise(() => {});
       });
@@ -1527,7 +1502,7 @@ new subscribers. Use the showOffers() method instead.'
     it('should start LinkbackFlow with ampReaderId', async () => {
       const startStub = sandbox
         .stub(LinkbackFlow.prototype, 'start')
-        .callsFake(params => {
+        .callsFake((params) => {
           expect(params.ampReaderId).to.equal('ari1');
           return Promise.resolve();
         });
@@ -1554,7 +1529,7 @@ new subscribers. Use the showOffers() method instead.'
       let flowInstance;
       const startStub = sandbox
         .stub(PayStartFlow.prototype, 'start')
-        .callsFake(function() {
+        .callsFake(function () {
           flowInstance = this;
           return Promise.resolve();
         });
@@ -1612,7 +1587,7 @@ subscribe() method'
         let flowInstance;
         const startStub = sandbox
           .stub(PayStartFlow.prototype, 'start')
-          .callsFake(function() {
+          .callsFake(function () {
             flowInstance = this;
             return Promise.resolve();
           });
@@ -1631,7 +1606,7 @@ subscribe() method'
       let flowInstance;
       const startStub = sandbox
         .stub(PayStartFlow.prototype, 'start')
-        .callsFake(function() {
+        .callsFake(function () {
           flowInstance = this;
           return Promise.resolve();
         });
@@ -1658,7 +1633,7 @@ subscribe() method'
       let flowInstance;
       const startStub = sandbox
         .stub(PayStartFlow.prototype, 'start')
-        .callsFake(function() {
+        .callsFake(function () {
           flowInstance = this;
           return Promise.resolve();
         });
@@ -1672,11 +1647,11 @@ subscribe() method'
     it('should start saveSubscriptionFlow with callback for token', async () => {
       let linkSaveFlow;
       const newPromise = new Promise(() => {});
-      sandbox.stub(LinkSaveFlow.prototype, 'start').callsFake(function() {
+      sandbox.stub(LinkSaveFlow.prototype, 'start').callsFake(function () {
         linkSaveFlow = this;
         return newPromise;
       });
-      const requestPromise = new Promise(resolve => {
+      const requestPromise = new Promise((resolve) => {
         resolve({token: 'test'});
       });
       runtime.saveSubscription(() => requestPromise);
@@ -1691,7 +1666,7 @@ subscribe() method'
     it('should start saveSubscriptionFlow with callback for authcode', async () => {
       let linkSaveFlow;
       const newPromise = new Promise(() => {});
-      sandbox.stub(LinkSaveFlow.prototype, 'start').callsFake(function() {
+      sandbox.stub(LinkSaveFlow.prototype, 'start').callsFake(function () {
         linkSaveFlow = this;
         return newPromise;
       });
@@ -1814,11 +1789,11 @@ subscribe() method'
       expect(count).to.equal(1);
     });
 
-    it('should create a working logger', async function() {
+    it('should create a working logger', async function () {
       let receivedEvent = null;
       sandbox
         .stub(ClientEventManager.prototype, 'logEvent')
-        .callsFake(event => (receivedEvent = event));
+        .callsFake((event) => (receivedEvent = event));
 
       const logger = await runtime.getLogger();
       logger.sendEvent({

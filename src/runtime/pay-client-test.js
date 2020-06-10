@@ -34,7 +34,7 @@ const INTEGR_DATA_OBJ = {
 
 const GOOGLE_TRANSACTION_ID = 'ABC12345-CDE0-XYZ1-ABAB-11609E6472E9';
 
-describes.realWin('PayClient', {}, env => {
+describes.realWin('PayClient', {}, (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -62,7 +62,7 @@ describes.realWin('PayClient', {}, env => {
       prepare: sandbox.stub(RedirectVerifierHelper.prototype, 'prepare'),
       useVerifier: sandbox
         .stub(RedirectVerifierHelper.prototype, 'useVerifier')
-        .callsFake(callback => {
+        .callsFake((callback) => {
           callback(redirectVerifierHelperResults.verifier);
         }),
     };
@@ -133,7 +133,7 @@ describes.realWin('PayClient', {}, env => {
     });
   });
 
-  it('should force redirect mode', async function() {
+  it('should force redirect mode', async function () {
     await payClient.start(
       {
         'paymentArgs': {'a': 1},
@@ -193,7 +193,7 @@ describes.realWin('PayClient', {}, env => {
     const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
     expect(data).to.deep.equal(INTEGR_DATA_OBJ);
 
-    const response = await new Promise(resolve => {
+    const response = await new Promise((resolve) => {
       payClient.onResponse(resolve);
     });
     expect(response).to.deep.equal(INTEGR_DATA_OBJ);
@@ -242,7 +242,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   beforeEach(() => {
     storageMap = {};
     localStorage = {
-      getItem: key => storageMap[key],
+      getItem: (key) => storageMap[key],
       setItem: (key, value) => {
         storageMap[key] = value;
       },
@@ -260,7 +260,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
 
     crypto = {
       subtle,
-      getRandomValues: bytes => {
+      getRandomValues: (bytes) => {
         for (let i = 0; i < bytes.length; i++) {
           bytes[i] = i + 1;
         }
@@ -275,14 +275,14 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   function useVerifierPromise() {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       helper.useVerifier(resolve);
     });
   }
 
   function useVerifierSync() {
     let verifier;
-    helper.useVerifier(v => {
+    helper.useVerifier((v) => {
       verifier = v;
     });
     return verifier;

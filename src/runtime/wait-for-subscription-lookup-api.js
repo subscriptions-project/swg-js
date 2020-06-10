@@ -68,12 +68,12 @@ export class WaitForSubscriptionLookupApi {
     );
 
     return this.accountPromise_.then(
-      account => {
+      (account) => {
         // Account was found.
         this.dialogManager_.completeView(this.activityIframeView_);
         return account;
       },
-      reason => {
+      (reason) => {
         this.dialogManager_.completeView(this.activityIframeView_);
         throw reason;
       }

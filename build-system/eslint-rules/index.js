@@ -22,12 +22,12 @@ const rules = {};
 const ruleFiles = fs
   .readdirSync(__dirname)
   .filter(
-    ruleFile =>
+    (ruleFile) =>
       !['index.js', 'node_modules', 'package.json', 'README.md'].includes(
         ruleFile
       )
   );
-ruleFiles.forEach(function(ruleFile) {
+ruleFiles.forEach(function (ruleFile) {
   const rule = ruleFile.replace(path.extname(ruleFile), '');
   rules[rule] = require(path.join(__dirname, rule));
 });

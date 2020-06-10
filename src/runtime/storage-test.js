@@ -22,7 +22,7 @@ class WebStorageStub {
   removeItem(unusedKey) {}
 }
 
-describes.realWin('Storage', {}, env => {
+describes.realWin('Storage', {}, (env) => {
   let win;
   let sessionStorageMock;
   let storage;

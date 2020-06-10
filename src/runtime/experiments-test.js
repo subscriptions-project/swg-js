@@ -22,7 +22,7 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 
-describes.realWin('experiments', {}, env => {
+describes.realWin('experiments', {}, (env) => {
   let win;
   let sessionStorageMock;
   let errorCount, throwAsyncStub;

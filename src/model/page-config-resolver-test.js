@@ -19,7 +19,7 @@ import {PageConfig} from './page-config';
 import {PageConfigResolver, getControlFlag} from './page-config-resolver';
 import {createElement} from '../utils/dom';
 
-describes.realWin('PageConfigResolver', {}, env => {
+describes.realWin('PageConfigResolver', {}, (env) => {
   let win, doc, gd;
 
   beforeEach(() => {

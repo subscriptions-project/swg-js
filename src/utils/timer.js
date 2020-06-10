@@ -91,7 +91,7 @@ export class Timer {
    * @return {!Promise}
    */
   promise(delay) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       // Avoid wrapping in closure if no specific result is produced.
       const timerKey = this.delay(resolve, delay);
       if (timerKey == -1) {
@@ -140,7 +140,7 @@ export class Timer {
    * @return {!Promise}
    */
   poll(delay, predicate) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const interval = /** @type {number} */ (this.win.setInterval(() => {
         if (predicate()) {
           this.win.clearInterval(interval);

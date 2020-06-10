@@ -54,7 +54,7 @@ describe('errors', () => {
         // Mock `setTimeout`
         let callback;
         const setTimeout = self.setTimeout;
-        self.setTimeout = cb => {
+        self.setTimeout = (cb) => {
           callback = cb;
         };
 

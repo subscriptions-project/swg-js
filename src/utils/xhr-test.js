@@ -17,7 +17,7 @@
 import {FetchResponse, Xhr, assertSuccess, fetchPolyfill} from './xhr';
 
 describes.realWin('test', {}, () => {
-  describe('XHR', function() {
+  describe('XHR', function () {
     const location = {href: 'https://acme.com/path'};
     const nativeWin = {
       location,
@@ -76,7 +76,7 @@ describes.realWin('test', {}, () => {
           beforeEach(() => {
             xhr = new Xhr(test.win);
             mockXhr = sandbox.useFakeXMLHttpRequest();
-            xhrCreated = new Promise(resolve => (mockXhr.onCreate = resolve));
+            xhrCreated = new Promise((resolve) => (mockXhr.onCreate = resolve));
           });
 
           afterEach(() => {
@@ -210,7 +210,7 @@ describes.realWin('test', {}, () => {
         it('should do simple JSON fetch', async () => {
           const response = await xhr
             .fetch('http://localhost:31862/get?k=v1')
-            .then(res => res.json());
+            .then((res) => res.json());
           expect(response).to.exist;
           expect(response['args']['k']).to.equal('v1');
         });
@@ -221,7 +221,7 @@ describes.realWin('test', {}, () => {
             encodeURIComponent('http://localhost:31862/get?k=v2');
           const response = await xhr
             .fetch(url, {ampCors: false})
-            .then(res => res.json());
+            .then((res) => res.json());
           expect(response).to.exist;
           expect(response['args']['k']).to.equal('v2');
         });
@@ -297,7 +297,7 @@ describes.realWin('test', {}, () => {
                 'Content-Type': 'application/json;charset=utf-8',
               },
             })
-            .then(res => res.json());
+            .then((res) => res.json());
           expect(response.json).to.jsonEqual({
             hello: 'world',
           });

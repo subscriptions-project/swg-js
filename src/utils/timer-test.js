@@ -16,14 +16,14 @@
 
 import {Timer} from './timer';
 
-describes.realWin('Timer', {}, env => {
+describes.realWin('Timer', {}, (env) => {
   let windowMock;
   let timer;
 
   beforeEach(() => {
-    const WindowApi = function() {};
-    WindowApi.prototype.setTimeout = function(unusedCallback, unusedDelay) {};
-    WindowApi.prototype.clearTimeout = function(unusedTimerId) {};
+    const WindowApi = function () {};
+    WindowApi.prototype.setTimeout = function (unusedCallback, unusedDelay) {};
+    WindowApi.prototype.clearTimeout = function (unusedTimerId) {};
     WindowApi.prototype.document = {};
     const windowApi = new WindowApi();
     windowMock = sandbox.mock(windowApi);
@@ -38,39 +38,33 @@ describes.realWin('Timer', {}, env => {
 
   it('delay', () => {
     const handler = () => {};
-    windowMock
-      .expects('setTimeout')
-      .returns(1)
-      .once();
+    windowMock.expects('setTimeout').returns(1).once();
     windowMock.expects('clearTimeout').never();
     timer.delay(handler, 111);
   });
 
-  it('delay 0 real window', done => {
+  it('delay 0 real window', (done) => {
     timer = new Timer(self);
     timer.delay(done, 0);
   });
 
-  it('delay 1 real window', done => {
+  it('delay 1 real window', (done) => {
     timer = new Timer(self);
     timer.delay(done, 1);
   });
 
-  it('delay default', done => {
+  it('delay default', (done) => {
     windowMock.expects('setTimeout').never();
     windowMock.expects('clearTimeout').never();
     timer.delay(done);
   });
 
   it('cancel', () => {
-    windowMock
-      .expects('clearTimeout')
-      .withExactArgs(1)
-      .once();
+    windowMock.expects('clearTimeout').withExactArgs(1).once();
     timer.cancel(1);
   });
 
-  it('cancel default', done => {
+  it('cancel default', (done) => {
     windowMock.expects('setTimeout').never();
     windowMock.expects('clearTimeout').never();
     const mock = sandbox.mock();
@@ -87,7 +81,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(value => {
+        sandbox.match((value) => {
           value();
           return true;
         }),
@@ -104,7 +98,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(value => {
+        sandbox.match((value) => {
           value();
           return true;
         }),
@@ -120,7 +114,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(fn => typeof fn === 'function'),
+        sandbox.match((fn) => typeof fn === 'function'),
         111
       )
       .returns(1)
@@ -134,7 +128,7 @@ describes.realWin('Timer', {}, env => {
     windowMock
       .expects('setTimeout')
       .withExactArgs(
-        sandbox.match(value => {
+        sandbox.match((value) => {
           // Immediate timeout
           value();
           return true;

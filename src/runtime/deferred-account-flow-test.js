@@ -26,8 +26,8 @@ import {PayCompleteFlow} from './pay-flow';
 const EMPTY_ID_TOK =
   'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJRF9UT0sifQ.SIG';
 
-describes.realWin('DeferredAccountFlow', {}, env => {
-  const ack = function() {};
+describes.realWin('DeferredAccountFlow', {}, (env) => {
+  const ack = function () {};
   let win;
   let pageConfig;
   let runtime;
@@ -69,7 +69,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     resultResolver = null;
-    const resultPromise = new Promise(resolve => {
+    const resultPromise = new Promise((resolve) => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
@@ -145,7 +145,7 @@ describes.realWin('DeferredAccountFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/recoveriframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',

@@ -34,7 +34,7 @@ export class Storage {
    */
   get(key) {
     if (!this.values_[key]) {
-      this.values_[key] = new Promise(resolve => {
+      this.values_[key] = new Promise((resolve) => {
         if (this.win_.sessionStorage) {
           try {
             resolve(this.win_.sessionStorage.getItem(storageKey(key)));
@@ -57,7 +57,7 @@ export class Storage {
    */
   set(key, value) {
     this.values_[key] = Promise.resolve(value);
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (this.win_.sessionStorage) {
         try {
           this.win_.sessionStorage.setItem(storageKey(key), value);
@@ -75,7 +75,7 @@ export class Storage {
    */
   remove(key) {
     delete this.values_[key];
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (this.win_.sessionStorage) {
         try {
           this.win_.sessionStorage.removeItem(storageKey(key));

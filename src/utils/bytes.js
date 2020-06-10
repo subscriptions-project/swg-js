@@ -92,7 +92,7 @@ export function utf8EncodeSync(string) {
  * @return {!Uint8Array}
  */
 export function base64UrlDecodeToBytes(str) {
-  const encoded = atob(str.replace(/[-_.]/g, ch => base64UrlDecodeSubs[ch]));
+  const encoded = atob(str.replace(/[-_.]/g, (ch) => base64UrlDecodeSubs[ch]));
   return stringToBytes(encoded);
 }
 
@@ -104,5 +104,5 @@ export function base64UrlDecodeToBytes(str) {
  */
 export function base64UrlEncodeFromBytes(bytes) {
   const str = bytesToString(bytes);
-  return btoa(str).replace(/[+/]/g, ch => base64UrlEncodeSubs[ch]);
+  return btoa(str).replace(/[+/]/g, (ch) => base64UrlEncodeSubs[ch]);
 }
