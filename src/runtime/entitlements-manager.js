@@ -420,7 +420,6 @@ export class EntitlementsManager {
       encodeURIComponent(this.publicationId_) +
       '/entitlements';
     if (encryptedDocumentKey) {
-      //TODO(chenshay): Make this a 'Post'.
       url += '?crypt=' + encodeURIComponent(encryptedDocumentKey);
     }
     return this.fetcher_
