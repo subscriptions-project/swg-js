@@ -58,7 +58,7 @@ Thus, notice that:
     - `Review`
 2. `"isAccessibleForFree"` is a required field. Its value can be true or false. `isAccessibleForFree": true` indicates that content is available for free. 
 3. The type in `isPartOf` must include "Product". 
-4. The product ID is [pulbication]:[label], for example `"productID": "norcal_tribune.com:basic"`.
+4. The product ID is [publication]:[label], for example `"productID": "norcal_tribune.com:basic"`.
 
 ## Microdata markup
 
