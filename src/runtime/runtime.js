@@ -64,6 +64,7 @@ import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {setExperiment} from './experiments';
+import { AppLoginManager } from './app-login-manager';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -471,6 +472,35 @@ export class Runtime {
   }
 
   /** @override */
+  isGoogleAppLoginFlowActive() {
+    return this.configured_(true).then((runtime) => {
+      return runtime.isGoogleAppLoginFlowActive();
+    });
+  }
+
+  /** @override */
+  isGoogleAppLoginFlowRequired() {
+    return this.configured_(true).then((runtime) => {
+      return runtime.isGoogleAppLoginFlowRequired();
+    });
+  }
+
+  /** @override */
+  startGoogleAppLoginFlow(loginUrl) {
+    return this.configured_(true).then((runtime) => {
+      return runtime.startGoogleAppLoginFlow(loginUrl);
+    });
+  }
+
+  /** @override */
+  googleAppLoginFlowComplete(userState) {
+    return this.configured_(true).then((runtime) => {
+      return runtime.googleAppLoginFlowComplete(loginUrl);
+    });
+  }
+
+
+  /** @override */
   getLogger() {
     return this.configured_(true).then((runtime) => runtime.getLogger());
   }
@@ -574,6 +604,9 @@ export class ConfiguredRuntime {
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_, Promise.resolve(this));
+
+    /** @private @const {!AppLoginManager} */
+    this.appLoginManager_ = new AppLoginManager();
 
     const preconnect = new Preconnect(this.win_.document);
 
@@ -977,6 +1010,26 @@ export class ConfiguredRuntime {
     return Promise.resolve(this.propensityModule_);
   }
 
+  /** @override */
+  isGoogleAppLoginFlowActive() {
+    return this.appLoginManager_.isGoogleAppLoginFlowActive();
+  }
+
+  /** @override */
+  isGoogleAppLoginFlowRequired() {
+    return this.appLoginManager_.isGoogleAppLoginFlowRequired();
+  }
+
+  /** @override */
+  startGoogleAppLoginFlow(loginUrl) {
+    return this.appLoginManager_.startGoogleAppLoginFlow(loginUrl);
+  }
+
+  /** @override */
+  googleAppLoginFlowComplete(userState) {
+    this.appLoginManager_.googleAppLoginFlowComplete(userState);
+  }
+
   /** @override
    * @return {!ClientEventManager}
    */
@@ -1034,7 +1087,10 @@ function createPublicRuntime(runtime) {
     attachButton: runtime.attachButton.bind(runtime),
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
     getPropensityModule: runtime.getPropensityModule.bind(runtime),
-    getLogger: runtime.getLogger.bind(runtime),
+    isGoogleAppLoginFlowActive: runtime.isGoogleAppLoginFlowActive.bind(runtime),
+    isGoogleAppLoginFlowRequired: runtime.isGoogleAppLoginFlowRequired.bind(runtime),
+    startGoogleAppLoginFlow: runtime.startGoogleAppLoginFlow.bind(runtime),
+    googleAppLoginFlowComplete: runtime.googleAppLoginFlowComplete.bind(runtime),
   });
 }
 

@@ -23,6 +23,7 @@ import {
 import {SubscribeResponse} from './subscribe-response';
 import {PropensityApi} from './propensity-api';
 import {LoggerApi} from './logger-api';
+import {UserState} from '../model/user-state';
 
 /**
  * @interface
@@ -270,6 +271,40 @@ export class Subscriptions {
    * @return {!Promise<PropensityApi>}
    */
   getPropensityModule() {}
+
+  /**
+   * Returns true if the Google app login flow is currently
+   * active, i.e., if googleAppLoginFlowComplete should be
+   * called when the user logs in.
+   *
+   * @return {boolean}
+   */
+  isGoogleAppLoginFlowActive() {}
+
+  /**
+   * Returns true if the Google app login flow is required
+   * in the current context, i.e., if startGoogleAppLoginFlow
+   * should be called when the user launches a login flow.
+   *
+   * @return {boolean}
+   */
+  isGoogleAppLoginFlowRequired() {}
+
+  /**
+   * Starts the Google app login flow, returning a Promise for
+   * the user's UserState when login completes.
+   *
+   * @param {string} loginUrl
+   * @return {!Promise<!UserState>}
+   */
+  startGoogleAppLoginFlow(loginUrl) {}
+
+  /**
+   * Completes the Google app login flow with the provided UserState.
+   *
+   * @param {!UserState} userState
+   */
+  googleAppLoginFlowComplete(userState) {}
 
   /** @return {!Promise<LoggerApi>} */
   getLogger() {}
