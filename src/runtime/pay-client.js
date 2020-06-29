@@ -15,6 +15,7 @@
  */
 
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
+import {Preconnect} from '../utils/preconnect';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
@@ -70,18 +71,11 @@ export class PayClient {
     /** @private @const {!RedirectVerifierHelper} */
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
 
-    /** @private @const {!PaymentsAsyncClient} */
-    this.client_ = this.createClient_(
-      /** @type {!PaymentOptions} */
-      ({
-        environment: '$payEnvironment$',
-        'i': {
-          'redirectKey': this.redirectVerifierHelper_.restoreKey(),
-        },
-      }),
-      this.analytics_.getTransactionId(),
-      this.handleResponse_.bind(this)
-    );
+    /** @private @const {?PaymentsAsyncClient} */
+    this.client_ = null;
+
+    /** @private @const {!Preconnect} */
+    this.preconnect_ = new Preconnect(this.win_.document);
 
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
@@ -138,6 +132,20 @@ export class PayClient {
   start(paymentRequest, options = {}) {
     this.request_ = paymentRequest;
 
+    if (!this.client_) {
+      this.preconnect(this.preconnect_);
+      this.client_ = this.createClient_(
+        /** @type {!PaymentOptions} */
+        ({
+          environment: '$payEnvironment$',
+          'i': {
+            'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+          },
+        }),
+        this.analytics_.getTransactionId(),
+        this.handleResponse_.bind(this)
+      );
+    }
     if (options.forceRedirect) {
       paymentRequest = Object.assign(paymentRequest, {
         'forceRedirect': options.forceRedirect || false,

@@ -109,13 +109,6 @@ describes.realWin('PayClient', {}, (env) => {
 
   it('should initialize correctly', () => {
     expect(payClient.getType()).to.equal('PAYJS');
-    expect(payClientStubs.create).to.be.calledOnce.calledWith({
-      'environment': '$payEnvironment$',
-      'i': {
-        'redirectKey': 'test_restore_key',
-      },
-    });
-    expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
     expect(redirectVerifierHelperStubs.prepare).to.be.calledOnce;
   });
 
@@ -123,6 +116,13 @@ describes.realWin('PayClient', {}, (env) => {
     payClient.start({
       'paymentArgs': {'a': 1},
     });
+    expect(payClientStubs.create).to.be.calledOnce.calledWith({
+      'environment': '$payEnvironment$',
+      'i': {
+        'redirectKey': 'test_restore_key',
+      },
+    });
+    expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
     expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
     expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
       'paymentArgs': {'a': 1},
@@ -153,6 +153,15 @@ describes.realWin('PayClient', {}, (env) => {
     });
   });
 
+  it('should prefetch payments on start', () => {
+    payClient.start({});
+    const el = win.document.head.querySelector(
+      'link[rel="preconnect prefetch"][href*="/pay?"]'
+    );
+    expect(el).to.exist;
+    expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
+  });
+
   it('should accept a correct payment response', async () => {
     payClient.start({});
     const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
@@ -176,6 +185,7 @@ describes.realWin('PayClient', {}, (env) => {
   });
 
   it('should propogate productType with cancel signal', async () => {
+    payClient.start({});
     await expect(withResult(Promise.reject({'statusCode': 'CANCELED'})))
       .to.be.rejectedWith(/AbortError/)
       .and.eventually.have.property('productType');

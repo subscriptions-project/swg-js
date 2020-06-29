@@ -580,7 +580,6 @@ export class ConfiguredRuntime {
     preconnect.prefetch('$assets$/loader.svg');
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
-    this.payClient_.preconnect(preconnect);
 
     injectStyleSheet(this.doc_, SWG_DIALOG);
 
