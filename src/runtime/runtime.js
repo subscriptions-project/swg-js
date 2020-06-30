@@ -580,6 +580,9 @@ export class ConfiguredRuntime {
     preconnect.prefetch('$assets$/loader.svg');
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
+    preconnect.preconnect('https://www.gstatic.com/');
+    preconnect.preconnect('https://fonts.googleapis.com/');
+    preconnect.preconnect('https://www.google.com/');
 
     injectStyleSheet(this.doc_, SWG_DIALOG);
 
