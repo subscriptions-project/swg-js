@@ -1179,7 +1179,16 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       expect(el.getAttribute('href')).to.equal('$assets$/loader.svg');
     });
 
-    it('should preconnect to google domains', () => {
+    it('should prefetch payments', () => {
+      const el = win.document.head.querySelector(
+        'link[rel="preconnect prefetch"][href*="/pay?"]'
+      );
+      expect(el).to.exist;
+      expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
+    });
+
+    it('should preconnect to google domains when PayClient lazyloads', () => {
+      setExperiment(win, ExperimentFlags.PAY_CLIENT_LAZYLOAD, true);
       const gstatic = win.document.head.querySelector(
         'link[rel="preconnect"][href*="gstatic"]'
       );
@@ -1193,7 +1202,9 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       expect(fonts).to.exist;
       expect(goog).to.exist;
       expect(gstatic.getAttribute('href')).to.equal('https://www.gstatic.com/');
-      expect(fonts.getAttribute('href')).to.equal('https://fonts.googleapis.com/');
+      expect(fonts.getAttribute('href')).to.equal(
+        'https://fonts.googleapis.com/'
+      );
       expect(goog.getAttribute('href')).to.equal('https://www.google.com/');
     });
 

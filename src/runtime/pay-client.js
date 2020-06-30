@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Preconnect} from '../utils/preconnect';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
+import {isExperimentOn} from './experiments';
 
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
@@ -71,11 +73,26 @@ export class PayClient {
     /** @private @const {!RedirectVerifierHelper} */
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
 
-    /** @private @const {?PaymentsAsyncClient} */
-    this.client_ = null;
+    if (!isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD)) {
+      /** @private @const {?PaymentsAsyncClient} */
+      this.client_ = this.createClient_(
+        /** @type {!PaymentOptions} */
+        ({
+          environment: '$payEnvironment$',
+          'i': {
+            'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+          },
+        }),
+        this.analytics_.getTransactionId(),
+        this.handleResponse_.bind(this)
+      );
+    } else {
+      /** @private @const {?PaymentsAsyncClient} */
+      this.client_ = null;
 
-    /** @private @const {!Preconnect} */
-    this.preconnect_ = new Preconnect(this.win_.document);
+      /** @private @const {!Preconnect} */
+      this.preconnect_ = new Preconnect(this.win_.document);
+    }
 
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
@@ -112,9 +129,11 @@ export class PayClient {
       'https://payments.google.com/payments/v4/js/integrator.js?ss=md'
     );
     pre.prefetch('https://clients2.google.com/gr/gr_full_2.0.6.js');
-    pre.preconnect('https://www.gstatic.com/');
-    pre.preconnect('https://fonts.googleapis.com/');
-    pre.preconnect('https://www.google.com/');
+    if (!isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD)) {
+      pre.preconnect('https://www.gstatic.com/');
+      pre.preconnect('https://fonts.googleapis.com/');
+      pre.preconnect('https://www.google.com/');
+    }
   }
 
   /**
@@ -132,7 +151,10 @@ export class PayClient {
   start(paymentRequest, options = {}) {
     this.request_ = paymentRequest;
 
-    if (!this.client_) {
+    if (
+      isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD) &&
+      !this.client_
+    ) {
       this.preconnect(this.preconnect_);
       this.client_ = this.createClient_(
         /** @type {!PaymentOptions} */

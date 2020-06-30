@@ -15,9 +15,11 @@
  */
 
 import {ConfiguredRuntime} from './runtime';
+import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {PayClient, RedirectVerifierHelper} from './pay-client';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
+import {setExperiment} from './experiments';
 import {setExperimentsStringForTesting} from './experiments';
 
 const INTEGR_DATA_STRING =
@@ -109,10 +111,32 @@ describes.realWin('PayClient', {}, (env) => {
 
   it('should initialize correctly', () => {
     expect(payClient.getType()).to.equal('PAYJS');
+    expect(payClientStubs.create).to.be.calledOnce.calledWith({
+      'environment': '$payEnvironment$',
+      'i': {
+        'redirectKey': 'test_restore_key',
+      },
+    });
+    expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
     expect(redirectVerifierHelperStubs.prepare).to.be.calledOnce;
   });
 
   it('should have valid flow constructed', () => {
+    payClient.start({
+      'paymentArgs': {'a': 1},
+    });
+    expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
+    expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+      'paymentArgs': {'a': 1},
+      'i': {
+        'redirectVerifier': redirectVerifierHelperResults.verifier,
+        'disableNative': true,
+      },
+    });
+  });
+
+  it('should have valid flow constructed when PayClient lazy loaded', () => {
+    setExperiment(win, ExperimentFlags.PAY_CLIENT_LAZYLOAD, true);
     payClient.start({
       'paymentArgs': {'a': 1},
     });
@@ -154,6 +178,7 @@ describes.realWin('PayClient', {}, (env) => {
   });
 
   it('should prefetch payments on start', () => {
+    setExperiment(win, ExperimentFlags.PAY_CLIENT_LAZYLOAD, true);
     payClient.start({});
     const el = win.document.head.querySelector(
       'link[rel="preconnect prefetch"][href*="/pay?"]'
@@ -185,7 +210,6 @@ describes.realWin('PayClient', {}, (env) => {
   });
 
   it('should propogate productType with cancel signal', async () => {
-    payClient.start({});
     await expect(withResult(Promise.reject({'statusCode': 'CANCELED'})))
       .to.be.rejectedWith(/AbortError/)
       .and.eventually.have.property('productType');

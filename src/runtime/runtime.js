@@ -580,9 +580,13 @@ export class ConfiguredRuntime {
     preconnect.prefetch('$assets$/loader.svg');
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
-    preconnect.preconnect('https://www.gstatic.com/');
-    preconnect.preconnect('https://fonts.googleapis.com/');
-    preconnect.preconnect('https://www.google.com/');
+    if (isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD)) {
+      preconnect.preconnect('https://www.gstatic.com/');
+      preconnect.preconnect('https://fonts.googleapis.com/');
+      preconnect.preconnect('https://www.google.com/');
+    } else {
+      this.payClient_.preconnect(preconnect);
+    }
 
     injectStyleSheet(this.doc_, SWG_DIALOG);
 
