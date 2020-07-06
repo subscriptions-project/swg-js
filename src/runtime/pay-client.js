@@ -129,11 +129,6 @@ export class PayClient {
       'https://payments.google.com/payments/v4/js/integrator.js?ss=md'
     );
     pre.prefetch('https://clients2.google.com/gr/gr_full_2.0.6.js');
-    if (!isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD)) {
-      pre.preconnect('https://www.gstatic.com/');
-      pre.preconnect('https://fonts.googleapis.com/');
-      pre.preconnect('https://www.google.com/');
-    }
   }
 
   /**
