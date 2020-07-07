@@ -72,9 +72,11 @@ export class PayClient {
 
     /** @private @const {!RedirectVerifierHelper} */
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
-
+    
+    /** @private @const {?PaymentsAsyncClient} */
+    this.client_ = null;
+    
     if (!isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD)) {
-      /** @private @const {?PaymentsAsyncClient} */
       this.client_ = this.createClient_(
         /** @type {!PaymentOptions} */
         ({
@@ -87,9 +89,6 @@ export class PayClient {
         this.handleResponse_.bind(this)
       );
     } else {
-      /** @private @const {?PaymentsAsyncClient} */
-      this.client_ = null;
-
       /** @private @const {!Preconnect} */
       this.preconnect_ = new Preconnect(this.win_.document);
     }
