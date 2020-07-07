@@ -15,9 +15,11 @@
  */
 
 import {ConfiguredRuntime} from './runtime';
+import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {PayClient, RedirectVerifierHelper} from './pay-client';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
+import {setExperiment} from './experiments';
 import {setExperimentsStringForTesting} from './experiments';
 
 const INTEGR_DATA_STRING =
@@ -133,6 +135,28 @@ describes.realWin('PayClient', {}, (env) => {
     });
   });
 
+  it('should have valid flow constructed when PayClient lazy loaded', () => {
+    setExperiment(win, ExperimentFlags.PAY_CLIENT_LAZYLOAD, true);
+    payClient.start({
+      'paymentArgs': {'a': 1},
+    });
+    expect(payClientStubs.create).to.be.calledOnce.calledWith({
+      'environment': '$payEnvironment$',
+      'i': {
+        'redirectKey': 'test_restore_key',
+      },
+    });
+    expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
+    expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
+    expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+      'paymentArgs': {'a': 1},
+      'i': {
+        'redirectVerifier': redirectVerifierHelperResults.verifier,
+        'disableNative': true,
+      },
+    });
+  });
+
   it('should force redirect mode', async function () {
     await payClient.start(
       {
@@ -151,6 +175,16 @@ describes.realWin('PayClient', {}, (env) => {
         'disableNative': true,
       },
     });
+  });
+
+  it('should prefetch payments on start', () => {
+    setExperiment(win, ExperimentFlags.PAY_CLIENT_LAZYLOAD, true);
+    payClient.start({});
+    const el = win.document.head.querySelector(
+      'link[rel="preconnect prefetch"][href*="/pay?"]'
+    );
+    expect(el).to.exist;
+    expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
   });
 
   it('should accept a correct payment response', async () => {

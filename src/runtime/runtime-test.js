@@ -1187,6 +1187,26 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
     });
 
+    it('should preconnect to google domains', () => {
+      const gstatic = win.document.head.querySelector(
+        'link[rel="preconnect"][href*="gstatic"]'
+      );
+      const fonts = win.document.head.querySelector(
+        'link[rel="preconnect"][href*="fonts"]'
+      );
+      const goog = win.document.head.querySelector(
+        'link[rel="preconnect"][href*="google.com"]'
+      );
+      expect(gstatic).to.exist;
+      expect(fonts).to.exist;
+      expect(goog).to.exist;
+      expect(gstatic.getAttribute('href')).to.equal('https://www.gstatic.com/');
+      expect(fonts.getAttribute('href')).to.equal(
+        'https://fonts.googleapis.com/'
+      );
+      expect(goog.getAttribute('href')).to.equal('https://www.google.com/');
+    });
+
     it('should NOT inject button stylesheet', () => {
       const el = win.document.head.querySelector(
         'link[href*="swg-button.css"]'
