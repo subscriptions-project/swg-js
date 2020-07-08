@@ -72,10 +72,10 @@ export class PayClient {
 
     /** @private @const {!RedirectVerifierHelper} */
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
-    
+
     /** @private @const {?PaymentsAsyncClient} */
     this.client_ = null;
-    
+
     if (!isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD)) {
       this.client_ = this.createClient_(
         /** @type {!PaymentOptions} */
