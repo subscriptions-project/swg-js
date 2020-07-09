@@ -474,6 +474,11 @@ export class Runtime {
   getLogger() {
     return this.configured_(true).then((runtime) => runtime.getLogger());
   }
+
+  /** @override */
+  eventManager() {
+    return this.configured_(true).then((runtime) => runtime.eventManager());
+  }
 }
 
 /**
