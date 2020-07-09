@@ -274,7 +274,7 @@ export class Subscriptions {
   /** @return {!Promise<LoggerApi>} */
   getLogger() {}
 
-  /** @return {!ClientEventManager} } */
+  /** @return {!Promise<ClientEventManager>} */
   getEventManager() {}
 }
 
