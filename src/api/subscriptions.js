@@ -23,7 +23,6 @@ import {
 import {SubscribeResponse} from './subscribe-response';
 import {PropensityApi} from './propensity-api';
 import {LoggerApi} from './logger-api';
-import {ClientEventManager} from './client-event-manager'
 
 /**
  * @interface
