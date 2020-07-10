@@ -15,10 +15,12 @@
  */
 
 import {Entitlement, Entitlements} from '../api/entitlements';
+import {EntitlementsPingbackRequest, Timestamp} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from '../runtime/services';
 import {serviceUrl} from './services';
+import { toTimestamp } from '../utils/date-utils';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -115,7 +117,7 @@ export class EntitlementsManager {
     if (!this.responsePromise_) {
       this.responsePromise_ = this.getEntitlementsFlow_(encryptedDocumentKey);
     }
-    return this.responsePromise_.then(response => {
+    return this.responsePromise_.then((response) => {
       if (response.isReadyToPay != null) {
         this.analyticsService_.setReadyToPay(response.isReadyToPay);
       }
@@ -148,7 +150,7 @@ export class EntitlementsManager {
    */
   getEntitlementsFlow_(encryptedDocumentKey) {
     return this.fetchEntitlementsWithCaching_(encryptedDocumentKey).then(
-      entitlements => {
+      (entitlements) => {
         this.onEntitlementsFetched_(entitlements);
         return entitlements;
       }
@@ -164,7 +166,7 @@ export class EntitlementsManager {
     return Promise.all([
       this.storage_.get(ENTS_STORAGE_KEY),
       this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY),
-    ]).then(cachedValues => {
+    ]).then((cachedValues) => {
       const raw = cachedValues[0];
       const irtp = cachedValues[1];
       // Try cache first.
@@ -181,7 +183,7 @@ export class EntitlementsManager {
         }
       }
       // If cache didn't match, perform fetch.
-      return this.fetchEntitlements_(encryptedDocumentKey).then(ents => {
+      return this.fetchEntitlements_(encryptedDocumentKey).then((ents) => {
         // If entitlements match the product, store them in cache.
         if (ents && ents.enablesThis() && ents.raw) {
           this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
@@ -202,11 +204,11 @@ export class EntitlementsManager {
     this.positiveRetries_ = 0;
     const attempt = () => {
       positiveRetries--;
-      return this.fetch_(encryptedDocumentKey).then(entitlements => {
+      return this.fetch_(encryptedDocumentKey).then((entitlements) => {
         if (entitlements.enablesThis() || positiveRetries <= 0) {
           return entitlements;
         }
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           this.win_.setTimeout(() => {
             resolve(attempt());
           }, 550);
@@ -356,30 +358,55 @@ export class EntitlementsManager {
       .callbacks()
       .triggerEntitlementsResponse(Promise.resolve(entitlements));
 
-    // Show a toast if needed.
-    this.maybeShowToast_(entitlements);
+    const entitlement = entitlements.getEntitlementForThis();
+    if (entitlement) {
+      this.onAccessGranted_(entitlement);
+    }
   }
 
   /**
-   * @param {!Entitlements} entitlements
+   * @param {!Entitlement} entitlement
+   * @private
+   */
+  onAccessGranted_(entitlement) {
+    // Show a toast if needed.
+    this.maybeShowToast_(entitlement);
+    //TODO: if meter
+    setTimeout(() => {
+      this.markMeterAsUsed("signed meter"); //TODO
+    }, 2000);
+  }
+
+  /**
+   * @param {!string} signedMeter
+   */
+  markMeterAsUsed(signedMeter) {
+    const url =
+      '/publication/' +
+      encodeURIComponent(this.publicationId_) +
+      '/entitlements';
+    const message = new EntitlementsPingbackRequest();
+    message.setSignedMeter(signedMeter);
+    message.setClientEventTime(toTimestamp(new Date()));
+    message.setHashedCanonicalUrl("hashedUrl"); //TODO
+    message.setPublisherUserId("userId"); //TODO
+    this.fetcher_.sendBeacon(serviceUrl(url), message);
+  }
+
+  /**
+   * @param {!Entitlement} entitlements
    * @return {!Promise}
    * @private
    */
-  maybeShowToast_(entitlements) {
-    const entitlement = entitlements.getEntitlementForThis();
-    if (!entitlement) {
-      return Promise.resolve();
-    }
+  maybeShowToast_(entitlement) {
     // Check if storage bit is set. It's only set by the `Entitlements.ack`
     // method.
-    return this.storage_.get(TOAST_STORAGE_KEY).then(value => {
+    return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
       if (value == '1') {
         // Already shown;
         return;
       }
-      if (entitlement) {
-        this.showToast_(entitlement);
-      }
+      this.showToast_(entitlement);
     });
   }
 
@@ -420,12 +447,11 @@ export class EntitlementsManager {
       encodeURIComponent(this.publicationId_) +
       '/entitlements';
     if (encryptedDocumentKey) {
-      //TODO(chenshay): Make this a 'Post'.
       url += '?crypt=' + encodeURIComponent(encryptedDocumentKey);
     }
     return this.fetcher_
       .fetchCredentialedJson(serviceUrl(url))
-      .then(json => this.parseEntitlements(json));
+      .then((json) => this.parseEntitlements(json));
   }
 }
 
