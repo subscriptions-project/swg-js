@@ -357,7 +357,6 @@ export const ProductType = {
  */
 export function defaultConfig() {
   return {
-    experiments: [ExperimentFlags.METERING],
     windowOpenMode: WindowOpenMode.AUTO,
     analyticsMode: AnalyticsMode.DEFAULT,
     enableSwgAnalytics: false,
