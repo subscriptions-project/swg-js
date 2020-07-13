@@ -50,4 +50,9 @@ export const ExperimentFlags = {
    *  Publishers should not activate this experiment.
    */
   LOGGING_BEACON: 'logging-beacon',
+
+  /** 
+   * Enables the metering experiment.
+   */
+  METERING: 'metering',
 };

@@ -21,6 +21,8 @@ import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from '../runtime/services';
 import {serviceUrl} from './services';
 import { toTimestamp } from '../utils/date-utils';
+import { isExperimentOn } from './experiments';
+import { ExperimentFlags } from './experiment-flags';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -72,6 +74,14 @@ export class EntitlementsManager {
 
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = deps.config();
+
+    //TODO: Hash this and decide what to do if canonical URL is not set
+    /** @private @const {string} */
+    this.url_ = (urlNode && urlNode.href) || "DEFAULT_URL_VALUE_TODO";
+
+    //TODO: should this be a parameter to mark meter as used?
+    /** @private @const {string} */
+    this.publisherUserId_ = "TODO";
   }
 
   /**
@@ -381,16 +391,18 @@ export class EntitlementsManager {
    * @param {!string} signedMeter
    */
   markMeterAsUsed(signedMeter) {
-    const url =
-      '/publication/' +
-      encodeURIComponent(this.publicationId_) +
-      '/entitlements';
-    const message = new EntitlementsPingbackRequest();
-    message.setSignedMeter(signedMeter);
-    message.setClientEventTime(toTimestamp(new Date()));
-    message.setHashedCanonicalUrl("hashedUrl"); //TODO
-    message.setPublisherUserId("userId"); //TODO
-    this.fetcher_.sendBeacon(serviceUrl(url), message);
+    if (isExperimentOn(this.win_, ExperimentFlags.METERING)) {
+      const url =
+        '/publication/' +
+        encodeURIComponent(this.publicationId_) +
+        '/entitlements';
+      const message = new EntitlementsPingbackRequest();
+      message.setSignedMeter(signedMeter);
+      message.setClientEventTime(toTimestamp(new Date()));
+      message.setHashedCanonicalUrl(this.url_);
+      message.setPublisherUserId(this.publisherUserId_);
+      this.fetcher_.sendBeacon(serviceUrl(url), message);
+    }
   }
 
   /**

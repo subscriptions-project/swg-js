@@ -23,6 +23,7 @@ import {
 import {SubscribeResponse} from './subscribe-response';
 import {PropensityApi} from './propensity-api';
 import {LoggerApi} from './logger-api';
+import { ExperimentFlags } from '../runtime/experiment-flags';
 
 /**
  * @interface
@@ -356,6 +357,7 @@ export const ProductType = {
  */
 export function defaultConfig() {
   return {
+    experiments: [ExperimentFlags.METERING],
     windowOpenMode: WindowOpenMode.AUTO,
     analyticsMode: AnalyticsMode.DEFAULT,
     enableSwgAnalytics: false,
