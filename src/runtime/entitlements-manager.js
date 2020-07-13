@@ -401,7 +401,9 @@ export class EntitlementsManager {
       message.setClientEventTime(toTimestamp(new Date()));
       message.setHashedCanonicalUrl(this.url_);
       message.setPublisherUserId(this.publisherUserId_);
-      this.fetcher_.sendBeacon(serviceUrl(url), message);
+      this.fetcher_.sendMessage(serviceUrl(url), message).then(vals => {
+        alert(vals);
+      });
     }
   }
 
