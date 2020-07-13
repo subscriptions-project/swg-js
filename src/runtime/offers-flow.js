@@ -88,7 +88,7 @@ export class OffersFlow {
       // Remove old sku from offers if in list.
       let skuList = feArgsObj['skus'];
       const /** @type {string} */ oldSku = feArgsObj['oldSku'];
-      skuList = skuList.filter(sku => sku !== oldSku);
+      skuList = skuList.filter((sku) => sku !== oldSku);
 
       assert(
         skuList.length > 0,
@@ -273,7 +273,7 @@ export class SubscribeOptionFlow {
     );
 
     this.activityIframeView_.acceptResult().then(
-      result => {
+      (result) => {
         const data = result.data;
         const response = new SubscribeResponse();
         if (data['subscribe']) {
@@ -281,7 +281,7 @@ export class SubscribeOptionFlow {
         }
         this.maybeOpenOffersFlow_(response);
       },
-      reason => {
+      (reason) => {
         this.dialogManager_.completeView(this.activityIframeView_);
         throw reason;
       }
@@ -391,7 +391,7 @@ export class AbbrvOfferFlow {
     );
 
     // If result is due to requesting offers, redirect to offers flow
-    this.activityIframeView_.acceptResult().then(result => {
+    this.activityIframeView_.acceptResult().then((result) => {
       if (result.data['viewOffers']) {
         const options = this.options_ || {};
         if (options.isClosable == undefined) {

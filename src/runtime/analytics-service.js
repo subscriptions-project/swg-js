@@ -28,7 +28,7 @@ import {ExperimentFlags} from './experiment-flags';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
 import {getOnExperiments, isExperimentOn} from './experiments';
-import {getUuid} from '../utils/string';
+import {getSwgTransactionId, getUuid} from '../utils/string';
 import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
@@ -185,7 +185,7 @@ export class AnalyticsService {
   addLabels(labels) {
     if (labels && labels.length > 0) {
       const newLabels = [].concat(this.context_.getLabelList());
-      labels.forEach(label => {
+      labels.forEach((label) => {
         if (newLabels.indexOf(label) == -1) {
           newLabels.push(label);
         }
@@ -223,7 +223,16 @@ export class AnalyticsService {
   setStaticContext_() {
     const context = this.context_;
     // These values should all be available during page load.
-    context.setTransactionId(getUuid());
+    if (
+      isExperimentOn(
+        this.doc_.getWin(),
+        ExperimentFlags.UPDATE_GOOGLE_TRANSACTION_ID
+      )
+    ) {
+      context.setTransactionId(getSwgTransactionId());
+    } else {
+      context.setTransactionId(getUuid());
+    }
     context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     context.setClientVersion('SwG $internalRuntimeVersion$');
 
@@ -261,7 +270,7 @@ export class AnalyticsService {
       this.serviceReady_ = this.activityPorts_
         .openIframe(this.iframe_, feUrl('/serviceiframe'), null, true)
         .then(
-          port => {
+          (port) => {
             // Register a listener for the logging to code indicate it is
             // finished logging.
             port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
@@ -272,7 +281,7 @@ export class AnalyticsService {
               return port;
             });
           },
-          message => {
+          (message) => {
             // If the port doesn't open register that logging is broken so
             // nothing is just waiting.
             this.loggingBroken_ = true;
@@ -368,7 +377,7 @@ export class AnalyticsService {
     }
     // Register we sent a log, the port will call this.afterLogging_ when done.
     this.unfinishedLogs_++;
-    this.lastAction_ = this.start().then(port => {
+    this.lastAction_ = this.start().then((port) => {
       const analyticsRequest = this.createLogRequest_(event);
       port.execute(analyticsRequest);
       if (isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_BEACON)) {
@@ -423,7 +432,7 @@ export class AnalyticsService {
       return Promise.resolve(true);
     }
     if (this.promiseToLog_ === null) {
-      this.promiseToLog_ = new Promise(resolve => {
+      this.promiseToLog_ = new Promise((resolve) => {
         this.loggingResolver_ = resolve;
       });
 

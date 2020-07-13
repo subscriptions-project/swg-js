@@ -19,13 +19,13 @@
  * @fileoverview Page object for the publication on scenic.
  */
 const commands = {
-  viewFirstArticle: function() {
+  viewFirstArticle: function () {
     this.api.pause(1000);
     return this.log('Visiting the first article').assert.title(
       '16 Top Spots for Hiking - The Scenic'
     );
   },
-  selectOffer: function() {
+  selectOffer: function () {
     return this.viewOffers()
       .log('Selecting "Basic Access" offer')
       .waitForElementPresent('.qLPyoc')
@@ -35,7 +35,7 @@ const commands = {
 };
 
 module.exports = {
-  url: function() {
+  url: function () {
     return this.api.launchUrl;
   },
   commands: [commands],

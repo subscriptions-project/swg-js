@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
+import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
+import {Preconnect} from '../utils/preconnect';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
+import {isExperimentOn} from './experiments';
 
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
@@ -70,18 +73,25 @@ export class PayClient {
     /** @private @const {!RedirectVerifierHelper} */
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
 
-    /** @private @const {!PaymentsAsyncClient} */
-    this.client_ = this.createClient_(
-      /** @type {!PaymentOptions} */
-      ({
-        environment: '$payEnvironment$',
-        'i': {
-          'redirectKey': this.redirectVerifierHelper_.restoreKey(),
-        },
-      }),
-      this.analytics_.getTransactionId(),
-      this.handleResponse_.bind(this)
-    );
+    /** @private {?PaymentsAsyncClient} */
+    this.client_ = null;
+
+    if (!isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD)) {
+      this.client_ = this.createClient_(
+        /** @type {!PaymentOptions} */
+        ({
+          environment: '$payEnvironment$',
+          'i': {
+            'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+          },
+        }),
+        this.analytics_.getTransactionId(),
+        this.handleResponse_.bind(this)
+      );
+    } else {
+      /** @private @const {!Preconnect} */
+      this.preconnect_ = new Preconnect(this.win_.document);
+    }
 
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
@@ -118,9 +128,6 @@ export class PayClient {
       'https://payments.google.com/payments/v4/js/integrator.js?ss=md'
     );
     pre.prefetch('https://clients2.google.com/gr/gr_full_2.0.6.js');
-    pre.preconnect('https://www.gstatic.com/');
-    pre.preconnect('https://fonts.googleapis.com/');
-    pre.preconnect('https://www.google.com/');
   }
 
   /**
@@ -138,6 +145,23 @@ export class PayClient {
   start(paymentRequest, options = {}) {
     this.request_ = paymentRequest;
 
+    if (
+      isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD) &&
+      !this.client_
+    ) {
+      this.preconnect(this.preconnect_);
+      this.client_ = this.createClient_(
+        /** @type {!PaymentOptions} */
+        ({
+          environment: '$payEnvironment$',
+          'i': {
+            'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+          },
+        }),
+        this.analytics_.getTransactionId(),
+        this.handleResponse_.bind(this)
+      );
+    }
     if (options.forceRedirect) {
       paymentRequest = Object.assign(paymentRequest, {
         'forceRedirect': options.forceRedirect || false,
@@ -151,9 +175,9 @@ export class PayClient {
       this.win_ != this.top_()
     );
     let resolver = null;
-    const promise = new Promise(resolve => (resolver = resolve));
+    const promise = new Promise((resolve) => (resolver = resolve));
     // Notice that the callback for verifier may execute asynchronously.
-    this.redirectVerifierHelper_.useVerifier(verifier => {
+    this.redirectVerifierHelper_.useVerifier((verifier) => {
       if (verifier) {
         setInternalParam(paymentRequest, 'redirectVerifier', verifier);
       }
@@ -213,19 +237,20 @@ export class PayClient {
         // Temporary client side solution to remember the
         // input params. TODO: Remove this once server-side
         // input preservation is done and is part of the response.
-        res => {
+        (res) => {
           if (request) {
             res['paymentRequest'] = request;
           }
           return res;
         }
       )
-      .catch(reason => {
+      .catch((reason) => {
         if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
           const error = createCancelError(this.win_);
           if (request) {
-            error['productType'] =
-              /** @type {!PaymentDataRequest} */ (request)['i']['productType'];
+            error['productType'] = /** @type {!PaymentDataRequest} */ (request)[
+              'i'
+            ]['productType'];
           } else {
             error['productType'] = null;
           }
@@ -309,7 +334,7 @@ export class RedirectVerifierHelper {
    * @param {function(?string)} callback
    */
   useVerifier(callback) {
-    this.getOrCreatePair_(pair => {
+    this.getOrCreatePair_((pair) => {
       if (pair) {
         try {
           this.win_.localStorage.setItem(REDIRECT_STORAGE_KEY, pair.key);
@@ -352,7 +377,7 @@ export class RedirectVerifierHelper {
       callback(this.pair_);
     } else if (this.pairPromise_) {
       // Otherwise wait for it to be created.
-      this.pairPromise_.then(pair => callback(pair));
+      this.pairPromise_.then((pair) => callback(pair));
     }
     return this.pairPromise_;
   }
@@ -372,9 +397,16 @@ export class RedirectVerifierHelper {
     // b. WebCrypto (crypto.subtle);
     // c. Crypto random (crypto.getRandomValues);
     // d. SHA284 (crypto.subtle.digest).
+    let supportsLocalStorage;
+    try {
+      supportsLocalStorage = !!this.win_.localStorage;
+    } catch (e) {
+      // Note: This can happen when cookies are disabled.
+      supportsLocalStorage = false;
+    }
     const crypto = this.win_.crypto;
     if (
-      this.win_.localStorage &&
+      supportsLocalStorage &&
       crypto &&
       crypto.getRandomValues &&
       crypto.subtle &&
@@ -390,7 +422,7 @@ export class RedirectVerifierHelper {
 
         // 3. Create a hash.
         crypto.subtle.digest({name: 'SHA-384'}, stringToBytes(key)).then(
-          buffer => {
+          (buffer) => {
             const verifier = btoa(
               bytesToString(
                 new Uint8Array(/** @type {!ArrayBuffer} */ (buffer))
@@ -398,7 +430,7 @@ export class RedirectVerifierHelper {
             );
             resolve({key, verifier});
           },
-          reason => {
+          (reason) => {
             reject(reason);
           }
         );
@@ -408,7 +440,7 @@ export class RedirectVerifierHelper {
           // recoverable.
           return null;
         })
-        .then(pair => {
+        .then((pair) => {
           this.pairCreated_ = true;
           this.pair_ = pair;
           return pair;

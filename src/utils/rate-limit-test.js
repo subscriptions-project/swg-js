@@ -27,7 +27,7 @@
 
 import {debounce, throttle} from './rate-limit';
 
-describes.realWin('function utils', {}, env => {
+describes.realWin('function utils', {}, (env) => {
   let clock;
   let win;
 

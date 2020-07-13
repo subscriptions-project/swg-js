@@ -22,7 +22,7 @@ import {Propensity} from './propensity';
 import {PropensityServer} from './propensity-server';
 import {XhrFetcher} from './fetcher';
 
-describes.realWin('Propensity', {}, env => {
+describes.realWin('Propensity', {}, (env) => {
   let win;
   let propensity;
   let pageConfig;
@@ -121,7 +121,7 @@ describes.realWin('Propensity', {}, env => {
     let subscriptionState = null;
     sandbox
       .stub(PropensityServer.prototype, 'sendSubscriptionState')
-      .callsFake(state => {
+      .callsFake((state) => {
         subscriptionState = state;
       });
     expect(() => {
@@ -134,18 +134,18 @@ describes.realWin('Propensity', {}, env => {
     sandbox
       .stub(PropensityServer.prototype, 'sendSubscriptionState')
       .callsFake(() => {
-        throw new Error('publisher not whitelisted');
+        throw new Error('publisher not allowlisted');
       });
     expect(() => {
       propensity.sendSubscriptionState(SubscriptionState.UNKNOWN);
-    }).to.throw('publisher not whitelisted');
+    }).to.throw('publisher not allowlisted');
   });
 
   it('should send events to event manager', () => {
     let eventSent = null;
     sandbox
       .stub(ClientEventManager.prototype, 'logEvent')
-      .callsFake(event => (eventSent = event));
+      .callsFake((event) => (eventSent = event));
     propensity.sendEvent({
       name: Event.IMPRESSION_PAYWALL,
     });
@@ -161,11 +161,13 @@ describes.realWin('Propensity', {}, env => {
     let hasError;
     let receivedEvent;
 
-    sandbox.stub(ClientEventManager.prototype, 'logEvent').callsFake(event => {
-      receivedEvent = event;
-    });
+    sandbox
+      .stub(ClientEventManager.prototype, 'logEvent')
+      .callsFake((event) => {
+        receivedEvent = event;
+      });
 
-    const testSend = event => {
+    const testSend = (event) => {
       try {
         hasError = false;
         receivedEvent = null;
@@ -261,7 +263,7 @@ describes.realWin('Propensity', {}, env => {
     ];
     sandbox.stub(PropensityServer.prototype, 'getPropensity').callsFake(
       () =>
-        new Promise(resolve => {
+        new Promise((resolve) => {
           setTimeout(() => {
             resolve({
               'header': {'ok': true},

@@ -27,7 +27,7 @@ export function acceptPortResultData(
   requireOriginVerified,
   requireSecureChannel
 ) {
-  return port.acceptResult().then(result => {
+  return port.acceptResult().then((result) => {
     if (
       result.origin != requireOrigin ||
       (requireOriginVerified && !result.originVerified) ||

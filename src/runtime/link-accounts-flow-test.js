@@ -36,7 +36,7 @@ import {PageConfig} from '../model/page-config';
 import {createCancelError} from '../utils/errors';
 import {tick} from '../../test/tick';
 
-describes.realWin('LinkbackFlow', {}, env => {
+describes.realWin('LinkbackFlow', {}, (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -53,7 +53,7 @@ describes.realWin('LinkbackFlow', {}, env => {
     activitiesMock = sandbox.mock(runtime.activities());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     receivedType = null;
-    sandbox.stub(runtime.eventManager(), 'logSwgEvent').callsFake(type => {
+    sandbox.stub(runtime.eventManager(), 'logSwgEvent').callsFake((type) => {
       receivedType = type;
     });
     linkbackFlow = new LinkbackFlow(runtime);
@@ -69,10 +69,7 @@ describes.realWin('LinkbackFlow', {}, env => {
 
   it('should start correctly', () => {
     const popupWin = {};
-    dialogManagerMock
-      .expects('popupOpened')
-      .withExactArgs(popupWin)
-      .once();
+    dialogManagerMock.expects('popupOpened').withExactArgs(popupWin).once();
     activitiesMock
       .expects('open')
       .withExactArgs(
@@ -96,10 +93,7 @@ describes.realWin('LinkbackFlow', {}, env => {
 
   it('should pass along ampReaderId param', () => {
     const popupWin = {};
-    dialogManagerMock
-      .expects('popupOpened')
-      .withExactArgs(popupWin)
-      .once();
+    dialogManagerMock.expects('popupOpened').withExactArgs(popupWin).once();
     activitiesMock
       .expects('open')
       .withExactArgs(
@@ -124,10 +118,7 @@ describes.realWin('LinkbackFlow', {}, env => {
 
   it('should force redirect mode', () => {
     runtime.configure({windowOpenMode: 'redirect'});
-    dialogManagerMock
-      .expects('popupOpened')
-      .withExactArgs(undefined)
-      .once();
+    dialogManagerMock.expects('popupOpened').withExactArgs(undefined).once();
     activitiesMock
       .expects('open')
       .withExactArgs(
@@ -147,7 +138,7 @@ describes.realWin('LinkbackFlow', {}, env => {
   });
 });
 
-describes.realWin('LinkCompleteFlow', {}, env => {
+describes.realWin('LinkCompleteFlow', {}, (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -195,7 +186,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       .expects('onResult')
       .withExactArgs(
         'swg-link',
-        sandbox.match(arg => {
+        sandbox.match((arg) => {
           handler = arg;
           return typeof arg == 'function';
         })
@@ -221,13 +212,13 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.acceptResult = () => Promise.resolve(result);
 
     let startResolver;
-    const startPromise = new Promise(resolve => {
+    const startPromise = new Promise((resolve) => {
       startResolver = resolve;
     });
     let instance;
     const startStub = sandbox
       .stub(LinkCompleteFlow.prototype, 'start')
-      .callsFake(function() {
+      .callsFake(function () {
         instance = this;
         startResolver();
       });
@@ -249,7 +240,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       .expects('onResult')
       .withExactArgs(
         'swg-link',
-        sandbox.match(arg => {
+        sandbox.match((arg) => {
           handler = arg;
           return typeof arg == 'function';
         })
@@ -300,7 +291,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
@@ -328,14 +319,14 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
-    const resultPromise = new Promise(resolve => {
+    const resultPromise = new Promise((resolve) => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/u/1/swg/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
@@ -345,14 +336,8 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       )
       .returns(Promise.resolve(port))
       .once();
-    entitlementsManagerMock
-      .expects('setToastShown')
-      .withExactArgs(true)
-      .once();
-    entitlementsManagerMock
-      .expects('reset')
-      .withExactArgs(true)
-      .once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
+    entitlementsManagerMock.expects('reset').withExactArgs(true).once();
     entitlementsManagerMock
       .expects('unblockNextNotification')
       .withExactArgs()
@@ -390,14 +375,14 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
-    const resultPromise = new Promise(resolve => {
+    const resultPromise = new Promise((resolve) => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/u/1/swg/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
@@ -407,15 +392,12 @@ describes.realWin('LinkCompleteFlow', {}, env => {
       )
       .returns(Promise.resolve(port))
       .once();
-    entitlementsManagerMock
-      .expects('setToastShown')
-      .withExactArgs(true)
-      .once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     const order = [];
     entitlementsManagerMock
       .expects('reset')
       .withExactArgs(
-        sandbox.match(arg => {
+        sandbox.match((arg) => {
           if (order.indexOf('reset') == -1) {
             order.push('reset');
           }
@@ -426,7 +408,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     entitlementsManagerMock
       .expects('pushNextEntitlements')
       .withExactArgs(
-        sandbox.match(arg => {
+        sandbox.match((arg) => {
           if (order.indexOf('pushNextEntitlements') == -1) {
             order.push('pushNextEntitlements');
           }
@@ -476,22 +458,13 @@ describes.realWin('LinkCompleteFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
-    const resultPromise = new Promise(resolve => {
+    const resultPromise = new Promise((resolve) => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
-    activitiesMock
-      .expects('openIframe')
-      .returns(Promise.resolve(port))
-      .once();
-    entitlementsManagerMock
-      .expects('reset')
-      .withExactArgs(false)
-      .once();
-    entitlementsManagerMock
-      .expects('setToastShown')
-      .withExactArgs(true)
-      .once();
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port)).once();
+    entitlementsManagerMock.expects('reset').withExactArgs(false).once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     entitlementsManagerMock
       .expects('unblockNextNotification')
       .withExactArgs()
@@ -523,7 +496,7 @@ describes.realWin('LinkCompleteFlow', {}, env => {
   });
 });
 
-describes.realWin('LinkSaveFlow', {}, env => {
+describes.realWin('LinkSaveFlow', {}, (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -571,7 +544,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
       const label = messageType.label();
       messageMap[label] = cb;
     });
-    const resultPromise = new Promise(resolve => {
+    const resultPromise = new Promise((resolve) => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
@@ -593,7 +566,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
@@ -716,7 +689,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   it('should respond with subscription request with token', async () => {
     const saveToken = new LinkSaveTokenRequest();
     saveToken.setToken('test');
-    const reqPromise = new Promise(resolve => {
+    const reqPromise = new Promise((resolve) => {
       resolve({token: 'test'});
     });
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
@@ -737,7 +710,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
   it('should respond with subscription request with authCode', async () => {
     const saveToken = new LinkSaveTokenRequest();
     saveToken.setAuthCode('testCode');
-    const reqPromise = new Promise(resolve => {
+    const reqPromise = new Promise((resolve) => {
       resolve({authCode: 'testCode'});
     });
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
@@ -798,7 +771,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
@@ -832,7 +805,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
@@ -871,7 +844,7 @@ describes.realWin('LinkSaveFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )

@@ -44,7 +44,7 @@ function getPropensityEventFromUrl(capturedUrl) {
   };
 }
 
-describes.realWin('PropensityServer', {}, env => {
+describes.realWin('PropensityServer', {}, (env) => {
   let win;
   let propensityServer;
   let eventManager;
@@ -71,10 +71,10 @@ describes.realWin('PropensityServer', {}, env => {
     eventManager = new ClientEventManager(Promise.resolve());
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
-      .callsFake(callback => (registeredCallback = callback));
+      .callsFake((callback) => (registeredCallback = callback));
     pageConfig = new PageConfig('pub1', true);
     propensityServer = new PropensityServer(win, fakeDeps, fetcher);
-    sandbox.stub(ServiceUrl, 'adsUrl').callsFake(url => serverUrl + url);
+    sandbox.stub(ServiceUrl, 'adsUrl').callsFake((url) => serverUrl + url);
     defaultEvent = {
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
@@ -90,7 +90,7 @@ describes.realWin('PropensityServer', {}, env => {
       sandbox.stub(fetcher, 'fetch').callsFake((url, init) => {
         capturedUrl = url;
         capturedRequest = init;
-        return Promise.reject(new Error('Publisher not whitelisted'));
+        return Promise.reject(new Error('Publisher not allowlisted'));
       });
       sandbox
         .stub(PropensityServer.prototype, 'getDocumentCookie_')
@@ -101,7 +101,7 @@ describes.realWin('PropensityServer', {}, env => {
           SubscriptionState.SUBSCRIBER,
           JSON.stringify(productsOrSkus)
         )
-      ).to.be.rejectedWith(/Publisher not whitelisted/);
+      ).to.be.rejectedWith(/Publisher not allowlisted/);
 
       const path = new URL(capturedUrl);
       expect(path.pathname).to.equal('/subopt/data');
@@ -440,7 +440,7 @@ describes.realWin('PropensityServer', {}, env => {
 
     beforeEach(() => {
       config.enablePropensity = false;
-      sandbox.stub(fetcher, 'fetch').callsFake(url => {
+      sandbox.stub(fetcher, 'fetch').callsFake((url) => {
         const event = getPropensityEventFromUrl(url);
         receivedType = event.name;
         receivedContext = event.data;

@@ -177,7 +177,7 @@ export class PayCompleteFlow {
     /** @const @type {./client-event-manager.ClientEventManager} */
     const eventManager = deps.eventManager();
 
-    deps.payClient().onResponse(payPromise => {
+    deps.payClient().onResponse((payPromise) => {
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
       const promise = validatePayResponse(
@@ -187,7 +187,7 @@ export class PayCompleteFlow {
       );
       deps.callbacks().triggerPaymentResponse(promise);
       return promise.then(
-        response => {
+        (response) => {
           const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
           deps.analytics().setSku(sku || '');
           eventManager.logSwgEvent(
@@ -197,7 +197,7 @@ export class PayCompleteFlow {
           );
           flow.start(response);
         },
-        reason => {
+        (reason) => {
           if (isCancelError(reason)) {
             const productType = /** @type {!Object} */ (reason)['productType'];
             const flow =
@@ -269,10 +269,12 @@ export class PayCompleteFlow {
     );
     this.deps_.entitlementsManager().reset(true);
     this.response_ = response;
+    // TODO(dianajing): future-proof isOneTime flag
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'productType': this.response_['productType'],
       'isSubscriptionUpdate': !!this.response_['oldSku'],
+      'isOneTime': !!this.response_['paymentRecurrence'],
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
@@ -358,7 +360,7 @@ PayCompleteFlow.waitingForPayClient_ = false;
 function validatePayResponse(deps, payPromise, completeHandler) {
   const wasRedirect = !PayCompleteFlow.waitingForPayClient_;
   PayCompleteFlow.waitingForPayClient_ = false;
-  return payPromise.then(data => {
+  return payPromise.then((data) => {
     // 1) We log against a random TX ID which is how we track a specific user
     //    anonymously.
     // 2) If there was a redirect to gPay, we may have lost our stored TX ID.
@@ -413,6 +415,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
   let raw = null;
   let productType = ProductType.SUBSCRIPTION;
   let oldSku = null;
+  let paymentRecurrence = null;
 
   if (data) {
     if (typeof data == 'string') {
@@ -428,6 +431,9 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
       }
       if ('paymentRequest' in data) {
         oldSku = (data['paymentRequest']['swg'] || {})['oldSku'];
+        paymentRecurrence = (data['paymentRequest']['swg'] || {})[
+          'paymentRecurrence'
+        ];
         productType =
           (data['paymentRequest']['i'] || {})['productType'] ||
           ProductType.SUBSCRIPTION;
@@ -452,7 +458,8 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     parseEntitlements(deps, swgData),
     productType,
     completeHandler,
-    oldSku
+    oldSku,
+    paymentRecurrence
   );
 }
 
@@ -498,10 +505,8 @@ export function parseEntitlements(deps, swgData) {
  * @return {?string}
  */
 function parseSkuFromPurchaseDataSafe(purchaseData) {
-  return (
-    /** @type {?string} */ (getPropertyFromJsonString(
-      purchaseData.raw,
-      'productId'
-    ) || null)
-  );
+  return /** @type {?string} */ (getPropertyFromJsonString(
+    purchaseData.raw,
+    'productId'
+  ) || null);
 }

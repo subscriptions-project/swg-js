@@ -165,7 +165,7 @@ export class Runtime {
     this.configuredResolver_ = null;
 
     /** @private @const {!Promise<!ConfiguredRuntime>} */
-    this.configuredPromise_ = new Promise(resolve => {
+    this.configuredPromise_ = new Promise((resolve) => {
       this.configuredResolver_ = resolve;
     });
 
@@ -202,13 +202,13 @@ export class Runtime {
         this.pageConfigResolver_ = new PageConfigResolver(this.doc_);
         pageConfigPromise = this.pageConfigResolver_
           .resolveConfig()
-          .then(config => {
+          .then((config) => {
             this.pageConfigResolver_ = null;
             return config;
           });
       }
       pageConfigPromise.then(
-        pageConfig => {
+        (pageConfig) => {
           this.configuredResolver_(
             new ConfiguredRuntime(
               this.doc_,
@@ -219,7 +219,7 @@ export class Runtime {
           );
           this.configuredResolver_ = null;
         },
-        reason => {
+        (reason) => {
           this.configuredResolver_(Promise.reject(reason));
           this.configuredResolver_ = null;
         }
@@ -257,187 +257,191 @@ export class Runtime {
   configure(config) {
     // Accumulate config for startup.
     Object.assign(this.config_, config);
-    return this.configured_(false).then(runtime => runtime.configure(config));
+    return this.configured_(false).then((runtime) => runtime.configure(config));
   }
 
   /** @override */
   start() {
-    return this.configured_(true).then(runtime => runtime.start());
+    return this.configured_(true).then((runtime) => runtime.start());
   }
 
   /** @override */
   reset() {
-    return this.configured_(true).then(runtime => runtime.reset());
+    return this.configured_(true).then((runtime) => runtime.reset());
   }
 
   /** @override */
   clear() {
-    return this.configured_(true).then(runtime => runtime.clear());
+    return this.configured_(true).then((runtime) => runtime.clear());
   }
 
   /** @override */
   getEntitlements(encryptedDocumentKey) {
-    return this.configured_(true).then(runtime =>
+    return this.configured_(true).then((runtime) =>
       runtime.getEntitlements(encryptedDocumentKey)
     );
   }
 
   /** @override */
   setOnEntitlementsResponse(callback) {
-    return this.configured_(false).then(runtime =>
+    return this.configured_(false).then((runtime) =>
       runtime.setOnEntitlementsResponse(callback)
     );
   }
 
   /** @override */
   getOffers(options) {
-    return this.configured_(true).then(runtime => runtime.getOffers(options));
+    return this.configured_(true).then((runtime) => runtime.getOffers(options));
   }
 
   /** @override */
   showOffers(options) {
-    return this.configured_(true).then(runtime => runtime.showOffers(options));
+    return this.configured_(true).then((runtime) =>
+      runtime.showOffers(options)
+    );
   }
 
   /** @override */
   showUpdateOffers(options) {
-    return this.configured_(true).then(runtime =>
+    return this.configured_(true).then((runtime) =>
       runtime.showUpdateOffers(options)
     );
   }
 
   /** @override */
   showSubscribeOption(options) {
-    return this.configured_(true).then(runtime =>
+    return this.configured_(true).then((runtime) =>
       runtime.showSubscribeOption(options)
     );
   }
 
   /** @override */
   showAbbrvOffer(options) {
-    return this.configured_(true).then(runtime =>
+    return this.configured_(true).then((runtime) =>
       runtime.showAbbrvOffer(options)
     );
   }
 
   /** @override */
   showContributionOptions(options) {
-    return this.configured_(true).then(runtime =>
+    return this.configured_(true).then((runtime) =>
       runtime.showContributionOptions(options)
     );
   }
 
   /** @override */
   waitForSubscriptionLookup(accountPromise) {
-    return this.configured_(true).then(runtime =>
+    return this.configured_(true).then((runtime) =>
       runtime.waitForSubscriptionLookup(accountPromise)
     );
   }
 
   /** @override */
   setOnNativeSubscribeRequest(callback) {
-    return this.configured_(false).then(runtime =>
+    return this.configured_(false).then((runtime) =>
       runtime.setOnNativeSubscribeRequest(callback)
     );
   }
 
   /** @override */
   setOnSubscribeResponse(callback) {
-    return this.configured_(false).then(runtime =>
+    return this.configured_(false).then((runtime) =>
       runtime.setOnSubscribeResponse(callback)
     );
   }
 
   /** @override */
   subscribe(sku) {
-    return this.configured_(true).then(runtime => runtime.subscribe(sku));
+    return this.configured_(true).then((runtime) => runtime.subscribe(sku));
   }
 
   /** @override */
   updateSubscription(subscriptionRequest) {
-    return this.configured_(true).then(runtime =>
+    return this.configured_(true).then((runtime) =>
       runtime.updateSubscription(subscriptionRequest)
     );
   }
 
   /** @override */
   setOnContributionResponse(callback) {
-    return this.configured_(false).then(runtime =>
+    return this.configured_(false).then((runtime) =>
       runtime.setOnContributionResponse(callback)
     );
   }
 
   /** @override */
   setOnPaymentResponse(callback) {
-    return this.configured_(false).then(runtime =>
+    return this.configured_(false).then((runtime) =>
       runtime.setOnPaymentResponse(callback)
     );
   }
 
   /** @override */
   contribute(skuOrSubscriptionRequest) {
-    return this.configured_(true).then(runtime =>
+    return this.configured_(true).then((runtime) =>
       runtime.contribute(skuOrSubscriptionRequest)
     );
   }
 
   /** @override */
   completeDeferredAccountCreation(options) {
-    return this.configured_(true).then(runtime =>
+    return this.configured_(true).then((runtime) =>
       runtime.completeDeferredAccountCreation(options)
     );
   }
 
   /** @override */
   setOnLoginRequest(callback) {
-    return this.configured_(false).then(runtime =>
+    return this.configured_(false).then((runtime) =>
       runtime.setOnLoginRequest(callback)
     );
   }
 
   /** @override */
   setOnLinkComplete(callback) {
-    return this.configured_(false).then(runtime =>
+    return this.configured_(false).then((runtime) =>
       runtime.setOnLinkComplete(callback)
     );
   }
 
   /** @override */
   linkAccount(params = {}) {
-    return this.configured_(true).then(runtime => runtime.linkAccount(params));
+    return this.configured_(true).then((runtime) =>
+      runtime.linkAccount(params)
+    );
   }
 
   /** @override */
   setOnFlowStarted(callback) {
-    return this.configured_(false).then(runtime =>
+    return this.configured_(false).then((runtime) =>
       runtime.setOnFlowStarted(callback)
     );
   }
 
   /** @override */
   setOnFlowCanceled(callback) {
-    return this.configured_(false).then(runtime =>
+    return this.configured_(false).then((runtime) =>
       runtime.setOnFlowCanceled(callback)
     );
   }
 
   /** @override */
   saveSubscription(saveSubscriptionRequestCallback) {
-    return this.configured_(true).then(runtime => {
+    return this.configured_(true).then((runtime) => {
       return runtime.saveSubscription(saveSubscriptionRequestCallback);
     });
   }
 
   /** @override */
   showLoginPrompt() {
-    return this.configured_(true).then(runtime => {
+    return this.configured_(true).then((runtime) => {
       return runtime.showLoginPrompt();
     });
   }
 
   /** @override */
   showLoginNotification() {
-    return this.configured_(true).then(runtime => {
+    return this.configured_(true).then((runtime) => {
       return runtime.showLoginNotification();
     });
   }
@@ -449,7 +453,7 @@ export class Runtime {
 
   /** @override */
   attachSmartButton(button, optionsOrCallback, callback) {
-    return this.configured_(true).then(runtime =>
+    return this.configured_(true).then((runtime) =>
       runtime.attachSmartButton(button, optionsOrCallback, callback)
     );
   }
@@ -461,14 +465,14 @@ export class Runtime {
 
   /** @override */
   getPropensityModule() {
-    return this.configured_(true).then(runtime => {
+    return this.configured_(true).then((runtime) => {
       return runtime.getPropensityModule();
     });
   }
 
   /** @override */
   getLogger() {
-    return this.configured_(true).then(runtime => runtime.getLogger());
+    return this.configured_(true).then((runtime) => runtime.getLogger());
   }
 }
 
@@ -574,14 +578,19 @@ export class ConfiguredRuntime {
     const preconnect = new Preconnect(this.win_.document);
 
     preconnect.prefetch('$assets$/loader.svg');
+    preconnect.preconnect('https://www.gstatic.com/');
+    preconnect.preconnect('https://fonts.googleapis.com/');
+    preconnect.preconnect('https://www.google.com/');
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
-    this.payClient_.preconnect(preconnect);
+    if (!isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD)) {
+      this.payClient_.preconnect(preconnect);
+    }
 
     injectStyleSheet(this.doc_, SWG_DIALOG);
 
     // Report redirect errors if any.
-    this.activityPorts_.onRedirectError(error => {
+    this.activityPorts_.onRedirectError((error) => {
       this.analyticsService_.addLabels(['redirect']);
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_PAYMENT_FAILED,
@@ -673,7 +682,7 @@ export class ConfiguredRuntime {
           }
           break;
         case 'experiments':
-          v.forEach(experiment => setExperiment(this.win_, experiment, true));
+          v.forEach((experiment) => setExperiment(this.win_, experiment, true));
           if (this.analytics()) {
             // If analytics service isn't set up yet, then it will get the
             // experiments later.
@@ -735,12 +744,13 @@ export class ConfiguredRuntime {
   getEntitlements(encryptedDocumentKey) {
     return this.entitlementsManager_
       .getEntitlements(encryptedDocumentKey)
-      .then(entitlements => {
+      .then((entitlements) => {
         // Auto update internal things tracking the user's current SKU.
         if (entitlements) {
           try {
             const skus = entitlements.entitlements.map(
-              entitlement => entitlement.getSku() || 'unknown subscriptionToken'
+              (entitlement) =>
+                entitlement.getSku() || 'unknown subscriptionToken'
             );
             if (skus.length > 0) {
               this.analyticsService_.setSku(skus.join(','));

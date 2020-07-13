@@ -17,7 +17,7 @@
 import * as dom from './dom';
 import {resolveDoc} from '../model/doc';
 
-describes.realWin('Dom', {}, env => {
+describes.realWin('Dom', {}, (env) => {
   let doc;
 
   beforeEach(() => {
@@ -208,7 +208,7 @@ describes.realWin('Dom', {}, env => {
     it('should fallback to polyfill w/o native isConnected', () => {
       const doc = {
         documentElement: {
-          contains: node => node.connected_,
+          contains: (node) => node.connected_,
         },
       };
       expect(dom.isConnected({ownerDocument: doc, connected_: true})).to.be

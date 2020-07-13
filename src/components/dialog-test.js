@@ -22,7 +22,7 @@ const NO_ANIMATE = false;
 const ANIMATE = true;
 const HIDDEN = true;
 
-describes.realWin('Dialog', {}, env => {
+describes.realWin('Dialog', {}, (env) => {
   let win;
   let doc;
   let dialog;
@@ -44,7 +44,7 @@ describes.realWin('Dialog', {}, env => {
     element = doc.createElement('div');
     view = {
       getElement: () => element,
-      init: dialog => Promise.resolve(dialog),
+      init: (dialog) => Promise.resolve(dialog),
       resized: () => {},
       shouldFadeBody: () => true,
       hasLoadingIndicator: () => false,
@@ -53,7 +53,7 @@ describes.realWin('Dialog', {}, env => {
 
   /** Updates `setTimeout` to immediately call its callback. */
   function immediate() {
-    win.setTimeout = callback => callback();
+    win.setTimeout = (callback) => callback();
   }
 
   describe('dialog', () => {
@@ -282,7 +282,7 @@ describes.realWin('Dialog', {}, env => {
       await openedDialog.openView(view);
       const view2 = {
         getElement: () => element,
-        init: dialog => Promise.resolve(dialog),
+        init: (dialog) => Promise.resolve(dialog),
         resized: () => {},
         shouldFadeBody: () => true,
         hasLoadingIndicator: () => false,

@@ -69,7 +69,7 @@ export class XhrFetcher {
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
     });
-    return this.fetch(url, init).then(response => response.json());
+    return this.fetch(url, init).then((response) => response.json());
   }
 
   sendMessage(url, message) {

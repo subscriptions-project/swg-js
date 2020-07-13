@@ -45,7 +45,7 @@ export function throttle(win, callback, minInterval) {
     }
   }
 
-  return function(...args) {
+  return function (...args) {
     if (locker) {
       nextCallArgs = args;
     } else {
@@ -84,7 +84,7 @@ export function debounce(win, callback, minInterval) {
     }
   }
 
-  return function(...args) {
+  return function (...args) {
     timestamp = win.Date.now();
     nextCallArgs = args;
     if (!locker) {

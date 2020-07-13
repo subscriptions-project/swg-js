@@ -48,7 +48,6 @@ export class LoginNotificationApi {
         productId: deps.pageConfig().getProductId(),
         // No need to ask the user. Just tell them you're logging them in.
         userConsent: false,
-        // TODO(chenshay): Pass entitlements value here.
       }),
       /* shouldFadeBody */ true
     );
@@ -72,7 +71,7 @@ export class LoginNotificationApi {
         // The consent part is complete.
         this.dialogManager_.completeView(this.activityIframeView_);
       },
-      reason => {
+      (reason) => {
         this.dialogManager_.completeView(this.activityIframeView_);
         throw reason;
       }

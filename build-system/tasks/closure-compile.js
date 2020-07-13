@@ -35,7 +35,7 @@ const {red} = require('ansi-colors');
 // Compiles code with the closure compiler. This is intended only for
 // production use. During development we intent to continue using
 // babel, as it has much faster incremental compilation.
-exports.closureCompile = function(
+exports.closureCompile = function (
   entryModuleFilename,
   outputDir,
   outputFilename,
@@ -43,11 +43,11 @@ exports.closureCompile = function(
 ) {
   // Rate limit closure compilation to MAX_PARALLEL_CLOSURE_INVOCATIONS
   // concurrent processes.
-  return new Promise(function(resolve) {
+  return new Promise(function (resolve) {
     function start() {
       inProgress++;
       compile(entryModuleFilename, outputDir, outputFilename, options).then(
-        function() {
+        function () {
           if (isTravisBuild()) {
             // When printing simplified log in travis, use dot for each task.
             process.stdout.write('.');
@@ -56,7 +56,7 @@ exports.closureCompile = function(
           next();
           resolve();
         },
-        function(e) {
+        function (e) {
           console./*OK*/ error(red('Compilation error', e.message));
           process.exit(1);
         }
@@ -81,7 +81,7 @@ exports.closureCompile = function(
 };
 
 function compile(entryModuleFilenames, outputDir, outputFilename, options) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let entryModuleFilename;
     if (entryModuleFilenames instanceof Array) {
       entryModuleFilename = entryModuleFilenames[0];
@@ -147,7 +147,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       srcs.push('!src/polyfills.js');
       unneededFiles.push('build/fake-module/src/polyfills.js');
     }
-    unneededFiles.forEach(function(fake) {
+    unneededFiles.forEach(function (fake) {
       if (!fs.existsSync(fake)) {
         fs.writeFileSync(
           fake,
@@ -238,7 +238,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     let stream = gulp
       .src(srcs)
       .pipe(closureCompiler(compilerOptions))
-      .on('error', function(err) {
+      .on('error', function (err) {
         console./*OK*/ error(red('Error compiling', entryModuleFilenames));
         console./*OK*/ error(red(err.message));
         process.exit(1);
@@ -257,7 +257,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       }
 
       // Complete build: dist and source maps.
-      stream = stream.pipe(gulp.dest(outputDir)).on('end', function() {
+      stream = stream.pipe(gulp.dest(outputDir)).on('end', function () {
         gulp
           .src(intermediateFilename + '.map')
           .pipe(rename(outputFilename + '.map'))

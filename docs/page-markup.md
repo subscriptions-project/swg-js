@@ -47,9 +47,18 @@ Using JSON-LD, the markup would look like:
 ```
 
 Thus, notice that:
- 1. The product ID is "norcal_tribune.com:basic" (`"productID": "norcal_tribune.com:basic"`).
- 2. This document is currently locked (`"isAccessibleForFree": false`)
-
+ 1. The type must include `"CreativeWork"` or one of the following more specific types of `CreativeWork`: 
+    - `Article`
+    - `NewsArticle`
+    - `Blog`
+    - `Comment`
+    - `Course`
+    - `HowTo`
+    - `Message`
+    - `Review`
+2. `"isAccessibleForFree"` is a required field. Its value can be true or false. `isAccessibleForFree": true` indicates that content is available for free. 
+3. The type in `isPartOf` must include "Product". 
+4. The product ID is [publication]:[label], for example `"productID": "norcal_tribune.com:basic"`.
 
 ## Microdata markup
 
@@ -69,8 +78,17 @@ A usable configuration will provide `NewsArticle` typed item with `isAccessibleF
 subitem of type `Product` that specifies the `productID`.
 
 In this example:
- 1. The product ID is "norcal_tribune.com:basic" (`"productID": "norcal_tribune.com:basic"`).
- 2. This document is currently locked (`"isAccessibleForFree": false`)
+ 1. `itemtype` must include `"CreativeWork"` or one of the following more specific types of `CreativeWork`: 
+    - `Article`
+    - `NewsArticle`
+    - `Blog`
+    - `Comment`
+    - `Course`
+    - `HowTo`
+    - `Message`
+    - `Review`
+ 2. `"isAccessibleForFree"` can be true or false. `isAccessibleForFree": true` indicates that content is available for free. 
+ 2. The product ID is [publication]:[label], for example `"productID": "norcal_tribune.com:basic"`.
 
 The configuration is resolved as soon as `productID` and `isAccessibleForFree` are found. It is, therefore,
 advised to place the configuration as high up in the DOM tree as possible.

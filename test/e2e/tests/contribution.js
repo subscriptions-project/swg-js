@@ -16,7 +16,7 @@
 
 module.exports = {
   '@tags': ['contribution'],
-  'Show contribution options': function(browser) {
+  'Show contribution options': function (browser) {
     const setup = browser.page.setup();
     setup.navigate().select('local');
 

@@ -20,7 +20,7 @@
 
 const constants = require('../constants');
 
-module.exports.command = function() {
+module.exports.command = function () {
   return this.pause(1000)
     .switchToWindow('gpay window')
     .switchToFrame('[src*="about:blank"]', 'iFrame in payment window')

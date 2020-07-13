@@ -95,8 +95,8 @@ export class Xhr {
     init = setupInit(init);
     return this.fetch_(input, init)
       .then(
-        response => response,
-        reason => {
+        (response) => response,
+        (reason) => {
           const targetOrigin = parseUrl(input).origin;
           throw new Error(
             `XHR Failed fetching (${targetOrigin}/...):`,
@@ -104,7 +104,7 @@ export class Xhr {
           );
         }
       )
-      .then(response => assertSuccess(response));
+      .then((response) => assertSuccess(response));
   }
 }
 
@@ -161,7 +161,7 @@ function setupInit(init, accept) {
  * @private Visible for testing
  */
 export function fetchPolyfill(input, init) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     const xhr = createXhrRequest(init.method || 'GET', input);
 
     if (init.credentials == 'include') {
@@ -173,7 +173,7 @@ export function fetchPolyfill(input, init) {
     }
 
     if (init.headers) {
-      Object.keys(init.headers).forEach(function(header) {
+      Object.keys(init.headers).forEach(function (header) {
         xhr.setRequestHeader(header, init.headers[header]);
       });
     }
@@ -241,7 +241,7 @@ function isRetriable(status) {
  * @private Visible for testing
  */
 export function assertSuccess(response) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     if (response.ok) {
       return resolve(response);
     }

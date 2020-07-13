@@ -19,7 +19,7 @@ import {LoadingView} from './loading-view';
 import {injectStyleSheet} from '../utils/dom';
 import {resolveDoc} from '../model/doc';
 
-describes.realWin('LoadingView', {}, env => {
+describes.realWin('LoadingView', {}, (env) => {
   let doc;
   let win;
   let body;

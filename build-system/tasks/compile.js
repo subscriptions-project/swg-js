@@ -38,7 +38,7 @@ const {red} = require('ansi-colors');
 /**
  * @return {!Promise}
  */
-exports.compile = async function(options = {}) {
+exports.compile = async function (options = {}) {
   mkdirSync('build');
   mkdirSync('build/cc');
   mkdirSync('build/fake-module');
@@ -75,7 +75,7 @@ exports.compile = async function(options = {}) {
 /**
  * @return {!Promise}
  */
-exports.checkTypes = function(opts) {
+exports.checkTypes = function (opts) {
   return exports.compile(
     Object.assign(opts || {}, {
       toName: 'check-types.max.js',
@@ -107,7 +107,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
       options.minifiedName,
       options
     )
-      .then(function() {
+      .then(function () {
         fs.writeFileSync(destDir + '/version.txt', internalRuntimeVersion);
         if (options.latestName) {
           fs.copySync(
@@ -159,7 +159,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
     await toPromise(
       bundler
         .bundle()
-        .on('error', err => {
+        .on('error', (err) => {
           console.error(red(err));
         })
         .pipe(lazybuild())
@@ -171,7 +171,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   }
 
   if (options.watch) {
-    bundler.on('update', function() {
+    bundler.on('update', function () {
       rebundle();
       // Touch file in unit test set. This triggers rebundling of tests because
       // karma only considers changes to tests files themselves re-bundle
@@ -205,21 +205,21 @@ function compileCss(srcDir, outputDir, options) {
   options = options || {};
 
   if (options.watch) {
-    $$.watch(srcDir + '**/*.css', function() {
+    $$.watch(srcDir + '**/*.css', function () {
       compileCss(srcDir, outputDir, Object.assign({}, options, {watch: false}));
     });
   }
 
   const startTime = Date.now();
-  return new Promise(resolve => {
-    glob('**/*.css', {cwd: srcDir}, function(er, files) {
+  return new Promise((resolve) => {
+    glob('**/*.css', {cwd: srcDir}, function (er, files) {
       resolve(files);
     });
   })
-    .then(files => {
-      const promises = files.map(file => {
+    .then((files) => {
+      const promises = files.map((file) => {
         const srcFile = srcDir + file;
-        return jsifyCssAsync(srcFile).then(css => {
+        return jsifyCssAsync(srcFile).then((css) => {
           const targetFile = outputDir + '/' + file + '.js';
           mkdirSync(pathLib.dirname(targetFile));
           fs.writeFileSync(
@@ -236,7 +236,7 @@ function compileCss(srcDir, outputDir, options) {
 }
 
 function toPromise(readable) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     readable.on('error', reject).on('end', resolve);
   });
 }

@@ -269,7 +269,13 @@ describes.sandboxed('SubscribeResponse', {}, () => {
   beforeEach(() => {
     pd = new PurchaseData('PD_RAW', 'PD_SIG');
     ud = new UserData('ID_TOKEN', {sub: '1234'});
-    entitlements = new Entitlements('service1', 'RaW', [], null, function() {});
+    entitlements = new Entitlements(
+      'service1',
+      'RaW',
+      [],
+      null,
+      function () {}
+    );
     promise = Promise.resolve();
     complete = () => promise;
     sr = new SubscribeResponse('SR_RAW', pd, ud, entitlements, null, complete);

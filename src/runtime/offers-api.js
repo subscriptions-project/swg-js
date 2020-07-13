@@ -54,7 +54,7 @@ export class OffersApi {
         encodeURIComponent(productId)
     );
     // TODO(dvoytenko): switch to a non-credentialed request after launch.
-    return this.fetcher_.fetchCredentialedJson(url).then(json => {
+    return this.fetcher_.fetchCredentialedJson(url).then((json) => {
       return json['offers'] || [];
     });
   }

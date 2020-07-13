@@ -59,8 +59,8 @@
  * objects. See the type definitions for `sandboxed` and `realWin` below.
  */
 
+import 'regenerator-runtime/runtime';
 import * as sinon from 'sinon';
-import fetchMock from 'fetch-mock';
 
 /** Should have something in the name, otherwise nothing is shown. */
 const SUB = ' ';
@@ -151,22 +151,6 @@ export const repeated = (function() {
 
   return mainFunc;
 })();
-
-/**
- * Mocks Window.fetch in the given environment and exposes `env.fetchMock`. For
- * convenience, also exposes fetch-mock's mock() function as
- * `env.expectFetch(matcher, response)`.
- *
- * @param {!Object} env
- * @see http://www.wheresrhys.co.uk/fetch-mock/quickstart
- */
-function attachFetchMock(env) {
-  fetchMock.constructor.global = env.win;
-  fetchMock._mock();
-
-  env.fetchMock = fetchMock;
-  env.expectFetch = fetchMock.mock.bind(fetchMock);
-}
 
 /**
  * Returns a wrapped version of Mocha's describe(), it() and only() methods
@@ -342,10 +326,6 @@ class RealWinFixture {
           doNotLoadExternalResourcesInTest(win);
         }
 
-        if (spec.mockFetch !== false) {
-          attachFetchMock(env);
-        }
-
         resolve();
       };
       iframe.onerror = reject;
@@ -358,9 +338,6 @@ class RealWinFixture {
     // TODO(dvoytenko): test that window is returned in a good condition.
     if (env.iframe.parentNode) {
       env.iframe.parentNode.removeChild(env.iframe);
-    }
-    if (this.spec.mockFetch !== false) {
-      fetchMock./*OK*/ restore();
     }
   }
 }

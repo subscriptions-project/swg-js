@@ -51,6 +51,18 @@ export const ExperimentFlags = {
    */
   LOGGING_BEACON: 'logging-beacon',
 
+  /** Enables googleTransactionID change. With the experiment on the ID is
+   *  changed from '<uuid>' to '<uuid>.swg'.
+   */
+  UPDATE_GOOGLE_TRANSACTION_ID: 'update-google-transaction-id',
+
+  /**
+   * Enables PayClient to be instantiated within start() instead of upon instantiation.
+   * Also moves google preconnects to Runtime from PayClient, and runs Pay
+   * preloads upon start() instead of within the ctor.
+   */
+  PAY_CLIENT_LAZYLOAD: 'pay-client-lazyload',
+
   /** 
    * Enables the metering experiment.
    */

@@ -19,6 +19,7 @@ import {PageConfig} from './page-config';
 import {debugLog} from '../utils/log';
 import {hasNextNodeInDocumentOrder} from '../utils/dom';
 import {tryParseJson} from '../utils/json';
+import {user} from '../utils/error-logger';
 
 const ALREADY_SEEN = '__SWG-SEEN__';
 const CONTROL_FLAG = 'subscriptions-control';
@@ -53,7 +54,7 @@ export class PageConfigResolver {
     this.configResolver_ = null;
 
     /** @private @const {!Promise<!PageConfig>} */
-    this.configPromise_ = new Promise(resolve => {
+    this.configPromise_ = new Promise((resolve) => {
       this.configResolver_ = resolve;
     });
 
@@ -96,7 +97,9 @@ export class PageConfigResolver {
       this.configResolver_ = null;
     } else if (this.doc_.isReady()) {
       this.configResolver_(
-        Promise.reject(new Error('No config could be discovered in the page'))
+        Promise.reject(
+          user().createError('No config could be discovered in the page')
+        )
       );
       this.configResolver_ = null;
     }
@@ -141,7 +144,7 @@ class TypeChecker {
    */
   checkArray(typeArray, expectedTypes) {
     let found = false;
-    typeArray.forEach(candidateType => {
+    typeArray.forEach((candidateType) => {
       found =
         found ||
         expectedTypes.includes(
@@ -477,7 +480,7 @@ class MicrodataParser {
     // Grab all the nodes with an itemtype and filter for our allowed types
     const nodeList = Array.prototype.slice
       .call(this.doc_.getRootNode().querySelectorAll('[itemscope][itemtype]'))
-      .filter(node =>
+      .filter((node) =>
         this.checkType_.checkString(
           node.getAttribute('itemtype'),
           ALLOWED_TYPES

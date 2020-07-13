@@ -96,13 +96,13 @@ export class DeferredAccountFlow {
 
     this.openPromise_ = this.dialogManager_.openView(this.activityIframeView_);
     return this.activityIframeView_.acceptResult().then(
-      result => {
+      (result) => {
         // The consent part is complete.
         return this.handleConsentResponse_(
           /** @type {!Object} */ (result.data)
         );
       },
-      reason => {
+      (reason) => {
         if (isCancelError(reason)) {
           this.deps_
             .callbacks()
@@ -138,7 +138,7 @@ export class DeferredAccountFlow {
     );
     const purchaseDataList = data['purchaseDataList']
       ? data['purchaseDataList'].map(
-          pd => new PurchaseData(pd['data'], pd['signature'])
+          (pd) => new PurchaseData(pd['data'], pd['signature'])
         )
       : [
           // TODO(dvoytenko): cleanup/deprecate.

@@ -15,9 +15,9 @@
  */
 'use strict';
 
-module.exports = function(context) {
+module.exports = function (context) {
   return {
-    ArrayPattern: function(node) {
+    ArrayPattern: function (node) {
       context.report(node, 'No Array destructuring allowed.');
     },
   };

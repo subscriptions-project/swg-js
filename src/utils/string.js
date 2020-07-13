@@ -161,3 +161,7 @@ export function getUuid() {
   }
   return uuid;
 }
+
+export function getSwgTransactionId() {
+  return getUuid() + '.swg';
+}

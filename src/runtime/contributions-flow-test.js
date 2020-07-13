@@ -25,7 +25,7 @@ import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
 
-describes.realWin('ContributionsFlow', {}, env => {
+describes.realWin('ContributionsFlow', {}, (env) => {
   let win;
   let contributionsFlow;
   let runtime;
@@ -47,7 +47,7 @@ describes.realWin('ContributionsFlow', {}, env => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    sandbox.stub(port, 'on').callsFake(function(ctor, cb) {
+    sandbox.stub(port, 'on').callsFake(function (ctor, cb) {
       const messageType = new ctor();
       const messageLabel = messageType.label();
       messageMap[messageLabel] = cb;
@@ -64,7 +64,7 @@ describes.realWin('ContributionsFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',
@@ -87,7 +87,7 @@ describes.realWin('ContributionsFlow', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',

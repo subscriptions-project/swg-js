@@ -19,7 +19,7 @@ import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 
-describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
+describes.realWin('WaitForSubscriptionLookupApi', {}, (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -47,7 +47,7 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     accountPromise = Promise.resolve(account);
     waitingApi = new WaitForSubscriptionLookupApi(runtime, accountPromise);
     resultResolver = null;
-    const resultPromise = new Promise(resolve => {
+    const resultPromise = new Promise((resolve) => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
@@ -63,7 +63,7 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, env => {
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
-        sandbox.match(arg => arg.tagName == 'IFRAME'),
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/waitforsubscriptionlookupiframe?_=_',
         {
           _client: 'SwG $internalRuntimeVersion$',

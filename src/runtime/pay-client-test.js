@@ -15,9 +15,11 @@
  */
 
 import {ConfiguredRuntime} from './runtime';
+import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {PayClient, RedirectVerifierHelper} from './pay-client';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
+import {setExperiment} from './experiments';
 import {setExperimentsStringForTesting} from './experiments';
 
 const INTEGR_DATA_STRING =
@@ -34,7 +36,7 @@ const INTEGR_DATA_OBJ = {
 
 const GOOGLE_TRANSACTION_ID = 'ABC12345-CDE0-XYZ1-ABAB-11609E6472E9';
 
-describes.realWin('PayClient', {}, env => {
+describes.realWin('PayClient', {}, (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -62,7 +64,7 @@ describes.realWin('PayClient', {}, env => {
       prepare: sandbox.stub(RedirectVerifierHelper.prototype, 'prepare'),
       useVerifier: sandbox
         .stub(RedirectVerifierHelper.prototype, 'useVerifier')
-        .callsFake(callback => {
+        .callsFake((callback) => {
           callback(redirectVerifierHelperResults.verifier);
         }),
     };
@@ -133,7 +135,29 @@ describes.realWin('PayClient', {}, env => {
     });
   });
 
-  it('should force redirect mode', async function() {
+  it('should have valid flow constructed when PayClient lazy loaded', () => {
+    setExperiment(win, ExperimentFlags.PAY_CLIENT_LAZYLOAD, true);
+    payClient.start({
+      'paymentArgs': {'a': 1},
+    });
+    expect(payClientStubs.create).to.be.calledOnce.calledWith({
+      'environment': '$payEnvironment$',
+      'i': {
+        'redirectKey': 'test_restore_key',
+      },
+    });
+    expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
+    expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
+    expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+      'paymentArgs': {'a': 1},
+      'i': {
+        'redirectVerifier': redirectVerifierHelperResults.verifier,
+        'disableNative': true,
+      },
+    });
+  });
+
+  it('should force redirect mode', async function () {
     await payClient.start(
       {
         'paymentArgs': {'a': 1},
@@ -151,6 +175,16 @@ describes.realWin('PayClient', {}, env => {
         'disableNative': true,
       },
     });
+  });
+
+  it('should prefetch payments on start', () => {
+    setExperiment(win, ExperimentFlags.PAY_CLIENT_LAZYLOAD, true);
+    payClient.start({});
+    const el = win.document.head.querySelector(
+      'link[rel="preconnect prefetch"][href*="/pay?"]'
+    );
+    expect(el).to.exist;
+    expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
   });
 
   it('should accept a correct payment response', async () => {
@@ -193,7 +227,7 @@ describes.realWin('PayClient', {}, env => {
     const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
     expect(data).to.deep.equal(INTEGR_DATA_OBJ);
 
-    const response = await new Promise(resolve => {
+    const response = await new Promise((resolve) => {
       payClient.onResponse(resolve);
     });
     expect(response).to.deep.equal(INTEGR_DATA_OBJ);
@@ -242,7 +276,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   beforeEach(() => {
     storageMap = {};
     localStorage = {
-      getItem: key => storageMap[key],
+      getItem: (key) => storageMap[key],
       setItem: (key, value) => {
         storageMap[key] = value;
       },
@@ -260,7 +294,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
 
     crypto = {
       subtle,
-      getRandomValues: bytes => {
+      getRandomValues: (bytes) => {
         for (let i = 0; i < bytes.length; i++) {
           bytes[i] = i + 1;
         }
@@ -275,14 +309,14 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   function useVerifierPromise() {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       helper.useVerifier(resolve);
     });
   }
 
   function useVerifierSync() {
     let verifier;
-    helper.useVerifier(v => {
+    helper.useVerifier((v) => {
       verifier = v;
     });
     return verifier;

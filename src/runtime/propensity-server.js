@@ -247,8 +247,8 @@ export class PropensityServer {
       referrer;
     return this.fetcher_
       .fetch(this.propensityUrl_(url), init)
-      .then(result => result.json())
-      .then(response => {
+      .then((result) => result.json())
+      .then((response) => {
         return this.parsePropensityResponse_(response);
       });
   }
