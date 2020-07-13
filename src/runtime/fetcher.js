@@ -89,10 +89,9 @@ export class XhrFetcher {
 
   /** @override */
   sendBeacon(url, data) {
-    const contentType = 'application/x-www-form-urlencoded;charset=UTF-8';
-    const body = 'f.req=' + serializeProtoMessageForUrl(data);
     if (navigator.sendBeacon) {
-      const blob = new Blob([body], {type: contentType});
+      const headers = {type:'application/x-www-form-urlencoded;charset=UTF-8'};
+      const blob = new Blob(['f.req=' + serializeProtoMessageForUrl(data)], headers);
       navigator.sendBeacon(url, blob);
       return;
     }

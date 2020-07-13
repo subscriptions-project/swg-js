@@ -76,6 +76,9 @@ export class EntitlementsManager {
     this.config_ = deps.config();
 
     //TODO: Hash this and decide what to do if canonical URL is not set
+    const urlNode = this.win_.document
+      .getRootNode()
+      .querySelector("link[rel='canonical']");
     /** @private @const {string} */
     this.url_ = (urlNode && urlNode.href) || "DEFAULT_URL_VALUE_TODO";
 
