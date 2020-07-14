@@ -114,7 +114,6 @@ describes.realWin('XhrFetcher', {}, (env) => {
     });
 
     it('should post json', () => {
-      sentUrl = 'url.com';
       sentInit = {
         method: 'POST',
         headers: {
