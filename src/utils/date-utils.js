@@ -22,5 +22,8 @@ import {Timestamp} from '../proto/api_messages';
  */
 export function toTimestamp(date) {
   const millis = date.getTime();
-  return new Timestamp([Math.floor(millis / 1000), (millis % 1000) * 1000000], false);
+  return new Timestamp(
+    [Math.floor(millis / 1000), (millis % 1000) * 1000000],
+    false
+  );
 }

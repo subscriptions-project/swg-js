@@ -32,9 +32,7 @@ describe('toTimestamp', () => {
     const millis = date.getTime();
     expect(stamp).to.not.be.null;
     expect(stamp.getSeconds()).to.equal(Math.floor(millis / 1000));
-    expect(stamp.getNanos()).to.equal(
-      Math.floor((millis % 1000) * 1000000)
-    );
+    expect(stamp.getNanos()).to.equal(Math.floor((millis % 1000) * 1000000));
   });
 
   it('should populate integers', () => {
