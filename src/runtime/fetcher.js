@@ -75,11 +75,15 @@ export class XhrFetcher {
   sendMessage(url, message) {
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      },
       credentials: 'include',
       body: 'f.req=' + serializeProtoMessageForUrl(message),
     });
-    return this.fetch(url, init).then(response => response && response.json() || {});
+    return this.fetch(url, init).then(
+      (response) => (response && response.json()) || {}
+    );
   }
 
   /** @override */
@@ -90,8 +94,11 @@ export class XhrFetcher {
   /** @override */
   sendBeacon(url, data) {
     if (navigator.sendBeacon) {
-      const headers = {type:'application/x-www-form-urlencoded;charset=UTF-8'};
-      const blob = new Blob(['f.req=' + serializeProtoMessageForUrl(data)], headers);
+      const headers = {type: 'application/x-www-form-urlencoded;charset=UTF-8'};
+      const blob = new Blob(
+        ['f.req=' + serializeProtoMessageForUrl(data)],
+        headers
+      );
       navigator.sendBeacon(url, blob);
       return;
     }

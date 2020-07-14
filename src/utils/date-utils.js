@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import {Timestamp} from "../proto/api_messages";
+import {Timestamp} from '../proto/api_messages';
 
 /**
  * @param {!Date} date
  * @return {!Timestamp}
  */
 export function toTimestamp(date) {
-    const millis = date.getTime();
-    return new Timestamp([millis / 1000, Math.floor ((millis % 1000) * 1000000)]);
+  const millis = date.getTime();
+  return new Timestamp([millis / 1000, Math.floor((millis % 1000) * 1000000)]);
 }

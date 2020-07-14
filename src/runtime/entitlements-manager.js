@@ -15,14 +15,14 @@
  */
 
 import {Entitlement, Entitlements} from '../api/entitlements';
-import {EntitlementsPingbackRequest, Timestamp} from '../proto/api_messages';
+import {EntitlementsPingbackRequest} from '../proto/api_messages';
+import {ExperimentFlags} from './experiment-flags';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from '../runtime/services';
+import {isExperimentOn} from './experiments';
 import {serviceUrl} from './services';
-import { toTimestamp } from '../utils/date-utils';
-import { isExperimentOn } from './experiments';
-import { ExperimentFlags } from './experiment-flags';
+import {toTimestamp} from '../utils/date-utils';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -80,11 +80,11 @@ export class EntitlementsManager {
       .getRootNode()
       .querySelector("link[rel='canonical']");
     /** @private @const {string} */
-    this.url_ = (urlNode && urlNode.href) || "DEFAULT_URL_VALUE_TODO";
+    this.url_ = (urlNode && urlNode.href) || 'DEFAULT_URL_VALUE_TODO';
 
     //TODO: should this be a parameter to mark meter as used?
     /** @private @const {string} */
-    this.publisherUserId_ = "TODO";
+    this.publisherUserId_ = 'TODO';
   }
 
   /**
@@ -386,7 +386,7 @@ export class EntitlementsManager {
     this.maybeShowToast_(entitlement);
     //TODO: if meter
     setTimeout(() => {
-      this.markMeterAsUsed("signed meter"); //TODO
+      this.markMeterAsUsed('signed meter'); //TODO
     }, 2000);
   }
 
@@ -404,9 +404,7 @@ export class EntitlementsManager {
       message.setClientEventTime(toTimestamp(new Date()));
       message.setHashedCanonicalUrl(this.url_);
       message.setPublisherUserId(this.publisherUserId_);
-      this.fetcher_.sendMessage(serviceUrl(url), message).then(vals => {
-        alert(vals);
-      });
+      this.fetcher_.sendMessage(serviceUrl(url), message);
     }
   }
 

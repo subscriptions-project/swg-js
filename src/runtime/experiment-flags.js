@@ -63,7 +63,7 @@ export const ExperimentFlags = {
    */
   PAY_CLIENT_LAZYLOAD: 'pay-client-lazyload',
 
-  /** 
+  /**
    * Enables the metering experiment.
    */
   METERING: 'metering',
