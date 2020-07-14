@@ -29,18 +29,17 @@ describe('toTimestamp', () => {
   it('should create a timestamp', () => {
     const date = new Date();
     const stamp = toTimestamp(date);
-    expect(stamp).to.not.be.null();
-    expect(stamp.getSeconds()).to.equal(Math.floor(date.getTime() / 1000));
+    const millis = date.getTime();
+    expect(stamp).to.not.be.null;
+    expect(stamp.getSeconds()).to.equal(Math.floor(millis / 1000));
     expect(stamp.getNanos()).to.equal(
-      Math.floor((date.getTime() % 1000) * 1000000)
+      Math.floor((millis % 1000) * 1000000)
     );
-    expect(isInteger(stamp.getSeconds())).to.be.true();
-    expect(isInteger(stamp.getNanos())).to.be.true();
   });
 
   it('should populate integers', () => {
     const stamp = toTimestamp(new Date());
-    expect(isInteger(stamp.getSeconds())).to.be.true();
-    expect(isInteger(stamp.getNanos())).to.be.true();
-  })
+    expect(isInteger(stamp.getSeconds())).to.be.true;
+    expect(isInteger(stamp.getNanos())).to.be.true;
+  });
 });

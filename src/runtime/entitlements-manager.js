@@ -409,7 +409,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {!Entitlement} entitlements
+   * @param {!Entitlement} entitlement
    * @return {!Promise}
    * @private
    */

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2020 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,5 +22,5 @@ import {Timestamp} from '../proto/api_messages';
  */
 export function toTimestamp(date) {
   const millis = date.getTime();
-  return new Timestamp([millis / 1000, Math.floor((millis % 1000) * 1000000)]);
+  return new Timestamp([Math.floor(millis / 1000), (millis % 1000) * 1000000], false);
 }
