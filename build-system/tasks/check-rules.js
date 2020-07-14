@@ -155,7 +155,7 @@ const forbiddenTermsSrcInclusive = {
   },
   '\\.getTime\\(\\)': {
     message: 'Unless you do weird date math (allowlist), use Date.now().',
-    allowlist: [],
+    allowlist: ['src/utils/date-utils.js'],
   },
   '\\<\\<\\<\\<\\<\\<': {
     message: 'Unresolved merge conflict.',
