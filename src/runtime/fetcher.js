@@ -47,7 +47,7 @@ export class Fetcher {
    * @param {!string|!Object} unusedMessage
    * @return {!Promise<!../utils/xhr.FetchResponse>}
    */
-  sendMessage(unusedUrl, unusedMessage) {}
+  postMessage(unusedUrl, unusedMessage) {}
 }
 
 /**
@@ -72,7 +72,7 @@ export class XhrFetcher {
     return this.fetch(url, init).then((response) => response.json());
   }
 
-  sendMessage(url, message) {
+  postMessage(url, message) {
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'POST',
       headers: {
@@ -103,6 +103,6 @@ export class XhrFetcher {
       return;
     }
     // Only newer browsers support beacon.  Fallback to standard XHR POST.
-    this.sendMessage(url, data);
+    this.postMessage(url, data);
   }
 }
