@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, deserialize, EntitlementsPingbackRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, getLabel, LinkingInfoResponse, LinkSaveTokenRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ViewSubscriptionsResponse} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -359,6 +359,73 @@ describe('AnalyticsRequest', () => {
         analyticsrequest.getMeta());
     expect(analyticsrequestDeserialized.getParams()).to.deep.equal(
         analyticsrequest.getParams());
+  });
+});
+
+describe('EntitlementsPingbackRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !EntitlementsPingbackRequest  */ entitlementspingbackrequest =
+        new EntitlementsPingbackRequest();
+    entitlementspingbackrequest.setHashedCanonicalUrl('');
+    entitlementspingbackrequest.setPublisherUserId('');
+    const /** !Timestamp  */ timestamp = new Timestamp();
+    timestamp.setSeconds(0);
+    timestamp.setNanos(0);
+    entitlementspingbackrequest.setClientEventTime(timestamp);
+    entitlementspingbackrequest.setSignedMeter('');
+
+    let entitlementspingbackrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    entitlementspingbackrequestDeserialized =
+        deserialize(entitlementspingbackrequest.toArray(undefined));
+    expect(entitlementspingbackrequestDeserialized.toArray(undefined))
+        .to.deep.equal(entitlementspingbackrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl())
+        .to.deep.equal(entitlementspingbackrequest.getHashedCanonicalUrl());
+    expect(entitlementspingbackrequestDeserialized.getPublisherUserId())
+        .to.deep.equal(entitlementspingbackrequest.getPublisherUserId());
+    expect(entitlementspingbackrequestDeserialized.getClientEventTime())
+        .to.deep.equal(entitlementspingbackrequest.getClientEventTime());
+    expect(entitlementspingbackrequestDeserialized.getSignedMeter())
+        .to.deep.equal(entitlementspingbackrequest.getSignedMeter());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    entitlementspingbackrequestDeserialized =
+        deserialize(entitlementspingbackrequest.toArray(true));
+    expect(entitlementspingbackrequestDeserialized.toArray(true))
+        .to.deep.equal(entitlementspingbackrequest.toArray(true));
+
+    // Verify fields.
+    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl())
+        .to.deep.equal(entitlementspingbackrequest.getHashedCanonicalUrl());
+    expect(entitlementspingbackrequestDeserialized.getPublisherUserId())
+        .to.deep.equal(entitlementspingbackrequest.getPublisherUserId());
+    expect(entitlementspingbackrequestDeserialized.getClientEventTime())
+        .to.deep.equal(entitlementspingbackrequest.getClientEventTime());
+    expect(entitlementspingbackrequestDeserialized.getSignedMeter())
+        .to.deep.equal(entitlementspingbackrequest.getSignedMeter());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    entitlementspingbackrequestDeserialized = new EntitlementsPingbackRequest(
+        entitlementspingbackrequest.toArray(false), false);
+    expect(entitlementspingbackrequestDeserialized.toArray(false))
+        .to.deep.equal(entitlementspingbackrequest.toArray(false));
+
+    // Verify fields.
+    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl())
+        .to.deep.equal(entitlementspingbackrequest.getHashedCanonicalUrl());
+    expect(entitlementspingbackrequestDeserialized.getPublisherUserId())
+        .to.deep.equal(entitlementspingbackrequest.getPublisherUserId());
+    expect(entitlementspingbackrequestDeserialized.getClientEventTime())
+        .to.deep.equal(entitlementspingbackrequest.getClientEventTime());
+    expect(entitlementspingbackrequestDeserialized.getSignedMeter())
+        .to.deep.equal(entitlementspingbackrequest.getSignedMeter());
   });
 });
 
@@ -757,6 +824,54 @@ describe('SubscribeResponse', () => {
     // Verify fields.
     expect(subscriberesponseDeserialized.getSubscribe()).to.deep.equal(
         subscriberesponse.getSubscribe());
+  });
+});
+
+describe('Timestamp', () => {
+  it('should deserialize correctly', () => {
+    const /** !Timestamp  */ timestamp = new Timestamp();
+    timestamp.setSeconds(0);
+    timestamp.setNanos(0);
+
+    let timestampDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    timestampDeserialized = deserialize(
+        timestamp.toArray(undefined));
+    expect(timestampDeserialized.toArray(undefined)).to.deep.equal(
+        timestamp.toArray(undefined));
+
+    // Verify fields.
+    expect(timestampDeserialized.getSeconds()).to.deep.equal(
+        timestamp.getSeconds());
+    expect(timestampDeserialized.getNanos()).to.deep.equal(
+        timestamp.getNanos());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    timestampDeserialized = deserialize(
+        timestamp.toArray(true));
+    expect(timestampDeserialized.toArray(true)).to.deep.equal(
+        timestamp.toArray(true));
+
+    // Verify fields.
+    expect(timestampDeserialized.getSeconds()).to.deep.equal(
+        timestamp.getSeconds());
+    expect(timestampDeserialized.getNanos()).to.deep.equal(
+        timestamp.getNanos());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    timestampDeserialized = new Timestamp(timestamp.toArray(false), false);
+    expect(timestampDeserialized.toArray(false)).to.deep.equal(
+        timestamp.toArray(false));
+
+    // Verify fields.
+    expect(timestampDeserialized.getSeconds()).to.deep.equal(
+        timestamp.getSeconds());
+    expect(timestampDeserialized.getNanos()).to.deep.equal(
+        timestamp.getNanos());
   });
 });
 
