@@ -27,7 +27,7 @@ function isInteger(val) {
 
 describe('toTimestamp', () => {
   it('should create a timestamp', () => {
-    const date = new Date();
+    const date = new Date(819199441032);
     date.setTime(819199441032);
     const stamp = toTimestamp(date);
     expect(stamp).to.not.be.null;
