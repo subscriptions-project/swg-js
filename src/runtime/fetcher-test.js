@@ -122,7 +122,7 @@ describes.realWin('XhrFetcher', {}, (env) => {
         credentials: 'include',
         body: 'f.req=' + serializeProtoMessageForUrl(CONTEXT),
       };
-      fetcher.postMessage(sentUrl, CONTEXT);
+      fetcher.sendPost(sentUrl, CONTEXT);
     });
   });
 });
