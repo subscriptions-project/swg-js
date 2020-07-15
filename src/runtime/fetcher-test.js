@@ -112,5 +112,17 @@ describes.realWin('XhrFetcher', {}, (env) => {
       };
       fetcher.fetchCredentialedJson(sentUrl);
     });
+
+    it('should post json', () => {
+      sentInit = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        },
+        credentials: 'include',
+        body: 'f.req=' + serializeProtoMessageForUrl(CONTEXT),
+      };
+      fetcher.sendPost(sentUrl, CONTEXT);
+    });
   });
 });
