@@ -74,13 +74,6 @@ export class EntitlementsManager {
 
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = deps.config();
-
-    //TODO: Hash this and decide what to do if canonical URL is not set
-    const urlNode = this.win_.document
-      .getRootNode()
-      .querySelector("link[rel='canonical']");
-    /** @private @const {string} */
-    this.url_ = (urlNode && urlNode.href) || 'DEFAULT_URL_VALUE_TODO';
   }
 
   /**
@@ -382,24 +375,24 @@ export class EntitlementsManager {
     this.maybeShowToast_(entitlement);
     //TODO: if meter
     setTimeout(() => {
-      this.markMeterAsUsed('signed meter'); //TODO
+      this.useEntitlement('signed entitlement/meter'); //TODO
     }, 2000);
   }
 
   /**
-   * @param {!string} signedMeter
+   * @param {!string} signedEntitlement
    */
-  markMeterAsUsed(signedMeter) {
+  useEntitlement(signedEntitlement) {
     if (isExperimentOn(this.win_, ExperimentFlags.METERING)) {
       const url =
         '/publication/' +
         encodeURIComponent(this.publicationId_) +
         '/entitlements';
       const message = new EntitlementsPingbackRequest();
-      message.setSignedMeter(signedMeter);
+      message.setSignedMeter(signedEntitlement);
       message.setClientEventTime(toTimestamp(new Date()));
-      message.setHashedCanonicalUrl(this.url_);
-      message.setPublisherUserId("publisherUserId");
+      message.setHashedCanonicalUrl('hashedCanonicalUrl');
+      message.setPublisherUserId('publisherUserId');
       this.fetcher_.sendPost(serviceUrl(url), message);
     }
   }
