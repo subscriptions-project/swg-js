@@ -729,10 +729,11 @@ class EntitlementsPingbackRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.hashedCanonicalUrl_, // field 1 - hashed_canonical_url
-        this.publisherUserId_, // field 2 - publisher_user_id
-        this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) : [], // field 3 - client_event_time
-        this.signedMeter_, // field 4 - signed_meter
+      this.hashedCanonicalUrl_,  // field 1 - hashed_canonical_url
+      this.publisherUserId_,     // field 2 - publisher_user_id
+      this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) :
+                              [],  // field 3 - client_event_time
+      this.signedMeter_,           // field 4 - signed_meter
     ];
     if (includeLabel) {
       arr.unshift(this.label());
