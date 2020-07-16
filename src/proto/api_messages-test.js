@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementsPingbackRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, deserialize, EntitlementsPingbackRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, getLabel, LinkingInfoResponse, LinkSaveTokenRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ViewSubscriptionsResponse} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -364,7 +364,8 @@ describe('AnalyticsRequest', () => {
 
 describe('EntitlementsPingbackRequest', () => {
   it('should deserialize correctly', () => {
-    const /** !EntitlementsPingbackRequest  */ entitlementspingbackrequest = new EntitlementsPingbackRequest();
+    const /** !EntitlementsPingbackRequest  */ entitlementspingbackrequest =
+        new EntitlementsPingbackRequest();
     entitlementspingbackrequest.setHashedCanonicalUrl('');
     entitlementspingbackrequest.setPublisherUserId('');
     const /** !Timestamp  */ timestamp = new Timestamp();
@@ -377,53 +378,54 @@ describe('EntitlementsPingbackRequest', () => {
 
     // Verify includeLabel undefined
     // Verify serialized arrays.
-    entitlementspingbackrequestDeserialized = deserialize(
-        entitlementspingbackrequest.toArray(undefined));
-    expect(entitlementspingbackrequestDeserialized.toArray(undefined)).to.deep.equal(
-        entitlementspingbackrequest.toArray(undefined));
+    entitlementspingbackrequestDeserialized =
+        deserialize(entitlementspingbackrequest.toArray(undefined));
+    expect(entitlementspingbackrequestDeserialized.toArray(undefined))
+        .to.deep.equal(entitlementspingbackrequest.toArray(undefined));
 
     // Verify fields.
-    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl()).to.deep.equal(
-        entitlementspingbackrequest.getHashedCanonicalUrl());
-    expect(entitlementspingbackrequestDeserialized.getPublisherUserId()).to.deep.equal(
-        entitlementspingbackrequest.getPublisherUserId());
-    expect(entitlementspingbackrequestDeserialized.getClientEventTime()).to.deep.equal(
-        entitlementspingbackrequest.getClientEventTime());
-    expect(entitlementspingbackrequestDeserialized.getSignedMeter()).to.deep.equal(
-        entitlementspingbackrequest.getSignedMeter());
+    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl())
+        .to.deep.equal(entitlementspingbackrequest.getHashedCanonicalUrl());
+    expect(entitlementspingbackrequestDeserialized.getPublisherUserId())
+        .to.deep.equal(entitlementspingbackrequest.getPublisherUserId());
+    expect(entitlementspingbackrequestDeserialized.getClientEventTime())
+        .to.deep.equal(entitlementspingbackrequest.getClientEventTime());
+    expect(entitlementspingbackrequestDeserialized.getSignedMeter())
+        .to.deep.equal(entitlementspingbackrequest.getSignedMeter());
 
     // Verify includeLabel true
     // Verify serialized arrays.
-    entitlementspingbackrequestDeserialized = deserialize(
-        entitlementspingbackrequest.toArray(true));
-    expect(entitlementspingbackrequestDeserialized.toArray(true)).to.deep.equal(
-        entitlementspingbackrequest.toArray(true));
+    entitlementspingbackrequestDeserialized =
+        deserialize(entitlementspingbackrequest.toArray(true));
+    expect(entitlementspingbackrequestDeserialized.toArray(true))
+        .to.deep.equal(entitlementspingbackrequest.toArray(true));
 
     // Verify fields.
-    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl()).to.deep.equal(
-        entitlementspingbackrequest.getHashedCanonicalUrl());
-    expect(entitlementspingbackrequestDeserialized.getPublisherUserId()).to.deep.equal(
-        entitlementspingbackrequest.getPublisherUserId());
-    expect(entitlementspingbackrequestDeserialized.getClientEventTime()).to.deep.equal(
-        entitlementspingbackrequest.getClientEventTime());
-    expect(entitlementspingbackrequestDeserialized.getSignedMeter()).to.deep.equal(
-        entitlementspingbackrequest.getSignedMeter());
+    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl())
+        .to.deep.equal(entitlementspingbackrequest.getHashedCanonicalUrl());
+    expect(entitlementspingbackrequestDeserialized.getPublisherUserId())
+        .to.deep.equal(entitlementspingbackrequest.getPublisherUserId());
+    expect(entitlementspingbackrequestDeserialized.getClientEventTime())
+        .to.deep.equal(entitlementspingbackrequest.getClientEventTime());
+    expect(entitlementspingbackrequestDeserialized.getSignedMeter())
+        .to.deep.equal(entitlementspingbackrequest.getSignedMeter());
 
     // Verify includeLabel false
     // Verify serialized arrays.
-    entitlementspingbackrequestDeserialized = new EntitlementsPingbackRequest(entitlementspingbackrequest.toArray(false), false);
-    expect(entitlementspingbackrequestDeserialized.toArray(false)).to.deep.equal(
-        entitlementspingbackrequest.toArray(false));
+    entitlementspingbackrequestDeserialized = new EntitlementsPingbackRequest(
+        entitlementspingbackrequest.toArray(false), false);
+    expect(entitlementspingbackrequestDeserialized.toArray(false))
+        .to.deep.equal(entitlementspingbackrequest.toArray(false));
 
     // Verify fields.
-    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl()).to.deep.equal(
-        entitlementspingbackrequest.getHashedCanonicalUrl());
-    expect(entitlementspingbackrequestDeserialized.getPublisherUserId()).to.deep.equal(
-        entitlementspingbackrequest.getPublisherUserId());
-    expect(entitlementspingbackrequestDeserialized.getClientEventTime()).to.deep.equal(
-        entitlementspingbackrequest.getClientEventTime());
-    expect(entitlementspingbackrequestDeserialized.getSignedMeter()).to.deep.equal(
-        entitlementspingbackrequest.getSignedMeter());
+    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl())
+        .to.deep.equal(entitlementspingbackrequest.getHashedCanonicalUrl());
+    expect(entitlementspingbackrequestDeserialized.getPublisherUserId())
+        .to.deep.equal(entitlementspingbackrequest.getPublisherUserId());
+    expect(entitlementspingbackrequestDeserialized.getClientEventTime())
+        .to.deep.equal(entitlementspingbackrequest.getClientEventTime());
+    expect(entitlementspingbackrequestDeserialized.getSignedMeter())
+        .to.deep.equal(entitlementspingbackrequest.getSignedMeter());
   });
 });
 
