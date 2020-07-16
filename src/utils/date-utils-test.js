@@ -27,12 +27,11 @@ function isInteger(val) {
 
 describe('toTimestamp', () => {
   it('should create a timestamp', () => {
-    const date = new Date();
+    const date = new Date(819199441032);
     const stamp = toTimestamp(date);
-    const millis = date.getTime();
     expect(stamp).to.not.be.null;
-    expect(stamp.getSeconds()).to.equal(Math.floor(millis / 1000));
-    expect(stamp.getNanos()).to.equal(Math.floor((millis % 1000) * 1000000));
+    expect(stamp.getSeconds()).to.equal(819199441);
+    expect(stamp.getNanos()).to.equal(32000000);
   });
 
   it('should populate integers', () => {
