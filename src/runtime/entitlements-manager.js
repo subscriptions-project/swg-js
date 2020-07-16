@@ -81,10 +81,6 @@ export class EntitlementsManager {
       .querySelector("link[rel='canonical']");
     /** @private @const {string} */
     this.url_ = (urlNode && urlNode.href) || 'DEFAULT_URL_VALUE_TODO';
-
-    //TODO: should this be a parameter to mark meter as used?
-    /** @private @const {string} */
-    this.publisherUserId_ = 'TODO';
   }
 
   /**
@@ -403,7 +399,7 @@ export class EntitlementsManager {
       message.setSignedMeter(signedMeter);
       message.setClientEventTime(toTimestamp(new Date()));
       message.setHashedCanonicalUrl(this.url_);
-      message.setPublisherUserId(this.publisherUserId_);
+      message.setPublisherUserId("publisherUserId");
       this.fetcher_.sendPost(serviceUrl(url), message);
     }
   }
