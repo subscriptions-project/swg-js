@@ -26,7 +26,7 @@ const lazypipe = require('lazypipe');
 const log = require('fancy-log');
 const path = require('path');
 const watch = require('gulp-watch');
-const {gitDiffNameOnlyMaster} = require('../git');
+const {gitDiffNameOnlyMain} = require('../git');
 const {green, yellow, cyan, red} = require('ansi-colors');
 const {isTravisBuild} = require('../travis');
 
@@ -160,7 +160,7 @@ function runLinter(filePath, stream, options) {
  * @return {!Array<string>}
  */
 function jsFilesChanged() {
-  return gitDiffNameOnlyMaster().filter(function (file) {
+  return gitDiffNameOnlyMain().filter(function (file) {
     return fs.existsSync(file) && path.extname(file) == '.js';
   });
 }
@@ -173,7 +173,7 @@ function jsFilesChanged() {
  */
 function eslintRulesChanged() {
   return (
-    gitDiffNameOnlyMaster().filter(function (file) {
+    gitDiffNameOnlyMain().filter(function (file) {
       return (
         path.basename(file).includes('.eslintrc') ||
         path.dirname(file) === 'build-system/eslint-rules'

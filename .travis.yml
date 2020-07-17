@@ -28,7 +28,7 @@ jobs:
         - gulp e2e --retries=3
 branches:
   only:
-    - master
+    - main
 addons:
   chrome: stable
 matrix:

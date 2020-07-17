@@ -24,11 +24,11 @@ There are two ways to implement this flow:
 
 
 1. Wait message (left), then notify the user they're being logged in (right), then let the user read.
-<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification_flow.png" height="200px"></img>
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/main/docs/img/login_notification_flow.png" height="200px"></img>
 
 
 2. Wait message (left), then prompt the user to log in (center), then notify the user they're being logged in (right), then let the user read.
-<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt_flow_2.png" height="280px"></img>
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/main/docs/img/login_prompt_flow_2.png" height="280px"></img>
 
 
 The publisher is responsible for deciding which flow they prefer.
@@ -82,15 +82,15 @@ The above methods coincide with the following views:
 
 `waitForSubscriptionLookup(accountPromise)` - takes a Promise as input. The Promise is that you (the publisher) are looking up the account, and will resolve the Promise with the actual account.
 <br/>
-<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/wait.png" height="160px"></img>
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/main/docs/img/wait.png" height="160px"></img>
 <br/>
 
 `loginNotification()` - returns a Promise. The View will time out after 2 seconds.
 <br/>
-<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_notification.png" height="200px"></img>
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/main/docs/img/login_notification.png" height="200px"></img>
 <br/>
 
 `showLoginPrompt()` - returns a Promise that resolves when a user clicks "Yes". Otherwise, it will throw an error.
 <br/>
-<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/master/docs/img/login_prompt.png" height="250px"></img>
+<img src="https://raw.githubusercontent.com/subscriptions-project/swg-js/main/docs/img/login_prompt.png" height="250px"></img>
 
