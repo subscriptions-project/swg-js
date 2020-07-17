@@ -3037,10 +3037,10 @@ chrome-launcher@^0.13.1:
     mkdirp "^0.5.3"
     rimraf "^3.0.2"
 
-chromedriver@83.0.1:
-  version "83.0.1"
-  resolved "https://registry.yarnpkg.com/chromedriver/-/chromedriver-83.0.1.tgz#c4cf9b3f7076fea5e9ef787e65907cd035ffbd10"
-  integrity sha512-51/YsLIMRF+L0ooMlM4aZjyoOpDs0gDXGlT6+/CwWEnvK53PUyef9FkotKbzknCaUeL/qUw3ic3IMmsNc+SUxg==
+chromedriver@84.0.0:
+  version "84.0.0"
+  resolved "https://registry.yarnpkg.com/chromedriver/-/chromedriver-84.0.0.tgz#980d72bf0990bbfbce282074d15448296c55d89d"
+  integrity sha512-fNX9eT1C38D1W8r5ss9ty42eDK+GIkCZVKukfeDs0XSBeKfyT0o/vbMdPr9MUkWQ+vIcFAS5hFGp9E3+xoaMeQ==
   dependencies:
     "@testim/chrome-version" "^1.0.7"
     axios "^0.19.2"
@@ -3194,10 +3194,10 @@ code-point-at@^1.0.0:
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
 
-codecov@3.7.0:
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/codecov/-/codecov-3.7.0.tgz#4a09939cde24447a43f36d068e8b4e0188dc3f27"
-  integrity sha512-uIixKofG099NbUDyzRk1HdGtaG8O+PBUAg3wfmjwXw2+ek+PZp+puRvbTohqrVfuudaezivJHFgTtSC3M8MXww==
+codecov@3.7.1:
+  version "3.7.1"
+  resolved "https://registry.yarnpkg.com/codecov/-/codecov-3.7.1.tgz#434cb8d55f18ef01672e5739d3d266696bebc202"
+  integrity sha512-JHWxyPTkMLLJn9SmKJnwAnvY09kg2Os2+Ux+GG7LwZ9g8gzDDISpIN5wAsH1UBaafA/yGcd3KofMaorE8qd6Lw==
   dependencies:
     argv "0.0.2"
     ignore-walk "3.0.3"
