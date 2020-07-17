@@ -346,9 +346,6 @@ class PayFrameHelper {
   }
 }
 
-// Start loading pay frame early
-PayFrameHelper.load();
-
 export {
   BuyFlowActivityMode,
   BuyFlowMode,
