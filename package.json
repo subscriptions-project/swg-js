@@ -42,7 +42,7 @@
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "chromedriver": "84.0.0",
-    "codecov": "3.7.0",
+    "codecov": "3.7.1",
     "cookie-parser": "1.4.5",
     "cssnano": "4.1.10",
     "del": "5.1.0",
