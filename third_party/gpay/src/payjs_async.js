@@ -120,6 +120,9 @@ class PaymentsAsyncClient {
     this.webActivityDelegate_.onResult(this.onResult_.bind(this));
     this.delegate_.onResult(this.onResult_.bind(this));
 
+    // Load PayFrameHelper upon client construction.
+    PayFrameHelper.load();
+
     // If web delegate is used anyway then this is overridden in the web
     // activity delegate when load payment data is called.
     if (chromeSupportsPaymentHandler()) {
