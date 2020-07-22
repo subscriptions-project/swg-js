@@ -988,13 +988,16 @@ export class ConfiguredRuntime {
   }
 
   /**
+   * This one exists as an internal helper so SwG logging doesn't require a promise.
    * @return {!ClientEventManager}
    */
   eventManager() {
     return this.eventManager_;
   }
 
-  /** @override */
+  /**
+   * This one exists as a public API so publishers can subscribe to SwG events.
+   * @override */
   getEventManager() {
     return Promise.resolve(this.eventManager_);
   }
