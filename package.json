@@ -103,7 +103,7 @@
     "postcss": "7.0.32",
     "postcss-import": "12.0.1",
     "prettier": "2.0.5",
-    "regenerator-runtime": "0.13.5",
+    "regenerator-runtime": "0.13.6",
     "request": "2.88.2",
     "rollup": "2.22.1",
     "rollup-plugin-commonjs": "10.1.0",
