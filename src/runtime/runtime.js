@@ -474,6 +474,11 @@ export class Runtime {
   getLogger() {
     return this.configured_(true).then((runtime) => runtime.getLogger());
   }
+
+  /** @override */
+  getEventManager() {
+    return this.configured_(true).then((runtime) => runtime.getEventManager());
+  }
 }
 
 /**
@@ -982,11 +987,16 @@ export class ConfiguredRuntime {
     return Promise.resolve(this.propensityModule_);
   }
 
-  /** @override
+  /**
    * @return {!ClientEventManager}
    */
   eventManager() {
     return this.eventManager_;
+  }
+
+  /** @override */
+  getEventManager() {
+    return Promise.resolve(this.eventManager_);
   }
 
   /** @override */
@@ -1040,6 +1050,7 @@ function createPublicRuntime(runtime) {
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
     getPropensityModule: runtime.getPropensityModule.bind(runtime),
     getLogger: runtime.getLogger.bind(runtime),
+    getEventManager: runtime.getLogger.bind(runtime),
   });
 }
 

@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-import {Entitlements} from './entitlements';
-import {Offer} from './offer';
+import {ClientEventManagerApi} from './client-event-manager-api';
 import {
   DeferredAccountCreationRequest,
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
-import {SubscribeResponse} from './subscribe-response';
-import {PropensityApi} from './propensity-api';
+import {Entitlements} from './entitlements';
 import {LoggerApi} from './logger-api';
+import {Offer} from './offer';
+import {PropensityApi} from './propensity-api';
+import {SubscribeResponse} from './subscribe-response';
 
 /**
  * @interface
@@ -273,6 +274,9 @@ export class Subscriptions {
 
   /** @return {!Promise<LoggerApi>} */
   getLogger() {}
+
+  /** @return {!Promise<ClientEventManagerApi>} */
+  getEventManager() {}
 }
 
 /** @enum {string} */
