@@ -16,13 +16,15 @@
 'use strict';
 
 const argv = require('minimist')(process.argv.slice(2));
-const closureCompiler = require('gulp-closure-compiler');
+const closureCompiler = require('google-closure-compiler');
 const fs = require('fs-extra');
 const gulp = require('gulp');
 const internalRuntimeVersion = require('./internal-version').VERSION;
+const nop = require('gulp-noop');
 const rename = require('gulp-rename');
 const replace = require('gulp-replace');
 const resolveConfig = require('./compile-config').resolveConfig;
+const sourcemaps = require('gulp-sourcemaps');
 
 const isProdBuild = !!argv.type;
 const queue = [];
@@ -57,7 +59,8 @@ exports.closureCompile = function (
           resolve();
         },
         function (e) {
-          console./*OK*/ error(red('Compilation error', e.message));
+          console.error(e);
+          console./*OK*/ error(red(e));
           process.exit(1);
         }
       );
@@ -164,107 +167,106 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
 
     /*eslint "google-camelcase/google-camelcase": 0*/
     const compilerOptions = {
-      // Temporary shipping with our own compiler that has a single patch
-      // applied
-      compilerPath: 'build-system/runner/dist/runner.jar',
-      fileName: intermediateFilename,
-      continueWithWarnings: false,
-      config: 'java_runtime_8',
-      tieredCompilation: true, // Magic speed up.
-      compilerFlags: {
-        compilation_level: options.compilationLevel || 'SIMPLE_OPTIMIZATIONS',
-        // Turns on more optimizations.
-        assume_function_wrapper: true,
-        // Transpile from ES6 to ES5.
-        language_in: 'ECMASCRIPT6',
-        language_out: 'ECMASCRIPT5',
-        // We do not use the polyfills provided by closure compiler.
-        // If you need a polyfill. Manually include them in the
-        // respective top level polyfills.js files.
-        rewrite_polyfills: false,
-        externs,
-        js_module_root: ['node_modules/', 'build/fake-module/'],
-        entry_point: entryModuleFilenames,
-        process_common_js_modules: true,
-        // This strips all files from the input set that aren't explicitly
-        // required.
-        only_closure_dependencies: true,
-        output_wrapper: wrapper,
-        create_source_map: intermediateFilename + '.map',
-        source_map_location_mapping: '|' + sourceMapBase,
-        warning_level: 'DEFAULT',
-        // Turn off warning for "Unknown @define" since we use define to pass
-        // args such as FORTESTING to our runner.
-        jscomp_off: ['unknownDefines'],
-        define: [],
-        hide_warnings_for: [
-          'src/polyfills/',
-          'src/proto/',
-          'node_modules/',
-          'third_party/',
-        ],
-        jscomp_error: [],
-      },
+      compilation_level: options.compilationLevel || 'SIMPLE_OPTIMIZATIONS',
+      // Turns on more optimizations.
+      assume_function_wrapper: true,
+      // Transpile from ES6 to ES5.
+      language_in: 'ECMASCRIPT6',
+      language_out: 'ECMASCRIPT5',
+      // We do not use the polyfills provided by closure compiler.
+      // If you need a polyfill. Manually include them in the
+      // respective top level polyfills.js files.
+      rewrite_polyfills: false,
+      externs,
+      js_module_root: ['node_modules/', 'build/fake-module/'],
+      entry_point: entryModuleFilenames,
+      process_common_js_modules: true,
+      // This strips all files from the input set that aren't explicitly
+      // required.
+      only_closure_dependencies: true,
+      output_wrapper: wrapper,
+      create_source_map: intermediateFilename + '.map',
+      source_map_location_mapping: '|' + sourceMapBase,
+      warning_level: 'DEFAULT',
+      // Turn off warning for "Unknown @define" since we use define to pass
+      // args such as FORTESTING to our runner.
+      jscomp_off: ['unknownDefines'],
+      define: [],
+      hide_warnings_for: [
+        'src/polyfills/*',
+        'src/proto/*',
+        'src/components/*',
+        'node_modules/',
+        'third_party/',
+      ],
+      jscomp_error: [],
     };
 
     // For now do type check separately
-    if (argv.typecheck_only || checkTypes) {
+    if (checkTypes) {
       // Don't modify compilation_level to a lower level since
       // it won't do strict type checking if its whitespace only.
-      compilerOptions.compilerFlags.define.push('TYPECHECK_ONLY=true');
-      compilerOptions.compilerFlags.jscomp_error.push(
+      compilerOptions.define.push('TYPECHECK_ONLY=true');
+      compilerOptions.jscomp_error.push(
         'checkTypes',
         'accessControls',
         'const',
         'constantProperty',
         'globalThis'
       );
-      compilerOptions.compilerFlags.conformance_configs =
+      compilerOptions.conformance_configs =
         'build-system/conformance-config.textproto';
 
-      compilerOptions.compilerFlags.new_type_inf = true;
-      compilerOptions.compilerFlags.jscomp_off.push('newCheckTypesExtraChecks');
+      compilerOptions.new_type_inf = true;
+      compilerOptions.jscomp_off.push('newCheckTypesExtraChecks');
     }
     if (argv.pseudoNames) {
-      compilerOptions.compilerFlags.define.push('PSEUDO_NAMES=true');
+      compilerOptions.define.push('PSEUDO_NAMES=true');
     }
     if (argv.fortesting) {
-      compilerOptions.compilerFlags.define.push('FORTESTING=true');
+      compilerOptions.define.push('FORTESTING=true');
     }
 
-    if (compilerOptions.compilerFlags.define.length == 0) {
-      delete compilerOptions.compilerFlags.define;
+    if (compilerOptions.define.length == 0) {
+      delete compilerOptions.define;
     }
+
+    const pluginOptions = {
+      platform: ['java'], // Override the JAR used by closure compiler
+      extraArguments: ['-XX:+TieredCompilation'], // Significant speed up!
+    };    
+    closureCompiler.compiler.JAR_PATH =
+        require.resolve('../runner/dist/runner.jar');
 
     let stream = gulp
-      .src(srcs)
-      .pipe(closureCompiler(compilerOptions))
-      .on('error', function (err) {
-        console./*OK*/ error(red('Error compiling', entryModuleFilenames));
-        console./*OK*/ error(red(err.message));
-        process.exit(1);
-      });
+        .src(srcs)
+        .pipe(closureCompiler.gulp()(compilerOptions, pluginOptions))
+        .on('error', function (err) {
+          console./*OK*/ error(red('Error compiling', entryModuleFilenames));
+          console./*OK*/ error(red(err.message));
+          process.exit(1);
+        });
+    
 
-    // If we're only doing type checking, no need to output the files.
-    if (!argv.typecheck_only) {
+    if (!checkTypes) {
       stream = stream.pipe(rename(outputFilename));
 
-      // Replacements.
-      const replacements = resolveConfig();
-      for (const k in replacements) {
-        stream = stream.pipe(
-          replace(new RegExp('\\$' + k + '\\$', 'g'), replacements[k])
-        );
-      }
+     // Replacements.
+     const replacements = resolveConfig();
+     for (const k in replacements) {
+       stream = stream.pipe(
+         replace(new RegExp('\\$' + k + '\\$', 'g'), replacements[k])
+       );
+      }      
 
       // Complete build: dist and source maps.
       stream = stream.pipe(gulp.dest(outputDir)).on('end', function () {
         gulp
           .src(intermediateFilename + '.map')
           .pipe(rename(outputFilename + '.map'))
-          .pipe(gulp.dest(outputDir))
-          .on('end', resolve);
-      });
+          .pipe(gulp.dest(outputDir))    
+          .on('end', resolve);     
+      });    
     }
     return stream;
   });
