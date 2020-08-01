@@ -18,7 +18,7 @@ import {ActivityPort} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
-} from 'web-activities/activity-ports';
+} from 'activity-ports';
 import {
   AnalyticsEvent,
   LinkSaveTokenRequest,

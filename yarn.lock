@@ -12028,7 +12028,7 @@ wcwidth@^1.0.1:
   dependencies:
     defaults "^1.0.3"
 
-web-activities@1.24.0:
+web-activities@^1.24.0:
   version "1.24.0"
   resolved "https://registry.yarnpkg.com/web-activities/-/web-activities-1.24.0.tgz#be6bc4663609b8d86550a068d3e34f9851602fc9"
   integrity sha512-vF8EeFBxnW24Oje4Rt0ghT1i56OYLQNGwUjFfRlObarI4kRQB7wZUGAhxC2oyhyqLflpIzfMCa8sKLdIwiCeAw==

@@ -193,8 +193,9 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       jscomp_off: ['unknownDefines'],
       define: [],
       hide_warnings_for: [
-        'src/polyfills/',
-        'src/proto/',
+        'src/polyfills/*',
+        'src/proto/*',
+        'src/components/*',
         'node_modules/',
         'third_party/',
       ],

@@ -20,7 +20,7 @@ import {PaymentsClientDelegateInterface} from './payments_client_delegate_interf
 import {PaymentsRequestDelegate} from './payments_request_delegate.js';
 import {PaymentsWebActivityDelegate} from './payments_web_activity_delegate.js';
 import {UpiHandler} from './upi_handler.js';
-import {ActivityPorts} from 'web-activities/activity-ports';
+import {ActivityPorts} from 'activity-ports';
 import {
   BuyFlowActivityMode,
   BuyFlowMode,

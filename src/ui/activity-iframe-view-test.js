@@ -16,7 +16,7 @@
 
 import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityIframeView} from './activity-iframe-view';
-import {ActivityResult} from 'web-activities/activity-ports';
+import {ActivityResult} from 'activity-ports';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {SkuSelectedResponse} from '../proto/api_messages';

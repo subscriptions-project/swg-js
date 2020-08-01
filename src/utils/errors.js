@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {createAbortError, isAbortError} from 'web-activities/activity-ports';
+import {createAbortError, isAbortError} from 'activity-ports';
 
 /**
  * Whether the specified error is an AbortError type.

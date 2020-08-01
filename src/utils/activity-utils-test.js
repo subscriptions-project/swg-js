@@ -18,7 +18,7 @@ import {ActivityPortDef} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
-} from 'web-activities/activity-ports';
+} from 'activity-ports';
 import {acceptPortResultData} from './activity-utils';
 
 const OK = ActivityResultCode.OK;
