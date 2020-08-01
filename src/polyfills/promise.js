@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {default as def} from 'promise';
+import * as Promise from 'promise-pjs/promise';
 
 /**
  * Sets the Promise polyfill if it does not exist.
@@ -25,8 +25,8 @@ export function install(win) {
     win.Promise = /** @type {?} */ (Promise);
     // In babel the * export is an Object with a default property.
     // In closure compiler it is the Promise function itself.
-    if (def) {
-      win.Promise = def;
+    if (Promise.default) {
+      win.Promise = Promise.default;
     }
     // We copy the individual static methods, because closure
     // compiler flattens the polyfill namespace.
