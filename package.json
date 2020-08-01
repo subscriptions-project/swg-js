@@ -25,6 +25,7 @@
     "dist": "gulp dist"
   },
   "dependencies": {
+    "gulp-noop": "^1.0.1",
     "promise-pjs": "1.1.5",
     "web-activities": "1.24.0"
   },
