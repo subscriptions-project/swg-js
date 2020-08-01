@@ -20,11 +20,9 @@ const closureCompiler = require('google-closure-compiler');
 const fs = require('fs-extra');
 const gulp = require('gulp');
 const internalRuntimeVersion = require('./internal-version').VERSION;
-const nop = require('gulp-noop');
 const rename = require('gulp-rename');
 const replace = require('gulp-replace');
 const resolveConfig = require('./compile-config').resolveConfig;
-const sourcemaps = require('gulp-sourcemaps');
 
 const isProdBuild = !!argv.type;
 const queue = [];
@@ -234,39 +232,39 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     const pluginOptions = {
       platform: ['java'], // Override the JAR used by closure compiler
       extraArguments: ['-XX:+TieredCompilation'], // Significant speed up!
-    };    
-    closureCompiler.compiler.JAR_PATH =
-        require.resolve('../runner/dist/runner.jar');
+    };
+    closureCompiler.compiler.JAR_PATH = require.resolve(
+      '../runner/dist/runner.jar'
+    );
 
     let stream = gulp
-        .src(srcs)
-        .pipe(closureCompiler.gulp()(compilerOptions, pluginOptions))
-        .on('error', function (err) {
-          console./*OK*/ error(red('Error compiling', entryModuleFilenames));
-          console./*OK*/ error(red(err.message));
-          process.exit(1);
-        });
-    
+      .src(srcs)
+      .pipe(closureCompiler.gulp()(compilerOptions, pluginOptions))
+      .on('error', function (err) {
+        console./*OK*/ error(red('Error compiling', entryModuleFilenames));
+        console./*OK*/ error(red(err.message));
+        process.exit(1);
+      });
 
     if (!checkTypes) {
       stream = stream.pipe(rename(outputFilename));
 
-     // Replacements.
-     const replacements = resolveConfig();
-     for (const k in replacements) {
-       stream = stream.pipe(
-         replace(new RegExp('\\$' + k + '\\$', 'g'), replacements[k])
-       );
-      }      
+      // Replacements.
+      const replacements = resolveConfig();
+      for (const k in replacements) {
+        stream = stream.pipe(
+          replace(new RegExp('\\$' + k + '\\$', 'g'), replacements[k])
+        );
+      }
 
       // Complete build: dist and source maps.
       stream = stream.pipe(gulp.dest(outputDir)).on('end', function () {
         gulp
           .src(intermediateFilename + '.map')
           .pipe(rename(outputFilename + '.map'))
-          .pipe(gulp.dest(outputDir))    
-          .on('end', resolve);     
-      });    
+          .pipe(gulp.dest(outputDir))
+          .on('end', resolve);
+      });
     }
     return stream;
   });
