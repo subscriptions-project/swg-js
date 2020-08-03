@@ -21,7 +21,7 @@ import {
   ActivityIframePort as WebActivityIframePort,
   ActivityPort as WebActivityPort,
   ActivityPorts as WebActivityPorts,
-} from 'web-activities/activity-ports';
+} from 'activity-ports';
 import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
 import {AnalyticsService} from '../runtime/analytics-service';
 import {ClientEventManager} from '../runtime/client-event-manager';

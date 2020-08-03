@@ -16,10 +16,7 @@
 
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
-import {
-  ActivityResult,
-  ActivityResultCode,
-} from 'web-activities/activity-ports';
+import {ActivityResult, ActivityResultCode} from 'activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   AnalyticsMode,

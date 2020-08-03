@@ -22,7 +22,7 @@ import {
   ActivityPort,
   ActivityPorts,
   ActivityIframePort,
-} from 'web-activities/activity-ports';
+} from 'activity-ports';
 import {
   BuyFlowActivityMode,
   PayFrameHelper,

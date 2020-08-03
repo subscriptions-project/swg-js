@@ -100,7 +100,7 @@ export class AnalyticsService {
     this.context_ = new AnalyticsContext();
     this.setStaticContext_();
 
-    /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
+    /** @private {?Promise<!activity-ports.ActivityIframePort>} */
     this.serviceReady_ = null;
 
     /** @private {?Promise} */

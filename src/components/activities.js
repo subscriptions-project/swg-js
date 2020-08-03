@@ -22,14 +22,14 @@ import {
 import {
   ActivityIframePort as WebActivityIframePort,
   ActivityPorts as WebActivityPorts,
-} from 'web-activities/activity-ports';
+} from 'activity-ports';
 
 /**
  * @interface
  */
 export class ActivityPortDef {
   /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
+   * @return {!Promise<!activity-ports.ActivityResult>}
    */
   acceptResult() {}
 }
@@ -39,7 +39,7 @@ export class ActivityPortDef {
 export class ActivityPort extends ActivityPortDef {
   /**
    * Returns the mode of the activity: iframe, popup or redirect.
-   * @return {!web-activities/activity-ports.ActivityMode}
+   * @return {!activity-ports.ActivityMode}
    */
   getMode() {}
 
@@ -51,7 +51,7 @@ export class ActivityPort extends ActivityPortDef {
    * Returns the promise that yields when the activity has been completed and
    * either a result, a cancelation or a failure has been returned.
    *
-   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
+   * @return {!Promise<!activity-ports.ActivityResult>}
    * @override
    */
   acceptResult() {}
@@ -104,15 +104,15 @@ export class ActivityPort extends ActivityPortDef {
  */
 class ActivityPortDeprecated {
   /**
-   * @param {!web-activities/activity-ports.ActivityPort} port
+   * @param {!activity-ports.ActivityPort} port
    */
   constructor(port) {
-    /** @private @const {!web-activities/activity-ports.ActivityPort} */
+    /** @private @const {!activity-ports.ActivityPort} */
     this.port_ = port;
   }
 
   /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
+   * @return {!Promise<!activity-ports.ActivityResult>}
    */
   acceptResult() {
     return this.port_.acceptResult();
@@ -130,7 +130,7 @@ export class ActivityIframePort {
    * @param {?Object=} args
    */
   constructor(iframe, url, deps, args) {
-    /** @private @const {!web-activities/activity-ports.ActivityIframePort} */
+    /** @private @const {!activity-ports.ActivityIframePort} */
     this.iframePort_ = new WebActivityIframePort(iframe, url, args);
     /** @private @const {!Object<string, function(!Object)>} */
     this.callbackMap_ = {};
@@ -188,7 +188,7 @@ export class ActivityIframePort {
 
   /**
    * Returns the mode of the activity: iframe, popup or redirect.
-   * @return {!web-activities/activity-ports.ActivityMode}
+   * @return {!activity-ports.ActivityMode}
    */
   getMode() {
     return this.iframePort_.getMode();
@@ -202,7 +202,7 @@ export class ActivityIframePort {
    * Returns the promise that yields when the activity has been completed and
    * either a result, a cancelation or a failure has been returned.
    *
-   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
+   * @return {!Promise<!activity-ports.ActivityResult>}
    * @override
    */
   acceptResult() {
@@ -263,7 +263,7 @@ export class ActivityPorts {
     /** @private @const {!../runtime/deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
+    /** @private @const {!activity-ports.ActivityPorts} */
     this.activityPorts_ = new WebActivityPorts(deps.win());
   }
 
@@ -337,7 +337,7 @@ export class ActivityPorts {
    * @param {string} url
    * @param {string} target
    * @param {?Object=} args
-   * @param {?web-activities/activity-ports.ActivityOpenOptions=} options
+   * @param {?activity-ports.ActivityOpenOptions=} options
    * @param {boolean=} addDefaultArguments
    * @return {{targetWin: ?Window}}
    */
@@ -393,7 +393,7 @@ export class ActivityPorts {
   }
 
   /**
-   * @return {!web-activities/activity-ports.ActivityPorts}
+   * @return {!activity-ports.ActivityPorts}
    */
   getOriginalWebActivityPorts() {
     return this.activityPorts_;

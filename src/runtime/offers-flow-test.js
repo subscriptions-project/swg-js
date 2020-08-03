@@ -16,7 +16,7 @@
 
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPort} from '../components/activities';
-import {ActivityResult} from 'web-activities/activity-ports';
+import {ActivityResult} from 'activity-ports';
 import {
   AlreadySubscribedResponse,
   SkuSelectedResponse,
