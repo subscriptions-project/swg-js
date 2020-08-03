@@ -20,6 +20,7 @@ import {
   expandTemplate,
   getSwgTransactionId,
   getUuid,
+  hash,
 } from './string';
 
 describe('dashToCamelCase', () => {
@@ -160,5 +161,21 @@ describe('swgTransactionId', () => {
       expect(swgTransactionIds[swgTransactionId]).to.be.undefined;
       swgTransactionIds[swgTransactionId] = 1;
     }
+  });
+});
+
+describe('hash', async () => {
+  it('should create 128 character hexadecimal hashes', async () => {
+    let result = null;
+    await hash('string1').then((h) => (result = h));
+    expect(result.length).to.equal(128);
+  });
+
+  it('should create unique hashes', async () => {
+    let hash1 = null;
+    let hash2 = null;
+    await hash('string1').then((h) => (hash1 = h));
+    await hash('string2').then((h) => (hash2 = h));
+    expect(hash1).to.not.equal(hash2);
   });
 });

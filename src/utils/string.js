@@ -15,6 +15,7 @@
  */
 
 import {getRandomInts} from './random';
+import {utf8EncodeSync} from './bytes';
 
 const CHARS = '0123456789ABCDEF';
 
@@ -164,4 +165,19 @@ export function getUuid() {
 
 export function getSwgTransactionId() {
   return getUuid() + '.swg';
+}
+
+/**
+ * @param {string} stringToHash
+ * @return {!Promise<string>}
+ */
+export function hash(stringToHash) {
+  const crypto = self.crypto || self.msCrypto;
+  const subtle = crypto.subtle;
+  const encoder = new TextEncoder();
+  return subtle
+    .digest('SHA-512', utf8EncodeSync(stringToHash))
+    .then((digest) => 
+      Array.from(new Uint8Array(digest)).map(b => ('00' + b.toString(16)).slice(-2)).join('')
+    );
 }
