@@ -315,3 +315,22 @@ describe('serializeProtoMessageForUrl', () => {
     );
   });
 });
+
+describe('getCanonicalUrl', () => {
+  it('should query page', () => {
+    const url = 'canonicalUrl';
+    let pageQuery = null;
+    const FAKE_DOC = {
+      getRootNode: function () {
+        return {
+          querySelector: function (qry) {
+            pageQuery = qry;
+            return {href: url};
+          },
+        };
+      },
+    };
+    expect(getCanonicalUrl(FAKE_DOC)).to.equal(url);
+    expect(pageQuery).to.equal("link[rel='canonical']");
+  });
+});
