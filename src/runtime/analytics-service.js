@@ -27,7 +27,7 @@ import {ClientEventManager} from './client-event-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
-import {getCanonicalUrl} from './utils/url';
+import {getCanonicalUrl} from '../utils/url';
 import {getOnExperiments, isExperimentOn} from './experiments';
 import {getSwgTransactionId, getUuid} from '../utils/string';
 import {log} from '../utils/log';
