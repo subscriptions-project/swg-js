@@ -17,6 +17,7 @@
 import {AnalyticsRequest} from '../proto/api_messages';
 import {
   addQueryParam,
+  getCanonicalUrl,
   getHostUrl,
   parseQueryString,
   parseUrl,
