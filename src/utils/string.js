@@ -168,16 +168,35 @@ export function getSwgTransactionId() {
 }
 
 /**
+ * Returns a string who's length matches the length of format.
+ * @param {string} str
+ * @param {string} format
+ * @return {string}
+ */
+function padString(str, format) {
+  return (format + str).slice(-format.length);
+}
+
+const PADDING = '00000000';
+function toHex(buffer) {
+  const hexCodes = [];
+  const view = new DataView(buffer);
+  for (let i = 0; i < view.byteLength; i += 4) {
+    // toString(16) will give the hex representation of the number without padding
+    const stringValue = view.getUint32(i).toString(16);
+    hexCodes.push(padString(stringValue, PADDING));
+  }
+  return hexCodes.join('');
+}
+
+/**
  * @param {string} stringToHash
  * @return {!Promise<string>}
  */
 export function hash(stringToHash) {
   const crypto = self.crypto || self.msCrypto;
   const subtle = crypto.subtle;
-  return subtle.digest('SHA-512', utf8EncodeSync(stringToHash)).then((digest) =>
-    // Converts the ArrayBuffer into a hexadecimal string
-    Array.from(new Uint8Array(digest))
-      .map((b) => ('00' + b.toString(16)).slice(-2))
-      .join('')
-  );
+  return subtle
+    .digest('SHA-512', utf8EncodeSync(stringToHash))
+    .then((digest) => toHex(digest));
 }
