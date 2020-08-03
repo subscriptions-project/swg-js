@@ -174,10 +174,10 @@ export function getSwgTransactionId() {
 export function hash(stringToHash) {
   const crypto = self.crypto || self.msCrypto;
   const subtle = crypto.subtle;
-  const encoder = new TextEncoder();
-  return subtle
-    .digest('SHA-512', utf8EncodeSync(stringToHash))
-    .then((digest) => 
-      Array.from(new Uint8Array(digest)).map(b => ('00' + b.toString(16)).slice(-2)).join('')
-    );
+  return subtle.digest('SHA-512', utf8EncodeSync(stringToHash)).then((digest) =>
+    // Converts the ArrayBuffer into a hexadecimal string
+    Array.from(new Uint8Array(digest))
+      .map((b) => ('00' + b.toString(16)).slice(-2))
+      .join('')
+  );
 }
