@@ -165,9 +165,13 @@ describe('swgTransactionId', () => {
 });
 
 describe('hash', async () => {
+  it("should use a stable hashing algorithm so metering doesn't break", async () => {
+    const expectedValue =
+      '8b16b8443e811a5238616fa150eeae441444d5a7ffd7ff59d2f5ebcc455af1c545b3e96af77e12298d756848ac3d105360492db81e2723512bb7d2c6b0b7aedd';
+    expect(await hash('string1')).to.equal(expectedValue);
+  });
+
   it('should create standard length hashes', async () => {
-    const expectedLength = 128;
-    expect(await hash('string1')).to.equal(expectedLength);
     expect(await hash('a').length).to.equal(
       await hash('aMuchLongerStringToEncode').length
     );

@@ -190,7 +190,8 @@ function toHex(buffer) {
 }
 
 /**
- * Applies SHA-512 and returns a hexadecimally encoded string of 128 characters.
+ * Returns a hexadecimal 128 character string that is the
+ * SHA-512 hash of the passed string.
  * @param {string} stringToHash
  * @return {!Promise<string>}
  */
