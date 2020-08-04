@@ -212,3 +212,12 @@ export function getHostUrl(url) {
   const locationHref = parseUrl(url);
   return locationHref.origin + locationHref.pathname + locationHref.search;
 }
+
+/**
+ * @param {!../model/doc.Doc} doc
+ * @return {string}
+ */
+export function getCanonicalUrl(doc) {
+  const node = doc.getRootNode().querySelector("link[rel='canonical']");
+  return (node && node.href) || '';
+}
