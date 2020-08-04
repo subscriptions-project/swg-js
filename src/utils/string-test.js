@@ -165,17 +165,27 @@ describe('swgTransactionId', () => {
 });
 
 describe('hash', async () => {
-  it('should create 128 character hexadecimal hashes', async () => {
-    let result = null;
-    await hash('string1').then((h) => (result = h));
-    expect(result.length).to.equal(128);
+  it('should create standard length hashes', async () => {
+    const expectedLength = 128;
+    expect(await hash('string1')).to.equal(expectedLength);
+    expect(await hash('a').length).to.equal(
+      await hash('aMuchLongerStringToEncode').length
+    );
+  });
+
+  it('should create hexadecimal hashes', async () => {
+    const hasOnlyHexChars = RegExp(/[0-9a-f]+/, 'g');
+    expect(hasOnlyHexChars.test(await hash('string1'))).to.be.true;
+  });
+
+  it('should create duplicatable hashes', async () => {
+    const STRING = 'string1';
+    expect(await hash(STRING)).to.equal(await hash(STRING));
   });
 
   it('should create unique hashes', async () => {
-    let hash1 = null;
-    let hash2 = null;
-    await hash('string1').then((h) => (hash1 = h));
-    await hash('string2').then((h) => (hash2 = h));
+    const hash1 = await hash('string1');
+    const hash2 = await hash('string2');
     expect(hash1).to.not.equal(hash2);
   });
 });

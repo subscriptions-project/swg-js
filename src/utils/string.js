@@ -168,7 +168,7 @@ export function getSwgTransactionId() {
 }
 
 /**
- * Returns a string who's length matches the length of format.
+ * Returns a string whose length matches the length of format.
  * @param {string} str
  * @param {string} format
  * @return {string}
@@ -190,6 +190,7 @@ function toHex(buffer) {
 }
 
 /**
+ * Applies SHA-512 and returns a hexadecimally encoded string of 128 characters.
  * @param {string} stringToHash
  * @return {!Promise<string>}
  */
