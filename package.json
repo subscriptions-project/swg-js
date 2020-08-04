@@ -38,7 +38,7 @@
     "babelify": "10.0.0",
     "bluebird": "3.7.2",
     "body-parser": "1.19.0",
-    "browserify": "16.5.1",
+    "browserify": "16.5.2",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "chromedriver": "84.0.1",
