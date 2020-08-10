@@ -17,14 +17,13 @@
 /*eslint-env node*/
 'use strict';
 
-
 /**
  * @fileoverview
  * See https://developers.google.com/actions/identity/oauth2-code-flow
  * and https://developers.google.com/actions/identity/oauth2-implicit-flow
  */
 
-const app = module.exports = require('express').Router();
+const app = (module.exports = require('express').Router());
 const jsonwebtoken = require('jsonwebtoken');
 const {encrypt, decrypt, fromBase64, toBase64} = require('../utils/crypto');
 
@@ -42,8 +41,9 @@ const PUBLICATION_ID = process.env.SERVE_PUBID || 'scenic-2017.appspot.com';
 const CLIENT_ID = 'scenic-2017.appspot.com';
 
 /** @const {string} */
-const GSI_CLIENT_ID = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4' +
-    '.apps.googleusercontent.com';
+const GSI_CLIENT_ID =
+  '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4' +
+  '.apps.googleusercontent.com';
 
 /**
  * Sign-in with Google test.
@@ -52,14 +52,12 @@ app.get('/signin-with-google', (req, res) => {
   res.render('../examples/sample-pub/views/signin-with-google');
 });
 
-
 /**
  * Smart-lock test.
  */
 app.get('/signin-smartlock', (req, res) => {
   res.render('../examples/sample-pub/views/signin-smartlock');
 });
-
 
 /**
  * OAuth authorization endpoint.
@@ -99,14 +97,16 @@ app.post('/auth-submit', (req, res) => {
   if (params.responseType == 'code') {
     // Authorization code (server-side) flow.
     // See https://developers.google.com/actions/identity/oauth2-code-flow
-    const authorizationCode =
-        generateAuthorizationCode(params, email, password);
-    const authorizationCodeStr =
-        toBase64(encrypt(authorizationCode));
+    const authorizationCode = generateAuthorizationCode(
+      params,
+      email,
+      password
+    );
+    const authorizationCodeStr = toBase64(encrypt(authorizationCode));
     const redirectUrl =
-        params.redirectUri +
-        `?code=${encodeURIComponent(authorizationCodeStr)}` +
-        `&state=${encodeURIComponent(params.state || '')}`;
+      params.redirectUri +
+      `?code=${encodeURIComponent(authorizationCodeStr)}` +
+      `&state=${encodeURIComponent(params.state || '')}`;
     res.redirect(302, redirectUrl);
   } else if (params.responseType == 'token') {
     // Implicit flow.
@@ -117,16 +117,15 @@ app.post('/auth-submit', (req, res) => {
     const accessToken = generateAccessToken(refreshToken);
     const accessTokenStr = toBase64(encrypt(accessToken));
     const redirectUrl =
-        params.redirectUri +
-        '#token_type=bearer' +
-        `&access_token=${encodeURIComponent(accessTokenStr)}` +
-        `&state=${encodeURIComponent(params.state || '')}`;
+      params.redirectUri +
+      '#token_type=bearer' +
+      `&access_token=${encodeURIComponent(accessTokenStr)}` +
+      `&state=${encodeURIComponent(params.state || '')}`;
     res.redirect(302, redirectUrl);
   } else {
     throw new Error('Invalid response_type: ' + params.responseType);
   }
 });
-
 
 /**
  * OAuth token endpoint.
@@ -155,21 +154,23 @@ app.post('/token', (req, res) => {
       if (!authorizationCodeStr) {
         throw new Error('Missing authorization code');
       }
-      const authorizationCode =
-          decrypt(fromBase64(authorizationCodeStr));
+      const authorizationCode = decrypt(fromBase64(authorizationCodeStr));
       if (authorizationCode.what != 'authorizationCode') {
-        throw new Error('Invalid authorization code: ' +
-            authorizationCode.what);
+        throw new Error(
+          'Invalid authorization code: ' + authorizationCode.what
+        );
       }
       // TODO: check if grant has expired via `authorizationCode.exp`.
       const refreshToken = generateRefreshToken(
-          authorizationCode.scope, authorizationCode.data);
+        authorizationCode.scope,
+        authorizationCode.data
+      );
       const accessToken = generateAccessToken(refreshToken);
       response = JSON.stringify({
         'token_type': 'bearer',
         'refresh_token': toBase64(encrypt(refreshToken)),
         'access_token': toBase64(encrypt(accessToken)),
-        'expires_in': 300,  // 5 min in seconds.
+        'expires_in': 300, // 5 min in seconds.
       });
     } else if (grantType == 'refresh_token') {
       const refreshTokenStr = getParam(req, 'refresh_token');
@@ -184,7 +185,7 @@ app.post('/token', (req, res) => {
       response = JSON.stringify({
         'token_type': 'bearer',
         'access_token': toBase64(encrypt(accessToken)),
-        'expires_in': 300,  // 5 min in seconds.
+        'expires_in': 300, // 5 min in seconds.
       });
     } else if (grantType == 'urn:ietf:params:oauth:grant-type:jwt-bearer') {
       // See https://developers.google.com/actions/identity/oauth2-assertion-flow
@@ -216,27 +217,28 @@ app.post('/token', (req, res) => {
         'token_type': 'bearer',
         'refresh_token': toBase64(encrypt(refreshToken)),
         'access_token': toBase64(encrypt(accessToken)),
-        'expires_in': 300,  // 5 min in seconds.
+        'expires_in': 300, // 5 min in seconds.
       });
     } else {
       const info = [];
       for (const k in req.body) {
         info.push(`${k}={${req.body[k]}}`);
       }
-      throw new Error('Unknown grant_type: ' + grantType +
-          ': ' + info.join('; '));
+      throw new Error(
+        'Unknown grant_type: ' + grantType + ': ' + info.join('; ')
+      );
     }
   } catch (e) {
-    res.status(400).send(JSON.stringify(
-        {
-          'error': 'invalid_grant: ' + grantType,
-          'details': e,
-        }));
+    res.status(400).send(
+      JSON.stringify({
+        'error': 'invalid_grant: ' + grantType,
+        'details': e,
+      })
+    );
     return;
   }
   res.send(response);
 });
-
 
 /**
  * Authorization sync endpoint.
@@ -251,8 +253,8 @@ app.all('/entitlements', (req, res) => {
   const email = decryptedAccessToken.data['email'];
   const response = JSON.stringify({
     'products': [publicationId + ':premium', publicationId + ':news'],
-    'subscriptionToken': 'subtok-' + publicationId + '-' + email + '-' +
-        new Date().toISOString(),
+    'subscriptionToken':
+      'subtok-' + publicationId + '-' + email + '-' + new Date().toISOString(),
     'detail': 'For ' + email,
   });
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -261,7 +263,6 @@ app.all('/entitlements', (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.send(response);
 });
-
 
 /**
  * Handle authorized request.
@@ -275,15 +276,15 @@ app.all('/authorized', (req, res) => {
   if (authorizationHeader.toUpperCase().indexOf('BEARER') != 0) {
     throw new Error('Invalid authorization header: ' + authorizationHeader);
   }
-  const accessTokenStr =
-      authorizationHeader.substring('BEARER'.length + 1).trim();
+  const accessTokenStr = authorizationHeader
+    .substring('BEARER'.length + 1)
+    .trim();
   const accessToken = decrypt(fromBase64(accessTokenStr));
   if (accessToken.what != 'accessToken') {
     throw new Error('Invalid access token: ' + accessToken.what);
   }
   res.send('access is granted');
 });
-
 
 /**
  * @param {!HttpRequest} req
@@ -316,16 +317,14 @@ function verifyOauthParams(req) {
   return params;
 }
 
-
 /**
  * @param {!HttpRequest} req
  * @param {string} name
  * @return {?string}
  */
 function getParam(req, name) {
-  return req.query[name] || req.body && req.body[name] || null;
+  return req.query[name] || (req.body && req.body[name]) || null;
 }
-
 
 /**
  * @param {!OauthParams} params
@@ -337,7 +336,7 @@ function generateAuthorizationCode(params, email, password) {
   return {
     what: 'authorizationCode',
     clientId: CLIENT_ID,
-    exp: Date.now() + 600000,  // Expiration in 10 min.
+    exp: Date.now() + 600000, // Expiration in 10 min.
     redirectUri: params.redirectUri,
     state: params.state,
     scope: params.scope,
@@ -348,7 +347,6 @@ function generateAuthorizationCode(params, email, password) {
     },
   };
 }
-
 
 /**
  * @param {string} scope
@@ -363,7 +361,6 @@ function generateRefreshToken(scope, data) {
     data,
   };
 }
-
 
 /**
  * @param {!RefreshToken} refreshToken
