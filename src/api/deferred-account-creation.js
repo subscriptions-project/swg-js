@@ -18,7 +18,6 @@ import {Entitlements} from './entitlements';
 import {PurchaseData} from './subscribe-response';
 import {UserData} from './user-data';
 
-
 /**
  * Properties:
  * - entitlements - the current entitlements.
@@ -32,11 +31,9 @@ import {UserData} from './user-data';
  */
 export let DeferredAccountCreationRequest;
 
-
 /**
  */
 export class DeferredAccountCreationResponse {
-
   /**
    * @param {!Entitlements} entitlements
    * @param {!UserData} userData
@@ -62,10 +59,11 @@ export class DeferredAccountCreationResponse {
    */
   clone() {
     return new DeferredAccountCreationResponse(
-        this.entitlements,
-        this.userData,
-        this.purchaseDataList,
-        this.completeHandler_);
+      this.entitlements,
+      this.userData,
+      this.purchaseDataList,
+      this.completeHandler_
+    );
   }
 
   /**
@@ -75,7 +73,7 @@ export class DeferredAccountCreationResponse {
     return {
       'entitlements': this.entitlements.json(),
       'userData': this.userData.json(),
-      'purchaseDataList': this.purchaseDataList.map(pd => pd.json()),
+      'purchaseDataList': this.purchaseDataList.map((pd) => pd.json()),
       // TODO(dvoytenko): deprecate.
       'purchaseData': this.purchaseData.json(),
     };
