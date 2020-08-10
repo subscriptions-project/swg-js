@@ -20,7 +20,7 @@
  * @template T
  * @constructor
  */
-const ArrayLike = function() {};
+const ArrayLike = function () {};
 
 /**
  * @type {number}
