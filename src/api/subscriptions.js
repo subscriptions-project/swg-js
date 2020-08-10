@@ -61,9 +61,10 @@ export class Subscriptions {
 
   /**
    * @param {?string=} encryptedDocumentKey
+   * @param {!Object=} params
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements(encryptedDocumentKey) {}
+  getEntitlements(encryptedDocumentKey, params) {}
 
   /**
    * Set the subscribe callback.

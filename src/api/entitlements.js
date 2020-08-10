@@ -63,7 +63,7 @@ export class Entitlements {
     return new Entitlements(
       this.service,
       this.raw,
-      this.entitlements.map(ent => ent.clone()),
+      this.entitlements.map((ent) => ent.clone()),
       this.product_,
       this.ackHandler_,
       this.isReadyToPay,
@@ -77,9 +77,26 @@ export class Entitlements {
   json() {
     return {
       'service': this.service,
-      'entitlements': this.entitlements.map(item => item.json()),
+      'entitlements': this.entitlements.map((item) => item.json()),
       'isReadyToPay': this.isReadyToPay,
     };
+  }
+
+  /**
+   * Returns true if at least one cacheable entitlement enables
+   * the current product.
+   * @return {boolean}
+   */
+  enablesThisAndIsCacheable() {
+    console.log(this.entitlements);
+    return (
+      this.entitlements
+        // Filter cacheable entitlements.
+        .filter((entitlement) => entitlement.source.indexOf('metering') === -1)
+        // Filter for entitlements that enable the current product.
+        .filter((entitlement) => entitlement.products.includes(this.product_))
+        .length > 0
+    );
   }
 
   /**
@@ -264,7 +281,7 @@ export class Entitlement {
     const jsonList = Array.isArray(json)
       ? /** @type {!Array<Object>} */ (json)
       : [json];
-    return jsonList.map(json => Entitlement.parseFromJson(json));
+    return jsonList.map((json) => Entitlement.parseFromJson(json));
   }
 
   /**
@@ -275,12 +292,10 @@ export class Entitlement {
     if (this.source !== 'google') {
       return null;
     }
-    const sku = (
-        /** @type {?string} */ (getPropertyFromJsonString(
-            this.subscriptionToken,
-            'productId'
-        ) || null)
-    );
+    const sku = /** @type {?string} */ (getPropertyFromJsonString(
+      this.subscriptionToken,
+      'productId'
+    ) || null);
     if (!sku) {
       warn('Unable to retrieve SKU from SwG subscription token');
     }
