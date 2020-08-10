@@ -22,6 +22,7 @@ import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
 import {hash} from '../utils/string';
 import {serviceUrl} from './services';
+import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -115,9 +116,14 @@ export class EntitlementsManager {
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements(params) {
-    // TODO: Describe why we are creating this fallback.
-    // Support deprecated string parameter.
+    // Remain backwards compatible by accepting
+    // `encryptedDocumentKey` string as a first param.
     if (typeof params === 'string') {
+      // TODO: Delete the fallback if nobody needs it. Use a log to verify.
+      warn(
+        `[swg.js:getEntitlements]: The first param of getEntitlements() should be an object of type GetEntitlementsParams.`
+      );
+
       params = {
         encryption: {encryptedDocumentKey: /**@type {string} */ (params)},
       };
