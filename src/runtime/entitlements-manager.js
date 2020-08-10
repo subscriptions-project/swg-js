@@ -177,10 +177,12 @@ export class EntitlementsManager {
       const raw = cachedValues[0];
       const irtp = cachedValues[1];
       // Try cache first.
-      if (
-        raw &&
-        !(params && params.encryption && params.encryption.decryptedDocumentKey)
-      ) {
+      const needsDecryption = !!(
+        params &&
+        params.encryption &&
+        params.encryption.decryptedDocumentKey
+      );
+      if (raw && !needsDecryption) {
         const cached = this.getValidJwtEntitlements_(
           raw,
           /* requireNonExpired */ true,
