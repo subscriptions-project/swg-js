@@ -144,7 +144,7 @@ function startFlowAuto() {
     return;
   }
 
-  if (flow == 'yeet') {
+  if (flow == 'metering') {
     whenReady((subsciptions) => {
       subsciptions.getEntitlements(null, {
         metering: {
