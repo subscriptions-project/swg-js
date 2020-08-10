@@ -89,7 +89,7 @@ export class Entitlements {
    */
   enablesThisAndIsCacheable() {
     const cacheableEntitlements = this.entitlements
-      // Filter cacheable entitlements.
+      // Filter for cacheable entitlements.
       .filter((entitlement) => entitlement.source.indexOf('metering') === -1)
       // Filter for entitlements that enable the current product.
       .filter((entitlement) => entitlement.enables(this.product_));
