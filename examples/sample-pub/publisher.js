@@ -146,20 +146,30 @@ function startFlowAuto() {
 
   if (flow == 'metering') {
     whenReady((subsciptions) => {
-      subsciptions.getEntitlements(null, {
-        metering: {
-          userState: {
-            id:
-              'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
-            attributes: [
-              {
-                name: 'registered_user',
-                timestamp: (Date.now() / 1000) | 0,
-              },
-            ],
+      subsciptions
+        .getEntitlements({
+          metering: {
+            userState: {
+              id:
+                'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
+              attributes: [
+                {
+                  name: 'registered_user',
+                  timestamp: (Date.now() / 1000) | 0,
+                },
+              ],
+            },
           },
-        },
-      });
+        })
+        .then((entitlements) => {
+          if (entitlements.enablesThisWithGoogleMetering()) {
+            console.log('Hey Google, thanks for the metering entitlement.');
+          } else {
+            console.log(
+              'I was promised metering entitlements... (╯°□°)╯︵ ┻━┻'
+            );
+          }
+        });
     });
     return;
   }

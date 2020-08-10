@@ -88,16 +88,27 @@ export class Entitlements {
    * @return {boolean}
    */
   enablesThisAndIsCacheable() {
-    console.log(this.entitlements);
-    return (
-      this.entitlements
-        // Filter cacheable entitlements.
-        .filter((entitlement) => entitlement.source.indexOf('metering') === -1)
-        // Filter for entitlements that enable the current product.
-        .filter(
-          (entitlement) => entitlement.products.indexOf(this.product_) !== -1
-        ).length > 0
-    );
+    const cacheableEntitlements = this.entitlements
+      // Filter cacheable entitlements.
+      .filter((entitlement) => entitlement.source.indexOf('metering') === -1)
+      // Filter for entitlements that enable the current product.
+      .filter((entitlement) => entitlement.enables(this.product_));
+
+    return cacheableEntitlements.length > 0;
+  }
+
+  /**
+   * Returns true if a Google-provided metering entitlement enables the current product.
+   * @return {boolean}
+   */
+  enablesThisWithGoogleMetering() {
+    const googleMeteringEntitlements = this.entitlements
+      // Filter for Google-provided metering entitlements.
+      .filter((entitlement) => entitlement.source === 'google:metering')
+      // Filter for entitlements that enable the current product.
+      .filter((entitlement) => entitlement.enables(this.product_));
+
+    return googleMeteringEntitlements.length > 0;
   }
 
   /**
