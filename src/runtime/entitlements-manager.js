@@ -467,12 +467,14 @@ export class EntitlementsManager {
           urlParams.push('encodedParams=' + encodedParams);
         }
 
-        return serviceUrl(
+        let url =
           '/publication/' +
-            encodeURIComponent(this.publicationId_) +
-            '/entitlements?' +
-            urlParams.join('&')
-        );
+          encodeURIComponent(this.publicationId_) +
+          '/entitlements';
+        if (urlParams.length > 0) {
+          url += '?' + urlParams.join('&');
+        }
+        return serviceUrl(url);
       })
       .then((url) => this.fetcher_.fetchCredentialedJson(url))
       .then((json) => this.parseEntitlements(json));
