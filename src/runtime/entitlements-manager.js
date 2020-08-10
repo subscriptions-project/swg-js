@@ -445,15 +445,14 @@ export class EntitlementsManager {
         }
 
         // Add metering params.
-        if (params && params.metering) {
-          const productId = this.pageConfig_.getProductId();
-          if (productId) {
-            params.metering.clientTypes = [1];
-            params.metering.owner = productId;
-            params.metering.resource = {
-              hashedCanonicalUrl,
-            };
-          }
+        const productId = this.pageConfig_.getProductId();
+        if (productId && params && params.metering) {
+          // Populate fields.
+          params.metering.clientTypes = [1];
+          params.metering.owner = productId;
+          params.metering.resource = {
+            hashedCanonicalUrl,
+          };
 
           // Encode JSON params.
           const encodedParams = btoa(
@@ -462,6 +461,7 @@ export class EntitlementsManager {
           urlParams.push('encodedParams=' + encodedParams);
         }
 
+        // Build URL.
         let url =
           '/publication/' +
           encodeURIComponent(this.publicationId_) +
