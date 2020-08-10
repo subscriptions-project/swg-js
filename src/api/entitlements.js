@@ -94,8 +94,9 @@ export class Entitlements {
         // Filter cacheable entitlements.
         .filter((entitlement) => entitlement.source.indexOf('metering') === -1)
         // Filter for entitlements that enable the current product.
-        .filter((entitlement) => entitlement.products.includes(this.product_))
-        .length > 0
+        .filter(
+          (entitlement) => entitlement.products.indexOf(this.product_) !== -1
+        ).length > 0
     );
   }
 

@@ -276,9 +276,9 @@ export class Runtime {
   }
 
   /** @override */
-  getEntitlements(encryptedDocumentKey, params) {
+  getEntitlements(params) {
     return this.configured_(true).then((runtime) =>
-      runtime.getEntitlements(encryptedDocumentKey, params)
+      runtime.getEntitlements(params)
     );
   }
 
@@ -746,9 +746,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getEntitlements(encryptedDocumentKey, params) {
+  getEntitlements(params) {
     return this.entitlementsManager_
-      .getEntitlements(encryptedDocumentKey, params)
+      .getEntitlements(params)
       .then((entitlements) => {
         // Auto update internal things tracking the user's current SKU.
         if (entitlements) {

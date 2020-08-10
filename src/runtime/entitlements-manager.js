@@ -15,6 +15,7 @@
  */
 
 import {Entitlement, Entitlements} from '../api/entitlements';
+import {GetEntitlementsParams} from '../api/subscriptions';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from '../runtime/services';
@@ -110,16 +111,20 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string=} encryptedDocumentKey
-   * @param {!Object=} params
+   * @param {!GetEntitlementsParams=} params
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements(encryptedDocumentKey, params) {
+  getEntitlements(params) {
+    // TODO: Describe why we are creating this fallback.
+    // Support deprecated string parameter.
+    if (typeof params === 'string') {
+      params = {
+        encryption: {encryptedDocumentKey: /**@type {string} */ (params)},
+      };
+    }
+
     if (!this.responsePromise_) {
-      this.responsePromise_ = this.getEntitlementsFlow_(
-        encryptedDocumentKey,
-        params
-      );
+      this.responsePromise_ = this.getEntitlementsFlow_(params);
     }
     return this.responsePromise_.then((response) => {
       if (response.isReadyToPay != null) {
@@ -148,28 +153,23 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string=} encryptedDocumentKey
-   * @param {!Object=} params
+   * @param {!GetEntitlementsParams=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  getEntitlementsFlow_(encryptedDocumentKey, params) {
-    return this.fetchEntitlementsWithCaching_(
-      encryptedDocumentKey,
-      params
-    ).then((entitlements) => {
+  getEntitlementsFlow_(params) {
+    return this.fetchEntitlementsWithCaching_(params).then((entitlements) => {
       this.onEntitlementsFetched_(entitlements);
       return entitlements;
     });
   }
 
   /**
-   * @param {?string=} encryptedDocumentKey
-   * @param {!Object=} params
+   * @param {!GetEntitlementsParams=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetchEntitlementsWithCaching_(encryptedDocumentKey, params) {
+  fetchEntitlementsWithCaching_(params) {
     return Promise.all([
       this.storage_.get(ENTS_STORAGE_KEY),
       this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY),
@@ -177,7 +177,10 @@ export class EntitlementsManager {
       const raw = cachedValues[0];
       const irtp = cachedValues[1];
       // Try cache first.
-      if (raw && !encryptedDocumentKey) {
+      if (
+        raw &&
+        !(params && params.encryption && params.encryption.decryptedDocumentKey)
+      ) {
         const cached = this.getValidJwtEntitlements_(
           raw,
           /* requireNonExpired */ true,
@@ -190,31 +193,28 @@ export class EntitlementsManager {
         }
       }
       // If cache didn't match, perform fetch.
-      return this.fetchEntitlements_(encryptedDocumentKey, params).then(
-        (ents) => {
-          // If cacheable entitlements match the product, store them in cache.
-          if (ents && ents.enablesThisAndIsCacheable() && ents.raw) {
-            this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
-          }
-          return ents;
+      return this.fetchEntitlements_(params).then((ents) => {
+        // If cacheable entitlements match the product, store them in cache.
+        if (ents && ents.enablesThisAndIsCacheable() && ents.raw) {
+          this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
         }
-      );
+        return ents;
+      });
     });
   }
 
   /**
-   * @param {?string=} encryptedDocumentKey
-   * @param {!Object=} params
+   * @param {!GetEntitlementsParams=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetchEntitlements_(encryptedDocumentKey, params) {
+  fetchEntitlements_(params) {
     // TODO(dvoytenko): Replace retries with consistent fetch.
     let positiveRetries = this.positiveRetries_;
     this.positiveRetries_ = 0;
     const attempt = () => {
       positiveRetries--;
-      return this.fetch_(encryptedDocumentKey, params).then((entitlements) => {
+      return this.fetch_(params).then((entitlements) => {
         if (entitlements.enablesThis() || positiveRetries <= 0) {
           return entitlements;
         }
@@ -422,30 +422,46 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string=} encryptedDocumentKey
-   * @param {!Object=} params
+   * @param {!GetEntitlementsParams=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetch_(encryptedDocumentKey, params) {
-    return hash(getCanonicalUrl(this.deps_.doc_))
+  fetch_(params) {
+    return hash(getCanonicalUrl(this.deps_.doc()))
       .then((hashedCanonicalUrl) => {
         const urlParams = [];
 
-        if (encryptedDocumentKey) {
-          urlParams.push('crypt=' + encodeURIComponent(encryptedDocumentKey));
+        // Add encryption param.
+        if (
+          params &&
+          params.encryption &&
+          params.encryption.encryptedDocumentKey
+        ) {
+          urlParams.push(
+            'crypt=' +
+              encodeURIComponent(params.encryption.encryptedDocumentKey)
+          );
         }
 
+        // Add encoded params.
         if (params) {
-          if (params.metering) {
+          // Add metering params.
+          const productId = this.pageConfig_.getProductId();
+          if (productId && params.metering) {
             params.metering.clientTypes = [1];
-            params.metering.owner = this.deps_.pageConfig_.productId_;
+            params.metering.owner = productId;
             params.metering.resource = {
               hashedCanonicalUrl,
             };
           }
 
-          const encodedParams = btoa(JSON.stringify(params));
+          // The encryption param has a dedicated URL param.
+          delete params.encryption;
+
+          // Encode JSON params.
+          const encodedParams = btoa(
+            JSON.stringify(/** @type {!JsonObject} */ (params))
+          );
           urlParams.push('encodedParams=' + encodedParams);
         }
 

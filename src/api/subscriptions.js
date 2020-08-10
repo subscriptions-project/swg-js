@@ -60,11 +60,10 @@ export class Subscriptions {
   clear() {}
 
   /**
-   * @param {?string=} encryptedDocumentKey
-   * @param {!Object=} params
+   * @param {!GetEntitlementsParams=} params
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements(encryptedDocumentKey, params) {}
+  getEntitlements(params) {}
 
   /**
    * Set the subscribe callback.
@@ -317,6 +316,42 @@ export const SubscriptionFlows = {
  * }}
  */
 export let Config;
+
+/**
+ * Params for GetEntitlements requests.
+ * @typedef {{
+ *   encryption: (!GetEntitlementsEncryptionParams|undefined),
+ *   metering: (!GetEntitlementsMeteringParams|undefined),
+ * }}
+ */
+export let GetEntitlementsParams;
+
+/**
+ * Encryption params for GetEntitlements requests.
+ * @typedef {{
+ *   encryptedDocumentKey: string,
+ * }}
+ */
+export let GetEntitlementsEncryptionParams;
+
+/**
+ * Metering params for GetEntitlements requests.
+ * @typedef {{
+ *   clientTypes: !Array<number>,
+ *   owner: string,
+ *   userState: !Array<{
+ *     id: string,
+ *     attributes: {
+ *       name: string,
+ *       timestamp: number,
+ *     },
+ *   }>,
+ *   resource: {
+ *     hashedCanonicalUrl: string,
+ *   },
+ * }}
+ */
+export let GetEntitlementsMeteringParams;
 
 /**
  * @enum {number}
