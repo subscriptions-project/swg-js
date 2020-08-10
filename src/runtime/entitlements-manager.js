@@ -434,31 +434,24 @@ export class EntitlementsManager {
         const urlParams = [];
 
         // Add encryption param.
-        if (
-          params &&
-          params.encryption &&
-          params.encryption.encryptedDocumentKey
-        ) {
+        if (params && params.encryption) {
           urlParams.push(
             'crypt=' +
               encodeURIComponent(params.encryption.encryptedDocumentKey)
           );
+          delete params.encryption;
         }
 
-        // Add encoded params.
-        if (params) {
-          // Add metering params.
+        // Add metering params.
+        if (params && params.metering) {
           const productId = this.pageConfig_.getProductId();
-          if (productId && params.metering) {
+          if (productId) {
             params.metering.clientTypes = [1];
             params.metering.owner = productId;
             params.metering.resource = {
               hashedCanonicalUrl,
             };
           }
-
-          // The encryption param has a dedicated URL param.
-          delete params.encryption;
 
           // Encode JSON params.
           const encodedParams = btoa(
