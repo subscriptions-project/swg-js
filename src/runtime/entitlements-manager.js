@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import {Entitlement, Entitlements} from '../api/entitlements';
+import {
+  Entitlement,
+  Entitlements,
+  GOOGLE_METERING_SOURCE,
+} from '../api/entitlements';
+import {EntitlementsPingbackRequest} from '../proto/api_messages';
 import {GetEntitlementsParams} from '../api/subscriptions';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
@@ -22,12 +27,14 @@ import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
 import {hash} from '../utils/string';
 import {serviceUrl} from './services';
+import {toTimestamp} from '../utils/date-utils';
 import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
 const ENTS_STORAGE_KEY = 'ents';
 const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
+const PINGBACK_DELAY = 2000;
 
 /**
  */
@@ -156,6 +163,27 @@ export class EntitlementsManager {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Sends a pingback that marks a metering entitlement as used.
+   * @param {!Entitlement} entitlement
+   */
+  sendPingback(entitlement) {
+    if (entitlement.source !== GOOGLE_METERING_SOURCE) {
+      return;
+    }
+
+    const message = new EntitlementsPingbackRequest();
+    message.setSignedMeter(entitlement.subscriptionToken);
+    message.setClientEventTime(toTimestamp(new Date()));
+
+    const url =
+      '/publication/' +
+      encodeURIComponent(this.publicationId_) +
+      '/entitlements';
+
+    this.fetcher_.sendPost(serviceUrl(url), message);
   }
 
   /**
@@ -372,47 +400,43 @@ export class EntitlementsManager {
       .callbacks()
       .triggerEntitlementsResponse(Promise.resolve(entitlements));
 
-    // Show a toast if needed.
-    this.maybeShowToast_(entitlements);
-  }
-
-  /**
-   * @param {!Entitlements} entitlements
-   * @return {!Promise}
-   * @private
-   */
-  maybeShowToast_(entitlements) {
     const entitlement = entitlements.getEntitlementForThis();
     if (!entitlement) {
-      return Promise.resolve();
+      return;
     }
-    // Check if storage bit is set. It's only set by the `Entitlements.ack`
-    // method.
-    return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
-      if (value == '1') {
-        // Already shown;
-        return;
-      }
-      if (entitlement) {
-        this.showToast_(entitlement);
-      }
-    });
+
+    this.maybeShowToast_(entitlement);
+
+    setTimeout(() => {
+      this.sendPingback(entitlement);
+    }, PINGBACK_DELAY);
   }
 
   /**
    * @param {!Entitlement} entitlement
+   * @return {!Promise}
    * @private
    */
-  showToast_(entitlement) {
-    const source = entitlement.source || 'google';
-    return new Toast(
-      this.deps_,
-      feUrl('/toastiframe'),
-      feArgs({
-        'publicationId': this.publicationId_,
-        'source': source,
-      })
-    ).open();
+  maybeShowToast_(entitlement) {
+    // Check if storage bit is set. It's only set by the `Entitlements.ack`
+    // method.
+    return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
+      const toastWasShown = value === '1';
+      if (toastWasShown) {
+        return;
+      }
+
+      // Show toast.
+      const source = entitlement.source || 'google';
+      return new Toast(
+        this.deps_,
+        feUrl('/toastiframe'),
+        feArgs({
+          'publicationId': this.publicationId_,
+          'source': source,
+        })
+      ).open();
+    });
   }
 
   /**

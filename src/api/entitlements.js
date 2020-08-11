@@ -17,6 +17,9 @@
 import {getPropertyFromJsonString} from '../utils/json';
 import {warn} from '../utils/log';
 
+/** Source for Google-provided metering entitlements. */
+export const GOOGLE_METERING_SOURCE = 'google:metering';
+
 /**
  * The holder of the entitlements for a service.
  */
@@ -104,7 +107,7 @@ export class Entitlements {
   enablesThisWithGoogleMetering() {
     const googleMeteringEntitlements = this.entitlements
       // Filter for Google-provided metering entitlements.
-      .filter((entitlement) => entitlement.source === 'google:metering')
+      .filter((entitlement) => entitlement.source === GOOGLE_METERING_SOURCE)
       // Filter for entitlements that enable the current product.
       .filter((entitlement) => entitlement.enables(this.product_));
 
@@ -162,21 +165,46 @@ export class Entitlements {
   /**
    * Returns the first matching entitlement for the specified product,
    * optionally also matching the specified source.
+   *
+   * Returns non-metering entitlements if possible, to avoid using
+   * metered reads unnecessarily.
+   *
    * @param {?string} product
    * @param {string=} source
    * @return {?Entitlement}
    */
   getEntitlementFor(product, source) {
-    if (product && this.entitlements.length > 0) {
-      for (let i = 0; i < this.entitlements.length; i++) {
-        if (
-          this.entitlements[i].enables(product) &&
-          (!source || source == this.entitlements[i].source)
-        ) {
-          return this.entitlements[i];
-        }
+    if (!product) {
+      return null;
+    }
+
+    // Sort non-metering entitlements first, so they are returned if possible,
+    // to avoid using metered reads unnecessarily.
+    const entitlements = this.entitlements.slice().sort((a, b) => {
+      if (a.source === b.source) {
+        return 0;
+      }
+
+      if (a.source === GOOGLE_METERING_SOURCE) {
+        return 1;
+      }
+
+      if (b.source === GOOGLE_METERING_SOURCE) {
+        return -1;
+      }
+
+      return 0;
+    });
+
+    for (let i = 0; i < entitlements.length; i++) {
+      if (
+        entitlements[i].enables(product) &&
+        (!source || source == entitlements[i].source)
+      ) {
+        return entitlements[i];
       }
     }
+
     return null;
   }
 
