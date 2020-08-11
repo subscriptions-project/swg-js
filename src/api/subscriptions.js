@@ -19,7 +19,7 @@ import {
   DeferredAccountCreationRequest,
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
-import {Entitlements} from './entitlements';
+import {Entitlement, Entitlements} from './entitlements';
 import {LoggerApi} from './logger-api';
 import {Offer} from './offer';
 import {PropensityApi} from './propensity-api';
@@ -64,6 +64,12 @@ export class Subscriptions {
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements(params) {}
+
+  /**
+   * @param {!Entitlements} entitlements
+   * @return {!Promise}
+   */
+  sendPingback(entitlements) {}
 
   /**
    * Set the subscribe callback.

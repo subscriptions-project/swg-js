@@ -34,7 +34,6 @@ const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
 const ENTS_STORAGE_KEY = 'ents';
 const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
-const PINGBACK_DELAY = 2000;
 
 /**
  */
@@ -167,9 +166,11 @@ export class EntitlementsManager {
 
   /**
    * Sends a pingback that marks a metering entitlement as used.
-   * @param {!Entitlement} entitlement
+   * @param {!Entitlements} entitlements
+   * @return {!Promise}
    */
-  sendPingback(entitlement) {
+  sendPingback(entitlements) {
+    const entitlement = entitlements.getEntitlementForThis();
     if (entitlement.source !== GOOGLE_METERING_SOURCE) {
       return;
     }
@@ -183,7 +184,7 @@ export class EntitlementsManager {
       encodeURIComponent(this.publicationId_) +
       '/entitlements';
 
-    this.fetcher_.sendPost(serviceUrl(url), message);
+    return this.fetcher_.sendPost(serviceUrl(url), message);
   }
 
   /**
@@ -406,10 +407,6 @@ export class EntitlementsManager {
     }
 
     this.maybeShowToast_(entitlement);
-
-    setTimeout(() => {
-      this.sendPingback(entitlement);
-    }, PINGBACK_DELAY);
   }
 
   /**

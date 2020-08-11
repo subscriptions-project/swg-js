@@ -164,6 +164,10 @@ function startFlowAuto() {
         .then((entitlements) => {
           if (entitlements.enablesThisWithGoogleMetering()) {
             console.log('Hey Google, thanks for the metering entitlement.');
+
+            setTimeout(() => {
+              subscriptions.sendPingback(entitlements);
+            }, 2000);
           } else {
             console.log('Sorry no meter entitlements today');
           }

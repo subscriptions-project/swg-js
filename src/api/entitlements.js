@@ -105,13 +105,8 @@ export class Entitlements {
    * @return {boolean}
    */
   enablesThisWithGoogleMetering() {
-    const googleMeteringEntitlements = this.entitlements
-      // Filter for Google-provided metering entitlements.
-      .filter((entitlement) => entitlement.source === GOOGLE_METERING_SOURCE)
-      // Filter for entitlements that enable the current product.
-      .filter((entitlement) => entitlement.enables(this.product_));
-
-    return googleMeteringEntitlements.length > 0;
+    const entitlement = this.getEntitlementForThis();
+    return entitlement && entitlement.source === GOOGLE_METERING_SOURCE;
   }
 
   /**

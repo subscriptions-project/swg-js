@@ -283,6 +283,13 @@ export class Runtime {
   }
 
   /** @override */
+  sendPingback(entitlements) {
+    return this.configured_(true).then((runtime) =>
+      runtime.sendPingback(entitlements)
+    );
+  }
+
+  /** @override */
   setOnEntitlementsResponse(callback) {
     return this.configured_(false).then((runtime) =>
       runtime.setOnEntitlementsResponse(callback)
@@ -767,6 +774,11 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  sendPingback(entitlements) {
+    return this.entitlementsManager_.sendPingback(entitlements);
+  }
+
+  /** @override */
   setOnEntitlementsResponse(callback) {
     this.callbacks_.setOnEntitlementsResponse(callback);
   }
@@ -1020,6 +1032,7 @@ function createPublicRuntime(runtime) {
     reset: runtime.reset.bind(runtime),
     clear: runtime.clear.bind(runtime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
+    sendPingback: runtime.sendPingback.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
     showLoginPrompt: runtime.showLoginPrompt.bind(runtime),
     showLoginNotification: runtime.showLoginNotification.bind(runtime),
