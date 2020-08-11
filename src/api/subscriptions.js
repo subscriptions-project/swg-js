@@ -286,6 +286,7 @@ export const SubscriptionFlows = {
   COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',
   SHOW_LOGIN_PROMPT: 'showLoginPrompt',
+  SHOW_METER_REGWALL: 'showMeterRegwall',
   SHOW_LOGIN_NOTIFICATION: 'showLoginNotification',
 };
 
