@@ -145,8 +145,8 @@ function startFlowAuto() {
   }
 
   if (flow == 'metering') {
-    whenReady((subsciptions) => {
-      subsciptions
+    whenReady((subscriptions) => {
+      subscriptions
         .getEntitlements({
           metering: {
             userState: {
