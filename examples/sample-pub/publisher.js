@@ -165,9 +165,7 @@ function startFlowAuto() {
           if (entitlements.enablesThisWithGoogleMetering()) {
             console.log('Hey Google, thanks for the metering entitlement.');
           } else {
-            console.log(
-              'I was promised metering entitlements... (╯°□°)╯︵ ┻━┻'
-            );
+            console.log('Sorry no meter entitlements today');
           }
         });
     });
