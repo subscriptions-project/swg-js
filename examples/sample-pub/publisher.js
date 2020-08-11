@@ -155,7 +155,7 @@ function startFlowAuto() {
               attributes: [
                 {
                   name: 'registered_user',
-                  timestamp: (Date.now() / 1000) | 0,
+                  timestamp: Math.floor(Date.now() / 1000),
                 },
               ],
             },
