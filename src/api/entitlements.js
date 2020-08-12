@@ -30,6 +30,7 @@ export class Entitlements {
    * @param {!Array<!Entitlement>} entitlements
    * @param {?string} currentProduct
    * @param {function(!Entitlements)} ackHandler
+   * @param {function(!Entitlements)} consumeHandler
    * @param {?boolean|undefined} isReadyToPay
    * @param {?string|undefined} decryptedDocumentKey
    */
@@ -39,6 +40,7 @@ export class Entitlements {
     entitlements,
     currentProduct,
     ackHandler,
+    consumeHandler,
     isReadyToPay,
     decryptedDocumentKey
   ) {
@@ -57,6 +59,8 @@ export class Entitlements {
     this.product_ = currentProduct;
     /** @private @const {function(!Entitlements)} */
     this.ackHandler_ = ackHandler;
+    /** @private @const {function(!Entitlements)} */
+    this.consumeHandler_ = consumeHandler;
   }
 
   /**
@@ -69,6 +73,7 @@ export class Entitlements {
       this.entitlements.map((ent) => ent.clone()),
       this.product_,
       this.ackHandler_,
+      this.consumeHandler_,
       this.isReadyToPay,
       this.decryptedDocumentKey
     );
@@ -86,22 +91,18 @@ export class Entitlements {
   }
 
   /**
-   * Returns true if at least one cacheable entitlement enables
-   * the current product.
+   * Returns true if the entitlements enable the current product
+   * with a cacheable entitlement.
    * @return {boolean}
    */
-  enablesThisAndIsCacheable() {
-    const cacheableEntitlements = this.entitlements
-      // Filter for cacheable entitlements.
-      .filter((entitlement) => entitlement.source.indexOf('metering') === -1)
-      // Filter for entitlements that enable the current product.
-      .filter((entitlement) => entitlement.enables(this.product_));
-
-    return cacheableEntitlements.length > 0;
+  enablesThisWithCacheableEntitlements() {
+    const entitlement = this.getEntitlementForThis();
+    return entitlement && entitlement.source !== GOOGLE_METERING_SOURCE;
   }
 
   /**
-   * Returns true if a Google-provided metering entitlement enables the current product.
+   * Returns true if the entitlements enable the current product
+   * with a Google metering entitlement.
    * @return {boolean}
    */
   enablesThisWithGoogleMetering() {
@@ -229,6 +230,13 @@ export class Entitlements {
    */
   ack() {
     this.ackHandler_(this);
+  }
+
+  /**
+   * A 3p site should call this method to consume a Google metering entitlement.
+   */
+  consume() {
+    this.consumeHandler_(this);
   }
 }
 

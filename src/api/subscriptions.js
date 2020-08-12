@@ -66,12 +66,6 @@ export class Subscriptions {
   getEntitlements(params) {}
 
   /**
-   * @param {!Entitlements} entitlements
-   * @return {!Promise}
-   */
-  sendPingback(entitlements) {}
-
-  /**
    * Set the subscribe callback.
    * @param {function(!Promise<!Entitlements>)} callback
    */

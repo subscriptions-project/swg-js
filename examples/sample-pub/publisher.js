@@ -152,9 +152,15 @@ function startFlowAuto() {
             userState: {
               id:
                 'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
-              attributes: [
+              standardAttributes: [
                 {
-                  name: 'registered_user',
+                  name: 'registered_user', // standard_registered_user
+                  timestamp: Math.floor(Date.now() / 1000),
+                },
+              ],
+              customAttributes: [
+                {
+                  name: 'newsletter_subscriber', // custom_newsletter_subscriber
                   timestamp: Math.floor(Date.now() / 1000),
                 },
               ],
@@ -163,13 +169,10 @@ function startFlowAuto() {
         })
         .then((entitlements) => {
           if (entitlements.enablesThisWithGoogleMetering()) {
-            console.log('Hey Google, thanks for the metering entitlement.');
-
-            setTimeout(() => {
-              subscriptions.sendPingback(entitlements);
-            }, 2000);
-          } else {
-            console.log('Sorry no meter entitlements today');
+            console.log(
+              'Consuming Google metering entitlement from Publisher JS'
+            );
+            entitlements.consume();
           }
         });
     });

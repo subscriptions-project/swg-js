@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
+import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   Entitlement,
   Entitlements,
   GOOGLE_METERING_SOURCE,
 } from '../api/entitlements';
 import {EntitlementsPingbackRequest} from '../proto/api_messages';
-import {GetEntitlementsParams} from '../api/subscriptions';
+import {GetEntitlementsParams, ProductType} from '../api/subscriptions';
 import {JwtHelper} from '../utils/jwt';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from '../runtime/services';
@@ -169,9 +170,9 @@ export class EntitlementsManager {
    * @param {!Entitlements} entitlements
    * @return {!Promise}
    */
-  sendPingback(entitlements) {
+  sendPingback_(entitlements) {
     const entitlement = entitlements.getEntitlementForThis();
-    if (entitlement.source !== GOOGLE_METERING_SOURCE) {
+    if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
       return;
     }
 
@@ -227,8 +228,8 @@ export class EntitlementsManager {
       }
       // If cache didn't match, perform fetch.
       return this.fetchEntitlements_(params).then((ents) => {
-        // If cacheable entitlements match the product, store them in cache.
-        if (ents && ents.enablesThisAndIsCacheable() && ents.raw) {
+        // If the product is enabled by cacheable entitlements, store them in cache.
+        if (ents && ents.enablesThisWithCacheableEntitlements() && ents.raw) {
           this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
         }
         return ents;
@@ -378,6 +379,7 @@ export class EntitlementsManager {
       Entitlement.parseListFromJson(json),
       this.pageConfig_.getProductId(),
       this.ack_.bind(this),
+      this.consume_.bind(this),
       isReadyToPay,
       decryptedDocumentKey
     );
@@ -447,6 +449,34 @@ export class EntitlementsManager {
   }
 
   /**
+   * @param {!Entitlements} entitlements
+   * @private
+   */
+  consume_(entitlements) {
+    if (entitlements.enablesThisWithGoogleMetering()) {
+      // TODO: Open Metering Prompt.
+      this.activityIframeView_ = new ActivityIframeView(
+        this.win_,
+        this.deps_.activities(),
+        feUrl('/contributionsiframe'),
+        feArgs({
+          'productId': this.deps_.pageConfig().getProductId(),
+          'publicationId': this.deps_.pageConfig().getPublicationId(),
+          'productType': ProductType.UI_CONTRIBUTION,
+          'list': 'default',
+          'skus': null,
+          'isClosable': true,
+        }),
+        /* shouldFadeBody */ true
+      );
+      this.activityIframeView_.onCancel(() => {
+        this.sendPingback_(entitlements);
+      });
+      return this.deps_.dialogManager().openView(this.activityIframeView_);
+    }
+  }
+
+  /**
    * @param {!GetEntitlementsParams=} params
    * @return {!Promise<!Entitlements>}
    * @private
@@ -467,13 +497,41 @@ export class EntitlementsManager {
 
         // Add metering params.
         const productId = this.pageConfig_.getProductId();
-        if (productId && params && params.metering) {
+        if (
+          productId &&
+          params &&
+          params.metering &&
+          params.metering.userState
+        ) {
           // Populate fields.
           params.metering.clientTypes = [1];
           params.metering.owner = productId;
           params.metering.resource = {
             hashedCanonicalUrl,
           };
+
+          // Namespace attributes.
+          params.metering.userState.attributes = [];
+          params.metering.userState.standardAttributes &&
+            params.metering.userState.standardAttributes.forEach(
+              ({name, timestamp}) => {
+                params.metering.userState.attributes.push({
+                  name: 'standard_' + name,
+                  timestamp,
+                });
+              }
+            );
+          params.metering.userState.customAttributes &&
+            params.metering.userState.customAttributes.forEach(
+              ({name, timestamp}) => {
+                params.metering.userState.attributes.push({
+                  name: 'custom_' + name,
+                  timestamp,
+                });
+              }
+            );
+          delete params.metering.userState.standardAttributes;
+          delete params.metering.userState.customAttributes;
 
           // Encode JSON params.
           const encodedParams = btoa(
