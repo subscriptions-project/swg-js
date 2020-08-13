@@ -168,7 +168,6 @@ export class EntitlementsManager {
   /**
    * Sends a pingback that marks a metering entitlement as used.
    * @param {!Entitlements} entitlements
-   * @return {!Promise}
    */
   sendPingback_(entitlements) {
     const entitlement = entitlements.getEntitlementForThis();
@@ -185,7 +184,7 @@ export class EntitlementsManager {
       encodeURIComponent(this.publicationId_) +
       '/entitlements';
 
-    return this.fetcher_.sendPost(serviceUrl(url), message);
+    this.fetcher_.sendPost(serviceUrl(url), message);
   }
 
   /**
@@ -455,7 +454,7 @@ export class EntitlementsManager {
   consume_(entitlements) {
     if (entitlements.enablesThisWithGoogleMetering()) {
       // TODO: Open Metering Prompt.
-      this.activityIframeView_ = new ActivityIframeView(
+      const activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.deps_.activities(),
         feUrl('/contributionsiframe'),
@@ -469,10 +468,10 @@ export class EntitlementsManager {
         }),
         /* shouldFadeBody */ true
       );
-      this.activityIframeView_.onCancel(() => {
+      activityIframeView_.onCancel(() => {
         this.sendPingback_(entitlements);
       });
-      return this.deps_.dialogManager().openView(this.activityIframeView_);
+      return this.deps_.dialogManager().openView(activityIframeView_);
     }
   }
 
@@ -497,12 +496,7 @@ export class EntitlementsManager {
 
         // Add metering params.
         const productId = this.pageConfig_.getProductId();
-        if (
-          productId &&
-          params &&
-          params.metering &&
-          params.metering.userState
-        ) {
+        if (productId && params && params.metering && params.metering.state) {
           // Populate fields.
           params.metering.clientTypes = [1];
           params.metering.owner = productId;
@@ -511,27 +505,27 @@ export class EntitlementsManager {
           };
 
           // Namespace attributes.
-          params.metering.userState.attributes = [];
-          params.metering.userState.standardAttributes &&
-            params.metering.userState.standardAttributes.forEach(
+          params.metering.state.attributes = [];
+          params.metering.state.standardAttributes &&
+            params.metering.state.standardAttributes.forEach(
               ({name, timestamp}) => {
-                params.metering.userState.attributes.push({
+                params.metering.state.attributes.push({
                   name: 'standard_' + name,
                   timestamp,
                 });
               }
             );
-          params.metering.userState.customAttributes &&
-            params.metering.userState.customAttributes.forEach(
+          params.metering.state.customAttributes &&
+            params.metering.state.customAttributes.forEach(
               ({name, timestamp}) => {
-                params.metering.userState.attributes.push({
+                params.metering.state.attributes.push({
                   name: 'custom_' + name,
                   timestamp,
                 });
               }
             );
-          delete params.metering.userState.standardAttributes;
-          delete params.metering.userState.customAttributes;
+          delete params.metering.state.standardAttributes;
+          delete params.metering.state.customAttributes;
 
           // Encode JSON params.
           const encodedParams = btoa(

@@ -339,7 +339,7 @@ export let GetEntitlementsEncryptionParams;
  * @typedef {{
  *   clientTypes: !Array<number>,
  *   owner: string,
- *   userState: !Array<{
+ *   state: !Array<{
  *     id: string,
  *     attributes: {
  *       name: string,

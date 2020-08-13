@@ -97,7 +97,7 @@ export class Entitlements {
    */
   enablesThisWithCacheableEntitlements() {
     const entitlement = this.getEntitlementForThis();
-    return entitlement && entitlement.source !== GOOGLE_METERING_SOURCE;
+    return !!entitlement && entitlement.source !== GOOGLE_METERING_SOURCE;
   }
 
   /**
@@ -107,7 +107,7 @@ export class Entitlements {
    */
   enablesThisWithGoogleMetering() {
     const entitlement = this.getEntitlementForThis();
-    return entitlement && entitlement.source === GOOGLE_METERING_SOURCE;
+    return !!entitlement && entitlement.source === GOOGLE_METERING_SOURCE;
   }
 
   /**

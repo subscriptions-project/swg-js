@@ -149,7 +149,7 @@ function startFlowAuto() {
       subscriptions
         .getEntitlements({
           metering: {
-            userState: {
+            state: {
               id:
                 'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
               standardAttributes: [
