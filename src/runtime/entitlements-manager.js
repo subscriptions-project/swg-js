@@ -545,7 +545,14 @@ export class EntitlementsManager {
         return serviceUrl(url);
       })
       .then((url) => this.fetcher_.fetchCredentialedJson(url))
-      .then((json) => this.parseEntitlements(json));
+      .then((json) => {
+        if (json.errorMessages && json.errorMessages.length > 0) {
+          json.errorMessages.forEach((errorMessage) => {
+            warn('SwG Entitlements: ' + errorMessage);
+          });
+        }
+        return this.parseEntitlements(json);
+      });
   }
 }
 
