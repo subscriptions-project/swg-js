@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2020 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+//need to pass in a login url and a publisher gsi frame url
+//from swg.js to boq dialog which will in turn lauch the iframe.
+//Login url is so dialog can display an "already subscribed" link (or do we have that in swg config already?)
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
