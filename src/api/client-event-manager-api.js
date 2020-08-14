@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent,EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 
 /** @enum {number}  */
 export const FilterResult = {
@@ -51,7 +51,7 @@ export class ClientEventManagerApi {
    * invoked unless the event is filtered.
    * @param {!function(!ClientEvent)} listener
    */
-  registerEventListener(listener) { }
+  registerEventListener(listener) {}
 
   /**
    * Register a filterer for events if you need to potentially prevent the
@@ -60,7 +60,7 @@ export class ClientEventManagerApi {
    * event.
    * @param {!function(!ClientEvent):FilterResult} filterer
    */
-  registerEventFilterer(filterer) { }
+  registerEventFilterer(filterer) {}
 
   /**
    * Call this function to log an event.  It will immediately throw an error if
@@ -69,5 +69,5 @@ export class ClientEventManagerApi {
    * listener asynchronously.
    * @param {!ClientEvent} event
    */
-  logEvent(event) { }
+  logEvent(event) {}
 }

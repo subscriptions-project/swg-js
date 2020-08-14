@@ -29,7 +29,7 @@
     "web-activities": "1.24.0"
   },
   "devDependencies": {
-    "@babel/core": "7.11.0",
+    "@babel/core": "7.11.1",
     "@babel/preset-env": "7.11.0",
     "ansi-colors": "4.1.1",
     "autoprefixer": "9.8.6",
@@ -105,11 +105,11 @@
     "prettier": "2.0.5",
     "regenerator-runtime": "0.13.7",
     "request": "2.88.2",
-    "rollup": "2.23.0",
+    "rollup": "2.23.1",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "shuffle-seed": "1.1.6",
-    "sinon": "9.0.2",
+    "sinon": "9.0.3",
     "sinon-chai": "3.5.0",
     "through2": "4.0.2",
     "touch": "3.1.0",
