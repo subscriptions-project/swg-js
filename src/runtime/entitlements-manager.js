@@ -128,7 +128,7 @@ export class EntitlementsManager {
     if (typeof params === 'string') {
       // TODO: Delete the fallback if nobody needs it. Use a log to verify.
       warn(
-        `[swg.js:getEntitlements]: The first param of getEntitlements() should be an object of type GetEntitlementsParams.`
+        `[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParams.`
       );
 
       params = {
