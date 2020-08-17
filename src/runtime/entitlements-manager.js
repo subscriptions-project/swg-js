@@ -23,6 +23,7 @@ import {
 import {EntitlementsPingbackRequest} from '../proto/api_messages';
 import {GetEntitlementsParams, ProductType} from '../api/subscriptions';
 import {JwtHelper} from '../utils/jwt';
+import {MeterClientTypes} from '../api/metering';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
@@ -498,7 +499,7 @@ export class EntitlementsManager {
         const productId = this.pageConfig_.getProductId();
         if (productId && params && params.metering && params.metering.state) {
           // Populate fields.
-          params.metering.clientTypes = [1];
+          params.metering.clientTypes = [MeterClientTypes.LICENSED_BY_GOOGLE];
           params.metering.owner = productId;
           params.metering.resource = {
             hashedCanonicalUrl,
