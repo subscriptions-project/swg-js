@@ -21,7 +21,11 @@ import {
   GOOGLE_METERING_SOURCE,
 } from '../api/entitlements';
 import {EntitlementsPingbackRequest} from '../proto/api_messages';
-import {GetEntitlementsParams, ProductType} from '../api/subscriptions';
+import {
+  GetEntitlementsParamsExternal,
+  GetEntitlementsParamsInternal,
+  ProductType,
+} from '../api/subscriptions';
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {Toast} from '../ui/toast';
@@ -120,7 +124,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {!GetEntitlementsParams=} params
+   * @param {!GetEntitlementsParamsExternal=} params
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements(params) {
@@ -128,9 +132,13 @@ export class EntitlementsManager {
     // `encryptedDocumentKey` string as a first param.
     if (typeof params === 'string') {
       // TODO: Delete the fallback if nobody needs it. Use a log to verify.
-      warn(
-        `[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParams.`
-      );
+      if (Date.now() > 1598899876598) {
+        // TODO: Remove the conditional check for this warning
+        // after the AMP extension is updated to pass an object.
+        warn(
+          `[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParamsExternal.`
+        );
+      }
 
       params = {
         encryption: {encryptedDocumentKey: /**@type {string} */ (params)},
@@ -189,7 +197,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {!GetEntitlementsParams=} params
+   * @param {!GetEntitlementsParamsExternal=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
@@ -201,7 +209,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {!GetEntitlementsParams=} params
+   * @param {!GetEntitlementsParamsExternal=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
@@ -238,7 +246,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {!GetEntitlementsParams=} params
+   * @param {!GetEntitlementsParamsExternal=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
@@ -477,7 +485,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {!GetEntitlementsParams=} params
+   * @param {!GetEntitlementsParamsExternal=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
@@ -492,46 +500,48 @@ export class EntitlementsManager {
             'crypt=' +
               encodeURIComponent(params.encryption.encryptedDocumentKey)
           );
-          delete params.encryption;
         }
 
         // Add metering params.
         const productId = this.pageConfig_.getProductId();
         if (productId && params && params.metering && params.metering.state) {
-          // Populate fields.
-          params.metering.clientTypes = [MeterClientTypes.LICENSED_BY_GOOGLE];
-          params.metering.owner = productId;
-          params.metering.resource = {
-            hashedCanonicalUrl,
+          /** @type {!GetEntitlementsParamsInternal} */
+          const encodableParams = {
+            metering: {
+              clientTypes: [MeterClientTypes.LICENSED_BY_GOOGLE],
+              owner: productId,
+              resource: {
+                hashedCanonicalUrl,
+              },
+              state: {
+                id: params.metering.state.id,
+                attributes: [],
+              },
+            },
           };
 
-          // Namespace attributes.
-          params.metering.state.attributes = [];
-          params.metering.state.standardAttributes &&
-            params.metering.state.standardAttributes.forEach(
-              ({name, timestamp}) => {
-                params.metering.state.attributes.push({
-                  name: 'standard_' + name,
-                  timestamp,
-                });
-              }
-            );
-          params.metering.state.customAttributes &&
-            params.metering.state.customAttributes.forEach(
-              ({name, timestamp}) => {
-                params.metering.state.attributes.push({
-                  name: 'custom_' + name,
-                  timestamp,
-                });
-              }
-            );
-          delete params.metering.state.standardAttributes;
-          delete params.metering.state.customAttributes;
+          // Add attributes.
+          const standardAttributes = params.metering.state.standardAttributes;
+          if (standardAttributes) {
+            Object.keys(standardAttributes).forEach((key) => {
+              encodableParams.metering.state.attributes.push({
+                name: 'standard_' + key,
+                timestamp: standardAttributes[key].timestamp,
+              });
+            });
+          }
+          const customAttributes = params.metering.state.customAttributes;
+          if (customAttributes) {
+            Object.keys(customAttributes).forEach((key) => {
+              encodableParams.metering.state.attributes.push({
+                name: 'custom_' + key,
+                timestamp: customAttributes[key].timestamp,
+              });
+            });
+          }
 
-          // Encode JSON params.
-          const encodedParams = btoa(
-            JSON.stringify(/** @type {!JsonObject} */ (params))
-          );
+          // Encode params.
+          const encodedParams = btoa(JSON.stringify(encodableParams));
           urlParams.push('encodedParams=' + encodedParams);
         }
 

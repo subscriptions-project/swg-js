@@ -60,7 +60,7 @@ export class Subscriptions {
   clear() {}
 
   /**
-   * @param {!GetEntitlementsParams=} params
+   * @param {!GetEntitlementsParamsExternal=} params
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements(params) {}
@@ -318,13 +318,13 @@ export const SubscriptionFlows = {
 export let Config;
 
 /**
- * Params for GetEntitlements requests.
+ * Internal params for GetEntitlements requests.
  * @typedef {{
  *   encryption: (!GetEntitlementsEncryptionParams|undefined),
- *   metering: (!GetEntitlementsMeteringParams|undefined),
+ *   metering: (!GetEntitlementsMeteringParamsInternal|undefined),
  * }}
  */
-export let GetEntitlementsParams;
+export let GetEntitlementsParamsInternal;
 
 /**
  * Encryption params for GetEntitlements requests.
@@ -335,23 +335,53 @@ export let GetEntitlementsParams;
 export let GetEntitlementsEncryptionParams;
 
 /**
- * Metering params for GetEntitlements requests.
+ * Internal metering params for GetEntitlements requests.
  * @typedef {{
  *   clientTypes: !Array<number>,
  *   owner: string,
- *   state: !Array<{
+ *   state: {
  *     id: string,
- *     attributes: {
+ *     attributes: !Array<{
  *       name: string,
  *       timestamp: number,
- *     },
- *   }>,
+ *     }>,
+ *   },
  *   resource: {
  *     hashedCanonicalUrl: string,
  *   },
  * }}
  */
-export let GetEntitlementsMeteringParams;
+export let GetEntitlementsMeteringParamsInternal;
+
+/**
+ * External params for GetEntitlements requests.
+ * @typedef {{
+ *   encryption: (!GetEntitlementsEncryptionParams|undefined),
+ *   metering: (!GetEntitlementsMeteringParamsExternal|undefined),
+ * }}
+ */
+export let GetEntitlementsParamsExternal;
+
+/**
+ * External metering params for GetEntitlements requests.
+ * @typedef {{
+ *   clientTypes: !Array<number>,
+ *   owner: string,
+ *   state: {
+ *     id: string,
+ *     standardAttributes: !Object<string, {
+ *       timestamp: number,
+ *     }>,
+ *     customAttributes: !Object<string, {
+ *       timestamp: number,
+ *     }>,
+ *   },
+ *   resource: {
+ *     hashedCanonicalUrl: string,
+ *   },
+ * }}
+ */
+export let GetEntitlementsMeteringParamsExternal;
 
 /**
  * @enum {number}

@@ -145,6 +145,9 @@ function startFlowAuto() {
   }
 
   if (flow == 'metering') {
+    /* eslint-disable */
+    const timestamp = 1597686771;
+
     whenReady((subscriptions) => {
       subscriptions
         .getEntitlements({
@@ -152,18 +155,16 @@ function startFlowAuto() {
             state: {
               id:
                 'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
-              standardAttributes: [
-                {
-                  name: 'registered_user', // standard_registered_user
-                  timestamp: Math.floor(Date.now() / 1000),
+              standardAttributes: {
+                registered_user: {
+                  timestamp,
                 },
-              ],
-              customAttributes: [
-                {
-                  name: 'newsletter_subscriber', // custom_newsletter_subscriber
-                  timestamp: Math.floor(Date.now() / 1000),
+              },
+              customAttributes: {
+                newsletter_subscriber: {
+                  timestamp,
                 },
-              ],
+              },
             },
           },
         })
@@ -177,6 +178,7 @@ function startFlowAuto() {
         });
     });
     return;
+    /* eslint-enable */
   }
 
   if (flow == 'smartbutton') {
