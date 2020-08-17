@@ -169,5 +169,5 @@ requirement: {
   error_message: 'JSON.stringify must be called with a JsonObject'
   # Unfortunately the Array is untyped, because the compiler doesn't check
   # for the template type.
-  value: 'JSON.stringify:function((?JsonObject|string|number|boolean|undefined|Array|Object),!Function=)'
+  value: 'JSON.stringify:function((?JsonObject|GetEntitlementsParamsInternal|string|number|boolean|undefined|Array),!Function=)'
 }
