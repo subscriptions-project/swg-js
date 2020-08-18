@@ -64,7 +64,7 @@
     "gulp-git": "2.10.1",
     "gulp-help": "chmontgomery/gulp-help#gulp4",
     "gulp-if": "3.0.0",
-    "gulp-load-plugins": "2.0.3",
+    "gulp-load-plugins": "2.0.4",
     "gulp-nightwatch": "1.2.0",
     "gulp-rename": "2.0.0",
     "gulp-replace": "1.0.0",
