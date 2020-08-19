@@ -94,7 +94,7 @@ function getGitLog(release) {
   const tag = release.tag;
   return gitExec({
     args: `log ${tag}... --pretty=oneline --first-parent`,
-  }).then(function (logs) {
+  }).then((logs) => {
     if (!logs) {
       throw new Error(
         'No logs found "git log ' +
