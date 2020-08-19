@@ -49,7 +49,7 @@
 
       function submitDebug() {
         whenReady(function(activities) {
-          activities.hosts.connectHost().then((host) => {
+          activities.hosts.connectHost().then(function(host) {
             host.accept();
             host.result({});
           });

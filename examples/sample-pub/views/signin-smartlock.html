@@ -26,11 +26,11 @@
     <script>
       var startTime = Date.now();
       var clientId = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com';
-      var yoloPromise = new Promise((resolve) => {
+      var yoloPromise = new Promise(function(resolve) {
         window.onGoogleYoloLoad = resolve;
       });
 
-      yoloPromise.then((yolo) => {
+      yoloPromise.then(function(yolo) {
         console.log('YOLO: ', yolo);
         yolo.retrieve({
           supportedAuthMethods: [
@@ -43,16 +43,16 @@
               clientId: clientId
             }
           ]
-        }).then((result) => {
+        }).then(function(result) {
           console.log('YOLO retrieve: ', result);
           onSignIn(result);
-        }, (reason) => {
+        }, function(reason) {
           console.log('YOLO retrieve failed: ', reason);
         });
       });
 
       function signIn() {
-        return yoloPromise.then((yolo) => {
+        return yoloPromise.then(function(yolo) {
           return yolo.hint({
             supportedAuthMethods: [
               "https://accounts.google.com"
@@ -64,16 +64,16 @@
               }
             ]
           });
-        }).then((result) => {
+        }).then(function(result) {
           console.log('YOLO hint: ', result);
           onSignIn(result);
-        }, (reason) => {
+        }, function(reason) {
           console.log('YOLO hint failed: ', reason);
         });
       }
 
       function signOut() {
-        return yoloPromise.then((yolo) => {
+        return yoloPromise.then(function(yolo) {
           yolo.disableAutoSignIn();
         });
       }

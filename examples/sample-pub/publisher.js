@@ -117,7 +117,7 @@ function startFlow(flow, var_args) {
     }
     log('starting flow', flow, '(', var_args, ')', ' {' + flows + '}');
     const result = flowFunc.apply(subscriptions, var_args);
-    Promise.resolve(result).then(() => {
+    Promise.resolve(result).then(function () {
       log('flow complete', flow);
     });
   });
@@ -236,7 +236,7 @@ function startFlowAuto() {
         const button4 = document.createElement('button');
         button4.setAttribute('lang', 'jp');
         document.body.appendChild(button4);
-        subscriptions.attachButton(button4, {theme: 'dark'}, () => {
+        subscriptions.attachButton(button4, {theme: 'dark'}, function () {
           log('SwG button4 clicked!');
         });
       });
