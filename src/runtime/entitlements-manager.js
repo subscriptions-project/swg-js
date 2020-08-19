@@ -464,6 +464,7 @@ export class EntitlementsManager {
     if (entitlements.enablesThisWithGoogleMetering()) {
       // NOTE: This is just a placeholder. Once the metering prompt UI is ready,
       // it will be opened here instead of the contributions iframe.
+      // TODO: Open metering prompt here instead of contributions iframe.
       const activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.deps_.activities(),
