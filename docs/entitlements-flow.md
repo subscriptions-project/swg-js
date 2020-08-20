@@ -61,7 +61,7 @@ subscriptions
         // allows meters to do things like granting access
         // for up to 30 days after a certain action.
         //
-        // TODO: Describe which standard attributes are available.
+        // TODO: Describe standard attributes, once they're defined.
         standardAttributes: {
           registered_user: {
             timestamp,
