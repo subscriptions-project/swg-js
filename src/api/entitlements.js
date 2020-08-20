@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {findInArray} from '../utils/object';
 import {getPropertyFromJsonString} from '../utils/json';
 import {warn} from '../utils/log';
 
@@ -168,7 +169,7 @@ export class Entitlements {
    * Returns the first matching entitlement for the specified product,
    * optionally also matching the specified source.
    *
-   * Returns non-metering entitlements if possible, to avoid using
+   * Returns non-metering entitlements if possible, to avoid consuming
    * metered reads unnecessarily.
    *
    * @param {?string} product
@@ -180,34 +181,29 @@ export class Entitlements {
       return null;
     }
 
-    // Sort non-metering entitlements first, so they are returned if possible,
-    // to avoid using metered reads unnecessarily.
-    const entitlements = this.entitlements.slice().sort((a, b) => {
-      if (a.source === b.source) {
-        return 0;
-      }
+    // Prefer subscription entitlements over metering entitlements.
+    // Metering entitlements are a limited resource. When a metering entitlement
+    // unlocks an article, that depletes the user's remaining "free reads".
+    // Subscription entitlements are *not* depleted when they unlock articles.
+    // They are essentially unlimited if the subscription remains valid.
+    // For this reason, subscription entitlements are preferred.
+    const entitlements = this.entitlements.filter(
+      (entitlement) =>
+        entitlement.enables(product) &&
+        (!source || source === entitlement.source)
+    );
 
-      if (a.source === GOOGLE_METERING_SOURCE) {
-        return 1;
-      }
+    const subscriptionEntitlement = findInArray(
+      entitlements,
+      (entitlement) => entitlement.source !== GOOGLE_METERING_SOURCE
+    );
 
-      if (b.source === GOOGLE_METERING_SOURCE) {
-        return -1;
-      }
+    const meteringEntitlement = findInArray(
+      entitlements,
+      (entitlement) => entitlement.source === GOOGLE_METERING_SOURCE
+    );
 
-      return 0;
-    });
-
-    for (let i = 0; i < entitlements.length; i++) {
-      if (
-        entitlements[i].enables(product) &&
-        (!source || source == entitlements[i].source)
-      ) {
-        return entitlements[i];
-      }
-    }
-
-    return null;
+    return subscriptionEntitlement || meteringEntitlement || null;
   }
 
   /**
