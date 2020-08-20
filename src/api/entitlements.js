@@ -94,10 +94,9 @@ export class Entitlements {
   /**
    * Returns true if the current article is unlocked by a
    * cacheable entitlement. Metering entitlements aren't cacheable,
-   * because each metering entitlement is meant to be used for a
-   * single article. Subscription entitlements are cacheable,
-   * because subscription entitlements are meant to be used across
-   * multiple articles on a publication.
+   * because each metering entitlement is meant to be used for one article.
+   * Subscription entitlements are cacheable, because subscription entitlements
+   * are meant to be used across multiple articles on a publication.
    * @return {boolean}
    */
   enablesThisWithCacheableEntitlements() {
@@ -236,6 +235,7 @@ export class Entitlements {
 
   /**
    * A 3p site should call this method to consume a Google metering entitlement.
+   *
    */
   consume() {
     this.consumeHandler_(this);
