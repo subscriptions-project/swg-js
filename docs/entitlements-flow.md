@@ -45,6 +45,54 @@ subscriptions.getEntitlements().then(function(entitlements) {
 });
 ```
 
+You can pass additional parameters to `getEntitlements` to fetch Google metering entitlements, if your publication is part of the Google licensing program.
+
+```js
+subscriptions
+  .getEntitlements({
+    metering: {
+      state: {
+        // Hashed identifier for a specific user. Hash this value yourself
+        // to avoid sending PII.
+        id:
+          'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
+        // Standard attributes which affect your meters.
+        // Each attribute has a corresponding timestamp, which
+        // allows meters to do things like granting access
+        // for up to 30 days after a certain action.
+        //
+        // TODO: Describe which standard attributes are available.
+        standardAttributes: {
+          registered_user: {
+            timestamp,
+          },
+        },
+        // Custom attributes which affect your meters.
+        // Each attribute has a corresponding timestamp, which
+        // allows meters to do things like granting access
+        // for up to 30 days after a certain action.
+        customAttributes: {
+          newsletter_subscriber: {
+            timestamp,
+          },
+        },
+      },
+    },
+  })
+  .then((entitlements) => {
+    // Check if the article was unlocked with a Google metering entitlement. 
+    if (entitlements.enablesThisWithGoogleMetering()) {
+      // Consume the entitlement. This lets Google know a specific metering 
+      // entitlement was "used up", which allows Google to calculate how many
+      // more entitlements a user should be granted for a given meter.
+      //
+      // Consuming an entitlement will also trigger a dialog that lets the user
+      // know Google provided them with a free read.
+      entitlements.consume();
+    }
+  });
+```
+
 ## Entitlement response
 | Name | Type | Description |
 | ---- | ---- | ----------- |

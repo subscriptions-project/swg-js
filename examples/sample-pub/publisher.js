@@ -153,13 +153,25 @@ function startFlowAuto() {
         .getEntitlements({
           metering: {
             state: {
+              // Hashed identifier for a specific user. Please hash this
+              // value yourself to avoid sending PII.
               id:
                 'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
+              // Standard attributes which affect your meters.
+              // Each attribute has a corresponding timestamp, which
+              // allows meters to do things like granting access
+              // for up to 30 days after a certain action.
+              //
+              // TODO: Describe which standard attributes are available.
               standardAttributes: {
                 registered_user: {
                   timestamp,
                 },
               },
+              // Custom attributes which affect your meters.
+              // Each attribute has a corresponding timestamp, which
+              // allows meters to do things like granting access
+              // for up to 30 days after a certain action.
               customAttributes: {
                 newsletter_subscriber: {
                   timestamp,
@@ -169,10 +181,14 @@ function startFlowAuto() {
           },
         })
         .then((entitlements) => {
+          // Check if the article was unlocked with a Google metering entitlement. 
           if (entitlements.enablesThisWithGoogleMetering()) {
-            console.log(
-              'Consuming Google metering entitlement from Publisher JS'
-            );
+            // Consume the entitlement. This lets Google know a specific metering 
+            // entitlement was "used up", which allows Google to calculate how many
+            // more entitlements a user should be granted for a given meter.
+            //
+            // Consuming an entitlement will also trigger a dialog that lets the user
+            // know Google provided them with a free read.
             entitlements.consume();
           }
         });
