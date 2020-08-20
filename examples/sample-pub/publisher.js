@@ -153,8 +153,8 @@ function startFlowAuto() {
         .getEntitlements({
           metering: {
             state: {
-              // Hashed identifier for a specific user. Please hash this
-              // value yourself to avoid sending PII.
+              // Hashed identifier for a specific user. Hash this value yourself
+              // to avoid sending PII.
               id:
                 'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
               // Standard attributes which affect your meters.
@@ -162,7 +162,7 @@ function startFlowAuto() {
               // allows meters to do things like granting access
               // for up to 30 days after a certain action.
               //
-              // TODO: Describe which standard attributes are available.
+              // TODO: Describe standard attributes, once they're defined.
               standardAttributes: {
                 registered_user: {
                   timestamp,
