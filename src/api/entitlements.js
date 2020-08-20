@@ -187,19 +187,19 @@ export class Entitlements {
     // Subscription entitlements are *not* depleted when they unlock articles.
     // They are essentially unlimited if the subscription remains valid.
     // For this reason, subscription entitlements are preferred.
-    const entitlements = this.entitlements.filter(
+    const entitlementsThatUnlockArticle = this.entitlements.filter(
       (entitlement) =>
         entitlement.enables(product) &&
         (!source || source === entitlement.source)
     );
 
     const subscriptionEntitlement = findInArray(
-      entitlements,
+      entitlementsThatUnlockArticle,
       (entitlement) => entitlement.source !== GOOGLE_METERING_SOURCE
     );
 
     const meteringEntitlement = findInArray(
-      entitlements,
+      entitlementsThatUnlockArticle,
       (entitlement) => entitlement.source === GOOGLE_METERING_SOURCE
     );
 
