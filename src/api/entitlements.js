@@ -91,8 +91,12 @@ export class Entitlements {
   }
 
   /**
-   * Returns true if the entitlements enable the current product
-   * with a cacheable entitlement.
+   * Returns true if the current article is unlocked by a
+   * cacheable entitlement. Metering entitlements aren't cacheable,
+   * because each metering entitlement is meant to be used for a
+   * single article. Subscription entitlements are cacheable,
+   * because subscription entitlements are meant to be used across
+   * multiple articles on a publication.
    * @return {boolean}
    */
   enablesThisWithCacheableEntitlements() {
@@ -101,8 +105,10 @@ export class Entitlements {
   }
 
   /**
-   * Returns true if the entitlements enable the current product
-   * with a Google metering entitlement.
+   * Returns true if the current article is unlocked by a
+   * Google metering entitlement. These entitlements come
+   * from Google News Intiative's licensing program to support news.
+   * https://www.blog.google/outreach-initiatives/google-news-initiative/licensing-program-support-news-industry-/
    * @return {boolean}
    */
   enablesThisWithGoogleMetering() {
