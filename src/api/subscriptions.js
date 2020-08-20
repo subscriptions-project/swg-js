@@ -318,9 +318,11 @@ export const SubscriptionFlows = {
 export let Config;
 
 /**
- * Internal params for GetEntitlements requests.
+ * Params for GetEntitlements requests to SwG Client.
+ * swg-js constructs objects of this type, but publisher JS won't.
+ * swg-js converts these params to a Base64 JSON string
+ * before sending them to SwG Client.
  * @typedef {{
- *   encryption: (!GetEntitlementsEncryptionParams|undefined),
  *   metering: (!GetEntitlementsMeteringParamsInternal|undefined),
  * }}
  */
@@ -335,7 +337,8 @@ export let GetEntitlementsParamsInternal;
 export let GetEntitlementsEncryptionParams;
 
 /**
- * Internal metering params for GetEntitlements requests.
+ * Metering params for GetEntitlements requests to SwG Client.
+ * swg-js constructs objects of this type, but publisher JS won't.
  * @typedef {{
  *   clientTypes: !Array<number>,
  *   owner: string,
@@ -354,7 +357,8 @@ export let GetEntitlementsEncryptionParams;
 export let GetEntitlementsMeteringParamsInternal;
 
 /**
- * External params for GetEntitlements requests.
+ * Params for `getEntitlements` calls from publisher JS.
+ * swg-js converts objects of this type to GetEntitlementsParamsInternal.
  * @typedef {{
  *   encryption: (!GetEntitlementsEncryptionParams|undefined),
  *   metering: (!GetEntitlementsMeteringParamsExternal|undefined),
@@ -363,7 +367,8 @@ export let GetEntitlementsMeteringParamsInternal;
 export let GetEntitlementsParamsExternal;
 
 /**
- * External metering params for GetEntitlements requests.
+ * Params for `getEntitlements` calls from publisher JS.
+ * swg-js converts objects of this type to GetEntitlementsMeteringParamsInternal.
  * @typedef {{
  *   clientTypes: !Array<number>,
  *   owner: string,
