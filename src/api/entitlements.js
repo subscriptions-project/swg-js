@@ -235,7 +235,8 @@ export class Entitlements {
 
   /**
    * A 3p site should call this method to consume a Google metering entitlement.
-   *
+   * When a metering entitlement is consumed, that depletes the user's
+   * remaining "free reads".
    */
   consume() {
     this.consumeHandler_(this);
