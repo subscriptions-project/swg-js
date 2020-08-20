@@ -183,9 +183,9 @@ function startFlowAuto() {
         .then((entitlements) => {
           // Check if the article was unlocked with a Google metering entitlement. 
           if (entitlements.enablesThisWithGoogleMetering()) {
-            // Consume the entitlement. This lets Google know a specific metering 
-            // entitlement was "used up", which allows Google to calculate how many
-            // more entitlements a user should be granted for a given meter.
+            // Consume the entitlement. This lets Google know a specific free 
+            // read was "used up", which allows Google to calculate how many
+            // free reads are left for a given user.
             //
             // Consuming an entitlement will also trigger a dialog that lets the user
             // know Google provided them with a free read.
