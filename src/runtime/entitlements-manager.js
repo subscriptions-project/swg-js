@@ -14,11 +14,27 @@
  * limitations under the License.
  */
 
-import {Entitlement, Entitlements} from '../api/entitlements';
+import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {
+  Entitlement,
+  Entitlements,
+  GOOGLE_METERING_SOURCE,
+} from '../api/entitlements';
+import {EntitlementsPingbackRequest} from '../proto/api_messages';
+import {
+  GetEntitlementsParamsExternal,
+  GetEntitlementsParamsInternal,
+  ProductType,
+} from '../api/subscriptions';
 import {JwtHelper} from '../utils/jwt';
+import {MeterClientTypes} from '../api/metering';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from '../runtime/services';
+import {getCanonicalUrl} from '../utils/url';
+import {hash} from '../utils/string';
 import {serviceUrl} from './services';
+import {toTimestamp} from '../utils/date-utils';
+import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
@@ -108,12 +124,29 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string=} encryptedDocumentKey
+   * @param {!GetEntitlementsParamsExternal=} params
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements(encryptedDocumentKey) {
+  getEntitlements(params) {
+    // Remain backwards compatible by accepting
+    // `encryptedDocumentKey` string as a first param.
+    if (typeof params === 'string') {
+      // TODO: Delete the fallback if nobody needs it. Use a log to verify.
+      if (Date.now() > 1598899876598) {
+        // TODO: Remove the conditional check for this warning
+        // after the AMP extension is updated to pass an object.
+        warn(
+          `[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParamsExternal.`
+        );
+      }
+
+      params = {
+        encryption: {encryptedDocumentKey: /**@type {string} */ (params)},
+      };
+    }
+
     if (!this.responsePromise_) {
-      this.responsePromise_ = this.getEntitlementsFlow_(encryptedDocumentKey);
+      this.responsePromise_ = this.getEntitlementsFlow_(params);
     }
     return this.responsePromise_.then((response) => {
       if (response.isReadyToPay != null) {
@@ -142,25 +175,45 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string=} encryptedDocumentKey
-   * @return {!Promise<!Entitlements>}
-   * @private
+   * Sends a pingback that marks a metering entitlement as used.
+   * @param {!Entitlements} entitlements
    */
-  getEntitlementsFlow_(encryptedDocumentKey) {
-    return this.fetchEntitlementsWithCaching_(encryptedDocumentKey).then(
-      (entitlements) => {
-        this.onEntitlementsFetched_(entitlements);
-        return entitlements;
-      }
-    );
+  sendPingback_(entitlements) {
+    const entitlement = entitlements.getEntitlementForThis();
+    if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
+      return;
+    }
+
+    const message = new EntitlementsPingbackRequest();
+    message.setSignedMeter(entitlement.subscriptionToken);
+    message.setClientEventTime(toTimestamp(new Date()));
+
+    const url =
+      '/publication/' +
+      encodeURIComponent(this.publicationId_) +
+      '/entitlements';
+
+    this.fetcher_.sendPost(serviceUrl(url), message);
   }
 
   /**
-   * @param {?string=} encryptedDocumentKey
+   * @param {!GetEntitlementsParamsExternal=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetchEntitlementsWithCaching_(encryptedDocumentKey) {
+  getEntitlementsFlow_(params) {
+    return this.fetchEntitlementsWithCaching_(params).then((entitlements) => {
+      this.onEntitlementsFetched_(entitlements);
+      return entitlements;
+    });
+  }
+
+  /**
+   * @param {!GetEntitlementsParamsExternal=} params
+   * @return {!Promise<!Entitlements>}
+   * @private
+   */
+  fetchEntitlementsWithCaching_(params) {
     return Promise.all([
       this.storage_.get(ENTS_STORAGE_KEY),
       this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY),
@@ -168,7 +221,8 @@ export class EntitlementsManager {
       const raw = cachedValues[0];
       const irtp = cachedValues[1];
       // Try cache first.
-      if (raw && !encryptedDocumentKey) {
+      const needsDecryption = !!(params && params.encryption);
+      if (raw && !needsDecryption) {
         const cached = this.getValidJwtEntitlements_(
           raw,
           /* requireNonExpired */ true,
@@ -181,9 +235,9 @@ export class EntitlementsManager {
         }
       }
       // If cache didn't match, perform fetch.
-      return this.fetchEntitlements_(encryptedDocumentKey).then((ents) => {
-        // If entitlements match the product, store them in cache.
-        if (ents && ents.enablesThis() && ents.raw) {
+      return this.fetchEntitlements_(params).then((ents) => {
+        // If the product is enabled by cacheable entitlements, store them in cache.
+        if (ents && ents.enablesThisWithCacheableEntitlements() && ents.raw) {
           this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
         }
         return ents;
@@ -192,17 +246,17 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string=} encryptedDocumentKey
+   * @param {!GetEntitlementsParamsExternal=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetchEntitlements_(encryptedDocumentKey) {
+  fetchEntitlements_(params) {
     // TODO(dvoytenko): Replace retries with consistent fetch.
     let positiveRetries = this.positiveRetries_;
     this.positiveRetries_ = 0;
     const attempt = () => {
       positiveRetries--;
-      return this.fetch_(encryptedDocumentKey).then((entitlements) => {
+      return this.fetch_(params).then((entitlements) => {
         if (entitlements.enablesThis() || positiveRetries <= 0) {
           return entitlements;
         }
@@ -333,6 +387,7 @@ export class EntitlementsManager {
       Entitlement.parseListFromJson(json),
       this.pageConfig_.getProductId(),
       this.ack_.bind(this),
+      this.consume_.bind(this),
       isReadyToPay,
       decryptedDocumentKey
     );
@@ -356,47 +411,39 @@ export class EntitlementsManager {
       .callbacks()
       .triggerEntitlementsResponse(Promise.resolve(entitlements));
 
-    // Show a toast if needed.
-    this.maybeShowToast_(entitlements);
-  }
-
-  /**
-   * @param {!Entitlements} entitlements
-   * @return {!Promise}
-   * @private
-   */
-  maybeShowToast_(entitlements) {
     const entitlement = entitlements.getEntitlementForThis();
     if (!entitlement) {
-      return Promise.resolve();
+      return;
     }
-    // Check if storage bit is set. It's only set by the `Entitlements.ack`
-    // method.
-    return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
-      if (value == '1') {
-        // Already shown;
-        return;
-      }
-      if (entitlement) {
-        this.showToast_(entitlement);
-      }
-    });
+
+    this.maybeShowToast_(entitlement);
   }
 
   /**
    * @param {!Entitlement} entitlement
+   * @return {!Promise}
    * @private
    */
-  showToast_(entitlement) {
-    const source = entitlement.source || 'google';
-    return new Toast(
-      this.deps_,
-      feUrl('/toastiframe'),
-      feArgs({
-        'publicationId': this.publicationId_,
-        'source': source,
-      })
-    ).open();
+  maybeShowToast_(entitlement) {
+    // Check if storage bit is set. It's only set by the `Entitlements.ack`
+    // method.
+    return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
+      const toastWasShown = value === '1';
+      if (toastWasShown) {
+        return;
+      }
+
+      // Show toast.
+      const source = entitlement.source || 'google';
+      return new Toast(
+        this.deps_,
+        feUrl('/toastiframe'),
+        feArgs({
+          'publicationId': this.publicationId_,
+          'source': source,
+        })
+      ).open();
+    });
   }
 
   /**
@@ -410,21 +457,115 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {?string=} encryptedDocumentKey
+   * @param {!Entitlements} entitlements
+   * @private
+   */
+  consume_(entitlements) {
+    if (entitlements.enablesThisWithGoogleMetering()) {
+      // NOTE: This is just a placeholder. Once the metering prompt UI is ready,
+      // it will be opened here instead of the contributions iframe.
+      // TODO: Open metering prompt here instead of contributions iframe.
+      const activityIframeView_ = new ActivityIframeView(
+        this.win_,
+        this.deps_.activities(),
+        feUrl('/contributionsiframe'),
+        feArgs({
+          'productId': this.deps_.pageConfig().getProductId(),
+          'publicationId': this.deps_.pageConfig().getPublicationId(),
+          'productType': ProductType.UI_CONTRIBUTION,
+          'list': 'default',
+          'skus': null,
+          'isClosable': true,
+        }),
+        /* shouldFadeBody */ true
+      );
+      activityIframeView_.onCancel(() => {
+        this.sendPingback_(entitlements);
+      });
+      return this.deps_.dialogManager().openView(activityIframeView_);
+    }
+  }
+
+  /**
+   * @param {!GetEntitlementsParamsExternal=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetch_(encryptedDocumentKey) {
-    let url =
-      '/publication/' +
-      encodeURIComponent(this.publicationId_) +
-      '/entitlements';
-    if (encryptedDocumentKey) {
-      url += '?crypt=' + encodeURIComponent(encryptedDocumentKey);
-    }
-    return this.fetcher_
-      .fetchCredentialedJson(serviceUrl(url))
-      .then((json) => this.parseEntitlements(json));
+  fetch_(params) {
+    return hash(getCanonicalUrl(this.deps_.doc()))
+      .then((hashedCanonicalUrl) => {
+        const urlParams = [];
+
+        // Add encryption param.
+        if (params && params.encryption) {
+          urlParams.push(
+            'crypt=' +
+              encodeURIComponent(params.encryption.encryptedDocumentKey)
+          );
+        }
+
+        // Add metering params.
+        const productId = this.pageConfig_.getProductId();
+        if (productId && params && params.metering && params.metering.state) {
+          /** @type {!GetEntitlementsParamsInternal} */
+          const encodableParams = {
+            metering: {
+              clientTypes: [MeterClientTypes.LICENSED_BY_GOOGLE],
+              owner: productId,
+              resource: {
+                hashedCanonicalUrl,
+              },
+              state: {
+                id: params.metering.state.id,
+                attributes: [],
+              },
+            },
+          };
+
+          // Add attributes.
+          const standardAttributes = params.metering.state.standardAttributes;
+          if (standardAttributes) {
+            Object.keys(standardAttributes).forEach((key) => {
+              encodableParams.metering.state.attributes.push({
+                name: 'standard_' + key,
+                timestamp: standardAttributes[key].timestamp,
+              });
+            });
+          }
+          const customAttributes = params.metering.state.customAttributes;
+          if (customAttributes) {
+            Object.keys(customAttributes).forEach((key) => {
+              encodableParams.metering.state.attributes.push({
+                name: 'custom_' + key,
+                timestamp: customAttributes[key].timestamp,
+              });
+            });
+          }
+
+          // Encode params.
+          const encodedParams = btoa(JSON.stringify(encodableParams));
+          urlParams.push('encodedParams=' + encodedParams);
+        }
+
+        // Build URL.
+        let url =
+          '/publication/' +
+          encodeURIComponent(this.publicationId_) +
+          '/entitlements';
+        if (urlParams.length > 0) {
+          url += '?' + urlParams.join('&');
+        }
+        return serviceUrl(url);
+      })
+      .then((url) => this.fetcher_.fetchCredentialedJson(url))
+      .then((json) => {
+        if (json.errorMessages && json.errorMessages.length > 0) {
+          json.errorMessages.forEach((errorMessage) => {
+            warn('SwG Entitlements: ' + errorMessage);
+          });
+        }
+        return this.parseEntitlements(json);
+      });
   }
 }
 

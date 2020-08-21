@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
+import {findInArray} from '../utils/object';
 import {getPropertyFromJsonString} from '../utils/json';
 import {warn} from '../utils/log';
+
+/** Source for Google-provided metering entitlements. */
+export const GOOGLE_METERING_SOURCE = 'google:metering';
 
 /**
  * The holder of the entitlements for a service.
@@ -27,6 +31,7 @@ export class Entitlements {
    * @param {!Array<!Entitlement>} entitlements
    * @param {?string} currentProduct
    * @param {function(!Entitlements)} ackHandler
+   * @param {function(!Entitlements)} consumeHandler
    * @param {?boolean|undefined} isReadyToPay
    * @param {?string|undefined} decryptedDocumentKey
    */
@@ -36,6 +41,7 @@ export class Entitlements {
     entitlements,
     currentProduct,
     ackHandler,
+    consumeHandler,
     isReadyToPay,
     decryptedDocumentKey
   ) {
@@ -54,6 +60,8 @@ export class Entitlements {
     this.product_ = currentProduct;
     /** @private @const {function(!Entitlements)} */
     this.ackHandler_ = ackHandler;
+    /** @private @const {function(!Entitlements)} */
+    this.consumeHandler_ = consumeHandler;
   }
 
   /**
@@ -66,6 +74,7 @@ export class Entitlements {
       this.entitlements.map((ent) => ent.clone()),
       this.product_,
       this.ackHandler_,
+      this.consumeHandler_,
       this.isReadyToPay,
       this.decryptedDocumentKey
     );
@@ -80,6 +89,31 @@ export class Entitlements {
       'entitlements': this.entitlements.map((item) => item.json()),
       'isReadyToPay': this.isReadyToPay,
     };
+  }
+
+  /**
+   * Returns true if the current article is unlocked by a
+   * cacheable entitlement. Metering entitlements aren't cacheable,
+   * because each metering entitlement is meant to be used for one article.
+   * Subscription entitlements are cacheable, because subscription entitlements
+   * are meant to be used across multiple articles on a publication.
+   * @return {boolean}
+   */
+  enablesThisWithCacheableEntitlements() {
+    const entitlement = this.getEntitlementForThis();
+    return !!entitlement && entitlement.source !== GOOGLE_METERING_SOURCE;
+  }
+
+  /**
+   * Returns true if the current article is unlocked by a
+   * Google metering entitlement. These entitlements come
+   * from Google News Intiative's licensing program to support news.
+   * https://www.blog.google/outreach-initiatives/google-news-initiative/licensing-program-support-news-industry-/
+   * @return {boolean}
+   */
+  enablesThisWithGoogleMetering() {
+    const entitlement = this.getEntitlementForThis();
+    return !!entitlement && entitlement.source === GOOGLE_METERING_SOURCE;
   }
 
   /**
@@ -133,22 +167,42 @@ export class Entitlements {
   /**
    * Returns the first matching entitlement for the specified product,
    * optionally also matching the specified source.
+   *
+   * Returns non-metering entitlements if possible, to avoid consuming
+   * metered reads unnecessarily.
+   *
    * @param {?string} product
    * @param {string=} source
    * @return {?Entitlement}
    */
   getEntitlementFor(product, source) {
-    if (product && this.entitlements.length > 0) {
-      for (let i = 0; i < this.entitlements.length; i++) {
-        if (
-          this.entitlements[i].enables(product) &&
-          (!source || source == this.entitlements[i].source)
-        ) {
-          return this.entitlements[i];
-        }
-      }
+    if (!product) {
+      return null;
     }
-    return null;
+
+    // Prefer subscription entitlements over metering entitlements.
+    // Metering entitlements are a limited resource. When a metering entitlement
+    // unlocks an article, that depletes the user's remaining "free reads".
+    // Subscription entitlements are *not* depleted when they unlock articles.
+    // They are essentially unlimited if the subscription remains valid.
+    // For this reason, subscription entitlements are preferred.
+    const entitlementsThatUnlockArticle = this.entitlements.filter(
+      (entitlement) =>
+        entitlement.enables(product) &&
+        (!source || source === entitlement.source)
+    );
+
+    const subscriptionEntitlement = findInArray(
+      entitlementsThatUnlockArticle,
+      (entitlement) => entitlement.source !== GOOGLE_METERING_SOURCE
+    );
+
+    const meteringEntitlement = findInArray(
+      entitlementsThatUnlockArticle,
+      (entitlement) => entitlement.source === GOOGLE_METERING_SOURCE
+    );
+
+    return subscriptionEntitlement || meteringEntitlement || null;
   }
 
   /**
@@ -177,6 +231,15 @@ export class Entitlements {
    */
   ack() {
     this.ackHandler_(this);
+  }
+
+  /**
+   * A 3p site should call this method to consume a Google metering entitlement.
+   * When a metering entitlement is consumed, that depletes the user's
+   * remaining "free reads".
+   */
+  consume() {
+    this.consumeHandler_(this);
   }
 }
 
