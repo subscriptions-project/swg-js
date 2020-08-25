@@ -468,7 +468,7 @@ export class EntitlementsManager {
       const activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.deps_.activities(),
-        feUrl('/contributionsiframe'),
+        feUrl('/metertoastiframe'),
         feArgs({
           'productId': this.deps_.pageConfig().getProductId(),
           'publicationId': this.deps_.pageConfig().getPublicationId(),
