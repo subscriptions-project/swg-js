@@ -1,546 +1,952 @@
 /**
-  * @fileoverview Proto lite test.
-  */
+ * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
- goog.module('subscribewithgoogle.api.messages.closure');
- goog.setTestOnly('subscribewithgoogle.api.messages.closure');
- 
- const testSuite = goog.require('goog.testing.testSuite');
- 
- const {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ViewSubscriptionsResponse, deserialize, getLabel} = goog.require('subscribewithgoogle.api.messages');
- 
- /**
-  * Compare two protos
-  * @param {!Array} thisArray
-  * @param {!Array} otherArray
-  * @return {boolean}
-  */
- function isEqual(thisArray, otherArray) {
-   if (!otherArray || !thisArray) {
-     return false;
-   }
-   for (let i = 0; i < otherArray.length; i++) {
-     const first = thisArray[i];
-     const second = otherArray[i];
-     if (Array.isArray(first)) {
-       if (!Array.isArray(second)) {
-         return false;
-       }
-       if (!isEqual(first, second)) {
-         return false;
-       }
-     } else {
-       if (first != second) {
-         return false;
-       }
-     }
-   }
-   return true;
- }
- 
- 
- testSuite({
-   setup() {},
- 
-   test_getLabel() {
-     assertTrue(getLabel(AccountCreationRequest) === 'AccountCreationRequest');
-   },
- 
-   test_AccountCreationRequest() {
-     // includesLabel is undefined
-     const /** !AccountCreationRequest  */ accountcreationrequest = new AccountCreationRequest();
-     accountcreationrequest.setComplete(false);
-     let accountcreationrequestSerialized = accountcreationrequest.toArray(undefined);
-     let accountcreationrequestDeserialized = deserialize(
-         accountcreationrequestSerialized);
-     assertNotNull(accountcreationrequestDeserialized);
-     assertTrue(isEqual(accountcreationrequest.toArray(undefined),
-                        accountcreationrequestDeserialized.toArray(undefined)));
-     // includesLabel is true
-     accountcreationrequestSerialized = accountcreationrequest.toArray(true);
-     accountcreationrequestDeserialized = deserialize(
-         accountcreationrequestSerialized);
-     assertNotNull(accountcreationrequestDeserialized);
-     assertTrue(isEqual(accountcreationrequest.toArray(true),
-                        accountcreationrequestDeserialized.toArray(true)));
-     // includesLabel is false
-     accountcreationrequestSerialized = accountcreationrequest.toArray(false);
-     accountcreationrequestDeserialized = new AccountCreationRequest(
-         accountcreationrequestSerialized, false);
-     assertNotNull(accountcreationrequestDeserialized);
-     assertTrue(isEqual(accountcreationrequest.toArray(false),
-                        accountcreationrequestDeserialized.toArray(false)));
-   },
- 
-   test_AlreadySubscribedResponse() {
-     // includesLabel is undefined
-     const /** !AlreadySubscribedResponse  */ alreadysubscribedresponse = new AlreadySubscribedResponse();
-     alreadysubscribedresponse.setSubscriberOrMember(false);
-     alreadysubscribedresponse.setLinkRequested(false);
-     let alreadysubscribedresponseSerialized = alreadysubscribedresponse.toArray(undefined);
-     let alreadysubscribedresponseDeserialized = deserialize(
-         alreadysubscribedresponseSerialized);
-     assertNotNull(alreadysubscribedresponseDeserialized);
-     assertTrue(isEqual(alreadysubscribedresponse.toArray(undefined),
-                        alreadysubscribedresponseDeserialized.toArray(undefined)));
-     // includesLabel is true
-     alreadysubscribedresponseSerialized = alreadysubscribedresponse.toArray(true);
-     alreadysubscribedresponseDeserialized = deserialize(
-         alreadysubscribedresponseSerialized);
-     assertNotNull(alreadysubscribedresponseDeserialized);
-     assertTrue(isEqual(alreadysubscribedresponse.toArray(true),
-                        alreadysubscribedresponseDeserialized.toArray(true)));
-     // includesLabel is false
-     alreadysubscribedresponseSerialized = alreadysubscribedresponse.toArray(false);
-     alreadysubscribedresponseDeserialized = new AlreadySubscribedResponse(
-         alreadysubscribedresponseSerialized, false);
-     assertNotNull(alreadysubscribedresponseDeserialized);
-     assertTrue(isEqual(alreadysubscribedresponse.toArray(false),
-                        alreadysubscribedresponseDeserialized.toArray(false)));
-   },
- 
-   test_AnalyticsContext() {
-     // includesLabel is undefined
-     const /** !AnalyticsContext  */ analyticscontext = new AnalyticsContext();
-     analyticscontext.setEmbedderOrigin('');
-     analyticscontext.setTransactionId('');
-     analyticscontext.setReferringOrigin('');
-     analyticscontext.setUtmSource('');
-     analyticscontext.setUtmCampaign('');
-     analyticscontext.setUtmMedium('');
-     analyticscontext.setSku('');
-     analyticscontext.setReadyToPay(false);
-     analyticscontext.setLabelList([]);
-     analyticscontext.setClientVersion('');
-     analyticscontext.setUrl('');
-     let analyticscontextSerialized = analyticscontext.toArray(undefined);
-     let analyticscontextDeserialized = deserialize(
-         analyticscontextSerialized);
-     assertNotNull(analyticscontextDeserialized);
-     assertTrue(isEqual(analyticscontext.toArray(undefined),
-                        analyticscontextDeserialized.toArray(undefined)));
-     // includesLabel is true
-     analyticscontextSerialized = analyticscontext.toArray(true);
-     analyticscontextDeserialized = deserialize(
-         analyticscontextSerialized);
-     assertNotNull(analyticscontextDeserialized);
-     assertTrue(isEqual(analyticscontext.toArray(true),
-                        analyticscontextDeserialized.toArray(true)));
-     // includesLabel is false
-     analyticscontextSerialized = analyticscontext.toArray(false);
-     analyticscontextDeserialized = new AnalyticsContext(
-         analyticscontextSerialized, false);
-     assertNotNull(analyticscontextDeserialized);
-     assertTrue(isEqual(analyticscontext.toArray(false),
-                        analyticscontextDeserialized.toArray(false)));
-   },
- 
-   test_AnalyticsEventMeta() {
-     // includesLabel is undefined
-     const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
-     analyticseventmeta.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
-     analyticseventmeta.setIsFromUserAction(false);
-     let analyticseventmetaSerialized = analyticseventmeta.toArray(undefined);
-     let analyticseventmetaDeserialized = deserialize(
-         analyticseventmetaSerialized);
-     assertNotNull(analyticseventmetaDeserialized);
-     assertTrue(isEqual(analyticseventmeta.toArray(undefined),
-                        analyticseventmetaDeserialized.toArray(undefined)));
-     // includesLabel is true
-     analyticseventmetaSerialized = analyticseventmeta.toArray(true);
-     analyticseventmetaDeserialized = deserialize(
-         analyticseventmetaSerialized);
-     assertNotNull(analyticseventmetaDeserialized);
-     assertTrue(isEqual(analyticseventmeta.toArray(true),
-                        analyticseventmetaDeserialized.toArray(true)));
-     // includesLabel is false
-     analyticseventmetaSerialized = analyticseventmeta.toArray(false);
-     analyticseventmetaDeserialized = new AnalyticsEventMeta(
-         analyticseventmetaSerialized, false);
-     assertNotNull(analyticseventmetaDeserialized);
-     assertTrue(isEqual(analyticseventmeta.toArray(false),
-                        analyticseventmetaDeserialized.toArray(false)));
-   },
- 
-   test_AnalyticsRequest() {
-     // includesLabel is undefined
-     const /** !AnalyticsRequest  */ analyticsrequest = new AnalyticsRequest();
-     const /** !AnalyticsContext  */ analyticscontext = new AnalyticsContext();
-     analyticscontext.setEmbedderOrigin('');
-     analyticscontext.setTransactionId('');
-     analyticscontext.setReferringOrigin('');
-     analyticscontext.setUtmSource('');
-     analyticscontext.setUtmCampaign('');
-     analyticscontext.setUtmMedium('');
-     analyticscontext.setSku('');
-     analyticscontext.setReadyToPay(false);
-     analyticscontext.setLabelList([]);
-     analyticscontext.setClientVersion('');
-     analyticscontext.setUrl('');
-     analyticsrequest.setContext(analyticscontext);
-     analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
-     const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
-     analyticseventmeta.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
-     analyticseventmeta.setIsFromUserAction(false);
-     analyticsrequest.setMeta(analyticseventmeta);
-     const /** !EventParams  */ eventparams = new EventParams();
-     eventparams.setSmartboxMessage('');
-     eventparams.setGpayTransactionId('');
-     eventparams.setHadLogged(false);
-     eventparams.setSku('');
-     eventparams.setOldTransactionId('');
-     analyticsrequest.setParams(eventparams);
-     let analyticsrequestSerialized = analyticsrequest.toArray(undefined);
-     let analyticsrequestDeserialized = deserialize(
-         analyticsrequestSerialized);
-     assertNotNull(analyticsrequestDeserialized);
-     assertTrue(isEqual(analyticsrequest.toArray(undefined),
-                        analyticsrequestDeserialized.toArray(undefined)));
-     // includesLabel is true
-     analyticsrequestSerialized = analyticsrequest.toArray(true);
-     analyticsrequestDeserialized = deserialize(
-         analyticsrequestSerialized);
-     assertNotNull(analyticsrequestDeserialized);
-     assertTrue(isEqual(analyticsrequest.toArray(true),
-                        analyticsrequestDeserialized.toArray(true)));
-     // includesLabel is false
-     analyticsrequestSerialized = analyticsrequest.toArray(false);
-     analyticsrequestDeserialized = new AnalyticsRequest(
-         analyticsrequestSerialized, false);
-     assertNotNull(analyticsrequestDeserialized);
-     assertTrue(isEqual(analyticsrequest.toArray(false),
-                        analyticsrequestDeserialized.toArray(false)));
-   },
- 
-   test_EntitlementJwt() {
-     // includesLabel is undefined
-     const /** !EntitlementJwt  */ entitlementjwt = new EntitlementJwt();
-     entitlementjwt.setJwt('');
-     entitlementjwt.setSource('');
-     let entitlementjwtSerialized = entitlementjwt.toArray(undefined);
-     let entitlementjwtDeserialized = deserialize(
-         entitlementjwtSerialized);
-     assertNotNull(entitlementjwtDeserialized);
-     assertTrue(isEqual(entitlementjwt.toArray(undefined),
-                        entitlementjwtDeserialized.toArray(undefined)));
-     // includesLabel is true
-     entitlementjwtSerialized = entitlementjwt.toArray(true);
-     entitlementjwtDeserialized = deserialize(
-         entitlementjwtSerialized);
-     assertNotNull(entitlementjwtDeserialized);
-     assertTrue(isEqual(entitlementjwt.toArray(true),
-                        entitlementjwtDeserialized.toArray(true)));
-     // includesLabel is false
-     entitlementjwtSerialized = entitlementjwt.toArray(false);
-     entitlementjwtDeserialized = new EntitlementJwt(
-         entitlementjwtSerialized, false);
-     assertNotNull(entitlementjwtDeserialized);
-     assertTrue(isEqual(entitlementjwt.toArray(false),
-                        entitlementjwtDeserialized.toArray(false)));
-   },
- 
-   test_EntitlementsRequest() {
-     // includesLabel is undefined
-     const /** !EntitlementsRequest  */ entitlementsrequest = new EntitlementsRequest();
-     const /** !EntitlementJwt  */ entitlementjwt = new EntitlementJwt();
-     entitlementjwt.setJwt('');
-     entitlementjwt.setSource('');
-     entitlementsrequest.setUsedEntitlement(entitlementjwt);
-     const /** !Timestamp  */ timestamp = new Timestamp();
-     timestamp.setSeconds(0);
-     timestamp.setNanos(0);
-     entitlementsrequest.setClientEventTime(timestamp);
-     let entitlementsrequestSerialized = entitlementsrequest.toArray(undefined);
-     let entitlementsrequestDeserialized = deserialize(
-         entitlementsrequestSerialized);
-     assertNotNull(entitlementsrequestDeserialized);
-     assertTrue(isEqual(entitlementsrequest.toArray(undefined),
-                        entitlementsrequestDeserialized.toArray(undefined)));
-     // includesLabel is true
-     entitlementsrequestSerialized = entitlementsrequest.toArray(true);
-     entitlementsrequestDeserialized = deserialize(
-         entitlementsrequestSerialized);
-     assertNotNull(entitlementsrequestDeserialized);
-     assertTrue(isEqual(entitlementsrequest.toArray(true),
-                        entitlementsrequestDeserialized.toArray(true)));
-     // includesLabel is false
-     entitlementsrequestSerialized = entitlementsrequest.toArray(false);
-     entitlementsrequestDeserialized = new EntitlementsRequest(
-         entitlementsrequestSerialized, false);
-     assertNotNull(entitlementsrequestDeserialized);
-     assertTrue(isEqual(entitlementsrequest.toArray(false),
-                        entitlementsrequestDeserialized.toArray(false)));
-   },
- 
-   test_EntitlementsResponse() {
-     // includesLabel is undefined
-     const /** !EntitlementsResponse  */ entitlementsresponse = new EntitlementsResponse();
-     entitlementsresponse.setJwt('');
-     let entitlementsresponseSerialized = entitlementsresponse.toArray(undefined);
-     let entitlementsresponseDeserialized = deserialize(
-         entitlementsresponseSerialized);
-     assertNotNull(entitlementsresponseDeserialized);
-     assertTrue(isEqual(entitlementsresponse.toArray(undefined),
-                        entitlementsresponseDeserialized.toArray(undefined)));
-     // includesLabel is true
-     entitlementsresponseSerialized = entitlementsresponse.toArray(true);
-     entitlementsresponseDeserialized = deserialize(
-         entitlementsresponseSerialized);
-     assertNotNull(entitlementsresponseDeserialized);
-     assertTrue(isEqual(entitlementsresponse.toArray(true),
-                        entitlementsresponseDeserialized.toArray(true)));
-     // includesLabel is false
-     entitlementsresponseSerialized = entitlementsresponse.toArray(false);
-     entitlementsresponseDeserialized = new EntitlementsResponse(
-         entitlementsresponseSerialized, false);
-     assertNotNull(entitlementsresponseDeserialized);
-     assertTrue(isEqual(entitlementsresponse.toArray(false),
-                        entitlementsresponseDeserialized.toArray(false)));
-   },
- 
-   test_EventParams() {
-     // includesLabel is undefined
-     const /** !EventParams  */ eventparams = new EventParams();
-     eventparams.setSmartboxMessage('');
-     eventparams.setGpayTransactionId('');
-     eventparams.setHadLogged(false);
-     eventparams.setSku('');
-     eventparams.setOldTransactionId('');
-     let eventparamsSerialized = eventparams.toArray(undefined);
-     let eventparamsDeserialized = deserialize(
-         eventparamsSerialized);
-     assertNotNull(eventparamsDeserialized);
-     assertTrue(isEqual(eventparams.toArray(undefined),
-                        eventparamsDeserialized.toArray(undefined)));
-     // includesLabel is true
-     eventparamsSerialized = eventparams.toArray(true);
-     eventparamsDeserialized = deserialize(
-         eventparamsSerialized);
-     assertNotNull(eventparamsDeserialized);
-     assertTrue(isEqual(eventparams.toArray(true),
-                        eventparamsDeserialized.toArray(true)));
-     // includesLabel is false
-     eventparamsSerialized = eventparams.toArray(false);
-     eventparamsDeserialized = new EventParams(
-         eventparamsSerialized, false);
-     assertNotNull(eventparamsDeserialized);
-     assertTrue(isEqual(eventparams.toArray(false),
-                        eventparamsDeserialized.toArray(false)));
-   },
- 
-   test_FinishedLoggingResponse() {
-     // includesLabel is undefined
-     const /** !FinishedLoggingResponse  */ finishedloggingresponse = new FinishedLoggingResponse();
-     finishedloggingresponse.setComplete(false);
-     finishedloggingresponse.setError('');
-     let finishedloggingresponseSerialized = finishedloggingresponse.toArray(undefined);
-     let finishedloggingresponseDeserialized = deserialize(
-         finishedloggingresponseSerialized);
-     assertNotNull(finishedloggingresponseDeserialized);
-     assertTrue(isEqual(finishedloggingresponse.toArray(undefined),
-                        finishedloggingresponseDeserialized.toArray(undefined)));
-     // includesLabel is true
-     finishedloggingresponseSerialized = finishedloggingresponse.toArray(true);
-     finishedloggingresponseDeserialized = deserialize(
-         finishedloggingresponseSerialized);
-     assertNotNull(finishedloggingresponseDeserialized);
-     assertTrue(isEqual(finishedloggingresponse.toArray(true),
-                        finishedloggingresponseDeserialized.toArray(true)));
-     // includesLabel is false
-     finishedloggingresponseSerialized = finishedloggingresponse.toArray(false);
-     finishedloggingresponseDeserialized = new FinishedLoggingResponse(
-         finishedloggingresponseSerialized, false);
-     assertNotNull(finishedloggingresponseDeserialized);
-     assertTrue(isEqual(finishedloggingresponse.toArray(false),
-                        finishedloggingresponseDeserialized.toArray(false)));
-   },
- 
-   test_LinkSaveTokenRequest() {
-     // includesLabel is undefined
-     const /** !LinkSaveTokenRequest  */ linksavetokenrequest = new LinkSaveTokenRequest();
-     linksavetokenrequest.setAuthCode('');
-     linksavetokenrequest.setToken('');
-     let linksavetokenrequestSerialized = linksavetokenrequest.toArray(undefined);
-     let linksavetokenrequestDeserialized = deserialize(
-         linksavetokenrequestSerialized);
-     assertNotNull(linksavetokenrequestDeserialized);
-     assertTrue(isEqual(linksavetokenrequest.toArray(undefined),
-                        linksavetokenrequestDeserialized.toArray(undefined)));
-     // includesLabel is true
-     linksavetokenrequestSerialized = linksavetokenrequest.toArray(true);
-     linksavetokenrequestDeserialized = deserialize(
-         linksavetokenrequestSerialized);
-     assertNotNull(linksavetokenrequestDeserialized);
-     assertTrue(isEqual(linksavetokenrequest.toArray(true),
-                        linksavetokenrequestDeserialized.toArray(true)));
-     // includesLabel is false
-     linksavetokenrequestSerialized = linksavetokenrequest.toArray(false);
-     linksavetokenrequestDeserialized = new LinkSaveTokenRequest(
-         linksavetokenrequestSerialized, false);
-     assertNotNull(linksavetokenrequestDeserialized);
-     assertTrue(isEqual(linksavetokenrequest.toArray(false),
-                        linksavetokenrequestDeserialized.toArray(false)));
-   },
- 
-   test_LinkingInfoResponse() {
-     // includesLabel is undefined
-     const /** !LinkingInfoResponse  */ linkinginforesponse = new LinkingInfoResponse();
-     linkinginforesponse.setRequested(false);
-     let linkinginforesponseSerialized = linkinginforesponse.toArray(undefined);
-     let linkinginforesponseDeserialized = deserialize(
-         linkinginforesponseSerialized);
-     assertNotNull(linkinginforesponseDeserialized);
-     assertTrue(isEqual(linkinginforesponse.toArray(undefined),
-                        linkinginforesponseDeserialized.toArray(undefined)));
-     // includesLabel is true
-     linkinginforesponseSerialized = linkinginforesponse.toArray(true);
-     linkinginforesponseDeserialized = deserialize(
-         linkinginforesponseSerialized);
-     assertNotNull(linkinginforesponseDeserialized);
-     assertTrue(isEqual(linkinginforesponse.toArray(true),
-                        linkinginforesponseDeserialized.toArray(true)));
-     // includesLabel is false
-     linkinginforesponseSerialized = linkinginforesponse.toArray(false);
-     linkinginforesponseDeserialized = new LinkingInfoResponse(
-         linkinginforesponseSerialized, false);
-     assertNotNull(linkinginforesponseDeserialized);
-     assertTrue(isEqual(linkinginforesponse.toArray(false),
-                        linkinginforesponseDeserialized.toArray(false)));
-   },
- 
-   test_SkuSelectedResponse() {
-     // includesLabel is undefined
-     const /** !SkuSelectedResponse  */ skuselectedresponse = new SkuSelectedResponse();
-     skuselectedresponse.setSku('');
-     skuselectedresponse.setOldSku('');
-     skuselectedresponse.setOneTime(false);
-     skuselectedresponse.setPlayOffer('');
-     skuselectedresponse.setOldPlayOffer('');
-     let skuselectedresponseSerialized = skuselectedresponse.toArray(undefined);
-     let skuselectedresponseDeserialized = deserialize(
-         skuselectedresponseSerialized);
-     assertNotNull(skuselectedresponseDeserialized);
-     assertTrue(isEqual(skuselectedresponse.toArray(undefined),
-                        skuselectedresponseDeserialized.toArray(undefined)));
-     // includesLabel is true
-     skuselectedresponseSerialized = skuselectedresponse.toArray(true);
-     skuselectedresponseDeserialized = deserialize(
-         skuselectedresponseSerialized);
-     assertNotNull(skuselectedresponseDeserialized);
-     assertTrue(isEqual(skuselectedresponse.toArray(true),
-                        skuselectedresponseDeserialized.toArray(true)));
-     // includesLabel is false
-     skuselectedresponseSerialized = skuselectedresponse.toArray(false);
-     skuselectedresponseDeserialized = new SkuSelectedResponse(
-         skuselectedresponseSerialized, false);
-     assertNotNull(skuselectedresponseDeserialized);
-     assertTrue(isEqual(skuselectedresponse.toArray(false),
-                        skuselectedresponseDeserialized.toArray(false)));
-   },
- 
-   test_SmartBoxMessage() {
-     // includesLabel is undefined
-     const /** !SmartBoxMessage  */ smartboxmessage = new SmartBoxMessage();
-     smartboxmessage.setIsClicked(false);
-     let smartboxmessageSerialized = smartboxmessage.toArray(undefined);
-     let smartboxmessageDeserialized = deserialize(
-         smartboxmessageSerialized);
-     assertNotNull(smartboxmessageDeserialized);
-     assertTrue(isEqual(smartboxmessage.toArray(undefined),
-                        smartboxmessageDeserialized.toArray(undefined)));
-     // includesLabel is true
-     smartboxmessageSerialized = smartboxmessage.toArray(true);
-     smartboxmessageDeserialized = deserialize(
-         smartboxmessageSerialized);
-     assertNotNull(smartboxmessageDeserialized);
-     assertTrue(isEqual(smartboxmessage.toArray(true),
-                        smartboxmessageDeserialized.toArray(true)));
-     // includesLabel is false
-     smartboxmessageSerialized = smartboxmessage.toArray(false);
-     smartboxmessageDeserialized = new SmartBoxMessage(
-         smartboxmessageSerialized, false);
-     assertNotNull(smartboxmessageDeserialized);
-     assertTrue(isEqual(smartboxmessage.toArray(false),
-                        smartboxmessageDeserialized.toArray(false)));
-   },
- 
-   test_SubscribeResponse() {
-     // includesLabel is undefined
-     const /** !SubscribeResponse  */ subscriberesponse = new SubscribeResponse();
-     subscriberesponse.setSubscribe(false);
-     let subscriberesponseSerialized = subscriberesponse.toArray(undefined);
-     let subscriberesponseDeserialized = deserialize(
-         subscriberesponseSerialized);
-     assertNotNull(subscriberesponseDeserialized);
-     assertTrue(isEqual(subscriberesponse.toArray(undefined),
-                        subscriberesponseDeserialized.toArray(undefined)));
-     // includesLabel is true
-     subscriberesponseSerialized = subscriberesponse.toArray(true);
-     subscriberesponseDeserialized = deserialize(
-         subscriberesponseSerialized);
-     assertNotNull(subscriberesponseDeserialized);
-     assertTrue(isEqual(subscriberesponse.toArray(true),
-                        subscriberesponseDeserialized.toArray(true)));
-     // includesLabel is false
-     subscriberesponseSerialized = subscriberesponse.toArray(false);
-     subscriberesponseDeserialized = new SubscribeResponse(
-         subscriberesponseSerialized, false);
-     assertNotNull(subscriberesponseDeserialized);
-     assertTrue(isEqual(subscriberesponse.toArray(false),
-                        subscriberesponseDeserialized.toArray(false)));
-   },
- 
-   test_Timestamp() {
-     // includesLabel is undefined
-     const /** !Timestamp  */ timestamp = new Timestamp();
-     timestamp.setSeconds(0);
-     timestamp.setNanos(0);
-     let timestampSerialized = timestamp.toArray(undefined);
-     let timestampDeserialized = deserialize(
-         timestampSerialized);
-     assertNotNull(timestampDeserialized);
-     assertTrue(isEqual(timestamp.toArray(undefined),
-                        timestampDeserialized.toArray(undefined)));
-     // includesLabel is true
-     timestampSerialized = timestamp.toArray(true);
-     timestampDeserialized = deserialize(
-         timestampSerialized);
-     assertNotNull(timestampDeserialized);
-     assertTrue(isEqual(timestamp.toArray(true),
-                        timestampDeserialized.toArray(true)));
-     // includesLabel is false
-     timestampSerialized = timestamp.toArray(false);
-     timestampDeserialized = new Timestamp(
-         timestampSerialized, false);
-     assertNotNull(timestampDeserialized);
-     assertTrue(isEqual(timestamp.toArray(false),
-                        timestampDeserialized.toArray(false)));
-   },
- 
-   test_ViewSubscriptionsResponse() {
-     // includesLabel is undefined
-     const /** !ViewSubscriptionsResponse  */ viewsubscriptionsresponse = new ViewSubscriptionsResponse();
-     viewsubscriptionsresponse.setNative(false);
-     let viewsubscriptionsresponseSerialized = viewsubscriptionsresponse.toArray(undefined);
-     let viewsubscriptionsresponseDeserialized = deserialize(
-         viewsubscriptionsresponseSerialized);
-     assertNotNull(viewsubscriptionsresponseDeserialized);
-     assertTrue(isEqual(viewsubscriptionsresponse.toArray(undefined),
-                        viewsubscriptionsresponseDeserialized.toArray(undefined)));
-     // includesLabel is true
-     viewsubscriptionsresponseSerialized = viewsubscriptionsresponse.toArray(true);
-     viewsubscriptionsresponseDeserialized = deserialize(
-         viewsubscriptionsresponseSerialized);
-     assertNotNull(viewsubscriptionsresponseDeserialized);
-     assertTrue(isEqual(viewsubscriptionsresponse.toArray(true),
-                        viewsubscriptionsresponseDeserialized.toArray(true)));
-     // includesLabel is false
-     viewsubscriptionsresponseSerialized = viewsubscriptionsresponse.toArray(false);
-     viewsubscriptionsresponseDeserialized = new ViewSubscriptionsResponse(
-         viewsubscriptionsresponseSerialized, false);
-     assertNotNull(viewsubscriptionsresponseDeserialized);
-     assertTrue(isEqual(viewsubscriptionsresponse.toArray(false),
-                        viewsubscriptionsresponseDeserialized.toArray(false)));
-   },
- });
- 
+import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+
+describe('deserialize', () => {
+  it('throws if deserialization fails', () => {
+    expect(() => deserialize(['fakeDataType'])).to.throw('Deserialization failed for fakeDataType');
+    expect(() => deserialize()).to.throw(
+      'Deserialization failed for undefined'
+    );
+  });
+});
+
+describe('getLabel', () => {
+  it('gets label from a proto constructor', () => {
+    expect(getLabel(AccountCreationRequest)).to.equal('AccountCreationRequest');
+  });
+});
+
+describe('AccountCreationRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !AccountCreationRequest  */ accountcreationrequest = new AccountCreationRequest();
+    accountcreationrequest.setComplete(false);
+
+    let accountcreationrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    accountcreationrequestDeserialized = deserialize(
+        accountcreationrequest.toArray(undefined));
+    expect(accountcreationrequestDeserialized.toArray(undefined)).to.deep.equal(
+        accountcreationrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(accountcreationrequestDeserialized.getComplete()).to.deep.equal(
+        accountcreationrequest.getComplete());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    accountcreationrequestDeserialized = deserialize(
+        accountcreationrequest.toArray(true));
+    expect(accountcreationrequestDeserialized.toArray(true)).to.deep.equal(
+        accountcreationrequest.toArray(true));
+
+    // Verify fields.
+    expect(accountcreationrequestDeserialized.getComplete()).to.deep.equal(
+        accountcreationrequest.getComplete());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    accountcreationrequestDeserialized = new AccountCreationRequest(accountcreationrequest.toArray(false), false);
+    expect(accountcreationrequestDeserialized.toArray(false)).to.deep.equal(
+        accountcreationrequest.toArray(false));
+
+    // Verify fields.
+    expect(accountcreationrequestDeserialized.getComplete()).to.deep.equal(
+        accountcreationrequest.getComplete());
+  });
+});
+
+describe('AlreadySubscribedResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !AlreadySubscribedResponse  */ alreadysubscribedresponse = new AlreadySubscribedResponse();
+    alreadysubscribedresponse.setSubscriberOrMember(false);
+    alreadysubscribedresponse.setLinkRequested(false);
+
+    let alreadysubscribedresponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    alreadysubscribedresponseDeserialized = deserialize(
+        alreadysubscribedresponse.toArray(undefined));
+    expect(alreadysubscribedresponseDeserialized.toArray(undefined)).to.deep.equal(
+        alreadysubscribedresponse.toArray(undefined));
+
+    // Verify fields.
+    expect(alreadysubscribedresponseDeserialized.getSubscriberOrMember()).to.deep.equal(
+        alreadysubscribedresponse.getSubscriberOrMember());
+    expect(alreadysubscribedresponseDeserialized.getLinkRequested()).to.deep.equal(
+        alreadysubscribedresponse.getLinkRequested());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    alreadysubscribedresponseDeserialized = deserialize(
+        alreadysubscribedresponse.toArray(true));
+    expect(alreadysubscribedresponseDeserialized.toArray(true)).to.deep.equal(
+        alreadysubscribedresponse.toArray(true));
+
+    // Verify fields.
+    expect(alreadysubscribedresponseDeserialized.getSubscriberOrMember()).to.deep.equal(
+        alreadysubscribedresponse.getSubscriberOrMember());
+    expect(alreadysubscribedresponseDeserialized.getLinkRequested()).to.deep.equal(
+        alreadysubscribedresponse.getLinkRequested());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    alreadysubscribedresponseDeserialized = new AlreadySubscribedResponse(alreadysubscribedresponse.toArray(false), false);
+    expect(alreadysubscribedresponseDeserialized.toArray(false)).to.deep.equal(
+        alreadysubscribedresponse.toArray(false));
+
+    // Verify fields.
+    expect(alreadysubscribedresponseDeserialized.getSubscriberOrMember()).to.deep.equal(
+        alreadysubscribedresponse.getSubscriberOrMember());
+    expect(alreadysubscribedresponseDeserialized.getLinkRequested()).to.deep.equal(
+        alreadysubscribedresponse.getLinkRequested());
+  });
+});
+
+describe('AnalyticsContext', () => {
+  it('should deserialize correctly', () => {
+    const /** !AnalyticsContext  */ analyticscontext = new AnalyticsContext();
+    analyticscontext.setEmbedderOrigin('');
+    analyticscontext.setTransactionId('');
+    analyticscontext.setReferringOrigin('');
+    analyticscontext.setUtmSource('');
+    analyticscontext.setUtmCampaign('');
+    analyticscontext.setUtmMedium('');
+    analyticscontext.setSku('');
+    analyticscontext.setReadyToPay(false);
+    analyticscontext.setLabelList([]);
+    analyticscontext.setClientVersion('');
+    analyticscontext.setUrl('');
+
+    let analyticscontextDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    analyticscontextDeserialized = deserialize(
+        analyticscontext.toArray(undefined));
+    expect(analyticscontextDeserialized.toArray(undefined)).to.deep.equal(
+        analyticscontext.toArray(undefined));
+
+    // Verify fields.
+    expect(analyticscontextDeserialized.getEmbedderOrigin()).to.deep.equal(
+        analyticscontext.getEmbedderOrigin());
+    expect(analyticscontextDeserialized.getTransactionId()).to.deep.equal(
+        analyticscontext.getTransactionId());
+    expect(analyticscontextDeserialized.getReferringOrigin()).to.deep.equal(
+        analyticscontext.getReferringOrigin());
+    expect(analyticscontextDeserialized.getUtmSource()).to.deep.equal(
+        analyticscontext.getUtmSource());
+    expect(analyticscontextDeserialized.getUtmCampaign()).to.deep.equal(
+        analyticscontext.getUtmCampaign());
+    expect(analyticscontextDeserialized.getUtmMedium()).to.deep.equal(
+        analyticscontext.getUtmMedium());
+    expect(analyticscontextDeserialized.getSku()).to.deep.equal(
+        analyticscontext.getSku());
+    expect(analyticscontextDeserialized.getReadyToPay()).to.deep.equal(
+        analyticscontext.getReadyToPay());
+    expect(analyticscontextDeserialized.getLabelList()).to.deep.equal(
+        analyticscontext.getLabelList());
+    expect(analyticscontextDeserialized.getClientVersion()).to.deep.equal(
+        analyticscontext.getClientVersion());
+    expect(analyticscontextDeserialized.getUrl()).to.deep.equal(
+        analyticscontext.getUrl());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    analyticscontextDeserialized = deserialize(
+        analyticscontext.toArray(true));
+    expect(analyticscontextDeserialized.toArray(true)).to.deep.equal(
+        analyticscontext.toArray(true));
+
+    // Verify fields.
+    expect(analyticscontextDeserialized.getEmbedderOrigin()).to.deep.equal(
+        analyticscontext.getEmbedderOrigin());
+    expect(analyticscontextDeserialized.getTransactionId()).to.deep.equal(
+        analyticscontext.getTransactionId());
+    expect(analyticscontextDeserialized.getReferringOrigin()).to.deep.equal(
+        analyticscontext.getReferringOrigin());
+    expect(analyticscontextDeserialized.getUtmSource()).to.deep.equal(
+        analyticscontext.getUtmSource());
+    expect(analyticscontextDeserialized.getUtmCampaign()).to.deep.equal(
+        analyticscontext.getUtmCampaign());
+    expect(analyticscontextDeserialized.getUtmMedium()).to.deep.equal(
+        analyticscontext.getUtmMedium());
+    expect(analyticscontextDeserialized.getSku()).to.deep.equal(
+        analyticscontext.getSku());
+    expect(analyticscontextDeserialized.getReadyToPay()).to.deep.equal(
+        analyticscontext.getReadyToPay());
+    expect(analyticscontextDeserialized.getLabelList()).to.deep.equal(
+        analyticscontext.getLabelList());
+    expect(analyticscontextDeserialized.getClientVersion()).to.deep.equal(
+        analyticscontext.getClientVersion());
+    expect(analyticscontextDeserialized.getUrl()).to.deep.equal(
+        analyticscontext.getUrl());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    analyticscontextDeserialized = new AnalyticsContext(analyticscontext.toArray(false), false);
+    expect(analyticscontextDeserialized.toArray(false)).to.deep.equal(
+        analyticscontext.toArray(false));
+
+    // Verify fields.
+    expect(analyticscontextDeserialized.getEmbedderOrigin()).to.deep.equal(
+        analyticscontext.getEmbedderOrigin());
+    expect(analyticscontextDeserialized.getTransactionId()).to.deep.equal(
+        analyticscontext.getTransactionId());
+    expect(analyticscontextDeserialized.getReferringOrigin()).to.deep.equal(
+        analyticscontext.getReferringOrigin());
+    expect(analyticscontextDeserialized.getUtmSource()).to.deep.equal(
+        analyticscontext.getUtmSource());
+    expect(analyticscontextDeserialized.getUtmCampaign()).to.deep.equal(
+        analyticscontext.getUtmCampaign());
+    expect(analyticscontextDeserialized.getUtmMedium()).to.deep.equal(
+        analyticscontext.getUtmMedium());
+    expect(analyticscontextDeserialized.getSku()).to.deep.equal(
+        analyticscontext.getSku());
+    expect(analyticscontextDeserialized.getReadyToPay()).to.deep.equal(
+        analyticscontext.getReadyToPay());
+    expect(analyticscontextDeserialized.getLabelList()).to.deep.equal(
+        analyticscontext.getLabelList());
+    expect(analyticscontextDeserialized.getClientVersion()).to.deep.equal(
+        analyticscontext.getClientVersion());
+    expect(analyticscontextDeserialized.getUrl()).to.deep.equal(
+        analyticscontext.getUrl());
+  });
+});
+
+describe('AnalyticsEventMeta', () => {
+  it('should deserialize correctly', () => {
+    const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
+    analyticseventmeta.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
+    analyticseventmeta.setIsFromUserAction(false);
+
+    let analyticseventmetaDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    analyticseventmetaDeserialized = deserialize(
+        analyticseventmeta.toArray(undefined));
+    expect(analyticseventmetaDeserialized.toArray(undefined)).to.deep.equal(
+        analyticseventmeta.toArray(undefined));
+
+    // Verify fields.
+    expect(analyticseventmetaDeserialized.getEventOriginator()).to.deep.equal(
+        analyticseventmeta.getEventOriginator());
+    expect(analyticseventmetaDeserialized.getIsFromUserAction()).to.deep.equal(
+        analyticseventmeta.getIsFromUserAction());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    analyticseventmetaDeserialized = deserialize(
+        analyticseventmeta.toArray(true));
+    expect(analyticseventmetaDeserialized.toArray(true)).to.deep.equal(
+        analyticseventmeta.toArray(true));
+
+    // Verify fields.
+    expect(analyticseventmetaDeserialized.getEventOriginator()).to.deep.equal(
+        analyticseventmeta.getEventOriginator());
+    expect(analyticseventmetaDeserialized.getIsFromUserAction()).to.deep.equal(
+        analyticseventmeta.getIsFromUserAction());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    analyticseventmetaDeserialized = new AnalyticsEventMeta(analyticseventmeta.toArray(false), false);
+    expect(analyticseventmetaDeserialized.toArray(false)).to.deep.equal(
+        analyticseventmeta.toArray(false));
+
+    // Verify fields.
+    expect(analyticseventmetaDeserialized.getEventOriginator()).to.deep.equal(
+        analyticseventmeta.getEventOriginator());
+    expect(analyticseventmetaDeserialized.getIsFromUserAction()).to.deep.equal(
+        analyticseventmeta.getIsFromUserAction());
+  });
+});
+
+describe('AnalyticsRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !AnalyticsRequest  */ analyticsrequest = new AnalyticsRequest();
+    const /** !AnalyticsContext  */ analyticscontext = new AnalyticsContext();
+    analyticscontext.setEmbedderOrigin('');
+    analyticscontext.setTransactionId('');
+    analyticscontext.setReferringOrigin('');
+    analyticscontext.setUtmSource('');
+    analyticscontext.setUtmCampaign('');
+    analyticscontext.setUtmMedium('');
+    analyticscontext.setSku('');
+    analyticscontext.setReadyToPay(false);
+    analyticscontext.setLabelList([]);
+    analyticscontext.setClientVersion('');
+    analyticscontext.setUrl('');
+    analyticsrequest.setContext(analyticscontext);
+    analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
+    const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
+    analyticseventmeta.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
+    analyticseventmeta.setIsFromUserAction(false);
+    analyticsrequest.setMeta(analyticseventmeta);
+    const /** !EventParams  */ eventparams = new EventParams();
+    eventparams.setSmartboxMessage('');
+    eventparams.setGpayTransactionId('');
+    eventparams.setHadLogged(false);
+    eventparams.setSku('');
+    eventparams.setOldTransactionId('');
+    analyticsrequest.setParams(eventparams);
+
+    let analyticsrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    analyticsrequestDeserialized = deserialize(
+        analyticsrequest.toArray(undefined));
+    expect(analyticsrequestDeserialized.toArray(undefined)).to.deep.equal(
+        analyticsrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(analyticsrequestDeserialized.getContext()).to.deep.equal(
+        analyticsrequest.getContext());
+    expect(analyticsrequestDeserialized.getEvent()).to.deep.equal(
+        analyticsrequest.getEvent());
+    expect(analyticsrequestDeserialized.getMeta()).to.deep.equal(
+        analyticsrequest.getMeta());
+    expect(analyticsrequestDeserialized.getParams()).to.deep.equal(
+        analyticsrequest.getParams());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    analyticsrequestDeserialized = deserialize(
+        analyticsrequest.toArray(true));
+    expect(analyticsrequestDeserialized.toArray(true)).to.deep.equal(
+        analyticsrequest.toArray(true));
+
+    // Verify fields.
+    expect(analyticsrequestDeserialized.getContext()).to.deep.equal(
+        analyticsrequest.getContext());
+    expect(analyticsrequestDeserialized.getEvent()).to.deep.equal(
+        analyticsrequest.getEvent());
+    expect(analyticsrequestDeserialized.getMeta()).to.deep.equal(
+        analyticsrequest.getMeta());
+    expect(analyticsrequestDeserialized.getParams()).to.deep.equal(
+        analyticsrequest.getParams());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    analyticsrequestDeserialized = new AnalyticsRequest(analyticsrequest.toArray(false), false);
+    expect(analyticsrequestDeserialized.toArray(false)).to.deep.equal(
+        analyticsrequest.toArray(false));
+
+    // Verify fields.
+    expect(analyticsrequestDeserialized.getContext()).to.deep.equal(
+        analyticsrequest.getContext());
+    expect(analyticsrequestDeserialized.getEvent()).to.deep.equal(
+        analyticsrequest.getEvent());
+    expect(analyticsrequestDeserialized.getMeta()).to.deep.equal(
+        analyticsrequest.getMeta());
+    expect(analyticsrequestDeserialized.getParams()).to.deep.equal(
+        analyticsrequest.getParams());
+  });
+});
+
+describe('EntitlementJwt', () => {
+  it('should deserialize correctly', () => {
+    const /** !EntitlementJwt  */ entitlementjwt = new EntitlementJwt();
+    entitlementjwt.setJwt('');
+    entitlementjwt.setSource('');
+
+    let entitlementjwtDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    entitlementjwtDeserialized = deserialize(
+        entitlementjwt.toArray(undefined));
+    expect(entitlementjwtDeserialized.toArray(undefined)).to.deep.equal(
+        entitlementjwt.toArray(undefined));
+
+    // Verify fields.
+    expect(entitlementjwtDeserialized.getJwt()).to.deep.equal(
+        entitlementjwt.getJwt());
+    expect(entitlementjwtDeserialized.getSource()).to.deep.equal(
+        entitlementjwt.getSource());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    entitlementjwtDeserialized = deserialize(
+        entitlementjwt.toArray(true));
+    expect(entitlementjwtDeserialized.toArray(true)).to.deep.equal(
+        entitlementjwt.toArray(true));
+
+    // Verify fields.
+    expect(entitlementjwtDeserialized.getJwt()).to.deep.equal(
+        entitlementjwt.getJwt());
+    expect(entitlementjwtDeserialized.getSource()).to.deep.equal(
+        entitlementjwt.getSource());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    entitlementjwtDeserialized = new EntitlementJwt(entitlementjwt.toArray(false), false);
+    expect(entitlementjwtDeserialized.toArray(false)).to.deep.equal(
+        entitlementjwt.toArray(false));
+
+    // Verify fields.
+    expect(entitlementjwtDeserialized.getJwt()).to.deep.equal(
+        entitlementjwt.getJwt());
+    expect(entitlementjwtDeserialized.getSource()).to.deep.equal(
+        entitlementjwt.getSource());
+  });
+});
+
+describe('EntitlementsRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !EntitlementsRequest  */ entitlementsrequest = new EntitlementsRequest();
+    const /** !EntitlementJwt  */ entitlementjwt = new EntitlementJwt();
+    entitlementjwt.setJwt('');
+    entitlementjwt.setSource('');
+    entitlementsrequest.setUsedEntitlement(entitlementjwt);
+    const /** !Timestamp  */ timestamp = new Timestamp();
+    timestamp.setSeconds(0);
+    timestamp.setNanos(0);
+    entitlementsrequest.setClientEventTime(timestamp);
+
+    let entitlementsrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    entitlementsrequestDeserialized = deserialize(
+        entitlementsrequest.toArray(undefined));
+    expect(entitlementsrequestDeserialized.toArray(undefined)).to.deep.equal(
+        entitlementsrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(entitlementsrequestDeserialized.getUsedEntitlement()).to.deep.equal(
+        entitlementsrequest.getUsedEntitlement());
+    expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
+        entitlementsrequest.getClientEventTime());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    entitlementsrequestDeserialized = deserialize(
+        entitlementsrequest.toArray(true));
+    expect(entitlementsrequestDeserialized.toArray(true)).to.deep.equal(
+        entitlementsrequest.toArray(true));
+
+    // Verify fields.
+    expect(entitlementsrequestDeserialized.getUsedEntitlement()).to.deep.equal(
+        entitlementsrequest.getUsedEntitlement());
+    expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
+        entitlementsrequest.getClientEventTime());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    entitlementsrequestDeserialized = new EntitlementsRequest(entitlementsrequest.toArray(false), false);
+    expect(entitlementsrequestDeserialized.toArray(false)).to.deep.equal(
+        entitlementsrequest.toArray(false));
+
+    // Verify fields.
+    expect(entitlementsrequestDeserialized.getUsedEntitlement()).to.deep.equal(
+        entitlementsrequest.getUsedEntitlement());
+    expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
+        entitlementsrequest.getClientEventTime());
+  });
+});
+
+describe('EntitlementsResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !EntitlementsResponse  */ entitlementsresponse = new EntitlementsResponse();
+    entitlementsresponse.setJwt('');
+
+    let entitlementsresponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    entitlementsresponseDeserialized = deserialize(
+        entitlementsresponse.toArray(undefined));
+    expect(entitlementsresponseDeserialized.toArray(undefined)).to.deep.equal(
+        entitlementsresponse.toArray(undefined));
+
+    // Verify fields.
+    expect(entitlementsresponseDeserialized.getJwt()).to.deep.equal(
+        entitlementsresponse.getJwt());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    entitlementsresponseDeserialized = deserialize(
+        entitlementsresponse.toArray(true));
+    expect(entitlementsresponseDeserialized.toArray(true)).to.deep.equal(
+        entitlementsresponse.toArray(true));
+
+    // Verify fields.
+    expect(entitlementsresponseDeserialized.getJwt()).to.deep.equal(
+        entitlementsresponse.getJwt());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    entitlementsresponseDeserialized = new EntitlementsResponse(entitlementsresponse.toArray(false), false);
+    expect(entitlementsresponseDeserialized.toArray(false)).to.deep.equal(
+        entitlementsresponse.toArray(false));
+
+    // Verify fields.
+    expect(entitlementsresponseDeserialized.getJwt()).to.deep.equal(
+        entitlementsresponse.getJwt());
+  });
+});
+
+describe('EventParams', () => {
+  it('should deserialize correctly', () => {
+    const /** !EventParams  */ eventparams = new EventParams();
+    eventparams.setSmartboxMessage('');
+    eventparams.setGpayTransactionId('');
+    eventparams.setHadLogged(false);
+    eventparams.setSku('');
+    eventparams.setOldTransactionId('');
+
+    let eventparamsDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    eventparamsDeserialized = deserialize(
+        eventparams.toArray(undefined));
+    expect(eventparamsDeserialized.toArray(undefined)).to.deep.equal(
+        eventparams.toArray(undefined));
+
+    // Verify fields.
+    expect(eventparamsDeserialized.getSmartboxMessage()).to.deep.equal(
+        eventparams.getSmartboxMessage());
+    expect(eventparamsDeserialized.getGpayTransactionId()).to.deep.equal(
+        eventparams.getGpayTransactionId());
+    expect(eventparamsDeserialized.getHadLogged()).to.deep.equal(
+        eventparams.getHadLogged());
+    expect(eventparamsDeserialized.getSku()).to.deep.equal(
+        eventparams.getSku());
+    expect(eventparamsDeserialized.getOldTransactionId()).to.deep.equal(
+        eventparams.getOldTransactionId());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    eventparamsDeserialized = deserialize(
+        eventparams.toArray(true));
+    expect(eventparamsDeserialized.toArray(true)).to.deep.equal(
+        eventparams.toArray(true));
+
+    // Verify fields.
+    expect(eventparamsDeserialized.getSmartboxMessage()).to.deep.equal(
+        eventparams.getSmartboxMessage());
+    expect(eventparamsDeserialized.getGpayTransactionId()).to.deep.equal(
+        eventparams.getGpayTransactionId());
+    expect(eventparamsDeserialized.getHadLogged()).to.deep.equal(
+        eventparams.getHadLogged());
+    expect(eventparamsDeserialized.getSku()).to.deep.equal(
+        eventparams.getSku());
+    expect(eventparamsDeserialized.getOldTransactionId()).to.deep.equal(
+        eventparams.getOldTransactionId());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    eventparamsDeserialized = new EventParams(eventparams.toArray(false), false);
+    expect(eventparamsDeserialized.toArray(false)).to.deep.equal(
+        eventparams.toArray(false));
+
+    // Verify fields.
+    expect(eventparamsDeserialized.getSmartboxMessage()).to.deep.equal(
+        eventparams.getSmartboxMessage());
+    expect(eventparamsDeserialized.getGpayTransactionId()).to.deep.equal(
+        eventparams.getGpayTransactionId());
+    expect(eventparamsDeserialized.getHadLogged()).to.deep.equal(
+        eventparams.getHadLogged());
+    expect(eventparamsDeserialized.getSku()).to.deep.equal(
+        eventparams.getSku());
+    expect(eventparamsDeserialized.getOldTransactionId()).to.deep.equal(
+        eventparams.getOldTransactionId());
+  });
+});
+
+describe('FinishedLoggingResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !FinishedLoggingResponse  */ finishedloggingresponse = new FinishedLoggingResponse();
+    finishedloggingresponse.setComplete(false);
+    finishedloggingresponse.setError('');
+
+    let finishedloggingresponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    finishedloggingresponseDeserialized = deserialize(
+        finishedloggingresponse.toArray(undefined));
+    expect(finishedloggingresponseDeserialized.toArray(undefined)).to.deep.equal(
+        finishedloggingresponse.toArray(undefined));
+
+    // Verify fields.
+    expect(finishedloggingresponseDeserialized.getComplete()).to.deep.equal(
+        finishedloggingresponse.getComplete());
+    expect(finishedloggingresponseDeserialized.getError()).to.deep.equal(
+        finishedloggingresponse.getError());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    finishedloggingresponseDeserialized = deserialize(
+        finishedloggingresponse.toArray(true));
+    expect(finishedloggingresponseDeserialized.toArray(true)).to.deep.equal(
+        finishedloggingresponse.toArray(true));
+
+    // Verify fields.
+    expect(finishedloggingresponseDeserialized.getComplete()).to.deep.equal(
+        finishedloggingresponse.getComplete());
+    expect(finishedloggingresponseDeserialized.getError()).to.deep.equal(
+        finishedloggingresponse.getError());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    finishedloggingresponseDeserialized = new FinishedLoggingResponse(finishedloggingresponse.toArray(false), false);
+    expect(finishedloggingresponseDeserialized.toArray(false)).to.deep.equal(
+        finishedloggingresponse.toArray(false));
+
+    // Verify fields.
+    expect(finishedloggingresponseDeserialized.getComplete()).to.deep.equal(
+        finishedloggingresponse.getComplete());
+    expect(finishedloggingresponseDeserialized.getError()).to.deep.equal(
+        finishedloggingresponse.getError());
+  });
+});
+
+describe('LinkSaveTokenRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !LinkSaveTokenRequest  */ linksavetokenrequest = new LinkSaveTokenRequest();
+    linksavetokenrequest.setAuthCode('');
+    linksavetokenrequest.setToken('');
+
+    let linksavetokenrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    linksavetokenrequestDeserialized = deserialize(
+        linksavetokenrequest.toArray(undefined));
+    expect(linksavetokenrequestDeserialized.toArray(undefined)).to.deep.equal(
+        linksavetokenrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(linksavetokenrequestDeserialized.getAuthCode()).to.deep.equal(
+        linksavetokenrequest.getAuthCode());
+    expect(linksavetokenrequestDeserialized.getToken()).to.deep.equal(
+        linksavetokenrequest.getToken());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    linksavetokenrequestDeserialized = deserialize(
+        linksavetokenrequest.toArray(true));
+    expect(linksavetokenrequestDeserialized.toArray(true)).to.deep.equal(
+        linksavetokenrequest.toArray(true));
+
+    // Verify fields.
+    expect(linksavetokenrequestDeserialized.getAuthCode()).to.deep.equal(
+        linksavetokenrequest.getAuthCode());
+    expect(linksavetokenrequestDeserialized.getToken()).to.deep.equal(
+        linksavetokenrequest.getToken());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    linksavetokenrequestDeserialized = new LinkSaveTokenRequest(linksavetokenrequest.toArray(false), false);
+    expect(linksavetokenrequestDeserialized.toArray(false)).to.deep.equal(
+        linksavetokenrequest.toArray(false));
+
+    // Verify fields.
+    expect(linksavetokenrequestDeserialized.getAuthCode()).to.deep.equal(
+        linksavetokenrequest.getAuthCode());
+    expect(linksavetokenrequestDeserialized.getToken()).to.deep.equal(
+        linksavetokenrequest.getToken());
+  });
+});
+
+describe('LinkingInfoResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !LinkingInfoResponse  */ linkinginforesponse = new LinkingInfoResponse();
+    linkinginforesponse.setRequested(false);
+
+    let linkinginforesponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    linkinginforesponseDeserialized = deserialize(
+        linkinginforesponse.toArray(undefined));
+    expect(linkinginforesponseDeserialized.toArray(undefined)).to.deep.equal(
+        linkinginforesponse.toArray(undefined));
+
+    // Verify fields.
+    expect(linkinginforesponseDeserialized.getRequested()).to.deep.equal(
+        linkinginforesponse.getRequested());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    linkinginforesponseDeserialized = deserialize(
+        linkinginforesponse.toArray(true));
+    expect(linkinginforesponseDeserialized.toArray(true)).to.deep.equal(
+        linkinginforesponse.toArray(true));
+
+    // Verify fields.
+    expect(linkinginforesponseDeserialized.getRequested()).to.deep.equal(
+        linkinginforesponse.getRequested());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    linkinginforesponseDeserialized = new LinkingInfoResponse(linkinginforesponse.toArray(false), false);
+    expect(linkinginforesponseDeserialized.toArray(false)).to.deep.equal(
+        linkinginforesponse.toArray(false));
+
+    // Verify fields.
+    expect(linkinginforesponseDeserialized.getRequested()).to.deep.equal(
+        linkinginforesponse.getRequested());
+  });
+});
+
+describe('SkuSelectedResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !SkuSelectedResponse  */ skuselectedresponse = new SkuSelectedResponse();
+    skuselectedresponse.setSku('');
+    skuselectedresponse.setOldSku('');
+    skuselectedresponse.setOneTime(false);
+    skuselectedresponse.setPlayOffer('');
+    skuselectedresponse.setOldPlayOffer('');
+
+    let skuselectedresponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    skuselectedresponseDeserialized = deserialize(
+        skuselectedresponse.toArray(undefined));
+    expect(skuselectedresponseDeserialized.toArray(undefined)).to.deep.equal(
+        skuselectedresponse.toArray(undefined));
+
+    // Verify fields.
+    expect(skuselectedresponseDeserialized.getSku()).to.deep.equal(
+        skuselectedresponse.getSku());
+    expect(skuselectedresponseDeserialized.getOldSku()).to.deep.equal(
+        skuselectedresponse.getOldSku());
+    expect(skuselectedresponseDeserialized.getOneTime()).to.deep.equal(
+        skuselectedresponse.getOneTime());
+    expect(skuselectedresponseDeserialized.getPlayOffer()).to.deep.equal(
+        skuselectedresponse.getPlayOffer());
+    expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
+        skuselectedresponse.getOldPlayOffer());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    skuselectedresponseDeserialized = deserialize(
+        skuselectedresponse.toArray(true));
+    expect(skuselectedresponseDeserialized.toArray(true)).to.deep.equal(
+        skuselectedresponse.toArray(true));
+
+    // Verify fields.
+    expect(skuselectedresponseDeserialized.getSku()).to.deep.equal(
+        skuselectedresponse.getSku());
+    expect(skuselectedresponseDeserialized.getOldSku()).to.deep.equal(
+        skuselectedresponse.getOldSku());
+    expect(skuselectedresponseDeserialized.getOneTime()).to.deep.equal(
+        skuselectedresponse.getOneTime());
+    expect(skuselectedresponseDeserialized.getPlayOffer()).to.deep.equal(
+        skuselectedresponse.getPlayOffer());
+    expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
+        skuselectedresponse.getOldPlayOffer());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    skuselectedresponseDeserialized = new SkuSelectedResponse(skuselectedresponse.toArray(false), false);
+    expect(skuselectedresponseDeserialized.toArray(false)).to.deep.equal(
+        skuselectedresponse.toArray(false));
+
+    // Verify fields.
+    expect(skuselectedresponseDeserialized.getSku()).to.deep.equal(
+        skuselectedresponse.getSku());
+    expect(skuselectedresponseDeserialized.getOldSku()).to.deep.equal(
+        skuselectedresponse.getOldSku());
+    expect(skuselectedresponseDeserialized.getOneTime()).to.deep.equal(
+        skuselectedresponse.getOneTime());
+    expect(skuselectedresponseDeserialized.getPlayOffer()).to.deep.equal(
+        skuselectedresponse.getPlayOffer());
+    expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
+        skuselectedresponse.getOldPlayOffer());
+  });
+});
+
+describe('SmartBoxMessage', () => {
+  it('should deserialize correctly', () => {
+    const /** !SmartBoxMessage  */ smartboxmessage = new SmartBoxMessage();
+    smartboxmessage.setIsClicked(false);
+
+    let smartboxmessageDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    smartboxmessageDeserialized = deserialize(
+        smartboxmessage.toArray(undefined));
+    expect(smartboxmessageDeserialized.toArray(undefined)).to.deep.equal(
+        smartboxmessage.toArray(undefined));
+
+    // Verify fields.
+    expect(smartboxmessageDeserialized.getIsClicked()).to.deep.equal(
+        smartboxmessage.getIsClicked());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    smartboxmessageDeserialized = deserialize(
+        smartboxmessage.toArray(true));
+    expect(smartboxmessageDeserialized.toArray(true)).to.deep.equal(
+        smartboxmessage.toArray(true));
+
+    // Verify fields.
+    expect(smartboxmessageDeserialized.getIsClicked()).to.deep.equal(
+        smartboxmessage.getIsClicked());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    smartboxmessageDeserialized = new SmartBoxMessage(smartboxmessage.toArray(false), false);
+    expect(smartboxmessageDeserialized.toArray(false)).to.deep.equal(
+        smartboxmessage.toArray(false));
+
+    // Verify fields.
+    expect(smartboxmessageDeserialized.getIsClicked()).to.deep.equal(
+        smartboxmessage.getIsClicked());
+  });
+});
+
+describe('SubscribeResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !SubscribeResponse  */ subscriberesponse = new SubscribeResponse();
+    subscriberesponse.setSubscribe(false);
+
+    let subscriberesponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    subscriberesponseDeserialized = deserialize(
+        subscriberesponse.toArray(undefined));
+    expect(subscriberesponseDeserialized.toArray(undefined)).to.deep.equal(
+        subscriberesponse.toArray(undefined));
+
+    // Verify fields.
+    expect(subscriberesponseDeserialized.getSubscribe()).to.deep.equal(
+        subscriberesponse.getSubscribe());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    subscriberesponseDeserialized = deserialize(
+        subscriberesponse.toArray(true));
+    expect(subscriberesponseDeserialized.toArray(true)).to.deep.equal(
+        subscriberesponse.toArray(true));
+
+    // Verify fields.
+    expect(subscriberesponseDeserialized.getSubscribe()).to.deep.equal(
+        subscriberesponse.getSubscribe());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    subscriberesponseDeserialized = new SubscribeResponse(subscriberesponse.toArray(false), false);
+    expect(subscriberesponseDeserialized.toArray(false)).to.deep.equal(
+        subscriberesponse.toArray(false));
+
+    // Verify fields.
+    expect(subscriberesponseDeserialized.getSubscribe()).to.deep.equal(
+        subscriberesponse.getSubscribe());
+  });
+});
+
+describe('Timestamp', () => {
+  it('should deserialize correctly', () => {
+    const /** !Timestamp  */ timestamp = new Timestamp();
+    timestamp.setSeconds(0);
+    timestamp.setNanos(0);
+
+    let timestampDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    timestampDeserialized = deserialize(
+        timestamp.toArray(undefined));
+    expect(timestampDeserialized.toArray(undefined)).to.deep.equal(
+        timestamp.toArray(undefined));
+
+    // Verify fields.
+    expect(timestampDeserialized.getSeconds()).to.deep.equal(
+        timestamp.getSeconds());
+    expect(timestampDeserialized.getNanos()).to.deep.equal(
+        timestamp.getNanos());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    timestampDeserialized = deserialize(
+        timestamp.toArray(true));
+    expect(timestampDeserialized.toArray(true)).to.deep.equal(
+        timestamp.toArray(true));
+
+    // Verify fields.
+    expect(timestampDeserialized.getSeconds()).to.deep.equal(
+        timestamp.getSeconds());
+    expect(timestampDeserialized.getNanos()).to.deep.equal(
+        timestamp.getNanos());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    timestampDeserialized = new Timestamp(timestamp.toArray(false), false);
+    expect(timestampDeserialized.toArray(false)).to.deep.equal(
+        timestamp.toArray(false));
+
+    // Verify fields.
+    expect(timestampDeserialized.getSeconds()).to.deep.equal(
+        timestamp.getSeconds());
+    expect(timestampDeserialized.getNanos()).to.deep.equal(
+        timestamp.getNanos());
+  });
+});
+
+describe('ViewSubscriptionsResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !ViewSubscriptionsResponse  */ viewsubscriptionsresponse = new ViewSubscriptionsResponse();
+    viewsubscriptionsresponse.setNative(false);
+
+    let viewsubscriptionsresponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    viewsubscriptionsresponseDeserialized = deserialize(
+        viewsubscriptionsresponse.toArray(undefined));
+    expect(viewsubscriptionsresponseDeserialized.toArray(undefined)).to.deep.equal(
+        viewsubscriptionsresponse.toArray(undefined));
+
+    // Verify fields.
+    expect(viewsubscriptionsresponseDeserialized.getNative()).to.deep.equal(
+        viewsubscriptionsresponse.getNative());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    viewsubscriptionsresponseDeserialized = deserialize(
+        viewsubscriptionsresponse.toArray(true));
+    expect(viewsubscriptionsresponseDeserialized.toArray(true)).to.deep.equal(
+        viewsubscriptionsresponse.toArray(true));
+
+    // Verify fields.
+    expect(viewsubscriptionsresponseDeserialized.getNative()).to.deep.equal(
+        viewsubscriptionsresponse.getNative());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    viewsubscriptionsresponseDeserialized = new ViewSubscriptionsResponse(viewsubscriptionsresponse.toArray(false), false);
+    expect(viewsubscriptionsresponseDeserialized.toArray(false)).to.deep.equal(
+        viewsubscriptionsresponse.toArray(false));
+
+    // Verify fields.
+    expect(viewsubscriptionsresponseDeserialized.getNative()).to.deep.equal(
+        viewsubscriptionsresponse.getNative());
+  });
+});
