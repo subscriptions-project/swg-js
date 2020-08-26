@@ -20,14 +20,10 @@ import {
   Entitlements,
   GOOGLE_METERING_SOURCE,
 } from '../api/entitlements';
-import {EntitlementsPingbackRequest} from '../proto/api_messages';
-import {
-  GetEntitlementsParamsExternal,
-  GetEntitlementsParamsInternal,
-  ProductType,
-} from '../api/subscriptions';
+import {EntitlementsRequest,EntitlementJwt} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
+import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
@@ -184,8 +180,12 @@ export class EntitlementsManager {
       return;
     }
 
-    const message = new EntitlementsPingbackRequest();
-    message.setSignedMeter(entitlement.subscriptionToken);
+    const jwt = new EntitlementJwt();
+    jwt.setSource(entitlement.source);
+    jwt.setJwt(entitlement.subscriptionToken);
+
+    const message = new EntitlementsRequest();
+    message.setUsedEntitlement(jwt);
     message.setClientEventTime(toTimestamp(new Date()));
 
     const url =
