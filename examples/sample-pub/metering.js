@@ -22,10 +22,10 @@ const MeteringDemo = {
     });
   },
 
-  /** Returns a new PPID suitable for demo purposes. */
+  /** Returns a new Publisher Provided ID (PPID) suitable for demo purposes. */
   createPpid: () => 'ppid' + Math.round(Math.random() * 9999999999999999),
 
-  /** Returns a PPID suitable for demo purposes. */
+  /** Returns a Publisher Provided ID (PPID) suitable for demo purposes. */
   getPpid: () => {
     if (!localStorage.meteringStateId) {
       localStorage.meteringStateId = MeteringDemo.createPpid();
