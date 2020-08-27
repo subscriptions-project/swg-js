@@ -146,17 +146,24 @@ function startFlowAuto() {
 
   if (flow == 'metering') {
     /* eslint-disable */
-    const timestamp = 1597686771;
 
     whenReady((subscriptions) => {
+      // Forget any subscriptions, for metering demo purposes.
+      subscriptions.reset();
+
+      // Set up metering demo controls.
+      MeteringDemo.setupControls();
+
+      // Example of a timestamp representing when a given action was taken.
+      const timestamp = 1597686771;
+
       subscriptions
         .getEntitlements({
           metering: {
             state: {
               // Hashed identifier for a specific user. Hash this value yourself
               // to avoid sending PII.
-              id:
-                'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
+              id: MeteringDemo.getPpid(),
               // Standard attributes which affect your meters.
               // Each attribute has a corresponding timestamp, which
               // allows meters to do things like granting access
@@ -189,7 +196,17 @@ function startFlowAuto() {
             //
             // Consuming an entitlement will also trigger a dialog that lets the user
             // know Google provided them with a free read.
-            entitlements.consume();
+            entitlements.consume(() => {
+              // Unlock the article AFTER the user consumes a free read.
+              // Note: If you unlock the article outside of this callback,
+              // users might be able to scroll down and read the article
+              // without closing the dialog, and closing the dialog is
+              // what actually consumes a free read.
+              MeteringDemo.openPaywall();
+            });
+          } else {
+            // Show a publisher paywall for demo purposes.
+            startFlow('showOffers');
           }
         });
     });

@@ -298,3 +298,40 @@ ul.related p {
   position: absolute;
   left: 12%;
 }
+
+body:not(.metering) #metering-controls {
+  display: none;
+}
+
+#metering-controls {
+  background-color: rgb(55, 220, 140);
+  border-radius: 0 0 0 8px;
+  min-height: 40px;
+  position: fixed;
+  right: 80px;
+  top: 7px;
+  text-align: right;
+  width: 200px;
+  z-index: 9999;
+}
+
+#metering-controls button {
+  background-color: rgb(50, 207, 131);
+  border: none;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.08);
+  border-bottom: 4px solid rgb(3, 151, 80);
+  border-radius: 8px;
+  border-top: 4px solid rgb(114, 255, 187);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 6px 12px;
+}
+
+#metering-controls button:active,
+#metering-controls button:hover {
+  background-color: rgb(39, 199, 122);
+  box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.06);
+  border-bottom: 4px solid rgb(2, 133, 69);
+  border-top: 4px solid rgb(74, 250, 165);
+}

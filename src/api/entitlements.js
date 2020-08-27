@@ -31,7 +31,7 @@ export class Entitlements {
    * @param {!Array<!Entitlement>} entitlements
    * @param {?string} currentProduct
    * @param {function(!Entitlements)} ackHandler
-   * @param {function(!Entitlements)} consumeHandler
+   * @param {function(!Entitlements, ?Function=)} consumeHandler
    * @param {?boolean|undefined} isReadyToPay
    * @param {?string|undefined} decryptedDocumentKey
    */
@@ -60,7 +60,7 @@ export class Entitlements {
     this.product_ = currentProduct;
     /** @private @const {function(!Entitlements)} */
     this.ackHandler_ = ackHandler;
-    /** @private @const {function(!Entitlements)} */
+    /** @private @const {function(!Entitlements, ?Function=)} */
     this.consumeHandler_ = consumeHandler;
   }
 
@@ -235,11 +235,13 @@ export class Entitlements {
 
   /**
    * A 3p site should call this method to consume a Google metering entitlement.
-   * When a metering entitlement is consumed, that depletes the user's
-   * remaining "free reads".
+   * When a metering entitlement is consumed, SwG shows the user a metering dialog.
+   * When the user closes the dialog, SwG depletes one of the user's remaining
+   * "free reads".
+   * @param {?Function=} onCloseDialog Called after the user closes the dialog.
    */
-  consume() {
-    this.consumeHandler_(this);
+  consume(onCloseDialog) {
+    this.consumeHandler_(this, onCloseDialog);
   }
 }
 
