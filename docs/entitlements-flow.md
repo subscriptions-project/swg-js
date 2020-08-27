@@ -88,7 +88,14 @@ subscriptions
       //
       // Consuming an entitlement will also trigger a dialog that lets the user
       // know Google provided them with a free read.
-      entitlements.consume();
+      entitlements.consume(() => {
+        // Unlock the article AFTER the user consumes a free read.
+        // Note: If you unlock the article outside of this callback,
+        // users might be able to scroll down and read the article
+        // without closing the dialog, and closing the dialog is
+        // what actually consumes a free read.
+        unlockArticle(); // Your custom article unlocking code goes here.
+      });
     }
   });
 ```

@@ -20,7 +20,7 @@ import {
   Entitlements,
   GOOGLE_METERING_SOURCE,
 } from '../api/entitlements';
-import {EntitlementsRequest,EntitlementJwt} from '../proto/api_messages';
+import {EntitlementJwt, EntitlementsRequest} from '../proto/api_messages';
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {ProductType} from '../api/subscriptions';
@@ -458,9 +458,10 @@ export class EntitlementsManager {
 
   /**
    * @param {!Entitlements} entitlements
+   * @param {!Function=} onCloseDialog Called after the user closes the dialog.
    * @private
    */
-  consume_(entitlements) {
+  consume_(entitlements, onCloseDialog) {
     if (entitlements.enablesThisWithGoogleMetering()) {
       // NOTE: This is just a placeholder. Once the metering prompt UI is ready,
       // it will be opened here instead of the contributions iframe.
@@ -480,6 +481,7 @@ export class EntitlementsManager {
         /* shouldFadeBody */ true
       );
       activityIframeView_.onCancel(() => {
+        onCloseDialog();
         this.sendPingback_(entitlements);
       });
       return this.deps_.dialogManager().openView(activityIframeView_);
