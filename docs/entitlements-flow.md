@@ -94,7 +94,7 @@ subscriptions
         // users might be able to scroll down and read the article
         // without closing the dialog, and closing the dialog is
         // what actually consumes a free read.
-        unlockArticle(); // Your custom article unlocking code goes here.
+        unlockArticle(); // Call your custom unlock method here.
       });
     }
   });
