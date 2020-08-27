@@ -31,7 +31,7 @@ export class Entitlements {
    * @param {!Array<!Entitlement>} entitlements
    * @param {?string} currentProduct
    * @param {function(!Entitlements)} ackHandler
-   * @param {function(!Entitlements, !Function=)} consumeHandler
+   * @param {function(!Entitlements, ?Function=)} consumeHandler
    * @param {?boolean|undefined} isReadyToPay
    * @param {?string|undefined} decryptedDocumentKey
    */
@@ -60,7 +60,7 @@ export class Entitlements {
     this.product_ = currentProduct;
     /** @private @const {function(!Entitlements)} */
     this.ackHandler_ = ackHandler;
-    /** @private @const {function(!Entitlements, !Function=)} */
+    /** @private @const {function(!Entitlements, ?Function=)} */
     this.consumeHandler_ = consumeHandler;
   }
 
@@ -238,7 +238,7 @@ export class Entitlements {
    * When a metering entitlement is consumed, SwG shows the user a metering dialog.
    * When the user closes the dialog, SwG depletes one of the user's remaining
    * "free reads".
-   * @param {!Function=} onCloseDialog Called after the user closes the dialog.
+   * @param {?Function=} onCloseDialog Called after the user closes the dialog.
    */
   consume(onCloseDialog) {
     this.consumeHandler_(this, onCloseDialog);

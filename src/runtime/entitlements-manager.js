@@ -462,7 +462,7 @@ export class EntitlementsManager {
 
   /**
    * @param {!Entitlements} entitlements
-   * @param {!Function=} onCloseDialog Called after the user closes the dialog.
+   * @param {?Function=} onCloseDialog Called after the user closes the dialog.
    * @private
    */
   consume_(entitlements, onCloseDialog) {
