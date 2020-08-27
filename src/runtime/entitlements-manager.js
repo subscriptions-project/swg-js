@@ -485,7 +485,9 @@ export class EntitlementsManager {
         /* shouldFadeBody */ true
       );
       activityIframeView_.onCancel(() => {
-        onCloseDialog();
+        if (onCloseDialog) {
+          onCloseDialog();
+        }
         this.sendPingback_(entitlements);
       });
       return this.deps_.dialogManager().openView(activityIframeView_);
