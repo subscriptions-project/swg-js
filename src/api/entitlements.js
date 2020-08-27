@@ -60,7 +60,7 @@ export class Entitlements {
     this.product_ = currentProduct;
     /** @private @const {function(!Entitlements)} */
     this.ackHandler_ = ackHandler;
-    /** @private @const {function(!Entitlements), !Function=} */
+    /** @private @const {function(!Entitlements, !Function=)} */
     this.consumeHandler_ = consumeHandler;
   }
 
