@@ -107,7 +107,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
       options.minifiedName,
       options
     )
-      .then(function () {
+      .then(() => {
         fs.writeFileSync(destDir + '/version.txt', internalRuntimeVersion);
         if (options.latestName) {
           fs.copySync(
