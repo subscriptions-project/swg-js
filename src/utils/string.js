@@ -15,6 +15,7 @@
  */
 
 import {getRandomInts} from './random';
+import {utf8EncodeSync} from './bytes';
 
 const CHARS = '0123456789ABCDEF';
 
@@ -164,4 +165,40 @@ export function getUuid() {
 
 export function getSwgTransactionId() {
   return getUuid() + '.swg';
+}
+
+/**
+ * Returns a string whose length matches the length of format.
+ * @param {string} str
+ * @param {string} format
+ * @return {string}
+ */
+function padString(str, format) {
+  return (format + str).slice(-format.length);
+}
+
+const PADDING = '00000000';
+function toHex(buffer) {
+  const hexCodes = [];
+  const view = new DataView(buffer);
+  for (let i = 0; i < view.byteLength; i += 4) {
+    // toString(16) will give the hex representation of the number without padding
+    const stringValue = view.getUint32(i).toString(16);
+    hexCodes.push(padString(stringValue, PADDING));
+  }
+  return hexCodes.join('');
+}
+
+/**
+ * Returns a hexadecimal 128 character string that is the
+ * SHA-512 hash of the passed string.
+ * @param {string} stringToHash
+ * @return {!Promise<string>}
+ */
+export function hash(stringToHash) {
+  const crypto = self.crypto || self.msCrypto;
+  const subtle = crypto.subtle;
+  return subtle
+    .digest('SHA-512', utf8EncodeSync(stringToHash))
+    .then((digest) => toHex(digest));
 }
