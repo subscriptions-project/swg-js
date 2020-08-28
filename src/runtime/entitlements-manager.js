@@ -20,7 +20,7 @@ import {
   Entitlements,
   GOOGLE_METERING_SOURCE,
 } from '../api/entitlements';
-import {EntitlementsPingbackRequest} from '../proto/api_messages';
+import {EntitlementJwt, EntitlementsRequest} from '../proto/api_messages';
 import {
   GetEntitlementsParamsExternal,
   GetEntitlementsParamsInternal,
@@ -184,8 +184,12 @@ export class EntitlementsManager {
       return;
     }
 
-    const message = new EntitlementsPingbackRequest();
-    message.setSignedMeter(entitlement.subscriptionToken);
+    const jwt = new EntitlementJwt();
+    jwt.setSource(entitlement.source);
+    jwt.setJwt(entitlement.subscriptionToken);
+
+    const message = new EntitlementsRequest();
+    message.setUsedEntitlement(jwt);
     message.setClientEventTime(toTimestamp(new Date()));
 
     const url =
@@ -458,9 +462,10 @@ export class EntitlementsManager {
 
   /**
    * @param {!Entitlements} entitlements
+   * @param {?Function=} onCloseDialog Called after the user closes the dialog.
    * @private
    */
-  consume_(entitlements) {
+  consume_(entitlements, onCloseDialog) {
     if (entitlements.enablesThisWithGoogleMetering()) {
       // NOTE: This is just a placeholder. Once the metering prompt UI is ready,
       // it will be opened here instead of the contributions iframe.
@@ -468,7 +473,7 @@ export class EntitlementsManager {
       const activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.deps_.activities(),
-        feUrl('/contributionsiframe'),
+        feUrl('/metertoastiframe'),
         feArgs({
           'productId': this.deps_.pageConfig().getProductId(),
           'publicationId': this.deps_.pageConfig().getPublicationId(),
@@ -480,6 +485,9 @@ export class EntitlementsManager {
         /* shouldFadeBody */ true
       );
       activityIframeView_.onCancel(() => {
+        if (onCloseDialog) {
+          onCloseDialog();
+        }
         this.sendPingback_(entitlements);
       });
       return this.deps_.dialogManager().openView(activityIframeView_);
