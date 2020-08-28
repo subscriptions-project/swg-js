@@ -35,9 +35,6 @@ export class MeterToastApi {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private {?Promise} */
-    this.openViewPromise_ = null;
-
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
@@ -59,10 +56,6 @@ export class MeterToastApi {
     this.deps_
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_METER_TOAST);
-
-    this.openViewPromise_ = this.dialogManager_.openView(
-      this.activityIframeView_
-    );
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 }
