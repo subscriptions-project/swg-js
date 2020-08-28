@@ -20,7 +20,6 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
-import {isCancelError} from '../utils/errors';
 
 export class MeterRegwallApi {
   /**
@@ -39,9 +38,6 @@ export class MeterRegwallApi {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private {?Promise} */
-    this.openViewPromise_ = null;
-
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
@@ -50,8 +46,7 @@ export class MeterRegwallApi {
       feArgs({
         publicationId: deps.pageConfig().getPublicationId(),
         productId: deps.pageConfig().getProductId(),
-        // First ask the user if they want us to log them in.
-        userConsent: true,
+        GSIHelperIframe: '', //todo
       }),
       /* shouldFadeBody */ true
     );
@@ -65,26 +60,6 @@ export class MeterRegwallApi {
     this.deps_
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_METER_REGWALL);
-
-    this.openViewPromise_ = this.dialogManager_.openView(
-      this.activityIframeView_
-    );
-
-    return this.activityIframeView_.acceptResult().then(
-      () => {
-        // The consent part is complete.
-        this.dialogManager_.completeView(this.activityIframeView_);
-      },
-      (reason) => {
-        if (isCancelError(reason)) {
-          this.deps_
-            .callbacks()
-            .triggerFlowCanceled(SubscriptionFlows.SHOW_METER_REGWALL);
-        } else {
-          this.dialogManager_.completeView(this.activityIframeView_);
-        }
-        throw reason;
-      }
-    );
+    return this.dialogManager_.openView(this.activityIframeView_);
   }
 }
