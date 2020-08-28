@@ -28,6 +28,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
   let meterRegwallApi;
   let port;
   let dialogManagerMock;
+  const gsiHelperIframe = 'gsi.com';
   const productId = 'pub1:label1';
   const publicationId = 'pub1';
 
@@ -41,7 +42,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
-    meterRegwallApi = new MeterRegwallApi(runtime, {'isClosable': true});
+    meterRegwallApi = new MeterRegwallApi(runtime, gsiHelperIframe);
   });
 
   afterEach(() => {
@@ -50,7 +51,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
     dialogManagerMock.verify();
   });
 
-  it('should start the flow correctly', async () => {
+  it.only('should start the flow correctly', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     activitiesMock
       .expects('openIframe')
@@ -61,6 +62,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
           productId,
+          gsiHelperIframe,
         }
       )
       .returns(Promise.resolve(port));

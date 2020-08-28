@@ -24,8 +24,10 @@ import {feArgs, feUrl} from './services';
 export class MeterRegwallApi {
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {string} gsiHelperIframe
+   * TODO(chenshay): Figure out the gsi type.
    */
-  constructor(deps) {
+  constructor(deps, gsiHelperIframe) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -46,7 +48,7 @@ export class MeterRegwallApi {
       feArgs({
         publicationId: deps.pageConfig().getPublicationId(),
         productId: deps.pageConfig().getProductId(),
-        GSIHelperIframe: '', //todo
+        gsiHelperIframe,
       }),
       /* shouldFadeBody */ true
     );
