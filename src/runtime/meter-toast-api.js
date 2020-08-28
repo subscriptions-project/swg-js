@@ -20,7 +20,6 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
-import {isCancelError} from '../utils/errors';
 
 export class MeterToastApi {
   /**
@@ -50,8 +49,6 @@ export class MeterToastApi {
       feArgs({
         publicationId: deps.pageConfig().getPublicationId(),
         productId: deps.pageConfig().getProductId(),
-        // First ask the user if they want us to log them in.
-        userConsent: true,
       }),
       /* shouldFadeBody */ true
     );
@@ -69,22 +66,6 @@ export class MeterToastApi {
     this.openViewPromise_ = this.dialogManager_.openView(
       this.activityIframeView_
     );
-
-    return this.activityIframeView_.acceptResult().then(
-      () => {
-        // The consent part is complete.
-        this.dialogManager_.completeView(this.activityIframeView_);
-      },
-      (reason) => {
-        if (isCancelError(reason)) {
-          this.deps_
-            .callbacks()
-            .triggerFlowCanceled(SubscriptionFlows.SHOW_METER_TOAST);
-        } else {
-          this.dialogManager_.completeView(this.activityIframeView_);
-        }
-        throw reason;
-      }
-    );
+    return this.dialogManager_.openView(this.activityIframeView_);
   }
 }
