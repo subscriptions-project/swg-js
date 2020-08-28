@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-//need to pass in a login url and a publisher gsi frame url
-//from swg.js to boq dialog which will in turn lauch the iframe.
-//Login url is so dialog can display an "already subscribed" link (or do we have that in swg config already?)
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
