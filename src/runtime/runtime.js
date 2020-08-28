@@ -338,9 +338,9 @@ export class Runtime {
   }
 
   /** @override */
-  showMeterRegwall(gsiHelperIframe, alreadyRegisteredLink) {
+  showMeterRegwall(meterRegwallArgs) {
     return this.configured_(true).then((runtime) =>
-      runtime.showMeterRegwall(gsiHelperIframe, alreadyRegisteredLink)
+      runtime.showMeterRegwall(meterRegwallArgs)
     );
   }
 
@@ -840,13 +840,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  showMeterRegwall(gsiHelperIframe, alreadyRegisteredLink) {
+  showMeterRegwall(meterRegwallArgs) {
     return this.documentParsed_.then(() => {
-      const wait = new MeterRegwallApi(
-        this,
-        gsiHelperIframe,
-        alreadyRegisteredLink
-      );
+      const wait = new MeterRegwallApi(this, meterRegwallArgs);
       return wait.start();
     });
   }

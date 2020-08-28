@@ -1741,11 +1741,15 @@ subscribe() method'
     });
 
     it('should start MeterRegwallApi', async () => {
+      const args = {
+        gsiHelperIframe: 'gsi.com',
+        alreadyRegisteredUrl: 'alreadyregistered.com',
+      };
       const startStub = sandbox
         .stub(MeterRegwallApi.prototype, 'start')
         .callsFake(() => Promise.resolve());
 
-      await runtime.showMeterRegwall('gsi.com', 'alreadyregistered.com');
+      await runtime.showMeterRegwall(args);
       expect(startStub).to.be.calledOnce;
     });
 

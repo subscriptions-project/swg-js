@@ -24,11 +24,10 @@ import {feArgs, feUrl} from './services';
 export class MeterRegwallApi {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {string} gsiHelperIframe
-   * @param {string} alreadyRegisteredLink
-   * TODO(chenshay): Figure out the gsi type.
+   * @param {Object} meterRegwallArgs
+   * TODO(chenshay): Figure out the exact typedefs.
    */
-  constructor(deps, gsiHelperIframe, alreadyRegisteredLink) {
+  constructor(deps, meterRegwallArgs) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -49,8 +48,8 @@ export class MeterRegwallApi {
       feArgs({
         publicationId: deps.pageConfig().getPublicationId(),
         productId: deps.pageConfig().getProductId(),
-        gsiHelperIframe,
-        alreadyRegisteredLink,
+        gsiHelperIframe: meterRegwallArgs.gsiHelperIframe,
+        alreadyRegisteredUrl: meterRegwallArgs.alreadyRegisteredUrl,
       }),
       /* shouldFadeBody */ true
     );

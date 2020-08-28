@@ -28,10 +28,12 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
   let meterRegwallApi;
   let port;
   let dialogManagerMock;
-  const gsiHelperIframe = 'gsi.com';
+  const meterRegwallArgs = {
+    gsiHelperIframe: 'gsi.com',
+    alreadyRegisteredUrl: 'registered.com',
+  };
   const productId = 'pub1:label1';
   const publicationId = 'pub1';
-  const alreadyRegisteredLink = 'registered.com';
 
   beforeEach(() => {
     win = env.win;
@@ -43,11 +45,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
-    meterRegwallApi = new MeterRegwallApi(
-      runtime,
-      gsiHelperIframe,
-      alreadyRegisteredLink
-    );
+    meterRegwallApi = new MeterRegwallApi(runtime, meterRegwallArgs);
   });
 
   afterEach(() => {
@@ -67,8 +65,8 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
           productId,
-          gsiHelperIframe,
-          alreadyRegisteredLink,
+          gsiHelperIframe: meterRegwallArgs.gsiHelperIframe,
+          alreadyRegisteredUrl: meterRegwallArgs.alreadyRegisteredUrl,
         }
       )
       .returns(Promise.resolve(port));
