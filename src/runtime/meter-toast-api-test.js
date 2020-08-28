@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {MeterToastApi} from './meter-toast-api';
 import {PageConfig} from '../model/page-config';
- 
+
 describes.realWin('MeterToastApi', {}, (env) => {
   let win;
   let runtime;
@@ -30,7 +30,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   let dialogManagerMock;
   const productId = 'pub1:label1';
   const publicationId = 'pub1';
- 
+
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig(productId);
@@ -43,13 +43,13 @@ describes.realWin('MeterToastApi', {}, (env) => {
     port.whenReady = () => Promise.resolve();
     meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
   });
- 
+
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
     dialogManagerMock.verify();
   });
- 
+
   it('should start the flow correctly', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     activitiesMock
@@ -64,7 +64,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
         }
       )
       .returns(Promise.resolve(port));
- 
+
     await meterToastApi.start();
   });
 });
