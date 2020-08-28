@@ -59,6 +59,7 @@ import {PayStartFlow} from './pay-flow';
 import {Propensity} from './propensity';
 import {SubscribeResponse} from '../api/subscribe-response';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
+import {MeterRegwallApi} from './meter-regwall-api';
 import {createElement} from '../utils/dom';
 import {
   isExperimentOn,
@@ -1737,6 +1738,15 @@ subscribe() method'
       const result = await runtime.waitForSubscriptionLookup(accountPromise);
       expect(startSpy).to.be.calledOnce;
       expect(result).to.equal(accountResult);
+    });
+
+    it('should start MeterRegwallApi', async () => {
+      const startStub = sandbox
+        .stub(MeterRegwallApi.prototype, 'start')
+        .callsFake(() => Promise.resolve());
+
+      await runtime.showMeterRegwall('gsi.com');
+      expect(startStub).to.be.calledOnce;
     });
 
     it('should directly call "attachButton"', () => {

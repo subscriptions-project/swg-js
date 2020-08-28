@@ -194,6 +194,13 @@ export class Subscriptions {
   waitForSubscriptionLookup(accountPromise) {}
 
   /**
+   * Starts the metered registration wall flow.
+   * @param {string} gsiHelperIframe Google Signin Url
+   * @return {!Promise}
+   */
+  showMeterRegwall(gsiHelperIframe) {}
+
+  /**
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
    * @param {{ampReaderId: (string|undefined)}=} params

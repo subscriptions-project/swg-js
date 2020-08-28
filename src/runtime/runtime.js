@@ -58,6 +58,7 @@ import {Propensity} from './propensity';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Storage} from './storage';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
+import {MeterRegwallApi} from './meter-regwall-api';
 import {assert} from '../utils/log';
 import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
@@ -333,6 +334,13 @@ export class Runtime {
   waitForSubscriptionLookup(accountPromise) {
     return this.configured_(true).then((runtime) =>
       runtime.waitForSubscriptionLookup(accountPromise)
+    );
+  }
+
+  /** @override */
+  showMeterRegwall(gsiHelperIframe) {
+    return this.configured_(true).then((runtime) =>
+      runtime.showMeterRegwall(gsiHelperIframe)
     );
   }
 
@@ -832,6 +840,14 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  showMeterRegwall(gsiHelperIframe) {
+    return this.documentParsed_.then(() => {
+      const wait = new MeterRegwallApi(this, gsiHelperIframe);
+      return wait.start();
+    });
+  }
+
+  /** @override */
   setOnLoginRequest(callback) {
     this.callbacks_.setOnLoginRequest(callback);
   }
@@ -1014,6 +1030,7 @@ function createPublicRuntime(runtime) {
     showOffers: runtime.showOffers.bind(runtime),
     showUpdateOffers: runtime.showUpdateOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
+    showMeterRegwall: runtime.showMeterRegwall.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
     waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),
