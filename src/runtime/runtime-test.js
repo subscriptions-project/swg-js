@@ -1745,7 +1745,7 @@ subscribe() method'
         .stub(MeterRegwallApi.prototype, 'start')
         .callsFake(() => Promise.resolve());
 
-      await runtime.showMeterRegwall('gsi.com');
+      await runtime.showMeterRegwall('gsi.com', 'alreadyregistered.com');
       expect(startStub).to.be.calledOnce;
     });
 
