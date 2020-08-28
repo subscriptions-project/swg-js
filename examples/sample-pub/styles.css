@@ -304,7 +304,6 @@ body:not(.metering) #metering-controls {
 }
 
 #metering-controls {
-  background-color: rgb(55, 220, 140);
   border-radius: 0 0 0 8px;
   min-height: 40px;
   position: fixed;
@@ -312,7 +311,7 @@ body:not(.metering) #metering-controls {
   top: 7px;
   text-align: right;
   width: 200px;
-  z-index: 9999;
+  z-index: 9999999999;
 }
 
 #metering-controls button {
