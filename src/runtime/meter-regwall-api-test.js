@@ -31,6 +31,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
   const gsiHelperIframe = 'gsi.com';
   const productId = 'pub1:label1';
   const publicationId = 'pub1';
+  const alreadyRegisteredLink = 'registered.com';
 
   beforeEach(() => {
     win = env.win;
@@ -42,7 +43,11 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
-    meterRegwallApi = new MeterRegwallApi(runtime, gsiHelperIframe);
+    meterRegwallApi = new MeterRegwallApi(
+      runtime,
+      gsiHelperIframe,
+      alreadyRegisteredLink
+    );
   });
 
   afterEach(() => {
@@ -51,7 +56,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
     dialogManagerMock.verify();
   });
 
-  it.only('should start the flow correctly', async () => {
+  it('should start the flow correctly', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     activitiesMock
       .expects('openIframe')
@@ -63,6 +68,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
           publicationId,
           productId,
           gsiHelperIframe,
+          alreadyRegisteredLink,
         }
       )
       .returns(Promise.resolve(port));

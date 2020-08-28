@@ -25,9 +25,10 @@ export class MeterRegwallApi {
   /**
    * @param {!./deps.DepsDef} deps
    * @param {string} gsiHelperIframe
+   * @param {string} alreadyRegisteredLink
    * TODO(chenshay): Figure out the gsi type.
    */
-  constructor(deps, gsiHelperIframe) {
+  constructor(deps, gsiHelperIframe, alreadyRegisteredLink) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -49,6 +50,7 @@ export class MeterRegwallApi {
         publicationId: deps.pageConfig().getPublicationId(),
         productId: deps.pageConfig().getProductId(),
         gsiHelperIframe,
+        alreadyRegisteredLink,
       }),
       /* shouldFadeBody */ true
     );
