@@ -149,7 +149,7 @@ function startFlowAuto() {
 
     whenReady((subscriptions) => {
       // Forget any subscriptions, for metering demo purposes.
-      subscriptions.reset();
+      subscriptions.clear();
 
       // Set up metering demo controls.
       MeteringDemo.setupControls();
