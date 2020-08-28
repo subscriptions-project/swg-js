@@ -842,7 +842,11 @@ export class ConfiguredRuntime {
   /** @override */
   showMeterRegwall(gsiHelperIframe, alreadyRegisteredLink) {
     return this.documentParsed_.then(() => {
-      const wait = new MeterRegwallApi(this, gsiHelperIframe, alreadyRegisteredLink);
+      const wait = new MeterRegwallApi(
+        this,
+        gsiHelperIframe,
+        alreadyRegisteredLink
+      );
       return wait.start();
     });
   }
