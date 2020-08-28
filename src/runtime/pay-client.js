@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Preconnect} from '../utils/preconnect';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
-import {isExperimentOn} from './experiments';
 
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
@@ -76,22 +74,8 @@ export class PayClient {
     /** @private {?PaymentsAsyncClient} */
     this.client_ = null;
 
-    if (!isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD)) {
-      this.client_ = this.createClient_(
-        /** @type {!PaymentOptions} */
-        ({
-          environment: '$payEnvironment$',
-          'i': {
-            'redirectKey': this.redirectVerifierHelper_.restoreKey(),
-          },
-        }),
-        this.analytics_.getTransactionId(),
-        this.handleResponse_.bind(this)
-      );
-    } else {
-      /** @private @const {!Preconnect} */
-      this.preconnect_ = new Preconnect(this.win_.document);
-    }
+    /** @private @const {!Preconnect} */
+    this.preconnect_ = new Preconnect(this.win_.document);
 
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
@@ -145,10 +129,7 @@ export class PayClient {
   start(paymentRequest, options = {}) {
     this.request_ = paymentRequest;
 
-    if (
-      isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD) &&
-      !this.client_
-    ) {
+    if (!this.client_) {
       this.preconnect(this.preconnect_);
       this.client_ = this.createClient_(
         /** @type {!PaymentOptions} */
