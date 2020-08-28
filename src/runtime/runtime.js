@@ -39,6 +39,7 @@ import {
 import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
+import {MeterRegwallApi} from './meter-regwall-api';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
 import {
@@ -58,7 +59,6 @@ import {Propensity} from './propensity';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Storage} from './storage';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
-import {MeterRegwallApi} from './meter-regwall-api';
 import {assert} from '../utils/log';
 import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
