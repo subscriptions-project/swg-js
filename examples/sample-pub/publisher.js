@@ -130,7 +130,15 @@ function startFlow(flow, var_args) {
  * Current valid values are: 'showOffers', 'linkAccount', 'getEntitlements'.
  */
 function startFlowAuto() {
-  const flow = (window.location.search || '').split('?')[1] || 'demo';
+  let flow = (window.location.search || '').split('?')[1] || 'demo';
+
+  // Check for GAA param.
+  const queryParams = getQueryParams();
+  if (queryParams.gaa_at) {
+    console.log('The "gaa_at" param triggered the "metering" flow.');
+    flow = 'metering';
+  }
+
   if (flow == 'none') {
     return;
   }
@@ -298,6 +306,22 @@ function whenDemoReady(callback) {
       }
     }, 100);
   }
+}
+
+/**
+ * Returns query params from URL.
+ * @return {!Object<string, string>}
+ */
+function getQueryParams() {
+  const queryParams = {};
+  location.search
+    .substring(1)
+    .split('&')
+    .forEach((pair) => {
+      const parts = pair.split('=');
+      queryParams[parts[0]] = parts[1];
+    });
+  return queryParams;
 }
 
 /** Initiates the flow, if valid */
