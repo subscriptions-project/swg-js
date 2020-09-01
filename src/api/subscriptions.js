@@ -60,7 +60,7 @@ export class Subscriptions {
   clear() {}
 
   /**
-   * @param {!GetEntitlementsParamsExternal=} params
+   * @param {!GetEntitlementsParamsExternalDef=} params
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements(params) {}
@@ -327,7 +327,7 @@ export let Config;
  *   metering: (!GetEntitlementsMeteringParamsInternal|undefined),
  * }}
  */
-export let GetEntitlementsParamsInternal;
+export let GetEntitlementsParamsInternalDef;
 
 /**
  * Encryption params for GetEntitlements requests.
@@ -365,7 +365,7 @@ export let GetEntitlementsMeteringParamsInternal;
  *   metering: (!GetEntitlementsMeteringParamsExternal|undefined),
  * }}
  */
-export let GetEntitlementsParamsExternal;
+export let GetEntitlementsParamsExternalDef;
 
 /**
  * Params for `getEntitlements` calls from publisher JS.
