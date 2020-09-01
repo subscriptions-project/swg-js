@@ -327,7 +327,7 @@ export let Config;
  *   metering: (!GetEntitlementsMeteringParamsInternal|undefined),
  * }}
  */
-export let GetEntitlementsParamsInternal;
+export let GetEntitlementsParamsInternalDef;
 
 /**
  * Encryption params for GetEntitlements requests.
