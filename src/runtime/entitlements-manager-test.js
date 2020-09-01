@@ -69,6 +69,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     encryptedDocumentKey =
       '{"accessRequirements": ' +
       '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}';
+
+    sandbox.stub(self.console, 'warn');
   });
 
   afterEach(() => {
@@ -76,6 +78,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     xhrMock.verify();
     jwtHelperMock.verify();
     analyticsMock.verify();
+    self.console.warn.restore();
   });
 
   function expectNoResponse() {
@@ -564,8 +567,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should log error messages', async () => {
-      self.console.warn = sandbox.spy();
-
       xhrMock
         .expects('fetch')
         .withExactArgs(
