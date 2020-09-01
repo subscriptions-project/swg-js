@@ -116,14 +116,6 @@ export class EntitlementsManager {
   }
 
   /**
-   * @return {string}
-   * @private
-   */
-  getQueryString_() {
-    return this.win_.location.search;
-  }
-
-  /**
    * @param {!GetEntitlementsParamsExternal=} params
    * @return {!Promise<!Entitlements>}
    */
