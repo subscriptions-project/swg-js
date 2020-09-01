@@ -12,20 +12,20 @@ before_install:
   - export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 before_script:
   - export PATH="`pwd`/node_modules/.bin:$PATH"
+stages:
+  - check
+  - test
 jobs:
   include:
     - stage: check
       name: 'Check'
-      script:
-        - gulp check
+      script: gulp check
     - stage: test
       name: 'Unit Tests'
-      script:
-        - gulp unit --coverage
+      script: gulp unit --coverage
     - # run unit tests and e2e tests parallel
       name: 'End to End Tests'
-      script:
-        - gulp e2e --retries=3
+      script: gulp e2e --retries=3
 branches:
   only:
     - main
