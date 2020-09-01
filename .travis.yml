@@ -19,7 +19,9 @@ jobs:
       script: gulp check
     - stage: test
       name: 'Unit Tests'
-      script: gulp unit --coverage
+      script:
+      - gulp unit --coverage
+      - ./node_modules/.bin/codecov -f test/coverage/lcov-unit.info
     - # run unit tests and e2e tests parallel
       name: 'End to End Tests'
       script: gulp e2e --retries=3
@@ -33,5 +35,3 @@ cache:
     - node_modules
   bundler: true
   yarn: true
-after_success:
-  - ./node_modules/.bin/codecov -f test/coverage/lcov-unit.info
