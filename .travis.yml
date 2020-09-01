@@ -31,13 +31,6 @@ branches:
     - main
 addons:
   chrome: stable
-matrix:
-  include:
-    - env: BUILD_SHARD="unit_tests"
-      addons:
-        hosts:
-          - pub.localhost
-          - sp.localhost
 cache:
   directories:
     - node_modules
