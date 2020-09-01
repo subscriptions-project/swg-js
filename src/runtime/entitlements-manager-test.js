@@ -69,6 +69,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     encryptedDocumentKey =
       '{"accessRequirements": ' +
       '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}';
+
+    sandbox.stub(self.console, 'warn');
   });
 
   afterEach(() => {
@@ -76,6 +78,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     xhrMock.verify();
     jwtHelperMock.verify();
     analyticsMock.verify();
+    self.console.warn.restore();
   });
 
   function expectNoResponse() {
@@ -507,6 +510,86 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(manager.positiveRetries_).to.equal(0);
       expect(manager.blockNextNotification_).to.be.false;
       expect(manager.responsePromise_).to.be.null;
+    });
+
+    it('should fetch metering entitlements', async () => {
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('SIGNED_DATA')
+        .returns({
+          entitlements: {
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+            source: 'google:metering',
+          },
+        });
+      const encodedParams = btoa(
+        '{"metering":{"clientTypes":[1],"owner":"pub1:label1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[{"name":"standard_att1","timestamp":1234567},{"name":"custom_att2","timestamp":1234567}]}}}'
+      );
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${encodedParams}`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            json: () =>
+              Promise.resolve({
+                signedEntitlements: 'SIGNED_DATA',
+              }),
+          })
+        );
+
+      const ents = await manager.getEntitlements({
+        metering: {
+          state: {
+            id: 'u1',
+            standardAttributes: {'att1': {timestamp: 1234567}},
+            customAttributes: {'att2': {timestamp: 1234567}},
+          },
+        },
+      });
+      expect(ents.service).to.equal('subscribe.google.com');
+      expect(ents.raw).to.equal('SIGNED_DATA');
+      expect(ents.entitlements).to.deep.equal([
+        {
+          source: 'google:metering',
+          products: ['pub1:label1'],
+          subscriptionToken: 'token1',
+        },
+      ]);
+      expect(ents.enablesThis()).to.be.true;
+    });
+
+    it('should log error messages', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            json: () =>
+              Promise.resolve({
+                errorMessages: ['Something went wrong'],
+              }),
+          })
+        );
+
+      await manager.getEntitlements();
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        'SwG Entitlements: Something went wrong'
+      );
     });
   });
 
