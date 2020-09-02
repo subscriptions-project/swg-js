@@ -29,14 +29,14 @@ export const ENTITLEMENTS_READY_COMMAND = 'entitlements_ready';
 export class SwgGoogleSigninCreator {
   /**
    * @param {!Array<string>} allowedOrigins
-   * @param {!function} signinCallback
+   * @param {!function()} signinCallback
    * @param {!Window} win
    */
   constructor(allowedOrigins, signinCallback, win) {
     /** @private @const {!Array<string>} */
     this.allowedOrigins_ = allowedOrigins;
 
-    /** @private @const {!function} */
+    /** @private @const {!function()} */
     this.signinCallback_ = signinCallback;
 
     /** @private @constant {!Window} */
