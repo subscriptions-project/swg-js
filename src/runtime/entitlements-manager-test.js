@@ -18,6 +18,11 @@ import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
 import {ClientEventManager} from './client-event-manager';
 import {DepsDef} from './deps';
+import {
+  Entitlement,
+  Entitlements,
+  GOOGLE_METERING_SOURCE,
+} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
@@ -71,6 +76,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}';
 
     sandbox.stub(self.console, 'warn');
+    sandbox.stub(Date, 'now').returns(1600389016959);
   });
 
   afterEach(() => {
@@ -225,7 +231,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         );
 
-      const ents = await manager.getEntitlements(encryptedDocumentKey);
+      const ents = await manager.getEntitlements({
+        encryption: {encryptedDocumentKey},
+      });
       expect(ents.service).to.equal('subscribe.google.com');
       expect(ents.raw).to.equal('');
       expect(ents.entitlements).to.deep.equal([]);
@@ -566,6 +574,49 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(ents.enablesThis()).to.be.true;
     });
 
+    it('should send pingback with metering entitlements', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+          {
+            body: 'f.req=[["token1","google:metering"],[1600389016,959000000]]',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            },
+            method: 'POST',
+          }
+        )
+        .returns(Promise.resolve());
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+      await manager.sendPingback_(ents);
+    });
+
+    it('should not send pingback with non-metering entitlements', async () => {
+      xhrMock.expects('fetch').never();
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [new Entitlement('source1', ['product1', 'product2'], 'token1')],
+        'product1'
+      );
+      await manager.sendPingback_(ents);
+    });
+
     it('should log error messages', async () => {
       xhrMock
         .expects('fetch')
@@ -589,6 +640,29 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       await manager.getEntitlements();
       expect(self.console.warn).to.have.been.calledWithExactly(
         'SwG Entitlements: Something went wrong'
+      );
+    });
+
+    it('should warn users about deprecated param', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=deprecated',
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            json: () => Promise.resolve({}),
+          })
+        );
+
+      await manager.getEntitlements('deprecated');
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        '[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParamsExternalDef.'
       );
     });
   });

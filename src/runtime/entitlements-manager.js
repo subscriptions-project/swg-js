@@ -124,7 +124,7 @@ export class EntitlementsManager {
     // `encryptedDocumentKey` string as a first param.
     if (typeof params === 'string') {
       // TODO: Delete the fallback if nobody needs it. Use a log to verify.
-      if (Date.now() > 1598899876598) {
+      if (Date.now() > 1600289016959) {
         // TODO: Remove the conditional check for this warning
         // after the AMP extension is updated to pass an object.
         warn(
@@ -182,7 +182,7 @@ export class EntitlementsManager {
 
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(jwt);
-    message.setClientEventTime(toTimestamp(new Date()));
+    message.setClientEventTime(toTimestamp(Date.now()));
 
     const url =
       '/publication/' +
@@ -459,9 +459,6 @@ export class EntitlementsManager {
    */
   consume_(entitlements, onCloseDialog) {
     if (entitlements.enablesThisWithGoogleMetering()) {
-      // NOTE: This is just a placeholder. Once the metering prompt UI is ready,
-      // it will be opened here instead of the contributions iframe.
-      // TODO: Open metering prompt here instead of contributions iframe.
       const activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.deps_.activities(),
