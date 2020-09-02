@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <script src="https://accounts.google.com/gsi/client"></script>
-  <script async src="https://news.google.com/swg/js/v1/swg.js"></script>
+  <script async src="https://news.google.com/swg/js/v1/google_signin.js"></script>
   <script>
     // Add all allowed publisher domains.
     const ALLOWED_ORIGINS = [
@@ -13,9 +13,9 @@
     // Publisher's application Client ID (Google Developer Console)
     const CLIENT_ID = '520465458218-embpp4s35v0utlr31317qkso3fk8q3d9.apps.googleusercontent.com';
     // Publisher's login endpoint. Where Google Sign-in's response gets sent to.
-    // Must be able to handle a Google CredentialResponse:
+    // Must be able to handle a Google CredentialResponse within a FormData object:
     // https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
-    const LOGIN_ENDPOINT = 'https://gis-pay.appspot.com/login';
+    const LOGIN_ENDPOINT = 'https://scenic-2017.appspot.com/login';
 
     window.onload = () => {
         const creator = SwgGoogleSigninCreator(
@@ -29,7 +29,7 @@
           });
           google.accounts.id.renderButton(window.parent, {});
         };
-        creator.start():
+        creator.start();
       };
   </script>
 </head>
