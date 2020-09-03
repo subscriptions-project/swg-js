@@ -133,10 +133,11 @@ function startFlow(flow, var_args) {
 function startFlowAuto() {
   let flow = (window.location.search || '').split('?')[1] || 'demo';
 
-  // Check for Google Article Access (GAA) param.
-  const queryParams = getQueryParams();
-  if (queryParams.gaa_at) {
-    console.log('The "gaa_at" param triggered the "metering" flow.');
+  // Check for valid Google Article Access (GAA) params.
+  if (isGaa()) {
+    console.log(
+      'Google Article Access (GAA) params triggered the "metering" flow.'
+    );
     flow = 'metering';
   }
 
@@ -307,6 +308,64 @@ function whenDemoReady(callback) {
       }
     }, 100);
   }
+}
+
+/**
+ * Returns true if the URL contains valid Google Article Access (GAA) params.
+ * TODO: Link to a public document describing GAA params.
+ * @return {boolean}
+ */
+function isGaa() {
+  // Validate GAA params.
+  const params = getQueryParams();
+  if (!params.gaa_at) {
+    return false;
+  }
+  if (!params.gaa_n) {
+    console.error('SwG Entitlements: The `gaa_n` URL param is missing.');
+    return false;
+  }
+  if (!params.gaa_sig) {
+    console.error('SwG Entitlements: The `gaa_sig` URL param is missing.');
+    return false;
+  }
+  if (!params.gaa_ts) {
+    console.error('SwG Entitlements: The `gaa_ts` URL param is missing.');
+    return false;
+  }
+  if (parseInt(params.gaa_ts, 16) < Date.now() / 1000) {
+    console.error(
+      'SwG Entitlements: The `gaa_ts` URL param should contain a hex string timestamp which points to the future.'
+    );
+    return false;
+  }
+
+  // Validate referrer.
+  // NOTE: This regex was copied from SwG's AMP extension. https://github.com/ampproject/amphtml/blob/c23bf281f817a2ee5df73f6fd45e9f4b71bb68b6/extensions/amp-subscriptions-google/0.1/amp-subscriptions-google.js#L56
+  const GOOGLE_DOMAIN_RE = /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
+  const referrer = getAnchorFromUrl(document.referrer);
+  if (
+    referrer.protocol !== 'https' ||
+    !GOOGLE_DOMAIN_RE.test(referrer.hostname)
+  ) {
+    // Real publications should bail if this referrer check fails.
+    // This script is only logging a warning for metering demo purposes.
+    console.warn(
+      `SwG Entitlements: This page's referrer ("${referrer.origin}") can't grant Google Article Access. Real publications should bail if this referrer check fails.`
+    );
+  }
+
+  return true;
+}
+
+/**
+ * Returns anchor element from a given URL.
+ * @return {HTMLAnchorElement}
+ */
+function getAnchorFromUrl(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  return a.hostname;
 }
 
 /**
