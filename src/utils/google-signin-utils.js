@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import {Xhr} from './xhr';
-
 /** Sentinel used to tell parent that we are communicating with it. */
 export const SENTINEL = 'google_signin';
 /** Command name for when the parent frame is ready for iframe start. */
@@ -44,9 +42,6 @@ export class SwgGoogleSigninCreator {
 
     /** @private {?string}  */
     this.pendingNonce_ = null;
-
-    /** @const {!Xhr} */
-    this.xhr_ = new Xhr(win);
   }
 
   /**
@@ -58,34 +53,17 @@ export class SwgGoogleSigninCreator {
   }
 
   /**
-   * Creates the callback function to handle the Google Sign-in CredentialResponse.
-   * https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
-   * @param {!string} loginEndpoint
+   * Modifies the input call back to chain parent notification of response.
+   * @param {!function()} callback
    */
-  createGoogleSigninCallback(loginEndpoint) {
-    const callback = (response) => {
-      if (!response || !response['credential']) {
-        return;
-      }
-      // Create a FormData object containing the response info.
-      const formData = new FormData();
-      Object.keys(response).map(function (name) {
-        formData.append(name, response[name]);
+  createGoogleSigninCallback(callback) {
+    return callback.then((response) => {
+      this.notifyParent_({
+        sentinel: SENTINEL,
+        command: ENTITLEMENTS_READY_COMMAND,
+        response: (response && response.json()) || {},
       });
-      const init = /** @type {!./xhr.FetchInitDef} */ ({
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-      this.xhr_.fetch(loginEndpoint, init).then((response) => {
-        this.notifyParent_({
-          sentinel: SENTINEL,
-          command: ENTITLEMENTS_READY_COMMAND,
-          response: (response && response.json()) || {},
-        });
-      });
-    };
-    return callback;
+    });
   }
 
   /**

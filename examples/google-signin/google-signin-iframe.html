@@ -17,18 +17,40 @@
     // https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
     const LOGIN_ENDPOINT = 'https://scenic-2017.appspot.com/login';
 
+    // Callback which handles a Google Sign-in response. This callback should call a publisher
+    // endpoint and return a JSON Metering object described here:
+    // https://github.com/subscriptions-project/swg-js/blob/main/docs/entitlements-flow.md#swg-entitlements-flow
+    // The input argument `response` is a Google Sign-in CredentialResponse:
+    // https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
+    const publisherGoogleSignInCallback = (response) => {
+      if (!response || !response['credential']) {
+        return;
+      }
+      // Creates a FormData object containing the response info.
+      const formData = new FormData();
+      Object.keys(response).map(function (name) {
+        formData.append(name, response[name]);
+      });
+      const init = /** @type {!./xhr.FetchInitDef} */ ({
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      return window.fetch(LOGIN_ENDPOINT, init);
+    };
+
     window.onload = () => {
-        const creator = SwgGoogleSigninCreator(
-          ALLOWED_ORIGINS, displayGoogleSignin, window
-        );
-        let displayGoogleSignin = () => {
+      let displayGoogleSignin = () => {
           google.accounts.id.initialize({
             client_id: CLIENT_ID,
-            callback: creator.createGoogleSigninCallback(LOGIN_ENDPOINT),
+            callback: creator.createGoogleSigninCallback(publisherGoogleSignInCallback),
             auto_select: true,
           });
           google.accounts.id.renderButton(window.parent, {});
         };
+        const creator = SwgGoogleSigninCreator(
+          ALLOWED_ORIGINS, displayGoogleSignin, window
+        );
         creator.start();
       };
   </script>
