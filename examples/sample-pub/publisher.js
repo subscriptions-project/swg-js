@@ -312,6 +312,7 @@ function whenDemoReady(callback) {
 
 /**
  * Returns true if the URL contains valid Google Article Access (GAA) params.
+ * TODO: Link to a public document describing GAA params.
  * @return {boolean}
  */
 function isGaa() {
