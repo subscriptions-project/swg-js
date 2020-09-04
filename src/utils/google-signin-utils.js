@@ -23,6 +23,31 @@ export const INTERMEDIATE_IFRAME_READY_COMMAND = 'intermediate_iframe_ready';
 /** Command name for when the user's entitlements are returned from the publisher. */
 export const ENTITLEMENTS_READY_COMMAND = 'entitlements_ready';
 
+/**
+ * Modifies the input call back to chain parent notification of response.
+ * @param {!Window} win
+ * @param {!function()} callback
+ */
+export function createGoogleSigninCallback(win, callback) {
+  return (signinResponse) => {
+    const response = callback(signinResponse);
+    notifyParent(win, {
+      sentinel: SENTINEL,
+      command: ENTITLEMENTS_READY_COMMAND,
+      response: (response && JSON.parse(response)) || {},
+    });
+  };
+}
+
+/**
+ * Sends a post message to the window's parent.
+ * @param {!Window} win
+ * @param {!Object} message
+ */
+export function notifyParent(win, message) {
+  win.parent && win.parent.postMessage(message, '*');
+}
+
 /** Helper class to handle Google Sign-in configurations for the publisher's Sign-in iframe. */
 export class SwgGoogleSigninCreator {
   /**
@@ -50,20 +75,6 @@ export class SwgGoogleSigninCreator {
   start() {
     this.registerDomainVerifier_();
     this.requestDomainVerification_();
-  }
-
-  /**
-   * Modifies the input call back to chain parent notification of response.
-   * @param {!function()} callback
-   */
-  createGoogleSigninCallback(callback) {
-    return callback.then((response) => {
-      this.notifyParent_({
-        sentinel: SENTINEL,
-        command: ENTITLEMENTS_READY_COMMAND,
-        response: (response && response.json()) || {},
-      });
-    });
   }
 
   /**
@@ -102,19 +113,11 @@ export class SwgGoogleSigninCreator {
    */
   requestDomainVerification_() {
     this.pendingNonce_ = this.generateNonce_();
-    this.notifyParent_({
+    notifyParent(this.win_, {
       sentinel: SENTINEL,
       command: INTERMEDIATE_IFRAME_READY_COMMAND,
       nonce: this.pendingNonce_,
     });
-  }
-
-  /**
-   * Sends a post message to the current window's parent.
-   * @param {!Object} message
-   */
-  notifyParent_(message) {
-    this.win_.parent && this.win_.parent.postMessage(message, '*');
   }
 
   /** Generates a verification nonce. */
