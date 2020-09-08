@@ -44,7 +44,7 @@ export class MeterRegwallApi {
       feArgs({
         publicationId: deps.pageConfig().getPublicationId(),
         productId: deps.pageConfig().getProductId(),
-        gsiHelperIframe: params.gsiUrl,
+        gsiUrl: params.gsiUrl,
         alreadyRegisteredUrl: params.alreadyRegisteredUrl,
       }),
       /* shouldFadeBody */ true

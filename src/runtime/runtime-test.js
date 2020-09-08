@@ -1736,7 +1736,7 @@ subscribe() method'
 
     it('should start MeterRegwallApi', async () => {
       const args = {
-        gsiHelperIframe: 'gsi.com',
+        gsiUrl: 'gsi.com',
         alreadyRegisteredUrl: 'alreadyregistered.com',
       };
       const startStub = sandbox

@@ -65,7 +65,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
           productId,
-          gsiHelperIframe: meterRegwallArgs.gsiUrl,
+          gsiUrl: meterRegwallArgs.gsiUrl,
           alreadyRegisteredUrl: meterRegwallArgs.alreadyRegisteredUrl,
         }
       )
