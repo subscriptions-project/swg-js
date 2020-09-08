@@ -558,7 +558,9 @@ describes.realWin('Runtime', {}, (env) => {
         .expects('getEntitlements')
         .returns(Promise.resolve(ents));
 
-      const value = await runtime.getEntitlements(encryptedDocumentKey);
+      const value = await runtime.getEntitlements({
+        encryption: {encryptedDocumentKey},
+      });
       expect(value).to.equal(ents);
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });

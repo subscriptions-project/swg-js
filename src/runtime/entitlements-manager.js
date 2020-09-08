@@ -22,8 +22,8 @@ import {
 } from '../api/entitlements';
 import {EntitlementJwt, EntitlementsRequest} from '../proto/api_messages';
 import {
-  GetEntitlementsParamsExternal,
-  GetEntitlementsParamsInternal,
+  GetEntitlementsParamsExternalDef,
+  GetEntitlementsParamsInternalDef,
   ProductType,
 } from '../api/subscriptions';
 import {JwtHelper} from '../utils/jwt';
@@ -116,15 +116,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @return {string}
-   * @private
-   */
-  getQueryString_() {
-    return this.win_.location.search;
-  }
-
-  /**
-   * @param {!GetEntitlementsParamsExternal=} params
+   * @param {!GetEntitlementsParamsExternalDef=} params
    * @return {!Promise<!Entitlements>}
    */
   getEntitlements(params) {
@@ -132,11 +124,11 @@ export class EntitlementsManager {
     // `encryptedDocumentKey` string as a first param.
     if (typeof params === 'string') {
       // TODO: Delete the fallback if nobody needs it. Use a log to verify.
-      if (Date.now() > 1598899876598) {
+      if (Date.now() > 1600289016959) {
         // TODO: Remove the conditional check for this warning
         // after the AMP extension is updated to pass an object.
         warn(
-          `[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParamsExternal.`
+          `[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParamsExternalDef.`
         );
       }
 
@@ -190,7 +182,7 @@ export class EntitlementsManager {
 
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(jwt);
-    message.setClientEventTime(toTimestamp(new Date()));
+    message.setClientEventTime(toTimestamp(Date.now()));
 
     const url =
       '/publication/' +
@@ -201,7 +193,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {!GetEntitlementsParamsExternal=} params
+   * @param {!GetEntitlementsParamsExternalDef=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
@@ -213,7 +205,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {!GetEntitlementsParamsExternal=} params
+   * @param {!GetEntitlementsParamsExternalDef=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
@@ -250,7 +242,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {!GetEntitlementsParamsExternal=} params
+   * @param {!GetEntitlementsParamsExternalDef=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
@@ -467,9 +459,6 @@ export class EntitlementsManager {
    */
   consume_(entitlements, onCloseDialog) {
     if (entitlements.enablesThisWithGoogleMetering()) {
-      // NOTE: This is just a placeholder. Once the metering prompt UI is ready,
-      // it will be opened here instead of the contributions iframe.
-      // TODO: Open metering prompt here instead of contributions iframe.
       const activityIframeView_ = new ActivityIframeView(
         this.win_,
         this.deps_.activities(),
@@ -495,7 +484,7 @@ export class EntitlementsManager {
   }
 
   /**
-   * @param {!GetEntitlementsParamsExternal=} params
+   * @param {!GetEntitlementsParamsExternalDef=} params
    * @return {!Promise<!Entitlements>}
    * @private
    */
@@ -515,7 +504,7 @@ export class EntitlementsManager {
         // Add metering params.
         const productId = this.pageConfig_.getProductId();
         if (productId && params && params.metering && params.metering.state) {
-          /** @type {!GetEntitlementsParamsInternal} */
+          /** @type {!GetEntitlementsParamsInternalDef} */
           const encodableParams = {
             metering: {
               clientTypes: [MeterClientTypes.LICENSED_BY_GOOGLE],
