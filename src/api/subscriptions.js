@@ -196,10 +196,10 @@ export class Subscriptions {
 
   /**
    * Starts the metered registration wall flow.
-   * @param {Object} meterRegwallArgs Google Signin Url, Already Registered Url
+   * @param {{ gsiUrl: string, alreadyRegisteredUrl: string}} params
    * @return {!Promise}
    */
-  showMeterRegwall(meterRegwallArgs) {}
+  showMeterRegwall(params) {}
 
   /**
    * Starts the Account linking flow.

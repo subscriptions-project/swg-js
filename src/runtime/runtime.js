@@ -338,9 +338,9 @@ export class Runtime {
   }
 
   /** @override */
-  showMeterRegwall(meterRegwallArgs) {
+  showMeterRegwall(params) {
     return this.configured_(true).then((runtime) =>
-      runtime.showMeterRegwall(meterRegwallArgs)
+      runtime.showMeterRegwall(params)
     );
   }
 

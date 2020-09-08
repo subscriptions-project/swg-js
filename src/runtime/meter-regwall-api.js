@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-//need to pass in a login url and a publisher gsi frame url
-//from swg.js to boq dialog which will in turn lauch the iframe.
-//Login url is so dialog can display an "already subscribed" link (or do we have that in swg config already?)
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
@@ -24,10 +21,9 @@ import {feArgs, feUrl} from './services';
 export class MeterRegwallApi {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {Object} meterRegwallArgs
-   * TODO(chenshay): Figure out the exact typedefs.
+   * @param {{ gsiUrl: string, alreadyRegisteredUrl: string}} params
    */
-  constructor(deps, meterRegwallArgs) {
+  constructor(deps, params) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -48,8 +44,8 @@ export class MeterRegwallApi {
       feArgs({
         publicationId: deps.pageConfig().getPublicationId(),
         productId: deps.pageConfig().getProductId(),
-        gsiHelperIframe: meterRegwallArgs.gsiHelperIframe,
-        alreadyRegisteredUrl: meterRegwallArgs.alreadyRegisteredUrl,
+        gsiHelperIframe: params.gsiUrl,
+        alreadyRegisteredUrl: params.alreadyRegisteredUrl,
       }),
       /* shouldFadeBody */ true
     );
