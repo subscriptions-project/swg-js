@@ -849,6 +849,16 @@ describes.realWin('Runtime', {}, (env) => {
       expect(configureStub).to.be.calledOnce;
     });
 
+    it('should delegate "showMeterRegwall"', async () => {
+      configuredRuntimeMock
+        .expects('showMeterRegwall')
+        .once()
+        .returns(Promise.resolve());
+
+      await runtime.showMeterRegwall();
+      expect(configureStub).to.be.calledOnce;
+    });
+
     it('should directly call "attachButton"', () => {
       const options = {};
       const callback = () => {};
