@@ -20,6 +20,7 @@ import {
   expandTemplate,
   getSwgTransactionId,
   getUuid,
+  hash,
 } from './string';
 
 describe('dashToCamelCase', () => {
@@ -160,5 +161,35 @@ describe('swgTransactionId', () => {
       expect(swgTransactionIds[swgTransactionId]).to.be.undefined;
       swgTransactionIds[swgTransactionId] = 1;
     }
+  });
+});
+
+describe('hash', async () => {
+  it("should use a stable hashing algorithm so metering doesn't break", async () => {
+    const expectedValue =
+      '8b16b8443e811a5238616fa150eeae441444d5a7ffd7ff59d2f5ebcc455af1c545b3e96af77e12298d756848ac3d105360492db81e2723512bb7d2c6b0b7aedd';
+    expect(await hash('string1')).to.equal(expectedValue);
+  });
+
+  it('should create standard length hashes', async () => {
+    expect(await hash('a').length).to.equal(
+      await hash('aMuchLongerStringToEncode').length
+    );
+  });
+
+  it('should create hexadecimal hashes', async () => {
+    const hasOnlyHexChars = RegExp(/[0-9a-f]+/, 'g');
+    expect(hasOnlyHexChars.test(await hash('string1'))).to.be.true;
+  });
+
+  it('should create duplicatable hashes', async () => {
+    const STRING = 'string1';
+    expect(await hash(STRING)).to.equal(await hash(STRING));
+  });
+
+  it('should create unique hashes', async () => {
+    const hash1 = await hash('string1');
+    const hash2 = await hash('string2');
+    expect(hash1).to.not.equal(hash2);
   });
 });

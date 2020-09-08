@@ -17,11 +17,10 @@
 import {Timestamp} from '../proto/api_messages';
 
 /**
- * @param {!Date} date
+ * @param {!number} millis
  * @return {!Timestamp}
  */
-export function toTimestamp(date) {
-  const millis = date.getTime();
+export function toTimestamp(millis) {
   return new Timestamp(
     [Math.floor(millis / 1000), (millis % 1000) * 1000000],
     false

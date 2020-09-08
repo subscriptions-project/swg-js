@@ -21,16 +21,15 @@
  * @param {!Object<string, *>} object
  * @return {string}
  */
-exports.encrypt = function(object) {
+exports.encrypt = function (object) {
   return 'encrypted(' + JSON.stringify(object) + ')';
 };
-
 
 /**
  * @param {string} s
  * @return {!Object<string, *>}
  */
-exports.decrypt = function(s) {
+exports.decrypt = function (s) {
   if (s.indexOf('encrypted(') != 0) {
     throw new Error('Cannot decrypt "' + s + '"');
   }
@@ -42,20 +41,18 @@ exports.decrypt = function(s) {
   }
 };
 
-
 /**
  * @param {string} s
  * @return {string}
  */
-exports.toBase64 = function(s) {
+exports.toBase64 = function (s) {
   return Buffer.from(s).toString('base64');
 };
 
-
 /**
  * @param {string} s
  * @return {string}
  */
-exports.fromBase64 = function(s) {
+exports.fromBase64 = function (s) {
   return Buffer.from(s, 'base64').toString();
 };

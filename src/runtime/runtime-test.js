@@ -559,7 +559,9 @@ describes.realWin('Runtime', {}, (env) => {
         .expects('getEntitlements')
         .returns(Promise.resolve(ents));
 
-      const value = await runtime.getEntitlements(encryptedDocumentKey);
+      const value = await runtime.getEntitlements({
+        encryption: {encryptedDocumentKey},
+      });
       expect(value).to.equal(ents);
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
@@ -1178,14 +1180,6 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       );
       expect(el).to.exist;
       expect(el.getAttribute('href')).to.equal('$assets$/loader.svg');
-    });
-
-    it('should prefetch payments', () => {
-      const el = win.document.head.querySelector(
-        'link[rel="preconnect prefetch"][href*="/pay?"]'
-      );
-      expect(el).to.exist;
-      expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
     });
 
     it('should preconnect to google domains', () => {

@@ -14,25 +14,8 @@
  * limitations under the License.
  */
 
-/** @externs */
-
-/**
- * @template T
- * @constructor
- */
-const ArrayLike = function () {};
-
-/**
- * @type {number}
- */
-ArrayLike.prototype.length;
-
-/**
- * A type for Objects that can be JSON serialized or that come from
- * JSON serialization. Requires the objects fields to be accessed with
- * bracket notation object['name'] to make sure the fields do not get
- * obfuscated.
- * @constructor
- * @dict
- */
-function JsonObject() {}
+/** @enum {number}  */
+export const MeterClientTypes = {
+  /** Meter client type for content licensed by Google. */
+  LICENSED_BY_GOOGLE: 1,
+};

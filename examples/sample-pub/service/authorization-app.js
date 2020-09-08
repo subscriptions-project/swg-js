@@ -23,8 +23,8 @@
  * added over time.
  */
 
-const {decrypt, fromBase64} = require('../utils/crypto');
 const app = (module.exports = require('express').Router());
+const {decrypt, fromBase64} = require('../utils/crypto');
 app.use(require('cookie-parser')());
 
 /** @const {SubscriptionMetering} Default metering configuration. */

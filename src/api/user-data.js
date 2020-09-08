@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-
 /**
  */
 export class UserData {
-
   /**
    * @param {string} idToken
    * @param {!Object} data

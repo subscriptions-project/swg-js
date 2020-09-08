@@ -19,14 +19,16 @@ import * as crypto from './crypto';
 describe('crypto', () => {
   it('should convert a string to base64', () => {
     expect(crypto.toBase64('test')).to.equal('dGVzdA==');
-    expect(crypto.toBase64('a@somedomain.com')).to
-        .equal('YUBzb21lZG9tYWluLmNvbQ==');
+    expect(crypto.toBase64('a@somedomain.com')).to.equal(
+      'YUBzb21lZG9tYWluLmNvbQ=='
+    );
   });
 
   it('should convert from base64 to string', () => {
     expect(crypto.fromBase64('dGVzdA==')).to.equal('test');
-    expect(crypto.fromBase64('YUBzb21lZG9tYWluLmNvbQ==')).to
-        .equal('a@somedomain.com');
+    expect(crypto.fromBase64('YUBzb21lZG9tYWluLmNvbQ==')).to.equal(
+      'a@somedomain.com'
+    );
   });
 
   it('should encrypt an object', () => {

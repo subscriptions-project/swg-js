@@ -16,32 +16,22 @@ jobs:
   include:
     - stage: check
       name: 'Check'
-      script:
-        - gulp check
+      script: gulp check
     - stage: test
       name: 'Unit Tests'
       script:
-        - gulp unit --coverage
-    - # run unit tests and e2e tests parallel
-      name: 'End to End Tests'
-      script:
-        - gulp e2e --retries=3
+      - gulp unit --coverage
+      - ./node_modules/.bin/codecov -f test/coverage/lcov-unit.info
+    # - # run unit tests and e2e tests parallel
+    #   name: 'End to End Tests'
+    #   script: gulp e2e --retries=3
 branches:
   only:
     - main
 addons:
   chrome: stable
-matrix:
-  include:
-    - env: BUILD_SHARD="unit_tests"
-      addons:
-        hosts:
-          - pub.localhost
-          - sp.localhost
 cache:
   directories:
     - node_modules
   bundler: true
   yarn: true
-after_success:
-  - ./node_modules/.bin/codecov -f test/coverage/lcov-unit.info

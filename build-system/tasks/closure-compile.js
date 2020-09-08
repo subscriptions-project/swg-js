@@ -169,6 +169,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       compilerPath: 'build-system/runner/dist/runner.jar',
       fileName: intermediateFilename,
       continueWithWarnings: false,
+      config: 'java_runtime_8',
       tieredCompilation: true, // Magic speed up.
       compilerFlags: {
         compilation_level: options.compilationLevel || 'SIMPLE_OPTIMIZATIONS',

@@ -642,7 +642,7 @@ class AnalyticsRequest {
 /**
  * @implements {Message}
  */
-class EntitlementsPingbackRequest {
+class EntitlementJwt {
   /**
    * @param {!Array<*>=} data
    * @param {boolean=} includesLabel
@@ -651,47 +651,101 @@ class EntitlementsPingbackRequest {
     const base = includesLabel ? 1 : 0;
 
     /** @private {?string} */
-    this.hashedCanonicalUrl_ = data[base] == null ? null : data[base];
+    this.jwt_ = data[base] == null ? null : data[base];
 
     /** @private {?string} */
-    this.publisherUserId_ = data[1 + base] == null ? null : data[1 + base];
+    this.source_ = data[1 + base] == null ? null : data[1 + base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getJwt() {
+    return this.jwt_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setJwt(value) {
+    this.jwt_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getSource() {
+    return this.source_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSource(value) {
+    this.source_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.jwt_, // field 1 - jwt
+        this.source_, // field 2 - source
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'EntitlementJwt';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class EntitlementsRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?EntitlementJwt} */
+    this.usedEntitlement_ =
+      data[base] == null || data[base] == undefined
+        ? null
+        : new EntitlementJwt(data[base], includesLabel);
 
     /** @private {?Timestamp} */
     this.clientEventTime_ =
-      data[2 + base] == null || data[2 + base] == undefined
+      data[1 + base] == null || data[1 + base] == undefined
         ? null
-        : new Timestamp(data[2 + base], includesLabel);
-
-    /** @private {?string} */
-    this.signedMeter_ = data[3 + base] == null ? null : data[3 + base];
+        : new Timestamp(data[1 + base], includesLabel);
   }
 
   /**
-   * @return {?string}
+   * @return {?EntitlementJwt}
    */
-  getHashedCanonicalUrl() {
-    return this.hashedCanonicalUrl_;
+  getUsedEntitlement() {
+    return this.usedEntitlement_;
   }
 
   /**
-   * @param {string} value
+   * @param {!EntitlementJwt} value
    */
-  setHashedCanonicalUrl(value) {
-    this.hashedCanonicalUrl_ = value;
-  }
-
-  /**
-   * @return {?string}
-   */
-  getPublisherUserId() {
-    return this.publisherUserId_;
-  }
-
-  /**
-   * @param {string} value
-   */
-  setPublisherUserId(value) {
-    this.publisherUserId_ = value;
+  setUsedEntitlement(value) {
+    this.usedEntitlement_ = value;
   }
 
   /**
@@ -709,31 +763,14 @@ class EntitlementsPingbackRequest {
   }
 
   /**
-   * @return {?string}
-   */
-  getSignedMeter() {
-    return this.signedMeter_;
-  }
-
-  /**
-   * @param {string} value
-   */
-  setSignedMeter(value) {
-    this.signedMeter_ = value;
-  }
-
-  /**
    * @param {boolean} includeLabel
    * @return {!Array<?>}
    * @override
    */
   toArray(includeLabel = true) {
     const arr = [
-      this.hashedCanonicalUrl_,  // field 1 - hashed_canonical_url
-      this.publisherUserId_,     // field 2 - publisher_user_id
-      this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) :
-                              [],  // field 3 - client_event_time
-      this.signedMeter_,           // field 4 - signed_meter
+        this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) : [], // field 1 - used_entitlement
+        this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) : [], // field 2 - client_event_time
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -746,7 +783,7 @@ class EntitlementsPingbackRequest {
    * @override
    */
   label() {
-    return 'EntitlementsPingbackRequest';
+    return 'EntitlementsRequest';
   }
 }
 
@@ -1484,7 +1521,8 @@ const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
-  'EntitlementsPingbackRequest': EntitlementsPingbackRequest,
+  'EntitlementJwt': EntitlementJwt,
+  'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
   'EventParams': EventParams,
   'FinishedLoggingResponse': FinishedLoggingResponse,
@@ -1531,7 +1569,8 @@ export {
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
-  EntitlementsPingbackRequest,
+  EntitlementJwt,
+  EntitlementsRequest,
   EntitlementsResponse,
   EventOriginator,
   EventParams,

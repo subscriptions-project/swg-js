@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, deserialize, EntitlementsPingbackRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, getLabel, LinkingInfoResponse, LinkSaveTokenRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ViewSubscriptionsResponse} from './api_messages';
+import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -362,70 +362,105 @@ describe('AnalyticsRequest', () => {
   });
 });
 
-describe('EntitlementsPingbackRequest', () => {
+describe('EntitlementJwt', () => {
   it('should deserialize correctly', () => {
-    const /** !EntitlementsPingbackRequest  */ entitlementspingbackrequest =
-        new EntitlementsPingbackRequest();
-    entitlementspingbackrequest.setHashedCanonicalUrl('');
-    entitlementspingbackrequest.setPublisherUserId('');
-    const /** !Timestamp  */ timestamp = new Timestamp();
-    timestamp.setSeconds(0);
-    timestamp.setNanos(0);
-    entitlementspingbackrequest.setClientEventTime(timestamp);
-    entitlementspingbackrequest.setSignedMeter('');
+    const /** !EntitlementJwt  */ entitlementjwt = new EntitlementJwt();
+    entitlementjwt.setJwt('');
+    entitlementjwt.setSource('');
 
-    let entitlementspingbackrequestDeserialized;
+    let entitlementjwtDeserialized;
 
     // Verify includeLabel undefined
     // Verify serialized arrays.
-    entitlementspingbackrequestDeserialized =
-        deserialize(entitlementspingbackrequest.toArray(undefined));
-    expect(entitlementspingbackrequestDeserialized.toArray(undefined))
-        .to.deep.equal(entitlementspingbackrequest.toArray(undefined));
+    entitlementjwtDeserialized = deserialize(
+        entitlementjwt.toArray(undefined));
+    expect(entitlementjwtDeserialized.toArray(undefined)).to.deep.equal(
+        entitlementjwt.toArray(undefined));
 
     // Verify fields.
-    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl())
-        .to.deep.equal(entitlementspingbackrequest.getHashedCanonicalUrl());
-    expect(entitlementspingbackrequestDeserialized.getPublisherUserId())
-        .to.deep.equal(entitlementspingbackrequest.getPublisherUserId());
-    expect(entitlementspingbackrequestDeserialized.getClientEventTime())
-        .to.deep.equal(entitlementspingbackrequest.getClientEventTime());
-    expect(entitlementspingbackrequestDeserialized.getSignedMeter())
-        .to.deep.equal(entitlementspingbackrequest.getSignedMeter());
+    expect(entitlementjwtDeserialized.getJwt()).to.deep.equal(
+        entitlementjwt.getJwt());
+    expect(entitlementjwtDeserialized.getSource()).to.deep.equal(
+        entitlementjwt.getSource());
 
     // Verify includeLabel true
     // Verify serialized arrays.
-    entitlementspingbackrequestDeserialized =
-        deserialize(entitlementspingbackrequest.toArray(true));
-    expect(entitlementspingbackrequestDeserialized.toArray(true))
-        .to.deep.equal(entitlementspingbackrequest.toArray(true));
+    entitlementjwtDeserialized = deserialize(
+        entitlementjwt.toArray(true));
+    expect(entitlementjwtDeserialized.toArray(true)).to.deep.equal(
+        entitlementjwt.toArray(true));
 
     // Verify fields.
-    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl())
-        .to.deep.equal(entitlementspingbackrequest.getHashedCanonicalUrl());
-    expect(entitlementspingbackrequestDeserialized.getPublisherUserId())
-        .to.deep.equal(entitlementspingbackrequest.getPublisherUserId());
-    expect(entitlementspingbackrequestDeserialized.getClientEventTime())
-        .to.deep.equal(entitlementspingbackrequest.getClientEventTime());
-    expect(entitlementspingbackrequestDeserialized.getSignedMeter())
-        .to.deep.equal(entitlementspingbackrequest.getSignedMeter());
+    expect(entitlementjwtDeserialized.getJwt()).to.deep.equal(
+        entitlementjwt.getJwt());
+    expect(entitlementjwtDeserialized.getSource()).to.deep.equal(
+        entitlementjwt.getSource());
 
     // Verify includeLabel false
     // Verify serialized arrays.
-    entitlementspingbackrequestDeserialized = new EntitlementsPingbackRequest(
-        entitlementspingbackrequest.toArray(false), false);
-    expect(entitlementspingbackrequestDeserialized.toArray(false))
-        .to.deep.equal(entitlementspingbackrequest.toArray(false));
+    entitlementjwtDeserialized = new EntitlementJwt(entitlementjwt.toArray(false), false);
+    expect(entitlementjwtDeserialized.toArray(false)).to.deep.equal(
+        entitlementjwt.toArray(false));
 
     // Verify fields.
-    expect(entitlementspingbackrequestDeserialized.getHashedCanonicalUrl())
-        .to.deep.equal(entitlementspingbackrequest.getHashedCanonicalUrl());
-    expect(entitlementspingbackrequestDeserialized.getPublisherUserId())
-        .to.deep.equal(entitlementspingbackrequest.getPublisherUserId());
-    expect(entitlementspingbackrequestDeserialized.getClientEventTime())
-        .to.deep.equal(entitlementspingbackrequest.getClientEventTime());
-    expect(entitlementspingbackrequestDeserialized.getSignedMeter())
-        .to.deep.equal(entitlementspingbackrequest.getSignedMeter());
+    expect(entitlementjwtDeserialized.getJwt()).to.deep.equal(
+        entitlementjwt.getJwt());
+    expect(entitlementjwtDeserialized.getSource()).to.deep.equal(
+        entitlementjwt.getSource());
+  });
+});
+
+describe('EntitlementsRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !EntitlementsRequest  */ entitlementsrequest = new EntitlementsRequest();
+    const /** !EntitlementJwt  */ entitlementjwt = new EntitlementJwt();
+    entitlementjwt.setJwt('');
+    entitlementjwt.setSource('');
+    entitlementsrequest.setUsedEntitlement(entitlementjwt);
+    const /** !Timestamp  */ timestamp = new Timestamp();
+    timestamp.setSeconds(0);
+    timestamp.setNanos(0);
+    entitlementsrequest.setClientEventTime(timestamp);
+
+    let entitlementsrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    entitlementsrequestDeserialized = deserialize(
+        entitlementsrequest.toArray(undefined));
+    expect(entitlementsrequestDeserialized.toArray(undefined)).to.deep.equal(
+        entitlementsrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(entitlementsrequestDeserialized.getUsedEntitlement()).to.deep.equal(
+        entitlementsrequest.getUsedEntitlement());
+    expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
+        entitlementsrequest.getClientEventTime());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    entitlementsrequestDeserialized = deserialize(
+        entitlementsrequest.toArray(true));
+    expect(entitlementsrequestDeserialized.toArray(true)).to.deep.equal(
+        entitlementsrequest.toArray(true));
+
+    // Verify fields.
+    expect(entitlementsrequestDeserialized.getUsedEntitlement()).to.deep.equal(
+        entitlementsrequest.getUsedEntitlement());
+    expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
+        entitlementsrequest.getClientEventTime());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    entitlementsrequestDeserialized = new EntitlementsRequest(entitlementsrequest.toArray(false), false);
+    expect(entitlementsrequestDeserialized.toArray(false)).to.deep.equal(
+        entitlementsrequest.toArray(false));
+
+    // Verify fields.
+    expect(entitlementsrequestDeserialized.getUsedEntitlement()).to.deep.equal(
+        entitlementsrequest.getUsedEntitlement());
+    expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
+        entitlementsrequest.getClientEventTime());
   });
 });
 
