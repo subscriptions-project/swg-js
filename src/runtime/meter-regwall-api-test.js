@@ -29,7 +29,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
   let port;
   let dialogManagerMock;
   const meterRegwallArgs = {
-    gsiHelperIframe: 'gsi.com',
+    gsiUrl: 'gsi.com',
     alreadyRegisteredUrl: 'registered.com',
   };
   const productId = 'pub1:label1';
@@ -65,7 +65,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
           productId,
-          gsiHelperIframe: meterRegwallArgs.gsiHelperIframe,
+          gsiHelperIframe: meterRegwallArgs.gsiUrl,
           alreadyRegisteredUrl: meterRegwallArgs.alreadyRegisteredUrl,
         }
       )
