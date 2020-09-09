@@ -20,8 +20,8 @@ export const SENTINEL = 'google_signin';
 export const PARENT_READY_COMMAND = 'parent_frame_ready';
 /** Command name for when the Google Sign-in iframe is ready. */
 export const INTERMEDIATE_IFRAME_READY_COMMAND = 'intermediate_iframe_ready';
-/** Command name for when the user's entitlements are returned from the publisher. */
-export const ENTITLEMENTS_READY_COMMAND = 'entitlements_ready';
+/** Command name for when the user's metering parameters are returned from the publisher. */
+export const METERING_PARAMS_READY_COMMAND = 'metering_params_ready';
 
 /** Helper class to handle Google Sign-in configurations for the publisher's Sign-in iframe. */
 export class SwgGoogleSigninCreator {
@@ -93,7 +93,7 @@ export class SwgGoogleSigninCreator {
       const response = callback(signinResponse);
       this.notifyParent_({
         sentinel: SENTINEL,
-        command: ENTITLEMENTS_READY_COMMAND,
+        command: METERING_PARAMS_READY_COMMAND,
         response: (response && JSON.parse(response)) || {},
       });
     };
