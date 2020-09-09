@@ -19,7 +19,7 @@ import {
   PARENT_READY_COMMAND,
   SENTINEL,
   SwgGoogleSigninCreator,
-  createGoogleSigninCallback,
+  createGoogleSignInCallback,
 } from './google-signin-utils';
 
 describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
@@ -27,6 +27,7 @@ describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
   let allowedOrigins;
   let signinCallback;
   let parentMock;
+  let clientId;
 
   const testMeteringObject = {
     metering: {
@@ -52,34 +53,22 @@ describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
 
   beforeEach(() => {
     win = env.win;
+    win.google = sandbox.spy();
     allowedOrigins = ['localhost'];
     signinCallback = sandbox.spy();
     parentMock = sandbox.mock(win.parent);
+    clientId = 'fakegoogleclientid';
   });
 
   afterEach(() => {
     parentMock.verify();
   });
 
-  describe('createGoogleSigninCallback', () => {
-    it('should add response handling to input callback', () => {
-      const modifiedCallback = createGoogleSigninCallback(win, testCallback);
-      parentMock.expects('postMessage').once().withExactArgs(
-        {
-          sentinel: SENTINEL,
-          command: ENTITLEMENTS_READY_COMMAND,
-          response: testMeteringObject,
-        },
-        '*'
-      );
-      modifiedCallback();
-    });
-  });
-
   describe('start', () => {
     it('should start correctly and accept events', () => {
       const creator = new SwgGoogleSigninCreator(
         allowedOrigins,
+        clientId,
         signinCallback,
         win
       );

@@ -40,16 +40,8 @@
     };
 
     window.onload = () => {
-      let displayGoogleSignin = () => {
-          google.accounts.id.initialize({
-            client_id: CLIENT_ID,
-            callback: createGoogleSigninCallback(window, publisherGoogleSignInCallback),
-            auto_select: true,
-          });
-          google.accounts.id.renderButton(window.parent, {});
-        };
         const creator = new SwgGoogleSigninCreator(
-          ALLOWED_ORIGINS, displayGoogleSignin, window
+          ALLOWED_ORIGINS, CLIENT_ID, publisherGoogleSignInCallback, window
         );
         creator.start();
       };
