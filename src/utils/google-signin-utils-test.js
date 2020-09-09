@@ -15,11 +15,9 @@
  */
 
 import {
-  ENTITLEMENTS_READY_COMMAND,
   PARENT_READY_COMMAND,
   SENTINEL,
   SwgGoogleSigninCreator,
-  createGoogleSignInCallback,
 } from './google-signin-utils';
 
 describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
