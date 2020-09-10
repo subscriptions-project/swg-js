@@ -67,12 +67,15 @@ describes.realWin('AnalyticsService', {}, (env) => {
     setExperimentsStringForTesting('');
     eventsLoggedToService = [];
 
+    // Work around `location.search` being non-configurable,
+    // which means Sinon can't stub it normally.
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_redefine_property
     env.win = Object.assign({}, env.win, {
-      // Sinon can't stub the `location`
       location: {
         search: '?utm_source=scenic&utm_medium=email&utm_campaign=campaign',
       },
     });
+
     sandbox
       .stub(env.win.document, 'referrer')
       .get(() => 'https://scenic-2017.appspot.com/landing.html');
