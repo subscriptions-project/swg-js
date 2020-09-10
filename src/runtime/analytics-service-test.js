@@ -34,7 +34,6 @@ import {setExperimentsStringForTesting} from './experiments';
 const URL = 'www.news.com';
 
 describes.realWin('AnalyticsService', {}, (env) => {
-  let win;
   let src;
   let activityPorts;
   let activityIframePort;
@@ -77,7 +76,6 @@ describes.realWin('AnalyticsService', {}, (env) => {
     sandbox
       .stub(env.win.document, 'referrer')
       .get(() => 'https://scenic-2017.appspot.com/landing.html');
-    win = env.win;
 
     sandbox
       .stub(XhrFetcher.prototype, 'sendBeacon')
@@ -91,7 +89,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
 
     src = '/serviceiframe';
     pageConfig = new PageConfig(productId);
-    runtime = new ConfiguredRuntime(win, pageConfig);
+    runtime = new ConfiguredRuntime(env.win, pageConfig);
     activityPorts = runtime.activities();
     sandbox.stub(runtime.doc(), 'getRootNode').callsFake(() => {
       return {
