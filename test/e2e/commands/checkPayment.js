@@ -24,5 +24,5 @@ module.exports.command = function () {
   return this.pause(1000)
     .switchToWindow('gpay window')
     .switchToFrame('[src*="about:blank"]', 'iFrame in payment window')
-    .assert.title(constants.gpay.title);
+    .assert.urlContains(constants.gpay.url);
 };
