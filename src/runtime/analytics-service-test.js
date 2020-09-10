@@ -67,22 +67,28 @@ describes.realWin('AnalyticsService', {}, (env) => {
   beforeEach(() => {
     setExperimentsStringForTesting('');
     eventsLoggedToService = [];
+
+    env.win = Object.assign({}, env.win, {
+      // Sinon can't stub the `location`
+      location: {
+        search: '?utm_source=scenic&utm_medium=email&utm_campaign=campaign',
+      },
+    });
+    sandbox
+      .stub(env.win.document, 'referrer')
+      .get(() => 'https://scenic-2017.appspot.com/landing.html');
+    win = env.win;
+
     sandbox
       .stub(XhrFetcher.prototype, 'sendBeacon')
       .callsFake((unusedUrl, message) => {
         eventsLoggedToService.push(message);
       });
 
-    AnalyticsService.prototype.getQueryString_ = () => {
-      return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
-    };
-    AnalyticsService.prototype.getReferrer_ = () => {
-      return 'https://scenic-2017.appspot.com/landing.html';
-    };
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
       .callsFake((callback) => (eventManagerCallback = callback));
-    win = env.win;
+
     src = '/serviceiframe';
     pageConfig = new PageConfig(productId);
     runtime = new ConfiguredRuntime(win, pageConfig);
