@@ -423,7 +423,7 @@ export class EntitlementsManager {
   maybeShowToast_(entitlement) {
     // Don't show toast for metering entitlements.
     if (entitlement.source === GOOGLE_METERING_SOURCE) {
-      return;
+      return Promise.resolve();
     }
 
     // Check if storage bit is set. It's only set by the `Entitlements.ack` method.
