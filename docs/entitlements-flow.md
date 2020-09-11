@@ -80,22 +80,32 @@ subscriptions
     },
   })
   .then((entitlements) => {
-    // Check if the article was unlocked with a Google metering entitlement. 
-    if (entitlements.enablesThisWithGoogleMetering()) {
-      // Consume the entitlement. This lets Google know a specific free 
-      // read was "used up", which allows Google to calculate how many
-      // free reads are left for a given user.
-      //
-      // Consuming an entitlement will also trigger a dialog that lets the user
-      // know Google provided them with a free read.
-      entitlements.consume(() => {
-        // Unlock the article AFTER the user consumes a free read.
-        // Note: If you unlock the article outside of this callback,
-        // users might be able to scroll down and read the article
-        // without closing the dialog, and closing the dialog is
-        // what actually consumes a free read.
-        unlockArticle(); // Call your custom unlock method here.
-      });
+      // Check if an entitlement unlocks the article.
+      if (entitlements.enablesThis()) {
+        // Check if a Google metering entitlement unlocks the article. 
+        if (entitlements.enablesThisWithGoogleMetering()) {
+          // Consume the entitlement. This lets Google know a specific free 
+          // read was "used up", which allows Google to calculate how many
+          // free reads are left for a given user.
+          //
+          // Consuming an entitlement will also trigger a dialog that lets the user
+          // know Google provided them with a free read.
+          entitlements.consume(() => {
+            // Unlock the article AFTER the user consumes a free read.
+            // Note: If you unlock the article outside of this callback,
+            // users might be able to scroll down and read the article
+            // without closing the dialog, and closing the dialog is
+            // what actually consumes a free read.
+            unlockArticle(); // Call your custom unlock method here.
+          });
+        } else {
+          // Unlock article right away, since the user has a subscription.
+          unlockArticle(); // Call your custom unlock method here.
+        }
+      } else {
+        // Show a publisher paywall for demo purposes.
+        startFlow('showOffers');
+      }
     }
   });
 ```
