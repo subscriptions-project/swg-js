@@ -575,7 +575,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         },
       ]);
       expect(ents.enablesThis()).to.be.true;
-      // TODO: Verify the toast doesn't open?
     });
 
     it('should send pingback with metering entitlements', async () => {
