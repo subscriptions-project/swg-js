@@ -553,6 +553,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         );
 
+      // Toast shouldn't open.
+      storageMock.expects('get').withExactArgs('toast').never();
+
       const ents = await manager.getEntitlements({
         metering: {
           state: {
@@ -572,6 +575,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         },
       ]);
       expect(ents.enablesThis()).to.be.true;
+      // TODO: Verify the toast doesn't open?
     });
 
     it('should send pingback with metering entitlements', async () => {
