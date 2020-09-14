@@ -18,6 +18,7 @@ import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
 import {ClientEventManager} from './client-event-manager';
 import {DepsDef} from './deps';
+import {DialogManager} from '../components/dialog-manager';
 import {
   Entitlement,
   Entitlements,
@@ -45,6 +46,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   let analyticsMock;
   let deps;
   let encryptedDocumentKey;
+  let dialogManager;
+  let dialogManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -54,20 +57,23 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
     deps = new DepsDef();
-    sandbox.stub(deps, 'win').callsFake(() => win);
+    sandbox.stub(deps, 'win').returns(win);
     const globalDoc = new GlobalDoc(win);
-    sandbox.stub(deps, 'doc').callsFake(() => globalDoc);
+    sandbox.stub(deps, 'doc').returns(globalDoc);
     callbacks = new Callbacks();
-    sandbox.stub(deps, 'callbacks').callsFake(() => callbacks);
+    sandbox.stub(deps, 'callbacks').returns(callbacks);
     const storage = new Storage(win);
     storageMock = sandbox.mock(storage);
-    sandbox.stub(deps, 'storage').callsFake(() => storage);
-    sandbox.stub(deps, 'pageConfig').callsFake(() => pageConfig);
-    sandbox.stub(deps, 'config').callsFake(() => config);
-    sandbox.stub(deps, 'eventManager').callsFake(() => eventManager);
+    dialogManager = new DialogManager(new GlobalDoc(win));
+    dialogManagerMock = sandbox.mock(dialogManager);
+    sandbox.stub(deps, 'storage').returns(storage);
+    sandbox.stub(deps, 'pageConfig').returns(pageConfig);
+    sandbox.stub(deps, 'config').returns(config);
+    sandbox.stub(deps, 'eventManager').returns(eventManager);
+    sandbox.stub(deps, 'dialogManager').returns(dialogManager);
     const analyticsService = new AnalyticsService(deps);
     analyticsMock = sandbox.mock(analyticsService);
-    sandbox.stub(deps, 'analytics').callsFake(() => analyticsService);
+    sandbox.stub(deps, 'analytics').returns(analyticsService);
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
@@ -84,6 +90,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     xhrMock.verify();
     jwtHelperMock.verify();
     analyticsMock.verify();
+    dialogManagerMock.verify();
     self.console.warn.restore();
   });
 
@@ -575,6 +582,38 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         },
       ]);
       expect(ents.enablesThis()).to.be.true;
+    });
+
+    it('should open metering dialog when metering entitlements are consumed', () => {
+      dialogManagerMock.expects('openView').once();
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+
+      manager.consume_(ents);
+    });
+
+    it('should not open metering dialog when non-metering entitlements are consumed', () => {
+      dialogManagerMock.expects('openView').never();
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [new Entitlement('google', ['product1', 'product2'], 'token1')],
+        'product1'
+      );
+
+      manager.consume_(ents);
     });
 
     it('should send pingback with metering entitlements', async () => {
