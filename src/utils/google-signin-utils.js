@@ -22,6 +22,8 @@ export const PARENT_READY_COMMAND = 'parent_frame_ready';
 export const INTERMEDIATE_IFRAME_READY_COMMAND = 'intermediate_iframe_ready';
 /** Command name for when the user's metering parameters are returned from the publisher. */
 export const METERING_PARAMS_READY_COMMAND = 'metering_params_ready';
+/** Location of the Google Sign-in API */
+export const GOOGLE_SIGN_IN_URL = 'https://accounts.google.com/gsi/client';
 
 /** Helper class to handle Google Sign-in configurations for the publisher's Sign-in iframe. */
 export class SwgGoogleSigninCreator {
@@ -47,7 +49,7 @@ export class SwgGoogleSigninCreator {
     this.google_ = (() => {
       if (typeof self.google === 'undefined') {
         const script = this.win_.document.createElement('script');
-        script.src = 'https://news.google.com/swg/js/v1/google_signin.js';
+        script.src = GOOGLE_SIGN_IN_URL;
         this.win_.document.body.appendChild(script);
       }
       return self.google;
@@ -88,13 +90,15 @@ export class SwgGoogleSigninCreator {
    * https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
    * @param {!function()} callback
    */
-  createGoogleSignInCallback(callback) {
+  createGoogleSignInCallback_(callback) {
     return (signinResponse) => {
-      const response = callback(signinResponse);
-      this.notifyParent_({
-        sentinel: SENTINEL,
-        command: METERING_PARAMS_READY_COMMAND,
-        response: (response && JSON.parse(response)) || {},
+      const promiseOrResponse = callback(signinResponse);
+      Promise.resolve(promiseOrResponse).then((response) => {
+        this.notifyParent_({
+          sentinel: SENTINEL,
+          command: METERING_PARAMS_READY_COMMAND,
+          response: (response && JSON.parse(response)) || {},
+        });
       });
     };
   }
@@ -123,10 +127,11 @@ export class SwgGoogleSigninCreator {
       ) {
         return;
       }
-      // Check nonce.
+      // Check nonce to verify that the message was secure.
       if (!event.data['nonce'] || event.data['nonce'] !== this.pendingNonce_) {
         return;
       }
+      // Call callback to display the sign-in button.
       this.pendingNonce_ = null;
       if (this.allowedOrigins_.includes(event.origin)) {
         const callback = /** typeof {function} */ this.signinCallback_;

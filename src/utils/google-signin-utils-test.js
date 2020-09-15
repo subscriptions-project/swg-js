@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  PARENT_READY_COMMAND,
-  SENTINEL,
-  SwgGoogleSigninCreator,
-} from './google-signin-utils';
+import {SwgGoogleSigninCreator} from './google-signin-utils';
 
 describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
   let win;
@@ -26,28 +22,6 @@ describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
   let signinCallback;
   let parentMock;
   let clientId;
-
-  const testMeteringObject = {
-    metering: {
-      state: {
-        id: 'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
-        standardAttributes: {
-          registeredUser: {
-            timestamp: 10000000,
-          },
-        },
-        customAttributes: {
-          newsletterSubscriber: {
-            timestamp: 10000000,
-          },
-        },
-      },
-    },
-  };
-
-  function testCallback() {
-    return JSON.stringify(testMeteringObject);
-  }
 
   beforeEach(() => {
     win = env.win;
@@ -72,14 +46,6 @@ describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
       );
       parentMock.expects('postMessage').once();
       creator.start();
-      win.postMessage(
-        {
-          sentinel: SENTINEL,
-          command: PARENT_READY_COMMAND,
-          nonce: creator.pendingNonce_,
-        },
-        '*'
-      );
     });
   });
 });

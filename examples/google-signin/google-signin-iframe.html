@@ -2,14 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <script src="https://accounts.google.com/gsi/client"></script>
   <script async src="https://news.google.com/swg/js/v1/google_signin.js"></script>
   <script>
-    // Add all allowed publisher domains.
-    const ALLOWED_ORIGINS = [
-      'http://localhost:8000',
-      'https://scenic-2017.appspot.com/'
-    ];
     // Publisher's application Client ID (Google Developer Console)
     const CLIENT_ID = '520465458218-embpp4s35v0utlr31317qkso3fk8q3d9.apps.googleusercontent.com';
     // Publisher's login endpoint. Where Google Sign-in's response gets sent to.
@@ -41,7 +35,7 @@
 
     window.onload = () => {
         const creator = new SwgGoogleSigninCreator(
-          ALLOWED_ORIGINS, CLIENT_ID, publisherGoogleSignInCallback, window
+          CLIENT_ID, publisherGoogleSignInCallback, window
         );
         creator.start();
       };
