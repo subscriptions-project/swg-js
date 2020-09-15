@@ -21,7 +21,7 @@ module.exports = {
     password: 'testing123456789',
   },
   gpay: {
-    title: 'Google Pay',
+    url: 'pay.sandbox.google.com',
   },
   setup: {
     url: 'http://localhost:8000/examples/sample-pub/setup',

@@ -310,7 +310,6 @@ body:not(.metering) #metering-controls {
   right: 80px;
   top: 7px;
   text-align: right;
-  width: 200px;
   z-index: 9999999999;
 }
 
@@ -324,6 +323,7 @@ body:not(.metering) #metering-controls {
   color: white;
   cursor: pointer;
   font-weight: bold;
+  margin: 0 0 0 6px;
   padding: 6px 12px;
 }
 
