@@ -164,67 +164,70 @@ function startFlowAuto() {
       // Set up metering demo controls.
       MeteringDemo.setupControls();
 
-      // Example of a timestamp representing when a given action was taken.
-      const timestamp = 1597686771;
-
-      subscriptions
-        .getEntitlements({
-          metering: {
-            state: {
-              // Hashed identifier for a specific user. Hash this value yourself
-              // to avoid sending PII.
-              id: MeteringDemo.getPpid(),
-              // Standard attributes which affect your meters.
-              // Each attribute has a corresponding timestamp, which
-              // allows meters to do things like granting access
-              // for up to 30 days after a certain action.
-              //
-              // TODO: Describe standard attributes, once they're defined.
-              standardAttributes: {
-                registered_user: {
-                  timestamp,
+      // Fetch the user's metering state, including when the user registered.
+      MeteringDemo.fetchMeteringState().then(meteringState => {
+        if (!meteringState.registrationTimestamp) {
+          // The user hasn't registered.
+          // Show a registration dialog from Google.
+          // The page will refresh after the user registers.
+          subscriptions.showMeterRegwall({
+            gsiUrl: 'http://localhost:8000.com/gsi',
+            alreadyRegisteredUrl: 'http://localhost:8000.com/aru',
+          });
+        } else {
+          // The user has registered.
+          // Fetch metering entitlements from Google.
+          subscriptions
+            .getEntitlements({
+              metering: {
+                state: {
+                  // Hashed identifier for a specific user. Hash this value yourself
+                  // to avoid sending PII.
+                  id: meteringState.id,
+                  // Standard attributes which affect your meters.
+                  // Each attribute has a corresponding timestamp, which
+                  // allows meters to do things like granting access
+                  // for up to 30 days after a certain action.
+                  //
+                  // TODO: Describe standard attributes, once they're defined.
+                  standardAttributes: {
+                    registered_user: {
+                      timestamp: meteringState.registrationTimestamp,
+                    },
+                  },
                 },
               },
-              // Custom attributes which affect your meters.
-              // Each attribute has a corresponding timestamp, which
-              // allows meters to do things like granting access
-              // for up to 30 days after a certain action.
-              customAttributes: {
-                newsletter_subscriber: {
-                  timestamp,
-                },
-              },
-            },
-          },
-        })
-        .then((entitlements) => {
-          // Check if an entitlement unlocks the article.
-          if (entitlements.enablesThis()) {
-            // Check if a Google metering entitlement unlocks the article. 
-            if (entitlements.enablesThisWithGoogleMetering()) {
-              // Consume the entitlement. This lets Google know a specific free 
-              // read was "used up", which allows Google to calculate how many
-              // free reads are left for a given user.
-              //
-              // Consuming an entitlement will also trigger a dialog that lets the user
-              // know Google provided them with a free read.
-              entitlements.consume(() => {
-                // Unlock the article AFTER the user consumes a free read.
-                // Note: If you unlock the article outside of this callback,
-                // users might be able to scroll down and read the article
-                // without closing the dialog, and closing the dialog is
-                // what actually consumes a free read.
-                MeteringDemo.openPaywall();
-              });
-            } else {
-              // Unlock article right away, since the user has a subscription.
-              MeteringDemo.openPaywall();
-            }
-          } else {
-            // Show a publisher paywall for demo purposes.
-            startFlow('showOffers');
-          }
-        });
+            })
+            .then((entitlements) => {
+              // Check if an entitlement unlocks the article.
+              if (entitlements.enablesThis()) {
+                // Check if a Google metering entitlement unlocks the article. 
+                if (entitlements.enablesThisWithGoogleMetering()) {
+                  // Consume the entitlement. This lets Google know a specific free 
+                  // read was "used up", which allows Google to calculate how many
+                  // free reads are left for a given user.
+                  //
+                  // Consuming an entitlement will also trigger a dialog that lets the user
+                  // know Google provided them with a free read.
+                  entitlements.consume(() => {
+                    // Unlock the article AFTER the user consumes a free read.
+                    // Note: If you unlock the article outside of this callback,
+                    // users might be able to scroll down and read the article
+                    // without closing the dialog, and closing the dialog is
+                    // what actually consumes a free read.
+                    MeteringDemo.openPaywall();
+                  });
+                } else {
+                  // Unlock article right away, since the user has a subscription.
+                  MeteringDemo.openPaywall();
+                }
+              } else {
+                // Show a publisher paywall for demo purposes.
+                startFlow('showOffers');
+              }
+            });
+        }
+      });
     });
     return;
     /* eslint-enable */
