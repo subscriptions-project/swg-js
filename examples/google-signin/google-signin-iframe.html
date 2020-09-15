@@ -25,6 +25,7 @@
       Object.keys(response).map(function (name) {
         formData.append(name, response[name]);
       });
+      // Note: fetch isn't supported on IE11.
       const init = /** @type {!./xhr.FetchInitDef} */ ({
         method: 'POST',
         credentials: 'include',
