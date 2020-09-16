@@ -97,7 +97,7 @@ export class SwgGoogleSigninCreator {
         this.notifyParent_({
           sentinel: SENTINEL,
           command: METERING_PARAMS_READY_COMMAND,
-          response: (response && JSON.parse(response)) || {},
+          response: response || {},
         });
       });
     };

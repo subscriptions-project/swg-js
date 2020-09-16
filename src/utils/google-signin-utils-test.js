@@ -15,6 +15,7 @@
  */
 
 import {
+  METERING_PARAMS_READY_COMMAND,
   PARENT_READY_COMMAND,
   SENTINEL,
   SwgGoogleSigninCreator,
@@ -50,6 +51,19 @@ describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
       );
       parentMock.expects('postMessage').once();
       creator.start();
+    });
+
+    it("missing parent doesn't register message event listener", () => {
+      win.parent = null;
+      const addEventSpy = sandbox.spy(win.addEventListener);
+      const creator = new SwgGoogleSigninCreator(
+        allowedOrigins,
+        clientId,
+        signinCallback,
+        win
+      );
+      creator.start();
+      assert(addEventSpy.notCalled);
     });
   });
 
@@ -157,6 +171,48 @@ describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
       });
       creator.handleMessageEvent_(event);
       assert(signinCallback.notCalled);
+    });
+  });
+
+  describe('createGoogleSignInCallback_', () => {
+    it('should call callback and handle response correctly', async () => {
+      const creator = new SwgGoogleSigninCreator(
+        allowedOrigins,
+        clientId,
+        signinCallback,
+        win
+      );
+      const testMeteringObject = {
+        metering: {
+          state: {
+            id:
+              'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
+            standardAttributes: {
+              registeredUser: {
+                timestamp: 10000000,
+              },
+            },
+            customAttributes: {
+              newsletterSubscriber: {
+                timestamp: 10000000,
+              },
+            },
+          },
+        },
+      };
+      const callback = () => testMeteringObject;
+      const googleSignInCallback = creator.createGoogleSignInCallback_(
+        callback
+      );
+      parentMock.expects('postMessage').withExactArgs(
+        {
+          sentinel: SENTINEL,
+          command: METERING_PARAMS_READY_COMMAND,
+          response: testMeteringObject,
+        },
+        '*'
+      );
+      await googleSignInCallback({});
     });
   });
 });
