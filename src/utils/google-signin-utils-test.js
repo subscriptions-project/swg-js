@@ -129,6 +129,29 @@ describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
       assert(signinCallback.notCalled);
     });
 
+    it('should not call callback on missing nonce', () => {
+      const creator = new SwgGoogleSigninCreator(
+        allowedOrigins,
+        clientId,
+        signinCallback,
+        win
+      );
+      creator.start();
+      creator.signinCallback_ = signinCallback;
+      const event = new MessageEvent('worker', {
+        data: {
+          sentinel: SENTINEL,
+          command: PARENT_READY_COMMAND,
+          nonce: btoa('XXXXX-nonce'),
+        },
+        origin: 'localhost',
+        source: win.parent,
+      });
+      creator.pendingNonce_ = null;
+      creator.handleMessageEvent_(event);
+      assert(signinCallback.notCalled);
+    });
+
     it('should not call callback on mismatched nonce', () => {
       const creator = new SwgGoogleSigninCreator(
         allowedOrigins,
