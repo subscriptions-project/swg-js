@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import {SwgGoogleSigninCreator} from './google-signin-utils';
+import {
+  PARENT_READY_COMMAND,
+  SENTINEL,
+  SwgGoogleSigninCreator,
+} from './google-signin-utils';
 
 describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
   let win;
@@ -46,6 +50,113 @@ describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
       );
       parentMock.expects('postMessage').once();
       creator.start();
+    });
+  });
+
+  describe('handleMessageEvent_', () => {
+    it('should handle correct message event', () => {
+      const creator = new SwgGoogleSigninCreator(
+        allowedOrigins,
+        clientId,
+        signinCallback,
+        win
+      );
+      creator.start();
+      creator.signinCallback_ = signinCallback;
+      const event = new MessageEvent('worker', {
+        data: {
+          sentinel: SENTINEL,
+          command: PARENT_READY_COMMAND,
+          nonce: creator.pendingNonce_,
+        },
+        origin: 'localhost',
+        source: win.parent,
+      });
+      creator.handleMessageEvent_(event);
+      assert(signinCallback.calledOnce);
+    });
+
+    it('should not call callback on unallowed origin', () => {
+      const creator = new SwgGoogleSigninCreator(
+        allowedOrigins,
+        clientId,
+        signinCallback,
+        win
+      );
+      creator.start();
+      creator.signinCallback_ = signinCallback;
+      const event = new MessageEvent('worker', {
+        data: {
+          sentinel: SENTINEL,
+          command: PARENT_READY_COMMAND,
+          nonce: creator.pendingNonce_,
+        },
+        origin: 'somescaryorigin',
+        source: win.parent,
+      });
+      creator.handleMessageEvent_(event);
+      assert(signinCallback.notCalled);
+    });
+
+    it('should not call callback on missing data', () => {
+      const creator = new SwgGoogleSigninCreator(
+        allowedOrigins,
+        clientId,
+        signinCallback,
+        win
+      );
+      creator.start();
+      creator.signinCallback_ = signinCallback;
+      const event = new MessageEvent('worker', {
+        origin: 'localhost',
+        source: win.parent,
+      });
+      creator.handleMessageEvent_(event);
+      assert(signinCallback.notCalled);
+    });
+
+    it('should not call callback on mismatched nonce', () => {
+      const creator = new SwgGoogleSigninCreator(
+        allowedOrigins,
+        clientId,
+        signinCallback,
+        win
+      );
+      creator.start();
+      creator.signinCallback_ = signinCallback;
+      const event = new MessageEvent('worker', {
+        data: {
+          sentinel: SENTINEL,
+          command: PARENT_READY_COMMAND,
+          nonce: btoa('XXXXX-nonce'),
+        },
+        origin: 'localhost',
+        source: win.parent,
+      });
+      creator.handleMessageEvent_(event);
+      assert(signinCallback.notCalled);
+    });
+
+    it('should not call callback on incorrect command', () => {
+      const creator = new SwgGoogleSigninCreator(
+        allowedOrigins,
+        clientId,
+        signinCallback,
+        win
+      );
+      creator.start();
+      creator.signinCallback_ = signinCallback;
+      const event = new MessageEvent('worker', {
+        data: {
+          sentinel: SENTINEL,
+          command: 'someBadCommand',
+          nonce: creator.pendingNonce_,
+        },
+        origin: 'localhost',
+        source: win.parent,
+      });
+      creator.handleMessageEvent_(event);
+      assert(signinCallback.notCalled);
     });
   });
 });

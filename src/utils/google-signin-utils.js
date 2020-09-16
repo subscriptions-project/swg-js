@@ -112,36 +112,41 @@ export class SwgGoogleSigninCreator {
       return;
     }
     this.win_.addEventListener('message', (event) => {
-      // Only allow events from the parent window (SwG)
-      if (event.source !== this.win_.parent || !event.data) {
-        return;
-      }
-      // If the nonce isn't set we can't verify the message.
-      if (!this.pendingNonce_) {
-        return;
-      }
-      // Checking if the sentinel and commands are as we expect.
-      if (
-        event.data['sentinel'] != SENTINEL ||
-        event.data['command'] != PARENT_READY_COMMAND
-      ) {
-        return;
-      }
-      // Check nonce to verify that the message was secure.
-      if (!event.data['nonce'] || event.data['nonce'] !== this.pendingNonce_) {
-        return;
-      }
-      // Call callback to display the sign-in button.
-      this.pendingNonce_ = null;
-      if (this.allowedOrigins_.includes(event.origin)) {
-        const callback = /** typeof {function} */ this.signinCallback_;
-        callback();
-      }
+      this.handleMessageEvent_(event);
     });
   }
 
+  /** Verifies messages and calls the display sign-in button callback if the message is verified. */
+  handleMessageEvent_(event) {
+    // Only allow events from the parent window (SwG)
+    if (event.source !== this.win_.parent || !event.data) {
+      return;
+    }
+    // If the nonce isn't set we can't verify the message.
+    if (!this.pendingNonce_) {
+      return;
+    }
+    // Checking if the sentinel and commands are as we expect.
+    if (
+      event.data['sentinel'] != SENTINEL ||
+      event.data['command'] != PARENT_READY_COMMAND
+    ) {
+      return;
+    }
+    // Check nonce to verify that the message was secure.
+    if (!event.data['nonce'] || event.data['nonce'] !== this.pendingNonce_) {
+      return;
+    }
+    // Call callback to display the sign-in button.
+    this.pendingNonce_ = null;
+    if (this.allowedOrigins_.includes(event.origin)) {
+      const callback = /** typeof {function} */ this.signinCallback_;
+      callback();
+    }
+  }
+
   /**
-   * Generates a  verification nonce and notifies parent that the iframe is ready.
+   * Generates a verification nonce and notifies parent that the iframe is ready.
    */
   requestDomainVerification_() {
     this.pendingNonce_ = this.generateNonce_();
