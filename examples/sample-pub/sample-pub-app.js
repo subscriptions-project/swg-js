@@ -41,6 +41,14 @@ const SWG_JS_URLS = {
   tt: 'https://news.google.com/swg/js/v1/swg-tt.js',
 };
 
+const SWG_GSI_JS_URLS = {
+  local: '/dist/subscriptions-gsi.max.js',
+  local_min: '/dist/subscriptions-gsi.js',
+  prod: 'https://news.google.com/swg/js/v1/swg-gsi.js',
+  autopush: 'https://news.google.com/swg/js/v1/swg-gsi-autopush.js',
+  tt: 'https://news.google.com/swg/js/v1/swg-gsi-tt.js',
+};
+
 const AUTH_COOKIE = 'SCENIC_AUTH';
 const METER_COOKIE = 'SCENIC_METER';
 const MAX_METER = 3;
@@ -246,7 +254,10 @@ app.post('/amp-pingback', (req, res) => {
  * GSI iframe for metering demo.
  */
 app.get('/gsi-iframe', (req, res) => {
-  res.render('../examples/google-signin/google-signin-iframe', {});
+  const setup = getSetup(req);
+  res.render('../examples/google-signin/google-signin-iframe', {
+    swgGsiJsUrl: SWG_GSI_JS_URLS[setup.script],
+  });
 });
 
 /**
