@@ -49,10 +49,10 @@
     };
 
     window.onload = () => {
-        const iframe = new SwgGsiIframe(
+        const buttonCreator = new SwgGoogleSignInButtonCreator(
           ALLOWED_ORIGINS, CLIENT_ID, publisherGoogleSignInCallback, window
         );
-        iframe.start();
+        buttonCreator.start();
       };
   </script>
 </head>

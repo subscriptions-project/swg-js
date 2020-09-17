@@ -26,7 +26,7 @@ export const METERING_PARAMS_READY_COMMAND = 'metering_params_ready';
 export const GOOGLE_SIGN_IN_URL = 'https://accounts.google.com/gsi/client';
 
 /** Helper class to handle Google Sign-in configurations for the publisher's Sign-in iframe. */
-export class SwgGsiIframe {
+export class SwgGoogleSignInButtonCreator {
   /**
    * @param {!Array<string>} allowedOrigins
    * @param {!string} googleClientId
@@ -175,4 +175,4 @@ export class SwgGsiIframe {
 }
 
 // Add class to public window scope.
-self.SwgGsiIframe = SwgGsiIframe;
+self.SwgGoogleSignInButtonCreator = SwgGoogleSignInButtonCreator;

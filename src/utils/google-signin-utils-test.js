@@ -18,10 +18,10 @@ import {
   METERING_PARAMS_READY_COMMAND,
   PARENT_READY_COMMAND,
   SENTINEL,
-  SwgGsiIframe,
+  SwgGoogleSignInButtonCreator,
 } from './google-signin-utils';
 
-describes.realWin('SwgGsiIframe', {}, (env) => {
+describes.realWin('SwgGoogleSignInButtonCreator', {}, (env) => {
   let win;
   let allowedOrigins;
   let signinCallback;
@@ -43,7 +43,7 @@ describes.realWin('SwgGsiIframe', {}, (env) => {
 
   describe('start', () => {
     it('should start correctly and accept events', () => {
-      const creator = new SwgGsiIframe(
+      const creator = new SwgGoogleSignInButtonCreator(
         allowedOrigins,
         clientId,
         signinCallback,
@@ -56,7 +56,7 @@ describes.realWin('SwgGsiIframe', {}, (env) => {
     it("missing parent doesn't register message event listener", () => {
       win.parent = null;
       const addEventSpy = sandbox.spy(win.addEventListener);
-      const creator = new SwgGsiIframe(
+      const creator = new SwgGoogleSignInButtonCreator(
         allowedOrigins,
         clientId,
         signinCallback,
@@ -69,7 +69,7 @@ describes.realWin('SwgGsiIframe', {}, (env) => {
 
   describe('handleMessageEvent_', () => {
     it('should handle correct message event', () => {
-      const creator = new SwgGsiIframe(
+      const creator = new SwgGoogleSignInButtonCreator(
         allowedOrigins,
         clientId,
         signinCallback,
@@ -91,7 +91,7 @@ describes.realWin('SwgGsiIframe', {}, (env) => {
     });
 
     it('should not call callback on unallowed origin', () => {
-      const creator = new SwgGsiIframe(
+      const creator = new SwgGoogleSignInButtonCreator(
         allowedOrigins,
         clientId,
         signinCallback,
@@ -113,7 +113,7 @@ describes.realWin('SwgGsiIframe', {}, (env) => {
     });
 
     it('should not call callback on missing data', () => {
-      const creator = new SwgGsiIframe(
+      const creator = new SwgGoogleSignInButtonCreator(
         allowedOrigins,
         clientId,
         signinCallback,
@@ -130,7 +130,7 @@ describes.realWin('SwgGsiIframe', {}, (env) => {
     });
 
     it('should not call callback on missing nonce', () => {
-      const creator = new SwgGsiIframe(
+      const creator = new SwgGoogleSignInButtonCreator(
         allowedOrigins,
         clientId,
         signinCallback,
@@ -153,7 +153,7 @@ describes.realWin('SwgGsiIframe', {}, (env) => {
     });
 
     it('should not call callback on mismatched nonce', () => {
-      const creator = new SwgGsiIframe(
+      const creator = new SwgGoogleSignInButtonCreator(
         allowedOrigins,
         clientId,
         signinCallback,
@@ -175,7 +175,7 @@ describes.realWin('SwgGsiIframe', {}, (env) => {
     });
 
     it('should not call callback on incorrect command', () => {
-      const creator = new SwgGsiIframe(
+      const creator = new SwgGoogleSignInButtonCreator(
         allowedOrigins,
         clientId,
         signinCallback,
@@ -199,7 +199,7 @@ describes.realWin('SwgGsiIframe', {}, (env) => {
 
   describe('createGoogleSignInCallback_', () => {
     it('should call callback and handle response correctly', async () => {
-      const creator = new SwgGsiIframe(
+      const creator = new SwgGoogleSignInButtonCreator(
         allowedOrigins,
         clientId,
         signinCallback,
