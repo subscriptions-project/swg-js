@@ -43,10 +43,10 @@
     };
 
     window.onload = () => {
-        const creator = new SwgGoogleSigninCreator(
+        const iframe = new SwgGsiIframe(
           ALLOWED_ORIGINS, CLIENT_ID, publisherGoogleSignInCallback, window
         );
-        creator.start();
+        iframe.start();
       };
   </script>
 </head>
