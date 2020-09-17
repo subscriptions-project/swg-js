@@ -18,15 +18,10 @@
 'use strict';
 
 const jsonwebtoken = require('jsonwebtoken');
-const {
-  decrypt,
-  encrypt,
-  fromBase64,
-  toBase64,
-} = require('./utils/crypto');
+const {decrypt, encrypt, fromBase64, toBase64} = require('./utils/crypto');
 
-const app = module.exports = require('express').Router();
-app.use(require('cookie-parser')())
+const app = (module.exports = require('express').Router());
+app.use(require('cookie-parser')());
 const ARTICLES = require('./content').ARTICLES;
 
 app.use('/oauth', require('./service/sample-pub-oauth-app'));
@@ -78,12 +73,12 @@ app.get('/', (req, res) => {
 app.get('/((\\d+))', (req, res) => {
   const id = parseInt(req.params[0], 10);
   const article = ARTICLES[id - 1];
-  const prevId = (id - 1) >= 0 ? String(id - 1) : false;
-  const nextId = (id + 1) < ARTICLES.length ? String(id + 1) : false;
+  const prevId = id - 1 >= 0 ? String(id - 1) : false;
+  const nextId = id + 1 < ARTICLES.length ? String(id + 1) : false;
   const setup = getSetup(req);
   res.render('../examples/sample-pub/views/article', {
     swgJsUrl: SWG_JS_URLS[setup.script],
-    setup: setup,
+    setup,
     publicationId: PUBLICATION_ID,
     id,
     article,
@@ -96,11 +91,11 @@ app.get('/((\\d+))', (req, res) => {
 /**
  * An AMP Article.
  */
-app.get('/((\\d+))\.amp', (req, res) => {
+app.get('/((\\d+)).amp', (req, res) => {
   const id = parseInt(req.params[0], 10);
   const article = ARTICLES[id - 1];
-  const prevId = (id - 1) >= 0 ? String(id - 1) + '.amp' : false;
-  const nextId = (id + 1) < ARTICLES.length ? String(id + 1) + '.amp' : false;
+  const prevId = id - 1 >= 0 ? String(id - 1) + '.amp' : false;
+  const nextId = id + 1 < ARTICLES.length ? String(id + 1) + '.amp' : false;
   const setup = getSetup(req);
   const ac = req.query['ac'] == '1';
   // TODO(dvoytenko): eventually only look for rtv value, regardless of ac.
@@ -111,9 +106,10 @@ app.get('/((\\d+))\.amp', (req, res) => {
     'subscriptions_google_js': ampJsUrl('amp-subscriptions-google', rtv),
     'mustache_js': ampJsUrl('amp-mustache', rtv),
   };
-  const baseUrl = process.env.NODE_ENV == 'production' ?
-      'https://scenic-2017.appspot.com' :
-      '//localhost:8000';
+  const baseUrl =
+    process.env.NODE_ENV == 'production'
+      ? 'https://scenic-2017.appspot.com'
+      : '//localhost:8000';
   res.render('../examples/sample-pub/views/article-amp', {
     amp,
     setup,
@@ -191,11 +187,15 @@ app.get('/amp-entitlements', (req, res) => {
   // TODO(dvoytenko): test if the origin is actually allowed.
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Expose-Headers',
-      'AMP-Access-Control-Allow-Source-Origin');
+  res.setHeader(
+    'Access-Control-Expose-Headers',
+    'AMP-Access-Control-Allow-Source-Origin'
+  );
   if (req.query.__amp_source_origin) {
-    res.setHeader('AMP-Access-Control-Allow-Source-Origin',
-        req.query.__amp_source_origin);
+    res.setHeader(
+      'AMP-Access-Control-Allow-Source-Origin',
+      req.query.__amp_source_origin
+    );
   }
   const email = getUserInfoFromCookies_(req);
   if (email) {
@@ -228,11 +228,15 @@ app.post('/amp-pingback', (req, res) => {
   const pubId = req.query.pubid;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Expose-Headers',
-      'AMP-Access-Control-Allow-Source-Origin');
+  res.setHeader(
+    'Access-Control-Expose-Headers',
+    'AMP-Access-Control-Allow-Source-Origin'
+  );
   if (req.query.__amp_source_origin) {
-    res.setHeader('AMP-Access-Control-Allow-Source-Origin',
-        req.query.__amp_source_origin);
+    res.setHeader(
+      'AMP-Access-Control-Allow-Source-Origin',
+      req.query.__amp_source_origin
+    );
   }
   decMeterInCookies(req, res);
   res.json({});
@@ -272,7 +276,7 @@ app.post('/update-setup', (req, res) => {
  */
 function getSetup(req) {
   return {
-    script: req.cookies && req.cookies['script'] || 'local',
+    script: (req.cookies && req.cookies['script']) || 'local',
   };
 }
 
@@ -290,10 +294,10 @@ function isLocalReq(req) {
  * @return {boolean}
  */
 function isTestReq(req) {
-  return (isLocalReq(req) || req.query.test !== undefined)
-      && req.query.test !== '0';
+  return (
+    (isLocalReq(req) || req.query.test !== undefined) && req.query.test !== '0'
+  );
 }
-
 
 /**
  * @param {!HttpRequest} req
@@ -312,7 +316,7 @@ function getTestParams(req) {
  * @return {?string}
  */
 function getParam(req, name) {
-  return req.query[name] || req.body && req.body[name] || null;
+  return req.query[name] || (req.body && req.body[name]) || null;
 }
 
 /**
@@ -338,8 +342,9 @@ function getUserInfoFromCookies_(req) {
 function setUserInfoInCookies_(res, email) {
   res.clearCookie(AUTH_COOKIE);
   if (email) {
-    res.cookie(AUTH_COOKIE, toBase64(encrypt(email)),
-        {maxAge: /* 60 minutes */1000 * 60 * 60});
+    res.cookie(AUTH_COOKIE, toBase64(encrypt(email)), {
+      maxAge: /* 60 minutes */ 1000 * 60 * 60,
+    });
   }
 }
 
@@ -352,11 +357,13 @@ function cleanupReturnUrl(returnUrl) {
     returnUrl = '/';
   }
   // Make sure we do not introduce a universal unbound redirector.
-  if (!returnUrl.startsWith('/') &&
-      !returnUrl.startsWith('https://cdn.ampproject.org') &&
-      !returnUrl.startsWith('https://scenic-2017.appspot.com') &&
-      !returnUrl.startsWith('http://localhost:') &&
-      !returnUrl.startsWith('https://localhost:')) {
+  if (
+    !returnUrl.startsWith('/') &&
+    !returnUrl.startsWith('https://cdn.ampproject.org') &&
+    !returnUrl.startsWith('https://scenic-2017.appspot.com') &&
+    !returnUrl.startsWith('http://localhost:') &&
+    !returnUrl.startsWith('https://localhost:')
+  ) {
     returnUrl = '/';
   }
   return returnUrl;
@@ -381,8 +388,9 @@ function getMeterFromCookies(req) {
 function decMeterInCookies(req, res) {
   const oldMeter = getMeterFromCookies(req);
   const newMeter = Math.max(oldMeter - 1, 0);
-  res.cookie(METER_COOKIE, String(newMeter),
-      {maxAge: /* 60 minutes */ 1000 * 60 * 60});
+  res.cookie(METER_COOKIE, String(newMeter), {
+    maxAge: /* 60 minutes */ 1000 * 60 * 60,
+  });
 }
 
 /**
@@ -391,15 +399,13 @@ function decMeterInCookies(req, res) {
  * @return {string}
  */
 function ampJsUrl(name, rtv) {
-  const cdnBase = rtv ?
-      'https://cdn.ampproject.org/rtv/' + rtv :
-      'https://cdn.ampproject.org';
+  const cdnBase = rtv
+    ? 'https://cdn.ampproject.org/rtv/' + rtv
+    : 'https://cdn.ampproject.org';
   if (name == 'amp') {
-    return AMP_LOCAL ?
-        'http://localhost:8001/dist/amp.js' :
-        cdnBase + '/v0.js';
+    return AMP_LOCAL ? 'http://localhost:8001/dist/amp.js' : cdnBase + '/v0.js';
   }
-  return AMP_LOCAL ?
-      'http://localhost:8001/dist/v0/' + name + '-0.1.max.js' :
-      cdnBase + '/v0/' + name + '-0.1.js';
+  return AMP_LOCAL
+    ? 'http://localhost:8001/dist/v0/' + name + '-0.1.max.js'
+    : cdnBase + '/v0/' + name + '-0.1.js';
 }
