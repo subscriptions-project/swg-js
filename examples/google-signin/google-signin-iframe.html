@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script async src="https://news.google.com/swg/js/v1/google_signin.js"></script>
+  <script>
+    // Publisher's application Client ID (Google Developer Console)
+    const CLIENT_ID = '520465458218-embpp4s35v0utlr31317qkso3fk8q3d9.apps.googleusercontent.com';
+    // Publisher's login endpoint. Where Google Sign-in's response gets sent to.
+    // Must be able to handle a Google CredentialResponse within a FormData object:
+    // https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
+    const LOGIN_ENDPOINT = 'https://scenic-2017.appspot.com/login';
+
+    // Callback which handles a Google Sign-in response. This callback should call a publisher
+    // endpoint and return a JSON Metering object described here:
+    // https://github.com/subscriptions-project/swg-js/blob/main/docs/entitlements-flow.md#swg-entitlements-flow
+    // The input argument `response` is a Google Sign-in CredentialResponse:
+    // https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
+    //
+    // During this callback, publishers should also persist the GIS response data,
+    // make an account if the user isn't known, or return user state for one that already exists.
+    // Lastly, the publisher should set a cookie containing the user state to avoid future
+    // requests for sign-in from the same user.
+    const publisherGoogleSignInCallback = (response) => {
+      if (!response || !response['credential']) {
+        return;
+      }
+      // Creates a FormData object containing the response info.
+      const formData = new FormData();
+      Object.keys(response).map(function (name) {
+        formData.append(name, response[name]);
+      });
+      // Note: fetch isn't supported on IE11. If you would like to support IE11,
+      // use XHR.
+      const init = /** @type {!./xhr.FetchInitDef} */ ({
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      return window.fetch(LOGIN_ENDPOINT, init);
+    };
+
+    window.onload = () => {
+        const creator = new SwgGoogleSigninCreator(
+          CLIENT_ID, publisherGoogleSignInCallback, window
+        );
+        creator.start();
+      };
+  </script>
+</head>
+<body style="margin: 0; border: 0;">
+</body>
+</html>
