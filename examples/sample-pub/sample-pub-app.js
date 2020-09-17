@@ -243,6 +243,13 @@ app.post('/amp-pingback', (req, res) => {
 });
 
 /**
+ * GSI iframe for metering demo.
+ */
+app.get('/gsi-iframe', (req, res) => {
+  res.render('../examples/google-signin/google-signin-iframe', {});
+});
+
+/**
  * Setup page.
  */
 app.get('/setup', (req, res) => {
