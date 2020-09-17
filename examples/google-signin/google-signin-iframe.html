@@ -16,6 +16,11 @@
     // https://github.com/subscriptions-project/swg-js/blob/main/docs/entitlements-flow.md#swg-entitlements-flow
     // The input argument `response` is a Google Sign-in CredentialResponse:
     // https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
+    //
+    // During this callback, publishers should also persist the GIS response data,
+    // make an account if the user isn't known, or return user state for one that already exists.
+    // Lastly, the publisher should set a cookie containing the user state to avoid future
+    // requests for sign-in from the same user.
     const publisherGoogleSignInCallback = (response) => {
       if (!response || !response['credential']) {
         return;
@@ -25,7 +30,8 @@
       Object.keys(response).map(function (name) {
         formData.append(name, response[name]);
       });
-      // Note: fetch isn't supported on IE11.
+      // Note: fetch isn't supported on IE11. If you would like to support IE11,
+      // use XHR.
       const init = /** @type {!./xhr.FetchInitDef} */ ({
         method: 'POST',
         credentials: 'include',
