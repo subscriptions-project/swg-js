@@ -27,15 +27,14 @@ const ARTICLES = require('./content').ARTICLES;
 app.use('/oauth', require('./service/sample-pub-oauth-app'));
 app.use('/api', require('./service/authorization-app'));
 
-const AUTH_URL_TEST = '/examples/sample-sp/api';
-const AUTH_URL_PUB = '/examples/sample-pub/api';
-
 const PUBLICATION_ID = process.env.SERVE_PUBID || 'scenic-2017.appspot.com';
 const AMP_LOCAL = process.env.SERVE_AMP_LOCAL == 'true';
 
 const SWG_JS_URLS = {
   local: '/dist/subscriptions.max.js',
+  /* eslint-disable google-camelcase/google-camelcase */
   local_min: '/dist/subscriptions.js',
+  /* eslint-enable google-camelcase/google-camelcase */
   prod: 'https://news.google.com/swg/js/v1/swg.js',
   autopush: 'https://news.google.com/swg/js/v1/swg-autopush.js',
   tt: 'https://news.google.com/swg/js/v1/swg-tt.js',
@@ -43,7 +42,9 @@ const SWG_JS_URLS = {
 
 const SWG_GSI_JS_URLS = {
   local: '/dist/subscriptions-gsi.max.js',
+  /* eslint-disable google-camelcase/google-camelcase */
   local_min: '/dist/subscriptions-gsi.js',
+  /* eslint-enable google-camelcase/google-camelcase */
   prod: 'https://news.google.com/swg/js/v1/swg-gsi.js',
   autopush: 'https://news.google.com/swg/js/v1/swg-gsi-autopush.js',
   tt: 'https://news.google.com/swg/js/v1/swg-gsi-tt.js',
@@ -233,7 +234,6 @@ app.get('/amp-entitlements', (req, res) => {
  * AMP pingback request.
  */
 app.post('/amp-pingback', (req, res) => {
-  const pubId = req.query.pubid;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader(
