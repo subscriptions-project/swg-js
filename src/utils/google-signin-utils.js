@@ -35,7 +35,7 @@ export const GOOGLE_SIGN_IN_URL = 'https://accounts.google.com/gsi/client';
 export const SWG_SERVER_ORIGIN = '$frontend$';
 
 /**
- * @typedef {function(!Object): !Promise<!GetEntitlementsParamsExternalDef>}
+ * @typedef {function(!Object): (!GetEntitlementsParamsExternalDef|!Promise<!GetEntitlementsParamsExternalDef>)}
  */
 let PublisherGoogleSignInCallbackDef;
 
@@ -63,6 +63,9 @@ export class SwgGoogleSignInButtonCreator {
     this.googleSignInApiPromise_ = (() =>
       new Promise((resolve) => {
         const script = this.win_.document.createElement('script');
+        // Listen for the script's `load` event.
+        // This must come before the script's `src` is defined.
+        // The script loads instantly if it's cached.
         script.onload = () => {
           resolve(/** @type {!Object} */ (self.google)['accounts']['id']);
         };
@@ -112,8 +115,8 @@ export class SwgGoogleSignInButtonCreator {
    */
   createGoogleSignInCallback_(publisherGoogleSignInCallback) {
     return (googleSignInResponse) => {
-      const getEntitlementsParamsPromise = publisherGoogleSignInCallback(
-        googleSignInResponse
+      const getEntitlementsParamsPromise = Promise.resolve(
+        publisherGoogleSignInCallback(googleSignInResponse)
       );
 
       getEntitlementsParamsPromise.then((getEntitlementsParams) => {
