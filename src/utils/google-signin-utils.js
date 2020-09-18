@@ -117,8 +117,8 @@ export class SwgGoogleSignInButtonCreator {
   }
 
   /**
-   * Returns a method that calls the publisherGoogleSignInCallback with
-   * Google Sign-In credentials, then sends a post message to the parent window.
+   * Returns a method that sends the parent window the result of calling
+   * the publisherGoogleSignInCallback with Google Sign-In credentials.
    * @param {!PublisherGoogleSignInCallbackDef} publisherGoogleSignInCallback
    * @return {function(!Object): void}
    */
@@ -139,17 +139,15 @@ export class SwgGoogleSignInButtonCreator {
 
   /** Renders the Google Sign-In button. */
   renderGoogleSignInButton_() {
-    const callback = this.createGoogleSigninCallback_(
-      this.publisherGoogleSignInCallback_
-    );
-
     this.googleSignInApiPromise_.then((googleSignInApi) => {
       googleSignInApi.initialize({
         /* eslint-disable google-camelcase/google-camelcase */
         auto_select: true,
         client_id: this.googleClientId_,
         /* eslint-enable google-camelcase/google-camelcase */
-        callback,
+        callback: this.createGoogleSignInCallback_(
+          this.publisherGoogleSignInCallback_
+        ),
       });
 
       googleSignInApi.renderButton(this.win_.parent, {});
@@ -212,7 +210,7 @@ export class SwgGoogleSignInButtonCreator {
    */
   handleMessageEvent_(event) {
     // Ignore invalid message events.
-    if (this.messageEventIsInvalid_(event)) {
+    if (this.messageEventIsInvalid_(/** @type {!MessageEvent} */ (event))) {
       console.log('Ignoring message event:', event);
       return;
     }
