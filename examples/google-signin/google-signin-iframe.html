@@ -10,8 +10,6 @@
   -->
   <script src="<% swgGsiJsUrl %>"></script>
   <script>
-    // All allowed origins of the SwG iframe.
-    const ALLOWED_ORIGINS = ['https://news.google.com'];
     // Publisher's application Client ID (Google Developer Console)
     const CLIENT_ID = '520465458218-embpp4s35v0utlr31317qkso3fk8q3d9.apps.googleusercontent.com';
     // Publisher's login endpoint. Where Google Sign-in's response gets sent to.
@@ -50,7 +48,7 @@
 
     window.onload = () => {
         const buttonCreator = new SwgGoogleSignInButtonCreator(
-          ALLOWED_ORIGINS, CLIENT_ID, publisherGoogleSignInCallback, window
+          CLIENT_ID, publisherGoogleSignInCallback, window
         );
         buttonCreator.start();
       };

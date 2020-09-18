@@ -75,10 +75,10 @@ exports.compile = async function (options = {}) {
       './dist',
       Object.assign(
         {
-          toName: 'subscriptions-gsi.max.js',
+          toName: 'subscriptions-google-sign-in.max.js',
           minifiedName: options.checkTypes
-            ? 'subscriptions-gsi.checktypes.js'
-            : argv.minifiedName || 'subscriptions-gsi.js',
+            ? 'subscriptions-google-sign-in.checktypes.js'
+            : argv.minifiedName || 'subscriptions-google-sign-in.js',
           includePolyfills: true,
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.

@@ -32,7 +32,7 @@ export const METERING_PARAMS_READY_COMMAND = 'metering_params_ready';
 export const GOOGLE_SIGN_IN_URL = 'https://accounts.google.com/gsi/client';
 
 /** Origin of SwG server. Used for postMessages. */
-export const SWG_SERVER_ORIGIN = '$frontendOrigin$';
+export const SWG_SERVER_ORIGIN = '$frontend$';
 
 /**
  * @typedef {function(!Object): !Promise<!GetEntitlementsParamsExternalDef>}
@@ -42,23 +42,11 @@ let PublisherGoogleSignInCallbackDef;
 /** Renders SwG Google Sign-In buttons in publisher sign-in iframes. */
 export class SwgGoogleSignInButtonCreator {
   /**
-   * @param {!Array<string>} allowedOrigins
    * @param {string} googleClientId
    * @param {!PublisherGoogleSignInCallbackDef} publisherGoogleSignInCallback
    * @param {!Window} win
    */
-  constructor(
-    allowedOrigins,
-    googleClientId,
-    publisherGoogleSignInCallback,
-    win
-  ) {
-    /**
-     * Postmessages from these origins will be accepted. Others will be ignored.
-     * @private @const {!Array<string>}
-     */
-    this.allowedOrigins_ = allowedOrigins;
-
+  constructor(googleClientId, publisherGoogleSignInCallback, win) {
     /**
      * The Google Sign-In button renders in this window.
      * @private @constant {!Window}
@@ -160,29 +148,29 @@ export class SwgGoogleSignInButtonCreator {
    */
   registerDomainVerifier_() {
     this.win_.addEventListener('message', (event) => {
-      this.handleMessageEvent_(event);
+      this.handleVerificationMessage_(event);
     });
   }
 
   /**
-   * Returns true if a given message event is invalid.
+   * Returns true if a given message event is valid.
    * @param {!MessageEvent} event
    * @return {boolean}
    */
-  messageEventIsInvalid_(event) {
+  messageEventIsValid_(event) {
     // Ignore missing events.
     if (!event) {
-      return true;
+      return false;
     }
 
     // Ignore events that didn't come from the parent window.
     if (event.source !== this.win_.parent) {
-      return true;
+      return false;
     }
 
     // Ignore unrequested events.
     if (!this.requestNonce_ || event.data['nonce'] !== this.requestNonce_) {
-      return true;
+      return false;
     }
 
     // Ignore events with incorrect sentinels or commands.
@@ -191,26 +179,25 @@ export class SwgGoogleSignInButtonCreator {
       event.data['sentinel'] !== SENTINEL ||
       event.data['command'] !== PARENT_READY_COMMAND
     ) {
-      return true;
+      return false;
     }
 
     // Ignore events with unallowed origins.
-    if (!this.allowedOrigins_.includes(event.origin)) {
-      return true;
+    if (event.origin !== SWG_SERVER_ORIGIN) {
+      return false;
     }
 
     // Don't sleep on this one.
-    return false;
+    return true;
   }
 
   /**
-   * Handles post message events. This function renders the Google Sign-In button
-   * if a valid event comes through.
+   * Renders the Google Sign-In button if a valid verification message comes through.
    * @param {Event} event
    */
-  handleMessageEvent_(event) {
+  handleVerificationMessage_(event) {
     // Ignore invalid message events.
-    if (this.messageEventIsInvalid_(/** @type {!MessageEvent} */ (event))) {
+    if (!this.messageEventIsValid_(/** @type {!MessageEvent} */ (event))) {
       console.log('Ignoring message event:', event);
       return;
     }
