@@ -16,22 +16,22 @@
 
 import {GetEntitlementsParamsExternalDef} from '../../src/api/subscriptions';
 
-/** Sentinel used to tell parent that we are communicating with it. */
-export const SENTINEL = 'google_signin';
+/** Sentinel used in post messages to and from the SwG iframe. */
+export const SENTINEL = 'swg_google_sign_in';
 
-/** Command name for when the parent frame is ready for iframe start. */
-export const PARENT_READY_COMMAND = 'parent_frame_ready';
+/** Command name for when the SwG frame is ready. */
+export const SWG_IFRAME_READY_COMMAND = 'swg_iframe_ready';
 
-/** Command name for when the Google Sign-in iframe is ready. */
-export const INTERMEDIATE_IFRAME_READY_COMMAND = 'intermediate_iframe_ready';
+/** Command name for when the publisher iframe is ready. */
+export const PUBLISHER_IFRAME_READY_COMMAND = 'publisher_iframe_ready';
 
-/** Command name for when the user's metering parameters are returned from the publisher. */
+/** Command name for when the publisher iframe returns getEntitlements parameters. */
 export const METERING_PARAMS_READY_COMMAND = 'metering_params_ready';
 
-/** Location of the Google Sign-in API */
-export const GOOGLE_SIGN_IN_URL = 'https://accounts.google.com/gsi/client';
+/** Location of the Google Sign-In API script. */
+export const GOOGLE_SIGN_IN_JS_URL = 'https://accounts.google.com/gsi/client';
 
-/** Origin of SwG server. Used for postMessages. */
+/** Origin of SwG server. Used for post messages. */
 export const SWG_SERVER_ORIGIN = '$frontend$';
 
 /**
@@ -69,7 +69,7 @@ export class SwgGoogleSignInButtonCreator {
         script.onload = () => {
           resolve(/** @type {!Object} */ (self.google)['accounts']['id']);
         };
-        script.src = GOOGLE_SIGN_IN_URL;
+        script.src = GOOGLE_SIGN_IN_JS_URL;
         this.win_.document.body.appendChild(script);
       }))();
 
@@ -180,7 +180,7 @@ export class SwgGoogleSignInButtonCreator {
     if (
       !event.data ||
       event.data['sentinel'] !== SENTINEL ||
-      event.data['command'] !== PARENT_READY_COMMAND
+      event.data['command'] !== SWG_IFRAME_READY_COMMAND
     ) {
       return false;
     }
@@ -214,7 +214,7 @@ export class SwgGoogleSignInButtonCreator {
   requestDomainVerification_() {
     this.requestNonce_ = this.generateRequestNonce_();
     this.sendMessageToParent_({
-      command: INTERMEDIATE_IFRAME_READY_COMMAND,
+      command: PUBLISHER_IFRAME_READY_COMMAND,
       nonce: this.requestNonce_,
     });
   }
