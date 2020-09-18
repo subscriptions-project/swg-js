@@ -14,23 +14,37 @@
  * limitations under the License.
  */
 
+import {GetEntitlementsParamsExternalDef} from '../../src/api/subscriptions';
+
 /** Sentinel used to tell parent that we are communicating with it. */
 export const SENTINEL = 'google_signin';
+
 /** Command name for when the parent frame is ready for iframe start. */
 export const PARENT_READY_COMMAND = 'parent_frame_ready';
+
 /** Command name for when the Google Sign-in iframe is ready. */
 export const INTERMEDIATE_IFRAME_READY_COMMAND = 'intermediate_iframe_ready';
+
 /** Command name for when the user's metering parameters are returned from the publisher. */
 export const METERING_PARAMS_READY_COMMAND = 'metering_params_ready';
+
 /** Location of the Google Sign-in API */
 export const GOOGLE_SIGN_IN_URL = 'https://accounts.google.com/gsi/client';
 
-/** Helper class to handle Google Sign-in configurations for the publisher's Sign-in iframe. */
+/** Origin of SwG server. Used for postMessages. TODO: Use `--frontend` param. */
+export const SWG_SERVER_ORIGIN = 'news.google.com';
+
+/**
+ * @typedef {function(!Object): !Promise<!GetEntitlementsParamsExternalDef>}
+ */
+let PublisherGoogleSignInCallbackDef;
+
+/** Renders SwG Google Sign-In buttons in publisher sign-in iframes. */
 export class SwgGoogleSignInButtonCreator {
   /**
    * @param {!Array<string>} allowedOrigins
-   * @param {!string} googleClientId
-   * @param {!function()} publisherGoogleSignInCallback
+   * @param {string} googleClientId
+   * @param {!PublisherGoogleSignInCallbackDef} publisherGoogleSignInCallback
    * @param {!Window} win
    */
   constructor(
@@ -39,138 +53,202 @@ export class SwgGoogleSignInButtonCreator {
     publisherGoogleSignInCallback,
     win
   ) {
-    /** @private @const {!Array<string>} */
+    /**
+     * Postmessages from these origins will be accepted. Others will be ignored.
+     * @private @const {!Array<string>}
+     */
     this.allowedOrigins_ = allowedOrigins;
 
-    /** @private @constant {!Window} */
+    /**
+     * The Google Sign-In button renders in this window.
+     * @private @constant {!Window}
+     */
     this.win_ = win;
 
-    /** @private @constant {!Object} */
-    this.google_ = (() => {
-      if (typeof self.google === 'undefined') {
+    /**
+     * The Google Sign-In API.
+     * @private @constant {!Promise<{
+     *   initialize: function(!Object): void,
+     *   renderButton: function(!Window, !Object): void,
+     * }>}
+     */
+    this.googleSignInApiPromise_ = (() =>
+      new Promise((resolve) => {
         const script = this.win_.document.createElement('script');
+        script.onload = () => {
+          resolve(/** @type {!Object} */ (self.google)['accounts']['id']);
+        };
         script.src = GOOGLE_SIGN_IN_URL;
         this.win_.document.body.appendChild(script);
-      }
-      return self.google;
-    })();
+      }))();
 
-    /** @private @const {!function()} */
-    this.signinCallback_ = () => {
-      this.google_.accounts.id.initialize({
-        /* eslint-disable google-camelcase/google-camelcase */
-        client_id: googleClientId,
-        callback: this.createGoogleSigninCallback_(
-          publisherGoogleSignInCallback
-        ),
-        auto_select: true,
-        /* eslint-enable google-camelcase/google-camelcase */
-      });
-      this.google_.accounts.id.renderButton(this.win_.parent, {});
-    };
+    /**
+     * The publisher-provided function that's called with Google Sign-In
+     * credentials after a successful sign-in.
+     *
+     * The input argument for the callback is a Google Sign-In CredentialResponse:
+     * https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
+     *
+     * The function must return a promise that resolves with
+     * `getEntitlements` method params, as described here:
+     * https://github.com/subscriptions-project/swg-js/blob/main/docs/entitlements-flow.md
+     * @private @const
+     */
+    this.publisherGoogleSignInCallback_ = publisherGoogleSignInCallback;
 
-    /** @private {?string}  */
-    this.pendingNonce_ = null;
+    /**
+     * The OAuth Client's ID.
+     * @private @const {string}
+     */
+    this.googleClientId_ = googleClientId;
+
+    /**
+     * This nonce identifies a single request sent to the parent iframe.
+     * This nonce will be present in valid responses to such requests.
+     * @private {?string}
+     */
+    this.requestNonce_ = null;
   }
 
-  /**
-   * Registers a domain-verifying event listener and requests domain verification.
-   */
+  /** Starts process of rendering a SwG Google Sign-In button. */
   start() {
     this.registerDomainVerifier_();
     this.requestDomainVerification_();
   }
 
   /**
-   * Modifies the input call back to chain parent notification of response.
-   * The input callback should call a publisher endpoint and return a JSON Metering
-   * object described here:
-   * https://github.com/subscriptions-project/swg-js/blob/main/docs/entitlements-flow.md#swg-entitlements-flow
-   * The input argument for the callback is a Google Sign-in CredentialResponse:
-   * https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
-   * @param {!function()} callback
+   * Returns a method that calls the publisherGoogleSignInCallback with
+   * Google Sign-In credentials, then sends a post message to the parent window.
+   * @param {!PublisherGoogleSignInCallbackDef} publisherGoogleSignInCallback
+   * @return {function(!Object): void}
    */
-  createGoogleSignInCallback_(callback) {
-    return (signinResponse) => {
-      const promiseOrResponse = callback(signinResponse);
-      Promise.resolve(promiseOrResponse).then((response) => {
-        this.notifyParent_({
-          sentinel: SENTINEL,
+  createGoogleSignInCallback_(publisherGoogleSignInCallback) {
+    return (googleSignInResponse) => {
+      const getEntitlementsParamsPromise = publisherGoogleSignInCallback(
+        googleSignInResponse
+      );
+
+      getEntitlementsParamsPromise.then((getEntitlementsParams) => {
+        this.sendMessageToParent_({
           command: METERING_PARAMS_READY_COMMAND,
-          response: response || {},
+          response: getEntitlementsParams,
         });
       });
     };
   }
 
+  /** Renders the Google Sign-In button. */
+  renderGoogleSignInButton_() {
+    const callback = this.createGoogleSigninCallback_(
+      this.publisherGoogleSignInCallback_
+    );
+
+    this.googleSignInApiPromise_.then((googleSignInApi) => {
+      googleSignInApi.initialize({
+        /* eslint-disable google-camelcase/google-camelcase */
+        auto_select: true,
+        client_id: this.googleClientId_,
+        /* eslint-enable google-camelcase/google-camelcase */
+        callback,
+      });
+
+      googleSignInApi.renderButton(this.win_.parent, {});
+    });
+  }
+
   /**
-   * Registers an event listener that calls the signinCallback to display the Sign-in
-   * button after the event is verified.
+   * Registers an event listener that calls the signinCallback to display
+   * the Google Sign-In button after the event is verified.
    */
   registerDomainVerifier_() {
-    if (!this.win_.parent) {
-      return;
-    }
     this.win_.addEventListener('message', (event) => {
       this.handleMessageEvent_(event);
     });
   }
 
-  /** Verifies messages and calls the display sign-in button callback if the message is verified. */
-  handleMessageEvent_(event) {
-    // Only allow events from the parent window (SwG)
-    if (event.source !== this.win_.parent || !event.data) {
-      return;
+  /**
+   * Returns true if a given message event is invalid.
+   * @param {!MessageEvent} event
+   * @return {boolean}
+   */
+  messageEventIsInvalid_(event) {
+    // Ignore missing events.
+    if (!event) {
+      return true;
     }
-    // If the nonce isn't set we can't verify the message.
-    if (!this.pendingNonce_) {
-      return;
+
+    // Ignore events that didn't come from the parent window.
+    if (event.source !== this.win_.parent) {
+      return true;
     }
-    // Checking if the sentinel and commands are as we expect.
+
+    // Ignore unrequested events.
+    if (!this.requestNonce_ || event.data['nonce'] !== this.requestNonce_) {
+      return true;
+    }
+
+    // Ignore events with incorrect sentinels or commands.
     if (
-      event.data['sentinel'] != SENTINEL ||
-      event.data['command'] != PARENT_READY_COMMAND
+      !event.data ||
+      event.data['sentinel'] !== SENTINEL ||
+      event.data['command'] !== PARENT_READY_COMMAND
     ) {
-      return;
+      return true;
     }
-    // Check nonce to verify that the message was secure.
-    if (!event.data['nonce'] || event.data['nonce'] !== this.pendingNonce_) {
-      return;
+
+    // Ignore events with unallowed origins.
+    if (!this.allowedOrigins_.includes(event.origin)) {
+      return true;
     }
-    // Call callback to display the sign-in button.
-    this.pendingNonce_ = null;
-    if (this.allowedOrigins_.includes(event.origin)) {
-      const callback = /** typeof {function} */ this.signinCallback_;
-      callback();
-    }
+
+    // Don't sleep on this one.
+    return false;
   }
 
   /**
-   * Generates a verification nonce and notifies parent that the iframe is ready.
+   * Handles post message events. This function renders the Google Sign-In button
+   * if a valid event comes through.
+   * @param {Event} event
    */
+  handleMessageEvent_(event) {
+    // Ignore invalid message events.
+    if (this.messageEventIsInvalid_(event)) {
+      console.log('Ignoring message event:', event);
+      return;
+    }
+
+    // Render the sign-in button.
+    this.renderGoogleSignInButton_();
+    this.requestNonce_ = null;
+  }
+
+  /** Generates a request nonce and notifies parent that the iframe is ready. */
   requestDomainVerification_() {
-    this.pendingNonce_ = this.generateNonce_();
-    this.notifyParent_({
-      sentinel: SENTINEL,
+    this.requestNonce_ = this.generateRequestNonce_();
+    this.sendMessageToParent_({
       command: INTERMEDIATE_IFRAME_READY_COMMAND,
-      nonce: this.pendingNonce_,
+      nonce: this.requestNonce_,
     });
   }
 
-  /** Generates a verification nonce. */
-  generateNonce_() {
+  /**
+   * Returns a nonce that identifies a single request sent to the parent iframe.
+   * This nonce will be present in valid responses to such requests.
+   */
+  generateRequestNonce_() {
     return btoa(Math.floor(Math.random() * 100000) + 1 + '-nonce');
   }
 
   /**
-   * Sends a post message to the window's parent.
-   * Using any domain here ('*') since we have already verified
-   * the domain of the parent to be trustworthy due to matching nonces
-   * in registerDomainVerifier_.
+   * Sends a post message to the parent window.
    * @param {!Object} message
    */
-  notifyParent_(message) {
-    this.win_.parent && this.win_.parent.postMessage(message, '*');
+  sendMessageToParent_(message) {
+    // Add sentinel to message.
+    Object.assign(message, {sentinel: SENTINEL});
+
+    // Send message to parent.
+    this.win_.parent.postMessage(message, SWG_SERVER_ORIGIN);
   }
 }
 
