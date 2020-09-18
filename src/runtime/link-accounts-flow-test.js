@@ -205,7 +205,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
       ActivityResultCode.OK,
       {'index': '1'},
       'IFRAME',
-      location.origin,
+      '$frontend$',
       true,
       true
     );

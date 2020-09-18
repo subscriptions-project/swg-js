@@ -1541,12 +1541,7 @@ new subscribers. Use the showOffers() method instead.'
       const startStub = sandbox
         .stub(LinkCompleteFlow.prototype, 'start')
         .callsFake(() => Promise.resolve());
-      await returnActivity(
-        'swg-link',
-        ActivityResultCode.OK,
-        {},
-        location.origin
-      );
+      await returnActivity('swg-link', ActivityResultCode.OK, {}, '$frontend$');
       expect(startStub).to.be.calledOnce;
     });
 
