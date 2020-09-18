@@ -31,8 +31,8 @@ export const METERING_PARAMS_READY_COMMAND = 'metering_params_ready';
 /** Location of the Google Sign-in API */
 export const GOOGLE_SIGN_IN_URL = 'https://accounts.google.com/gsi/client';
 
-/** Origin of SwG server. Used for postMessages. TODO: Use `--frontend` param. */
-export const SWG_SERVER_ORIGIN = 'news.google.com';
+/** Origin of SwG server. Used for postMessages. */
+export const SWG_SERVER_ORIGIN = '$frontendOrigin$';
 
 /**
  * @typedef {function(!Object): !Promise<!GetEntitlementsParamsExternalDef>}

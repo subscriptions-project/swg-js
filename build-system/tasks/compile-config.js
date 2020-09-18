@@ -37,13 +37,16 @@ exports.resolveConfig = function () {
 
   console.log(green('Configuration'));
   console.log(green('  --frontend ') + cyan(frontend));
-  if (!/^https?:\/\/[A-Za-z0-9.-]+\.com(:[0-9]+)?$/.test(frontend)) {
+  const originRegex = /^https?:\/\/[A-Za-z0-9.-]+\.com(:[0-9]+)?$/;
+  const frontendOriginMatch = frontend.match(originRegex);
+  if (!frontendOriginMatch) {
     console.log(red('Frontend URL (--frontend) is invalid'));
     throw new Error('Frontend URL (--frontend) is invalid');
   }
 
   const config = {
     frontend,
+    frontendOrigin: frontendOriginMatch[0],
     'internalRuntimeVersion': internalRuntimeVersion,
     'frontendCache': argv.frontendCache || FRONTEND_CACHE,
     'assets': argv.assets || ASSETS,
