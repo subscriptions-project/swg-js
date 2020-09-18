@@ -201,7 +201,6 @@ export class SwgGoogleSignInButtonCreator {
   handleVerificationMessage_(event) {
     // Ignore invalid message events.
     if (!this.messageEventIsValid_(/** @type {!MessageEvent} */ (event))) {
-      console.log('Ignoring message event:', event);
       return;
     }
 
