@@ -43,7 +43,7 @@
         credentials: 'include',
         body: formData,
       });
-      return window.fetch(LOGIN_ENDPOINT, init);
+      return window.fetch(LOGIN_ENDPOINT, init).then(response => response.json());
     };
 
     window.onload = () => {
