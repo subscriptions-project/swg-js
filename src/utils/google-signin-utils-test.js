@@ -61,4 +61,6 @@ describes.realWin('SwgGoogleSignInButtonCreator', {}, (env) => {
       ]);
     });
   });
+
+  // TODO: Add more tests after prototyping phase.
 });
