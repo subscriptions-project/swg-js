@@ -201,8 +201,8 @@ function startFlowAuto() {
           // Show a registration dialog from Google.
           // The page will refresh after the user registers.
           subscriptions.showMeterRegwall({
-            gsiUrl: 'http://localhost:8000.com/gsi',
-            alreadyRegisteredUrl: 'http://localhost:8000.com/aru',
+            gsiUrl: 'http://localhost:8000/examples/sample-pub/gsi-iframe',
+            alreadyRegisteredUrl: 'http://localhost:8000/examples/sample-pub/signin',
             handleMeteringEntitlements,
           });
         } else {
