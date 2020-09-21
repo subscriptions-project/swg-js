@@ -33,17 +33,20 @@ const overrides = {};
  * @return {!Object<string, string>}
  */
 exports.resolveConfig = function () {
-  const frontend = argv.frontend || FRONTEND;
+  const swgServerOrigin = argv.frontend || FRONTEND;
 
   console.log(green('Configuration'));
-  console.log(green('  --frontend ') + cyan(frontend));
-  if (!/^https?:\/\/[A-Za-z0-9.-]+\.com(:[0-9]+)?$/.test(frontend)) {
+  console.log(green('  --frontend ') + cyan(swgServerOrigin));
+  const swgServerOriginIsValid = /^https?:\/\/[A-Za-z0-9.-]+\.com(:[0-9]+)?$/.test(
+    swgServerOrigin
+  );
+  if (!swgServerOriginIsValid) {
     console.log(red('Frontend URL (--frontend) is invalid'));
     throw new Error('Frontend URL (--frontend) is invalid');
   }
 
   const config = {
-    frontend,
+    'frontend': swgServerOrigin,
     'internalRuntimeVersion': internalRuntimeVersion,
     'frontendCache': argv.frontendCache || FRONTEND_CACHE,
     'assets': argv.assets || ASSETS,

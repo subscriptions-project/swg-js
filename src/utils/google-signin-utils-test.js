@@ -15,227 +15,52 @@
  */
 
 import {
-  METERING_PARAMS_READY_COMMAND,
-  PARENT_READY_COMMAND,
+  PUBLISHER_IFRAME_READY_COMMAND,
   SENTINEL,
-  SwgGoogleSigninCreator,
+  SWG_SERVER_ORIGIN,
+  SwgGoogleSignInButtonCreator,
 } from './google-signin-utils';
 
-describes.realWin('SwgGoogleSigninCreator', {}, (env) => {
-  let win;
-  let allowedOrigins;
-  let signinCallback;
-  let parentMock;
+describes.realWin('SwgGoogleSignInButtonCreator', {}, (env) => {
   let clientId;
+  let postMessages;
+  let signinCallback;
+  let win;
 
   beforeEach(() => {
     win = env.win;
     win.google = sandbox.spy();
-    allowedOrigins = ['localhost'];
     signinCallback = sandbox.spy();
-    parentMock = sandbox.mock(win.parent);
+    postMessages = [];
+    sandbox.stub(win.parent, 'postMessage').callsFake((message, origin) => {
+      postMessages.push({
+        message,
+        origin,
+      });
+    });
     clientId = 'fakegoogleclientid';
-  });
-
-  afterEach(() => {
-    parentMock.verify();
   });
 
   describe('start', () => {
     it('should start correctly and accept events', () => {
-      const creator = new SwgGoogleSigninCreator(
-        allowedOrigins,
-        clientId,
-        signinCallback,
-        win
-      );
-      parentMock.expects('postMessage').once();
-      creator.start();
-    });
-
-    it("missing parent doesn't register message event listener", () => {
-      win.parent = null;
-      const addEventSpy = sandbox.spy(win.addEventListener);
-      const creator = new SwgGoogleSigninCreator(
-        allowedOrigins,
+      const creator = new SwgGoogleSignInButtonCreator(
         clientId,
         signinCallback,
         win
       );
       creator.start();
-      assert(addEventSpy.notCalled);
-    });
-  });
-
-  describe('handleMessageEvent_', () => {
-    it('should handle correct message event', () => {
-      const creator = new SwgGoogleSigninCreator(
-        allowedOrigins,
-        clientId,
-        signinCallback,
-        win
-      );
-      creator.start();
-      creator.signinCallback_ = signinCallback;
-      const event = new MessageEvent('worker', {
-        data: {
-          sentinel: SENTINEL,
-          command: PARENT_READY_COMMAND,
-          nonce: creator.pendingNonce_,
-        },
-        origin: 'localhost',
-        source: win.parent,
-      });
-      creator.handleMessageEvent_(event);
-      assert(signinCallback.calledOnce);
-    });
-
-    it('should not call callback on unallowed origin', () => {
-      const creator = new SwgGoogleSigninCreator(
-        allowedOrigins,
-        clientId,
-        signinCallback,
-        win
-      );
-      creator.start();
-      creator.signinCallback_ = signinCallback;
-      const event = new MessageEvent('worker', {
-        data: {
-          sentinel: SENTINEL,
-          command: PARENT_READY_COMMAND,
-          nonce: creator.pendingNonce_,
-        },
-        origin: 'somescaryorigin',
-        source: win.parent,
-      });
-      creator.handleMessageEvent_(event);
-      assert(signinCallback.notCalled);
-    });
-
-    it('should not call callback on missing data', () => {
-      const creator = new SwgGoogleSigninCreator(
-        allowedOrigins,
-        clientId,
-        signinCallback,
-        win
-      );
-      creator.start();
-      creator.signinCallback_ = signinCallback;
-      const event = new MessageEvent('worker', {
-        origin: 'localhost',
-        source: win.parent,
-      });
-      creator.handleMessageEvent_(event);
-      assert(signinCallback.notCalled);
-    });
-
-    it('should not call callback on missing nonce', () => {
-      const creator = new SwgGoogleSigninCreator(
-        allowedOrigins,
-        clientId,
-        signinCallback,
-        win
-      );
-      creator.start();
-      creator.signinCallback_ = signinCallback;
-      const event = new MessageEvent('worker', {
-        data: {
-          sentinel: SENTINEL,
-          command: PARENT_READY_COMMAND,
-          nonce: btoa('XXXXX-nonce'),
-        },
-        origin: 'localhost',
-        source: win.parent,
-      });
-      creator.pendingNonce_ = null;
-      creator.handleMessageEvent_(event);
-      assert(signinCallback.notCalled);
-    });
-
-    it('should not call callback on mismatched nonce', () => {
-      const creator = new SwgGoogleSigninCreator(
-        allowedOrigins,
-        clientId,
-        signinCallback,
-        win
-      );
-      creator.start();
-      creator.signinCallback_ = signinCallback;
-      const event = new MessageEvent('worker', {
-        data: {
-          sentinel: SENTINEL,
-          command: PARENT_READY_COMMAND,
-          nonce: btoa('XXXXX-nonce'),
-        },
-        origin: 'localhost',
-        source: win.parent,
-      });
-      creator.handleMessageEvent_(event);
-      assert(signinCallback.notCalled);
-    });
-
-    it('should not call callback on incorrect command', () => {
-      const creator = new SwgGoogleSigninCreator(
-        allowedOrigins,
-        clientId,
-        signinCallback,
-        win
-      );
-      creator.start();
-      creator.signinCallback_ = signinCallback;
-      const event = new MessageEvent('worker', {
-        data: {
-          sentinel: SENTINEL,
-          command: 'someBadCommand',
-          nonce: creator.pendingNonce_,
-        },
-        origin: 'localhost',
-        source: win.parent,
-      });
-      creator.handleMessageEvent_(event);
-      assert(signinCallback.notCalled);
-    });
-  });
-
-  describe('createGoogleSignInCallback_', () => {
-    it('should call callback and handle response correctly', async () => {
-      const creator = new SwgGoogleSigninCreator(
-        allowedOrigins,
-        clientId,
-        signinCallback,
-        win
-      );
-      const testMeteringObject = {
-        metering: {
-          state: {
-            id:
-              'user5901e3f7a7fc5767b6acbbbaa927d36f5901e3f7a7fc5767b6acbbbaa927',
-            standardAttributes: {
-              registeredUser: {
-                timestamp: 10000000,
-              },
-            },
-            customAttributes: {
-              newsletterSubscriber: {
-                timestamp: 10000000,
-              },
-            },
-          },
-        },
-      };
-      const callback = () => testMeteringObject;
-      const googleSignInCallback = creator.createGoogleSignInCallback_(
-        callback
-      );
-      parentMock.expects('postMessage').withExactArgs(
+      expect(postMessages).to.deep.equal([
         {
-          sentinel: SENTINEL,
-          command: METERING_PARAMS_READY_COMMAND,
-          response: testMeteringObject,
+          message: {
+            command: PUBLISHER_IFRAME_READY_COMMAND,
+            nonce: creator.requestNonce_,
+            sentinel: SENTINEL,
+          },
+          origin: SWG_SERVER_ORIGIN,
         },
-        '*'
-      );
-      await googleSignInCallback({});
+      ]);
     });
   });
+
+  // TODO: Add more tests after prototyping phase.
 });

@@ -69,6 +69,24 @@ exports.compile = async function (options = {}) {
         options
       )
     ),
+    compileJs(
+      './src/utils/',
+      'google-signin-utils',
+      './dist',
+      Object.assign(
+        {
+          toName: 'subscriptions-google-sign-in.max.js',
+          minifiedName: options.checkTypes
+            ? 'subscriptions-google-sign-in.checktypes.js'
+            : argv.minifiedName || 'subscriptions-google-sign-in.js',
+          includePolyfills: true,
+          // If there is a sync JS error during initial load,
+          // at least try to unhide the body.
+          wrapper: '(function(){<%= contents %>})();',
+        },
+        options
+      )
+    ),
   ]);
 };
 

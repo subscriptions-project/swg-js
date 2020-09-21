@@ -2,10 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <script async src="https://news.google.com/swg/js/v1/google_signin.js"></script>
+  <!--
+    Publishers will load the SwG Google Sign-In JS from:
+    https://news.google.com/swg/js/v1/swg-gsi.js
+
+    The URL is injected below for SwG development purposes.
+  -->
+  <script src="<% swgGsiJsUrl %>"></script>
   <script>
-    // All allowed origins of the SwG iframe.
-    const ALLOWED_ORIGINS = ['https://news.google.com'];
     // Publisher's application Client ID (Google Developer Console)
     const CLIENT_ID = '520465458218-embpp4s35v0utlr31317qkso3fk8q3d9.apps.googleusercontent.com';
     // Publisher's login endpoint. Where Google Sign-in's response gets sent to.
@@ -39,14 +43,14 @@
         credentials: 'include',
         body: formData,
       });
-      return window.fetch(LOGIN_ENDPOINT, init);
+      return window.fetch(LOGIN_ENDPOINT, init).then(response => response.json());
     };
 
     window.onload = () => {
-        const creator = new SwgGoogleSigninCreator(
-          ALLOWED_ORIGINS, CLIENT_ID, publisherGoogleSignInCallback, window
+        const buttonCreator = new SwgGoogleSignInButtonCreator(
+          CLIENT_ID, publisherGoogleSignInCallback, window
         );
-        creator.start();
+        buttonCreator.start();
       };
   </script>
 </head>

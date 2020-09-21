@@ -37,9 +37,13 @@ module.exports = {
       ['babelify', {presets: ['@babel/preset-env']}],
       () =>
         through(function (buf, enc, next) {
-          // Set Pay environment to indicate we're in a Karma test.
           this.push(
-            buf.toString('utf8').replace(/\$payEnvironment\$/g, 'TEST')
+            buf
+              .toString('utf8')
+              // Set Pay environment to indicate we're in a Karma test.
+              .replace(/\$payEnvironment\$/g, 'TEST')
+              // Some tests need a valid SwG server origin.
+              .replace(/\$frontend\$/g, 'https://news.google.com')
           );
           next();
         }),
