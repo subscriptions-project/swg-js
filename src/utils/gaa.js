@@ -14,7 +14,46 @@
  * limitations under the License.
  */
 
-import REGWALL_HTML from './gaa-metering-regwall.html';
+const REGWALL_HTML = `
+<html>
+  <head>
+    <style>
+      .card-spacer {
+        bottom: 0;
+        position: absolute;
+        width: 100%;
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px 12px 0 0;
+        margin: 0 auto;
+        padding: 20px;
+        width: 410px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="card-spacer">
+      <div class="card">
+        <div>[Google logo]</div>
+
+        <div>Get more with Google</div>
+
+        <div>
+          You're out of free articles, so sign in. Lorem ipsum dolor sit amet,
+          consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+          labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+          exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        </div>
+
+        <div id="swg-google-sign-in-button"></div>
+      </div>
+    </div>
+  </body>
+</html>
+`;
 
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
