@@ -36,6 +36,9 @@ const MeteringDemo = {
     // Forget the existing registration timestamp.
     delete localStorage.meteringRegistrationTimestamp;
 
+    // Delete the existing username.
+    delete localStorage.meteringUsername;
+
     // Sign out of Google Sign-In.
     self.GaaMeteringRegwall.signOut({
       googleSignInClientId: MeteringDemo.GOOGLE_SIGN_IN_CLIENT_ID,
@@ -53,10 +56,14 @@ const MeteringDemo = {
     window.location.reload();
   },
 
-  /** Sets a registration cookie for the user. */
-  setRegistrationCookie: () => {
+  /** Mocks registration of a user, given a Google Sign-In User object. */
+  registerUser: (googleUser) => {
     // Record the registration timestamp in seconds (not milliseconds).
     localStorage.meteringRegistrationTimestamp = Math.floor(Date.now() / 1000);
+
+    // Record the user's name, for the metering demo.
+    localStorage.meteringUsername = googleUser.getBasicProfile().getName();
+    console.log('Register user...');
   },
 
   /** Returns a new Publisher Provided ID (PPID) suitable for demo purposes. */
@@ -78,6 +85,11 @@ const MeteringDemo = {
 
   /** Returns the user's metering state, including when the user registered. */
   fetchMeteringState: () => {
+    // Logs the username, for the metering demo.
+    if (localStorage.meteringUsername) {
+      console.log(`Hello, ${localStorage.meteringUsername}!`);
+    }
+
     return Promise.resolve({
       id: MeteringDemo.getPpid(),
       registrationTimestamp: localStorage.meteringRegistrationTimestamp,

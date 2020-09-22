@@ -164,68 +164,35 @@ function startFlowAuto() {
       // Set up metering demo controls.
       MeteringDemo.setupControls();
 
-      // Handles metering entitlements.
-      function handleMeteringEntitlements(entitlements) {
-        // Check if an entitlement unlocks the article.
-        if (entitlements.enablesThis()) {
-          // Check if a Google metering entitlement unlocks the article.
-          if (entitlements.enablesThisWithGoogleMetering()) {
-            // Consume the entitlement. This lets Google know a specific free
-            // read was "used up", which allows Google to calculate how many
-            // free reads are left for a given user.
-            //
-            // Consuming an entitlement will also trigger a dialog that lets the user
-            // know Google provided them with a free read.
-            entitlements.consume(() => {
-              // Unlock the article AFTER the user consumes a free read.
-              // Note: If you unlock the article outside of this callback,
-              // users might be able to scroll down and read the article
-              // without closing the dialog, and closing the dialog is
-              // what actually consumes a free read.
-              MeteringDemo.openPaywall();
-            });
-          } else {
-            // Unlock article right away, since the user has a subscription.
-            MeteringDemo.openPaywall();
+      // Fetch the current user's metering state.
+      MeteringDemo.fetchMeteringState()
+        .then((meteringState) => {
+          if (meteringState.registrationTimestamp) {
+            // Skip metering regwall for registered users.
+            return meteringState;
           }
-        } else {
-          // Show a publisher paywall for demo purposes.
-          startFlow('showOffers');
-        }
-      }
 
-      // Fetch the user's metering state, including when the user registered.
-      MeteringDemo.fetchMeteringState().then((meteringState) => {
-        if (!meteringState.registrationTimestamp) {
-          // The user hasn't registered.
-          // Show a registration dialog from Google.
-          // The page will refresh after the user registers.
-          GaaMeteringRegwall.show({
+          // Show metering regwall for unregistered users.
+          return GaaMeteringRegwall.show({
             googleSignInClientId: MeteringDemo.GOOGLE_SIGN_IN_CLIENT_ID,
-          }).then((googleUser) => {
-            // Useful data for your client-side scripts:
-            var profile = googleUser.getBasicProfile();
-            console.log('ID: ' + profile.getId()); // Don't send this directly to your server!
-            console.log('Full Name: ' + profile.getName());
-            console.log('Given Name: ' + profile.getGivenName());
-            console.log('Family Name: ' + profile.getFamilyName());
-            console.log('Image URL: ' + profile.getImageUrl());
-            console.log('Email: ' + profile.getEmail());
-
-            // The ID token you need to pass to your backend:
-            var id_token = googleUser.getAuthResponse().id_token;
-            console.log('ID Token: ' + id_token);
-
-            // Now you can make a registration cookie for the user.
-            MeteringDemo.setRegistrationCookie();
-
-            // Reload the page so the user can get metering entitlements.
-            // TODO: Refactor this publisher code so a reload isn't necessary.
-            location.reload();
-          });
-        } else {
-          // The user has registered.
-          // Fetch metering entitlements from Google.
+          })
+            .then((googleUser) =>
+              // Register a user based on Google Sign-In's User object.
+              // https://developers.google.com/identity/sign-in/web/reference#users
+              //
+              // We advise setting a 1st party, secure, HTTP-only cookie,
+              // so it lives past 7 days in Safari.
+              // https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
+              MeteringDemo.registerUser(googleUser)
+            )
+            .then(() =>
+              // Fetch the curren't user's metering state again,
+              // since they registered.
+              MeteringDemo.fetchMeteringState()
+            );
+        })
+        .then((meteringState) => {
+          // Get SwG entitlements.
           subscriptions
             .getEntitlements({
               metering: {
@@ -247,9 +214,35 @@ function startFlowAuto() {
                 },
               },
             })
-            .then(handleMeteringEntitlements);
-        }
-      });
+            .then((entitlements) => {
+              // Check if an entitlement unlocks the article.
+              if (entitlements.enablesThis()) {
+                // Check if a Google metering entitlement unlocks the article.
+                if (entitlements.enablesThisWithGoogleMetering()) {
+                  // Consume the entitlement. This lets Google know a specific free
+                  // read was "used up", which allows Google to calculate how many
+                  // free reads are left for a given user.
+                  //
+                  // Consuming an entitlement will also trigger a dialog that lets the user
+                  // know Google provided them with a free read.
+                  entitlements.consume(() => {
+                    // Unlock the article AFTER the user consumes a free read.
+                    // Note: If you unlock the article outside of this callback,
+                    // users might be able to scroll down and read the article
+                    // without closing the dialog, and closing the dialog is
+                    // what actually consumes a free read.
+                    MeteringDemo.openPaywall();
+                  });
+                } else {
+                  // Unlock article right away, since the user has a subscription.
+                  MeteringDemo.openPaywall();
+                }
+              } else {
+                // Show a publisher paywall for demo purposes.
+                startFlow('showOffers');
+              }
+            });
+        });
     });
     return;
     /* eslint-enable */
