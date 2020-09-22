@@ -37,6 +37,10 @@ const REGWALL_HTML = `
         padding: 20px;
         width: 410px;
       }
+
+      .gaa-metering-regwall--button {
+        min-height: 36px;
+      }
     </style>
   </head>
 
@@ -54,7 +58,9 @@ const REGWALL_HTML = `
           exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         </div>
 
-        <div id="${GOOGLE_SIGN_IN_BUTTON_ID}"></div>
+        <div id="${GOOGLE_SIGN_IN_BUTTON_ID}"
+             class="gaa-metering-regwall--button">
+        </div>
       </div>
     </div>
   </body>
@@ -155,8 +161,6 @@ export class GaaMeteringRegwall {
     return new Promise((resolve, reject) => {
       self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
         'scope': 'profile email',
-        'width': 240,
-        'height': 50,
         'longtitle': true,
         'theme': 'dark',
         'onsuccess': resolve,
