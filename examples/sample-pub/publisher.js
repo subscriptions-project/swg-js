@@ -220,6 +220,7 @@ function startFlowAuto() {
             MeteringDemo.setRegistrationCookie();
 
             // Reload the page so the user can get metering entitlements.
+            // TODO: Refactor this publisher code so a reload isn't necessary.
             location.reload();
           });
         } else {
