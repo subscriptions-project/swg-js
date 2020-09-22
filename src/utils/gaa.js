@@ -16,6 +16,10 @@
 
 import {setImportantStyles} from './style';
 
+/** ID for the Google Sign-In button element. */
+const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
+
+/** HTML for the metering regwall dialog, where users can sign in with Google. */
 const REGWALL_HTML = `
 <html>
   <head>
@@ -50,12 +54,15 @@ const REGWALL_HTML = `
           exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         </div>
 
-        <div id="swg-google-sign-in-button"></div>
+        <div id="${GOOGLE_SIGN_IN_BUTTON_ID}"></div>
       </div>
     </div>
   </body>
 </html>
 `;
+
+/** Where to load the JS for Google Sign-In. */
+const GOOGLE_SIGN_IN_JS_URL = 'https://apis.google.com/js/platform.js';
 
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
@@ -63,6 +70,9 @@ export class GaaMeteringRegwall {
    * Returns a promise with Google User object:
    * Reference: https://developers.google.com/identity/sign-in/web/reference#users
    * Example usage: https://developers.google.com/identity/sign-in/web
+   *
+   * This method opens a metering regwall dialog,
+   * where users can sign in with Google.
    * @param {{ googleSignInClientId: string }} params
    * @return {!Promise}
    */
@@ -73,6 +83,10 @@ export class GaaMeteringRegwall {
 
   /**
    * Signs the user out.
+   *
+   * This method signs the user out of Google Sign-In.
+   * This is useful for developers who are testing their
+   * SwG integrations.
    * @param {{ googleSignInClientId: string }} params
    * @return {!Promise}
    */
@@ -113,7 +127,7 @@ export class GaaMeteringRegwall {
     return new Promise((resolve) => {
       const script = self.document.createElement('script');
       script.onload = resolve;
-      script.src = 'https://apis.google.com/js/platform.js';
+      script.src = GOOGLE_SIGN_IN_JS_URL;
       self.document.body.appendChild(script);
     });
   }
@@ -139,7 +153,7 @@ export class GaaMeteringRegwall {
     self.document.body.appendChild(el);
 
     return new Promise((resolve, reject) => {
-      self.gapi.signin2.render('swg-google-sign-in-button', {
+      self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
         'scope': 'profile email',
         'width': 240,
         'height': 50,
