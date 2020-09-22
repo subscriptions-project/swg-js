@@ -16,7 +16,7 @@
 
 import {GaaMeteringRegwall} from './gaa';
 
-describes.realWin('GaaMeteringRegwall', {}, (env) => {
+describes.realWin('GaaMeteringRegwall', {}, () => {
   beforeEach(() => {});
 
   describe('show', () => {
