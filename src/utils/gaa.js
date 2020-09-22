@@ -97,7 +97,10 @@ export class GaaMeteringRegwall {
       return;
     }
 
-    const el = self.document.createElement('meta');
+    /** @type {!HTMLMetaElement} */
+    const el = /** @type {!HTMLMetaElement} */ (self.document.createElement(
+      'meta'
+    ));
     el.name = 'google-signin-client_id';
     el.content = clientId;
     self.document.head.appendChild(el);
@@ -115,8 +118,9 @@ export class GaaMeteringRegwall {
 
   /** @return {!Promise} */
   static renderCard_() {
-    const doc = self.document;
-    const el = doc.createElement('div');
+    const el = /** @type {!HTMLDivElement} */ (self.document.createElement(
+      'div'
+    ));
     el.style.backgroundColor = 'rgba(0,0,0,0.5)';
     el.style.border = 'none';
     el.style.bottom = '0';
@@ -128,7 +132,7 @@ export class GaaMeteringRegwall {
     el.style.width = '100%';
     el.style.zIndex = 2147483646;
     el.innerHTML = REGWALL_HTML;
-    doc.body.appendChild(el);
+    self.document.body.appendChild(el);
 
     return new Promise((resolve, reject) => {
       self.gapi.signin2.render('swg-google-sign-in-button', {
