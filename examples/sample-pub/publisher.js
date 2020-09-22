@@ -200,34 +200,28 @@ function startFlowAuto() {
           // The user hasn't registered.
           // Show a registration dialog from Google.
           // The page will refresh after the user registers.
-          if (typeof GaaMeteringRegwall === 'undefined') {
-            console.error(
-              'You must load swg-gaa.js before calling GaaMeteringRegwall.show'
-            );
-          } else {
-            GaaMeteringRegwall.show({
-              googleSignInClientId: MeteringDemo.GOOGLE_SIGN_IN_CLIENT_ID,
-            }).then((googleUser) => {
-              // Useful data for your client-side scripts:
-              var profile = googleUser.getBasicProfile();
-              console.log('ID: ' + profile.getId()); // Don't send this directly to your server!
-              console.log('Full Name: ' + profile.getName());
-              console.log('Given Name: ' + profile.getGivenName());
-              console.log('Family Name: ' + profile.getFamilyName());
-              console.log('Image URL: ' + profile.getImageUrl());
-              console.log('Email: ' + profile.getEmail());
+          GaaMeteringRegwall.show({
+            googleSignInClientId: MeteringDemo.GOOGLE_SIGN_IN_CLIENT_ID,
+          }).then((googleUser) => {
+            // Useful data for your client-side scripts:
+            var profile = googleUser.getBasicProfile();
+            console.log('ID: ' + profile.getId()); // Don't send this directly to your server!
+            console.log('Full Name: ' + profile.getName());
+            console.log('Given Name: ' + profile.getGivenName());
+            console.log('Family Name: ' + profile.getFamilyName());
+            console.log('Image URL: ' + profile.getImageUrl());
+            console.log('Email: ' + profile.getEmail());
 
-              // The ID token you need to pass to your backend:
-              var id_token = googleUser.getAuthResponse().id_token;
-              console.log('ID Token: ' + id_token);
+            // The ID token you need to pass to your backend:
+            var id_token = googleUser.getAuthResponse().id_token;
+            console.log('ID Token: ' + id_token);
 
-              // Now you can make a registration cookie for the user.
-              MeteringDemo.setRegistrationCookie();
+            // Now you can make a registration cookie for the user.
+            MeteringDemo.setRegistrationCookie();
 
-              // Reload the page so the user can get metering entitlements.
-              location.reload();
-            });
-          }
+            // Reload the page so the user can get metering entitlements.
+            location.reload();
+          });
         } else {
           // The user has registered.
           // Fetch metering entitlements from Google.
