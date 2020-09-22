@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
+import {setImportantStyles} from './style';
+
 const REGWALL_HTML = `
 <html>
   <head>
     <style>
-      .card-spacer {
+      .gaa-metering-regwall--card-spacer {
         bottom: 0;
         position: absolute;
         width: 100%;
       }
 
-      .card {
+      .gaa-metering-regwall--card {
         background: white;
         border-radius: 12px 12px 0 0;
         margin: 0 auto;
@@ -35,8 +37,8 @@ const REGWALL_HTML = `
   </head>
 
   <body>
-    <div class="card-spacer">
-      <div class="card">
+    <div class="gaa-metering-regwall--card-spacer">
+      <div class="gaa-metering-regwall--card">
         <div>[Google logo]</div>
 
         <div>Get more with Google</div>
@@ -121,17 +123,19 @@ export class GaaMeteringRegwall {
     const el = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
-    el.style.backgroundColor = 'rgba(0,0,0,0.5)';
-    el.style.border = 'none';
-    el.style.bottom = '0';
-    el.style.height = '100%';
-    el.style.left = '0';
-    el.style.position = 'fixed';
-    el.style.right = '0';
-    el.style.top = '0';
-    el.style.width = '100%';
-    el.style.zIndex = 2147483646;
-    el.innerHTML = REGWALL_HTML;
+    setImportantStyles(el, {
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      border: 'none',
+      bottom: '0',
+      height: '100%',
+      left: '0',
+      position: 'fixed',
+      right: '0',
+      top: '0',
+      width: '100%',
+      zIndex: 2147483646,
+    });
+    el./*OK*/ innerHTML = REGWALL_HTML;
     self.document.body.appendChild(el);
 
     return new Promise((resolve, reject) => {
