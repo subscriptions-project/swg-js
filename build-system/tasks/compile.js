@@ -87,6 +87,24 @@ exports.compile = async function (options = {}) {
         options
       )
     ),
+    compileJs(
+      './src/utils/',
+      'gaa',
+      './dist',
+      Object.assign(
+        {
+          toName: 'subscriptions-gaa.max.js',
+          minifiedName: options.checkTypes
+            ? 'subscriptions-gaa.checktypes.js'
+            : argv.minifiedName || 'subscriptions-gaa.js',
+          includePolyfills: true,
+          // If there is a sync JS error during initial load,
+          // at least try to unhide the body.
+          wrapper: '(function(){<%= contents %>})();',
+        },
+        options
+      )
+    ),
   ]);
 };
 

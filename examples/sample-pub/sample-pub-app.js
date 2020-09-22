@@ -40,6 +40,16 @@ const SWG_JS_URLS = {
   tt: 'https://news.google.com/swg/js/v1/swg-tt.js',
 };
 
+const SWG_GAA_JS_URLS = {
+  local: '/dist/subscriptions-gaa.max.js',
+  /* eslint-disable google-camelcase/google-camelcase */
+  local_min: '/dist/subscriptions-gaa.js',
+  /* eslint-enable google-camelcase/google-camelcase */
+  prod: 'https://news.google.com/swg/js/v1/swg-gaa.js',
+  autopush: 'https://news.google.com/swg/js/v1/swg-gaa-autopush.js',
+  tt: 'https://news.google.com/swg/js/v1/swg-gaa-tt.js',
+};
+
 const SWG_GSI_JS_URLS = {
   local: '/dist/subscriptions-google-sign-in.max.js',
   /* eslint-disable google-camelcase/google-camelcase */
@@ -87,6 +97,7 @@ app.get('/((\\d+))', (req, res) => {
   const setup = getSetup(req);
   res.render('../examples/sample-pub/views/article', {
     swgJsUrl: SWG_JS_URLS[setup.script],
+    swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
     setup,
     publicationId: PUBLICATION_ID,
     id,

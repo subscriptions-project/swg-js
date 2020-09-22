@@ -168,9 +168,9 @@ function startFlowAuto() {
       function handleMeteringEntitlements(entitlements) {
         // Check if an entitlement unlocks the article.
         if (entitlements.enablesThis()) {
-          // Check if a Google metering entitlement unlocks the article. 
+          // Check if a Google metering entitlement unlocks the article.
           if (entitlements.enablesThisWithGoogleMetering()) {
-            // Consume the entitlement. This lets Google know a specific free 
+            // Consume the entitlement. This lets Google know a specific free
             // read was "used up", which allows Google to calculate how many
             // free reads are left for a given user.
             //
@@ -195,16 +195,39 @@ function startFlowAuto() {
       }
 
       // Fetch the user's metering state, including when the user registered.
-      MeteringDemo.fetchMeteringState().then(meteringState => {
+      MeteringDemo.fetchMeteringState().then((meteringState) => {
         if (!meteringState.registrationTimestamp) {
           // The user hasn't registered.
           // Show a registration dialog from Google.
           // The page will refresh after the user registers.
-          subscriptions.showMeterRegwall({
-            gsiUrl: 'http://localhost:8000/examples/sample-pub/gsi-iframe',
-            alreadyRegisteredUrl: 'http://localhost:8000/examples/sample-pub/signin',
-            handleMeteringEntitlements,
-          });
+          if (typeof GaaMeteringRegwall === 'undefined') {
+            console.error(
+              'You must load swg-gaa.js before calling GaaMeteringRegwall.show'
+            );
+          } else {
+            GaaMeteringRegwall.show({
+              googleSignInClientId: MeteringDemo.GOOGLE_SIGN_IN_CLIENT_ID,
+            }).then((googleUser) => {
+              // Useful data for your client-side scripts:
+              var profile = googleUser.getBasicProfile();
+              console.log('ID: ' + profile.getId()); // Don't send this directly to your server!
+              console.log('Full Name: ' + profile.getName());
+              console.log('Given Name: ' + profile.getGivenName());
+              console.log('Family Name: ' + profile.getFamilyName());
+              console.log('Image URL: ' + profile.getImageUrl());
+              console.log('Email: ' + profile.getEmail());
+
+              // The ID token you need to pass to your backend:
+              var id_token = googleUser.getAuthResponse().id_token;
+              console.log('ID Token: ' + id_token);
+
+              // Now you can make a registration cookie for the user.
+              MeteringDemo.setRegistrationCookie();
+
+              // Reload the page so the user can get metering entitlements.
+              location.reload();
+            });
+          }
         } else {
           // The user has registered.
           // Fetch metering entitlements from Google.

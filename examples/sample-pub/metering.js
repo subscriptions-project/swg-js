@@ -5,6 +5,10 @@
  * define their own JS and backend code to provide the same functionality securely.
  */
 const MeteringDemo = {
+  /** Google Sign-In Client ID for the metering demo. */
+  GOOGLE_SIGN_IN_CLIENT_ID:
+    '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+
   /** Sets up controls for the metering demo. */
   setupControls: () => {
     // Wire up buttons.
@@ -32,17 +36,27 @@ const MeteringDemo = {
     // Forget the existing registration timestamp.
     delete localStorage.meteringRegistrationTimestamp;
 
-    // Refresh.
-    window.location.reload();
+    // Sign out of Google Sign-In.
+    self.GaaMeteringRegwall.signOut({
+      googleSignInClientId: MeteringDemo.GOOGLE_SIGN_IN_CLIENT_ID,
+    }).then(() => {
+      // Refresh.
+      window.location.reload();
+    });
   },
 
   /** Mocks the user completing GSI via the Regwall. */
   mockGsiCompletion: () => {
-    // Record the registration timestamp in seconds (not milliseconds).
-    localStorage.meteringRegistrationTimestamp = Math.floor(Date.now() / 1000);
+    MeteringDemo.setRegistrationCookie();
 
     // Refresh.
     window.location.reload();
+  },
+
+  /** Sets a registration cookie for the user. */
+  setRegistrationCookie: () => {
+    // Record the registration timestamp in seconds (not milliseconds).
+    localStorage.meteringRegistrationTimestamp = Math.floor(Date.now() / 1000);
   },
 
   /** Returns a new Publisher Provided ID (PPID) suitable for demo purposes. */
