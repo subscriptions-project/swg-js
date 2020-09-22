@@ -124,16 +124,16 @@ export class GaaMeteringRegwall {
       'div'
     ));
     setImportantStyles(el, {
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      border: 'none',
-      bottom: '0',
-      height: '100%',
-      left: '0',
-      position: 'fixed',
-      right: '0',
-      top: '0',
-      width: '100%',
-      zIndex: 2147483646,
+      'background-color': 'rgba(0,0,0,0.5)',
+      'border': 'none',
+      'bottom': '0',
+      'height': '100%',
+      'left': '0',
+      'position': 'fixed',
+      'right': '0',
+      'top': '0',
+      'width': '100%',
+      'z-index': 2147483646,
     });
     el./*OK*/ innerHTML = REGWALL_HTML;
     self.document.body.appendChild(el);
