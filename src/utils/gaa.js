@@ -41,7 +41,13 @@ const REGWALL_HTML = `
     width: 100%;
   }
 
+  @keyframes slideUp {
+    from {transform: translate(0, 200px);}
+    to {transform: translate(0, 0);}
+  }
+
   .gaa-metering-regwall--card {
+    animation: slideUp 0.5s;
     background: white;
     border-radius: 12px 12px 0 0;
     box-shadow: 0px -2px 6px rgba(0, 0, 0, 0.3);
@@ -171,19 +177,24 @@ export class GaaMeteringRegwall {
       'div'
     ));
     setImportantStyles(el, {
+      'all': 'unset',
       'background-color': 'rgba(0,0,0,0.5)',
       'border': 'none',
       'bottom': '0',
       'height': '100%',
       'left': '0',
+      'opacity': '0',
       'position': 'fixed',
       'right': '0',
+      'transition': 'opacity 0.5s',
       'top': '0',
       'width': '100%',
       'z-index': 2147483646,
     });
     el./*OK*/ innerHTML = REGWALL_HTML;
     self.document.body.appendChild(el);
+    el.offsetHeight;
+    setImportantStyles(el, {'opacity': 1});
 
     return new Promise((resolve, reject) => {
       self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
