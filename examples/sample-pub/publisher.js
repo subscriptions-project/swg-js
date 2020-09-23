@@ -186,7 +186,7 @@ function startFlowAuto() {
               MeteringDemo.registerUser(googleUser)
             )
             .then(() =>
-              // Fetch the curren't user's metering state again,
+              // Fetch the current user's metering state again
               // since they registered.
               MeteringDemo.fetchMeteringState()
             );
