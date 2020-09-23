@@ -15,9 +15,6 @@ const MeteringDemo = {
     document
       .querySelector('#metering-controls .reset-metering-demo')
       .addEventListener('click', MeteringDemo.resetMeteringDemo);
-    document
-      .querySelector('#metering-controls .mock-gsi-completion')
-      .addEventListener('click', MeteringDemo.mockGsiCompletion);
 
     // Show reset button.
     document.body.classList.add('metering');
@@ -46,14 +43,6 @@ const MeteringDemo = {
       // Refresh.
       window.location.reload();
     });
-  },
-
-  /** Mocks the user completing GSI via the Regwall. */
-  mockGsiCompletion: () => {
-    MeteringDemo.setRegistrationCookie();
-
-    // Refresh.
-    window.location.reload();
   },
 
   /** Mocks registration of a user, given a Google Sign-In User object. */
