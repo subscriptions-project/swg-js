@@ -31,7 +31,7 @@ const REGWALL_HTML = `
     all: initial;
     box-sizing: border-box;
     display: block;
-    font-family: sans-serif;
+    font-family: Roboto, arial, sans-serif;
   }
 
   .gaa-metering-regwall--card-spacer {
