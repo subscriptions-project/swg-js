@@ -167,8 +167,7 @@ function startFlowAuto() {
       // Set native response to a subscribe request. Required for metering toast.
       subscriptions.setOnNativeSubscribeRequest(() => {
         console.log('Starting native subscribe flow');
-        // Show offers for demo purposes.
-        startFlow('showOffers');
+        alert('Subscribe to The Scenic today!');
       });
 
       // Handles metering entitlements.
