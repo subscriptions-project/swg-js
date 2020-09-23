@@ -16,6 +16,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows} from '../api/subscriptions';
+import {ViewSubscriptionsResponse} from '../proto/api_messages';
 import {feArgs, feUrl} from './services';
 
 export class MeterToastApi {
@@ -43,6 +44,7 @@ export class MeterToastApi {
       feArgs({
         publicationId: deps.pageConfig().getPublicationId(),
         productId: deps.pageConfig().getProductId(),
+        hasSubscriptionCallback: deps.callbacks().hasSubscribeRequestCallback(),
       }),
       /* shouldFadeBody */ true
     );
@@ -56,6 +58,20 @@ export class MeterToastApi {
     this.deps_
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_METER_TOAST);
+    this.activityIframeView_.on(
+      ViewSubscriptionsResponse,
+      this.startNativeFlow_.bind(this)
+    );
     return this.dialogManager_.openView(this.activityIframeView_);
+  }
+
+  /**
+   * @param {ViewSubscriptionsResponse} response
+   * @private
+   */
+  startNativeFlow_(response) {
+    if (response.getNative()) {
+      this.deps_.callbacks().triggerSubscribeRequest();
+    }
   }
 }

@@ -20,7 +20,11 @@ import {
   Entitlements,
   GOOGLE_METERING_SOURCE,
 } from '../api/entitlements';
-import {EntitlementJwt, EntitlementsRequest} from '../proto/api_messages';
+import {
+  EntitlementJwt,
+  EntitlementsRequest,
+  ViewSubscriptionsResponse,
+} from '../proto/api_messages';
 import {
   GetEntitlementsParamsExternalDef,
   GetEntitlementsParamsInternalDef,
@@ -470,6 +474,9 @@ export class EntitlementsManager {
         feArgs({
           'productId': this.deps_.pageConfig().getProductId(),
           'publicationId': this.deps_.pageConfig().getPublicationId(),
+          'hasSubscriptionCallback': this.deps_
+            .callbacks()
+            .hasSubscribeRequestCallback(),
           'productType': ProductType.UI_CONTRIBUTION,
           'list': 'default',
           'skus': null,
@@ -482,6 +489,11 @@ export class EntitlementsManager {
           onCloseDialog();
         }
         this.sendPingback_(entitlements);
+      });
+      activityIframeView_.on(ViewSubscriptionsResponse, (response) => {
+        if (response.getNative()) {
+          this.deps_.callbacks().triggerSubscribeRequest();
+        }
       });
       return this.deps_.dialogManager().openView(activityIframeView_);
     }
