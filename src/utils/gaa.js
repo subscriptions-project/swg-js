@@ -188,6 +188,7 @@ export class GaaMeteringRegwall {
     return new Promise((resolve, reject) => {
       self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
         'scope': 'profile email',
+        'width': 370,
         'longtitle': true,
         'theme': 'dark',
         'onsuccess': resolve,
