@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   Entitlement,
   Entitlements,
   GOOGLE_METERING_SOURCE,
 } from '../api/entitlements';
-import {
-  EntitlementJwt,
-  EntitlementsRequest,
-  ViewSubscriptionsResponse,
-} from '../proto/api_messages';
+import {EntitlementJwt, EntitlementsRequest} from '../proto/api_messages';
 import {
   GetEntitlementsParamsExternalDef,
   GetEntitlementsParamsInternalDef,
-  ProductType,
 } from '../api/subscriptions';
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
+import {MeterToastApi} from './meter-toast-api';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
@@ -467,35 +462,14 @@ export class EntitlementsManager {
    */
   consume_(entitlements, onCloseDialog) {
     if (entitlements.enablesThisWithGoogleMetering()) {
-      const activityIframeView_ = new ActivityIframeView(
-        this.win_,
-        this.deps_.activities(),
-        feUrl('/metertoastiframe'),
-        feArgs({
-          'productId': this.deps_.pageConfig().getProductId(),
-          'publicationId': this.deps_.pageConfig().getPublicationId(),
-          'hasSubscriptionCallback': this.deps_
-            .callbacks()
-            .hasSubscribeRequestCallback(),
-          'productType': ProductType.UI_CONTRIBUTION,
-          'list': 'default',
-          'skus': null,
-          'isClosable': true,
-        }),
-        /* shouldFadeBody */ true
-      );
-      activityIframeView_.onCancel(() => {
+      const meterToastApi = new MeterToastApi(this.deps_);
+      meterToastApi.setOnCancelCallback(() => {
         if (onCloseDialog) {
           onCloseDialog();
         }
         this.sendPingback_(entitlements);
       });
-      activityIframeView_.on(ViewSubscriptionsResponse, (response) => {
-        if (response.getNative()) {
-          this.deps_.callbacks().triggerSubscribeRequest();
-        }
-      });
-      return this.deps_.dialogManager().openView(activityIframeView_);
+      return meterToastApi.start();
     }
   }
 
