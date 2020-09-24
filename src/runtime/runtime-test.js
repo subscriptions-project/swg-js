@@ -755,6 +755,17 @@ describes.realWin('Runtime', {}, (env) => {
       expect(configureStub).to.be.calledOnce.calledWith(false);
     });
 
+    it('should trigger "triggerLoginRequest"', async () => {
+      const request = {linkRequested: false};
+      configuredRuntimeMock
+        .expects('triggerLoginRequest')
+        .withExactArgs(request)
+        .once();
+
+      await runtime.triggerLoginRequest(request);
+      expect(configureStub).to.be.calledOnce.calledWith(false);
+    });
+
     it('should delegate "setOnLinkComplete"', async () => {
       const callback = function () {};
       configuredRuntimeMock
