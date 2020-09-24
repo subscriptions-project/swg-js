@@ -96,7 +96,7 @@ exports.compile = async function (options = {}) {
           toName: 'subscriptions-gaa.max.js',
           minifiedName: options.checkTypes
             ? 'subscriptions-gaa.checktypes.js'
-            : argv.minifiedName || 'subscriptions-gaa.js',
+            : argv.minifiedGaaName || 'subscriptions-gaa.js',
           includePolyfills: true,
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.
