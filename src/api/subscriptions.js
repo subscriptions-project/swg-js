@@ -172,6 +172,11 @@ export class Subscriptions {
   setOnLoginRequest(callback) {}
 
   /**
+   * @param {!LoginRequest} request
+   */
+  triggerLoginRequest(request) {}
+
+  /**
    * Starts the login prompt flow.
    * @return {!Promise}
    */
