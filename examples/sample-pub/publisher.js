@@ -170,6 +170,19 @@ function startFlowAuto() {
         startFlow('showOffers');
       });
 
+      // Handle clicks on the "Already have an account?" link within the
+      // Metering Regwall dialog.
+      subscriptions.setOnLoginRequest(() => {
+        subscriptions.linkAccount();
+      });
+
+      // Handle users linking their account.
+      subscriptions.setOnLinkComplete(() => {
+        subscriptions.reset();
+
+        location.reload();
+      });
+
       // Fetch the current user's metering state.
       MeteringDemo.fetchMeteringState()
         .then((meteringState) => {

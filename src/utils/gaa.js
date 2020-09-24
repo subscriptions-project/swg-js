@@ -19,6 +19,9 @@ import {setImportantStyles} from './style';
 /** ID for the Google Sign-In button element. */
 const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 
+/** ID for the Publisher sign-in button element. */
+const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
+
 /** Width for the Google Sign-In button element. */
 const GOOGLE_SIGN_IN_BUTTON_WIDTH = 250;
 
@@ -30,7 +33,8 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--logo,
   .gaa-metering-regwall--title,
   .gaa-metering-regwall--description,
-  .gaa-metering-regwall--button {
+  .gaa-metering-regwall--google-sign-in-button,
+  .gaa-metering-regwall--publisher-sign-in-button {
     all: initial;
     box-sizing: border-box;
     display: block;
@@ -77,11 +81,17 @@ const REGWALL_HTML = `
     margin: 0 0 20px;
   }
 
-  .gaa-metering-regwall--button {
+  .gaa-metering-regwall--google-sign-in-button {
     display: block;
-    margin: 0 auto;
+    margin: 0 auto 25px;
     min-height: 36px;
     width: ${GOOGLE_SIGN_IN_BUTTON_WIDTH}px;
+  }
+
+  .gaa-metering-regwall--publisher-sign-in-button {
+    color: #1967D2;
+    cursor: pointer;
+    font-size: 12px;
   }
 </style>
 
@@ -99,7 +109,12 @@ const REGWALL_HTML = `
     </div>
 
     <a id="${GOOGLE_SIGN_IN_BUTTON_ID}"
-          class="gaa-metering-regwall--button">
+          class="gaa-metering-regwall--google-sign-in-button">
+    </a>
+
+    <a id="${PUBLISHER_SIGN_IN_BUTTON_ID}"
+          class="gaa-metering-regwall--publisher-sign-in-button">
+      Already have an account?
     </a>
   </div>
 </div>
@@ -122,7 +137,7 @@ export class GaaMeteringRegwall {
    */
   static show({googleSignInClientId}) {
     this.addGoogleSignInMetaTag_(googleSignInClientId);
-    return this.loadGoogleSignInJs_().then(this.renderCard_);
+    return this.loadGoogleSignInJs_().then(() => this.renderCard_());
   }
 
   /**
@@ -198,7 +213,8 @@ export class GaaMeteringRegwall {
     });
     el./*OK*/ innerHTML = REGWALL_HTML;
     self.document.body.appendChild(el);
-    el.offsetHeight;
+    this.handleClicksOnPublisherSignInButton();
+    el.offsetHeight; // Trigger repaint.
     setImportantStyles(el, {'opacity': 1});
 
     return new Promise((resolve, reject) => {
@@ -214,6 +230,18 @@ export class GaaMeteringRegwall {
       el.remove();
       return result;
     });
+  }
+
+  static handleClicksOnPublisherSignInButton() {
+    self.document
+      .getElementById(PUBLISHER_SIGN_IN_BUTTON_ID)
+      .addEventListener('click', () => {
+        (self.SWG = self.SWG || []).push((subscriptions) => {
+          subscriptions.triggerLoginRequest({
+            linkRequested: false,
+          });
+        });
+      });
   }
 }
 
