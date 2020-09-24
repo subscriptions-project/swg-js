@@ -18,6 +18,7 @@ import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {MeterToastApi} from './meter-toast-api';
 import {PageConfig} from '../model/page-config';
+import {ViewSubscriptionsResponse} from '../proto/api_messages';
 
 describes.realWin('MeterToastApi', {}, (env) => {
   let win;
@@ -25,6 +26,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   let activitiesMock;
   let callbacksMock;
   let pageConfig;
+  let messageMap;
   let meterToastApi;
   let port;
   let dialogManagerMock;
@@ -33,15 +35,22 @@ describes.realWin('MeterToastApi', {}, (env) => {
 
   beforeEach(() => {
     win = env.win;
+    messageMap = {};
     pageConfig = new PageConfig(productId);
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
-    meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
+    port.acceptResult = () => Promise.resolve();
+    sandbox.stub(port, 'on').callsFake((ctor, callback) => {
+      const messageType = new ctor();
+      const messageLabel = messageType.label();
+      messageMap[messageLabel] = callback;
+    });
   });
 
   afterEach(() => {
@@ -61,10 +70,45 @@ describes.realWin('MeterToastApi', {}, (env) => {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId,
           productId,
+          hasSubscriptionCallback: false,
         }
       )
       .returns(Promise.resolve(port));
-
     await meterToastApi.start();
+  });
+
+  it('should start the flow correctly with native subscribe request', async () => {
+    runtime.callbacks().setOnSubscribeRequest(() => {});
+    callbacksMock.expects('triggerFlowStarted').once();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId,
+          productId,
+          hasSubscriptionCallback: true,
+        }
+      )
+      .returns(Promise.resolve(port));
+    meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
+    await meterToastApi.start();
+  });
+
+  it('should activate native subscribe request', async () => {
+    const nativeStub = sandbox.stub(
+      runtime.callbacks(),
+      'triggerSubscribeRequest'
+    );
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    await meterToastApi.start();
+    // Native message.
+    const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
+    viewSubscriptionsResponse.setNative(true);
+    const messageCallback = messageMap[viewSubscriptionsResponse.label()];
+    messageCallback(viewSubscriptionsResponse);
+    expect(nativeStub).to.be.calledOnce.calledWithExactly();
   });
 });

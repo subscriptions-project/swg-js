@@ -164,6 +164,12 @@ function startFlowAuto() {
       // Set up metering demo controls.
       MeteringDemo.setupControls();
 
+      // Set native response to a subscribe request. Required for metering toast.
+      subscriptions.setOnNativeSubscribeRequest(() => {
+        console.log('Starting native subscribe flow');
+        startFlow('showOffers');
+      });
+
       // Handles metering entitlements.
       function handleMeteringEntitlements(entitlements) {
         // Check if an entitlement unlocks the article.
