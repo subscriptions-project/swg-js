@@ -64,7 +64,7 @@ DemoPaywallController.prototype.onEntitlements_ = function (
 };
 
 /**
- * The simplest possible implementation: they paywall is now open. A more
+ * The simplest possible implementation: the paywall is now open. A more
  * sophisticated implementation could fetch more data, or set cookies and
  * refresh the whole page.
  * @private
