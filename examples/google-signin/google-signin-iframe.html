@@ -1,20 +1,10 @@
 <html>
   <head>
-    <!-- Publishers should load the following script. -->
-    <!-- <script src="https://news.google.com/swg/js/v1/swg-gaa.js"></script> -->
-
-    <!-- SwG engineers should load the following script. -->
+    <!--
+      Publications should load this script from:
+      https://news.google.com/swg/js/v1/swg-gaa.js
+    -->
     <script src="<% swgGaaJsUrl %>"></script>
-    <style>
-      body {
-        margin: 0;
-      }
-
-      #swg-google-sign-in-button {
-        margin: 0 auto;
-        width: 250px;
-      }
-    </style>
   </head>
 
   <body>
@@ -24,7 +14,7 @@
         // Allow specific origins to get results from your Google Sign-In button.
         allowedOrigins: ['http://localhost:8000', 'http://localhost:8080'],
 
-        // Specify a Google Sign-In Client ID.
+        // Specify your Google Sign-In Client ID.
         googleSignInClientId:
           '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
       });

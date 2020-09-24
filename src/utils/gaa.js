@@ -138,6 +138,29 @@ const REGWALL_HTML = `
 </div>
 `;
 
+/** Styles for the Google Sign-In button iframe. */
+const GOOGLE_SIGN_IN_IFRAME_STYLES = `
+body {
+  margin: 0;
+  overflow: hidden;
+}
+#swg-google-sign-in-button {
+  margin: 0 auto;
+  width: ${GOOGLE_SIGN_IN_BUTTON_WIDTH}px;
+}
+#swg-google-sign-in-button > div {
+  animation: fadeIn 0.32s;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+`;
+
 /** Where to load the JS for Google Sign-In. */
 const GOOGLE_SIGN_IN_JS_URL = 'https://apis.google.com/js/platform.js';
 
@@ -274,6 +297,11 @@ class GaaGoogleSignInButton {
    * @param {{ allowedOrigins: string[], googleSignInClientId: string }} params
    */
   static show({allowedOrigins, googleSignInClientId}) {
+    // Apply styles.
+    const el = self.document.createElement('style');
+    el.innerText = GOOGLE_SIGN_IN_IFRAME_STYLES;
+    self.document.head.appendChild(el);
+
     // Listen for introduction.
     const postMessageToParentPromise = new Promise((resolve) => {
       self.addEventListener('message', (e) => {
