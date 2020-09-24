@@ -21,8 +21,10 @@
     <div id="swg-google-sign-in-button"></div>
     <script>
       GaaGoogleSignInButton.show({
+        // Allow specific origins to host your GAA Google Sign-In iframe.
         allowedOrigins: ['http://localhost:8000', 'http://localhost:8080'],
-        clientId:
+        // Specify a Google Sign-In Client ID.
+        googleSignInClientId:
           '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
       });
     </script>

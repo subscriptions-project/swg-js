@@ -271,9 +271,9 @@ class GaaGoogleSignInButton {
    *
    * The promise resolves after the user completes the Google Sign-In flow.
    *
-   * @param {{ allowedOrigins: string[], clientId: string }} params
+   * @param {{ allowedOrigins: string[], googleSignInClientId: string }} params
    */
-  static show({allowedOrigins, clientId}) {
+  static show({allowedOrigins, googleSignInClientId}) {
     // Listen for introduction.
     const postMessageToParentPromise = new Promise((resolve) => {
       self.addEventListener('message', (e) => {
@@ -289,7 +289,7 @@ class GaaGoogleSignInButton {
       });
     });
 
-    loadGoogleSignIn(clientId)
+    loadGoogleSignIn(googleSignInClientId)
       .then(
         // Promise a Google User object.
         () =>
