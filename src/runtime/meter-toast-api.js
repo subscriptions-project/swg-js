@@ -67,7 +67,7 @@ export class MeterToastApi {
 
   /**
    * Sets a callback function to happen onCancel.
-   * @param {!Function=} onCancelCallback
+   * @param {function()} onCancelCallback
    */
   setOnCancelCallback(onCancelCallback) {
     this.activityIframeView_.onCancel(onCancelCallback);
