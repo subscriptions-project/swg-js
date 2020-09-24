@@ -19,6 +19,9 @@ import {setImportantStyles} from './style';
 /** ID for the Google Sign-In button element. */
 const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 
+/** Width for the Google Sign-In button element. */
+const GOOGLE_SIGN_IN_BUTTON_WIDTH = 250;
+
 /** HTML for the metering regwall dialog, where users can sign in with Google. */
 const REGWALL_HTML = `
 <style>
@@ -76,7 +79,9 @@ const REGWALL_HTML = `
 
   .gaa-metering-regwall--button {
     display: block;
+    margin: 0 auto;
     min-height: 36px;
+    width: ${GOOGLE_SIGN_IN_BUTTON_WIDTH}px;
   }
 </style>
 
@@ -199,9 +204,9 @@ export class GaaMeteringRegwall {
     return new Promise((resolve, reject) => {
       self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
         'scope': 'profile email',
-        'width': 370,
+        'width': GOOGLE_SIGN_IN_BUTTON_WIDTH,
         'longtitle': true,
-        'theme': 'dark',
+        'theme': 'white',
         'onsuccess': resolve,
         'onfailure': reject,
       });
