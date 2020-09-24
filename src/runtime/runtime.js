@@ -406,6 +406,13 @@ export class Runtime {
   }
 
   /** @override */
+  triggerLoginRequest(request) {
+    return this.configured_(false).then((runtime) =>
+      runtime.triggerLoginRequest(request)
+    );
+  }
+
+  /** @override */
   setOnLinkComplete(callback) {
     return this.configured_(false).then((runtime) =>
       runtime.setOnLinkComplete(callback)
@@ -855,6 +862,11 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  triggerLoginRequest(request) {
+    this.callbacks_.triggerLoginRequest(request);
+  }
+
+  /** @override */
   setOnLinkComplete(callback) {
     this.callbacks_.setOnLinkComplete(callback);
   }
@@ -1052,6 +1064,7 @@ function createPublicRuntime(runtime) {
     ),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
     setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
+    triggerLoginRequest: runtime.triggerLoginRequest.bind(runtime),
     setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
     setOnNativeSubscribeRequest: runtime.setOnNativeSubscribeRequest.bind(
       runtime
