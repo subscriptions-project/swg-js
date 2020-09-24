@@ -206,7 +206,7 @@ export class GaaMeteringRegwall {
         'scope': 'profile email',
         'width': GOOGLE_SIGN_IN_BUTTON_WIDTH,
         'longtitle': true,
-        'theme': 'white',
+        'theme': 'dark',
         'onsuccess': resolve,
         'onfailure': reject,
       });
