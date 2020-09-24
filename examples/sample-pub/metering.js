@@ -49,14 +49,13 @@ const MeteringDemo = {
     });
   },
 
-  /** Mocks registration of a user, given a Google Sign-In User object. */
-  registerUser: (googleUser) => {
+  /** Mocks registration of a user, given user credentials. */
+  registerUser: (credentials) => {
     // Record the registration timestamp in seconds (not milliseconds).
     localStorage.meteringRegistrationTimestamp = Math.floor(Date.now() / 1000);
 
     // Record the user's name, for the metering demo.
-    localStorage.meteringUsername = googleUser.getBasicProfile().getName();
-    console.log('Register user...');
+    localStorage.meteringUsername = credentials.name;
   },
 
   /** Returns a new Publisher Provided ID (PPID) suitable for demo purposes. */

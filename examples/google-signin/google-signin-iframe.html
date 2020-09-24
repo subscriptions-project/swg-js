@@ -1,59 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <!--
-    Publishers will load the SwG Google Sign-In JS from:
-    https://news.google.com/swg/js/v1/swg-gsi.js
+<html>
+  <head>
+    <!-- Publishers should load the following script. -->
+    <!-- <script src="https://news.google.com/swg/js/v1/swg-gaa.js"></script> -->
 
-    The URL is injected below for SwG development purposes.
-  -->
-  <script src="<% swgGsiJsUrl %>"></script>
-  <script>
-    // Publisher's application Client ID (Google Developer Console)
-    const CLIENT_ID = '520465458218-embpp4s35v0utlr31317qkso3fk8q3d9.apps.googleusercontent.com';
-    // Publisher's login endpoint. Where Google Sign-in's response gets sent to.
-    // Must be able to handle a Google CredentialResponse within a FormData object:
-    // https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
-    const LOGIN_ENDPOINT = 'https://scenic-2017.appspot.com/login';
-
-    // Callback which handles a Google Sign-in response. This callback should call a publisher
-    // endpoint and return a JSON Metering object described here:
-    // https://github.com/subscriptions-project/swg-js/blob/main/docs/entitlements-flow.md#swg-entitlements-flow
-    // The input argument `response` is a Google Sign-in CredentialResponse:
-    // https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
-    //
-    // During this callback, publishers should also persist the GIS response data,
-    // make an account if the user isn't known, or return user state for one that already exists.
-    // Lastly, the publisher should set a cookie containing the user state to avoid future
-    // requests for sign-in from the same user.
-    const publisherGoogleSignInCallback = (response) => {
-      if (!response || !response['credential']) {
-        return;
+    <!-- SwG engineers should load the following script. -->
+    <script src="<% swgGaaJsUrl %>"></script>
+    <style>
+      body {
+        margin: 0;
       }
-      // Creates a FormData object containing the response info.
-      const formData = new FormData();
-      Object.keys(response).map(function (name) {
-        formData.append(name, response[name]);
-      });
-      // Note: fetch isn't supported on IE11. If you would like to support IE11,
-      // use XHR.
-      const init = /** @type {!./xhr.FetchInitDef} */ ({
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-      return window.fetch(LOGIN_ENDPOINT, init).then(response => response.json());
-    };
 
-    window.onload = () => {
-        const buttonCreator = new SwgGoogleSignInButtonCreator(
-          CLIENT_ID, publisherGoogleSignInCallback, window
-        );
-        buttonCreator.start();
-      };
-  </script>
-</head>
-<body style="margin: 0; border: 0;">
-</body>
+      #swg-google-sign-in-button {
+        margin: 0 auto;
+        width: 250px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="swg-google-sign-in-button"></div>
+    <script>
+      GaaGoogleSignInButton.show({
+        allowedOrigins: ['http://localhost:8000', 'http://localhost:8080'],
+        clientId:
+          '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+      });
+    </script>
+  </body>
 </html>

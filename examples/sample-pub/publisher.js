@@ -194,6 +194,7 @@ function startFlowAuto() {
           // Show metering regwall for unregistered users.
           return GaaMeteringRegwall.show({
             googleSignInClientId: MeteringDemo.GOOGLE_SIGN_IN_CLIENT_ID,
+            iframeUrl: MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL,
           })
             .then((googleUser) =>
               // Register a user based on Google Sign-In's User object.

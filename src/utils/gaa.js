@@ -16,8 +16,17 @@
 
 import {setImportantStyles} from './style';
 
-/** ID for the Google Sign-In button element. */
-const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
+/** Stamp for post messages. */
+const POST_MESSAGE_STAMP = 'Subscribe with Google GAA Post Message Sentinel';
+
+/** Introduction command for post messages. */
+const POST_MESSAGE_COMMAND_INTRODUCTION = 'introduction';
+
+/** Credentials command for post messages. */
+const POST_MESSAGE_COMMAND_CREDENTIALS = 'credentials';
+
+/** ID for the Google Sign-In iframe element. */
+const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
 
 /** ID for the Publisher sign-in button element. */
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
@@ -93,6 +102,13 @@ const REGWALL_HTML = `
     cursor: pointer;
     font-size: 12px;
   }
+
+  .gaa-metering-regwall--iframe {
+    border: none;
+    width: 100%;
+    height: 50px;
+    margin: 0 0 8px;
+  }
 </style>
 
 <div class="gaa-metering-regwall--card-spacer">
@@ -108,9 +124,11 @@ const REGWALL_HTML = `
       exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
     </div>
 
-    <a id="${GOOGLE_SIGN_IN_BUTTON_ID}"
-          class="gaa-metering-regwall--google-sign-in-button">
-    </a>
+    <iframe
+          id="${GOOGLE_SIGN_IN_IFRAME_ID}"
+          class="gaa-metering-regwall--iframe"
+          src="$iframeUrl$">
+    </iframe>
 
     <a id="${PUBLISHER_SIGN_IN_BUTTON_ID}"
           class="gaa-metering-regwall--publisher-sign-in-button">
@@ -132,12 +150,11 @@ export class GaaMeteringRegwall {
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
-   * @param {{ googleSignInClientId: string }} params
+   * @param {{ iframeUrl: string }} params
    * @return {!Promise}
    */
-  static show({googleSignInClientId}) {
-    this.addGoogleSignInMetaTag_(googleSignInClientId);
-    return this.loadGoogleSignInJs_().then(() => this.renderCard_());
+  static show({iframeUrl}) {
+    return this.renderCard_({iframeUrl});
   }
 
   /**
@@ -150,8 +167,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise}
    */
   static signOut({googleSignInClientId}) {
-    this.addGoogleSignInMetaTag_(googleSignInClientId);
-    return this.loadGoogleSignInJs_()
+    return loadGoogleSignIn(googleSignInClientId)
       .then(
         () =>
           new Promise((resolve) => {
@@ -164,35 +180,10 @@ export class GaaMeteringRegwall {
   }
 
   /**
-   * Adds Google Sign-In meta tag, if necessary.
-   * @param {string} clientId
+   * @param {{ iframeUrl: string }} iframeUrl
+   * @return {!Promise}
    */
-  static addGoogleSignInMetaTag_(clientId) {
-    if (self.document.querySelector('meta[name="google-signin-client_id"]')) {
-      return;
-    }
-
-    /** @type {!HTMLMetaElement} */
-    const el = /** @type {!HTMLMetaElement} */ (self.document.createElement(
-      'meta'
-    ));
-    el.name = 'google-signin-client_id';
-    el.content = clientId;
-    self.document.head.appendChild(el);
-  }
-
-  /** @return {!Promise} */
-  static loadGoogleSignInJs_() {
-    return new Promise((resolve) => {
-      const script = self.document.createElement('script');
-      script.onload = resolve;
-      script.src = GOOGLE_SIGN_IN_JS_URL;
-      self.document.body.appendChild(script);
-    });
-  }
-
-  /** @return {!Promise} */
-  static renderCard_() {
+  static renderCard_({iframeUrl}) {
     const el = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
@@ -211,25 +202,17 @@ export class GaaMeteringRegwall {
       'width': '100%',
       'z-index': 2147483646,
     });
-    el./*OK*/ innerHTML = REGWALL_HTML;
+    el./*OK*/ innerHTML = REGWALL_HTML.replace('$iframeUrl$', iframeUrl);
     self.document.body.appendChild(el);
-    this.handleClicksOnPublisherSignInButton();
     el.offsetHeight; // Trigger repaint.
     setImportantStyles(el, {'opacity': 1});
-
-    return new Promise((resolve, reject) => {
-      self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
-        'scope': 'profile email',
-        'width': GOOGLE_SIGN_IN_BUTTON_WIDTH,
-        'longtitle': true,
-        'theme': 'dark',
-        'onsuccess': resolve,
-        'onfailure': reject,
-      });
-    }).then((result) => {
-      el.remove();
-      return result;
-    });
+    this.handleClicksOnPublisherSignInButton();
+    return this.handlePostMessagesFromIframe({iframeUrl}).then(
+      (credentials) => {
+        el.remove();
+        return credentials;
+      }
+    );
   }
 
   static handleClicksOnPublisherSignInButton() {
@@ -243,6 +226,129 @@ export class GaaMeteringRegwall {
         });
       });
   }
+
+  /**
+   * @param {{ iframeUrl: string }} params
+   * @return {!Promise}
+   */
+  static handlePostMessagesFromIframe({iframeUrl}) {
+    // Introduce self to iframe.
+    const googleSignInIframe = /** @type {!HTMLIFrameElement} */ (self.document.getElementById(
+      GOOGLE_SIGN_IN_IFRAME_ID
+    ));
+    googleSignInIframe.onload = () => {
+      googleSignInIframe.contentWindow.postMessage(
+        {
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_INTRODUCTION,
+        },
+        new URL(iframeUrl).origin
+      );
+    };
+
+    // Listen for credentials.
+    return new Promise((resolve) => {
+      self.addEventListener('message', (e) => {
+        if (
+          e.data.stamp === POST_MESSAGE_STAMP &&
+          e.data.command === POST_MESSAGE_COMMAND_CREDENTIALS
+        ) {
+          resolve(e.data.credentials);
+        }
+      });
+    });
+  }
 }
 
 self.GaaMeteringRegwall = GaaMeteringRegwall;
+
+class GaaGoogleSignInButton {
+  /**
+   *
+   * Returns a promise of a Google User object:
+   * Reference: https://developers.google.com/identity/sign-in/web/reference#users
+   * Example usage: https://developers.google.com/identity/sign-in/web
+   *
+   * The promise resolves after the user completes the Google Sign-In flow.
+   *
+   * @param {{ allowedOrigins: string[], clientId: string }} params
+   */
+  static show({allowedOrigins, clientId}) {
+    // Listen for introduction.
+    const postMessageToParentPromise = new Promise((resolve) => {
+      self.addEventListener('message', (e) => {
+        if (
+          allowedOrigins.includes(e.origin) &&
+          e.data.stamp === POST_MESSAGE_STAMP &&
+          e.data.command === POST_MESSAGE_COMMAND_INTRODUCTION
+        ) {
+          resolve((message) => {
+            e.source.postMessage(message, e.origin);
+          });
+        }
+      });
+    });
+
+    loadGoogleSignIn(clientId)
+      .then(
+        // Promise a Google User object.
+        () =>
+          new Promise((resolve, reject) => {
+            // Render the Google Sign-In button.
+            self.gapi.signin2.render('swg-google-sign-in-button', {
+              'scope': 'profile email',
+              'width': GOOGLE_SIGN_IN_BUTTON_WIDTH,
+              'longtitle': true,
+              'theme': 'dark',
+              'onsuccess': resolve,
+              'onfailure': reject,
+            });
+          })
+      )
+      .then((googleUser) => {
+        const basicProfile = googleUser.getBasicProfile();
+        const credentials = {
+          idToken: googleUser.getAuthResponse().id_token,
+          name: basicProfile.getName(),
+          givenName: basicProfile.getGivenName(),
+          familyName: basicProfile.getFamilyName(),
+          imageUrl: basicProfile.getImageUrl(),
+          email: basicProfile.getEmail(),
+        };
+
+        postMessageToParentPromise.then((postMessageToParent) => {
+          postMessageToParent({
+            stamp: POST_MESSAGE_STAMP,
+            command: POST_MESSAGE_COMMAND_CREDENTIALS,
+            credentials,
+          });
+        });
+      });
+  }
+}
+
+self.GaaGoogleSignInButton = GaaGoogleSignInButton;
+
+/**
+ * Loads Google Sign-In API.
+ * @param {string|undefined} clientId
+ * @return {!Promise}
+ */
+function loadGoogleSignIn(clientId) {
+  if (!self.document.querySelector('meta[name="google-signin-client_id"]')) {
+    /** @type {!HTMLMetaElement} */
+    const el = /** @type {!HTMLMetaElement} */ (self.document.createElement(
+      'meta'
+    ));
+    el.name = 'google-signin-client_id';
+    el.content = clientId;
+    self.document.head.appendChild(el);
+  }
+
+  return new Promise((resolve) => {
+    const script = self.document.createElement('script');
+    script.onload = resolve;
+    script.src = GOOGLE_SIGN_IN_JS_URL;
+    self.document.body.appendChild(script);
+  });
+}

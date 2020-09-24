@@ -267,7 +267,7 @@ app.post('/amp-pingback', (req, res) => {
 app.get('/gsi-iframe', (req, res) => {
   const setup = getSetup(req);
   res.render('../examples/google-signin/google-signin-iframe', {
-    swgGsiJsUrl: SWG_GSI_JS_URLS[setup.script],
+    swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
   });
 });
 
