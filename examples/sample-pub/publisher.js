@@ -164,9 +164,9 @@ function startFlowAuto() {
       // Set up metering demo controls.
       MeteringDemo.setupControls();
 
-      // Set native response to a subscribe request. Required for metering toast.
+      // Handle clicks on the "Subscribe" button within the Metering Toast dialog.
       subscriptions.setOnNativeSubscribeRequest(() => {
-        console.log('Starting native subscribe flow');
+        // Show a publisher paywall for demo purposes.
         startFlow('showOffers');
       });
 
