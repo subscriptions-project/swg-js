@@ -42,11 +42,10 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--logo,
   .gaa-metering-regwall--title,
   .gaa-metering-regwall--description,
-  .gaa-metering-regwall--google-sign-in-button,
+  .gaa-metering-regwall--description strong,
   .gaa-metering-regwall--publisher-sign-in-button {
     all: initial;
     box-sizing: border-box;
-    display: block;
     font-family: Roboto, arial, sans-serif;
   }
 
@@ -80,34 +79,37 @@ const REGWALL_HTML = `
 
   .gaa-metering-regwall--title {
     color: #000;
+    display: block;
     font-size: 16px;
     margin: 0 0 8px;
   }
   
   .gaa-metering-regwall--description {
     color: #646464;
+    display: block;
     font-size: 14px;
     margin: 0 0 20px;
   }
 
-  .gaa-metering-regwall--google-sign-in-button {
-    display: block;
-    margin: 0 auto 25px;
-    min-height: 36px;
-    width: ${GOOGLE_SIGN_IN_BUTTON_WIDTH}px;
-  }
-
-  .gaa-metering-regwall--publisher-sign-in-button {
-    color: #1967D2;
-    cursor: pointer;
-    font-size: 12px;
+  .gaa-metering-regwall--description strong {
+    color: #646464;
+    font-size: 14px;
+    font-weight: bold;
   }
 
   .gaa-metering-regwall--iframe {
     border: none;
-    width: 100%;
+    display: block;
     height: 50px;
     margin: 0 0 8px;
+    width: 100%;
+  }
+
+  .gaa-metering-regwall--publisher-sign-in-button {
+    color: #1967D2;
+    display: block;
+    cursor: pointer;
+    font-size: 12px;
   }
 </style>
 
@@ -118,10 +120,7 @@ const REGWALL_HTML = `
     <div class="gaa-metering-regwall--title">Get more with Google</div>
 
     <div class="gaa-metering-regwall--description">
-      You're out of free articles, so sign in. Lorem ipsum dolor sit amet,
-      consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-      labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-      exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+      You’re out of articles from <strong>$publisherName$</strong>. Read more articles, compliments of Google, when you register with your Google Account.
     </div>
 
     <iframe
@@ -167,17 +166,17 @@ const GOOGLE_SIGN_IN_JS_URL = 'https://apis.google.com/js/platform.js';
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
   /**
-   * Returns a promise with Google User object:
-   * Reference: https://developers.google.com/identity/sign-in/web/reference#users
-   * Example usage: https://developers.google.com/identity/sign-in/web
+   * Returns a promise with Google User credentials.
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
-   * @param {{ iframeUrl: string }} params
-   * @return {!Promise}
+   * @param {{ iframeUrl: string, publisherName: string }} params
+   * @return {!Promise<{
+   *   // TODO: Add details
+   * }>}
    */
-  static show({iframeUrl}) {
-    return this.renderCard_({iframeUrl});
+  static show({iframeUrl, publisherName}) {
+    return this.renderCard_({iframeUrl, publisherName});
   }
 
   /**
@@ -203,10 +202,10 @@ export class GaaMeteringRegwall {
   }
 
   /**
-   * @param {{ iframeUrl: string }} iframeUrl
+   * @param {{ iframeUrl: string, publisherName: string }} iframeUrl
    * @return {!Promise}
    */
-  static renderCard_({iframeUrl}) {
+  static renderCard_({iframeUrl, publisherName}) {
     const el = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
@@ -225,7 +224,10 @@ export class GaaMeteringRegwall {
       'width': '100%',
       'z-index': 2147483646,
     });
-    el./*OK*/ innerHTML = REGWALL_HTML.replace('$iframeUrl$', iframeUrl);
+    el./*OK*/ innerHTML = REGWALL_HTML.replace(
+      '$iframeUrl$',
+      iframeUrl
+    ).replace('$publisherName$', publisherName);
     self.document.body.appendChild(el);
     el.offsetHeight; // Trigger repaint.
     setImportantStyles(el, {'opacity': 1});
