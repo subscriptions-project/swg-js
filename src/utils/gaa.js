@@ -91,12 +91,14 @@ const REGWALL_HTML = `
     color: #646464;
     display: block;
     font-size: 14px;
+    line-height: 19px;
     margin: 0 0 30px;
   }
 
   .gaa-metering-regwall--description strong {
     color: #646464;
     font-size: 14px;
+    line-height: 19px;
     font-weight: bold;
   }
 
@@ -179,7 +181,7 @@ body {
   display: none;
 }
 #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents {
-  font-size: 14px !important;
+  font-size: 15px !important;
 }
 `;
 
