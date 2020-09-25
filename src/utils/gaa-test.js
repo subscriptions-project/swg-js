@@ -17,8 +17,6 @@
 import {GaaGoogleSignInButton, GaaMeteringRegwall} from './gaa';
 
 const GOOGLE_SIGN_IN_CLIENT_ID = 'gs1cl13nt1d';
-const IFRAME_URL = 'http://localhost:8000/iframe';
-const PUBLISHER_NAME = 'The Karma';
 
 describes.realWin('GaaMeteringRegwall', {}, () => {
   let headEls = [];

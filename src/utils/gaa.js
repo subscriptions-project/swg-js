@@ -342,11 +342,9 @@ export class GaaGoogleSignInButton {
    */
   static show({allowedOrigins, googleSignInClientId}) {
     // Apply styles.
-    const css = self.document.createElement('style');
-    if (css.styleSheet) {
-      css.styleSheet.cssText = GOOGLE_SIGN_IN_IFRAME_STYLES;
-    }
-    self.document.head.appendChild(css);
+    const styleEl = self.document.createElement('style');
+    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES;
+    self.document.head.appendChild(styleEl);
 
     // Listen for introduction.
     const postMessageToParentPromise = new Promise((resolve) => {
