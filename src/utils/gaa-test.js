@@ -1,4 +1,3 @@
-import {sandbox} from 'sinon';
 /**
  * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
  *
