@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
 import {setImportantStyles} from './style';
 
@@ -211,9 +212,9 @@ let GaaUserDef;
  *     getImageUrl: function(): string,
  *     getEmail: function(): string,
  *   },
- * }} GoogleSignInUserObject
+ * }} GoogleSignInUserDef
  */
-let GoogleSignInUserObject;
+let GoogleSignInUserDef;
 
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
@@ -380,29 +381,26 @@ export class GaaGoogleSignInButton {
             });
           })
       )
-      .then(
-        /** @type {function(!GoogleSignInUserObject)} */
-        ((googleUser) => {
-          const basicProfile = /** @type {!GoogleSignInUserObject} */ (googleUser).getBasicProfile();
-          const credentials = {
-            idToken: /** @type {!GoogleSignInUserObject} */ (googleUser).getAuthResponse()
-              .id_token,
-            name: basicProfile.getName(),
-            givenName: basicProfile.getGivenName(),
-            familyName: basicProfile.getFamilyName(),
-            imageUrl: basicProfile.getImageUrl(),
-            email: basicProfile.getEmail(),
-          };
+      .then((googleUser) => {
+        const basicProfile = /** @type {!GoogleSignInUserDef} */ (googleUser).getBasicProfile();
+        const credentials = {
+          idToken: /** @type {!GoogleSignInUserDef} */ (googleUser).getAuthResponse()
+            .id_token,
+          name: basicProfile.getName(),
+          givenName: basicProfile.getGivenName(),
+          familyName: basicProfile.getFamilyName(),
+          imageUrl: basicProfile.getImageUrl(),
+          email: basicProfile.getEmail(),
+        };
 
-          postMessageToParentPromise.then((postMessageToParent) => {
-            postMessageToParent({
-              stamp: POST_MESSAGE_STAMP,
-              command: POST_MESSAGE_COMMAND_CREDENTIALS,
-              credentials,
-            });
+        postMessageToParentPromise.then((postMessageToParent) => {
+          postMessageToParent({
+            stamp: POST_MESSAGE_STAMP,
+            command: POST_MESSAGE_COMMAND_CREDENTIALS,
+            credentials,
           });
-        })
-      );
+        });
+      });
   }
 }
 
