@@ -18,7 +18,6 @@
     "preinstall": "node build-system/check-package-manager.js",
     "start": "node build-system/server/server-gae.js",
     "start-local": "gulp",
-    "deploy": "gcloud app deploy --stop-previous-version",
     "test": "gulp unit",
     "lint": "gulp lint",
     "build": "gulp build",
