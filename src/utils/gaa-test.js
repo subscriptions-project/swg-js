@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {GaaMeteringRegwall} from './gaa';
+import {GaaGoogleSignInButton, GaaMeteringRegwall} from './gaa';
 
 describes.realWin('GaaMeteringRegwall', {}, () => {
   beforeEach(() => {});
@@ -28,6 +28,18 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
   describe('signOut', () => {
     it('is a function', () => {
       expect(typeof GaaMeteringRegwall.signOut).to.equal('function');
+    });
+  });
+
+  // TODO: Add tests after prototyping phase.
+});
+
+describes.realWin('GaaGoogleSignInButton', {}, () => {
+  beforeEach(() => {});
+
+  describe('show', () => {
+    it('is a function', () => {
+      expect(typeof GaaGoogleSignInButton.show).to.equal('function');
     });
   });
 

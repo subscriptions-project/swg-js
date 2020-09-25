@@ -322,7 +322,7 @@ export class GaaMeteringRegwall {
 
 self.GaaMeteringRegwall = GaaMeteringRegwall;
 
-class GaaGoogleSignInButton {
+export class GaaGoogleSignInButton {
   /**
    * Renders the Google Sign-In button.
    * @param {{ allowedOrigins: string[], googleSignInClientId: string }} params
