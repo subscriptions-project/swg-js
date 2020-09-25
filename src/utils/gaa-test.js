@@ -27,23 +27,23 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
   beforeEach(() => {
     headEls = [];
-    sinon.stub(self.document.head, 'appendChild').callsFake((el) => {
+    sandbox.stub(self.document.head, 'appendChild').callsFake((el) => {
       headEls.push(el);
     });
 
     bodyEls = [];
-    sinon.stub(self.document.body, 'appendChild').callsFake((el) => {
+    sandbox.stub(self.document.body, 'appendChild').callsFake((el) => {
       bodyEls.push(el);
     });
 
-    signOutFake = sinon.fake.resolves();
+    signOutFake = sandbox.fake.resolves();
     self.gapi = {
-      load: sinon.fake((name, callback) => {
+      load: sandbox.fake((name, callback) => {
         callback();
       }),
       auth2: {
-        init: sinon.fake.resolves(),
-        getAuthInstance: sinon.fake.returns({
+        init: sandbox.fake.resolves(),
+        getAuthInstance: sandbox.fake.returns({
           signOut: signOutFake,
         }),
       },
@@ -51,18 +51,14 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
   });
 
   describe('show', () => {
-    it('is a function', async () => {
-      const result = await GaaMeteringRegwall.show({
-        iframeUrl: IFRAME_URL,
-        publisherName: PUBLISHER_NAME,
-      });
-      expect(result).to.deep.equal({});
+    it('is a function', () => {
+      expect(typeof GaaMeteringRegwall.show).to.equal('function');
     });
 
     // TODO: Add tests after prototyping phase.
   });
 
-  describe.only('signOut', () => {
+  describe('signOut', () => {
     it('signs user out of Google Sign-In', async () => {
       // Start signOut process.
       const signOutPromise = GaaMeteringRegwall.signOut({
