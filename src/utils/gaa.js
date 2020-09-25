@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Subscriptions} from '../api/subscriptions';
 import {setImportantStyles} from './style';
 
 /** Stamp for post messages. */
@@ -200,6 +201,20 @@ const GOOGLE_SIGN_IN_JS_URL = 'https://apis.google.com/js/platform.js';
  */
 let GaaUserDef;
 
+/**
+ * @typedef {{
+ *   getAuthResponse: function(): {id_token: string},
+ *   getBasicProfile: function(): {
+ *     getName: function(): string,
+ *     getGivenName: function(): string,
+ *     getFamilyName: function(): string,
+ *     getImageUrl: function(): string,
+ *     getEmail: function(): string,
+ *   },
+ * }} GoogleSignInUserObject
+ */
+let GoogleSignInUserObject;
+
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
   /**
@@ -211,6 +226,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl, publisherName}) {
+    /** @type {!HTMLDivElement} */
     const cardEl = this.renderCard_({iframeUrl, publisherName});
     return this.handlePostMessagesFromIframe({iframeUrl}).then(
       (credentials) => {
@@ -237,7 +253,8 @@ export class GaaMeteringRegwall {
   }
 
   /**
-   * @param {{ iframeUrl: string, publisherName: string }} iframeUrl
+   * @param {{ iframeUrl: string, publisherName: string }} params
+   * @return {!HTMLDivElement}
    */
   static renderCard_({iframeUrl, publisherName}) {
     const cardEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
@@ -263,6 +280,7 @@ export class GaaMeteringRegwall {
       iframeUrl
     ).replace('$publisherName$', publisherName);
     self.document.body.appendChild(cardEl);
+    /** @suppress {suspiciousCode} */
     cardEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(cardEl, {'opacity': 1});
     this.handleClicksOnPublisherSignInButton();
@@ -274,7 +292,7 @@ export class GaaMeteringRegwall {
       .getElementById(PUBLISHER_SIGN_IN_BUTTON_ID)
       .addEventListener('click', () => {
         (self.SWG = self.SWG || []).push((subscriptions) => {
-          subscriptions.triggerLoginRequest({
+          /** @type {!Subscriptions} */ (subscriptions).triggerLoginRequest({
             linkRequested: false,
           });
         });
@@ -319,7 +337,7 @@ self.GaaMeteringRegwall = GaaMeteringRegwall;
 export class GaaGoogleSignInButton {
   /**
    * Renders the Google Sign-In button.
-   * @param {{ allowedOrigins: string[], googleSignInClientId: string }} params
+   * @param {{ allowedOrigins: !Array<string>, googleSignInClientId: string }} params
    */
   static show({allowedOrigins, googleSignInClientId}) {
     // Apply styles.
@@ -331,7 +349,7 @@ export class GaaGoogleSignInButton {
     const postMessageToParentPromise = new Promise((resolve) => {
       self.addEventListener('message', (e) => {
         if (
-          allowedOrigins.includes(e.origin) &&
+          allowedOrigins.indexOf(e.origin) !== -1 &&
           e.data.stamp === POST_MESSAGE_STAMP &&
           e.data.command === POST_MESSAGE_COMMAND_INTRODUCTION
         ) {
@@ -362,25 +380,29 @@ export class GaaGoogleSignInButton {
             });
           })
       )
-      .then((googleUser) => {
-        const basicProfile = googleUser.getBasicProfile();
-        const credentials = {
-          idToken: googleUser.getAuthResponse().id_token,
-          name: basicProfile.getName(),
-          givenName: basicProfile.getGivenName(),
-          familyName: basicProfile.getFamilyName(),
-          imageUrl: basicProfile.getImageUrl(),
-          email: basicProfile.getEmail(),
-        };
+      .then(
+        /** @type {function(!GoogleSignInUserObject)} */
+        ((googleUser) => {
+          const basicProfile = /** @type {!GoogleSignInUserObject} */ (googleUser).getBasicProfile();
+          const credentials = {
+            idToken: /** @type {!GoogleSignInUserObject} */ (googleUser).getAuthResponse()
+              .id_token,
+            name: basicProfile.getName(),
+            givenName: basicProfile.getGivenName(),
+            familyName: basicProfile.getFamilyName(),
+            imageUrl: basicProfile.getImageUrl(),
+            email: basicProfile.getEmail(),
+          };
 
-        postMessageToParentPromise.then((postMessageToParent) => {
-          postMessageToParent({
-            stamp: POST_MESSAGE_STAMP,
-            command: POST_MESSAGE_COMMAND_CREDENTIALS,
-            credentials,
+          postMessageToParentPromise.then((postMessageToParent) => {
+            postMessageToParent({
+              stamp: POST_MESSAGE_STAMP,
+              command: POST_MESSAGE_COMMAND_CREDENTIALS,
+              credentials,
+            });
           });
-        });
-      });
+        })
+      );
   }
 }
 
@@ -392,7 +414,10 @@ self.GaaGoogleSignInButton = GaaGoogleSignInButton;
  * @return {!Promise}
  */
 function loadGoogleSignIn(clientId) {
-  if (!self.document.querySelector('meta[name="google-signin-client_id"]')) {
+  if (
+    clientId &&
+    !self.document.querySelector('meta[name="google-signin-client_id"]')
+  ) {
     /** @type {!HTMLMetaElement} */
     const el = /** @type {!HTMLMetaElement} */ (self.document.createElement(
       'meta'
