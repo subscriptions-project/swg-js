@@ -82,7 +82,7 @@ const MeteringDemo = {
   fetchMeteringState: () => {
     // Logs the username, for the metering demo.
     if (localStorage.meteringUsername) {
-      console.log(`Hello, ${localStorage.meteringUsername}!`);
+      console.log(`👋 Hello, ${localStorage.meteringUsername}!`);
     }
 
     return Promise.resolve({
