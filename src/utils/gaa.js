@@ -35,7 +35,7 @@ const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 
 /** Width for the Google Sign-In button element. */
-const GOOGLE_SIGN_IN_BUTTON_WIDTH = 250;
+const GOOGLE_SIGN_IN_BUTTON_WIDTH = 370;
 
 /** HTML for the metering regwall dialog, where users can sign in with Google. */
 const REGWALL_HTML = `
@@ -91,7 +91,7 @@ const REGWALL_HTML = `
     color: #646464;
     display: block;
     font-size: 14px;
-    margin: 0 0 20px;
+    margin: 0 0 30px;
   }
 
   .gaa-metering-regwall--description strong {
@@ -103,13 +103,19 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--iframe {
     border: none;
     display: block;
-    height: 50px;
-    margin: 0 0 8px;
+    height: 36px;
+    margin: 0 0 30px;
     width: 100%;
   }
 
+  .gaa-metering-regwall--line {
+    background-color: #ddd;
+    height: 1px;
+    margin: 0 0 24px;
+  }
+
   .gaa-metering-regwall--publisher-sign-in-button {
-    color: #1967D2;
+    color: #1967d2;
     display: block;
     cursor: pointer;
     font-size: 12px;
@@ -131,6 +137,8 @@ const REGWALL_HTML = `
           class="gaa-metering-regwall--iframe"
           src="$iframeUrl$">
     </iframe>
+
+    <div class="gaa-metering-regwall--line"></div>
 
     <a id="${PUBLISHER_SIGN_IN_BUTTON_ID}"
           class="gaa-metering-regwall--publisher-sign-in-button">
@@ -161,8 +169,17 @@ body {
     opacity: 1;
   }
 }
-.abcRioButtonBlue .abcRioButtonIcon {
+#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue {
+  background-color: #1A73E8;
+  box-shadow: none;
+  -webkit-box-shadow: none;
+  border-radius: 4px;
+}
+#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
   display: none;
+}
+#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents {
+  font-size: 14px !important;
 }
 `;
 
