@@ -161,6 +161,9 @@ body {
     opacity: 1;
   }
 }
+.abcRioButtonBlue .abcRioButtonIcon {
+  display: none;
+}
 `;
 
 /** Where to load the JS for Google Sign-In. */
