@@ -163,20 +163,36 @@ body {
 /** Where to load the JS for Google Sign-In. */
 const GOOGLE_SIGN_IN_JS_URL = 'https://apis.google.com/js/platform.js';
 
+/**
+ * @typedef {{
+ *   idToken: string,
+ *   name: string,
+ *   givenName: string,
+ *   familyName: string,
+ *   imageUrl: string,
+ *   email: string,
+ * }} GaaUserDef
+ */
+let GaaUserDef;
+
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
   /**
-   * Returns a promise with Google User credentials.
+   * Returns a promise for a GAA user.
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @param {{ iframeUrl: string, publisherName: string }} params
-   * @return {!Promise<{
-   *   // TODO: Add details
-   * }>}
+   * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl, publisherName}) {
-    return this.renderCard_({iframeUrl, publisherName});
+    const cardEl = this.renderCard_({iframeUrl, publisherName});
+    return this.handlePostMessagesFromIframe({iframeUrl}).then(
+      (credentials) => {
+        cardEl.remove();
+        return credentials;
+      }
+    );
   }
 
   /**
@@ -203,13 +219,12 @@ export class GaaMeteringRegwall {
 
   /**
    * @param {{ iframeUrl: string, publisherName: string }} iframeUrl
-   * @return {!Promise}
    */
   static renderCard_({iframeUrl, publisherName}) {
-    const el = /** @type {!HTMLDivElement} */ (self.document.createElement(
+    const cardEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
-    setImportantStyles(el, {
+    setImportantStyles(cardEl, {
       'all': 'unset',
       'background-color': 'rgba(0,0,0,0.5)',
       'border': 'none',
@@ -224,20 +239,15 @@ export class GaaMeteringRegwall {
       'width': '100%',
       'z-index': 2147483646,
     });
-    el./*OK*/ innerHTML = REGWALL_HTML.replace(
+    cardEl./*OK*/ innerHTML = REGWALL_HTML.replace(
       '$iframeUrl$',
       iframeUrl
     ).replace('$publisherName$', publisherName);
-    self.document.body.appendChild(el);
-    el.offsetHeight; // Trigger repaint.
-    setImportantStyles(el, {'opacity': 1});
+    self.document.body.appendChild(cardEl);
+    cardEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
+    setImportantStyles(cardEl, {'opacity': 1});
     this.handleClicksOnPublisherSignInButton();
-    return this.handlePostMessagesFromIframe({iframeUrl}).then(
-      (credentials) => {
-        el.remove();
-        return credentials;
-      }
-    );
+    return cardEl;
   }
 
   static handleClicksOnPublisherSignInButton() {
@@ -254,7 +264,7 @@ export class GaaMeteringRegwall {
 
   /**
    * @param {{ iframeUrl: string }} params
-   * @return {!Promise}
+   * @return {!Promise<!GaaUserDef>}
    */
   static handlePostMessagesFromIframe({iframeUrl}) {
     // Introduce self to iframe.
@@ -289,13 +299,7 @@ self.GaaMeteringRegwall = GaaMeteringRegwall;
 
 class GaaGoogleSignInButton {
   /**
-   *
-   * Returns a promise of a Google User object:
-   * Reference: https://developers.google.com/identity/sign-in/web/reference#users
-   * Example usage: https://developers.google.com/identity/sign-in/web
-   *
-   * The promise resolves after the user completes the Google Sign-In flow.
-   *
+   * Renders the Google Sign-In button.
    * @param {{ allowedOrigins: string[], googleSignInClientId: string }} params
    */
   static show({allowedOrigins, googleSignInClientId}) {
@@ -321,7 +325,7 @@ class GaaGoogleSignInButton {
 
     loadGoogleSignIn(googleSignInClientId)
       .then(
-        // Promise a Google User object.
+        // Promise credentials.
         () =>
           new Promise((resolve, reject) => {
             // Render the Google Sign-In button.
