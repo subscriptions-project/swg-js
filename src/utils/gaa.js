@@ -351,7 +351,7 @@ export class GaaGoogleSignInButton {
       .then(
         // Promise credentials.
         () =>
-          new Promise((resolve, reject) => {
+          new Promise((resolve) => {
             // Render the Google Sign-In button.
             self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
               'scope': 'profile email',
@@ -359,7 +359,6 @@ export class GaaGoogleSignInButton {
               'longtitle': true,
               'theme': 'dark',
               'onsuccess': resolve,
-              'onfailure': reject,
             });
           })
       )
