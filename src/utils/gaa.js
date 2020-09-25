@@ -231,14 +231,8 @@ export class GaaMeteringRegwall {
    */
   static signOut({googleSignInClientId}) {
     return loadGoogleSignIn(googleSignInClientId)
-      .then(
-        () =>
-          new Promise((resolve) => {
-            self.gapi.load('auth2', () => {
-              resolve(self.gapi.auth2.init());
-            });
-          })
-      )
+      .then(() => new Promise((resolve) => self.gapi.load('auth2', resolve)))
+      .then(() => self.gapi.auth2.init())
       .then(() => self.gapi.auth2.getAuthInstance().signOut());
   }
 
