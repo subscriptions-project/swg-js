@@ -1,22 +1,18 @@
-<html>
-  <head>
-    <!--
-      Publications should load this script from:
+<body>
+  <!--
+      Publications should load this next script from:
       https://news.google.com/swg/js/v1/swg-gaa.js
     -->
-    <script src="<% swgGaaJsUrl %>"></script>
-  </head>
+  <script src="<% swgGaaJsUrl %>"></script>
 
-  <body>
-    <script>
-      GaaGoogleSignInButton.show({
-        // Allow specific origins to get results from your Google Sign-In button.
-        allowedOrigins: ['http://localhost:8000', 'http://localhost:8080'],
+  <script>
+    GaaGoogleSignInButton.show({
+      // Allow specific origins to get results from your Google Sign-In button.
+      allowedOrigins: ['http://localhost:8000', 'http://localhost:8080'],
 
-        // Specify your Google Sign-In Client ID.
-        googleSignInClientId:
-          '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
-      });
-    </script>
-  </body>
-</html>
+      // Specify your Google Sign-In Client ID.
+      googleSignInClientId:
+        '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+    });
+  </script>
+</body>
