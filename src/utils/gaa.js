@@ -28,6 +28,9 @@ const POST_MESSAGE_COMMAND_CREDENTIALS = 'credentials';
 /** ID for the Google Sign-In iframe element. */
 const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
 
+/** ID for the Google Sign-In button element. */
+const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
+
 /** ID for the Publisher sign-in button element. */
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 
@@ -143,11 +146,11 @@ body {
   margin: 0;
   overflow: hidden;
 }
-#swg-google-sign-in-button {
+#${GOOGLE_SIGN_IN_BUTTON_ID} {
   margin: 0 auto;
   width: ${GOOGLE_SIGN_IN_BUTTON_WIDTH}px;
 }
-#swg-google-sign-in-button > div {
+#${GOOGLE_SIGN_IN_BUTTON_ID} > div {
   animation: fadeIn 0.32s;
 }
 @keyframes fadeIn {
@@ -323,13 +326,18 @@ class GaaGoogleSignInButton {
       });
     });
 
+    // Create button.
+    const buttonEl = self.document.createElement('div');
+    buttonEl.id = GOOGLE_SIGN_IN_BUTTON_ID;
+    self.document.body.appendChild(buttonEl);
+
     loadGoogleSignIn(googleSignInClientId)
       .then(
         // Promise credentials.
         () =>
           new Promise((resolve, reject) => {
             // Render the Google Sign-In button.
-            self.gapi.signin2.render('swg-google-sign-in-button', {
+            self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
               'scope': 'profile email',
               'width': GOOGLE_SIGN_IN_BUTTON_WIDTH,
               'longtitle': true,
