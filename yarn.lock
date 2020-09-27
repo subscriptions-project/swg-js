@@ -10608,10 +10608,10 @@ postcss-value-parser@^4.1.0:
   resolved "https://registry.yarnpkg.com/postcss-value-parser/-/postcss-value-parser-4.1.0.tgz#443f6a20ced6481a2bda4fa8532a6e55d789a2cb"
   integrity sha512-97DXOFbQJhk71ne5/Mt6cOu6yxsSfM0QGQyl0L25Gca4yGWEGJaig7l7gbCX623VqTBNGLRLaVUCnNkcedlRSQ==
 
-postcss@8.0.9:
-  version "8.0.9"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.0.9.tgz#d112fc1e8bbed550657901550fa736ae3dd25ec5"
-  integrity sha512-9Ikq03Hvb/L6dgnOtNOUbcgg9Rsff5uKrI1TyNTQ2ALpa6psZk1Ar3/Hhxv2Q0rECRGDxtcMUTZIQglXozlrDQ==
+postcss@8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.1.0.tgz#1be330c7f6971d49726059b9f51785f45273fa70"
+  integrity sha512-d3RppIo1DI66oHxA1vdckr5qciQbMIrHvyzuvp2cLJHOLwJHg7X9ncrfw2Ri6Sgiwv/GoXtOwEHJ9E9VSRxXWQ==
   dependencies:
     colorette "^1.2.1"
     line-column "^1.0.2"
