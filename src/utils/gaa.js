@@ -416,11 +416,12 @@ export class GaaGoogleSignInButton {
 self.GaaGoogleSignInButton = GaaGoogleSignInButton;
 
 /**
- * Loads Google Sign-In API.
+ * Loads the Google Sign-In API.
  * @param {string|undefined} clientId
  * @return {!Promise}
  */
 function loadGoogleSignIn(clientId) {
+  // Add Client ID meta tag if necessary.
   if (
     clientId &&
     !self.document.querySelector('meta[name="google-signin-client_id"]')
@@ -434,6 +435,7 @@ function loadGoogleSignIn(clientId) {
     self.document.head.appendChild(el);
   }
 
+  // Load the GSI script and resolve the promise once it loads.
   return new Promise((resolve) => {
     const script = self.document.createElement('script');
     script.onload = resolve;
