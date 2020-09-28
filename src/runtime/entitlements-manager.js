@@ -19,7 +19,11 @@ import {
   Entitlements,
   GOOGLE_METERING_SOURCE,
 } from '../api/entitlements';
-import {EntitlementJwt, EntitlementsRequest} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  EntitlementJwt, 
+  EntitlementsRequest
+} from '../proto/api_messages';
 import {
   GetEntitlementsParamsExternalDef,
   GetEntitlementsParamsInternalDef,
@@ -408,6 +412,7 @@ export class EntitlementsManager {
 
     const entitlement = entitlements.getEntitlementForThis();
     if (!entitlement) {
+      this.deps_.eventManager().logSwgEvent(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
       return;
     }
 
@@ -422,9 +427,11 @@ export class EntitlementsManager {
   maybeShowToast_(entitlement) {
     // Don't show toast for metering entitlements.
     if (entitlement.source === GOOGLE_METERING_SOURCE) {
+      this.deps_.eventManager().logSwgEvent(AnalyticsEvent.EVENT_HAS_METER_ENTITLEMENT, false);
       return Promise.resolve();
     }
 
+    this.deps_.eventManager().logSwgEvent(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
     // Check if storage bit is set. It's only set by the `Entitlements.ack` method.
     return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
       const toastWasShown = value === '1';
@@ -462,6 +469,7 @@ export class EntitlementsManager {
    */
   consume_(entitlements, onCloseDialog) {
     if (entitlements.enablesThisWithGoogleMetering()) {
+      this.deps_.eventManager().logSwgEvent(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
       const meterToastApi = new MeterToastApi(this.deps_);
       meterToastApi.setOnCancelCallback(() => {
         if (onCloseDialog) {
