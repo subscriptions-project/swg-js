@@ -24,8 +24,8 @@ const POST_MESSAGE_STAMP = 'Subscribe with Google GAA Post Message Sentinel';
 /** Introduction command for post messages. */
 const POST_MESSAGE_COMMAND_INTRODUCTION = 'introduction';
 
-/** Credentials command for post messages. */
-const POST_MESSAGE_COMMAND_CREDENTIALS = 'credentials';
+/** User command for post messages. */
+const POST_MESSAGE_COMMAND_USER = 'user';
 
 /** ID for the Google Sign-In iframe element. */
 const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
@@ -322,14 +322,14 @@ export class GaaMeteringRegwall {
       );
     };
 
-    // Listen for credentials.
+    // Listen for GAA user.
     return new Promise((resolve) => {
       self.addEventListener('message', (e) => {
         if (
           e.data.stamp === POST_MESSAGE_STAMP &&
-          e.data.command === POST_MESSAGE_COMMAND_CREDENTIALS
+          e.data.command === POST_MESSAGE_COMMAND_USER
         ) {
-          resolve(e.data.credentials);
+          resolve(e.data.gaaUser);
         }
       });
     });
@@ -368,6 +368,7 @@ export class GaaGoogleSignInButton {
       });
     });
 
+    // Render the Google Sign-In button.
     loadGoogleSignIn(googleSignInClientId)
       .then(
         // Promise credentials.
@@ -387,8 +388,10 @@ export class GaaGoogleSignInButton {
           })
       )
       .then((googleUser) => {
+        // Send GAA
         const basicProfile = /** @type {!GoogleSignInUserDef} */ (googleUser).getBasicProfile();
-        const credentials = {
+        /** @type {!GaaUserDef} */
+        const gaaUser = {
           idToken: /** @type {!GoogleSignInUserDef} */ (googleUser).getAuthResponse()
             .id_token,
           name: basicProfile.getName(),
@@ -401,8 +404,8 @@ export class GaaGoogleSignInButton {
         sendMessageToParentFnPromise.then((sendMessageToParent) => {
           sendMessageToParent({
             stamp: POST_MESSAGE_STAMP,
-            command: POST_MESSAGE_COMMAND_CREDENTIALS,
-            credentials,
+            command: POST_MESSAGE_COMMAND_USER,
+            gaaUser,
           });
         });
       });
