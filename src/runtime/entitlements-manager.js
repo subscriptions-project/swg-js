@@ -15,11 +15,15 @@
  */
 
 import {
+  AnalyticsEvent,
+  EntitlementJwt,
+  EntitlementsRequest,
+} from '../proto/api_messages';
+import {
   Entitlement,
   Entitlements,
   GOOGLE_METERING_SOURCE,
 } from '../api/entitlements';
-import {EntitlementJwt, EntitlementsRequest} from '../proto/api_messages';
 import {
   GetEntitlementsParamsExternalDef,
   GetEntitlementsParamsInternalDef,
@@ -174,6 +178,10 @@ export class EntitlementsManager {
     if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
       return;
     }
+
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
 
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
@@ -408,6 +416,9 @@ export class EntitlementsManager {
 
     const entitlement = entitlements.getEntitlementForThis();
     if (!entitlement) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
       return;
     }
 
@@ -422,9 +433,15 @@ export class EntitlementsManager {
   maybeShowToast_(entitlement) {
     // Don't show toast for metering entitlements.
     if (entitlement.source === GOOGLE_METERING_SOURCE) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS, false);
       return Promise.resolve();
     }
 
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
     // Check if storage bit is set. It's only set by the `Entitlements.ack` method.
     return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
       const toastWasShown = value === '1';
@@ -544,7 +561,12 @@ export class EntitlementsManager {
         }
         return serviceUrl(url);
       })
-      .then((url) => this.fetcher_.fetchCredentialedJson(url))
+      .then((url) => {
+        this.deps_
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+        this.fetcher_.fetchCredentialedJson(url);
+      })
       .then((json) => {
         if (json.errorMessages && json.errorMessages.length > 0) {
           json.errorMessages.forEach((errorMessage) => {
