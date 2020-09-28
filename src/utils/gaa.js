@@ -232,12 +232,10 @@ export class GaaMeteringRegwall {
   static show({iframeUrl, publisherName}) {
     /** @type {!HTMLDivElement} */
     const cardEl = this.renderCard_({iframeUrl, publisherName});
-    return this.handlePostMessagesFromIframe({iframeUrl}).then(
-      (credentials) => {
-        cardEl.remove();
-        return credentials;
-      }
-    );
+    return this.handlePostMessagesFromIframe_({iframeUrl}).then((gaaUser) => {
+      cardEl.remove();
+      return gaaUser;
+    });
   }
 
   /**
@@ -287,11 +285,12 @@ export class GaaMeteringRegwall {
     /** @suppress {suspiciousCode} */
     cardEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(cardEl, {'opacity': 1});
-    this.handleClicksOnPublisherSignInButton();
+    this.handleClicksOnPublisherSignInButton_();
     return cardEl;
   }
 
-  static handleClicksOnPublisherSignInButton() {
+  /** @private */
+  static handleClicksOnPublisherSignInButton_() {
     self.document
       .getElementById(PUBLISHER_SIGN_IN_BUTTON_ID)
       .addEventListener('click', () => {
@@ -304,10 +303,11 @@ export class GaaMeteringRegwall {
   }
 
   /**
+   * @private
    * @param {{ iframeUrl: string }} params
    * @return {!Promise<!GaaUserDef>}
    */
-  static handlePostMessagesFromIframe({iframeUrl}) {
+  static handlePostMessagesFromIframe_({iframeUrl}) {
     // Introduce self to iframe.
     const googleSignInIframe = /** @type {!HTMLIFrameElement} */ (self.document.getElementById(
       GOOGLE_SIGN_IN_IFRAME_ID
