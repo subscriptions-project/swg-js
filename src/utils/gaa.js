@@ -39,7 +39,12 @@ const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 /** Width for the Google Sign-In button element. */
 const GOOGLE_SIGN_IN_BUTTON_WIDTH = 370;
 
-/** HTML for the metering regwall dialog, where users can sign in with Google. */
+/**
+ * HTML for the metering regwall dialog, where users can sign in with Google.
+ * The script creates a dialog based on this HTML.
+ * The HTML includes an iframe that loads the Google Sign-In button.
+ * This iframe can live on a different origin.
+ */
 const REGWALL_HTML = `
 <style>
   .gaa-metering-regwall--card-spacer,
