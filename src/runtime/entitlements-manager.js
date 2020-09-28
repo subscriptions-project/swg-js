@@ -565,7 +565,7 @@ export class EntitlementsManager {
         this.deps_
           .eventManager()
           .logSwgEvent(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
-        this.fetcher_.fetchCredentialedJson(url);
+        return this.fetcher_.fetchCredentialedJson(url);
       })
       .then((json) => {
         if (json.errorMessages && json.errorMessages.length > 0) {
