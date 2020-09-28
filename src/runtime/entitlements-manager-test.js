@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
 import {ClientEventManager} from './client-event-manager';
@@ -48,12 +49,13 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   let encryptedDocumentKey;
   let dialogManager;
   let dialogManagerMock;
+  let eventManager;
 
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
     fetcher = new XhrFetcher(win);
-    const eventManager = new ClientEventManager(Promise.resolve());
+    eventManager = new ClientEventManager(Promise.resolve());
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
     deps = new DepsDef();
@@ -87,6 +89,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
   afterEach(() => {
     storageMock.verify();
+    eventManager.verify();
     xhrMock.verify();
     jwtHelperMock.verify();
     analyticsMock.verify();
@@ -175,6 +178,24 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     return resp;
   }
 
+  function expectLog(event, isUserGenerated) {
+    eventManager
+      .expects('logSwgEvent')
+      .withExactArgs(event, isUserGenerated)
+      .returns(null)
+      .once();
+  }
+
+  function getExpectedEventFromEntitlements(entitlements) {
+    const entitlement = entitlements && entitlements.getEntitlementForThis();
+
+    return !entitlement
+      ? AnalyticsEvent.EVENT_NO_ENTITLEMENTS
+      : entitlement.source === GOOGLE_METERING_SOURCE
+      ? AnalyticsEvent.EVENT_UNLOCKED_BY_METER
+      : AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION;
+  }
+
   describe('fetching', () => {
     beforeEach(() => {
       // Expect empty cache.
@@ -218,6 +239,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(ents.entitlements).to.deep.equal([]);
       expect(ents.product_).to.equal('pub1:label1');
       expect(ents.enablesThis()).to.be.false;
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(getExpectedEventFromEntitlements(ents), false);
     });
 
     it('should accept encrypted document key', async () => {
@@ -246,6 +269,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(ents.entitlements).to.deep.equal([]);
       expect(ents.product_).to.equal('pub1:label1');
       expect(ents.enablesThis()).to.be.false;
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(getExpectedEventFromEntitlements(ents), false);
     });
 
     it('should handle present decrypted document key', async () => {
@@ -281,6 +306,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.equal('ddk1');
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(getExpectedEventFromEntitlements(ents), false);
     });
 
     it('should handle missing decrypted document key', async () => {
@@ -315,6 +342,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.be.null;
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(getExpectedEventFromEntitlements(ents), false);
     });
 
     it('should fetch non-empty response', async () => {
@@ -357,6 +386,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         },
       ]);
       expect(ents.enablesThis()).to.be.true;
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(getExpectedEventFromEntitlements(ents), false);
     });
 
     it('should only fetch once', async () => {
@@ -369,7 +400,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .once();
 
-      await manager.getEntitlements();
+      const ents = await manager.getEntitlements();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(getExpectedEventFromEntitlements(ents), false);
       await manager.getEntitlements();
     });
 
@@ -383,9 +416,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .twice();
 
-      await manager.getEntitlements();
+      const ents = await manager.getEntitlements();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(getExpectedEventFromEntitlements(ents), false);
+
       manager.reset();
-      await manager.getEntitlements();
+      const ents2 = await manager.getEntitlements();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(getExpectedEventFromEntitlements(ents2), false);
     });
 
     it('should reset with positive expectation', () => {
@@ -505,9 +543,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .twice();
 
-      await manager.getEntitlements();
+      const ents = await manager.getEntitlements();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(getExpectedEventFromEntitlements(ents), false);
+
       manager.clear();
-      await manager.getEntitlements();
+      const ents2 = await manager.getEntitlements();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(getExpectedEventFromEntitlements(ents2), false);
     });
 
     it('should clear all state and cache', () => {
@@ -582,6 +625,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         },
       ]);
       expect(ents.enablesThis()).to.be.true;
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(getExpectedEventFromEntitlements(ents), false);
     });
 
     it('should open metering dialog when metering entitlements are consumed', () => {
@@ -601,6 +646,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       );
 
       manager.consume_(ents);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
     });
 
     it('should not open metering dialog when non-metering entitlements are consumed', () => {
@@ -645,6 +691,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         'product1'
       );
       await manager.sendPingback_(ents);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
     });
 
     it('should not send pingback with non-metering entitlements', async () => {
