@@ -191,6 +191,7 @@ body {
 const GOOGLE_SIGN_IN_JS_URL = 'https://apis.google.com/js/platform.js';
 
 /**
+ * User object that Publisher JS receives after users sign in.
  * @typedef {{
  *   idToken: string,
  *   name: string,
@@ -203,6 +204,8 @@ const GOOGLE_SIGN_IN_JS_URL = 'https://apis.google.com/js/platform.js';
 let GaaUserDef;
 
 /**
+ * GoogleUser object that Google Sign-In returns after users sign in.
+ * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
  * @typedef {{
  *   getAuthResponse: function(): {id_token: string},
  *   getBasicProfile: function(): {
