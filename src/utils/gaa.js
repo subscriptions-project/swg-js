@@ -344,13 +344,17 @@ export class GaaGoogleSignInButton {
    * @param {{ allowedOrigins: !Array<string>, googleSignInClientId: string }} params
    */
   static show({allowedOrigins, googleSignInClientId}) {
-    // Apply styles.
+    // Apply iframe styles.
     const styleEl = self.document.createElement('style');
     styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES;
     self.document.head.appendChild(styleEl);
 
-    // Listen for introduction.
-    const postMessageToParentPromise = new Promise((resolve) => {
+    // Promise a function that sends messages to the parent frame.
+    // Note: A function is preferable to a reference to the parent frame
+    // because referencing the parent frame outside of the 'message' event
+    // handler throws an Error. A function defined within the handler can
+    // effectively save a reference to the parent frame though.
+    const sendMessageToParentFnPromise = new Promise((resolve) => {
       self.addEventListener('message', (e) => {
         if (
           allowedOrigins.indexOf(e.origin) !== -1 &&
@@ -364,17 +368,15 @@ export class GaaGoogleSignInButton {
       });
     });
 
-    // Create button.
-    const buttonEl = self.document.createElement('div');
-    buttonEl.id = GOOGLE_SIGN_IN_BUTTON_ID;
-    self.document.body.appendChild(buttonEl);
-
     loadGoogleSignIn(googleSignInClientId)
       .then(
         // Promise credentials.
         () =>
           new Promise((resolve) => {
             // Render the Google Sign-In button.
+            const buttonEl = self.document.createElement('div');
+            buttonEl.id = GOOGLE_SIGN_IN_BUTTON_ID;
+            self.document.body.appendChild(buttonEl);
             self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
               'scope': 'profile email',
               'width': GOOGLE_SIGN_IN_BUTTON_WIDTH,
@@ -396,8 +398,8 @@ export class GaaGoogleSignInButton {
           email: basicProfile.getEmail(),
         };
 
-        postMessageToParentPromise.then((postMessageToParent) => {
-          postMessageToParent({
+        sendMessageToParentFnPromise.then((sendMessageToParent) => {
+          sendMessageToParent({
             stamp: POST_MESSAGE_STAMP,
             command: POST_MESSAGE_COMMAND_CREDENTIALS,
             credentials,
