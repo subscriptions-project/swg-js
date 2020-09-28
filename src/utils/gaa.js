@@ -388,7 +388,7 @@ export class GaaGoogleSignInButton {
           })
       )
       .then((googleUser) => {
-        // Send GAA
+        // Gather GAA user details.
         const basicProfile = /** @type {!GoogleSignInUserDef} */ (googleUser).getBasicProfile();
         /** @type {!GaaUserDef} */
         const gaaUser = {
@@ -401,6 +401,7 @@ export class GaaGoogleSignInButton {
           email: basicProfile.getEmail(),
         };
 
+        // Send GAA user to parent frame.
         sendMessageToParentFnPromise.then((sendMessageToParent) => {
           sendMessageToParent({
             stamp: POST_MESSAGE_STAMP,
