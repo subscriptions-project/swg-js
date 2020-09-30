@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
 import {ClientEventManager} from './client-event-manager';
@@ -48,12 +49,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   let encryptedDocumentKey;
   let dialogManager;
   let dialogManagerMock;
+  let eventManager;
+  let eventManagerMock;
 
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
     fetcher = new XhrFetcher(win);
-    const eventManager = new ClientEventManager(Promise.resolve());
+    eventManager = new ClientEventManager(Promise.resolve());
+    eventManagerMock = sandbox.mock(eventManager);
+
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
     deps = new DepsDef();
@@ -91,6 +96,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     jwtHelperMock.verify();
     analyticsMock.verify();
     dialogManagerMock.verify();
+    eventManagerMock.verify();
     self.console.warn.restore();
   });
 
@@ -175,6 +181,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     return resp;
   }
 
+  function expectLog(event, isUserGenerated) {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(event, isUserGenerated)
+      .returns(null)
+      .once();
+  }
+
   describe('fetching', () => {
     beforeEach(() => {
       // Expect empty cache.
@@ -211,6 +225,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             json: () => Promise.resolve({}),
           })
         );
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
 
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
@@ -237,6 +253,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             json: () => Promise.resolve({}),
           })
         );
+
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
 
       const ents = await manager.getEntitlements({
         encryption: {encryptedDocumentKey},
@@ -279,6 +298,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         );
 
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.equal('ddk1');
     });
@@ -312,6 +334,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
               }),
           })
         );
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.be.null;
@@ -345,6 +369,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
               }),
           })
         );
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
 
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
@@ -356,6 +382,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           subscriptionToken: 'token1',
         },
       ]);
+
       expect(ents.enablesThis()).to.be.true;
     });
 
@@ -368,8 +395,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .once();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
 
       await manager.getEntitlements();
+
       await manager.getEntitlements();
     });
 
@@ -383,7 +413,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .twice();
 
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+
       await manager.getEntitlements();
+
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+
       manager.reset();
       await manager.getEntitlements();
     });
@@ -504,9 +541,15 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .twice();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
 
       await manager.getEntitlements();
+
       manager.clear();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+
       await manager.getEntitlements();
     });
 
@@ -562,6 +605,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       // Toast shouldn't open.
       storageMock.expects('get').withExactArgs('toast').never();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS, false);
 
       const ents = await manager.getEntitlements({
         metering: {
@@ -613,6 +658,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         'product1'
       );
 
+      eventManagerMock.expects('logSwgEvent').never();
       manager.consume_(ents);
     });
 
@@ -644,6 +690,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         ],
         'product1'
       );
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
       await manager.sendPingback_(ents);
     });
 
@@ -656,6 +703,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         [new Entitlement('source1', ['product1', 'product2'], 'token1')],
         'product1'
       );
+      eventManagerMock.expects('logSwgEvent').never();
       await manager.sendPingback_(ents);
     });
 
