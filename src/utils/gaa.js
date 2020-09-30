@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
+// PLEASE DO NOT HOST THIS FILE YOURSELF. DOING SO WILL BREAK THINGS.
+//
+// Publishers should load this file from:
+// https://news.google.com/swg/js/v1/swg-gaa.js
+//
+// Thanks!
+
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
 import {setImportantStyles} from './style';
