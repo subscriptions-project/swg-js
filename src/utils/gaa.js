@@ -429,6 +429,11 @@ self.GaaGoogleSignInButton = GaaGoogleSignInButton;
 
 /**
  * Loads the Google Sign-In API.
+ *
+ * This function is used in two places.
+ * 1. The publisher's Google Sign-In iframe.
+ * 2. (Optional) Demos that allow users to sign out.
+ *
  * @param {string|undefined} clientId
  * @return {!Promise}
  */
