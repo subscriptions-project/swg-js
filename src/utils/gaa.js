@@ -43,8 +43,14 @@ const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 /** ID for the Publisher sign-in button element. */
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 
+/** ID for the Publisher no thanks button element. */
+const PUBLISHER_NO_THANKS_BUTTON_ID = 'swg-publisher-no-thanks-button';
+
 /** Width for the Google Sign-In button element. */
 const GOOGLE_SIGN_IN_BUTTON_WIDTH = 370;
+
+/** ID for the Regwall element. */
+const REGWALL_ID = 'swg-regwall-element';
 
 /**
  * HTML for the metering regwall dialog, where users can sign in with Google.
@@ -60,7 +66,8 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--title,
   .gaa-metering-regwall--description,
   .gaa-metering-regwall--description strong,
-  .gaa-metering-regwall--publisher-sign-in-button {
+  .gaa-metering-regwall--publisher-sign-in-button,
+  .gaa-metering-regwall--publisher-no-thanks-button {
     all: initial;
     box-sizing: border-box;
     font-family: Roboto, arial, sans-serif;
@@ -126,15 +133,21 @@ const REGWALL_HTML = `
 
   .gaa-metering-regwall--line {
     background-color: #ddd;
+    display: block;
     height: 1px;
     margin: 0 0 24px;
   }
 
-  .gaa-metering-regwall--publisher-sign-in-button {
+  .gaa-metering-regwall--publisher-sign-in-button,
+  .gaa-metering-regwall--publisher-no-thanks-button {
     color: #1967d2;
     display: block;
     cursor: pointer;
     font-size: 12px;
+  }
+
+  .gaa-metering-regwall--publisher-sign-in-button {
+    margin: 0 0 12px;
   }
 </style>
 
@@ -156,9 +169,16 @@ const REGWALL_HTML = `
 
     <div class="gaa-metering-regwall--line"></div>
 
-    <a id="${PUBLISHER_SIGN_IN_BUTTON_ID}"
-          class="gaa-metering-regwall--publisher-sign-in-button">
+    <a
+        id="${PUBLISHER_SIGN_IN_BUTTON_ID}"
+        class="gaa-metering-regwall--publisher-sign-in-button">
       Already have an account?
+    </a>
+
+    <a
+        id="${PUBLISHER_NO_THANKS_BUTTON_ID}"
+        class="gaa-metering-regwall--publisher-no-thanks-button">
+      No thanks
     </a>
   </div>
 </div>
@@ -243,9 +263,9 @@ export class GaaMeteringRegwall {
    */
   static show({iframeUrl, publisherName}) {
     /** @type {!HTMLDivElement} */
-    const cardEl = this.renderCard_({iframeUrl, publisherName});
-    return this.handlePostMessagesFromIframe_({iframeUrl}).then((gaaUser) => {
-      cardEl.remove();
+    this.render_({iframeUrl, publisherName});
+    return this.getGaaUser_({iframeUrl}).then((gaaUser) => {
+      this.remove_();
       return gaaUser;
     });
   }
@@ -267,13 +287,15 @@ export class GaaMeteringRegwall {
   }
 
   /**
+   * Renders the Regwall.
    * @param {{ iframeUrl: string, publisherName: string }} params
    * @return {!HTMLDivElement}
    */
-  static renderCard_({iframeUrl, publisherName}) {
+  static render_({iframeUrl, publisherName}) {
     const cardEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
+    cardEl.id = REGWALL_ID;
     setImportantStyles(cardEl, {
       'all': 'unset',
       'background-color': 'rgba(0,0,0,0.5)',
@@ -301,6 +323,11 @@ export class GaaMeteringRegwall {
     return cardEl;
   }
 
+  /** Removes the Regwall. */
+  static remove_() {
+    self.document.getElementById(REGWALL_ID).remove();
+  }
+
   /** @private */
   static handleClicksOnPublisherSignInButton_() {
     self.document
@@ -315,11 +342,12 @@ export class GaaMeteringRegwall {
   }
 
   /**
+   * Returns the GAA user, after the user signs in.
    * @private
    * @param {{ iframeUrl: string }} params
    * @return {!Promise<!GaaUserDef>}
    */
-  static handlePostMessagesFromIframe_({iframeUrl}) {
+  static getGaaUser_({iframeUrl}) {
     // Introduce self to iframe.
     const googleSignInIframe = /** @type {!HTMLIFrameElement} */ (self.document.getElementById(
       GOOGLE_SIGN_IN_IFRAME_ID
@@ -335,7 +363,15 @@ export class GaaMeteringRegwall {
     };
 
     // Listen for GAA user.
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      // Let users dismiss the Regwall.
+      self.document
+        .getElementById(PUBLISHER_NO_THANKS_BUTTON_ID)
+        .addEventListener('click', () => {
+          this.remove_();
+          reject('🙅 User dismissed Regwall');
+        });
+
       self.addEventListener('message', (e) => {
         if (
           e.data.stamp === POST_MESSAGE_STAMP &&

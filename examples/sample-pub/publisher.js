@@ -183,37 +183,51 @@ function startFlowAuto() {
         location.reload();
       });
 
-      // Fetch the current user's metering state.
-      MeteringDemo.fetchMeteringState()
-        .then((meteringState) => {
-          if (meteringState.registrationTimestamp) {
-            // Skip metering regwall for registered users.
-            return meteringState;
-          }
+      // Fetch entitlements.
+      subscriptions.getEntitlements().then((entitlements) => {
+        if (entitlements.enablesThis()) {
+          // Unlock article right away, since the user has a subscription.
+          MeteringDemo.openPaywall();
+        } else {
+          // Attempt to unlock article with metering.
+          maybeUnlockWithMetering();
+        }
+      });
 
-          // Show metering regwall for unregistered users.
-          return GaaMeteringRegwall.show({
-            publisherName: MeteringDemo.PUBLISHER_NAME,
-            iframeUrl: MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL,
+      function maybeUnlockWithMetering() {
+        // Fetch the current user's metering state.
+        MeteringDemo.fetchMeteringState()
+          .then((meteringState) => {
+            if (meteringState.registrationTimestamp) {
+              // Skip metering regwall for registered users.
+              return meteringState;
+            }
+
+            // Show metering regwall for unregistered users.
+            return GaaMeteringRegwall.show({
+              publisherName: MeteringDemo.PUBLISHER_NAME,
+              iframeUrl: MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL,
+            })
+              .then((gaaUser) =>
+                // Register a user based on data from Google Sign-In.
+                //
+                // We advise setting a 1st party, secure, HTTP-only cookie,
+                // so it lives past 7 days in Safari.
+                // https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
+                MeteringDemo.registerUser(gaaUser)
+              )
+              .then(() =>
+                // Fetch the current user's metering state again
+                // since they registered.
+                MeteringDemo.fetchMeteringState()
+              );
           })
-            .then((gaaUser) =>
-              // Register a user based on data from Google Sign-In.
-              //
-              // We advise setting a 1st party, secure, HTTP-only cookie,
-              // so it lives past 7 days in Safari.
-              // https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
-              MeteringDemo.registerUser(gaaUser)
-            )
-            .then(() =>
-              // Fetch the current user's metering state again
-              // since they registered.
-              MeteringDemo.fetchMeteringState()
-            );
-        })
-        .then((meteringState) => {
-          // Get SwG entitlements.
-          subscriptions
-            .getEntitlements({
+          .then((meteringState) => {
+            // Forget previous entitlements fetches.
+            subscriptions.clear();
+
+            // Get SwG entitlements.
+            return subscriptions.getEntitlements({
               metering: {
                 state: {
                   // Hashed identifier for a specific user. Hash this value yourself
@@ -232,37 +246,37 @@ function startFlowAuto() {
                   },
                 },
               },
-            })
-            .then((entitlements) => {
-              // Check if an entitlement unlocks the article.
-              if (entitlements.enablesThis()) {
-                // Check if a Google metering entitlement unlocks the article.
-                if (entitlements.enablesThisWithGoogleMetering()) {
-                  // Consume the entitlement. This lets Google know a specific free
-                  // read was "used up", which allows Google to calculate how many
-                  // free reads are left for a given user.
-                  //
-                  // Consuming an entitlement will also trigger a dialog that lets the user
-                  // know Google provided them with a free read.
-                  entitlements.consume(() => {
-                    // Unlock the article AFTER the user consumes a free read.
-                    // Note: If you unlock the article outside of this callback,
-                    // users might be able to scroll down and read the article
-                    // without closing the dialog, and closing the dialog is
-                    // what actually consumes a free read.
-                    MeteringDemo.openPaywall();
-                  });
-                } else {
-                  // Unlock article right away, since the user has a subscription.
-                  MeteringDemo.openPaywall();
-                }
-              } else {
-                // Show a publisher paywall for demo purposes.
-                startFlow('showOffers');
-              }
             });
-        });
+          })
+          .catch(() => false)
+          .then((entitlements) => {
+            // Check if a Google metering entitlement unlocks the article.
+            if (entitlements && entitlements.enablesThisWithGoogleMetering()) {
+              // Consume the entitlement. This lets Google know a specific free
+              // read was "used up", which allows Google to calculate how many
+              // free reads are left for a given user.
+              //
+              // Consuming an entitlement will also trigger a dialog that lets the user
+              // know Google provided them with a free read.
+              entitlements.consume(() => {
+                // Unlock the article AFTER the user consumes a free read.
+                // Note: If you unlock the article outside of this callback,
+                // users might be able to scroll down and read the article
+                // without closing the dialog, and closing the dialog is
+                // what actually consumes a free read.
+                MeteringDemo.openPaywall();
+              });
+            } else {
+              // Handle failures to unlock the article with metering entitlements.
+              // Perhaps the user ran out of free reads. Or perhaps the user
+              // dismissed the Regwall. Either way, the publisher determines
+              // what happens next. This demo shows offers.
+              startFlow('showOffers');
+            }
+          });
+      }
     });
+
     return;
     /* eslint-enable */
   }
