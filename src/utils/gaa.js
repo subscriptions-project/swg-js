@@ -266,7 +266,6 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl, publisherName}) {
-    /** @type {!HTMLDivElement} */
     GaaMeteringRegwall.render_({iframeUrl, publisherName});
     return GaaMeteringRegwall.getGaaUser_({iframeUrl}).then((gaaUser) => {
       GaaMeteringRegwall.remove_();
