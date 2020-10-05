@@ -36,3 +36,20 @@ ArrayLike.prototype.length;
  * @dict
  */
 function JsonObject() {}
+
+/**
+ * Google JS APIs.
+ * @type {{
+ *   load: function(string, function(): void),
+ *   auth2: {
+ *     init: function(): !Promise,
+ *     getAuthInstance: function(): {
+ *       signOut: function(): !Promise,
+ *     },
+ *   },
+ *   signin2: {
+ *     render: function(string, !Object): void
+ *   },
+ * }}
+ */
+window.gapi;

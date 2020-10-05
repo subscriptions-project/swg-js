@@ -5,15 +5,23 @@
  * define their own JS and backend code to provide the same functionality securely.
  */
 const MeteringDemo = {
+  /** Publisher name for the metering demo. */
+  PUBLISHER_NAME: 'The Local Scenic',
+
+  /** Google Sign-In Client ID for the metering demo. */
+  GOOGLE_SIGN_IN_CLIENT_ID:
+    '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+
+  /** URL of iframe containing a Google Sign-In button. */
+  GOOGLE_SIGN_IN_IFRAME_URL:
+    'http://localhost:8000/examples/sample-pub/gsi-iframe',
+
   /** Sets up controls for the metering demo. */
   setupControls: () => {
     // Wire up buttons.
     document
       .querySelector('#metering-controls .reset-metering-demo')
       .addEventListener('click', MeteringDemo.resetMeteringDemo);
-    document
-      .querySelector('#metering-controls .mock-gsi-completion')
-      .addEventListener('click', MeteringDemo.mockGsiCompletion);
 
     // Show reset button.
     document.body.classList.add('metering');
@@ -32,17 +40,25 @@ const MeteringDemo = {
     // Forget the existing registration timestamp.
     delete localStorage.meteringRegistrationTimestamp;
 
-    // Refresh.
-    window.location.reload();
+    // Delete the existing username.
+    delete localStorage.meteringUsername;
+
+    // Sign out of Google Sign-In.
+    self.GaaMeteringRegwall.signOut({
+      googleSignInClientId: MeteringDemo.GOOGLE_SIGN_IN_CLIENT_ID,
+    }).then(() => {
+      // Refresh.
+      window.location.reload();
+    });
   },
 
-  /** Mocks the user completing GSI via the Regwall. */
-  mockGsiCompletion: () => {
+  /** Mocks registration of a user, given data from Google Sign-In. */
+  registerUser: (gaaUser) => {
     // Record the registration timestamp in seconds (not milliseconds).
     localStorage.meteringRegistrationTimestamp = Math.floor(Date.now() / 1000);
 
-    // Refresh.
-    window.location.reload();
+    // Record the user's name, for the metering demo.
+    localStorage.meteringUsername = gaaUser.name;
   },
 
   /** Returns a new Publisher Provided ID (PPID) suitable for demo purposes. */
@@ -64,6 +80,11 @@ const MeteringDemo = {
 
   /** Returns the user's metering state, including when the user registered. */
   fetchMeteringState: () => {
+    // Logs the username, for the metering demo.
+    if (localStorage.meteringUsername) {
+      console.log(`👋 Hello, ${localStorage.meteringUsername}!`);
+    }
+
     return Promise.resolve({
       id: MeteringDemo.getPpid(),
       registrationTimestamp: localStorage.meteringRegistrationTimestamp,
