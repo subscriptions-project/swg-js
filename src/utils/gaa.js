@@ -262,6 +262,7 @@ export class GaaMeteringRegwall {
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
+   * @nocollapse
    * @param {{ iframeUrl: string, publisherName: string }} params
    * @return {!Promise<!GaaUserDef>}
    */
@@ -279,6 +280,7 @@ export class GaaMeteringRegwall {
    * This method signs the user out of Google Sign-In.
    * This is useful for developers who are testing their
    * SwG integrations.
+   * @nocollapse
    * @param {{ googleSignInClientId: string }} params
    * @return {!Promise}
    */
@@ -291,6 +293,8 @@ export class GaaMeteringRegwall {
 
   /**
    * Renders the Regwall.
+   * @private
+   * @nocollapse
    * @param {{ iframeUrl: string, publisherName: string }} params
    * @return {!HTMLDivElement}
    */
@@ -322,17 +326,25 @@ export class GaaMeteringRegwall {
     /** @suppress {suspiciousCode} */
     cardEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(cardEl, {'opacity': 1});
-    GaaMeteringRegwall.handleClicksOnPublisherSignInButton_();
+    GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
     return cardEl;
   }
 
-  /** Removes the Regwall. */
+  /**
+   * Removes the Regwall.
+   * @private
+   * @nocollapse
+   */
   static remove_() {
     self.document.getElementById(REGWALL_ID).remove();
   }
 
-  /** @private */
-  static handleClicksOnPublisherSignInButton_() {
+  /**
+   * Adds a click listener on the publisher sign-in button.
+   * @private
+   * @nocollapse
+   */
+  static addClickListenerOnPublisherSignInButton_() {
     self.document
       .getElementById(PUBLISHER_SIGN_IN_BUTTON_ID)
       .addEventListener('click', () => {
@@ -347,6 +359,7 @@ export class GaaMeteringRegwall {
   /**
    * Returns the GAA user, after the user signs in.
    * @private
+   * @nocollapse
    * @param {{ iframeUrl: string }} params
    * @return {!Promise<!GaaUserDef>}
    */
@@ -392,6 +405,7 @@ self.GaaMeteringRegwall = GaaMeteringRegwall;
 export class GaaGoogleSignInButton {
   /**
    * Renders the Google Sign-In button.
+   * @nocollapse
    * @param {{ allowedOrigins: !Array<string>, googleSignInClientId: string }} params
    */
   static show({allowedOrigins, googleSignInClientId}) {
