@@ -267,9 +267,9 @@ export class GaaMeteringRegwall {
    */
   static show({iframeUrl, publisherName}) {
     /** @type {!HTMLDivElement} */
-    this.render_({iframeUrl, publisherName});
-    return this.getGaaUser_({iframeUrl}).then((gaaUser) => {
-      this.remove_();
+    GaaMeteringRegwall.render_({iframeUrl, publisherName});
+    return GaaMeteringRegwall.getGaaUser_({iframeUrl}).then((gaaUser) => {
+      GaaMeteringRegwall.remove_();
       return gaaUser;
     });
   }
@@ -323,7 +323,7 @@ export class GaaMeteringRegwall {
     /** @suppress {suspiciousCode} */
     cardEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(cardEl, {'opacity': 1});
-    this.handleClicksOnPublisherSignInButton_();
+    GaaMeteringRegwall.handleClicksOnPublisherSignInButton_();
     return cardEl;
   }
 
@@ -372,7 +372,7 @@ export class GaaMeteringRegwall {
       self.document
         .getElementById(PUBLISHER_NO_THANKS_BUTTON_ID)
         .addEventListener('click', () => {
-          this.remove_();
+          GaaMeteringRegwall.remove_();
           reject('🙅 User dismissed Regwall');
         });
 
