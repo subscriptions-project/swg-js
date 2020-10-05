@@ -47,7 +47,7 @@ const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 const PUBLISHER_NO_THANKS_BUTTON_ID = 'swg-publisher-no-thanks-button';
 
 /** Width for the Google Sign-In button element. */
-const GOOGLE_SIGN_IN_BUTTON_WIDTH = 370;
+const GOOGLE_SIGN_IN_BUTTON_WIDTH = 230;
 
 /** ID for the Regwall element. */
 const REGWALL_ID = 'swg-regwall-element';
@@ -76,7 +76,7 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--card-spacer {
     bottom: 0;
     display: block;
-    position: absolute;
+    position: fixed;
     width: 100%;
   }
 
@@ -92,6 +92,7 @@ const REGWALL_HTML = `
     box-shadow: 0px -2px 6px rgba(0, 0, 0, 0.3);
     display: block;
     margin: 0 auto;
+    max-width: 100%;
     padding: 24px 20px;
     width: 410px;
   }
@@ -147,7 +148,10 @@ const REGWALL_HTML = `
   }
 
   .gaa-metering-regwall--publisher-sign-in-button {
-    margin: 0 0 12px;
+  }
+
+  .gaa-metering-regwall--publisher-no-thanks-button {
+    float: right;
   }
 </style>
 
@@ -170,15 +174,15 @@ const REGWALL_HTML = `
     <div class="gaa-metering-regwall--line"></div>
 
     <a
-        id="${PUBLISHER_SIGN_IN_BUTTON_ID}"
-        class="gaa-metering-regwall--publisher-sign-in-button">
-      Already have an account?
-    </a>
-
-    <a
         id="${PUBLISHER_NO_THANKS_BUTTON_ID}"
         class="gaa-metering-regwall--publisher-no-thanks-button">
       No thanks
+    </a>
+
+    <a
+        id="${PUBLISHER_SIGN_IN_BUTTON_ID}"
+        class="gaa-metering-regwall--publisher-sign-in-button">
+      Already have an account?
     </a>
   </div>
 </div>
