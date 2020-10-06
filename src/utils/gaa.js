@@ -148,6 +148,7 @@ const REGWALL_HTML = `
   }
 
   .gaa-metering-regwall--publisher-no-thanks-button {
+    display: none;
     float: right;
   }
 </style>
