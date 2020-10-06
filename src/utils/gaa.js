@@ -46,9 +46,6 @@ const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 /** ID for the Publisher no thanks button element. */
 const PUBLISHER_NO_THANKS_BUTTON_ID = 'swg-publisher-no-thanks-button';
 
-/** Width for the Google Sign-In button element. */
-const GOOGLE_SIGN_IN_BUTTON_WIDTH = 230;
-
 /** ID for the Regwall element. */
 const REGWALL_ID = 'swg-regwall-element';
 
@@ -196,7 +193,6 @@ body {
 }
 #${GOOGLE_SIGN_IN_BUTTON_ID} {
   margin: 0 auto;
-  width: ${GOOGLE_SIGN_IN_BUTTON_WIDTH}px;
 }
 #${GOOGLE_SIGN_IN_BUTTON_ID} > div {
   animation: fadeIn 0.32s;
@@ -214,6 +210,7 @@ body {
   box-shadow: none;
   -webkit-box-shadow: none;
   border-radius: 4px;
+  width: 100% !important;
 }
 #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
   display: none;
@@ -445,7 +442,6 @@ export class GaaGoogleSignInButton {
             self.document.body.appendChild(buttonEl);
             self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
               'scope': 'profile email',
-              'width': GOOGLE_SIGN_IN_BUTTON_WIDTH,
               'longtitle': true,
               'theme': 'dark',
               'onsuccess': resolve,
