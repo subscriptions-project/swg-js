@@ -303,7 +303,7 @@ export class GaaMeteringRegwall {
     cardEl.id = REGWALL_ID;
     setImportantStyles(cardEl, {
       'all': 'unset',
-      'background-color': 'rgba(0,0,0,0.5)',
+      'background-color': 'rgba(32, 33, 36, 0.6)',
       'border': 'none',
       'bottom': '0',
       'height': '100%',
