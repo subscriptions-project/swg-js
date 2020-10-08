@@ -46,7 +46,7 @@ export class MeterToastApi {
         productId: deps.pageConfig().getProductId(),
         hasSubscriptionCallback: deps.callbacks().hasSubscribeRequestCallback(),
       }),
-      /* shouldFadeBody */ true
+      /* shouldFadeBody */ false
     );
   }
 
