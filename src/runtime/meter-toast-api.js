@@ -39,7 +39,7 @@ export class MeterToastApi {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private @const {!function} */
+    /** @private @const {!function()} */
     this.sendCloseRequestFunction_ = () => {
       const closeRequest = new ToastCloseRequest();
       closeRequest.setClose(true);
