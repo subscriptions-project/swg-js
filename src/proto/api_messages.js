@@ -1470,6 +1470,59 @@ class Timestamp {
 /**
  * @implements {Message}
  */
+class ToastCloseRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?boolean} */
+    this.close_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getClose() {
+    return this.close_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setClose(value) {
+    this.close_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.close_, // field 1 - close
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'ToastCloseRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class ViewSubscriptionsResponse {
   /**
    * @param {!Array<*>=} data
@@ -1537,6 +1590,7 @@ const PROTO_MAP = {
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
   'Timestamp': Timestamp,
+  'ToastCloseRequest': ToastCloseRequest,
   'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
 };
 
@@ -1587,6 +1641,7 @@ export {
   SmartBoxMessage,
   SubscribeResponse,
   Timestamp,
+  ToastCloseRequest,
   ViewSubscriptionsResponse,
   deserialize,
   getLabel,
