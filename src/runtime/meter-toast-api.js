@@ -15,11 +15,11 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {SubscriptionFlows} from '../api/subscriptions';
 import {
   ToastCloseRequest,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
-import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
 export class MeterToastApi {
