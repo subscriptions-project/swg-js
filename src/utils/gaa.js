@@ -300,6 +300,14 @@ export class GaaMeteringRegwall {
 
     // Render the Google Sign-In button.
     GaaMeteringRegwall.renderGoogleSignInButton_({redirectUri});
+
+    // Currently users can't dismiss the Regwall.
+    // This might change in the future.
+    // This promise leaves room for a dismissal feature.
+    // This feature would cause the returned promise to reject.
+    // Returning a promise from day one allows publishers to write
+    // their JS to support this possibility.
+    return new Promise(() => {});
   }
 
   /**
