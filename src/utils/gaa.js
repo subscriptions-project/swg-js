@@ -212,6 +212,8 @@ export class GaaMeteringRegwall {
 
   /**
    * Signs out of Google Sign-In.
+   * This is useful for developers who are testing their
+   * SwG integrations.
    * @nocollapse
    * @return {!Promise}
    */
