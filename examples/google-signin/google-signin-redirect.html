@@ -11,7 +11,7 @@
   <script src="https://apis.google.com/js/platform.js" async defer></script>
 
   <script>
-    GaaMeteringRegwall.configureGoogleSignIn_().then(() => {
+    GaaMeteringRegwall.configureGoogleSignIn().then(() => {
       // Create an account based on the Google Sign-In GoogleUser object:
       // https://developers.google.com/identity/sign-in/web/reference#googleusergetid
       const googleUser = gapi.auth2.getAuthInstance().currentUser.get();

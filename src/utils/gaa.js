@@ -216,7 +216,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise}
    */
   static signOut() {
-    return this.configureGoogleSignIn_().then(() =>
+    return this.configureGoogleSignIn().then(() =>
       self.gapi.auth2.getAuthInstance().signOut()
     );
   }
@@ -230,6 +230,38 @@ export class GaaMeteringRegwall {
       location.href = sessionStorage.gaaRegwallArticleUrl;
       delete sessionStorage.gaaRegwallArticleUrl;
     }
+  }
+
+  /**
+   * Configures Google Sign-In.
+   * @nocollapse
+   * @param {{ redirectUri: string }=} params
+   * @return {!Promise}
+   */
+  static configureGoogleSignIn({redirectUri} = {redirectUri: ''}) {
+    // Wait for Google Sign-In API.
+    return (
+      new Promise((resolve) => {
+        const apiCheckInterval = setInterval(() => {
+          if (!!self.gapi) {
+            clearInterval(apiCheckInterval);
+            resolve();
+          }
+        }, 50);
+      })
+        // Load Auth2 module.
+        .then(() => new Promise((resolve) => self.gapi.load('auth2', resolve)))
+        // Specify "redirect" mode. It plays nicer with webviews.
+        .then(
+          () =>
+            // Only initialize Google Sign-In once.
+            self.gapi.auth2.getAuthInstance() ||
+            self.gapi.auth2.init({
+              'ux_mode': 'redirect',
+              'redirect_uri': redirectUri,
+            })
+        )
+    );
   }
 
   /**
@@ -313,46 +345,13 @@ export class GaaMeteringRegwall {
   }
 
   /**
-   * Configures Google Sign-In.
-   * @private
-   * @nocollapse
-   * @param {{ redirectUri: string }=} params
-   * @return {!Promise}
-   */
-  static configureGoogleSignIn_({redirectUri} = {redirectUri: ''}) {
-    // Wait for Google Sign-In API.
-    return (
-      new Promise((resolve) => {
-        const apiCheckInterval = setInterval(() => {
-          if (!!self.gapi) {
-            clearInterval(apiCheckInterval);
-            resolve();
-          }
-        }, 50);
-      })
-        // Load Auth2 module.
-        .then(() => new Promise((resolve) => self.gapi.load('auth2', resolve)))
-        // Specify "redirect" mode. It plays nicer with webviews.
-        .then(
-          () =>
-            // Only initialize Google Sign-In once.
-            self.gapi.auth2.getAuthInstance() ||
-            self.gapi.auth2.init({
-              'ux_mode': 'redirect',
-              'redirect_uri': redirectUri,
-            })
-        )
-    );
-  }
-
-  /**
    * Renders the Google Sign-In button.
    * @private
    * @nocollapse
    * @param {{ redirectUri: string }} params
    */
   static renderGoogleSignInButton_({redirectUri}) {
-    this.configureGoogleSignIn_({redirectUri}).then(() => {
+    this.configureGoogleSignIn({redirectUri}).then(() => {
       self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
         'scope': 'profile email',
         'longtitle': true,
