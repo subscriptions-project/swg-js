@@ -31,9 +31,6 @@ const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 /** ID for the Publisher sign-in button element. */
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 
-/** ID for the Publisher no thanks button element. */
-const PUBLISHER_NO_THANKS_BUTTON_ID = 'swg-publisher-no-thanks-button';
-
 /** ID for the Regwall element. */
 const REGWALL_ID = 'swg-regwall-element';
 
@@ -181,12 +178,6 @@ const REGWALL_HTML = `
     <div class="gaa-metering-regwall--line"></div>
 
     <a
-        id="${PUBLISHER_NO_THANKS_BUTTON_ID}"
-        class="gaa-metering-regwall--publisher-no-thanks-button">
-      No thanks
-    </a>
-
-    <a
         id="${PUBLISHER_SIGN_IN_BUTTON_ID}"
         class="gaa-metering-regwall--publisher-sign-in-button">
       Already have an account?
@@ -309,16 +300,6 @@ export class GaaMeteringRegwall {
 
     // Render the Google Sign-In button.
     GaaMeteringRegwall.renderGoogleSignInButton_({redirectUri});
-
-    // Let users dismiss the Regwall.
-    return new Promise((resolve, reject) => {
-      self.document
-        .getElementById(PUBLISHER_NO_THANKS_BUTTON_ID)
-        .addEventListener('click', () => {
-          GaaMeteringRegwall.remove_();
-          reject('🙅 User dismissed Regwall');
-        });
-    });
   }
 
   /**
