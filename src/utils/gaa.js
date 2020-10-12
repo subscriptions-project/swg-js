@@ -228,9 +228,10 @@ export class GaaMeteringRegwall {
    * @nocollapse
    */
   static redirectToArticle() {
-    if (sessionStorage.gaaRegwallArticleUrl) {
-      location.href = sessionStorage.gaaRegwallArticleUrl;
+    const articleUrl = sessionStorage.gaaRegwallArticleUrl;
+    if (articleUrl) {
       delete sessionStorage.gaaRegwallArticleUrl;
+      location.href = articleUrl;
     }
   }
 
