@@ -21,15 +21,6 @@
         console.error('Google user is not signed in.');
         return;
       }
-      const basicProfile = googleUser.getBasicProfile();
-      const gaaUser = {
-        idToken: googleUser.getAuthResponse().id_token,
-        name: basicProfile.getName(),
-        givenName: basicProfile.getGivenName(),
-        familyName: basicProfile.getFamilyName(),
-        imageUrl: basicProfile.getImageUrl(),
-        email: basicProfile.getEmail(),
-      };
 
       // Record the registration timestamp in seconds (not milliseconds).
       localStorage.meteringRegistrationTimestamp = Math.floor(
@@ -37,7 +28,7 @@
       );
 
       // Record the user's name, for the metering demo.
-      localStorage.meteringUsername = gaaUser.name;
+      localStorage.meteringUsername = googleUser.getBasicProfile().getName();
 
       // Return to article.
       GaaMeteringRegwall.redirectToArticle();
