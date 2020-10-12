@@ -1,0 +1,49 @@
+<body>
+  <meta
+    name="google-signin-client_id"
+    content="520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com"
+  />
+  <!--
+    Publications should load this next script from:
+    https://news.google.com/swg/js/v1/swg-gaa.js
+  -->
+  <script src="<% swgGaaJsUrl %>"></script>
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+
+  <script>
+    GaaMeteringRegwall.configureGoogleSignIn_().then(() => {
+      // Create an account based on the Google Sign-In GoogleUser object:
+      // https://developers.google.com/identity/sign-in/web/reference#googleusergetid
+      const googleUser = gapi.auth2.getAuthInstance().currentUser.get();
+      if (!googleUser) {
+        console.error('Google user is not signed in.');
+        return;
+      }
+      const basicProfile = googleUser.getBasicProfile();
+      /** @type {!GaaUserDef} */
+      const gaaUser = {
+        idToken: /** @type {!GoogleSignInUserDef} */ (googleUser).getAuthResponse()
+          .id_token,
+        name: basicProfile.getName(),
+        givenName: basicProfile.getGivenName(),
+        familyName: basicProfile.getFamilyName(),
+        imageUrl: basicProfile.getImageUrl(),
+        email: basicProfile.getEmail(),
+      };
+
+      // Record the registration timestamp in seconds (not milliseconds).
+      localStorage.meteringRegistrationTimestamp = Math.floor(
+        Date.now() / 1000
+      );
+
+      // Record the user's name, for the metering demo.
+      localStorage.meteringUsername = gaaUser.name;
+
+      // Redirect to article URL.
+      if (sessionStorage.gaaRegwallArticleUrl) {
+        location.href = sessionStorage.gaaRegwallArticleUrl;
+        delete sessionStorage.gaaRegwallArticleUrl;
+      }
+    });
+  </script>
+</body>
