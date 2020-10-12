@@ -235,6 +235,17 @@ export class GaaMeteringRegwall {
   }
 
   /**
+   * Redirects user to article URL.
+   * @nocollapse
+   */
+  static redirectToArticle() {
+    if (sessionStorage.gaaRegwallArticleUrl) {
+      location.href = sessionStorage.gaaRegwallArticleUrl;
+      delete sessionStorage.gaaRegwallArticleUrl;
+    }
+  }
+
+  /**
    * Renders the Regwall.
    * @private
    * @nocollapse

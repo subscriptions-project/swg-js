@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import {GaaGoogleSignInButton, GaaMeteringRegwall} from './gaa';
-
-const GOOGLE_SIGN_IN_CLIENT_ID = 'gs1cl13nt1d';
+import {GaaMeteringRegwall} from './gaa';
 
 describes.realWin('GaaMeteringRegwall', {}, () => {
   let headEls = [];

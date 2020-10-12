@@ -39,11 +39,8 @@
       // Record the user's name, for the metering demo.
       localStorage.meteringUsername = gaaUser.name;
 
-      // Redirect to article URL.
-      if (sessionStorage.gaaRegwallArticleUrl) {
-        location.href = sessionStorage.gaaRegwallArticleUrl;
-        delete sessionStorage.gaaRegwallArticleUrl;
-      }
+      // Return to article.
+      GaaMeteringRegwall.redirectToArticle();
     });
   </script>
 </body>
