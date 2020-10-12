@@ -433,6 +433,8 @@ export class GaaGoogleSignInButton {
 
     // Render the Google Sign-In button.
     loadGoogleSignIn(googleSignInClientId)
+      .then(() => new Promise((resolve) => self.gapi.load('auth2', resolve)))
+      .then(() => self.gapi.auth2.init({'ux_mode': 'redirect'}))
       .then(
         // Promise credentials.
         () =>
