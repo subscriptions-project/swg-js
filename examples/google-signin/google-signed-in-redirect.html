@@ -17,6 +17,7 @@
       // https://developers.google.com/identity/sign-in/web/reference#googleusergetid
       const googleUser = gapi.auth2.getAuthInstance().currentUser.get();
       if (!googleUser) {
+        // TODO: Add better error handling, like if permission is denied.
         console.error('Google user is not signed in.');
         return;
       }

@@ -266,7 +266,7 @@ app.post('/amp-pingback', (req, res) => {
  */
 app.get('/gsi-redirect', (req, res) => {
   const setup = getSetup(req);
-  res.render('../examples/google-signin/google-signin-redirect', {
+  res.render('../examples/google-signin/google-signed-in-redirect', {
     swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
   });
 });
