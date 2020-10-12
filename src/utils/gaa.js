@@ -195,19 +195,6 @@ const REGWALL_HTML = `
 </div>
 `;
 
-/**
- * User object that Publisher JS receives after users sign in.
- * @typedef {{
- *   idToken: string,
- *   name: string,
- *   givenName: string,
- *   familyName: string,
- *   imageUrl: string,
- *   email: string,
- * }} GaaUserDef
- */
-let GaaUserDef;
-
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
   /**

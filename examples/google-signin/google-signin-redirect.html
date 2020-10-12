@@ -20,10 +20,8 @@
         return;
       }
       const basicProfile = googleUser.getBasicProfile();
-      /** @type {!GaaUserDef} */
       const gaaUser = {
-        idToken: /** @type {!GoogleSignInUserDef} */ (googleUser).getAuthResponse()
-          .id_token,
+        idToken: googleUser.getAuthResponse().id_token,
         name: basicProfile.getName(),
         givenName: basicProfile.getGivenName(),
         familyName: basicProfile.getFamilyName(),
