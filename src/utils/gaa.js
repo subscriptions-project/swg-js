@@ -305,8 +305,8 @@ export class GaaMeteringRegwall {
     // This might change in the future.
     // This promise leaves room for a dismissal feature.
     // This feature would cause the returned promise to reject.
-    // Returning a promise from day one allows publishers to write
-    // their JS to support this possibility.
+    // Returning a promise from day one encourages publishers to write
+    // JS that supports this possibility.
     return new Promise(() => {});
   }
 
