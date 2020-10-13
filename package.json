@@ -97,7 +97,7 @@
     "minimist": "1.2.5",
     "mocha": "8.1.3",
     "morgan": "1.10.0",
-    "nodemon": "2.0.4",
+    "nodemon": "2.0.5",
     "plugin-error": "1.0.1",
     "postcss": "8.1.1",
     "postcss-import": "12.0.1",
