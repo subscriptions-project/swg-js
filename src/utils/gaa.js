@@ -194,11 +194,11 @@ export class GaaMeteringRegwall {
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
-   * @param {{ publisherName: string, redirectUri: string }} params
+   * @param {{ redirectUri: string }} params
    * @return {!Promise}
    */
-  static show({publisherName, redirectUri}) {
-    return GaaMeteringRegwall.render_({publisherName, redirectUri});
+  static show({redirectUri}) {
+    return GaaMeteringRegwall.render_({redirectUri});
   }
 
   /**
@@ -209,7 +209,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise}
    */
   static signOut() {
-    return this.configureGoogleSignIn().then(() =>
+    return GaaMeteringRegwall.configureGoogleSignIn().then(() =>
       self.gapi.auth2.getAuthInstance().signOut()
     );
   }
@@ -262,10 +262,10 @@ export class GaaMeteringRegwall {
    * Renders the Regwall.
    * @private
    * @nocollapse
-   * @param {{ publisherName: string, redirectUri: string }} params
+   * @param {{ redirectUri: string }} params
    * @return {!Promise}
    */
-  static render_({publisherName, redirectUri}) {
+  static render_({redirectUri}) {
     const cardEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
@@ -287,7 +287,7 @@ export class GaaMeteringRegwall {
     });
     cardEl./*OK*/ innerHTML = REGWALL_HTML.replace(
       '$publisherName$',
-      publisherName
+      GaaMeteringRegwall.getPublisherNameFromPageConfig_()
     );
     self.document.body.appendChild(cardEl);
     /** @suppress {suspiciousCode} */
@@ -308,6 +308,28 @@ export class GaaMeteringRegwall {
     // Returning a promise from day one encourages publishers to write
     // JS that supports this possibility.
     return new Promise(() => {});
+  }
+
+  /**
+   * Gets publisher name from page config.
+   * @private
+   * @nocollapse
+   * @return {string}
+   */
+  static getPublisherNameFromPageConfig_() {
+    const ldJsonElements = self.document.querySelectorAll(
+      'script[type="application/ld+json"]'
+    );
+
+    for (let i = 0; i < ldJsonElements.length; i++) {
+      const ldJsonElement = ldJsonElements[i];
+      const ldJson = JSON.parse(ldJsonElement.innerHTML);
+      if (ldJson.publisher && ldJson.publisher.name) {
+        return ldJson.publisher.name;
+      }
+    }
+
+    return '';
   }
 
   /**
@@ -343,7 +365,7 @@ export class GaaMeteringRegwall {
    * @param {{ redirectUri: string }} params
    */
   static renderGoogleSignInButton_({redirectUri}) {
-    this.configureGoogleSignIn({redirectUri}).then(() => {
+    GaaMeteringRegwall.configureGoogleSignIn({redirectUri}).then(() => {
       self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
         'scope': 'profile email',
         'longtitle': true,

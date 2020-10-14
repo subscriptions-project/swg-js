@@ -5,9 +5,6 @@
  * define their own JS and backend code to provide the same functionality securely.
  */
 const MeteringDemo = {
-  /** Publisher name for the metering demo. */
-  PUBLISHER_NAME: 'The Local Scenic',
-
   /** Google Sign-In Client ID for the metering demo. */
   GOOGLE_SIGN_IN_CLIENT_ID:
     '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
