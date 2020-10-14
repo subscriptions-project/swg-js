@@ -16,7 +16,7 @@
   },
   "scripts": {
     "preinstall": "node build-system/check-package-manager.js",
-    "start": "node build-system/server/server-gae.js",
+    "start": "gulp",
     "start-local": "gulp",
     "test": "gulp unit",
     "lint": "gulp lint",
