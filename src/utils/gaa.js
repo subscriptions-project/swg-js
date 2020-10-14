@@ -329,7 +329,7 @@ export class GaaMeteringRegwall {
       }
     }
 
-    throw new Error('Article needs JSON-LD that defines a publisher name.');
+    throw new Error('Article needs JSON-LD with a publisher name.');
   }
 
   /**
