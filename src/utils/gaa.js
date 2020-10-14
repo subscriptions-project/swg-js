@@ -23,6 +23,7 @@
 
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
+import {parseJson} from '../utils/json';
 import {setImportantStyles} from './style';
 
 /** ID for the Google Sign-In button element. */
@@ -323,7 +324,9 @@ export class GaaMeteringRegwall {
 
     for (let i = 0; i < ldJsonElements.length; i++) {
       const ldJsonElement = ldJsonElements[i];
-      const ldJson = JSON.parse(ldJsonElement.innerHTML);
+      const ldJson = /** @type {{ publisher: { name: string } }} */ (parseJson(
+        ldJsonElement.innerHTML
+      ));
       if (ldJson.publisher && ldJson.publisher.name) {
         return ldJson.publisher.name;
       }
