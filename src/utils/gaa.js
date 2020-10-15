@@ -223,7 +223,7 @@ export class GaaMeteringRegwall {
     const articleUrl = sessionStorage.gaaRegwallArticleUrl;
     if (articleUrl) {
       delete sessionStorage.gaaRegwallArticleUrl;
-      location.href = articleUrl;
+      GaaMeteringRegwall.location_.href = articleUrl;
     }
   }
 
@@ -336,15 +336,6 @@ export class GaaMeteringRegwall {
   }
 
   /**
-   * Removes the Regwall.
-   * @private
-   * @nocollapse
-   */
-  static remove_() {
-    self.document.getElementById(REGWALL_ID).remove();
-  }
-
-  /**
    * Adds a click listener on the publisher sign-in button.
    * @private
    * @nocollapse
@@ -377,5 +368,11 @@ export class GaaMeteringRegwall {
     });
   }
 }
+
+/**
+ * @private
+ * @type {!Location}
+ */
+GaaMeteringRegwall.location_ = location;
 
 self.GaaMeteringRegwall = GaaMeteringRegwall;

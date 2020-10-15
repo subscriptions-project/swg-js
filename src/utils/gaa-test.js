@@ -47,6 +47,10 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         getAuthInstance: sandbox.fake(() => authInstance),
       },
     };
+
+    GaaMeteringRegwall.location_ = {
+      href: 'INITIAL',
+    };
   });
 
   describe('show', () => {
@@ -56,6 +60,17 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     // TODO: Add tests after prototyping phase.
   });
+
+  describe('redirectToArticle', () => {
+    it('redirects', () => {
+      const url = 'URL';
+      sessionStorage.gaaRegwallArticleUrl = url;
+      GaaMeteringRegwall.redirectToArticle();
+      expect(GaaMeteringRegwall.location_.href).to.equal(url);
+    });
+  });
+
+  describe('configureGoogleSignIn', () => {});
 
   describe('signOut', () => {
     it('signs user out of Google Sign-In', async () => {
