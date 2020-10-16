@@ -17,21 +17,9 @@
 import {GaaMeteringRegwall} from './gaa';
 
 describes.realWin('GaaMeteringRegwall', {}, () => {
-  let headEls = [];
-  let bodyEls = [];
   let signOutFake;
 
   beforeEach(() => {
-    headEls = [];
-    sandbox.stub(self.document.head, 'appendChild').callsFake((el) => {
-      headEls.push(el);
-    });
-
-    bodyEls = [];
-    sandbox.stub(self.document.body, 'appendChild').callsFake((el) => {
-      bodyEls.push(el);
-    });
-
     signOutFake = sandbox.fake.resolves();
     let authInstance;
     self.gapi = {
