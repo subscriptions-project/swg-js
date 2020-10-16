@@ -15,6 +15,7 @@
  */
 
 import {GaaMeteringRegwall} from './gaa';
+import {tick} from '../../test/tick';
 
 const ARTICLE_URL = '/article';
 const REDIRECT_URI = '/redirect-uri';
@@ -52,10 +53,14 @@ const ARTICLE_METADATA = `
 }`;
 
 describes.realWin('GaaMeteringRegwall', {}, () => {
+  let clock;
   let script;
   let signOutFake;
 
   beforeEach(() => {
+    // Mock clock.
+    clock = sandbox.useFakeTimers();
+
     // Mock Google Sign-In API.
     signOutFake = sandbox.fake.resolves();
     let authInstance;
@@ -70,6 +75,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
           };
         }),
         getAuthInstance: sandbox.fake(() => authInstance),
+      },
+      signin2: {
+        render: sandbox.fake(),
       },
     };
 
@@ -103,6 +111,21 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         '.gaa-metering-regwall--description'
       );
       expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
+    });
+
+    it('renders Google Sign-In button', async () => {
+      GaaMeteringRegwall.show({redirectUri: REDIRECT_URI});
+      clock.tick(100);
+      await tick(10);
+
+      expect(self.gapi.signin2.render).to.be.calledWith(
+        'swg-google-sign-in-button',
+        {
+          longtitle: true,
+          scope: 'profile email',
+          theme: 'dark',
+        }
+      );
     });
 
     it('adds click handler for publisher sign in button', () => {
@@ -148,7 +171,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(GaaMeteringRegwall.location_.href).equals(ARTICLE_URL);
     });
 
-    it('throws if article URL is missing', () => {
+    it('throws if article URL is missing from session storage', () => {
       const redirecting = () => GaaMeteringRegwall.redirectToArticle();
 
       expect(redirecting).throws(
@@ -159,9 +182,11 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
   describe('configureGoogleSignIn', () => {
     it('configures GSI correctly', async () => {
-      await GaaMeteringRegwall.configureGoogleSignIn({
+      const promise = GaaMeteringRegwall.configureGoogleSignIn({
         redirectUri: REDIRECT_URI,
       });
+      clock.tick(100);
+      await promise;
 
       expect(self.gapi.load).to.be.calledWith('auth2');
       expect(self.gapi.auth2.getAuthInstance).to.be.called;
@@ -174,7 +199,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
   describe('signOut', () => {
     it('tells GSI to sign user out', async () => {
-      await GaaMeteringRegwall.signOut();
+      const promise = GaaMeteringRegwall.signOut();
+      clock.tick(100);
+      await promise;
 
       expect(signOutFake).to.be.called;
     });
