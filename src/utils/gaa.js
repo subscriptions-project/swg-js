@@ -297,7 +297,7 @@ export class GaaMeteringRegwall {
     GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
 
     // Save article URL for redirect.
-    sessionStorage.gaaRegwallArticleUrl = location.href;
+    sessionStorage.gaaRegwallArticleUrl = GaaMeteringRegwall.location_.href;
 
     // Render the Google Sign-In button.
     GaaMeteringRegwall.renderGoogleSignInButton_({redirectUri});
