@@ -50,16 +50,17 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
   });
 
   describe('redirectToArticle', () => {
-    it('redirects', () => {
-      const url = 'URL';
+    it('redirects user to article', () => {
+      const url = '/article';
       sessionStorage.gaaRegwallArticleUrl = url;
       GaaMeteringRegwall.redirectToArticle();
+
       expect(GaaMeteringRegwall.location_.href).to.equal(url);
     });
   });
 
   describe('configureGoogleSignIn', () => {
-    it('configures Google Sign-In properly', async () => {
+    it('configures GSI correctly', async () => {
       const redirectUri = 'nirvana';
       await GaaMeteringRegwall.configureGoogleSignIn({redirectUri});
 
@@ -73,15 +74,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
   });
 
   describe('signOut', () => {
-    it('signs user out of Google Sign-In', async () => {
-      // Start signOut process.
-      const signOutPromise = GaaMeteringRegwall.signOut();
+    it('tells GSI to sign user out', async () => {
+      await GaaMeteringRegwall.signOut();
 
-      // Check Google Sign-In API calls.
-      expect(await signOutPromise).to.be.undefined;
-      expect(self.gapi.load).to.be.calledWith('auth2');
-      expect(self.gapi.auth2.getAuthInstance).to.be.called;
-      expect(self.gapi.auth2.init).to.be.called;
       expect(signOutFake).to.be.called;
     });
   });
