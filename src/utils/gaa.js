@@ -222,8 +222,9 @@ export class GaaMeteringRegwall {
   static redirectToArticle() {
     const articleUrl = sessionStorage.gaaRegwallArticleUrl;
     if (articleUrl) {
-      delete sessionStorage.gaaRegwallArticleUrl;
-      location.href = articleUrl;
+      GaaMeteringRegwall.location_.href = articleUrl;
+    } else {
+      throw new Error('Article URL is missing from session storage.');
     }
   }
 
@@ -297,7 +298,7 @@ export class GaaMeteringRegwall {
     GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
 
     // Save article URL for redirect.
-    sessionStorage.gaaRegwallArticleUrl = location.href;
+    sessionStorage.gaaRegwallArticleUrl = GaaMeteringRegwall.location_.href;
 
     // Render the Google Sign-In button.
     GaaMeteringRegwall.renderGoogleSignInButton_({redirectUri});
@@ -336,15 +337,6 @@ export class GaaMeteringRegwall {
   }
 
   /**
-   * Removes the Regwall.
-   * @private
-   * @nocollapse
-   */
-  static remove_() {
-    self.document.getElementById(REGWALL_ID).remove();
-  }
-
-  /**
    * Adds a click listener on the publisher sign-in button.
    * @private
    * @nocollapse
@@ -377,5 +369,11 @@ export class GaaMeteringRegwall {
     });
   }
 }
+
+/**
+ * @private
+ * @type {!Location}
+ */
+GaaMeteringRegwall.location_ = location;
 
 self.GaaMeteringRegwall = GaaMeteringRegwall;
