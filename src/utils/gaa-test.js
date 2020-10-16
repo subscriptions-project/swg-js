@@ -58,7 +58,19 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
   });
 
-  describe('configureGoogleSignIn', () => {});
+  describe('configureGoogleSignIn', () => {
+    it('configures Google Sign-In properly', async () => {
+      const redirectUri = 'nirvana';
+      await GaaMeteringRegwall.configureGoogleSignIn({redirectUri});
+
+      expect(self.gapi.load).to.be.calledWith('auth2');
+      expect(self.gapi.auth2.getAuthInstance).to.be.called;
+      expect(self.gapi.auth2.init).to.be.calledWith({
+        'ux_mode': 'redirect',
+        'redirect_uri': redirectUri,
+      });
+    });
+  });
 
   describe('signOut', () => {
     it('signs user out of Google Sign-In', async () => {
