@@ -92,6 +92,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
   afterEach(() => {
     script.remove();
+    delete sessionStorage.gaaRegwallArticleUrl;
   });
 
   describe('show', () => {
@@ -145,6 +146,14 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       GaaMeteringRegwall.redirectToArticle();
 
       expect(GaaMeteringRegwall.location_.href).equals(ARTICLE_URL);
+    });
+
+    it('throws if article URL is missing', () => {
+      const redirecting = () => GaaMeteringRegwall.redirectToArticle();
+
+      expect(redirecting).throws(
+        'Article URL is missing from session storage.'
+      );
     });
   });
 

@@ -222,8 +222,9 @@ export class GaaMeteringRegwall {
   static redirectToArticle() {
     const articleUrl = sessionStorage.gaaRegwallArticleUrl;
     if (articleUrl) {
-      delete sessionStorage.gaaRegwallArticleUrl;
       GaaMeteringRegwall.location_.href = articleUrl;
+    } else {
+      throw new Error('Article URL is missing from session storage.');
     }
   }
 
