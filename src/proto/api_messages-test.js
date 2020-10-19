@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -907,6 +907,47 @@ describe('Timestamp', () => {
         timestamp.getSeconds());
     expect(timestampDeserialized.getNanos()).to.deep.equal(
         timestamp.getNanos());
+  });
+});
+
+describe('ToastCloseRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !ToastCloseRequest  */ toastcloserequest = new ToastCloseRequest();
+    toastcloserequest.setClose(false);
+
+    let toastcloserequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    toastcloserequestDeserialized = deserialize(
+        toastcloserequest.toArray(undefined));
+    expect(toastcloserequestDeserialized.toArray(undefined)).to.deep.equal(
+        toastcloserequest.toArray(undefined));
+
+    // Verify fields.
+    expect(toastcloserequestDeserialized.getClose()).to.deep.equal(
+        toastcloserequest.getClose());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    toastcloserequestDeserialized = deserialize(
+        toastcloserequest.toArray(true));
+    expect(toastcloserequestDeserialized.toArray(true)).to.deep.equal(
+        toastcloserequest.toArray(true));
+
+    // Verify fields.
+    expect(toastcloserequestDeserialized.getClose()).to.deep.equal(
+        toastcloserequest.getClose());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    toastcloserequestDeserialized = new ToastCloseRequest(toastcloserequest.toArray(false), false);
+    expect(toastcloserequestDeserialized.toArray(false)).to.deep.equal(
+        toastcloserequest.toArray(false));
+
+    // Verify fields.
+    expect(toastcloserequestDeserialized.getClose()).to.deep.equal(
+        toastcloserequest.getClose());
   });
 });
 

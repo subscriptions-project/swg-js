@@ -16,7 +16,10 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {SubscriptionFlows} from '../api/subscriptions';
-import {ViewSubscriptionsResponse} from '../proto/api_messages';
+import {
+  ToastCloseRequest,
+  ViewSubscriptionsResponse,
+} from '../proto/api_messages';
 import {feArgs, feUrl} from './services';
 
 export class MeterToastApi {
@@ -35,6 +38,13 @@ export class MeterToastApi {
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
+
+    /** @private @const {!function()} */
+    this.sendCloseRequestFunction_ = () => {
+      const closeRequest = new ToastCloseRequest();
+      closeRequest.setClose(true);
+      this.activityIframeView_.execute(closeRequest);
+    };
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -58,6 +68,7 @@ export class MeterToastApi {
     this.deps_
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_METER_TOAST);
+    this.win_.addEventListener('click', this.sendCloseRequestFunction_);
     this.activityIframeView_.on(
       ViewSubscriptionsResponse,
       this.startNativeFlow_.bind(this)
@@ -71,6 +82,13 @@ export class MeterToastApi {
    */
   setOnCancelCallback(onCancelCallback) {
     this.activityIframeView_.onCancel(onCancelCallback);
+  }
+
+  /**
+   * Removes the event listener that closes the iframe.
+   */
+  removeCloseEventListener() {
+    this.win_.removeEventListener('click', this.sendCloseRequestFunction_);
   }
 
   /**
