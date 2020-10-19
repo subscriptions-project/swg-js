@@ -42,7 +42,7 @@ function JsonObject() {}
  * @type {{
  *   load: function(string, function(): void),
  *   auth2: {
- *     init: function(): !Promise,
+ *     init: function(!Object=): !Promise,
  *     getAuthInstance: function(): {
  *       signOut: function(): !Promise,
  *     },

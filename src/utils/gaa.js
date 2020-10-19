@@ -23,19 +23,8 @@
 
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
+import {parseJson} from '../utils/json';
 import {setImportantStyles} from './style';
-
-/** Stamp for post messages. */
-const POST_MESSAGE_STAMP = 'Subscribe with Google GAA Post Message Sentinel';
-
-/** Introduction command for post messages. */
-const POST_MESSAGE_COMMAND_INTRODUCTION = 'introduction';
-
-/** User command for post messages. */
-const POST_MESSAGE_COMMAND_USER = 'user';
-
-/** ID for the Google Sign-In iframe element. */
-const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
 
 /** ID for the Google Sign-In button element. */
 const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
@@ -43,17 +32,12 @@ const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 /** ID for the Publisher sign-in button element. */
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 
-/** ID for the Publisher no thanks button element. */
-const PUBLISHER_NO_THANKS_BUTTON_ID = 'swg-publisher-no-thanks-button';
-
 /** ID for the Regwall element. */
 const REGWALL_ID = 'swg-regwall-element';
 
 /**
  * HTML for the metering regwall dialog, where users can sign in with Google.
  * The script creates a dialog based on this HTML.
- * The HTML includes an iframe that loads the Google Sign-In button.
- * This iframe can live on a different origin.
  */
 const REGWALL_HTML = `
 <style>
@@ -121,14 +105,6 @@ const REGWALL_HTML = `
     font-weight: bold;
   }
 
-  .gaa-metering-regwall--iframe {
-    border: none;
-    display: block;
-    height: 36px;
-    margin: 0 0 30px;
-    width: 100%;
-  }
-
   .gaa-metering-regwall--line {
     background-color: #ddd;
     display: block;
@@ -151,6 +127,40 @@ const REGWALL_HTML = `
     display: none;
     float: right;
   }
+
+  .gaa-metering-regwall--google-sign-in-button {
+    height: 36px;
+    margin: 0 auto 30px;
+  }
+
+  .gaa-metering-regwall--google-sign-in-button > div {
+    animation: swgGoogleSignInButtonfadeIn 0.32s;
+  }
+
+  @keyframes swgGoogleSignInButtonfadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .gaa-metering-regwall--google-sign-in-button .abcRioButton.abcRioButtonBlue {
+    background-color: #1A73E8;
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    border-radius: 4px;
+    width: 100% !important;
+  }
+
+  .gaa-metering-regwall--google-sign-in-button .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
+    display: none;
+  }
+
+  .gaa-metering-regwall--google-sign-in-button .abcRioButton.abcRioButtonBlue .abcRioButtonContents {
+    font-size: 15px !important;
+  }
 </style>
 
 <div class="gaa-metering-regwall--card-spacer">
@@ -163,19 +173,10 @@ const REGWALL_HTML = `
       You’re out of articles from <strong>$publisherName$</strong>. Read more articles, compliments of Google, when you register with your Google Account.
     </div>
 
-    <iframe
-          id="${GOOGLE_SIGN_IN_IFRAME_ID}"
-          class="gaa-metering-regwall--iframe"
-          src="$iframeUrl$">
-    </iframe>
+    <div id="${GOOGLE_SIGN_IN_BUTTON_ID}"
+         class="gaa-metering-regwall--google-sign-in-button"></div>
 
     <div class="gaa-metering-regwall--line"></div>
-
-    <a
-        id="${PUBLISHER_NO_THANKS_BUTTON_ID}"
-        class="gaa-metering-regwall--publisher-no-thanks-button">
-      No thanks
-    </a>
 
     <a
         id="${PUBLISHER_SIGN_IN_BUTTON_ID}"
@@ -186,73 +187,6 @@ const REGWALL_HTML = `
 </div>
 `;
 
-/** Styles for the Google Sign-In button iframe. */
-const GOOGLE_SIGN_IN_IFRAME_STYLES = `
-body {
-  margin: 0;
-  overflow: hidden;
-}
-#${GOOGLE_SIGN_IN_BUTTON_ID} {
-  margin: 0 auto;
-}
-#${GOOGLE_SIGN_IN_BUTTON_ID} > div {
-  animation: fadeIn 0.32s;
-}
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue {
-  background-color: #1A73E8;
-  box-shadow: none;
-  -webkit-box-shadow: none;
-  border-radius: 4px;
-  width: 100% !important;
-}
-#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
-  display: none;
-}
-#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents {
-  font-size: 15px !important;
-}
-`;
-
-/** Where to load the JS for Google Sign-In. */
-const GOOGLE_SIGN_IN_JS_URL = 'https://apis.google.com/js/platform.js';
-
-/**
- * User object that Publisher JS receives after users sign in.
- * @typedef {{
- *   idToken: string,
- *   name: string,
- *   givenName: string,
- *   familyName: string,
- *   imageUrl: string,
- *   email: string,
- * }} GaaUserDef
- */
-let GaaUserDef;
-
-/**
- * GoogleUser object that Google Sign-In returns after users sign in.
- * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
- * @typedef {{
- *   getAuthResponse: function(): {id_token: string},
- *   getBasicProfile: function(): {
- *     getName: function(): string,
- *     getGivenName: function(): string,
- *     getFamilyName: function(): string,
- *     getImageUrl: function(): string,
- *     getEmail: function(): string,
- *   },
- * }} GoogleSignInUserDef
- */
-let GoogleSignInUserDef;
-
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
   /**
@@ -261,42 +195,79 @@ export class GaaMeteringRegwall {
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
-   * @param {{ iframeUrl: string, publisherName: string }} params
-   * @return {!Promise<!GaaUserDef>}
+   * @param {{ redirectUri: string }} params
+   * @return {!Promise}
    */
-  static show({iframeUrl, publisherName}) {
-    GaaMeteringRegwall.render_({iframeUrl, publisherName});
-    return GaaMeteringRegwall.getGaaUser_({iframeUrl}).then((gaaUser) => {
-      GaaMeteringRegwall.remove_();
-      return gaaUser;
-    });
+  static show({redirectUri}) {
+    return GaaMeteringRegwall.render_({redirectUri});
   }
 
   /**
-   * Signs the user out.
-   *
-   * This method signs the user out of Google Sign-In.
+   * Signs out of Google Sign-In.
    * This is useful for developers who are testing their
    * SwG integrations.
    * @nocollapse
-   * @param {{ googleSignInClientId: string }} params
    * @return {!Promise}
    */
-  static signOut({googleSignInClientId}) {
-    return loadGoogleSignIn(googleSignInClientId)
-      .then(() => new Promise((resolve) => self.gapi.load('auth2', resolve)))
-      .then(() => self.gapi.auth2.init())
-      .then(() => self.gapi.auth2.getAuthInstance().signOut());
+  static signOut() {
+    return GaaMeteringRegwall.configureGoogleSignIn().then(() =>
+      self.gapi.auth2.getAuthInstance().signOut()
+    );
+  }
+
+  /**
+   * Redirects user to article URL.
+   * @nocollapse
+   */
+  static redirectToArticle() {
+    const articleUrl = sessionStorage.gaaRegwallArticleUrl;
+    if (articleUrl) {
+      GaaMeteringRegwall.location_.href = articleUrl;
+    } else {
+      throw new Error('Article URL is missing from session storage.');
+    }
+  }
+
+  /**
+   * Configures Google Sign-In.
+   * @nocollapse
+   * @param {{ redirectUri: string }=} params
+   * @return {!Promise}
+   */
+  static configureGoogleSignIn({redirectUri} = {redirectUri: ''}) {
+    // Wait for Google Sign-In API.
+    return (
+      new Promise((resolve) => {
+        const apiCheckInterval = setInterval(() => {
+          if (!!self.gapi) {
+            clearInterval(apiCheckInterval);
+            resolve();
+          }
+        }, 50);
+      })
+        // Load Auth2 module.
+        .then(() => new Promise((resolve) => self.gapi.load('auth2', resolve)))
+        // Specify "redirect" mode. It plays nicer with webviews.
+        .then(
+          () =>
+            // Only initialize Google Sign-In once.
+            self.gapi.auth2.getAuthInstance() ||
+            self.gapi.auth2.init({
+              'ux_mode': 'redirect',
+              'redirect_uri': redirectUri,
+            })
+        )
+    );
   }
 
   /**
    * Renders the Regwall.
    * @private
    * @nocollapse
-   * @param {{ iframeUrl: string, publisherName: string }} params
-   * @return {!HTMLDivElement}
+   * @param {{ redirectUri: string }} params
+   * @return {!Promise}
    */
-  static render_({iframeUrl, publisherName}) {
+  static render_({redirectUri}) {
     const cardEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
@@ -317,24 +288,52 @@ export class GaaMeteringRegwall {
       'z-index': 2147483646,
     });
     cardEl./*OK*/ innerHTML = REGWALL_HTML.replace(
-      '$iframeUrl$',
-      iframeUrl
-    ).replace('$publisherName$', publisherName);
+      '$publisherName$',
+      GaaMeteringRegwall.getPublisherNameFromPageConfig_()
+    );
     self.document.body.appendChild(cardEl);
     /** @suppress {suspiciousCode} */
     cardEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(cardEl, {'opacity': 1});
     GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
-    return cardEl;
+
+    // Save article URL for redirect.
+    sessionStorage.gaaRegwallArticleUrl = GaaMeteringRegwall.location_.href;
+
+    // Render the Google Sign-In button.
+    GaaMeteringRegwall.renderGoogleSignInButton_({redirectUri});
+
+    // Currently users can't dismiss the Regwall.
+    // This might change in the future.
+    // This promise leaves room for a dismissal feature.
+    // This feature would cause the returned promise to reject.
+    // Returning a promise from day one encourages publishers to write
+    // JS that supports this possibility.
+    return new Promise(() => {});
   }
 
   /**
-   * Removes the Regwall.
+   * Gets publisher name from page config.
    * @private
    * @nocollapse
+   * @return {string}
    */
-  static remove_() {
-    self.document.getElementById(REGWALL_ID).remove();
+  static getPublisherNameFromPageConfig_() {
+    const ldJsonElements = self.document.querySelectorAll(
+      'script[type="application/ld+json"]'
+    );
+
+    for (let i = 0; i < ldJsonElements.length; i++) {
+      const ldJsonElement = ldJsonElements[i];
+      const ldJson = /** @type {{ publisher: { name: string } }} */ (parseJson(
+        ldJsonElement.textContent
+      ));
+      if (ldJson.publisher && ldJson.publisher.name) {
+        return ldJson.publisher.name;
+      }
+    }
+
+    throw new Error('Article needs JSON-LD with a publisher name.');
   }
 
   /**
@@ -355,158 +354,26 @@ export class GaaMeteringRegwall {
   }
 
   /**
-   * Returns the GAA user, after the user signs in.
+   * Renders the Google Sign-In button.
    * @private
    * @nocollapse
-   * @param {{ iframeUrl: string }} params
-   * @return {!Promise<!GaaUserDef>}
+   * @param {{ redirectUri: string }} params
    */
-  static getGaaUser_({iframeUrl}) {
-    // Introduce self to iframe.
-    const googleSignInIframe = /** @type {!HTMLIFrameElement} */ (self.document.getElementById(
-      GOOGLE_SIGN_IN_IFRAME_ID
-    ));
-    googleSignInIframe.onload = () => {
-      googleSignInIframe.contentWindow.postMessage(
-        {
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_INTRODUCTION,
-        },
-        new URL(iframeUrl).origin
-      );
-    };
-
-    // Listen for GAA user.
-    return new Promise((resolve, reject) => {
-      // Let users dismiss the Regwall.
-      self.document
-        .getElementById(PUBLISHER_NO_THANKS_BUTTON_ID)
-        .addEventListener('click', () => {
-          GaaMeteringRegwall.remove_();
-          reject('🙅 User dismissed Regwall');
-        });
-
-      self.addEventListener('message', (e) => {
-        if (
-          e.data.stamp === POST_MESSAGE_STAMP &&
-          e.data.command === POST_MESSAGE_COMMAND_USER
-        ) {
-          resolve(e.data.gaaUser);
-        }
+  static renderGoogleSignInButton_({redirectUri}) {
+    GaaMeteringRegwall.configureGoogleSignIn({redirectUri}).then(() => {
+      self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
+        'scope': 'profile email',
+        'longtitle': true,
+        'theme': 'dark',
       });
     });
   }
 }
-
-self.GaaMeteringRegwall = GaaMeteringRegwall;
-
-export class GaaGoogleSignInButton {
-  /**
-   * Renders the Google Sign-In button.
-   * @nocollapse
-   * @param {{ allowedOrigins: !Array<string>, googleSignInClientId: string }} params
-   */
-  static show({allowedOrigins, googleSignInClientId}) {
-    // Apply iframe styles.
-    const styleEl = self.document.createElement('style');
-    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES;
-    self.document.head.appendChild(styleEl);
-
-    // Promise a function that sends messages to the parent frame.
-    // Note: A function is preferable to a reference to the parent frame
-    // because referencing the parent frame outside of the 'message' event
-    // handler throws an Error. A function defined within the handler can
-    // effectively save a reference to the parent frame though.
-    const sendMessageToParentFnPromise = new Promise((resolve) => {
-      self.addEventListener('message', (e) => {
-        if (
-          allowedOrigins.indexOf(e.origin) !== -1 &&
-          e.data.stamp === POST_MESSAGE_STAMP &&
-          e.data.command === POST_MESSAGE_COMMAND_INTRODUCTION
-        ) {
-          resolve((message) => {
-            e.source.postMessage(message, e.origin);
-          });
-        }
-      });
-    });
-
-    // Render the Google Sign-In button.
-    loadGoogleSignIn(googleSignInClientId)
-      .then(
-        // Promise credentials.
-        () =>
-          new Promise((resolve) => {
-            // Render the Google Sign-In button.
-            const buttonEl = self.document.createElement('div');
-            buttonEl.id = GOOGLE_SIGN_IN_BUTTON_ID;
-            self.document.body.appendChild(buttonEl);
-            self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
-              'scope': 'profile email',
-              'longtitle': true,
-              'theme': 'dark',
-              'onsuccess': resolve,
-            });
-          })
-      )
-      .then((googleUser) => {
-        // Gather GAA user details.
-        const basicProfile = /** @type {!GoogleSignInUserDef} */ (googleUser).getBasicProfile();
-        /** @type {!GaaUserDef} */
-        const gaaUser = {
-          idToken: /** @type {!GoogleSignInUserDef} */ (googleUser).getAuthResponse()
-            .id_token,
-          name: basicProfile.getName(),
-          givenName: basicProfile.getGivenName(),
-          familyName: basicProfile.getFamilyName(),
-          imageUrl: basicProfile.getImageUrl(),
-          email: basicProfile.getEmail(),
-        };
-
-        // Send GAA user to parent frame.
-        sendMessageToParentFnPromise.then((sendMessageToParent) => {
-          sendMessageToParent({
-            stamp: POST_MESSAGE_STAMP,
-            command: POST_MESSAGE_COMMAND_USER,
-            gaaUser,
-          });
-        });
-      });
-  }
-}
-
-self.GaaGoogleSignInButton = GaaGoogleSignInButton;
 
 /**
- * Loads the Google Sign-In API.
- *
- * This function is used in two places.
- * 1. The publisher's Google Sign-In iframe.
- * 2. (Optional) Demos that allow users to sign out.
- *
- * @param {string|undefined} clientId
- * @return {!Promise}
+ * @private
+ * @type {!Location}
  */
-function loadGoogleSignIn(clientId) {
-  // Add Client ID meta tag if necessary.
-  if (
-    clientId &&
-    !self.document.querySelector('meta[name="google-signin-client_id"]')
-  ) {
-    /** @type {!HTMLMetaElement} */
-    const el = /** @type {!HTMLMetaElement} */ (self.document.createElement(
-      'meta'
-    ));
-    el.name = 'google-signin-client_id';
-    el.content = clientId;
-    self.document.head.appendChild(el);
-  }
+GaaMeteringRegwall.location_ = location;
 
-  // Load the GSI script and resolve the promise once it loads.
-  return new Promise((resolve) => {
-    const script = self.document.createElement('script');
-    script.onload = resolve;
-    script.src = GOOGLE_SIGN_IN_JS_URL;
-    self.document.body.appendChild(script);
-  });
-}
+self.GaaMeteringRegwall = GaaMeteringRegwall;

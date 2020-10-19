@@ -205,22 +205,12 @@ function startFlowAuto() {
 
             // Show metering regwall for unregistered users.
             return GaaMeteringRegwall.show({
-              publisherName: MeteringDemo.PUBLISHER_NAME,
-              iframeUrl: MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL,
+              // Google Sign-In requires you to allow specific URLs
+              // as redirect URIs. Allowing every article isn't feasible.
+              // Therefore, publishers must specify a single URL
+              // where Google Sign-In will send users after they've signed in.
+              redirectUri: MeteringDemo.GOOGLE_SIGN_IN_REDIRECT_URI,
             })
-              .then((gaaUser) =>
-                // Register a user based on data from Google Sign-In.
-                //
-                // We advise setting a 1st party, secure, HTTP-only cookie,
-                // so it lives past 7 days in Safari.
-                // https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
-                MeteringDemo.registerUser(gaaUser)
-              )
-              .then(() =>
-                // Fetch the current user's metering state again
-                // since they registered.
-                MeteringDemo.fetchMeteringState()
-              );
           })
           .then((meteringState) => {
             // Forget previous entitlements fetches.

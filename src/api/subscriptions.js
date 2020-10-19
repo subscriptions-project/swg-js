@@ -19,7 +19,7 @@ import {
   DeferredAccountCreationRequest,
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
-import {Entitlement, Entitlements} from './entitlements';
+import {Entitlements} from './entitlements';
 import {LoggerApi} from './logger-api';
 import {Offer} from './offer';
 import {PropensityApi} from './propensity-api';
