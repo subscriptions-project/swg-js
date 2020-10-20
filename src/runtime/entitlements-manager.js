@@ -510,13 +510,17 @@ export class EntitlementsManager {
         }
 
         // Add metering params.
-        const productId = this.pageConfig_.getProductId();
-        if (productId && params && params.metering && params.metering.state) {
+        if (
+          this.publicationId_ &&
+          params &&
+          params.metering &&
+          params.metering.state
+        ) {
           /** @type {!GetEntitlementsParamsInternalDef} */
           const encodableParams = {
             metering: {
               clientTypes: [MeterClientTypes.LICENSED_BY_GOOGLE],
-              owner: productId,
+              owner: this.publicationId_,
               resource: {
                 hashedCanonicalUrl,
               },
