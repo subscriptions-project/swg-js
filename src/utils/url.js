@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {warn} from './log';
+
 /**
   @typedef {{
     href: string,
@@ -162,10 +164,15 @@ export function parseQueryString(query) {
     .split('&')
     .reduce((params, param) => {
       const item = param.split('=');
-      const key = decodeURIComponent(item[0] || '');
-      const value = decodeURIComponent(item[1] || '');
-      if (key) {
-        params[key] = value;
+      try {
+        const key = decodeURIComponent(item[0] || '');
+        const value = decodeURIComponent(item[1] || '');
+        if (key) {
+          params[key] = value;
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        warn(`SwG could not parse a URL query param: ${item[0]}`);
       }
       return params;
     }, {});
