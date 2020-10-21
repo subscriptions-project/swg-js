@@ -54,7 +54,7 @@ describe('serializeQueryString', () => {
   });
 });
 
-describe('parseUrl', () => {
+describes.realWin('parseUrl', {}, () => {
   const currentPort = location.port;
 
   function compareParse(url, result) {
@@ -214,6 +214,19 @@ describe('parseUrl', () => {
     expect(parseQueryString('?')).to.be.empty;
     expect(parseQueryString('#')).to.be.empty;
     expect(parseQueryString('')).to.be.empty;
+  });
+
+  it('should ignore unparseable query params after logging a warning', () => {
+    const consoleWarn = sandbox.spy(console, 'warn');
+
+    const url = 'test=1&unparseableParam=hi%3D%3';
+    const parsedQueryObject = parseQueryString(url);
+    expect(parsedQueryObject.test).to.equal('1');
+    expect(parsedQueryObject.unparseableParam).to.be.undefined;
+
+    expect(consoleWarn).to.be.calledWith(
+      'SwG could not parse a URL query param: unparseableParam'
+    );
   });
 
   it('should strip fragment for host url', () => {
