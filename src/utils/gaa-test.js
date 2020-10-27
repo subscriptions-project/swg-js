@@ -118,14 +118,21 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       clock.tick(100);
       await tick(10);
 
-      expect(self.gapi.signin2.render).to.be.calledWith(
-        'swg-google-sign-in-button',
-        {
-          longtitle: true,
-          scope: 'profile email',
-          theme: 'dark',
-        }
+      const args = self.gapi.signin2.render.args;
+      expect(args.length).to.equal(1);
+      expect(args[0].length).to.equal(2);
+      expect(args[0][0]).to.equal('swg-google-sign-in-button');
+      expect(typeof args[0][1].onsuccess).to.equal('function');
+      const configurationObjectWithoutOnsuccessProp = Object.assign(
+        {},
+        args[0][1]
       );
+      delete configurationObjectWithoutOnsuccessProp.onsuccess;
+      expect(configurationObjectWithoutOnsuccessProp).to.deep.equal({
+        longtitle: true,
+        scope: 'profile email',
+        theme: 'dark',
+      });
     });
 
     it('adds click handler for publisher sign in button', () => {
@@ -190,10 +197,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
       expect(self.gapi.load).to.be.calledWith('auth2');
       expect(self.gapi.auth2.getAuthInstance).to.be.called;
-      expect(self.gapi.auth2.init).to.be.calledWith({
-        'ux_mode': 'redirect',
-        'redirect_uri': REDIRECT_URI,
-      });
+      expect(self.gapi.auth2.init).to.be.called;
     });
   });
 
