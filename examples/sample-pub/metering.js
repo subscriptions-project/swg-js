@@ -44,6 +44,17 @@ const MeteringDemo = {
     GaaMeteringRegwall.signOut().then(() => void location.reload());
   },
 
+  /** Mocks registration of a user, given data from Google Sign-In. */
+  registerUser: (googleSignInUser) => {
+    // Record the registration timestamp in seconds (not milliseconds).
+    localStorage.meteringRegistrationTimestamp = Math.floor(Date.now() / 1000);
+
+    // Record the user's name, for the metering demo.
+    localStorage.meteringUsername = googleSignInUser
+      .getBasicProfile()
+      .getName();
+  },
+
   /** Returns a new Publisher Provided ID (PPID) suitable for demo purposes. */
   createPpid: () => 'ppid' + Math.round(Math.random() * 9999999999999999),
 
