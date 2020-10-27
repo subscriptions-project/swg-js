@@ -119,20 +119,20 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       await tick(10);
 
       const args = self.gapi.signin2.render.args;
-      expect(args.length).to.equal(1);
-      expect(args[0].length).to.equal(2);
-      expect(args[0][0]).to.equal('swg-google-sign-in-button');
+      // Verify onsuccess is a function, then remove it for easier comparisons.
       expect(typeof args[0][1].onsuccess).to.equal('function');
-      const configurationObjectWithoutOnsuccessProp = Object.assign(
-        {},
-        args[0][1]
-      );
-      delete configurationObjectWithoutOnsuccessProp.onsuccess;
-      expect(configurationObjectWithoutOnsuccessProp).to.deep.equal({
-        longtitle: true,
-        scope: 'profile email',
-        theme: 'dark',
-      });
+      delete args[0][1].onsuccess;
+      // Verify remaining args.
+      expect(args).to.deep.equal([
+        [
+          'swg-google-sign-in-button',
+          {
+            longtitle: true,
+            scope: 'profile email',
+            theme: 'dark',
+          },
+        ],
+      ]);
     });
 
     it('adds click handler for publisher sign in button', () => {
