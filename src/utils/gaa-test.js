@@ -114,14 +114,24 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('renders Google Sign-In button', async () => {
-      GaaMeteringRegwall.show({redirectUri: REDIRECT_URI});
+      const googleSignInUser = {};
+
+      const googleSignInUserPromise = GaaMeteringRegwall.show({
+        redirectUri: REDIRECT_URI,
+      });
       clock.tick(100);
       await tick(10);
 
       const args = self.gapi.signin2.render.args;
-      // Verify onsuccess is a function, then remove it for easier comparisons.
+      // Verify onsuccess callback is a function.
       expect(typeof args[0][1].onsuccess).to.equal('function');
+
+      // Call onsuccess callback, to continue flow.
+      args[0][1].onsuccess(googleSignInUser);
+
+      // Remove onsuccess callback for easier comparisons.
       delete args[0][1].onsuccess;
+
       // Verify remaining args.
       expect(args).to.deep.equal([
         [
@@ -133,6 +143,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
           },
         ],
       ]);
+
+      // Verify the method returns a Google Sign-In user.
+      expect(await googleSignInUserPromise).to.equal(googleSignInUser);
     });
 
     it('adds click handler for publisher sign in button', () => {
