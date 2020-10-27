@@ -212,11 +212,10 @@ export class GaaMeteringRegwall {
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
-   * @param {{ redirectUri: string }} params
    * @return {!Promise<!GoogleSignInUserDef>}
    */
-  static show({redirectUri}) {
-    return GaaMeteringRegwall.render_({redirectUri});
+  static show() {
+    return GaaMeteringRegwall.render_();
   }
 
   /**
@@ -276,10 +275,9 @@ export class GaaMeteringRegwall {
    * Renders the Regwall.
    * @private
    * @nocollapse
-   * @param {{ redirectUri: string }} params
    * @return {!Promise}
    */
-  static render_({redirectUri}) {
+  static render_() {
     const cardEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
@@ -313,12 +311,10 @@ export class GaaMeteringRegwall {
     sessionStorage.gaaRegwallArticleUrl = GaaMeteringRegwall.location_.href;
 
     // Render the Google Sign-In button and promise a Google Sign-In user object.
-    return GaaMeteringRegwall.renderGoogleSignInButton_({redirectUri}).then(
-      (user) => {
-        GaaMeteringRegwall.remove_();
-        return user;
-      }
-    );
+    return GaaMeteringRegwall.renderGoogleSignInButton_().then((user) => {
+      GaaMeteringRegwall.remove_();
+      return user;
+    });
   }
 
   /**
@@ -366,8 +362,7 @@ export class GaaMeteringRegwall {
    * Renders the Google Sign-In button.
    * @private
    * @nocollapse
-   * @param {{ redirectUri: string }} params
-   * @return {!Promise<!GaaUserDef>}
+   * @return {!Promise<!GoogleSignInUserDef>}
    */
   static renderGoogleSignInButton_() {
     return new Promise((resolve) => {
