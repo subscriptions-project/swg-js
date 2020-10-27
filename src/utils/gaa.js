@@ -226,7 +226,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise}
    */
   static signOut() {
-    return GaaMeteringRegwall.configureGoogleSignIn().then(() =>
+    return GaaMeteringRegwall.configureGoogleSignIn_().then(() =>
       self.gapi.auth2.getAuthInstance().signOut()
     );
   }
@@ -246,10 +246,11 @@ export class GaaMeteringRegwall {
 
   /**
    * Configures Google Sign-In.
+   * @private
    * @nocollapse
    * @return {!Promise}
    */
-  static configureGoogleSignIn() {
+  static configureGoogleSignIn_() {
     // Wait for Google Sign-In API.
     return (
       new Promise((resolve) => {
@@ -366,7 +367,7 @@ export class GaaMeteringRegwall {
    */
   static renderGoogleSignInButton_() {
     return new Promise((resolve) => {
-      GaaMeteringRegwall.configureGoogleSignIn().then(() => {
+      GaaMeteringRegwall.configureGoogleSignIn_().then(() => {
         self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
           'longtitle': true,
           'onsuccess': resolve,
