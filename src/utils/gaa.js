@@ -199,9 +199,9 @@ const REGWALL_HTML = `
  *     getImageUrl: function(): string,
  *     getEmail: function(): string,
  *   },
- * }} GoogleSignInUserDef
+ * }} GoogleUserDef
  */
-let GoogleSignInUserDef;
+let GoogleUserDef;
 
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
@@ -212,7 +212,7 @@ export class GaaMeteringRegwall {
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
-   * @return {!Promise<!GoogleSignInUserDef>}
+   * @return {!Promise<!GoogleUserDef>}
    */
   static show() {
     return GaaMeteringRegwall.render_();
@@ -362,7 +362,7 @@ export class GaaMeteringRegwall {
    * Renders the Google Sign-In button.
    * @private
    * @nocollapse
-   * @return {!Promise<!GoogleSignInUserDef>}
+   * @return {!Promise<!GoogleUserDef>}
    */
   static renderGoogleSignInButton_() {
     return new Promise((resolve) => {
