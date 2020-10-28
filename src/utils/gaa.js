@@ -187,19 +187,35 @@ const REGWALL_HTML = `
 </div>
 `;
 
+/**
+ * GoogleUser object that Google Sign-In returns after users sign in.
+ * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
+ * @typedef {{
+ *   getAuthResponse: function(): {id_token: string},
+ *   getBasicProfile: function(): {
+ *     getName: function(): string,
+ *     getGivenName: function(): string,
+ *     getFamilyName: function(): string,
+ *     getImageUrl: function(): string,
+ *     getEmail: function(): string,
+ *   },
+ * }} GoogleUserDef
+ */
+let GoogleUserDef;
+
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
   /**
-   * Returns a promise for a GAA user.
+   * Returns a promise for a Google Sign-In user object.
+   * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
-   * @param {{ redirectUri: string }} params
-   * @return {!Promise}
+   * @return {!Promise<!GoogleUserDef>}
    */
-  static show({redirectUri}) {
-    return GaaMeteringRegwall.render_({redirectUri});
+  static show() {
+    return GaaMeteringRegwall.render_();
   }
 
   /**
@@ -210,7 +226,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise}
    */
   static signOut() {
-    return GaaMeteringRegwall.configureGoogleSignIn().then(() =>
+    return GaaMeteringRegwall.configureGoogleSignIn_().then(() =>
       self.gapi.auth2.getAuthInstance().signOut()
     );
   }
@@ -230,11 +246,11 @@ export class GaaMeteringRegwall {
 
   /**
    * Configures Google Sign-In.
+   * @private
    * @nocollapse
-   * @param {{ redirectUri: string }=} params
    * @return {!Promise}
    */
-  static configureGoogleSignIn({redirectUri} = {redirectUri: ''}) {
+  static configureGoogleSignIn_() {
     // Wait for Google Sign-In API.
     return (
       new Promise((resolve) => {
@@ -251,11 +267,7 @@ export class GaaMeteringRegwall {
         .then(
           () =>
             // Only initialize Google Sign-In once.
-            self.gapi.auth2.getAuthInstance() ||
-            self.gapi.auth2.init({
-              'ux_mode': 'redirect',
-              'redirect_uri': redirectUri,
-            })
+            self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init()
         )
     );
   }
@@ -264,10 +276,9 @@ export class GaaMeteringRegwall {
    * Renders the Regwall.
    * @private
    * @nocollapse
-   * @param {{ redirectUri: string }} params
    * @return {!Promise}
    */
-  static render_({redirectUri}) {
+  static render_() {
     const cardEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
@@ -300,16 +311,11 @@ export class GaaMeteringRegwall {
     // Save article URL for redirect.
     sessionStorage.gaaRegwallArticleUrl = GaaMeteringRegwall.location_.href;
 
-    // Render the Google Sign-In button.
-    GaaMeteringRegwall.renderGoogleSignInButton_({redirectUri});
-
-    // Currently users can't dismiss the Regwall.
-    // This might change in the future.
-    // This promise leaves room for a dismissal feature.
-    // This feature would cause the returned promise to reject.
-    // Returning a promise from day one encourages publishers to write
-    // JS that supports this possibility.
-    return new Promise(() => {});
+    // Render the Google Sign-In button and promise a Google Sign-In user object.
+    return GaaMeteringRegwall.renderGoogleSignInButton_().then((user) => {
+      GaaMeteringRegwall.remove_();
+      return user;
+    });
   }
 
   /**
@@ -357,16 +363,28 @@ export class GaaMeteringRegwall {
    * Renders the Google Sign-In button.
    * @private
    * @nocollapse
-   * @param {{ redirectUri: string }} params
+   * @return {!Promise<!GoogleUserDef>}
    */
-  static renderGoogleSignInButton_({redirectUri}) {
-    GaaMeteringRegwall.configureGoogleSignIn({redirectUri}).then(() => {
-      self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
-        'scope': 'profile email',
-        'longtitle': true,
-        'theme': 'dark',
+  static renderGoogleSignInButton_() {
+    return new Promise((resolve) => {
+      GaaMeteringRegwall.configureGoogleSignIn_().then(() => {
+        self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
+          'longtitle': true,
+          'onsuccess': resolve,
+          'scope': 'profile email',
+          'theme': 'dark',
+        });
       });
     });
+  }
+
+  /**
+   * Removes the Regwall.
+   * @private
+   * @nocollapse
+   */
+  static remove_() {
+    self.document.getElementById(REGWALL_ID).remove();
   }
 }
 

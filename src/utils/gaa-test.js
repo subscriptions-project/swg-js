@@ -18,7 +18,6 @@ import {GaaMeteringRegwall} from './gaa';
 import {tick} from '../../test/tick';
 
 const ARTICLE_URL = '/article';
-const REDIRECT_URI = '/redirect-uri';
 const PUBLISHER_NAME = 'The Scenic';
 
 /** Article metadata in ld+json form. */
@@ -105,7 +104,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
   describe('show', () => {
     it('shows regwall with publisher name', () => {
-      GaaMeteringRegwall.show({redirectUri: REDIRECT_URI});
+      GaaMeteringRegwall.show();
 
       const descriptionEl = self.document.querySelector(
         '.gaa-metering-regwall--description'
@@ -114,22 +113,45 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('renders Google Sign-In button', async () => {
-      GaaMeteringRegwall.show({redirectUri: REDIRECT_URI});
+      const googleSignInUser = {};
+
+      const googleSignInUserPromise = GaaMeteringRegwall.show();
       clock.tick(100);
       await tick(10);
 
-      expect(self.gapi.signin2.render).to.be.calledWith(
-        'swg-google-sign-in-button',
-        {
-          longtitle: true,
-          scope: 'profile email',
-          theme: 'dark',
-        }
-      );
+      const args = self.gapi.signin2.render.args;
+      // Verify onsuccess callback is a function.
+      expect(typeof args[0][1].onsuccess).to.equal('function');
+
+      // Call onsuccess callback, to continue flow.
+      args[0][1].onsuccess(googleSignInUser);
+
+      // Remove onsuccess callback for easier comparisons.
+      delete args[0][1].onsuccess;
+
+      // Verify remaining args.
+      expect(args).to.deep.equal([
+        [
+          'swg-google-sign-in-button',
+          {
+            longtitle: true,
+            scope: 'profile email',
+            theme: 'dark',
+          },
+        ],
+      ]);
+
+      // Verify the method returns a Google Sign-In user.
+      expect(await googleSignInUserPromise).to.equal(googleSignInUser);
+
+      // Verify Google Sign-In configuration.
+      expect(self.gapi.load).to.be.calledWith('auth2');
+      expect(self.gapi.auth2.getAuthInstance).to.be.called;
+      expect(self.gapi.auth2.init).to.be.called;
     });
 
     it('adds click handler for publisher sign in button', () => {
-      GaaMeteringRegwall.show({redirectUri: REDIRECT_URI});
+      GaaMeteringRegwall.show();
       const publisherSignInButtonEl = self.document.querySelector(
         '#swg-publisher-sign-in-button'
       );
@@ -147,15 +169,14 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('saves article URL to session storage', () => {
-      GaaMeteringRegwall.show({redirectUri: REDIRECT_URI});
+      GaaMeteringRegwall.show();
 
       expect(sessionStorage.gaaRegwallArticleUrl).equals(ARTICLE_URL);
     });
 
     it('throws if article metadata lacks a publisher name', () => {
       script.text = '{}';
-      const showingRegwall = () =>
-        GaaMeteringRegwall.show({redirectUri: REDIRECT_URI});
+      const showingRegwall = () => GaaMeteringRegwall.show();
 
       expect(showingRegwall).throws(
         'Article needs JSON-LD with a publisher name.'
@@ -177,23 +198,6 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(redirecting).throws(
         'Article URL is missing from session storage.'
       );
-    });
-  });
-
-  describe('configureGoogleSignIn', () => {
-    it('configures GSI correctly', async () => {
-      const promise = GaaMeteringRegwall.configureGoogleSignIn({
-        redirectUri: REDIRECT_URI,
-      });
-      clock.tick(100);
-      await promise;
-
-      expect(self.gapi.load).to.be.calledWith('auth2');
-      expect(self.gapi.auth2.getAuthInstance).to.be.called;
-      expect(self.gapi.auth2.init).to.be.calledWith({
-        'ux_mode': 'redirect',
-        'redirect_uri': REDIRECT_URI,
-      });
     });
   });
 

@@ -211,6 +211,19 @@ function startFlowAuto() {
               // where Google Sign-In will send users after they've signed in.
               redirectUri: MeteringDemo.GOOGLE_SIGN_IN_REDIRECT_URI,
             })
+              .then((googleSignInUser) =>
+                // Register a user based on data from Google Sign-In.
+                //
+                // We advise setting a 1st party, secure, HTTP-only cookie,
+                // so it lives past 7 days in Safari.
+                // https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
+                MeteringDemo.registerUser(googleSignInUser)
+              )
+              .then(() =>
+                // Fetch the current user's metering state again
+                // since they registered.
+                MeteringDemo.fetchMeteringState()
+              );
           })
           .then((meteringState) => {
             // Forget previous entitlements fetches.
