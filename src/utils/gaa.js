@@ -349,11 +349,6 @@ export class GaaMeteringRegwall {
     cardEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(cardEl, {'opacity': 1});
     GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
-
-    // Promise a Google Sign-In UserObject.
-    return new Promise((resolve) => {
-      console.log('uh yeet?');
-    });
   }
 
   /**

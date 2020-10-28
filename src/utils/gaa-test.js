@@ -19,6 +19,7 @@ import {tick} from '../../test/tick';
 
 const ARTICLE_URL = '/article';
 const PUBLISHER_NAME = 'The Scenic';
+const IFRAME_URL = 'https://localhost/gsi-iframe';
 
 /** Article metadata in ld+json form. */
 const ARTICLE_METADATA = `
@@ -104,7 +105,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
   describe('show', () => {
     it('shows regwall with publisher name', () => {
-      GaaMeteringRegwall.show();
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
       const descriptionEl = self.document.querySelector(
         '.gaa-metering-regwall--description'
@@ -112,46 +113,8 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
     });
 
-    it('renders Google Sign-In button', async () => {
-      const googleSignInUser = {};
-
-      const googleSignInUserPromise = GaaMeteringRegwall.show();
-      clock.tick(100);
-      await tick(10);
-
-      const args = self.gapi.signin2.render.args;
-      // Verify onsuccess callback is a function.
-      expect(typeof args[0][1].onsuccess).to.equal('function');
-
-      // Call onsuccess callback, to continue flow.
-      args[0][1].onsuccess(googleSignInUser);
-
-      // Remove onsuccess callback for easier comparisons.
-      delete args[0][1].onsuccess;
-
-      // Verify remaining args.
-      expect(args).to.deep.equal([
-        [
-          'swg-google-sign-in-button',
-          {
-            longtitle: true,
-            scope: 'profile email',
-            theme: 'dark',
-          },
-        ],
-      ]);
-
-      // Verify the method returns a Google Sign-In user.
-      expect(await googleSignInUserPromise).to.equal(googleSignInUser);
-
-      // Verify Google Sign-In configuration.
-      expect(self.gapi.load).to.be.calledWith('auth2');
-      expect(self.gapi.auth2.getAuthInstance).to.be.called;
-      expect(self.gapi.auth2.init).to.be.called;
-    });
-
     it('adds click handler for publisher sign in button', () => {
-      GaaMeteringRegwall.show();
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
       const publisherSignInButtonEl = self.document.querySelector(
         '#swg-publisher-sign-in-button'
       );
@@ -168,35 +131,13 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       });
     });
 
-    it('saves article URL to session storage', () => {
-      GaaMeteringRegwall.show();
-
-      expect(sessionStorage.gaaRegwallArticleUrl).equals(ARTICLE_URL);
-    });
-
     it('throws if article metadata lacks a publisher name', () => {
       script.text = '{}';
-      const showingRegwall = () => GaaMeteringRegwall.show();
+      const showingRegwall = () =>
+        GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
       expect(showingRegwall).throws(
         'Article needs JSON-LD with a publisher name.'
-      );
-    });
-  });
-
-  describe('redirectToArticle', () => {
-    it('redirects user to article', () => {
-      sessionStorage.gaaRegwallArticleUrl = ARTICLE_URL;
-      GaaMeteringRegwall.redirectToArticle();
-
-      expect(GaaMeteringRegwall.location_.href).equals(ARTICLE_URL);
-    });
-
-    it('throws if article URL is missing from session storage', () => {
-      const redirecting = () => GaaMeteringRegwall.redirectToArticle();
-
-      expect(redirecting).throws(
-        'Article URL is missing from session storage.'
       );
     });
   });
@@ -208,6 +149,64 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       await promise;
 
       expect(signOutFake).to.be.called;
+    });
+  });
+});
+
+describes.realWin('GaaGoogleSignInButton', {}, () => {
+  let clock;
+  let script;
+  let signOutFake;
+
+  beforeEach(() => {
+    // Mock clock.
+    clock = sandbox.useFakeTimers();
+
+    // Mock Google Sign-In API.
+    signOutFake = sandbox.fake.resolves();
+    let authInstance;
+    self.gapi = {
+      load: sandbox.fake((name, callback) => {
+        callback();
+      }),
+      auth2: {
+        init: sandbox.fake(() => {
+          authInstance = {
+            signOut: signOutFake,
+          };
+        }),
+        getAuthInstance: sandbox.fake(() => authInstance),
+      },
+      signin2: {
+        render: sandbox.fake(),
+      },
+    };
+
+    // Mock SwG API.
+    self.SWG = {
+      push: sandbox.fake(),
+    };
+
+    // Mock location.
+    GaaMeteringRegwall.location_ = {
+      href: ARTICLE_URL,
+    };
+
+    // Add JSON-LD with a publisher name.
+    script = self.document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = ARTICLE_METADATA;
+    self.document.head.appendChild(script);
+  });
+
+  afterEach(() => {
+    script.remove();
+    delete sessionStorage.gaaRegwallArticleUrl;
+  });
+
+  describe('show', () => {
+    it('shows Google Sign-In button', () => {
+      // TODO: Add tests...
     });
   });
 });
