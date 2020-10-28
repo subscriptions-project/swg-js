@@ -143,6 +143,11 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
       // Verify the method returns a Google Sign-In user.
       expect(await googleSignInUserPromise).to.equal(googleSignInUser);
+
+      // Verify Google Sign-In configuration.
+      expect(self.gapi.load).to.be.calledWith('auth2');
+      expect(self.gapi.auth2.getAuthInstance).to.be.called;
+      expect(self.gapi.auth2.init).to.be.called;
     });
 
     it('adds click handler for publisher sign in button', () => {
@@ -176,14 +181,6 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(showingRegwall).throws(
         'Article needs JSON-LD with a publisher name.'
       );
-    });
-
-    it('configures GSI correctly', async () => {
-      GaaMeteringRegwall.show();
-
-      expect(self.gapi.load).to.be.calledWith('auth2');
-      expect(self.gapi.auth2.getAuthInstance).to.be.called;
-      expect(self.gapi.auth2.init).to.be.called;
     });
   });
 
