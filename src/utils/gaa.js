@@ -395,7 +395,7 @@ export class GaaMeteringRegwall {
    * Returns the GAA user, after the user signs in.
    * @private
    * @nocollapse
-   * @param {{ redirectUri: string }} params
+   * @param {{ iframeUrl: string }} params
    * @return {!Promise<!GoogleUserDef>}
    */
   static getGaaUser_({iframeUrl}) {
@@ -489,10 +489,10 @@ export class GaaGoogleSignInButton {
       )
       .then((googleUser) => {
         // Gather GAA user details.
-        const basicProfile = /** @type {!GoogleSignInUserDef} */ (googleUser).getBasicProfile();
+        const basicProfile = /** @type {!GoogleUserDef} */ (googleUser).getBasicProfile();
         /** @type {!GaaUserDef} */
         const gaaUser = {
-          idToken: /** @type {!GoogleSignInUserDef} */ (googleUser).getAuthResponse()
+          idToken: /** @type {!GoogleUserDef} */ (googleUser).getAuthResponse()
             .id_token,
           name: basicProfile.getName(),
           givenName: basicProfile.getGivenName(),
