@@ -315,7 +315,6 @@ export class GaaMeteringRegwall {
    * @private
    * @nocollapse
    * @param {{ iframeUrl: string }} params
-   * @return {!Promise<!GoogleUserDef>}
    */
   static render_({iframeUrl}) {
     const cardEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
