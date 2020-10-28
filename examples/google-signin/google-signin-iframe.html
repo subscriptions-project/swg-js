@@ -1,0 +1,25 @@
+<body>
+  <!--
+    Specify a Google Sign-In OAuth Client ID,
+    then load Google Sign-In's script.
+    https://developers.google.com/identity/sign-in/web/sign-in
+  -->
+  <meta
+    name="google-signin-client_id"
+    content="520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com"
+  />
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+
+  <!--
+      Publications should load this next script from:
+      https://news.google.com/swg/js/v1/swg-gaa.js
+    -->
+  <script src="<% swgGaaJsUrl %>"></script>
+
+  <script>
+    GaaGoogleSignInButton.show({
+      // Allow specific origins to get results from your Google Sign-In button.
+      allowedOrigins: ['http://localhost:8000', 'http://localhost:8080'],
+    });
+  </script>
+</body>

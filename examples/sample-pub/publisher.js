@@ -205,11 +205,8 @@ function startFlowAuto() {
 
             // Show metering regwall for unregistered users.
             return GaaMeteringRegwall.show({
-              // Google Sign-In requires you to allow specific URLs
-              // as redirect URIs. Allowing every article isn't feasible.
-              // Therefore, publishers must specify a single URL
-              // where Google Sign-In will send users after they've signed in.
-              redirectUri: MeteringDemo.GOOGLE_SIGN_IN_REDIRECT_URI,
+              // Specify a URL that renders a Google Sign-In button.
+              iframeUrl: MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL,
             })
               .then((googleSignInUser) =>
                 // Register a user based on data from Google Sign-In.

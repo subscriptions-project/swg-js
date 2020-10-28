@@ -9,9 +9,9 @@ const MeteringDemo = {
   GOOGLE_SIGN_IN_CLIENT_ID:
     '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
 
-  /** Google Sign-In redirect URI, where users are sent after signing in. */
-  GOOGLE_SIGN_IN_REDIRECT_URI:
-    'http://localhost:8000/examples/sample-pub/gsi-redirect',
+  /** URL of iframe containing a Google Sign-In button. */
+  GOOGLE_SIGN_IN_IFRAME_URL:
+    'http://localhost:8000/examples/sample-pub/gsi-iframe',
 
   /** Sets up controls for the metering demo. */
   setupControls: () => {
@@ -52,14 +52,12 @@ const MeteringDemo = {
    * so it lives past 7 days in Safari.
    * https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
    */
-  registerUser: (googleSignInUser) => {
+  registerUser: (gaaUser) => {
     // Record the registration timestamp in seconds (not milliseconds).
     localStorage.meteringRegistrationTimestamp = Math.floor(Date.now() / 1000);
 
     // Record the user's name, for the metering demo.
-    localStorage.meteringUsername = googleSignInUser
-      .getBasicProfile()
-      .getName();
+    localStorage.meteringUsername = gaaUser.name;
   },
 
   /** Returns a new Publisher Provided ID (PPID) suitable for demo purposes. */
