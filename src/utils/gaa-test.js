@@ -15,7 +15,6 @@
  */
 
 import {GaaMeteringRegwall} from './gaa';
-import {tick} from '../../test/tick';
 
 const ARTICLE_URL = '/article';
 const PUBLISHER_NAME = 'The Scenic';
@@ -154,55 +153,8 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 });
 
 describes.realWin('GaaGoogleSignInButton', {}, () => {
-  let clock;
-  let script;
-  let signOutFake;
-
-  beforeEach(() => {
-    // Mock clock.
-    clock = sandbox.useFakeTimers();
-
-    // Mock Google Sign-In API.
-    signOutFake = sandbox.fake.resolves();
-    let authInstance;
-    self.gapi = {
-      load: sandbox.fake((name, callback) => {
-        callback();
-      }),
-      auth2: {
-        init: sandbox.fake(() => {
-          authInstance = {
-            signOut: signOutFake,
-          };
-        }),
-        getAuthInstance: sandbox.fake(() => authInstance),
-      },
-      signin2: {
-        render: sandbox.fake(),
-      },
-    };
-
-    // Mock SwG API.
-    self.SWG = {
-      push: sandbox.fake(),
-    };
-
-    // Mock location.
-    GaaMeteringRegwall.location_ = {
-      href: ARTICLE_URL,
-    };
-
-    // Add JSON-LD with a publisher name.
-    script = self.document.createElement('script');
-    script.type = 'application/ld+json';
-    script.text = ARTICLE_METADATA;
-    self.document.head.appendChild(script);
-  });
-
-  afterEach(() => {
-    script.remove();
-    delete sessionStorage.gaaRegwallArticleUrl;
-  });
+  beforeEach(() => {});
+  afterEach(() => {});
 
   describe('show', () => {
     it('shows Google Sign-In button', () => {
