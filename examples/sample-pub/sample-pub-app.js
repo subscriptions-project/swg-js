@@ -262,11 +262,11 @@ app.post('/amp-pingback', (req, res) => {
 });
 
 /**
- * GSI redirect page for metering demo.
+ * GSI iframe for metering demo.
  */
-app.get('/gsi-redirect', (req, res) => {
+app.get('/gsi-iframe', (req, res) => {
   const setup = getSetup(req);
-  res.render('../examples/google-signin/google-signed-in-redirect', {
+  res.render('../examples/google-signin/google-signin-iframe', {
     swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
   });
 });
