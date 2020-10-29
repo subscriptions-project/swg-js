@@ -27,7 +27,7 @@ import {parseJson} from '../utils/json';
 import {setImportantStyles} from './style';
 
 /** Stamp for post messages. */
-const POST_MESSAGE_STAMP = 'Subscribe with Google GAA Post Message Sentinel';
+const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
 
 /** Introduction command for post messages. */
 const POST_MESSAGE_COMMAND_INTRODUCTION = 'introduction';
