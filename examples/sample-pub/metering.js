@@ -1,7 +1,7 @@
 /**
  * Helps demonstrate metering functionality.
  *
- * Publishers shouldn't use these methods in production. Instead, they should
+ * Publishers shouldn't use these values in production. Instead, they should
  * define their own JS and backend code to provide the same functionality securely.
  */
 const MeteringDemo = {
