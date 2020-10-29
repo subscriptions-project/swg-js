@@ -224,9 +224,6 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
         command: POST_MESSAGE_COMMAND_INTRODUCTION,
       });
 
-      clock.tick(100);
-      await tick(10);
-
       // Mock Google Sign-In response with GoogleUser object.
       const gaaUser = {
         idToken: 'idToken',
@@ -250,6 +247,10 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
         }),
       };
       const args = self.gapi.signin2.render.args;
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+      // Send GoogleUser.
       args[0][1].onsuccess(googleUser);
 
       // Wait for post message.
