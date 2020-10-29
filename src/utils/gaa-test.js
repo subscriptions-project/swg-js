@@ -15,10 +15,13 @@
  */
 
 import {
+  GaaGoogleSignInButton,
   GaaMeteringRegwall,
+  POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
 } from './gaa';
+import {tick} from '../../test/tick';
 
 const ARTICLE_URL = '/article';
 const PUBLISHER_NAME = 'The Scenic';
@@ -103,7 +106,6 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
   afterEach(() => {
     script.remove();
-    delete sessionStorage.gaaRegwallArticleUrl;
   });
 
   describe('show', () => {
@@ -170,12 +172,106 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 });
 
 describes.realWin('GaaGoogleSignInButton', {}, () => {
-  beforeEach(() => {});
-  afterEach(() => {});
+  const allowedOrigins = [location.origin];
+
+  let clock;
+
+  beforeEach(() => {
+    // Mock clock.
+    clock = sandbox.useFakeTimers();
+
+    self.gapi = {
+      load: sandbox.fake((name, callback) => {
+        callback();
+      }),
+      auth2: {
+        init: sandbox.fake(),
+        getAuthInstance: sandbox.fake(),
+      },
+      signin2: {
+        render: sandbox.fake(),
+      },
+    };
+  });
 
   describe('show', () => {
-    it('shows Google Sign-In button', () => {
-      // TODO: Add tests...
+    it('renders Google Sign-In button', async () => {
+      GaaGoogleSignInButton.show({allowedOrigins});
+      clock.tick(100);
+      await tick(10);
+
+      const args = self.gapi.signin2.render.args;
+      expect(typeof args[0][1].onsuccess).to.equal('function');
+      expect(args).to.deep.equal([
+        [
+          'swg-google-sign-in-button',
+          {
+            longtitle: true,
+            onsuccess: args[0][1].onsuccess,
+            scope: 'profile email',
+            theme: 'dark',
+          },
+        ],
+      ]);
+    });
+
+    it('sends post message with GAA user', async () => {
+      GaaGoogleSignInButton.show({allowedOrigins});
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Mock Google Sign-In response with GoogleUser object.
+      const gaaUser = {
+        idToken: 'idToken',
+        name: 'name',
+        givenName: 'givenName',
+        familyName: 'familyName',
+        imageUrl: 'imageUrl',
+        email: 'email',
+      };
+      const googleUser = {
+        getBasicProfile: () => ({
+          getName: () => gaaUser.name,
+          getGivenName: () => gaaUser.givenName,
+          getFamilyName: () => gaaUser.familyName,
+          getImageUrl: () => gaaUser.imageUrl,
+          getEmail: () => gaaUser.email,
+        }),
+        getAuthResponse: () => ({
+          // eslint-disable-next-line google-camelcase/google-camelcase
+          id_token: gaaUser.idToken,
+        }),
+      };
+      const args = self.gapi.signin2.render.args;
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+      // Send GoogleUser.
+      args[0][1].onsuccess(googleUser);
+
+      // Wait for post message.
+      await new Promise((resolve) => {
+        self.postMessage = sandbox.fake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.postMessage).to.be.calledWith({
+        command: POST_MESSAGE_COMMAND_USER,
+        gaaUser: {
+          email: 'email',
+          familyName: 'familyName',
+          givenName: 'givenName',
+          idToken: 'idToken',
+          imageUrl: 'imageUrl',
+          name: 'name',
+        },
+        stamp: POST_MESSAGE_STAMP,
+      });
     });
   });
 });
