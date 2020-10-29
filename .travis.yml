@@ -22,9 +22,9 @@ jobs:
       script:
       - gulp unit --coverage
       - ./node_modules/.bin/codecov -f test/coverage/lcov-unit.info
-    - # run unit tests and e2e tests parallel
-      name: 'End to End Tests'
-      script: gulp e2e --retries=3
+    # - # run unit tests and e2e tests parallel
+    #   name: 'End to End Tests'
+    #   script: gulp e2e --retries=3
 branches:
   only:
     - main
