@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import {GaaMeteringRegwall} from './gaa';
+import {
+  GaaMeteringRegwall,
+  POST_MESSAGE_COMMAND_USER,
+  POST_MESSAGE_STAMP,
+} from './gaa';
 
 const ARTICLE_URL = '/article';
 const PUBLISHER_NAME = 'The Scenic';
@@ -138,6 +142,19 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(showingRegwall).throws(
         'Article needs JSON-LD with a publisher name.'
       );
+    });
+
+    it('returns GAA User', async () => {
+      const gaaUser = {name: 'Hello'};
+      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+        gaaUser,
+      });
+
+      expect(await gaaUserPromise).to.deep.equal(gaaUser);
     });
   });
 

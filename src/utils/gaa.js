@@ -27,13 +27,13 @@ import {parseJson} from '../utils/json';
 import {setImportantStyles} from './style';
 
 /** Stamp for post messages. */
-const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
+export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
 
 /** Introduction command for post messages. */
-const POST_MESSAGE_COMMAND_INTRODUCTION = 'introduction';
+export const POST_MESSAGE_COMMAND_INTRODUCTION = 'introduction';
 
 /** User command for post messages. */
-const POST_MESSAGE_COMMAND_USER = 'user';
+export const POST_MESSAGE_COMMAND_USER = 'user';
 
 /** ID for the Google Sign-In iframe element. */
 const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
