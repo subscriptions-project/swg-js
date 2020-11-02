@@ -17,8 +17,8 @@
 module.exports = {
   login: {
     url: 'https://accounts.google.com/ServiceLogin',
-    username: 'hodorlannister.620564.us@gmail.com',
-    password: 'testing123456789',
+    username: 'testermcgee1337@gmail.com',
+    password: 'lO4eOWMpnrkbzNC9zZyqp7RZTM0H6FEk',
   },
   gpay: {
     url: 'pay.sandbox.google.com',
