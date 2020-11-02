@@ -18,6 +18,7 @@ module.exports = {
   login: {
     url: 'https://accounts.google.com/ServiceLogin',
     username: 'testermcgee1337@gmail.com',
+    // TODO: Store the password with the CI provider, instead of in open source.
     password: 'lO4eOWMpnrkbzNC9zZyqp7RZTM0H6FEk',
   },
   gpay: {
