@@ -95,7 +95,7 @@
     "karma-super-dots-reporter": "0.2.0",
     "lazypipe": "1.0.2",
     "minimist": "1.2.5",
-    "mocha": "8.2.0",
+    "mocha": "8.2.1",
     "morgan": "1.10.0",
     "nodemon": "2.0.6",
     "plugin-error": "1.0.1",
