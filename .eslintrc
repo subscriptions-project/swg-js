@@ -96,6 +96,7 @@
     {
       "files": ["test/e2e/*.js", "test/e2e/**/*.js"],
       "globals": {
+        "process": false,
         "module": false,
         "require": false
       }
