@@ -17,9 +17,8 @@
 module.exports = {
   login: {
     url: 'https://accounts.google.com/ServiceLogin',
-    username: 'testermcgee1337@gmail.com',
-    // TODO: Store the password with the CI provider, instead of in open source.
-    password: 'lO4eOWMpnrkbzNC9zZyqp7RZTM0H6FEk',
+    username: process.env.E2E_USERNAME,
+    password: process.env.E2E_PASSWORD,
   },
   gpay: {
     url: 'pay.sandbox.google.com',
