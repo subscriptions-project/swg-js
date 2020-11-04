@@ -15,6 +15,7 @@
  */
 
 import {
+  GOOGLE_SIGN_IN_IFRAME_ID,
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
   POST_MESSAGE_COMMAND_INTRODUCTION,
@@ -131,7 +132,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         triggerLoginRequest: sandbox.fake(),
       };
       self.SWG.push.callback(subscriptionsMock);
-      expect(subscriptionsMock.triggerLoginRequest).to.be.calledWith({
+      expect(subscriptionsMock.triggerLoginRequest).to.be.calledWithExactly({
         linkRequested: false,
       });
     });
@@ -169,6 +170,30 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(signOutFake).to.be.called;
     });
   });
+
+  describe('getGaaUser_', () => {
+    it('sends intro postMessage to iframe', async () => {
+      // Mock an iframe (as a div to avoid browser security restrictions).
+      const mockIframeEl = self.document.createElement('div');
+      mockIframeEl.id = GOOGLE_SIGN_IN_IFRAME_ID;
+      mockIframeEl.contentWindow = {
+        postMessage: sandbox.fake(),
+      };
+      self.document.body.appendChild(mockIframeEl);
+
+      // Send intro message then trigger mock iframe's onload callback.
+      GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl: IFRAME_URL});
+      mockIframeEl.onload();
+
+      expect(mockIframeEl.contentWindow.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_INTRODUCTION,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        'https://localhost'
+      );
+    });
+  });
 });
 
 describes.realWin('GaaGoogleSignInButton', {}, () => {
@@ -192,6 +217,12 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
         render: sandbox.fake(),
       },
     };
+  });
+
+  afterEach(() => {
+    if (self.postMessage.restore) {
+      self.postMessage.restore();
+    }
   });
 
   describe('show', () => {
@@ -255,23 +286,26 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
 
       // Wait for post message.
       await new Promise((resolve) => {
-        self.postMessage = sandbox.fake(() => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
           resolve();
         });
       });
 
-      expect(self.postMessage).to.be.calledWith({
-        command: POST_MESSAGE_COMMAND_USER,
-        gaaUser: {
-          email: 'email',
-          familyName: 'familyName',
-          givenName: 'givenName',
-          idToken: 'idToken',
-          imageUrl: 'imageUrl',
-          name: 'name',
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_USER,
+          gaaUser: {
+            email: 'email',
+            familyName: 'familyName',
+            givenName: 'givenName',
+            idToken: 'idToken',
+            imageUrl: 'imageUrl',
+            name: 'name',
+          },
+          stamp: POST_MESSAGE_STAMP,
         },
-        stamp: POST_MESSAGE_STAMP,
-      });
+        'http://localhost:9877'
+      );
     });
   });
 });
