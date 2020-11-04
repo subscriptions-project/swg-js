@@ -292,7 +292,7 @@ export class GaaMeteringRegwall {
   static show({iframeUrl}) {
     GaaMeteringRegwall.render_({iframeUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
-    return GaaMeteringRegwall.getGaaUser_({iframeUrl}).then((gaaUser) => {
+    return GaaMeteringRegwall.getGaaUser_().then((gaaUser) => {
       GaaMeteringRegwall.remove_();
       return gaaUser;
     });
