@@ -304,7 +304,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
           },
           stamp: POST_MESSAGE_STAMP,
         },
-        'http://localhost:9877'
+        location.origin
       );
     });
   });
