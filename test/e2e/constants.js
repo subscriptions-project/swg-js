@@ -16,7 +16,7 @@
 
 module.exports = {
   login: {
-    url: 'https://accounts.google.com/ServiceLogin',
+    url: 'https://scenic-2017.appspot.com/gsi-iframe',
     username: process.env.E2E_USERNAME,
     password: process.env.E2E_PASSWORD,
   },

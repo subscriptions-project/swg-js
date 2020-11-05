@@ -22,22 +22,36 @@ const constants = require('../constants');
 
 const login = {
   login: function (browser) {
-    this.api.pause(1000);
+    // Wait for page to settle.
+    this.pause(1000);
+    this.log('Signing into Google Account');
 
-    return browser.getTitle((title) => {
-      if (title === 'Google Account') {
-        return this.log('Already signed into Google Account');
-      }
+    // Open Google Sign-In popup.
+    this.click('@googleSignInButton');
+    this.pause(500);
 
-      return this.log('Signing into Google Account')
-        .assert.containsText('@headingText', 'Sign in')
-        .waitForElementPresent('@username')
-        .waitForElementVisible('@username')
-        .setValue('@username', [constants.login.username, browser.Keys.ENTER])
-        .waitForElementPresent('@password')
-        .waitForElementVisible('@password')
-        .setValue('@password', [constants.login.password, browser.Keys.ENTER])
-        .waitForElementNotPresent('@password');
+    // Switch to popup.
+    browser.windowHandles(function (result) {
+      const handle = result.value[1];
+      browser.switchWindow(handle);
+    });
+
+    // Sign in.
+    this.assert
+      .containsText('@headingText', 'Sign in')
+      .waitForElementPresent('@username')
+      .waitForElementVisible('@username')
+      .setValue('@username', [constants.login.username, browser.Keys.ENTER])
+      .waitForElementPresent('@password')
+      .waitForElementVisible('@password')
+      .setValue('@password', [constants.login.password, browser.Keys.ENTER])
+      .waitForElementNotPresent('@password');
+
+    // Close Google Sign-In popup.
+    this.closeWindow();
+    browser.windowHandles(function (result) {
+      const handle = result.value[0];
+      browser.switchWindow(handle);
     });
   },
 };
@@ -46,6 +60,9 @@ module.exports = {
   url: constants.login.url,
   commands: [login],
   elements: {
+    googleSignInButton: {
+      selector: '#swg-google-sign-in-button > div',
+    },
     headingText: {
       selector: '#headingText',
     },
