@@ -17,8 +17,8 @@
 module.exports = {
   login: {
     url: 'https://accounts.google.com/ServiceLogin',
-    username: 'hodorlannister.620564.us@gmail.com',
-    password: 'testing123456789',
+    username: process.env.E2E_USERNAME,
+    password: process.env.E2E_PASSWORD,
   },
   gpay: {
     url: 'pay.sandbox.google.com',
