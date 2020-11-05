@@ -36,7 +36,7 @@ export const POST_MESSAGE_COMMAND_INTRODUCTION = 'introduction';
 export const POST_MESSAGE_COMMAND_USER = 'user';
 
 /** ID for the Google Sign-In iframe element. */
-const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
+export const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
 
 /** ID for the Google Sign-In button element. */
 const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
@@ -291,7 +291,8 @@ export class GaaMeteringRegwall {
    */
   static show({iframeUrl}) {
     GaaMeteringRegwall.render_({iframeUrl});
-    return GaaMeteringRegwall.getGaaUser_({iframeUrl}).then((gaaUser) => {
+    GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
+    return GaaMeteringRegwall.getGaaUser_().then((gaaUser) => {
       GaaMeteringRegwall.remove_();
       return gaaUser;
     });
@@ -395,11 +396,32 @@ export class GaaMeteringRegwall {
    * Returns the GAA user, after the user signs in.
    * @private
    * @nocollapse
-   * @param {{ iframeUrl: string }} params
    * @return {!Promise<!GoogleUserDef>}
    */
-  static getGaaUser_({iframeUrl}) {
-    // Introduce self to iframe.
+  static getGaaUser_() {
+    // Listen for GAA user.
+    return new Promise((resolve) => {
+      self.addEventListener('message', (e) => {
+        if (
+          e.data.stamp === POST_MESSAGE_STAMP &&
+          e.data.command === POST_MESSAGE_COMMAND_USER
+        ) {
+          resolve(e.data.gaaUser);
+        }
+      });
+    });
+  }
+
+  /**
+   * Sends intro post message to Google Sign-In iframe.
+   * @private
+   * @nocollapse
+   * @param {{ iframeUrl: string }} params
+   */
+  static sendIntroMessageToGsiIframe_({iframeUrl}) {
+    // Introduce this window to the publisher's Google Sign-In iframe.
+    // This lets the iframe send post messages back to this window.
+    // Without the introduction, the iframe wouldn't have a reference to this window.
     const googleSignInIframe = /** @type {!HTMLIFrameElement} */ (self.document.getElementById(
       GOOGLE_SIGN_IN_IFRAME_ID
     ));
@@ -412,18 +434,6 @@ export class GaaMeteringRegwall {
         new URL(iframeUrl).origin
       );
     };
-
-    // Listen for GAA user.
-    return new Promise((resolve) => {
-      self.addEventListener('message', (e) => {
-        if (
-          e.data.stamp === POST_MESSAGE_STAMP &&
-          e.data.command === POST_MESSAGE_COMMAND_USER
-        ) {
-          resolve(e.data.gaaUser);
-        }
-      });
-    });
   }
 
   /**
