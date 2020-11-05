@@ -15,13 +15,8 @@
  */
 
 module.exports = {
-  login: {
-    url: 'https://scenic-2017.appspot.com/gsi-iframe',
-    username: process.env.E2E_USERNAME,
-    password: process.env.E2E_PASSWORD,
-  },
-  gpay: {
-    url: 'pay.sandbox.google.com',
+  googleSignIn: {
+    url: 'https://accounts.google.com/signin/v2/identifier',
   },
   setup: {
     url: 'http://localhost:8000/examples/sample-pub/setup',

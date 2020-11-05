@@ -15,14 +15,14 @@
  */
 
 /**
- * @fileoverview Switch to gpay window and check its DOM elements.
+ * @fileoverview Switch to gpay window and check that it prompts
+ * the user to sign in.
  */
 
 const constants = require('../constants');
 
 module.exports.command = function () {
-  return this.pause(1000)
+  return this.pause(2000)
     .switchToWindow('gpay window')
-    .switchToFrame('[src*="about:blank"]', 'iFrame in payment window')
-    .assert.urlContains(constants.gpay.url);
+    .assert.urlContains(constants.googleSignIn.url);
 };
