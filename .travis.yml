@@ -14,17 +14,14 @@ before_script:
   - export PATH="`pwd`/node_modules/.bin:$PATH"
 jobs:
   include:
-    - stage: check
-      name: 'Check'
+    - name: 'Check'
       script: gulp check
-    - stage: test
-      name: 'Unit Tests'
+    - name: 'Unit Tests'
       script:
       - gulp unit --coverage
       - ./node_modules/.bin/codecov -f test/coverage/lcov-unit.info
-    # - # run unit tests and e2e tests parallel
-    #   name: 'End to End Tests'
-    #   script: gulp e2e --retries=3
+    - name: 'End to End Tests'
+      script: gulp e2e --retries=3
 branches:
   only:
     - main

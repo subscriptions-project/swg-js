@@ -20,9 +20,6 @@ module.exports = {
     const setup = browser.page.setup();
     setup.navigate().select('local');
 
-    const login = browser.page.login();
-    login.navigate().login(browser);
-
     const contribution = browser.page.contribution();
     contribution
       .navigate()

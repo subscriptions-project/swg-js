@@ -15,13 +15,8 @@
  */
 
 module.exports = {
-  login: {
-    url: 'https://accounts.google.com/ServiceLogin',
-    username: 'hodorlannister.620564.us@gmail.com',
-    password: 'testing123456789',
-  },
-  gpay: {
-    url: 'pay.sandbox.google.com',
+  googleSignIn: {
+    url: 'https://accounts.google.com/signin/v2/identifier',
   },
   setup: {
     url: 'http://localhost:8000/examples/sample-pub/setup',
