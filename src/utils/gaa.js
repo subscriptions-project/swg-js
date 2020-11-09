@@ -352,7 +352,7 @@ export class GaaMeteringRegwall {
       '$publisherName$',
       GaaMeteringRegwall.getPublisherNameFromPageConfig_()
     );
-    self.document.body.prepend(containerEl);
+    self.document.body.appendChild(containerEl);
     /** @suppress {suspiciousCode} */
     containerEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(containerEl, {'opacity': 1});
