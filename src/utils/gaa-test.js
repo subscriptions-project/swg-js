@@ -21,6 +21,8 @@ import {
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
+  REGWALL_DIALOG_ID,
+  REGWALL_TITLE_ID,
 } from './gaa';
 import {tick} from '../../test/tick';
 
@@ -117,6 +119,15 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         '.gaa-metering-regwall--description'
       );
       expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
+    });
+
+    it('focuses on modal title after the animation completes', () => {
+      // Mock animation ending.
+      const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
+      dialogEl.dispatchEvent(new Event('animationend'));
+
+      const titleEl = self.document.getElementById(REGWALL_TITLE_ID);
+      expect(self.document.activeElement).to.equal(titleEl);
     });
 
     it('adds click handler for publisher sign in button', () => {
