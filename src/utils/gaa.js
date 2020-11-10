@@ -44,8 +44,14 @@ const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 /** ID for the Publisher sign-in button element. */
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 
-/** ID for the Regwall element. */
-const REGWALL_ID = 'swg-regwall-element';
+/** ID for the Regwall container element. */
+const REGWALL_CONTAINER_ID = 'swg-regwall-container';
+
+/** ID for the Regwall dialog element. */
+export const REGWALL_DIALOG_ID = 'swg-regwall-dialog';
+
+/** ID for the Regwall title element. */
+export const REGWALL_TITLE_ID = 'swg-regwall-title';
 
 /**
  * HTML for the metering regwall dialog, where users can sign in with Google.
@@ -56,8 +62,8 @@ const REGWALL_ID = 'swg-regwall-element';
  */
 const REGWALL_HTML = `
 <style>
-  .gaa-metering-regwall--card-spacer,
-  .gaa-metering-regwall--card,
+  .gaa-metering-regwall--dialog-spacer,
+  .gaa-metering-regwall--dialog,
   .gaa-metering-regwall--logo,
   .gaa-metering-regwall--title,
   .gaa-metering-regwall--description,
@@ -69,7 +75,7 @@ const REGWALL_HTML = `
     font-family: Roboto, arial, sans-serif;
   }
 
-  .gaa-metering-regwall--card-spacer {
+  .gaa-metering-regwall--dialog-spacer {
     bottom: 0;
     display: block;
     position: fixed;
@@ -81,7 +87,7 @@ const REGWALL_HTML = `
     to {transform: translate(0, 0);}
   }
 
-  .gaa-metering-regwall--card {
+  .gaa-metering-regwall--dialog {
     animation: slideUp 0.5s;
     background: white;
     border-radius: 12px 12px 0 0;
@@ -186,11 +192,11 @@ const REGWALL_HTML = `
   }
 </style>
 
-<div class="gaa-metering-regwall--card-spacer">
-  <div class="gaa-metering-regwall--card">
-    <img class="gaa-metering-regwall--logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDc0IDI0Ij48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNOS4yNCA4LjE5djIuNDZoNS44OGMtLjE4IDEuMzgtLjY0IDIuMzktMS4zNCAzLjEtLjg2Ljg2LTIuMiAxLjgtNC41NCAxLjgtMy42MiAwLTYuNDUtMi45Mi02LjQ1LTYuNTRzMi44My02LjU0IDYuNDUtNi41NGMxLjk1IDAgMy4zOC43NyA0LjQzIDEuNzZMMTUuNCAyLjVDMTMuOTQgMS4wOCAxMS45OCAwIDkuMjQgMCA0LjI4IDAgLjExIDQuMDQuMTEgOXM0LjE3IDkgOS4xMyA5YzIuNjggMCA0LjctLjg4IDYuMjgtMi41MiAxLjYyLTEuNjIgMi4xMy0zLjkxIDIuMTMtNS43NSAwLS41Ny0uMDQtMS4xLS4xMy0xLjU0SDkuMjR6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTI1IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNNTMuNTggNy40OWgtLjA5Yy0uNTctLjY4LTEuNjctMS4zLTMuMDYtMS4zQzQ3LjUzIDYuMTkgNDUgOC43MiA0NSAxMmMwIDMuMjYgMi41MyA1LjgxIDUuNDMgNS44MSAxLjM5IDAgMi40OS0uNjIgMy4wNi0xLjMyaC4wOXYuODFjMCAyLjIyLTEuMTkgMy40MS0zLjEgMy40MS0xLjU2IDAtMi41My0xLjEyLTIuOTMtMi4wN2wtMi4yMi45MmMuNjQgMS41NCAyLjMzIDMuNDMgNS4xNSAzLjQzIDIuOTkgMCA1LjUyLTEuNzYgNS41Mi02LjA1VjYuNDloLTIuNDJ2MXptLTIuOTMgOC4wM2MtMS43NiAwLTMuMS0xLjUtMy4xLTMuNTIgMC0yLjA1IDEuMzQtMy41MiAzLjEtMy41MiAxLjc0IDAgMy4xIDEuNSAzLjEgMy41NC4wMSAyLjAzLTEuMzYgMy41LTMuMSAzLjV6Ii8+PHBhdGggZmlsbD0iI0ZCQkMwNSIgZD0iTTM4IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNNTggLjI0aDIuNTF2MTcuNTdINTh6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTY4LjI2IDE1LjUyYy0xLjMgMC0yLjIyLS41OS0yLjgyLTEuNzZsNy43Ny0zLjIxLS4yNi0uNjZjLS40OC0xLjMtMS45Ni0zLjctNC45Ny0zLjctMi45OSAwLTUuNDggMi4zNS01LjQ4IDUuODEgMCAzLjI2IDIuNDYgNS44MSA1Ljc2IDUuODEgMi42NiAwIDQuMi0xLjYzIDQuODQtMi41N2wtMS45OC0xLjMyYy0uNjYuOTYtMS41NiAxLjYtMi44NiAxLjZ6bS0uMTgtNy4xNWMxLjAzIDAgMS45MS41MyAyLjIgMS4yOGwtNS4yNSAyLjE3YzAtMi40NCAxLjczLTMuNDUgMy4wNS0zLjQ1eiIvPjwvc3ZnPg==" />
+<div class="gaa-metering-regwall--dialog-spacer">
+  <div role="dialog" aria-modal="true" class="gaa-metering-regwall--dialog" id="${REGWALL_DIALOG_ID}" aria-labelledby="${REGWALL_TITLE_ID}">
+    <img alt="Google" class="gaa-metering-regwall--logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDc0IDI0Ij48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNOS4yNCA4LjE5djIuNDZoNS44OGMtLjE4IDEuMzgtLjY0IDIuMzktMS4zNCAzLjEtLjg2Ljg2LTIuMiAxLjgtNC41NCAxLjgtMy42MiAwLTYuNDUtMi45Mi02LjQ1LTYuNTRzMi44My02LjU0IDYuNDUtNi41NGMxLjk1IDAgMy4zOC43NyA0LjQzIDEuNzZMMTUuNCAyLjVDMTMuOTQgMS4wOCAxMS45OCAwIDkuMjQgMCA0LjI4IDAgLjExIDQuMDQuMTEgOXM0LjE3IDkgOS4xMyA5YzIuNjggMCA0LjctLjg4IDYuMjgtMi41MiAxLjYyLTEuNjIgMi4xMy0zLjkxIDIuMTMtNS43NSAwLS41Ny0uMDQtMS4xLS4xMy0xLjU0SDkuMjR6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTI1IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNNTMuNTggNy40OWgtLjA5Yy0uNTctLjY4LTEuNjctMS4zLTMuMDYtMS4zQzQ3LjUzIDYuMTkgNDUgOC43MiA0NSAxMmMwIDMuMjYgMi41MyA1LjgxIDUuNDMgNS44MSAxLjM5IDAgMi40OS0uNjIgMy4wNi0xLjMyaC4wOXYuODFjMCAyLjIyLTEuMTkgMy40MS0zLjEgMy40MS0xLjU2IDAtMi41My0xLjEyLTIuOTMtMi4wN2wtMi4yMi45MmMuNjQgMS41NCAyLjMzIDMuNDMgNS4xNSAzLjQzIDIuOTkgMCA1LjUyLTEuNzYgNS41Mi02LjA1VjYuNDloLTIuNDJ2MXptLTIuOTMgOC4wM2MtMS43NiAwLTMuMS0xLjUtMy4xLTMuNTIgMC0yLjA1IDEuMzQtMy41MiAzLjEtMy41MiAxLjc0IDAgMy4xIDEuNSAzLjEgMy41NC4wMSAyLjAzLTEuMzYgMy41LTMuMSAzLjV6Ii8+PHBhdGggZmlsbD0iI0ZCQkMwNSIgZD0iTTM4IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNNTggLjI0aDIuNTF2MTcuNTdINTh6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTY4LjI2IDE1LjUyYy0xLjMgMC0yLjIyLS41OS0yLjgyLTEuNzZsNy43Ny0zLjIxLS4yNi0uNjZjLS40OC0xLjMtMS45Ni0zLjctNC45Ny0zLjctMi45OSAwLTUuNDggMi4zNS01LjQ4IDUuODEgMCAzLjI2IDIuNDYgNS44MSA1Ljc2IDUuODEgMi42NiAwIDQuMi0xLjYzIDQuODQtMi41N2wtMS45OC0xLjMyYy0uNjYuOTYtMS41NiAxLjYtMi44NiAxLjZ6bS0uMTgtNy4xNWMxLjAzIDAgMS45MS41MyAyLjIgMS4yOGwtNS4yNSAyLjE3YzAtMi40NCAxLjczLTMuNDUgMy4wNS0zLjQ1eiIvPjwvc3ZnPg==" />
 
-    <div class="gaa-metering-regwall--title">Get more with Google</div>
+    <div class="gaa-metering-regwall--title" id="${REGWALL_TITLE_ID}" tabindex="0">Get more with Google</div>
 
     <div class="gaa-metering-regwall--description">
       You’re out of articles from <strong>$publisherName$</strong>. Read more articles, compliments of Google, when you register with your Google Account.
@@ -206,7 +212,9 @@ const REGWALL_HTML = `
 
     <a
         id="${PUBLISHER_SIGN_IN_BUTTON_ID}"
-        class="gaa-metering-regwall--publisher-sign-in-button">
+        class="gaa-metering-regwall--publisher-sign-in-button"
+        tabindex="0"
+        href="#">
       Already have an account?
     </a>
   </div>
@@ -318,11 +326,11 @@ export class GaaMeteringRegwall {
    * @param {{ iframeUrl: string }} params
    */
   static render_({iframeUrl}) {
-    const cardEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
+    const containerEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
-    cardEl.id = REGWALL_ID;
-    setImportantStyles(cardEl, {
+    containerEl.id = REGWALL_CONTAINER_ID;
+    setImportantStyles(containerEl, {
       'all': 'unset',
       'background-color': 'rgba(32, 33, 36, 0.6)',
       'border': 'none',
@@ -337,18 +345,26 @@ export class GaaMeteringRegwall {
       'width': '100%',
       'z-index': 2147483646,
     });
-    cardEl./*OK*/ innerHTML = REGWALL_HTML.replace(
+    containerEl./*OK*/ innerHTML = REGWALL_HTML.replace(
       '$iframeUrl$',
       iframeUrl
     ).replace(
       '$publisherName$',
       GaaMeteringRegwall.getPublisherNameFromPageConfig_()
     );
-    self.document.body.appendChild(cardEl);
+    self.document.body.appendChild(containerEl);
     /** @suppress {suspiciousCode} */
-    cardEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
-    setImportantStyles(cardEl, {'opacity': 1});
+    containerEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
+    setImportantStyles(containerEl, {'opacity': 1});
     GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
+
+    // Focus on the title after the dialog animates in.
+    // This helps people using screenreaders.
+    const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
+    dialogEl.addEventListener('animationend', () => {
+      const titleEl = self.document.getElementById(REGWALL_TITLE_ID);
+      titleEl.focus();
+    });
   }
 
   /**
@@ -383,7 +399,8 @@ export class GaaMeteringRegwall {
   static addClickListenerOnPublisherSignInButton_() {
     self.document
       .getElementById(PUBLISHER_SIGN_IN_BUTTON_ID)
-      .addEventListener('click', () => {
+      .addEventListener('click', (e) => {
+        e.preventDefault();
         (self.SWG = self.SWG || []).push((subscriptions) => {
           /** @type {!Subscriptions} */ (subscriptions).triggerLoginRequest({
             linkRequested: false,
@@ -442,7 +459,7 @@ export class GaaMeteringRegwall {
    * @nocollapse
    */
   static remove_() {
-    self.document.getElementById(REGWALL_ID).remove();
+    self.document.getElementById(REGWALL_CONTAINER_ID).remove();
   }
 }
 
@@ -488,6 +505,7 @@ export class GaaGoogleSignInButton {
             // Render the Google Sign-In button.
             const buttonEl = self.document.createElement('div');
             buttonEl.id = GOOGLE_SIGN_IN_BUTTON_ID;
+            buttonEl.tabIndex = 0;
             self.document.body.appendChild(buttonEl);
             self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
               'scope': 'profile email',
