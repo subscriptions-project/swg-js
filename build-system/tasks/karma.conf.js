@@ -19,6 +19,13 @@ const argv = require('minimist')(process.argv.slice(2));
 const through = require('through2');
 const {isTravisBuild} = require('../travis');
 
+const COMMON_CHROME_FLAGS = [
+  // Dramatically speeds up iframe creation time.
+  '--disable-extensions',
+  // Allows simulating user actions (e.g unmute) which otherwise will be denied.
+  '--autoplay-policy=no-user-gesture-required',
+];
+
 /**
  * @param {!Object} config
  */
@@ -115,6 +122,19 @@ module.exports = {
       base: 'Chrome',
       // Dramatically speeds up iframe creation time.
       flags: ['--disable-extensions'],
+    },
+    Chrome_no_extensions_headless: {
+      base: 'ChromeHeadless',
+      // Dramatically speeds up iframe creation time.
+      flags: [
+        '--disable-extensions',
+        // https://developers.google.com/web/updates/2017/04/headless-chrome#frontend
+        '--no-sandbox',
+        '--remote-debugging-port=9222',
+        // https://github.com/karma-runner/karma-chrome-launcher/issues/175
+        "--proxy-server='direct://'",
+        '--proxy-bypass-list=*',
+      ],
     },
   },
 
