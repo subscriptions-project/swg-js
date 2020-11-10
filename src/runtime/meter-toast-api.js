@@ -83,7 +83,8 @@ export class MeterToastApi {
         );
         this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
         this.win_.addEventListener('wheel', this.sendCloseRequestFunction_);
-        // Making body 'hidden' to prevent scrolling while swiping on the iframe.
+        // Making body's overflow property 'hidden' to prevent scrolling
+        // while swiping on the iframe.
         const $body = this.win_.document.body;
         $body.style.overflow = 'hidden';
       });
@@ -98,7 +99,7 @@ export class MeterToastApi {
   }
 
   /**
-   * Removes the event listeners that close the iframe and makes the body visible.
+   * Removes the event listeners that close the iframe and make the body visible.
    */
   removeCloseEventListener() {
     this.win_.removeEventListener('click', this.sendCloseRequestFunction_);
