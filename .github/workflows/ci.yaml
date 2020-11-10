@@ -1,0 +1,23 @@
+name: Node.js CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 14.x
+    - name: Install dependencies
+      run: yarn
+    - name: Check
+      run: gulp check
+    - name: Unit Tests
+      run: gulp unit --coverage
+    - name: 'End to End Tests'
+      run: gulp e2e --retries=3
