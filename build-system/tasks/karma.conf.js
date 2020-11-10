@@ -15,6 +15,7 @@
  */
 'use strict';
 
+const argv = require('minimist')(process.argv.slice(2));
 const through = require('through2');
 const {isTravisBuild} = require('../travis');
 
@@ -97,7 +98,9 @@ module.exports = {
 
   autoWatch: true,
 
-  browsers: [isTravisBuild() ? 'Chrome_travis_ci' : 'Chrome_no_extensions'],
+  browsers: [
+    argv.headless ? 'Chrome_no_extensions_headless' : 'Chrome_no_extensions',
+  ],
 
   // Number of sauce tests to start in parallel
   concurrency: 6,
