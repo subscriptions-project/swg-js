@@ -16,7 +16,7 @@
 
 module.exports = {
   googleSignIn: {
-    url: 'https://accounts.google.com/signin/v2/identifier',
+    url: 'https://accounts.google.com/',
   },
   setup: {
     url: 'http://localhost:8000/examples/sample-pub/setup',

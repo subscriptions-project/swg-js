@@ -242,6 +242,7 @@ module.exports = {
 };
 unit.description = 'Runs tests';
 unit.flags = {
+  'headless': '  Runs the browser in headless mode',
   'coverage': '  Run tests in code coverage mode',
   'verbose': '  With logging enabled',
   'testnames': '  Lists the name of each test being run',

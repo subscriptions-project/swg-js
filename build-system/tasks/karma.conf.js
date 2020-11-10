@@ -15,6 +15,7 @@
  */
 'use strict';
 
+const argv = require('minimist')(process.argv.slice(2));
 const through = require('through2');
 const {isTravisBuild} = require('../travis');
 
@@ -97,7 +98,9 @@ module.exports = {
 
   autoWatch: true,
 
-  browsers: [isTravisBuild() ? 'Chrome_travis_ci' : 'Chrome_no_extensions'],
+  browsers: [
+    argv.headless ? 'Chrome_no_extensions_headless' : 'Chrome_no_extensions',
+  ],
 
   // Number of sauce tests to start in parallel
   concurrency: 6,
@@ -112,6 +115,19 @@ module.exports = {
       base: 'Chrome',
       // Dramatically speeds up iframe creation time.
       flags: ['--disable-extensions'],
+    },
+    Chrome_no_extensions_headless: {
+      base: 'ChromeHeadless',
+      // Dramatically speeds up iframe creation time.
+      flags: [
+        '--disable-extensions',
+        // https://developers.google.com/web/updates/2017/04/headless-chrome#frontend
+        '--no-sandbox',
+        '--remote-debugging-port=9222',
+        // https://github.com/karma-runner/karma-chrome-launcher/issues/175
+        "--proxy-server='direct://'",
+        '--proxy-bypass-list=*',
+      ],
     },
   },
 
