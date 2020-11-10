@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js
+    - name: Setup Node.js
       uses: actions/setup-node@v1
       with:
         node-version: 14.x
@@ -17,6 +17,8 @@ jobs:
       run: yarn
     - name: Check
       run: gulp check
+    - name: Setup Chrome
+      uses: nanasess/setup-chromedriver@v1.0.1
     - name: Unit Tests
       run: gulp unit --coverage
     - name: 'End to End Tests'
