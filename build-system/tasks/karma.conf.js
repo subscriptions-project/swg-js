@@ -19,13 +19,6 @@ const argv = require('minimist')(process.argv.slice(2));
 const through = require('through2');
 const {isTravisBuild} = require('../travis');
 
-const COMMON_CHROME_FLAGS = [
-  // Dramatically speeds up iframe creation time.
-  '--disable-extensions',
-  // Allows simulating user actions (e.g unmute) which otherwise will be denied.
-  '--autoplay-policy=no-user-gesture-required',
-];
-
 /**
  * @param {!Object} config
  */
