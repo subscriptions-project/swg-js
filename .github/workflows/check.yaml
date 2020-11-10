@@ -3,7 +3,7 @@ name: Checks
 on: [push]
 
 jobs:
-  build:
+  check:
 
     runs-on: ubuntu-latest
 
