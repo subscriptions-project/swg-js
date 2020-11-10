@@ -72,16 +72,21 @@ export class MeterToastApi {
       ViewSubscriptionsResponse,
       this.startNativeFlow_.bind(this)
     );
-    return this.dialogManager_.openView(this.activityIframeView_).then((_unusedDialog) => {
-      // Allow closing of the iframe with any scroll or click event.
-      this.win_.addEventListener('click', this.sendCloseRequestFunction_);
-      this.win_.addEventListener('touchstart', this.sendCloseRequestFunction_);
-      this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
-      this.win_.addEventListener('wheel', this.sendCloseRequestFunction_);
-      // Making body 'hidden' to prevent scrolling while swiping on the iframe.
-      const $body = this.win_.document.body;
-      $body.style.overflow = 'hidden';
-    });
+    return this.dialogManager_
+      .openView(this.activityIframeView_)
+      .then((_unusedDialog) => {
+        // Allow closing of the iframe with any scroll or click event.
+        this.win_.addEventListener('click', this.sendCloseRequestFunction_);
+        this.win_.addEventListener(
+          'touchstart',
+          this.sendCloseRequestFunction_
+        );
+        this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
+        this.win_.addEventListener('wheel', this.sendCloseRequestFunction_);
+        // Making body 'hidden' to prevent scrolling while swiping on the iframe.
+        const $body = this.win_.document.body;
+        $body.style.overflow = 'hidden';
+      });
   }
 
   /**

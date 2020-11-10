@@ -18,7 +18,10 @@ import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {MeterToastApi} from './meter-toast-api';
 import {PageConfig} from '../model/page-config';
-import {ToastCloseRequest, ViewSubscriptionsResponse} from '../proto/api_messages';
+import {
+  ToastCloseRequest,
+  ViewSubscriptionsResponse,
+} from '../proto/api_messages';
 
 describes.realWin('MeterToastApi', {}, (env) => {
   let win;
