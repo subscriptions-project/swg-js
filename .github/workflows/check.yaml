@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Checks
 
 on: [push]
 
@@ -17,7 +17,3 @@ jobs:
       run: yarn
     - name: Check
       run: gulp check
-    - name: Unit Tests
-      run: gulp unit --headless --coverage
-    - name: 'End to End Tests'
-      run: gulp e2e --retries=3
