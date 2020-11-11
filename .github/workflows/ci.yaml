@@ -38,3 +38,5 @@ jobs:
 
     - name: Unit Tests
       run: gulp unit --headless --coverage
+
+    - uses: codecov/codecov-action@v1
