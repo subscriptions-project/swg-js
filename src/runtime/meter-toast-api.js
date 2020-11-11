@@ -21,6 +21,7 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {feArgs, feUrl} from './services';
+import {setStyle} from '../utils/style';
 
 export class MeterToastApi {
   /**
@@ -86,7 +87,7 @@ export class MeterToastApi {
         // Making body's overflow property 'hidden' to prevent scrolling
         // while swiping on the iframe.
         const $body = this.win_.document.body;
-        $body.style.overflow = 'hidden';
+        setStyle($body, 'overflow', 'hidden');
       });
   }
 
@@ -107,7 +108,7 @@ export class MeterToastApi {
     this.win_.removeEventListener('mousedown', this.sendCloseRequestFunction_);
     this.win_.removeEventListener('wheel', this.sendCloseRequestFunction_);
     const $body = this.win_.document.body;
-    $body.style.overflow = 'visible';
+    setStyle($body, 'overflow', 'visible');
   }
 
   /**
