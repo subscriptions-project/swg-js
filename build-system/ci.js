@@ -1,6 +1,6 @@
 /**
  * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
- * Copyright 2018 The AMP HTML Authors. All Rights Reserved.
+ * Copyright 2019 The AMP HTML Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,17 @@
 'use strict';
 
 /**
- * @fileoverview Provides functions for executing various git commands.
+ * @fileoverview Provides functions that extract various kinds of CI state.
  */
-
-const {getStdout} = require('./exec');
 
 /**
- * Returns the list of files changed relative to the branch point off of main,
- * one on each line.
- * @return {!Array<string>}
+ * Returns true if this is a CI build.
+ * @return {boolean}
  */
-exports.gitDiffNameOnlyMain = function () {
-  const mainBaseline = gitMainBaseline();
-  return getStdout(`git diff --name-only ${mainBaseline}`).trim().split('\n');
-};
-
-/**
- * Returns the main baseline commit.
- * @return {string}
- */
-function gitMainBaseline() {
-  return getStdout('git merge-base main HEAD').trim();
+function isCiBuild() {
+  return !!process.env.CI;
 }
+
+module.exports = {
+  isCiBuild,
+};
