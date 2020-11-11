@@ -17,7 +17,7 @@
 
 const argv = require('minimist')(process.argv.slice(2));
 const through = require('through2');
-const {isTravisBuild} = require('../travis');
+const {isCiBuild} = require('../ci');
 
 /**
  * @param {!Object} config
@@ -106,16 +106,13 @@ module.exports = {
   concurrency: 6,
 
   customLaunchers: {
-    /*eslint "google-camelcase/google-camelcase": 0*/
-    Chrome_travis_ci: {
-      base: 'Chrome',
-      flags: ['--no-sandbox', '--disable-extensions'],
-    },
+    // eslint-disable-next-line google-camelcase/google-camelcase
     Chrome_no_extensions: {
       base: 'Chrome',
       // Dramatically speeds up iframe creation time.
       flags: ['--disable-extensions'],
     },
+    // eslint-disable-next-line google-camelcase/google-camelcase
     Chrome_no_extensions_headless: {
       base: 'ChromeHeadless',
       // Dramatically speeds up iframe creation time.
@@ -134,8 +131,8 @@ module.exports = {
   client: {
     mocha: {
       reporter: 'html',
-      // Longer timeout on Travis; fail quickly at local.
-      timeout: isTravisBuild() ? 10000 : 2000,
+      // Longer timeout on CI; fail quickly at local.
+      timeout: isCiBuild() ? 10000 : 2000,
     },
     captureConsole: false,
   },

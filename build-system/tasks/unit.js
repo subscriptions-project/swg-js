@@ -28,7 +28,7 @@ const webserver = require('gulp-webserver');
 
 const {build} = require('./builders');
 const {green, yellow, cyan, red} = require('ansi-colors');
-const {isTravisBuild} = require('../travis');
+const {isCiBuild} = require('../ci');
 
 /**
  * Read in and process the configuration settings for karma
@@ -54,7 +54,7 @@ function getConfig() {
  * Prints help messages for args if tests are being run for local development.
  */
 function printArgvMessages() {
-  if (argv.nohelp || isTravisBuild()) {
+  if (argv.nohelp || isCiBuild()) {
     return;
   }
 
@@ -175,7 +175,7 @@ function runTests() {
 
     c.coverageIstanbulReporter = {
       dir: 'test/coverage',
-      reports: process.env.CI ? ['lcovonly'] : ['html', 'text', 'text-summary'],
+      reports: isCiBuild() ? ['lcovonly'] : ['html', 'text', 'text-summary'],
       'report-config': {lcovonly: {file: `lcov-unit.info`}},
     };
 
