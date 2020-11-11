@@ -40,3 +40,6 @@ jobs:
       run: gulp unit --headless --coverage
 
     - uses: codecov/codecov-action@v1
+      with:
+        file: ./test/coverage/lcov-unit.info
+

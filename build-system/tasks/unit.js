@@ -175,9 +175,7 @@ function runTests() {
 
     c.coverageIstanbulReporter = {
       dir: 'test/coverage',
-      reports: isTravisBuild()
-        ? ['lcovonly']
-        : ['html', 'text', 'text-summary'],
+      reports: process.env.CI ? ['lcovonly'] : ['html', 'text', 'text-summary'],
       'report-config': {lcovonly: {file: `lcov-unit.info`}},
     };
 
