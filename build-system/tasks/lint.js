@@ -28,7 +28,7 @@ const path = require('path');
 const watch = require('gulp-watch');
 const {gitDiffNameOnlyMain} = require('../git');
 const {green, yellow, cyan, red} = require('ansi-colors');
-const {isTravisBuild} = require('../travis');
+const {isCiBuild} = require('../ci');
 
 const isWatching = argv.watch || argv.w || false;
 const options = {
@@ -58,7 +58,7 @@ function initializeStream(globs, streamOptions) {
  * @param {string} message
  */
 function logOnSameLine(message) {
-  if (!isTravisBuild() && process.stdout.isTTY) {
+  if (!isCiBuild() && process.stdout.isTTY) {
     process.stdout.moveCursor(0, -1);
     process.stdout.cursorTo(0);
     process.stdout.clearLine();
@@ -74,7 +74,7 @@ function logOnSameLine(message) {
  * @return {boolean}
  */
 function runLinter(filePath, stream, options) {
-  if (!isTravisBuild()) {
+  if (!isCiBuild()) {
     log(green('Starting linter...'));
   }
   const fixedFiles = {};
@@ -88,7 +88,7 @@ function runLinter(filePath, stream, options) {
     .pipe(eslintIfFixed(filePath))
     .pipe(
       eslint.result(function (result) {
-        if (!isTravisBuild()) {
+        if (!isCiBuild()) {
           logOnSameLine(green('Linted: ') + result.filePath);
         }
         if (options.fix && result.fixed) {
@@ -105,7 +105,7 @@ function runLinter(filePath, stream, options) {
     .pipe(
       eslint.results(function (results) {
         if (results.errorCount == 0 && results.warningCount == 0) {
-          if (!isTravisBuild()) {
+          if (!isCiBuild()) {
             logOnSameLine(green('SUCCESS: ') + 'No linter warnings or errors.');
           }
         } else {
@@ -191,7 +191,7 @@ function setFilesToLint(files) {
   config.lintGlobs = config.lintGlobs
     .filter((e) => e !== '**/*.js')
     .concat(files);
-  if (!isTravisBuild()) {
+  if (!isCiBuild()) {
     log(green('INFO: ') + 'Running lint on the following files:');
     files.forEach((file) => {
       log(cyan(file));
