@@ -21,6 +21,7 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {feArgs, feUrl} from './services';
+import {setStyle} from '../utils/style';
 
 export class MeterToastApi {
   /**
@@ -39,13 +40,6 @@ export class MeterToastApi {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private @const {!function()} */
-    this.sendCloseRequestFunction_ = () => {
-      const closeRequest = new ToastCloseRequest();
-      closeRequest.setClose(true);
-      this.activityIframeView_.execute(closeRequest);
-    };
-
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
@@ -58,6 +52,13 @@ export class MeterToastApi {
       }),
       /* shouldFadeBody */ false
     );
+
+    /** @private @const {!function()} */
+    this.sendCloseRequestFunction_ = () => {
+      const closeRequest = new ToastCloseRequest();
+      closeRequest.setClose(true);
+      this.activityIframeView_.execute(closeRequest);
+    };
   }
 
   /**
@@ -68,12 +69,26 @@ export class MeterToastApi {
     this.deps_
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_METER_TOAST);
-    this.win_.addEventListener('click', this.sendCloseRequestFunction_);
     this.activityIframeView_.on(
       ViewSubscriptionsResponse,
       this.startNativeFlow_.bind(this)
     );
-    return this.dialogManager_.openView(this.activityIframeView_);
+    return this.dialogManager_
+      .openView(this.activityIframeView_)
+      .then((_unusedDialog) => {
+        // Allow closing of the iframe with any scroll or click event.
+        this.win_.addEventListener('click', this.sendCloseRequestFunction_);
+        this.win_.addEventListener(
+          'touchstart',
+          this.sendCloseRequestFunction_
+        );
+        this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
+        this.win_.addEventListener('wheel', this.sendCloseRequestFunction_);
+        // Making body's overflow property 'hidden' to prevent scrolling
+        // while swiping on the iframe.
+        const $body = this.win_.document.body;
+        setStyle($body, 'overflow', 'hidden');
+      });
   }
 
   /**
@@ -85,10 +100,15 @@ export class MeterToastApi {
   }
 
   /**
-   * Removes the event listener that closes the iframe.
+   * Removes the event listeners that close the iframe and make the body visible.
    */
   removeCloseEventListener() {
     this.win_.removeEventListener('click', this.sendCloseRequestFunction_);
+    this.win_.removeEventListener('touchstart', this.sendCloseRequestFunction_);
+    this.win_.removeEventListener('mousedown', this.sendCloseRequestFunction_);
+    this.win_.removeEventListener('wheel', this.sendCloseRequestFunction_);
+    const $body = this.win_.document.body;
+    setStyle($body, 'overflow', 'visible');
   }
 
   /**

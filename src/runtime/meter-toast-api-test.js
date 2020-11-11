@@ -18,7 +18,10 @@ import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {MeterToastApi} from './meter-toast-api';
 import {PageConfig} from '../model/page-config';
-import {ViewSubscriptionsResponse} from '../proto/api_messages';
+import {
+  ToastCloseRequest,
+  ViewSubscriptionsResponse,
+} from '../proto/api_messages';
 
 describes.realWin('MeterToastApi', {}, (env) => {
   let win;
@@ -110,5 +113,36 @@ describes.realWin('MeterToastApi', {}, (env) => {
     const messageCallback = messageMap[viewSubscriptionsResponse.label()];
     messageCallback(viewSubscriptionsResponse);
     expect(nativeStub).to.be.calledOnce.calledWithExactly();
+  });
+
+  it('should close iframe on different events', async () => {
+    callbacksMock.expects('triggerFlowStarted').once();
+    const messageStub = sandbox.stub(port, 'execute');
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    await meterToastApi.start();
+    const $body = win.document.body;
+    expect($body.style.overflow).to.equal('hidden');
+    const toastCloseRequest = new ToastCloseRequest();
+    toastCloseRequest.setClose(true);
+    await win.dispatchEvent(new Event('click'));
+    await win.dispatchEvent(new Event('wheel'));
+    await win.dispatchEvent(new Event('touchstart'));
+    await win.dispatchEvent(new Event('mousedown'));
+    expect(messageStub).to.be.callCount(4).calledWith(toastCloseRequest);
+  });
+
+  it('removeCloseEventListener should remove all event listeners', async () => {
+    callbacksMock.expects('triggerFlowStarted').once();
+    const messageStub = sandbox.stub(port, 'execute');
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    await meterToastApi.start();
+    meterToastApi.removeCloseEventListener();
+    await win.dispatchEvent(new Event('click'));
+    await win.dispatchEvent(new Event('wheel'));
+    await win.dispatchEvent(new Event('touchstart'));
+    await win.dispatchEvent(new Event('mousedown'));
+    expect(messageStub).to.not.be.called;
+    const $body = win.document.body;
+    expect($body.style.overflow).to.equal('visible');
   });
 });
