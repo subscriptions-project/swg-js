@@ -107,6 +107,13 @@ export class DialogManager {
     }
   }
 
+  /**
+   * @returns {?Dialog}
+   */
+  getDialog() {
+    return this.dialog_;
+  }
+
   /** @private */
   close_() {
     this.dialog_.close();
