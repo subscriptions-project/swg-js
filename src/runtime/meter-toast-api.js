@@ -115,12 +115,11 @@ export class MeterToastApi {
    */
   setDialogBoxShadow_() {
     const mq = this.win_.matchMedia('(max-width: 640px), (max-height: 640px)');
+    const element = this.dialogManager_.getDialog().getElement();
     if (mq.matches) {
-      const element = this.dialogManager_.getDialog().getElement();
       setImportantStyles(element, {'box-shadow': IFRAME_BOX_SHADOW});
     }
     mq.addListener((changed) => {
-      const element = this.dialogManager_.getDialog().getElement();
       if (changed.matches) {
         setImportantStyles(element, {'box-shadow': IFRAME_BOX_SHADOW});
       } else {
