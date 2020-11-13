@@ -24,6 +24,7 @@ import {
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
 } from './gaa';
+import {I18N_STRINGS} from '../i18n/strings';
 import {tick} from '../../test/tick';
 
 const ARTICLE_URL = '/article';
@@ -109,6 +110,8 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
   afterEach(() => {
     script.remove();
+    GaaMeteringRegwall.remove_();
+    self.document.documentElement.lang = '';
   });
 
   describe('show', () => {
@@ -122,6 +125,8 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('focuses on modal title after the animation completes', () => {
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
       // Mock animation ending.
       const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
       dialogEl.dispatchEvent(new Event('animationend'));
@@ -169,6 +174,19 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       });
 
       expect(await gaaUserPromise).to.deep.equal(gaaUser);
+    });
+
+    it('renders supported i18n languages', () => {
+      self.document.documentElement.lang = 'pt-br';
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      const titleEl = self.document.querySelector(
+        '.gaa-metering-regwall--title'
+      );
+      expect(titleEl.textContent).to.equal(
+        I18N_STRINGS.GAA_REGWALL_TITLE['pt-br']
+      );
     });
   });
 

@@ -21,6 +21,7 @@
     "test": "gulp unit",
     "lint": "gulp lint",
     "build": "gulp build",
+    "build-i18n": "node assets/i18n/strings/compile.js && gulp lint --fix --files='src/i18n/strings.js'",
     "dist": "gulp dist"
   },
   "dependencies": {
@@ -40,6 +41,7 @@
     "browserify": "17.0.0",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
+    "cheerio": "1.0.0-rc.3",
     "chromedriver": "86.0.0",
     "codecov": "3.8.1",
     "cookie-parser": "1.4.5",
