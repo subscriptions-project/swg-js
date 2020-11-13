@@ -21,8 +21,10 @@
 //
 // Thanks!
 
+import {I18N_STRINGS} from '../i18n/strings';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
+import {msg} from './i18n';
 import {parseJson} from '../utils/json';
 import {setImportantStyles} from './style';
 
@@ -196,10 +198,10 @@ const REGWALL_HTML = `
   <div role="dialog" aria-modal="true" class="gaa-metering-regwall--dialog" id="${REGWALL_DIALOG_ID}" aria-labelledby="${REGWALL_TITLE_ID}">
     <img alt="Google" class="gaa-metering-regwall--logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDc0IDI0Ij48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNOS4yNCA4LjE5djIuNDZoNS44OGMtLjE4IDEuMzgtLjY0IDIuMzktMS4zNCAzLjEtLjg2Ljg2LTIuMiAxLjgtNC41NCAxLjgtMy42MiAwLTYuNDUtMi45Mi02LjQ1LTYuNTRzMi44My02LjU0IDYuNDUtNi41NGMxLjk1IDAgMy4zOC43NyA0LjQzIDEuNzZMMTUuNCAyLjVDMTMuOTQgMS4wOCAxMS45OCAwIDkuMjQgMCA0LjI4IDAgLjExIDQuMDQuMTEgOXM0LjE3IDkgOS4xMyA5YzIuNjggMCA0LjctLjg4IDYuMjgtMi41MiAxLjYyLTEuNjIgMi4xMy0zLjkxIDIuMTMtNS43NSAwLS41Ny0uMDQtMS4xLS4xMy0xLjU0SDkuMjR6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTI1IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNNTMuNTggNy40OWgtLjA5Yy0uNTctLjY4LTEuNjctMS4zLTMuMDYtMS4zQzQ3LjUzIDYuMTkgNDUgOC43MiA0NSAxMmMwIDMuMjYgMi41MyA1LjgxIDUuNDMgNS44MSAxLjM5IDAgMi40OS0uNjIgMy4wNi0xLjMyaC4wOXYuODFjMCAyLjIyLTEuMTkgMy40MS0zLjEgMy40MS0xLjU2IDAtMi41My0xLjEyLTIuOTMtMi4wN2wtMi4yMi45MmMuNjQgMS41NCAyLjMzIDMuNDMgNS4xNSAzLjQzIDIuOTkgMCA1LjUyLTEuNzYgNS41Mi02LjA1VjYuNDloLTIuNDJ2MXptLTIuOTMgOC4wM2MtMS43NiAwLTMuMS0xLjUtMy4xLTMuNTIgMC0yLjA1IDEuMzQtMy41MiAzLjEtMy41MiAxLjc0IDAgMy4xIDEuNSAzLjEgMy41NC4wMSAyLjAzLTEuMzYgMy41LTMuMSAzLjV6Ii8+PHBhdGggZmlsbD0iI0ZCQkMwNSIgZD0iTTM4IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNNTggLjI0aDIuNTF2MTcuNTdINTh6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTY4LjI2IDE1LjUyYy0xLjMgMC0yLjIyLS41OS0yLjgyLTEuNzZsNy43Ny0zLjIxLS4yNi0uNjZjLS40OC0xLjMtMS45Ni0zLjctNC45Ny0zLjctMi45OSAwLTUuNDggMi4zNS01LjQ4IDUuODEgMCAzLjI2IDIuNDYgNS44MSA1Ljc2IDUuODEgMi42NiAwIDQuMi0xLjYzIDQuODQtMi41N2wtMS45OC0xLjMyYy0uNjYuOTYtMS41NiAxLjYtMi44NiAxLjZ6bS0uMTgtNy4xNWMxLjAzIDAgMS45MS41MyAyLjIgMS4yOGwtNS4yNSAyLjE3YzAtMi40NCAxLjczLTMuNDUgMy4wNS0zLjQ1eiIvPjwvc3ZnPg==" />
 
-    <div class="gaa-metering-regwall--title" id="${REGWALL_TITLE_ID}" tabindex="0">Get more with Google</div>
+    <div class="gaa-metering-regwall--title" id="${REGWALL_TITLE_ID}" tabindex="0">$GAA_REGWALL_TITLE$</div>
 
     <div class="gaa-metering-regwall--description">
-      You’re out of articles from <strong>$publisherName$</strong>. Read more articles, compliments of Google, when you register with your Google Account.
+      $GAA_REGWALL_DESCRIPTION$
     </div>
 
     <iframe
@@ -215,7 +217,7 @@ const REGWALL_HTML = `
         class="gaa-metering-regwall--publisher-sign-in-button"
         tabindex="0"
         href="#">
-      Already have an account?
+      $GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON$
     </a>
   </div>
 </div>
@@ -348,10 +350,23 @@ export class GaaMeteringRegwall {
     containerEl./*OK*/ innerHTML = REGWALL_HTML.replace(
       '$iframeUrl$',
       iframeUrl
-    ).replace(
-      '$publisherName$',
-      GaaMeteringRegwall.getPublisherNameFromPageConfig_()
-    );
+    )
+      .replace(
+        '$GAA_REGWALL_TITLE$',
+        msg(I18N_STRINGS['GAA_REGWALL_TITLE'], containerEl)
+      )
+      .replace(
+        '$GAA_REGWALL_DESCRIPTION$',
+        msg(I18N_STRINGS['GAA_REGWALL_DESCRIPTION'], containerEl)
+      )
+      .replace(
+        '$GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON$',
+        msg(I18N_STRINGS['GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON'], containerEl)
+      );
+    containerEl.querySelector('ph')./*OK*/ innerHTML =
+      '<strong>' +
+      GaaMeteringRegwall.getPublisherNameFromPageConfig_() +
+      '</strong>';
     self.document.body.appendChild(containerEl);
     /** @suppress {suspiciousCode} */
     containerEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
@@ -459,7 +474,10 @@ export class GaaMeteringRegwall {
    * @nocollapse
    */
   static remove_() {
-    self.document.getElementById(REGWALL_CONTAINER_ID).remove();
+    const regwallContainer = self.document.getElementById(REGWALL_CONTAINER_ID);
+    if (regwallContainer) {
+      regwallContainer.remove();
+    }
   }
 }
 
