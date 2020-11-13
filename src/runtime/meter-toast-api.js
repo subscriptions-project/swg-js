@@ -21,7 +21,10 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {feArgs, feUrl} from './services';
-import {setStyle} from '../utils/style';
+import {setImportantStyles, setStyle} from '../utils/style';
+
+const IFRAME_BOX_SHADOW =
+  'rgba(60, 64, 67, .3) 0 -2px 5px, rgba(60, 64, 67, .15) 0 -5px 5px';
 
 export class MeterToastApi {
   /**
@@ -73,22 +76,18 @@ export class MeterToastApi {
       ViewSubscriptionsResponse,
       this.startNativeFlow_.bind(this)
     );
-    return this.dialogManager_
-      .openView(this.activityIframeView_)
-      .then((_unusedDialog) => {
-        // Allow closing of the iframe with any scroll or click event.
-        this.win_.addEventListener('click', this.sendCloseRequestFunction_);
-        this.win_.addEventListener(
-          'touchstart',
-          this.sendCloseRequestFunction_
-        );
-        this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
-        this.win_.addEventListener('wheel', this.sendCloseRequestFunction_);
-        // Making body's overflow property 'hidden' to prevent scrolling
-        // while swiping on the iframe.
-        const $body = this.win_.document.body;
-        setStyle($body, 'overflow', 'hidden');
-      });
+    return this.dialogManager_.openView(this.activityIframeView_).then(() => {
+      this.setDialogBoxShadow_();
+      // Allow closing of the iframe with any scroll or click event.
+      this.win_.addEventListener('click', this.sendCloseRequestFunction_);
+      this.win_.addEventListener('touchstart', this.sendCloseRequestFunction_);
+      this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
+      this.win_.addEventListener('wheel', this.sendCloseRequestFunction_);
+      // Making body's overflow property 'hidden' to prevent scrolling
+      // while swiping on the iframe.
+      const $body = this.win_.document.body;
+      setStyle($body, 'overflow', 'hidden');
+    });
   }
 
   /**
@@ -109,6 +108,25 @@ export class MeterToastApi {
     this.win_.removeEventListener('wheel', this.sendCloseRequestFunction_);
     const $body = this.win_.document.body;
     setStyle($body, 'overflow', 'visible');
+  }
+
+  /**
+   * Changes the iframe box shadow to match desired specifications on mobile.
+   */
+  setDialogBoxShadow_() {
+    const mq = this.win_.matchMedia('(max-width: 640px), (max-height: 640px)');
+    if (mq.matches) {
+      const element = this.dialogManager_.getDialog().getElement();
+      setImportantStyles(element, {'box-shadow': IFRAME_BOX_SHADOW});
+    }
+    mq.addListener((changed) => {
+      const element = this.dialogManager_.getDialog().getElement();
+      if (changed.matches) {
+        setImportantStyles(element, {'box-shadow': IFRAME_BOX_SHADOW});
+      } else {
+        setImportantStyles(element, {'box-shadow': ''});
+      }
+    });
   }
 
   /**
