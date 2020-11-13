@@ -27,7 +27,7 @@ async function main() {
     const xml = await fs.readFile(__dirname + '/' + xlbFile, 'utf8');
     const $ = cheerio.load(xml);
     let locale = $('localizationbundle').attr('locale').toLocaleLowerCase();
-    if (locale === 'en-gb') {
+    if (locale.startsWith('en-')) {
       locale = 'en';
     }
     for (let $msg of $('msg').toArray()) {

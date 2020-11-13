@@ -15,7 +15,7 @@
  */
 
 // NOTE: Please don't edit this file directly!
-//   You can recompile this file by running "yarn build-i18n".
+//   You can (re)compile this file by running the "yarn build-i18n" shell command.
 
 export const I18N_STRINGS = {
   'GAA_REGWALL_TITLE': {
