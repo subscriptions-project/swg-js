@@ -252,6 +252,9 @@ export class Runtime {
   init(productOrPublicationId) {
     assert(!this.committed_, 'already configured');
     this.productOrPublicationId_ = productOrPublicationId;
+
+    // Process the page's config.
+    this.configured_(true);
   }
 
   /** @override */

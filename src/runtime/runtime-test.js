@@ -414,6 +414,13 @@ describes.realWin('Runtime', {}, (env) => {
       expect(cr.pageConfig().isLocked()).to.be.false;
     });
 
+    it('should allow `configured_(false)` calls to resolve', async () => {
+      runtime.init('pub3');
+
+      // This should resolve.
+      await runtime.configured_(false);
+    });
+
     it('should not force initialization without commit', () => {
       runtime.configured_(false);
       expect(resolveStub).to.not.be.called;
