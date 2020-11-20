@@ -300,7 +300,7 @@ export class Subscriptions {
 }
 
 /** @enum {string} */
-export const PublisherEntitlementEvents = {
+export const PublisherEntitlementEvent = {
   EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION', // Publisher managed subscriptions only
   EVENT_SHOWCASE_UNLOCKED_BY_METER: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',               // Publisher managed meters only
   EVENT_SHOWCASE_UNLOCKED_FREE_PAGE: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',             // When the article is free for any reason (lead article, etc)
@@ -317,7 +317,7 @@ export const PublisherEntitlementEvents = {
 * - entitlement: Publisher entitlement event type.
 *  @typedef {{
 *    isUserRegister:  !boolean,
-*    entitlement: !PublisherEntitlementEvents,
+*    entitlement: !PublisherEntitlementEvent,
 * }}
 */
 export let PublisherEntitlement;
