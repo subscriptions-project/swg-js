@@ -497,6 +497,11 @@ export class Runtime {
   getEventManager() {
     return this.configured_(true).then((runtime) => runtime.getEventManager());
   }
+
+  /** @override */
+  setShowcaseEntitlements(unusedEntitlements) {
+    // TODO
+  }
 }
 
 /**
@@ -1034,6 +1039,11 @@ export class ConfiguredRuntime {
   getLogger() {
     return Promise.resolve(this.logger_);
   }
+
+  /** @override */
+  setShowcaseEntitlements(unusedEntitlements) {
+    // TODO
+  }
 }
 
 /**
@@ -1084,6 +1094,7 @@ function createPublicRuntime(runtime) {
     getPropensityModule: runtime.getPropensityModule.bind(runtime),
     getLogger: runtime.getLogger.bind(runtime),
     getEventManager: runtime.getEventManager.bind(runtime),
+    setShowcaseEntitlements: runtime.setShowcaseEntitlements.bind(runtime),
   });
 }
 
