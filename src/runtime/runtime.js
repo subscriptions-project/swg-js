@@ -499,7 +499,7 @@ export class Runtime {
   }
 
   /** @override */
-  setShowcaseEntitlements(unusedEntitlements) {
+  setShowcaseEntitlement(unusedEntitlement) {
     // TODO
   }
 }
@@ -1041,7 +1041,7 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  setShowcaseEntitlements(unusedEntitlements) {
+  setShowcaseEntitlement(unusedEntitlement) {
     // TODO
   }
 }
@@ -1094,7 +1094,7 @@ function createPublicRuntime(runtime) {
     getPropensityModule: runtime.getPropensityModule.bind(runtime),
     getLogger: runtime.getLogger.bind(runtime),
     getEventManager: runtime.getEventManager.bind(runtime),
-    setShowcaseEntitlements: runtime.setShowcaseEntitlements.bind(runtime),
+    setShowcaseEntitlement: runtime.setShowcaseEntitlement.bind(runtime),
   });
 }
 

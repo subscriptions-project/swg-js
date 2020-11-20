@@ -294,9 +294,9 @@ export class Subscriptions {
    * Publishers participating in Showcase should call this with their own entitlements
    * and entitlement related UI events.  SwG will automatically do this for Google
    * sourced subscriptions and meters.
-   * @param {!Array<!PublisherEntitlement>} entitlements
+   * @param {!PublisherEntitlement} entitlement
    */
-  setShowcaseEntitlements(entitlements) {}  
+  setShowcaseEntitlement(entitlement) {}  
 }
 
 /** @enum {string} */
@@ -315,11 +315,11 @@ export const PublisherEntitlementEvents = {
 * - isUserRegistered: Is the user registered currently?
 * - entitlements: An array of relevant publisher entitlement events.
 *  @typedef {{
-  *    isUserRegister:  !boolean,
-  *    entitlements: !PublisherEntitlementEvents,
-  * }}
-  */
- export let PublisherEntitlement;
+*    isUserRegister:  !boolean,
+*    entitlement: !PublisherEntitlementEvents,
+* }}
+*/
+export let PublisherEntitlement;
 
 /** @enum {string} */
 export const SubscriptionFlows = {
