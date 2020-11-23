@@ -5,9 +5,9 @@
 
 
 
-<msg desc="This title text introduces people to the idea that Google helps them get more (free articles)." hidden="0" name="GAA_REGWALL_TITLE" xml:space="default">Veja mais com o Google</msg>
-<msg desc="This description text tells people they are out of free articles from a given publication. Then it tells people they can unlock more free articles if they create a publisher account with their Google account." hidden="0" name="GAA_REGWALL_DESCRIPTION" xml:space="default"><strong></strong>Normalmente, o acesso a esta matéria não é gratuito, mas você pode continuar a leitura por nossa conta. Basta registrar-se na publicação <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando sua Conta do Google.</msg>
-<msg desc="This button text tells users to click here if they already have a publisher account and want to sign in with it (instead of creating a new publisher account with their Google account)." hidden="0" name="GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON" xml:space="default">Já tem uma conta?</msg>
+<msg hidden="0" name="GAA_REGWALL_TITLE" xml:space="default">Veja mais com o Google</msg>
+<msg hidden="0" name="GAA_REGWALL_DESCRIPTION" xml:space="default"><strong></strong>Normalmente, o acesso a esta matéria não é gratuito, mas você pode continuar a leitura por nossa conta. Basta registrar-se na publicação <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando sua Conta do Google.</msg>
+<msg hidden="0" name="GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON" xml:space="default">Já tem uma conta?</msg>
 
 
 
