@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="de">
+<messages>
+
+
+
+
+<msg hidden="0" name="GAA_REGWALL_TITLE" xml:space="default">Immer gut informiert mit Google</msg>
+<msg hidden="0" name="GAA_REGWALL_DESCRIPTION" xml:space="default"><strong></strong>Dieser Artikel ist normalerweise kostenpflichtig, aber du kannst kostenlos weiterlesen, wenn du dich mit deinem Google-Konto bei <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> registrierst.</msg>
+<msg hidden="0" name="GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON" xml:space="default">Du hast bereits ein Konto?</msg>
+
+
+
+</messages>
+</localizationbundle>

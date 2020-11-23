@@ -19,19 +19,23 @@
 
 export const I18N_STRINGS = {
   'GAA_REGWALL_TITLE': {
+    'de': 'Immer gut informiert mit Google',
     'en': 'Get more with Google',
     'fr': 'Plus de possibilit&#xE9;s avec Google',
     'pt-br': 'Veja mais com o Google',
   },
   'GAA_REGWALL_DESCRIPTION': {
+    'de':
+      '<strong></strong>Dieser Artikel ist normalerweise kostenpflichtig, aber du kannst kostenlos weiterlesen, wenn du dich mit deinem Google-Konto bei <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> registrierst.',
     'en':
-      '<strong></strong>This article usually requires payment, but you can keep reading, compliments of Google, when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google account.',
+      '<strong></strong>This article usually requires payment, but you can keep reading, compliments of Google, when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google Account.',
     'fr':
-      '<strong></strong>This article usually requires payment, but you can keep reading, compliments of Google, when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google account.',
+      '<strong></strong>Cet article est g&#xE9;n&#xE9;ralement payant, mais vous pouvez poursuivre votre lecture, offerte par Google, en vous inscrivant sur <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> avec votre compte Google.',
     'pt-br':
-      '<strong></strong>This article usually requires payment, but you can keep reading, compliments of Google, when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google account.',
+      '<strong></strong>Normalmente, o acesso a esta mat&#xE9;ria n&#xE3;o &#xE9; gratuito, mas voc&#xEA; pode continuar a leitura por nossa conta. Basta registrar-se na publica&#xE7;&#xE3;o <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando sua Conta do Google.',
   },
   'GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON': {
+    'de': 'Du hast bereits ein Konto?',
     'en': 'Already have an account?',
     'fr': 'Vous avez d&#xE9;j&#xE0; un compte&#xA0;?',
     'pt-br': 'J&#xE1; tem uma conta?',
