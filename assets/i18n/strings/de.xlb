@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="de">
+<messages>
+
+
+
+
+<msg desc="This title text introduces people to the idea that Google helps them get more (free articles)." hidden="0" name="GAA_REGWALL_TITLE" xml:space="default">Immer gut informiert mit Google</msg>
+<msg desc="This description text tells people they are out of free articles from a given publication. Then it tells people they can unlock more free articles if they create a publisher account with their Google account." hidden="0" name="GAA_REGWALL_DESCRIPTION" xml:space="default"><strong></strong>Dieser Artikel ist normalerweise kostenpflichtig, aber du kannst kostenlos weiterlesen, wenn du dich mit deinem Google-Konto bei <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> registrierst.</msg>
+<msg desc="This button text tells users to click here if they already have a publisher account and want to sign in with it (instead of creating a new publisher account with their Google account)." hidden="0" name="GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON" xml:space="default">Du hast bereits ein Konto?</msg>
+
+
+
+</messages>
+</localizationbundle>
