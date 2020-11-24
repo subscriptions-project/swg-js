@@ -26,13 +26,13 @@ export const I18N_STRINGS = {
   },
   'GAA_REGWALL_DESCRIPTION': {
     'de':
-      '<strong></strong>Dieser Artikel ist normalerweise kostenpflichtig, aber du kannst kostenlos weiterlesen, wenn du dich mit deinem Google-Konto bei <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> registrierst.',
+      '<strong></strong>Dieser Inhalt ist normalerweise kostenpflichtig. Google gew&#xE4;hrt dir jedoch kostenlos Zugriff auf diesen Artikel und andere Inhalte, wenn du dich mit deinem Google-Konto bei <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> registrierst.',
     'en':
-      '<strong></strong>This article usually requires payment, but you can keep reading, compliments of Google, when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google Account.',
+      '<strong></strong>This content usually requires payment, but Google is giving you free access to this article and more when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google Account.',
     'fr':
-      '<strong></strong>Cet article est g&#xE9;n&#xE9;ralement payant, mais vous pouvez poursuivre votre lecture, offerte par Google, en vous inscrivant sur <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> avec votre compte Google.',
+      '<strong></strong>Ce contenu est g&#xE9;n&#xE9;ralement payant, mais vous pouvez lire cet article et d&apos;autres contenus gratuitement gr&#xE2;ce &#xE0; Google en vous inscrivant sur <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> avec votre compte Google.',
     'pt-br':
-      '<strong></strong>Normalmente, o acesso a esta mat&#xE9;ria n&#xE3;o &#xE9; gratuito, mas voc&#xEA; pode continuar a leitura por nossa conta. Basta registrar-se na publica&#xE7;&#xE3;o <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando sua Conta do Google.',
+      '<strong></strong>This content usually requires payment, but Google is giving you free access to this article and more when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google Account.',
   },
   'GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON': {
     'de': 'Du hast bereits ein Konto?',
