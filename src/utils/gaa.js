@@ -526,10 +526,11 @@ export class GaaGoogleSignInButton {
             buttonEl.tabIndex = 0;
             self.document.body.appendChild(buttonEl);
             self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
-              'scope': 'profile email',
               'longtitle': true,
-              'theme': 'dark',
               'onsuccess': resolve,
+              'prompt': 'select_account',
+              'scope': 'profile email',
+              'theme': 'dark',
             });
           })
       )

@@ -268,6 +268,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
           {
             longtitle: true,
             onsuccess: args[0][1].onsuccess,
+            prompt: 'select_account',
             scope: 'profile email',
             theme: 'dark',
           },
