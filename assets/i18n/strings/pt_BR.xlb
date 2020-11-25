@@ -6,7 +6,7 @@
 
 
 <msg hidden="0" name="GAA_REGWALL_TITLE" xml:space="default">Veja mais com o Google</msg>
-<msg hidden="0" name="GAA_REGWALL_DESCRIPTION" xml:space="default"><strong></strong>This content usually requires payment, but Google is giving you free access to this article and more when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google Account.</msg>
+<msg hidden="0" name="GAA_REGWALL_DESCRIPTION" xml:space="default"><strong></strong>Normalmente, é preciso pagar por este conteúdo. Porém, basta você se registrar na publicação <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando sua Conta do Google para ter acesso gratuito a esta matéria e muito mais.</msg>
 <msg hidden="0" name="GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON" xml:space="default">Já tem uma conta?</msg>
 
 

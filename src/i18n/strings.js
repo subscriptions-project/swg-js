@@ -32,7 +32,7 @@ export const I18N_STRINGS = {
     'fr':
       '<strong></strong>Ce contenu est g&#xE9;n&#xE9;ralement payant, mais vous pouvez lire cet article et d&apos;autres contenus gratuitement gr&#xE2;ce &#xE0; Google en vous inscrivant sur <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> avec votre compte Google.',
     'pt-br':
-      '<strong></strong>This content usually requires payment, but Google is giving you free access to this article and more when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google Account.',
+      '<strong></strong>Normalmente, &#xE9; preciso pagar por este conte&#xFA;do. Por&#xE9;m, basta voc&#xEA; se registrar na publica&#xE7;&#xE3;o <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando sua Conta do Google para ter acesso gratuito a esta mat&#xE9;ria e muito mais.',
   },
   'GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON': {
     'de': 'Du hast bereits ein Konto?',
