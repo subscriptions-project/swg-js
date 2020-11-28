@@ -103,7 +103,7 @@
     "plugin-error": "1.0.1",
     "postcss": "8.1.10",
     "postcss-import": "13.0.0",
-    "prettier": "2.2.0",
+    "prettier": "2.2.1",
     "regenerator-runtime": "0.13.7",
     "request": "2.88.2",
     "rollup": "2.33.3",
