@@ -226,8 +226,6 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 });
 
 describes.realWin('GaaGoogleSignInButton', {}, () => {
-  const allowedOrigins = [location.origin];
-
   let clock;
 
   beforeEach(() => {
@@ -256,7 +254,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
 
   describe('show', () => {
     it('renders Google Sign-In button', async () => {
-      GaaGoogleSignInButton.show({allowedOrigins});
+      GaaGoogleSignInButton.show();
       clock.tick(100);
       await tick(10);
 
@@ -277,7 +275,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
     });
 
     it('sends post message with GAA user', async () => {
-      GaaGoogleSignInButton.show({allowedOrigins});
+      GaaGoogleSignInButton.show();
 
       // Send intro post message.
       postMessage({

@@ -26,7 +26,9 @@ import {I18N_STRINGS} from '../i18n/strings';
 import {Subscriptions} from '../api/subscriptions';
 import {msg} from './i18n';
 import {parseJson} from '../utils/json';
+import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
+import {warn} from './log';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
@@ -300,6 +302,12 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl}) {
+    if (!urlContainsFreshGaaParams()) {
+      const issue = "[swg-gaa.js]: URL doesn't contain fresh GAA params.";
+      warn(issue);
+      return Promise.reject(issue);
+    }
+
     GaaMeteringRegwall.render_({iframeUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
     return GaaMeteringRegwall.getGaaUser_().then((gaaUser) => {
@@ -487,9 +495,8 @@ export class GaaGoogleSignInButton {
   /**
    * Renders the Google Sign-In button.
    * @nocollapse
-   * @param {{ allowedOrigins: !Array<string> }} params
    */
-  static show({allowedOrigins}) {
+  static show() {
     // Apply iframe styles.
     const styleEl = self.document.createElement('style');
     styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES;
@@ -503,7 +510,6 @@ export class GaaGoogleSignInButton {
     const sendMessageToParentFnPromise = new Promise((resolve) => {
       self.addEventListener('message', (e) => {
         if (
-          allowedOrigins.indexOf(e.origin) !== -1 &&
           e.data.stamp === POST_MESSAGE_STAMP &&
           e.data.command === POST_MESSAGE_COMMAND_INTRODUCTION
         ) {
@@ -591,4 +597,29 @@ function configureGoogleSignIn() {
           self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init()
       )
   );
+}
+
+/**
+ * Returns true if the URL contains fresh Google Article Access (GAA) params.
+ * @return {boolean}
+ */
+function urlContainsFreshGaaParams() {
+  const params = parseQueryString(location.search.split('?')[1]);
+
+  // Verify GAA params exist.
+  if (
+    !params['gaa_at'] ||
+    !params['gaa_n'] ||
+    !params['gaa_sig'] ||
+    !params['gaa_ts']
+  ) {
+    return false;
+  }
+
+  // Verify timestamp isn't stale.
+  if (parseInt(params['gaa_ts'], 16) < Date.now() / 1000) {
+    return false;
+  }
+
+  return true;
 }
