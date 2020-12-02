@@ -26,9 +26,7 @@ import {I18N_STRINGS} from '../i18n/strings';
 import {Subscriptions} from '../api/subscriptions';
 import {msg} from './i18n';
 import {parseJson} from '../utils/json';
-import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
-import {warn} from './log';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
