@@ -302,12 +302,6 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl}) {
-    if (!urlContainsFreshGaaParams()) {
-      const issue = "[swg-gaa.js]: URL doesn't contain fresh GAA params.";
-      warn(issue);
-      return Promise.reject(issue);
-    }
-
     GaaMeteringRegwall.render_({iframeUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
     return GaaMeteringRegwall.getGaaUser_().then((gaaUser) => {
@@ -597,29 +591,4 @@ function configureGoogleSignIn() {
           self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init()
       )
   );
-}
-
-/**
- * Returns true if the URL contains fresh Google Article Access (GAA) params.
- * @return {boolean}
- */
-function urlContainsFreshGaaParams() {
-  const params = parseQueryString(location.search.split('?')[1]);
-
-  // Verify GAA params exist.
-  if (
-    !params['gaa_at'] ||
-    !params['gaa_n'] ||
-    !params['gaa_sig'] ||
-    !params['gaa_ts']
-  ) {
-    return false;
-  }
-
-  // Verify timestamp isn't stale.
-  if (parseInt(params['gaa_ts'], 16) < Date.now() / 1000) {
-    return false;
-  }
-
-  return true;
 }
