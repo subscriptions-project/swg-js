@@ -98,8 +98,11 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     // Mock location.
     GaaMeteringRegwall.location_ = {
-      href: ARTICLE_URL,
+      search: '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999',
     };
+
+    // Mock console.warn method.
+    sandbox.stub(self.console, 'warn');
 
     // Add JSON-LD with a publisher name.
     script = self.document.createElement('script');
@@ -112,6 +115,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     script.remove();
     GaaMeteringRegwall.remove_();
     self.document.documentElement.lang = '';
+    self.console.warn.restore();
   });
 
   describe('show', () => {
@@ -186,6 +190,30 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       );
       expect(titleEl.textContent).to.equal(
         I18N_STRINGS.GAA_REGWALL_TITLE['pt-br']
+      );
+    });
+
+    it('fails if GAA URL params are missing', () => {
+      // Remove GAA URL params.
+      GaaMeteringRegwall.location_.search = '';
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
+      );
+    });
+
+    it('fails if GAA timestamp URL param is stale', () => {
+      // Remove GAA URL params.
+      GaaMeteringRegwall.location_.search =
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
+      clock.tick(7001);
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
       );
     });
   });
