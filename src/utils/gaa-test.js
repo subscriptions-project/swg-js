@@ -205,9 +205,11 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('fails if GAA timestamp URL param is stale', () => {
-      // Remove GAA URL params.
+      // Add GAA URL params with expiration of 7 seconds.
       GaaMeteringRegwall.location_.search =
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
+
+      // Move clock a little past 7 seconds.
       clock.tick(7001);
 
       GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
