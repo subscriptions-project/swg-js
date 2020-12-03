@@ -21,6 +21,9 @@
 //
 // Thanks!
 
+// Load types for Closure compiler.
+import '../model/doc';
+
 import {I18N_STRINGS} from '../i18n/strings';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
