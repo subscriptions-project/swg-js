@@ -27,7 +27,6 @@ import {
 import {I18N_STRINGS} from '../i18n/strings';
 import {tick} from '../../test/tick';
 
-const ARTICLE_URL = '/article';
 const PUBLISHER_NAME = 'The Scenic';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
 
