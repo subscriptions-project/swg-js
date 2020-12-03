@@ -21,9 +21,6 @@
 //
 // Thanks!
 
-// Load types for Closure compiler.
-import '../model/doc';
-
 import {I18N_STRINGS} from '../i18n/strings';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
@@ -32,6 +29,9 @@ import {parseJson} from './json';
 import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
 import {warn} from './log';
+
+// Load types for Closure compiler.
+import '../model/doc';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';

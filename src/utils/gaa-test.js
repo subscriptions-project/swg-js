@@ -203,7 +203,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       );
     });
 
-    it('fails if GAA timestamp URL param is stale', () => {
+    it('fails if GAA URL params are expired', () => {
       // Add GAA URL params with expiration of 7 seconds.
       GaaMeteringRegwall.location_.search =
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
