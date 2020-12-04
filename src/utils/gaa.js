@@ -498,9 +498,7 @@ export class GaaMeteringRegwall {
    * @return {boolean}
    */
   static urlContainsFreshGaaParams_() {
-    const params = parseQueryString(
-      GaaMeteringRegwall.location_.search.split('?')[1]
-    );
+    const params = parseQueryString(GaaMeteringRegwall.location_.search);
 
     // Verify GAA params exist.
     if (
