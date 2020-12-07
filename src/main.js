@@ -21,8 +21,11 @@
 
 import './polyfills';
 import {installRuntime} from './runtime/runtime';
+// TODO(schui): remove this import
+import {installBasicRuntime} from './runtime/runtime-basic';
 import {log} from './utils/log';
 
 log('Subscriptions Runtime: $internalRuntimeVersion$');
 
 installRuntime(self);
+installBasicRuntime(self);
