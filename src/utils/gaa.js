@@ -25,8 +25,13 @@ import {I18N_STRINGS} from '../i18n/strings';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
 import {msg} from './i18n';
-import {parseJson} from '../utils/json';
+import {parseJson} from './json';
+import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
+import {warn} from './log';
+
+// Load types for Closure compiler.
+import '../model/doc';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
@@ -300,6 +305,13 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl}) {
+    if (!GaaMeteringRegwall.urlContainsFreshGaaParams_()) {
+      const errorMessage =
+        '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
+      warn(errorMessage);
+      return Promise.reject(errorMessage);
+    }
+
     GaaMeteringRegwall.render_({iframeUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
     return GaaMeteringRegwall.getGaaUser_().then((gaaUser) => {
@@ -479,7 +491,42 @@ export class GaaMeteringRegwall {
       regwallContainer.remove();
     }
   }
+
+  /**
+   * Returns true if the URL contains fresh Google Article Access (GAA) params.
+   * @private
+   * @return {boolean}
+   */
+  static urlContainsFreshGaaParams_() {
+    const params = parseQueryString(GaaMeteringRegwall.location_.search);
+
+    // Verify GAA params exist.
+    if (
+      !params['gaa_at'] ||
+      !params['gaa_n'] ||
+      !params['gaa_sig'] ||
+      !params['gaa_ts']
+    ) {
+      return false;
+    }
+
+    // Verify timestamp isn't stale.
+    const expirationTimestamp = parseInt(params['gaa_ts'], 16);
+    const currentTimestamp = Date.now() / 1000;
+    if (expirationTimestamp < currentTimestamp) {
+      return false;
+    }
+
+    return true;
+  }
 }
+
+/**
+ * References window's location object. Tests can override this.
+ * @private
+ * @type {!Location}
+ */
+GaaMeteringRegwall.location_ = self.location;
 
 self.GaaMeteringRegwall = GaaMeteringRegwall;
 
