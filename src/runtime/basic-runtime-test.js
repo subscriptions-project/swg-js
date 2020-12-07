@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {BasicSubscriptions} from '../api/basic-subscriptions';
-import {getBasicRuntime, installBasicRuntime} from './runtime-basic';
+import {getBasicRuntime, installBasicRuntime} from './basic-runtime';
 
 describes.realWin('installBasicRuntime', {}, (env) => {
   let win;

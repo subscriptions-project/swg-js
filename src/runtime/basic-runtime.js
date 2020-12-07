@@ -161,9 +161,7 @@ class ConfiguredBasicRuntime {
   constructor(winOrDoc, pageConfig) {
     this.configuredClassicRuntime_ = new ConfiguredRuntime(
       winOrDoc,
-      pageConfig,
-      /* integr= */ null,
-      /* config= */ null
+      pageConfig
     );
   }
 
