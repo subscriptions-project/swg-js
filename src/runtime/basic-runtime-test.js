@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {
+  BasicRuntime,
+  ConfiguredBasicRuntime,
+  getBasicRuntime,
+  installBasicRuntime,
+} from './basic-runtime';
 import {BasicSubscriptions} from '../api/basic-subscriptions';
-import {getBasicRuntime, installBasicRuntime} from './basic-runtime';
+import {GlobalDoc} from '../model/doc';
+import {PageConfig} from '../model/page-config';
 
 describes.realWin('installBasicRuntime', {}, (env) => {
   let win;
@@ -150,5 +157,47 @@ describes.realWin('installBasicRuntime', {}, (env) => {
       }
       expect(basicSubscriptions).to.have.property(name);
     }
+  });
+});
+
+describes.realWin('Runtime', {}, (env) => {
+  let win;
+  let basicRuntime;
+
+  beforeEach(() => {
+    win = env.win;
+    basicRuntime = new BasicRuntime(win);
+  });
+
+  describe('initialization', () => {
+    it('should initialize and generate markup as specified', async () => {
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: 'Product',
+        isPartOfProductId: 'herald-foo-times.com:basic',
+      });
+
+      await basicRuntime.configured_(true);
+      // TODO(stellachui): Add checks for the configured runtime once init is
+      //   implemented.
+    });
+  });
+
+  describe('configured', () => {
+    let config;
+    let configuredBasicRuntime;
+
+    beforeEach(() => {
+      config = new PageConfig('pub1');
+      configuredBasicRuntime = new ConfiguredBasicRuntime(
+        new GlobalDoc(win),
+        config
+      );
+    });
+
+    it('should create a SwG classic ConfiguredRuntime', async () => {
+      expect(configuredBasicRuntime.configuredClassicRuntime()).to.exist;
+    });
   });
 });

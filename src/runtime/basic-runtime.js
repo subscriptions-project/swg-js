@@ -87,7 +87,7 @@ export function installBasicRuntime(win) {
 /**
  * @implements {BasicSubscriptions}
  */
-class BasicRuntime {
+export class BasicRuntime {
   /**
    * @param {!Window} win
    */
@@ -153,7 +153,7 @@ class BasicRuntime {
  * @implements {BasicSubscriptions}
  */
 // eslint-disable-next-line no-unused-vars
-class ConfiguredBasicRuntime {
+export class ConfiguredBasicRuntime {
   /**
    * @param {!Window|!Document|!Doc} winOrDoc
    * @param {!../model/page-config.PageConfig} pageConfig
@@ -163,6 +163,11 @@ class ConfiguredBasicRuntime {
       winOrDoc,
       pageConfig
     );
+  }
+
+  /** Getter for the ConfiguredRuntime, exposed for testing. */
+  configuredClassicRuntime() {
+    return this.configuredClassicRuntime_;
   }
 
   /** @override */
