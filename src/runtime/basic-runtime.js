@@ -17,7 +17,7 @@
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ConfiguredRuntime} from './runtime';
 
-const RUNTIME_BASIC_PROP = 'SWG_BASIC';
+const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 
 /**
  * Reference to the runtime, for testing.
@@ -42,7 +42,7 @@ export function getBasicRuntime() {
  */
 export function installBasicRuntime(win) {
   // Only install the SwG Basic runtime once.
-  if (win[RUNTIME_BASIC_PROP] && !Array.isArray(win[RUNTIME_BASIC_PROP])) {
+  if (win[BASIC_RUNTIME_PROP] && !Array.isArray(win[BASIC_RUNTIME_PROP])) {
     return;
   }
 
@@ -67,12 +67,12 @@ export function installBasicRuntime(win) {
   }
 
   // Queue up any callbacks the publication might have provided.
-  const waitingCallbacks = [].concat(win[RUNTIME_BASIC_PROP]);
+  const waitingCallbacks = [].concat(win[BASIC_RUNTIME_PROP]);
   waitingCallbacks.forEach(callWhenRuntimeIsReady);
 
   // If any more callbacks are `push`ed to the global SwG Basic variables,
   // they'll be queued up to receive the SwG Basic runtime when it's ready.
-  win[RUNTIME_BASIC_PROP] = {
+  win[BASIC_RUNTIME_PROP] = {
     push: callWhenRuntimeIsReady,
   };
 
