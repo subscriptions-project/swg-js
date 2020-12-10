@@ -29,10 +29,10 @@
     "web-activities": "1.24.0"
   },
   "devDependencies": {
-    "@babel/core": "7.12.9",
-    "@babel/preset-env": "7.12.7",
+    "@babel/core": "7.12.10",
+    "@babel/preset-env": "7.12.10",
     "ansi-colors": "4.1.1",
-    "autoprefixer": "10.0.4",
+    "autoprefixer": "10.1.0",
     "babel-eslint": "10.1.0",
     "babel-plugin-istanbul": "6.0.0",
     "babelify": "10.0.0",
@@ -101,7 +101,7 @@
     "morgan": "1.10.0",
     "nodemon": "2.0.6",
     "plugin-error": "1.0.1",
-    "postcss": "8.1.14",
+    "postcss": "8.2.1",
     "postcss-import": "13.0.0",
     "prettier": "2.2.1",
     "regenerator-runtime": "0.13.7",
