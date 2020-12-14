@@ -15,6 +15,8 @@
  */
 
 import {ActivityPort} from '../components/activities';
+import {AnalyticsEvent} from '../proto/api_messages';
+import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {MeterToastApi} from './meter-toast-api';
 import {PageConfig} from '../model/page-config';
@@ -22,19 +24,20 @@ import {
   ToastCloseRequest,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
+import {feArgs} from './services';
 
 describes.realWin('MeterToastApi', {}, (env) => {
   let win;
   let runtime;
   let activitiesMock;
   let callbacksMock;
+  let eventManagerMock;
   let pageConfig;
   let messageMap;
   let meterToastApi;
   let port;
   let dialogManagerMock;
   const productId = 'pub1:label1';
-  const publicationId = 'pub1';
 
   beforeEach(() => {
     win = env.win;
@@ -44,6 +47,9 @@ describes.realWin('MeterToastApi', {}, (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    const eventManager = new ClientEventManager(Promise.resolve());
+    eventManagerMock = sandbox.mock(eventManager);
+    sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -60,43 +66,66 @@ describes.realWin('MeterToastApi', {}, (env) => {
     activitiesMock.verify();
     callbacksMock.verify();
     dialogManagerMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should start the flow correctly', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments(
+      feArgs({
+        isClosable: true,
+        publicationId: runtime.pageConfig().getPublicationId(),
+        productId: runtime.pageConfig().getProductId(),
+        hasSubscriptionCallback: runtime
+          .callbacks()
+          .hasSubscribeRequestCallback(),
+      })
+    );
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/metertoastiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId,
-          productId,
-          hasSubscriptionCallback: false,
-        }
+        iframeArgs
       )
       .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_METER_TOAST);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_OFFERED_METER);
     await meterToastApi.start();
   });
 
   it('should start the flow correctly with native subscribe request', async () => {
     runtime.callbacks().setOnSubscribeRequest(() => {});
     callbacksMock.expects('triggerFlowStarted').once();
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments(
+      feArgs({
+        isClosable: true,
+        publicationId: runtime.pageConfig().getPublicationId(),
+        productId: runtime.pageConfig().getProductId(),
+        hasSubscriptionCallback: runtime
+          .callbacks()
+          .hasSubscribeRequestCallback(),
+      })
+    );
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/metertoastiframe?_=_',
-        {
-          _client: 'SwG $internalRuntimeVersion$',
-          publicationId,
-          productId,
-          hasSubscriptionCallback: true,
-        }
+        iframeArgs
       )
       .returns(Promise.resolve(port));
     meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_METER_TOAST);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_OFFERED_METER);
     await meterToastApi.start();
   });
 
@@ -124,6 +153,13 @@ describes.realWin('MeterToastApi', {}, (env) => {
     expect($body.style.overflow).to.equal('hidden');
     const toastCloseRequest = new ToastCloseRequest();
     toastCloseRequest.setClose(true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .exactly(4)
+      .withExactArgs(
+        AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
+        true
+      );
     await win.dispatchEvent(new Event('click'));
     await win.dispatchEvent(new Event('wheel'));
     await win.dispatchEvent(new Event('touchstart'));
