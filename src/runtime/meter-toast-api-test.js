@@ -106,6 +106,8 @@ describes.realWin('MeterToastApi', {}, (env) => {
       'triggerSubscribeRequest'
     );
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const onConsumeCallbackFake = sandbox.fake();
+    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
     await meterToastApi.start();
     // Native message.
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
@@ -113,12 +115,15 @@ describes.realWin('MeterToastApi', {}, (env) => {
     const messageCallback = messageMap[viewSubscriptionsResponse.label()];
     messageCallback(viewSubscriptionsResponse);
     expect(nativeStub).to.be.calledOnce.calledWithExactly();
+    expect(onConsumeCallbackFake).to.not.be.called;
   });
 
   it('should close iframe on different events', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const onConsumeCallbackFake = sandbox.fake();
+    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
     await meterToastApi.start();
     const $body = win.document.body;
     expect($body.style.overflow).to.equal('hidden');
@@ -129,6 +134,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     await win.dispatchEvent(new Event('touchstart'));
     await win.dispatchEvent(new Event('mousedown'));
     expect(messageStub).to.be.callCount(4).calledWith(toastCloseRequest);
+    expect(onConsumeCallbackFake).to.be.callCount(4);
   });
 
   it('removeCloseEventListener should remove all event listeners', async () => {
