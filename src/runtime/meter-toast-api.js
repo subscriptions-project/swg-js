@@ -47,8 +47,6 @@ export class MeterToastApi {
     const iframeArgs = this.activityPorts_.addDefaultArguments(
       feArgs({
         isClosable: true,
-        publicationId: deps.pageConfig().getPublicationId(),
-        productId: deps.pageConfig().getProductId(),
         hasSubscriptionCallback: deps.callbacks().hasSubscribeRequestCallback(),
       })
     );

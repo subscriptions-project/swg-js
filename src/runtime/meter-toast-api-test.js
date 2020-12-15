@@ -74,8 +74,6 @@ describes.realWin('MeterToastApi', {}, (env) => {
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments(
       feArgs({
         isClosable: true,
-        publicationId: runtime.pageConfig().getPublicationId(),
-        productId: runtime.pageConfig().getProductId(),
         hasSubscriptionCallback: runtime
           .callbacks()
           .hasSubscribeRequestCallback(),
@@ -104,8 +102,6 @@ describes.realWin('MeterToastApi', {}, (env) => {
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments(
       feArgs({
         isClosable: true,
-        publicationId: runtime.pageConfig().getPublicationId(),
-        productId: runtime.pageConfig().getProductId(),
         hasSubscriptionCallback: runtime
           .callbacks()
           .hasSubscribeRequestCallback(),
