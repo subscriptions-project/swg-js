@@ -56,11 +56,21 @@ export class MeterToastApi {
       /* shouldFadeBody */ false
     );
 
+    /**
+     * Function this class calls when a user dismisses the toast to consume a free read.
+     * @private {?function()}
+     */
+    this.onConsumeCallback_ = null;
+
     /** @private @const {!function()} */
     this.sendCloseRequestFunction_ = () => {
       const closeRequest = new ToastCloseRequest();
       closeRequest.setClose(true);
       this.activityIframeView_.execute(closeRequest);
+
+      if (this.onConsumeCallback_) {
+        this.onConsumeCallback_();
+      }
     };
   }
 
@@ -91,11 +101,11 @@ export class MeterToastApi {
   }
 
   /**
-   * Sets a callback function to happen onCancel.
-   * @param {function()} onCancelCallback
+   * Sets a callback function this class calls when a user dismisses the toast to consume a free read.
+   * @param {function()} onConsumeCallback
    */
-  setOnCancelCallback(onCancelCallback) {
-    this.activityIframeView_.onCancel(onCancelCallback);
+  setOnConsumeCallback(onConsumeCallback) {
+    this.onConsumeCallback_ = onConsumeCallback;
   }
 
   /**
