@@ -21,7 +21,7 @@ import {
   ToastCloseRequest,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
-import {feArgs, feUrl} from './services';
+import {feUrl} from './services';
 import {setImportantStyles, setStyle} from '../utils/style';
 
 const IFRAME_BOX_SHADOW =
@@ -44,12 +44,10 @@ export class MeterToastApi {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    const iframeArgs = this.activityPorts_.addDefaultArguments(
-      feArgs({
-        isClosable: true,
-        hasSubscriptionCallback: deps.callbacks().hasSubscribeRequestCallback(),
-      })
-    );
+    const iframeArgs = this.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: deps.callbacks().hasSubscribeRequestCallback(),
+    });
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,

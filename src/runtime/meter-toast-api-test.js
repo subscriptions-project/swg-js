@@ -24,7 +24,6 @@ import {
   ToastCloseRequest,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
-import {feArgs} from './services';
 
 describes.realWin('MeterToastApi', {}, (env) => {
   let win;
@@ -71,14 +70,12 @@ describes.realWin('MeterToastApi', {}, (env) => {
 
   it('should start the flow correctly', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
-    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments(
-      feArgs({
-        isClosable: true,
-        hasSubscriptionCallback: runtime
-          .callbacks()
-          .hasSubscribeRequestCallback(),
-      })
-    );
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
@@ -99,14 +96,12 @@ describes.realWin('MeterToastApi', {}, (env) => {
   it('should start the flow correctly with native subscribe request', async () => {
     runtime.callbacks().setOnSubscribeRequest(() => {});
     callbacksMock.expects('triggerFlowStarted').once();
-    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments(
-      feArgs({
-        isClosable: true,
-        hasSubscriptionCallback: runtime
-          .callbacks()
-          .hasSubscribeRequestCallback(),
-      })
-    );
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
