@@ -480,7 +480,7 @@ export class EntitlementsManager {
   consume_(entitlements, onCloseDialog) {
     if (entitlements.enablesThisWithGoogleMetering()) {
       const meterToastApi = new MeterToastApi(this.deps_);
-      meterToastApi.setOnCancelCallback(() => {
+      meterToastApi.setOnConsumeCallback(() => {
         if (onCloseDialog) {
           onCloseDialog();
         }

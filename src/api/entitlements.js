@@ -177,6 +177,10 @@ export class Entitlements {
    */
   getEntitlementFor(product, source) {
     if (!product) {
+      // Require a product ID.
+      warn(
+        'SwG needs this article to define a product ID (e.g. example.com:premium). Articles can define a product ID using JSON+LD. SwG can check entitlements after this article defines a product ID.'
+      );
       return null;
     }
 
