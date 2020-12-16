@@ -15,12 +15,13 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {
   ToastCloseRequest,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
-import {feArgs, feUrl} from './services';
+import {feUrl} from './services';
 import {setImportantStyles, setStyle} from '../utils/style';
 
 const IFRAME_BOX_SHADOW =
@@ -43,16 +44,16 @@ export class MeterToastApi {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
+    const iframeArgs = this.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: deps.callbacks().hasSubscribeRequestCallback(),
+    });
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       feUrl('/metertoastiframe'),
-      feArgs({
-        publicationId: deps.pageConfig().getPublicationId(),
-        productId: deps.pageConfig().getProductId(),
-        hasSubscriptionCallback: deps.callbacks().hasSubscribeRequestCallback(),
-      }),
+      iframeArgs,
       /* shouldFadeBody */ false
     );
 
@@ -64,6 +65,12 @@ export class MeterToastApi {
 
     /** @private @const {!function()} */
     this.sendCloseRequestFunction_ = () => {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
+          true
+        );
       const closeRequest = new ToastCloseRequest();
       closeRequest.setClose(true);
       this.activityIframeView_.execute(closeRequest);
@@ -97,6 +104,10 @@ export class MeterToastApi {
       // while swiping on the iframe.
       const $body = this.win_.document.body;
       setStyle($body, 'overflow', 'hidden');
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_METER_TOAST);
+      this.deps_.eventManager().logSwgEvent(AnalyticsEvent.EVENT_OFFERED_METER);
     });
   }
 

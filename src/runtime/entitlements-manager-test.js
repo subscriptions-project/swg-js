@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
@@ -44,6 +45,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   let callbacks;
   let storageMock;
   let config;
+  let activitiesMock;
   let analyticsMock;
   let deps;
   let encryptedDocumentKey;
@@ -79,6 +81,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     const analyticsService = new AnalyticsService(deps);
     analyticsMock = sandbox.mock(analyticsService);
     sandbox.stub(deps, 'analytics').returns(analyticsService);
+    const activityPorts = new ActivityPorts(deps);
+    activitiesMock = sandbox.mock(activityPorts);
+    sandbox.stub(deps, 'activities').returns(activityPorts);
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
@@ -94,6 +99,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     storageMock.verify();
     xhrMock.verify();
     jwtHelperMock.verify();
+    activitiesMock.verify();
     analyticsMock.verify();
     dialogManagerMock.verify();
     eventManagerMock.verify();
