@@ -94,7 +94,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .withExactArgs(AnalyticsEvent.EVENT_OFFERED_METER);
     await meterToastApi.start();
     const errorMessage =
-      '[swg.js]: `setOnNativeSubscribeRequest has not been ' +
+      '[swg.js]: `setOnNativeSubscribeRequest` has not been ' +
       'set before starting the metering flow, so users will not be able to ' +
       'subscribe from the metering dialog directly. Please call ' +
       '`setOnNativeSubscribeRequest` with a subscription flow callback before ' +
