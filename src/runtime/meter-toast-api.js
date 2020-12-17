@@ -75,6 +75,7 @@ export class MeterToastApi {
       const closeRequest = new ToastCloseRequest();
       closeRequest.setClose(true);
       this.activityIframeView_.execute(closeRequest);
+      this.removeCloseEventListener();
 
       if (this.onConsumeCallback_) {
         this.onConsumeCallback_();
@@ -165,6 +166,7 @@ export class MeterToastApi {
    */
   startNativeFlow_(response) {
     if (response.getNative()) {
+      this.removeCloseEventListener();
       this.deps_.callbacks().triggerSubscribeRequest();
     }
   }

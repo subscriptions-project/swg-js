@@ -484,7 +484,6 @@ export class EntitlementsManager {
         if (onCloseDialog) {
           onCloseDialog();
         }
-        meterToastApi.removeCloseEventListener();
         this.sendPingback_(entitlements);
       });
       return meterToastApi.start();
