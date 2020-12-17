@@ -23,6 +23,7 @@ import {
 } from '../proto/api_messages';
 import {feUrl} from './services';
 import {setImportantStyles, setStyle} from '../utils/style';
+import {warn} from '../utils/log';
 
 const IFRAME_BOX_SHADOW =
   'rgba(60, 64, 67, .3) 0 -2px 5px, rgba(60, 64, 67, .15) 0 -5px 5px';
@@ -93,6 +94,15 @@ export class MeterToastApi {
       ViewSubscriptionsResponse,
       this.startNativeFlow_.bind(this)
     );
+    if (!this.deps_.callbacks().hasSubscribeRequestCallback()) {
+      const errorMessage =
+        '[swg.js]: `setOnNativeSubscribeRequest` has not been ' +
+        'set before starting the metering flow, so users will not be able to ' +
+        'subscribe from the metering dialog directly. Please call ' +
+        '`setOnNativeSubscribeRequest` with a subscription flow callback before ' +
+        'starting metering.';
+      warn(errorMessage);
+    }
     return this.dialogManager_.openView(this.activityIframeView_).then(() => {
       this.setDialogBoxShadow_();
       // Allow closing of the iframe with any scroll or click event.

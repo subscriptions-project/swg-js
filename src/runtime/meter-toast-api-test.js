@@ -59,6 +59,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       const messageLabel = messageType.label();
       messageMap[messageLabel] = callback;
     });
+    sandbox.stub(self.console, 'warn');
   });
 
   afterEach(() => {
@@ -66,9 +67,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
     callbacksMock.verify();
     dialogManagerMock.verify();
     eventManagerMock.verify();
+    self.console.warn.restore();
   });
 
-  it('should start the flow correctly', async () => {
+  it('should start the flow correctly without native subscribe request', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
       isClosable: true,
@@ -91,6 +93,13 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.EVENT_OFFERED_METER);
     await meterToastApi.start();
+    const errorMessage =
+      '[swg.js]: `setOnNativeSubscribeRequest has not been ' +
+      'set before starting the metering flow, so users will not be able to ' +
+      'subscribe from the metering dialog directly. Please call ' +
+      '`setOnNativeSubscribeRequest` with a subscription flow callback before ' +
+      'starting metering.';
+    expect(self.console.warn).to.be.calledWithExactly(errorMessage);
   });
 
   it('should start the flow correctly with native subscribe request', async () => {
