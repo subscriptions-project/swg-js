@@ -99,12 +99,12 @@ async function trackPr() {
 
 function log(message) {
   const el = document.createElement('div');
-  el.textContent = message + ' ';
+  el./*OK*/ innerText = message + ' ';
   status.appendChild(el);
 }
 
 function clear() {
-  status.textContent = '';
+  status./*OK*/ innerText = '';
 }
 
 // Support hash params.
