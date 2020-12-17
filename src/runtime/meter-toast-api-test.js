@@ -144,10 +144,14 @@ describes.realWin('MeterToastApi', {}, (env) => {
     const messageCallback = messageMap[viewSubscriptionsResponse.label()];
     messageCallback(viewSubscriptionsResponse);
     expect(nativeStub).to.be.calledOnce.calledWithExactly();
+    // event listeners should be removed.
+    const messageStub = sandbox.stub(port, 'execute');
+    await win.dispatchEvent(new Event('click'));
+    expect(messageStub).to.not.be.called;
     expect(onConsumeCallbackFake).to.not.be.called;
   });
 
-  it('should close iframe on different events', async () => {
+  it('should close iframe on click', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -160,17 +164,95 @@ describes.realWin('MeterToastApi', {}, (env) => {
     toastCloseRequest.setClose(true);
     eventManagerMock
       .expects('logSwgEvent')
-      .exactly(4)
       .withExactArgs(
         AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
         true
       );
     await win.dispatchEvent(new Event('click'));
+    // next three should have no effect
     await win.dispatchEvent(new Event('wheel'));
     await win.dispatchEvent(new Event('touchstart'));
     await win.dispatchEvent(new Event('mousedown'));
-    expect(messageStub).to.be.callCount(4).calledWith(toastCloseRequest);
-    expect(onConsumeCallbackFake).to.be.callCount(4);
+    expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
+    expect(onConsumeCallbackFake).to.be.calledOnce;
+  });
+
+  it('should close iframe on wheel', async () => {
+    callbacksMock.expects('triggerFlowStarted').once();
+    const messageStub = sandbox.stub(port, 'execute');
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const onConsumeCallbackFake = sandbox.fake();
+    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
+    await meterToastApi.start();
+    const $body = win.document.body;
+    expect($body.style.overflow).to.equal('hidden');
+    const toastCloseRequest = new ToastCloseRequest();
+    toastCloseRequest.setClose(true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
+        true
+      );
+    await win.dispatchEvent(new Event('wheel'));
+    // next three should have no effect
+    await win.dispatchEvent(new Event('click'));
+    await win.dispatchEvent(new Event('touchstart'));
+    await win.dispatchEvent(new Event('mousedown'));
+    expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
+    expect(onConsumeCallbackFake).to.be.calledOnce;
+  });
+
+  it('should close iframe on touchstart', async () => {
+    callbacksMock.expects('triggerFlowStarted').once();
+    const messageStub = sandbox.stub(port, 'execute');
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const onConsumeCallbackFake = sandbox.fake();
+    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
+    await meterToastApi.start();
+    const $body = win.document.body;
+    expect($body.style.overflow).to.equal('hidden');
+    const toastCloseRequest = new ToastCloseRequest();
+    toastCloseRequest.setClose(true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
+        true
+      );
+    await win.dispatchEvent(new Event('touchstart'));
+    // next three should have no effect
+    await win.dispatchEvent(new Event('wheel'));
+    await win.dispatchEvent(new Event('click'));
+    await win.dispatchEvent(new Event('mousedown'));
+    expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
+    expect(onConsumeCallbackFake).to.be.calledOnce;
+  });
+
+  it('should close iframe on mousedown', async () => {
+    callbacksMock.expects('triggerFlowStarted').once();
+    const messageStub = sandbox.stub(port, 'execute');
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const onConsumeCallbackFake = sandbox.fake();
+    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
+    await meterToastApi.start();
+    const $body = win.document.body;
+    expect($body.style.overflow).to.equal('hidden');
+    const toastCloseRequest = new ToastCloseRequest();
+    toastCloseRequest.setClose(true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
+        true
+      );
+    await win.dispatchEvent(new Event('mousedown'));
+    // next three should have no effect
+    await win.dispatchEvent(new Event('wheel'));
+    await win.dispatchEvent(new Event('touchstart'));
+    await win.dispatchEvent(new Event('click'));
+    expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
+    expect(onConsumeCallbackFake).to.be.calledOnce;
   });
 
   it('removeCloseEventListener should remove all event listeners', async () => {
