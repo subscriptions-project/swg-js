@@ -61,9 +61,10 @@ export class MeterRegwallApi {
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_METER_REGWALL);
     return this.dialogManager_.openView(this.activityIframeView_).then(() => {
-      // Publishers or other regwalls will log this event
+      // Publishers or other regwalls could also log this event if they have a regwall. If
+      // those regwalls are a google regwall they could also have their own specific impression.
       this.deps_.eventManager().logSwgEvent(AnalyticsEvent.IMPRESSION_REGWALL);
-      // Only this code should ever log this event
+      // Specific screen impression, only this code should ever log this event
       this.deps_
         .eventManager()
         .logSwgEvent(AnalyticsEvent.IMPRESSION_SHOWCASE_REGWALL);
