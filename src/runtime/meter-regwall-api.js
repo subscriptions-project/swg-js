@@ -61,6 +61,7 @@ export class MeterRegwallApi {
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_METER_REGWALL);
     return this.dialogManager_.openView(this.activityIframeView_).then(() => {
+      // Log a generic and specific regwall event
       this.deps_.eventManager().logSwgEvent(AnalyticsEvent.IMPRESSION_REGWALL);
       this.deps_
         .eventManager()
