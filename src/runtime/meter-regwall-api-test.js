@@ -15,6 +15,7 @@
  */
 
 import {ActivityPort} from '../components/activities';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
 import {MeterRegwallApi} from './meter-regwall-api';
 import {PageConfig} from '../model/page-config';
@@ -24,6 +25,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
   let runtime;
   let activitiesMock;
   let callbacksMock;
+  let eventManagerMock;
   let pageConfig;
   let meterRegwallApi;
   let port;
@@ -42,6 +44,7 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    eventManagerMock = sandbox.mock(runtime.eventManager());
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -52,10 +55,17 @@ describes.realWin('MeterRegwallApi', {}, (env) => {
     activitiesMock.verify();
     callbacksMock.verify();
     dialogManagerMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should start the flow correctly', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_SHOWCASE_REGWALL);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_REGWALL);
     activitiesMock
       .expects('openIframe')
       .withExactArgs(

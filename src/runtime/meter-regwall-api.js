@@ -15,6 +15,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 
@@ -59,6 +60,11 @@ export class MeterRegwallApi {
     this.deps_
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_METER_REGWALL);
-    return this.dialogManager_.openView(this.activityIframeView_);
+    return this.dialogManager_.openView(this.activityIframeView_).then(() => {
+      this.deps_.eventManager().logSwgEvent(AnalyticsEvent.IMPRESSION_REGWALL);
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_SHOWCASE_REGWALL);
+    });
   }
 }
