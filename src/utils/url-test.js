@@ -352,30 +352,34 @@ describe('getCanonicalUrl', () => {
 });
 
 describe('isSecure', () => {
-  it('should default to current page', () => {
+  it('first parameter should default to current page', () => {
     const URL = parseUrl(self.window.location.href);
     expect(isSecure(URL)).to.equal(isSecure());
   });
-  it('should output true', () => {
+
+  it('HTTPS protocol should output true', () => {
     const URL = parseUrl('https://www.any.com');
     expect(isSecure(URL)).to.be.true;
   });
-  it('should output false', () => {
+
+  it('HTTP protocol should output false', () => {
     const URL = parseUrl('http://www.any.com');
     expect(isSecure(URL)).to.be.false;
   });
 });
 
 describe('isGoogleDomain', () => {
-  it('should default to current page', () => {
+  it('first parameter should default to current page', () => {
     const URL = parseUrl(self.window.location.href);
     expect(isGoogleDomain(URL)).to.equal(isGoogleDomain());
   });
-  it('should output true', () => {
+
+  it('Google domain should output true', () => {
     const URL = parseUrl('https://www.google.com');
     expect(isGoogleDomain(URL)).to.be.true;
   });
-  it('should output false', () => {
+
+  it('Other domains should output false', () => {
     const URL = parseUrl('https://www.gogle.com');
     expect(isGoogleDomain(URL)).to.be.false;
   });
