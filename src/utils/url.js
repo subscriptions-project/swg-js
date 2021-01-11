@@ -16,6 +16,9 @@
 
 import {warn} from './log';
 
+// NOTE: This regex was copied from SwG's AMP extension. https://github.com/ampproject/amphtml/blob/c23bf281f817a2ee5df73f6fd45e9f4b71bb68b6/extensions/amp-subscriptions-google/0.1/amp-subscriptions-google.js#L56
+const GOOGLE_DOMAIN_RE = /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
+
 /**
   @typedef {{
     href: string,
@@ -227,4 +230,26 @@ export function getHostUrl(url) {
 export function getCanonicalUrl(doc) {
   const node = doc.getRootNode().querySelector("link[rel='canonical']");
   return (node && node.href) || '';
+}
+
+const PARSED_URL = parseUrl(self.window.location.href);
+
+/**
+ * Defaults to the pages current URL
+ * @param {LocationDef=} parsedUrl
+ * @return {boolean}
+ */
+export function isGoogleDomain(parsedUrl) {
+  parsedUrl = parsedUrl || PARSED_URL;
+  return GOOGLE_DOMAIN_RE.test(parsedUrl.hostname);
+}
+
+/**
+ * Defaults to the pages current URL
+ * @param {LocationDef=} parsedUrl
+ * @return {boolean}
+ */
+export function isSecure(parsedUrl) {
+  parsedUrl = parsedUrl || PARSED_URL;
+  return parsedUrl.protocol === 'https' || parsedUrl.protocol === 'https:';
 }
