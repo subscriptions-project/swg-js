@@ -27,6 +27,7 @@ import {warn} from '../utils/log';
 
 const IFRAME_BOX_SHADOW =
   'rgba(60, 64, 67, .3) 0 -2px 5px, rgba(60, 64, 67, .15) 0 -5px 5px';
+const MINIMIZED_IFRAME_SIZE = '420px';
 
 export class MeterToastApi {
   /**
@@ -104,21 +105,25 @@ export class MeterToastApi {
         'starting metering.';
       warn(errorMessage);
     }
-    return this.dialogManager_.openView(this.activityIframeView_).then(() => {
+    this.dialogManager_.handleView(this.activityIframeView_);
+    return this.dialogManager_.openDialog().then((dialog) => {
       this.setDialogBoxShadow_();
-      // Allow closing of the iframe with any scroll or click event.
-      this.win_.addEventListener('click', this.sendCloseRequestFunction_);
-      this.win_.addEventListener('touchstart', this.sendCloseRequestFunction_);
-      this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
-      this.win_.addEventListener('wheel', this.sendCloseRequestFunction_);
-      // Making body's overflow property 'hidden' to prevent scrolling
-      // while swiping on the iframe.
-      const $body = this.win_.document.body;
-      setStyle($body, 'overflow', 'hidden');
-      this.deps_
-        .eventManager()
-        .logSwgEvent(AnalyticsEvent.IMPRESSION_METER_TOAST);
-      this.deps_.eventManager().logSwgEvent(AnalyticsEvent.EVENT_OFFERED_METER);
+      this.setLoadingViewWidth_();
+      return dialog.openView(this.activityIframeView_).then(() => {
+        // Allow closing of the iframe with any scroll or click event.
+        this.win_.addEventListener('click', this.sendCloseRequestFunction_);
+        this.win_.addEventListener('touchstart', this.sendCloseRequestFunction_);
+        this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
+        this.win_.addEventListener('wheel', this.sendCloseRequestFunction_);
+        // Making body's overflow property 'hidden' to prevent scrolling
+        // while swiping on the iframe.
+        const $body = this.win_.document.body;
+        setStyle($body, 'overflow', 'hidden');
+        this.deps_
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.IMPRESSION_METER_TOAST);
+        this.deps_.eventManager().logSwgEvent(AnalyticsEvent.EVENT_OFFERED_METER);
+      });
     });
   }
 
@@ -158,6 +163,18 @@ export class MeterToastApi {
         setImportantStyles(element, {'box-shadow': ''});
       }
     });
+  }
+
+  /**
+   * Changes the size of the loading iframe on desktop to match the size of 
+   * the meter toast iframe.
+   */
+  setLoadingViewWidth_() {
+    const mq = this.win_.matchMedia('(min-width: 640px) and (min-height: 640px)');
+    const element = this.dialogManager_.getDialog().getLoadingView().getElement();
+    if (mq.matches) {
+      setImportantStyles(element, {'width': MINIMIZED_IFRAME_SIZE, 'margin': 'auto'});
+    }
   }
 
   /**
