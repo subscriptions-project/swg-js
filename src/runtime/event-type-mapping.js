@@ -16,6 +16,7 @@
 
 import {AnalyticsEvent} from '../proto/api_messages';
 import {Event} from '../api/logger-api';
+import {PublisherEntitlementEvent} from '../api/subscriptions';
 
 /** @const {!Object<string,AnalyticsEvent>} */
 const PublisherEventToAnalyticsEvent = {
@@ -52,6 +53,29 @@ const AnalyticsEventToPublisherEvent = {
   [AnalyticsEvent.EVENT_CUSTOM]: Event.EVENT_CUSTOM,
 };
 
+/** @const {!Object<string,?Array<AnalyticsEvent>>} */
+const ShowcaseEntitlemenntToAnalyticsEvents = {
+  [PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION]: [
+    AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+  ],
+  [PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER]: [
+    AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS,
+    AnalyticsEvent.EVENT_UNLOCKED_BY_METER,
+  ],
+  [PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE]: [
+    AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE,
+  ],
+  [PublisherEntitlementEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL]: [
+    AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
+    AnalyticsEvent.IMPRESSION_REGWALL,
+    AnalyticsEvent.IMPRESSION_SHOWCASE_REGWALL,
+  ],
+  [PublisherEntitlementEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL]: [
+    AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
+    AnalyticsEvent.IMPRESSION_PAYWALL,
+  ],
+};
+
 /**
  * Converts a propensity event enum into an analytics event enum.
  * @param {!Event|string} propensityEvent
@@ -68,4 +92,13 @@ export function publisherEventToAnalyticsEvent(propensityEvent) {
  */
 export function analyticsEventToPublisherEvent(analyticsEvent) {
   return AnalyticsEventToPublisherEvent[analyticsEvent];
+}
+
+/**
+ * Converts a publisher entitlement event enum into an array analytics events.
+ * @param {!PublisherEntitlementEvent|string} event
+ * @returns {!Array<AnalyticsEvent>}
+ */
+export function publisherEntitlementEventToAnalyticsEvents(event) {
+  return ShowcaseEntitlemenntToAnalyticsEvents[event] || [];
 }

@@ -16,7 +16,7 @@
 
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
@@ -64,6 +64,8 @@ import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
+import {isGaa} from '../utils/gaa';
+import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
 import {setExperiment} from './experiments';
 
 const RUNTIME_PROP = 'SWG';
@@ -499,8 +501,10 @@ export class Runtime {
   }
 
   /** @override */
-  setShowcaseEntitlement(unusedEntitlement) {
-    // TODO
+  setShowcaseEntitlement(entitlement) {
+    return this.configured_(true).then((runtime) =>
+      runtime.setShowcaseEntitlement(entitlement)
+    );
   }
 }
 
@@ -1041,8 +1045,21 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  setShowcaseEntitlement(unusedEntitlement) {
-    // TODO
+  setShowcaseEntitlement(entitlement) {
+    const events = publisherEntitlementEventToAnalyticsEvents(
+      entitlement && entitlement.entitlement
+    );
+    if (!isGaa() || !events || !events.length) {
+      return;
+    }
+    for (let k = 0; k < events.length; k++) {
+      this.eventManager().logEvent({
+        eventType: events[k],
+        eventOriginator: EventOriginator.SHOWCASE_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    }
   }
 }
 

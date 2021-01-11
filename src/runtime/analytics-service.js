@@ -363,6 +363,13 @@ export class AnalyticsService {
       return;
     }
 
+    // Permission should be asked from a privacy workgroup before this originator
+    // can be submitted to the analytics service.  It should most likely be treated
+    // as another kind of publisher event here though.
+    if (event.eventOriginator === EventOriginator.SHOWCASE_CLIENT) {
+      return;
+    }
+
     if (
       ClientEventManager.isPublisherEvent(event) &&
       !this.shouldLogPublisherEvents_() &&

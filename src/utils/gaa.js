@@ -24,9 +24,10 @@
 import {I18N_STRINGS} from '../i18n/strings';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
+import {getAnchorFromUrl, parseQueryString} from './url';
+import {getQueryParams} from './url';
 import {msg} from './i18n';
 import {parseJson} from './json';
-import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
 import {warn} from './log';
 
@@ -291,6 +292,32 @@ let GaaUserDef;
  * }} GoogleUserDef
  */
 let GoogleUserDef;
+
+const GOOGLE_DOMAIN_RE = /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
+
+// Validate referrer.
+// NOTE: This regex was copied from SwG's AMP extension. https://github.com/ampproject/amphtml/blob/c23bf281f817a2ee5df73f6fd45e9f4b71bb68b6/extensions/amp-subscriptions-google/0.1/amp-subscriptions-google.js#L56
+const REFERRER = getAnchorFromUrl(self.document.referrer);
+// Validate GAA params.
+const QUERY_PARAMS = getQueryParams();
+const IS_GAA =
+  QUERY_PARAMS.gaa_at &&
+  QUERY_PARAMS.gaa_n &&
+  QUERY_PARAMS.gaa_sig &&
+  QUERY_PARAMS.gaa_ts &&
+  // gaa context expires so this should always be in the future
+  parseInt(QUERY_PARAMS.gaa_ts, 16) < Date.now() / 1000 &&
+  REFERRER.protocol !== 'https' &&
+  GOOGLE_DOMAIN_RE.test(REFERRER.hostname);
+
+/**
+ * Returns true if the URL contains valid Google Article Access (GAA) params.
+ * TODO: Link to a public document describing GAA params.
+ * @return {boolean}
+ */
+export function isGaa() {
+  return IS_GAA;
+}
 
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
