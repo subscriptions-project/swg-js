@@ -228,13 +228,3 @@ export function getCanonicalUrl(doc) {
   const node = doc.getRootNode().querySelector("link[rel='canonical']");
   return (node && node.href) || '';
 }
-
-/**
- * Returns anchor element from a given URL.
- * @return {HTMLAnchorElement}
- */
-export function getAnchorFromUrl(url) {
-  const a = self.document.createElement('a');
-  a.href = url;
-  return a.hostname;
-}
