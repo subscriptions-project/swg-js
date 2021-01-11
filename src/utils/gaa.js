@@ -22,16 +22,41 @@
 // Thanks!
 
 import {I18N_STRINGS} from '../i18n/strings';
+import {isGoogleDomain, isSecure, parseQueryString, parseUrl} from './url';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
 import {msg} from './i18n';
 import {parseJson} from './json';
-import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
 import {warn} from './log';
 
 // Load types for Closure compiler.
 import '../model/doc';
+
+// Load these once on page load
+const REFERRER = parseUrl(self.document.referrer);
+/** @private @const {boolean} */
+const CAN_BE_GAA = isSecure() && isSecure(REFERRER) && isGoogleDomain(REFERRER);
+
+/**
+ * Returns true if the query string parameters include a valid GAA context.
+ * @param {string=} search The search portion of a URL.  Defaults to the current page's search string.
+ * @return {boolean}
+ */
+export function isValidGaaContext(search) {
+  search = search || self.window.location.search;
+  // Load query string each time in case someone adds valid gaa parameters later
+  const QUERY_PARAMS = parseQueryString(search);
+  return (
+    CAN_BE_GAA &&
+    QUERY_PARAMS.gaa_at &&
+    QUERY_PARAMS.gaa_n &&
+    QUERY_PARAMS.gaa_sig &&
+    QUERY_PARAMS.gaa_ts &&
+    // gaa context expires
+    parseInt(QUERY_PARAMS['gaa_ts'], 16) < Date.now() / 1000
+  );
+}
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';

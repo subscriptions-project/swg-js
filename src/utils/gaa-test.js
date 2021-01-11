@@ -23,6 +23,7 @@ import {
   POST_MESSAGE_STAMP,
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
+  isValidGaaContext,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
 import {tick} from '../../test/tick';
@@ -60,6 +61,17 @@ const ARTICLE_METADATA = `
     "productID": "scenic-2017.appspot.com:news"
   }
 }`;
+
+describes('isValidGaaContext', () => {
+  const validContext = 'gaa_n=unused&gaa_sig=unused&gaa_at=unused&gaa_ts=';
+  it('should default to false during testing', () =>
+    expect(isValidGaaContext()).to.be.false);
+
+  it('Should requery HTTPS', () => {
+    self.document.referrer = 'http://www.google.com';
+    expect(isValidGaaContext(validContext)).to.be.false;
+  });
+});
 
 describes.realWin('GaaMeteringRegwall', {}, () => {
   let clock;
