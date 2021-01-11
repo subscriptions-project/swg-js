@@ -245,7 +245,7 @@ export function isGoogleDomain(parsedUrl) {
 }
 
 /**
- * True for the HTTPS protocol
+ * True for HTTPS URLs
  * @param {LocationDef=} parsedUrl Defaults to the pages current URL
  * @return {boolean}
  */
