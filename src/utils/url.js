@@ -236,7 +236,7 @@ const PARSED_URL = parseUrl(self.window.location.href);
 
 /**
  * True for Google domains
- * @param {LocationDef=} parsedUrl Defaults to the pages current URL
+ * @param {LocationDef=} parsedUrl Defaults to the page's current URL
  * @return {boolean}
  */
 export function isGoogleDomain(parsedUrl) {
