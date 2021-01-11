@@ -294,18 +294,7 @@ let GoogleUserDef;
 
 // Load these once on page load
 const REFERRER = parseUrl(self.document.referrer);
-/** @private @const {!Object<string, string>}  */
-const QUERY_PARAMS = parseQueryString(self.window.location.search);
-
-/** @private @const {boolean} */
-const IS_GAA =
-  QUERY_PARAMS.gaa_at &&
-  QUERY_PARAMS.gaa_n &&
-  QUERY_PARAMS.gaa_sig &&
-  QUERY_PARAMS.gaa_ts &&
-  isSecure() &&
-  isSecure(REFERRER) &&
-  isGoogleDomain(REFERRER);
+const CAN_BE_GAA = isSecure() && isSecure(REFERRER) && isGoogleDomain(REFERRER);
 
 /**
  * Returns true if the URL contains valid Google Article Access (GAA) params.
@@ -313,8 +302,13 @@ const IS_GAA =
  * @return {boolean}
  */
 export function isGaa() {
+  const QUERY_PARAMS = parseQueryString(self.window.location.search);
   return (
-    IS_GAA &&
+    CAN_BE_GAA &&
+    QUERY_PARAMS.gaa_at &&
+    QUERY_PARAMS.gaa_n &&
+    QUERY_PARAMS.gaa_sig &&
+    QUERY_PARAMS.gaa_ts &&
     // gaa context expires
     parseInt(QUERY_PARAMS['gaa_ts'], 16) < Date.now() / 1000
   );
