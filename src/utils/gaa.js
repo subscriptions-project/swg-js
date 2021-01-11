@@ -305,8 +305,6 @@ const IS_GAA =
   QUERY_PARAMS.gaa_n &&
   QUERY_PARAMS.gaa_sig &&
   QUERY_PARAMS.gaa_ts &&
-  // gaa context expires so this should always be in the future
-  parseInt(QUERY_PARAMS.gaa_ts, 16) < Date.now() / 1000 &&
   REFERRER.protocol !== 'https' &&
   GOOGLE_DOMAIN_RE.test(REFERRER.hostname);
 
@@ -316,7 +314,11 @@ const IS_GAA =
  * @return {boolean}
  */
 export function isGaa() {
-  return IS_GAA;
+  return (
+    IS_GAA &&
+    // gaa context expires so this should always be in the future
+    parseInt(QUERY_PARAMS.gaa_ts, 16) < Date.now() / 1000
+  );
 }
 
 /** Renders Google Article Access (GAA) Metering Regwall. */
