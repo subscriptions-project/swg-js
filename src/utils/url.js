@@ -235,8 +235,8 @@ export function getCanonicalUrl(doc) {
 const PARSED_URL = parseUrl(self.window.location.href);
 
 /**
- * Defaults to the pages current URL
- * @param {LocationDef=} parsedUrl
+ * True for *.google.{validSubsetOfCharsSuchAsCom}
+ * @param {LocationDef=} parsedUrl Defaults to the pages current URL
  * @return {boolean}
  */
 export function isGoogleDomain(parsedUrl) {
@@ -245,8 +245,8 @@ export function isGoogleDomain(parsedUrl) {
 }
 
 /**
- * Defaults to the pages current URL
- * @param {LocationDef=} parsedUrl
+ * True for the HTTPS protocol
+ * @param {LocationDef=} parsedUrl Defaults to the pages current URL
  * @return {boolean}
  */
 export function isSecure(parsedUrl) {
