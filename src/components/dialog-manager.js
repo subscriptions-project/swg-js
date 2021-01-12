@@ -81,9 +81,10 @@ export class DialogManager {
 
   /**
    * @param {!./view.View} view
+   * @return {!Promise}
    */
   handleView(view) {
-    view.whenComplete().catch((reason) => {
+    return view.whenComplete().catch((reason) => {
       if (isCancelError(reason)) {
         this.completeView(view);
       }
