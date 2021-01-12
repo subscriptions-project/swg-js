@@ -279,7 +279,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     expect($body.style.overflow).to.equal('visible');
   });
 
-  it('should updated desktop UI for loading screen', async () => {
+  it('should update desktop UI for loading screen', async () => {
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
       isClosable: true,
       hasSubscriptionCallback: runtime
@@ -305,7 +305,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     expect(getStyle(element, 'margin')).to.equal('auto');
   });
 
-  it('should updated box shadow for iframe on mobile', async () => {
+  it('should update box shadow for iframe on mobile', async () => {
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
       isClosable: true,
       hasSubscriptionCallback: runtime

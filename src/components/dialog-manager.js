@@ -78,8 +78,7 @@ export class DialogManager {
   }
 
   /**
-   * Calls whenComplete for the view and throws errors returned by the
-   * function after possibly completing the view.
+   * Handles cancellations (ex: user clicks close button on dialog)
    * @param {!./view.View} view
    * @return {!Promise}
    */
