@@ -129,6 +129,18 @@ describes.realWin('DialogManager', {}, (env) => {
     expect(graypaneStubs.destroy).to.not.be.called;
   });
 
+  it('should catch view error', async () => {
+    const view = {
+      whenComplete: () =>
+        Promise.reject(new DOMException('cancel', 'AbortError')),
+    };
+    try {
+      await dialogManager.handleView(view);
+    } catch (error) {
+      expect(error).to.equal('cancel');
+    }
+  });
+
   it('should complete view and continue dialog', async () => {
     const view2 = Object.assign({}, initView);
     await dialogManager.openView(initView);
