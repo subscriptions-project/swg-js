@@ -105,7 +105,9 @@ export class MeterToastApi {
         'starting metering.';
       warn(errorMessage);
     }
-    this.dialogManager_.handleView(this.activityIframeView_);
+    this.dialogManager_.callWhenCompleteAndHandleError(
+      this.activityIframeView_
+    );
     return this.dialogManager_.openDialog().then((dialog) => {
       this.setDialogBoxShadow_();
       this.setLoadingViewWidth_();
