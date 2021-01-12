@@ -28,7 +28,6 @@ import {
 import {I18N_STRINGS} from '../i18n/strings';
 import {parseUrl} from './url';
 import {tick} from '../../test/tick';
-import {parse} from 'postcss';
 
 const PUBLISHER_NAME = 'The Scenic';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
@@ -81,13 +80,17 @@ describes.realWin('GaaUtil', {}, () => {
 
     afterEach(() => {
       expect(GaaUtil.isValidGaaContext()).to.equal(shouldPass);
-    })
+    });
 
     it('pass for default parameters', () => (shouldPass = true));
-    it('require secure referrer', () => (GaaUtil.referrer_ = parseUrl('http://www.google.com')));
-    it('require google referrer', () => (GaaUtil.referrer_ = parseUrl('https://www.gogle.com')));
-    it('require valid gaa context', () => (GaaUtil.location_ = parseUrl('https://wwww.publisher.com')));
-    it('require https', () => (GaaUtil.location_ = parseUrl(
+    it('require secure referrer', () =>
+      (GaaUtil.referrer_ = parseUrl('http://www.google.com')));
+    it('require google referrer', () =>
+      (GaaUtil.referrer_ = parseUrl('https://www.gogle.com')));
+    it('require valid gaa context', () =>
+      (GaaUtil.location_ = parseUrl('https://wwww.publisher.com')));
+    it('require https', () =>
+      (GaaUtil.location_ = parseUrl(
         'http://www.publisher.com?gaa_n=a&gaa_sig=b&gaa_at=c&gaa_ts=5'
       )));
   });
