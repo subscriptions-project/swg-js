@@ -134,7 +134,7 @@ describes.realWin('DialogManager', {}, (env) => {
       whenComplete: () =>
         Promise.reject(new DOMException('cancel', 'AbortError')),
     };
-    expect(dialogManager.handleCancellations(view)).to.eventually.throw(
+    await expect(dialogManager.handleCancellations(view)).to.be.rejectedWith(
       'cancel'
     );
   });
