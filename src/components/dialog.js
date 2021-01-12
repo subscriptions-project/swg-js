@@ -254,6 +254,14 @@ export class Dialog {
   }
 
   /**
+   * Gets the LoadingView for this dialog.
+   * @return {LoadingView}
+   */
+  getLoadingView() {
+    return this.loadingView_;
+  }
+
+  /**
    * Transitions to the next view.
    * @private
    */
