@@ -19,6 +19,8 @@ import {
   addQueryParam,
   getCanonicalUrl,
   getHostUrl,
+  isGoogleDomain,
+  isSecure,
   parseQueryString,
   parseUrl,
   serializeProtoMessageForUrl,
@@ -346,5 +348,39 @@ describe('getCanonicalUrl', () => {
     };
     expect(getCanonicalUrl(FAKE_DOC)).to.equal(url);
     expect(pageQuery).to.equal("link[rel='canonical']");
+  });
+});
+
+describe('isSecure', () => {
+  it('first parameter should default to current page', () => {
+    const URL = parseUrl(self.window.location.href);
+    expect(isSecure(URL)).to.equal(isSecure());
+  });
+
+  it('HTTPS protocol should output true', () => {
+    const URL = parseUrl('https://www.any.com');
+    expect(isSecure(URL)).to.be.true;
+  });
+
+  it('HTTP protocol should output false', () => {
+    const URL = parseUrl('http://www.any.com');
+    expect(isSecure(URL)).to.be.false;
+  });
+});
+
+describe('isGoogleDomain', () => {
+  it('first parameter should default to current page', () => {
+    const URL = parseUrl(self.window.location.href);
+    expect(isGoogleDomain(URL)).to.equal(isGoogleDomain());
+  });
+
+  it('Google domain should output true', () => {
+    const URL = parseUrl('https://www.google.com');
+    expect(isGoogleDomain(URL)).to.be.true;
+  });
+
+  it('Other domains should output false', () => {
+    const URL = parseUrl('https://www.gogle.com');
+    expect(isGoogleDomain(URL)).to.be.false;
   });
 });
