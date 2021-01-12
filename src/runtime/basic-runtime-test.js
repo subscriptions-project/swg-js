@@ -187,6 +187,7 @@ describes.realWin('Runtime', {}, (env) => {
   describe('configured', () => {
     let config;
     let configuredBasicRuntime;
+    let configuredClassicRuntimeMock;
 
     beforeEach(() => {
       config = new PageConfig('pub1');
@@ -194,10 +195,47 @@ describes.realWin('Runtime', {}, (env) => {
         new GlobalDoc(win),
         config
       );
+      configuredClassicRuntimeMock = sandbox.mock(
+        configuredBasicRuntime.configuredClassicRuntime()
+      );
+    });
+
+    afterEach(() => {
+      configuredClassicRuntimeMock.verify();
     });
 
     it('should create a SwG classic ConfiguredRuntime', async () => {
       expect(configuredBasicRuntime.configuredClassicRuntime()).to.exist;
+    });
+
+    it('should delegate "setOnEntitlementsResponse"', async () => {
+      const callback = function () {};
+      configuredClassicRuntimeMock
+        .expects('setOnEntitlementsResponse')
+        .withExactArgs(callback)
+        .once();
+
+      await configuredBasicRuntime.setOnEntitlementsResponse(callback);
+    });
+
+    it('should delegate "setOnPaymentResponse"', async () => {
+      const callback = function () {};
+      configuredClassicRuntimeMock
+        .expects('setOnPaymentResponse')
+        .withExactArgs(callback)
+        .once();
+
+      await configuredBasicRuntime.setOnPaymentResponse(callback);
+    });
+
+    it('should delegate "setupAndShowAutoPrompt"', async () => {
+      await configuredBasicRuntime.setupAndShowAutoPrompt(true);
+      // TODO(stellachui): Add checks for auto prompt creation once implemented.
+    });
+
+    it('should delegate "dismissSwgUI"', async () => {
+      await configuredBasicRuntime.dismissSwgUI();
+      // TODO(stellachui): Add checks for UI dismissal once implemented.
     });
   });
 });
