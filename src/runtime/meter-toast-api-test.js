@@ -18,12 +18,17 @@ import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
-import {MeterToastApi} from './meter-toast-api';
+import {
+  IFRAME_BOX_SHADOW,
+  MINIMIZED_IFRAME_SIZE,
+  MeterToastApi,
+} from './meter-toast-api';
 import {PageConfig} from '../model/page-config';
 import {
   ToastCloseRequest,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
+import {getStyle} from '../utils/style';
 
 describes.realWin('MeterToastApi', {}, (env) => {
   let win;
@@ -40,6 +45,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
 
   beforeEach(() => {
     win = env.win;
+    sandbox.stub(win, 'matchMedia').returns({
+      'matches': true,
+      'addListener': (callback) => callback,
+    });
     messageMap = {};
     pageConfig = new PageConfig(productId);
     runtime = new ConfiguredRuntime(win, pageConfig);
@@ -268,5 +277,51 @@ describes.realWin('MeterToastApi', {}, (env) => {
     expect(messageStub).to.not.be.called;
     const $body = win.document.body;
     expect($body.style.overflow).to.equal('visible');
+  });
+
+  it('should update desktop UI for loading screen', async () => {
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_',
+        iframeArgs
+      )
+      .returns(Promise.resolve(port));
+    await meterToastApi.start();
+
+    const element = runtime
+      .dialogManager()
+      .getDialog()
+      .getLoadingView()
+      .getElement();
+    expect(getStyle(element, 'width')).to.equal(MINIMIZED_IFRAME_SIZE);
+    expect(getStyle(element, 'margin')).to.equal('auto');
+  });
+
+  it('should update box shadow for iframe on mobile', async () => {
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_',
+        iframeArgs
+      )
+      .returns(Promise.resolve(port));
+    await meterToastApi.start();
+    const element = runtime.dialogManager().getDialog().getElement();
+    expect(getStyle(element, 'box-shadow')).to.equal(IFRAME_BOX_SHADOW);
   });
 });

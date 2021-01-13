@@ -637,7 +637,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('should open metering dialog when metering entitlements are consumed', () => {
       dialogManagerMock
-        .expects('openView')
+        .expects('openDialog')
         .once()
         .returns(Promise.resolve(null));
 
