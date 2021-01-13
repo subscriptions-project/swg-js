@@ -19,7 +19,6 @@ import {
   addQueryParam,
   getCanonicalUrl,
   getHostUrl,
-  isGoogleDomain,
   isSecure,
   parseQueryString,
   parseUrl,
@@ -369,24 +368,12 @@ describe('isSecure', () => {
   });
 });
 
-describe('isGoogleDomain', () => {
-  it('first parameter should default to current page', () => {
-    const URL = parseUrl(self.window.location.href);
-    expect(isGoogleDomain(URL)).to.equal(isGoogleDomain());
-  });
-
-  it('Google domain should output true', () => {
-    const URL = parseUrl('https://www.google.com');
-    expect(isGoogleDomain(URL)).to.be.true;
-  });
-
-  it('Other domains should output false', () => {
-    const URL = parseUrl('https://www.gogle.com');
-    expect(isGoogleDomain(URL)).to.be.false;
-  });
-});
-
 describe('wasReferredByGoogle', () => {
+  it("first parameter should default to current page's referrer", () => {
+    expect(wasReferredByGoogle(parseUrl(self.document.referrer))).to.equal(
+      wasReferredByGoogle()
+    );
+  });
   it('should accept a secure Google referrer', () => {
     expect(wasReferredByGoogle(parseUrl('https://www.google.com'))).to.be.true;
   });

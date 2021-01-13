@@ -63,55 +63,50 @@ const ARTICLE_METADATA = `
   }
 }`;
 
-describes.realWin('public helpers', {}, () => {
+describes.realWin('urlContainsFreshGaaParams', {}, () => {
   let clock;
 
   beforeEach(() => {
     clock = sandbox.useFakeTimers();
+    GaaMeteringRegwall.location_ = parseUrl(
+      'https://www.news.com?gaa_at=at&gaa_n=n&gaa_sig=sig&gaa_ts=99999'
+    );
   });
 
-  describe('urlContainsFreshGaaParams', () => {
-    beforeEach(() => {
-      GaaMeteringRegwall.location_ = parseUrl(
-        'https://www.news.com?gaa_at=at&gaa_n=n&gaa_sig=sig&gaa_ts=99999'
-      );
-    });
+  it('succeeeds for valid params', () => {
+    expect(urlContainsFreshGaaParams()).to.be.true;
+  });
 
-    it('succeeeds for valid params', () => {
-      expect(urlContainsFreshGaaParams()).to.be.true;
-    });
+  it('fails without gaa_at', () => {
+    GaaMeteringRegwall.location_.search =
+      '?gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999';
+    expect(urlContainsFreshGaaParams()).to.be.false;
+  });
 
-    it('fails without gaa_at', () => {
-      GaaMeteringRegwall.location_.search =
-        '?gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999';
-      expect(urlContainsFreshGaaParams()).to.be.false;
-    });
+  it('fails without gaa_n', () => {
+    GaaMeteringRegwall.location_.search =
+      '?gaa_at=gaa&gaa_sig=s1gn4tur3&gaa_ts=99999';
+    expect(urlContainsFreshGaaParams()).to.be.false;
+  });
 
-    it('fails without gaa_n', () => {
-      GaaMeteringRegwall.location_.search =
-        '?gaa_at=gaa&gaa_sig=s1gn4tur3&gaa_ts=99999';
-      expect(urlContainsFreshGaaParams()).to.be.false;
-    });
+  it('fails without gaa_sig', () => {
+    GaaMeteringRegwall.location_.search =
+      '?gaa_at=gaa&gaa_n=n0nc3&gaa_ts=99999';
+    expect(urlContainsFreshGaaParams()).to.be.false;
+  });
 
-    it('fails without gaa_sig', () => {
-      GaaMeteringRegwall.location_.search =
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_ts=99999';
-      expect(urlContainsFreshGaaParams()).to.be.false;
-    });
+  it('fails without gaa_ts', () => {
+    GaaMeteringRegwall.location_.search =
+      '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3';
+    expect(urlContainsFreshGaaParams()).to.be.false;
+  });
 
-    it('fails without gaa_ts', () => {
-      GaaMeteringRegwall.location_.search =
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3';
-      expect(urlContainsFreshGaaParams()).to.be.false;
-    });
-
-    it('fails if GAA URL params are expired', () => {
-      // Add GAA URL params with expiration of 7 seconds.
-      GaaMeteringRegwall.location_.search =
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
-      clock.tick(7001);
-      expect(urlContainsFreshGaaParams()).to.be.false;
-    });
+  it('fails if GAA URL params are expired', () => {
+    // Add GAA URL params with expiration of 7 seconds.
+    GaaMeteringRegwall.location_.search =
+      '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
+    clock.tick(7001);
+    expect(urlContainsFreshGaaParams()).to.be.false;
   });
 });
 
