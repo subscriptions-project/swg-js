@@ -390,11 +390,11 @@ describe('isSecureGoogleReferrer', () => {
   const VALID_NEWS_SITE = parseUrl('https://www.publisher.com');
   const VALID_GOOG_SITE = parseUrl('https://www.google.com');
 
-  it('should accept a secure google referrer', () => {
+  it('should accept a secure Google referrer', () => {
     expect(isSecureGoogleReferrer(VALID_NEWS_SITE, VALID_GOOG_SITE)).to.be.true;
   });
 
-  it('should require secure location', () => {
+  it('should require secure page', () => {
     expect(
       isSecureGoogleReferrer(
         parseUrl('http://www.publisher.com'),
@@ -403,13 +403,13 @@ describe('isSecureGoogleReferrer', () => {
     ).to.be.false;
   });
 
-  it('should require secure google site', () => {
+  it('should require secure referrer', () => {
     expect(
       isSecureGoogleReferrer(VALID_NEWS_SITE, parseUrl('http://www.google.com'))
     ).to.be.false;
   });
 
-  it('should require a google site', () => {
+  it('should require a Google referrer', () => {
     expect(
       isSecureGoogleReferrer(VALID_NEWS_SITE, parseUrl('https://www.gogle.com'))
     ).to.be.false;

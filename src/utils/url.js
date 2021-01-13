@@ -255,10 +255,10 @@ export function isSecure(parsedUrl) {
 }
 
 /**
- * True when the page is rendered within a secure google application or
- * was linked to from a secure google domain.
+ * True when the page is rendered within a secure Google application or
+ * was linked to from a secure Google domain.
  * @param {LocationDef=} parsedUrl Defaults to the current page's URL
- * @param {LocationDef=} parsedReferrer Defaults to the current pages referrer
+ * @param {LocationDef=} parsedReferrer Defaults to the current page's referrer
  * @return {boolean}
  */
 export function isSecureGoogleReferrer(parsedUrl, parsedReferrer) {
