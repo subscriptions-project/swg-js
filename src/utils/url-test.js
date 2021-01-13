@@ -374,6 +374,7 @@ describe('wasReferredByGoogle', () => {
       wasReferredByGoogle()
     );
   });
+
   it('should accept a secure Google referrer', () => {
     expect(wasReferredByGoogle(parseUrl('https://www.google.com'))).to.be.true;
   });
