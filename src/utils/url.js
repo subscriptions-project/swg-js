@@ -239,7 +239,7 @@ const PARSED_REFERRER = parseUrl(self.document.referrer);
  * @param {LocationDef=} parsedUrl Defaults to the current page's URL
  * @return {boolean}
  */
-export function isGoogleDomain(parsedUrl) {
+function isGoogleDomain(parsedUrl) {
   parsedUrl = parsedUrl || PARSED_URL;
   return GOOGLE_DOMAIN_RE.test(parsedUrl.hostname);
 }
@@ -257,16 +257,10 @@ export function isSecure(parsedUrl) {
 /**
  * True when the page is rendered within a secure Google application or
  * was linked to from a secure Google domain.
- * @param {LocationDef=} parsedUrl Defaults to the current page's URL
  * @param {LocationDef=} parsedReferrer Defaults to the current page's referrer
  * @return {boolean}
  */
-export function isSecureGoogleReferrer(parsedUrl, parsedReferrer) {
-  parsedUrl = parsedUrl || PARSED_URL;
+export function wasReferredByGoogle(parsedReferrer) {
   parsedReferrer = parsedReferrer || PARSED_REFERRER;
-  return (
-    isSecure(parsedUrl) &&
-    isSecure(parsedReferrer) &&
-    isGoogleDomain(parsedReferrer)
-  );
+  return isSecure(parsedReferrer) && isGoogleDomain(parsedReferrer);
 }

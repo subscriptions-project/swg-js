@@ -21,11 +21,11 @@ import {
   getHostUrl,
   isGoogleDomain,
   isSecure,
-  isSecureGoogleReferrer,
   parseQueryString,
   parseUrl,
   serializeProtoMessageForUrl,
   serializeQueryString,
+  wasReferredByGoogle,
 } from './url';
 
 describe('serializeQueryString', () => {
@@ -386,32 +386,16 @@ describe('isGoogleDomain', () => {
   });
 });
 
-describe('isSecureGoogleReferrer', () => {
-  const VALID_NEWS_SITE = parseUrl('https://www.publisher.com');
-  const VALID_GOOG_SITE = parseUrl('https://www.google.com');
-
+describe('wasReferredByGoogle', () => {
   it('should accept a secure Google referrer', () => {
-    expect(isSecureGoogleReferrer(VALID_NEWS_SITE, VALID_GOOG_SITE)).to.be.true;
-  });
-
-  it('should require secure page', () => {
-    expect(
-      isSecureGoogleReferrer(
-        parseUrl('http://www.publisher.com'),
-        VALID_GOOG_SITE
-      )
-    ).to.be.false;
+    expect(wasReferredByGoogle(parseUrl('https://www.google.com'))).to.be.true;
   });
 
   it('should require secure referrer', () => {
-    expect(
-      isSecureGoogleReferrer(VALID_NEWS_SITE, parseUrl('http://www.google.com'))
-    ).to.be.false;
+    expect(wasReferredByGoogle(parseUrl('http://www.google.com'))).to.be.false;
   });
 
   it('should require a Google referrer', () => {
-    expect(
-      isSecureGoogleReferrer(VALID_NEWS_SITE, parseUrl('https://www.gogle.com'))
-    ).to.be.false;
+    expect(wasReferredByGoogle(parseUrl('https://www.gogle.com'))).to.be.false;
   });
 });
