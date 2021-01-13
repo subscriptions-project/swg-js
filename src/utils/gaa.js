@@ -22,11 +22,11 @@
 // Thanks!
 
 import {I18N_STRINGS} from '../i18n/strings';
-import {isGoogleDomain, isSecure, parseQueryString} from './url';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
 import {msg} from './i18n';
 import {parseJson} from './json';
+import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
 import {warn} from './log';
 
@@ -292,51 +292,32 @@ let GaaUserDef;
  */
 let GoogleUserDef;
 
-export class GaaUtil {
-  /**
-   * Returns true if the browser is in a valid gaa context.
-   * @return {boolean}
-   */
-  static isValidGaaContext() {
-    return (
-      isSecure(GaaUtil.location_) &&
-      isSecure(GaaUtil.referrer_) &&
-      isGoogleDomain(GaaUtil.referrer_) &&
-      GaaUtil.urlContainsFreshGaaParams()
-    );
-  }
-
-  /**
-   * Returns true if the URL contains fresh Google Article Access (GAA) params.
-   * @return {boolean}
-   */
-  static urlContainsFreshGaaParams() {
-    const params = parseQueryString(GaaUtil.location_.search);
-
-    // Verify GAA params exist.
-    if (
-      !params['gaa_at'] ||
-      !params['gaa_n'] ||
-      !params['gaa_sig'] ||
-      !params['gaa_ts']
-    ) {
-      return false;
-    }
-    // Verify timestamp isn't stale.
-    const expirationTimestamp = parseInt(params['gaa_ts'], 16);
-    const currentTimestamp = Date.now() / 1000;
-    return expirationTimestamp >= currentTimestamp;
-  }
-}
-
 /**
- * References window's location object. Tests can override this.
- * @private
- * @type {!Location}
+ * Returns true if the URL contains fresh Google Article Access (GAA) params.
+ * @return {boolean}
  */
-GaaUtil.location_ = self.location;
-GaaUtil.referrer_ = self.document.referrer;
-self.GaaUtil = GaaUtil;
+export function urlContainsFreshGaaParams() {
+  const params = parseQueryString(GaaMeteringRegwall.location_.search);
+
+  // Verify GAA params exist.
+  if (
+    !params['gaa_at'] ||
+    !params['gaa_n'] ||
+    !params['gaa_sig'] ||
+    !params['gaa_ts']
+  ) {
+    return false;
+  }
+
+  // Verify timestamp isn't stale.
+  const expirationTimestamp = parseInt(params['gaa_ts'], 16);
+  const currentTimestamp = Date.now() / 1000;
+  if (expirationTimestamp < currentTimestamp) {
+    return false;
+  }
+
+  return true;
+}
 
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
@@ -351,7 +332,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl}) {
-    if (!GaaUtil.urlContainsFreshGaaParams()) {
+    if (!urlContainsFreshGaaParams()) {
       const errorMessage =
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
       warn(errorMessage);
@@ -538,6 +519,13 @@ export class GaaMeteringRegwall {
     }
   }
 }
+
+/**
+ * References window's location object. Tests can override this.
+ * @private
+ * @type {!Location}
+ */
+GaaMeteringRegwall.location_ = self.location;
 
 self.GaaMeteringRegwall = GaaMeteringRegwall;
 

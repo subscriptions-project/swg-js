@@ -18,12 +18,12 @@ import {
   GOOGLE_SIGN_IN_IFRAME_ID,
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
-  GaaUtil,
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
+  urlContainsFreshGaaParams,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
 import {parseUrl} from './url';
@@ -63,70 +63,55 @@ const ARTICLE_METADATA = `
   }
 }`;
 
-describes.realWin('GaaUtil', {}, () => {
-  describe('isValidGaaContext', () => {
-    let shouldPass;
-    let clock;
+describes.realWin('public helpers', {}, () => {
+  let clock;
 
-    beforeEach(() => {
-      GaaUtil.referrer_ = parseUrl('https://www.google.com');
-      GaaUtil.location_ = parseUrl(
-        'https://www.publisher.com?gaa_n=a&gaa_sig=b&gaa_at=c&gaa_ts=5'
-      );
-      clock = sandbox.useFakeTimers();
-      clock.tick(1);
-      shouldPass = false;
-    });
-
-    afterEach(() => {
-      expect(GaaUtil.isValidGaaContext()).to.equal(shouldPass);
-    });
-
-    it('pass for default parameters', () => (shouldPass = true));
-    it('require secure referrer', () =>
-      (GaaUtil.referrer_ = parseUrl('http://www.google.com')));
-    it('require google referrer', () =>
-      (GaaUtil.referrer_ = parseUrl('https://www.gogle.com')));
-    it('require valid gaa context', () =>
-      (GaaUtil.location_ = parseUrl('https://wwww.publisher.com')));
-    it('require https', () =>
-      (GaaUtil.location_ = parseUrl(
-        'http://www.publisher.com?gaa_n=a&gaa_sig=b&gaa_at=c&gaa_ts=5'
-      )));
+  beforeEach(() => {
+    clock = sandbox.useFakeTimers();
   });
 
   describe('urlContainsFreshGaaParams', () => {
-    let left;
-    let n;
-    let sig;
-    let at;
-    let ts;
-    let shouldPass;
-    let clock;
-
     beforeEach(() => {
-      left = 'https://www.publisher.com';
-      n = 'valid';
-      sig = 'valid';
-      at = 'valid';
-      ts = 10;
-      shouldPass = false;
-      clock = sandbox.useFakeTimers();
+      GaaMeteringRegwall.location_ = parseUrl(
+        'https://www.news.com?gaa_at=at&gaa_n=n&gaa_sig=sig&gaa_ts=99999'
+      );
     });
 
-    afterEach(() => {
-      clock.tick(5000);
-      const url = left + '?gaa_n=' + n + '&gaa_sig=' + sig + '&gaa_at=' + at;
-      GaaUtil.location_ = parseUrl(url + '&gaa_ts=' + ts);
-      expect(GaaUtil.urlContainsFreshGaaParams()).to.equal(shouldPass);
+    it('succeeeds for valid params', () => {
+      expect(urlContainsFreshGaaParams()).to.be.true;
     });
 
-    it('pass for default parameters', () => (shouldPass = true));
-    it('require a fresh timestamp', () => (ts = 1));
-    it('require gaa_ts', () => (ts = ''));
-    it('require gaa_n', () => (n = ''));
-    it('require gaa_sig', () => (sig = ''));
-    it('require gaa_at', () => (at = ''));
+    it('fails without gaa_at', () => {
+      GaaMeteringRegwall.location_.search =
+        '?gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999';
+      expect(urlContainsFreshGaaParams()).to.be.false;
+    });
+
+    it('fails without gaa_n', () => {
+      GaaMeteringRegwall.location_.search =
+        '?gaa_at=gaa&gaa_sig=s1gn4tur3&gaa_ts=99999';
+      expect(urlContainsFreshGaaParams()).to.be.false;
+    });
+
+    it('fails without gaa_sig', () => {
+      GaaMeteringRegwall.location_.search =
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_ts=99999';
+      expect(urlContainsFreshGaaParams()).to.be.false;
+    });
+
+    it('fails without gaa_ts', () => {
+      GaaMeteringRegwall.location_.search =
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3';
+      expect(urlContainsFreshGaaParams()).to.be.false;
+    });
+
+    it('fails if GAA URL params are expired', () => {
+      // Add GAA URL params with expiration of 7 seconds.
+      GaaMeteringRegwall.location_.search =
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
+      clock.tick(7001);
+      expect(urlContainsFreshGaaParams()).to.be.false;
+    });
   });
 });
 
@@ -165,7 +150,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     };
 
     // Mock location.
-    GaaUtil.location_ = {
+    GaaMeteringRegwall.location_ = {
       search: '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999',
     };
 
@@ -263,7 +248,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('fails if GAA URL params are missing', () => {
       // Remove GAA URL params.
-      GaaUtil.location_.search = '';
+      GaaMeteringRegwall.location_.search = '';
 
       GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
@@ -274,7 +259,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('fails if GAA URL params are expired', () => {
       // Add GAA URL params with expiration of 7 seconds.
-      GaaUtil.location_.search =
+      GaaMeteringRegwall.location_.search =
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
 
       // Move clock a little past 7 seconds.
