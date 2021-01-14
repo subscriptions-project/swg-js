@@ -59,6 +59,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
+    sandbox.stub(meterToastApi, 'isMobile_').returns(true);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -179,14 +180,13 @@ describes.realWin('MeterToastApi', {}, (env) => {
       );
     await win.dispatchEvent(new Event('click'));
     // next three should have no effect
-    await win.dispatchEvent(new Event('wheel'));
     await win.dispatchEvent(new Event('touchstart'));
     await win.dispatchEvent(new Event('mousedown'));
     expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
     expect(onConsumeCallbackFake).to.be.calledOnce;
   });
 
-  it('should close iframe on wheel', async () => {
+  it('should not close iframe on scroll events on mobile', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
@@ -202,12 +202,40 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .withExactArgs(
         AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
         true
+      )
+      .never();
+    await win.dispatchEvent(new Event('scroll'));
+    expect(messageStub).to.not.be.called;
+    expect(onConsumeCallbackFake).to.not.be.called;
+  });
+
+  it('should close iframe on long scroll events on desktop', async () => {
+    meterToastApi.isMobile_.restore();
+    sandbox.stub(meterToastApi, 'isMobile_').returns(false);
+    sandbox.stub(win, 'setTimeout').callsFake((callback) => callback());
+    callbacksMock.expects('triggerFlowStarted').once();
+    const messageStub = sandbox.stub(port, 'execute');
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const onConsumeCallbackFake = sandbox.fake();
+    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
+    await meterToastApi.start();
+    const $body = win.document.body;
+    expect($body.style.overflow).to.equal('');
+    const toastCloseRequest = new ToastCloseRequest();
+    toastCloseRequest.setClose(true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
+        true
       );
-    await win.dispatchEvent(new Event('wheel'));
-    // next three should have no effect
-    await win.dispatchEvent(new Event('click'));
-    await win.dispatchEvent(new Event('touchstart'));
-    await win.dispatchEvent(new Event('mousedown'));
+    await win.dispatchEvent(new Event('scroll'));
+    expect(onConsumeCallbackFake).to.not.be.called;
+    win.pageYOffset = 10;
+    await win.dispatchEvent(new Event('scroll'));
+    expect(onConsumeCallbackFake).to.not.be.called;
+    win.pageYOffset = 200;
+    await win.dispatchEvent(new Event('scroll'));
     expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
     expect(onConsumeCallbackFake).to.be.calledOnce;
   });
@@ -231,7 +259,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       );
     await win.dispatchEvent(new Event('touchstart'));
     // next three should have no effect
-    await win.dispatchEvent(new Event('wheel'));
+    await win.dispatchEvent(new Event('scroll'));
     await win.dispatchEvent(new Event('click'));
     await win.dispatchEvent(new Event('mousedown'));
     expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
@@ -257,7 +285,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       );
     await win.dispatchEvent(new Event('mousedown'));
     // next three should have no effect
-    await win.dispatchEvent(new Event('wheel'));
+    await win.dispatchEvent(new Event('scroll'));
     await win.dispatchEvent(new Event('touchstart'));
     await win.dispatchEvent(new Event('click'));
     expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
@@ -271,7 +299,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     await meterToastApi.start();
     meterToastApi.removeCloseEventListener();
     await win.dispatchEvent(new Event('click'));
-    await win.dispatchEvent(new Event('wheel'));
+    await win.dispatchEvent(new Event('scroll'));
     await win.dispatchEvent(new Event('touchstart'));
     await win.dispatchEvent(new Event('mousedown'));
     expect(messageStub).to.not.be.called;
@@ -323,5 +351,32 @@ describes.realWin('MeterToastApi', {}, (env) => {
     await meterToastApi.start();
     const element = runtime.dialogManager().getDialog().getElement();
     expect(getStyle(element, 'box-shadow')).to.equal(IFRAME_BOX_SHADOW);
+  });
+
+  it('isMobile_ works as expected', async () => {
+    let minWin = {
+      navigator: {
+        userAgent: 'Inception 1.4 (iPhone; iPhone OS 4.3.1; en_US)',
+      },
+    };
+    let minRuntime = new ConfiguredRuntime(
+      Object.assign({}, win, minWin),
+      pageConfig
+    );
+    meterToastApi = new MeterToastApi(minRuntime);
+    expect(meterToastApi.isMobile_()).to.be.true;
+
+    minWin = {
+      navigator: {
+        userAgent:
+          'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1',
+      },
+    };
+    minRuntime = new ConfiguredRuntime(
+      Object.assign({}, win, minWin),
+      pageConfig
+    );
+    meterToastApi = new MeterToastApi(minRuntime);
+    expect(meterToastApi.isMobile_()).to.be.false;
   });
 });

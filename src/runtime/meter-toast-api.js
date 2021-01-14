@@ -82,6 +82,9 @@ export class MeterToastApi {
         this.onConsumeCallback_();
       }
     };
+
+    /** @private {?function()} */
+    this.scrollEventListener_ = null;
   }
 
   /**
@@ -117,11 +120,25 @@ export class MeterToastApi {
           this.sendCloseRequestFunction_
         );
         this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
-        this.win_.addEventListener('wheel', this.sendCloseRequestFunction_);
         // Making body's overflow property 'hidden' to prevent scrolling
-        // while swiping on the iframe.
-        const $body = this.win_.document.body;
-        setStyle($body, 'overflow', 'hidden');
+        // while swiping on the iframe only on mobile.
+        if (this.isMobile_()) {
+          const $body = this.win_.document.body;
+          setStyle($body, 'overflow', 'hidden');
+        } else {
+          let start, scrollTimeout;
+          this.scrollEventListener_ = () => {
+            start = start || this.win_.pageYOffset;
+            this.win_.clearTimeout(scrollTimeout);
+            scrollTimeout = this.win_.setTimeout(() => {
+              // If the scroll is longer than 100, close the toast.
+              if (Math.abs(this.win_.pageYOffset - start) > 100) {
+                this.sendCloseRequestFunction_();
+              }
+            }, 100);
+          };
+          this.win_.addEventListener('scroll', this.scrollEventListener_);
+        }
         this.deps_
           .eventManager()
           .logSwgEvent(AnalyticsEvent.IMPRESSION_METER_TOAST);
@@ -147,9 +164,12 @@ export class MeterToastApi {
     this.win_.removeEventListener('click', this.sendCloseRequestFunction_);
     this.win_.removeEventListener('touchstart', this.sendCloseRequestFunction_);
     this.win_.removeEventListener('mousedown', this.sendCloseRequestFunction_);
-    this.win_.removeEventListener('wheel', this.sendCloseRequestFunction_);
-    const $body = this.win_.document.body;
-    setStyle($body, 'overflow', 'visible');
+    if (this.isMobile_()) {
+      const $body = this.win_.document.body;
+      setStyle($body, 'overflow', 'visible');
+    } else {
+      this.win_.removeEventListener('scroll', this.scrollEventListener_);
+    }
   }
 
   /**
@@ -201,5 +221,15 @@ export class MeterToastApi {
       this.removeCloseEventListener();
       this.deps_.callbacks().triggerSubscribeRequest();
     }
+  }
+
+  /**
+   * Returns true if the window userAgent is a mobile platform.
+   * @private
+   */
+  isMobile_() {
+    return !!this.win_.navigator.userAgent.match(
+      /Android|iPhone|iPad|iPod|BlackBerry|IEMobile/i
+    );
   }
 }
