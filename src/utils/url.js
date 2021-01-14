@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import {warn} from './log';
+
+// NOTE: This regex was copied from SwG's AMP extension. https://github.com/ampproject/amphtml/blob/c23bf281f817a2ee5df73f6fd45e9f4b71bb68b6/extensions/amp-subscriptions-google/0.1/amp-subscriptions-google.js#L56
+const GOOGLE_DOMAIN_RE = /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
 
 /**
   @typedef {{
@@ -229,26 +231,36 @@ export function getCanonicalUrl(doc) {
   return (node && node.href) || '';
 }
 
-// NOTE: This regex was copied from SwG's AMP extension. https://github.com/ampproject/amphtml/blob/c23bf281f817a2ee5df73f6fd45e9f4b71bb68b6/extensions/amp-subscriptions-google/0.1/amp-subscriptions-google.js#L56
-const GOOGLE_DOMAIN_RE = /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
 const PARSED_URL = parseUrl(self.window.location.href);
+const PARSED_REFERRER = parseUrl(self.document.referrer);
 
 /**
- * Defaults to the pages current URL
- * @param {LocationDef=} parsedUrl
+ * True for Google domains
+ * @param {LocationDef=} parsedUrl Defaults to the current page's URL
  * @return {boolean}
  */
-export function isGoogleDomain(parsedUrl) {
+function isGoogleDomain(parsedUrl) {
   parsedUrl = parsedUrl || PARSED_URL;
   return GOOGLE_DOMAIN_RE.test(parsedUrl.hostname);
 }
 
 /**
- * Defaults to the pages current URL
- * @param {LocationDef=} parsedUrl
+ * True for HTTPS URLs
+ * @param {LocationDef=} parsedUrl Defaults to the current page's URL
  * @return {boolean}
  */
 export function isSecure(parsedUrl) {
   parsedUrl = parsedUrl || PARSED_URL;
-  return parsedUrl.protocol === 'https';
+  return parsedUrl.protocol === 'https' || parsedUrl.protocol === 'https:';
+}
+
+/**
+ * True when the page is rendered within a secure Google application or
+ * was linked to from a secure Google domain.
+ * @param {LocationDef=} parsedReferrer Defaults to the current page's referrer
+ * @return {boolean}
+ */
+export function wasReferredByGoogle(parsedReferrer) {
+  parsedReferrer = parsedReferrer || PARSED_REFERRER;
+  return isSecure(parsedReferrer) && isGoogleDomain(parsedReferrer);
 }

@@ -24,9 +24,9 @@
 import {I18N_STRINGS} from '../i18n/strings';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
-import {isGoogleDomain, isSecure, parseQueryString, parseUrl} from './url';
 import {msg} from './i18n';
 import {parseJson} from './json';
+import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
 import {warn} from './log';
 
@@ -292,26 +292,31 @@ let GaaUserDef;
  */
 let GoogleUserDef;
 
-// Load these once on page load
-const REFERRER = parseUrl(self.document.referrer);
-const CAN_BE_GAA = isSecure() && isSecure(REFERRER) && isGoogleDomain(REFERRER);
-
 /**
- * Returns true if the URL contains valid Google Article Access (GAA) params.
- * TODO: Link to a public document describing GAA params.
+ * Returns true if the URL contains fresh Google Article Access (GAA) params.
  * @return {boolean}
  */
-export function isGaa() {
-  const QUERY_PARAMS = parseQueryString(self.window.location.search);
-  return (
-    CAN_BE_GAA &&
-    QUERY_PARAMS.gaa_at &&
-    QUERY_PARAMS.gaa_n &&
-    QUERY_PARAMS.gaa_sig &&
-    QUERY_PARAMS.gaa_ts &&
-    // gaa context expires
-    parseInt(QUERY_PARAMS['gaa_ts'], 16) < Date.now() / 1000
-  );
+export function urlContainsFreshGaaParams() {
+  const params = parseQueryString(GaaMeteringRegwall.location_.search);
+
+  // Verify GAA params exist.
+  if (
+    !params['gaa_at'] ||
+    !params['gaa_n'] ||
+    !params['gaa_sig'] ||
+    !params['gaa_ts']
+  ) {
+    return false;
+  }
+
+  // Verify timestamp isn't stale.
+  const expirationTimestamp = parseInt(params['gaa_ts'], 16);
+  const currentTimestamp = Date.now() / 1000;
+  if (expirationTimestamp < currentTimestamp) {
+    return false;
+  }
+
+  return true;
 }
 
 /** Renders Google Article Access (GAA) Metering Regwall. */
@@ -327,7 +332,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl}) {
-    if (!GaaMeteringRegwall.urlContainsFreshGaaParams_()) {
+    if (!urlContainsFreshGaaParams()) {
       const errorMessage =
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
       warn(errorMessage);
@@ -512,34 +517,6 @@ export class GaaMeteringRegwall {
     if (regwallContainer) {
       regwallContainer.remove();
     }
-  }
-
-  /**
-   * Returns true if the URL contains fresh Google Article Access (GAA) params.
-   * @private
-   * @return {boolean}
-   */
-  static urlContainsFreshGaaParams_() {
-    const params = parseQueryString(GaaMeteringRegwall.location_.search);
-
-    // Verify GAA params exist.
-    if (
-      !params['gaa_at'] ||
-      !params['gaa_n'] ||
-      !params['gaa_sig'] ||
-      !params['gaa_ts']
-    ) {
-      return false;
-    }
-
-    // Verify timestamp isn't stale.
-    const expirationTimestamp = parseInt(params['gaa_ts'], 16);
-    const currentTimestamp = Date.now() / 1000;
-    if (expirationTimestamp < currentTimestamp) {
-      return false;
-    }
-
-    return true;
   }
 }
 

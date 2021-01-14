@@ -881,6 +881,9 @@ class EventParams {
 
     /** @private {?string} */
     this.oldTransactionId_ = data[4 + base] == null ? null : data[4 + base];
+
+    /** @private {?boolean} */
+    this.isUserRegistered_ = data[5 + base] == null ? null : data[5 + base];
   }
 
   /**
@@ -954,6 +957,20 @@ class EventParams {
   }
 
   /**
+   * @return {?boolean}
+   */
+  getIsUserRegistered() {
+    return this.isUserRegistered_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setIsUserRegistered(value) {
+    this.isUserRegistered_ = value;
+  }
+
+  /**
    * @param {boolean} includeLabel
    * @return {!Array<?>}
    * @override
@@ -965,6 +982,7 @@ class EventParams {
         this.hadLogged_, // field 3 - had_logged
         this.sku_, // field 4 - sku
         this.oldTransactionId_, // field 5 - old_transaction_id
+        this.isUserRegistered_, // field 6 - is_user_registered
     ];
     if (includeLabel) {
       arr.unshift(this.label());

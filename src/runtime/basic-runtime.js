@@ -81,7 +81,7 @@ export function installBasicRuntime(win) {
 
   // Automatically set up buttons and auto prompt.
   basicRuntime.setupButtons();
-  basicRuntime.setupAutoPrompt();
+  basicRuntime.setupAndShowAutoPrompt();
 }
 
 /**
@@ -133,19 +133,38 @@ export class BasicRuntime {
   }
   /* eslint-enable no-unused-vars */
 
+  /** @override */
+  setOnEntitlementsResponse(callback) {
+    return this.configured_(false).then((runtime) =>
+      runtime.setOnEntitlementsResponse(callback)
+    );
+  }
+
+  /** @override */
+  setOnPaymentResponse(callback) {
+    return this.configured_(false).then((runtime) =>
+      runtime.setOnPaymentResponse(callback)
+    );
+  }
+
+  /** @override */
+  setupAndShowAutoPrompt(alwaysShow = false) {
+    return this.configured_(true).then((runtime) =>
+      runtime.setupAndShowAutoPrompt(alwaysShow)
+    );
+  }
+
+  /** @override */
+  dismissSwgUI() {
+    return this.configured_(false).then((runtime) => runtime.dismissSwgUI());
+  }
+
   /**
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscriptions' or 'swg-standard-button:contributions'.
    */
   setupButtons() {
     return this.configured_(true).then((runtime) => runtime.setupButtons());
-  }
-
-  /**
-   * Sets up an auto prompt, as configured on the page's structured markup.
-   */
-  setupAutoPrompt() {
-    return this.configured_(true).then((runtime) => runtime.setupAutoPrompt());
   }
 }
 
@@ -175,19 +194,34 @@ export class ConfiguredBasicRuntime {
     // Implemented by the 'BasicRuntime' class.
   }
 
+  /** @override */
+  setOnEntitlementsResponse(callback) {
+    this.configuredClassicRuntime_.setOnEntitlementsResponse(callback);
+  }
+
+  /** @override */
+  setOnPaymentResponse(callback) {
+    this.configuredClassicRuntime_.setOnPaymentResponse(callback);
+  }
+
+  /** @override */
+  /* eslint-disable no-unused-vars */
+  setupAndShowAutoPrompt(alwaysShow = false) {
+    // TODO(stellachui): Implement setup of the auto prompt.
+  }
+  /* eslint-enable no-unused-vars */
+
+  /** @override */
+  dismissSwgUI() {
+    // TODO(stellachui): Implement dismissal of any displayed SwG UI.
+  }
+
   /**
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscriptions' or 'swg-standard-button:contributions'.
    */
   setupButtons() {
     // TODO(stellachui): Implement setup of the buttons.
-  }
-
-  /**
-   * Sets up an auto prompt, as configured on the page's structured markup.
-   */
-  setupAutoPrompt() {
-    // TODO(stellachui): Implement setup of the auto prompt.
   }
 }
 
@@ -199,5 +233,13 @@ export class ConfiguredBasicRuntime {
 function createPublicBasicRuntime(basicRuntime) {
   return /** @type {!BasicSubscriptions} */ ({
     init: basicRuntime.init.bind(basicRuntime),
+    setOnEntitlementsResponse: basicRuntime.setOnEntitlementsResponse(
+      basicRuntime
+    ),
+    setOnPaymentResponse: basicRuntime.setOnPaymentResponse.bind(basicRuntime),
+    setupAndShowAutoPrompt: basicRuntime.setupAndShowAutoPrompt.bind(
+      basicRuntime
+    ),
+    dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
   });
 }
