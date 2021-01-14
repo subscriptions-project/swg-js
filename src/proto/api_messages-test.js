@@ -306,6 +306,7 @@ describe('AnalyticsRequest', () => {
     eventparams.setHadLogged(false);
     eventparams.setSku('');
     eventparams.setOldTransactionId('');
+    eventparams.setIsUserRegistered(false);
     analyticsrequest.setParams(eventparams);
 
     let analyticsrequestDeserialized;
@@ -513,6 +514,7 @@ describe('EventParams', () => {
     eventparams.setHadLogged(false);
     eventparams.setSku('');
     eventparams.setOldTransactionId('');
+    eventparams.setIsUserRegistered(false);
 
     let eventparamsDeserialized;
 
@@ -534,6 +536,8 @@ describe('EventParams', () => {
         eventparams.getSku());
     expect(eventparamsDeserialized.getOldTransactionId()).to.deep.equal(
         eventparams.getOldTransactionId());
+    expect(eventparamsDeserialized.getIsUserRegistered()).to.deep.equal(
+        eventparams.getIsUserRegistered());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -553,6 +557,8 @@ describe('EventParams', () => {
         eventparams.getSku());
     expect(eventparamsDeserialized.getOldTransactionId()).to.deep.equal(
         eventparams.getOldTransactionId());
+    expect(eventparamsDeserialized.getIsUserRegistered()).to.deep.equal(
+        eventparams.getIsUserRegistered());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -571,6 +577,8 @@ describe('EventParams', () => {
         eventparams.getSku());
     expect(eventparamsDeserialized.getOldTransactionId()).to.deep.equal(
         eventparams.getOldTransactionId());
+    expect(eventparamsDeserialized.getIsUserRegistered()).to.deep.equal(
+        eventparams.getIsUserRegistered());
   });
 });
 

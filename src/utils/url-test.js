@@ -19,12 +19,12 @@ import {
   addQueryParam,
   getCanonicalUrl,
   getHostUrl,
-  isGoogleDomain,
   isSecure,
   parseQueryString,
   parseUrl,
   serializeProtoMessageForUrl,
   serializeQueryString,
+  wasReferredByGoogle,
 } from './url';
 
 describe('serializeQueryString', () => {
@@ -280,6 +280,8 @@ describe('addQueryParam', () => {
 describe('serializeProtoMessageForUrl', () => {
   it('should serialize message with experiments in array', () => {
     // Create an AnalyticsRequest, using arrays to represent the message and its submessages.
+    // Note that you may need to update these arrays with a value if you add a new
+    // logging property.
     const analyticsContextArray = [
       'AnalyticsContext',
       'embed',
@@ -302,6 +304,7 @@ describe('serializeProtoMessageForUrl', () => {
       false,
       'sku',
       'othertxid',
+      true,
     ];
     const analyticsRequestArray = [
       'AnalyticsRequest',
@@ -368,19 +371,22 @@ describe('isSecure', () => {
   });
 });
 
-describe('isGoogleDomain', () => {
-  it('first parameter should default to current page', () => {
-    const URL = parseUrl(self.window.location.href);
-    expect(isGoogleDomain(URL)).to.equal(isGoogleDomain());
+describe('wasReferredByGoogle', () => {
+  it("first parameter should default to current page's referrer", () => {
+    expect(wasReferredByGoogle(parseUrl(self.document.referrer))).to.equal(
+      wasReferredByGoogle()
+    );
   });
 
-  it('Google domain should output true', () => {
-    const URL = parseUrl('https://www.google.com');
-    expect(isGoogleDomain(URL)).to.be.true;
+  it('should accept a secure Google referrer', () => {
+    expect(wasReferredByGoogle(parseUrl('https://www.google.com'))).to.be.true;
   });
 
-  it('Other domains should output false', () => {
-    const URL = parseUrl('https://www.gogle.com');
-    expect(isGoogleDomain(URL)).to.be.false;
+  it('should require secure referrer', () => {
+    expect(wasReferredByGoogle(parseUrl('http://www.google.com'))).to.be.false;
+  });
+
+  it('should require a Google referrer', () => {
+    expect(wasReferredByGoogle(parseUrl('https://www.gogle.com'))).to.be.false;
   });
 });

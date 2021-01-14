@@ -41,6 +41,35 @@ export class BasicSubscriptions {
     isPartOfType,
     isPartOfProductId,
     autoPromptType = AutoPromptType.NONE} = {}) {}
+
+  /**
+   * Set the entitlement check callback.
+   * @param {function(!Promise<!Entitlements>)} callback
+   */
+  setOnEntitlementsResponse(callback) {}
+
+  /**
+   * Set the payment complete callback.
+   * @param {function(!Promise<!SubscribeResponse>)} callback
+   */
+  setOnPaymentResponse(callback) {}
+
+  /**
+   * Creates and displays a SwG subscription or contribution prompt, where the
+   * prompt type is determined by the parameters passed in to init. If the auto
+   * prompt is determined to have been already set up, the setup portion of the
+   * function will be skipped, and the prompt will be displayed. The alwaysShow
+   * parameter is an option to force show the prompt, regardless of any display
+   * rules. This parameter is intended for preview purposes.
+   * @param {boolean} alwaysShow
+   */
+  setupAndShowAutoPrompt(alwaysShow = false) {}
+
+  /**
+   * Dismisses any SwG UI currently displayed. Intended to be used for preview
+   * purposes.
+   */
+  dismissSwgUI() {}
 }
 
 /** @enum {string} */

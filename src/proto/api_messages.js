@@ -97,6 +97,7 @@ const AnalyticsEvent = {
   EVENT_NO_ENTITLEMENTS: 3009,
   EVENT_HAS_METERING_ENTITLEMENTS: 3010,
   EVENT_OFFERED_METER: 3011,
+  EVENT_UNLOCKED_FREE_PAGE: 3012,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -107,6 +108,7 @@ const EventOriginator = {
   PROPENSITY_CLIENT: 3,
   SWG_SERVER: 4,
   PUBLISHER_CLIENT: 5,
+  SHOWCASE_CLIENT: 6,
 };
 
 /**
@@ -879,6 +881,9 @@ class EventParams {
 
     /** @private {?string} */
     this.oldTransactionId_ = data[4 + base] == null ? null : data[4 + base];
+
+    /** @private {?boolean} */
+    this.isUserRegistered_ = data[5 + base] == null ? null : data[5 + base];
   }
 
   /**
@@ -952,6 +957,20 @@ class EventParams {
   }
 
   /**
+   * @return {?boolean}
+   */
+  getIsUserRegistered() {
+    return this.isUserRegistered_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setIsUserRegistered(value) {
+    this.isUserRegistered_ = value;
+  }
+
+  /**
    * @param {boolean} includeLabel
    * @return {!Array<?>}
    * @override
@@ -963,6 +982,7 @@ class EventParams {
         this.hadLogged_, // field 3 - had_logged
         this.sku_, // field 4 - sku
         this.oldTransactionId_, // field 5 - old_transaction_id
+        this.isUserRegistered_, // field 6 - is_user_registered
     ];
     if (includeLabel) {
       arr.unshift(this.label());
