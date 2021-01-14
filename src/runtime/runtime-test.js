@@ -24,6 +24,7 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   AnalyticsMode,
   ProductType,
+  PublisherEntitlementEvent,
   ReplaceSkuProrationMode,
   Subscriptions,
 } from '../api/subscriptions';
@@ -42,6 +43,7 @@ import {Entitlement, Entitlements} from '../api/entitlements';
 import {Event} from '../api/logger-api';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {GaaMeteringRegwall} from '../utils/gaa';
 import {GlobalDoc} from '../model/doc';
 import {JsError} from './jserror';
 import {
@@ -66,6 +68,7 @@ import {
   setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
+import {parseUrl} from '../utils/url';
 
 const EDGE_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0)' +
@@ -929,6 +932,21 @@ describes.realWin('Runtime', {}, (env) => {
       const propensityModule = await runtime.getPropensityModule();
       expect(configureStub).to.be.calledOnce.calledWith(true);
       expect(propensityModule).to.equal(propensity);
+    });
+
+    it('should delegate "setShowcaseEntitlement"', async () => {
+      const entitlement = {
+        entitlement:
+          PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
+        isUserRegistered: true,
+      };
+      configuredRuntimeMock
+        .expects('setShowcaseEntitlement')
+        .withExactArgs(entitlement)
+        .once();
+
+      await runtime.setShowcaseEntitlement(entitlement);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
     });
   });
 });
@@ -1872,6 +1890,52 @@ subscribe() method'
       const button = runtime.createButton();
       await button.click();
       expect(count).to.equal(1);
+    });
+
+    describe('setShowcaseEntitlement', () => {
+      const PUB_SITE = 'https://www.publisher.com?';
+      const VALID_QUERY_STRING = 'gaa_at=gaa&gaa_n=n0nc3&gaa_ts=99999';
+      let eventsWereSent;
+      let expectEvents;
+      let url;
+      let referrer;
+
+      beforeEach(() => {
+        url = PUB_SITE + VALID_QUERY_STRING;
+        referrer = 'https://www.google.com';
+
+        eventsWereSent = false;
+        sandbox
+          .stub(ClientEventManager.prototype, 'logSwgEvent')
+          .callsFake(() => (eventsWereSent = true));
+
+        expectEvents = false;
+        runtime.win_ = {};
+      });
+
+      afterEach(() => {
+        GaaMeteringRegwall.location_ = runtime.win_.location = parseUrl(url);
+        runtime.doc_.doc_ = {referrer};
+        runtime.setShowcaseEntitlement({
+          entitlement:
+            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          isUserRegistered: true,
+        });
+
+        expect(expectEvents).to.equal(eventsWereSent);
+      });
+
+      it.only('should retransmit entitlement events', () =>
+        (expectEvents = true));
+
+      // Failures
+      it('should require gaa params', () => (url = PUB_SITE));
+      it('should require https page', () =>
+        (url = 'http://www.publisher.com?' + VALID_QUERY_STRING));
+      it('should require secure Google referrer', () =>
+        (referrer = 'http://www.google.com'));
+      it('should require Google referrer', () =>
+        (referrer = 'https://www.gogle.com'));
     });
   });
 });

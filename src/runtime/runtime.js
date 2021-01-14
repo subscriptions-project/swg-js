@@ -69,6 +69,7 @@ import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {isSecure, wasReferredByGoogle} from '../utils/url';
+import {parseUrl} from '../utils/url';
 import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
 import {setExperiment} from './experiments';
 import {urlContainsFreshGaaParams} from '../utils/gaa';
@@ -1053,8 +1054,8 @@ export class ConfiguredRuntime {
   setShowcaseEntitlement(entitlement) {
     if (
       !entitlement ||
-      !isSecure() ||
-      !wasReferredByGoogle() ||
+      !isSecure(this.win_.location) ||
+      !wasReferredByGoogle(parseUrl(this.doc_.doc_.referrer)) ||
       !urlContainsFreshGaaParams()
     ) {
       return;
