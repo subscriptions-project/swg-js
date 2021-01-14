@@ -187,6 +187,8 @@ describes.realWin('Runtime', {}, (env) => {
   describe('configured', () => {
     let config;
     let configuredBasicRuntime;
+    let configuredBasicRuntimeMock;
+    let configuredClassicRuntimeMock;
 
     beforeEach(() => {
       config = new PageConfig('pub1');
@@ -194,10 +196,79 @@ describes.realWin('Runtime', {}, (env) => {
         new GlobalDoc(win),
         config
       );
+      configuredBasicRuntimeMock = sandbox.mock(configuredBasicRuntime);
+      configuredClassicRuntimeMock = sandbox.mock(
+        configuredBasicRuntime.configuredClassicRuntime()
+      );
+
+      sandbox
+        .stub(basicRuntime, 'configured_')
+        .callsFake(() => Promise.resolve(configuredBasicRuntime));
+    });
+
+    afterEach(() => {
+      configuredBasicRuntimeMock.verify();
+      configuredClassicRuntimeMock.verify();
     });
 
     it('should create a SwG classic ConfiguredRuntime', async () => {
       expect(configuredBasicRuntime.configuredClassicRuntime()).to.exist;
+    });
+
+    it('should delegate "setOnEntitlementsResponse" to ConfiguredBasicRuntime', async () => {
+      const callback = function () {};
+      configuredBasicRuntimeMock
+        .expects('setOnEntitlementsResponse')
+        .withExactArgs(callback)
+        .once();
+
+      await basicRuntime.setOnEntitlementsResponse(callback);
+    });
+
+    it('should delegate "setOnEntitlementsResponse" to the shared ConfiguredRuntime', async () => {
+      const callback = function () {};
+      configuredClassicRuntimeMock
+        .expects('setOnEntitlementsResponse')
+        .withExactArgs(callback)
+        .once();
+
+      await basicRuntime.setOnEntitlementsResponse(callback);
+    });
+
+    it('should delegate "setOnPaymentResponse" to ConfiguredBasicRuntime', async () => {
+      const callback = function () {};
+      configuredBasicRuntimeMock
+        .expects('setOnPaymentResponse')
+        .withExactArgs(callback)
+        .once();
+
+      await basicRuntime.setOnPaymentResponse(callback);
+    });
+
+    it('should delegate "setOnPaymentResponse" to ConfiguredRuntime', async () => {
+      const callback = function () {};
+      configuredClassicRuntimeMock
+        .expects('setOnPaymentResponse')
+        .withExactArgs(callback)
+        .once();
+
+      await basicRuntime.setOnPaymentResponse(callback);
+    });
+
+    it('should delegate "setupAndShowAutoPrompt"', async () => {
+      const alwaysShow = true;
+      configuredBasicRuntimeMock
+        .expects('setupAndShowAutoPrompt')
+        .withExactArgs(alwaysShow)
+        .once();
+
+      await basicRuntime.setupAndShowAutoPrompt(alwaysShow);
+    });
+
+    it('should delegate "dismissSwgUI"', async () => {
+      configuredBasicRuntimeMock.expects('dismissSwgUI').once();
+
+      await basicRuntime.dismissSwgUI();
     });
   });
 });
