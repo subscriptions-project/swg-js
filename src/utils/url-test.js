@@ -298,7 +298,7 @@ describe('serializeProtoMessageForUrl', () => {
     ['AnalyticsEventMeta', 1, true],
     ['EventParams', 'smartbox', 'gpay', true, 'sku', 'othertxid', true],
   ];
-
+    
   function testSerialization(constructor, testMessage) {
     // Serialize and deserialize the message.
     const deserializedMessage = new constructor(
