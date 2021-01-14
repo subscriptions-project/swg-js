@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import {AnalyticsRequest} from '../proto/api_messages';
+import {
+  AnalyticsContext,
+  AnalyticsEventMeta,
+  AnalyticsRequest,
+} from '../proto/api_messages';
 import {
   addQueryParam,
   getCanonicalUrl,
@@ -278,11 +282,9 @@ describe('addQueryParam', () => {
 });
 
 describe('serializeProtoMessageForUrl', () => {
-  it('should serialize message with experiments in array', () => {
-    // Create an AnalyticsRequest, using arrays to represent the message and its submessages.
-    // Note that you may need to update these arrays with a value if you add a new
-    // logging property.
-    const analyticsContextArray = [
+  const DEFAULT_ANALYTICS_REQUEST_ARRAY = [
+    'AnalyticsRequest',
+    [
       'AnalyticsContext',
       'embed',
       'tx',
@@ -292,46 +294,51 @@ describe('serializeProtoMessageForUrl', () => {
       'utmM',
       'sku',
       true,
-      ['exp1', 'exp2'],
+      ['label1', 'experiment2'],
       'version',
       'baseUrl',
-    ];
-    const analyticsEventMetaArray = ['AnalyticsEventMeta', 1, true];
-    const eventParamsArray = [
-      'EventParams',
-      'smartbox',
-      'gpay',
-      false,
-      'sku',
-      'othertxid',
-      true,
-    ];
-    const analyticsRequestArray = [
-      'AnalyticsRequest',
-      analyticsContextArray,
-      11,
-      analyticsEventMetaArray,
-      eventParamsArray,
-    ];
-    const analyticsRequest = new AnalyticsRequest(analyticsRequestArray);
+    ],
+    11,
+    ['AnalyticsEventMeta', 1, true],
+    ['EventParams', 'smartbox', 'gpay', true, 'sku', 'othertxid', true],
+  ];
 
-    // Serialize and deserialize the AnalyticsRequest.
-    const serializedAnalyticsRequest = serializeProtoMessageForUrl(
-      analyticsRequest
-    );
-    const deserializedAnalyticsRequestArray = JSON.parse(
-      serializedAnalyticsRequest
+  function testSerialization(constructor, testMessage) {
+    // Serialize and deserialize the message.
+    const deserializedMessage = new constructor(
+      JSON.parse(serializeProtoMessageForUrl(testMessage)),
+      false
     );
 
-    // Add back the labels that were removed during serialization.
-    // After doing so, the deserialized array should match the original array.
-    deserializedAnalyticsRequestArray.unshift('AnalyticsRequest');
-    deserializedAnalyticsRequestArray[1].unshift('AnalyticsContext');
-    deserializedAnalyticsRequestArray[3].unshift('AnalyticsEventMeta');
-    deserializedAnalyticsRequestArray[4].unshift('EventParams');
-    expect(deserializedAnalyticsRequestArray).to.deep.equal(
-      analyticsRequestArray
-    );
+    // Clean up the message by internally converting it to an array and back into a message
+    // this standardizes different ways values could have been set.
+    const cleanupInput = new constructor(testMessage.toArray(false), false);
+    // Ensure both values are equal
+    expect(deserializedMessage).to.deep.equal(cleanupInput);
+  }
+
+  it('should serialize message', () =>
+    testSerialization(
+      AnalyticsRequest,
+      new AnalyticsRequest(DEFAULT_ANALYTICS_REQUEST_ARRAY)
+    ));
+
+  it('should serialize empty values', () => {
+    const message = new AnalyticsRequest(DEFAULT_ANALYTICS_REQUEST_ARRAY);
+    message.setContext(new AnalyticsContext());
+    testSerialization(AnalyticsRequest, message);
+  });
+
+  it('should serialize false boolean', () => {
+    const message = new AnalyticsRequest(DEFAULT_ANALYTICS_REQUEST_ARRAY);
+    message.getContext().setReadyToPay(false);
+    testSerialization(AnalyticsRequest, message);
+  });
+
+  it('should serialize empty string', () => {
+    const message = new AnalyticsRequest(DEFAULT_ANALYTICS_REQUEST_ARRAY);
+    message.getContext().setSku('');
+    testSerialization(AnalyticsRequest, message);
   });
 });
 
