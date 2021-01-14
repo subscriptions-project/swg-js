@@ -55,11 +55,4 @@ export const ExperimentFlags = {
    *  changed from '<uuid>' to '<uuid>.swg'.
    */
   UPDATE_GOOGLE_TRANSACTION_ID: 'update-google-transaction-id',
-
-  /**
-   * Enables PayClient to be instantiated within start() instead of upon instantiation.
-   * Also moves google preconnects to Runtime from PayClient, and runs Pay
-   * preloads upon start() instead of within the ctor.
-   */
-  PAY_CLIENT_LAZYLOAD: 'pay-client-lazyload',
 };
