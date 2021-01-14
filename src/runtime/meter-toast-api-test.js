@@ -231,10 +231,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
       );
     await win.dispatchEvent(new Event('scroll'));
     expect(onConsumeCallbackFake).to.not.be.called;
-    win.pageYOffset = 10;
+    win./*REVIEW*/pageYOffset = 10;
     await win.dispatchEvent(new Event('scroll'));
     expect(onConsumeCallbackFake).to.not.be.called;
-    win.pageYOffset = 200;
+    win./*REVIEW*/pageYOffset = 200;
     await win.dispatchEvent(new Event('scroll'));
     expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
     expect(onConsumeCallbackFake).to.be.calledOnce;
