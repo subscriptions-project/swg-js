@@ -19,10 +19,12 @@ import {
   addQueryParam,
   getCanonicalUrl,
   getHostUrl,
+  isSecure,
   parseQueryString,
   parseUrl,
   serializeProtoMessageForUrl,
   serializeQueryString,
+  wasReferredByGoogle,
 } from './url';
 
 describe('serializeQueryString', () => {
@@ -346,5 +348,42 @@ describe('getCanonicalUrl', () => {
     };
     expect(getCanonicalUrl(FAKE_DOC)).to.equal(url);
     expect(pageQuery).to.equal("link[rel='canonical']");
+  });
+});
+
+describe('isSecure', () => {
+  it('first parameter should default to current page', () => {
+    const URL = parseUrl(self.window.location.href);
+    expect(isSecure(URL)).to.equal(isSecure());
+  });
+
+  it('HTTPS protocol should output true', () => {
+    const URL = parseUrl('https://www.any.com');
+    expect(isSecure(URL)).to.be.true;
+  });
+
+  it('HTTP protocol should output false', () => {
+    const URL = parseUrl('http://www.any.com');
+    expect(isSecure(URL)).to.be.false;
+  });
+});
+
+describe('wasReferredByGoogle', () => {
+  it("first parameter should default to current page's referrer", () => {
+    expect(wasReferredByGoogle(parseUrl(self.document.referrer))).to.equal(
+      wasReferredByGoogle()
+    );
+  });
+
+  it('should accept a secure Google referrer', () => {
+    expect(wasReferredByGoogle(parseUrl('https://www.google.com'))).to.be.true;
+  });
+
+  it('should require secure referrer', () => {
+    expect(wasReferredByGoogle(parseUrl('http://www.google.com'))).to.be.false;
+  });
+
+  it('should require a Google referrer', () => {
+    expect(wasReferredByGoogle(parseUrl('https://www.gogle.com'))).to.be.false;
   });
 });
