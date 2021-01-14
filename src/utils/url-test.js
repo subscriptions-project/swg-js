@@ -280,6 +280,8 @@ describe('addQueryParam', () => {
 describe('serializeProtoMessageForUrl', () => {
   it('should serialize message with experiments in array', () => {
     // Create an AnalyticsRequest, using arrays to represent the message and its submessages.
+    // Note that you may need to update these arrays with a value if you add a new
+    // logging property.
     const analyticsContextArray = [
       'AnalyticsContext',
       'embed',
@@ -302,6 +304,7 @@ describe('serializeProtoMessageForUrl', () => {
       false,
       'sku',
       'othertxid',
+      true,
     ];
     const analyticsRequestArray = [
       'AnalyticsRequest',
