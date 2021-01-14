@@ -770,6 +770,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       manager.consume_(ents);
     });
 
+    it('getShowToastFromEntitlements_ should return undefined on no metering entitlements', async () => {
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [new Entitlement('notgoogle', ['product1', 'product2'], 'token1')],
+        'product1'
+      );
+      expect(manager.getShowToastFromEntitlements_(ents)).to.equal(undefined);
+    });
+
     it('should send pingback with metering entitlements', async () => {
       xhrMock
         .expects('fetch')
