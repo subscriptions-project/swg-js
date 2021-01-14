@@ -292,6 +292,33 @@ let GaaUserDef;
  */
 let GoogleUserDef;
 
+/**
+ * Returns true if the URL contains fresh Google Article Access (GAA) params.
+ * @return {boolean}
+ */
+export function urlContainsFreshGaaParams() {
+  const params = parseQueryString(GaaMeteringRegwall.location_.search);
+
+  // Verify GAA params exist.
+  if (
+    !params['gaa_at'] ||
+    !params['gaa_n'] ||
+    !params['gaa_sig'] ||
+    !params['gaa_ts']
+  ) {
+    return false;
+  }
+
+  // Verify timestamp isn't stale.
+  const expirationTimestamp = parseInt(params['gaa_ts'], 16);
+  const currentTimestamp = Date.now() / 1000;
+  if (expirationTimestamp < currentTimestamp) {
+    return false;
+  }
+
+  return true;
+}
+
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
   /**
@@ -305,7 +332,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl}) {
-    if (!GaaMeteringRegwall.urlContainsFreshGaaParams_()) {
+    if (!urlContainsFreshGaaParams()) {
       const errorMessage =
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
       warn(errorMessage);
@@ -490,34 +517,6 @@ export class GaaMeteringRegwall {
     if (regwallContainer) {
       regwallContainer.remove();
     }
-  }
-
-  /**
-   * Returns true if the URL contains fresh Google Article Access (GAA) params.
-   * @private
-   * @return {boolean}
-   */
-  static urlContainsFreshGaaParams_() {
-    const params = parseQueryString(GaaMeteringRegwall.location_.search);
-
-    // Verify GAA params exist.
-    if (
-      !params['gaa_at'] ||
-      !params['gaa_n'] ||
-      !params['gaa_sig'] ||
-      !params['gaa_ts']
-    ) {
-      return false;
-    }
-
-    // Verify timestamp isn't stale.
-    const expirationTimestamp = parseInt(params['gaa_ts'], 16);
-    const currentTimestamp = Date.now() / 1000;
-    if (expirationTimestamp < currentTimestamp) {
-      return false;
-    }
-
-    return true;
   }
 }
 

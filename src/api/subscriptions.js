@@ -316,7 +316,7 @@ export const PublisherEntitlementEvent = {
 * - isUserRegistered: Is the user registered currently?
 * - entitlement: Publisher entitlement event type.
 *  @typedef {{
-*    isUserRegister:  !boolean,
+*    isUserRegistered:  !boolean,
 *    entitlement: !PublisherEntitlementEvent,
 * }}
 */

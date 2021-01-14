@@ -635,11 +635,110 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(ents.enablesThis()).to.be.true;
     });
 
-    it('should open metering dialog when metering entitlements are consumed', () => {
+    it('should open metering dialog when metering entitlements are consumed and showToast is not provided', () => {
       dialogManagerMock
-        .expects('openView')
+        .expects('openDialog')
         .once()
         .returns(Promise.resolve(null));
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('token1')
+        .returns({
+          metering: {
+            ownerId: 'scenic-2017.appspot.com',
+            action: 'READ',
+            clientUserAttribute: 'standard_registered_user',
+          },
+        });
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+
+      manager.consume_(ents);
+    });
+
+    it('should open metering dialog when metering entitlements are consumed and signJwt throws', () => {
+      dialogManagerMock
+        .expects('openDialog')
+        .once()
+        .returns(Promise.resolve(null));
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('token1')
+        .throws(new Error('parsing failed'));
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+
+      manager.consume_(ents);
+    });
+
+    it('should open metering dialog when metering entitlements are consumed and showToast is true', () => {
+      dialogManagerMock
+        .expects('openDialog')
+        .once()
+        .returns(Promise.resolve(null));
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('token1')
+        .returns({
+          metering: {
+            ownerId: 'scenic-2017.appspot.com',
+            action: 'READ',
+            clientUserAttribute: 'standard_registered_user',
+            showToast: true,
+          },
+        });
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+
+      manager.consume_(ents);
+    });
+
+    it('should not open metering dialog when metering entitlements are consumed and showToast is false', () => {
+      dialogManagerMock.expects('openDialog').never();
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('token1')
+        .returns({
+          metering: {
+            ownerId: 'scenic-2017.appspot.com',
+            action: 'READ',
+            clientUserAttribute: 'standard_registered_user',
+            showToast: false,
+          },
+        });
 
       const ents = new Entitlements(
         'service1',
@@ -669,6 +768,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       eventManagerMock.expects('logSwgEvent').never();
       manager.consume_(ents);
+    });
+
+    it('getShowToastFromEntitlements_ should return undefined on no metering entitlements', async () => {
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [new Entitlement('notgoogle', ['product1', 'product2'], 'token1')],
+        'product1'
+      );
+      expect(manager.getShowToastFromEntitlements_(ents)).to.equal(undefined);
     });
 
     it('should send pingback with metering entitlements', async () => {
