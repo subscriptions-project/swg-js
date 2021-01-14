@@ -39,6 +39,7 @@ import {
 import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
+import {MeterRegwallApi} from './meter-regwall-api';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
 import {
@@ -251,6 +252,9 @@ export class Runtime {
   init(productOrPublicationId) {
     assert(!this.committed_, 'already configured');
     this.productOrPublicationId_ = productOrPublicationId;
+
+    // Process the page's config.
+    this.configured_(true);
   }
 
   /** @override */
@@ -276,9 +280,9 @@ export class Runtime {
   }
 
   /** @override */
-  getEntitlements(encryptedDocumentKey) {
+  getEntitlements(params) {
     return this.configured_(true).then((runtime) =>
-      runtime.getEntitlements(encryptedDocumentKey)
+      runtime.getEntitlements(params)
     );
   }
 
@@ -333,6 +337,13 @@ export class Runtime {
   waitForSubscriptionLookup(accountPromise) {
     return this.configured_(true).then((runtime) =>
       runtime.waitForSubscriptionLookup(accountPromise)
+    );
+  }
+
+  /** @override */
+  showMeterRegwall(params) {
+    return this.configured_(true).then((runtime) =>
+      runtime.showMeterRegwall(params)
     );
   }
 
@@ -394,6 +405,13 @@ export class Runtime {
   setOnLoginRequest(callback) {
     return this.configured_(false).then((runtime) =>
       runtime.setOnLoginRequest(callback)
+    );
+  }
+
+  /** @override */
+  triggerLoginRequest(request) {
+    return this.configured_(false).then((runtime) =>
+      runtime.triggerLoginRequest(request)
     );
   }
 
@@ -473,6 +491,16 @@ export class Runtime {
   /** @override */
   getLogger() {
     return this.configured_(true).then((runtime) => runtime.getLogger());
+  }
+
+  /** @override */
+  getEventManager() {
+    return this.configured_(true).then((runtime) => runtime.getEventManager());
+  }
+
+  /** @override */
+  setShowcaseEntitlement(unusedEntitlement) {
+    // TODO
   }
 }
 
@@ -738,9 +766,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getEntitlements(encryptedDocumentKey) {
+  getEntitlements(params) {
     return this.entitlementsManager_
-      .getEntitlements(encryptedDocumentKey)
+      .getEntitlements(params)
       .then((entitlements) => {
         // Auto update internal things tracking the user's current SKU.
         if (entitlements) {
@@ -829,8 +857,21 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  showMeterRegwall(meterRegwallArgs) {
+    return this.documentParsed_.then(() => {
+      const wait = new MeterRegwallApi(this, meterRegwallArgs);
+      return wait.start();
+    });
+  }
+
+  /** @override */
   setOnLoginRequest(callback) {
     this.callbacks_.setOnLoginRequest(callback);
+  }
+
+  /** @override */
+  triggerLoginRequest(request) {
+    this.callbacks_.triggerLoginRequest(request);
   }
 
   /** @override */
@@ -979,16 +1020,29 @@ export class ConfiguredRuntime {
     return Promise.resolve(this.propensityModule_);
   }
 
-  /** @override
+  /**
+   * This one exists as an internal helper so SwG logging doesn't require a promise.
    * @return {!ClientEventManager}
    */
   eventManager() {
     return this.eventManager_;
   }
 
+  /**
+   * This one exists as a public API so publishers can subscribe to SwG events.
+   * @override */
+  getEventManager() {
+    return Promise.resolve(this.eventManager_);
+  }
+
   /** @override */
   getLogger() {
     return Promise.resolve(this.logger_);
+  }
+
+  /** @override */
+  setShowcaseEntitlement(unusedEntitlement) {
+    // TODO
   }
 }
 
@@ -1011,6 +1065,7 @@ function createPublicRuntime(runtime) {
     showOffers: runtime.showOffers.bind(runtime),
     showUpdateOffers: runtime.showUpdateOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
+    showMeterRegwall: runtime.showMeterRegwall.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
     waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),
@@ -1022,6 +1077,7 @@ function createPublicRuntime(runtime) {
     ),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
     setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
+    triggerLoginRequest: runtime.triggerLoginRequest.bind(runtime),
     setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
     setOnNativeSubscribeRequest: runtime.setOnNativeSubscribeRequest.bind(
       runtime
@@ -1037,6 +1093,8 @@ function createPublicRuntime(runtime) {
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
     getPropensityModule: runtime.getPropensityModule.bind(runtime),
     getLogger: runtime.getLogger.bind(runtime),
+    getEventManager: runtime.getEventManager.bind(runtime),
+    setShowcaseEntitlement: runtime.setShowcaseEntitlement.bind(runtime),
   });
 }
 

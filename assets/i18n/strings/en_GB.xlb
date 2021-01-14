@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="en-GB">
+<messages>
+
+
+
+
+<msg hidden="0" name="GAA_REGWALL_TITLE" xml:space="default">Get more with Google</msg>
+<msg hidden="0" name="GAA_REGWALL_DESCRIPTION" xml:space="default"><strong></strong>This content usually requires payment, but Google is giving you free access to this article and more when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google Account.</msg>
+<msg hidden="0" name="GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON" xml:space="default">Already have an account?</msg>
+
+
+
+</messages>
+</localizationbundle>

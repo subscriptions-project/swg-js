@@ -52,6 +52,7 @@ import {
 import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
+import {MeterRegwallApi} from './meter-regwall-api';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PayClient} from './pay-client';
@@ -413,6 +414,13 @@ describes.realWin('Runtime', {}, (env) => {
       expect(cr.pageConfig().isLocked()).to.be.false;
     });
 
+    it('should allow `configured_(false)` calls to resolve', async () => {
+      runtime.init('pub3');
+
+      // This should resolve.
+      await runtime.configured_(false);
+    });
+
     it('should not force initialization without commit', () => {
       runtime.configured_(false);
       expect(resolveStub).to.not.be.called;
@@ -558,7 +566,9 @@ describes.realWin('Runtime', {}, (env) => {
         .expects('getEntitlements')
         .returns(Promise.resolve(ents));
 
-      const value = await runtime.getEntitlements(encryptedDocumentKey);
+      const value = await runtime.getEntitlements({
+        encryption: {encryptedDocumentKey},
+      });
       expect(value).to.equal(ents);
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
@@ -752,6 +762,17 @@ describes.realWin('Runtime', {}, (env) => {
       expect(configureStub).to.be.calledOnce.calledWith(false);
     });
 
+    it('should trigger "triggerLoginRequest"', async () => {
+      const request = {linkRequested: false};
+      configuredRuntimeMock
+        .expects('triggerLoginRequest')
+        .withExactArgs(request)
+        .once();
+
+      await runtime.triggerLoginRequest(request);
+      expect(configureStub).to.be.calledOnce.calledWith(false);
+    });
+
     it('should delegate "setOnLinkComplete"', async () => {
       const callback = function () {};
       configuredRuntimeMock
@@ -843,6 +864,16 @@ describes.realWin('Runtime', {}, (env) => {
         .returns(Promise.resolve());
 
       await runtime.waitForSubscriptionLookup();
+      expect(configureStub).to.be.calledOnce;
+    });
+
+    it('should delegate "showMeterRegwall"', async () => {
+      configuredRuntimeMock
+        .expects('showMeterRegwall')
+        .once()
+        .returns(Promise.resolve());
+
+      await runtime.showMeterRegwall();
       expect(configureStub).to.be.calledOnce;
     });
 
@@ -1528,12 +1559,7 @@ new subscribers. Use the showOffers() method instead.'
       const startStub = sandbox
         .stub(LinkCompleteFlow.prototype, 'start')
         .callsFake(() => Promise.resolve());
-      await returnActivity(
-        'swg-link',
-        ActivityResultCode.OK,
-        {},
-        location.origin
-      );
+      await returnActivity('swg-link', ActivityResultCode.OK, {}, '$frontend$');
       expect(startStub).to.be.calledOnce;
     });
 
@@ -1729,6 +1755,19 @@ subscribe() method'
       const result = await runtime.waitForSubscriptionLookup(accountPromise);
       expect(startSpy).to.be.calledOnce;
       expect(result).to.equal(accountResult);
+    });
+
+    it('should start MeterRegwallApi', async () => {
+      const args = {
+        gsiUrl: 'gsi.com',
+        alreadyRegisteredUrl: 'alreadyregistered.com',
+      };
+      const startStub = sandbox
+        .stub(MeterRegwallApi.prototype, 'start')
+        .callsFake(() => Promise.resolve());
+
+      await runtime.showMeterRegwall(args);
+      expect(startStub).to.be.calledOnce;
     });
 
     it('should directly call "attachButton"', () => {

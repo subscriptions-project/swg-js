@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PR Release Checker</title>
+  </head>
+  <body>
+    <script>
+      // Get released SwG version from console logs.
+      self.swgVersion = '?';
+      const logBackup = self.console.log;
+      self.console.log = (msg) => {
+        logBackup(msg);
+        if (msg && msg.match) {
+          const match = msg.match(/Subscriptions Runtime: (0\.1\..+)/);
+          if (match) {
+            self.swgVersion = match[1];
+            self.console.log = logBackup;
+          }
+        }
+      };
+    </script>
+    <script src="https://news.google.com/swg/js/v1/swg.js"></script>
+    <script src="https://cdn.ampproject.org/v0/amp-subscriptions-google-0.1.js"></script>
+
+    <title>PR release checker</title>
+    <h3>PR release checker</h3>
+
+    <form>
+      <input autofocus type="number" placeholder="Add PR # here" />
+      <button>Check</button>
+    </form>
+
+    <div class="status"></div>
+
+    <script src="./pr-release-checker.js"></script>
+  </body>
+</html>

@@ -94,6 +94,16 @@
   },
   "overrides": [
     {
+      "files": ["assets/i18n/strings/*.js"],
+      "globals": {
+        "__dirname": false,
+        "require": false
+      },
+      "rules": {
+        "swg-internal/no-for-of-statement": 0
+      }
+    },
+    {
       "files": ["test/e2e/*.js", "test/e2e/**/*.js"],
       "globals": {
         "module": false,

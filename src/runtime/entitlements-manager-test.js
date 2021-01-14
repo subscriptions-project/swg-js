@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
+import {ActivityPorts} from '../components/activities';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
 import {ClientEventManager} from './client-event-manager';
 import {DepsDef} from './deps';
+import {DialogManager} from '../components/dialog-manager';
+import {
+  Entitlement,
+  Entitlements,
+  GOOGLE_METERING_SOURCE,
+} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
@@ -37,45 +45,65 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   let callbacks;
   let storageMock;
   let config;
+  let activitiesMock;
   let analyticsMock;
   let deps;
   let encryptedDocumentKey;
+  let dialogManager;
+  let dialogManagerMock;
+  let eventManager;
+  let eventManagerMock;
 
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig('pub1:label1');
     fetcher = new XhrFetcher(win);
-    const eventManager = new ClientEventManager(Promise.resolve());
+    eventManager = new ClientEventManager(Promise.resolve());
+    eventManagerMock = sandbox.mock(eventManager);
+
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
     deps = new DepsDef();
-    sandbox.stub(deps, 'win').callsFake(() => win);
+    sandbox.stub(deps, 'win').returns(win);
     const globalDoc = new GlobalDoc(win);
-    sandbox.stub(deps, 'doc').callsFake(() => globalDoc);
+    sandbox.stub(deps, 'doc').returns(globalDoc);
     callbacks = new Callbacks();
-    sandbox.stub(deps, 'callbacks').callsFake(() => callbacks);
+    sandbox.stub(deps, 'callbacks').returns(callbacks);
     const storage = new Storage(win);
     storageMock = sandbox.mock(storage);
-    sandbox.stub(deps, 'storage').callsFake(() => storage);
-    sandbox.stub(deps, 'pageConfig').callsFake(() => pageConfig);
-    sandbox.stub(deps, 'config').callsFake(() => config);
-    sandbox.stub(deps, 'eventManager').callsFake(() => eventManager);
+    dialogManager = new DialogManager(new GlobalDoc(win));
+    dialogManagerMock = sandbox.mock(dialogManager);
+    sandbox.stub(deps, 'storage').returns(storage);
+    sandbox.stub(deps, 'pageConfig').returns(pageConfig);
+    sandbox.stub(deps, 'config').returns(config);
+    sandbox.stub(deps, 'eventManager').returns(eventManager);
+    sandbox.stub(deps, 'dialogManager').returns(dialogManager);
     const analyticsService = new AnalyticsService(deps);
     analyticsMock = sandbox.mock(analyticsService);
-    sandbox.stub(deps, 'analytics').callsFake(() => analyticsService);
+    sandbox.stub(deps, 'analytics').returns(analyticsService);
+    const activityPorts = new ActivityPorts(deps);
+    activitiesMock = sandbox.mock(activityPorts);
+    sandbox.stub(deps, 'activities').returns(activityPorts);
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
     encryptedDocumentKey =
       '{"accessRequirements": ' +
       '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}';
+
+    sandbox.stub(self.console, 'warn');
+    sandbox.stub(Date, 'now').returns(1600389016959);
   });
 
   afterEach(() => {
     storageMock.verify();
     xhrMock.verify();
     jwtHelperMock.verify();
+    activitiesMock.verify();
     analyticsMock.verify();
+    dialogManagerMock.verify();
+    eventManagerMock.verify();
+    self.console.warn.restore();
   });
 
   function expectNoResponse() {
@@ -159,6 +187,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     return resp;
   }
 
+  function expectLog(event, isUserGenerated) {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(event, isUserGenerated)
+      .returns(null)
+      .once();
+  }
+
   describe('fetching', () => {
     beforeEach(() => {
       // Expect empty cache.
@@ -195,6 +231,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             json: () => Promise.resolve({}),
           })
         );
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
 
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
@@ -222,7 +260,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         );
 
-      const ents = await manager.getEntitlements(encryptedDocumentKey);
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+
+      const ents = await manager.getEntitlements({
+        encryption: {encryptedDocumentKey},
+      });
       expect(ents.service).to.equal('subscribe.google.com');
       expect(ents.raw).to.equal('');
       expect(ents.entitlements).to.deep.equal([]);
@@ -261,6 +304,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         );
 
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.equal('ddk1');
     });
@@ -294,6 +340,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
               }),
           })
         );
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.be.null;
@@ -327,6 +375,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
               }),
           })
         );
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
 
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
@@ -338,6 +388,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           subscriptionToken: 'token1',
         },
       ]);
+
       expect(ents.enablesThis()).to.be.true;
     });
 
@@ -350,8 +401,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .once();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
 
       await manager.getEntitlements();
+
       await manager.getEntitlements();
     });
 
@@ -365,7 +419,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .twice();
 
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+
       await manager.getEntitlements();
+
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+
       manager.reset();
       await manager.getEntitlements();
     });
@@ -486,9 +547,15 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .twice();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
 
       await manager.getEntitlements();
+
       manager.clear();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+
       await manager.getEntitlements();
     });
 
@@ -507,6 +574,304 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(manager.positiveRetries_).to.equal(0);
       expect(manager.blockNextNotification_).to.be.false;
       expect(manager.responsePromise_).to.be.null;
+    });
+
+    it('should fetch metering entitlements', async () => {
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('SIGNED_DATA')
+        .returns({
+          entitlements: {
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+            source: 'google:metering',
+          },
+        });
+      const encodedParams = btoa(
+        '{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[{"name":"standard_att1","timestamp":1234567},{"name":"custom_att2","timestamp":1234567}]}}}'
+      );
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${encodedParams}`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            json: () =>
+              Promise.resolve({
+                signedEntitlements: 'SIGNED_DATA',
+              }),
+          })
+        );
+
+      // Toast shouldn't open.
+      storageMock.expects('get').withExactArgs('toast').never();
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS, false);
+
+      const ents = await manager.getEntitlements({
+        metering: {
+          state: {
+            id: 'u1',
+            standardAttributes: {'att1': {timestamp: 1234567}},
+            customAttributes: {'att2': {timestamp: 1234567}},
+          },
+        },
+      });
+      expect(ents.service).to.equal('subscribe.google.com');
+      expect(ents.raw).to.equal('SIGNED_DATA');
+      expect(ents.entitlements).to.deep.equal([
+        {
+          source: 'google:metering',
+          products: ['pub1:label1'],
+          subscriptionToken: 'token1',
+        },
+      ]);
+      expect(ents.enablesThis()).to.be.true;
+    });
+
+    it('should open metering dialog when metering entitlements are consumed and showToast is not provided', () => {
+      dialogManagerMock
+        .expects('openDialog')
+        .once()
+        .returns(Promise.resolve(null));
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('token1')
+        .returns({
+          metering: {
+            ownerId: 'scenic-2017.appspot.com',
+            action: 'READ',
+            clientUserAttribute: 'standard_registered_user',
+          },
+        });
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+
+      manager.consume_(ents);
+    });
+
+    it('should open metering dialog when metering entitlements are consumed and signJwt throws', () => {
+      dialogManagerMock
+        .expects('openDialog')
+        .once()
+        .returns(Promise.resolve(null));
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('token1')
+        .throws(new Error('parsing failed'));
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+
+      manager.consume_(ents);
+    });
+
+    it('should open metering dialog when metering entitlements are consumed and showToast is true', () => {
+      dialogManagerMock
+        .expects('openDialog')
+        .once()
+        .returns(Promise.resolve(null));
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('token1')
+        .returns({
+          metering: {
+            ownerId: 'scenic-2017.appspot.com',
+            action: 'READ',
+            clientUserAttribute: 'standard_registered_user',
+            showToast: true,
+          },
+        });
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+
+      manager.consume_(ents);
+    });
+
+    it('should not open metering dialog when metering entitlements are consumed and showToast is false', () => {
+      dialogManagerMock.expects('openDialog').never();
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('token1')
+        .returns({
+          metering: {
+            ownerId: 'scenic-2017.appspot.com',
+            action: 'READ',
+            clientUserAttribute: 'standard_registered_user',
+            showToast: false,
+          },
+        });
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+
+      manager.consume_(ents);
+    });
+
+    it('should not open metering dialog when non-metering entitlements are consumed', () => {
+      dialogManagerMock.expects('openView').never();
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [new Entitlement('google', ['product1', 'product2'], 'token1')],
+        'product1'
+      );
+
+      eventManagerMock.expects('logSwgEvent').never();
+      manager.consume_(ents);
+    });
+
+    it('getShowToastFromEntitlements_ should return undefined on no metering entitlements', async () => {
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [new Entitlement('notgoogle', ['product1', 'product2'], 'token1')],
+        'product1'
+      );
+      expect(manager.getShowToastFromEntitlements_(ents)).to.equal(undefined);
+    });
+
+    it('should send pingback with metering entitlements', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+          {
+            body: 'f.req=[["token1","google:metering"],[1600389016,959000000]]',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            },
+            method: 'POST',
+          }
+        )
+        .returns(Promise.resolve());
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
+      await manager.sendPingback_(ents);
+    });
+
+    it('should not send pingback with non-metering entitlements', async () => {
+      xhrMock.expects('fetch').never();
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [new Entitlement('source1', ['product1', 'product2'], 'token1')],
+        'product1'
+      );
+      eventManagerMock.expects('logSwgEvent').never();
+      await manager.sendPingback_(ents);
+    });
+
+    it('should log error messages', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            json: () =>
+              Promise.resolve({
+                errorMessages: ['Something went wrong'],
+              }),
+          })
+        );
+
+      await manager.getEntitlements();
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        'SwG Entitlements: Something went wrong'
+      );
+    });
+
+    it('should warn users about deprecated param', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=deprecated',
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            json: () => Promise.resolve({}),
+          })
+        );
+
+      await manager.getEntitlements('deprecated');
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        '[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParamsExternalDef.'
+      );
     });
   });
 

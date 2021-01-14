@@ -310,9 +310,9 @@ ul.related p {
     viewer.sendMessageAwaitResponse('auth', {
       'publicationId': '<% publicationId %>',
       'product': '<% publicationId %>:news'
-    }).then(function(response) {
+    }).then((response) => {
       showMessage(true, response['authorization']);
-    }, function(reason) {
+    }, (reason) => {
       showMessage(false, reason);
     });
   }

@@ -311,6 +311,35 @@ describes.realWin('PageConfigResolver', {}, (env) => {
       readyState = 'complete';
       expect(new PageConfigResolver(gd).check().isLocked()).to.be.true;
     });
+
+    it('should handle top level array of objects', () => {
+      const productId = 'pub1:basic';
+
+      schema = [
+        {
+          '@context': 'http://schema.org',
+          '@type': 'ImageObject',
+          'contentUrl': 'testurl.com/',
+          'name': 'Test Image',
+        },
+        {
+          '@context': 'http://schema.org',
+          '@type': 'NewsArticle',
+          'isAccessibleForFree': 'False',
+          'isPartOf': {
+            '@type': ['CreativeWork', 'Product'],
+            'name': 'The Times Journal',
+            'productID': productId,
+          },
+        },
+      ];
+
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(gd).check().getProductId()).to.equal(
+        productId
+      );
+    });
   });
 
   describe('parse microdata', () => {
