@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  AnalyticsContext,
-  AnalyticsEventMeta,
-  AnalyticsRequest,
-} from '../proto/api_messages';
+import {AnalyticsContext, AnalyticsRequest} from '../proto/api_messages';
 import {
   addQueryParam,
   getCanonicalUrl,
