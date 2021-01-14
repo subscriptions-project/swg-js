@@ -16,7 +16,11 @@
 
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
 import {AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
@@ -64,9 +68,10 @@ import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
-import {isGaa} from '../utils/gaa';
+import {isSecure, wasReferredByGoogle} from '../utils/url';
 import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
 import {setExperiment} from './experiments';
+import {urlContainsFreshGaaParams} from '../utils/gaa';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -1046,18 +1051,26 @@ export class ConfiguredRuntime {
 
   /** @override */
   setShowcaseEntitlement(entitlement) {
-    const events = publisherEntitlementEventToAnalyticsEvents(
-      entitlement && entitlement.entitlement
-    );
-    if (!isGaa() || !events || !events.length) {
+    if (
+      !entitlement ||
+      !isSecure() ||
+      !wasReferredByGoogle() ||
+      !urlContainsFreshGaaParams()
+    ) {
       return;
     }
+
+    const events =
+      publisherEntitlementEventToAnalyticsEvents(entitlement.entitlement) || [];
+    const params = new EventParams();
+    params.setIsUserRegistered(entitlement.isUserRegistered);
+
     for (let k = 0; k < events.length; k++) {
       this.eventManager().logEvent({
         eventType: events[k],
         eventOriginator: EventOriginator.SHOWCASE_CLIENT,
         isFromUserAction: null,
-        additionalParameters: null,
+        additionalParameters: params,
       });
     }
   }
