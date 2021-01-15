@@ -128,11 +128,11 @@ export class MeterToastApi {
         } else {
           let start, scrollTimeout;
           this.scrollEventListener_ = () => {
-            start = start || this.win_./*REVIEW*/pageYOffset;
+            start = start || this.win_./*REVIEW*/ pageYOffset;
             this.win_.clearTimeout(scrollTimeout);
             scrollTimeout = this.win_.setTimeout(() => {
               // If the scroll is longer than 100, close the toast.
-              if (Math.abs(this.win_./*REVIEW*/pageYOffset - start) > 100) {
+              if (Math.abs(this.win_./*REVIEW*/ pageYOffset - start) > 100) {
                 this.sendCloseRequestFunction_();
               }
             }, 100);

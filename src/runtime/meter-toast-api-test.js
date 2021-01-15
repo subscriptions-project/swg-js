@@ -231,10 +231,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
       );
     await win.dispatchEvent(new Event('scroll'));
     expect(onConsumeCallbackFake).to.not.be.called;
-    win./*REVIEW*/pageYOffset = 10;
+    win./*REVIEW*/ pageYOffset = 10;
     await win.dispatchEvent(new Event('scroll'));
     expect(onConsumeCallbackFake).to.not.be.called;
-    win./*REVIEW*/pageYOffset = 200;
+    win./*REVIEW*/ pageYOffset = 200;
     await win.dispatchEvent(new Event('scroll'));
     expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
     expect(onConsumeCallbackFake).to.be.calledOnce;
@@ -354,29 +354,23 @@ describes.realWin('MeterToastApi', {}, (env) => {
   });
 
   it('isMobile_ works as expected', async () => {
-    let minWin = {
+    let window = {
       navigator: {
         userAgent: 'Inception 1.4 (iPhone; iPhone OS 4.3.1; en_US)',
       },
     };
-    let minRuntime = new ConfiguredRuntime(
-      Object.assign({}, win, minWin),
-      pageConfig
-    );
-    meterToastApi = new MeterToastApi(minRuntime);
+    let run = new ConfiguredRuntime(Object.assign({}, win, window), pageConfig);
+    meterToastApi = new MeterToastApi(run);
     expect(meterToastApi.isMobile_()).to.be.true;
 
-    minWin = {
+    window = {
       navigator: {
         userAgent:
           'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1',
       },
     };
-    minRuntime = new ConfiguredRuntime(
-      Object.assign({}, win, minWin),
-      pageConfig
-    );
-    meterToastApi = new MeterToastApi(minRuntime);
+    run = new ConfiguredRuntime(Object.assign({}, win, window), pageConfig);
+    meterToastApi = new MeterToastApi(run);
     expect(meterToastApi.isMobile_()).to.be.false;
   });
 });
