@@ -1894,41 +1894,56 @@ subscribe() method'
 
     describe('setShowcaseEntitlement', () => {
       const PUB_SITE = 'https://www.publisher.com?';
-      const VALID_QUERY_STRING = 'gaa_at=gaa&gaa_n=n0nc3&gaa_ts=99999';
+      const VALID_QUERY_STRING = 'gaa_at=gaa&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
       let eventsWereSent;
       let expectEvents;
       let url;
       let referrer;
+      let entitlement;
 
       beforeEach(() => {
-        url = PUB_SITE + VALID_QUERY_STRING;
-        referrer = 'https://www.google.com';
+        // For GAA URL parameters
+        sandbox.useFakeTimers();
 
+        // For URL helpers
+        sandbox.stub(runtime, 'win').callsFake(() => {
+          return {
+            location: parseUrl(url),
+            document: {referrer},
+          };
+        });
+
+        // Detects whether setShowcaseEntitlement did anything
         eventsWereSent = false;
         sandbox
-          .stub(ClientEventManager.prototype, 'logSwgEvent')
+          .stub(ClientEventManager.prototype, 'logEvent')
           .callsFake(() => (eventsWereSent = true));
 
+        // Sets up everything so one or more events are transmitted
+        url = PUB_SITE + VALID_QUERY_STRING;
+        referrer = 'https://www.google.com';
+        entitlement =
+          PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER;
         expectEvents = false;
-        runtime.win_ = {};
       });
 
       afterEach(() => {
-        GaaMeteringRegwall.location_ = runtime.win_.location = parseUrl(url);
-        runtime.doc_.doc_ = {referrer};
+        GaaMeteringRegwall.location_ = parseUrl(url);
+
         runtime.setShowcaseEntitlement({
-          entitlement:
-            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          entitlement,
           isUserRegistered: true,
         });
 
         expect(expectEvents).to.equal(eventsWereSent);
       });
 
-      it.only('should retransmit entitlement events', () =>
-        (expectEvents = true));
+      // This is the only test that should pass, the other ones
+      // each break 1 thing.
+      it('should retransmit entitlement events', () => (expectEvents = true));
 
       // Failures
+      it('should require entitlement', () => (entitlement = undefined));
       it('should require gaa params', () => (url = PUB_SITE));
       it('should require https page', () =>
         (url = 'http://www.publisher.com?' + VALID_QUERY_STRING));

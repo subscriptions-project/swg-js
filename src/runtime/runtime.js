@@ -1054,23 +1054,23 @@ export class ConfiguredRuntime {
   setShowcaseEntitlement(entitlement) {
     if (
       !entitlement ||
-      !isSecure(this.win_.location) ||
-      !wasReferredByGoogle(parseUrl(this.doc_.doc_.referrer)) ||
+      !isSecure(this.win().location) ||
+      !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
       !urlContainsFreshGaaParams()
     ) {
       return;
     }
 
-    const events =
+    const eventsToLog =
       publisherEntitlementEventToAnalyticsEvents(entitlement.entitlement) || [];
     const params = new EventParams();
     params.setIsUserRegistered(entitlement.isUserRegistered);
 
-    for (let k = 0; k < events.length; k++) {
+    for (let k = 0; k < eventsToLog.length; k++) {
       this.eventManager().logEvent({
-        eventType: events[k],
+        eventType: eventsToLog[k],
         eventOriginator: EventOriginator.SHOWCASE_CLIENT,
-        isFromUserAction: null,
+        isFromUserAction: false,
         additionalParameters: params,
       });
     }
