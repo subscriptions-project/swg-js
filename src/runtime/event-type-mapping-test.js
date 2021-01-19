@@ -15,12 +15,14 @@
  */
 import {AnalyticsEvent} from '../proto/api_messages';
 import {Event} from '../api/propensity-api';
+import {PublisherEntitlementEvent} from '../api/subscriptions';
 import {
   analyticsEventToPublisherEvent,
+  publisherEntitlementEventToAnalyticsEvents,
   publisherEventToAnalyticsEvent,
 } from './event-type-mapping';
 
-describes.realWin('PropensityServer', {}, () => {
+describes.realWin('Logger and Propensity events', {}, () => {
   it('propensity to analytics to propensity should be identical', () => {
     let analyticsEvent;
     let propensityEvent;
@@ -52,6 +54,27 @@ describes.realWin('PropensityServer', {}, () => {
       expect(publisherEventToAnalyticsEvent(propensityEvent)).to.equal(
         analyticsEvent
       );
+    }
+  });
+
+  it('all publisher types mapped', () => {
+    for (const publisherEvent in Event) {
+      const converted = publisherEventToAnalyticsEvent(Event[publisherEvent]);
+      expect(!!converted).to.be.true;
+    }
+  });
+});
+
+describes.realWin('publisherEntitlementEventToAnalyticsEvents', {}, () => {
+  it('all types mapped', () => {
+    for (const publisherEvent in PublisherEntitlementEvent) {
+      const converted = publisherEntitlementEventToAnalyticsEvents(
+        PublisherEntitlementEvent[publisherEvent]
+      );
+      expect(converted && converted.length > 0).to.be.true;
+      for (let x = 0; x < converted.length; x++) {
+        expect(converted[x]).to.not.be.null;
+      }
     }
   });
 });
