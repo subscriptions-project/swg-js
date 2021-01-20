@@ -1965,7 +1965,7 @@ subscribe() method'
     });
 
     describe('consumeShowcaseEntitlementJwt', () => {
-      it('consumes Showcase entitlement JWTs', () => {
+      it('consumes entitlement', () => {
         const SHOWCASE_ENTITLEMENT_JWT = 'jw7';
 
         const consumeStub = sandbox
