@@ -948,6 +948,17 @@ describes.realWin('Runtime', {}, (env) => {
       await runtime.setShowcaseEntitlement(entitlement);
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
+
+    it('should delegate "consumeShowcaseEntitlementJwt"', async () => {
+      const showcaseEntitlementJwt = 'jw7';
+      configuredRuntimeMock
+        .expects('consumeShowcaseEntitlementJwt')
+        .withExactArgs(showcaseEntitlementJwt)
+        .once();
+
+      await runtime.consumeShowcaseEntitlementJwt(showcaseEntitlementJwt);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
   });
 });
 
@@ -1951,6 +1962,19 @@ subscribe() method'
         (referrer = 'http://www.google.com'));
       it('should require Google referrer', () =>
         (referrer = 'https://www.gogle.com'));
+    });
+
+    describe('consumeShowcaseEntitlementJwt', () => {
+      it('consumes entitlement', () => {
+        const SHOWCASE_ENTITLEMENT_JWT = 'jw7';
+
+        const consumeStub = sandbox
+          .stub(Entitlements.prototype, 'consume')
+          .callsFake(() => Promise.resolve());
+
+        runtime.consumeShowcaseEntitlementJwt(SHOWCASE_ENTITLEMENT_JWT);
+        expect(consumeStub).to.be.calledOnce;
+      });
     });
   });
 });

@@ -512,6 +512,13 @@ export class Runtime {
       runtime.setShowcaseEntitlement(entitlement)
     );
   }
+
+  /** @override */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {
+    return this.configured_(true).then((runtime) =>
+      runtime.consumeShowcaseEntitlementJwt(showcaseEntitlementJwt)
+    );
+  }
 }
 
 /**
@@ -1075,6 +1082,14 @@ export class ConfiguredRuntime {
       });
     }
   }
+
+  /** @override */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {
+    const entitlements = this.entitlementsManager().parseEntitlements({
+      signedEntitlements: showcaseEntitlementJwt,
+    });
+    entitlements.consume();
+  }
 }
 
 /**
@@ -1126,6 +1141,9 @@ function createPublicRuntime(runtime) {
     getLogger: runtime.getLogger.bind(runtime),
     getEventManager: runtime.getEventManager.bind(runtime),
     setShowcaseEntitlement: runtime.setShowcaseEntitlement.bind(runtime),
+    consumeShowcaseEntitlementJwt: runtime.consumeShowcaseEntitlementJwt.bind(
+      runtime
+    ),
   });
 }
 
