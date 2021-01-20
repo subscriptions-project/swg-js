@@ -297,6 +297,13 @@ export class Subscriptions {
    * @param {!PublisherEntitlement} entitlement
    */
   setShowcaseEntitlement(entitlement) {}
+
+  /**
+   * Publishers, who both (1) participate in Showcase and (2) use server-side paywalls,
+   * should call this method to consume Showcase entitlements.
+   * @param {string} showcaseEntitlementJwt
+   */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {}
 }
 
 /** @enum {string} */
