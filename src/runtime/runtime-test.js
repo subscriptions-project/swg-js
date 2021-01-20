@@ -948,6 +948,17 @@ describes.realWin('Runtime', {}, (env) => {
       await runtime.setShowcaseEntitlement(entitlement);
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
+
+    it('should delegate "consumeShowcaseEntitlementJwt"', async () => {
+      const showcaseEntitlementJwt = 'jw7';
+      configuredRuntimeMock
+        .expects('consumeShowcaseEntitlementJwt')
+        .withExactArgs(showcaseEntitlementJwt)
+        .once();
+
+      await runtime.consumeShowcaseEntitlementJwt(showcaseEntitlementJwt);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
   });
 });
 
