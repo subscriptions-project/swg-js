@@ -1963,5 +1963,18 @@ subscribe() method'
       it('should require Google referrer', () =>
         (referrer = 'https://www.gogle.com'));
     });
+
+    describe('consumeShowcaseEntitlementJwt', () => {
+      it('consumes Showcase entitlement JWTs', () => {
+        const SHOWCASE_ENTITLEMENT_JWT = 'jw7';
+
+        const consumeStub = sandbox
+          .stub(Entitlements.prototype, 'consume')
+          .callsFake(() => Promise.resolve());
+
+        runtime.consumeShowcaseEntitlementJwt(SHOWCASE_ENTITLEMENT_JWT);
+        expect(consumeStub).to.be.calledOnce;
+      });
+    });
   });
 });
