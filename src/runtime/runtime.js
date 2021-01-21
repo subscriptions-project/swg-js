@@ -16,7 +16,11 @@
 
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
 import {AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
@@ -64,7 +68,11 @@ import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
+import {isSecure, wasReferredByGoogle} from '../utils/url';
+import {parseUrl} from '../utils/url';
+import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
 import {setExperiment} from './experiments';
+import {urlContainsFreshGaaParams} from '../utils/gaa';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -499,8 +507,17 @@ export class Runtime {
   }
 
   /** @override */
-  setShowcaseEntitlement(unusedEntitlement) {
-    // TODO
+  setShowcaseEntitlement(entitlement) {
+    return this.configured_(true).then((runtime) =>
+      runtime.setShowcaseEntitlement(entitlement)
+    );
+  }
+
+  /** @override */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {
+    return this.configured_(true).then((runtime) =>
+      runtime.consumeShowcaseEntitlementJwt(showcaseEntitlementJwt)
+    );
   }
 }
 
@@ -1041,8 +1058,37 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  setShowcaseEntitlement(unusedEntitlement) {
-    // TODO
+  setShowcaseEntitlement(entitlement) {
+    if (
+      !entitlement ||
+      !isSecure(this.win().location) ||
+      !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
+      !urlContainsFreshGaaParams()
+    ) {
+      return;
+    }
+
+    const eventsToLog =
+      publisherEntitlementEventToAnalyticsEvents(entitlement.entitlement) || [];
+    const params = new EventParams();
+    params.setIsUserRegistered(entitlement.isUserRegistered);
+
+    for (let k = 0; k < eventsToLog.length; k++) {
+      this.eventManager().logEvent({
+        eventType: eventsToLog[k],
+        eventOriginator: EventOriginator.SHOWCASE_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: params,
+      });
+    }
+  }
+
+  /** @override */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {
+    const entitlements = this.entitlementsManager().parseEntitlements({
+      signedEntitlements: showcaseEntitlementJwt,
+    });
+    entitlements.consume();
   }
 }
 
@@ -1095,6 +1141,9 @@ function createPublicRuntime(runtime) {
     getLogger: runtime.getLogger.bind(runtime),
     getEventManager: runtime.getEventManager.bind(runtime),
     setShowcaseEntitlement: runtime.setShowcaseEntitlement.bind(runtime),
+    consumeShowcaseEntitlementJwt: runtime.consumeShowcaseEntitlementJwt.bind(
+      runtime
+    ),
   });
 }
 

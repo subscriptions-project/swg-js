@@ -296,30 +296,41 @@ export class Subscriptions {
    * sourced subscriptions and meters.
    * @param {!PublisherEntitlement} entitlement
    */
-  setShowcaseEntitlement(entitlement) {}  
+  setShowcaseEntitlement(entitlement) {}
+
+  /**
+   * Publishers, who both (1) participate in Showcase and (2) use server-side paywalls,
+   * should call this method to consume Showcase entitlements.
+   * @param {string} showcaseEntitlementJwt
+   */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {}
 }
 
 /** @enum {string} */
 export const PublisherEntitlementEvent = {
-  EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION', // Publisher managed subscriptions only
-  EVENT_SHOWCASE_UNLOCKED_BY_METER: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',               // Publisher managed meters only
-  EVENT_SHOWCASE_UNLOCKED_FREE_PAGE: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',             // When the article is free for any reason (lead article, etc)
-  
-  EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL: 'EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL',  // When the user must register to view the article
-  EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL: 'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL',  // When the user must subscribe to view the article
+  EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION:
+    'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION', // Publisher managed subscriptions only
+  EVENT_SHOWCASE_METER_OFFERED: 'EVENT_SHOWCASE_METER_OFFERED', // This event is only required if the user can choose not to use a publisher meter
+  EVENT_SHOWCASE_UNLOCKED_BY_METER: 'EVENT_SHOWCASE_UNLOCKED_BY_METER', // Publisher managed meters only
+  EVENT_SHOWCASE_UNLOCKED_FREE_PAGE: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE', // When the article is free for any reason (lead article, etc)
+
+  EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL:
+    'EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL', // When the user must register to view the article
+  EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL:
+    'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL', // When the user must subscribe to view the article
 };
 
 /**
-* PublisherEntitlement
-*   In order to participate in News Showcase, publishers must report information about their entitlements.
-* Properties:
-* - isUserRegistered: Is the user registered currently?
-* - entitlement: Publisher entitlement event type.
-*  @typedef {{
-*    isUserRegistered:  !boolean,
-*    entitlement: !PublisherEntitlementEvent,
-* }}
-*/
+ * PublisherEntitlement
+ *   In order to participate in News Showcase, publishers must report information about their entitlements.
+ * Properties:
+ * - isUserRegistered: Is the user registered currently?
+ * - entitlement: Publisher entitlement event type.
+ *  @typedef {{
+ *    isUserRegistered:  !boolean,
+ *    entitlement: !PublisherEntitlementEvent,
+ * }}
+ */
 export let PublisherEntitlement;
 
 /** @enum {string} */
