@@ -107,36 +107,6 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       expect(gd.getHead().childNodes).to.have.length(1);
     });
 
-    it('should write a new node if there is an existing but invalid schema', async () => {
-      const invalidSchema = {
-        '@context': 'http://schema.org',
-        '@type': 'WrongType',
-        'isAccessibleForFree': 'False',
-        'isPartOf': {
-          '@type': ['CreativeWork', 'Product'],
-          'name': 'The Times Journal',
-          'productID': 'pub1:basic',
-        },
-      };
-      addJsonLd(invalidSchema);
-      readyState = 'complete';
-
-      const configWriter = new PageConfigWriter(gd);
-      await expect(configWriter.writeConfigWhenReady(markupConfig)).to.be
-        .eventually.fulfilled;
-      expect(gd.getHead().childNodes).to.have.length(1);
-      expect(gd.getHead().firstChild.textContent).to.equal(
-        JSON.stringify({
-          '@type': 'CreativeWork',
-          'isAccessibleForFree': true,
-          'isPartOf': {
-            'productID': 'scenic-2017.appspot.com:news',
-            '@type': ['CreativeWork', 'Product'],
-          },
-        })
-      );
-    });
-
     it('should write a new node if there is an existing but malformed schema', async () => {
       const element = createElement(
         doc,
@@ -168,16 +138,16 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       expect(gd.getHead().childNodes).to.have.length(1);
     });
 
-    it('should merge metadata for an existing valid schema', async () => {
-      const validIncompleteSchema = {
+    it('should merge metadata for an existing schema', async () => {
+      const incompleteSchema = {
         '@context': 'http://schema.org',
-        '@type': 'NewsArticle',
+        '@type': 'CreativeWork',
         'isPartOf': {
           'name': 'The Times Journal',
           'productID': 'pub1:basic',
         },
       };
-      addJsonLd(validIncompleteSchema);
+      addJsonLd(incompleteSchema);
       expect(gd.getBody().childNodes).to.have.length(1);
       readyState = 'complete';
 
@@ -187,14 +157,39 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       expect(gd.getBody().childNodes).to.have.length(1);
       expect(gd.getBody().firstChild.textContent).to.equal(
         JSON.stringify({
-          '@type': 'NewsArticle',
-          'isAccessibleForFree': true,
+          '@context': 'http://schema.org',
+          '@type': 'CreativeWork',
           'isPartOf': {
+            'name': 'The Times Journal',
             'productID': 'pub1:basic',
             '@type': ['CreativeWork', 'Product'],
-            'name': 'The Times Journal',
           },
+          'isAccessibleForFree': true,
+        })
+      );
+    });
+
+    it('should merge metadata for an existing schema with missing fields', async () => {
+      const incompleteSchema = {
+        '@context': 'http://schema.org',
+      };
+      addJsonLd(incompleteSchema);
+      expect(gd.getBody().childNodes).to.have.length(1);
+      readyState = 'complete';
+
+      const configWriter = new PageConfigWriter(gd);
+      await expect(configWriter.writeConfigWhenReady(markupConfig)).to.be
+        .eventually.fulfilled;
+      expect(gd.getBody().childNodes).to.have.length(1);
+      expect(gd.getBody().firstChild.textContent).to.equal(
+        JSON.stringify({
           '@context': 'http://schema.org',
+          '@type': 'CreativeWork',
+          'isAccessibleForFree': true,
+          'isPartOf': {
+            'productID': 'scenic-2017.appspot.com:news',
+            '@type': ['CreativeWork', 'Product'],
+          },
         })
       );
     });
@@ -231,14 +226,14 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       expect(gd.getBody().firstChild.textContent).to.equal(
         JSON.stringify([
           {
-            '@type': 'NewsArticle',
-            'isAccessibleForFree': true,
+            '@context': 'http://schema.org',
+            '@type': ['NewsArticle', 'CreativeWork'],
             'isPartOf': {
+              'name': 'The Times Journal',
               'productID': 'pub1:basic',
               '@type': ['CreativeWork', 'Product'],
-              'name': 'The Times Journal',
             },
-            '@context': 'http://schema.org',
+            'isAccessibleForFree': true,
           },
           {
             '@context': 'http://schema.org',

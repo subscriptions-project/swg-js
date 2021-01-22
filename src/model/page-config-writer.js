@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-import {ALLOWED_TYPES, TypeChecker} from '../model/page-config-resolver';
 import {createElement} from '../utils/dom';
 import {resolveDoc} from './doc';
 import {tryParseJson} from '../utils/json';
 
 /**
- * Page configuration writer, which writes the markup detailing the publication
- * in the JSON-LD markup of the page. If a valid, existing JSON-LD markup
- * already exists on the page, we will attempt to merge the values in the
- * existing markup with the values passed to this class, with the existing
- * values taking precedence.
+ * Page configuration writer, which writes the details of the publication in the
+ * JSON-LD markup of the page. If a valid, existing JSON-LD markup already
+ * exists on the page, we will attempt to merge the values in the existing
+ * markup with the values passed to this class, with the existing values taking
+ * precedence.
  */
 export class PageConfigWriter {
   /**
@@ -44,17 +43,14 @@ export class PageConfigWriter {
     this.configWrittenPromise_ = new Promise((resolve) => {
       this.configWrittenResolver_ = resolve;
     });
-
-    /** @private @const @function */
-    this.checkType_ = new TypeChecker();
   }
 
   /**
    * Writes the markup to the DOM, when ready.
    * @param {{
-   *   type: string,
+   *   type: (string|!Array<string>),
    *   isAccessibleForFree: boolean,
-   *   isPartOfType: !Array<string>,
+   *   isPartOfType: (string|!Array<string>),
    *   isPartOfProductId: string,
    * }} markupValues
    * @return {!Promise} */
@@ -104,27 +100,33 @@ export class PageConfigWriter {
         for (let i = 0; i < possibleConfigs.length; i++) {
           const possibleConfig = possibleConfigs[i];
 
-          // If there is a type specified, it must be an ALLOWED_TYPE, since we
-          // are preserving existing values over values specified in the config
-          // params.
-          if (
-            !possibleConfig['@type'] ||
-            this.checkType_.checkValue(possibleConfig['@type'], ALLOWED_TYPES)
-          ) {
-            Object.assign(obj, possibleConfig);
-            // Also merge the isPartOf nested object, since Object.assign does
-            // not merge nested objects.
-            Object.assign(isPartOfObj, possibleConfig['isPartOf']);
-            obj['isPartOf'] = isPartOfObj;
-            possibleConfigs[i] = obj;
-
-            element.textContent = JSON.stringify(
-              isPossibleConfigsInArray ? possibleConfigs : possibleConfigs[i]
+          // Merge the '@type' lists, and set the other fields, preferring the
+          // existing values
+          possibleConfig['@type'] = this.merge_(
+            possibleConfig['@type'],
+            this.markupValues_.type
+          );
+          possibleConfig['isAccessibleForFree'] =
+            possibleConfig['isAccessibleForFree'] ||
+            this.markupValues_.isAccessibleForFree;
+          if (possibleConfig['isPartOf']) {
+            possibleConfig['isPartOf']['@type'] = this.merge_(
+              possibleConfig['isPartOf']['@type'],
+              this.markupValues_.isPartOfType
             );
-            this.configWrittenResolver_();
-            this.configWrittenResolver_ = null;
-            return;
+            possibleConfig['isPartOf']['productID'] =
+              possibleConfig['isPartOf']['productID'] ||
+              this.markupValues_.isPartOfProductId;
+          } else {
+            possibleConfig['isPartOf'] = isPartOfObj;
           }
+
+          element.textContent = JSON.stringify(
+            isPossibleConfigsInArray ? possibleConfigs : possibleConfigs[i]
+          );
+          this.configWrittenResolver_();
+          this.configWrittenResolver_ = null;
+          return;
         }
       }
     }
@@ -140,5 +142,42 @@ export class PageConfigWriter {
     this.doc_.getHead().appendChild(element);
     this.configWrittenResolver_();
     this.configWrittenResolver_ = null;
+  }
+
+  /*
+   * @param {?Array|string} valueOne
+   * @param {?Array|string} valueTwo
+   * @return {Array|string}
+   * @private
+   */
+  merge_(valueOne, valueTwo) {
+    if (!valueOne && !valueTwo) {
+      return [];
+    }
+    if (!valueOne) {
+      return valueTwo;
+    }
+    if (!valueTwo) {
+      return valueOne;
+    }
+
+    const arrayOne = this.toArray_(valueOne);
+    const arrayTwo = this.toArray_(valueTwo);
+    const mergedArray = arrayOne.concat(
+      arrayTwo.filter((item) => arrayOne.indexOf(item) < 0)
+    );
+    if (mergedArray.length == 1) {
+      return mergedArray.pop();
+    }
+    return mergedArray;
+  }
+
+  /*
+   * @param {?Array|string} value
+   * @return {Array}
+   * @private
+   */
+  toArray_(value) {
+    return Array.isArray(value) ? value : [value];
   }
 }

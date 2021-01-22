@@ -24,7 +24,7 @@ import {user} from '../utils/error-logger';
 const ALREADY_SEEN = '__SWG-SEEN__';
 const CONTROL_FLAG = 'subscriptions-control';
 
-export const ALLOWED_TYPES = [
+const ALLOWED_TYPES = [
   'CreativeWork',
   'Article',
   'NewsArticle',
@@ -108,7 +108,7 @@ export class PageConfigResolver {
   }
 }
 
-export class TypeChecker {
+class TypeChecker {
   constructor() {}
 
   /**
