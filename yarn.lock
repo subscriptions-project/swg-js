@@ -7382,14 +7382,13 @@ karma-safari-launcher@1.0.0:
   resolved "https://registry.yarnpkg.com/karma-safari-launcher/-/karma-safari-launcher-1.0.0.tgz#96982a2cc47d066aae71c553babb28319115a2ce"
   integrity sha1-lpgqLMR9BmquccVTursoMZEVos4=
 
-karma-sauce-launcher@4.3.4:
-  version "4.3.4"
-  resolved "https://registry.yarnpkg.com/karma-sauce-launcher/-/karma-sauce-launcher-4.3.4.tgz#3033b6cb9610db4b67de074baef58c652d5a11b8"
-  integrity sha512-sXka3l3Z9x+UhGMsg0fU+i+Jq82j7tfApMrAupM8JxO8ZskmSCozUM4cffLTwuzJPYjf0ffFNu3Up5Pzr26N/g==
+karma-sauce-launcher@4.3.5:
+  version "4.3.5"
+  resolved "https://registry.yarnpkg.com/karma-sauce-launcher/-/karma-sauce-launcher-4.3.5.tgz#fd882a182fdd86206c05311a34b674cd4aef7c1c"
+  integrity sha512-a6c8qbuLspMi2KNGQefXe/lhZAd2JSkxheT6kBb3GKwWfyZyjG+eF3C7lFennWHZyzeXHv7pY5LMpi/mHGCzag==
   dependencies:
-    fs-extra "^9.0.1"
     global-agent "^2.1.12"
-    saucelabs "^4.5.1"
+    saucelabs "^4.6.3"
     webdriverio "^6.7.0"
 
 karma-sinon-chai@2.0.2:
@@ -10658,10 +10657,10 @@ safe-regex@^1.1.0:
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
 
-saucelabs@^4.5.1:
-  version "4.5.2"
-  resolved "https://registry.yarnpkg.com/saucelabs/-/saucelabs-4.5.2.tgz#f9c4756bdc69567fc98dabc81b4187f982b967fa"
-  integrity sha512-D5T+KMFMi2PFS64Qhsjc/ibO9hSGRTC2VDi0D4MXvuNkbEc9vT8yx+l7PwrLlnDoN8jfJdpKiCrTe4Of3FpRvw==
+saucelabs@^4.6.3:
+  version "4.6.3"
+  resolved "https://registry.yarnpkg.com/saucelabs/-/saucelabs-4.6.3.tgz#aa07f0b05793863158f08a9f7c87fa0a0b13452b"
+  integrity sha512-LQEA7ENXq03MWs5sTbvRPlDiaR9PFEfqiMUHtiXEJQUGQ5JAmIXOB39/4hL3CUvZKZ2Bv7Ook6ZCDsqUFY7Vmw==
   dependencies:
     bin-wrapper "^4.1.0"
     change-case "^4.1.1"
