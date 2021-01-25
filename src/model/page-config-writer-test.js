@@ -139,7 +139,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
     });
 
     it('should merge metadata for an existing schema', async () => {
-      const incompleteSchema = {
+      const schema = {
         '@context': 'http://schema.org',
         '@type': 'CreativeWork',
         'isPartOf': {
@@ -147,7 +147,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
           'productID': 'pub1:basic',
         },
       };
-      addJsonLd(incompleteSchema);
+      addJsonLd(schema);
       expect(gd.getBody().childNodes).to.have.length(1);
       readyState = 'complete';
 
@@ -190,6 +190,67 @@ describes.realWin('PageConfigWriter', {}, (env) => {
             'productID': 'scenic-2017.appspot.com:news',
             '@type': ['CreativeWork', 'Product'],
           },
+        })
+      );
+    });
+
+    it('should merge metadata for an init markup with missing fields', async () => {
+      // Missing isPartOf.
+      const incompleteMarkupConfig = {
+        type: ['NewsArticle'],
+        isAccessibleForFree: false,
+      };
+      const schema = {
+        '@context': 'http://schema.org',
+        '@type': 'CreativeWork',
+        'isPartOf': {
+          'name': 'The Times Journal',
+          '@type': 'Product',
+        },
+      };
+      addJsonLd(schema);
+      expect(gd.getBody().childNodes).to.have.length(1);
+      readyState = 'complete';
+
+      const configWriter = new PageConfigWriter(gd);
+      await expect(configWriter.writeConfigWhenReady(incompleteMarkupConfig)).to
+        .be.eventually.fulfilled;
+      expect(gd.getBody().childNodes).to.have.length(1);
+      expect(gd.getBody().firstChild.textContent).to.equal(
+        JSON.stringify({
+          '@context': 'http://schema.org',
+          '@type': ['CreativeWork', 'NewsArticle'],
+          'isPartOf': {
+            'name': 'The Times Journal',
+            '@type': 'Product',
+          },
+          'isAccessibleForFree': false,
+        })
+      );
+    });
+
+    it('should merge metadata for an existing schema and init markup both with missing fields', async () => {
+      // Both missing isPartOf.
+      const incompleteMarkupConfig = {
+        isAccessibleForFree: true,
+      };
+      const incompleteSchema = {
+        '@context': 'http://schema.org',
+      };
+      addJsonLd(incompleteSchema);
+      expect(gd.getBody().childNodes).to.have.length(1);
+      readyState = 'complete';
+
+      const configWriter = new PageConfigWriter(gd);
+      await expect(configWriter.writeConfigWhenReady(incompleteMarkupConfig)).to
+        .be.eventually.fulfilled;
+      expect(gd.getBody().childNodes).to.have.length(1);
+      expect(gd.getBody().firstChild.textContent).to.equal(
+        JSON.stringify({
+          '@context': 'http://schema.org',
+          '@type': [],
+          'isAccessibleForFree': true,
+          'isPartOf': {},
         })
       );
     });
