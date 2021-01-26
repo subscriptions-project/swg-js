@@ -18,6 +18,7 @@ import {
   AnalyticsEvent,
   EntitlementJwt,
   EntitlementsRequest,
+  EventOriginator,
 } from '../proto/api_messages';
 import {
   Entitlement,
@@ -43,6 +44,16 @@ const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
 const ENTS_STORAGE_KEY = 'ents';
 const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
+const SOURCE = {
+  GOOGLE: 'google',
+  PUBLISHER: 'publisher',
+};
+
+const ORIGIN_TO_SOURCE = {
+  [EventOriginator.SHOWCASE_CLIENT]: SOURCE.PUBLISHER,
+  [EventOriginator.SWG_CLIENT]: SOURCE.GOOGLE,
+  [EventOriginator.SWG_SERVER]: SOURCE.GOOGLE,
+};
 
 /**
  */
@@ -186,9 +197,48 @@ export class EntitlementsManager {
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
     jwt.setJwt(entitlement.subscriptionToken);
+    return this.sendEntitlementRequest_(jwt);
+  }
 
+  eventHandler_(event) {
+    if (!ORIGIN_TO_SOURCE[event.eventOriginator]) {
+      return;
+    }
+
+    const usedEntitlement = new EntitlementJwt();
+    usedEntitlement.setSource(ORIGIN_TO_SOURCE[event.eventOriginator]);
+    switch (event.eventType) {
+      case AnalyticsEvent.EVENT_UNLOCKED_BY_METER:
+        if (usedEntitlement.getSource() == SOURCE.GOOGLE) {
+          // This event is already sent in a different way.
+          return;
+        }
+        usedEntitlement.setJwt('METER');
+        break;
+      case AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION:
+        usedEntitlement.setJwt('SUBSCRIPTION');
+        break;
+      case AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE:
+        usedEntitlement.setJwt('FREE');
+        break;
+      case AnalyticsEvent.EVENT_OFFERED_METER:
+        usedEntitlement.setJwt('METERWALL');
+        break;
+      case AnalyticsEvent.IMPRESSION_PAYWALL:
+        usedEntitlement.setJwt('PAYWALL');
+        break;
+      case AnalyticsEvent.IMPRESSION_REGWALL:
+        usedEntitlement.setJwt('REGWALL');
+        break;
+      default:
+        return;
+    }
+    this.sendEntitlementRequest_(usedEntitlement);
+  }
+
+  sendEntitlementRequest_(usedEntitlement) {
     const message = new EntitlementsRequest();
-    message.setUsedEntitlement(jwt);
+    message.setUsedEntitlement(usedEntitlement);
     message.setClientEventTime(toTimestamp(Date.now()));
 
     const url =
@@ -450,7 +500,7 @@ export class EntitlementsManager {
       }
 
       // Show toast.
-      const source = entitlement.source || 'google';
+      const source = entitlement.source || SOURCE.GOOGLE;
       return new Toast(
         this.deps_,
         feUrl('/toastiframe'),
