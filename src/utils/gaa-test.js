@@ -22,6 +22,7 @@ import {
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
   REGWALL_DIALOG_ID,
+  REGWALL_DISABLE_SCROLLING_CLASS,
   REGWALL_TITLE_ID,
   urlContainsFreshGaaParams,
 } from './gaa';
@@ -264,6 +265,24 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
+      );
+    });
+
+    it('disables scrolling while Regwall is open', () => {
+      expect(
+        !self.document.body.classList.contains(REGWALL_DISABLE_SCROLLING_CLASS)
+      );
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      expect(
+        self.document.body.classList.contains(REGWALL_DISABLE_SCROLLING_CLASS)
+      );
+
+      GaaMeteringRegwall.remove_();
+
+      expect(
+        !self.document.body.classList.contains(REGWALL_DISABLE_SCROLLING_CLASS)
       );
     });
   });
