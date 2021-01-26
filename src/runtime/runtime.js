@@ -43,7 +43,6 @@ import {
 import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
-import {MeterRegwallApi} from './meter-regwall-api';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
 import {
@@ -345,13 +344,6 @@ export class Runtime {
   waitForSubscriptionLookup(accountPromise) {
     return this.configured_(true).then((runtime) =>
       runtime.waitForSubscriptionLookup(accountPromise)
-    );
-  }
-
-  /** @override */
-  showMeterRegwall(params) {
-    return this.configured_(true).then((runtime) =>
-      runtime.showMeterRegwall(params)
     );
   }
 
@@ -874,14 +866,6 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  showMeterRegwall(meterRegwallArgs) {
-    return this.documentParsed_.then(() => {
-      const wait = new MeterRegwallApi(this, meterRegwallArgs);
-      return wait.start();
-    });
-  }
-
-  /** @override */
   setOnLoginRequest(callback) {
     this.callbacks_.setOnLoginRequest(callback);
   }
@@ -1111,7 +1095,6 @@ function createPublicRuntime(runtime) {
     showOffers: runtime.showOffers.bind(runtime),
     showUpdateOffers: runtime.showUpdateOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
-    showMeterRegwall: runtime.showMeterRegwall.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
     waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),

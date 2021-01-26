@@ -54,7 +54,6 @@ import {
 import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
-import {MeterRegwallApi} from './meter-regwall-api';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PayClient} from './pay-client';
@@ -867,16 +866,6 @@ describes.realWin('Runtime', {}, (env) => {
         .returns(Promise.resolve());
 
       await runtime.waitForSubscriptionLookup();
-      expect(configureStub).to.be.calledOnce;
-    });
-
-    it('should delegate "showMeterRegwall"', async () => {
-      configuredRuntimeMock
-        .expects('showMeterRegwall')
-        .once()
-        .returns(Promise.resolve());
-
-      await runtime.showMeterRegwall();
       expect(configureStub).to.be.calledOnce;
     });
 
@@ -1784,19 +1773,6 @@ subscribe() method'
       const result = await runtime.waitForSubscriptionLookup(accountPromise);
       expect(startSpy).to.be.calledOnce;
       expect(result).to.equal(accountResult);
-    });
-
-    it('should start MeterRegwallApi', async () => {
-      const args = {
-        gsiUrl: 'gsi.com',
-        alreadyRegisteredUrl: 'alreadyregistered.com',
-      };
-      const startStub = sandbox
-        .stub(MeterRegwallApi.prototype, 'start')
-        .callsFake(() => Promise.resolve());
-
-      await runtime.showMeterRegwall(args);
-      expect(startStub).to.be.calledOnce;
     });
 
     it('should directly call "attachButton"', () => {

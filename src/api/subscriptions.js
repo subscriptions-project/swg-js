@@ -200,13 +200,6 @@ export class Subscriptions {
   waitForSubscriptionLookup(accountPromise) {}
 
   /**
-   * Starts the metered registration wall flow.
-   * @param {{ gsiUrl: string, alreadyRegisteredUrl: string}} params
-   * @return {!Promise}
-   */
-  showMeterRegwall(params) {}
-
-  /**
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
    * @param {{ampReaderId: (string|undefined)}=} params
@@ -344,7 +337,6 @@ export const SubscriptionFlows = {
   COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
   LINK_ACCOUNT: 'linkAccount',
   SHOW_LOGIN_PROMPT: 'showLoginPrompt',
-  SHOW_METER_REGWALL: 'showMeterRegwall',
   SHOW_LOGIN_NOTIFICATION: 'showLoginNotification',
   SHOW_METER_TOAST: 'showMeterToast',
 };
