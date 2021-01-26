@@ -22,6 +22,7 @@ import {
 import {BasicSubscriptions} from '../api/basic-subscriptions';
 import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
+import {PageConfigResolver} from '../model/page-config-resolver';
 
 describes.realWin('installBasicRuntime', {}, (env) => {
   let win;
@@ -162,25 +163,47 @@ describes.realWin('installBasicRuntime', {}, (env) => {
 
 describes.realWin('Runtime', {}, (env) => {
   let win;
+  let doc;
   let basicRuntime;
 
   beforeEach(() => {
     win = env.win;
+    doc = new GlobalDoc(win);
     basicRuntime = new BasicRuntime(win);
   });
 
   describe('initialization', () => {
+    let config;
+    let configPromise;
+    let resolveStub;
+
+    beforeEach(() => {
+      config = new PageConfig('pub1', true);
+      configPromise = Promise.resolve(config);
+      resolveStub = sandbox
+        .stub(PageConfigResolver.prototype, 'resolveConfig')
+        .callsFake(() => configPromise);
+    });
+
     it('should initialize and generate markup as specified', async () => {
       basicRuntime.init({
         type: 'NewsArticle',
         isAccessibleForFree: true,
-        isPartOfType: 'Product',
+        isPartOfType: ['Product'],
         isPartOfProductId: 'herald-foo-times.com:basic',
       });
 
       await basicRuntime.configured_(true);
-      // TODO(stellachui): Add checks for the configured runtime once init is
-      //   implemented.
+
+      // init should have written the LD+JSON markup.
+      const elements = doc
+        .getRootNode()
+        .querySelectorAll('script[type="application/ld+json"]');
+      expect(elements).to.have.length(1);
+
+      // PageConfigResolver should have been created and attempted to resolve
+      // the PageConfig.
+      expect(resolveStub).to.be.calledOnce;
     });
   });
 
