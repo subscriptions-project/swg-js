@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EntitlementResult} from '../proto/api_messages';
 import {Event} from '../api/logger-api';
 import {PublisherEntitlementEvent} from '../api/subscriptions';
 
@@ -80,6 +80,16 @@ const ShowcaseEntitlemenntToAnalyticsEvents = {
   ],
 };
 
+/** @const {!Object<number,?Event>} */
+const AnalyticsEventToEntitlementResult = {
+  [AnalyticsEvent.IMPRESSION_REGWALL]: EntitlementResult.LOCKED_REGWALL,
+  [AnalyticsEvent.EVENT_UNLOCKED_BY_METER]: EntitlementResult.UNLOCKED_METER,
+  [AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION]:
+    EntitlementResult.UNLOCKED_SUBSCRIBER,
+  [AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE]: EntitlementResult.UNLOCKED_FREE,
+  [AnalyticsEvent.IMPRESSION_PAYWALL]: EntitlementResult.LOCKED_PAYWALL,
+};
+
 /**
  * Converts a propensity event enum into an analytics event enum.
  * @param {!Event|string} propensityEvent
@@ -105,4 +115,9 @@ export function analyticsEventToPublisherEvent(analyticsEvent) {
  */
 export function publisherEntitlementEventToAnalyticsEvents(event) {
   return ShowcaseEntitlemenntToAnalyticsEvents[event] || [];
+}
+
+//TODO: tests
+export function analyticsEventToEntitlementResult(event) {
+  return AnalyticsEventToEntitlementResult[event];
 }

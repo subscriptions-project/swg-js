@@ -15,7 +15,15 @@
  */
 
 import {ActivityPorts} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  EntitlementJwt,
+  EntitlementResult,
+  EntitlementSource,
+  EntitlementsRequest,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
 import {ClientEventManager} from './client-event-manager';
@@ -34,6 +42,12 @@ import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {defaultConfig} from '../api/subscriptions';
+import {serializeProtoMessageForUrl} from '../utils/url';
+
+const ENTITLEMENTS_URL =
+  '$frontend$/swg/_/api/v1/publication/pub1/entitlements';
+
+const MOCK_TIME_ARRAY = [1600389016, 959000000];
 
 describes.realWin('EntitlementsManager', {}, (env) => {
   let win;
@@ -78,12 +92,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     sandbox.stub(deps, 'config').returns(config);
     sandbox.stub(deps, 'eventManager').returns(eventManager);
     sandbox.stub(deps, 'dialogManager').returns(dialogManager);
-    const analyticsService = new AnalyticsService(deps);
-    analyticsMock = sandbox.mock(analyticsService);
-    sandbox.stub(deps, 'analytics').returns(analyticsService);
     const activityPorts = new ActivityPorts(deps);
     activitiesMock = sandbox.mock(activityPorts);
     sandbox.stub(deps, 'activities').returns(activityPorts);
+    const analyticsService = new AnalyticsService(deps);
+    analyticsMock = sandbox.mock(analyticsService);
+    sandbox.stub(deps, 'analytics').returns(analyticsService);
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
@@ -158,6 +172,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         })
       )
       .once();
+    expectEntitlementPingback(
+      EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+      EntitlementResult.UNLOCKED_SUBSCRIBER
+    );
     return resp;
   }
 
@@ -184,6 +202,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         })
       )
       .once();
+    expectEntitlementPingback(
+      EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT, // TODO: What should this be?
+      EntitlementResult.UNLOCKED_SUBSCRIBER
+    );
     return resp;
   }
 
@@ -193,6 +215,40 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       .withExactArgs(event, isUserGenerated)
       .returns(null)
       .once();
+  }
+
+  function expectPost(url, message) {
+    xhrMock
+      .expects('fetch')
+      .withExactArgs(url, {
+        body: 'f.req=' + serializeProtoMessageForUrl(message),
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        },
+        method: 'POST',
+      })
+      .returns(Promise.resolve());
+  }
+
+  function expectEntitlementPingback(
+    entitlementSource,
+    entitlementResult,
+    jwtString,
+    jwtSource
+  ) {
+    expectPost(
+      ENTITLEMENTS_URL,
+      new EntitlementsRequest(
+        [
+          new EntitlementJwt([jwtString, jwtSource], false).toArray(false),
+          MOCK_TIME_ARRAY,
+          entitlementSource,
+          entitlementResult,
+        ],
+        false
+      )
+    );
   }
 
   describe('fetching', () => {
@@ -377,7 +433,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
-
+      /*expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      ); TODO: WHY NOT?*/
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
       expect(ents.raw).to.equal('SIGNED_DATA');
@@ -457,6 +516,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .once();
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      );
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
 
@@ -499,6 +562,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .once();
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      );
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
 
@@ -780,22 +847,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(manager.getShowToastFromEntitlements_(ents)).to.equal(undefined);
     });
 
-    it('should send pingback with metering entitlements', async () => {
-      xhrMock
-        .expects('fetch')
-        .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
-          {
-            body: 'f.req=[["token1","google:metering"],[1600389016,959000000]]',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            },
-            method: 'POST',
-          }
-        )
-        .returns(Promise.resolve());
-
+    it('should send pingback with metering entitlements', () => {
       const ents = new Entitlements(
         'service1',
         'RaW',
@@ -808,8 +860,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         ],
         'product1'
       );
+
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
+        EntitlementResult.UNLOCKED_METER,
+        'token1',
+        GOOGLE_METERING_SOURCE
+      );
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
-      await manager.sendPingback_(ents);
+
+      return manager.sendPingback_(ents);
     });
 
     it('should not send pingback with non-metering entitlements', async () => {
@@ -872,6 +932,41 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParamsExternalDef.'
       );
+    });
+  });
+
+  describe('event listening', () => {
+    function getParams(isUserRegistered) {
+      const params = new EventParams();
+      params.setIsUserRegistered(isUserRegistered);
+      return params;
+    }
+
+    it('should pingback regwall from swg client', () => {
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.LOCKED_REGWALL
+      );
+      eventManager.logEvent({
+        eventType: AnalyticsEvent.IMPRESSION_REGWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        additionalParameters: getParams(false),
+      });
+      return eventManager.lastAction_;
+    });
+
+    //TODO: Other tests
+    it('should pingback regwall from swg client', () => {
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.LOCKED_REGWALL
+      );
+      eventManager.logEvent({
+        eventType: AnalyticsEvent.IMPRESSION_REGWALL,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        additionalParameters: getParams(false),
+      });
+      return eventManager.lastAction_;
     });
   });
 
@@ -1054,7 +1149,19 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should NOT trigger entitlements when notification is blocked', async () => {
-      expectGoogleResponse();
+      const resp = entitlementsResponse({
+        source: 'google',
+        products: ['pub1:label1'],
+        subscriptionToken: 's1',
+      });
+      xhrMock
+        .expects('fetch')
+        .returns(
+          Promise.resolve({
+            json: () => Promise.resolve(resp),
+          })
+        )
+        .once();
       expectGetIsReadyToPayToBeCalled(null);
       manager.blockNextNotification();
 
@@ -1176,7 +1283,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      xhrMock.expects('fetch').never();
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      );
       manager.reset(true);
 
       const entitlements = await manager.getEntitlements();
@@ -1200,7 +1310,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      xhrMock.expects('fetch').never();
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      );
       manager.reset(true);
       analyticsMock.expects('setReadyToPay').withExactArgs(true);
 
@@ -1221,7 +1334,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      xhrMock.expects('fetch').never();
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      );
       manager.reset(true);
       analyticsMock.expects('setReadyToPay').withExactArgs(false);
 
@@ -1242,7 +1358,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      xhrMock.expects('fetch').never();
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      );
       manager.reset(true);
 
       const entitlements = await manager.getEntitlements();

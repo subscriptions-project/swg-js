@@ -17,6 +17,8 @@
 import {
   AnalyticsEvent,
   EntitlementJwt,
+  EntitlementResult,
+  EntitlementSource,
   EntitlementsRequest,
   EventOriginator,
 } from '../proto/api_messages';
@@ -33,6 +35,7 @@ import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
 import {Toast} from '../ui/toast';
+import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
 import {hash} from '../utils/string';
@@ -44,16 +47,6 @@ const SERVICE_ID = 'subscribe.google.com';
 const TOAST_STORAGE_KEY = 'toast';
 const ENTS_STORAGE_KEY = 'ents';
 const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
-const SOURCE = {
-  GOOGLE: 'google',
-  PUBLISHER: 'publisher',
-};
-
-const ORIGIN_TO_SOURCE = {
-  [EventOriginator.SHOWCASE_CLIENT]: SOURCE.PUBLISHER,
-  [EventOriginator.SWG_CLIENT]: SOURCE.GOOGLE,
-  [EventOriginator.SWG_SERVER]: SOURCE.GOOGLE,
-};
 
 /**
  */
@@ -100,6 +93,10 @@ export class EntitlementsManager {
 
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = deps.config();
+
+    this.deps_
+      .eventManager()
+      .registerEventListener(this.handleClientEvent_.bind(this));
   }
 
   /**
@@ -197,49 +194,50 @@ export class EntitlementsManager {
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
     jwt.setJwt(entitlement.subscriptionToken);
-    return this.sendEntitlementRequest_(jwt);
+    return this.sendEntitlementRequest_(
+      jwt,
+      EntitlementResult.UNLOCKED_METER,
+      EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE
+    );
   }
 
-  eventHandler_(event) {
-    if (!ORIGIN_TO_SOURCE[event.eventOriginator]) {
+  handleClientEvent_(event) {
+    const result = analyticsEventToEntitlementResult(event.eventType);
+    if (!result) {
       return;
     }
+    let source = null;
 
-    const usedEntitlement = new EntitlementJwt();
-    usedEntitlement.setSource(ORIGIN_TO_SOURCE[event.eventOriginator]);
-    switch (event.eventType) {
-      case AnalyticsEvent.EVENT_UNLOCKED_BY_METER:
-        if (usedEntitlement.getSource() == SOURCE.GOOGLE) {
-          // This event is already sent in a different way.
+    switch (event.eventOriginator) {
+      case EventOriginator.SHOWCASE_CLIENT:
+        source = EntitlementSource.PUBLISHER_ENTITLEMENT;
+        break;
+      case EventOriginator.SWG_CLIENT: // Fallthrough, these are the same
+      case EventOriginator.SWG_SERVER:
+        if (result == EntitlementResult.UNLOCKED_METER) {
+          // Meters from Google require a valid jwt and are sent during pingback
           return;
         }
-        usedEntitlement.setJwt('METER');
+        source = EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT;
         break;
-      case AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION:
-        usedEntitlement.setJwt('SUBSCRIPTION');
-        break;
-      case AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE:
-        usedEntitlement.setJwt('FREE');
-        break;
-      case AnalyticsEvent.EVENT_OFFERED_METER:
-        usedEntitlement.setJwt('METERWALL');
-        break;
-      case AnalyticsEvent.IMPRESSION_PAYWALL:
-        usedEntitlement.setJwt('PAYWALL');
-        break;
-      case AnalyticsEvent.IMPRESSION_REGWALL:
-        usedEntitlement.setJwt('REGWALL');
-        break;
+      // Permission to pingback other sources was not requested
       default:
         return;
     }
-    this.sendEntitlementRequest_(usedEntitlement);
+
+    this.sendEntitlementRequest_(new EntitlementJwt(), result, source);
   }
 
-  sendEntitlementRequest_(usedEntitlement) {
+  sendEntitlementRequest_(
+    usedEntitlement,
+    entitlementResult,
+    entitlementSource
+  ) {
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(usedEntitlement);
     message.setClientEventTime(toTimestamp(Date.now()));
+    message.setEntitlementResult(entitlementResult);
+    message.setEntitlementSource(entitlementSource);
 
     const url =
       '/publication/' +
@@ -500,7 +498,7 @@ export class EntitlementsManager {
       }
 
       // Show toast.
-      const source = entitlement.source || SOURCE.GOOGLE;
+      const source = entitlement.source || GOOGLE_METERING_SOURCE;
       return new Toast(
         this.deps_,
         feUrl('/toastiframe'),
