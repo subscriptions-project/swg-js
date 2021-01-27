@@ -448,6 +448,12 @@ describes.realWin('PropensityServer', {}, (env) => {
       });
     });
 
+    it('should never send showcase events', () => {
+      testOriginator(EventOriginator.SHOWCASE_CLIENT, false);
+      config.enablePropensity = true;
+      testOriginator(EventOriginator.SHOWCASE_CLIENT, false);
+    });
+
     it('should always send propensity events', () => {
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
       config.enablePropensity = true;

@@ -29,7 +29,7 @@ const queue = [];
 let inProgress = 0;
 const MAX_PARALLEL_CLOSURE_INVOCATIONS = 4;
 
-const {isTravisBuild} = require('../travis');
+const {isCiBuild} = require('../ci');
 const {red} = require('ansi-colors');
 
 // Compiles code with the closure compiler. This is intended only for
@@ -48,8 +48,8 @@ exports.closureCompile = function (
       inProgress++;
       compile(entryModuleFilename, outputDir, outputFilename, options).then(
         function () {
-          if (isTravisBuild()) {
-            // When printing simplified log in travis, use dot for each task.
+          if (isCiBuild()) {
+            // When printing simplified log in CI, use dot for each task.
             process.stdout.write('.');
           }
           inProgress--;
@@ -64,9 +64,9 @@ exports.closureCompile = function (
     }
     function next() {
       if (!queue.length) {
-        // When printing simplified log in travis, print EOF after
+        // When printing simplified log in CI, print EOF after
         // all closure compiling task are done.
-        if (isTravisBuild()) {
+        if (isCiBuild()) {
           process.stdout.write('\n');
         }
         return;
@@ -169,6 +169,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       compilerPath: 'build-system/runner/dist/runner.jar',
       fileName: intermediateFilename,
       continueWithWarnings: false,
+      config: 'java_runtime_8',
       tieredCompilation: true, // Magic speed up.
       compilerFlags: {
         compilation_level: options.compilationLevel || 'SIMPLE_OPTIMIZATIONS',

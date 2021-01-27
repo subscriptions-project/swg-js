@@ -16,7 +16,11 @@
 
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
 import {AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
@@ -63,7 +67,11 @@ import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
+import {isSecure, wasReferredByGoogle} from '../utils/url';
+import {parseUrl} from '../utils/url';
+import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
 import {setExperiment} from './experiments';
+import {urlContainsFreshGaaParams} from '../utils/gaa';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -251,6 +259,9 @@ export class Runtime {
   init(productOrPublicationId) {
     assert(!this.committed_, 'already configured');
     this.productOrPublicationId_ = productOrPublicationId;
+
+    // Process the page's config.
+    this.configured_(true);
   }
 
   /** @override */
@@ -276,9 +287,9 @@ export class Runtime {
   }
 
   /** @override */
-  getEntitlements(encryptedDocumentKey) {
+  getEntitlements(params) {
     return this.configured_(true).then((runtime) =>
-      runtime.getEntitlements(encryptedDocumentKey)
+      runtime.getEntitlements(params)
     );
   }
 
@@ -398,6 +409,13 @@ export class Runtime {
   }
 
   /** @override */
+  triggerLoginRequest(request) {
+    return this.configured_(false).then((runtime) =>
+      runtime.triggerLoginRequest(request)
+    );
+  }
+
+  /** @override */
   setOnLinkComplete(callback) {
     return this.configured_(false).then((runtime) =>
       runtime.setOnLinkComplete(callback)
@@ -473,6 +491,25 @@ export class Runtime {
   /** @override */
   getLogger() {
     return this.configured_(true).then((runtime) => runtime.getLogger());
+  }
+
+  /** @override */
+  getEventManager() {
+    return this.configured_(true).then((runtime) => runtime.getEventManager());
+  }
+
+  /** @override */
+  setShowcaseEntitlement(entitlement) {
+    return this.configured_(true).then((runtime) =>
+      runtime.setShowcaseEntitlement(entitlement)
+    );
+  }
+
+  /** @override */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {
+    return this.configured_(true).then((runtime) =>
+      runtime.consumeShowcaseEntitlementJwt(showcaseEntitlementJwt)
+    );
   }
 }
 
@@ -583,9 +620,6 @@ export class ConfiguredRuntime {
     preconnect.preconnect('https://www.google.com/');
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
-    if (!isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_LAZYLOAD)) {
-      this.payClient_.preconnect(preconnect);
-    }
 
     injectStyleSheet(this.doc_, SWG_DIALOG);
 
@@ -741,9 +775,9 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getEntitlements(encryptedDocumentKey) {
+  getEntitlements(params) {
     return this.entitlementsManager_
-      .getEntitlements(encryptedDocumentKey)
+      .getEntitlements(params)
       .then((entitlements) => {
         // Auto update internal things tracking the user's current SKU.
         if (entitlements) {
@@ -834,6 +868,11 @@ export class ConfiguredRuntime {
   /** @override */
   setOnLoginRequest(callback) {
     this.callbacks_.setOnLoginRequest(callback);
+  }
+
+  /** @override */
+  triggerLoginRequest(request) {
+    this.callbacks_.triggerLoginRequest(request);
   }
 
   /** @override */
@@ -982,16 +1021,58 @@ export class ConfiguredRuntime {
     return Promise.resolve(this.propensityModule_);
   }
 
-  /** @override
+  /**
+   * This one exists as an internal helper so SwG logging doesn't require a promise.
    * @return {!ClientEventManager}
    */
   eventManager() {
     return this.eventManager_;
   }
 
+  /**
+   * This one exists as a public API so publishers can subscribe to SwG events.
+   * @override */
+  getEventManager() {
+    return Promise.resolve(this.eventManager_);
+  }
+
   /** @override */
   getLogger() {
     return Promise.resolve(this.logger_);
+  }
+
+  /** @override */
+  setShowcaseEntitlement(entitlement) {
+    if (
+      !entitlement ||
+      !isSecure(this.win().location) ||
+      !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
+      !urlContainsFreshGaaParams()
+    ) {
+      return;
+    }
+
+    const eventsToLog =
+      publisherEntitlementEventToAnalyticsEvents(entitlement.entitlement) || [];
+    const params = new EventParams();
+    params.setIsUserRegistered(entitlement.isUserRegistered);
+
+    for (let k = 0; k < eventsToLog.length; k++) {
+      this.eventManager().logEvent({
+        eventType: eventsToLog[k],
+        eventOriginator: EventOriginator.SHOWCASE_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: params,
+      });
+    }
+  }
+
+  /** @override */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {
+    const entitlements = this.entitlementsManager().parseEntitlements({
+      signedEntitlements: showcaseEntitlementJwt,
+    });
+    entitlements.consume();
   }
 }
 
@@ -1025,6 +1106,7 @@ function createPublicRuntime(runtime) {
     ),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
     setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
+    triggerLoginRequest: runtime.triggerLoginRequest.bind(runtime),
     setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
     setOnNativeSubscribeRequest: runtime.setOnNativeSubscribeRequest.bind(
       runtime
@@ -1040,6 +1122,11 @@ function createPublicRuntime(runtime) {
     attachSmartButton: runtime.attachSmartButton.bind(runtime),
     getPropensityModule: runtime.getPropensityModule.bind(runtime),
     getLogger: runtime.getLogger.bind(runtime),
+    getEventManager: runtime.getEventManager.bind(runtime),
+    setShowcaseEntitlement: runtime.setShowcaseEntitlement.bind(runtime),
+    consumeShowcaseEntitlementJwt: runtime.consumeShowcaseEntitlementJwt.bind(
+      runtime
+    ),
   });
 }
 

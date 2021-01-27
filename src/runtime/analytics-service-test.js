@@ -34,7 +34,6 @@ import {setExperimentsStringForTesting} from './experiments';
 const URL = 'www.news.com';
 
 describes.realWin('AnalyticsService', {}, (env) => {
-  let win;
   let src;
   let activityPorts;
   let activityIframePort;
@@ -67,25 +66,33 @@ describes.realWin('AnalyticsService', {}, (env) => {
   beforeEach(() => {
     setExperimentsStringForTesting('');
     eventsLoggedToService = [];
+
+    // Work around `location.search` being non-configurable,
+    // which means Sinon can't stub it normally.
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_redefine_property
+    env.win = Object.assign({}, env.win, {
+      location: {
+        search: '?utm_source=scenic&utm_medium=email&utm_campaign=campaign',
+      },
+    });
+
+    sandbox
+      .stub(env.win.document, 'referrer')
+      .get(() => 'https://scenic-2017.appspot.com/landing.html');
+
     sandbox
       .stub(XhrFetcher.prototype, 'sendBeacon')
       .callsFake((unusedUrl, message) => {
         eventsLoggedToService.push(message);
       });
 
-    AnalyticsService.prototype.getQueryString_ = () => {
-      return '?utm_source=scenic&utm_medium=email&utm_campaign=campaign';
-    };
-    AnalyticsService.prototype.getReferrer_ = () => {
-      return 'https://scenic-2017.appspot.com/landing.html';
-    };
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
       .callsFake((callback) => (eventManagerCallback = callback));
-    win = env.win;
+
     src = '/serviceiframe';
     pageConfig = new PageConfig(productId);
-    runtime = new ConfiguredRuntime(win, pageConfig);
+    runtime = new ConfiguredRuntime(env.win, pageConfig);
     activityPorts = runtime.activities();
     sandbox.stub(runtime.doc(), 'getRootNode').callsFake(() => {
       return {
@@ -555,6 +562,10 @@ describes.realWin('AnalyticsService', {}, (env) => {
       }
     };
 
+    it('should never log showcase events', () => {
+      testOriginator(EventOriginator.SHOWCASE_CLIENT, false);
+    });
+
     it('should not log publisher events by default', () => {
       testOriginator(EventOriginator.SWG_CLIENT, true);
       testOriginator(EventOriginator.SWG_SERVER, true);
@@ -569,6 +580,9 @@ describes.realWin('AnalyticsService', {}, (env) => {
       testOriginator(EventOriginator.AMP_CLIENT, true);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
       testOriginator(EventOriginator.PUBLISHER_CLIENT, true);
+
+      // Should still not log showcase events
+      testOriginator(EventOriginator.SHOWCASE_CLIENT, false);
     });
 
     it('should always log page load event in AMP', () => {

@@ -15,8 +15,9 @@
  */
 'use strict';
 
+const argv = require('minimist')(process.argv.slice(2));
 const through = require('through2');
-const {isTravisBuild} = require('../travis');
+const {isCiBuild} = require('../ci');
 
 /**
  * @param {!Object} config
@@ -37,9 +38,13 @@ module.exports = {
       ['babelify', {presets: ['@babel/preset-env']}],
       () =>
         through(function (buf, enc, next) {
-          // Set Pay environment to indicate we're in a Karma test.
           this.push(
-            buf.toString('utf8').replace(/\$payEnvironment\$/g, 'TEST')
+            buf
+              .toString('utf8')
+              // Set Pay environment to indicate we're in a Karma test.
+              .replace(/\$payEnvironment\$/g, 'TEST')
+              // Some tests need a valid SwG server origin.
+              .replace(/\$frontend\$/g, 'https://news.google.com')
           );
           next();
         }),
@@ -93,29 +98,41 @@ module.exports = {
 
   autoWatch: true,
 
-  browsers: [isTravisBuild() ? 'Chrome_travis_ci' : 'Chrome_no_extensions'],
+  browsers: [
+    argv.headless ? 'Chrome_no_extensions_headless' : 'Chrome_no_extensions',
+  ],
 
   // Number of sauce tests to start in parallel
   concurrency: 6,
 
   customLaunchers: {
-    /*eslint "google-camelcase/google-camelcase": 0*/
-    Chrome_travis_ci: {
-      base: 'Chrome',
-      flags: ['--no-sandbox', '--disable-extensions'],
-    },
+    // eslint-disable-next-line google-camelcase/google-camelcase
     Chrome_no_extensions: {
       base: 'Chrome',
       // Dramatically speeds up iframe creation time.
       flags: ['--disable-extensions'],
+    },
+    // eslint-disable-next-line google-camelcase/google-camelcase
+    Chrome_no_extensions_headless: {
+      base: 'ChromeHeadless',
+      // Dramatically speeds up iframe creation time.
+      flags: [
+        '--disable-extensions',
+        // https://developers.google.com/web/updates/2017/04/headless-chrome#frontend
+        '--no-sandbox',
+        '--remote-debugging-port=9222',
+        // https://github.com/karma-runner/karma-chrome-launcher/issues/175
+        "--proxy-server='direct://'",
+        '--proxy-bypass-list=*',
+      ],
     },
   },
 
   client: {
     mocha: {
       reporter: 'html',
-      // Longer timeout on Travis; fail quickly at local.
-      timeout: isTravisBuild() ? 10000 : 2000,
+      // Longer timeout on CI; fail quickly at local.
+      timeout: isCiBuild() ? 10000 : 2000,
     },
     captureConsole: false,
   },

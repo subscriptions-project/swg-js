@@ -137,17 +137,4 @@ For manual testing build Subscribe with Google and start the Node.js server by r
   test/           - tests
 </pre>
 
-## Deploying for testing
-
-### Deploying to App Engine
-
-This repo is configured to be deployable to App Engine. The relevant configuration files are [app.yaml](../app.yaml) and [Dockerfile](../Dockerfile).
-
-To deploy:
-
-1. Install and init [Google Cloud SDK](https://cloud.google.com/sdk/downloads)
-2. Create App Engine project if you don't have one yet. Go to the [Google Cloud Console](https://console.cloud.google.com/) and select "Create Project" option. If the project already exists, make sure you have deploy privileges. For more details, see [Node.js on App Engine tutorial](https://cloud.google.com/nodejs/getting-started/hello-world).
-3. Deploy by executing in command line from the project's root folder: `gcloud app deploy --project $PROJECT_ID --stop-previous-version`.
-
-
 ## [Code of conduct](../CODE_OF_CONDUCT.md)

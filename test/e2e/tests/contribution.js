@@ -20,9 +20,6 @@ module.exports = {
     const setup = browser.page.setup();
     setup.navigate().select('local');
 
-    const login = browser.page.login();
-    login.navigate().login(browser);
-
     const contribution = browser.page.contribution();
     contribution
       .navigate()
@@ -30,7 +27,6 @@ module.exports = {
       .waitForElementVisible('@swgDialog')
       .viewContributionOptions()
       .assert.containsText('.K2Fgzb', 'Contribute with your Google Account')
-      .assert.containsText('.qnhoke', 'Weekly')
       .assert.containsText('.Borcjc', '$0.99')
       .contribute()
       .checkPayment()

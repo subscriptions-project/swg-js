@@ -15,7 +15,7 @@
  */
 'use strict';
 
-const app = module.exports = require('express').Router();
+const app = (module.exports = require('express').Router());
 
 /**
  * Default test response.
@@ -35,13 +35,12 @@ const RESPONSES = new Set([
   'unsigned-response',
 ]);
 
-
 /**
  * An Article. ?url=(([^&]+)&test_response=([^&]+).*
  */
 app.get(/\/api/, (req, res) => {
   const options = {
-    root: __dirname ,
+    root: __dirname,
     dotfiles: 'deny',
   };
 
@@ -68,7 +67,11 @@ function getParameterByName_(url, param) {
   const name = param.replace(/[\[\]]/g, '\\$&');
   const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
   const results = regex.exec(url);
-  if (!results) {return null;}
-  if (!results[2]) {return '';}
+  if (!results) {
+    return null;
+  }
+  if (!results[2]) {
+    return '';
+  }
   return results[2].replace(/\+/g, ' ');
 }

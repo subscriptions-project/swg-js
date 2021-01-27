@@ -24,6 +24,7 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   AnalyticsMode,
   ProductType,
+  PublisherEntitlementEvent,
   ReplaceSkuProrationMode,
   Subscriptions,
 } from '../api/subscriptions';
@@ -42,6 +43,7 @@ import {Entitlement, Entitlements} from '../api/entitlements';
 import {Event} from '../api/logger-api';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {GaaMeteringRegwall} from '../utils/gaa';
 import {GlobalDoc} from '../model/doc';
 import {JsError} from './jserror';
 import {
@@ -65,6 +67,7 @@ import {
   setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
+import {parseUrl} from '../utils/url';
 
 const EDGE_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0)' +
@@ -413,6 +416,13 @@ describes.realWin('Runtime', {}, (env) => {
       expect(cr.pageConfig().isLocked()).to.be.false;
     });
 
+    it('should allow `configured_(false)` calls to resolve', async () => {
+      runtime.init('pub3');
+
+      // This should resolve.
+      await runtime.configured_(false);
+    });
+
     it('should not force initialization without commit', () => {
       runtime.configured_(false);
       expect(resolveStub).to.not.be.called;
@@ -558,7 +568,9 @@ describes.realWin('Runtime', {}, (env) => {
         .expects('getEntitlements')
         .returns(Promise.resolve(ents));
 
-      const value = await runtime.getEntitlements(encryptedDocumentKey);
+      const value = await runtime.getEntitlements({
+        encryption: {encryptedDocumentKey},
+      });
       expect(value).to.equal(ents);
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
@@ -752,6 +764,17 @@ describes.realWin('Runtime', {}, (env) => {
       expect(configureStub).to.be.calledOnce.calledWith(false);
     });
 
+    it('should trigger "triggerLoginRequest"', async () => {
+      const request = {linkRequested: false};
+      configuredRuntimeMock
+        .expects('triggerLoginRequest')
+        .withExactArgs(request)
+        .once();
+
+      await runtime.triggerLoginRequest(request);
+      expect(configureStub).to.be.calledOnce.calledWith(false);
+    });
+
     it('should delegate "setOnLinkComplete"', async () => {
       const callback = function () {};
       configuredRuntimeMock
@@ -898,6 +921,32 @@ describes.realWin('Runtime', {}, (env) => {
       const propensityModule = await runtime.getPropensityModule();
       expect(configureStub).to.be.calledOnce.calledWith(true);
       expect(propensityModule).to.equal(propensity);
+    });
+
+    it('should delegate "setShowcaseEntitlement"', async () => {
+      const entitlement = {
+        entitlement:
+          PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
+        isUserRegistered: true,
+      };
+      configuredRuntimeMock
+        .expects('setShowcaseEntitlement')
+        .withExactArgs(entitlement)
+        .once();
+
+      await runtime.setShowcaseEntitlement(entitlement);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "consumeShowcaseEntitlementJwt"', async () => {
+      const showcaseEntitlementJwt = 'jw7';
+      configuredRuntimeMock
+        .expects('consumeShowcaseEntitlementJwt')
+        .withExactArgs(showcaseEntitlementJwt)
+        .once();
+
+      await runtime.consumeShowcaseEntitlementJwt(showcaseEntitlementJwt);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
     });
   });
 });
@@ -1177,14 +1226,6 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       );
       expect(el).to.exist;
       expect(el.getAttribute('href')).to.equal('$assets$/loader.svg');
-    });
-
-    it('should prefetch payments', () => {
-      const el = win.document.head.querySelector(
-        'link[rel="preconnect prefetch"][href*="/pay?"]'
-      );
-      expect(el).to.exist;
-      expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
     });
 
     it('should preconnect to google domains', () => {
@@ -1536,12 +1577,7 @@ new subscribers. Use the showOffers() method instead.'
       const startStub = sandbox
         .stub(LinkCompleteFlow.prototype, 'start')
         .callsFake(() => Promise.resolve());
-      await returnActivity(
-        'swg-link',
-        ActivityResultCode.OK,
-        {},
-        location.origin
-      );
+      await returnActivity('swg-link', ActivityResultCode.OK, {}, '$frontend$');
       expect(startStub).to.be.calledOnce;
     });
 
@@ -1841,6 +1877,80 @@ subscribe() method'
       const button = runtime.createButton();
       await button.click();
       expect(count).to.equal(1);
+    });
+
+    describe('setShowcaseEntitlement', () => {
+      const PUB_SITE = 'https://www.publisher.com?';
+      const VALID_QUERY_STRING = 'gaa_at=gaa&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
+      let eventsWereSent;
+      let expectEvents;
+      let url;
+      let referrer;
+      let entitlement;
+
+      beforeEach(() => {
+        // For GAA URL parameters
+        sandbox.useFakeTimers();
+
+        // For URL helpers
+        sandbox.stub(runtime, 'win').callsFake(() => {
+          return {
+            location: parseUrl(url),
+            document: {referrer},
+          };
+        });
+
+        // Detects whether setShowcaseEntitlement did anything
+        eventsWereSent = false;
+        sandbox
+          .stub(ClientEventManager.prototype, 'logEvent')
+          .callsFake(() => (eventsWereSent = true));
+
+        // Sets up everything so one or more events are transmitted
+        url = PUB_SITE + VALID_QUERY_STRING;
+        referrer = 'https://www.google.com';
+        entitlement =
+          PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER;
+        expectEvents = false;
+      });
+
+      afterEach(() => {
+        GaaMeteringRegwall.location_ = parseUrl(url);
+
+        runtime.setShowcaseEntitlement({
+          entitlement,
+          isUserRegistered: true,
+        });
+
+        expect(expectEvents).to.equal(eventsWereSent);
+      });
+
+      // This is the only test that should pass, the other ones
+      // each break 1 thing.
+      it('should retransmit entitlement events', () => (expectEvents = true));
+
+      // Failures
+      it('should require entitlement', () => (entitlement = undefined));
+      it('should require gaa params', () => (url = PUB_SITE));
+      it('should require https page', () =>
+        (url = 'http://www.publisher.com?' + VALID_QUERY_STRING));
+      it('should require secure Google referrer', () =>
+        (referrer = 'http://www.google.com'));
+      it('should require Google referrer', () =>
+        (referrer = 'https://www.gogle.com'));
+    });
+
+    describe('consumeShowcaseEntitlementJwt', () => {
+      it('consumes entitlement', () => {
+        const SHOWCASE_ENTITLEMENT_JWT = 'jw7';
+
+        const consumeStub = sandbox
+          .stub(Entitlements.prototype, 'consume')
+          .callsFake(() => Promise.resolve());
+
+        runtime.consumeShowcaseEntitlementJwt(SHOWCASE_ENTITLEMENT_JWT);
+        expect(consumeStub).to.be.calledOnce;
+      });
     });
   });
 });

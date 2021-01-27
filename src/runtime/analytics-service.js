@@ -27,6 +27,7 @@ import {ClientEventManager} from './client-event-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
+import {getCanonicalUrl} from '../utils/url';
 import {getOnExperiments, isExperimentOn} from './experiments';
 import {getSwgTransactionId, getUuid} from '../utils/string';
 import {log} from '../utils/log';
@@ -235,6 +236,7 @@ export class AnalyticsService {
     }
     context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     context.setClientVersion('SwG $internalRuntimeVersion$');
+    context.setUrl(getCanonicalUrl(this.doc_));
 
     const utmParams = parseQueryString(this.getQueryString_());
     const campaign = utmParams['utm_campaign'];
@@ -248,13 +250,6 @@ export class AnalyticsService {
     }
     if (source) {
       context.setUtmSource(source);
-    }
-
-    const urlNode = this.doc_
-      .getRootNode()
-      .querySelector("link[rel='canonical']");
-    if (urlNode && urlNode.href) {
-      context.setUrl(urlNode.href);
     }
   }
 
@@ -365,6 +360,13 @@ export class AnalyticsService {
     //this event is just used to communicate information internally.  It should
     //not be reported to the SwG analytics service.
     if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
+      return;
+    }
+
+    // Permission should be asked from a privacy workgroup before this originator
+    // can be submitted to the analytics service.  It should most likely be treated
+    // as another kind of publisher event here though.
+    if (event.eventOriginator === EventOriginator.SHOWCASE_CLIENT) {
       return;
     }
 

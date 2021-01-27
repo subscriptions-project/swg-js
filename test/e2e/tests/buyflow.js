@@ -16,12 +16,9 @@
 
 module.exports = {
   '@tags': ['buyflow'],
-  'Show offers Automatically for a logged in user': function (browser) {
+  'Show offers on web': function (browser) {
     const setup = browser.page.setup();
     setup.navigate().select('local');
-
-    const login = browser.page.login();
-    login.navigate().login(browser);
 
     const publication = browser.page.publication();
     publication
@@ -32,26 +29,17 @@ module.exports = {
       .waitForElementPresent('.K2Fgzb', 'Found offer carousel')
       .assert.containsText('.K2Fgzb', 'Subscribe with your Google Account')
       .assert.containsText('.wlhaj.I3RyHc', 'Already subscribed?')
-      .assert.containsText('.amekj', 'Basic Access')
-      .assert.containsText('.mojnzf', '$1.99/week')
-      .assert.containsText('.a02uaf', 'Basic access charged weekly')
-      .assert.containsText('.HJ9fUd', 'Free 7 day trial')
-      .assert.containsText('.ZIHl3c', 'Price for the first 6 weeks')
+      .assert.containsText('.amekj', 'Weekly')
+      .assert.containsText('.e02Wob', '$4.99/week')
       .end();
   },
-  'User log in, select an offer and see gpay window': function (browser) {
-    const login = browser.page.login();
-    login.navigate().login(browser);
-
+  'Selecting an offer triggers Google Sign-In prompt': function (browser) {
     const publication = browser.page.publication();
     publication.navigate().viewFirstArticle().selectOffer();
 
     browser.checkPayment().end();
   },
-  'User log in AMP page, click SwG button and see offers': function (browser) {
-    const login = browser.page.login();
-    login.navigate().login(browser);
-
+  'Show offers on AMP': function (browser) {
     const amp = browser.page.amp();
     amp
       .navigate()

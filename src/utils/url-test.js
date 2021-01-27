@@ -17,11 +17,14 @@
 import {AnalyticsRequest} from '../proto/api_messages';
 import {
   addQueryParam,
+  getCanonicalUrl,
   getHostUrl,
+  isSecure,
   parseQueryString,
   parseUrl,
   serializeProtoMessageForUrl,
   serializeQueryString,
+  wasReferredByGoogle,
 } from './url';
 
 describe('serializeQueryString', () => {
@@ -53,7 +56,7 @@ describe('serializeQueryString', () => {
   });
 });
 
-describe('parseUrl', () => {
+describes.realWin('parseUrl', {}, () => {
   const currentPort = location.port;
 
   function compareParse(url, result) {
@@ -215,6 +218,19 @@ describe('parseUrl', () => {
     expect(parseQueryString('')).to.be.empty;
   });
 
+  it('should ignore unparseable query params after logging a warning', () => {
+    const consoleWarn = sandbox.spy(console, 'warn');
+
+    const url = 'test=1&unparseableParam=hi%3D%3';
+    const parsedQueryObject = parseQueryString(url);
+    expect(parsedQueryObject.test).to.equal('1');
+    expect(parsedQueryObject.unparseableParam).to.be.undefined;
+
+    expect(consoleWarn).to.be.calledWith(
+      'SwG could not parse a URL query param: unparseableParam'
+    );
+  });
+
   it('should strip fragment for host url', () => {
     expect(getHostUrl('https://example.com/abc?a=1#frag')).to.equal(
       'https://example.com/abc?a=1'
@@ -264,6 +280,8 @@ describe('addQueryParam', () => {
 describe('serializeProtoMessageForUrl', () => {
   it('should serialize message with experiments in array', () => {
     // Create an AnalyticsRequest, using arrays to represent the message and its submessages.
+    // Note that you may need to update these arrays with a value if you add a new
+    // logging property.
     const analyticsContextArray = [
       'AnalyticsContext',
       'embed',
@@ -286,6 +304,7 @@ describe('serializeProtoMessageForUrl', () => {
       false,
       'sku',
       'othertxid',
+      true,
     ];
     const analyticsRequestArray = [
       'AnalyticsRequest',
@@ -313,5 +332,61 @@ describe('serializeProtoMessageForUrl', () => {
     expect(deserializedAnalyticsRequestArray).to.deep.equal(
       analyticsRequestArray
     );
+  });
+});
+
+describe('getCanonicalUrl', () => {
+  it('should query page', () => {
+    const url = 'canonicalUrl';
+    let pageQuery = null;
+    const FAKE_DOC = {
+      getRootNode: function () {
+        return {
+          querySelector: function (qry) {
+            pageQuery = qry;
+            return {href: url};
+          },
+        };
+      },
+    };
+    expect(getCanonicalUrl(FAKE_DOC)).to.equal(url);
+    expect(pageQuery).to.equal("link[rel='canonical']");
+  });
+});
+
+describe('isSecure', () => {
+  it('first parameter should default to current page', () => {
+    const URL = parseUrl(self.window.location.href);
+    expect(isSecure(URL)).to.equal(isSecure());
+  });
+
+  it('HTTPS protocol should output true', () => {
+    const URL = parseUrl('https://www.any.com');
+    expect(isSecure(URL)).to.be.true;
+  });
+
+  it('HTTP protocol should output false', () => {
+    const URL = parseUrl('http://www.any.com');
+    expect(isSecure(URL)).to.be.false;
+  });
+});
+
+describe('wasReferredByGoogle', () => {
+  it("first parameter should default to current page's referrer", () => {
+    expect(wasReferredByGoogle(parseUrl(self.document.referrer))).to.equal(
+      wasReferredByGoogle()
+    );
+  });
+
+  it('should accept a secure Google referrer', () => {
+    expect(wasReferredByGoogle(parseUrl('https://www.google.com'))).to.be.true;
+  });
+
+  it('should require secure referrer', () => {
+    expect(wasReferredByGoogle(parseUrl('http://www.google.com'))).to.be.false;
+  });
+
+  it('should require a Google referrer', () => {
+    expect(wasReferredByGoogle(parseUrl('https://www.gogle.com'))).to.be.false;
   });
 });

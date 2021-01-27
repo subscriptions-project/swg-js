@@ -51,6 +51,9 @@ const AnalyticsEvent = {
   IMPRESSION_SELECT_OFFER_SWG_BUTTON: 18,
   IMPRESSION_SHOW_CONTRIBUTIONS_SWG_BUTTON: 19,
   IMPRESSION_SELECT_CONTRIBUTION_SWG_BUTTON: 20,
+  IMPRESSION_METER_TOAST: 21,
+  IMPRESSION_REGWALL: 22,
+  IMPRESSION_SHOWCASE_REGWALL: 23,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -75,6 +78,12 @@ const AnalyticsEvent = {
   ACTION_USER_CONSENT_DEFERRED_ACCOUNT: 1021,
   ACTION_USER_DENY_DEFERRED_ACCOUNT: 1022,
   ACTION_DEFERRED_ACCOUNT_REDIRECT: 1023,
+  ACTION_GET_ENTITLEMENTS: 1024,
+  ACTION_METER_TOAST_SUBSCRIBE_CLICK: 1025,
+  ACTION_METER_TOAST_EXPANDED: 1026,
+  ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION: 1027,
+  ACTION_METER_TOAST_CLOSED_BY_SWIPE_DOWN: 1028,
+  ACTION_METER_TOAST_CLOSED_BY_X_CLICKED: 1029,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
@@ -83,7 +92,29 @@ const AnalyticsEvent = {
   EVENT_GPAY_CANNOT_CONFIRM_TX_ID: 3004,
   EVENT_GOOGLE_UPDATED: 3005,
   EVENT_NEW_TX_ID: 3006,
+  EVENT_UNLOCKED_BY_SUBSCRIPTION: 3007,
+  EVENT_UNLOCKED_BY_METER: 3008,
+  EVENT_NO_ENTITLEMENTS: 3009,
+  EVENT_HAS_METERING_ENTITLEMENTS: 3010,
+  EVENT_OFFERED_METER: 3011,
+  EVENT_UNLOCKED_FREE_PAGE: 3012,
   EVENT_SUBSCRIPTION_STATE: 4000,
+};
+/** @enum {number} */
+const EntitlementResult = {
+  UNKNOWN_ENTITLEMENT_RESULT: 0,
+  UNLOCKED_SUBSCRIBER: 1001,
+  UNLOCKED_FREE: 1002,
+  UNLOCKED_METER: 1003,
+  LOCKED_REGWALL: 2001,
+  LOCKED_PAYWALL: 2002,
+};
+/** @enum {number} */
+const EntitlementSource = {
+  UNKNOWN_ENTITLEMENT_SOURCE: 0,
+  GOOGLE_SUBSCRIBER_ENTITLEMENT: 1001,
+  GOOGLE_SHOWCASE_METERING_SERVICE: 2001,
+  PUBLISHER_ENTITLEMENT: 3001,
 };
 /** @enum {number} */
 const EventOriginator = {
@@ -93,6 +124,7 @@ const EventOriginator = {
   PROPENSITY_CLIENT: 3,
   SWG_SERVER: 4,
   PUBLISHER_CLIENT: 5,
+  SHOWCASE_CLIENT: 6,
 };
 
 /**
@@ -642,7 +674,7 @@ class AnalyticsRequest {
 /**
  * @implements {Message}
  */
-class EntitlementsPingbackRequest {
+class EntitlementJwt {
   /**
    * @param {!Array<*>=} data
    * @param {boolean=} includesLabel
@@ -651,47 +683,107 @@ class EntitlementsPingbackRequest {
     const base = includesLabel ? 1 : 0;
 
     /** @private {?string} */
-    this.hashedCanonicalUrl_ = data[base] == null ? null : data[base];
+    this.jwt_ = data[base] == null ? null : data[base];
 
     /** @private {?string} */
-    this.publisherUserId_ = data[1 + base] == null ? null : data[1 + base];
+    this.source_ = data[1 + base] == null ? null : data[1 + base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getJwt() {
+    return this.jwt_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setJwt(value) {
+    this.jwt_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getSource() {
+    return this.source_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSource(value) {
+    this.source_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.jwt_, // field 1 - jwt
+        this.source_, // field 2 - source
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'EntitlementJwt';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class EntitlementsRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?EntitlementJwt} */
+    this.usedEntitlement_ =
+      data[base] == null || data[base] == undefined
+        ? null
+        : new EntitlementJwt(data[base], includesLabel);
 
     /** @private {?Timestamp} */
     this.clientEventTime_ =
-      data[2 + base] == null || data[2 + base] == undefined
+      data[1 + base] == null || data[1 + base] == undefined
         ? null
-        : new Timestamp(data[2 + base], includesLabel);
+        : new Timestamp(data[1 + base], includesLabel);
 
-    /** @private {?string} */
-    this.signedMeter_ = data[3 + base] == null ? null : data[3 + base];
+    /** @private {?EntitlementSource} */
+    this.entitlementSource_ = data[2 + base] == null ? null : data[2 + base];
+
+    /** @private {?EntitlementResult} */
+    this.entitlementResult_ = data[3 + base] == null ? null : data[3 + base];
   }
 
   /**
-   * @return {?string}
+   * @return {?EntitlementJwt}
    */
-  getHashedCanonicalUrl() {
-    return this.hashedCanonicalUrl_;
+  getUsedEntitlement() {
+    return this.usedEntitlement_;
   }
 
   /**
-   * @param {string} value
+   * @param {!EntitlementJwt} value
    */
-  setHashedCanonicalUrl(value) {
-    this.hashedCanonicalUrl_ = value;
-  }
-
-  /**
-   * @return {?string}
-   */
-  getPublisherUserId() {
-    return this.publisherUserId_;
-  }
-
-  /**
-   * @param {string} value
-   */
-  setPublisherUserId(value) {
-    this.publisherUserId_ = value;
+  setUsedEntitlement(value) {
+    this.usedEntitlement_ = value;
   }
 
   /**
@@ -709,17 +801,31 @@ class EntitlementsPingbackRequest {
   }
 
   /**
-   * @return {?string}
+   * @return {?EntitlementSource}
    */
-  getSignedMeter() {
-    return this.signedMeter_;
+  getEntitlementSource() {
+    return this.entitlementSource_;
   }
 
   /**
-   * @param {string} value
+   * @param {!EntitlementSource} value
    */
-  setSignedMeter(value) {
-    this.signedMeter_ = value;
+  setEntitlementSource(value) {
+    this.entitlementSource_ = value;
+  }
+
+  /**
+   * @return {?EntitlementResult}
+   */
+  getEntitlementResult() {
+    return this.entitlementResult_;
+  }
+
+  /**
+   * @param {!EntitlementResult} value
+   */
+  setEntitlementResult(value) {
+    this.entitlementResult_ = value;
   }
 
   /**
@@ -729,11 +835,12 @@ class EntitlementsPingbackRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-      this.hashedCanonicalUrl_,  // field 1 - hashed_canonical_url
-      this.publisherUserId_,     // field 2 - publisher_user_id
+      this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) :
+                              [],  // field 1 - used_entitlement
       this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) :
-                              [],  // field 3 - client_event_time
-      this.signedMeter_,           // field 4 - signed_meter
+                              [],  // field 2 - client_event_time
+      this.entitlementSource_,     // field 3 - entitlement_source
+      this.entitlementResult_,     // field 4 - entitlement_result
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -746,7 +853,7 @@ class EntitlementsPingbackRequest {
    * @override
    */
   label() {
-    return 'EntitlementsPingbackRequest';
+    return 'EntitlementsRequest';
   }
 }
 
@@ -828,6 +935,9 @@ class EventParams {
 
     /** @private {?string} */
     this.oldTransactionId_ = data[4 + base] == null ? null : data[4 + base];
+
+    /** @private {?boolean} */
+    this.isUserRegistered_ = data[5 + base] == null ? null : data[5 + base];
   }
 
   /**
@@ -901,6 +1011,20 @@ class EventParams {
   }
 
   /**
+   * @return {?boolean}
+   */
+  getIsUserRegistered() {
+    return this.isUserRegistered_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setIsUserRegistered(value) {
+    this.isUserRegistered_ = value;
+  }
+
+  /**
    * @param {boolean} includeLabel
    * @return {!Array<?>}
    * @override
@@ -912,6 +1036,7 @@ class EventParams {
         this.hadLogged_, // field 3 - had_logged
         this.sku_, // field 4 - sku
         this.oldTransactionId_, // field 5 - old_transaction_id
+        this.isUserRegistered_, // field 6 - is_user_registered
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1428,6 +1553,59 @@ class Timestamp {
 /**
  * @implements {Message}
  */
+class ToastCloseRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?boolean} */
+    this.close_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getClose() {
+    return this.close_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setClose(value) {
+    this.close_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.close_, // field 1 - close
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'ToastCloseRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class ViewSubscriptionsResponse {
   /**
    * @param {!Array<*>=} data
@@ -1484,7 +1662,8 @@ const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
-  'EntitlementsPingbackRequest': EntitlementsPingbackRequest,
+  'EntitlementJwt': EntitlementJwt,
+  'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
   'EventParams': EventParams,
   'FinishedLoggingResponse': FinishedLoggingResponse,
@@ -1494,6 +1673,7 @@ const PROTO_MAP = {
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
   'Timestamp': Timestamp,
+  'ToastCloseRequest': ToastCloseRequest,
   'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
 };
 
@@ -1531,7 +1711,10 @@ export {
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
-  EntitlementsPingbackRequest,
+  EntitlementJwt,
+  EntitlementResult,
+  EntitlementSource,
+  EntitlementsRequest,
   EntitlementsResponse,
   EventOriginator,
   EventParams,
@@ -1543,6 +1726,7 @@ export {
   SmartBoxMessage,
   SubscribeResponse,
   Timestamp,
+  ToastCloseRequest,
   ViewSubscriptionsResponse,
   deserialize,
   getLabel,

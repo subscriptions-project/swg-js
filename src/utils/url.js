@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {warn} from './log';
+
+// NOTE: This regex was copied from SwG's AMP extension. https://github.com/ampproject/amphtml/blob/c23bf281f817a2ee5df73f6fd45e9f4b71bb68b6/extensions/amp-subscriptions-google/0.1/amp-subscriptions-google.js#L56
+const GOOGLE_DOMAIN_RE = /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
 
 /**
   @typedef {{
@@ -162,10 +166,15 @@ export function parseQueryString(query) {
     .split('&')
     .reduce((params, param) => {
       const item = param.split('=');
-      const key = decodeURIComponent(item[0] || '');
-      const value = decodeURIComponent(item[1] || '');
-      if (key) {
-        params[key] = value;
+      try {
+        const key = decodeURIComponent(item[0] || '');
+        const value = decodeURIComponent(item[1] || '');
+        if (key) {
+          params[key] = value;
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        warn(`SwG could not parse a URL query param: ${item[0]}`);
       }
       return params;
     }, {});
@@ -211,4 +220,47 @@ export function serializeProtoMessageForUrl(message) {
 export function getHostUrl(url) {
   const locationHref = parseUrl(url);
   return locationHref.origin + locationHref.pathname + locationHref.search;
+}
+
+/**
+ * @param {!../model/doc.Doc} doc
+ * @return {string}
+ */
+export function getCanonicalUrl(doc) {
+  const node = doc.getRootNode().querySelector("link[rel='canonical']");
+  return (node && node.href) || '';
+}
+
+const PARSED_URL = parseUrl(self.window.location.href);
+const PARSED_REFERRER = parseUrl(self.document.referrer);
+
+/**
+ * True for Google domains
+ * @param {LocationDef=} parsedUrl Defaults to the current page's URL
+ * @return {boolean}
+ */
+function isGoogleDomain(parsedUrl) {
+  parsedUrl = parsedUrl || PARSED_URL;
+  return GOOGLE_DOMAIN_RE.test(parsedUrl.hostname);
+}
+
+/**
+ * True for HTTPS URLs
+ * @param {LocationDef=} parsedUrl Defaults to the current page's URL
+ * @return {boolean}
+ */
+export function isSecure(parsedUrl) {
+  parsedUrl = parsedUrl || PARSED_URL;
+  return parsedUrl.protocol === 'https' || parsedUrl.protocol === 'https:';
+}
+
+/**
+ * True when the page is rendered within a secure Google application or
+ * was linked to from a secure Google domain.
+ * @param {LocationDef=} parsedReferrer Defaults to the current page's referrer
+ * @return {boolean}
+ */
+export function wasReferredByGoogle(parsedReferrer) {
+  parsedReferrer = parsedReferrer || PARSED_REFERRER;
+  return isSecure(parsedReferrer) && isGoogleDomain(parsedReferrer);
 }

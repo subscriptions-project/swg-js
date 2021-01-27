@@ -87,7 +87,11 @@ const forbiddenTerms = {
   },
   'sessionStorage': {
     message: requiresReviewPrivacy,
-    allowlist: ['src/runtime/experiments.js', 'src/runtime/storage.js'],
+    allowlist: [
+      'src/runtime/experiments.js',
+      'src/runtime/storage.js',
+      'src/utils/gaa.js',
+    ],
   },
   'indexedDB': {
     message: requiresReviewPrivacy,

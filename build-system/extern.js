@@ -20,7 +20,7 @@
  * @template T
  * @constructor
  */
-const ArrayLike = function() {};
+const ArrayLike = function () {};
 
 /**
  * @type {number}
@@ -36,3 +36,20 @@ ArrayLike.prototype.length;
  * @dict
  */
 function JsonObject() {}
+
+/**
+ * Google JS APIs.
+ * @type {{
+ *   load: function(string, function(): void),
+ *   auth2: {
+ *     init: function(!Object=): !Promise,
+ *     getAuthInstance: function(): {
+ *       signOut: function(): !Promise,
+ *     },
+ *   },
+ *   signin2: {
+ *     render: function(string, !Object): void
+ *   },
+ * }}
+ */
+window.gapi;

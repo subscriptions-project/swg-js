@@ -13,27 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
-/**
- * @fileoverview Creates an http server to handle static
- * files and list directories for use with the live server for
- * deployment to GAE.
- */
-
-const app = require(require.resolve('./server-app'));
-const express = require('express');
-const port = process.env.PORT || 8080;
-
-// View cache.
-app.enable('view cache');
-
-// Enable static file serving via express.
-app.use(express.static('.'));
-
-// Start express webserver
-console.log('Start server: ', port);
-app.listen(port, () => {
-  console.log('App listening on port: ', port);
-  console.log('Press Ctrl+C to quit.');
-});
+/** @enum {number}  */
+export const MeterClientTypes = {
+  /** Meter client type for content licensed by Google. */
+  LICENSED_BY_GOOGLE: 1,
+};

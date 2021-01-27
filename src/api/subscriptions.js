@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-import {Entitlements} from './entitlements';
-import {Offer} from './offer';
+import {ClientEventManagerApi} from './client-event-manager-api';
 import {
   DeferredAccountCreationRequest,
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
-import {SubscribeResponse} from './subscribe-response';
-import {PropensityApi} from './propensity-api';
+import {Entitlements} from './entitlements';
 import {LoggerApi} from './logger-api';
+import {Offer} from './offer';
+import {PropensityApi} from './propensity-api';
+import {SubscribeResponse} from './subscribe-response';
 
 /**
  * @interface
@@ -59,10 +60,10 @@ export class Subscriptions {
   clear() {}
 
   /**
-   * @param {?string=} encryptedDocumentKey
+   * @param {!GetEntitlementsParamsExternalDef=} params
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements(encryptedDocumentKey) {}
+  getEntitlements(params) {}
 
   /**
    * Set the subscribe callback.
@@ -171,6 +172,11 @@ export class Subscriptions {
   setOnLoginRequest(callback) {}
 
   /**
+   * @param {!LoginRequest} request
+   */
+  triggerLoginRequest(request) {}
+
+  /**
    * Starts the login prompt flow.
    * @return {!Promise}
    */
@@ -273,7 +279,52 @@ export class Subscriptions {
 
   /** @return {!Promise<LoggerApi>} */
   getLogger() {}
+
+  /** @return {!Promise<ClientEventManagerApi>} */
+  getEventManager() {}
+
+  /**
+   * Publishers participating in Showcase should call this with their own entitlements
+   * and entitlement related UI events.  SwG will automatically do this for Google
+   * sourced subscriptions and meters.
+   * @param {!PublisherEntitlement} entitlement
+   */
+  setShowcaseEntitlement(entitlement) {}
+
+  /**
+   * Publishers, who both (1) participate in Showcase and (2) use server-side paywalls,
+   * should call this method to consume Showcase entitlements.
+   * @param {string} showcaseEntitlementJwt
+   */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {}
 }
+
+/** @enum {string} */
+export const PublisherEntitlementEvent = {
+  EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION:
+    'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION', // Publisher managed subscriptions only
+  EVENT_SHOWCASE_METER_OFFERED: 'EVENT_SHOWCASE_METER_OFFERED', // This event is only required if the user can choose not to use a publisher meter
+  EVENT_SHOWCASE_UNLOCKED_BY_METER: 'EVENT_SHOWCASE_UNLOCKED_BY_METER', // Publisher managed meters only
+  EVENT_SHOWCASE_UNLOCKED_FREE_PAGE: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE', // When the article is free for any reason (lead article, etc)
+
+  EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL:
+    'EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL', // When the user must register to view the article
+  EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL:
+    'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL', // When the user must subscribe to view the article
+};
+
+/**
+ * PublisherEntitlement
+ *   In order to participate in News Showcase, publishers must report information about their entitlements.
+ * Properties:
+ * - isUserRegistered: Is the user registered currently?
+ * - entitlement: Publisher entitlement event type.
+ *  @typedef {{
+ *    isUserRegistered:  !boolean,
+ *    entitlement: !PublisherEntitlementEvent,
+ * }}
+ */
+export let PublisherEntitlement;
 
 /** @enum {string} */
 export const SubscriptionFlows = {
@@ -287,6 +338,7 @@ export const SubscriptionFlows = {
   LINK_ACCOUNT: 'linkAccount',
   SHOW_LOGIN_PROMPT: 'showLoginPrompt',
   SHOW_LOGIN_NOTIFICATION: 'showLoginNotification',
+  SHOW_METER_TOAST: 'showMeterToast',
 };
 
 /**
@@ -312,6 +364,77 @@ export const SubscriptionFlows = {
  * }}
  */
 export let Config;
+
+/**
+ * Params for GetEntitlements requests to SwG Client.
+ * swg-js constructs objects of this type, but publisher JS won't.
+ * swg-js converts these params to a Base64 JSON string
+ * before sending them to SwG Client.
+ * @typedef {{
+ *   metering: (!GetEntitlementsMeteringParamsInternal|undefined),
+ * }}
+ */
+export let GetEntitlementsParamsInternalDef;
+
+/**
+ * Encryption params for GetEntitlements requests.
+ * @typedef {{
+ *   encryptedDocumentKey: string,
+ * }}
+ */
+export let GetEntitlementsEncryptionParams;
+
+/**
+ * Metering params for GetEntitlements requests to SwG Client.
+ * swg-js constructs objects of this type, but publisher JS won't.
+ * @typedef {{
+ *   clientTypes: !Array<number>,
+ *   owner: string,
+ *   state: {
+ *     id: string,
+ *     attributes: !Array<{
+ *       name: string,
+ *       timestamp: number,
+ *     }>,
+ *   },
+ *   resource: {
+ *     hashedCanonicalUrl: string,
+ *   },
+ * }}
+ */
+export let GetEntitlementsMeteringParamsInternal;
+
+/**
+ * Params for `getEntitlements` calls from publisher JS.
+ * swg-js converts objects of this type to GetEntitlementsParamsInternal.
+ * @typedef {{
+ *   encryption: (!GetEntitlementsEncryptionParams|undefined),
+ *   metering: (!GetEntitlementsMeteringParamsExternal|undefined),
+ * }}
+ */
+export let GetEntitlementsParamsExternalDef;
+
+/**
+ * Params for `getEntitlements` calls from publisher JS.
+ * swg-js converts objects of this type to GetEntitlementsMeteringParamsInternal.
+ * @typedef {{
+ *   clientTypes: !Array<number>,
+ *   owner: string,
+ *   state: {
+ *     id: string,
+ *     standardAttributes: !Object<string, {
+ *       timestamp: number,
+ *     }>,
+ *     customAttributes: !Object<string, {
+ *       timestamp: number,
+ *     }>,
+ *   },
+ *   resource: {
+ *     hashedCanonicalUrl: string,
+ *   },
+ * }}
+ */
+export let GetEntitlementsMeteringParamsExternal;
 
 /**
  * @enum {number}

@@ -7,6 +7,7 @@
     <link rel="amphtml" href="<% id %>.amp">
     <title><% article.title %> - The Scenic</title>
 
+    <script src="/examples/sample-pub/metering.js"></script>
     <script async src="/examples/sample-pub/publisher.js"></script>
     <script async src="/examples/sample-pub/demo.js"></script>
 
@@ -19,6 +20,8 @@
     <link rel="apple-touch-icon" href="./icons/icon-2x.png">
     <meta name="msapplication-TileImage" content="./icons/icon-2x.png">
     <meta name="msapplication-TileColor" content="#37dc8c">
+    <meta name="google-signin-client_id" content="520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com">
+
 
     <style>
       .paywalled-section {
@@ -78,7 +81,9 @@
       }
     }
     </script>
+    <script src="<% swgGaaJsUrl %>"></script>
     <script async subscriptions-control="manual" src="<% swgJsUrl %>"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
 
   </head>
   <body>
@@ -196,6 +201,9 @@
     </div>
     <div id="creating_account_toast" style="display: none;">
       Scenic is creating account for <span id="creating_account_toast_user"></span>...
+    </div>
+    <div id="metering-controls">
+      <button class="reset-metering-demo">Reset metering demo</button>
     </div>
   </body>
 </html>

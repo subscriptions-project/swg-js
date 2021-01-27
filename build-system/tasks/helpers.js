@@ -19,11 +19,11 @@ const fs = require('fs-extra');
 const log = require('fancy-log');
 
 const {green, cyan} = require('ansi-colors');
-const {isTravisBuild} = require('../travis');
+const {isCiBuild} = require('../ci');
 
 /**
  * Stops the timer for the given build step and prints the execution time,
- * unless we are on Travis.
+ * unless we are on CI.
  * @param {string} stepName Name of the action, like 'Compiled' or 'Minified'
  * @param {string} targetName Name of the target, like a filename or path
  * @param {DOMHighResTimeStamp} startTime Start time of build step
@@ -39,7 +39,7 @@ function endBuildStep(stepName, targetName, startTime) {
   } else {
     timeString += secs + '.' + ms + ' s)';
   }
-  if (!isTravisBuild()) {
+  if (!isCiBuild()) {
     log(stepName, cyan(targetName), green(timeString));
   }
 }

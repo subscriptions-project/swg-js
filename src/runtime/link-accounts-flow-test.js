@@ -205,7 +205,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
       ActivityResultCode.OK,
       {'index': '1'},
       'IFRAME',
-      location.origin,
+      '$frontend$',
       true,
       true
     );
@@ -282,7 +282,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
       ActivityResultCode.OK,
       {},
       'IFRAME',
-      location.origin,
+      '$frontend$',
       true,
       true
     );
@@ -358,7 +358,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
       ActivityResultCode.OK,
       {success: true},
       'IFRAME',
-      location.origin,
+      '$frontend$',
       true,
       true
     );
@@ -439,7 +439,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
         'entitlements': 'ENTITLEMENTS_JWT',
       },
       'IFRAME',
-      location.origin,
+      '$frontend$',
       true,
       true
     );
@@ -484,7 +484,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
       ActivityResultCode.OK,
       {},
       'IFRAME',
-      location.origin,
+      '$frontend$',
       true,
       true
     );
@@ -593,7 +593,7 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
       ActivityResultCode.OK,
       {'linked': false},
       'IFRAME',
-      location.origin,
+      '$frontend$',
       true,
       true
     );
@@ -631,7 +631,7 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
       ActivityResultCode.OK,
       {'index': 1, 'linked': true},
       'IFRAME',
-      location.origin,
+      '$frontend$',
       true,
       true
     );
@@ -785,7 +785,7 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
           'linked': true,
         },
         'IFRAME',
-        location.origin,
+        '$frontend$',
         true,
         true
       );
@@ -822,7 +822,7 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
           'linked': true,
         },
         'IFRAME',
-        location.origin,
+        '$frontend$',
         true,
         true
       );
@@ -861,7 +861,7 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
           'linked': true,
         },
         'IFRAME',
-        location.origin,
+        '$frontend$',
         true,
         true
       );
