@@ -23,6 +23,7 @@ import {BasicSubscriptions} from '../api/basic-subscriptions';
 import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
+import {createElement} from '../utils/dom';
 
 describes.realWin('installBasicRuntime', {}, (env) => {
   let win;
@@ -215,10 +216,7 @@ describes.realWin('Runtime', {}, (env) => {
 
     beforeEach(() => {
       config = new PageConfig('pub1');
-      configuredBasicRuntime = new ConfiguredBasicRuntime(
-        new GlobalDoc(win),
-        config
-      );
+      configuredBasicRuntime = new ConfiguredBasicRuntime(doc, config);
       configuredBasicRuntimeMock = sandbox.mock(configuredBasicRuntime);
       configuredClassicRuntimeMock = sandbox.mock(
         configuredBasicRuntime.configuredClassicRuntime()
@@ -292,6 +290,25 @@ describes.realWin('Runtime', {}, (env) => {
       configuredBasicRuntimeMock.expects('dismissSwgUI').once();
 
       await basicRuntime.dismissSwgUI();
+    });
+
+    it('should call attach on all buttons with the correct attribute', async () => {
+      // Set up buttons on the doc.
+      const subscriptionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'subscription',
+      });
+      const contributionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'contribution',
+      });
+      doc.getBody().appendChild(subscriptionButton);
+      doc.getBody().appendChild(contributionButton);
+
+      await basicRuntime.setupButtons();
+      configuredClassicRuntimeMock.expects('showOffers').once();
+      await subscriptionButton.click();
+
+      configuredClassicRuntimeMock.expects('showContributionOptions').once();
+      await contributionButton.click();
     });
   });
 });

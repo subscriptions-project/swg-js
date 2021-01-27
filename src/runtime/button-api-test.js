@@ -249,4 +249,99 @@ describes.realWin('ButtonApi', {}, (env) => {
       buttonApi.attachSmartButton(runtime, button, {theme: 'INVALID'}, handler);
     });
   });
+
+  describe('attachButtonsWithAttribute', () => {
+    let subscriptionButton;
+    let contributionButton;
+    let decoyButtonWithNoAttributes;
+    let decoyButtonWithIncorrectAttributeValue;
+    let subscriptionHandler;
+    let contributionHandler;
+
+    beforeEach(() => {
+      // Set up and insert a subscription button.
+      subscriptionButton = doc.createElement('button');
+      subscriptionButton.setAttribute('swg-standard-button', 'subscription');
+      expect(subscriptionButton.nodeType).to.equal(1);
+      doc.body.appendChild(subscriptionButton);
+
+      // Set up and insert a contribution button.
+      contributionButton = doc.createElement('button');
+      contributionButton.setAttribute('swg-standard-button', 'contribution');
+      expect(contributionButton.nodeType).to.equal(1);
+      doc.body.appendChild(contributionButton);
+
+      // Set up and insert a random, non-SwG button.
+      decoyButtonWithNoAttributes = doc.createElement('button');
+      doc.body.appendChild(decoyButtonWithNoAttributes);
+
+      // Set up and insert a button with an invalid attribute value.
+      decoyButtonWithIncorrectAttributeValue = doc.createElement('button');
+      decoyButtonWithIncorrectAttributeValue.setAttribute(
+        'swg-standard-button',
+        'invalid'
+      );
+      doc.body.appendChild(decoyButtonWithIncorrectAttributeValue);
+
+      subscriptionHandler = sandbox.spy();
+      contributionHandler = sandbox.spy();
+    });
+
+    afterEach(async () => {
+      expect(subscriptionHandler).to.not.be.called;
+      expect(contributionHandler).to.not.be.called;
+      await subscriptionButton.click();
+      expect(subscriptionHandler).to.be.calledOnce;
+      expect(contributionHandler).to.not.be.called;
+      await contributionButton.click();
+      expect(subscriptionHandler).to.be.calledOnce;
+      expect(contributionHandler).to.be.calledOnce;
+      await decoyButtonWithNoAttributes.click();
+      expect(subscriptionHandler).to.be.calledOnce;
+      expect(contributionHandler).to.be.calledOnce;
+      await decoyButtonWithIncorrectAttributeValue.click();
+      expect(subscriptionHandler).to.be.calledOnce;
+      expect(contributionHandler).to.be.calledOnce;
+      expect(events.length).to.equal(4);
+
+      // Expect two events from the two button impressions.
+      expect(events[0]).to.deep.equal({
+        eventType: AnalyticsEvent.IMPRESSION_SWG_BUTTON,
+        isFromUserAction: undefined,
+        params: undefined,
+      });
+
+      expect(events[0]).to.deep.equal({
+        eventType: AnalyticsEvent.IMPRESSION_SWG_BUTTON,
+        isFromUserAction: undefined,
+        params: undefined,
+      });
+
+      // Expect one event from the click.
+      expect(events[2]).to.deep.equal({
+        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+        isFromUserAction: true,
+        params: undefined,
+      });
+
+      // Expect one event from the click.
+      expect(events[3]).to.deep.equal({
+        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+        isFromUserAction: true,
+        params: undefined,
+      });
+    });
+
+    it('should attach all buttons with the specified attribute', () => {
+      buttonApi.attachButtonsWithAttribute(
+        'swg-standard-button',
+        ['subscription', 'contribution'],
+        /* options */ {},
+        {
+          'subscription': subscriptionHandler,
+          'contribution': contributionHandler,
+        }
+      );
+    });
+  });
 });
