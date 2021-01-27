@@ -397,9 +397,6 @@ class PaymentsAsyncClient {
       return;
     }
 
-    const isReadyToPayResult = window.sessionStorage.getItem(
-      Constants.IS_READY_TO_PAY_RESULT_KEY
-    );
     this.loadPaymentDataApiStartTimeMs_ = Date.now();
     this.assignInternalParams_(paymentDataRequest);
     // We want to fall back to the web delegate if payment handler is supported
