@@ -848,22 +848,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should send pingback with metering entitlements', async () => {
-      xhrMock
-        .expects('fetch')
-        .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
-          {
-            body:
-              'f.req=[["token1","google:metering"],[1600389016,959000000],null,null]',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            },
-            method: 'POST',
-          }
-        )
-        .returns(Promise.resolve());
-
       const ents = new Entitlements(
         'service1',
         'RaW',
