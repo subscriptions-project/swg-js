@@ -16,6 +16,9 @@
 
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ConfiguredRuntime} from './runtime';
+import {PageConfigResolver} from '../model/page-config-resolver';
+import {PageConfigWriter} from '../model/page-config-writer';
+import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 
@@ -95,8 +98,31 @@ export class BasicRuntime {
     /** @private @const {!Window} */
     this.win_ = win;
 
+    /** @private @const {!Doc} */
+    this.doc_ = resolveDoc(win);
+
     /** @private @const {!Promise} */
     this.ready_ = Promise.resolve();
+
+    /** @private @const {!../api/subscriptions.Config} */
+    this.config_ = {};
+
+    /** @private {boolean} */
+    this.committed_ = false;
+
+    /** @private {?function((!ConfiguredBasicRuntime|!Promise))} */
+    this.configuredResolver_ = null;
+
+    /** @private @const {!Promise<!ConfiguredBasicRuntime>} */
+    this.configuredPromise_ = new Promise((resolve) => {
+      this.configuredResolver_ = resolve;
+    });
+
+    /** @private {?PageConfigWriter} */
+    this.pageConfigWriter_ = null;
+
+    /** @private {?PageConfigResolver} */
+    this.pageConfigResolver_ = null;
   }
 
   /**
@@ -112,11 +138,32 @@ export class BasicRuntime {
    * @private
    */
   configured_(commit) {
-    if (!this.committed_ && commit) {
-      // TODO(stellachui): Read the PageConfig from the markup and create the
-      //   ConfiguredBasicRuntime object once that's done.
+    if (!this.committed_ && commit && !this.pageConfigWriter_) {
+      this.committed_ = true;
+
+      this.pageConfigResolver_ = new PageConfigResolver(this.doc_);
+      this.pageConfigResolver_.resolveConfig().then(
+        (pageConfig) => {
+          this.pageConfigResolver_ = null;
+          this.configuredResolver_(
+            new ConfiguredBasicRuntime(
+              this.doc_,
+              pageConfig,
+              /* integr */ {configPromise: this.configuredPromise_},
+              this.config_
+            )
+          );
+          this.configuredResolver_ = null;
+        },
+        (reason) => {
+          this.configuredResolver_(Promise.reject(reason));
+          this.configuredResolver_ = null;
+        }
+      );
+    } else if (commit && this.pageConfigResolver_) {
+      this.pageConfigResolver_.check();
     }
-    return Promise.resolve();
+    return this.configuredPromise_;
   }
 
   /** @override */
@@ -128,8 +175,18 @@ export class BasicRuntime {
     isPartOfProductId,
     autoPromptType = AutoPromptType.NONE,
   } = {}) {
-    // TODO(stellachui): Generate the markup.
-    this.configured_(true);
+    this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
+    this.pageConfigWriter_
+      .writeConfigWhenReady({
+        type,
+        isAccessibleForFree,
+        isPartOfType,
+        isPartOfProductId,
+      })
+      .then(() => {
+        this.pageConfigWriter_ = null;
+        this.configured_(true);
+      });
   }
   /* eslint-enable no-unused-vars */
 
@@ -176,11 +233,18 @@ export class ConfiguredBasicRuntime {
   /**
    * @param {!Window|!Document|!Doc} winOrDoc
    * @param {!../model/page-config.PageConfig} pageConfig
+   * @param {{
+   *     fetcher: (!Fetcher|undefined),
+   *     configPromise: (!Promise|undefined),
+   *   }=} integr
+   * @param {!../api/subscriptions.Config=} config
    */
-  constructor(winOrDoc, pageConfig) {
+  constructor(winOrDoc, pageConfig, integr, config) {
     this.configuredClassicRuntime_ = new ConfiguredRuntime(
       winOrDoc,
-      pageConfig
+      pageConfig,
+      integr,
+      config
     );
   }
 
@@ -233,7 +297,7 @@ export class ConfiguredBasicRuntime {
 function createPublicBasicRuntime(basicRuntime) {
   return /** @type {!BasicSubscriptions} */ ({
     init: basicRuntime.init.bind(basicRuntime),
-    setOnEntitlementsResponse: basicRuntime.setOnEntitlementsResponse(
+    setOnEntitlementsResponse: basicRuntime.setOnEntitlementsResponse.bind(
       basicRuntime
     ),
     setOnPaymentResponse: basicRuntime.setOnPaymentResponse.bind(basicRuntime),

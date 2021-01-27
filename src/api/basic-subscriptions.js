@@ -28,9 +28,9 @@ export class BasicSubscriptions {
    * already specified in the JSON-LD markup on the page, the existing values
    * will be preserved, and the values within init will be ignored.
    * @param {{
-   *   type: string,
+   *   type: (string|!Array<string>),
    *   isAccessibleForFree: boolean,
-   *   isPartOfType: !Array<string>,
+   *   isPartOfType: (string|!Array<string>),
    *   isPartOfProductId: string,
    *   autoPromptType: string,
    * }} params
