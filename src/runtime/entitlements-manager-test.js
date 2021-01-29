@@ -16,6 +16,7 @@
 
 import {ActivityPorts} from '../components/activities';
 import {
+  AnalyticsContext,
   AnalyticsEvent,
   EntitlementJwt,
   EntitlementResult,
@@ -40,6 +41,7 @@ import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
+import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {defaultConfig} from '../api/subscriptions';
 import {serializeProtoMessageForUrl} from '../utils/url';
@@ -97,6 +99,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     sandbox.stub(deps, 'activities').returns(activityPorts);
     const analyticsService = new AnalyticsService(deps);
     analyticsMock = sandbox.mock(analyticsService);
+    sandbox
+      .stub(analyticsService, 'getContext')
+      .returns(new AnalyticsContext());
     sandbox.stub(deps, 'analytics').returns(analyticsService);
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
@@ -935,37 +940,212 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
   });
 
-  describe('event listening', () => {
+  describe.only('event listening', () => {
+    const GOOGLE_SOURCE = EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT;
+
     function getParams(isUserRegistered) {
       const params = new EventParams();
       params.setIsUserRegistered(isUserRegistered);
       return params;
     }
 
-    it('should pingback regwall from swg client', () => {
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.LOCKED_REGWALL
-      );
+    function expectNoPingback(event, originator, params = getParams(null)) {
+      xhrMock.expects('fetch').never();
       eventManager.logEvent({
-        eventType: AnalyticsEvent.IMPRESSION_REGWALL,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        additionalParameters: getParams(false),
+        eventType: event,
+        eventOriginator: originator,
+        additionalParameters: params,
       });
       return eventManager.lastAction_;
+    }
+
+    function expectPingback(
+      event,
+      originator,
+      expectedSource,
+      params = getParams(null)
+    ) {
+      const result = analyticsEventToEntitlementResult(event);
+      expectEntitlementPingback(expectedSource, result);
+      eventManager.logEvent({
+        eventType: event,
+        eventOriginator: originator,
+        additionalParameters: params,
+      });
+      return eventManager.lastAction_;
+    }
+
+    const PINGBACK_EVENTS = {
+      [AnalyticsEvent.IMPRESSION_REGWALL]: 1,
+      [AnalyticsEvent.EVENT_UNLOCKED_BY_METER]: 1,
+      [AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION]: 1,
+      [AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE]: 1,
+      [AnalyticsEvent.IMPRESSION_PAYWALL]: 1,
+      [AnalyticsEvent.UNKNOWN]: 1,
+    };
+
+    describe('SWG_CLIENT', () => {
+      it('should pingback IMPRESSION_REGWALL', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_REGWALL,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE
+        ));
+
+      it('should NOT pingback EVENT_UNLOCKED_BY_METER', () =>
+        expectNoPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_METER,
+          EventOriginator.SWG_CLIENT
+        ));
+
+      it('should pingback EVENT_UNLOCKED_BY_SUBSCRIPTION', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE
+        ));
+
+      it('should pingback EVENT_UNLOCKED_FREE_PAGE', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE
+        ));
+
+      it('should pingback IMPRESSION_PAYWALL', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE
+        ));
+
+      it('should NOT pingback other events', async () => {
+        for (const eventKey in AnalyticsEvent) {
+          const event = AnalyticsEvent[eventKey];
+          if (PINGBACK_EVENTS[event]) {
+            continue;
+          }
+          await expectNoPingback(event, EventOriginator.SWG_CLIENT);
+          await xhrMock.verify();
+        }
+      });
     });
 
-    //TODO: Other tests
-    it('should pingback regwall from swg client', () => {
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.LOCKED_REGWALL
-      );
-      eventManager.logEvent({
-        eventType: AnalyticsEvent.IMPRESSION_REGWALL,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        additionalParameters: getParams(false),
+    describe('SWG_SERVER', () => {
+      it('should pingback IMPRESSION_REGWALL from SWG_SERVER', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_REGWALL,
+          EventOriginator.SWG_SERVER,
+          GOOGLE_SOURCE
+        ));
+
+      it('should NOT pingback EVENT_UNLOCKED_BY_METER from SWG_SERVER', () =>
+        expectNoPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_METER,
+          EventOriginator.SWG_SERVER
+        ));
+
+      it('should pingback EVENT_UNLOCKED_BY_SUBSCRIPTION from SWG_SERVER', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_SERVER,
+          GOOGLE_SOURCE
+        ));
+
+      it('should pingback EVENT_UNLOCKED_FREE_PAGE from SWG_SERVER', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE,
+          EventOriginator.SWG_SERVER,
+          GOOGLE_SOURCE
+        ));
+
+      it('should pingback IMPRESSION_PAYWALL from SWG_SERVER', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SWG_SERVER,
+          GOOGLE_SOURCE
+        ));
+
+      it('should NOT pingback other events', async () => {
+        for (const eventKey in AnalyticsEvent) {
+          const event = AnalyticsEvent[eventKey];
+          if (PINGBACK_EVENTS[event]) {
+            continue;
+          }
+          await expectNoPingback(event, EventOriginator.SWG_SERVER);
+          await xhrMock.verify();
+        }
       });
+    });
+
+    describe('SHOWCASE_CLIENT', () => {
+      it('should pingback IMPRESSION_REGWALL', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_REGWALL,
+          EventOriginator.SHOWCASE_CLIENT,
+          EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should pingback EVENT_UNLOCKED_BY_METER', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_METER,
+          EventOriginator.SHOWCASE_CLIENT,
+          EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should pingback EVENT_UNLOCKED_BY_SUBSCRIPTION', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SHOWCASE_CLIENT,
+          EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should pingback EVENT_UNLOCKED_FREE_PAGE', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE,
+          EventOriginator.SHOWCASE_CLIENT,
+          EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should pingback IMPRESSION_PAYWALL', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SHOWCASE_CLIENT,
+          EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should NOT pingback other events', async () => {
+        for (const eventKey in AnalyticsEvent) {
+          const event = AnalyticsEvent[eventKey];
+          if (PINGBACK_EVENTS[event]) {
+            continue;
+          }
+          await expectNoPingback(event, EventOriginator.SHOWCASE_CLIENT);
+          await xhrMock.verify();
+        }
+      });
+    });
+
+    it('should NOT pingback from other originators', async () => {
+      const SKIP = {
+        [EventOriginator.UNKNOWN_CLIENT]: 1,
+        [EventOriginator.SWG_CLIENT]: 1,
+        [EventOriginator.SWG_SERVER]: 1,
+        [EventOriginator.SHOWCASE_CLIENT]: 1,
+      };
+      for (const originKey in EventOriginator) {
+        const origin = EventOriginator[originKey];
+        if (SKIP[origin]) {
+          continue;
+        }
+        for (const eventKey in AnalyticsEvent) {
+          if (eventKey == 'UNKNOWN') {
+            continue;
+          }
+          expectNoPingback(AnalyticsEvent[eventKey], origin);
+          xhrMock.verify();
+        }
+      }
       return eventManager.lastAction_;
     });
   });

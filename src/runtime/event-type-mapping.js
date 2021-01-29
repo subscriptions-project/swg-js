@@ -117,7 +117,6 @@ export function publisherEntitlementEventToAnalyticsEvents(event) {
   return ShowcaseEntitlemenntToAnalyticsEvents[event] || [];
 }
 
-//TODO: tests
 export function analyticsEventToEntitlementResult(event) {
   return AnalyticsEventToEntitlementResult[event];
 }
