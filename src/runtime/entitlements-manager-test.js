@@ -940,7 +940,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
   });
 
-  describe.only('event listening', () => {
+  describe('event listening', () => {
     const GOOGLE_SOURCE = EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT;
 
     function getParams(isUserRegistered) {
