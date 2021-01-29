@@ -29,7 +29,11 @@ export const IFRAME_BOX_SHADOW =
   'rgba(60, 64, 67, 0.3) 0px -2px 5px, rgba(60, 64, 67, 0.15) 0px -5px 5px';
 export const MINIMIZED_IFRAME_SIZE = '420px';
 
-const AUTO_PINGBACK_TIMEOUT = 5000;
+// If the user is able to close the dialog before loading is complete,
+// this timeout ensures we still pingback a metering entitlement after X ms.
+// This timeout should represent the longest time it could reasonably take
+// to load a SwG BOQ iframe.
+const AUTO_PINGBACK_TIMEOUT = 10000;
 
 export class MeterToastApi {
   /**
@@ -76,22 +80,23 @@ export class MeterToastApi {
 
     /** @private @const {!function()} */
     this.sendCloseRequestFunction_ = () => {
-      this.deps_
-        .eventManager()
-        .logSwgEvent(
-          AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
-          true
-        );
-
       if (this.rapidCloseTimeout_) {
         this.win_.clearTimeout(this.rapidCloseTimeout_);
         this.rapidCloseTimeout_ = null;
+        // TODO: Log some kind of 'timeout related to next logged event event'
       } else {
         const closeRequest = new ToastCloseRequest();
         closeRequest.setClose(true);
         this.activityIframeView_.execute(closeRequest);
         this.removeCloseEventListener();
       }
+
+      this.deps_
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
+          true
+        );
 
       if (this.onConsumeCallback_) {
         this.onConsumeCallback_();
@@ -123,13 +128,15 @@ export class MeterToastApi {
         'starting metering.';
       warn(errorMessage);
     }
+
+    this.dialogManager_.handleCancellations(this.activityIframeView_);
+
     // If the user somehow closes or cancels the loading of the dialog, go
     // through the close request (and meter consume process)
     this.rapidCloseTimeout_ = this.win_.setTimeout(
       this.sendCloseRequestFunction_,
       AUTO_PINGBACK_TIMEOUT
     );
-    this.dialogManager_.handleCancellations(this.activityIframeView_);
     return this.dialogManager_.openDialog().then((dialog) => {
       this.setDialogBoxShadow_();
       this.setLoadingViewWidth_();
@@ -160,11 +167,11 @@ export class MeterToastApi {
         } else {
           let start, scrollTimeout;
           this.scrollEventListener_ = () => {
-            start = start || this.win_./*REVIEW*/ pageYOffset;
+            start = start || this.win_.scrollY;
             this.win_.clearTimeout(scrollTimeout);
             scrollTimeout = this.win_.setTimeout(() => {
               // If the scroll is longer than 100, close the toast.
-              if (Math.abs(this.win_./*REVIEW*/ pageYOffset - start) > 100) {
+              if (Math.abs(this.win_.scrollY - start) > 100) {
                 this.sendCloseRequestFunction_();
               }
             }, 100);
