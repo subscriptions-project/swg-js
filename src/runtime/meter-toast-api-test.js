@@ -55,7 +55,6 @@ describes.realWin('MeterToastApi', {}, (env) => {
       'matches': true,
       'addListener': (callback) => callback,
     });
-
     messageMap = {};
     pageConfig = new PageConfig(productId);
     runtime = new ConfiguredRuntime(win, pageConfig);
