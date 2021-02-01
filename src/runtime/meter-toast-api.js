@@ -29,6 +29,12 @@ export const IFRAME_BOX_SHADOW =
   'rgba(60, 64, 67, 0.3) 0px -2px 5px, rgba(60, 64, 67, 0.15) 0px -5px 5px';
 export const MINIMIZED_IFRAME_SIZE = '420px';
 
+// If the user is able to close the dialog before loading is complete,
+// this timeout ensures we still pingback a metering entitlement after X ms.
+// This timeout should represent the longest time it could reasonably take
+// to load a SwG BOQ iframe.
+const AUTO_PINGBACK_TIMEOUT = 10000;
+
 export class MeterToastApi {
   /**
    * @param {!./deps.DepsDef} deps
@@ -65,18 +71,32 @@ export class MeterToastApi {
      */
     this.onConsumeCallback_ = null;
 
+    /**
+     * A timeout set while things are loading.  If the user dismisses the popup before
+     * loading is complete, this timeout ensures we consume the metering entitlement
+     * and cleanup the page properly.
+     * @private {?number} */
+    this.rapidCloseTimeout_ = null;
+
     /** @private @const {!function()} */
     this.sendCloseRequestFunction_ = () => {
+      if (this.rapidCloseTimeout_) {
+        this.win_.clearTimeout(this.rapidCloseTimeout_);
+        this.rapidCloseTimeout_ = null;
+        // TODO: Log some kind of 'timeout related to next logged event event'
+      } else {
+        const closeRequest = new ToastCloseRequest();
+        closeRequest.setClose(true);
+        this.activityIframeView_.execute(closeRequest);
+        this.removeCloseEventListener();
+      }
+
       this.deps_
         .eventManager()
         .logSwgEvent(
           AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
           true
         );
-      const closeRequest = new ToastCloseRequest();
-      closeRequest.setClose(true);
-      this.activityIframeView_.execute(closeRequest);
-      this.removeCloseEventListener();
 
       if (this.onConsumeCallback_) {
         this.onConsumeCallback_();
@@ -108,11 +128,30 @@ export class MeterToastApi {
         'starting metering.';
       warn(errorMessage);
     }
+
     this.dialogManager_.handleCancellations(this.activityIframeView_);
+
+    // If the user somehow closes or cancels the loading of the dialog, go
+    // through the close request (and meter consume process)
+    this.rapidCloseTimeout_ = this.win_.setTimeout(
+      this.sendCloseRequestFunction_,
+      AUTO_PINGBACK_TIMEOUT
+    );
     return this.dialogManager_.openDialog().then((dialog) => {
       this.setDialogBoxShadow_();
       this.setLoadingViewWidth_();
       return dialog.openView(this.activityIframeView_).then(() => {
+        if (!this.rapidCloseTimeout_) {
+          // The timeout already ran, the meter has been consumed
+          // Ensure everything closes properly
+          const closeRequest = new ToastCloseRequest();
+          closeRequest.setClose(true);
+          this.activityIframeView_.execute(closeRequest);
+          return;
+        }
+        // Once things load we can clear this timeout
+        this.win_.clearTimeout(this.rapidCloseTimeout_);
+        this.rapidCloseTimeout_ = null;
         // Allow closing of the iframe with any scroll or click event.
         this.win_.addEventListener('click', this.sendCloseRequestFunction_);
         this.win_.addEventListener(
