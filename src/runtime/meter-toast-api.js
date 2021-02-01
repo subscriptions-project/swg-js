@@ -35,10 +35,6 @@ export const MINIMIZED_IFRAME_SIZE = '420px';
 // to load a SwG BOQ iframe.
 const AUTO_PINGBACK_TIMEOUT = 10000;
 
-function getScrollY(win) {
-  return win./*REVIEW*/ pageYOffset;
-}
-
 export class MeterToastApi {
   /**
    * @param {!./deps.DepsDef} deps
@@ -171,11 +167,11 @@ export class MeterToastApi {
         } else {
           let start, scrollTimeout;
           this.scrollEventListener_ = () => {
-            start = start || getScrollY(this.win_);
+            start = start || this.win_./*REVIEW*/ pageYOffset;
             this.win_.clearTimeout(scrollTimeout);
             scrollTimeout = this.win_.setTimeout(() => {
               // If the scroll is longer than 100, close the toast.
-              if (Math.abs(getScrollY(this.win_) - start) > 100) {
+              if (Math.abs(this.win_./*REVIEW*/ pageYOffset - start) > 100) {
                 this.sendCloseRequestFunction_();
               }
             }, 100);
