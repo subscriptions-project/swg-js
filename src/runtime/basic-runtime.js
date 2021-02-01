@@ -15,12 +15,17 @@
  */
 
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ButtonApi} from './button-api';
+import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
 import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
+const BUTTON_ATTRIUBUTE = 'swg-standard-button';
+const BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION = 'subscription';
+const BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION = 'contribution';
 
 /**
  * Reference to the runtime, for testing.
@@ -123,6 +128,10 @@ export class BasicRuntime {
 
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
+
+    /** @private @const {!ButtonApi} */
+    this.buttonApi_ = new ButtonApi(this.doc_, this.configuredPromise_);
+    this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
   /**
@@ -218,7 +227,7 @@ export class BasicRuntime {
 
   /**
    * Sets up all the buttons on the page with attribute
-   * 'swg-standard-button:subscriptions' or 'swg-standard-button:contributions'.
+   * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
   setupButtons() {
     return this.configured_(true).then((runtime) => runtime.setupButtons());
@@ -240,12 +249,24 @@ export class ConfiguredBasicRuntime {
    * @param {!../api/subscriptions.Config=} config
    */
   constructor(winOrDoc, pageConfig, integr, config) {
+    integr = integr || {};
+    integr.configPromise = integr.configPromise || Promise.resolve();
+
+    /** @private @const {!ClientEventManager} */
+    this.eventManager_ = new ClientEventManager(integr.configPromise);
+
+    /** @private @const {!Doc} */
+    this.doc_ = resolveDoc(winOrDoc);
+
     this.configuredClassicRuntime_ = new ConfiguredRuntime(
       winOrDoc,
       pageConfig,
       integr,
       config
     );
+
+    /** @private @const {!ButtonApi} */
+    this.buttonApi_ = new ButtonApi(this.doc_, Promise.resolve(this));
   }
 
   /** Getter for the ConfiguredRuntime, exposed for testing. */
@@ -282,10 +303,33 @@ export class ConfiguredBasicRuntime {
 
   /**
    * Sets up all the buttons on the page with attribute
-   * 'swg-standard-button:subscriptions' or 'swg-standard-button:contributions'.
+   * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
   setupButtons() {
-    // TODO(stellachui): Implement setup of the buttons.
+    this.buttonApi_.attachButtonsWithAttribute(
+      BUTTON_ATTRIUBUTE,
+      [
+        BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION,
+        BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION,
+      ],
+      /* options */ null, // TODO(stellachui): Specify language in options.
+      {
+        [BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION]: () => {
+          this.configuredClassicRuntime_.showOffers();
+        },
+        [BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION]: () => {
+          this.configuredClassicRuntime_.showContributionOptions();
+        },
+      }
+    );
+  }
+
+  /**
+   * This one exists as an internal helper so SwG logging doesn't require a promise.
+   * @return {!ClientEventManager}
+   */
+  eventManager() {
+    return this.eventManager_;
   }
 }
 
