@@ -201,7 +201,10 @@ export class EntitlementsManager {
     );
   }
 
+  // Listens for events from the event manager and pings back
+  // entitlements for all cases except Google Meters.
   handleClientEvent_(event) {
+    // A subset of analytics events are also an entitlement result
     const result = analyticsEventToEntitlementResult(event.eventType);
     if (!result) {
       return;
@@ -209,13 +212,15 @@ export class EntitlementsManager {
     let source = null;
 
     switch (event.eventOriginator) {
+      // The indicates the publisher reported it via subscriptions.setShowcaseEntitlement
       case EventOriginator.SHOWCASE_CLIENT:
         source = EntitlementSource.PUBLISHER_ENTITLEMENT;
         break;
       case EventOriginator.SWG_CLIENT: // Fallthrough, these are the same
       case EventOriginator.SWG_SERVER:
         if (result == EntitlementResult.UNLOCKED_METER) {
-          // Meters from Google require a valid jwt and are sent during pingback
+          // Meters from Google require a valid jwt, which is sent by
+          // an entitlement.
           return;
         }
         source = EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT;
@@ -469,7 +474,6 @@ export class EntitlementsManager {
         .logSwgEvent(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
       return;
     }
-
     this.maybeShowToast_(entitlement);
   }
 

@@ -208,7 +208,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       )
       .once();
     expectEntitlementPingback(
-      EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT, // TODO: What should this be?
+      EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
       EntitlementResult.UNLOCKED_SUBSCRIBER
     );
     return resp;
@@ -438,10 +438,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
-      /*expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER
-      ); TODO: WHY NOT?*/
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
       expect(ents.raw).to.equal('SIGNED_DATA');
@@ -521,10 +517,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .once();
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER
-      );
+
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
 
