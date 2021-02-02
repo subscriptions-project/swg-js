@@ -869,7 +869,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       );
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
 
-      return manager.sendPingback_(ents);
+      return manager.consumeMeter_(ents);
     });
 
     it('should not send pingback with non-metering entitlements', async () => {
@@ -882,7 +882,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         'product1'
       );
       eventManagerMock.expects('logSwgEvent').never();
-      await manager.sendPingback_(ents);
+      await manager.consumeMeter_(ents);
     });
 
     it('should log error messages', async () => {

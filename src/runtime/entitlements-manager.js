@@ -181,7 +181,7 @@ export class EntitlementsManager {
    * Sends a pingback that marks a metering entitlement as used.
    * @param {!Entitlements} entitlements
    */
-  sendPingback_(entitlements) {
+  consumeMeter_(entitlements) {
     const entitlement = entitlements.getEntitlementForThis();
     if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
       return;
@@ -194,15 +194,16 @@ export class EntitlementsManager {
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
     jwt.setJwt(entitlement.subscriptionToken);
-    return this.sendEntitlementRequest_(
+    return this.postEntitlementsRequest_(
       jwt,
       EntitlementResult.UNLOCKED_METER,
       EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE
     );
   }
 
-  // Listens for events from the event manager and pings back
-  // entitlements for all cases except Google Meters.
+  // Listens for events from the event manager and informs
+  // the server about publisher entitlements and non-
+  // consumable Google entitlements.
   handleClientEvent_(event) {
     // A subset of analytics events are also an entitlement result
     const result = analyticsEventToEntitlementResult(event.eventType);
@@ -230,10 +231,12 @@ export class EntitlementsManager {
         return;
     }
 
-    this.sendEntitlementRequest_(new EntitlementJwt(), result, source);
+    this.postEntitlementsRequest_(new EntitlementJwt(), result, source);
   }
 
-  sendEntitlementRequest_(
+  // Informs the Entitlements server about the entitlement used
+  // to unlock the page.
+  postEntitlementsRequest_(
     usedEntitlement,
     entitlementResult,
     entitlementSource
@@ -535,7 +538,7 @@ export class EntitlementsManager {
         if (onCloseDialog) {
           onCloseDialog();
         }
-        this.sendPingback_(entitlements);
+        this.consumeMeter_(entitlements);
       };
       const showToast = this.getShowToastFromEntitlements_(entitlements);
       if (showToast === false) {
