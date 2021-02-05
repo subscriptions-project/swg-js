@@ -69,7 +69,7 @@ export class MeterToastApi {
      * Boolean indicating whether or not the onConsumeCallback_ has been handled
      * (either called or ignored). This is used to protect against unexpected
      * cancellations not consuming a meter.
-     * @private {!Boolean}
+     * @private {!boolean}
      */
     this.onConsumeCallbackHandled_ = false;
 
