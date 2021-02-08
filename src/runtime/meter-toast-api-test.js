@@ -241,33 +241,14 @@ describes.realWin('MeterToastApi', {}, (env) => {
     expect(onConsumeCallbackFake).to.be.calledOnce;
   });
 
-  it('should timeout if the dialog closes very quickly', async () => {
+  it('should call onConsume if port is rejected.', async () => {
     meterToastApi.isMobile_.restore();
-    sandbox.stub(meterToastApi, 'isMobile_').returns(false);
-
-    let timeoutCallback;
-    sandbox.stub(win, 'setTimeout').callsFake((callback, ms) => {
-      if (ms == AUTO_PINGBACK_TIMEOUT) {
-        timeoutCallback = callback;
-      } else {
-        callback();
-      }
-      return 5;
-    });
-
     callbacksMock.expects('triggerFlowStarted').once();
-    const startPromise = meterToastApi.start();
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
-        true
-      );
-    timeoutCallback();
-    const messageStub = sandbox.stub(port, 'execute');
+    port.acceptResult = () => Promise.reject(new Error('rejected'));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    await startPromise;
-    expect(messageStub).to.be.calledOnce.calledWith(TOAST_CLOSE_REQUEST);
+    const messageStub = sandbox.stub(port, 'execute');
+    await meterToastApi.start();
+    expect(messageStub).to.not.be.called;
     expect(onConsumeCallbackFake).to.be.calledOnce;
   });
 
