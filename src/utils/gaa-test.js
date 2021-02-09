@@ -109,6 +109,25 @@ describes.realWin('urlContainsFreshGaaParams', {}, () => {
     clock.tick(7001);
     expect(urlContainsFreshGaaParams()).to.be.false;
   });
+
+  it('succeeeds for valid params on input URL params', () => {
+    expect(
+      urlContainsFreshGaaParams('?gaa_at=at&gaa_n=n&gaa_sig=sig&gaa_ts=99999')
+    ).to.be.true;
+  });
+
+  it('fails without gaa_n on input URL params', () => {
+    expect(
+      urlContainsFreshGaaParams('?gaa_at=gaa&gaa_sig=s1gn4tur3&gaa_ts=99999')
+    ).to.be.false;
+  });
+
+  it('fails if GAA URL params are expired on input URL params', () => {
+    // Add GAA URL params with expiration of 7 seconds.
+    clock.tick(7001);
+    expect(urlContainsFreshGaaParams('?gaa_at=at&gaa_n=n&gaa_sig=sig&gaa_ts=7'))
+      .to.be.false;
+  });
 });
 
 describes.realWin('GaaMeteringRegwall', {}, () => {

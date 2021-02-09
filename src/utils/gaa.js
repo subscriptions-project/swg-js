@@ -302,10 +302,12 @@ let GoogleUserDef;
 
 /**
  * Returns true if the URL contains fresh Google Article Access (GAA) params.
+ * @param {string=} opt_urlParams
  * @return {boolean}
  */
-export function urlContainsFreshGaaParams() {
-  const params = parseQueryString(GaaMeteringRegwall.location_.search);
+export function urlContainsFreshGaaParams(opt_urlParams = '') {
+  const urlParams = opt_urlParams || GaaMeteringRegwall.location_.search;
+  const params = parseQueryString(urlParams);
 
   // Verify GAA params exist.
   if (

@@ -39,8 +39,10 @@ import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
 import {hash} from '../utils/string';
+import {parseQueryString} from '../utils/url';
 import {serviceUrl} from './services';
 import {toTimestamp} from '../utils/date-utils';
+import {urlContainsFreshGaaParams} from '../utils/gaa';
 import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
@@ -186,6 +188,11 @@ export class EntitlementsManager {
     if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
       return;
     }
+    // Verify GAA params are present, otherwise bail since the pingback
+    // shouldn't happen on non-metering requests.
+    if (!urlContainsFreshGaaParams(this.win_.location.search)) {
+      return;
+    }
 
     this.deps_
       .eventManager()
@@ -194,10 +201,12 @@ export class EntitlementsManager {
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
     jwt.setJwt(entitlement.subscriptionToken);
+    const params = parseQueryString(this.win_.location.search);
     return this.postEntitlementsRequest_(
       jwt,
       EntitlementResult.UNLOCKED_METER,
-      EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE
+      EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
+      params['gaa_n']
     );
   }
 
@@ -205,6 +214,12 @@ export class EntitlementsManager {
   // the server about publisher entitlements and non-
   // consumable Google entitlements.
   handleClientEvent_(event) {
+    // Verify GAA params are present, otherwise bail since the pingback
+    // shouldn't happen on non-metering requests.
+    if (!urlContainsFreshGaaParams(this.win_.location.search)) {
+      return;
+    }
+
     // A subset of analytics events are also an entitlement result
     const result = analyticsEventToEntitlementResult(event.eventType);
     if (!result) {
@@ -230,8 +245,13 @@ export class EntitlementsManager {
       default:
         return;
     }
-
-    this.postEntitlementsRequest_(new EntitlementJwt(), result, source);
+    const params = parseQueryString(this.win_.location.search);
+    this.postEntitlementsRequest_(
+      new EntitlementJwt(),
+      result,
+      source,
+      params['gaa_n']
+    );
   }
 
   // Informs the Entitlements server about the entitlement used
@@ -239,13 +259,15 @@ export class EntitlementsManager {
   postEntitlementsRequest_(
     usedEntitlement,
     entitlementResult,
-    entitlementSource
+    entitlementSource,
+    opt_nonce = ''
   ) {
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(usedEntitlement);
     message.setClientEventTime(toTimestamp(Date.now()));
     message.setEntitlementResult(entitlementResult);
     message.setEntitlementSource(entitlementSource);
+    message.setNonce(opt_nonce);
 
     const url =
       '/publication/' +
