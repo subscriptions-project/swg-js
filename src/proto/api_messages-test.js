@@ -426,6 +426,7 @@ describe('EntitlementsRequest', () => {
         EntitlementSource.UNKNOWN_ENTITLEMENT_SOURCE);
     entitlementsrequest.setEntitlementResult(
         EntitlementResult.UNKNOWN_ENTITLEMENT_RESULT);
+    entitlementsrequest.setNonce('');
 
     let entitlementsrequestDeserialized;
 
@@ -445,6 +446,8 @@ describe('EntitlementsRequest', () => {
         .to.deep.equal(entitlementsrequest.getEntitlementSource());
     expect(entitlementsrequestDeserialized.getEntitlementResult())
         .to.deep.equal(entitlementsrequest.getEntitlementResult());
+    expect(entitlementsrequestDeserialized.getNonce())
+        .to.deep.equal(entitlementsrequest.getNonce());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -462,6 +465,8 @@ describe('EntitlementsRequest', () => {
         .to.deep.equal(entitlementsrequest.getEntitlementSource());
     expect(entitlementsrequestDeserialized.getEntitlementResult())
         .to.deep.equal(entitlementsrequest.getEntitlementResult());
+    expect(entitlementsrequestDeserialized.getNonce())
+        .to.deep.equal(entitlementsrequest.getNonce());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -478,6 +483,8 @@ describe('EntitlementsRequest', () => {
         .to.deep.equal(entitlementsrequest.getEntitlementSource());
     expect(entitlementsrequestDeserialized.getEntitlementResult())
         .to.deep.equal(entitlementsrequest.getEntitlementResult());
+    expect(entitlementsrequestDeserialized.getNonce())
+        .to.deep.equal(entitlementsrequest.getNonce());
   });
 });
 
