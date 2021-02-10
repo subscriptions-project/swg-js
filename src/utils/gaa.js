@@ -341,7 +341,8 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl}) {
-    if (!queryStringHasFreshGaaParams(GaaMeteringRegwall.getQueryString_())) {
+    const queryString = GaaMeteringRegwall.getQueryString_();
+    if (!queryStringHasFreshGaaParams(queryString)) {
       const errorMessage =
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
       warn(errorMessage);
