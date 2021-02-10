@@ -206,7 +206,7 @@ export class EntitlementsManager {
       jwt,
       EntitlementResult.UNLOCKED_METER,
       EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
-      params['gaa_n']
+      nonce
     );
   }
 
@@ -245,12 +245,12 @@ export class EntitlementsManager {
       default:
         return;
     }
-    const params = parseQueryString(this.win_.location.search);
+    const nonce = parseQueryString(this.win_.location.search)['gaa_n'];
     this.postEntitlementsRequest_(
       new EntitlementJwt(),
       result,
       source,
-      params['gaa_n']
+      nonce
     );
   }
 
@@ -260,14 +260,14 @@ export class EntitlementsManager {
     usedEntitlement,
     entitlementResult,
     entitlementSource,
-    opt_nonce = ''
+    optionalNonce = ''
   ) {
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(usedEntitlement);
     message.setClientEventTime(toTimestamp(Date.now()));
     message.setEntitlementResult(entitlementResult);
     message.setEntitlementSource(entitlementSource);
-    message.setNonce(opt_nonce);
+    message.setNonce(optionalNonce);
 
     const url =
       '/publication/' +
