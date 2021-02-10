@@ -895,9 +895,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should not send pingback with invalid GAA params', async () => {
-      nowStub.restore();
+      nowStub.reset();
       // Stub out Date.now() to some time past the URL timestamp expiration.
-      sandbox.stub(Date, 'now').returns(3600389016959);
+      nowStub.returns(3600389016959);
       xhrMock.expects('fetch').never();
 
       const ents = new Entitlements(
@@ -1046,9 +1046,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
-        nowStub.restore();
+        nowStub.reset();
         // Stub out Date.now() to some time past the URL timestamp expiration.
-        sandbox.stub(Date, 'now').returns(3600389016959);
+        nowStub.returns(3600389016959);
         await expectNoPingback(
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SWG_CLIENT
@@ -1104,9 +1104,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
-        nowStub.restore();
+        nowStub.reset();
         // Stub out Date.now() to some time past the URL timestamp expiration.
-        sandbox.stub(Date, 'now').returns(3600389016959);
+        nowStub.returns(3600389016959);
         await expectNoPingback(
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SWG_SERVER
@@ -1163,9 +1163,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
-        nowStub.restore();
+        nowStub.reset();
         // Stub out Date.now() to some time past the URL timestamp expiration.
-        sandbox.stub(Date, 'now').returns(3600389016959);
+        nowStub.returns(3600389016959);
         await expectNoPingback(
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SHOWCASE_CLIENT
