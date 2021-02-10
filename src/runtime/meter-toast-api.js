@@ -133,9 +133,10 @@ export class MeterToastApi {
         // which is expected.
         if (!isCancelError(reason)) {
           // eslint-disable-next-line no-console
-          console.error(
-            '[swg.js]: Error occurred during meter toast handling: ' + reason
-          );
+          console /*OK*/
+            .error(
+              '[swg.js]: Error occurred during meter toast handling: ' + reason
+            );
           throw reason;
         }
       });
