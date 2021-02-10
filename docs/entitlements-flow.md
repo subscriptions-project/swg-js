@@ -155,7 +155,7 @@ subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
 ```
 
 ## Validate entitlements
-To verify the entitlements from Google are valid and authorised, check the validity of the JWT representation of the entitlements.
+To verify the entitlements from Google are valid and authorized, check the validity of the JWT representation of the entitlements.
 
 The following registered claims are used:
 
