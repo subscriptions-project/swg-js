@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-import {AutoPromptType} from '../api/basic-subscriptions';
+import {BasicSubscriptions} from '../api/basic-subscriptions'; // eslint-disable-line no-unused-vars
 import {ButtonApi} from './button-api';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
+import {Doc, resolveDoc} from '../model/doc'; // eslint-disable-line no-unused-vars
+import {Fetcher} from './fetcher'; // eslint-disable-line no-unused-vars
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
-import {resolveDoc} from '../model/doc';
+import {Theme} from './smart-button-api';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 const BUTTON_ATTRIUBUTE = 'swg-standard-button';
@@ -58,6 +60,7 @@ export function installBasicRuntime(win) {
   const basicRuntime = new BasicRuntime(win);
 
   // Create the public version of the SwG Basic runtime.
+  /** @type {!BasicSubscriptions} */
   const publicBasicRuntime = createPublicBasicRuntime(basicRuntime);
 
   /**
@@ -128,10 +131,6 @@ export class BasicRuntime {
 
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
-
-    /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_, this.configuredPromise_);
-    this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
   /**
@@ -177,20 +176,14 @@ export class BasicRuntime {
 
   /** @override */
   /* eslint-disable no-unused-vars */
-  init({
-    type,
-    isAccessibleForFree,
-    isPartOfType,
-    isPartOfProductId,
-    autoPromptType = AutoPromptType.NONE,
-  } = {}) {
+  init(params) {
     this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
     this.pageConfigWriter_
       .writeConfigWhenReady({
-        type,
-        isAccessibleForFree,
-        isPartOfType,
-        isPartOfProductId,
+        type: params.type,
+        isAccessibleForFree: params.isAccessibleForFree,
+        isPartOfType: params.isPartOfType,
+        isPartOfProductId: params.isPartOfProductId,
       })
       .then(() => {
         this.pageConfigWriter_ = null;
@@ -214,9 +207,9 @@ export class BasicRuntime {
   }
 
   /** @override */
-  setupAndShowAutoPrompt(alwaysShow = false) {
+  setupAndShowAutoPrompt(options) {
     return this.configured_(true).then((runtime) =>
-      runtime.setupAndShowAutoPrompt(alwaysShow)
+      runtime.setupAndShowAutoPrompt(options)
     );
   }
 
@@ -267,6 +260,7 @@ export class ConfiguredBasicRuntime {
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_, Promise.resolve(this));
+    this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
   /** Getter for the ConfiguredRuntime, exposed for testing. */
@@ -291,7 +285,7 @@ export class ConfiguredBasicRuntime {
 
   /** @override */
   /* eslint-disable no-unused-vars */
-  setupAndShowAutoPrompt(alwaysShow = false) {
+  setupAndShowAutoPrompt(options) {
     // TODO(stellachui): Implement setup of the auto prompt.
   }
   /* eslint-enable no-unused-vars */
@@ -312,7 +306,7 @@ export class ConfiguredBasicRuntime {
         BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION,
         BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION,
       ],
-      /* options */ null, // TODO(stellachui): Specify language in options.
+      {'theme': Theme.LIGHT}, // TODO(stellachui): Specify language in options.
       {
         [BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION]: () => {
           this.configuredClassicRuntime_.showOffers();

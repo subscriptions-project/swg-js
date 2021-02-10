@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import {Entitlements} from './entitlements';
+import {SubscribeResponse} from './subscribe-response';
+
 /**
  * Interface for users of the basic tier of Subscribe with Google.
  * @interface
@@ -32,15 +35,10 @@ export class BasicSubscriptions {
    *   isAccessibleForFree: boolean,
    *   isPartOfType: (string|!Array<string>),
    *   isPartOfProductId: string,
-   *   autoPromptType: string,
-   * }} params
+   *   autoPromptType: (string|undefined),
+   * }=} params
    */
-  init({
-    type,
-    isAccessibleForFree,
-    isPartOfType,
-    isPartOfProductId,
-    autoPromptType = AutoPromptType.NONE} = {}) {}
+  init(params) {}
 
   /**
    * Set the entitlement check callback.
@@ -61,9 +59,9 @@ export class BasicSubscriptions {
    * function will be skipped, and the prompt will be displayed. The alwaysShow
    * parameter is an option to force show the prompt, regardless of any display
    * rules. This parameter is intended for preview purposes.
-   * @param {boolean} alwaysShow
+   * @param {{alwaysShow: (boolean|undefined)}=} options
    */
-  setupAndShowAutoPrompt(alwaysShow = false) {}
+  setupAndShowAutoPrompt(options) {}
 
   /**
    * Dismisses any SwG UI currently displayed. Intended to be used for preview
