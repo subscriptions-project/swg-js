@@ -24,10 +24,9 @@ import {
   REGWALL_DIALOG_ID,
   REGWALL_DISABLE_SCROLLING_CLASS,
   REGWALL_TITLE_ID,
-  urlContainsFreshGaaParams,
+  queryStringHasFreshGaaParams,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
-import {parseUrl} from './url';
 import {tick} from '../../test/tick';
 
 const PUBLISHER_NAME = 'The Scenic';
@@ -64,50 +63,43 @@ const ARTICLE_METADATA = `
   }
 }`;
 
-describes.realWin('urlContainsFreshGaaParams', {}, () => {
+describes.realWin('queryStringHasFreshGaaParams', {}, () => {
   let clock;
 
   beforeEach(() => {
     clock = sandbox.useFakeTimers();
-    GaaMeteringRegwall.location_ = parseUrl(
-      'https://www.news.com?gaa_at=at&gaa_n=n&gaa_sig=sig&gaa_ts=99999'
-    );
   });
 
   it('succeeeds for valid params', () => {
-    expect(urlContainsFreshGaaParams()).to.be.true;
+    const queryString = '?gaa_at=at&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.true;
   });
 
   it('fails without gaa_at', () => {
-    GaaMeteringRegwall.location_.search =
-      '?gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999';
-    expect(urlContainsFreshGaaParams()).to.be.false;
+    const queryString = '?gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
 
   it('fails without gaa_n', () => {
-    GaaMeteringRegwall.location_.search =
-      '?gaa_at=gaa&gaa_sig=s1gn4tur3&gaa_ts=99999';
-    expect(urlContainsFreshGaaParams()).to.be.false;
+    const queryString = '?gaa_at=gaa&gaa_sig=s1gn4tur3&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
 
   it('fails without gaa_sig', () => {
-    GaaMeteringRegwall.location_.search =
-      '?gaa_at=gaa&gaa_n=n0nc3&gaa_ts=99999';
-    expect(urlContainsFreshGaaParams()).to.be.false;
+    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
 
   it('fails without gaa_ts', () => {
-    GaaMeteringRegwall.location_.search =
-      '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3';
-    expect(urlContainsFreshGaaParams()).to.be.false;
+    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
 
   it('fails if GAA URL params are expired', () => {
     // Add GAA URL params with expiration of 7 seconds.
-    GaaMeteringRegwall.location_.search =
-      '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
+    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
     clock.tick(7001);
-    expect(urlContainsFreshGaaParams()).to.be.false;
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
 });
 
@@ -145,10 +137,11 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       push: sandbox.fake(),
     };
 
-    // Mock location.
-    GaaMeteringRegwall.location_ = {
-      search: '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999',
-    };
+    // Mock query string.
+    sandbox.stub(GaaMeteringRegwall, 'getQueryString_');
+    GaaMeteringRegwall.getQueryString_.returns(
+      '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+    );
 
     // Mock console.warn method.
     sandbox.stub(self.console, 'warn');
@@ -244,7 +237,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('fails if GAA URL params are missing', () => {
       // Remove GAA URL params.
-      GaaMeteringRegwall.location_.search = '';
+      GaaMeteringRegwall.getQueryString_.restore();
 
       GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
@@ -255,8 +248,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('fails if GAA URL params are expired', () => {
       // Add GAA URL params with expiration of 7 seconds.
-      GaaMeteringRegwall.location_.search =
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
+      GaaMeteringRegwall.getQueryString_.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7'
+      );
 
       // Move clock a little past 7 seconds.
       clock.tick(7001);

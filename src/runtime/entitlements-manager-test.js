@@ -15,7 +15,16 @@
  */
 
 import {ActivityPorts} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {
+  AnalyticsContext,
+  AnalyticsEvent,
+  EntitlementJwt,
+  EntitlementResult,
+  EntitlementSource,
+  EntitlementsRequest,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
 import {ClientEventManager} from './client-event-manager';
@@ -32,8 +41,15 @@ import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
+import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {defaultConfig} from '../api/subscriptions';
+import {serializeProtoMessageForUrl} from '../utils/url';
+
+const ENTITLEMENTS_URL =
+  '$frontend$/swg/_/api/v1/publication/pub1/entitlements';
+
+const MOCK_TIME_ARRAY = [1600389016, 959000000];
 
 describes.realWin('EntitlementsManager', {}, (env) => {
   let win;
@@ -78,12 +94,15 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     sandbox.stub(deps, 'config').returns(config);
     sandbox.stub(deps, 'eventManager').returns(eventManager);
     sandbox.stub(deps, 'dialogManager').returns(dialogManager);
-    const analyticsService = new AnalyticsService(deps);
-    analyticsMock = sandbox.mock(analyticsService);
-    sandbox.stub(deps, 'analytics').returns(analyticsService);
     const activityPorts = new ActivityPorts(deps);
     activitiesMock = sandbox.mock(activityPorts);
     sandbox.stub(deps, 'activities').returns(activityPorts);
+    const analyticsService = new AnalyticsService(deps);
+    analyticsMock = sandbox.mock(analyticsService);
+    sandbox
+      .stub(analyticsService, 'getContext')
+      .returns(new AnalyticsContext());
+    sandbox.stub(deps, 'analytics').returns(analyticsService);
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
@@ -158,6 +177,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         })
       )
       .once();
+    expectEntitlementPingback(
+      EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+      EntitlementResult.UNLOCKED_SUBSCRIBER
+    );
     return resp;
   }
 
@@ -184,6 +207,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         })
       )
       .once();
+    expectEntitlementPingback(
+      EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+      EntitlementResult.UNLOCKED_SUBSCRIBER
+    );
     return resp;
   }
 
@@ -193,6 +220,40 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       .withExactArgs(event, isUserGenerated)
       .returns(null)
       .once();
+  }
+
+  function expectPost(url, message) {
+    xhrMock
+      .expects('fetch')
+      .withExactArgs(url, {
+        body: 'f.req=' + serializeProtoMessageForUrl(message),
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        },
+        method: 'POST',
+      })
+      .returns(Promise.resolve());
+  }
+
+  function expectEntitlementPingback(
+    entitlementSource,
+    entitlementResult,
+    jwtString,
+    jwtSource
+  ) {
+    expectPost(
+      ENTITLEMENTS_URL,
+      new EntitlementsRequest(
+        [
+          new EntitlementJwt([jwtString, jwtSource], false).toArray(false),
+          MOCK_TIME_ARRAY,
+          entitlementSource,
+          entitlementResult,
+        ],
+        false
+      )
+    );
   }
 
   describe('fetching', () => {
@@ -377,7 +438,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
-
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
       expect(ents.raw).to.equal('SIGNED_DATA');
@@ -457,6 +517,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .once();
+
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
 
@@ -499,6 +562,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .once();
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      );
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
 
@@ -781,22 +848,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should send pingback with metering entitlements', async () => {
-      xhrMock
-        .expects('fetch')
-        .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
-          {
-            body:
-              'f.req=[["token1","google:metering"],[1600389016,959000000],null,null]',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            },
-            method: 'POST',
-          }
-        )
-        .returns(Promise.resolve());
-
       const ents = new Entitlements(
         'service1',
         'RaW',
@@ -809,8 +860,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         ],
         'product1'
       );
+
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
+        EntitlementResult.UNLOCKED_METER,
+        'token1',
+        GOOGLE_METERING_SOURCE
+      );
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
-      await manager.sendPingback_(ents);
+
+      return manager.consumeMeter_(ents);
     });
 
     it('should not send pingback with non-metering entitlements', async () => {
@@ -823,7 +882,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         'product1'
       );
       eventManagerMock.expects('logSwgEvent').never();
-      await manager.sendPingback_(ents);
+      await manager.consumeMeter_(ents);
     });
 
     it('should log error messages', async () => {
@@ -873,6 +932,216 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParamsExternalDef.'
       );
+    });
+  });
+
+  describe('event listening', () => {
+    const GOOGLE_SOURCE = EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT;
+
+    function getParams(isUserRegistered) {
+      const params = new EventParams();
+      params.setIsUserRegistered(isUserRegistered);
+      return params;
+    }
+
+    function expectNoPingback(event, originator, params = getParams(null)) {
+      xhrMock.expects('fetch').never();
+      eventManager.logEvent({
+        eventType: event,
+        eventOriginator: originator,
+        additionalParameters: params,
+      });
+      return eventManager.lastAction_;
+    }
+
+    function expectPingback(
+      event,
+      originator,
+      expectedSource,
+      params = getParams(null)
+    ) {
+      const result = analyticsEventToEntitlementResult(event);
+      expectEntitlementPingback(expectedSource, result);
+      eventManager.logEvent({
+        eventType: event,
+        eventOriginator: originator,
+        additionalParameters: params,
+      });
+      return eventManager.lastAction_;
+    }
+
+    const PINGBACK_EVENTS = {
+      [AnalyticsEvent.IMPRESSION_REGWALL]: 1,
+      [AnalyticsEvent.EVENT_UNLOCKED_BY_METER]: 1,
+      [AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION]: 1,
+      [AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE]: 1,
+      [AnalyticsEvent.IMPRESSION_PAYWALL]: 1,
+      [AnalyticsEvent.UNKNOWN]: 1,
+    };
+
+    describe('SWG_CLIENT', () => {
+      it('should pingback IMPRESSION_REGWALL', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_REGWALL,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE
+        ));
+
+      it('should NOT pingback EVENT_UNLOCKED_BY_METER', () =>
+        expectNoPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_METER,
+          EventOriginator.SWG_CLIENT
+        ));
+
+      it('should pingback EVENT_UNLOCKED_BY_SUBSCRIPTION', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE
+        ));
+
+      it('should pingback EVENT_UNLOCKED_FREE_PAGE', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE
+        ));
+
+      it('should pingback IMPRESSION_PAYWALL', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE
+        ));
+
+      it('should NOT pingback other events', async () => {
+        for (const eventKey in AnalyticsEvent) {
+          const event = AnalyticsEvent[eventKey];
+          if (PINGBACK_EVENTS[event]) {
+            continue;
+          }
+          await expectNoPingback(event, EventOriginator.SWG_CLIENT);
+          await xhrMock.verify();
+        }
+      });
+    });
+
+    describe('SWG_SERVER', () => {
+      it('should pingback IMPRESSION_REGWALL from SWG_SERVER', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_REGWALL,
+          EventOriginator.SWG_SERVER,
+          GOOGLE_SOURCE
+        ));
+
+      it('should NOT pingback EVENT_UNLOCKED_BY_METER from SWG_SERVER', () =>
+        expectNoPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_METER,
+          EventOriginator.SWG_SERVER
+        ));
+
+      it('should pingback EVENT_UNLOCKED_BY_SUBSCRIPTION from SWG_SERVER', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_SERVER,
+          GOOGLE_SOURCE
+        ));
+
+      it('should pingback EVENT_UNLOCKED_FREE_PAGE from SWG_SERVER', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE,
+          EventOriginator.SWG_SERVER,
+          GOOGLE_SOURCE
+        ));
+
+      it('should pingback IMPRESSION_PAYWALL from SWG_SERVER', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SWG_SERVER,
+          GOOGLE_SOURCE
+        ));
+
+      it('should NOT pingback other events', async () => {
+        for (const eventKey in AnalyticsEvent) {
+          const event = AnalyticsEvent[eventKey];
+          if (PINGBACK_EVENTS[event]) {
+            continue;
+          }
+          await expectNoPingback(event, EventOriginator.SWG_SERVER);
+          await xhrMock.verify();
+        }
+      });
+    });
+
+    describe('SHOWCASE_CLIENT', () => {
+      it('should pingback IMPRESSION_REGWALL', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_REGWALL,
+          EventOriginator.SHOWCASE_CLIENT,
+          EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should pingback EVENT_UNLOCKED_BY_METER', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_METER,
+          EventOriginator.SHOWCASE_CLIENT,
+          EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should pingback EVENT_UNLOCKED_BY_SUBSCRIPTION', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SHOWCASE_CLIENT,
+          EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should pingback EVENT_UNLOCKED_FREE_PAGE', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE,
+          EventOriginator.SHOWCASE_CLIENT,
+          EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should pingback IMPRESSION_PAYWALL', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SHOWCASE_CLIENT,
+          EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should NOT pingback other events', async () => {
+        for (const eventKey in AnalyticsEvent) {
+          const event = AnalyticsEvent[eventKey];
+          if (PINGBACK_EVENTS[event]) {
+            continue;
+          }
+          await expectNoPingback(event, EventOriginator.SHOWCASE_CLIENT);
+          await xhrMock.verify();
+        }
+      });
+    });
+
+    it('should NOT pingback from other originators', async () => {
+      const SKIP = {
+        [EventOriginator.UNKNOWN_CLIENT]: 1,
+        [EventOriginator.SWG_CLIENT]: 1,
+        [EventOriginator.SWG_SERVER]: 1,
+        [EventOriginator.SHOWCASE_CLIENT]: 1,
+      };
+      for (const originKey in EventOriginator) {
+        const origin = EventOriginator[originKey];
+        if (SKIP[origin]) {
+          continue;
+        }
+        for (const eventKey in AnalyticsEvent) {
+          if (eventKey == 'UNKNOWN') {
+            continue;
+          }
+          expectNoPingback(AnalyticsEvent[eventKey], origin);
+          xhrMock.verify();
+        }
+      }
+      return eventManager.lastAction_;
     });
   });
 
@@ -1055,7 +1324,19 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should NOT trigger entitlements when notification is blocked', async () => {
-      expectGoogleResponse();
+      const resp = entitlementsResponse({
+        source: 'google',
+        products: ['pub1:label1'],
+        subscriptionToken: 's1',
+      });
+      xhrMock
+        .expects('fetch')
+        .returns(
+          Promise.resolve({
+            json: () => Promise.resolve(resp),
+          })
+        )
+        .once();
       expectGetIsReadyToPayToBeCalled(null);
       manager.blockNextNotification();
 
@@ -1177,7 +1458,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      xhrMock.expects('fetch').never();
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      );
       manager.reset(true);
 
       const entitlements = await manager.getEntitlements();
@@ -1201,7 +1485,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      xhrMock.expects('fetch').never();
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      );
       manager.reset(true);
       analyticsMock.expects('setReadyToPay').withExactArgs(true);
 
@@ -1222,7 +1509,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      xhrMock.expects('fetch').never();
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      );
       manager.reset(true);
       analyticsMock.expects('setReadyToPay').withExactArgs(false);
 
@@ -1243,7 +1533,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      xhrMock.expects('fetch').never();
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        EntitlementResult.UNLOCKED_SUBSCRIBER
+      );
       manager.reset(true);
 
       const entitlements = await manager.getEntitlements();
