@@ -895,7 +895,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should not send pingback with invalid GAA params', async () => {
-      nowStub.reset();
       // Stub out Date.now() to some time past the URL timestamp expiration.
       nowStub.returns(3600389016959);
       xhrMock.expects('fetch').never();
@@ -1046,7 +1045,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
-        nowStub.reset();
         // Stub out Date.now() to some time past the URL timestamp expiration.
         nowStub.returns(3600389016959);
         await expectNoPingback(
@@ -1104,7 +1102,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
-        nowStub.reset();
         // Stub out Date.now() to some time past the URL timestamp expiration.
         nowStub.returns(3600389016959);
         await expectNoPingback(
@@ -1163,7 +1160,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
-        nowStub.reset();
         // Stub out Date.now() to some time past the URL timestamp expiration.
         nowStub.returns(3600389016959);
         await expectNoPingback(
@@ -1749,7 +1745,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('should ignore malformed pushed entitlements', () => {
       storageMock.expects('set').withArgs('ents').never();
-      sandbox.stub(win, 'setTimeout').callsFake(() => {});
+      sandbox.stub(win, 'setTimeout').returns(1);
       const res = manager.pushNextEntitlements('VeRy BroKen');
       expect(res).to.be.false;
     });
