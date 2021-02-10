@@ -160,7 +160,6 @@ export const googleFontsUrl =
   'https://fonts.googleapis.com/css?family=Google+Sans';
 
 /**
- * @export
  * @param {string} camelCase camel cased string
  * @return {string} title cased string
  */
@@ -190,7 +189,6 @@ function getVendorJsPropertyName_(style, titleCase) {
  * Returns the possibly prefixed JavaScript property name of a style property
  * (ex. WebkitTransitionDuration) given a camelCase'd version of the property
  * (ex. transitionDuration).
- * @export
  * @param {!Object} style
  * @param {string} camelCase the camel cased version of a css property name
  * @param {boolean=} bypassCache bypass the memoized cache of property
