@@ -277,13 +277,13 @@ describes.realWin('Runtime', {}, (env) => {
     });
 
     it('should delegate "setupAndShowAutoPrompt"', async () => {
-      const alwaysShow = true;
+      const options = {alwaysShow: true};
       configuredBasicRuntimeMock
         .expects('setupAndShowAutoPrompt')
-        .withExactArgs(alwaysShow)
+        .withExactArgs(options)
         .once();
 
-      await basicRuntime.setupAndShowAutoPrompt(alwaysShow);
+      await basicRuntime.setupAndShowAutoPrompt(options);
     });
 
     it('should delegate "dismissSwgUI"', async () => {

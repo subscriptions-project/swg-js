@@ -128,7 +128,6 @@ export class MeterToastApi {
           this.onConsumeCallbackHandled_ = true;
           this.onConsumeCallback_();
         }
-        throw reason;
       });
     return this.dialogManager_.openDialog().then((dialog) => {
       this.setDialogBoxShadow_();
