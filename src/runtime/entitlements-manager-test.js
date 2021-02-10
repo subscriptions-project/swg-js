@@ -896,6 +896,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('show not send pingback with invalid GAA params', async () => {
       nowStub.restore();
+      // Stub out Date.now() to some time past the URL timestamp expiration.
       sandbox.stub(Date, 'now').returns(3600389016959);
       xhrMock.expects('fetch').never();
 
@@ -1046,6 +1047,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       it('should NOT pingback on invalid GAA params', async () => {
         nowStub.restore();
+        // Stub out Date.now() to some time past the URL timestamp expiration.
         sandbox.stub(Date, 'now').returns(3600389016959);
         await expectNoPingback(
           AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -1103,6 +1105,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       it('should NOT pingback on invalid GAA params', async () => {
         nowStub.restore();
+        // Stub out Date.now() to some time past the URL timestamp expiration.
         sandbox.stub(Date, 'now').returns(3600389016959);
         await expectNoPingback(
           AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -1161,6 +1164,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       it('should NOT pingback on invalid GAA params', async () => {
         nowStub.restore();
+        // Stub out Date.now() to some time past the URL timestamp expiration.
         sandbox.stub(Date, 'now').returns(3600389016959);
         await expectNoPingback(
           AnalyticsEvent.IMPRESSION_PAYWALL,
