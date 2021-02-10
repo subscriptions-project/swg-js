@@ -40,9 +40,9 @@ import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
 import {hash} from '../utils/string';
 import {parseQueryString} from '../utils/url';
+import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {serviceUrl} from './services';
 import {toTimestamp} from '../utils/date-utils';
-import {urlContainsFreshGaaParams} from '../utils/gaa';
 import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
@@ -190,7 +190,7 @@ export class EntitlementsManager {
     }
     // Verify GAA params are present, otherwise bail since the pingback
     // shouldn't happen on non-metering requests.
-    if (!urlContainsFreshGaaParams(this.win_.location.search)) {
+    if (!queryStringHasFreshGaaParams(this.win_.location.search)) {
       return;
     }
 
@@ -216,7 +216,7 @@ export class EntitlementsManager {
   possiblyPingbackOnClientEvent_(event) {
     // Verify GAA params are present, otherwise bail since the pingback
     // shouldn't happen on non-metering requests.
-    if (!urlContainsFreshGaaParams(this.win_.location.search)) {
+    if (!queryStringHasFreshGaaParams(this.win_.location.search)) {
       return;
     }
 
@@ -246,12 +246,7 @@ export class EntitlementsManager {
         return;
     }
     const nonce = parseQueryString(this.win_.location.search)['gaa_n'];
-    this.postEntitlementsRequest_(
-      new EntitlementJwt(),
-      result,
-      source,
-      nonce
-    );
+    this.postEntitlementsRequest_(new EntitlementJwt(), result, source, nonce);
   }
 
   // Informs the Entitlements server about the entitlement used

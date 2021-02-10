@@ -43,7 +43,6 @@ import {Entitlement, Entitlements} from '../api/entitlements';
 import {Event} from '../api/logger-api';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
-import {GaaMeteringRegwall} from '../utils/gaa';
 import {GlobalDoc} from '../model/doc';
 import {JsError} from './jserror';
 import {
@@ -1880,64 +1879,101 @@ subscribe() method'
     });
 
     describe('setShowcaseEntitlement', () => {
-      const PUB_SITE = 'https://www.publisher.com?';
-      const VALID_QUERY_STRING = 'gaa_at=gaa&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
-      let eventsWereSent;
-      let expectEvents;
-      let url;
-      let referrer;
-      let entitlement;
+      const SECURE_PUB_URL = 'https://www.publisher.com';
+      const UNSECURE_PUB_URL = 'http://www.publisher.com';
+      const SECURE_GOOGLE_URL = 'https://www.google.com';
+      const UNSECURE_GOOGLE_URL = 'http://www.google.com';
+      const GAA_QUERY_STRING = '?gaa_at=gaa&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
+      let logEventStub;
+      let win;
 
       beforeEach(() => {
-        // For GAA URL parameters
+        // Detects when events are logged.
+        logEventStub = sandbox.stub(ClientEventManager.prototype, 'logEvent');
+
+        // Returns custom window objects.
+        win = {
+          location: parseUrl(SECURE_PUB_URL + GAA_QUERY_STRING),
+          document: {
+            referrer: SECURE_GOOGLE_URL,
+          },
+        };
+        sandbox.stub(runtime, 'win').callsFake(() => win);
+
+        // Allows GAA query param checks to pass.
         sandbox.useFakeTimers();
-
-        // For URL helpers
-        sandbox.stub(runtime, 'win').callsFake(() => {
-          return {
-            location: parseUrl(url),
-            document: {referrer},
-          };
-        });
-
-        // Detects whether setShowcaseEntitlement did anything
-        eventsWereSent = false;
-        sandbox
-          .stub(ClientEventManager.prototype, 'logEvent')
-          .callsFake(() => (eventsWereSent = true));
-
-        // Sets up everything so one or more events are transmitted
-        url = PUB_SITE + VALID_QUERY_STRING;
-        referrer = 'https://www.google.com';
-        entitlement =
-          PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER;
-        expectEvents = false;
       });
 
-      afterEach(() => {
-        GaaMeteringRegwall.location_ = parseUrl(url);
-
+      it('should log events', () => {
         runtime.setShowcaseEntitlement({
-          entitlement,
+          entitlement:
+            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
-        expect(expectEvents).to.equal(eventsWereSent);
+        expect(logEventStub).callCount(2);
       });
 
-      // This is the only test that should pass, the other ones
-      // each break 1 thing.
-      it('should retransmit entitlement events', () => (expectEvents = true));
+      it('should require entitlement', () => {
+        runtime.setShowcaseEntitlement({
+          entitlement: undefined,
+          isUserRegistered: true,
+        });
 
-      // Failures
-      it('should require entitlement', () => (entitlement = undefined));
-      it('should require gaa params', () => (url = PUB_SITE));
-      it('should require https page', () =>
-        (url = 'http://www.publisher.com?' + VALID_QUERY_STRING));
-      it('should require secure Google referrer', () =>
-        (referrer = 'http://www.google.com'));
-      it('should require Google referrer', () =>
-        (referrer = 'https://www.gogle.com'));
+        expect(logEventStub).callCount(0);
+      });
+
+      it('should require GAA params', () => {
+        // This location has no GAA params.
+        win.location = parseUrl(SECURE_PUB_URL);
+
+        runtime.setShowcaseEntitlement({
+          entitlement:
+            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          isUserRegistered: true,
+        });
+
+        expect(logEventStub).callCount(0);
+      });
+
+      it('should require https page', () => {
+        // This page is http.
+        win.location = parseUrl(UNSECURE_PUB_URL + GAA_QUERY_STRING);
+
+        runtime.setShowcaseEntitlement({
+          entitlement:
+            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          isUserRegistered: true,
+        });
+
+        expect(logEventStub).callCount(0);
+      });
+
+      it('should require secure Google referrer', () => {
+        // This referrer is not https.
+        win.document.referrer = parseUrl(UNSECURE_GOOGLE_URL);
+
+        runtime.setShowcaseEntitlement({
+          entitlement:
+            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          isUserRegistered: true,
+        });
+
+        expect(logEventStub).callCount(0);
+      });
+
+      it('should require Google referrer', () => {
+        // This referrer is not Google.
+        win.document.referrer = parseUrl(SECURE_PUB_URL);
+
+        runtime.setShowcaseEntitlement({
+          entitlement:
+            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          isUserRegistered: true,
+        });
+
+        expect(logEventStub).callCount(0);
+      });
     });
 
     describe('consumeShowcaseEntitlementJwt', () => {
