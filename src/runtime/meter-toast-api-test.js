@@ -29,6 +29,7 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {getStyle} from '../utils/style';
+import {tick} from '../../test/tick';
 
 const AUTO_PINGBACK_TIMEOUT = 10000;
 const TOAST_CLOSE_REQUEST = new ToastCloseRequest();
@@ -82,6 +83,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   });
 
   afterEach(() => {
+    console.log('bye');
     activitiesMock.verify();
     callbacksMock.verify();
     dialogManagerMock.verify();
@@ -245,6 +247,18 @@ describes.realWin('MeterToastApi', {}, (env) => {
     meterToastApi.isMobile_.restore();
     callbacksMock.expects('triggerFlowStarted').once();
     port.acceptResult = () => Promise.reject(new Error('rejected'));
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const messageStub = sandbox.stub(port, 'execute');
+    await meterToastApi.start();
+    console.log('hello');
+    expect(messageStub).to.not.be.called;
+    expect(onConsumeCallbackFake).to.be.calledOnce;
+  });
+
+  it('should not throw on AbortError.', async () => {
+    meterToastApi.isMobile_.restore();
+    callbacksMock.expects('triggerFlowStarted').once();
+    port.acceptResult = () => Promise.reject(new DOMException('abort', 'AbortError'));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     const messageStub = sandbox.stub(port, 'execute');
     await meterToastApi.start();
