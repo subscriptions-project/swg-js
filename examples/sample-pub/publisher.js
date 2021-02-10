@@ -415,7 +415,7 @@ function isGaa() {
   const GOOGLE_DOMAIN_RE = /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
   const referrer = getAnchorFromUrl(document.referrer);
   if (
-    referrer.protocol !== 'https' ||
+    referrer.protocol !== 'https:' ||
     !GOOGLE_DOMAIN_RE.test(referrer.hostname)
   ) {
     // Real publications should bail if this referrer check fails.
@@ -435,7 +435,7 @@ function isGaa() {
 function getAnchorFromUrl(url) {
   const a = document.createElement('a');
   a.href = url;
-  return a.hostname;
+  return a;
 }
 
 /**
