@@ -29,7 +29,6 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {getStyle} from '../utils/style';
-import {tick} from '../../test/tick';
 
 const AUTO_PINGBACK_TIMEOUT = 10000;
 const TOAST_CLOSE_REQUEST = new ToastCloseRequest();
@@ -80,15 +79,16 @@ describes.realWin('MeterToastApi', {}, (env) => {
       messageMap[messageLabel] = callback;
     });
     sandbox.stub(self.console, 'warn');
+    sandbox.stub(self.console, 'error');
   });
 
   afterEach(() => {
-    console.log('bye');
     activitiesMock.verify();
     callbacksMock.verify();
     dialogManagerMock.verify();
     eventManagerMock.verify();
     self.console.warn.restore();
+    self.console.error.restore();
   });
 
   it('should start the flow correctly without native subscribe request', async () => {
@@ -250,20 +250,24 @@ describes.realWin('MeterToastApi', {}, (env) => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     const messageStub = sandbox.stub(port, 'execute');
     await meterToastApi.start();
-    console.log('hello');
     expect(messageStub).to.not.be.called;
     expect(onConsumeCallbackFake).to.be.calledOnce;
+    expect(self.console.error).to.be.calledWithExactly(
+      '[swg.js]: Error occurred during meter toast handling: Error: rejected'
+    );
   });
 
   it('should not throw on AbortError.', async () => {
     meterToastApi.isMobile_.restore();
     callbacksMock.expects('triggerFlowStarted').once();
-    port.acceptResult = () => Promise.reject(new DOMException('abort', 'AbortError'));
+    port.acceptResult = () =>
+      Promise.reject(new DOMException('abort', 'AbortError'));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     const messageStub = sandbox.stub(port, 'execute');
     await meterToastApi.start();
     expect(messageStub).to.not.be.called;
     expect(onConsumeCallbackFake).to.be.calledOnce;
+    expect(self.console.error).to.not.be.called;
   });
 
   it('should close iframe on touchstart', async () => {

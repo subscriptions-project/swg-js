@@ -131,7 +131,11 @@ export class MeterToastApi {
         }
         // Don't throw on cancel errors since they happen when a user closes the toast,
         // which is expected.
-        if (!isCancelError(reason)){
+        if (!isCancelError(reason)) {
+          // eslint-disable-next-line no-console
+          console.error(
+            '[swg.js]: Error occurred during meter toast handling: ' + reason
+          );
           throw reason;
         }
       });
