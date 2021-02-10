@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+import {Doc, resolveDoc} from './doc'; // eslint-disable-line no-unused-vars
 import {createElement} from '../utils/dom';
-import {resolveDoc} from './doc';
 import {tryParseJson} from '../utils/json';
 
 /**
@@ -33,10 +33,15 @@ export class PageConfigWriter {
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);
 
-    /** @private @const {?Map} */
+    /** @private {?{
+     *   type: (string|!Array<string>),
+     *   isAccessibleForFree: boolean,
+     *   isPartOfType: (string|!Array<string>),
+     *   isPartOfProductId: string,
+     * }} */
     this.markupValues_ = null;
 
-    /** @private {?function(!Promise)} */
+    /** @private {?function()} */
     this.configWrittenResolver_ = null;
 
     /** @private @const {!Promise} */
@@ -87,47 +92,44 @@ export class PageConfigWriter {
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i];
       if (element.textContent) {
-        let possibleConfigs = tryParseJson(element.textContent);
+        const possibleConfigs = tryParseJson(element.textContent);
         if (!possibleConfigs) {
           continue;
         }
 
         // Support arrays of JSON objects.
-        const isPossibleConfigsInArray = Array.isArray(possibleConfigs);
-        if (!isPossibleConfigsInArray) {
-          possibleConfigs = [possibleConfigs];
+        let possibleConfig;
+        if (Array.isArray(possibleConfigs)) {
+          possibleConfig = possibleConfigs[0];
+        } else {
+          possibleConfig = possibleConfigs;
         }
-        for (let i = 0; i < possibleConfigs.length; i++) {
-          const possibleConfig = possibleConfigs[i];
 
-          // Merge the '@type' lists, and set the other fields, preferring the
-          // existing values
-          possibleConfig['@type'] = this.merge_(
-            possibleConfig['@type'],
-            this.markupValues_.type
+        // Merge the '@type' lists, and set the other fields, preferring the
+        // existing values
+        possibleConfig['@type'] = this.merge_(
+          possibleConfig['@type'],
+          this.markupValues_.type
+        );
+        possibleConfig['isAccessibleForFree'] =
+          possibleConfig['isAccessibleForFree'] ||
+          this.markupValues_.isAccessibleForFree;
+        if (possibleConfig['isPartOf']) {
+          possibleConfig['isPartOf']['@type'] = this.merge_(
+            possibleConfig['isPartOf']['@type'],
+            this.markupValues_.isPartOfType
           );
-          possibleConfig['isAccessibleForFree'] =
-            possibleConfig['isAccessibleForFree'] ||
-            this.markupValues_.isAccessibleForFree;
-          if (possibleConfig['isPartOf']) {
-            possibleConfig['isPartOf']['@type'] = this.merge_(
-              possibleConfig['isPartOf']['@type'],
-              this.markupValues_.isPartOfType
-            );
-            possibleConfig['isPartOf']['productID'] =
-              possibleConfig['isPartOf']['productID'] ||
-              this.markupValues_.isPartOfProductId;
-          } else {
-            possibleConfig['isPartOf'] = isPartOfObj;
-          }
-
-          element.textContent = JSON.stringify(
-            isPossibleConfigsInArray ? possibleConfigs : possibleConfigs[i]
-          );
-          this.configWrittenResolver_();
-          this.configWrittenResolver_ = null;
-          return;
+          possibleConfig['isPartOf']['productID'] =
+            possibleConfig['isPartOf']['productID'] ||
+            this.markupValues_.isPartOfProductId;
+        } else {
+          possibleConfig['isPartOf'] = isPartOfObj;
         }
+
+        element.textContent = JSON.stringify(possibleConfigs);
+        this.configWrittenResolver_();
+        this.configWrittenResolver_ = null;
+        return;
       }
     }
 
@@ -161,6 +163,7 @@ export class PageConfigWriter {
       return valueOne;
     }
 
+    /** @type {Array} */
     const arrayOne = this.toArray_(valueOne);
     const arrayTwo = this.toArray_(valueTwo);
     const mergedArray = arrayOne.concat(
