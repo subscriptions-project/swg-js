@@ -70,8 +70,8 @@ import {isExperimentOn} from './experiments';
 import {isSecure, wasReferredByGoogle} from '../utils/url';
 import {parseUrl} from '../utils/url';
 import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
+import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {setExperiment} from './experiments';
-import {urlContainsFreshGaaParams} from '../utils/gaa';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -1047,7 +1047,7 @@ export class ConfiguredRuntime {
       !entitlement ||
       !isSecure(this.win().location) ||
       !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
-      !urlContainsFreshGaaParams()
+      !queryStringHasFreshGaaParams(this.win().location.search)
     ) {
       return;
     }

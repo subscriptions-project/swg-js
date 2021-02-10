@@ -301,11 +301,12 @@ let GaaUserDef;
 let GoogleUserDef;
 
 /**
- * Returns true if the URL contains fresh Google Article Access (GAA) params.
+ * Returns true if the query string contains fresh Google Article Access (GAA) params.
+ * @param {string} queryString
  * @return {boolean}
  */
-export function urlContainsFreshGaaParams() {
-  const params = parseQueryString(GaaMeteringRegwall.location_.search);
+export function queryStringHasFreshGaaParams(queryString) {
+  const params = parseQueryString(queryString);
 
   // Verify GAA params exist.
   if (
@@ -340,7 +341,8 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl}) {
-    if (!urlContainsFreshGaaParams()) {
+    const queryString = GaaMeteringRegwall.getQueryString_();
+    if (!queryStringHasFreshGaaParams(queryString)) {
       const errorMessage =
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
       warn(errorMessage);
@@ -532,14 +534,16 @@ export class GaaMeteringRegwall {
     // Re-enable scrolling on the body element.
     self.document.body.classList.remove(REGWALL_DISABLE_SCROLLING_CLASS);
   }
-}
 
-/**
- * References window's location object. Tests can override this.
- * @private
- * @type {!Location}
- */
-GaaMeteringRegwall.location_ = self.location;
+  /**
+   * Returns query string from current URL.
+   * @private
+   * @return {string}
+   */
+  static getQueryString_() {
+    return self.location.search;
+  }
+}
 
 self.GaaMeteringRegwall = GaaMeteringRegwall;
 
