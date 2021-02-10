@@ -140,6 +140,34 @@ export class ButtonApi {
   }
 
   /**
+   * Attaches all buttons with the specified attribute set to any of the
+   * attribute values.
+   * @param {string} attribute
+   * @param {!Array<string>} attributeValues
+   * @param {../api/subscriptions.ButtonOptions} options
+   * @param {!Object<string, function()>} attributeValueToCallback
+   */
+  attachButtonsWithAttribute(
+    attribute,
+    attributeValues,
+    options,
+    attributeValueToCallback
+  ) {
+    attributeValues.forEach((attributeValue) => {
+      const elements = this.doc_
+        .getRootNode()
+        .querySelectorAll(`button[${attribute}="${attributeValue}"]`);
+      for (let i = 0; i < elements.length; i++) {
+        this.attach(
+          elements[i],
+          options,
+          attributeValueToCallback[attributeValue]
+        );
+      }
+    });
+  }
+
+  /**
    * @param {!AnalyticsEvent} eventType
    * @param {boolean=} isFromUserAction
    */

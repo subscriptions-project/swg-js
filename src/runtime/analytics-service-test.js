@@ -562,6 +562,10 @@ describes.realWin('AnalyticsService', {}, (env) => {
       }
     };
 
+    it('should never log showcase events', () => {
+      testOriginator(EventOriginator.SHOWCASE_CLIENT, false);
+    });
+
     it('should not log publisher events by default', () => {
       testOriginator(EventOriginator.SWG_CLIENT, true);
       testOriginator(EventOriginator.SWG_SERVER, true);
@@ -576,6 +580,9 @@ describes.realWin('AnalyticsService', {}, (env) => {
       testOriginator(EventOriginator.AMP_CLIENT, true);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
       testOriginator(EventOriginator.PUBLISHER_CLIENT, true);
+
+      // Should still not log showcase events
+      testOriginator(EventOriginator.SHOWCASE_CLIENT, false);
     });
 
     it('should always log page load event in AMP', () => {

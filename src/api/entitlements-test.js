@@ -14,18 +14,34 @@
  * limitations under the License.
  */
 
-import {Entitlement} from './entitlements';
+import {Entitlement, Entitlements} from './entitlements';
 
 describes.realWin('Entitlements', {}, () => {
+  let entitlement;
   let entitlements;
 
   beforeEach(() => {
-    entitlements = Entitlement.parseFromJson(null);
+    entitlement = Entitlement.parseFromJson(null);
+    entitlements = new Entitlements('service1', 'RaW', [], null, null);
+    sandbox.stub(self.console, 'warn');
+  });
+
+  afterEach(() => {
+    self.console.warn.restore();
   });
 
   describe('enables', () => {
     it('handles falsy `product` param', () => {
-      expect(entitlements.enables(null)).to.be.false;
+      expect(entitlement.enables(null)).to.be.false;
+    });
+  });
+
+  describe('getEntitlementFor', () => {
+    it('warns users if their article needs to define a product ID', () => {
+      entitlements.getEntitlementFor(null, null);
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        'SwG needs this article to define a product ID (e.g. example.com:premium). Articles can define a product ID using JSON+LD. SwG can check entitlements after this article defines a product ID.'
+      );
     });
   });
 });

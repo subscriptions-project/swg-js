@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EntitlementResult} from '../proto/api_messages';
 import {Event} from '../api/propensity-api';
+import {PublisherEntitlementEvent} from '../api/subscriptions';
 import {
+  analyticsEventToEntitlementResult,
   analyticsEventToPublisherEvent,
+  publisherEntitlementEventToAnalyticsEvents,
   publisherEventToAnalyticsEvent,
 } from './event-type-mapping';
 
-describes.realWin('PropensityServer', {}, () => {
+describes.realWin('Logger and Propensity events', {}, () => {
   it('propensity to analytics to propensity should be identical', () => {
     let analyticsEvent;
     let propensityEvent;
@@ -52,6 +55,60 @@ describes.realWin('PropensityServer', {}, () => {
       expect(publisherEventToAnalyticsEvent(propensityEvent)).to.equal(
         analyticsEvent
       );
+    }
+  });
+
+  it('all publisher types mapped', () => {
+    for (const publisherEvent in Event) {
+      const converted = publisherEventToAnalyticsEvent(Event[publisherEvent]);
+      expect(!!converted).to.be.true;
+    }
+  });
+});
+
+describes.realWin('publisherEntitlementEventToAnalyticsEvents', {}, () => {
+  it('all types mapped', () => {
+    for (const publisherEvent in PublisherEntitlementEvent) {
+      const converted = publisherEntitlementEventToAnalyticsEvents(
+        PublisherEntitlementEvent[publisherEvent]
+      );
+      expect(converted && converted.length > 0).to.be.true;
+      for (let x = 0; x < converted.length; x++) {
+        expect(converted[x]).to.not.be.null;
+      }
+    }
+  });
+});
+
+describes.realWin('analyticsEventToEntitlementResult', {}, () => {
+  let mapped;
+
+  beforeEach(() => {
+    mapped = {};
+    for (const event in AnalyticsEvent) {
+      const result = analyticsEventToEntitlementResult(AnalyticsEvent[event]);
+      // Not all analytics events are mapped
+      if (!result) {
+        continue;
+      }
+      // Each EntitlementResult should only be mapped to once
+      expect(mapped[result]).to.be.undefined;
+      mapped[result] = (mapped[result] || 0) + 1;
+    }
+  });
+
+  it('not allow the same EntitlementResult to be mapped to twice', () => {
+    // The beforeEach will fail
+  });
+
+  it('map every EntitlementResult except the unknown value', () => {
+    for (const key in EntitlementResult) {
+      const result = EntitlementResult[key];
+      // Every EntitlementResult should be mapped except the unknown value
+      if (result == EntitlementResult.UNKNOWN_ENTITLEMENT_RESULT) {
+        continue;
+      }
+      expect(mapped[result]).to.not.be.undefined;
     }
   });
 });

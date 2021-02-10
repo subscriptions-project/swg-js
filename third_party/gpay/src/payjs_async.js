@@ -394,16 +394,13 @@ class PaymentsAsyncClient {
       return;
     }
 
-    const isReadyToPayResult = window.sessionStorage.getItem(
-      Constants.IS_READY_TO_PAY_RESULT_KEY
-    );
     this.loadPaymentDataApiStartTimeMs_ = Date.now();
     this.assignInternalParams_(paymentDataRequest);
     // We want to fall back to the web delegate if payment handler is supported
     // and isReadyToPay bit is not explicitly set to true (fallback to web if
     // isReadyToPay wasn't called for PH)
     if (
-      (chromeSupportsPaymentHandler() && isReadyToPayResult !== 'true') ||
+      chromeSupportsPaymentHandler() ||
       isNativeDisabledInRequest(paymentDataRequest)
     ) {
       this.webActivityDelegate_.loadPaymentData(paymentDataRequest);

@@ -25,8 +25,13 @@ import {I18N_STRINGS} from '../i18n/strings';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
 import {msg} from './i18n';
-import {parseJson} from '../utils/json';
+import {parseJson} from './json';
+import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
+import {warn} from './log';
+
+// Load types for Closure compiler.
+import '../model/doc';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
@@ -55,6 +60,10 @@ export const REGWALL_DIALOG_ID = 'swg-regwall-dialog';
 /** ID for the Regwall title element. */
 export const REGWALL_TITLE_ID = 'swg-regwall-title';
 
+/** Class the Regwall uses to disable scrolling. */
+export const REGWALL_DISABLE_SCROLLING_CLASS =
+  'gaa-metering-regwall--disable-scrolling';
+
 /**
  * HTML for the metering regwall dialog, where users can sign in with Google.
  * The script creates a dialog based on this HTML.
@@ -64,6 +73,10 @@ export const REGWALL_TITLE_ID = 'swg-regwall-title';
  */
 const REGWALL_HTML = `
 <style>
+  .${REGWALL_DISABLE_SCROLLING_CLASS} {
+    overflow: hidden;
+  }
+
   .gaa-metering-regwall--dialog-spacer,
   .gaa-metering-regwall--dialog,
   .gaa-metering-regwall--logo,
@@ -287,6 +300,34 @@ let GaaUserDef;
  */
 let GoogleUserDef;
 
+/**
+ * Returns true if the query string contains fresh Google Article Access (GAA) params.
+ * @param {string} queryString
+ * @return {boolean}
+ */
+export function queryStringHasFreshGaaParams(queryString) {
+  const params = parseQueryString(queryString);
+
+  // Verify GAA params exist.
+  if (
+    !params['gaa_at'] ||
+    !params['gaa_n'] ||
+    !params['gaa_sig'] ||
+    !params['gaa_ts']
+  ) {
+    return false;
+  }
+
+  // Verify timestamp isn't stale.
+  const expirationTimestamp = parseInt(params['gaa_ts'], 16);
+  const currentTimestamp = Date.now() / 1000;
+  if (expirationTimestamp < currentTimestamp) {
+    return false;
+  }
+
+  return true;
+}
+
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
   /**
@@ -300,6 +341,14 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl}) {
+    const queryString = GaaMeteringRegwall.getQueryString_();
+    if (!queryStringHasFreshGaaParams(queryString)) {
+      const errorMessage =
+        '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
+      warn(errorMessage);
+      return Promise.reject(errorMessage);
+    }
+
     GaaMeteringRegwall.render_({iframeUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
     return GaaMeteringRegwall.getGaaUser_().then((gaaUser) => {
@@ -372,6 +421,9 @@ export class GaaMeteringRegwall {
     containerEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(containerEl, {'opacity': 1});
     GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
+
+    // Disable scrolling on the body element.
+    self.document.body.classList.add(REGWALL_DISABLE_SCROLLING_CLASS);
 
     // Focus on the title after the dialog animates in.
     // This helps people using screenreaders.
@@ -478,6 +530,18 @@ export class GaaMeteringRegwall {
     if (regwallContainer) {
       regwallContainer.remove();
     }
+
+    // Re-enable scrolling on the body element.
+    self.document.body.classList.remove(REGWALL_DISABLE_SCROLLING_CLASS);
+  }
+
+  /**
+   * Returns query string from current URL.
+   * @private
+   * @return {string}
+   */
+  static getQueryString_() {
+    return self.location.search;
   }
 }
 
@@ -526,10 +590,11 @@ export class GaaGoogleSignInButton {
             buttonEl.tabIndex = 0;
             self.document.body.appendChild(buttonEl);
             self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
-              'scope': 'profile email',
               'longtitle': true,
-              'theme': 'dark',
               'onsuccess': resolve,
+              'prompt': 'select_account',
+              'scope': 'profile email',
+              'theme': 'dark',
             });
           })
       )

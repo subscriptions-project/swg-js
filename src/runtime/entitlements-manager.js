@@ -17,7 +17,10 @@
 import {
   AnalyticsEvent,
   EntitlementJwt,
+  EntitlementResult,
+  EntitlementSource,
   EntitlementsRequest,
+  EventOriginator,
 } from '../proto/api_messages';
 import {
   Entitlement,
@@ -32,6 +35,7 @@ import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
 import {Toast} from '../ui/toast';
+import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
 import {hash} from '../utils/string';
@@ -89,6 +93,10 @@ export class EntitlementsManager {
 
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = deps.config();
+
+    this.deps_
+      .eventManager()
+      .registerEventListener(this.handleClientEvent_.bind(this));
   }
 
   /**
@@ -173,7 +181,7 @@ export class EntitlementsManager {
    * Sends a pingback that marks a metering entitlement as used.
    * @param {!Entitlements} entitlements
    */
-  sendPingback_(entitlements) {
+  consumeMeter_(entitlements) {
     const entitlement = entitlements.getEntitlementForThis();
     if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
       return;
@@ -186,10 +194,58 @@ export class EntitlementsManager {
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
     jwt.setJwt(entitlement.subscriptionToken);
+    return this.postEntitlementsRequest_(
+      jwt,
+      EntitlementResult.UNLOCKED_METER,
+      EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE
+    );
+  }
 
+  // Listens for events from the event manager and informs
+  // the server about publisher entitlements and non-
+  // consumable Google entitlements.
+  handleClientEvent_(event) {
+    // A subset of analytics events are also an entitlement result
+    const result = analyticsEventToEntitlementResult(event.eventType);
+    if (!result) {
+      return;
+    }
+    let source = null;
+
+    switch (event.eventOriginator) {
+      // The indicates the publisher reported it via subscriptions.setShowcaseEntitlement
+      case EventOriginator.SHOWCASE_CLIENT:
+        source = EntitlementSource.PUBLISHER_ENTITLEMENT;
+        break;
+      case EventOriginator.SWG_CLIENT: // Fallthrough, these are the same
+      case EventOriginator.SWG_SERVER:
+        if (result == EntitlementResult.UNLOCKED_METER) {
+          // Meters from Google require a valid jwt, which is sent by
+          // an entitlement.
+          return;
+        }
+        source = EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT;
+        break;
+      // Permission to pingback other sources was not requested
+      default:
+        return;
+    }
+
+    this.postEntitlementsRequest_(new EntitlementJwt(), result, source);
+  }
+
+  // Informs the Entitlements server about the entitlement used
+  // to unlock the page.
+  postEntitlementsRequest_(
+    usedEntitlement,
+    entitlementResult,
+    entitlementSource
+  ) {
     const message = new EntitlementsRequest();
-    message.setUsedEntitlement(jwt);
+    message.setUsedEntitlement(usedEntitlement);
     message.setClientEventTime(toTimestamp(Date.now()));
+    message.setEntitlementResult(entitlementResult);
+    message.setEntitlementSource(entitlementSource);
 
     const url =
       '/publication/' +
@@ -421,7 +477,6 @@ export class EntitlementsManager {
         .logSwgEvent(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
       return;
     }
-
     this.maybeShowToast_(entitlement);
   }
 
@@ -450,7 +505,7 @@ export class EntitlementsManager {
       }
 
       // Show toast.
-      const source = entitlement.source || 'google';
+      const source = entitlement.source || GOOGLE_METERING_SOURCE;
       return new Toast(
         this.deps_,
         feUrl('/toastiframe'),
@@ -479,15 +534,41 @@ export class EntitlementsManager {
    */
   consume_(entitlements, onCloseDialog) {
     if (entitlements.enablesThisWithGoogleMetering()) {
-      const meterToastApi = new MeterToastApi(this.deps_);
-      meterToastApi.setOnCancelCallback(() => {
+      const onConsumeCallback = () => {
         if (onCloseDialog) {
           onCloseDialog();
         }
-        meterToastApi.removeCloseEventListener();
-        this.sendPingback_(entitlements);
-      });
+        this.consumeMeter_(entitlements);
+      };
+      const showToast = this.getShowToastFromEntitlements_(entitlements);
+      if (showToast === false) {
+        // If showToast is explicitly false, call onConsumeCallback directly.
+        return onConsumeCallback();
+      }
+      const meterToastApi = new MeterToastApi(this.deps_);
+      meterToastApi.setOnConsumeCallback(onConsumeCallback);
       return meterToastApi.start();
+    }
+  }
+
+  /**
+   * Gets the `showToast` value (or null/undefined if unavailable) from
+   * the Google metering entitlement details in the input entitlements.
+   * @param {!Entitlements} entitlements
+   * @return {boolean|undefined}
+   * @private
+   */
+  getShowToastFromEntitlements_(entitlements) {
+    const entitlement = entitlements.getEntitlementForThis();
+    if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
+      return;
+    }
+    try {
+      const meteringJwt = this.jwtHelper_.decode(entitlement.subscriptionToken);
+      return meteringJwt['metering'] && meteringJwt['metering']['showToast'];
+    } catch (e) {
+      // Ignore decoding errors.
+      return;
     }
   }
 

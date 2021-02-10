@@ -16,7 +16,11 @@
 
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
 import {AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
@@ -39,7 +43,6 @@ import {
 import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
-import {MeterRegwallApi} from './meter-regwall-api';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
 import {
@@ -64,6 +67,10 @@ import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
+import {isSecure, wasReferredByGoogle} from '../utils/url';
+import {parseUrl} from '../utils/url';
+import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
+import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {setExperiment} from './experiments';
 
 const RUNTIME_PROP = 'SWG';
@@ -252,6 +259,9 @@ export class Runtime {
   init(productOrPublicationId) {
     assert(!this.committed_, 'already configured');
     this.productOrPublicationId_ = productOrPublicationId;
+
+    // Process the page's config.
+    this.configured_(true);
   }
 
   /** @override */
@@ -334,13 +344,6 @@ export class Runtime {
   waitForSubscriptionLookup(accountPromise) {
     return this.configured_(true).then((runtime) =>
       runtime.waitForSubscriptionLookup(accountPromise)
-    );
-  }
-
-  /** @override */
-  showMeterRegwall(params) {
-    return this.configured_(true).then((runtime) =>
-      runtime.showMeterRegwall(params)
     );
   }
 
@@ -493,6 +496,20 @@ export class Runtime {
   /** @override */
   getEventManager() {
     return this.configured_(true).then((runtime) => runtime.getEventManager());
+  }
+
+  /** @override */
+  setShowcaseEntitlement(entitlement) {
+    return this.configured_(true).then((runtime) =>
+      runtime.setShowcaseEntitlement(entitlement)
+    );
+  }
+
+  /** @override */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {
+    return this.configured_(true).then((runtime) =>
+      runtime.consumeShowcaseEntitlementJwt(showcaseEntitlementJwt)
+    );
   }
 }
 
@@ -849,14 +866,6 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  showMeterRegwall(meterRegwallArgs) {
-    return this.documentParsed_.then(() => {
-      const wait = new MeterRegwallApi(this, meterRegwallArgs);
-      return wait.start();
-    });
-  }
-
-  /** @override */
   setOnLoginRequest(callback) {
     this.callbacks_.setOnLoginRequest(callback);
   }
@@ -1031,6 +1040,40 @@ export class ConfiguredRuntime {
   getLogger() {
     return Promise.resolve(this.logger_);
   }
+
+  /** @override */
+  setShowcaseEntitlement(entitlement) {
+    if (
+      !entitlement ||
+      !isSecure(this.win().location) ||
+      !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
+      !queryStringHasFreshGaaParams(this.win().location.search)
+    ) {
+      return;
+    }
+
+    const eventsToLog =
+      publisherEntitlementEventToAnalyticsEvents(entitlement.entitlement) || [];
+    const params = new EventParams();
+    params.setIsUserRegistered(entitlement.isUserRegistered);
+
+    for (let k = 0; k < eventsToLog.length; k++) {
+      this.eventManager().logEvent({
+        eventType: eventsToLog[k],
+        eventOriginator: EventOriginator.SHOWCASE_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: params,
+      });
+    }
+  }
+
+  /** @override */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {
+    const entitlements = this.entitlementsManager().parseEntitlements({
+      signedEntitlements: showcaseEntitlementJwt,
+    });
+    entitlements.consume();
+  }
 }
 
 /**
@@ -1052,7 +1095,6 @@ function createPublicRuntime(runtime) {
     showOffers: runtime.showOffers.bind(runtime),
     showUpdateOffers: runtime.showUpdateOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
-    showMeterRegwall: runtime.showMeterRegwall.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
     waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),
@@ -1081,6 +1123,10 @@ function createPublicRuntime(runtime) {
     getPropensityModule: runtime.getPropensityModule.bind(runtime),
     getLogger: runtime.getLogger.bind(runtime),
     getEventManager: runtime.getEventManager.bind(runtime),
+    setShowcaseEntitlement: runtime.setShowcaseEntitlement.bind(runtime),
+    consumeShowcaseEntitlementJwt: runtime.consumeShowcaseEntitlementJwt.bind(
+      runtime
+    ),
   });
 }
 

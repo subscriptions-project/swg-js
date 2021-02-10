@@ -22,12 +22,13 @@ import {
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
   REGWALL_DIALOG_ID,
+  REGWALL_DISABLE_SCROLLING_CLASS,
   REGWALL_TITLE_ID,
+  queryStringHasFreshGaaParams,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
 import {tick} from '../../test/tick';
 
-const ARTICLE_URL = '/article';
 const PUBLISHER_NAME = 'The Scenic';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
 
@@ -61,6 +62,46 @@ const ARTICLE_METADATA = `
     "productID": "scenic-2017.appspot.com:news"
   }
 }`;
+
+describes.realWin('queryStringHasFreshGaaParams', {}, () => {
+  let clock;
+
+  beforeEach(() => {
+    clock = sandbox.useFakeTimers();
+  });
+
+  it('succeeeds for valid params', () => {
+    const queryString = '?gaa_at=at&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.true;
+  });
+
+  it('fails without gaa_at', () => {
+    const queryString = '?gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
+  });
+
+  it('fails without gaa_n', () => {
+    const queryString = '?gaa_at=gaa&gaa_sig=s1gn4tur3&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
+  });
+
+  it('fails without gaa_sig', () => {
+    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
+  });
+
+  it('fails without gaa_ts', () => {
+    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
+  });
+
+  it('fails if GAA URL params are expired', () => {
+    // Add GAA URL params with expiration of 7 seconds.
+    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
+    clock.tick(7001);
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
+  });
+});
 
 describes.realWin('GaaMeteringRegwall', {}, () => {
   let clock;
@@ -96,10 +137,14 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       push: sandbox.fake(),
     };
 
-    // Mock location.
-    GaaMeteringRegwall.location_ = {
-      href: ARTICLE_URL,
-    };
+    // Mock query string.
+    sandbox.stub(GaaMeteringRegwall, 'getQueryString_');
+    GaaMeteringRegwall.getQueryString_.returns(
+      '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+    );
+
+    // Mock console.warn method.
+    sandbox.stub(self.console, 'warn');
 
     // Add JSON-LD with a publisher name.
     script = self.document.createElement('script');
@@ -112,6 +157,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     script.remove();
     GaaMeteringRegwall.remove_();
     self.document.documentElement.lang = '';
+    self.console.warn.restore();
   });
 
   describe('show', () => {
@@ -186,6 +232,51 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       );
       expect(titleEl.textContent).to.equal(
         I18N_STRINGS.GAA_REGWALL_TITLE['pt-br']
+      );
+    });
+
+    it('fails if GAA URL params are missing', () => {
+      // Remove GAA URL params.
+      GaaMeteringRegwall.getQueryString_.restore();
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
+      );
+    });
+
+    it('fails if GAA URL params are expired', () => {
+      // Add GAA URL params with expiration of 7 seconds.
+      GaaMeteringRegwall.getQueryString_.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7'
+      );
+
+      // Move clock a little past 7 seconds.
+      clock.tick(7001);
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
+      );
+    });
+
+    it('disables scrolling while Regwall is open', () => {
+      expect(
+        !self.document.body.classList.contains(REGWALL_DISABLE_SCROLLING_CLASS)
+      );
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      expect(
+        self.document.body.classList.contains(REGWALL_DISABLE_SCROLLING_CLASS)
+      );
+
+      GaaMeteringRegwall.remove_();
+
+      expect(
+        !self.document.body.classList.contains(REGWALL_DISABLE_SCROLLING_CLASS)
       );
     });
   });
@@ -268,6 +359,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
           {
             longtitle: true,
             onsuccess: args[0][1].onsuccess,
+            prompt: 'select_account',
             scope: 'profile email',
             theme: 'dark',
           },

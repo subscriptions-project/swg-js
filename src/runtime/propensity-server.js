@@ -136,6 +136,12 @@ export class PropensityServer {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
+    // Propensity does not need this data and does not have the right to
+    // it at this time.  We can consider this if necessary in the future.
+    if (event.eventOriginator === EventOriginator.SHOWCASE_CLIENT) {
+      return;
+    }
+
     /**
      * Does a live check of the config because we don't know when publisher
      * called to enable (it may be after a consent dialog).
