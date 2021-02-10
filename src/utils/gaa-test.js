@@ -137,7 +137,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       push: sandbox.fake(),
     };
 
-    // Mock location.
+    // Mock query string.
     sandbox.stub(GaaMeteringRegwall, 'getQueryString_');
     GaaMeteringRegwall.getQueryString_.returns(
       '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
