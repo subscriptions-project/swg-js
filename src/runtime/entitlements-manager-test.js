@@ -894,7 +894,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       await manager.consumeMeter_(ents);
     });
 
-    it('show not send pingback with invalid GAA params', async () => {
+    it('should not send pingback with invalid GAA params', async () => {
       nowStub.restore();
       // Stub out Date.now() to some time past the URL timestamp expiration.
       sandbox.stub(Date, 'now').returns(3600389016959);
