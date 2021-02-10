@@ -98,7 +98,7 @@ export class EntitlementsManager {
 
     this.deps_
       .eventManager()
-      .registerEventListener(this.handleClientEvent_.bind(this));
+      .registerEventListener(this.possiblyPingbackOnClientEvent_.bind(this));
   }
 
   /**
@@ -213,7 +213,7 @@ export class EntitlementsManager {
   // Listens for events from the event manager and informs
   // the server about publisher entitlements and non-
   // consumable Google entitlements.
-  handleClientEvent_(event) {
+  possiblyPingbackOnClientEvent_(event) {
     // Verify GAA params are present, otherwise bail since the pingback
     // shouldn't happen on non-metering requests.
     if (!urlContainsFreshGaaParams(this.win_.location.search)) {
