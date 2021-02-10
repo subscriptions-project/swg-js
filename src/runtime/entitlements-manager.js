@@ -201,7 +201,7 @@ export class EntitlementsManager {
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
     jwt.setJwt(entitlement.subscriptionToken);
-    const params = parseQueryString(this.win_.location.search);
+    const nonce = parseQueryString(this.win_.location.search)['gaa_n'];
     return this.postEntitlementsRequest_(
       jwt,
       EntitlementResult.UNLOCKED_METER,
