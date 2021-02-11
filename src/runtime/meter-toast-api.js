@@ -22,6 +22,7 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {feUrl} from './services';
+import {isCancelError} from '../utils/errors';
 import {setImportantStyles, setStyle} from '../utils/style';
 import {warn} from '../utils/log';
 
@@ -123,12 +124,21 @@ export class MeterToastApi {
       .handleCancellations(this.activityIframeView_)
       .catch((reason) => {
         // Possibly call onConsumeCallback on all dialog cancellations to ensure unexpected
-        // dialog closes don't give access without a meter consumed.
+        // dialog closures don't give access without a meter consumed.
         if (this.onConsumeCallback_ && !this.onConsumeCallbackHandled_) {
           this.onConsumeCallbackHandled_ = true;
           this.onConsumeCallback_();
         }
-        throw reason;
+        // Don't throw on cancel errors since they happen when a user closes the toast,
+        // which is expected.
+        if (!isCancelError(reason)) {
+          // eslint-disable-next-line no-console
+          console /*OK*/
+            .error(
+              '[swg.js]: Error occurred during meter toast handling: ' + reason
+            );
+          throw reason;
+        }
       });
     return this.dialogManager_.openDialog().then((dialog) => {
       this.setDialogBoxShadow_();
