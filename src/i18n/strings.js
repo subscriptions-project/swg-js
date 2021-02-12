@@ -18,13 +18,13 @@
 //   You can (re)compile this file by running the "yarn build-i18n" shell command.
 
 export const I18N_STRINGS = {
-  'GAA_REGWALL_TITLE': {
+  'SHOWCASE_REGWALL_TITLE': {
     'de': 'Immer gut informiert mit Google',
     'en': 'Get more with Google',
     'fr': 'Plus de possibilit&#xE9;s avec Google',
     'pt-br': 'Veja mais com o Google',
   },
-  'GAA_REGWALL_DESCRIPTION': {
+  'SHOWCASE_REGWALL_DESCRIPTION': {
     'de':
       '<strong></strong>Dieser Inhalt ist normalerweise kostenpflichtig. Google gew&#xE4;hrt dir jedoch kostenlos Zugriff auf diesen Artikel und andere Inhalte, wenn du dich mit deinem Google-Konto bei <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> registrierst.',
     'en':
@@ -34,7 +34,7 @@ export const I18N_STRINGS = {
     'pt-br':
       '<strong></strong>Normalmente, &#xE9; preciso pagar por este conte&#xFA;do. Por&#xE9;m, basta voc&#xEA; se registrar na publica&#xE7;&#xE3;o <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando sua Conta do Google para ter acesso gratuito a esta mat&#xE9;ria e muito mais.',
   },
-  'GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON': {
+  'SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON': {
     'de': 'Du hast bereits ein Konto?',
     'en': 'Already have an account?',
     'fr': 'Vous avez d&#xE9;j&#xE0; un compte&#xA0;?',
