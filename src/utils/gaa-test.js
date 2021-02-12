@@ -231,7 +231,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         '.gaa-metering-regwall--title'
       );
       expect(titleEl.textContent).to.equal(
-        I18N_STRINGS.GAA_REGWALL_TITLE['pt-br']
+        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['pt-br']
       );
     });
 
