@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="es-419">
+<messages>
+
+
+
+
+<msg hidden="0" name="SHOWCASE_REGWALL_TITLE" xml:space="default">Disfruta más artículos con Google</msg>
+<msg hidden="0" name="SHOWCASE_REGWALL_DESCRIPTION" xml:space="default"><strong></strong>En general, debes pagar para acceder a este artículo. Sin embargo, podrás seguir leyendo gracias a Google si te registras en <ph name="PUBLICATION"/> con tu Cuenta de Google.</msg>
+<msg hidden="0" name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON" xml:space="default">¿Ya tienes una cuenta?</msg>
+
+
+
+</messages>
+</localizationbundle>
