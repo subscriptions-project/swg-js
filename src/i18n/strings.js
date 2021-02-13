@@ -18,13 +18,13 @@
 //   This document describes how to change i18n strings in swg-js: https://docs.google.com/document/d/1FMEKJ_TmjHhqON0krE4xhDbTEj0I0DnvzxMzB2cWUWA/edit?resourcekey=0-TQ7hPOzAD4hX8x9PfweGSg#heading=h.q9gi7t4h1tyj
 
 export const I18N_STRINGS = {
-  'GAA_REGWALL_TITLE': {
+  'SHOWCASE_REGWALL_TITLE': {
     'de': 'Immer gut informiert mit Google',
     'en': 'Get more with Google',
     'fr': 'Plus de possibilités avec Google',
     'pt-br': 'Veja mais com o Google',
   },
-  'GAA_REGWALL_DESCRIPTION': {
+  'SHOWCASE_REGWALL_DESCRIPTION': {
     'de':
       '<strong></strong>Dieser Inhalt ist normalerweise kostenpflichtig. Google gewährt dir jedoch kostenlos Zugriff auf diesen Artikel und andere Inhalte, wenn du dich mit deinem Google-Konto bei <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> registrierst.',
     'en':
@@ -34,7 +34,7 @@ export const I18N_STRINGS = {
     'pt-br':
       '<strong></strong>Normalmente, é preciso pagar por este conteúdo. Porém, basta você se registrar na publicação <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando sua Conta do Google para ter acesso gratuito a esta matéria e muito mais.',
   },
-  'GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON': {
+  'SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON': {
     'de': 'Du hast bereits ein Konto?',
     'en': 'Already have an account?',
     'fr': 'Vous avez déjà un compte&nbsp;?',
