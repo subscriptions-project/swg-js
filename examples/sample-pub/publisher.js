@@ -164,6 +164,9 @@ function startFlowAuto() {
       // Set up metering demo controls.
       MeteringDemo.setupControls();
 
+      // Set up language.
+      MeteringDemo.setupLanguage();
+
       // Handle clicks on the Metering Toast's "Subscribe" button.
       subscriptions.setOnNativeSubscribeRequest(() => {
         // Show a publisher paywall for demo purposes.
