@@ -60,10 +60,6 @@ export const REGWALL_DIALOG_ID = 'swg-regwall-dialog';
 /** ID for the Regwall title element. */
 export const REGWALL_TITLE_ID = 'swg-regwall-title';
 
-/** Class the Regwall uses to disable scrolling. */
-export const REGWALL_DISABLE_SCROLLING_CLASS =
-  'gaa-metering-regwall--disable-scrolling';
-
 /**
  * HTML for the metering regwall dialog, where users can sign in with Google.
  * The script creates a dialog based on this HTML.
@@ -73,10 +69,6 @@ export const REGWALL_DISABLE_SCROLLING_CLASS =
  */
 const REGWALL_HTML = `
 <style>
-  .${REGWALL_DISABLE_SCROLLING_CLASS} {
-    overflow: hidden;
-  }
-
   .gaa-metering-regwall--dialog-spacer,
   .gaa-metering-regwall--dialog,
   .gaa-metering-regwall--logo,
@@ -425,9 +417,6 @@ export class GaaMeteringRegwall {
     setImportantStyles(containerEl, {'opacity': 1});
     GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
 
-    // Disable scrolling on the body element.
-    self.document.body.classList.add(REGWALL_DISABLE_SCROLLING_CLASS);
-
     // Focus on the title after the dialog animates in.
     // This helps people using screenreaders.
     const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
@@ -533,9 +522,6 @@ export class GaaMeteringRegwall {
     if (regwallContainer) {
       regwallContainer.remove();
     }
-
-    // Re-enable scrolling on the body element.
-    self.document.body.classList.remove(REGWALL_DISABLE_SCROLLING_CLASS);
   }
 
   /**
