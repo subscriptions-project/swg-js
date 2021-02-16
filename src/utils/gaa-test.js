@@ -260,6 +260,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
       );
     });
+  });
 
   describe('signOut', () => {
     it('tells GSI to sign user out', async () => {
