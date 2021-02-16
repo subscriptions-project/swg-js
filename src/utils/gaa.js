@@ -197,7 +197,37 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--google-sign-in-button .abcRioButton.abcRioButtonBlue .abcRioButtonContents {
     font-size: 15px !important;
   }
+
+  .gaa-metering-regwall--background {
+    background-color: rgba(0, 0, 0, 0.498);
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  @media (min-width: 630px) {
+    .gaa-metering-regwall--dialog {
+      border-radius: 12px;
+      margin: 0 auto 20px;
+    }
+
+    .gaa-metering-regwall--fade {
+      background: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 1) 20%);
+      bottom: 0;
+      height: 440px;
+      left: 0;
+      position: absolute;
+      right: 0;
+      width: 100%;
+      z-index: -1;
+    }
+  }
 </style>
+
+<div class="gaa-metering-regwall--background"></div>
+<div class="gaa-metering-regwall--fade"></div>
 
 <div class="gaa-metering-regwall--dialog-spacer">
   <div role="dialog" aria-modal="true" class="gaa-metering-regwall--dialog" id="${REGWALL_DIALOG_ID}" aria-labelledby="${REGWALL_TITLE_ID}">
@@ -375,7 +405,6 @@ export class GaaMeteringRegwall {
     containerEl.id = REGWALL_CONTAINER_ID;
     setImportantStyles(containerEl, {
       'all': 'unset',
-      'background-color': 'rgba(32, 33, 36, 0.6)',
       'border': 'none',
       'bottom': '0',
       'height': '100%',
