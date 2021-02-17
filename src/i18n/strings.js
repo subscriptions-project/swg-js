@@ -21,7 +21,8 @@ export const I18N_STRINGS = {
   'SHOWCASE_REGWALL_TITLE': {
     'de': 'Immer gut informiert mit Google',
     'en': 'Get more with Google',
-    'fr': 'Plus de possibilités avec Google',
+    'es-ar': 'Disfruta más artículos con Google',
+    'fr': 'Plus de contenus avec Google',
     'pt-br': 'Veja mais com o Google',
   },
   'SHOWCASE_REGWALL_DESCRIPTION': {
@@ -29,6 +30,8 @@ export const I18N_STRINGS = {
       '<strong></strong>Dieser Inhalt ist normalerweise kostenpflichtig. Google gewährt dir jedoch kostenlos Zugriff auf diesen Artikel und andere Inhalte, wenn du dich mit deinem Google-Konto bei <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> registrierst.',
     'en':
       '<strong></strong>This content usually requires payment, but Google is giving you free access to this article and more when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google Account.',
+    'es-ar':
+      '<strong></strong>Normalmente, es necesario pagar para ver este contenido, pero Google te ofrece acceso gratuito a este y otros artículos si te registras en <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> con tu Cuenta&nbsp;de&nbsp;Google.',
     'fr':
       '<strong></strong>Ce contenu est généralement payant, mais vous pouvez lire cet article et d\'autres contenus gratuitement grâce à Google en vous inscrivant sur <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> avec votre compte Google.',
     'pt-br':
@@ -37,7 +40,15 @@ export const I18N_STRINGS = {
   'SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON': {
     'de': 'Du hast bereits ein Konto?',
     'en': 'Already have an account?',
+    'es-ar': '¿Ya tienes una cuenta?',
     'fr': 'Vous avez déjà un compte&nbsp;?',
     'pt-br': 'Já tem uma conta?',
+  },
+  'SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON': {
+    'de': 'Über Google anmelden',
+    'en': 'Sign in with Google',
+    'es-ar': 'Acceder con Google',
+    'fr': 'Se connecter avec Google',
+    'pt-br': 'Fazer login com o Google',
   },
 };
