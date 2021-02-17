@@ -19,7 +19,6 @@ const MeteringDemo = {
     const languageCodeMatch = location.search.match(
       /html_lang=([A-Za-z0-9-]+)/
     );
-    console.log(languageCodeMatch);
     if (languageCodeMatch) {
       // Update HTML tag's `lang` attribute.
       const languageCode = languageCodeMatch[1];
