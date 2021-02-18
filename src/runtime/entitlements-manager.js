@@ -39,7 +39,6 @@ import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
 import {hash} from '../utils/string';
-import {parseQueryString} from '../utils/url';
 import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {serviceUrl} from './services';
 import {toTimestamp} from '../utils/date-utils';
@@ -201,12 +200,10 @@ export class EntitlementsManager {
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
     jwt.setJwt(entitlement.subscriptionToken);
-    const nonce = parseQueryString(this.win_.location.search)['gaa_n'];
     return this.postEntitlementsRequest_(
       jwt,
       EntitlementResult.UNLOCKED_METER,
-      EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
-      nonce
+      EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE
     );
   }
 
@@ -245,8 +242,7 @@ export class EntitlementsManager {
       default:
         return;
     }
-    const nonce = parseQueryString(this.win_.location.search)['gaa_n'];
-    this.postEntitlementsRequest_(new EntitlementJwt(), result, source, nonce);
+    this.postEntitlementsRequest_(new EntitlementJwt(), result, source);
   }
 
   // Informs the Entitlements server about the entitlement used
@@ -254,15 +250,13 @@ export class EntitlementsManager {
   postEntitlementsRequest_(
     usedEntitlement,
     entitlementResult,
-    entitlementSource,
-    optionalNonce = ''
+    entitlementSource
   ) {
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(usedEntitlement);
     message.setClientEventTime(toTimestamp(Date.now()));
     message.setEntitlementResult(entitlementResult);
     message.setEntitlementSource(entitlementSource);
-    message.setNonce(optionalNonce);
 
     const url =
       '/publication/' +
