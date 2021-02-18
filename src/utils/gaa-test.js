@@ -244,15 +244,6 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(iframeEl.src).to.contain('?lang=pt-br');
     });
 
-    it('adds "lang" URL param to iframe URL, in presence of other URL params', () => {
-      self.document.documentElement.lang = 'pt-br';
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL + '?otherUrlParam=1'});
-
-      const iframeEl = self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID);
-      expect(iframeEl.src).to.contain('&lang=pt-br');
-    });
-
     it('fails if GAA URL params are missing', () => {
       // Remove GAA URL params.
       GaaUtils.getQueryString.restore();

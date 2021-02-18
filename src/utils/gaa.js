@@ -25,8 +25,8 @@ import {I18N_STRINGS} from '../i18n/strings';
 import {getLanguageCodeFromElement} from './i18n';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
+import {addQueryParam, parseQueryString} from './url';
 import {parseJson} from './json';
-import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
 import {warn} from './log';
 
@@ -360,12 +360,7 @@ export class GaaMeteringRegwall {
     const languageCode = getLanguageCodeFromElement(self.document.body);
 
     // Tell the iframe which language to render.
-    if (/\?/.test(iframeUrl)) {
-      iframeUrl += '&';
-    } else {
-      iframeUrl += '?';
-    }
-    iframeUrl += 'lang=' + languageCode;
+    iframeUrl = addQueryParam(iframeUrl, 'lang', languageCode);
 
     const containerEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
