@@ -22,9 +22,9 @@
 // Thanks!
 
 import {I18N_STRINGS} from '../i18n/strings';
+import {getLanguageCodeFromElement} from './i18n';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
-import {msg} from './i18n';
 import {parseJson} from './json';
 import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
@@ -181,22 +181,6 @@ const REGWALL_HTML = `
       opacity: 1;
     }
   }
-
-  .gaa-metering-regwall--google-sign-in-button .abcRioButton.abcRioButtonBlue {
-    background-color: #1A73E8;
-    box-shadow: none;
-    -webkit-box-shadow: none;
-    border-radius: 4px;
-    width: 100% !important;
-  }
-
-  .gaa-metering-regwall--google-sign-in-button .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
-    display: none;
-  }
-
-  .gaa-metering-regwall--google-sign-in-button .abcRioButton.abcRioButtonBlue .abcRioButtonContents {
-    font-size: 15px !important;
-  }
 </style>
 
 <div class="gaa-metering-regwall--dialog-spacer">
@@ -259,7 +243,11 @@ body {
   display: none;
 }
 #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents {
-  font-size: 15px !important;
+  font-size: 0 !important;
+}
+#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]:before {
+  content: '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$';
+  font-size: 15px;
 }
 `;
 
@@ -333,7 +321,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl}) {
-    const queryString = GaaMeteringRegwall.getQueryString_();
+    const queryString = GaaUtils.getQueryString();
     if (!queryStringHasFreshGaaParams(queryString)) {
       const errorMessage =
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
@@ -369,6 +357,16 @@ export class GaaMeteringRegwall {
    * @param {{ iframeUrl: string }} params
    */
   static render_({iframeUrl}) {
+    const languageCode = getLanguageCodeFromElement(self.document.body);
+
+    // Tell the iframe which language to render.
+    if (/\?/.test(iframeUrl)) {
+      iframeUrl += '&';
+    } else {
+      iframeUrl += '?';
+    }
+    iframeUrl += 'lang=' + languageCode;
+
     const containerEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
@@ -394,18 +392,15 @@ export class GaaMeteringRegwall {
     )
       .replace(
         '$SHOWCASE_REGWALL_TITLE$',
-        msg(I18N_STRINGS['SHOWCASE_REGWALL_TITLE'], containerEl)
+        I18N_STRINGS['SHOWCASE_REGWALL_TITLE'][languageCode]
       )
       .replace(
         '$SHOWCASE_REGWALL_DESCRIPTION$',
-        msg(I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'], containerEl)
+        I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'][languageCode]
       )
       .replace(
         '$SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$',
-        msg(
-          I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'],
-          containerEl
-        )
+        I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'][languageCode]
       );
     containerEl.querySelector('ph')./*OK*/ innerHTML =
       '<strong>' +
@@ -523,15 +518,6 @@ export class GaaMeteringRegwall {
       regwallContainer.remove();
     }
   }
-
-  /**
-   * Returns query string from current URL.
-   * @private
-   * @return {string}
-   */
-  static getQueryString_() {
-    return self.location.search;
-  }
 }
 
 self.GaaMeteringRegwall = GaaMeteringRegwall;
@@ -543,9 +529,17 @@ export class GaaGoogleSignInButton {
    * @param {{ allowedOrigins: !Array<string> }} params
    */
   static show({allowedOrigins}) {
+    // Optionally grab language code from URL.
+    const queryString = GaaUtils.getQueryString();
+    const queryParams = parseQueryString(queryString);
+    const languageCode = queryParams['lang'] || 'en';
+
     // Apply iframe styles.
     const styleEl = self.document.createElement('style');
-    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES;
+    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
+      '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
+      I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'][languageCode]
+    );
     self.document.head.appendChild(styleEl);
 
     // Promise a function that sends messages to the parent frame.
@@ -644,4 +638,15 @@ function configureGoogleSignIn() {
           self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init()
       )
   );
+}
+
+export class GaaUtils {
+  /**
+   * Returns query string from current URL.
+   * Tests can override this method to return different URLs.
+   * @return {string}
+   */
+  static getQueryString() {
+    return self.location.search;
+  }
 }
