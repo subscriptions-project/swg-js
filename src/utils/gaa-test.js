@@ -18,6 +18,7 @@ import {
   GOOGLE_SIGN_IN_IFRAME_ID,
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
+  GaaUtils,
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
@@ -137,8 +138,8 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     };
 
     // Mock query string.
-    sandbox.stub(GaaMeteringRegwall, 'getQueryString_');
-    GaaMeteringRegwall.getQueryString_.returns(
+    sandbox.stub(GaaUtils, 'getQueryString');
+    GaaUtils.getQueryString.returns(
       '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
     );
 
@@ -234,9 +235,18 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       );
     });
 
+    it('adds "lang" URL param to iframe URL', () => {
+      self.document.documentElement.lang = 'pt-br';
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      const iframeEl = self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID);
+      expect(iframeEl.src).to.contain('?lang=pt-br');
+    });
+
     it('fails if GAA URL params are missing', () => {
       // Remove GAA URL params.
-      GaaMeteringRegwall.getQueryString_.restore();
+      GaaUtils.getQueryString.restore();
 
       GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
@@ -247,7 +257,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('fails if GAA URL params are expired', () => {
       // Add GAA URL params with expiration of 7 seconds.
-      GaaMeteringRegwall.getQueryString_.returns(
+      GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7'
       );
 
@@ -318,12 +328,20 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
         render: sandbox.fake(),
       },
     };
+
+    // Mock query string.
+    sandbox.stub(GaaUtils, 'getQueryString');
+    GaaUtils.getQueryString.returns('?lang=en');
   });
 
   afterEach(() => {
     if (self.postMessage.restore) {
       self.postMessage.restore();
     }
+    GaaUtils.getQueryString.restore();
+
+    // Remove the injected style from GaaGoogleSignInButton.show.
+    self.document.head.querySelector('style').remove();
   });
 
   describe('show', () => {
@@ -346,6 +364,32 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
           },
         ],
       ]);
+    });
+
+    it('renders supported i18n languages', async () => {
+      GaaUtils.getQueryString.returns('?lang=pt-br');
+
+      GaaGoogleSignInButton.show({allowedOrigins});
+      clock.tick(100);
+      await tick(10);
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['pt-br']
+      );
+    });
+
+    it('renders English by default, if "lang" URL param is missing', async () => {
+      GaaUtils.getQueryString.returns('?');
+
+      GaaGoogleSignInButton.show({allowedOrigins});
+      clock.tick(100);
+      await tick(10);
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['en']
+      );
     });
 
     it('sends post message with GAA user', async () => {
