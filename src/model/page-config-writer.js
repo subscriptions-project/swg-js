@@ -136,7 +136,7 @@ export class PageConfigWriter {
     // No valid existing ld+json markup to modify, so insert the markup in a new
     // script tag.
     const element = createElement(
-      this.doc_.getRootNode(),
+      this.doc_.getWin().document,
       'script',
       {'type': 'application/ld+json'},
       JSON.stringify(obj)
