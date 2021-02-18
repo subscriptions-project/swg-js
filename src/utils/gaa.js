@@ -242,9 +242,11 @@ body {
 #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
   display: none;
 }
+/** Hides default "Sign in with Google" text. */
 #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents {
   font-size: 0 !important;
 }
+/** Renders localized "Sign in with Google" text. */
 #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]:before {
   content: '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$';
   font-size: 15px;
