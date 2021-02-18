@@ -247,7 +247,7 @@ body {
   font-size: 0 !important;
 }
 /** Renders localized "Sign in with Google" text instead. */
-#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]:before {
+#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before {
   content: '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$';
   font-size: 15px;
 }
