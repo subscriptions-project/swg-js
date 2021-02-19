@@ -76,8 +76,6 @@ function runAllExportsToAmp() {
 async function exportToEs6(inputFile, outputFile) {
   await mkdirs(['build', 'dist', 'dist/amp']);
 
-  console.log(inputFile, outputFile);
-
   const license = (
     await readFile('build-system/tasks/license-header.txt', 'utf8')
   ).trim();
