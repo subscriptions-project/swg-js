@@ -37,20 +37,16 @@ function runAllExportsToEs(config, outputs) {
     {
       config: 'dist/exports-config.js',
       swg: 'dist/exports-swg.js',
+      swgGaa: 'dist/exports-swg-gaa.js',
       button: 'dist/exports-swg-button.css',
     },
     outputs
   );
   return Promise.resolve()
-    .then(() => {
-      return exportToEs6('exports/config.js', outputs.config);
-    })
-    .then(() => {
-      return exportToEs6('exports/swg.js', outputs.swg);
-    })
-    .then(() => {
-      return exportCss('assets/swg-button.css', outputs.button);
-    });
+    .then(() => exportToEs6('exports/config.js', outputs.config))
+    .then(() => exportToEs6('exports/swg.js', outputs.swg))
+    .then(() => exportToEs6('exports/swg-gaa.js', outputs.swgGaa))
+    .then(() => exportCss('assets/swg-button.css', outputs.button));
 }
 
 function runAllExportsToAmp() {
@@ -66,6 +62,7 @@ function runAllExportsToAmp() {
     {
       config: 'dist/amp/config.js',
       swg: 'dist/amp/swg.js',
+      swgGaa: 'dist/amp/swg-gaa.js',
       button: 'dist/amp/swg-button.css',
     }
   );
@@ -78,6 +75,8 @@ function runAllExportsToAmp() {
  */
 async function exportToEs6(inputFile, outputFile) {
   await mkdirs(['build', 'dist', 'dist/amp']);
+
+  console.log(inputFile, outputFile);
 
   const license = (
     await readFile('build-system/tasks/license-header.txt', 'utf8')
