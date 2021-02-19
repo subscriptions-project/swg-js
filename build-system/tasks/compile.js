@@ -70,8 +70,8 @@ exports.compile = async function (options = {}) {
       )
     ),
     compileJs(
-      './src/utils/',
-      'gaa',
+      './src/',
+      'gaa-main',
       './dist',
       Object.assign(
         {

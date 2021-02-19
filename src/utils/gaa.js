@@ -517,8 +517,6 @@ export class GaaMeteringRegwall {
   }
 }
 
-self.GaaMeteringRegwall = GaaMeteringRegwall;
-
 export class GaaGoogleSignInButton {
   /**
    * Renders the Google Sign-In button.
@@ -603,8 +601,6 @@ export class GaaGoogleSignInButton {
       });
   }
 }
-
-self.GaaGoogleSignInButton = GaaGoogleSignInButton;
 
 /**
  * Loads the Google Sign-In API.
