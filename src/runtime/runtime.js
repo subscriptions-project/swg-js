@@ -506,9 +506,12 @@ export class Runtime {
   }
 
   /** @override */
-  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {
     return this.configured_(true).then((runtime) =>
-      runtime.consumeShowcaseEntitlementJwt(showcaseEntitlementJwt)
+      runtime.consumeShowcaseEntitlementJwt(
+        showcaseEntitlementJwt,
+        onCloseDialog
+      )
     );
   }
 }
@@ -1068,11 +1071,11 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {
     const entitlements = this.entitlementsManager().parseEntitlements({
       signedEntitlements: showcaseEntitlementJwt,
     });
-    entitlements.consume();
+    entitlements.consume(onCloseDialog);
   }
 }
 
