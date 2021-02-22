@@ -113,6 +113,23 @@ describes.realWin('XhrFetcher', {}, (env) => {
       fetcher.fetchCredentialedJson(sentUrl);
     });
 
+    it('should fetch credentialed JSON with safety prefix', () => {
+      sandbox.restore();
+      sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+        fetchInit = init;
+        fetchUrl = url;
+        return Promise.resolve({
+          text: () => Promise.resolve(")]}'\n"),
+        });
+      });
+      sentInit = {
+        method: 'GET',
+        headers: {'Accept': 'text/plain, application/json'},
+        credentials: 'include',
+      };
+      fetcher.fetchCredentialedJson(sentUrl);
+    });
+
     it('should post json', () => {
       sentInit = {
         method: 'POST',

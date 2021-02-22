@@ -688,6 +688,11 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
+  clientConfigManager() {
+    return null;
+  }
+
+  /** @override */
   analytics() {
     return this.analyticsService_;
   }

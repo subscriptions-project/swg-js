@@ -56,10 +56,16 @@ export class BasicSubscriptions {
    * Creates and displays a SwG subscription or contribution prompt, where the
    * prompt type is determined by the parameters passed in to init. If the auto
    * prompt is determined to have been already set up, the setup portion of the
-   * function will be skipped, and the prompt will be displayed. The alwaysShow
-   * parameter is an option to force show the prompt, regardless of any display
-   * rules. This parameter is intended for preview purposes.
-   * @param {{alwaysShow: (boolean|undefined)}=} options
+   * function will be skipped, and the prompt will be displayed. The
+   * autoPromptType specifies which type of prompt should be displayed (see
+   * AutoPromptType below). The alwaysShow parameter is an option to force show
+   * the prompt, regardless of any display rules. This parameter is intended for
+   * preview purposes.
+   * @param {{
+   *   autoPromptType: (string|undefined),
+   *   alwaysShow: (boolean|undefined),
+   * }=} options
+   * @returns {!Promise}
    */
   setupAndShowAutoPrompt(options) {}
 

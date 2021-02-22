@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-import {BasicSubscriptions} from '../api/basic-subscriptions'; // eslint-disable-line no-unused-vars
+import {AutoPromptManager} from './auto-prompt-manager';
+import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi} from './button-api';
-import {ClientEventManager} from './client-event-manager';
+import {ClientConfigManager} from './client-config-manager';
 import {ConfiguredRuntime} from './runtime';
-import {Doc, resolveDoc} from '../model/doc'; // eslint-disable-line no-unused-vars
-import {Fetcher} from './fetcher'; // eslint-disable-line no-unused-vars
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
 import {Theme} from './smart-button-api';
+import {XhrFetcher} from './fetcher';
+import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 const BUTTON_ATTRIUBUTE = 'swg-standard-button';
@@ -60,12 +61,12 @@ export function installBasicRuntime(win) {
   const basicRuntime = new BasicRuntime(win);
 
   // Create the public version of the SwG Basic runtime.
-  /** @type {!BasicSubscriptions} */
+  /** @type {!../api/basic-subscriptions.BasicSubscriptions} */
   const publicBasicRuntime = createPublicBasicRuntime(basicRuntime);
 
   /**
    * Executes a callback when the runtime is ready.
-   * @param {function(!BasicSubscriptions)} callback
+   * @param {function(!../api/basic-subscriptions.BasicSubscriptions)} callback
    */
   function callWhenRuntimeIsReady(callback) {
     if (!callback) {
@@ -90,13 +91,12 @@ export function installBasicRuntime(win) {
   // Set variable for testing.
   basicRuntimeInstance_ = basicRuntime;
 
-  // Automatically set up buttons and auto prompt.
+  // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
-  basicRuntime.setupAndShowAutoPrompt();
 }
 
 /**
- * @implements {BasicSubscriptions}
+ * @implements {../api/basic-subscriptions.BasicSubscriptions}
  */
 export class BasicRuntime {
   /**
@@ -106,7 +106,7 @@ export class BasicRuntime {
     /** @private @const {!Window} */
     this.win_ = win;
 
-    /** @private @const {!Doc} */
+    /** @private @const {!../model/doc.Doc} */
     this.doc_ = resolveDoc(win);
 
     /** @private @const {!Promise} */
@@ -189,6 +189,10 @@ export class BasicRuntime {
         this.pageConfigWriter_ = null;
         this.configured_(true);
       });
+    this.setupAndShowAutoPrompt({
+      autoPromptType: params.autoPromptType,
+      alwaysShow: false,
+    });
   }
   /* eslint-enable no-unused-vars */
 
@@ -208,7 +212,7 @@ export class BasicRuntime {
 
   /** @override */
   setupAndShowAutoPrompt(options) {
-    return this.configured_(true).then((runtime) =>
+    return this.configured_(false).then((runtime) =>
       runtime.setupAndShowAutoPrompt(options)
     );
   }
@@ -223,40 +227,58 @@ export class BasicRuntime {
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
   setupButtons() {
-    return this.configured_(true).then((runtime) => runtime.setupButtons());
+    return this.configured_(false).then((runtime) => runtime.setupButtons());
   }
 }
 
 /**
- * @implements {BasicSubscriptions}
+ * @implements  {../api/basic-subscriptions.BasicSubscriptions}
+ * @implements {./deps.DepsDef}
  */
 // eslint-disable-next-line no-unused-vars
 export class ConfiguredBasicRuntime {
   /**
-   * @param {!Window|!Document|!Doc} winOrDoc
+   * @param {!Window|!Document|!../model/doc.Doc} winOrDoc
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {{
-   *     fetcher: (!Fetcher|undefined),
+   *     fetcher: (!./fetcher.Fetcher|undefined),
    *     configPromise: (!Promise|undefined),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
    */
   constructor(winOrDoc, pageConfig, integr, config) {
-    integr = integr || {};
-    integr.configPromise = integr.configPromise || Promise.resolve();
-
-    /** @private @const {!ClientEventManager} */
-    this.eventManager_ = new ClientEventManager(integr.configPromise);
-
-    /** @private @const {!Doc} */
+    /** @private @const {!../model/doc.Doc} */
     this.doc_ = resolveDoc(winOrDoc);
 
+    /** @private @const {!Window} */
+    this.win_ = this.doc_.getWin();
+
+    integr = integr || {};
+    integr.configPromise = integr.configPromise || Promise.resolve();
+    integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
+
+    /** @private @const {!./fetcher.Fetcher} */
+    this.fetcher_ = integr.fetcher;
+
+    /** @private @const {!ConfiguredRuntime} */
     this.configuredClassicRuntime_ = new ConfiguredRuntime(
       winOrDoc,
       pageConfig,
       integr,
       config
     );
+    // Fetches entitlements.
+    this.configuredClassicRuntime_.start();
+
+    /** @private @const {!ClientConfigManager} */
+    this.clientConfigManager_ = new ClientConfigManager(
+      pageConfig.getPublicationId(),
+      this.fetcher_
+    );
+    this.clientConfigManager_.getClientConfig();
+
+    /** @private @const {!AutoPromptManager} */
+    this.autoPromptManager_ = new AutoPromptManager(this);
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_, Promise.resolve(this));
@@ -266,6 +288,76 @@ export class ConfiguredBasicRuntime {
   /** Getter for the ConfiguredRuntime, exposed for testing. */
   configuredClassicRuntime() {
     return this.configuredClassicRuntime_;
+  }
+
+  /** @override */
+  doc() {
+    return this.doc_;
+  }
+
+  /** @override */
+  win() {
+    return this.win_;
+  }
+
+  /** @override */
+  config() {
+    return this.configuredClassicRuntime_.config();
+  }
+
+  /** @override */
+  pageConfig() {
+    return this.configuredClassicRuntime_.pageConfig();
+  }
+
+  /** @override */
+  activities() {
+    return this.configuredClassicRuntime_.activities();
+  }
+
+  /** @override */
+  payClient() {
+    return this.configuredClassicRuntime_.payClient();
+  }
+
+  /** @override */
+  dialogManager() {
+    return this.configuredClassicRuntime_.dialogManager();
+  }
+
+  /** @override */
+  entitlementsManager() {
+    return this.configuredClassicRuntime_.entitlementsManager();
+  }
+
+  /** @override */
+  callbacks() {
+    return this.configuredClassicRuntime_.callbacks();
+  }
+
+  /** @override */
+  storage() {
+    return this.configuredClassicRuntime_.storage();
+  }
+
+  /** @override */
+  analytics() {
+    return this.configuredClassicRuntime_.analytics();
+  }
+
+  /** @override */
+  jserror() {
+    return this.configuredClassicRuntime_.jserror();
+  }
+
+  /** @override */
+  eventManager() {
+    return this.configuredClassicRuntime_.eventManager();
+  }
+
+  /** @override */
+  clientConfigManager() {
+    return this.clientConfigManager_;
   }
 
   /** @override */
@@ -284,11 +376,22 @@ export class ConfiguredBasicRuntime {
   }
 
   /** @override */
-  /* eslint-disable no-unused-vars */
   setupAndShowAutoPrompt(options) {
-    // TODO(stellachui): Implement setup of the auto prompt.
+    let displayForLockedContentFn;
+    if (options.autoPromptType == AutoPromptType.SUBSCRIPTION) {
+      displayForLockedContentFn = () => {
+        this.configuredClassicRuntime_.showOffers();
+      };
+    } else if (options.autoPromptType == AutoPromptType.CONTRIBUTION) {
+      displayForLockedContentFn = () => {
+        this.configuredClassicRuntime_.showContributionOptions();
+      };
+    }
+    return this.autoPromptManager_.showAutoPrompt(
+      options,
+      displayForLockedContentFn
+    );
   }
-  /* eslint-enable no-unused-vars */
 
   /** @override */
   dismissSwgUI() {
@@ -317,23 +420,15 @@ export class ConfiguredBasicRuntime {
       }
     );
   }
-
-  /**
-   * This one exists as an internal helper so SwG logging doesn't require a promise.
-   * @return {!ClientEventManager}
-   */
-  eventManager() {
-    return this.eventManager_;
-  }
 }
 
 /**
  * Creates and returns the public facing BasicSubscription object.
  * @param {!BasicRuntime} basicRuntime
- * @return {!BasicSubscriptions}
+ * @return {!../api/basic-subscriptions.BasicSubscriptions}
  */
 function createPublicBasicRuntime(basicRuntime) {
-  return /** @type {!BasicSubscriptions} */ ({
+  return /** @type {!../api/basic-subscriptions.BasicSubscriptions} */ ({
     init: basicRuntime.init.bind(basicRuntime),
     setOnEntitlementsResponse: basicRuntime.setOnEntitlementsResponse.bind(
       basicRuntime

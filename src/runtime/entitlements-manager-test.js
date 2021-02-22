@@ -130,7 +130,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       .expects('fetch')
       .returns(
         Promise.resolve({
-          json: () => Promise.resolve({}),
+          text: () => Promise.resolve('{}'),
         })
       )
       .once();
@@ -173,7 +173,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       .expects('fetch')
       .returns(
         Promise.resolve({
-          json: () => Promise.resolve(resp),
+          text: () => Promise.resolve(JSON.stringify(resp)),
         })
       )
       .once();
@@ -203,7 +203,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       .expects('fetch')
       .returns(
         Promise.resolve({
-          json: () => Promise.resolve(resp),
+          text: () => Promise.resolve(JSON.stringify(resp)),
         })
       )
       .once();
@@ -289,7 +289,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .returns(
           Promise.resolve({
-            json: () => Promise.resolve({}),
+            text: () => Promise.resolve('{}'),
           })
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
@@ -317,7 +317,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .returns(
           Promise.resolve({
-            json: () => Promise.resolve({}),
+            text: () => Promise.resolve('{}'),
           })
         );
 
@@ -357,11 +357,13 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .returns(
           Promise.resolve({
-            json: () =>
-              Promise.resolve({
-                signedEntitlements: 'SIGNED_DATA',
-                decryptedDocumentKey: 'ddk1',
-              }),
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  signedEntitlements: 'SIGNED_DATA',
+                  decryptedDocumentKey: 'ddk1',
+                })
+              ),
           })
         );
 
@@ -395,10 +397,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .returns(
           Promise.resolve({
-            json: () =>
-              Promise.resolve({
-                signedEntitlements: 'SIGNED_DATA',
-              }),
+            text: () =>
+              Promise.resolve('{"signedEntitlements": "SIGNED_DATA"}'),
           })
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
@@ -430,10 +430,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .returns(
           Promise.resolve({
-            json: () =>
-              Promise.resolve({
-                signedEntitlements: 'SIGNED_DATA',
-              }),
+            text: () =>
+              Promise.resolve('{"signedEntitlements": "SIGNED_DATA"}'),
           })
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
@@ -457,7 +455,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .returns(
           Promise.resolve({
-            json: () => Promise.resolve({}),
+            text: () => Promise.resolve('{}'),
           })
         )
         .once();
@@ -474,7 +472,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .returns(
           Promise.resolve({
-            json: () => Promise.resolve({}),
+            text: () => Promise.resolve('{}'),
           })
         )
         .twice();
@@ -507,13 +505,15 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .returns(
           Promise.resolve({
-            json: () =>
-              Promise.resolve({
-                entitlements: {
-                  products: ['pub1:label1'],
-                  subscriptionToken: 's1',
-                },
-              }),
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  entitlements: {
+                    products: ['pub1:label1'],
+                    subscriptionToken: 's1',
+                  },
+                })
+              ),
           })
         )
         .once();
@@ -538,13 +538,15 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .returns(
           Promise.resolve({
-            json: () =>
-              Promise.resolve({
-                entitlements: {
-                  products: ['pub1:label2'],
-                  subscriptionToken: 's2',
-                },
-              }),
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  entitlements: {
+                    products: ['pub1:label2'],
+                    subscriptionToken: 's2',
+                  },
+                })
+              ),
           })
         )
         .once();
@@ -552,13 +554,15 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .returns(
           Promise.resolve({
-            json: () =>
-              Promise.resolve({
-                entitlements: {
-                  products: ['pub1:label1'],
-                  subscriptionToken: 's1',
-                },
-              }),
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  entitlements: {
+                    products: ['pub1:label1'],
+                    subscriptionToken: 's1',
+                  },
+                })
+              ),
           })
         )
         .once();
@@ -585,13 +589,15 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .returns(
           Promise.resolve({
-            json: () =>
-              Promise.resolve({
-                entitlements: {
-                  products: ['pub1:label2'],
-                  subscriptionToken: 's2',
-                },
-              }),
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  entitlements: {
+                    products: ['pub1:label2'],
+                    subscriptionToken: 's2',
+                  },
+                })
+              ),
           })
         )
         .thrice();
@@ -610,7 +616,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .returns(
           Promise.resolve({
-            json: () => Promise.resolve({}),
+            text: () => Promise.resolve('{}'),
           })
         )
         .twice();
@@ -669,10 +675,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .returns(
           Promise.resolve({
-            json: () =>
-              Promise.resolve({
-                signedEntitlements: 'SIGNED_DATA',
-              }),
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  signedEntitlements: 'SIGNED_DATA',
+                })
+              ),
           })
         );
 
@@ -898,10 +906,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .returns(
           Promise.resolve({
-            json: () =>
-              Promise.resolve({
-                errorMessages: ['Something went wrong'],
-              }),
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  errorMessages: ['Something went wrong'],
+                })
+              ),
           })
         );
 
@@ -924,7 +934,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .returns(
           Promise.resolve({
-            json: () => Promise.resolve({}),
+            text: () => Promise.resolve('{}'),
           })
         );
 
@@ -1333,7 +1343,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .returns(
           Promise.resolve({
-            json: () => Promise.resolve(resp),
+            text: () => Promise.resolve(JSON.stringify(resp)),
           })
         )
         .once();
