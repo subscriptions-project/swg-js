@@ -939,12 +939,16 @@ describes.realWin('Runtime', {}, (env) => {
 
     it('should delegate "consumeShowcaseEntitlementJwt"', async () => {
       const showcaseEntitlementJwt = 'jw7';
+      const callbackSpy = sandbox.spy();
       configuredRuntimeMock
         .expects('consumeShowcaseEntitlementJwt')
-        .withExactArgs(showcaseEntitlementJwt)
+        .withExactArgs(showcaseEntitlementJwt, callbackSpy)
         .once();
 
-      await runtime.consumeShowcaseEntitlementJwt(showcaseEntitlementJwt);
+      await runtime.consumeShowcaseEntitlementJwt(
+        showcaseEntitlementJwt,
+        callbackSpy
+      );
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
   });
@@ -1977,15 +1981,20 @@ subscribe() method'
     });
 
     describe('consumeShowcaseEntitlementJwt', () => {
-      it('consumes entitlement', () => {
+      it('consumes entitlement and calls callback', () => {
         const SHOWCASE_ENTITLEMENT_JWT = 'jw7';
 
         const consumeStub = sandbox
           .stub(Entitlements.prototype, 'consume')
-          .callsFake(() => Promise.resolve());
+          .callsFake((callback) => callback() && Promise.resolve());
+        const callbackSpy = sandbox.spy();
 
-        runtime.consumeShowcaseEntitlementJwt(SHOWCASE_ENTITLEMENT_JWT);
+        runtime.consumeShowcaseEntitlementJwt(
+          SHOWCASE_ENTITLEMENT_JWT,
+          callbackSpy
+        );
         expect(consumeStub).to.be.calledOnce;
+        expect(callbackSpy).to.be.calledOnce;
       });
     });
   });

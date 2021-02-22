@@ -295,8 +295,9 @@ export class Subscriptions {
    * Publishers, who both (1) participate in Showcase and (2) use server-side paywalls,
    * should call this method to consume Showcase entitlements.
    * @param {string} showcaseEntitlementJwt
+   * @param {?Function=} onCloseDialog Called after the user closes the dialog.
    */
-  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt) {}
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {}
 }
 
 /** @enum {string} */
