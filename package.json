@@ -22,7 +22,8 @@
     "lint": "gulp lint",
     "build": "gulp build",
     "build-i18n": "node assets/i18n/strings/compile.js && gulp lint --fix --files='src/i18n/strings.js'",
-    "dist": "gulp dist"
+    "dist": "gulp dist",
+    "export-to-amp": "gulp export-to-amp"
   },
   "dependencies": {
     "promise-pjs": "1.1.5",

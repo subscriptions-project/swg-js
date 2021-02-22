@@ -264,7 +264,7 @@ body {
  *   email: string,
  * }} GaaUserDef
  */
-let GaaUserDef;
+export let GaaUserDef;
 
 /**
  * GoogleUser object that Google Sign-In returns after users sign in.
@@ -280,7 +280,7 @@ let GaaUserDef;
  *   },
  * }} GoogleUserDef
  */
-let GoogleUserDef;
+export let GoogleUserDef;
 
 /**
  * Returns true if the query string contains fresh Google Article Access (GAA) params.
