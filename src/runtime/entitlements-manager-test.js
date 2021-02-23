@@ -258,7 +258,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           MOCK_TIME_ARRAY,
           entitlementSource,
           entitlementResult,
-          'nonce',
         ],
         false
       )
