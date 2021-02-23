@@ -53,7 +53,7 @@ Another way to trigger the subscribe flow is by starting [Offers flow](./offers-
 The `setOnPaymentResponse` callback will be called once the subscription is complete, or when the previously executed subscription is recovered.
 
 ## Subscribe response
-The response returned by the `setOnPaymentResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data.
+The response returned by the `setOnPaymentResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data and the purchased entitlement.
 ### Structure
 The SubscriptionResponse object has the following structure:
 ```json
@@ -74,7 +74,18 @@ The SubscriptionResponse object has the following structure:
     "givenName": "",
     "familyName": "",
     "pictureUrl": ""
-  }
+  },
+  "entitlements" : {
+      "service": "subscribe.google.com",
+      "entitlements" : [
+         {
+            "source": "google",
+            "products": [""],
+            "subscriptionToken": ""
+         }
+      ],
+      "isReadyToPay": false,
+   }
 }
 ```
 ### `purchaseData` properties
@@ -96,6 +107,8 @@ The `purchaseData.raw` fields are identical to the fields from an Android In-App
 | givenName | String | The user's first name. |
 | familyName | String | The user's last name. |
 | pictureUrl | String | The user's profile picture. |
+### `entitlements`
+The entitlement object will contain the entitlement for the successful purchase, it won't have all the user entitlements. It has the same structure of the [Entitlements Flow response](./entitlements-flow.md#entitlement-response).
 ### Example response
 ```json
 {
@@ -130,6 +143,17 @@ The `purchaseData.raw` fields are identical to the fields from an Android In-App
     "givenName": "GivenName",
     "familyName": "FamilyName",
     "pictureUrl": "https://...jpg"
-  }
+  },
+  "entitlements" : {
+      "service": "subscribe.google.com",
+      "entitlements" : [
+         {
+            "source": "google",
+            "products": ["example.com:entitlement_label1"],
+            "subscriptionToken": "..."
+         }
+      ],
+      "isReadyToPay": false,
+   }
 }
 ```
