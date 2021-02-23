@@ -22,15 +22,16 @@
     "lint": "gulp lint",
     "build": "gulp build",
     "build-i18n": "node assets/i18n/strings/compile.js && gulp lint --fix --files='src/i18n/strings.js'",
-    "dist": "gulp dist"
+    "dist": "gulp dist",
+    "export-to-amp": "gulp export-to-amp"
   },
   "dependencies": {
     "promise-pjs": "1.1.5",
     "web-activities": "1.24.0"
   },
   "devDependencies": {
-    "@babel/core": "7.12.13",
-    "@babel/preset-env": "7.12.13",
+    "@babel/core": "7.12.16",
+    "@babel/preset-env": "7.12.16",
     "ansi-colors": "4.1.1",
     "autoprefixer": "10.2.4",
     "babel-eslint": "10.1.0",
@@ -47,7 +48,7 @@
     "cookie-parser": "1.4.5",
     "cssnano": "4.1.10",
     "del": "6.0.0",
-    "eslint": "7.19.0",
+    "eslint": "7.20.0",
     "eslint-plugin-google-camelcase": "0.0.2",
     "eslint-plugin-prettier": "3.3.1",
     "eslint-plugin-sort-imports-es6-autofix": "0.5.0",
@@ -97,7 +98,7 @@
     "karma-super-dots-reporter": "0.2.0",
     "lazypipe": "1.0.2",
     "minimist": "1.2.5",
-    "mocha": "8.2.1",
+    "mocha": "8.3.0",
     "morgan": "1.10.0",
     "nodemon": "2.0.7",
     "plugin-error": "1.0.1",
@@ -106,7 +107,7 @@
     "prettier": "2.2.1",
     "regenerator-runtime": "0.13.7",
     "request": "2.88.2",
-    "rollup": "2.38.5",
+    "rollup": "2.39.0",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "shuffle-seed": "1.1.6",

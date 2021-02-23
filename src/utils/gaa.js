@@ -22,11 +22,11 @@
 // Thanks!
 
 import {I18N_STRINGS} from '../i18n/strings';
+import {getLanguageCodeFromElement} from './i18n';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
-import {msg} from './i18n';
+import {addQueryParam, parseQueryString} from './url';
 import {parseJson} from './json';
-import {parseQueryString} from './url';
 import {setImportantStyles} from './style';
 import {warn} from './log';
 
@@ -60,10 +60,6 @@ export const REGWALL_DIALOG_ID = 'swg-regwall-dialog';
 /** ID for the Regwall title element. */
 export const REGWALL_TITLE_ID = 'swg-regwall-title';
 
-/** Class the Regwall uses to disable scrolling. */
-export const REGWALL_DISABLE_SCROLLING_CLASS =
-  'gaa-metering-regwall--disable-scrolling';
-
 /**
  * HTML for the metering regwall dialog, where users can sign in with Google.
  * The script creates a dialog based on this HTML.
@@ -73,10 +69,6 @@ export const REGWALL_DISABLE_SCROLLING_CLASS =
  */
 const REGWALL_HTML = `
 <style>
-  .${REGWALL_DISABLE_SCROLLING_CLASS} {
-    overflow: hidden;
-  }
-
   .gaa-metering-regwall--dialog-spacer,
   .gaa-metering-regwall--dialog,
   .gaa-metering-regwall--logo,
@@ -189,32 +181,16 @@ const REGWALL_HTML = `
       opacity: 1;
     }
   }
-
-  .gaa-metering-regwall--google-sign-in-button .abcRioButton.abcRioButtonBlue {
-    background-color: #1A73E8;
-    box-shadow: none;
-    -webkit-box-shadow: none;
-    border-radius: 4px;
-    width: 100% !important;
-  }
-
-  .gaa-metering-regwall--google-sign-in-button .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
-    display: none;
-  }
-
-  .gaa-metering-regwall--google-sign-in-button .abcRioButton.abcRioButtonBlue .abcRioButtonContents {
-    font-size: 15px !important;
-  }
 </style>
 
 <div class="gaa-metering-regwall--dialog-spacer">
   <div role="dialog" aria-modal="true" class="gaa-metering-regwall--dialog" id="${REGWALL_DIALOG_ID}" aria-labelledby="${REGWALL_TITLE_ID}">
     <img alt="Google" class="gaa-metering-regwall--logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDc0IDI0Ij48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNOS4yNCA4LjE5djIuNDZoNS44OGMtLjE4IDEuMzgtLjY0IDIuMzktMS4zNCAzLjEtLjg2Ljg2LTIuMiAxLjgtNC41NCAxLjgtMy42MiAwLTYuNDUtMi45Mi02LjQ1LTYuNTRzMi44My02LjU0IDYuNDUtNi41NGMxLjk1IDAgMy4zOC43NyA0LjQzIDEuNzZMMTUuNCAyLjVDMTMuOTQgMS4wOCAxMS45OCAwIDkuMjQgMCA0LjI4IDAgLjExIDQuMDQuMTEgOXM0LjE3IDkgOS4xMyA5YzIuNjggMCA0LjctLjg4IDYuMjgtMi41MiAxLjYyLTEuNjIgMi4xMy0zLjkxIDIuMTMtNS43NSAwLS41Ny0uMDQtMS4xLS4xMy0xLjU0SDkuMjR6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTI1IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNNTMuNTggNy40OWgtLjA5Yy0uNTctLjY4LTEuNjctMS4zLTMuMDYtMS4zQzQ3LjUzIDYuMTkgNDUgOC43MiA0NSAxMmMwIDMuMjYgMi41MyA1LjgxIDUuNDMgNS44MSAxLjM5IDAgMi40OS0uNjIgMy4wNi0xLjMyaC4wOXYuODFjMCAyLjIyLTEuMTkgMy40MS0zLjEgMy40MS0xLjU2IDAtMi41My0xLjEyLTIuOTMtMi4wN2wtMi4yMi45MmMuNjQgMS41NCAyLjMzIDMuNDMgNS4xNSAzLjQzIDIuOTkgMCA1LjUyLTEuNzYgNS41Mi02LjA1VjYuNDloLTIuNDJ2MXptLTIuOTMgOC4wM2MtMS43NiAwLTMuMS0xLjUtMy4xLTMuNTIgMC0yLjA1IDEuMzQtMy41MiAzLjEtMy41MiAxLjc0IDAgMy4xIDEuNSAzLjEgMy41NC4wMSAyLjAzLTEuMzYgMy41LTMuMSAzLjV6Ii8+PHBhdGggZmlsbD0iI0ZCQkMwNSIgZD0iTTM4IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNNTggLjI0aDIuNTF2MTcuNTdINTh6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTY4LjI2IDE1LjUyYy0xLjMgMC0yLjIyLS41OS0yLjgyLTEuNzZsNy43Ny0zLjIxLS4yNi0uNjZjLS40OC0xLjMtMS45Ni0zLjctNC45Ny0zLjctMi45OSAwLTUuNDggMi4zNS01LjQ4IDUuODEgMCAzLjI2IDIuNDYgNS44MSA1Ljc2IDUuODEgMi42NiAwIDQuMi0xLjYzIDQuODQtMi41N2wtMS45OC0xLjMyYy0uNjYuOTYtMS41NiAxLjYtMi44NiAxLjZ6bS0uMTgtNy4xNWMxLjAzIDAgMS45MS41MyAyLjIgMS4yOGwtNS4yNSAyLjE3YzAtMi40NCAxLjczLTMuNDUgMy4wNS0zLjQ1eiIvPjwvc3ZnPg==" />
 
-    <div class="gaa-metering-regwall--title" id="${REGWALL_TITLE_ID}" tabindex="0">$GAA_REGWALL_TITLE$</div>
+    <div class="gaa-metering-regwall--title" id="${REGWALL_TITLE_ID}" tabindex="0">$SHOWCASE_REGWALL_TITLE$</div>
 
     <div class="gaa-metering-regwall--description">
-      $GAA_REGWALL_DESCRIPTION$
+      $SHOWCASE_REGWALL_DESCRIPTION$
     </div>
 
     <iframe
@@ -230,7 +206,7 @@ const REGWALL_HTML = `
         class="gaa-metering-regwall--publisher-sign-in-button"
         tabindex="0"
         href="#">
-      $GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON$
+      $SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$
     </a>
   </div>
 </div>
@@ -266,8 +242,14 @@ body {
 #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
   display: none;
 }
-#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents {
-  font-size: 15px !important;
+/** Hides default "Sign in with Google" text. */
+#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_] {
+  font-size: 0 !important;
+}
+/** Renders localized "Sign in with Google" text instead. */
+#${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before {
+  content: '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$';
+  font-size: 15px;
 }
 `;
 
@@ -282,7 +264,7 @@ body {
  *   email: string,
  * }} GaaUserDef
  */
-let GaaUserDef;
+export let GaaUserDef;
 
 /**
  * GoogleUser object that Google Sign-In returns after users sign in.
@@ -298,7 +280,7 @@ let GaaUserDef;
  *   },
  * }} GoogleUserDef
  */
-let GoogleUserDef;
+export let GoogleUserDef;
 
 /**
  * Returns true if the query string contains fresh Google Article Access (GAA) params.
@@ -341,7 +323,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef>}
    */
   static show({iframeUrl}) {
-    const queryString = GaaMeteringRegwall.getQueryString_();
+    const queryString = GaaUtils.getQueryString();
     if (!queryStringHasFreshGaaParams(queryString)) {
       const errorMessage =
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
@@ -377,6 +359,11 @@ export class GaaMeteringRegwall {
    * @param {{ iframeUrl: string }} params
    */
   static render_({iframeUrl}) {
+    const languageCode = getLanguageCodeFromElement(self.document.body);
+
+    // Tell the iframe which language to render.
+    iframeUrl = addQueryParam(iframeUrl, 'lang', languageCode);
+
     const containerEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
       'div'
     ));
@@ -401,16 +388,16 @@ export class GaaMeteringRegwall {
       iframeUrl
     )
       .replace(
-        '$GAA_REGWALL_TITLE$',
-        msg(I18N_STRINGS['GAA_REGWALL_TITLE'], containerEl)
+        '$SHOWCASE_REGWALL_TITLE$',
+        I18N_STRINGS['SHOWCASE_REGWALL_TITLE'][languageCode]
       )
       .replace(
-        '$GAA_REGWALL_DESCRIPTION$',
-        msg(I18N_STRINGS['GAA_REGWALL_DESCRIPTION'], containerEl)
+        '$SHOWCASE_REGWALL_DESCRIPTION$',
+        I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'][languageCode]
       )
       .replace(
-        '$GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON$',
-        msg(I18N_STRINGS['GAA_REGWALL_PUBLISHER_SIGN_IN_BUTTON'], containerEl)
+        '$SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$',
+        I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'][languageCode]
       );
     containerEl.querySelector('ph')./*OK*/ innerHTML =
       '<strong>' +
@@ -421,9 +408,6 @@ export class GaaMeteringRegwall {
     containerEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(containerEl, {'opacity': 1});
     GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
-
-    // Disable scrolling on the body element.
-    self.document.body.classList.add(REGWALL_DISABLE_SCROLLING_CLASS);
 
     // Focus on the title after the dialog animates in.
     // This helps people using screenreaders.
@@ -530,22 +514,8 @@ export class GaaMeteringRegwall {
     if (regwallContainer) {
       regwallContainer.remove();
     }
-
-    // Re-enable scrolling on the body element.
-    self.document.body.classList.remove(REGWALL_DISABLE_SCROLLING_CLASS);
-  }
-
-  /**
-   * Returns query string from current URL.
-   * @private
-   * @return {string}
-   */
-  static getQueryString_() {
-    return self.location.search;
   }
 }
-
-self.GaaMeteringRegwall = GaaMeteringRegwall;
 
 export class GaaGoogleSignInButton {
   /**
@@ -554,9 +524,17 @@ export class GaaGoogleSignInButton {
    * @param {{ allowedOrigins: !Array<string> }} params
    */
   static show({allowedOrigins}) {
+    // Optionally grab language code from URL.
+    const queryString = GaaUtils.getQueryString();
+    const queryParams = parseQueryString(queryString);
+    const languageCode = queryParams['lang'] || 'en';
+
     // Apply iframe styles.
     const styleEl = self.document.createElement('style');
-    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES;
+    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
+      '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
+      I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'][languageCode]
+    );
     self.document.head.appendChild(styleEl);
 
     // Promise a function that sends messages to the parent frame.
@@ -624,8 +602,6 @@ export class GaaGoogleSignInButton {
   }
 }
 
-self.GaaGoogleSignInButton = GaaGoogleSignInButton;
-
 /**
  * Loads the Google Sign-In API.
  *
@@ -655,4 +631,15 @@ function configureGoogleSignIn() {
           self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init()
       )
   );
+}
+
+export class GaaUtils {
+  /**
+   * Returns query string from current URL.
+   * Tests can override this method to return different URLs.
+   * @return {string}
+   */
+  static getQueryString() {
+    return self.location.search;
+  }
 }

@@ -64,7 +64,7 @@ export function msg(map, languageCodeOrElement) {
  * @param {!Element} element
  * @return {string}
  */
-function getLanguageCodeFromElement(element) {
+export function getLanguageCodeFromElement(element) {
   if (element.lang) {
     // Get language from element itself.
     return element.lang;

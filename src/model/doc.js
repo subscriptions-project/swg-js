@@ -27,7 +27,7 @@ export class Doc {
 
   /**
    * The `Document` node or analog.
-   * @return {!Document}
+   * @return {!Node}
    */
   getRootNode() {}
 
