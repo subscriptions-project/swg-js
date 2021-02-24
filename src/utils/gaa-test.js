@@ -235,6 +235,19 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       );
     });
 
+    it('renders "en" for non-supported i18n languages', () => {
+      self.document.documentElement.lang = 'non-supported';
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      const titleEl = self.document.querySelector(
+        '.gaa-metering-regwall--title'
+      );
+      expect(titleEl.textContent).to.equal(
+        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['en']
+      );
+    });
+
     it('adds "lang" URL param to iframe URL', () => {
       self.document.documentElement.lang = 'pt-br';
 
