@@ -62,7 +62,7 @@ export class BasicSubscriptions {
    * the prompt, regardless of any display rules. This parameter is intended for
    * preview purposes.
    * @param {{
-   *   autoPromptType: (AutoPromptType|undefined),
+   *   autoPromptType: (!AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
    * }=} options
    * @returns {!Promise}
