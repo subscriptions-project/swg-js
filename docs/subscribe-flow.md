@@ -118,7 +118,7 @@ The `purchaseData.raw` fields are identical to the fields from an Android In-App
 
 ### `entitlements`
 
-The entitlement object will contain the entitlement for the successful purchase, it won't have all the user entitlements. It has the same structure of the [Entitlements Flow response](./entitlements-flow.md#entitlement-response).
+The entitlement object will contain the entitlement for the successful purchase. It won't have all the user entitlements. It has the same structure of the [Entitlements Flow response](./entitlements-flow.md#entitlement-response).
 
 ### Example response
 
