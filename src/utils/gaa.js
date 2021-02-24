@@ -389,15 +389,18 @@ export class GaaMeteringRegwall {
     )
       .replace(
         '$SHOWCASE_REGWALL_TITLE$',
-        msg(I18N_STRINGS['SHOWCASE_REGWALL_TITLE'],languageCode)
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_TITLE'], languageCode)
       )
       .replace(
         '$SHOWCASE_REGWALL_DESCRIPTION$',
-        msg(I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'],languageCode)
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'], languageCode)
       )
       .replace(
         '$SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$',
-        msg(I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'],languageCode)
+        msg(
+          I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'],
+          languageCode
+        )
       );
     containerEl.querySelector('ph')./*OK*/ innerHTML =
       '<strong>' +
