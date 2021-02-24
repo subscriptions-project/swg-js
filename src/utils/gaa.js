@@ -22,7 +22,7 @@
 // Thanks!
 
 import {I18N_STRINGS} from '../i18n/strings';
-import {getLanguageCodeFromElement} from './i18n';
+import {getLanguageCodeFromElement, msg} from './i18n';
 // eslint-disable-next-line no-unused-vars
 import {Subscriptions} from '../api/subscriptions';
 import {addQueryParam, parseQueryString} from './url';
@@ -389,15 +389,18 @@ export class GaaMeteringRegwall {
     )
       .replace(
         '$SHOWCASE_REGWALL_TITLE$',
-        I18N_STRINGS['SHOWCASE_REGWALL_TITLE'][languageCode]
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_TITLE'], languageCode)
       )
       .replace(
         '$SHOWCASE_REGWALL_DESCRIPTION$',
-        I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'][languageCode]
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'], languageCode)
       )
       .replace(
         '$SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$',
-        I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'][languageCode]
+        msg(
+          I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'],
+          languageCode
+        )
       );
     containerEl.querySelector('ph')./*OK*/ innerHTML =
       '<strong>' +
