@@ -378,11 +378,11 @@ export class ConfiguredBasicRuntime {
   /** @override */
   setupAndShowAutoPrompt(options) {
     let displayForLockedContentFn;
-    if (options.autoPromptType == AutoPromptType.SUBSCRIPTION) {
+    if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
       displayForLockedContentFn = () => {
         this.configuredClassicRuntime_.showOffers();
       };
-    } else if (options.autoPromptType == AutoPromptType.CONTRIBUTION) {
+    } else if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
       displayForLockedContentFn = () => {
         this.configuredClassicRuntime_.showContributionOptions();
       };

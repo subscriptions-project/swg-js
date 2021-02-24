@@ -54,13 +54,9 @@ describes.realWin('ClientConfigManager', {}, () => {
     clientConfigManager = new ClientConfigManager(undefined, fetcher);
     fetcherMock.expects('fetchCredentialedJson').never();
 
-    try {
+    expect(() => {
       clientConfigManager.getClientConfig();
-    } catch (err) {
-      expect(err)
-        .to.be.an.instanceOf(Error)
-        .with.property('message', 'getClientConfig requires publicationId');
-    }
+    }).to.throw('getClientConfig requires publicationId');
   });
 
   it('getAutoPromptConfig should return AutoPromptConfig object', async () => {

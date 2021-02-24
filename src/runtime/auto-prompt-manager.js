@@ -125,7 +125,7 @@ export class AutoPromptManager {
     // If the mini auto prompt type is not supported, don't show the prompt.
     if (
       options.autoPromptType === undefined ||
-      options.autoPromptType == AutoPromptType.NONE
+      options.autoPromptType === AutoPromptType.NONE
     ) {
       return false;
     }
@@ -141,18 +141,18 @@ export class AutoPromptManager {
     }
 
     // Don't cap subscription prompts.
-    if (options.autoPromptType == AutoPromptType.SUBSCRIPTION) {
+    if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
       return true;
     }
 
     // If no mini auto prompt config was returned in the response, don't show
     // the prompt.
-    if (autoPromptConfig == undefined) {
+    if (autoPromptConfig === undefined) {
       return false;
     }
 
     // Fetched config returned no maximum cap.
-    if (autoPromptConfig.maxImpressionsPerWeek == undefined) {
+    if (autoPromptConfig.maxImpressionsPerWeek === undefined) {
       return true;
     }
 
