@@ -52,7 +52,7 @@ export class AutoPromptManager {
    *     by the publisher
    * A prompt may not be displayed if the appropriate criteria are not met.
    * @param {{
-   *   autoPromptType: (string|undefined),
+   *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
    * }=} options
    * @param {function()=} displayForLockedContentFn
@@ -87,7 +87,7 @@ export class AutoPromptManager {
    * @param {!../model/auto-prompt-config.AutoPromptConfig} autoPromptConfig
    * @param {!../api/entitlements.Entitlements} entitlements
    * @param {{
-   *   autoPromptType: (string|undefined),
+   *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
    * }=} options
    * @param {function()=} displayForLockedContentFn
@@ -116,7 +116,7 @@ export class AutoPromptManager {
    * @param {!../model/auto-prompt-config.AutoPromptConfig} autoPromptConfig
    * @param {!../api/entitlements.Entitlements} entitlements
    * @param {{
-   *   autoPromptType: (string|undefined),
+   *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
    * }=} options
    * @returns {boolean}

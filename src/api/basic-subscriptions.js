@@ -35,7 +35,7 @@ export class BasicSubscriptions {
    *   isAccessibleForFree: boolean,
    *   isPartOfType: (string|!Array<string>),
    *   isPartOfProductId: string,
-   *   autoPromptType: (string|undefined),
+   *   autoPromptType: (AutoPromptType|undefined),
    * }=} params
    */
   init(params) {}
@@ -62,7 +62,7 @@ export class BasicSubscriptions {
    * the prompt, regardless of any display rules. This parameter is intended for
    * preview purposes.
    * @param {{
-   *   autoPromptType: (string|undefined),
+   *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
    * }=} options
    * @returns {!Promise}
