@@ -377,20 +377,16 @@ export class ConfiguredBasicRuntime {
 
   /** @override */
   setupAndShowAutoPrompt(options) {
-    let displayForLockedContentFn;
     if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
-      displayForLockedContentFn = () => {
+      options.displayForLockedContentFn = () => {
         this.configuredClassicRuntime_.showOffers();
       };
     } else if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
-      displayForLockedContentFn = () => {
+      options.displayForLockedContentFn = () => {
         this.configuredClassicRuntime_.showContributionOptions();
       };
     }
-    return this.autoPromptManager_.showAutoPrompt(
-      options,
-      displayForLockedContentFn
-    );
+    return this.autoPromptManager_.showAutoPrompt(options);
   }
 
   /** @override */

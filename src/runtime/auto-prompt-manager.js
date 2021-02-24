@@ -54,13 +54,13 @@ export class AutoPromptManager {
    * @param {{
    *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
-   * }=} options
-   * @param {function()=} displayForLockedContentFn
+   *   displayForLockedContentFn: (function()|undefined),
+   * }=} params
    * @return {!Promise}
    */
-  showAutoPrompt(options, displayForLockedContentFn) {
+  showAutoPrompt(params) {
     // Manual override of display rules, mainly for demo purposes.
-    if (options.alwaysShow) {
+    if (params.alwaysShow) {
       // TODO(stellachui): Show the mini prompt.
       return Promise.resolve();
     }
@@ -72,38 +72,34 @@ export class AutoPromptManager {
       this.clientConfigManager_.getAutoPromptConfig(),
       this.entitlementsManager_.getEntitlements(),
     ]).then((values) => {
-      this.showAutoPrompt_(
-        values[0],
-        values[1],
-        options,
-        displayForLockedContentFn
-      );
+      this.showAutoPrompt_(values[0], values[1], params);
     });
   }
 
   /**
    * Displays the appropriate auto prompt, depending on the fetched prompt
-   * configuration, entitlement state, and options specified.
+   * configuration, entitlement state, and options specified in params.
    * @param {!../model/auto-prompt-config.AutoPromptConfig} autoPromptConfig
    * @param {!../api/entitlements.Entitlements} entitlements
    * @param {{
    *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
-   * }=} options
-   * @param {function()=} displayForLockedContentFn
+   *   displayForLockedContentFn: (function()|undefined),
+   * }=} params
    */
-  showAutoPrompt_(
-    autoPromptConfig,
-    entitlements,
-    options,
-    displayForLockedContentFn
-  ) {
-    if (!this.shouldShowMiniPrompt_(autoPromptConfig, entitlements, options)) {
+  showAutoPrompt_(autoPromptConfig, entitlements, params) {
+    if (
+      !this.shouldShowMiniPrompt_(
+        autoPromptConfig,
+        entitlements,
+        params.autoPromptType
+      )
+    ) {
       if (
         this.shouldShowLockedContentPrompt_(entitlements) &&
-        displayForLockedContentFn
+        params.displayForLockedContentFn
       ) {
-        displayForLockedContentFn();
+        params.displayForLockedContentFn();
       }
       return;
     }
@@ -115,17 +111,14 @@ export class AutoPromptManager {
    * be shown.
    * @param {!../model/auto-prompt-config.AutoPromptConfig} autoPromptConfig
    * @param {!../api/entitlements.Entitlements} entitlements
-   * @param {{
-   *   autoPromptType: (AutoPromptType|undefined),
-   *   alwaysShow: (boolean|undefined),
-   * }=} options
+   * @param {!AutoPromptType|undefined} autoPromptType
    * @returns {boolean}
    */
-  shouldShowMiniPrompt_(autoPromptConfig, entitlements, options) {
+  shouldShowMiniPrompt_(autoPromptConfig, entitlements, autoPromptType) {
     // If the mini auto prompt type is not supported, don't show the prompt.
     if (
-      options.autoPromptType === undefined ||
-      options.autoPromptType === AutoPromptType.NONE
+      autoPromptType === undefined ||
+      autoPromptType === AutoPromptType.NONE
     ) {
       return false;
     }
@@ -141,7 +134,7 @@ export class AutoPromptManager {
     }
 
     // Don't cap subscription prompts.
-    if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
+    if (autoPromptType === AutoPromptType.SUBSCRIPTION) {
       return true;
     }
 

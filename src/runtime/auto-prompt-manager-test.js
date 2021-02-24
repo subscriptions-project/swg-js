@@ -91,10 +91,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(autoPromptConfig))
       .once();
 
-    await autoPromptManager.showAutoPrompt(
-      {autoPromptType: AutoPromptType.CONTRIBUTION, alwaysShow: false},
-      alternatePromptSpy
-    );
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+      displayForLockedContentFn: alternatePromptSpy,
+    });
     expect(alternatePromptSpy).to.not.be.called;
     // TODO(stellachui): Verify mini prompt is displayed when implemented.
   });
@@ -103,10 +104,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     entitlementsManagerMock.expects('getEntitlements').never();
     clientConfigManagerMock.expects('getAutoPromptConfig').never();
 
-    await autoPromptManager.showAutoPrompt(
-      {autoPromptType: AutoPromptType.CONTRIBUTION, alwaysShow: true},
-      alternatePromptSpy
-    );
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: true,
+      displayForLockedContentFn: alternatePromptSpy,
+    });
     expect(alternatePromptSpy).to.not.be.called;
     // TODO(stellachui): Verify mini prompt is displayed when implemented.
   });
@@ -123,10 +125,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(autoPromptConfig))
       .once();
 
-    await autoPromptManager.showAutoPrompt(
-      {autoPromptType: undefined, alwaysShow: false},
-      alternatePromptSpy
-    );
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: undefined,
+      alwaysShow: false,
+      displayForLockedContentFn: alternatePromptSpy,
+    });
     expect(alternatePromptSpy).to.not.be.called;
     // TODO(stellachui): Verify mini prompt is not displayed when implemented.
   });
@@ -143,10 +146,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(autoPromptConfig))
       .once();
 
-    await autoPromptManager.showAutoPrompt(
-      {autoPromptType: AutoPromptType.NONE, alwaysShow: false},
-      alternatePromptSpy
-    );
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.NONE,
+      alwaysShow: false,
+      displayForLockedContentFn: alternatePromptSpy,
+    });
     expect(alternatePromptSpy).to.not.be.called;
     // TODO(stellachui): Verify mini prompt is not displayed when implemented.
   });
@@ -162,10 +166,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve())
       .once();
 
-    await autoPromptManager.showAutoPrompt(
-      {autoPromptType: AutoPromptType.CONTRIBUTION, alwaysShow: false},
-      alternatePromptSpy
-    );
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+      displayForLockedContentFn: alternatePromptSpy,
+    });
     expect(alternatePromptSpy).to.not.be.called;
     // TODO(stellachui): Verify mini prompt is not displayed when implemented.
   });
@@ -182,10 +187,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(autoPromptConfig))
       .once();
 
-    await autoPromptManager.showAutoPrompt(
-      {autoPromptType: AutoPromptType.CONTRIBUTION, alwaysShow: false},
-      alternatePromptSpy
-    );
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+      displayForLockedContentFn: alternatePromptSpy,
+    });
     expect(alternatePromptSpy).to.not.be.called;
     // TODO(stellachui): Verify mini prompt is displayed when implemented.
   });
@@ -202,10 +208,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(autoPromptConfig))
       .once();
 
-    await autoPromptManager.showAutoPrompt(
-      {autoPromptType: AutoPromptType.SUBSCRIPTION, alwaysShow: false},
-      alternatePromptSpy
-    );
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      alwaysShow: false,
+      displayForLockedContentFn: alternatePromptSpy,
+    });
     expect(alternatePromptSpy).to.not.be.called;
     // TODO(stellachui): Verify mini prompt is displayed when implemented.
   });
@@ -223,10 +230,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(autoPromptConfig))
       .once();
 
-    await autoPromptManager.showAutoPrompt(
-      {autoPromptType: AutoPromptType.CONTRIBUTION, alwaysShow: false},
-      alternatePromptSpy
-    );
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+      displayForLockedContentFn: alternatePromptSpy,
+    });
     expect(alternatePromptSpy).to.not.be.called;
     // TODO(stellachui): Verify mini prompt is not displayed when implemented.
   });
@@ -244,10 +252,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(autoPromptConfig))
       .once();
 
-    await autoPromptManager.showAutoPrompt(
-      {autoPromptType: AutoPromptType.CONTRIBUTION, alwaysShow: false},
-      alternatePromptSpy
-    );
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+      displayForLockedContentFn: alternatePromptSpy,
+    });
 
     expect(alternatePromptSpy).to.be.calledOnce;
     // TODO(stellachui): Verify mini prompt is not displayed when implemented.
