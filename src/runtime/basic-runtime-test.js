@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import {AutoPromptType, BasicSubscriptions} from '../api/basic-subscriptions';
 import {
   BasicRuntime,
   ConfiguredBasicRuntime,
   getBasicRuntime,
   installBasicRuntime,
 } from './basic-runtime';
-import {BasicSubscriptions} from '../api/basic-subscriptions';
+import {Entitlements} from '../api/entitlements';
 import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -162,7 +164,7 @@ describes.realWin('installBasicRuntime', {}, (env) => {
   });
 });
 
-describes.realWin('Runtime', {}, (env) => {
+describes.realWin('BasicRuntime', {}, (env) => {
   let win;
   let doc;
   let basicRuntime;
@@ -174,16 +176,16 @@ describes.realWin('Runtime', {}, (env) => {
   });
 
   describe('initialization', () => {
-    let config;
-    let configPromise;
+    let pageConfig;
+    let pageConfigPromise;
     let resolveStub;
 
     beforeEach(() => {
-      config = new PageConfig('pub1', true);
-      configPromise = Promise.resolve(config);
+      pageConfig = new PageConfig('pub1', true);
+      pageConfigPromise = Promise.resolve(pageConfig);
       resolveStub = sandbox
         .stub(PageConfigResolver.prototype, 'resolveConfig')
-        .callsFake(() => configPromise);
+        .callsFake(() => pageConfigPromise);
     });
 
     it('should initialize and generate markup as specified', async () => {
@@ -206,17 +208,35 @@ describes.realWin('Runtime', {}, (env) => {
       // the PageConfig.
       expect(resolveStub).to.be.calledOnce;
     });
+
+    it('should try to check the page config resolver after initial configuration', async () => {
+      const checkStub = sandbox.stub(PageConfigResolver.prototype, 'check');
+      // Simulate the resolver still resolving the page config.
+      pageConfigPromise = new Promise(() => {});
+      basicRuntime.configured_(true);
+      basicRuntime.configured_(true);
+      expect(resolveStub).to.be.calledOnce;
+      expect(checkStub).to.be.calledOnce;
+    });
+
+    it('should fail when config lookup fails', async () => {
+      pageConfigPromise = Promise.reject('config broken');
+
+      await expect(basicRuntime.configured_(true)).to.be.rejectedWith(
+        /config broken/
+      );
+    });
   });
 
   describe('configured', () => {
-    let config;
+    let pageConfig;
     let configuredBasicRuntime;
     let configuredBasicRuntimeMock;
     let configuredClassicRuntimeMock;
 
     beforeEach(() => {
-      config = new PageConfig('pub1');
-      configuredBasicRuntime = new ConfiguredBasicRuntime(doc, config);
+      pageConfig = new PageConfig('pub1');
+      configuredBasicRuntime = new ConfiguredBasicRuntime(doc, pageConfig);
       configuredBasicRuntimeMock = sandbox.mock(configuredBasicRuntime);
       configuredClassicRuntimeMock = sandbox.mock(
         configuredBasicRuntime.configuredClassicRuntime()
@@ -309,6 +329,129 @@ describes.realWin('Runtime', {}, (env) => {
 
       configuredClassicRuntimeMock.expects('showContributionOptions').once();
       await contributionButton.click();
+    });
+  });
+});
+
+describes.realWin('BasicConfiguredRuntime', {}, (env) => {
+  let win;
+  let pageConfig;
+
+  beforeEach(() => {
+    win = env.win;
+    pageConfig = new PageConfig('pub1:label1', true);
+  });
+
+  describe('configured', () => {
+    let configuredBasicRuntime;
+    let entitlementsManagerMock;
+    let clientConfigManagerMock;
+    let configuredClassicRuntimeMock;
+
+    beforeEach(() => {
+      configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
+      entitlementsManagerMock = sandbox.mock(
+        configuredBasicRuntime.configuredClassicRuntime_.entitlementsManager_
+      );
+      clientConfigManagerMock = sandbox.mock(
+        configuredBasicRuntime.clientConfigManager_
+      );
+      configuredClassicRuntimeMock = sandbox.mock(
+        configuredBasicRuntime.configuredClassicRuntime_
+      );
+    });
+
+    afterEach(() => {
+      entitlementsManagerMock.verify();
+      clientConfigManagerMock.verify();
+      configuredClassicRuntimeMock.verify();
+    });
+
+    it('should store and doc and win', () => {
+      expect(configuredBasicRuntime.win()).to.equal(win);
+      expect(configuredBasicRuntime.doc().getWin()).to.equal(win);
+    });
+
+    it('should delegate config to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('config').once();
+      configuredBasicRuntime.config();
+    });
+
+    it('should delegate pageConfig to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('pageConfig').once();
+      configuredBasicRuntime.pageConfig();
+    });
+
+    it('should delegate activities to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('activities').once();
+      configuredBasicRuntime.activities();
+    });
+
+    it('should delegate payClient to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('payClient').once();
+      configuredBasicRuntime.payClient();
+    });
+
+    it('should delegate dialogManager to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('dialogManager').once();
+      configuredBasicRuntime.dialogManager();
+    });
+
+    it('should delegate entitlementsManager to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('entitlementsManager').once();
+      configuredBasicRuntime.entitlementsManager();
+    });
+
+    it('should delegate callbacks to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('callbacks').once();
+      configuredBasicRuntime.callbacks();
+    });
+
+    it('should delegate storage to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('storage').once();
+      configuredBasicRuntime.storage();
+    });
+
+    it('should delegate analytics to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('analytics').once();
+      configuredBasicRuntime.analytics();
+    });
+
+    it('should delegate jserror to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('jserror').once();
+      configuredBasicRuntime.jserror();
+    });
+
+    it('should configure subscription auto prompts to show offers for paygated content', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+      const entitlements = new Entitlements();
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .returns(Promise.resolve(entitlements));
+      clientConfigManagerMock
+        .expects('getAutoPromptConfig')
+        .returns(Promise.resolve({}));
+      configuredClassicRuntimeMock.expects('showOffers').once();
+
+      await configuredBasicRuntime.setupAndShowAutoPrompt({
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+      });
+    });
+
+    it('should configure contribution auto prompts to show contribution options for paygated content', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+      const entitlements = new Entitlements();
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .returns(Promise.resolve(entitlements));
+      clientConfigManagerMock
+        .expects('getAutoPromptConfig')
+        .returns(Promise.resolve({}));
+      configuredClassicRuntimeMock.expects('showContributionOptions').once();
+
+      await configuredBasicRuntime.setupAndShowAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
     });
   });
 });

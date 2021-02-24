@@ -15,6 +15,7 @@
  */
 
 import {Xhr} from '../utils/xhr';
+import {parseJson} from '../utils/json';
 import {serializeProtoMessageForUrl} from '../utils/url';
 
 /**
@@ -69,7 +70,13 @@ export class XhrFetcher {
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
     });
-    return this.fetch(url, init).then((response) => response.json());
+    return this.fetch(url, init).then((response) => {
+      return response.text().then((text) => {
+        // Remove "")]}'\n" XSSI prevention prefix in safe responses.
+        const cleanedText = text.replace(/^(\)\]\}'\n)/, '');
+        return parseJson(cleanedText);
+      });
+    });
   }
 
   sendPost(url, message) {
