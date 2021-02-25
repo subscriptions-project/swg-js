@@ -19,9 +19,11 @@ import {
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
   GaaUtils,
+  POST_MESSAGE_COMMAND_ERROR,
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
+  REGWALL_CONTAINER_ID,
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
   queryStringHasFreshGaaParams,
@@ -222,6 +224,18 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(await gaaUserPromise).to.deep.equal(gaaUser);
     });
 
+    it('removes Regwall from DOM', async () => {
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+        gaaUser: {},
+      });
+
+      await GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
+    });
+
     it('renders supported i18n languages', () => {
       self.document.documentElement.lang = 'pt-br';
 
@@ -282,6 +296,24 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
       );
+    });
+
+    it('handles GSI error', async () => {
+      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_ERROR,
+      });
+
+      // Reject promise.
+      await expect(gaaUserPromise).to.eventually.be.rejectedWith(
+        'Google Sign-In failed to initialize'
+      );
+
+      // Remove Regwall from DOM.
+      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
   });
 
@@ -461,6 +493,37 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
             imageUrl: 'imageUrl',
             name: 'name',
           },
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('propagates GSI errors', async () => {
+      self.gapi.signin2.render = sandbox.fake.throws('I need cookies');
+
+      GaaGoogleSignInButton.show({allowedOrigins});
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_ERROR,
           stamp: POST_MESSAGE_STAMP,
         },
         location.origin

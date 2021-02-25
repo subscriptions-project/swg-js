@@ -42,6 +42,9 @@ export const POST_MESSAGE_COMMAND_INTRODUCTION = 'introduction';
 /** User command for post messages. */
 export const POST_MESSAGE_COMMAND_USER = 'user';
 
+/** Error command for post messages. */
+export const POST_MESSAGE_COMMAND_ERROR = 'error';
+
 /** ID for the Google Sign-In iframe element. */
 export const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
 
@@ -52,7 +55,7 @@ const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 
 /** ID for the Regwall container element. */
-const REGWALL_CONTAINER_ID = 'swg-regwall-container';
+export const REGWALL_CONTAINER_ID = 'swg-regwall-container';
 
 /** ID for the Regwall dialog element. */
 export const REGWALL_DIALOG_ID = 'swg-regwall-dialog';
@@ -333,10 +336,18 @@ export class GaaMeteringRegwall {
 
     GaaMeteringRegwall.render_({iframeUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
-    return GaaMeteringRegwall.getGaaUser_().then((gaaUser) => {
-      GaaMeteringRegwall.remove_();
-      return gaaUser;
-    });
+    return GaaMeteringRegwall.getGaaUser_()
+      .then((gaaUser) => {
+        GaaMeteringRegwall.remove_();
+        return gaaUser;
+      })
+      .catch((err) => {
+        // Close the Regwall, since the flow failed.
+        GaaMeteringRegwall.remove_();
+
+        // Rethrow error.
+        throw err;
+      });
   }
 
   /**
@@ -471,13 +482,18 @@ export class GaaMeteringRegwall {
    */
   static getGaaUser_() {
     // Listen for GAA user.
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       self.addEventListener('message', (e) => {
-        if (
-          e.data.stamp === POST_MESSAGE_STAMP &&
-          e.data.command === POST_MESSAGE_COMMAND_USER
-        ) {
-          resolve(e.data.gaaUser);
+        if (e.data.stamp === POST_MESSAGE_STAMP) {
+          if (e.data.command === POST_MESSAGE_COMMAND_USER) {
+            // Pass along GAA user.
+            resolve(e.data.gaaUser);
+          }
+
+          if (e.data.command === POST_MESSAGE_COMMAND_ERROR) {
+            // Reject promise due to Google Sign-In error.
+            reject('Google Sign-In failed to initialize');
+          }
         }
       });
     });
@@ -599,6 +615,15 @@ export class GaaGoogleSignInButton {
             stamp: POST_MESSAGE_STAMP,
             command: POST_MESSAGE_COMMAND_USER,
             gaaUser,
+          });
+        });
+      })
+      .catch(() => {
+        // Report error to parent frame.
+        sendMessageToParentFnPromise.then((sendMessageToParent) => {
+          sendMessageToParent({
+            stamp: POST_MESSAGE_STAMP,
+            command: POST_MESSAGE_COMMAND_ERROR,
           });
         });
       });
