@@ -308,7 +308,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       });
 
       // Reject promise.
-      await expect(gaaUserPromise).to.eventually.be.rejected;
+      await expect(gaaUserPromise).to.eventually.be.rejectedWith(
+        'Google Sign-In failed to initialize'
+      );
 
       // Remove Regwall from DOM.
       expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;

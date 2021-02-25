@@ -492,7 +492,7 @@ export class GaaMeteringRegwall {
 
           if (e.data.command === POST_MESSAGE_COMMAND_ERROR) {
             // Reject promise due to Google Sign-In error.
-            reject();
+            reject('Google Sign-In failed to initialize');
           }
         }
       });
