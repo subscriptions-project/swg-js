@@ -6,6 +6,7 @@ jobs:
   check:
     # The Closure JavaScript compiler needs Java 8, and Ubuntu 20.04 LTS has it.
     # Canonical will support this LTS until April 2025.
+    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
     runs-on: ubuntu-20.04
 
     steps:
@@ -25,6 +26,7 @@ jobs:
   e2e:
     # The Closure JavaScript compiler needs Java 8, and Ubuntu 20.04 LTS has it.
     # Canonical will support this LTS until April 2025.
+    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
     runs-on: ubuntu-20.04
 
     steps:
@@ -44,6 +46,7 @@ jobs:
   unit:
     # The Closure JavaScript compiler needs Java 8, and Ubuntu 20.04 LTS has it.
     # Canonical will support this LTS until April 2025.
+    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
     runs-on: ubuntu-20.04
 
     steps:
