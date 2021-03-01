@@ -1270,6 +1270,7 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
       expect(runtime.jserror()).to.be.instanceOf(JsError);
       expect(runtime.payClient()).to.be.instanceOf(PayClient);
+      expect(runtime.clientConfigManager()).to.be.null;
     });
 
     it('should report the redirect failure', () => {
