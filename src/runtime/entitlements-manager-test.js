@@ -77,7 +77,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_redefine_property
     win = Object.assign({}, env.win, {
       location: {
-        search: '?gaa_at=at&gaa_n=nonce&gaa_sig=sig&gaa_ts=60389016',
+        search: '?gaa_at=at&gaa_n=token&gaa_sig=sig&gaa_ts=60389016',
       },
     });
     pageConfig = new PageConfig('pub1:label1');
