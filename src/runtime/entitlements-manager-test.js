@@ -53,6 +53,7 @@ const MOCK_TIME_ARRAY = [1600389016, 959000000];
 
 describes.realWin('EntitlementsManager', {}, (env) => {
   let win;
+  let nowStub;
   let pageConfig;
   let manager;
   let fetcher;
@@ -71,7 +72,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   let eventManagerMock;
 
   beforeEach(() => {
-    win = env.win;
+    // Work around `location.search` being non-configurable,
+    // which means Sinon can't stub it normally.
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_redefine_property
+    win = Object.assign({}, env.win, {
+      location: {
+        search: '?gaa_at=at&gaa_n=token&gaa_sig=sig&gaa_ts=60389016',
+      },
+    });
     pageConfig = new PageConfig('pub1:label1');
     fetcher = new XhrFetcher(win);
     eventManager = new ClientEventManager(Promise.resolve());
@@ -111,7 +119,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}';
 
     sandbox.stub(self.console, 'warn');
-    sandbox.stub(Date, 'now').returns(1600389016959);
+    nowStub = sandbox.stub(Date, 'now').returns(1600389016959);
   });
 
   afterEach(() => {
@@ -893,6 +901,27 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       await manager.consumeMeter_(ents);
     });
 
+    it('should not send pingback with invalid GAA params', async () => {
+      // Stub out Date.now() to some time past the URL timestamp expiration.
+      nowStub.returns(3600389016959);
+      xhrMock.expects('fetch').never();
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+      eventManagerMock.expects('logSwgEvent').never();
+      await manager.consumeMeter_(ents);
+    });
+
     it('should log error messages', async () => {
       xhrMock
         .expects('fetch')
@@ -1024,6 +1053,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           GOOGLE_SOURCE
         ));
 
+      it('should NOT pingback on invalid GAA params', async () => {
+        // Stub out Date.now() to some time past the URL timestamp expiration.
+        nowStub.returns(3600389016959);
+        await expectNoPingback(
+          AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SWG_CLIENT
+        );
+        await xhrMock.verify();
+      });
+
       it('should NOT pingback other events', async () => {
         for (const eventKey in AnalyticsEvent) {
           const event = AnalyticsEvent[eventKey];
@@ -1070,6 +1109,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           EventOriginator.SWG_SERVER,
           GOOGLE_SOURCE
         ));
+
+      it('should NOT pingback on invalid GAA params', async () => {
+        // Stub out Date.now() to some time past the URL timestamp expiration.
+        nowStub.returns(3600389016959);
+        await expectNoPingback(
+          AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SWG_SERVER
+        );
+        await xhrMock.verify();
+      });
 
       it('should NOT pingback other events', async () => {
         for (const eventKey in AnalyticsEvent) {
@@ -1118,6 +1167,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           EventOriginator.SHOWCASE_CLIENT,
           EntitlementSource.PUBLISHER_ENTITLEMENT
         ));
+
+      it('should NOT pingback on invalid GAA params', async () => {
+        // Stub out Date.now() to some time past the URL timestamp expiration.
+        nowStub.returns(3600389016959);
+        await expectNoPingback(
+          AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SHOWCASE_CLIENT
+        );
+        await xhrMock.verify();
+      });
 
       it('should NOT pingback other events', async () => {
         for (const eventKey in AnalyticsEvent) {
@@ -1695,6 +1754,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('should ignore malformed pushed entitlements', () => {
       storageMock.expects('set').withArgs('ents').never();
+      sandbox.stub(win, 'setTimeout').returns(1);
       const res = manager.pushNextEntitlements('VeRy BroKen');
       expect(res).to.be.false;
     });
