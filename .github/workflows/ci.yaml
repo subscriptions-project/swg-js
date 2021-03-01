@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -20,7 +20,7 @@ jobs:
         run: gulp check
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -36,7 +36,7 @@ jobs:
         run: gulp e2e --retries=3
 
   unit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
