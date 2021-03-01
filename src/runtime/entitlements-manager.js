@@ -39,6 +39,7 @@ import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
 import {hash} from '../utils/string';
+import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {serviceUrl} from './services';
 import {toTimestamp} from '../utils/date-utils';
 import {warn} from '../utils/log';
@@ -96,7 +97,7 @@ export class EntitlementsManager {
 
     this.deps_
       .eventManager()
-      .registerEventListener(this.handleClientEvent_.bind(this));
+      .registerEventListener(this.possiblyPingbackOnClientEvent_.bind(this));
   }
 
   /**
@@ -186,6 +187,11 @@ export class EntitlementsManager {
     if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
       return;
     }
+    // Verify GAA params are present, otherwise bail since the pingback
+    // shouldn't happen on non-metering requests.
+    if (!queryStringHasFreshGaaParams(this.win_.location.search)) {
+      return;
+    }
 
     this.deps_
       .eventManager()
@@ -204,7 +210,13 @@ export class EntitlementsManager {
   // Listens for events from the event manager and informs
   // the server about publisher entitlements and non-
   // consumable Google entitlements.
-  handleClientEvent_(event) {
+  possiblyPingbackOnClientEvent_(event) {
+    // Verify GAA params are present, otherwise bail since the pingback
+    // shouldn't happen on non-metering requests.
+    if (!queryStringHasFreshGaaParams(this.win_.location.search)) {
+      return;
+    }
+
     // A subset of analytics events are also an entitlement result
     const result = analyticsEventToEntitlementResult(event.eventType);
     if (!result) {
@@ -230,7 +242,6 @@ export class EntitlementsManager {
       default:
         return;
     }
-
     this.postEntitlementsRequest_(new EntitlementJwt(), result, source);
   }
 
