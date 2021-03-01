@@ -4,42 +4,53 @@ on: [push, pull_request]
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: yarn
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '8'
 
-    - name: Check
-      run: gulp check
+      - name: Install dependencies
+        run: yarn
+
+      - name: Check
+        run: gulp check
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: yarn
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '8'
 
-    - name: E2E Tests
-      run: gulp e2e --retries=3
-  
+      - name: Install dependencies
+        run: yarn
+
+      - name: E2E Tests
+        run: gulp e2e --retries=3
+
   unit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: yarn
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '8'
 
-    - name: Unit Tests
-      run: gulp unit --headless --coverage
+      - name: Install dependencies
+        run: yarn
 
-    - uses: codecov/codecov-action@v1
-      with:
-        file: ./test/coverage/lcov-unit.info
+      - name: Unit Tests
+        run: gulp unit --headless --coverage
 
+      - uses: codecov/codecov-action@v1
+        with:
+          file: ./test/coverage/lcov-unit.info
