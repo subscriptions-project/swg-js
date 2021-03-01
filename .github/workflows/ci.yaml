@@ -4,6 +4,8 @@ on: [push, pull_request]
 
 jobs:
   check:
+    # The Closure JavaScript compiler needs Java 8, and Ubuntu 20.04 LTS has it.
+    # Canonical will support this LTS until April 2025.
     runs-on: ubuntu-20.04
 
     steps:
@@ -11,6 +13,7 @@ jobs:
 
       - uses: actions/setup-java@v1
         with:
+          # The Closure JavaScript compiler needs Java 8.
           java-version: '8'
 
       - name: Install dependencies
@@ -20,6 +23,8 @@ jobs:
         run: gulp check
 
   e2e:
+    # The Closure JavaScript compiler needs Java 8, and Ubuntu 20.04 LTS has it.
+    # Canonical will support this LTS until April 2025.
     runs-on: ubuntu-20.04
 
     steps:
@@ -27,6 +32,7 @@ jobs:
 
       - uses: actions/setup-java@v1
         with:
+          # The Closure JavaScript compiler needs Java 8.
           java-version: '8'
 
       - name: Install dependencies
@@ -36,6 +42,8 @@ jobs:
         run: gulp e2e --retries=3
 
   unit:
+    # The Closure JavaScript compiler needs Java 8, and Ubuntu 20.04 LTS has it.
+    # Canonical will support this LTS until April 2025.
     runs-on: ubuntu-20.04
 
     steps:
@@ -43,6 +51,7 @@ jobs:
 
       - uses: actions/setup-java@v1
         with:
+          # The Closure JavaScript compiler needs Java 8.
           java-version: '8'
 
       - name: Install dependencies
