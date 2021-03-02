@@ -91,21 +91,22 @@ export class Xhr {
    * @return {!Promise<!FetchResponse>}
    */
   fetch(input, init) {
-    // TODO (avimehta): Figure out if CORS needs be handled the way AMP does it.
     init = setupInit(init);
     return this.fetch_(input, init)
-      .then(
-        (response) => response,
-        (reason) => {
+      .catch(reason => {
+        /*
+         * If the domain is not valid for SwG we return 404 without
+         * CORS headers and the browser throws a CORS an error.
+         * We include some helpful text in the mssage to point the
+         * publisher towards the real problem.
+         */
           const targetOrigin = parseUrl(input).origin;
           throw new Error(
-            `XHR Failed fetching (${targetOrigin}/...):`,
-            reason && reason.message
+            `XHR Failed fetching (${targetOrigin}/...): (Note: a CORS error above may indicate that this domain is not configured for Subscribe with Google)`, 
+             reason && reason.message
           );
         }
-      ).catch(e => {
-        log('[Subscriptions]', 'Fetch failed, a CORS error above may indicate that this domain is not registered for use with Subscribe with Google');
-      })
+      )
       .then((response) => assertSuccess(response));
   }
 }
