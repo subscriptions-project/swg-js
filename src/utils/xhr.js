@@ -97,7 +97,7 @@ export class Xhr {
         /*
          * If the domain is not valid for SwG we return 404 without
          * CORS headers and the browser throws a CORS an error.
-         * We include some helpful text in the mssage to point the
+         * We include some helpful text in the message to point the
          * publisher towards the real problem.
          */
         const targetOrigin = parseUrl(input).origin;
