@@ -93,20 +93,19 @@ export class Xhr {
   fetch(input, init) {
     init = setupInit(init);
     return this.fetch_(input, init)
-      .catch(reason => {
+      .catch((reason) => {
         /*
          * If the domain is not valid for SwG we return 404 without
          * CORS headers and the browser throws a CORS an error.
          * We include some helpful text in the mssage to point the
          * publisher towards the real problem.
          */
-          const targetOrigin = parseUrl(input).origin;
-          throw new Error(
-            `XHR Failed fetching (${targetOrigin}/...): (Note: a CORS error above may indicate that this domain is not configured for Subscribe with Google)`, 
-             reason && reason.message
-          );
-        }
-      )
+        const targetOrigin = parseUrl(input).origin;
+        throw new Error(
+          `XHR Failed fetching (${targetOrigin}/...): (Note: a CORS error above may indicate that this domain is not configured for Subscribe with Google)`,
+          reason && reason.message
+        );
+      })
       .then((response) => assertSuccess(response));
   }
 }
