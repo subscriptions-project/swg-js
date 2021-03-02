@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {assert} from './log';
+import {assert, log} from './log';
 import {parseJson} from './json';
 import {parseUrl} from './url';
 import {utf8EncodeSync} from './bytes';
@@ -103,7 +103,9 @@ export class Xhr {
             reason && reason.message
           );
         }
-      )
+      ).catch(e => {
+        log('[Subscriptions]', 'Fetch failed, a CORS error above may indicate that this domain is not registered for use with Subscribe with Google');
+      })
       .then((response) => assertSuccess(response));
   }
 }
