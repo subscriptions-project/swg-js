@@ -96,7 +96,7 @@ export class Xhr {
       .catch((reason) => {
         /*
          * If the domain is not valid for SwG we return 404 without
-         * CORS headers and the browser throws a CORS an error.
+         * CORS headers and the browser throws a CORS error.
          * We include some helpful text in the message to point the
          * publisher towards the real problem.
          */
