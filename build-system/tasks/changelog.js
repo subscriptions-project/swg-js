@@ -73,6 +73,12 @@ function getLastGithubRelease() {
       throw new Error('This is a prerelease: ' + id);
     }
     if (!tag) {
+      if (!process.env.GITHUB_ACCESS_TOKEN) {
+        throw new Error(
+          'Please add your GitHub personal access token as an environment variable named `GITHUB_ACCESS_TOKEN`. For more details, see https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token'
+        );
+      }
+
       throw new Error('No tag: ' + id);
     }
     return {
