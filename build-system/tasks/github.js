@@ -33,7 +33,5 @@ exports.githubRequest = function (req) {
       'Authorization': `token ${GITHUB_ACCESS_TOKEN}`,
       'User-Agent': 'swg-changelog-gulp-task',
     },
-  }).then((res) => {
-    return JSON.parse(res.body);
-  });
+  }).then((res) => JSON.parse(res.body));
 };
