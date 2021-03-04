@@ -27,15 +27,11 @@ const GITHUB_BASE = 'https://api.github.com/repos/subscriptions-project/swg-js';
 exports.githubRequest = function (req) {
   return request({
     url: GITHUB_BASE + req.path,
-    qs: Object.assign(
-      {
-        'access_token': GITHUB_ACCESS_TOKEN,
-      },
-      req.qs || {}
-    ),
+    qs: req.qs || {},
     headers: {
-      'User-Agent': 'swg-changelog-gulp-task',
       'Accept': 'application/vnd.github.v3+json',
+      'Authorization': `token ${GITHUB_ACCESS_TOKEN}`,
+      'User-Agent': 'swg-changelog-gulp-task',
     },
   }).then((res) => {
     return JSON.parse(res.body);
