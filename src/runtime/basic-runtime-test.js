@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import {AutoPromptType, BasicSubscriptions} from '../api/basic-subscriptions';
+import {
+  AutoPromptType,
+  BasicSubscriptions,
+  ClientTheme,
+} from '../api/basic-subscriptions';
 import {
   BasicRuntime,
   ConfiguredBasicRuntime,
@@ -225,6 +229,23 @@ describes.realWin('BasicRuntime', {}, (env) => {
       await expect(basicRuntime.configured_(true)).to.be.rejectedWith(
         /config broken/
       );
+    });
+
+    it('should initialize and save client options', async () => {
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        clientOptions: {
+          theme: ClientTheme.DARK,
+          lang: 'fr',
+        },
+      });
+      expect(basicRuntime.clientOptions_).to.deep.equal({
+        theme: ClientTheme.DARK,
+        lang: 'fr',
+      });
     });
   });
 
@@ -452,6 +473,42 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       await configuredBasicRuntime.setupAndShowAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
+    });
+
+    it('should set clientOptions in ClientConfigManager', () => {
+      configuredBasicRuntime = new ConfiguredBasicRuntime(
+        win,
+        pageConfig,
+        undefined,
+        undefined,
+        {theme: ClientTheme.DARK, lang: 'fr'}
+      );
+      expect(configuredBasicRuntime.clientConfigManager().getLanguage()).equals(
+        'fr'
+      );
+      expect(configuredBasicRuntime.clientConfigManager().getTheme()).equals(
+        ClientTheme.DARK
+      );
+    });
+
+    it('should pass ClientOptions to button setup', () => {
+      const clientOptions = {theme: ClientTheme.DARK, lang: 'fr'};
+      configuredBasicRuntime = new ConfiguredBasicRuntime(
+        win,
+        pageConfig,
+        /* integr */ undefined,
+        /* config */ undefined,
+        clientOptions
+      );
+      const buttonApiMock = sandbox.mock(configuredBasicRuntime.buttonApi_);
+      buttonApiMock
+        .expects('attachButtonsWithAttribute')
+        .withExactArgs(
+          /* attribute */ sandbox.match.any,
+          /* attributeValues */ sandbox.match.any,
+          clientOptions,
+          /* attributeValueToCallback */ sandbox.match.any
+        );
     });
   });
 });

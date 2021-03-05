@@ -36,6 +36,7 @@ export class BasicSubscriptions {
    *   isPartOfType: (string|!Array<string>),
    *   isPartOfProductId: string,
    *   autoPromptType: (AutoPromptType|undefined),
+   *   clientOptions: (ClientOptions|undefined),
    * }=} params
    */
   init(params) {}
@@ -64,7 +65,7 @@ export class BasicSubscriptions {
    * @param {{
    *   autoPromptType: (!AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
-   * }=} options
+   * }} options
    * @returns {!Promise}
    */
   setupAndShowAutoPrompt(options) {}
@@ -82,3 +83,21 @@ export const AutoPromptType = {
   CONTRIBUTION: 'contribution',
   SUBSCRIPTION: 'subscription',
 };
+
+/**
+ * Options for configuring all client UI.
+ * Properties:
+ * - lang: Sets the button and prompt lanugage. Default is "en".
+ * - theme: "light" or "dark". Default is "light".
+ *
+ * @typedef {{
+  *   theme: (ClientTheme|undefined),
+  *   lang: (string|undefined),
+  * }}
+  */
+ export let ClientOptions;
+
+ export const ClientTheme = {
+   LIGHT: 'light',
+   DARK: 'dark',
+ }

@@ -21,7 +21,6 @@ import {ClientConfigManager} from './client-config-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
-import {Theme} from './smart-button-api';
 import {XhrFetcher} from './fetcher';
 import {resolveDoc} from '../model/doc';
 
@@ -115,6 +114,9 @@ export class BasicRuntime {
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = {};
 
+    /** @private {../api/basic-subscriptions.ClientOptions|undefined} */
+    this.clientOptions_ = undefined;
+
     /** @private {boolean} */
     this.committed_ = false;
 
@@ -158,7 +160,8 @@ export class BasicRuntime {
               this.doc_,
               pageConfig,
               /* integr */ {configPromise: this.configuredPromise_},
-              this.config_
+              this.config_,
+              this.clientOptions_
             )
           );
           this.configuredResolver_ = null;
@@ -189,6 +192,8 @@ export class BasicRuntime {
         this.pageConfigWriter_ = null;
         this.configured_(true);
       });
+
+    this.clientOptions_ = params.clientOptions;
     this.setupAndShowAutoPrompt({
       autoPromptType: params.autoPromptType,
       alwaysShow: false,
@@ -245,8 +250,9 @@ export class ConfiguredBasicRuntime {
    *     configPromise: (!Promise|undefined),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
+   * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
    */
-  constructor(winOrDoc, pageConfig, integr, config) {
+  constructor(winOrDoc, pageConfig, integr, config, clientOptions) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = resolveDoc(winOrDoc);
 
@@ -273,7 +279,8 @@ export class ConfiguredBasicRuntime {
     /** @private @const {!ClientConfigManager} */
     this.clientConfigManager_ = new ClientConfigManager(
       pageConfig.getPublicationId(),
-      this.fetcher_
+      this.fetcher_,
+      clientOptions
     );
     this.clientConfigManager_.getClientConfig();
 
@@ -281,7 +288,10 @@ export class ConfiguredBasicRuntime {
     this.autoPromptManager_ = new AutoPromptManager(this);
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_, Promise.resolve(this));
+    this.buttonApi_ = new ButtonApi(
+      this.doc_,
+      Promise.resolve(this.configuredClassicRuntime_)
+    );
     this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
@@ -405,7 +415,10 @@ export class ConfiguredBasicRuntime {
         BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION,
         BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION,
       ],
-      {'theme': Theme.LIGHT}, // TODO(stellachui): Specify language in options.
+      {
+        theme: this.clientConfigManager_.getTheme(),
+        lang: this.clientConfigManager_.getLanguage(),
+      },
       {
         [BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION]: () => {
           this.configuredClassicRuntime_.showOffers();
