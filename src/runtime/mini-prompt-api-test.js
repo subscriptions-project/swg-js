@@ -104,6 +104,8 @@ describes.realWin('MiniPromptApi', {}, (env) => {
 
     beforeEach(() => {
       isDarkMode = false;
+      expectedTitle = undefined;
+      autoPromptType = AutoPromptType.NONE;
     });
 
     function setTheme() {
@@ -161,7 +163,6 @@ describes.realWin('MiniPromptApi', {}, (env) => {
       // that the callback was executed, and that the prompt is hidden
       // afterwards.
       await titleContainer.click();
-      expect(callbackSpy).to.be.calledOnce;
       expect(events.length).to.equal(2);
       const expectedClickEvent =
         autoPromptType === AutoPromptType.CONTRIBUTION
@@ -172,6 +173,7 @@ describes.realWin('MiniPromptApi', {}, (env) => {
         isFromUserAction: true,
       });
       expect(miniPrompt.style.visibility).to.equal('hidden');
+      expect(callbackSpy).to.be.calledOnce;
     }
 
     function expectMiniPromptNotCreated() {
