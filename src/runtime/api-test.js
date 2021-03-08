@@ -292,6 +292,7 @@ describes.sandboxed('SubscribeResponse', {}, () => {
       'entitlements': null,
       'productType': null,
       'oldSku': null,
+      'swgUserToken': null,
     });
     expect(sr.complete()).to.equal(promise);
   });
@@ -322,6 +323,7 @@ describes.sandboxed('SubscribeResponse', {}, () => {
       'entitlements': entitlements.json(),
       'productType': null,
       'oldSku': null,
+      'swgUserToken': null,
     });
   });
 });
