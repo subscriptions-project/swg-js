@@ -16,6 +16,7 @@
 
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {assert} from '../utils/log';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {setStyle} from '../utils/style';
@@ -54,6 +55,15 @@ const SUBSCRIPTION_TITLE_LANG_MAP = {
 const CONTRIBUTION_TITLE_LANG_MAP = {
   'en': 'Contribute with Google',
 };
+
+const TITLE_CONTAINER_DIV_HTML = `
+<div class="swg-mini-prompt-icon-$theme$"></div>
+<h1 class="swg-mini-prompt-title-text-$theme$">$textContent$</h1>
+`;
+
+const CLOSE_CONTAINER_DIV_HTML = `
+<div class="swg-mini-prompt-close-icon-$theme$"></div>
+`;
 
 /**
  * Class for handling the display (and logging) of the mini prompt.
@@ -120,50 +130,40 @@ export class MiniPromptApi {
 
     const theme = this.clientConfigManager_.getTheme();
     const lang = this.clientConfigManager_.getLanguage();
+    let textContent = '';
+    if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
+      textContent = msg(CONTRIBUTION_TITLE_LANG_MAP, lang) || '';
+    } else if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
+      textContent = msg(SUBSCRIPTION_TITLE_LANG_MAP, lang) || '';
+    }
 
     // Create all the elements for the mini prompt.
     /** @const {!Element} */
-    const miniPromptDiv = createElement(this.doc_.getWin().document, 'div', {});
+    const miniPromptDiv = createElement(this.doc_.getWin().document, 'div', {
+      'role': 'dialog',
+      'lang': lang,
+    });
     miniPromptDiv.classList.add(`swg-mini-prompt-${theme}`);
-    miniPromptDiv.setAttribute('role', 'dialog');
-    if (lang) {
-      miniPromptDiv.setAttribute('lang', lang);
-    }
-
     const titleContainerDiv = createElement(
       this.doc_.getWin().document,
       'div',
-      {}
+      {'role': 'button'}
     );
     titleContainerDiv.classList.add('swg-mini-prompt-title-container');
-    titleContainerDiv.setAttribute('role', 'button');
-
-    const iconDiv = createElement(this.doc_.getWin().document, 'div', {});
-    iconDiv.classList.add(`swg-mini-prompt-icon-${theme}`);
-
-    const titleTextH1 = createElement(this.doc_.getWin().document, 'h1', {});
-    titleTextH1.classList.add(`swg-mini-prompt-title-text-${theme}`);
-    if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
-      titleTextH1.textContent = msg(CONTRIBUTION_TITLE_LANG_MAP, lang) || '';
-    } else if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
-      titleTextH1.textContent = msg(SUBSCRIPTION_TITLE_LANG_MAP, lang) || '';
-    }
-
+    titleContainerDiv./*OK*/ innerHTML = TITLE_CONTAINER_DIV_HTML.replace(
+      '/$theme$/g',
+      theme
+    ).replace('$textContent$', textContent);
     const closeContainerDiv = createElement(
       this.doc_.getWin().document,
       'div',
       {}
     );
     closeContainerDiv.classList.add('swg-mini-prompt-close-button-container');
-    closeContainerDiv.setAttribute('role', 'button');
-
-    const closeIconDiv = createElement(this.doc_.getWin().document, 'div', {});
-    closeIconDiv.classList.add(`swg-mini-prompt-close-icon-${theme}`);
-
-    // Now put it all together and insert it into the page.
-    closeContainerDiv.appendChild(closeIconDiv);
-    titleContainerDiv.appendChild(iconDiv);
-    titleContainerDiv.appendChild(titleTextH1);
+    closeContainerDiv./*OK*/ innerHTML = CLOSE_CONTAINER_DIV_HTML.replace(
+      '$theme$',
+      theme
+    );
     miniPromptDiv.appendChild(titleContainerDiv);
     miniPromptDiv.appendChild(closeContainerDiv);
     this.doc_.getWin().document.body.appendChild(miniPromptDiv);

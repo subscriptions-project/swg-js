@@ -61,7 +61,7 @@ export class ClientConfigManager {
   /**
    * Convenience method for retrieving the auto prompt portion of the client
    * configuration.
-   * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig>}
+   * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig|undefined>}
    */
   getAutoPromptConfig() {
     if (!this.responsePromise_) {
