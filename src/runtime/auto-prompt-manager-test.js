@@ -23,6 +23,7 @@ import {DepsDef} from './deps';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher} from './fetcher';
+import {MiniPromptApi} from './mini-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 
@@ -38,6 +39,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   let clientConfigManager;
   let clientConfigManagerMock;
   let alternatePromptSpy;
+  let miniPromptApiMock;
   const productId = 'pub1:label1';
   const pubId = 'pub1';
 
@@ -69,14 +71,17 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);
 
+    sandbox.stub(MiniPromptApi.prototype, 'init');
     autoPromptManager = new AutoPromptManager(deps);
 
+    miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
     alternatePromptSpy = sandbox.spy();
   });
 
   afterEach(() => {
     entitlementsManagerMock.verify();
     clientConfigManagerMock.verify();
+    miniPromptApiMock.verify();
   });
 
   it('should display the contribution mini prompt if the user has no entitlements', async () => {
@@ -90,6 +95,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getAutoPromptConfig')
       .returns(Promise.resolve(autoPromptConfig))
       .once();
+    miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -97,12 +103,12 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       displayForLockedContentFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
-    // TODO(stellachui): Verify mini prompt is displayed when implemented.
   });
 
   it('should display the mini prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
     entitlementsManagerMock.expects('getEntitlements').never();
     clientConfigManagerMock.expects('getAutoPromptConfig').never();
+    miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -110,7 +116,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       displayForLockedContentFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
-    // TODO(stellachui): Verify mini prompt is displayed when implemented.
   });
 
   it('should not display any prompt if the type is undefined', async () => {
@@ -124,6 +129,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getAutoPromptConfig')
       .returns(Promise.resolve(autoPromptConfig))
       .once();
+    miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: undefined,
@@ -131,7 +137,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       displayForLockedContentFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
-    // TODO(stellachui): Verify mini prompt is not displayed when implemented.
   });
 
   it('should not display any prompt if the type is NONE', async () => {
@@ -145,6 +150,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getAutoPromptConfig')
       .returns(Promise.resolve(autoPromptConfig))
       .once();
+    miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.NONE,
@@ -152,7 +158,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       displayForLockedContentFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
-    // TODO(stellachui): Verify mini prompt is not displayed when implemented.
   });
 
   it('should not display any prompt if the auto prompt config is not returned', async () => {
@@ -165,6 +170,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getAutoPromptConfig')
       .returns(Promise.resolve())
       .once();
+    miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -172,7 +178,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       displayForLockedContentFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
-    // TODO(stellachui): Verify mini prompt is not displayed when implemented.
   });
 
   it('should display the mini prompt if the auto prompt config does not cap impressions', async () => {
@@ -186,6 +191,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getAutoPromptConfig')
       .returns(Promise.resolve(autoPromptConfig))
       .once();
+    miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -193,7 +199,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       displayForLockedContentFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
-    // TODO(stellachui): Verify mini prompt is displayed when implemented.
   });
 
   it('should display the subscription mini prompt if the user has no entitlements', async () => {
@@ -207,6 +212,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getAutoPromptConfig')
       .returns(Promise.resolve(autoPromptConfig))
       .once();
+    miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.SUBSCRIPTION,
@@ -214,7 +220,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       displayForLockedContentFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
-    // TODO(stellachui): Verify mini prompt is displayed when implemented.
   });
 
   it('should not display any prompt if the user has a valid entitlements', async () => {
@@ -229,6 +234,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getAutoPromptConfig')
       .returns(Promise.resolve(autoPromptConfig))
       .once();
+    miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -236,7 +242,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       displayForLockedContentFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
-    // TODO(stellachui): Verify mini prompt is not displayed when implemented.
   });
 
   it('should display the alternate prompt if the user has no entitlements, but the content is paygated', async () => {
@@ -251,6 +256,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getAutoPromptConfig')
       .returns(Promise.resolve(autoPromptConfig))
       .once();
+    miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -259,6 +265,5 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
 
     expect(alternatePromptSpy).to.be.calledOnce;
-    // TODO(stellachui): Verify mini prompt is not displayed when implemented.
   });
 });
