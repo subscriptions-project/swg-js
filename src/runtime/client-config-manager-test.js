@@ -17,6 +17,7 @@
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
+import {ClientTheme} from '../api/basic-subscriptions';
 import {Fetcher} from './fetcher';
 
 describes.realWin('ClientConfigManager', {}, () => {
@@ -90,5 +91,26 @@ describes.realWin('ClientConfigManager', {}, () => {
     expect(self.console.warn).to.have.been.calledWithExactly(
       'SwG ClientConfigManager: Something went wrong'
     );
+  });
+
+  it('should return default client options if unspecified', () => {
+    expect(clientConfigManager.getLanguage()).to.equal('en');
+    expect(clientConfigManager.getTheme()).to.equal(ClientTheme.LIGHT);
+  });
+
+  it('should return the language set in the constructor', () => {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+      lang: 'fr',
+    });
+    expect(clientConfigManager.getLanguage()).to.equal('fr');
+    expect(clientConfigManager.getTheme()).to.equal(ClientTheme.LIGHT);
+  });
+
+  it('should return the theme set in the constructor', () => {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+      theme: ClientTheme.DARK,
+    });
+    expect(clientConfigManager.getTheme()).to.equal(ClientTheme.DARK);
+    expect(clientConfigManager.getLanguage()).to.equal('en');
   });
 });
