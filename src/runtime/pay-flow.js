@@ -36,7 +36,6 @@ import {
   WindowOpenMode,
 } from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
-import {Storage} from './storage';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {getPropertyFromJsonString, parseJson} from '../utils/json';
@@ -255,9 +254,6 @@ export class PayCompleteFlow {
 
     /** @private {?string} */
     this.sku_ = null;
-
-    /** @private {?Storage} */
-    this.storage_ = null;
   }
 
   /**
@@ -289,8 +285,9 @@ export class PayCompleteFlow {
         .pushNextEntitlements(response.entitlements.raw);
       // Persist swgUserToken in local storage
       if (response.swgUserToken) {
-        this.storage_ = new Storage(this.win_);
-        this.storage_.set(Constants.USER_TOKEN, response.swgUserToken, true);
+        this.deps_
+          .storage()
+          .set(Constants.USER_TOKEN, response.swgUserToken, true);
       }
     } else {
       args['loginHint'] = response.userData && response.userData.email;
