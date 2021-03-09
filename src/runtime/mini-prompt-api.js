@@ -151,7 +151,7 @@ export class MiniPromptApi {
     );
     titleContainerDiv.classList.add('swg-mini-prompt-title-container');
     titleContainerDiv./*OK*/ innerHTML = TITLE_CONTAINER_DIV_HTML.replace(
-      '/$theme$/g',
+      /\$theme\$/g,
       theme
     ).replace('$textContent$', textContent);
     const closeContainerDiv = createElement(

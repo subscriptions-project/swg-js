@@ -126,26 +126,26 @@ describes.realWin('MiniPromptApi', {}, (env) => {
 
       // Check the mini prompt's structure and that it was inserted in the
       // document body.
-      expect(gd.getBody().childNodes).to.have.length(1);
-      const miniPrompt = gd.getBody().firstChild;
+      expect(gd.getBody().children.length).to.equal(1);
+      const miniPrompt = gd.getBody().children[0];
       expect(miniPrompt).to.have.class(`swg-mini-prompt-${theme}`);
       expect(miniPrompt.getAttribute('role')).to.equal('dialog');
-      expect(miniPrompt.childNodes).to.have.length(2);
-      const titleContainer = miniPrompt.firstChild;
+      expect(miniPrompt.children.length).to.equal(2);
+      const titleContainer = miniPrompt.children[0];
       expect(titleContainer).to.have.class('swg-mini-prompt-title-container');
       expect(titleContainer.getAttribute('role')).to.equal('button');
-      expect(titleContainer.childNodes).to.have.length(2);
-      const icon = titleContainer.childNodes[0];
-      const text = titleContainer.childNodes[1];
+      expect(titleContainer.children.length).to.equal(2);
+      const icon = titleContainer.children[0];
+      const text = titleContainer.children[1];
       expect(icon).to.have.class(`swg-mini-prompt-icon-${theme}`);
       expect(text).to.have.class(`swg-mini-prompt-title-text-${theme}`);
       expect(text.textContent).to.equal(expectedTitle);
-      const closeButton = miniPrompt.childNodes[1];
+      const closeButton = miniPrompt.children[1];
       expect(closeButton).to.have.class(
         'swg-mini-prompt-close-button-container'
       );
-      expect(closeButton.childNodes).to.have.length(1);
-      const closeIcon = closeButton.firstChild;
+      expect(closeButton.children.length).to.equal(1);
+      const closeIcon = closeButton.children[0];
       expect(closeIcon).to.have.class(`swg-mini-prompt-close-icon-${theme}`);
 
       // Check that the impression was logged.
@@ -177,7 +177,7 @@ describes.realWin('MiniPromptApi', {}, (env) => {
     }
 
     function expectMiniPromptNotCreated() {
-      expect(gd.getBody().childNodes).to.have.length(0);
+      expect(gd.getBody().children).to.have.length(0);
     }
 
     it('should not create a prompt if autoPromptType is not specified', () => {
@@ -193,49 +193,49 @@ describes.realWin('MiniPromptApi', {}, (env) => {
     it('should create a contribution prompt', async () => {
       setTheme();
       autoPromptType = AutoPromptType.CONTRIBUTION;
-      miniPromptApi.create({autoPromptType});
-      expectMiniPromptCreated();
+      miniPromptApi.create({autoPromptType, callback: callbackSpy});
+      await expectMiniPromptCreated();
     });
 
     it('should create a subscription prompt', async () => {
       setTheme();
       autoPromptType = AutoPromptType.SUBSCRIPTION;
-      miniPromptApi.create({autoPromptType});
-      expectMiniPromptCreated();
+      miniPromptApi.create({autoPromptType, callback: callbackSpy});
+      await expectMiniPromptCreated();
     });
 
     it('should create a dark themed contribution prompt as specified in the ClientConfigManager', async () => {
       isDarkMode = true;
       setTheme();
       autoPromptType = AutoPromptType.CONTRIBUTION;
-      miniPromptApi.create({autoPromptType});
-      expectMiniPromptCreated();
+      miniPromptApi.create({autoPromptType, callback: callbackSpy});
+      await expectMiniPromptCreated();
     });
 
     it('should create a dark themed subscription prompt as specified in the ClientConfigManager', async () => {
       isDarkMode = true;
       setTheme();
       autoPromptType = AutoPromptType.SUBSCRIPTION;
-      miniPromptApi.create({autoPromptType});
-      expectMiniPromptCreated();
+      miniPromptApi.create({autoPromptType, callback: callbackSpy});
+      await expectMiniPromptCreated();
     });
 
     it('should create a prompt in a non-default language if specified', async () => {
       setTheme();
       clientConfigManagerMock.expects('getLanguage').returns('fr');
       autoPromptType = AutoPromptType.SUBSCRIPTION;
-      miniPromptApi.create({autoPromptType});
+      miniPromptApi.create({autoPromptType, callback: callbackSpy});
       expectedTitle = "S'abonner avec Google";
-      expectMiniPromptCreated();
+      await expectMiniPromptCreated();
     });
 
     it('should close a contribution prompt when the close button is clicked', async () => {
       autoPromptType = AutoPromptType.CONTRIBUTION;
-      miniPromptApi.create({autoPromptType});
+      miniPromptApi.create({autoPromptType, callback: callbackSpy});
 
-      expect(gd.getBody().childNodes).to.have.length(1);
-      const miniPrompt = gd.getBody().firstChild;
-      const closeButton = miniPrompt.childNodes[1];
+      expect(gd.getBody().children).to.have.length(1);
+      const miniPrompt = gd.getBody().children[0];
+      const closeButton = miniPrompt.children[1];
       await closeButton.click();
       expect(callbackSpy).to.not.be.called;
       expect(events.length).to.equal(2); // First event is the impression.
@@ -248,11 +248,11 @@ describes.realWin('MiniPromptApi', {}, (env) => {
 
     it('should close a subscription prompt when the close button is clicked', async () => {
       autoPromptType = AutoPromptType.SUBSCRIPTION;
-      miniPromptApi.create({autoPromptType});
+      miniPromptApi.create({autoPromptType, callback: callbackSpy});
 
-      expect(gd.getBody().childNodes).to.have.length(1);
-      const miniPrompt = gd.getBody().firstChild;
-      const closeButton = miniPrompt.childNodes[1];
+      expect(gd.getBody().children).to.have.length(1);
+      const miniPrompt = gd.getBody().children[0];
+      const closeButton = miniPrompt.children[1];
       await closeButton.click();
       expect(callbackSpy).to.not.be.called;
       expect(events.length).to.equal(2); // First event is the impression.
