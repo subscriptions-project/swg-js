@@ -580,6 +580,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       ProductType.UI_CONTRIBUTION,
       null,
       null,
+      null,
       2
     );
     port = new ActivityPort();
