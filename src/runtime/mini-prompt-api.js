@@ -16,7 +16,7 @@
 
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {assert} from '../utils/log';
+import {assert, warn} from '../utils/log';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {setStyle} from '../utils/style';
@@ -94,6 +94,9 @@ export class MiniPromptApi {
   init() {
     const head = this.doc_.getHead();
     if (!head) {
+      warn(
+        'Unable to retrieve the head node of the current document, which is needed by MiniPromptApi.'
+      );
       return;
     }
 

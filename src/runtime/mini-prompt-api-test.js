@@ -58,10 +58,13 @@ describes.realWin('MiniPromptApi', {}, (env) => {
 
     callbackSpy = sandbox.spy();
     miniPromptApi = new MiniPromptApi(deps);
+
+    sandbox.stub(self.console, 'warn');
   });
 
   afterEach(() => {
     clientConfigManagerMock.verify();
+    self.console.warn.restore();
   });
 
   it('should insert the mini prompt css on init', () => {
@@ -95,6 +98,14 @@ describes.realWin('MiniPromptApi', {}, (env) => {
     expect(link.getAttribute('rel')).to.equal('stylesheet');
     expect(link.getAttribute('type')).to.equal('text/css');
     expect(link.getAttribute('href')).to.equal('$assets$/swg-mini-prompt.css');
+  });
+
+  it('should warn when document head is not available', () => {
+    sandbox.stub(gd, 'getHead').returns(undefined);
+    miniPromptApi.init();
+    expect(self.console.warn).to.have.been.calledWithExactly(
+      'Unable to retrieve the head node of the current document, which is needed by MiniPromptApi.'
+    );
   });
 
   describe('Create', () => {
