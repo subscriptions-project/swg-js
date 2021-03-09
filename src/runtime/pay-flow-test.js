@@ -611,6 +611,58 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     await flow.start(response);
   });
 
+  it('should have valid flow constructed w/ user token', async () => {
+    // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
+    const purchaseData = new PurchaseData();
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const response = new SubscribeResponse(
+      'RaW',
+      purchaseData,
+      userData,
+      entitlements,
+      ProductType.SUBSCRIPTION,
+      null,
+      null,
+      '123', // swgUserToken
+      null
+    );
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
+      .once();
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          idToken: 'ID_TOK',
+          productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
+          isOneTime: false,
+        }
+      )
+      .returns(Promise.resolve(port));
+    await flow.start(response);
+    expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
+  });
+
   it('should complete the flow', async () => {
     const purchaseData = new PurchaseData();
     const userData = new UserData('ID_TOK', {
