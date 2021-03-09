@@ -15,6 +15,7 @@
  */
 
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {MiniPromptApi} from './mini-prompt-api';
 import {assert} from '../utils/log';
 
 /**
@@ -41,6 +42,9 @@ export class AutoPromptManager {
       this.clientConfigManager_,
       'AutoPromptManager requires an instance of ClientConfigManager.'
     );
+
+    this.miniPromptAPI_ = new MiniPromptApi(deps);
+    this.miniPromptAPI_.init();
   }
 
   /**
@@ -55,13 +59,16 @@ export class AutoPromptManager {
    *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
    *   displayForLockedContentFn: (function()|undefined),
-   * }=} params
+   * }} params
    * @return {!Promise}
    */
   showAutoPrompt(params) {
     // Manual override of display rules, mainly for demo purposes.
     if (params.alwaysShow) {
-      // TODO(stellachui): Show the mini prompt.
+      this.miniPromptAPI_.create({
+        autoPromptType: params.autoPromptType,
+        callback: params.displayForLockedContentFn,
+      });
       return Promise.resolve();
     }
 
@@ -85,7 +92,7 @@ export class AutoPromptManager {
    *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
    *   displayForLockedContentFn: (function()|undefined),
-   * }=} params
+   * }} params
    */
   showAutoPrompt_(autoPromptConfig, entitlements, params) {
     if (
@@ -103,13 +110,16 @@ export class AutoPromptManager {
       }
       return;
     }
-    // TODO(stellachui): Show the mini prompt.
+    this.miniPromptAPI_.create({
+      autoPromptType: params.autoPromptType,
+      callback: params.displayForLockedContentFn,
+    });
   }
 
   /**
    * Determines whether a mini prompt for contributions or subscriptions should
    * be shown.
-   * @param {!../model/auto-prompt-config.AutoPromptConfig} autoPromptConfig
+   * @param {!../model/auto-prompt-config.AutoPromptConfig|undefined} autoPromptConfig
    * @param {!../api/entitlements.Entitlements} entitlements
    * @param {!AutoPromptType|undefined} autoPromptType
    * @returns {boolean}

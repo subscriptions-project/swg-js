@@ -16,6 +16,7 @@
 
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig} from '../model/client-config';
+import {ClientTheme} from '../api/basic-subscriptions';
 import {serviceUrl} from './services';
 import {warn} from '../utils/log';
 
@@ -27,8 +28,12 @@ export class ClientConfigManager {
   /**
    * @param {string} publicationId
    * @param {!./fetcher.Fetcher} fetcher
+   * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
    */
-  constructor(publicationId, fetcher) {
+  constructor(publicationId, fetcher, clientOptions) {
+    /** @private @const {!../api/basic-subscriptions.ClientOptions} */
+    this.clientOptions_ = clientOptions || {};
+
     /** @private @const {string} */
     this.publicationId_ = publicationId;
 
@@ -56,15 +61,33 @@ export class ClientConfigManager {
   /**
    * Convenience method for retrieving the auto prompt portion of the client
    * configuration.
-   * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig>}
+   * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig|undefined>}
    */
   getAutoPromptConfig() {
     if (!this.responsePromise_) {
       this.getClientConfig();
     }
     return this.responsePromise_.then(
-      (clientConfig) => clientConfig.autoPromptConfig
+      (clientConfig) => clientConfig.autoPromptConfig || undefined
     );
+  }
+
+  /**
+   * Gets the language the UI should be displayed in. See
+   * src/api/basic-subscriptions.ClientOptions.lang. This
+   * @return {string}
+   */
+  getLanguage() {
+    return this.clientOptions_.lang || 'en';
+  }
+
+  /**
+   * Gets the theme the UI should be displayed in. See
+   * src/api/basic-subscriptions.ClientOptions.theme.
+   * @return {!ClientTheme}
+   */
+  getTheme() {
+    return this.clientOptions_.theme || ClientTheme.LIGHT;
   }
 
   /**
