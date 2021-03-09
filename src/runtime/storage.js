@@ -16,6 +16,11 @@
 
 const PREFIX = 'subscribe.google.com';
 
+/**
+ * This class is responsible for the storage of data in session storage. If
+ * you're looking to store data in local storage, see
+ * src/runtime/local-storage.LocalStorage.
+ */
 export class Storage {
   /**
    * @param {!Window} win
@@ -30,14 +35,18 @@ export class Storage {
 
   /**
    * @param {string} key
+   * @param {boolean=} useLocalStorage
    * @return {!Promise<?string>}
    */
-  get(key) {
+  get(key, useLocalStorage = false) {
     if (!this.values_[key]) {
       this.values_[key] = new Promise((resolve) => {
-        if (this.win_.sessionStorage) {
+        const storage = useLocalStorage
+          ? this.win_.localStorage
+          : this.win_.sessionStorage;
+        if (storage) {
           try {
-            resolve(this.win_.sessionStorage.getItem(storageKey(key)));
+            resolve(storage.getItem(storageKey(key)));
           } catch (e) {
             // Ignore error.
             resolve(null);
@@ -53,14 +62,18 @@ export class Storage {
   /**
    * @param {string} key
    * @param {string} value
+   * @param {boolean=} useLocalStorage
    * @return {!Promise}
    */
-  set(key, value) {
+  set(key, value, useLocalStorage = false) {
     this.values_[key] = Promise.resolve(value);
     return new Promise((resolve) => {
-      if (this.win_.sessionStorage) {
+      const storage = useLocalStorage
+        ? this.win_.localStorage
+        : this.win_.sessionStorage;
+      if (storage) {
         try {
-          this.win_.sessionStorage.setItem(storageKey(key), value);
+          storage.setItem(storageKey(key), value);
         } catch (e) {
           // Ignore error.
         }
@@ -71,14 +84,18 @@ export class Storage {
 
   /**
    * @param {string} key
+   * @param {boolean=} useLocalStorage
    * @return {!Promise}
    */
-  remove(key) {
+  remove(key, useLocalStorage = false) {
     delete this.values_[key];
     return new Promise((resolve) => {
-      if (this.win_.sessionStorage) {
+      const storage = useLocalStorage
+        ? this.win_.localStorage
+        : this.win_.sessionStorage;
+      if (storage) {
         try {
-          this.win_.sessionStorage.removeItem(storageKey(key));
+          storage.removeItem(storageKey(key));
         } catch (e) {
           // Ignore error.
         }
