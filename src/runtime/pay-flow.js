@@ -28,6 +28,7 @@ import {
 } from '../proto/api_messages';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {Constants} from '../utils/constants';
 import {JwtHelper} from '../utils/jwt';
 import {
   ProductType,
@@ -282,6 +283,12 @@ export class PayCompleteFlow {
       this.deps_
         .entitlementsManager()
         .pushNextEntitlements(response.entitlements.raw);
+      // Persist swgUserToken in local storage
+      if (response.swgUserToken) {
+        this.deps_
+          .storage()
+          .set(Constants.USER_TOKEN, response.swgUserToken, true);
+      }
     } else {
       args['loginHint'] = response.userData && response.userData.email;
     }
