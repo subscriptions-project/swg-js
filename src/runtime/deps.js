@@ -14,14 +14,6 @@
  * limitations under the License.
  */
 
-// The ClientConfigManager import is needed because it's referenced here, but
-// not yet needed for SwG classic/imported by runtime.js (but that will soon
-// change).
-// TODO(stellachui): Remove this import once we start requiring a
-//   ClientConfigManager in both runtimes.
-// eslint-disable-next-line no-unused-vars
-import {ClientConfigManager} from './client-config-manager';
-
 /** @interface */
 export class DepsDef {
   /**
@@ -90,7 +82,7 @@ export class DepsDef {
   eventManager() {}
 
   /**
-   * @return {?../runtime/client-config-manager.ClientConfigManager}
+   * @return {!../runtime/client-config-manager.ClientConfigManager}
    */
   clientConfigManager() {}
 }

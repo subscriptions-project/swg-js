@@ -29,6 +29,7 @@ import {
   Subscriptions,
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
+import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {
   ConfiguredRuntime,
@@ -1270,7 +1271,9 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
       expect(runtime.jserror()).to.be.instanceOf(JsError);
       expect(runtime.payClient()).to.be.instanceOf(PayClient);
-      expect(runtime.clientConfigManager()).to.be.null;
+      expect(runtime.clientConfigManager()).to.be.instanceOf(
+        ClientConfigManager
+      );
     });
 
     it('should report the redirect failure', () => {

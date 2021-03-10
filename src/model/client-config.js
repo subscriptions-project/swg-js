@@ -19,10 +19,10 @@
  */
 export class ClientConfig {
   /**
-   * @param {?./auto-prompt-config.AutoPromptConfig} autoPromptConfig
+   * @param {!./auto-prompt-config.AutoPromptConfig=} autoPromptConfig
    */
   constructor(autoPromptConfig) {
-    /** @const {?./auto-prompt-config.AutoPromptConfig} */
+    /** @const {!./auto-prompt-config.AutoPromptConfig|undefined} */
     this.autoPromptConfig = autoPromptConfig;
   }
 }

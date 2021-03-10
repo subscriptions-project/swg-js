@@ -48,14 +48,23 @@ export class ClientConfigManager {
    * Fetches the client config from the server.
    * @return {!Promise<!ClientConfig>}
    */
-  getClientConfig() {
+  fetchClientConfig() {
     if (!this.publicationId_) {
-      throw new Error('getClientConfig requires publicationId');
+      throw new Error('fetchClientConfig requires publicationId');
     }
     if (!this.responsePromise_) {
       this.responsePromise_ = this.fetch_();
     }
     return this.responsePromise_;
+  }
+
+  /**
+   * Gets the client config, if already requested. Otherwise returns a Promise
+   * with an empty ClientConfig.
+   * @return {!Promise<!ClientConfig>}
+   */
+  getClientConfig() {
+    return this.responsePromise_ || Promise.resolve(new ClientConfig());
   }
 
   /**
@@ -65,10 +74,10 @@ export class ClientConfigManager {
    */
   getAutoPromptConfig() {
     if (!this.responsePromise_) {
-      this.getClientConfig();
+      this.fetchClientConfig();
     }
     return this.responsePromise_.then(
-      (clientConfig) => clientConfig.autoPromptConfig || undefined
+      (clientConfig) => clientConfig.autoPromptConfig
     );
   }
 
@@ -117,7 +126,7 @@ export class ClientConfigManager {
    */
   parseClientConfig_(json) {
     const autoPromptConfigJson = json['autoPromptConfig'];
-    let autoPromptConfig = null;
+    let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
       autoPromptConfig = new AutoPromptConfig(
         autoPromptConfigJson['maxImpressionsPerWeek']
