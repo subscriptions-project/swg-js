@@ -25,6 +25,7 @@ import {AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
+import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
@@ -529,8 +530,12 @@ export class ConfiguredRuntime {
    *     configPromise: (!Promise|undefined),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
+   * @param {!{
+   *   theme: (string|undefined),
+   *   lang: (string|undefined),
+   *   }=} clientOptions
    */
-  constructor(winOrDoc, pageConfig, integr, config) {
+  constructor(winOrDoc, pageConfig, integr, config, clientOptions) {
     integr = integr || {};
     integr.configPromise = integr.configPromise || Promise.resolve();
 
@@ -597,6 +602,13 @@ export class ConfiguredRuntime {
       this.pageConfig_,
       this.fetcher_,
       this // See note about 'this' above
+    );
+
+    /** @private @const {!ClientConfigManager} */
+    this.clientConfigManager_ = new ClientConfigManager(
+      pageConfig.getPublicationId(),
+      this.fetcher_,
+      clientOptions
     );
 
     /** @private @const {!Propensity} */
@@ -689,7 +701,7 @@ export class ConfiguredRuntime {
 
   /** @override */
   clientConfigManager() {
-    return null;
+    return this.clientConfigManager_;
   }
 
   /** @override */

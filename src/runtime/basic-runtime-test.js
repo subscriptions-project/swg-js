@@ -375,7 +375,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         configuredBasicRuntime.configuredClassicRuntime_.entitlementsManager_
       );
       clientConfigManagerMock = sandbox.mock(
-        configuredBasicRuntime.clientConfigManager_
+        configuredBasicRuntime.configuredClassicRuntime_.clientConfigManager_
       );
       configuredClassicRuntimeMock = sandbox.mock(
         configuredBasicRuntime.configuredClassicRuntime_
@@ -421,6 +421,11 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     it('should delegate entitlementsManager to ConfiguredRuntime', () => {
       configuredClassicRuntimeMock.expects('entitlementsManager').once();
       configuredBasicRuntime.entitlementsManager();
+    });
+
+    it('should delegate clientConfigManager to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('clientConfigManager').once();
+      configuredBasicRuntime.clientConfigManager();
     });
 
     it('should delegate callbacks to ConfiguredRuntime', () => {
