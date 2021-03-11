@@ -36,6 +36,7 @@ import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
 import {Toast} from '../ui/toast';
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
+import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {feArgs, feUrl} from '../runtime/services';
 import {getCanonicalUrl} from '../utils/url';
 import {hash} from '../utils/string';
@@ -644,7 +645,9 @@ export class EntitlementsManager {
           }
 
           // Encode params.
-          const encodedParams = btoa(JSON.stringify(encodableParams));
+          const encodedParams = base64UrlEncodeFromBytes(
+            utf8EncodeSync(JSON.stringify(encodableParams))
+          );
           urlParams.push('encodedParams=' + encodedParams);
         }
 
