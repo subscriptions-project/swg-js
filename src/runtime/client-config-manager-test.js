@@ -63,7 +63,20 @@ describes.realWin('ClientConfigManager', {}, () => {
     }).to.throw('fetchClientConfig requires publicationId');
   });
 
-  it('getAutoPromptConfig should return AutoPromptConfig object', async () => {
+  it('getAutoPromptConfig should return undefined if the autoPromptConfig is not present in the response', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .returns(Promise.resolve({}))
+      .once();
+
+    const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
+    expect(autoPromptConfig).to.be.undefined;
+  });
+
+  it('getAutoPromptConfig should return AutoPromptConfig object even if part of the config is missing', async () => {
     const expectedUrl =
       '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
@@ -72,9 +85,45 @@ describes.realWin('ClientConfigManager', {}, () => {
       .returns(Promise.resolve({autoPromptConfig: {maxImpressionsPerWeek: 3}}))
       .once();
 
-    const expectedAutoPromptConfig = new AutoPromptConfig(3);
     const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
-    expect(autoPromptConfig).to.deep.equal(expectedAutoPromptConfig);
+    expect(autoPromptConfig.maxImpressionsPerWeek).to.equal(3);
+    expect(autoPromptConfig.clientDisplayTrigger).to.not.be.undefined;
+    expect(autoPromptConfig.explicitDismissalConfig).to.not.be.undefined;
+  });
+
+  it('getAutoPromptConfig should return AutoPromptConfig object', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .returns(
+        Promise.resolve({
+          autoPromptConfig: {
+            maxImpressionsPerWeek: 1,
+            clientDisplayTrigger: {dismissalDelaySeconds: 2},
+            explicitDismissalConfig: {
+              backoffSeconds: 3,
+              maxDismissalsPerWeek: 4,
+              maxDismissalsResultingHideSeconds: 5,
+            },
+          },
+        })
+      )
+      .once();
+
+    const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
+    expect(autoPromptConfig.maxImpressionsPerWeek).to.equal(1);
+    expect(
+      autoPromptConfig.clientDisplayTrigger.dismissalDelaySeconds
+    ).to.equal(2);
+    expect(autoPromptConfig.explicitDismissalConfig.backoffSeconds).to.equal(3);
+    expect(
+      autoPromptConfig.explicitDismissalConfig.maxDismissalsPerWeek
+    ).to.equal(4);
+    expect(
+      autoPromptConfig.explicitDismissalConfig.maxDismissalsResultingHideSeconds
+    ).to.equal(5);
   });
 
   it('fetchClientConfig should log errors from the response', async () => {

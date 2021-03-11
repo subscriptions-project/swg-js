@@ -19,10 +19,64 @@
  */
 export class AutoPromptConfig {
   /**
-   * @param {number} maxImpressionsPerWeek
+   * @param {number|undefined} maxImpressionsPerWeek
    */
-  constructor(maxImpressionsPerWeek) {
-    /** @const {number} */
+  constructor(
+    maxImpressionsPerWeek,
+    dismissalDelaySeconds,
+    backoffSeconds,
+    maxDismissalsPerWeek,
+    maxDismissalsResultingHideSeconds
+  ) {
+    /** @const {number|undefined} */
     this.maxImpressionsPerWeek = maxImpressionsPerWeek;
+
+    /** @const {!ClientDisplayTrigger} */
+    this.clientDisplayTrigger = new ClientDisplayTrigger(dismissalDelaySeconds);
+
+    /** @const {!ExplicitDismissalConfig} */
+    this.explicitDismissalConfig = new ExplicitDismissalConfig(
+      backoffSeconds,
+      maxDismissalsPerWeek,
+      maxDismissalsResultingHideSeconds
+    );
+  }
+}
+
+/**
+ *
+ */
+export class ClientDisplayTrigger {
+  /**
+   * @param {number|undefined} dismissalDelaySeconds
+   */
+  constructor(dismissalDelaySeconds) {
+    /** @const {number|undefined} */
+    this.dismissalDelaySeconds = dismissalDelaySeconds;
+  }
+}
+
+/**
+ *
+ */
+export class ExplicitDismissalConfig {
+  /**
+   * @param {number|undefined} backoffSeconds
+   * @param {number|undefined} maxDismissalsPerWeek
+   * @param {number|undefined} maxDismissalsResultingHideSeconds
+   */
+  constructor(
+    backoffSeconds,
+    maxDismissalsPerWeek,
+    maxDismissalsResultingHideSeconds
+  ) {
+    /** @const {number|undefined} */
+    this.backoffSeconds = backoffSeconds;
+
+    /** @const {number|undefined} */
+    this.maxDismissalsPerWeek = maxDismissalsPerWeek;
+
+    /** @const {number|undefined} */
+    this.maxDismissalsResultingHideSeconds = maxDismissalsResultingHideSeconds;
   }
 }
