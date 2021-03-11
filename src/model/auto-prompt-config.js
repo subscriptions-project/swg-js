@@ -44,7 +44,7 @@ export class AutoPromptConfig {
 }
 
 /**
- *
+ * Client side conditions to trigger the display of the auto prompt.
  */
 export class ClientDisplayTrigger {
   /**
@@ -57,7 +57,7 @@ export class ClientDisplayTrigger {
 }
 
 /**
- *
+ * Configuration of explicit dismissal behavior and its effects.
  */
 export class ExplicitDismissalConfig {
   /**
