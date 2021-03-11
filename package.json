@@ -79,7 +79,7 @@
     "is-running": "2.1.0",
     "json-stable-stringify": "1.0.1",
     "jsonwebtoken": "8.5.1",
-    "karma": "6.1.2",
+    "karma": "6.2.0",
     "karma-browserify": "8.0.0",
     "karma-chai": "0.1.0",
     "karma-chrome-launcher": "3.1.0",
