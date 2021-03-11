@@ -116,6 +116,7 @@ export class ClientConfigManager {
    * @return {!ClientConfig}
    */
   parseClientConfig_(json) {
+    const paySwgVersion = json['paySwgVersion'];
     const autoPromptConfigJson = json['autoPromptConfig'];
     let autoPromptConfig = null;
     if (autoPromptConfigJson) {
@@ -123,6 +124,6 @@ export class ClientConfigManager {
         autoPromptConfigJson['maxImpressionsPerWeek']
       );
     }
-    return new ClientConfig(autoPromptConfig);
+    return new ClientConfig(autoPromptConfig, paySwgVersion);
   }
 }

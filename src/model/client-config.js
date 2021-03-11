@@ -21,8 +21,10 @@ export class ClientConfig {
   /**
    * @param {?./auto-prompt-config.AutoPromptConfig} autoPromptConfig
    */
-  constructor(autoPromptConfig) {
-    /** @const {?./auto-prompt-config.AutoPromptConfig} */
-    this.autoPromptConfig = autoPromptConfig;
+  constructor(autoPromptConfig, paySwgVersion) {
+	  /** @const {?./auto-prompt-config.AutoPromptConfig} */
+	  this.autoPromptConfig = autoPromptConfig;
+    /** @const {?string} */
+    this.paySwgVersion = paySwgVersion;
   }
 }
