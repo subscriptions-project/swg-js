@@ -129,7 +129,19 @@ export class ClientConfigManager {
     let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
       autoPromptConfig = new AutoPromptConfig(
-        autoPromptConfigJson['maxImpressionsPerWeek']
+        autoPromptConfigJson['maxImpressionsPerWeek'],
+        autoPromptConfigJson['clientDisplayTrigger'] &&
+          autoPromptConfigJson['clientDisplayTrigger']['dismissalDelaySeconds'],
+        autoPromptConfigJson['explicitDismissalConfig'] &&
+          autoPromptConfigJson['explicitDismissalConfig']['backoffSeconds'],
+        autoPromptConfigJson['explicitDismissalConfig'] &&
+          autoPromptConfigJson['explicitDismissalConfig'][
+            'maxDismissalsPerWeek'
+          ],
+        autoPromptConfigJson['explicitDismissalConfig'] &&
+          autoPromptConfigJson['explicitDismissalConfig'][
+            'maxDismissalsResultingHideSeconds'
+          ]
       );
     }
     return new ClientConfig(autoPromptConfig);
