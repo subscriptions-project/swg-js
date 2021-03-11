@@ -107,7 +107,7 @@
     "prettier": "2.2.1",
     "regenerator-runtime": "0.13.7",
     "request": "2.88.2",
-    "rollup": "2.41.0",
+    "rollup": "2.41.1",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "shuffle-seed": "1.1.6",
