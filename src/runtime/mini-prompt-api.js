@@ -192,7 +192,7 @@ export class MiniPromptApi {
 
   /**
    * Logs an impression of the mini prompt.
-   * @param {!AutoPromptType} autoPromptType
+   * @param {!AutoPromptType|undefined} autoPromptType
    */
   logImpression_(autoPromptType) {
     let event;
