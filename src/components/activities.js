@@ -229,7 +229,7 @@ export class ActivityIframePort {
 
   /**
    * @param {!function(new: T)} message
-   * @param {function(!../proto/api_messages.Message)} callback
+   * @param {function(?)} callback
    * @template T
    */
   on(message, callback) {

@@ -57,7 +57,7 @@ const TITLE_LANG_MAP = {
  *
  * @typedef {{
  *   options: (!../api/subscriptions.SmartButtonOptions|!../api/subscriptions.ButtonOptions),
- *   clickFun: !function(Event),
+ *   clickFun: !function(!Event=),
  * }} ButtonParams
  */
 export let ButtonParams;
