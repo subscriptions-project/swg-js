@@ -19,13 +19,13 @@ const argv = require('minimist')(process.argv.slice(2));
 const closureCompiler = require('google-closure-compiler');
 const fs = require('fs-extra');
 const gulp = require('gulp');
-const internalRuntimeVersion = require('./internal-version').VERSION;
+const path = require('path');
+const pumpify = require('pumpify');
 const rename = require('gulp-rename');
 const replace = require('gulp-replace');
 const resolveConfig = require('./compile-config').resolveConfig;
 const sourcemaps = require('gulp-sourcemaps');
 
-const isProdBuild = !!argv.type;
 const queue = [];
 let inProgress = 0;
 const MAX_PARALLEL_CLOSURE_INVOCATIONS = 4;
@@ -97,22 +97,8 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     // If undefined/null or false then we're ok executing the deletions
     // and mkdir.
     const unneededFiles = [];
-    let wrapper = '(function(){%output%})();';
-    if (options.wrapper) {
-      wrapper = options.wrapper.replace('<%= contents %>', '%output%');
-    }
-    wrapper += '\n//# sourceMappingURL=' + outputFilename + '.map\n';
     if (fs.existsSync(intermediateFilename)) {
       fs.unlinkSync(intermediateFilename);
-    }
-    let sourceMapBase = 'http://localhost:8000/';
-    if (isProdBuild || options.isProdBuild) {
-      // Point sourcemap to fetch files from correct GitHub tag.
-      sourceMapBase =
-        'https://raw.githubusercontent.com/' +
-        'subscriptions-project/swg-js/' +
-        (argv.sourceBranch || internalRuntimeVersion) +
-        '/';
     }
     const srcs = [
       // Files under build/. Should be sparse.
@@ -166,7 +152,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
 
     /*eslint "google-camelcase/google-camelcase": 0*/
     const compilerOptions = {
-      compilation_level: options.compilationLevel || 'SIMPLE_OPTIMIZATIONS',
+      compilation_level: options.compilationLevel || 'SIMPLE',
       // Turns on more optimizations.
       assume_function_wrapper: true,
       // Transpile from modern JavaScript to ES5.
@@ -185,10 +171,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       // This strips all files from the input set that aren't explicitly
       // required.
       dependency_mode: 'PRUNE',
-      output_wrapper: wrapper,
-      source_map_include_content: false,
-      create_source_map: 'build/cc/' + intermediateFilename + '.map',
-      source_map_location_mapping: '|' + sourceMapBase,
+      isolation_mode: 'IIFE',
       warning_level: 'DEFAULT',
       // Turn off warning for "Unknown @define" since we use define to pass
       // args such as FORTESTING to our runner.
@@ -234,14 +217,8 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     let stream = gulp
       .src(srcs, {base: './'})
       .pipe(sourcemaps.init())
-      .pipe(closureCompiler.gulp()(compilerOptions))
+      .pipe(makeSourcemapsRelative(closureCompiler.gulp()(compilerOptions)))
       .pipe(rename(intermediateFilename))
-      .pipe(
-        sourcemaps.write('.', {
-          sourceRoot: 'build/cc/',
-          includeContent: false,
-        })
-      )
       .pipe(gulp.dest('build/cc/'))
       .on('error', function (err) {
         console./*OK*/ error(red('Error compiling', entryModuleFilenames));
@@ -251,7 +228,12 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
 
     // If we're only doing type checking, no need to output the files.
     if (!argv.typecheck_only) {
-      stream = stream.pipe(rename(outputFilename));
+      stream = stream.pipe(rename(outputFilename)).pipe(
+        sourcemaps.write('.', {
+          sourceRoot: outputDir,
+          includeContent: false,
+        })
+      );
 
       // Replacements.
       const replacements = resolveConfig();
@@ -262,14 +244,28 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       }
 
       // Complete build: dist and source maps.
-      stream = stream.pipe(gulp.dest(outputDir)).on('end', function () {
-        gulp
-          .src('build/cc/' + intermediateFilename + '.map')
-          .pipe(rename(outputFilename + '.map'))
-          .pipe(gulp.dest(outputDir))
-          .on('end', resolve);
-      });
+      stream = stream.pipe(gulp.dest(outputDir)).on('end', resolve);
     }
     return stream;
   });
+}
+
+/**
+ * Normalize the sourcemap file paths before pushing into Closure.
+ * Closure don't follow Gulp's normal sourcemap "root" pattern. Gulp considers
+ * all files to be relative to the CWD by default, meaning a file `src/foo.js`
+ * with a sourcemap alongside points to `src/foo.js`. Closure considers each
+ * file relative to the sourcemap. Since the sourcemap for `src/foo.js` "lives"
+ * in `src/`, it ends up resolving to `src/src/foo.js`.
+ *
+ * @param {!NodeJS.WritableStream} closureStream
+ * @return {!NodeJS.WritableStream}
+ */
+function makeSourcemapsRelative(closureStream) {
+  const relativeSourceMap = sourcemaps.mapSources((source, file) => {
+    const dir = path.dirname(file.sourceMap.file);
+    return path.relative(dir, source);
+  });
+
+  return pumpify.obj(relativeSourceMap, closureStream);
 }
