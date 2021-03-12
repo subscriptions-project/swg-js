@@ -319,7 +319,7 @@ export class LinkSaveFlow {
     if (!response || !response.getRequested()) {
       return;
     }
-    this.requestPromise_ = Promise.resolve(this.callback_())
+    this.requestPromise_ = new Promise((resolve) => resolve(this.callback_()))
       .then((request) => {
         const saveRequest = new LinkSaveTokenRequest();
         if (request && request.token) {
