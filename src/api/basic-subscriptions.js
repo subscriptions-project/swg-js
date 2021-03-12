@@ -22,7 +22,6 @@ import {SubscribeResponse} from './subscribe-response';
  * @interface
  */
 export class BasicSubscriptions {
-
   /**
    * Initializes the basic subscriptions runtime. This includes setting of the
    * specified param values in the JSON-LD markup of the page, sets up any SwG
@@ -44,12 +43,14 @@ export class BasicSubscriptions {
   /**
    * Set the entitlement check callback.
    * @param {function(!Promise<!Entitlements>)} callback
+   * @return {?}
    */
   setOnEntitlementsResponse(callback) {}
 
   /**
    * Set the payment complete callback.
    * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @return {?}
    */
   setOnPaymentResponse(callback) {}
 
@@ -73,6 +74,7 @@ export class BasicSubscriptions {
   /**
    * Dismisses any SwG UI currently displayed. Intended to be used for preview
    * purposes.
+   * @return {?}
    */
   dismissSwgUI() {}
 }
@@ -91,13 +93,14 @@ export const AutoPromptType = {
  * - theme: "light" or "dark". Default is "light".
  *
  * @typedef {{
-  *   theme: (ClientTheme|undefined),
-  *   lang: (string|undefined),
-  * }}
-  */
- export let ClientOptions;
+ *   theme: (ClientTheme|undefined),
+ *   lang: (string|undefined),
+ * }}
+ */
+export let ClientOptions;
 
- export const ClientTheme = {
-   LIGHT: 'light',
-   DARK: 'dark',
- }
+/** @enum {string} */
+export const ClientTheme = {
+  LIGHT: 'light',
+  DARK: 'dark',
+};

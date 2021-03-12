@@ -531,8 +531,8 @@ export class ConfiguredRuntime {
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
    * @param {!{
-   *   theme: (string|undefined),
    *   lang: (string|undefined),
+   *   theme: (!../api/basic-subscriptions.ClientTheme|undefined),
    *   }=} clientOptions
    */
   constructor(winOrDoc, pageConfig, integr, config, clientOptions) {
@@ -1069,7 +1069,7 @@ export class ConfiguredRuntime {
       !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
       !queryStringHasFreshGaaParams(this.win().location.search)
     ) {
-      return;
+      return Promise.resolve();
     }
 
     const eventsToLog =
@@ -1085,6 +1085,8 @@ export class ConfiguredRuntime {
         additionalParameters: params,
       });
     }
+
+    return Promise.resolve();
   }
 
   /** @override */
@@ -1151,7 +1153,6 @@ function createPublicRuntime(runtime) {
 }
 
 /**
- * @return {!Function}
  * @protected
  */
 export function getSubscriptionsClassForTesting() {
@@ -1159,7 +1160,6 @@ export function getSubscriptionsClassForTesting() {
 }
 
 /**
- * @return {!Function}
  * @protected
  */
 export function getFetcherClassForTesting() {

@@ -273,9 +273,9 @@ export class PayCompleteFlow {
     // TODO(dianajing): future-proof isOneTime flag
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'productType': this.response_['productType'],
-      'isSubscriptionUpdate': !!this.response_['oldSku'],
-      'isOneTime': !!this.response_['paymentRecurrence'],
+      'productType': this.response_.productType,
+      'isSubscriptionUpdate': !!this.response_.oldSku,
+      'isOneTime': !!this.response_.paymentRecurrence,
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {

@@ -41,7 +41,7 @@ export class SmartSubscriptionButtonApi {
    * @param {!./deps.DepsDef} deps
    * @param {!Element} button
    * @param {!../api/subscriptions.SmartButtonOptions} options
-   * @param {function()=} callback
+   * @param {function(Event)=} callback
    */
   constructor(deps, button, options, callback) {
     /** @private @const {!./deps.DepsDef} */
@@ -91,14 +91,15 @@ export class SmartSubscriptionButtonApi {
   }
 
   /**
-   * @param {SmartBoxMessage} smartBoxMessage
+   * @param {../proto/api_messages.Message} message
    */
-  handleSmartBoxClick_(smartBoxMessage) {
-    if (smartBoxMessage && smartBoxMessage.getIsClicked()) {
+  handleSmartBoxClick_(message) {
+    const smartBoxMessage = /** @type {SmartBoxMessage} */ (message);
+    if (smartBoxMessage?.getIsClicked()) {
       if (!this.callback_) {
         throw new Error('No callback!');
       }
-      this.callback_();
+      this.callback_(null);
       return;
     }
   }

@@ -119,7 +119,7 @@ export class MiniPromptApi {
   /**
    * Creates the element and displays it on the page.
    * @param {{
-   *   autoPromptType: (!AutoPromptType),
+   *   autoPromptType: (!AutoPromptType|undefined),
    *   callback: (function()|undefined),
    * }} options
    */
@@ -209,7 +209,7 @@ export class MiniPromptApi {
 
   /**
    * Logs a click of the mini prompt.
-   * @param {!AutoPromptType} autoPromptType
+   * @param {!AutoPromptType|undefined} autoPromptType
    */
   logClick_(autoPromptType) {
     let event;
@@ -226,7 +226,7 @@ export class MiniPromptApi {
 
   /**
    * Logs a user initiated dismissal of the mini prompt.
-   * @param {!AutoPromptType} autoPromptType
+   * @param {!AutoPromptType|undefined} autoPromptType
    */
   logClose_(autoPromptType) {
     let event;
