@@ -16,7 +16,7 @@
 'use strict';
 
 const argv = require('minimist')(process.argv.slice(2));
-const closureCompiler = require('google-closure-compiler');
+const closureCompiler = require('@ampproject/google-closure-compiler');
 const fs = require('fs-extra');
 const gulp = require('gulp');
 const path = require('path');
@@ -187,6 +187,10 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       ],
       jscomp_error: [],
     };
+
+    // Apply AMP's optimizations, reducing binary size by roughly 25%.
+    // https://github.com/ampproject/amp-closure-compiler/blob/a2c1262c6bb2acfafb5f6672283bbac5623e4a1d/src/org/ampproject/AmpCodingConvention.java#L71
+    compilerOptions.define.push('AMP_MODE=true');
 
     // For now do type check separately
     if (argv.typecheck_only || checkTypes) {
