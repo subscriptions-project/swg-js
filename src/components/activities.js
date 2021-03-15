@@ -19,10 +19,11 @@ import {
   deserialize,
   getLabel,
 } from '../proto/api_messages';
-import {
-  ActivityIframePort as WebActivityIframePort,
-  ActivityPorts as WebActivityPorts,
-} from 'web-activities/activity-ports';
+
+const {
+  ActivityIframePort: WebActivityIframePort,
+  ActivityPorts: WebActivityPorts,
+} = require('web-activities/activity-ports');
 
 /**
  * @interface
@@ -132,7 +133,7 @@ export class ActivityIframePort {
   constructor(iframe, url, deps, args) {
     /** @private @const {!web-activities/activity-ports.ActivityIframePort} */
     this.iframePort_ = new WebActivityIframePort(iframe, url, args);
-    /** @private @const {!Object<string, function(!Object)>} */
+    /** @private @const {!Object<string, function(!../proto/api_messages.Message)>} */
     this.callbackMap_ = {};
 
     /** @private @const {../runtime/deps.DepsDef} */
@@ -168,11 +169,12 @@ export class ActivityIframePort {
 
       if (this.deps_ && this.deps_.eventManager()) {
         this.on(AnalyticsRequest, (request) => {
+          const analyticsRequest = /** @type {AnalyticsRequest} */ (request);
           this.deps_.eventManager().logEvent({
-            eventType: request.getEvent(),
+            eventType: analyticsRequest.getEvent(),
             eventOriginator: EventOriginator.SWG_SERVER,
-            isFromUserAction: request.getMeta().getIsFromUserAction(),
-            additionalParameters: request.getParams(),
+            isFromUserAction: analyticsRequest.getMeta().getIsFromUserAction(),
+            additionalParameters: analyticsRequest.getParams(),
           });
         });
       }
@@ -227,7 +229,7 @@ export class ActivityIframePort {
 
   /**
    * @param {!function(new: T)} message
-   * @param {function(!../proto/api_messages.Message)} callback
+   * @param {function(?)} callback
    * @template T
    */
   on(message, callback) {

@@ -93,7 +93,7 @@ export class ClientConfigManager {
   /**
    * Gets the theme the UI should be displayed in. See
    * src/api/basic-subscriptions.ClientOptions.theme.
-   * @return {!ClientTheme}
+   * @return {!../api/basic-subscriptions.ClientTheme}
    */
   getTheme() {
     return this.clientOptions_.theme || ClientTheme.LIGHT;
@@ -129,7 +129,19 @@ export class ClientConfigManager {
     let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
       autoPromptConfig = new AutoPromptConfig(
-        autoPromptConfigJson['maxImpressionsPerWeek']
+        autoPromptConfigJson['maxImpressionsPerWeek'],
+        autoPromptConfigJson['clientDisplayTrigger'] &&
+          autoPromptConfigJson['clientDisplayTrigger']['dismissalDelaySeconds'],
+        autoPromptConfigJson['explicitDismissalConfig'] &&
+          autoPromptConfigJson['explicitDismissalConfig']['backoffSeconds'],
+        autoPromptConfigJson['explicitDismissalConfig'] &&
+          autoPromptConfigJson['explicitDismissalConfig'][
+            'maxDismissalsPerWeek'
+          ],
+        autoPromptConfigJson['explicitDismissalConfig'] &&
+          autoPromptConfigJson['explicitDismissalConfig'][
+            'maxDismissalsResultingHideSeconds'
+          ]
       );
     }
     return new ClientConfig(autoPromptConfig);
