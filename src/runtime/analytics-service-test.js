@@ -218,7 +218,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
       expect(request1.getMeta().getEventOriginator()).to.equal(
         EventOriginator.UNKNOWN_CLIENT
       );
-      expect(request1.getMeta().getIsFromUserAction()).to.be.null;
+      expect(request1.getMeta().getIsFromUserAction()).to.be.false;
 
       // This sends another event and waits for it to be sent
       eventManagerCallback({

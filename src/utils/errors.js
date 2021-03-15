@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import {createAbortError, isAbortError} from 'web-activities/activity-ports';
+const {
+  createAbortError,
+  isAbortError,
+} = require('web-activities/activity-ports');
 
 /**
  * Whether the specified error is an AbortError type.

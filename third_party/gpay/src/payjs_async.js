@@ -15,12 +15,6 @@
  * limitations under the License.
  */
 
-import {Constants} from './constants.js';
-import {PaymentsClientDelegateInterface} from './payments_client_delegate_interface.js';
-import {PaymentsRequestDelegate} from './payments_request_delegate.js';
-import {PaymentsWebActivityDelegate} from './payments_web_activity_delegate.js';
-import {UpiHandler} from './upi_handler.js';
-import {ActivityPorts} from 'web-activities/activity-ports';
 import {
   BuyFlowActivityMode,
   BuyFlowMode,
@@ -28,17 +22,24 @@ import {
   PostMessageEventType,
   PublicErrorCode,
 } from './pay_frame_helper.js';
+import {Constants} from './constants.js';
+import {PaymentsClientDelegateInterface} from './payments_client_delegate_interface.js';
+import {PaymentsRequestDelegate} from './payments_request_delegate.js';
+import {PaymentsWebActivityDelegate} from './payments_web_activity_delegate.js';
+import {UpiHandler} from './upi_handler.js';
 import {
   apiV2DoesMerchantSupportSpecifiedCardType,
   chromeSupportsPaymentHandler,
   chromeSupportsPaymentRequest,
   doesMerchantSupportOnlyTokenizedCards,
   getUpiPaymentMethod,
-  validatePaymentOptions,
   validateIsReadyToPayRequest,
   validatePaymentDataRequest,
+  validatePaymentOptions,
   validateSecureContext,
 } from './validator.js';
+
+const {ActivityPorts} = require('web-activities/activity-ports');
 
 import {createGoogleTransactionId} from './utils.js';
 
@@ -83,12 +84,11 @@ class PaymentsAsyncClient {
     this.environment_ =
       paymentOptions.environment || Constants.Environment.TEST;
     if (!PaymentsAsyncClient.googleTransactionId_) {
-      PaymentsAsyncClient.googleTransactionId_ =
-        /** @type {string} */ (this.isInTrustedDomain_() &&
-        paymentOptions['i'] &&
-        paymentOptions['i']['googleTransactionId']
-          ? paymentOptions['i']['googleTransactionId']
-          : createGoogleTransactionId(this.environment_));
+      PaymentsAsyncClient.googleTransactionId_ = /** @type {string} */ (this.isInTrustedDomain_() &&
+      paymentOptions['i'] &&
+      paymentOptions['i']['googleTransactionId']
+        ? paymentOptions['i']['googleTransactionId']
+        : createGoogleTransactionId(this.environment_));
     }
 
     /** @private @const {!PaymentOptions} */
@@ -141,7 +141,7 @@ class PaymentsAsyncClient {
       'clientLatencyStartMs': Date.now(),
     });
 
-    window.addEventListener('message', event =>
+    window.addEventListener('message', (event) =>
       this.handleMessageEvent_(event)
     );
   }
@@ -183,7 +183,7 @@ class PaymentsAsyncClient {
 
     const isReadyToPayPromise = this.isReadyToPay_(isReadyToPayRequest);
 
-    isReadyToPayPromise.then(response => {
+    isReadyToPayPromise.then((response) => {
       PayFrameHelper.postMessage({
         'eventType': PostMessageEventType.LOG_IS_READY_TO_PAY_API,
         'clientLatencyStartMs': startTimeMs,
@@ -303,7 +303,7 @@ class PaymentsAsyncClient {
       return nativePromise.then(() => webPromise);
     }
 
-    return nativePromise.then(nativeResult => {
+    return nativePromise.then((nativeResult) => {
       if ((nativeResult && nativeResult['result']) == true) {
         return nativeResult;
       }
@@ -466,14 +466,14 @@ class PaymentsAsyncClient {
    */
   onResult_(response) {
     response
-      .then(result => {
+      .then((result) => {
         PayFrameHelper.postMessage({
           'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
           'clientLatencyStartMs': this.loadPaymentDataApiStartTimeMs_,
           'buyFlowMode': this.buyFlowMode_,
         });
       })
-      .catch(result => {
+      .catch((result) => {
         if (result['errorCode']) {
           PayFrameHelper.postMessage({
             'eventType': PostMessageEventType.LOG_LOAD_PAYMENT_DATA_API,
@@ -509,7 +509,7 @@ class PaymentsAsyncClient {
   }
 }
 
-/** @const {?string} */
+/** @type {?string} */
 PaymentsAsyncClient.googleTransactionId_;
 
 /**

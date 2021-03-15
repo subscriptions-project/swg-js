@@ -196,9 +196,9 @@ class MetaParser {
       this.doc_.getRootNode(),
       'subscriptions-accessible-for-free'
     );
-    const locked =
-      (accessibleForFree && accessibleForFree.toLowerCase() == 'false') ||
-      false;
+    const locked = !!(
+      accessibleForFree && accessibleForFree.toLowerCase() === 'false'
+    );
 
     return new PageConfig(productId, locked);
   }
@@ -266,7 +266,7 @@ class JsonLdParser {
       possibleConfigs = [possibleConfigs];
     }
 
-    for (let i = 0; i < possibleConfigs.length; i++) {
+    for (let i = 0; i < /** @type {Array} */ (possibleConfigs).length; i++) {
       const possibleConfig = possibleConfigs[i];
 
       // Must be an ALLOWED_TYPE

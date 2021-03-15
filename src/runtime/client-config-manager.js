@@ -93,7 +93,7 @@ export class ClientConfigManager {
   /**
    * Gets the theme the UI should be displayed in. See
    * src/api/basic-subscriptions.ClientOptions.theme.
-   * @return {!ClientTheme}
+   * @return {!../api/basic-subscriptions.ClientTheme}
    */
   getTheme() {
     return this.clientOptions_.theme || ClientTheme.LIGHT;

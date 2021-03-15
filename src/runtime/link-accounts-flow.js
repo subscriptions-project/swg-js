@@ -319,9 +319,7 @@ export class LinkSaveFlow {
     if (!response || !response.getRequested()) {
       return;
     }
-    this.requestPromise_ = new Promise((resolve) => {
-      resolve(this.callback_());
-    })
+    this.requestPromise_ = new Promise((resolve) => resolve(this.callback_()))
       .then((request) => {
         const saveRequest = new LinkSaveTokenRequest();
         if (request && request.token) {
@@ -336,6 +334,7 @@ export class LinkSaveFlow {
           throw new Error('Neither token or authCode is available');
         }
         this.activityIframeView_.execute(saveRequest);
+        return request;
       })
       .catch((reason) => {
         // The flow is complete.
