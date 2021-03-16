@@ -16,7 +16,7 @@
 
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {ButtonApi} from './button-api';
+import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
@@ -25,8 +25,6 @@ import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 const BUTTON_ATTRIUBUTE = 'swg-standard-button';
-const BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION = 'subscription';
-const BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION = 'contribution';
 
 /**
  * Reference to the runtime, for testing.
@@ -410,21 +408,18 @@ export class ConfiguredBasicRuntime {
   setupButtons() {
     this.buttonApi_.attachButtonsWithAttribute(
       BUTTON_ATTRIUBUTE,
-      [
-        BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION,
-        BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION,
-      ],
+      [ButtonAttributeValues.SUBSCRIPTION, ButtonAttributeValues.CONTRIBUTION],
       {
         theme: this.clientConfigManager().getTheme(),
         lang: this.clientConfigManager().getLanguage(),
       },
       {
-        [BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION]: () => {
+        [ButtonAttributeValues.SUBSCRIPTION]: () => {
           this.configuredClassicRuntime_.showOffers({
             isClosable: !this.pageConfig().isLocked(),
           });
         },
-        [BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION]: () => {
+        [ButtonAttributeValues.CONTRIBUTION]: () => {
           this.configuredClassicRuntime_.showContributionOptions({
             isClosable: !this.pageConfig().isLocked(),
           });
