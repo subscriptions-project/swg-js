@@ -139,7 +139,7 @@ function getNodeLatestLtsVersion(distributionsJson) {
 }
 
 function main() {
-  // The CI should have the right versions installed.
+  // The CI already uses Yarn and the latest Nodejs LTS.
   if (isCiBuild()) {
     return 0;
   }
