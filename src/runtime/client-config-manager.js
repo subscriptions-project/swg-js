@@ -130,19 +130,11 @@ export class ClientConfigManager {
     let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
       autoPromptConfig = new AutoPromptConfig(
-        autoPromptConfigJson['maxImpressionsPerWeek'],
-        autoPromptConfigJson['clientDisplayTrigger'] &&
-          autoPromptConfigJson['clientDisplayTrigger']['dismissalDelaySeconds'],
-        autoPromptConfigJson['explicitDismissalConfig'] &&
-          autoPromptConfigJson['explicitDismissalConfig']['backoffSeconds'],
-        autoPromptConfigJson['explicitDismissalConfig'] &&
-          autoPromptConfigJson['explicitDismissalConfig'][
-            'maxDismissalsPerWeek'
-          ],
-        autoPromptConfigJson['explicitDismissalConfig'] &&
-          autoPromptConfigJson['explicitDismissalConfig'][
-            'maxDismissalsResultingHideSeconds'
-          ]
+        autoPromptConfigJson.maxImpressionsPerWeek,
+        autoPromptConfigJson.clientDisplayTrigger?.dismissalDelaySeconds,
+        autoPromptConfigJson.explicitDismissalConfig?.backoffSeconds,
+        autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsPerWeek,
+        autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsResultingHideSeconds
       );
     }
     return new ClientConfig(autoPromptConfig, paySwgVersion);

@@ -17,7 +17,7 @@
 'use strict';
 
 /**
- * @fileoverview Checks Yarn and Node before 'yarn';
+ * @fileoverview Checks package manager and Nodejs version;
  */
 
 const https = require('https');
@@ -25,7 +25,6 @@ const {getStdout} = require('./exec');
 const {isCiBuild} = require('./ci');
 
 const nodeDistributionsUrl = 'https://nodejs.org/dist/index.json';
-const yarnExecutable = 'npx yarn';
 const warningDelaySecs = 10;
 const updatesNeeded = new Set();
 const log = console /*OK*/.log;
@@ -48,18 +47,16 @@ function yellow(text) {
 function ensureYarn() {
   if (process.env.npm_execpath.indexOf('yarn') === -1) {
     log(red('*** The SwG project uses yarn for package management ***'), '\n');
-    log(yellow('To install the stable version of Yarn:'));
-    log(cyan('$'), 'curl -o- -L https://yarnpkg.com/install.sh | bash', '\n');
     log(yellow('To install all packages:'));
-    log(cyan('$'), 'yarn', '\n');
+    log(cyan('$'), 'npx yarn', '\n');
     log(yellow('To install a new (runtime) package to "dependencies":'));
-    log(cyan('$'), 'yarn add --exact [package_name@version]', '\n');
+    log(cyan('$'), 'npx yarn add --exact [package_name@version]', '\n');
     log(yellow('To install a new (toolset) package to "devDependencies":'));
-    log(cyan('$'), 'yarn add --dev --exact [package_name@version]', '\n');
+    log(cyan('$'), 'npx yarn add --dev --exact [package_name@version]', '\n');
     log(yellow('To upgrade a package:'));
-    log(cyan('$'), 'yarn upgrade --exact [package_name@version]', '\n');
+    log(cyan('$'), 'npx yarn upgrade --exact [package_name@version]', '\n');
     log(yellow('To remove a package:'));
-    log(cyan('$'), 'yarn remove [package_name]', '\n');
+    log(cyan('$'), 'npx yarn remove [package_name]', '\n');
     process.exit(1);
   }
 }
@@ -141,63 +138,13 @@ function getNodeLatestLtsVersion(distributionsJson) {
   }
 }
 
-// If yarn is being run, perform a version check and proceed with the install.
-function checkYarnVersion() {
-  const yarnVersion = getStdout(yarnExecutable + ' --version').trim();
-  const yarnInfo = getStdout(yarnExecutable + ' info --json yarn').trim();
-  const yarnInfoJson = JSON.parse(yarnInfo.split('\n')[0]); // First line
-  const stableVersion = getYarnStableVersion(yarnInfoJson);
-  if (stableVersion === '') {
-    log(
-      yellow(
-        'WARNING: Something went wrong. ' +
-          'Could not determine the stable version of yarn.'
-      )
-    );
-  } else if (yarnVersion !== stableVersion) {
-    log(
-      yellow('WARNING: Detected yarn version'),
-      cyan(yarnVersion) + yellow('. Recommended (stable) version is'),
-      cyan(stableVersion) + yellow('.')
-    );
-    log(
-      yellow('⤷ To fix this, run'),
-      cyan('"curl -o- -L https://yarnpkg.com/install.sh | bash"'),
-      yellow('or see'),
-      cyan('https://yarnpkg.com/docs/install'),
-      yellow('for instructions.')
-    );
-    updatesNeeded.add('yarn');
-  } else {
-    log(
-      green('Detected'),
-      cyan('yarn'),
-      green('version'),
-      cyan(yarnVersion + ' (stable)') + green('. Installing packages...')
-    );
-  }
-}
-
-function getYarnStableVersion(infoJson) {
-  if (
-    infoJson &&
-    infoJson.hasOwnProperty('data') &&
-    infoJson.data.hasOwnProperty('version')
-  ) {
-    return infoJson.data.version;
-  } else {
-    return '';
-  }
-}
-
 function main() {
-  // The CI already uses Yarn.
+  // The CI already uses Yarn and the latest Nodejs LTS.
   if (isCiBuild()) {
     return 0;
   }
   ensureYarn();
   return checkNodeVersion().then(() => {
-    checkYarnVersion();
     if (updatesNeeded.size > 0) {
       log(
         yellow('\nWARNING: Detected problems with'),
