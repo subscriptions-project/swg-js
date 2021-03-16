@@ -445,10 +445,10 @@ export class GaaMeteringRegwall {
 
     for (let i = 0; i < ldJsonElements.length; i++) {
       const ldJsonElement = ldJsonElements[i];
-      const ldJson = /** @type {{ publisher: { name: string } }} */ (parseJson(
+      const ldJson = /** @type {?{ publisher: ?{ name: string } }} */ (parseJson(
         ldJsonElement.textContent
       ));
-      if (ldJson.publisher && ldJson.publisher.name) {
+      if (ldJson?.publisher?.name) {
         return ldJson.publisher.name;
       }
     }

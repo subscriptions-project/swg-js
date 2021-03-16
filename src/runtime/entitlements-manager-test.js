@@ -668,8 +668,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             source: 'google:metering',
           },
         });
-      const encodedParams = btoa(
-        '{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[{"name":"standard_att1","timestamp":1234567},{"name":"custom_att2","timestamp":1234567}]}}}'
+      const encodedParams = base64UrlEncodeFromBytes(
+        utf8EncodeSync(
+          '{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[{"name":"standard_att1","timestamp":1234567},{"name":"custom_att2","timestamp":1234567}]}}}'
+        )
       );
       xhrMock
         .expects('fetch')
@@ -1474,7 +1476,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('should store non-empty Google response', async () => {
       const raw = expectGoogleResponse()['signedEntitlements'];
-      expect(raw).to.match(/e30\=\.eyJpc3MiOiJnb/);
+      expect(raw).to.match(/e30\.eyJpc3MiOiJnb/);
       expectGetIsReadyToPayToBeCalled(null);
       storageMock
         .expects('get')
@@ -1495,7 +1497,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('should store non-empty non-Google response', async () => {
       const raw = expectNonGoogleResponse()['signedEntitlements'];
-      expect(raw).to.match(/e30\=\.eyJpc3MiOiJnb/);
+      expect(raw).to.match(/e30\.eyJpc3MiOiJnb/);
       expectGetIsReadyToPayToBeCalled(null);
       storageMock
         .expects('get')

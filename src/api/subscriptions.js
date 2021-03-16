@@ -41,21 +41,25 @@ export class Subscriptions {
    * Optionally configures the runtime with non-default properties. See
    * `Config` definition for details.
    * @param {!Config} config
+   * @return {?}
    */
   configure(config) {}
 
   /**
    * Starts the entitlement flow.
+   * @return {?}
    */
   start() {}
 
   /**
    * Resets the entitlements that can be fetched again.
+   * @return {?}
    */
   reset() {}
 
   /**
    * Resets the entitlements and clears all of the caches.
+   * @return {?}
    */
   clear() {}
 
@@ -68,6 +72,7 @@ export class Subscriptions {
   /**
    * Set the subscribe callback.
    * @param {function(!Promise<!Entitlements>)} callback
+   * @return {?}
    */
   setOnEntitlementsResponse(callback) {}
 
@@ -83,24 +88,28 @@ export class Subscriptions {
   /**
    * Starts the Offers flow.
    * @param {!OffersRequest=} options
+   * @return {?}
    */
   showOffers(options) {}
 
   /**
    * Starts the Offers flow for a subscription update.
    * @param {!OffersRequest=} options
+   * @return {?}
    */
   showUpdateOffers(options) {}
 
   /**
    * Show subscription option.
    * @param {!OffersRequest=} options
+   * @return {?}
    */
   showSubscribeOption(options) {}
 
   /**
    * Show abbreviated offers.
    * @param {!OffersRequest=} options
+   * @return {?}
    */
   showAbbrvOffer(options) {}
 
@@ -112,6 +121,7 @@ export class Subscriptions {
    * console for a given publication.
    * Each SKU has Amount, Period, SKUId and other attributes.
    * @param {!OffersRequest=} options
+   * @return {?}
    */
   showContributionOptions(options) {}
 
@@ -119,42 +129,49 @@ export class Subscriptions {
    * Set the callback for the native subscribe request. Setting this callback
    * triggers the "native" option in the offers flow.
    * @param {function()} callback
+   * @return {?}
    */
   setOnNativeSubscribeRequest(callback) {}
 
   /**
    * Set the subscribe complete callback.
    * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @return {?}
    */
   setOnSubscribeResponse(callback) {}
 
   /**
    * Starts subscription purchase flow.
    * @param {string} sku
+   * @return {?}
    */
   subscribe(sku) {}
 
   /**
    * Starts subscription purchase flow.
    * @param {SubscriptionRequest} subscriptionRequest
+   * @return {?}
    */
   updateSubscription(subscriptionRequest) {}
 
   /**
    * Set the contribution complete callback.
    * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @return {?}
    */
   setOnContributionResponse(callback) {}
 
   /**
    * Set the payment complete callback.
    * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @return {?}
    */
   setOnPaymentResponse(callback) {}
 
   /**
    * Starts contributions purchase flow.
    * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
+   * @return {?}
    */
   contribute(skuOrSubscriptionRequest) {}
 
@@ -168,11 +185,13 @@ export class Subscriptions {
 
   /**
    * @param {function(!LoginRequest)} callback
+   * @return {?}
    */
   setOnLoginRequest(callback) {}
 
   /**
    * @param {!LoginRequest} request
+   * @return {?}
    */
   triggerLoginRequest(request) {}
 
@@ -190,6 +209,7 @@ export class Subscriptions {
 
   /**
    * @param {function()} callback
+   * @return {?}
    */
   setOnLinkComplete(callback) {}
 
@@ -203,6 +223,7 @@ export class Subscriptions {
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
    * @param {{ampReaderId: (string|undefined)}=} params
+   * @return {?}
    */
   linkAccount(params) {}
 
@@ -215,6 +236,7 @@ export class Subscriptions {
    * Also see `setOnFlowCanceled` method.
    *
    * @param {function({flow: string, data: !Object})} callback
+   * @return {?}
    */
   setOnFlowStarted(callback) {}
 
@@ -230,6 +252,7 @@ export class Subscriptions {
    * Also see `setOnFlowStarted` method.
    *
    * @param {function({flow: string, data: !Object})} callback
+   * @return {?}
    */
   setOnFlowCanceled(callback) {}
 
@@ -257,6 +280,7 @@ export class Subscriptions {
    * @param {!Element} button
    * @param {!ButtonOptions|function()} optionsOrCallback
    * @param {function()=} callback
+   * @return {?}
    */
   attachButton(button, optionsOrCallback, callback) {}
 
@@ -267,6 +291,7 @@ export class Subscriptions {
    * @param {!Element} button
    * @param {!SmartButtonOptions|function()} optionsOrCallback
    * @param {function()=} callback
+   * @return {?}
    */
   attachSmartButton(button, optionsOrCallback, callback) {}
 
@@ -288,6 +313,7 @@ export class Subscriptions {
    * and entitlement related UI events.  SwG will automatically do this for Google
    * sourced subscriptions and meters.
    * @param {!PublisherEntitlement} entitlement
+   * @return {?}
    */
   setShowcaseEntitlement(entitlement) {}
 
@@ -296,6 +322,7 @@ export class Subscriptions {
    * should call this method to consume Showcase entitlements.
    * @param {string} showcaseEntitlementJwt
    * @param {?Function=} onCloseDialog Called after the user closes the dialog.
+   * @return {?}
    */
   consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {}
 }
@@ -525,8 +552,7 @@ export let SaveSubscriptionRequest;
 /**
  * Callback for retrieving subscription request
  *
- * @callback SaveSubscriptionRequestCallback
- * @return {!Promise<SaveSubscriptionRequest> | !SaveSubscriptionRequest} request
+ * @typedef {function():(!Promise<SaveSubscriptionRequest> | !SaveSubscriptionRequest)} SaveSubscriptionRequestCallback
  */
 export let SaveSubscriptionRequestCallback;
 

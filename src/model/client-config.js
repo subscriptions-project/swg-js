@@ -19,12 +19,13 @@
  */
 export class ClientConfig {
   /**
-   * @param {?./auto-prompt-config.AutoPromptConfig} autoPromptConfig
+   * @param {!./auto-prompt-config.AutoPromptConfig=} autoPromptConfig
+   * @param {!string} payViewConfig
    */
-  constructor(autoPromptConfig, paySwgVersion) {
-	  /** @const {?./auto-prompt-config.AutoPromptConfig} */
-	  this.autoPromptConfig = autoPromptConfig;
-    /** @const {?string} */
-    this.paySwgVersion = paySwgVersion;
+  constructor(autoPromptConfig, payViewConfig) {
+    /** @const {!./auto-prompt-config.AutoPromptConfig|undefined} */
+    this.autoPromptConfig = autoPromptConfig;
+    /** @const {!string|undefined} */
+    this.payViewConfig = payViewConfig;
   }
 }

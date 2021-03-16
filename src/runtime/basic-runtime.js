@@ -17,7 +17,6 @@
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi} from './button-api';
-import {ClientConfigManager} from './client-config-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
@@ -271,18 +270,14 @@ export class ConfiguredBasicRuntime {
       winOrDoc,
       pageConfig,
       integr,
-      config
+      config,
+      clientOptions
     );
     // Fetches entitlements.
     this.configuredClassicRuntime_.start();
 
-    /** @private @const {!ClientConfigManager} */
-    this.clientConfigManager_ = new ClientConfigManager(
-      pageConfig.getPublicationId(),
-      this.fetcher_,
-      clientOptions
-    );
-    this.clientConfigManager_.getClientConfig();
+    // Fetch the client config.
+    this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig();
 
     /** @private @const {!AutoPromptManager} */
     this.autoPromptManager_ = new AutoPromptManager(this);
@@ -367,7 +362,7 @@ export class ConfiguredBasicRuntime {
 
   /** @override */
   clientConfigManager() {
-    return this.clientConfigManager_;
+    return this.configuredClassicRuntime_.clientConfigManager();
   }
 
   /** @override */
@@ -416,8 +411,8 @@ export class ConfiguredBasicRuntime {
         BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION,
       ],
       {
-        theme: this.clientConfigManager_.getTheme(),
-        lang: this.clientConfigManager_.getLanguage(),
+        theme: this.clientConfigManager().getTheme(),
+        lang: this.clientConfigManager().getLanguage(),
       },
       {
         [BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION]: () => {

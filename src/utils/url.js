@@ -209,7 +209,7 @@ export function addQueryParam(url, param, value) {
  * @return {string}
  */
 export function serializeProtoMessageForUrl(message) {
-  return JSON.stringify(/** @type {JsonObject} */ (message.toArray(false)));
+  return JSON.stringify(message.toArray(false));
 }
 
 /**

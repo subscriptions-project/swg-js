@@ -25,6 +25,7 @@ import {AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
+import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
@@ -529,8 +530,12 @@ export class ConfiguredRuntime {
    *     configPromise: (!Promise|undefined),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
+   * @param {!{
+   *   lang: (string|undefined),
+   *   theme: (!../api/basic-subscriptions.ClientTheme|undefined),
+   *   }=} clientOptions
    */
-  constructor(winOrDoc, pageConfig, integr, config) {
+  constructor(winOrDoc, pageConfig, integr, config, clientOptions) {
     integr = integr || {};
     integr.configPromise = integr.configPromise || Promise.resolve();
 
@@ -597,6 +602,13 @@ export class ConfiguredRuntime {
       this.pageConfig_,
       this.fetcher_,
       this // See note about 'this' above
+    );
+
+    /** @private @const {!ClientConfigManager} */
+    this.clientConfigManager_ = new ClientConfigManager(
+      pageConfig.getPublicationId(),
+      this.fetcher_,
+      clientOptions
     );
 
     /** @private @const {!Propensity} */
@@ -689,7 +701,7 @@ export class ConfiguredRuntime {
 
   /** @override */
   clientConfigManager() {
-    return null;
+    return this.clientConfigManager_;
   }
 
   /** @override */
@@ -1057,7 +1069,7 @@ export class ConfiguredRuntime {
       !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
       !queryStringHasFreshGaaParams(this.win().location.search)
     ) {
-      return;
+      return Promise.resolve();
     }
 
     const eventsToLog =
@@ -1073,6 +1085,8 @@ export class ConfiguredRuntime {
         additionalParameters: params,
       });
     }
+
+    return Promise.resolve();
   }
 
   /** @override */
@@ -1139,7 +1153,6 @@ function createPublicRuntime(runtime) {
 }
 
 /**
- * @return {!Function}
  * @protected
  */
 export function getSubscriptionsClassForTesting() {
@@ -1147,7 +1160,6 @@ export function getSubscriptionsClassForTesting() {
 }
 
 /**
- * @return {!Function}
  * @protected
  */
 export function getFetcherClassForTesting() {

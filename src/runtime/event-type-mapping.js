@@ -32,7 +32,7 @@ const PublisherEventToAnalyticsEvent = {
   [Event.EVENT_CUSTOM]: AnalyticsEvent.EVENT_CUSTOM,
 };
 
-/** @const {!Object<number,?Event>} */
+/** @const {!Object<?AnalyticsEvent,?Event>} */
 const AnalyticsEventToPublisherEvent = {
   [AnalyticsEvent.UNKNOWN]: null,
   [AnalyticsEvent.IMPRESSION_PAYWALL]: Event.IMPRESSION_PAYWALL,
@@ -80,7 +80,7 @@ const ShowcaseEntitlemenntToAnalyticsEvents = {
   ],
 };
 
-/** @const {!Object<number,?Event>} */
+/** @const {!Object<?AnalyticsEvent,?Event>} */
 const AnalyticsEventToEntitlementResult = {
   [AnalyticsEvent.IMPRESSION_REGWALL]: EntitlementResult.LOCKED_REGWALL,
   [AnalyticsEvent.EVENT_UNLOCKED_BY_METER]: EntitlementResult.UNLOCKED_METER,
@@ -101,7 +101,7 @@ export function publisherEventToAnalyticsEvent(propensityEvent) {
 
 /**
  * Converts an analytics event enum into a propensity event enum.
- * @param {!AnalyticsEvent} analyticsEvent
+ * @param {?AnalyticsEvent} analyticsEvent
  * @returns {?Event}
  */
 export function analyticsEventToPublisherEvent(analyticsEvent) {
