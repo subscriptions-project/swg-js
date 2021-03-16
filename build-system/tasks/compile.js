@@ -33,19 +33,12 @@ const source = require('vinyl-source-stream');
 const touch = require('touch');
 const watchify = require('watchify');
 const {endBuildStep, mkdirSync} = require('./helpers');
-const {execOrDie} = require('../exec');
-const {isCiBuild} = require('../ci');
 const {red} = require('ansi-colors');
 
 /**
  * @return {!Promise}
  */
 exports.compile = async function (options = {}) {
-  if (!isCiBuild()) {
-    // CI systems already installed the latest dependencies.
-    execOrDie('npx yarn');
-  }
-
   mkdirSync('build');
   mkdirSync('build/cc');
   mkdirSync('build/fake-module');
