@@ -384,11 +384,15 @@ export class ConfiguredBasicRuntime {
   setupAndShowAutoPrompt(options) {
     if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
       options.displayForLockedContentFn = () => {
-        this.configuredClassicRuntime_.showOffers();
+        this.configuredClassicRuntime_.showOffers({
+          isClosable: !this.pageConfig().isLocked(),
+        });
       };
     } else if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
       options.displayForLockedContentFn = () => {
-        this.configuredClassicRuntime_.showContributionOptions();
+        this.configuredClassicRuntime_.showContributionOptions({
+          isClosable: !this.pageConfig().isLocked(),
+        });
       };
     }
     return this.autoPromptManager_.showAutoPrompt(options);
@@ -416,10 +420,14 @@ export class ConfiguredBasicRuntime {
       },
       {
         [BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION]: () => {
-          this.configuredClassicRuntime_.showOffers();
+          this.configuredClassicRuntime_.showOffers({
+            isClosable: !this.pageConfig().isLocked(),
+          });
         },
         [BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION]: () => {
-          this.configuredClassicRuntime_.showContributionOptions();
+          this.configuredClassicRuntime_.showContributionOptions({
+            isClosable: !this.pageConfig().isLocked(),
+          });
         },
       }
     );

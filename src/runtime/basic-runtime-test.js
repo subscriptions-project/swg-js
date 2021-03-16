@@ -345,10 +345,51 @@ describes.realWin('BasicRuntime', {}, (env) => {
       doc.getBody().appendChild(contributionButton);
 
       await basicRuntime.setupButtons();
-      configuredClassicRuntimeMock.expects('showOffers').once();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: true,
+        })
+        .once();
       await subscriptionButton.click();
 
-      configuredClassicRuntimeMock.expects('showContributionOptions').once();
+      configuredClassicRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs({
+          isClosable: true,
+        })
+        .once();
+      await contributionButton.click();
+    });
+
+    it('should set up buttons with non-closable iframes if content is paygated', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+
+      // Set up buttons on the doc.
+      const subscriptionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'subscription',
+      });
+      const contributionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'contribution',
+      });
+      doc.getBody().appendChild(subscriptionButton);
+      doc.getBody().appendChild(contributionButton);
+
+      await basicRuntime.setupButtons();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: false,
+        })
+        .once();
+      await subscriptionButton.click();
+
+      configuredClassicRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs({
+          isClosable: false,
+        })
+        .once();
       await contributionButton.click();
     });
   });
@@ -457,7 +498,12 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       clientConfigManagerMock
         .expects('getAutoPromptConfig')
         .returns(Promise.resolve({}));
-      configuredClassicRuntimeMock.expects('showOffers').once();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: false,
+        })
+        .once();
 
       await configuredBasicRuntime.setupAndShowAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION,
@@ -473,7 +519,12 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       clientConfigManagerMock
         .expects('getAutoPromptConfig')
         .returns(Promise.resolve({}));
-      configuredClassicRuntimeMock.expects('showContributionOptions').once();
+      configuredClassicRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs({
+          isClosable: false,
+        })
+        .once();
 
       await configuredBasicRuntime.setupAndShowAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
