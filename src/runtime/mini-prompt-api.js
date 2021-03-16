@@ -16,45 +16,11 @@
 
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {assert, warn} from '../utils/log';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {setStyle} from '../utils/style';
-
-/** @type {!Object<string, string>} */
-const SUBSCRIPTION_TITLE_LANG_MAP = {
-  'en': 'Subscribe with Google',
-  'ar': 'Google اشترك مع',
-  'de': 'Abonnieren mit Google',
-  'es': 'Suscríbete con Google',
-  'es-latam': 'Suscríbete con Google',
-  'es-latn': 'Suscríbete con Google',
-  'fr': "S'abonner avec Google",
-  'hi': 'Google के ज़रिये सदस्यता',
-  'id': 'Berlangganan dengan Google',
-  'it': 'Abbonati con Google',
-  'jp': 'Google で購読',
-  'ko': 'Google 을 통한구독',
-  'ms': 'Langgan dengan Google',
-  'nl': 'Abonneren via Google',
-  'no': 'Abonner med Google',
-  'pl': 'Subskrybuj z Google',
-  'pt': 'Subscrever com o Google',
-  'pt-br': 'Assine com o Google',
-  'ru': 'Подпиcka через Google',
-  'se': 'Prenumerera med Google',
-  'th': 'สมัครฟาน Google',
-  'tr': 'Google ile Abone Ol',
-  'uk': 'Підписатися через Google',
-  'zh-tw': '透過 Google 訂閱',
-};
-
-// TODO(stellachui): Add translated contribution strings here or from strings.js
-//   when we get them.
-/** @type {!Object<string, string>} */
-const CONTRIBUTION_TITLE_LANG_MAP = {
-  'en': 'Contribute with Google',
-};
 
 const TITLE_CONTAINER_DIV_HTML = `
 <div class="swg-mini-prompt-icon-$theme$"></div>
@@ -135,9 +101,11 @@ export class MiniPromptApi {
     const lang = this.clientConfigManager_.getLanguage();
     let textContent = '';
     if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
-      textContent = msg(CONTRIBUTION_TITLE_LANG_MAP, lang) || '';
+      textContent =
+        msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE_LANG_MAP, lang) || '';
     } else if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
-      textContent = msg(SUBSCRIPTION_TITLE_LANG_MAP, lang) || '';
+      textContent =
+        msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, lang) || '';
     }
 
     // Create all the elements for the mini prompt.
