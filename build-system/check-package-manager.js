@@ -17,7 +17,7 @@
 'use strict';
 
 /**
- * @fileoverview Checks Nodejs version;
+ * @fileoverview Checks package manager and Nodejs version;
  */
 
 const https = require('https');
@@ -41,6 +41,24 @@ function green(text) {
 }
 function yellow(text) {
   return '\x1b[33m' + text + '\x1b[0m';
+}
+
+// If npm is being run, print a message and cause 'npm install' to fail.
+function ensureYarn() {
+  if (process.env.npm_execpath.indexOf('yarn') === -1) {
+    log(red('*** The SwG project uses yarn for package management ***'), '\n');
+    log(yellow('To install all packages:'));
+    log(cyan('$'), 'npx yarn', '\n');
+    log(yellow('To install a new (runtime) package to "dependencies":'));
+    log(cyan('$'), 'npx yarn add --exact [package_name@version]', '\n');
+    log(yellow('To install a new (toolset) package to "devDependencies":'));
+    log(cyan('$'), 'npx yarn add --dev --exact [package_name@version]', '\n');
+    log(yellow('To upgrade a package:'));
+    log(cyan('$'), 'npx yarn upgrade --exact [package_name@version]', '\n');
+    log(yellow('To remove a package:'));
+    log(cyan('$'), 'npx yarn remove [package_name]', '\n');
+    process.exit(1);
+  }
 }
 
 // Check the node version and print a warning if it is not the latest LTS.
@@ -125,6 +143,7 @@ function main() {
   if (isCiBuild()) {
     return 0;
   }
+  ensureYarn();
   return checkNodeVersion().then(() => {
     if (updatesNeeded.size > 0) {
       log(
