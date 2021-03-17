@@ -201,13 +201,14 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       });
     });
 
-    it('throws if article metadata lacks a publisher name', () => {
+    it('throws if article metadata lacks a publisher name', async () => {
       script.text = '{}';
-      const showingRegwall = () =>
-        GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      const showRegwallPromise = GaaMeteringRegwall.show({
+        iframeUrl: IFRAME_URL,
+      });
 
-      expect(showingRegwall).throws(
-        'Article needs JSON-LD with a publisher name.'
+      await expect(showRegwallPromise).to.be.rejectedWith(
+        '[swg-gaa.js]: Article needs JSON-LD with a publisher name.'
       );
     });
 
@@ -308,7 +309,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       });
 
       // Reject promise.
-      await expect(gaaUserPromise).to.eventually.be.rejectedWith(
+      await expect(gaaUserPromise).to.be.rejectedWith(
         'Google Sign-In failed to initialize'
       );
 
@@ -395,20 +396,16 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
       clock.tick(100);
       await tick(10);
 
-      const args = self.gapi.signin2.render.args;
-      expect(typeof args[0][1].onsuccess).to.equal('function');
-      expect(args).to.deep.equal([
-        [
-          'swg-google-sign-in-button',
-          {
-            longtitle: true,
-            onsuccess: args[0][1].onsuccess,
-            prompt: 'select_account',
-            scope: 'profile email',
-            theme: 'dark',
-          },
-        ],
-      ]);
+      expect(self.gapi.signin2.render).to.be.calledWithExactly(
+        'swg-google-sign-in-button',
+        {
+          longtitle: true,
+          onsuccess: sandbox.match.func,
+          prompt: 'select_account',
+          scope: 'profile email',
+          theme: 'dark',
+        }
+      );
     });
 
     it('renders supported i18n languages', async () => {
@@ -510,15 +507,12 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
         command: POST_MESSAGE_COMMAND_INTRODUCTION,
       });
 
-      // Wait for promises and intervals to resolve.
+      // Move clock forward so intervals resolve.
       clock.tick(100);
-      await tick(10);
 
-      // Wait for post message.
+      // Wait for post message to come through.
       await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self, 'postMessage').callsFake(resolve);
       });
 
       expect(self.postMessage).to.be.calledWithExactly(

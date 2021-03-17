@@ -325,29 +325,32 @@ export class GaaMeteringRegwall {
    * @param {{ iframeUrl: string }} params
    * @return {!Promise<!GaaUserDef>}
    */
-  static show({iframeUrl}) {
+  static async show({iframeUrl}) {
     const queryString = GaaUtils.getQueryString();
     if (!queryStringHasFreshGaaParams(queryString)) {
       const errorMessage =
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
       warn(errorMessage);
-      return Promise.reject(errorMessage);
+      throw new Error(errorMessage);
     }
 
     GaaMeteringRegwall.render_({iframeUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
-    return GaaMeteringRegwall.getGaaUser_()
-      .then((gaaUser) => {
-        GaaMeteringRegwall.remove_();
-        return gaaUser;
-      })
-      .catch((err) => {
-        // Close the Regwall, since the flow failed.
-        GaaMeteringRegwall.remove_();
 
-        // Rethrow error.
-        throw err;
-      });
+    try {
+      const gaaUser = await GaaMeteringRegwall.getGaaUser_();
+
+      // Close the Regwall, since the flow succeeded.
+      GaaMeteringRegwall.remove_();
+
+      return gaaUser;
+    } catch (err) {
+      // Close the Regwall, since the flow failed.
+      GaaMeteringRegwall.remove_();
+
+      // Rethrow error.
+      throw err;
+    }
   }
 
   /**
@@ -357,10 +360,9 @@ export class GaaMeteringRegwall {
    * @nocollapse
    * @return {!Promise}
    */
-  static signOut() {
-    return configureGoogleSignIn().then(() =>
-      self.gapi.auth2.getAuthInstance().signOut()
-    );
+  static async signOut() {
+    await configureGoogleSignIn();
+    await self.gapi.auth2.getAuthInstance().signOut();
   }
 
   /**
@@ -453,7 +455,10 @@ export class GaaMeteringRegwall {
       }
     }
 
-    throw new Error('Article needs JSON-LD with a publisher name.');
+    const errorMessage =
+      '[swg-gaa.js]: Article needs JSON-LD with a publisher name.';
+    warn(errorMessage);
+    throw new Error(errorMessage);
   }
 
   /**
@@ -478,7 +483,7 @@ export class GaaMeteringRegwall {
    * Returns the GAA user, after the user signs in.
    * @private
    * @nocollapse
-   * @return {!Promise<!GoogleUserDef>}
+   * @return {!Promise<!GaaUserDef>}
    */
   static getGaaUser_() {
     // Listen for GAA user.
@@ -542,7 +547,7 @@ export class GaaGoogleSignInButton {
    * @nocollapse
    * @param {{ allowedOrigins: !Array<string> }} params
    */
-  static show({allowedOrigins}) {
+  static async show({allowedOrigins}) {
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
@@ -575,58 +580,50 @@ export class GaaGoogleSignInButton {
       });
     });
 
-    // Render the Google Sign-In button.
-    configureGoogleSignIn()
-      .then(
-        // Promise credentials.
-        () =>
-          new Promise((resolve) => {
-            // Render the Google Sign-In button.
-            const buttonEl = self.document.createElement('div');
-            buttonEl.id = GOOGLE_SIGN_IN_BUTTON_ID;
-            buttonEl.tabIndex = 0;
-            self.document.body.appendChild(buttonEl);
-            self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
-              'longtitle': true,
-              'onsuccess': resolve,
-              'prompt': 'select_account',
-              'scope': 'profile email',
-              'theme': 'dark',
-            });
-          })
-      )
-      .then((googleUser) => {
-        // Gather GAA user details.
-        const basicProfile = /** @type {!GoogleUserDef} */ (googleUser).getBasicProfile();
-        /** @type {!GaaUserDef} */
-        const gaaUser = {
-          idToken: /** @type {!GoogleUserDef} */ (googleUser).getAuthResponse()
-            .id_token,
-          name: basicProfile.getName(),
-          givenName: basicProfile.getGivenName(),
-          familyName: basicProfile.getFamilyName(),
-          imageUrl: basicProfile.getImageUrl(),
-          email: basicProfile.getEmail(),
-        };
-
-        // Send GAA user to parent frame.
-        sendMessageToParentFnPromise.then((sendMessageToParent) => {
-          sendMessageToParent({
-            stamp: POST_MESSAGE_STAMP,
-            command: POST_MESSAGE_COMMAND_USER,
-            gaaUser,
-          });
-        });
-      })
-      .catch(() => {
-        // Report error to parent frame.
-        sendMessageToParentFnPromise.then((sendMessageToParent) => {
-          sendMessageToParent({
-            stamp: POST_MESSAGE_STAMP,
-            command: POST_MESSAGE_COMMAND_ERROR,
-          });
+    try {
+      // Render the Google Sign-In button.
+      await configureGoogleSignIn();
+      const googleUser = await new Promise((resolve) => {
+        // Render the Google Sign-In button.
+        const buttonEl = self.document.createElement('div');
+        buttonEl.id = GOOGLE_SIGN_IN_BUTTON_ID;
+        buttonEl.tabIndex = 0;
+        self.document.body.appendChild(buttonEl);
+        self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
+          'longtitle': true,
+          'onsuccess': resolve,
+          'prompt': 'select_account',
+          'scope': 'profile email',
+          'theme': 'dark',
         });
       });
+
+      // Gather GAA user details.
+      const basicProfile = /** @type {!GoogleUserDef} */ (googleUser).getBasicProfile();
+      /** @type {!GaaUserDef} */
+      const gaaUser = {
+        idToken: /** @type {!GoogleUserDef} */ (googleUser).getAuthResponse()
+          .id_token,
+        name: basicProfile.getName(),
+        givenName: basicProfile.getGivenName(),
+        familyName: basicProfile.getFamilyName(),
+        imageUrl: basicProfile.getImageUrl(),
+        email: basicProfile.getEmail(),
+      };
+
+      // Send GAA user to parent frame.
+      (await sendMessageToParentFnPromise)({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+        gaaUser,
+      });
+    } catch (err) {
+      // Report error to parent frame.
+      (await sendMessageToParentFnPromise)({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_ERROR,
+      });
+    }
   }
 }
 
@@ -639,26 +636,24 @@ export class GaaGoogleSignInButton {
  *
  * @return {!Promise}
  */
-function configureGoogleSignIn() {
+async function configureGoogleSignIn() {
   // Wait for Google Sign-In API.
-  return (
-    new Promise((resolve) => {
-      const apiCheckInterval = setInterval(() => {
-        if (!!self.gapi) {
-          clearInterval(apiCheckInterval);
-          resolve();
-        }
-      }, 50);
-    })
-      // Load Auth2 module.
-      .then(() => new Promise((resolve) => self.gapi.load('auth2', resolve)))
-      // Specify "redirect" mode. It plays nicer with webviews.
-      .then(
-        () =>
-          // Only initialize Google Sign-In once.
-          self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init()
-      )
-  );
+  await new Promise((resolve) => {
+    const apiCheckInterval = setInterval(() => {
+      if (!!self.gapi) {
+        clearInterval(apiCheckInterval);
+        resolve();
+      }
+    }, 50);
+  });
+
+  // Load Auth2 module.
+  await new Promise((resolve) => self.gapi.load('auth2', resolve));
+
+  // Only initialize Google Sign-In once.
+  if (!self.gapi.auth2.getAuthInstance()) {
+    await self.gapi.auth2.init();
+  }
 }
 
 export class GaaUtils {
