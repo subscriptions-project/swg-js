@@ -224,21 +224,13 @@ describes.realWin('OffersFlow', {}, (env) => {
   });
 
   it('should auto-redirect to payments if only one update option given', async () => {
-    const payClientMock = sandbox.mock(runtime.payClient());
-    payClientMock.expects('start').once();
-    callbacksMock
-      .expects('triggerFlowStarted')
-      .withExactArgs('subscribe', {
-        skuId: 'sku2',
-        oldSku: 'sku1',
-      })
-      .once();
+    const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
     offersFlow = new OffersFlow(runtime, {
       skus: ['sku1', 'sku2'],
       oldSku: 'sku1',
     });
     activitiesMock.expects('openIframe').never();
-    payClientMock.verify();
+    expect(payStub).to.be.calledOnce;
     await offersFlow.start();
   });
 
