@@ -28,6 +28,7 @@ import {
 import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
 import {ClientEventManager} from './client-event-manager';
+// import {Constants} from '../utils/constants';
 import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {
@@ -348,7 +349,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
-            '&swgUserToken=' +
+            '&sut=' +
             encodeURIComponent('abc'),
           {
             method: 'GET',
@@ -418,6 +419,74 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.equal('ddk1');
+    });
+
+    it('should handle and store swgUserToken if it exists in the response with JWT entitlements', async () => {
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('SIGNED_DATA')
+        .returns({
+          entitlements: {
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+          },
+        });
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+            encodeURIComponent(encryptedDocumentKey),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  signedEntitlements: 'SIGNED_DATA',
+                  decryptedDocumentKey: 'ddk1',
+                  swgUserToken: 'abc',
+                })
+              ),
+          })
+        );
+
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+
+      const ents = await manager.getEntitlements(encryptedDocumentKey);
+      expect(ents.decryptedDocumentKey).to.equal('ddk1');
+      // storageMock
+      //   .expects('set')
+      //   .withExactArgs(Constants.USER_TOKEN, 'abc', true);
+    });
+
+    it('should handle and store swgUserToken if it exists in the response with plain entitlements', async () => {
+      xhrMock.expects('fetch').returns(
+        Promise.resolve({
+          text: () =>
+            Promise.resolve(
+              JSON.stringify({
+                entitlements: {
+                  products: ['pub1:label1'],
+                  subscriptionToken: 's1',
+                },
+                swgUserToken: 'abc',
+              })
+            ),
+        })
+      );
+
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+
+      const entitlements = await manager.getEntitlements();
+      expect(entitlements.entitlements[0].subscriptionToken).to.equal('s1');
+      // storageMock.expects('set');
     });
 
     it('should handle missing decrypted document key', async () => {
