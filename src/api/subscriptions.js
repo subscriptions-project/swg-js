@@ -408,6 +408,7 @@ export let GetEntitlementsParamsInternalDef;
  * Encryption params for GetEntitlements requests.
  * @typedef {{
  *   encryptedDocumentKey: string,
+ *   swgUserToken: (string|undefined),
  * }}
  */
 export let GetEntitlementsEncryptionParams;

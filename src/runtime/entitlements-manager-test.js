@@ -342,6 +342,44 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(ents.enablesThis()).to.be.false;
     });
 
+    it('should accept swgUserToken', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+            encodeURIComponent(encryptedDocumentKey) +
+            '&swgUserToken=' +
+            encodeURIComponent('abc'),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+
+      const ents = await manager.getEntitlements({
+        encryption: {
+          encryptedDocumentKey:
+            '{"accessRequirements": ' +
+            '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}',
+          swgUserToken: 'abc',
+        },
+      });
+      expect(ents.service).to.equal('subscribe.google.com');
+      expect(ents.raw).to.equal('');
+      expect(ents.entitlements).to.deep.equal([]);
+      expect(ents.product_).to.equal('pub1:label1');
+      expect(ents.enablesThis()).to.be.false;
+    });
+
     it('should handle present decrypted document key', async () => {
       jwtHelperMock
         .expects('decode')
