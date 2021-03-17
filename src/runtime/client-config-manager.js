@@ -125,6 +125,7 @@ export class ClientConfigManager {
    * @return {!ClientConfig}
    */
   parseClientConfig_(json) {
+    const paySwgVersion = json['paySwgVersion'];
     const autoPromptConfigJson = json['autoPromptConfig'];
     let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
@@ -136,6 +137,6 @@ export class ClientConfigManager {
         autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsResultingHideSeconds
       );
     }
-    return new ClientConfig(autoPromptConfig);
+    return new ClientConfig(autoPromptConfig, paySwgVersion);
   }
 }
