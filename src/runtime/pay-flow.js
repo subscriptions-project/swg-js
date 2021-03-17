@@ -133,7 +133,7 @@ export class PayStartFlow {
     if (paySwgVersion) {
       swgPaymentRequest['swgVersion'] = paySwgVersion;
     }
-    
+
     // Map the proration mode to the enum value (if proration exists).
     const prorationMode = swgPaymentRequest['replaceSkuProrationMode'];
     if (prorationMode) {

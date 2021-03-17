@@ -128,7 +128,6 @@ describes.realWin('PayStartFlow', {}, (env) => {
     callbacksMock.verify();
     analyticsMock.verify();
     eventManagerMock.verify();
-    
   });
 
   it('should have valid flow constructed in payStartFlow', async () => {
@@ -385,7 +384,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         }
       )
       .once();
-      await flow.start();
+    await flow.start();
   });
 
   it('should force redirect mode 2', async () => {
@@ -412,11 +411,12 @@ describes.realWin('PayStartFlow', {}, (env) => {
         }
       )
       .once();
-      await flow.start();
+    await flow.start();
   });
 
   it('should have paySwgVersion from clientConfig', async () => {
-    clientConfigManagerMock.expects('getClientConfig')
+    clientConfigManagerMock
+      .expects('getClientConfig')
       .returns(Promise.resolve(new ClientConfig(undefined, '2')))
       .once();
 
@@ -431,7 +431,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
           'swg': {
             'skuId': 'sku1',
             'publicationId': 'pub1',
-            'swgVersion' : '2',
+            'swgVersion': '2',
           },
           'i': {
             'startTimeMs': sandbox.match.any,
@@ -443,7 +443,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         }
       )
       .once();
-      await flow.start();
+    await flow.start();
   });
 });
 
