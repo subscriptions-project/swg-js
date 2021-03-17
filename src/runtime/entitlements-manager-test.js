@@ -28,7 +28,7 @@ import {
 import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
 import {ClientEventManager} from './client-event-manager';
-// import {Constants} from '../utils/constants';
+import {Constants} from '../utils/constants';
 import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {
@@ -458,11 +458,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
 
+      storageMock
+        .expects('set')
+        .withExactArgs(Constants.USER_TOKEN, 'abc', true);
+
+      storageMock.expects('set').withExactArgs('ents', 'SIGNED_DATA');
+
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.equal('ddk1');
-      // storageMock
-      //   .expects('set')
-      //   .withExactArgs(Constants.USER_TOKEN, 'abc', true);
     });
 
     it('should handle and store swgUserToken if it exists in the response with plain entitlements', async () => {
@@ -484,9 +487,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
 
+      storageMock
+        .expects('set')
+        .withExactArgs(Constants.USER_TOKEN, 'abc', true);
+
       const entitlements = await manager.getEntitlements();
       expect(entitlements.entitlements[0].subscriptionToken).to.equal('s1');
-      // storageMock.expects('set');
     });
 
     it('should handle missing decrypted document key', async () => {
