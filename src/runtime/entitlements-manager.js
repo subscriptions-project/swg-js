@@ -600,6 +600,14 @@ export class EntitlementsManager {
             'crypt=' +
               encodeURIComponent(params.encryption.encryptedDocumentKey)
           );
+
+          // Add swgUserToken param.
+          if (params.encryption.swgUserToken) {
+            urlParams.push(
+              'swgUserToken=' +
+                encodeURIComponent(params.encryption.swgUserToken)
+            );
+          }
         }
 
         // Add metering params.
