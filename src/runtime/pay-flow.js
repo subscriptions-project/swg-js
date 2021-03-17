@@ -102,18 +102,38 @@ export class PayStartFlow {
 
     /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
+
+    /** @private @const {!../runtime/client-config-manager.ClientConfigManager} */
+    this.clientConfigManager_ = deps.clientConfigManager();
   }
 
   /**
    * Starts the payments flow.
-   * @return {!Promise}
+   * @returns {!Promise}
    */
   start() {
+    // Get the paySwgVersion for buyflow.
+    const promise = this.clientConfigManager_.getClientConfig();
+    return promise.then((clientConfig) => {
+      this.start_(clientConfig.paySwgVersion);
+    });
+  }
+
+  /**
+   * Starts the payments flow for the given version.
+   * @param {!string=} paySwgVersion
+   * @return {!Promise}
+   */
+  start_(paySwgVersion) {
     // Add the 'publicationId' key to the subscriptionRequest_ object.
     const swgPaymentRequest = Object.assign({}, this.subscriptionRequest_, {
       'publicationId': this.pageConfig_.getPublicationId(),
     });
 
+    if (paySwgVersion) {
+      swgPaymentRequest['swgVersion'] = paySwgVersion;
+    }
+    
     // Map the proration mode to the enum value (if proration exists).
     const prorationMode = swgPaymentRequest['replaceSkuProrationMode'];
     if (prorationMode) {

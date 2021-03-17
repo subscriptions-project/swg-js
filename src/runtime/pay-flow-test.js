@@ -16,10 +16,12 @@
 
 import {
   AccountCreationRequest,
+  AnalyticsEvent,
   EntitlementsResponse,
+  EventParams,
 } from '../proto/api_messages';
 import {ActivityPort} from '../components/activities';
-import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
 import {Entitlements} from '../api/entitlements';
@@ -103,6 +105,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   let flow;
   let analyticsMock;
   let eventManagerMock;
+  let clientConfigManagerMock;
   const productTypeRegex = /^(SUBSCRIPTION|UI_CONTRIBUTION)$/;
 
   beforeEach(() => {
@@ -114,15 +117,18 @@ describes.realWin('PayStartFlow', {}, (env) => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     analyticsMock = sandbox.mock(runtime.analytics());
     eventManagerMock = sandbox.mock(runtime.eventManager());
+    clientConfigManagerMock = sandbox.mock(runtime.clientConfigManager());
     flow = new PayStartFlow(runtime, {'skuId': 'sku1'});
   });
 
   afterEach(() => {
+    clientConfigManagerMock.verify();
     payClientMock.verify();
     dialogManagerMock.verify();
     callbacksMock.verify();
     analyticsMock.verify();
     eventManagerMock.verify();
+    
   });
 
   it('should have valid flow constructed in payStartFlow', async () => {
@@ -169,7 +175,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
       skuId: 'sku1',
       publicationId: 'pub1',
     };
-    const flow = new PayStartFlow(
+    const contribFlow = new PayStartFlow(
       runtime,
       subscriptionRequest,
       ProductType.UI_CONTRIBUTION
@@ -205,7 +211,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('sku1')
       );
-    const flowPromise = flow.start();
+    const flowPromise = contribFlow.start();
     await expect(flowPromise).to.eventually.be.undefined;
   });
 
@@ -355,7 +361,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
     await expect(flowPromise).to.eventually.be.undefined;
   });
 
-  it('should force redirect mode', () => {
+  it('should force redirect mode', async () => {
     runtime.configure({windowOpenMode: 'redirect'});
     payClientMock
       .expects('start')
@@ -379,7 +385,65 @@ describes.realWin('PayStartFlow', {}, (env) => {
         }
       )
       .once();
-    flow.start();
+      await flow.start();
+  });
+
+  it('should force redirect mode 2', async () => {
+    runtime.configure({windowOpenMode: 'redirect'});
+    payClientMock
+      .expects('start')
+      .withExactArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            'publicationId': 'pub1',
+            'skuId': 'sku1',
+          },
+          'i': {
+            'startTimeMs': sandbox.match.any,
+            'productType': sandbox.match(productTypeRegex),
+          },
+        },
+        {
+          forceRedirect: true,
+        }
+      )
+      .once();
+      await flow.start();
+  });
+
+  it('should have paySwgVersion from clientConfig', async () => {
+    clientConfigManagerMock.expects('getClientConfig')
+      .returns(Promise.resolve(new ClientConfig(undefined, '2')))
+      .once();
+
+    payClientMock
+      .expects('start')
+      .withArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            'skuId': 'sku1',
+            'publicationId': 'pub1',
+            'swgVersion' : '2',
+          },
+          'i': {
+            'startTimeMs': sandbox.match.any,
+            'productType': sandbox.match(productTypeRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+        }
+      )
+      .once();
+      await flow.start();
   });
 });
 

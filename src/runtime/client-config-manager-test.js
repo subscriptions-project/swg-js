@@ -172,7 +172,7 @@ describes.realWin('ClientConfigManager', {}, () => {
     expect(clientConfigManager.getLanguage()).to.equal('en');
   });
 
-  it('getClientConfig should have paySwgVersion', async () => {
+  it('getClientConfig should have paySwgVersion after fetch', async () => {
     const expectedUrl =
       '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
@@ -181,7 +181,7 @@ describes.realWin('ClientConfigManager', {}, () => {
       .returns(Promise.resolve({paySwgVersion: '2'}))
       .once();
 
-    const clientConfig = await clientConfigManager.getClientConfig();
+    const clientConfig = await clientConfigManager.fetchClientConfig();
     expect(clientConfig.paySwgVersion).to.equal('2');
   });
 });
