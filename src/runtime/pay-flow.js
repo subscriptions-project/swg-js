@@ -109,7 +109,7 @@ export class PayStartFlow {
 
   /**
    * Starts the payments flow.
-   * @returns {!Promise}
+   * @return {!Promise}
    */
   start() {
     // Get the paySwgVersion for buyflow.
