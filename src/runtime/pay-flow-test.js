@@ -386,7 +386,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
       .once();
     await flow.start();
   });
-  
+
   it('should have paySwgVersion from clientConfig', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
