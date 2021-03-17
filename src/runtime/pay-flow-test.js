@@ -386,34 +386,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
       .once();
     await flow.start();
   });
-
-  it('should force redirect mode 2', async () => {
-    runtime.configure({windowOpenMode: 'redirect'});
-    payClientMock
-      .expects('start')
-      .withExactArgs(
-        {
-          'apiVersion': 1,
-          'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
-          'swg': {
-            'publicationId': 'pub1',
-            'skuId': 'sku1',
-          },
-          'i': {
-            'startTimeMs': sandbox.match.any,
-            'productType': sandbox.match(productTypeRegex),
-          },
-        },
-        {
-          forceRedirect: true,
-        }
-      )
-      .once();
-    await flow.start();
-  });
-
+  
   it('should have paySwgVersion from clientConfig', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
