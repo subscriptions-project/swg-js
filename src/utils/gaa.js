@@ -584,7 +584,6 @@ export class GaaGoogleSignInButton {
       // Render the Google Sign-In button.
       await configureGoogleSignIn();
       const googleUser = await new Promise((resolve) => {
-        // Render the Google Sign-In button.
         const buttonEl = self.document.createElement('div');
         buttonEl.id = GOOGLE_SIGN_IN_BUTTON_ID;
         buttonEl.tabIndex = 0;
