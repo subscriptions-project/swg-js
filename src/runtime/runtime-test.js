@@ -1436,7 +1436,8 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       runtime.showOffers();
 
       await runtime.documentParsed_;
-      expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
+      const activityIframeView = await offersFlow.activityIframeViewPromise_;
+      expect(activityIframeView.args_['list']).to.equal('default');
     });
 
     it('should call "showOffers" with options', async () => {
@@ -1448,7 +1449,8 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       runtime.showOffers({list: 'other'});
 
       await runtime.documentParsed_;
-      expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+      const activityIframeView = await offersFlow.activityIframeViewPromise_;
+      expect(activityIframeView.args_['list']).to.equal('other');
     });
 
     it('should throw an error if showOffers is used with an oldSku', async () => {
@@ -1478,7 +1480,8 @@ new subscribers. Use the showOffers() method instead.'
       runtime.showUpdateOffers({oldSku: 'other', skus: ['sku1', 'sku2']});
 
       await runtime.documentParsed_;
-      expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
+      const activityIframeView = await offersFlow.activityIframeViewPromise_;
+      expect(activityIframeView.args_['list']).to.equal('default');
     });
 
     it('should throw an error if showUpdateOffers is used without an oldSku', async () => {
