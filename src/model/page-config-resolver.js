@@ -279,8 +279,8 @@ class JsonLdParser {
       let productId = null;
       const partOfArray = this.valueArray_(config, 'isPartOf');
       if (partOfArray) {
-        for (let i = 0; i < partOfArray.length; i++) {
-          productId = this.discoverProductId_(partOfArray[i]);
+        for (let j = 0; j < partOfArray.length; j++) {
+          productId = this.discoverProductId_(partOfArray[j]);
           if (productId) {
             break;
           }
