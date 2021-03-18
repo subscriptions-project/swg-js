@@ -391,7 +391,7 @@ export class EntitlementsManager {
     } else {
       const plainEntitlements = json['entitlements'];
       if (plainEntitlements) {
-        this.saveSwgUserToken_(json['swgUserToken']);
+        this.saveSwgUserToken_(swgUserToken);
         return this.createEntitlements_(
           '',
           plainEntitlements,
@@ -406,7 +406,7 @@ export class EntitlementsManager {
 
   /**
    * Persist swgUserToken in local storage if entitlements and swgUserToken exist
-   * @param {string} swgUserToken
+   * @param {?string} swgUserToken
    * @private
    */
   saveSwgUserToken_(swgUserToken) {
