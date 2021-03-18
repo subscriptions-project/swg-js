@@ -406,7 +406,7 @@ export class EntitlementsManager {
 
   /**
    * Persist swgUserToken in local storage if entitlements and swgUserToken exist
-   * @param {?string} swgUserToken
+   * @param {?string|undefined} swgUserToken
    * @private
    */
   saveSwgUserToken_(swgUserToken) {
