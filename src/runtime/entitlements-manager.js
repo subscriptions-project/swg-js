@@ -22,6 +22,7 @@ import {
   EntitlementsRequest,
   EventOriginator,
 } from '../proto/api_messages';
+import {Constants} from '../utils/constants';
 import {
   Entitlement,
   Entitlements,
@@ -375,6 +376,7 @@ export class EntitlementsManager {
     }
     const signedData = json['signedEntitlements'];
     const decryptedDocumentKey = json['decryptedDocumentKey'];
+    const swgUserToken = json['swgUserToken'];
     if (signedData) {
       const entitlements = this.getValidJwtEntitlements_(
         signedData,
@@ -383,11 +385,13 @@ export class EntitlementsManager {
         decryptedDocumentKey
       );
       if (entitlements) {
+        this.saveSwgUserToken_(swgUserToken);
         return entitlements;
       }
     } else {
       const plainEntitlements = json['entitlements'];
       if (plainEntitlements) {
+        this.saveSwgUserToken_(swgUserToken);
         return this.createEntitlements_(
           '',
           plainEntitlements,
@@ -398,6 +402,17 @@ export class EntitlementsManager {
     }
     // Empty response.
     return this.createEntitlements_('', [], isReadyToPay);
+  }
+
+  /**
+   * Persist swgUserToken in local storage if entitlements and swgUserToken exist
+   * @param {?string|undefined} swgUserToken
+   * @private
+   */
+  saveSwgUserToken_(swgUserToken) {
+    if (swgUserToken) {
+      this.storage_.set(Constants.USER_TOKEN, swgUserToken, true);
+    }
   }
 
   /**
@@ -604,8 +619,7 @@ export class EntitlementsManager {
           // Add swgUserToken param.
           if (params.encryption.swgUserToken) {
             urlParams.push(
-              'swgUserToken=' +
-                encodeURIComponent(params.encryption.swgUserToken)
+              'sut=' + encodeURIComponent(params.encryption.swgUserToken)
             );
           }
         }
