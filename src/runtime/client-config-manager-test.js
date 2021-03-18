@@ -184,4 +184,30 @@ describes.realWin('ClientConfigManager', {}, () => {
     const clientConfig = await clientConfigManager.fetchClientConfig();
     expect(clientConfig.paySwgVersion).to.equal('2');
   });
+
+  it('getClientConfig should have useUpdatedOfferFlows after fetch', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .returns(Promise.resolve({useUpdatedOfferFlows: true}))
+      .once();
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+    expect(clientConfig.useUpdatedOfferFlows).to.be.true;
+  });
+
+  it('getClientConfig should use default useUpdatedOfferFlows value after fetch if the response did not contain a useUpdatedOfferFlows value', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .returns(Promise.resolve({useUpdatedOfferFlows: false}))
+      .once();
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+    expect(clientConfig.useUpdatedOfferFlows).to.be.false;
+  });
 });

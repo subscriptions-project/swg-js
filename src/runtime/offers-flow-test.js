@@ -24,6 +24,7 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {ClientConfig} from '../model/client-config';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
@@ -87,6 +88,41 @@ describes.realWin('OffersFlow', {}, (env) => {
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        runtime.activities().addDefaultArguments({
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: null,
+          isClosable: false,
+        })
+      )
+      .returns(Promise.resolve(port));
+    await offersFlow.start();
+  });
+
+  it('should have valid OffersFlow constructed, routed to the new offers iframe', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .callsFake(() => {
+        return Promise.resolve(
+          new ClientConfig(
+            /* autoPromptConfig */ undefined,
+            /* paySwgVersion */ undefined,
+            /* useUpdatedOfferFlows */ true
+          )
+        );
+      });
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -482,7 +518,8 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
     response.setSubscribe(true);
     messageCallback = messageMap[response.label()];
     messageCallback(response);
-    expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+    const activityIframeView = await offersFlow.activityIframeViewPromise_;
+    expect(activityIframeView.args_['list']).to.equal('other');
   });
 });
 
@@ -775,6 +812,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
 
     await optionFlow.start();
     await resultPromise;
-    expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+    const activityIframeView = await offersFlow.activityIframeViewPromise_;
+    expect(activityIframeView.args_['list']).to.equal('other');
   });
 });
