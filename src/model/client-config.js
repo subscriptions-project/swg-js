@@ -20,12 +20,17 @@
 export class ClientConfig {
   /**
    * @param {!./auto-prompt-config.AutoPromptConfig=} autoPromptConfig
-   * @param {!string=} paySwgVersion
+   * @param {string=} paySwgVersion
+   * @param {boolean=} useUpdatedOfferFlows
    */
-  constructor(autoPromptConfig, paySwgVersion) {
+  constructor(autoPromptConfig, paySwgVersion, useUpdatedOfferFlows) {
     /** @const {!./auto-prompt-config.AutoPromptConfig|undefined} */
     this.autoPromptConfig = autoPromptConfig;
-    /** @const {!string|undefined} */
+
+    /** @const {string|undefined} */
     this.paySwgVersion = paySwgVersion;
+
+    /** @const {boolean} */
+    this.useUpdatedOfferFlows = useUpdatedOfferFlows || false;
   }
 }

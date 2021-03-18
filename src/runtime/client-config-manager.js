@@ -137,6 +137,10 @@ export class ClientConfigManager {
         autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsResultingHideSeconds
       );
     }
-    return new ClientConfig(autoPromptConfig, paySwgVersion);
+    return new ClientConfig(
+      autoPromptConfig,
+      paySwgVersion,
+      json['useUpdatedOfferFlows']
+    );
   }
 }

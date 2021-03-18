@@ -68,6 +68,9 @@ export class OffersFlow {
     /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
 
+    /** @private @const {!./client-config-manager.ClientConfigManager} */
+    this.clientConfigManager_ = deps.clientConfigManager();
+
     let isClosable = options && options.isClosable;
     if (isClosable == undefined) {
       isClosable = false; // Default is to hide Close button.
@@ -116,14 +119,18 @@ export class OffersFlow {
     /** @private  @const {!Array<!string>} */
     this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
-      this.win_,
-      this.activityPorts_,
-      feUrl('/offersiframe'),
-      feArgsObj,
-      /* shouldFadeBody */ true
-    );
+    /** @private @const {!Promise<!ActivityIframeView>} */
+    this.activityIframeViewPromise_ = this.getUrl_(
+      this.clientConfigManager_.getClientConfig()
+    ).then((url) => {
+      return new ActivityIframeView(
+        this.win_,
+        this.activityPorts_,
+        feUrl(url),
+        feArgsObj,
+        /* shouldFadeBody */ true
+      );
+    });
   }
 
   /**
@@ -181,35 +188,54 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
-    if (this.activityIframeView_) {
-      // So no error if skipped to payment screen.
-      // Start/cancel events.
-      // The second parameter is required by Propensity in AMP.
-      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS, {
-        skus: this.skus_,
-        source: 'SwG',
-      });
-      this.activityIframeView_.onCancel(() => {
+    if (this.activityIframeViewPromise_) {
+      return this.activityIframeViewPromise_.then((activityIframeView) => {
+        // So no error if skipped to payment screen.
+        // Start/cancel events.
+        // The second parameter is required by Propensity in AMP.
         this.deps_
           .callbacks()
-          .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
-      });
-      this.activityIframeView_.on(
-        SkuSelectedResponse,
-        this.startPayFlow_.bind(this)
-      );
-      this.activityIframeView_.on(
-        AlreadySubscribedResponse,
-        this.handleLinkRequest_.bind(this)
-      );
-      this.activityIframeView_.on(
-        ViewSubscriptionsResponse,
-        this.startNativeFlow_.bind(this)
-      );
+          .triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS, {
+            skus: this.skus_,
+            source: 'SwG',
+          });
+        activityIframeView.onCancel(() => {
+          this.deps_
+            .callbacks()
+            .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
+        });
+        activityIframeView.on(
+          SkuSelectedResponse,
+          this.startPayFlow_.bind(this)
+        );
+        activityIframeView.on(
+          AlreadySubscribedResponse,
+          this.handleLinkRequest_.bind(this)
+        );
+        activityIframeView.on(
+          ViewSubscriptionsResponse,
+          this.startNativeFlow_.bind(this)
+        );
 
-      return this.dialogManager_.openView(this.activityIframeView_);
+        return this.dialogManager_.openView(activityIframeView);
+      });
     }
     return Promise.resolve();
+  }
+
+  /**
+   * Gets the URL that should be used for the activity iFrame view.
+   * @param {!Promise<../model/client-config.ClientConfig>} clientConfigPromise
+   * @return {!Promise<string>}
+   */
+  getUrl_(clientConfigPromise) {
+    return clientConfigPromise.then((clientConfig) => {
+      if (clientConfig.useUpdatedOfferFlows) {
+        return '/subscriptionoffersiframe';
+      } else {
+        return '/offersiframe';
+      }
+    });
   }
 }
 
