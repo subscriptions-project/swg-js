@@ -42,7 +42,7 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({autoPromptConfig: {maxImpressionsPerWeek: 1}}))
+      .resolves({autoPromptConfig: {maxImpressionsPerWeek: 1}})
       .once();
 
     let clientConfig = await clientConfigManager.fetchClientConfig();
@@ -69,7 +69,7 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({}))
+      .resolves({})
       .once();
 
     const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
@@ -82,7 +82,7 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({autoPromptConfig: {maxImpressionsPerWeek: 3}}))
+      .resolves({autoPromptConfig: {maxImpressionsPerWeek: 3}})
       .once();
 
     const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
@@ -97,19 +97,17 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(
-        Promise.resolve({
-          autoPromptConfig: {
-            maxImpressionsPerWeek: 1,
-            clientDisplayTrigger: {dismissalDelaySeconds: 2},
-            explicitDismissalConfig: {
-              backoffSeconds: 3,
-              maxDismissalsPerWeek: 4,
-              maxDismissalsResultingHideSeconds: 5,
-            },
+      .resolves({
+        autoPromptConfig: {
+          maxImpressionsPerWeek: 1,
+          clientDisplayTrigger: {dismissalDelaySeconds: 2},
+          explicitDismissalConfig: {
+            backoffSeconds: 3,
+            maxDismissalsPerWeek: 4,
+            maxDismissalsResultingHideSeconds: 5,
           },
-        })
-      )
+        },
+      })
       .once();
 
     const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
@@ -132,11 +130,9 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(
-        Promise.resolve({
-          errorMessages: ['Something went wrong'],
-        })
-      )
+      .resolves({
+        errorMessages: ['Something went wrong'],
+      })
       .once();
 
     await clientConfigManager.getAutoPromptConfig();
@@ -178,10 +174,36 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({paySwgVersion: '2'}))
+      .resolves({paySwgVersion: '2'})
       .once();
 
     const clientConfig = await clientConfigManager.fetchClientConfig();
     expect(clientConfig.paySwgVersion).to.equal('2');
+  });
+
+  it('getClientConfig should have useUpdatedOfferFlows after fetch', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({useUpdatedOfferFlows: true})
+      .once();
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+    expect(clientConfig.useUpdatedOfferFlows).to.be.true;
+  });
+
+  it('getClientConfig should use default useUpdatedOfferFlows value after fetch if the response did not contain a useUpdatedOfferFlows value', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({useUpdatedOfferFlows: false})
+      .once();
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+    expect(clientConfig.useUpdatedOfferFlows).to.be.false;
   });
 });
