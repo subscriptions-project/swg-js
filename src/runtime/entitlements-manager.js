@@ -289,7 +289,7 @@ export class EntitlementsManager {
       message.setIsUserRegistered(optionalIsUserRegistered);
     }
 
-    const url =
+    let url =
       '/publication/' +
       encodeURIComponent(this.publicationId_) +
       '/entitlements';
