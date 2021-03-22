@@ -249,7 +249,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     entitlementSource,
     entitlementResult,
     jwtString,
-    jwtSource
+    jwtSource,
+    isUserRegistered = null
   ) {
     expectPost(
       ENTITLEMENTS_URL,
@@ -259,6 +260,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           MOCK_TIME_ARRAY,
           entitlementSource,
           entitlementResult,
+          'token',
+          isUserRegistered,
         ],
         false
       )
@@ -1115,7 +1118,13 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       params = getParams(null)
     ) {
       const result = analyticsEventToEntitlementResult(event);
-      expectEntitlementPingback(expectedSource, result);
+      expectEntitlementPingback(
+        expectedSource,
+        result,
+        null,
+        null,
+        params.getIsUserRegistered()
+      );
       eventManager.logEvent({
         eventType: event,
         eventOriginator: originator,
@@ -1166,6 +1175,22 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SWG_CLIENT,
           GOOGLE_SOURCE
+        ));
+
+      it('should pingback with isUserRegistered == true on valid event', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE,
+          getParams(true)
+        ));
+
+      it('should pingback with isUserRegistered == false on valid event', () =>
+        expectPingback(
+          AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE,
+          getParams(false)
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
