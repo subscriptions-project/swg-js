@@ -250,10 +250,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     entitlementResult,
     jwtString,
     jwtSource,
-    isUserRegistered = null
+    isUserRegistered = null,
+    pingbackUrl = ''
   ) {
+    const url = pingbackUrl || ENTITLEMENTS_URL;
     expectPost(
-      ENTITLEMENTS_URL,
+      url,
       new EntitlementsRequest(
         [
           new EntitlementJwt([jwtString, jwtSource], false).toArray(false),
@@ -1003,6 +1005,33 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       );
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
 
+      return manager.consumeMeter_(ents);
+    });
+
+    it('should send pingback with metering entitlements and meter params', async () => {
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
+        EntitlementResult.UNLOCKED_METER,
+        'token1',
+        GOOGLE_METERING_SOURCE,
+        null,
+        ENTITLEMENTS_URL + '?encodedParams=3ncod3dM3t3ringParams'
+      );
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
+      manager.encodedParams_ = '3ncod3dM3t3ringParams';
       return manager.consumeMeter_(ents);
     });
 
