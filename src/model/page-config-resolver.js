@@ -266,20 +266,21 @@ class JsonLdParser {
       possibleConfigs = [possibleConfigs];
     }
 
-    for (let i = 0; i < /** @type {Array} */ (possibleConfigs).length; i++) {
-      const possibleConfig = possibleConfigs[i];
+    const configs = /** @type {!Array<!JsonObject>} */ (possibleConfigs);
+    for (let i = 0; i < configs.length; i++) {
+      const config = configs[i];
 
       // Must be an ALLOWED_TYPE
-      if (!this.checkType_.checkValue(possibleConfig['@type'], ALLOWED_TYPES)) {
+      if (!this.checkType_.checkValue(config['@type'], ALLOWED_TYPES)) {
         continue;
       }
 
       // Must have a isPartOf[@type=Product].
       let productId = null;
-      const partOfArray = this.valueArray_(possibleConfig, 'isPartOf');
+      const partOfArray = this.valueArray_(config, 'isPartOf');
       if (partOfArray) {
-        for (let i = 0; i < partOfArray.length; i++) {
-          productId = this.discoverProductId_(partOfArray[i]);
+        for (let j = 0; j < partOfArray.length; j++) {
+          productId = this.discoverProductId_(partOfArray[j]);
           if (productId) {
             break;
           }
@@ -291,7 +292,7 @@ class JsonLdParser {
 
       // Found product id, just check for the access flag.
       const isAccessibleForFree = this.bool_(
-        this.singleValue_(possibleConfig, 'isAccessibleForFree'),
+        this.singleValue_(config, 'isAccessibleForFree'),
         /* default */ true
       );
 
