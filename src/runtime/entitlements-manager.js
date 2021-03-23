@@ -36,10 +36,10 @@ import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
 import {Toast} from '../ui/toast';
+import {addQueryParam, getCanonicalUrl, parseQueryString} from '../utils/url';
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {feArgs, feUrl} from '../runtime/services';
-import {getCanonicalUrl, parseQueryString} from '../utils/url';
 import {hash} from '../utils/string';
 import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {serviceUrl} from './services';
@@ -88,7 +88,11 @@ export class EntitlementsManager {
     /** @private {boolean} */
     this.blockNextNotification_ = false;
 
-    /** @private {?string} */
+    /**
+     * String containing encoded metering parameters currently.
+     * We may expand this to contain more information in the future.
+     * @private {?string}
+     */
     this.encodedParams_ = null;
 
     /** @private @const {!./storage.Storage} */
@@ -184,6 +188,13 @@ export class EntitlementsManager {
   }
 
   /**
+   * Retrieves the 'gaa_n' parameter from the query string.
+   */
+  getGaaToken_() {
+    return parseQueryString(this.win_.location.search)['gaa_n'];
+  }
+
+  /**
    * Sends a pingback that marks a metering entitlement as used.
    * @param {!Entitlements} entitlements
    */
@@ -202,7 +213,7 @@ export class EntitlementsManager {
       .eventManager()
       .logSwgEvent(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
 
-    const token = parseQueryString(this.win_.location.search)['gaa_n'];
+    const token = this.getGaaToken_();
 
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
@@ -252,15 +263,8 @@ export class EntitlementsManager {
       default:
         return;
     }
-    const token = parseQueryString(this.win_.location.search)['gaa_n'];
-    let isUserRegistered = null;
-    if (
-      'additionalParameters' in event &&
-      event.additionalParameters !== null &&
-      event.additionalParameters.getIsUserRegistered() !== null
-    ) {
-      isUserRegistered = event.additionalParameters.getIsUserRegistered();
-    }
+    const token = this.getGaaToken_();
+    const isUserRegistered = event?.additionalParameters?.getIsUserRegistered?.();
     this.postEntitlementsRequest_(
       new EntitlementJwt(),
       result,
@@ -285,7 +289,7 @@ export class EntitlementsManager {
     message.setEntitlementResult(entitlementResult);
     message.setEntitlementSource(entitlementSource);
     message.setToken(optionalToken);
-    if (optionalIsUserRegistered !== null) {
+    if (typeof optionalIsUserRegistered === 'boolean') {
       message.setIsUserRegistered(optionalIsUserRegistered);
     }
 
@@ -294,7 +298,7 @@ export class EntitlementsManager {
       encodeURIComponent(this.publicationId_) +
       '/entitlements';
     if (this.encodedParams_) {
-      url += '?encodedParams=' + this.encodedParams_;
+      url = addQueryParam(url, 'encodedParams', this.encodedParams_);
     }
 
     this.fetcher_.sendPost(serviceUrl(url), message);

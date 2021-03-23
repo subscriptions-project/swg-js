@@ -1005,7 +1005,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       );
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
 
-      return manager.consumeMeter_(ents);
+      await manager.consumeMeter_(ents);
     });
 
     it('should send pingback with metering entitlements and meter params', async () => {
@@ -1027,12 +1027,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         EntitlementResult.UNLOCKED_METER,
         'token1',
         GOOGLE_METERING_SOURCE,
-        null,
+        /* isUserRegistered */ null,
         ENTITLEMENTS_URL + '?encodedParams=3ncod3dM3t3ringParams'
       );
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
       manager.encodedParams_ = '3ncod3dM3t3ringParams';
-      return manager.consumeMeter_(ents);
+      await manager.consumeMeter_(ents);
     });
 
     it('should not send pingback with non-metering entitlements', async () => {
@@ -1150,8 +1150,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectEntitlementPingback(
         expectedSource,
         result,
-        null,
-        null,
+        /* jwtString */ null,
+        /* jwtSource */ null,
         params.getIsUserRegistered()
       );
       eventManager.logEvent({
