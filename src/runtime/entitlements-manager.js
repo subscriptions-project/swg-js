@@ -605,13 +605,26 @@ export class EntitlementsManager {
    * @private
    */
   fetch_(params) {
+    // Get swgUserToken from getEntitlements params
+    const swgUserTokenParam = params?.encryption?.swgUserToken;
+    // Get swgUserToken from local storage if it is not in getEntitlements params
+    const swgUserTokenPromise = swgUserTokenParam
+      ? Promise.resolve(swgUserTokenParam)
+      : this.storage_.get(Constants.USER_TOKEN, true);
+
     let url =
       '/publication/' +
       encodeURIComponent(this.publicationId_) +
       '/entitlements';
 
-    return hash(getCanonicalUrl(this.deps_.doc()))
-      .then((hashedCanonicalUrl) => {
+    return Promise.all([
+      hash(getCanonicalUrl(this.deps_.doc())),
+      swgUserTokenPromise,
+    ])
+      .then((values) => {
+        const hashedCanonicalUrl = values[0];
+        const swgUserToken = values[1];
+
         // Add encryption param.
         if (params?.encryption) {
           url = addQueryParam(
@@ -619,11 +632,11 @@ export class EntitlementsManager {
             'crypt',
             params.encryption.encryptedDocumentKey
           );
+        }
 
-          // Add swgUserToken param.
-          if (params.encryption.swgUserToken) {
-            url = addQueryParam(url, 'sut', params.encryption.swgUserToken);
-          }
+        // Add swgUserToken param.
+        if (swgUserToken) {
+          url = addQueryParam(url, 'sut', swgUserToken);
         }
 
         // Add metering params.
