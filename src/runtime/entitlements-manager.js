@@ -36,10 +36,10 @@ import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
 import {Toast} from '../ui/toast';
+import {addQueryParam, getCanonicalUrl} from '../utils/url';
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {feArgs, feUrl} from '../runtime/services';
-import {getCanonicalUrl} from '../utils/url';
 import {hash} from '../utils/string';
 import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {serviceUrl} from './services';
@@ -605,22 +605,24 @@ export class EntitlementsManager {
    * @private
    */
   fetch_(params) {
+    let url =
+      '/publication/' +
+      encodeURIComponent(this.publicationId_) +
+      '/entitlements';
+
     return hash(getCanonicalUrl(this.deps_.doc()))
       .then((hashedCanonicalUrl) => {
-        const urlParams = [];
-
         // Add encryption param.
-        if (params && params.encryption) {
-          urlParams.push(
-            'crypt=' +
-              encodeURIComponent(params.encryption.encryptedDocumentKey)
+        if (params?.encryption) {
+          url = addQueryParam(
+            url,
+            'crypt',
+            params.encryption.encryptedDocumentKey
           );
 
           // Add swgUserToken param.
           if (params.encryption.swgUserToken) {
-            urlParams.push(
-              'sut=' + encodeURIComponent(params.encryption.swgUserToken)
-            );
+            url = addQueryParam(url, 'sut', params.encryption.swgUserToken);
           }
         }
 
@@ -670,17 +672,10 @@ export class EntitlementsManager {
           const encodedParams = base64UrlEncodeFromBytes(
             utf8EncodeSync(JSON.stringify(encodableParams))
           );
-          urlParams.push('encodedParams=' + encodedParams);
+          url = addQueryParam(url, 'encodedParams', encodedParams);
         }
 
         // Build URL.
-        let url =
-          '/publication/' +
-          encodeURIComponent(this.publicationId_) +
-          '/entitlements';
-        if (urlParams.length > 0) {
-          url += '?' + urlParams.join('&');
-        }
         return serviceUrl(url);
       })
       .then((url) => {
