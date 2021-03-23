@@ -270,6 +270,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     );
   }
 
+  // Clear locally stored SwgUserToken.
+  function expectGetSwgUserTokenToBeCalled() {
+    storageMock
+      .expects('get')
+      .withExactArgs(Constants.USER_TOKEN, true)
+      .returns(Promise.resolve(null));
+  }
+
   describe('fetching', () => {
     beforeEach(() => {
       // Expect empty cache.
@@ -308,6 +316,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+      expectGetSwgUserTokenToBeCalled();
 
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
@@ -337,6 +346,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+      expectGetSwgUserTokenToBeCalled();
 
       const ents = await manager.getEntitlements({
         encryption: {encryptedDocumentKey},
@@ -348,7 +358,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(ents.enablesThis()).to.be.false;
     });
 
-    it('should accept swgUserToken', async () => {
+    it('should accept swgUserToken from getEntitlements param', async () => {
       xhrMock
         .expects('fetch')
         .withExactArgs(
@@ -371,12 +381,62 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
 
+      // Do not check locally stored SwgUserToken if getEntitlements param has it.
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN, true)
+        .atLeast(0);
+
       const ents = await manager.getEntitlements({
         encryption: {
           encryptedDocumentKey:
             '{"accessRequirements": ' +
             '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}',
           swgUserToken: 'abc',
+        },
+      });
+      expect(ents.service).to.equal('subscribe.google.com');
+      expect(ents.raw).to.equal('');
+      expect(ents.entitlements).to.deep.equal([]);
+      expect(ents.product_).to.equal('pub1:label1');
+      expect(ents.enablesThis()).to.be.false;
+    });
+
+    it('should accept swgUserToken from local storage', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+            encodeURIComponent(encryptedDocumentKey) +
+            '&sut=' +
+            encodeURIComponent('abc'),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+
+      // Check SwgUserToken from local storage.
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN, true)
+        .returns(Promise.resolve('abc')).once;
+
+      // getEntitlements params do not include swgUserToken
+      const ents = await manager.getEntitlements({
+        encryption: {
+          encryptedDocumentKey:
+            '{"accessRequirements": ' +
+            '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}',
         },
       });
       expect(ents.service).to.equal('subscribe.google.com');
@@ -421,6 +481,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectGetSwgUserTokenToBeCalled();
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.equal('ddk1');
@@ -462,6 +523,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectGetSwgUserTokenToBeCalled();
 
       storageMock
         .expects('set')
@@ -491,6 +553,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectGetSwgUserTokenToBeCalled();
 
       storageMock
         .expects('set')
@@ -529,6 +592,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectGetSwgUserTokenToBeCalled();
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.be.null;
@@ -562,6 +626,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectGetSwgUserTokenToBeCalled();
+
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
       expect(ents.raw).to.equal('SIGNED_DATA');
@@ -587,6 +653,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .once();
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+      expectGetSwgUserTokenToBeCalled();
 
       await manager.getEntitlements();
 
@@ -605,11 +672,13 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+      expectGetSwgUserTokenToBeCalled();
 
       await manager.getEntitlements();
 
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+      expectGetSwgUserTokenToBeCalled();
 
       manager.reset();
       await manager.getEntitlements();
@@ -646,6 +715,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectGetSwgUserTokenToBeCalled();
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
 
@@ -696,8 +766,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
         EntitlementResult.UNLOCKED_SUBSCRIBER
       );
+      expectGetSwgUserTokenToBeCalled();
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       expect(manager.positiveRetries_).to.equal(0);
@@ -727,8 +799,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .thrice();
+      expectGetSwgUserTokenToBeCalled();
       manager.reset(true);
+      expectGetSwgUserTokenToBeCalled();
       expect(manager.positiveRetries_).to.equal(3);
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       expect(manager.positiveRetries_).to.equal(0);
@@ -748,12 +823,13 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .twice();
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
-
+      expectGetSwgUserTokenToBeCalled();
       await manager.getEntitlements();
 
       manager.clear();
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+      expectGetSwgUserTokenToBeCalled();
 
       await manager.getEntitlements();
     });
@@ -814,6 +890,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       // Toast shouldn't open.
       storageMock.expects('get').withExactArgs('toast').never();
+      expectGetSwgUserTokenToBeCalled();
+
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
       expectLog(AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS, false);
 
@@ -1090,7 +1168,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
               ),
           })
         );
-
+      expectGetSwgUserTokenToBeCalled();
       await manager.getEntitlements();
       expect(self.console.warn).to.have.been.calledWithExactly(
         'SwG Entitlements: Something went wrong'
@@ -1113,7 +1191,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             text: () => Promise.resolve('{}'),
           })
         );
-
+      expectGetSwgUserTokenToBeCalled();
       await manager.getEntitlements('deprecated');
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParamsExternalDef.'
@@ -1440,6 +1518,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock.expects('set').withArgs('toast').never();
       expectGetIsReadyToPayToBeCalled(null);
       expectNoResponse();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements1 = await manager.getEntitlements();
       expect(entitlements1.enablesAny()).to.be.false;
@@ -1457,6 +1536,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock.expects('set').withArgs('toast').never();
       expectGetIsReadyToPayToBeCalled(null);
       expectGoogleResponse();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements1 = await manager.getEntitlements();
       expect(entitlements1.enablesAny()).to.be.true;
@@ -1478,7 +1558,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectGetIsReadyToPayToBeCalled('true');
       expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ true);
       analyticsMock.expects('setReadyToPay').withExactArgs(true).once();
-
+      expectGetSwgUserTokenToBeCalled();
       const entitlements = await manager.getEntitlements();
       expect(entitlements.isReadyToPay).to.be.true;
     });
@@ -1489,7 +1569,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectGetIsReadyToPayToBeCalled('false');
       expectGoogleResponse(/* options */ undefined, /* isReadyToPay */ false);
       analyticsMock.expects('setReadyToPay').withExactArgs(false).once();
-
+      expectGetSwgUserTokenToBeCalled();
       const entitlements = await manager.getEntitlements();
       expect(entitlements.isReadyToPay).to.be.false;
     });
@@ -1499,7 +1579,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectGetIsReadyToPayToBeCalled(null);
       expectGoogleResponse();
       analyticsMock.expects('setReadyToPay').withExactArgs(false).once();
-
+      expectGetSwgUserTokenToBeCalled();
       const entitlements = await manager.getEntitlements();
       expect(entitlements.isReadyToPay).to.be.false;
     });
@@ -1511,6 +1591,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectGoogleResponse({
         exp: Date.now() / 1000 - 10000, // Far back.
       });
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       expect(entitlements.enablesAny()).to.be.true;
@@ -1523,6 +1604,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectGetIsReadyToPayToBeCalled(null);
       storageMock.expects('set').withExactArgs('toast', '1').once();
       expectGoogleResponse();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       expect(entitlements.enablesThis()).to.be.true;
@@ -1534,6 +1616,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectGetIsReadyToPayToBeCalled(null);
       expectNoResponse();
       analyticsMock.expects('setReadyToPay').withExactArgs(false);
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       expect(entitlements.enablesThis()).to.be.false;
@@ -1545,6 +1628,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectGetIsReadyToPayToBeCalled(null);
       storageMock.expects('set').withExactArgs('toast', '1').once();
       expectNonGoogleResponse();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements1 = await manager.getEntitlements();
       expect(entitlements1.enablesAny()).to.be.true;
@@ -1576,6 +1660,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         )
         .once();
       expectGetIsReadyToPayToBeCalled(null);
+      expectGetSwgUserTokenToBeCalled();
       manager.blockNextNotification();
 
       const entitlements = await manager.getEntitlements();
@@ -1597,6 +1682,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectGetIsReadyToPayToBeCalled(null);
       storageMock.expects('set').withArgs('toast').never();
       expectGoogleResponse();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       expect(entitlements.getEntitlementForThis().source).to.equal('google');
@@ -1636,6 +1722,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(null))
         .once();
       storageMock.expects('set').withExactArgs('ents').never();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       expect(entitlements.enablesAny()).to.be.false;
@@ -1655,6 +1742,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .withExactArgs('ents', raw)
         .returns(Promise.resolve())
         .once();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       expect(entitlements.enablesAny()).to.be.true;
@@ -1676,6 +1764,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .withExactArgs('ents', raw)
         .returns(Promise.resolve())
         .once();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       expect(entitlements.enablesAny()).to.be.true;
@@ -1804,6 +1893,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .once();
       storageMock.expects('set').withArgs('ents').once();
       expectNonGoogleResponse();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       // Cached response is from Google, but refresh response is from "pub1".
@@ -1824,6 +1914,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .once();
       storageMock.expects('set').withArgs('ents').once();
       expectNonGoogleResponse();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       // Cached response is from Google, but refresh response is from "pub1".
@@ -1840,6 +1931,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .once();
       storageMock.expects('set').withArgs('ents').once();
       expectNonGoogleResponse();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       // Cached response is from Google, but refresh response is from "pub1".
@@ -1866,6 +1958,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .once();
       storageMock.expects('set').withArgs('ents').once();
       expectNonGoogleResponse();
+      expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
       // Cached response is from Google, but refresh response is from "pub1".
