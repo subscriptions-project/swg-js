@@ -162,6 +162,8 @@ describes.realWin('PayClient', {}, (env) => {
     expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
   });
 
+  
+
   it('should accept a correct payment response', async () => {
     payClient.start({});
     const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));

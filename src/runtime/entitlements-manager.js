@@ -721,7 +721,7 @@ export class EntitlementsManager {
           this.encodedParams_ = base64UrlEncodeFromBytes(
             utf8EncodeSync(JSON.stringify(encodableParams))
           );
-          url = addQueryParam(url, 'encodedParams', encodedParams);
+          url = addQueryParam(url, 'encodedParams', this.encodedParams_);
         }
 
         // Build URL.
