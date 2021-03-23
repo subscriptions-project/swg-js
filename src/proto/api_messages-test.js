@@ -426,7 +426,8 @@ describe('EntitlementsRequest', () => {
         EntitlementSource.UNKNOWN_ENTITLEMENT_SOURCE);
     entitlementsrequest.setEntitlementResult(
         EntitlementResult.UNKNOWN_ENTITLEMENT_RESULT);
-    entitlementsrequest.setNonce('');
+    entitlementsrequest.setToken('');
+    entitlementsrequest.setIsUserRegistered(false);
 
     let entitlementsrequestDeserialized;
 
@@ -446,8 +447,10 @@ describe('EntitlementsRequest', () => {
         .to.deep.equal(entitlementsrequest.getEntitlementSource());
     expect(entitlementsrequestDeserialized.getEntitlementResult())
         .to.deep.equal(entitlementsrequest.getEntitlementResult());
-    expect(entitlementsrequestDeserialized.getNonce())
-        .to.deep.equal(entitlementsrequest.getNonce());
+    expect(entitlementsrequestDeserialized.getToken())
+        .to.deep.equal(entitlementsrequest.getToken());
+    expect(entitlementsrequestDeserialized.getIsUserRegistered())
+        .to.deep.equal(entitlementsrequest.getIsUserRegistered());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -465,8 +468,10 @@ describe('EntitlementsRequest', () => {
         .to.deep.equal(entitlementsrequest.getEntitlementSource());
     expect(entitlementsrequestDeserialized.getEntitlementResult())
         .to.deep.equal(entitlementsrequest.getEntitlementResult());
-    expect(entitlementsrequestDeserialized.getNonce())
-        .to.deep.equal(entitlementsrequest.getNonce());
+    expect(entitlementsrequestDeserialized.getToken())
+        .to.deep.equal(entitlementsrequest.getToken());
+    expect(entitlementsrequestDeserialized.getIsUserRegistered())
+        .to.deep.equal(entitlementsrequest.getIsUserRegistered());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -483,8 +488,10 @@ describe('EntitlementsRequest', () => {
         .to.deep.equal(entitlementsrequest.getEntitlementSource());
     expect(entitlementsrequestDeserialized.getEntitlementResult())
         .to.deep.equal(entitlementsrequest.getEntitlementResult());
-    expect(entitlementsrequestDeserialized.getNonce())
-        .to.deep.equal(entitlementsrequest.getNonce());
+    expect(entitlementsrequestDeserialized.getToken())
+        .to.deep.equal(entitlementsrequest.getToken());
+    expect(entitlementsrequestDeserialized.getIsUserRegistered())
+        .to.deep.equal(entitlementsrequest.getIsUserRegistered());
   });
 });
 
