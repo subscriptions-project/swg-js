@@ -110,6 +110,9 @@ describes.realWin('PayClient', {}, (env) => {
   it('should initialize correctly', () => {
     expect(payClient.getType()).to.equal('PAYJS');
     expect(redirectVerifierHelperStubs.prepare).to.be.calledOnce;
+    const expectedResponse = Promise.resolve(INTEGR_DATA_OBJ);
+    payClient.handleResponse_(expectedResponse);
+    expect(payClient.response_).to.equal(expectedResponse);
   });
 
   it('should have valid flow constructed', () => {
