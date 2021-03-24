@@ -82,6 +82,9 @@ export class PayClient {
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
+
+    // Bind handleResponse_ in ctor to catch redirects.
+    this.handleResponse_ = this.handleResponse_.bind(this);
   }
 
   /**
@@ -140,7 +143,7 @@ export class PayClient {
           },
         }),
         this.analytics_.getTransactionId(),
-        this.handleResponse_.bind(this)
+        this.handleResponse_
       );
     }
     if (options.forceRedirect) {
