@@ -778,10 +778,7 @@ class EntitlementsRequest {
     this.entitlementResult_ = data[3 + base] == null ? null : data[3 + base];
 
     /** @private {?string} */
-    this.token_ = data[4 + base] == null ? null : data[4 + base];
-
-    /** @private {?boolean} */
-    this.isUserRegistered_ = data[5 + base] == null ? null : data[5 + base];
+    this.nonce_ = data[4 + base] == null ? null : data[4 + base];
   }
 
   /**
@@ -843,29 +840,15 @@ class EntitlementsRequest {
   /**
    * @return {?string}
    */
-  getToken() {
-    return this.token_;
+  getNonce() {
+    return this.nonce_;
   }
 
   /**
    * @param {string} value
    */
-  setToken(value) {
-    this.token_ = value;
-  }
-
-  /**
-   * @return {?boolean}
-   */
-  getIsUserRegistered() {
-    return this.isUserRegistered_;
-  }
-
-  /**
-   * @param {boolean} value
-   */
-  setIsUserRegistered(value) {
-    this.isUserRegistered_ = value;
+  setNonce(value) {
+    this.nonce_ = value;
   }
 
   /**
@@ -881,8 +864,7 @@ class EntitlementsRequest {
                               [],  // field 2 - client_event_time
       this.entitlementSource_,     // field 3 - entitlement_source
       this.entitlementResult_,     // field 4 - entitlement_result
-      this.token_,                 // field 5 - token
-      this.isUserRegistered_,      // field 6 - is_user_registered
+      this.nonce_,                 // field 5 - nonce
     ];
     if (includeLabel) {
       arr.unshift(this.label());
