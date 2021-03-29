@@ -249,21 +249,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     entitlementSource,
     entitlementResult,
     jwtString,
-    jwtSource,
-    isUserRegistered = null,
-    pingbackUrl = ''
+    jwtSource
   ) {
-    const url = pingbackUrl || ENTITLEMENTS_URL;
     expectPost(
-      url,
+      ENTITLEMENTS_URL,
       new EntitlementsRequest(
         [
           new EntitlementJwt([jwtString, jwtSource], false).toArray(false),
           MOCK_TIME_ARRAY,
           entitlementSource,
           entitlementResult,
-          'token',
-          isUserRegistered,
         ],
         false
       )
@@ -1083,34 +1078,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       );
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
 
-      await manager.consumeMeter_(ents);
-    });
-
-    it('should send pingback with metering entitlements and meter params', async () => {
-      const ents = new Entitlements(
-        'service1',
-        'RaW',
-        [
-          new Entitlement(
-            GOOGLE_METERING_SOURCE,
-            ['product1', 'product2'],
-            'token1'
-          ),
-        ],
-        'product1'
-      );
-
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
-        EntitlementResult.UNLOCKED_METER,
-        'token1',
-        GOOGLE_METERING_SOURCE,
-        /* isUserRegistered */ null,
-        ENTITLEMENTS_URL + '?encodedParams=3ncod3dM3t3ringParams'
-      );
-      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
-      manager.encodedParams_ = '3ncod3dM3t3ringParams';
-      await manager.consumeMeter_(ents);
+      return manager.consumeMeter_(ents);
     });
 
     it('should not send pingback with non-metering entitlements', async () => {
@@ -1225,13 +1193,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       params = getParams(null)
     ) {
       const result = analyticsEventToEntitlementResult(event);
-      expectEntitlementPingback(
-        expectedSource,
-        result,
-        /* jwtString */ null,
-        /* jwtSource */ null,
-        params.getIsUserRegistered()
-      );
+      expectEntitlementPingback(expectedSource, result);
       eventManager.logEvent({
         eventType: event,
         eventOriginator: originator,
@@ -1282,22 +1244,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SWG_CLIENT,
           GOOGLE_SOURCE
-        ));
-
-      it('should pingback with isUserRegistered == true on valid event', () =>
-        expectPingback(
-          AnalyticsEvent.IMPRESSION_PAYWALL,
-          EventOriginator.SWG_CLIENT,
-          GOOGLE_SOURCE,
-          getParams(true)
-        ));
-
-      it('should pingback with isUserRegistered == false on valid event', () =>
-        expectPingback(
-          AnalyticsEvent.IMPRESSION_PAYWALL,
-          EventOriginator.SWG_CLIENT,
-          GOOGLE_SOURCE,
-          getParams(false)
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
