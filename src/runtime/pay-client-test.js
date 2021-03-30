@@ -15,10 +15,11 @@
  */
 
 import {ConfiguredRuntime} from './runtime';
+import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {PayClient, RedirectVerifierHelper} from './pay-client';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
-import {setExperimentsStringForTesting} from './experiments';
+import {setExperiment, setExperimentsStringForTesting} from './experiments';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -110,9 +111,30 @@ describes.realWin('PayClient', {}, (env) => {
   it('should initialize correctly', () => {
     expect(payClient.getType()).to.equal('PAYJS');
     expect(redirectVerifierHelperStubs.prepare).to.be.calledOnce;
+    const ClientWrapper = function (handler) {
+      this.handleResponse_ = handler;
+      this.response_ = null;
+    };
+    const wrapper = new ClientWrapper(payClient.handleResponse_);
     const expectedResponse = Promise.resolve(INTEGR_DATA_OBJ);
-    payClient.handleResponse_(expectedResponse);
-    expect(payClient.response_).to.equal(expectedResponse);
+    wrapper.handleResponse_(expectedResponse);
+    expect(payClient.response_).to.not.equal(expectedResponse);
+  });
+
+  it('should initialize correctly in redirect handle experiment', () => {
+    setExperiment(win, ExperimentFlags.PAY_CLIENT_REDIRECT, true);
+    redirectVerifierHelperStubs.prepare.resetHistory();
+    const tmpPayClient = new PayClient(runtime);
+    expect(tmpPayClient.getType()).to.equal('PAYJS');
+    expect(redirectVerifierHelperStubs.prepare).to.be.calledOnce;
+    const ClientWrapper = function (handler) {
+      this.handleResponse_ = handler;
+      this.response_ = null;
+    };
+    const wrapper = new ClientWrapper(tmpPayClient.handleResponse_);
+    const expectedResponse = Promise.resolve(INTEGR_DATA_OBJ);
+    wrapper.handleResponse_(expectedResponse);
+    expect(tmpPayClient.response_).to.equal(expectedResponse);
   });
 
   it('should have valid flow constructed', () => {
@@ -167,6 +189,15 @@ describes.realWin('PayClient', {}, (env) => {
 
   it('should accept a correct payment response', async () => {
     payClient.start({});
+    const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
+    expect(data).to.deep.equal(INTEGR_DATA_OBJ);
+  });
+
+  it('should accept a correct payment response in redirect handle experiment', async () => {
+    setExperiment(win, ExperimentFlags.PAY_CLIENT_REDIRECT, true);
+    const tmpPayClient = new PayClient(runtime);
+    tmpPayClient.onResponse(resultStub);
+    tmpPayClient.start({});
     const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
     expect(data).to.deep.equal(INTEGR_DATA_OBJ);
   });
