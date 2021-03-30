@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Preconnect} from '../utils/preconnect';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
+import {isExperimentOn} from './experiments';
 
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
@@ -82,6 +84,11 @@ export class PayClient {
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
+
+    if (isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_REDIRECT)) {
+      // Bind handleResponse_ in ctor to catch redirects.
+      this.handleResponse_ = this.handleResponse_.bind(this);
+    }
   }
 
   /**
@@ -140,7 +147,9 @@ export class PayClient {
           },
         }),
         this.analytics_.getTransactionId(),
-        this.handleResponse_.bind(this)
+        isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_REDIRECT)
+          ? this.handleResponse_
+          : this.handleResponse_.bind(this)
       );
     }
     if (options.forceRedirect) {
