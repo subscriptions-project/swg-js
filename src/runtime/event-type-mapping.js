@@ -183,7 +183,7 @@ export function analyticsEventToEntitlementResult(event) {
 
 /**
  * Converts an analytics event enum into a Google Analytics event object.
- * @param {?AnalyticsEvent} analyticsEvent
+ * @param {?AnalyticsEvent} event
  * @returns {?Object}
  */
 export function analyticsEventToGoogleAnalyticsEvent(event) {
