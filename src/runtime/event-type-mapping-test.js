@@ -18,6 +18,7 @@ import {Event} from '../api/propensity-api';
 import {PublisherEntitlementEvent} from '../api/subscriptions';
 import {
   analyticsEventToEntitlementResult,
+  analyticsEventToGoogleAnalyticsEvent,
   analyticsEventToPublisherEvent,
   publisherEntitlementEventToAnalyticsEvents,
   publisherEventToAnalyticsEvent,
@@ -109,6 +110,25 @@ describes.realWin('analyticsEventToEntitlementResult', {}, () => {
         continue;
       }
       expect(mapped[result]).to.not.be.undefined;
+    }
+  });
+});
+
+
+describes.realWin('analyticsEventToGoogleAnalyticsEvent', {}, () => {
+  it('not allow the same event to be mapped to twice', () => {
+    let mapped = {};
+    for (const event in AnalyticsEvent) {
+      const result = analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent[event]);
+      // Not all analytics events are mapped
+      if (result === undefined) {
+        continue;
+      }
+      expect(typeof result).to.be.equal('object');
+      const resultString = JSON.stringify(result);
+      // Each EntitlementResult should only be mapped to once
+      expect(mapped[resultString]).to.be.undefined;
+      mapped[resultString] = (mapped[resultString] || 0) + 1;
     }
   });
 });
