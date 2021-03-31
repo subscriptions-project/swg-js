@@ -91,6 +91,66 @@ const AnalyticsEventToEntitlementResult = {
 };
 
 /**
+ * @param {!string} eventCategory
+ * @param {!string} eventAction
+ * @param {!string} eventLabel
+ * @param {!boolean} nonInteraction
+ * @returns {!Object}
+ */
+const createGoogleAnalyticsEvent = (
+  eventCategory,
+  eventAction,
+  eventLabel,
+  nonInteraction
+) => ({
+  eventCategory,
+  eventAction,
+  eventLabel,
+  nonInteraction,
+});
+
+/** @const {!Object<?AnalyticsEvent,?Object>} */
+const AnalyticsEventToGoogleAnalyticsEvent = {
+  [AnalyticsEvent.IMPRESSION_OFFERS]: createGoogleAnalyticsEvent(
+    'NTG paywall',
+    'paywall modal impression',
+    '',
+    true
+  ),
+  [AnalyticsEvent.ACTION_OFFER_SELECTED]: createGoogleAnalyticsEvent(
+    'NTG paywall',
+    'click',
+    '',
+    false
+  ),
+
+  [AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK]: createGoogleAnalyticsEvent(
+    'NTG subscription',
+    'marketing modal click',
+    '',
+    false
+  ),
+  [AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT]: createGoogleAnalyticsEvent(
+    'NTG subscription',
+    'marketing modal impression',
+    '',
+    true
+  ),
+  [AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLICK]: createGoogleAnalyticsEvent(
+    'NTG membership',
+    'marketing modal click',
+    '',
+    false
+  ),
+  [AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT]: createGoogleAnalyticsEvent(
+    'NTG membership',
+    'membership modal impression',
+    '',
+    true
+  ),
+};
+
+/**
  * Converts a propensity event enum into an analytics event enum.
  * @param {!Event|string} propensityEvent
  * @returns {!AnalyticsEvent}
@@ -119,4 +179,13 @@ export function publisherEntitlementEventToAnalyticsEvents(event) {
 
 export function analyticsEventToEntitlementResult(event) {
   return AnalyticsEventToEntitlementResult[event];
+}
+
+/**
+ * Converts an analytics event enum into a Google Analytics event object.
+ * @param {?AnalyticsEvent} analyticsEvent
+ * @returns {?Object}
+ */
+export function analyticsEventToGoogleAnalyticsEvent(event) {
+  return AnalyticsEventToGoogleAnalyticsEvent[event];
 }
