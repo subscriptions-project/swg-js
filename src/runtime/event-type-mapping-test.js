@@ -114,12 +114,13 @@ describes.realWin('analyticsEventToEntitlementResult', {}, () => {
   });
 });
 
-
 describes.realWin('analyticsEventToGoogleAnalyticsEvent', {}, () => {
   it('not allow the same event to be mapped to twice', () => {
-    let mapped = {};
+    const mapped = {};
     for (const event in AnalyticsEvent) {
-      const result = analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent[event]);
+      const result = analyticsEventToGoogleAnalyticsEvent(
+        AnalyticsEvent[event]
+      );
       // Not all analytics events are mapped
       if (result === undefined) {
         continue;

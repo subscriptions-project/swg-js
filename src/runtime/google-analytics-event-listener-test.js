@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  AnalyticsEvent,
-  EventOriginator,
-} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {DepsDef} from './deps';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
