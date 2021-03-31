@@ -91,6 +91,7 @@ export const defaultStyles = {
   'lighting-color': 'rgb(255, 255, 255)',
   'line-break': 'auto',
   'line-height': 'normal',
+  'margin-bottom': '0',
   'mask': 'none',
   'max-block-size': 'none',
   'max-height': 'none',
