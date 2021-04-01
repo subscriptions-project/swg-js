@@ -399,7 +399,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
 describes.realWin('BasicConfiguredRuntime', {}, (env) => {
   let win;
-    let pageConfig;
+  let pageConfig;
 
   beforeEach(() => {
     win = Object.assign({}, env.win, {

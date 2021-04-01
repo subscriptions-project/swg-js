@@ -24,7 +24,7 @@ export class GoogleAnalyticsEventListener {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!ClientEventManager} */
+    /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
   }
 
