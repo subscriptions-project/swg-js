@@ -127,7 +127,7 @@ describes.realWin('analyticsEventToGoogleAnalyticsEvent', {}, () => {
       }
       expect(typeof result).to.be.equal('object');
       const resultString = JSON.stringify(result);
-      // Each EntitlementResult should only be mapped to once
+      // Each Google Analytics event should only be mapped to once
       expect(mapped[resultString]).to.be.undefined;
       mapped[resultString] = (mapped[resultString] || 0) + 1;
     }

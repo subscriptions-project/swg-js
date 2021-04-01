@@ -15,8 +15,6 @@
  */
 
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
-import {warn} from '../utils/log';
-3;
 
 export class GoogleAnalyticsEventListener {
   /**
@@ -46,9 +44,6 @@ export class GoogleAnalyticsEventListener {
   handleClientEvent_(event) {
     // Bail immediately if ga function doesn't exist in Window.
     if (typeof this.win_.ga != 'function') {
-      warn(
-        '[SwG] Google Analytics function "ga" not found on page. Will not log to Google Analytics.'
-      );
       return;
     }
     const gaEvent = analyticsEventToGoogleAnalyticsEvent(event.eventType);

@@ -28,12 +28,12 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
   let listener;
 
   beforeEach(() => {
-    sandbox.stub(self.console, 'warn');
+    sandbox.stub(self.console, 'log');
   });
 
   afterEach(() => {
     winMock.verify();
-    self.console.warn.restore();
+    self.console.log.restore();
   });
 
   function setupEnvironment(wind, callStart) {
@@ -117,9 +117,8 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       eventOriginator: EventOriginator.SWG_CLIENT,
     });
     await eventManager.lastAction_;
-    expect(self.console.warn).to.have.been.calledWithExactly(
-      '[SwG] Google Analytics function "ga" not found on page. Will not log to Google Analytics.'
-    );
+    // Expect that a TypeError hasn't been thrown.
+    expect(self.console.log).to.not.have.been.called;
   });
 
   it('Should not log to ga if start has not been called', async () => {
