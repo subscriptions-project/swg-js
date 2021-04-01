@@ -399,14 +399,12 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
 describes.realWin('BasicConfiguredRuntime', {}, (env) => {
   let win;
-  let winMock;
-  let pageConfig;
+    let pageConfig;
 
   beforeEach(() => {
     win = Object.assign({}, env.win, {
       ga: () => {},
     });
-    winMock = sandbox.mock(win);
     pageConfig = new PageConfig('pub1:label1', true);
   });
 
@@ -415,6 +413,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     let entitlementsManagerMock;
     let clientConfigManagerMock;
     let configuredClassicRuntimeMock;
+    let winMock;
 
     beforeEach(() => {
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
@@ -427,6 +426,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       configuredClassicRuntimeMock = sandbox.mock(
         configuredBasicRuntime.configuredClassicRuntime_
       );
+      winMock = sandbox.mock(win);
     });
 
     afterEach(() => {
