@@ -77,6 +77,8 @@ The SubscriptionResponse object has the following structure:
   }
 }
 ```
+The value of the subfield `raw` of `purchaseData` is called _subscription token_. Among other things, it contains the _purchase token_ which uniquely identifies this transaction. 
+
 ### `purchaseData` properties
 | Name | Data type | Related In-app Billing purchase request field | Description |
 | ---- | --------- | --------------------------------------------- | ----------- |
