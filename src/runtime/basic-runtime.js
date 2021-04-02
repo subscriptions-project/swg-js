@@ -279,6 +279,7 @@ export class ConfiguredBasicRuntime {
     this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig();
 
     // Start listening to Google Analytics events.
+    /** @private @const {!GoogleAnalyticsEventListener} */
     this.googleAnalyticsEventListener_ = new GoogleAnalyticsEventListener(this);
     this.googleAnalyticsEventListener_.start();
 
