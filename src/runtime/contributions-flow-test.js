@@ -19,6 +19,7 @@ import {
   AlreadySubscribedResponse,
   SkuSelectedResponse,
 } from '../proto/api_messages';
+import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
 import {ContributionsFlow} from './contributions-flow';
 import {PageConfig} from '../model/page-config';
@@ -76,7 +77,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
           isClosable: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await contributionsFlow.start();
   });
 
@@ -99,7 +100,37 @@ describes.realWin('ContributionsFlow', {}, (env) => {
           isClosable: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
+    await contributionsFlow.start();
+  });
+
+  it('should have valid ContributionsFlow constructed, routed to the new contributions iframe', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(
+        new ClientConfig(
+          /* autoPromptConfig */ undefined,
+          /* paySwgVersion */ undefined,
+          /* useUpdatedOfferFlows */ true
+        )
+      );
+    contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/contributionoffersiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          'productType': ProductType.UI_CONTRIBUTION,
+          list: 'other',
+          skus: null,
+          isClosable: true,
+        }
+      )
+      .resolves(port);
     await contributionsFlow.start();
   });
 
@@ -110,7 +141,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       runtime.callbacks(),
       'triggerSubscribeRequest'
     );
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
 
     await contributionsFlow.start();
     let callback = messageMap['SkuSelectedResponse'];
@@ -141,7 +172,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
 
   it('should activate login with linking', async () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
 
     await contributionsFlow.start();
     const response = new AlreadySubscribedResponse();
