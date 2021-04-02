@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   AutoPromptType,
   BasicSubscriptions,
@@ -29,6 +30,7 @@ import {Entitlements} from '../api/entitlements';
 import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
+import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
 
 describes.realWin('installBasicRuntime', {}, (env) => {
@@ -400,7 +402,9 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
   let pageConfig;
 
   beforeEach(() => {
-    win = env.win;
+    win = Object.assign({}, env.win, {
+      ga: () => {},
+    });
     pageConfig = new PageConfig('pub1:label1', true);
   });
 
@@ -409,6 +413,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     let entitlementsManagerMock;
     let clientConfigManagerMock;
     let configuredClassicRuntimeMock;
+    let winMock;
 
     beforeEach(() => {
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
@@ -421,12 +426,14 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       configuredClassicRuntimeMock = sandbox.mock(
         configuredBasicRuntime.configuredClassicRuntime_
       );
+      winMock = sandbox.mock(win);
     });
 
     afterEach(() => {
       entitlementsManagerMock.verify();
       clientConfigManagerMock.verify();
       configuredClassicRuntimeMock.verify();
+      winMock.verify();
     });
 
     it('should store and doc and win', () => {
@@ -565,6 +572,25 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
           clientOptions,
           /* attributeValueToCallback */ sandbox.match.any
         );
+    });
+
+    it('should set up Google Analytics event listener and listen to events on startup', async () => {
+      expect(
+        configuredBasicRuntime.googleAnalyticsEventListener_.constructor.name
+      ).equals('GoogleAnalyticsEventListener');
+      winMock
+        .expects('ga')
+        .withExactArgs(
+          'send',
+          'event',
+          analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.IMPRESSION_OFFERS)
+        )
+        .once();
+      configuredBasicRuntime.eventManager().logEvent({
+        eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+      });
+      await configuredBasicRuntime.eventManager().lastAction_;
     });
   });
 });
