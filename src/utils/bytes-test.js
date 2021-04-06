@@ -339,7 +339,7 @@ describe('utf8', function () {
       const utf8Bytes = utf8EncodeSync(data);
       const encoded = base64UrlEncodeFromBytes(utf8Bytes);
       expect(encoded).not.to.equal(data);
-      expect(encoded).not.to.match(/[+/]/g);
+      expect(encoded).not.to.match(/[+/=]/g);
       const decodedUtf8Bytes = base64UrlDecodeToBytes(encoded);
       const decoded = utf8DecodeSync(decodedUtf8Bytes);
       expect(decoded).to.equal(data);

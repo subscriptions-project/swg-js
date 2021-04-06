@@ -41,7 +41,7 @@ export class SmartSubscriptionButtonApi {
    * @param {!./deps.DepsDef} deps
    * @param {!Element} button
    * @param {!../api/subscriptions.SmartButtonOptions} options
-   * @param {function()=} callback
+   * @param {function(!Event=)=} callback
    */
   constructor(deps, button, options, callback) {
     /** @private @const {!./deps.DepsDef} */
@@ -69,7 +69,7 @@ export class SmartSubscriptionButtonApi {
     /** @private {!../api/subscriptions.SmartButtonOptions} */
     this.options_ = options;
 
-    /** @private const {function()=} */
+    /** @private @const */
     this.callback_ = callback;
 
     /** @private @const {string} */
@@ -99,6 +99,7 @@ export class SmartSubscriptionButtonApi {
         throw new Error('No callback!');
       }
       this.callback_();
+
       return;
     }
   }

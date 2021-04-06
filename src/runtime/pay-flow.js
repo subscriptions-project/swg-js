@@ -28,6 +28,7 @@ import {
 } from '../proto/api_messages';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {Constants} from '../utils/constants';
 import {JwtHelper} from '../utils/jwt';
 import {
   ProductType,
@@ -101,6 +102,9 @@ export class PayStartFlow {
 
     /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
+
+    /** @private @const {!../runtime/client-config-manager.ClientConfigManager} */
+    this.clientConfigManager_ = deps.clientConfigManager();
   }
 
   /**
@@ -108,10 +112,27 @@ export class PayStartFlow {
    * @return {!Promise}
    */
   start() {
+    // Get the paySwgVersion for buyflow.
+    const promise = this.clientConfigManager_.getClientConfig();
+    return promise.then((clientConfig) => {
+      this.start_(clientConfig.paySwgVersion);
+    });
+  }
+
+  /**
+   * Starts the payments flow for the given version.
+   * @param {!string=} paySwgVersion
+   * @return {!Promise}
+   */
+  start_(paySwgVersion) {
     // Add the 'publicationId' key to the subscriptionRequest_ object.
     const swgPaymentRequest = Object.assign({}, this.subscriptionRequest_, {
       'publicationId': this.pageConfig_.getPublicationId(),
     });
+
+    if (paySwgVersion) {
+      swgPaymentRequest['swgVersion'] = paySwgVersion;
+    }
 
     // Map the proration mode to the enum value (if proration exists).
     const prorationMode = swgPaymentRequest['replaceSkuProrationMode'];
@@ -239,9 +260,6 @@ export class PayCompleteFlow {
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
 
-    /** @private {?SubscribeResponse} */
-    this.response_ = null;
-
     /** @private {?Promise} */
     this.readyPromise_ = null;
 
@@ -257,7 +275,11 @@ export class PayCompleteFlow {
 
   /**
    * Starts the payments completion flow.
-   * @param {!SubscribeResponse} response
+   * @param {{
+   *   productType: string,
+   *   oldSku: ?string,
+   *   paymentRecurrence: ?number,
+   * }} response
    * @return {!Promise}
    */
   start(response) {
@@ -268,13 +290,12 @@ export class PayCompleteFlow {
       getEventParams(this.sku_ || '')
     );
     this.deps_.entitlementsManager().reset(true);
-    this.response_ = response;
     // TODO(dianajing): future-proof isOneTime flag
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'productType': this.response_['productType'],
-      'isSubscriptionUpdate': !!this.response_['oldSku'],
-      'isOneTime': !!this.response_['paymentRecurrence'],
+      'productType': response['productType'],
+      'isSubscriptionUpdate': !!response['oldSku'],
+      'isOneTime': !!response['paymentRecurrence'],
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
@@ -282,6 +303,12 @@ export class PayCompleteFlow {
       this.deps_
         .entitlementsManager()
         .pushNextEntitlements(response.entitlements.raw);
+      // Persist swgUserToken in local storage
+      if (response.swgUserToken) {
+        this.deps_
+          .storage()
+          .set(Constants.USER_TOKEN, response.swgUserToken, true);
+      }
     } else {
       args['loginHint'] = response.userData && response.userData.email;
     }
@@ -459,7 +486,8 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     productType,
     completeHandler,
     oldSku,
-    paymentRecurrence
+    paymentRecurrence,
+    swgData['swgUserToken']
   );
 }
 

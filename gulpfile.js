@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+// Install dependencies before anything else.
+const {execOrDie} = require('./build-system/exec');
+const {isCiBuild} = require('./build-system/ci');
+if (!isCiBuild()) {
+  // CI systems will have already installed dependencies.
+  execOrDie('npx yarn');
+}
+
 const $$ = require('gulp-load-plugins')();
 const gulp = $$.help(require('gulp'));
 const {

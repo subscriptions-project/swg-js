@@ -15,21 +15,22 @@
  * limitations under the License.
  */
 
-import {Constants} from './constants.js';
-import {Graypane} from './graypane.js';
-import {PaymentsClientDelegateInterface} from './payments_client_delegate_interface.js';
-import {
-  ActivityPort,
-  ActivityPorts,
-  ActivityIframePort,
-} from 'web-activities/activity-ports';
 import {
   BuyFlowActivityMode,
   PayFrameHelper,
   PostMessageEventType,
 } from './pay_frame_helper.js';
+import {Constants} from './constants.js';
+import {Graypane} from './graypane.js';
+import {PaymentsClientDelegateInterface} from './payments_client_delegate_interface.js';
 import {doesMerchantSupportOnlyTokenizedCards} from './validator.js';
-import {injectStyleSheet, injectIframe} from './element_injector.js';
+import {injectIframe, injectStyleSheet} from './element_injector.js';
+
+const {
+  ActivityPort,
+  ActivityPorts,
+  ActivityIframePort,
+} = require('web-activities/activity-ports');
 
 const GPAY_ACTIVITY_REQUEST = 'GPAY';
 const IFRAME_CLOSE_DURATION_IN_MS = 250;
@@ -143,7 +144,7 @@ class PaymentsWebActivityDelegate {
     // Only verified origins are allowed.
     this.callback_(
       port.acceptResult().then(
-        result => {
+        (result) => {
           // Origin must always match: popup, iframe or redirect.
           if (result.origin != this.getOrigin_()) {
             throw new Error('channel mismatch');
@@ -153,7 +154,7 @@ class PaymentsWebActivityDelegate {
             PayFrameHelper.setBuyFlowActivityMode(BuyFlowActivityMode.REDIRECT);
             return this.fetchRedirectResponse_(
               data['redirectEncryptedCallbackData']
-            ).then(decrypedJson => {
+            ).then((decrypedJson) => {
               // Merge other non-encrypted fields into the final response.
               const clone = Object.assign({}, data);
               delete clone['redirectEncryptedCallbackData'];
@@ -166,7 +167,7 @@ class PaymentsWebActivityDelegate {
           }
           return data;
         },
-        error => {
+        (error) => {
           // TODO: Log the original and the inferred error to eye3.
           const originalError = error['message'];
           let inferredError = error['message'];
@@ -281,7 +282,7 @@ class PaymentsWebActivityDelegate {
           isReadyToPayRequest,
           PostMessageEventType.IS_READY_TO_PAY,
           'isReadyToPayResponse',
-          function(event) {
+          function (event) {
             const response = {
               'result': isSupported,
             };
@@ -351,13 +352,13 @@ class PaymentsWebActivityDelegate {
         paymentDataRequest
       );
       history.pushState({}, '', '');
-      const onPopState = e => {
+      const onPopState = (e) => {
         e.preventDefault();
         this.backButtonHandler_(containerAndFrame);
         window.removeEventListener('popstate', onPopState);
       };
       window.addEventListener('popstate', onPopState);
-      const dismissPromise = new Promise(resolve => {
+      const dismissPromise = new Promise((resolve) => {
         this.dismissPromiseResolver_ = resolve;
       });
       this.callback_(Promise.race([paymentDataPromise, dismissPromise]));
@@ -638,10 +639,10 @@ class PaymentsWebActivityDelegate {
     );
     return this.activities
       .openIframe(iframe, trustedUrl, paymentDataRequest)
-      .then(port => {
+      .then((port) => {
         // Handle custom resize message.
         this.port_ = port;
-        port.onMessage(payload => {
+        port.onMessage((payload) => {
           if (payload['type'] !== 'resize' || !this.shouldHandleResizing_) {
             // Save the resize event later after initial animation is finished
             this.savedResizePayload_ = {
@@ -674,14 +675,14 @@ class PaymentsWebActivityDelegate {
          * @param {!Object} result
          * @return {!PaymentData}
          */
-        result => {
+        (result) => {
           this.removeIframeAndContainer_(container, iframe);
           // This is only for popping the state we pushed earlier.
           history.back();
           const data = /** @type {!PaymentData} */ (result['data']);
           return data;
         },
-        error => {
+        (error) => {
           this.removeIframeAndContainer_(container, iframe);
           // This is only for popping the state we pushed earlier.
           history.back();

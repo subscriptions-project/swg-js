@@ -164,6 +164,9 @@ function startFlowAuto() {
       // Set up metering demo controls.
       MeteringDemo.setupControls();
 
+      // Set up language.
+      MeteringDemo.setupLanguage();
+
       // Handle clicks on the Metering Toast's "Subscribe" button.
       subscriptions.setOnNativeSubscribeRequest(() => {
         // Show a publisher paywall for demo purposes.
@@ -279,6 +282,24 @@ function startFlowAuto() {
 
     return;
     /* eslint-enable */
+  }
+
+  if (flow == 'consumeShowcaseEntitlementFromServer') {
+    whenReady((subscriptions) => {
+      // This represents a Showcase entitlement from the publisher's server.
+      // You can imagine the publisher's server fetched it and is now rendering JS to consume it.
+      const showcaseEntitlementJwt =
+        'eyJhbGciOiJSUzI1NiIsImtpZCI6IjNkZDI5ZGIxNGMxYjZjZDhhNGU4ODJlNjk5OTM5MDdhMjhjYzdjMTEiLCJ0eXAiOiJKV1QifQ.eyJlbnRpdGxlbWVudHMiOlt7InNvdXJjZSI6Imdvb2dsZTptZXRlcmluZyIsInN1YnNjcmlwdGlvblRva2VuIjoiZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNklqTmtaREk1WkdJeE5HTXhZalpqWkRoaE5HVTRPREpsTmprNU9UTTVNRGRoTWpoall6ZGpNVEVpTENKMGVYQWlPaUpLVjFRaWZRLmV5SnRaWFJsY21sdVp5STZleUpwWkNJNklqSTBZakkyTTJRMExXVmtNVGN0TkRWaE15MWhPVFV4TFRRd09USTFabVE1TkRGbFlTSXNJbTkzYm1WeVNXUWlPaUp6WTJWdWFXTXRNakF4Tnk1aGNIQnpjRzkwTG1OdmJTSXNJbkJ5YVc5eWFYUjVJam94TENKaFkzUnBiMjRpT2lKU1JVRkVJaXdpWTJ4cFpXNTBWSGx3WlNJNk1Td2lZMnhwWlc1MFZYTmxja0YwZEhKcFluVjBaU0k2SW5OMFlXNWtZWEprWDNKbFoybHpkR1Z5WldSZmRYTmxjaUlzSW5CMVlteHBjMmhsY2xWelpYSkpaQ0k2SW5Cd2FXUTFORGcwT0RZeE1qZzJPVFkzTkRrM0lpd2lhR0Z6YUdWa1VtVnpiM1Z5WTJWVmNtd2lPaUl3TVdRek56azVOVGd4WTJVM1pHTTJaamRoWVRRM09HSXhNekZtT0dFek5UZzJPV1F4WW1RMlptWTFZVFptWkRZek56azRPR0poWlRKaVpqWmtOak16WW1Wak16Y3dZbUpoWXpFMU5HTTNOV1F6WWpZeFpHVTJOV1ZrTVdRd1pERmtOR0V6T0dKbVlUQXhNekJrTkRrMU5UVXdZekE1TnpobFpUTmxPREE1T0NJc0luTm9iM2RVYjJGemRDSTZkSEoxWlgxOS5kYTVEU3VNb3lCcEQwM0hGcDNhM0RqUWE4M1J2VWRuQkNrUEdyRG5wd1ZqZWdRWDhZbksyWVhaeFZibEhtTUxIYmFSN3hqTFNDeEZRUUh0WW80NjJPYnNZeFRsdFQ0cWVPclQzbFBaSl9nSndDdU9YY1MwSEpzT3JPYXZubXpBMG1pcGxJVEpsV19CZEx4dEhHdm91cTB0Xy1hZkVUZXJVc3RVWk9uX1RRUlcyNE15cmVBOFk5N2l6MlpqNTFFSlZmdUFIODFfeEtyX05FbzNLQXUzdTYzOWZ1UzVwakNGRjRyb1dBbUtNY202eG8yQUswc25sWllPZFZzeHFYWkNBR2JVazBPQ1ZVcF9xZHdUcmd3eVBWbG9NeDdhT2hReXNWYnk0RFROT3JNeWFQU1RpcmhQLUxCTFhvdmNjbHdlU1pmSk5hNEtYSWRCSWV2dnNxQUhnOHciLCJwcm9kdWN0cyI6WyJzY2VuaWMtMjAxNy5hcHBzcG90LmNvbToqIl19XSwiZXhwIjoxNjExMTY4NTgzLCJpYXQiOjE2MTExNjY3ODMsImlzcyI6InN1YnNjcmliZXdpdGhnb29nbGVAc3lzdGVtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAifQ.NNQrJ4nWs5ZNaY1-g3v4TZfQuMK7MCDJJpJVrrrU7LmZCaav5T6ZJ34ZgO6lKmdixWFwLMNpWrN_dz7JiwfjPN7rpivDL92BOBdVe4TzmPrWVwHYEHtAHJaoF900WveP1h6z-2LGqyHRfIFKootB5_QoSaFiYZthLISaJNZ1HTZtyNZmaivR51cATzd8RB9P5JOy8NsYbEoIDUMKeYFdDaGfiRXyB7oq3pe18LJ-6cskZStWbXSPX_sRL6e7LgViPeieRfF9MeebyhXlRkSV2D9sPfWRJLy5o3kQZxm1gairRBzSU9YzhHSvESY2P0KNW39CXqY6oQLT_5Ac_JpWkw';
+
+      // Consume the Showcase entitlement.
+      subscriptions.consumeShowcaseEntitlementJwt(
+        showcaseEntitlementJwt,
+        () => {
+          MeteringDemo.openPaywall();
+        }
+      );
+    });
+    return;
   }
 
   if (flow == 'smartbutton') {
@@ -402,7 +423,7 @@ function isGaa() {
   const GOOGLE_DOMAIN_RE = /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
   const referrer = getAnchorFromUrl(document.referrer);
   if (
-    referrer.protocol !== 'https' ||
+    referrer.protocol !== 'https:' ||
     !GOOGLE_DOMAIN_RE.test(referrer.hostname)
   ) {
     // Real publications should bail if this referrer check fails.
@@ -422,7 +443,7 @@ function isGaa() {
 function getAnchorFromUrl(url) {
   const a = document.createElement('a');
   a.href = url;
-  return a.hostname;
+  return a;
 }
 
 /**

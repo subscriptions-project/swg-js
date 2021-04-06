@@ -34,7 +34,7 @@ export const FilterResult = {
  * - additionalParameters: Optional.  A JSON object to store generic data.
  *
  *  @typedef {{
- *    eventType: !AnalyticsEvent,
+ *    eventType: ?AnalyticsEvent,
  *    eventOriginator: !EventOriginator,
  *    isFromUserAction: ?boolean,
  *    additionalParameters: ?Object,

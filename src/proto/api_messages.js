@@ -54,6 +54,8 @@ const AnalyticsEvent = {
   IMPRESSION_METER_TOAST: 21,
   IMPRESSION_REGWALL: 22,
   IMPRESSION_SHOWCASE_REGWALL: 23,
+  IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT: 24,
+  IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT: 25,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -84,6 +86,10 @@ const AnalyticsEvent = {
   ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION: 1027,
   ACTION_METER_TOAST_CLOSED_BY_SWIPE_DOWN: 1028,
   ACTION_METER_TOAST_CLOSED_BY_X_CLICKED: 1029,
+  ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK: 1030,
+  ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLICK: 1031,
+  ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE: 1032,
+  ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE: 1033,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
@@ -99,6 +105,22 @@ const AnalyticsEvent = {
   EVENT_OFFERED_METER: 3011,
   EVENT_UNLOCKED_FREE_PAGE: 3012,
   EVENT_SUBSCRIPTION_STATE: 4000,
+};
+/** @enum {number} */
+const EntitlementResult = {
+  UNKNOWN_ENTITLEMENT_RESULT: 0,
+  UNLOCKED_SUBSCRIBER: 1001,
+  UNLOCKED_FREE: 1002,
+  UNLOCKED_METER: 1003,
+  LOCKED_REGWALL: 2001,
+  LOCKED_PAYWALL: 2002,
+};
+/** @enum {number} */
+const EntitlementSource = {
+  UNKNOWN_ENTITLEMENT_SOURCE: 0,
+  GOOGLE_SUBSCRIBER_ENTITLEMENT: 1001,
+  GOOGLE_SHOWCASE_METERING_SERVICE: 2001,
+  PUBLISHER_ENTITLEMENT: 3001,
 };
 /** @enum {number} */
 const EventOriginator = {
@@ -748,6 +770,18 @@ class EntitlementsRequest {
       data[1 + base] == null || data[1 + base] == undefined
         ? null
         : new Timestamp(data[1 + base], includesLabel);
+
+    /** @private {?EntitlementSource} */
+    this.entitlementSource_ = data[2 + base] == null ? null : data[2 + base];
+
+    /** @private {?EntitlementResult} */
+    this.entitlementResult_ = data[3 + base] == null ? null : data[3 + base];
+
+    /** @private {?string} */
+    this.token_ = data[4 + base] == null ? null : data[4 + base];
+
+    /** @private {?boolean} */
+    this.isUserRegistered_ = data[5 + base] == null ? null : data[5 + base];
   }
 
   /**
@@ -779,14 +813,76 @@ class EntitlementsRequest {
   }
 
   /**
+   * @return {?EntitlementSource}
+   */
+  getEntitlementSource() {
+    return this.entitlementSource_;
+  }
+
+  /**
+   * @param {!EntitlementSource} value
+   */
+  setEntitlementSource(value) {
+    this.entitlementSource_ = value;
+  }
+
+  /**
+   * @return {?EntitlementResult}
+   */
+  getEntitlementResult() {
+    return this.entitlementResult_;
+  }
+
+  /**
+   * @param {!EntitlementResult} value
+   */
+  setEntitlementResult(value) {
+    this.entitlementResult_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getToken() {
+    return this.token_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setToken(value) {
+    this.token_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getIsUserRegistered() {
+    return this.isUserRegistered_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setIsUserRegistered(value) {
+    this.isUserRegistered_ = value;
+  }
+
+  /**
    * @param {boolean} includeLabel
    * @return {!Array<?>}
    * @override
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) : [], // field 1 - used_entitlement
-        this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) : [], // field 2 - client_event_time
+      this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) :
+                              [],  // field 1 - used_entitlement
+      this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) :
+                              [],  // field 2 - client_event_time
+      this.entitlementSource_,     // field 3 - entitlement_source
+      this.entitlementResult_,     // field 4 - entitlement_result
+      this.token_,                 // field 5 - token
+      this.isUserRegistered_,      // field 6 - is_user_registered
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1658,6 +1754,8 @@ export {
   AnalyticsEventMeta,
   AnalyticsRequest,
   EntitlementJwt,
+  EntitlementResult,
+  EntitlementSource,
   EntitlementsRequest,
   EntitlementsResponse,
   EventOriginator,

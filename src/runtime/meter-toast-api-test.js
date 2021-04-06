@@ -30,6 +30,10 @@ import {
 } from '../proto/api_messages';
 import {getStyle} from '../utils/style';
 
+const AUTO_PINGBACK_TIMEOUT = 10000;
+const TOAST_CLOSE_REQUEST = new ToastCloseRequest();
+TOAST_CLOSE_REQUEST.setClose(true);
+
 describes.realWin('MeterToastApi', {}, (env) => {
   let win;
   let runtime;
@@ -41,6 +45,8 @@ describes.realWin('MeterToastApi', {}, (env) => {
   let meterToastApi;
   let port;
   let dialogManagerMock;
+  let onConsumeCallbackFake;
+  let isMobile;
   const productId = 'pub1:label1';
 
   beforeEach(() => {
@@ -59,7 +65,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
-    sandbox.stub(meterToastApi, 'isMobile_').returns(true);
+    isMobile = true;
+    sandbox.stub(meterToastApi, 'isMobile_').returns(isMobile);
+    onConsumeCallbackFake = sandbox.fake();
+    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -70,6 +79,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       messageMap[messageLabel] = callback;
     });
     sandbox.stub(self.console, 'warn');
+    sandbox.stub(self.console, 'error');
   });
 
   afterEach(() => {
@@ -78,6 +88,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     dialogManagerMock.verify();
     eventManagerMock.verify();
     self.console.warn.restore();
+    self.console.error.restore();
   });
 
   it('should start the flow correctly without native subscribe request', async () => {
@@ -145,8 +156,6 @@ describes.realWin('MeterToastApi', {}, (env) => {
       'triggerSubscribeRequest'
     );
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    const onConsumeCallbackFake = sandbox.fake();
-    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
     await meterToastApi.start();
     // Native message.
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
@@ -165,13 +174,9 @@ describes.realWin('MeterToastApi', {}, (env) => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    const onConsumeCallbackFake = sandbox.fake();
-    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
     await meterToastApi.start();
     const $body = win.document.body;
     expect($body.style.overflow).to.equal('hidden');
-    const toastCloseRequest = new ToastCloseRequest();
-    toastCloseRequest.setClose(true);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -182,7 +187,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     // next three should have no effect
     await win.dispatchEvent(new Event('touchstart'));
     await win.dispatchEvent(new Event('mousedown'));
-    expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
+    expect(messageStub).to.be.calledOnce.calledWith(TOAST_CLOSE_REQUEST);
     expect(onConsumeCallbackFake).to.be.calledOnce;
   });
 
@@ -190,13 +195,9 @@ describes.realWin('MeterToastApi', {}, (env) => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    const onConsumeCallbackFake = sandbox.fake();
-    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
     await meterToastApi.start();
     const $body = win.document.body;
     expect($body.style.overflow).to.equal('hidden');
-    const toastCloseRequest = new ToastCloseRequest();
-    toastCloseRequest.setClose(true);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -210,19 +211,21 @@ describes.realWin('MeterToastApi', {}, (env) => {
   });
 
   it('should close iframe on long scroll events on desktop', async () => {
+    win.scrollY = 0;
     meterToastApi.isMobile_.restore();
     sandbox.stub(meterToastApi, 'isMobile_').returns(false);
-    sandbox.stub(win, 'setTimeout').callsFake((callback) => callback());
+    sandbox.stub(win, 'setTimeout').callsFake((callback, ms) => {
+      if (ms != AUTO_PINGBACK_TIMEOUT) {
+        callback();
+      }
+      return 5;
+    });
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    const onConsumeCallbackFake = sandbox.fake();
-    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
     await meterToastApi.start();
     const $body = win.document.body;
     expect($body.style.overflow).to.equal('');
-    const toastCloseRequest = new ToastCloseRequest();
-    toastCloseRequest.setClose(true);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -231,21 +234,46 @@ describes.realWin('MeterToastApi', {}, (env) => {
       );
     await win.dispatchEvent(new Event('scroll'));
     expect(onConsumeCallbackFake).to.not.be.called;
-    win./*REVIEW*/ pageYOffset = 10;
+    win.pageYOffset = 10;
     await win.dispatchEvent(new Event('scroll'));
     expect(onConsumeCallbackFake).to.not.be.called;
-    win./*REVIEW*/ pageYOffset = 200;
+    win.pageYOffset = 500;
     await win.dispatchEvent(new Event('scroll'));
-    expect(messageStub).to.be.calledOnce.calledWith(toastCloseRequest);
+    expect(messageStub).to.be.calledOnce.calledWith(TOAST_CLOSE_REQUEST);
     expect(onConsumeCallbackFake).to.be.calledOnce;
+  });
+
+  it('should call onConsume if port is rejected.', async () => {
+    meterToastApi.isMobile_.restore();
+    callbacksMock.expects('triggerFlowStarted').once();
+    port.acceptResult = () => Promise.reject(new Error('rejected'));
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const messageStub = sandbox.stub(port, 'execute');
+    await meterToastApi.start();
+    expect(messageStub).to.not.be.called;
+    expect(onConsumeCallbackFake).to.be.calledOnce;
+    expect(self.console.error).to.be.calledWithExactly(
+      '[swg.js]: Error occurred during meter toast handling: Error: rejected'
+    );
+  });
+
+  it('should not throw on AbortError.', async () => {
+    meterToastApi.isMobile_.restore();
+    callbacksMock.expects('triggerFlowStarted').once();
+    port.acceptResult = () =>
+      Promise.reject(new DOMException('abort', 'AbortError'));
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    const messageStub = sandbox.stub(port, 'execute');
+    await meterToastApi.start();
+    expect(messageStub).to.not.be.called;
+    expect(onConsumeCallbackFake).to.be.calledOnce;
+    expect(self.console.error).to.not.be.called;
   });
 
   it('should close iframe on touchstart', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    const onConsumeCallbackFake = sandbox.fake();
-    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
     await meterToastApi.start();
     const $body = win.document.body;
     expect($body.style.overflow).to.equal('hidden');
@@ -270,8 +298,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    const onConsumeCallbackFake = sandbox.fake();
-    meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
+
     await meterToastApi.start();
     const $body = win.document.body;
     expect($body.style.overflow).to.equal('hidden');

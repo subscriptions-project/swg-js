@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
+import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {ConfiguredRuntime} from './runtime';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+import {PageConfigResolver} from '../model/page-config-resolver';
+import {PageConfigWriter} from '../model/page-config-writer';
+import {XhrFetcher} from './fetcher';
+import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
+const BUTTON_ATTRIUBUTE = 'swg-standard-button';
 
 /**
  * Reference to the runtime, for testing.
@@ -50,11 +58,12 @@ export function installBasicRuntime(win) {
   const basicRuntime = new BasicRuntime(win);
 
   // Create the public version of the SwG Basic runtime.
+  /** @type {!../api/basic-subscriptions.BasicSubscriptions} */
   const publicBasicRuntime = createPublicBasicRuntime(basicRuntime);
 
   /**
    * Executes a callback when the runtime is ready.
-   * @param {function(!BasicSubscriptions)} callback
+   * @param {function(!../api/basic-subscriptions.BasicSubscriptions)} callback
    */
   function callWhenRuntimeIsReady(callback) {
     if (!callback) {
@@ -79,13 +88,12 @@ export function installBasicRuntime(win) {
   // Set variable for testing.
   basicRuntimeInstance_ = basicRuntime;
 
-  // Automatically set up buttons and auto prompt.
+  // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
-  basicRuntime.setupAndShowAutoPrompt();
 }
 
 /**
- * @implements {BasicSubscriptions}
+ * @implements {../api/basic-subscriptions.BasicSubscriptions}
  */
 export class BasicRuntime {
   /**
@@ -95,8 +103,34 @@ export class BasicRuntime {
     /** @private @const {!Window} */
     this.win_ = win;
 
+    /** @private @const {!../model/doc.Doc} */
+    this.doc_ = resolveDoc(win);
+
     /** @private @const {!Promise} */
     this.ready_ = Promise.resolve();
+
+    /** @private @const {!../api/subscriptions.Config} */
+    this.config_ = {};
+
+    /** @private {../api/basic-subscriptions.ClientOptions|undefined} */
+    this.clientOptions_ = undefined;
+
+    /** @private {boolean} */
+    this.committed_ = false;
+
+    /** @private {?function((!ConfiguredBasicRuntime|!Promise))} */
+    this.configuredResolver_ = null;
+
+    /** @private @const {!Promise<!ConfiguredBasicRuntime>} */
+    this.configuredPromise_ = new Promise((resolve) => {
+      this.configuredResolver_ = resolve;
+    });
+
+    /** @private {?PageConfigWriter} */
+    this.pageConfigWriter_ = null;
+
+    /** @private {?PageConfigResolver} */
+    this.pageConfigResolver_ = null;
   }
 
   /**
@@ -112,24 +146,56 @@ export class BasicRuntime {
    * @private
    */
   configured_(commit) {
-    if (!this.committed_ && commit) {
-      // TODO(stellachui): Read the PageConfig from the markup and create the
-      //   ConfiguredBasicRuntime object once that's done.
+    if (!this.committed_ && commit && !this.pageConfigWriter_) {
+      this.committed_ = true;
+
+      this.pageConfigResolver_ = new PageConfigResolver(this.doc_);
+      this.pageConfigResolver_.resolveConfig().then(
+        (pageConfig) => {
+          this.pageConfigResolver_ = null;
+          this.configuredResolver_(
+            new ConfiguredBasicRuntime(
+              this.doc_,
+              pageConfig,
+              /* integr */ {configPromise: this.configuredPromise_},
+              this.config_,
+              this.clientOptions_
+            )
+          );
+          this.configuredResolver_ = null;
+        },
+        (reason) => {
+          this.configuredResolver_(Promise.reject(reason));
+          this.configuredResolver_ = null;
+        }
+      );
+    } else if (commit && this.pageConfigResolver_) {
+      this.pageConfigResolver_.check();
     }
-    return Promise.resolve();
+    return this.configuredPromise_;
   }
 
   /** @override */
   /* eslint-disable no-unused-vars */
-  init({
-    type,
-    isAccessibleForFree,
-    isPartOfType,
-    isPartOfProductId,
-    autoPromptType = AutoPromptType.NONE,
-  } = {}) {
-    // TODO(stellachui): Generate the markup.
-    this.configured_(true);
+  init(params) {
+    this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
+    this.pageConfigWriter_
+      .writeConfigWhenReady({
+        type: params.type,
+        isAccessibleForFree: params.isAccessibleForFree,
+        isPartOfType: params.isPartOfType,
+        isPartOfProductId: params.isPartOfProductId,
+      })
+      .then(() => {
+        this.pageConfigWriter_ = null;
+        this.configured_(true);
+      });
+
+    this.clientOptions_ = params.clientOptions;
+    this.setupAndShowAutoPrompt({
+      autoPromptType: params.autoPromptType,
+      alwaysShow: false,
+    });
   }
   /* eslint-enable no-unused-vars */
 
@@ -148,9 +214,9 @@ export class BasicRuntime {
   }
 
   /** @override */
-  setupAndShowAutoPrompt(alwaysShow = false) {
-    return this.configured_(true).then((runtime) =>
-      runtime.setupAndShowAutoPrompt(alwaysShow)
+  setupAndShowAutoPrompt(options) {
+    return this.configured_(false).then((runtime) =>
+      runtime.setupAndShowAutoPrompt(options)
     );
   }
 
@@ -161,32 +227,146 @@ export class BasicRuntime {
 
   /**
    * Sets up all the buttons on the page with attribute
-   * 'swg-standard-button:subscriptions' or 'swg-standard-button:contributions'.
+   * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
   setupButtons() {
-    return this.configured_(true).then((runtime) => runtime.setupButtons());
+    return this.configured_(false).then((runtime) => runtime.setupButtons());
   }
 }
 
 /**
- * @implements {BasicSubscriptions}
+ * @implements  {../api/basic-subscriptions.BasicSubscriptions}
+ * @implements {./deps.DepsDef}
  */
 // eslint-disable-next-line no-unused-vars
 export class ConfiguredBasicRuntime {
   /**
-   * @param {!Window|!Document|!Doc} winOrDoc
+   * @param {!Window|!Document|!../model/doc.Doc} winOrDoc
    * @param {!../model/page-config.PageConfig} pageConfig
+   * @param {{
+   *     fetcher: (!./fetcher.Fetcher|undefined),
+   *     configPromise: (!Promise|undefined),
+   *   }=} integr
+   * @param {!../api/subscriptions.Config=} config
+   * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
    */
-  constructor(winOrDoc, pageConfig) {
+  constructor(winOrDoc, pageConfig, integr, config, clientOptions) {
+    /** @private @const {!../model/doc.Doc} */
+    this.doc_ = resolveDoc(winOrDoc);
+
+    /** @private @const {!Window} */
+    this.win_ = this.doc_.getWin();
+
+    integr = integr || {};
+    integr.configPromise = integr.configPromise || Promise.resolve();
+    integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
+
+    /** @private @const {!./fetcher.Fetcher} */
+    this.fetcher_ = integr.fetcher;
+
+    /** @private @const {!ConfiguredRuntime} */
     this.configuredClassicRuntime_ = new ConfiguredRuntime(
       winOrDoc,
-      pageConfig
+      pageConfig,
+      integr,
+      config,
+      clientOptions
     );
+    // Fetches entitlements.
+    this.configuredClassicRuntime_.start();
+
+    // Fetch the client config.
+    this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig();
+
+    // Start listening to Google Analytics events.
+    /** @private @const {!GoogleAnalyticsEventListener} */
+    this.googleAnalyticsEventListener_ = new GoogleAnalyticsEventListener(this);
+    this.googleAnalyticsEventListener_.start();
+
+    /** @private @const {!AutoPromptManager} */
+    this.autoPromptManager_ = new AutoPromptManager(this);
+
+    /** @private @const {!ButtonApi} */
+    this.buttonApi_ = new ButtonApi(
+      this.doc_,
+      Promise.resolve(this.configuredClassicRuntime_)
+    );
+    this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
   /** Getter for the ConfiguredRuntime, exposed for testing. */
   configuredClassicRuntime() {
     return this.configuredClassicRuntime_;
+  }
+
+  /** @override */
+  doc() {
+    return this.doc_;
+  }
+
+  /** @override */
+  win() {
+    return this.win_;
+  }
+
+  /** @override */
+  config() {
+    return this.configuredClassicRuntime_.config();
+  }
+
+  /** @override */
+  pageConfig() {
+    return this.configuredClassicRuntime_.pageConfig();
+  }
+
+  /** @override */
+  activities() {
+    return this.configuredClassicRuntime_.activities();
+  }
+
+  /** @override */
+  payClient() {
+    return this.configuredClassicRuntime_.payClient();
+  }
+
+  /** @override */
+  dialogManager() {
+    return this.configuredClassicRuntime_.dialogManager();
+  }
+
+  /** @override */
+  entitlementsManager() {
+    return this.configuredClassicRuntime_.entitlementsManager();
+  }
+
+  /** @override */
+  callbacks() {
+    return this.configuredClassicRuntime_.callbacks();
+  }
+
+  /** @override */
+  storage() {
+    return this.configuredClassicRuntime_.storage();
+  }
+
+  /** @override */
+  analytics() {
+    return this.configuredClassicRuntime_.analytics();
+  }
+
+  /** @override */
+  jserror() {
+    return this.configuredClassicRuntime_.jserror();
+  }
+
+  /** @override */
+  eventManager() {
+    return this.configuredClassicRuntime_.eventManager();
+  }
+
+  /** @override */
+  clientConfigManager() {
+    return this.configuredClassicRuntime_.clientConfigManager();
   }
 
   /** @override */
@@ -205,11 +385,22 @@ export class ConfiguredBasicRuntime {
   }
 
   /** @override */
-  /* eslint-disable no-unused-vars */
-  setupAndShowAutoPrompt(alwaysShow = false) {
-    // TODO(stellachui): Implement setup of the auto prompt.
+  setupAndShowAutoPrompt(options) {
+    if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
+      options.displayForLockedContentFn = () => {
+        this.configuredClassicRuntime_.showOffers({
+          isClosable: !this.pageConfig().isLocked(),
+        });
+      };
+    } else if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
+      options.displayForLockedContentFn = () => {
+        this.configuredClassicRuntime_.showContributionOptions({
+          isClosable: !this.pageConfig().isLocked(),
+        });
+      };
+    }
+    return this.autoPromptManager_.showAutoPrompt(options);
   }
-  /* eslint-enable no-unused-vars */
 
   /** @override */
   dismissSwgUI() {
@@ -218,22 +409,41 @@ export class ConfiguredBasicRuntime {
 
   /**
    * Sets up all the buttons on the page with attribute
-   * 'swg-standard-button:subscriptions' or 'swg-standard-button:contributions'.
+   * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
   setupButtons() {
-    // TODO(stellachui): Implement setup of the buttons.
+    this.buttonApi_.attachButtonsWithAttribute(
+      BUTTON_ATTRIUBUTE,
+      [ButtonAttributeValues.SUBSCRIPTION, ButtonAttributeValues.CONTRIBUTION],
+      {
+        theme: this.clientConfigManager().getTheme(),
+        lang: this.clientConfigManager().getLanguage(),
+      },
+      {
+        [ButtonAttributeValues.SUBSCRIPTION]: () => {
+          this.configuredClassicRuntime_.showOffers({
+            isClosable: !this.pageConfig().isLocked(),
+          });
+        },
+        [ButtonAttributeValues.CONTRIBUTION]: () => {
+          this.configuredClassicRuntime_.showContributionOptions({
+            isClosable: !this.pageConfig().isLocked(),
+          });
+        },
+      }
+    );
   }
 }
 
 /**
  * Creates and returns the public facing BasicSubscription object.
  * @param {!BasicRuntime} basicRuntime
- * @return {!BasicSubscriptions}
+ * @return {!../api/basic-subscriptions.BasicSubscriptions}
  */
 function createPublicBasicRuntime(basicRuntime) {
-  return /** @type {!BasicSubscriptions} */ ({
+  return /** @type {!../api/basic-subscriptions.BasicSubscriptions} */ ({
     init: basicRuntime.init.bind(basicRuntime),
-    setOnEntitlementsResponse: basicRuntime.setOnEntitlementsResponse(
+    setOnEntitlementsResponse: basicRuntime.setOnEntitlementsResponse.bind(
       basicRuntime
     ),
     setOnPaymentResponse: basicRuntime.setOnPaymentResponse.bind(basicRuntime),

@@ -80,4 +80,9 @@ export class DepsDef {
    * @return {!../runtime/client-event-manager.ClientEventManager}
    */
   eventManager() {}
+
+  /**
+   * @return {!../runtime/client-config-manager.ClientConfigManager}
+   */
+  clientConfigManager() {}
 }

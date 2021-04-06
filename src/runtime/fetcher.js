@@ -15,6 +15,7 @@
  */
 
 import {Xhr} from '../utils/xhr';
+import {parseJson} from '../utils/json';
 import {serializeProtoMessageForUrl} from '../utils/url';
 
 /**
@@ -37,14 +38,14 @@ export class Fetcher {
   /**
    * POST data to a URL endpoint, do not wait for a response.
    * @param {!string} unusedUrl
-   * @param {!string|!Object} unusedData
+   * @param {!../proto/api_messages.Message} unusedData
    */
   sendBeacon(unusedUrl, unusedData) {}
 
   /**
    * POST data to a URL endpoint, get a Promise for a response
    * @param {!string} unusedUrl
-   * @param {!string|!Object} unusedMessage
+   * @param {!../proto/api_messages.Message} unusedMessage
    * @return {!Promise<!../utils/xhr.FetchResponse>}
    */
   sendPost(unusedUrl, unusedMessage) {}
@@ -69,9 +70,16 @@ export class XhrFetcher {
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
     });
-    return this.fetch(url, init).then((response) => response.json());
+    return this.fetch(url, init).then((response) => {
+      return response.text().then((text) => {
+        // Remove "")]}'\n" XSSI prevention prefix in safe responses.
+        const cleanedText = text.replace(/^(\)\]\}'\n)/, '');
+        return parseJson(cleanedText);
+      });
+    });
   }
 
+  /** @override */
   sendPost(url, message) {
     const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
       method: 'POST',

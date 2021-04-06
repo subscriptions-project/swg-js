@@ -16,11 +16,16 @@
 
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
 import {AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
+import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
@@ -39,7 +44,6 @@ import {
 import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
-import {MeterRegwallApi} from './meter-regwall-api';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
 import {
@@ -64,6 +68,10 @@ import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
+import {isSecure, wasReferredByGoogle} from '../utils/url';
+import {parseUrl} from '../utils/url';
+import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
+import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {setExperiment} from './experiments';
 
 const RUNTIME_PROP = 'SWG';
@@ -341,13 +349,6 @@ export class Runtime {
   }
 
   /** @override */
-  showMeterRegwall(params) {
-    return this.configured_(true).then((runtime) =>
-      runtime.showMeterRegwall(params)
-    );
-  }
-
-  /** @override */
   setOnNativeSubscribeRequest(callback) {
     return this.configured_(false).then((runtime) =>
       runtime.setOnNativeSubscribeRequest(callback)
@@ -499,8 +500,20 @@ export class Runtime {
   }
 
   /** @override */
-  setShowcaseEntitlement(unusedEntitlement) {
-    // TODO
+  setShowcaseEntitlement(entitlement) {
+    return this.configured_(true).then((runtime) =>
+      runtime.setShowcaseEntitlement(entitlement)
+    );
+  }
+
+  /** @override */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {
+    return this.configured_(true).then((runtime) =>
+      runtime.consumeShowcaseEntitlementJwt(
+        showcaseEntitlementJwt,
+        onCloseDialog
+      )
+    );
   }
 }
 
@@ -517,8 +530,12 @@ export class ConfiguredRuntime {
    *     configPromise: (!Promise|undefined),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
+   * @param {!{
+   *   lang: (string|undefined),
+   *   theme: (!../api/basic-subscriptions.ClientTheme|undefined),
+   *   }=} clientOptions
    */
-  constructor(winOrDoc, pageConfig, integr, config) {
+  constructor(winOrDoc, pageConfig, integr, config, clientOptions) {
     integr = integr || {};
     integr.configPromise = integr.configPromise || Promise.resolve();
 
@@ -585,6 +602,13 @@ export class ConfiguredRuntime {
       this.pageConfig_,
       this.fetcher_,
       this // See note about 'this' above
+    );
+
+    /** @private @const {!ClientConfigManager} */
+    this.clientConfigManager_ = new ClientConfigManager(
+      pageConfig.getPublicationId(),
+      this.fetcher_,
+      clientOptions
     );
 
     /** @private @const {!Propensity} */
@@ -673,6 +697,11 @@ export class ConfiguredRuntime {
   /** @override */
   storage() {
     return this.storage_;
+  }
+
+  /** @override */
+  clientConfigManager() {
+    return this.clientConfigManager_;
   }
 
   /** @override */
@@ -857,14 +886,6 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  showMeterRegwall(meterRegwallArgs) {
-    return this.documentParsed_.then(() => {
-      const wait = new MeterRegwallApi(this, meterRegwallArgs);
-      return wait.start();
-    });
-  }
-
-  /** @override */
   setOnLoginRequest(callback) {
     this.callbacks_.setOnLoginRequest(callback);
   }
@@ -1041,8 +1062,39 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  setShowcaseEntitlement(unusedEntitlement) {
-    // TODO
+  setShowcaseEntitlement(entitlement) {
+    if (
+      !entitlement ||
+      !isSecure(this.win().location) ||
+      !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
+      !queryStringHasFreshGaaParams(this.win().location.search)
+    ) {
+      return Promise.resolve();
+    }
+
+    const eventsToLog =
+      publisherEntitlementEventToAnalyticsEvents(entitlement.entitlement) || [];
+    const params = new EventParams();
+    params.setIsUserRegistered(entitlement.isUserRegistered);
+
+    for (let i = 0; i < eventsToLog.length; i++) {
+      this.eventManager().logEvent({
+        eventType: eventsToLog[i],
+        eventOriginator: EventOriginator.SHOWCASE_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: params,
+      });
+    }
+
+    return Promise.resolve();
+  }
+
+  /** @override */
+  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {
+    const entitlements = this.entitlementsManager().parseEntitlements({
+      signedEntitlements: showcaseEntitlementJwt,
+    });
+    entitlements.consume(onCloseDialog);
   }
 }
 
@@ -1065,7 +1117,6 @@ function createPublicRuntime(runtime) {
     showOffers: runtime.showOffers.bind(runtime),
     showUpdateOffers: runtime.showUpdateOffers.bind(runtime),
     showAbbrvOffer: runtime.showAbbrvOffer.bind(runtime),
-    showMeterRegwall: runtime.showMeterRegwall.bind(runtime),
     showSubscribeOption: runtime.showSubscribeOption.bind(runtime),
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
     waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),
@@ -1095,11 +1146,13 @@ function createPublicRuntime(runtime) {
     getLogger: runtime.getLogger.bind(runtime),
     getEventManager: runtime.getEventManager.bind(runtime),
     setShowcaseEntitlement: runtime.setShowcaseEntitlement.bind(runtime),
+    consumeShowcaseEntitlementJwt: runtime.consumeShowcaseEntitlementJwt.bind(
+      runtime
+    ),
   });
 }
 
 /**
- * @return {!Function}
  * @protected
  */
 export function getSubscriptionsClassForTesting() {
@@ -1107,7 +1160,6 @@ export function getSubscriptionsClassForTesting() {
 }
 
 /**
- * @return {!Function}
  * @protected
  */
 export function getFetcherClassForTesting() {

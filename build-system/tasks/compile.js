@@ -70,8 +70,8 @@ exports.compile = async function (options = {}) {
       )
     ),
     compileJs(
-      './src/utils/',
-      'gaa',
+      './src/',
+      'gaa-main',
       './dist',
       Object.assign(
         {
@@ -79,6 +79,24 @@ exports.compile = async function (options = {}) {
           minifiedName: options.checkTypes
             ? 'subscriptions-gaa.checktypes.js'
             : argv.minifiedGaaName || 'subscriptions-gaa.js',
+          includePolyfills: true,
+          // If there is a sync JS error during initial load,
+          // at least try to unhide the body.
+          wrapper: '(function(){<%= contents %>})();',
+        },
+        options
+      )
+    ),
+    compileJs(
+      './src/',
+      'basic-main',
+      './dist',
+      Object.assign(
+        {
+          toName: 'basic-subscriptions.max.js',
+          minifiedName: options.checkTypes
+            ? 'basic-subscriptions.checktypes.js'
+            : argv.minifiedBasicName || 'basic-subscriptions.js',
           includePolyfills: true,
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.

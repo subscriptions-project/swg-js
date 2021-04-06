@@ -28,6 +28,7 @@ export class SubscribeResponse {
    * @param {!string} productType
    * @param {function():!Promise} completeHandler
    * @param {?string=} oldSku
+   * @param {?string=} swgUserToken
    * @param {?number=} paymentRecurrence
    */
   constructor(
@@ -38,6 +39,7 @@ export class SubscribeResponse {
     productType,
     completeHandler,
     oldSku = null,
+    swgUserToken = null,
     paymentRecurrence = null
   ) {
     /** @const {string} */
@@ -54,6 +56,8 @@ export class SubscribeResponse {
     this.completeHandler_ = completeHandler;
     /** @const {?string} */
     this.oldSku = oldSku;
+    /** @const {?string} */
+    this.swgUserToken = swgUserToken;
     /** @const {?number} */
     this.paymentRecurrence = paymentRecurrence;
   }
@@ -69,7 +73,8 @@ export class SubscribeResponse {
       this.entitlements,
       this.productType,
       this.completeHandler_,
-      this.oldSku
+      this.oldSku,
+      this.swgUserToken
     );
   }
 
@@ -83,6 +88,7 @@ export class SubscribeResponse {
       'entitlements': this.entitlements ? this.entitlements.json() : null,
       'oldSku': this.oldSku,
       'productType': this.productType,
+      'swgUserToken': this.swgUserToken,
     };
   }
 

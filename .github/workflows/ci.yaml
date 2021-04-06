@@ -4,42 +4,47 @@ on: [push, pull_request]
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    # Canonical will support this LTS until April 2025.
+    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: yarn
+      - name: Install dependencies
+        run: yarn
 
-    - name: Check
-      run: gulp check
+      - name: Check
+        run: gulp check
 
   e2e:
-    runs-on: ubuntu-latest
+    # Canonical will support this LTS until April 2025.
+    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: yarn
+      - name: Install dependencies
+        run: yarn
 
-    - name: E2E Tests
-      run: gulp e2e --retries=3
-  
+      - name: E2E Tests
+        run: gulp e2e --retries=3
+
   unit:
-    runs-on: ubuntu-latest
+    # Canonical will support this LTS until April 2025.
+    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: yarn
+      - name: Install dependencies
+        run: yarn
 
-    - name: Unit Tests
-      run: gulp unit --headless --coverage
+      - name: Unit Tests
+        run: gulp unit --headless --coverage
 
-    - uses: codecov/codecov-action@v1
-      with:
-        file: ./test/coverage/lcov-unit.info
-
+      - uses: codecov/codecov-action@v1
+        with:
+          file: ./test/coverage/lcov-unit.info

@@ -218,7 +218,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
       expect(request1.getMeta().getEventOriginator()).to.equal(
         EventOriginator.UNKNOWN_CLIENT
       );
-      expect(request1.getMeta().getIsFromUserAction()).to.be.null;
+      expect(request1.getMeta().getIsFromUserAction()).to.be.false;
 
       // This sends another event and waits for it to be sent
       eventManagerCallback({
@@ -562,6 +562,10 @@ describes.realWin('AnalyticsService', {}, (env) => {
       }
     };
 
+    it('should never log showcase events', () => {
+      testOriginator(EventOriginator.SHOWCASE_CLIENT, false);
+    });
+
     it('should not log publisher events by default', () => {
       testOriginator(EventOriginator.SWG_CLIENT, true);
       testOriginator(EventOriginator.SWG_SERVER, true);
@@ -576,6 +580,9 @@ describes.realWin('AnalyticsService', {}, (env) => {
       testOriginator(EventOriginator.AMP_CLIENT, true);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
       testOriginator(EventOriginator.PUBLISHER_CLIENT, true);
+
+      // Should still not log showcase events
+      testOriginator(EventOriginator.SHOWCASE_CLIENT, false);
     });
 
     it('should always log page load event in AMP', () => {

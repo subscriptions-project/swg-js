@@ -15,52 +15,30 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 
 /**
- * The button title should match that of button's SVG.
- */
-/** @type {!Object<string, string>} */
-const TITLE_LANG_MAP = {
-  'en': 'Subscribe with Google',
-  'ar': 'Google اشترك مع',
-  'de': 'Abonnieren mit Google',
-  'es': 'Suscríbete con Google',
-  'es-latam': 'Suscríbete con Google',
-  'es-latn': 'Suscríbete con Google',
-  'fr': "S'abonner avec Google",
-  'hi': 'Google के ज़रिये सदस्यता',
-  'id': 'Berlangganan dengan Google',
-  'it': 'Abbonati con Google',
-  'jp': 'Google で購読',
-  'ko': 'Google 을 통한구독',
-  'ms': 'Langgan dengan Google',
-  'nl': 'Abonneren via Google',
-  'no': 'Abonner med Google',
-  'pl': 'Subskrybuj z Google',
-  'pt': 'Subscrever com o Google',
-  'pt-br': 'Assine com o Google',
-  'ru': 'Подпиcka через Google',
-  'se': 'Prenumerera med Google',
-  'th': 'สมัครฟาน Google',
-  'tr': 'Google ile Abone Ol',
-  'uk': 'Підписатися через Google',
-  'zh-tw': '透過 Google 訂閱',
-};
-
-/*
  * Properties:
  * - lang: Sets the button SVG and title. Default is "en".
  * - theme: "light" or "dark". Default is "light".
  *
  * @typedef {{
  *   options: (!../api/subscriptions.SmartButtonOptions|!../api/subscriptions.ButtonOptions),
- *   clickFun: (!function(Event):?),
- * }}
+ *   clickFun: !function(!Event=),
+ * }} ButtonParams
  */
 export let ButtonParams;
+
+/** @enum {string} */
+export const ButtonAttributeValues = {
+  SUBSCRIPTION: 'subscription',
+  CONTRIBUTION: 'contribution',
+};
+
+const BUTTON_INNER_HTML = `<img class="swg-button-v2-icon-$theme$"></div>$textContent$`;
 
 /**
  * The button stylesheet can be found in the `/assets/swg-button.css`.
@@ -115,6 +93,7 @@ export class ButtonApi {
   }
 
   /**
+   * Attaches the Classic 'Subscribe With Google' button.
    * @param {!Element} button
    * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
    * @param {function()=} callback
@@ -123,6 +102,7 @@ export class ButtonApi {
   attach(button, optionsOrCallback, callback) {
     const options = this.setupButtonAndGetParams_(
       button,
+      AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
       optionsOrCallback,
       callback
     ).options;
@@ -133,10 +113,115 @@ export class ButtonApi {
     if (options['lang']) {
       button.setAttribute('lang', options['lang']);
     }
-    button.setAttribute('title', msg(TITLE_LANG_MAP, button) || '');
+    button.setAttribute(
+      'title',
+      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button) || ''
+    );
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SWG_BUTTON);
 
     return button;
+  }
+
+  /**
+   * Attaches the new subscribe button, for subscription product types.
+   * @param {!Element} button
+   * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
+   * @param {function()=} callback
+   * @return {!Element}
+   */
+  attachSubscribeButton(button, optionsOrCallback, callback) {
+    const options = this.setupButtonAndGetParams_(
+      button,
+      AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_OFFERS_CLICK,
+      optionsOrCallback,
+      callback
+    ).options;
+
+    const theme = options['theme'];
+    button.classList.add(`swg-button-v2-${theme}`);
+    button.setAttribute('role', 'button');
+    if (options['lang']) {
+      button.setAttribute('lang', options['lang']);
+    }
+    button./*OK*/ innerHTML = BUTTON_INNER_HTML.replace(
+      '$theme$',
+      theme
+    ).replace(
+      '$textContent$',
+      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button) || ''
+    );
+    this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SHOW_OFFERS_SWG_BUTTON);
+
+    return button;
+  }
+
+  /**
+   * Attaches the new contribute button, for contribution product types.
+   * @param {!Element} button
+   * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
+   * @param {function()=} callback
+   * @return {!Element}
+   */
+  attachContributeButton(button, optionsOrCallback, callback) {
+    const options = this.setupButtonAndGetParams_(
+      button,
+      AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_CONTRIBUTIONS_CLICK,
+      optionsOrCallback,
+      callback
+    ).options;
+
+    const theme = options['theme'];
+    button.classList.add(`swg-button-v2-${theme}`);
+    button.setAttribute('role', 'button');
+    if (options['lang']) {
+      button.setAttribute('lang', options['lang']);
+    }
+    button./*OK*/ innerHTML = BUTTON_INNER_HTML.replace(
+      '$theme$',
+      theme
+    ).replace(
+      '$textContent$',
+      msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE_LANG_MAP, button) || ''
+    );
+    this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SHOW_CONTRIBUTIONS_SWG_BUTTON);
+
+    return button;
+  }
+
+  /**
+   * Attaches all buttons with the specified attribute set to any of the
+   * attribute values.
+   * @param {string} attribute
+   * @param {!Array<string>} attributeValues
+   * @param {../api/subscriptions.ButtonOptions} options
+   * @param {!Object<string, function()>} attributeValueToCallback
+   */
+  attachButtonsWithAttribute(
+    attribute,
+    attributeValues,
+    options,
+    attributeValueToCallback
+  ) {
+    attributeValues.forEach((attributeValue) => {
+      const elements = this.doc_
+        .getRootNode()
+        .querySelectorAll(`button[${attribute}="${attributeValue}"]`);
+      for (let i = 0; i < elements.length; i++) {
+        if (attributeValue === ButtonAttributeValues.SUBSCRIPTION) {
+          this.attachSubscribeButton(
+            elements[i],
+            options,
+            attributeValueToCallback[attributeValue]
+          );
+        } else if (attributeValue === ButtonAttributeValues.CONTRIBUTION) {
+          this.attachContributeButton(
+            elements[i],
+            options,
+            attributeValueToCallback[attributeValue]
+          );
+        }
+      }
+    });
   }
 
   /**
@@ -184,15 +269,16 @@ export class ButtonApi {
 
   /**
    * @param {!Element} button
+   * @param {AnalyticsEvent} clickEvent
    * @param {../api/subscriptions.SmartButtonOptions|function()|../api/subscriptions.ButtonOptions} optionsOrCallback
    * @param {function()=} callbackFun
    * @return {ButtonParams}
    */
-  setupButtonAndGetParams_(button, optionsOrCallback, callbackFun) {
+  setupButtonAndGetParams_(button, clickEvent, optionsOrCallback, callbackFun) {
     const options = this.getOptions_(optionsOrCallback);
     const callback = this.getCallback_(optionsOrCallback, callbackFun);
     const clickFun = (event) => {
-      this.logSwgEvent_(AnalyticsEvent.ACTION_SWG_BUTTON_CLICK, true);
+      this.logSwgEvent_(clickEvent, true);
       if (typeof callback === 'function') {
         callback(event);
       }
@@ -211,6 +297,7 @@ export class ButtonApi {
   attachSmartButton(deps, button, optionsOrCallback, callback) {
     const params = this.setupButtonAndGetParams_(
       button,
+      AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
       optionsOrCallback,
       callback
     );

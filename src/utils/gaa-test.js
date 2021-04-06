@@ -18,15 +18,17 @@ import {
   GOOGLE_SIGN_IN_IFRAME_ID,
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
+  GaaUtils,
+  POST_MESSAGE_COMMAND_ERROR,
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
+  REGWALL_CONTAINER_ID,
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
-  urlContainsFreshGaaParams,
+  queryStringHasFreshGaaParams,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
-import {parseUrl} from './url';
 import {tick} from '../../test/tick';
 
 const PUBLISHER_NAME = 'The Scenic';
@@ -63,50 +65,43 @@ const ARTICLE_METADATA = `
   }
 }`;
 
-describes.realWin('urlContainsFreshGaaParams', {}, () => {
+describes.realWin('queryStringHasFreshGaaParams', {}, () => {
   let clock;
 
   beforeEach(() => {
     clock = sandbox.useFakeTimers();
-    GaaMeteringRegwall.location_ = parseUrl(
-      'https://www.news.com?gaa_at=at&gaa_n=n&gaa_sig=sig&gaa_ts=99999'
-    );
   });
 
   it('succeeeds for valid params', () => {
-    expect(urlContainsFreshGaaParams()).to.be.true;
+    const queryString = '?gaa_at=at&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.true;
   });
 
   it('fails without gaa_at', () => {
-    GaaMeteringRegwall.location_.search =
-      '?gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999';
-    expect(urlContainsFreshGaaParams()).to.be.false;
+    const queryString = '?gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
 
   it('fails without gaa_n', () => {
-    GaaMeteringRegwall.location_.search =
-      '?gaa_at=gaa&gaa_sig=s1gn4tur3&gaa_ts=99999';
-    expect(urlContainsFreshGaaParams()).to.be.false;
+    const queryString = '?gaa_at=gaa&gaa_sig=s1gn4tur3&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
 
   it('fails without gaa_sig', () => {
-    GaaMeteringRegwall.location_.search =
-      '?gaa_at=gaa&gaa_n=n0nc3&gaa_ts=99999';
-    expect(urlContainsFreshGaaParams()).to.be.false;
+    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
 
   it('fails without gaa_ts', () => {
-    GaaMeteringRegwall.location_.search =
-      '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3';
-    expect(urlContainsFreshGaaParams()).to.be.false;
+    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
 
   it('fails if GAA URL params are expired', () => {
     // Add GAA URL params with expiration of 7 seconds.
-    GaaMeteringRegwall.location_.search =
-      '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
+    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
     clock.tick(7001);
-    expect(urlContainsFreshGaaParams()).to.be.false;
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
 });
 
@@ -144,10 +139,11 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       push: sandbox.fake(),
     };
 
-    // Mock location.
-    GaaMeteringRegwall.location_ = {
-      search: '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999',
-    };
+    // Mock query string.
+    sandbox.stub(GaaUtils, 'getQueryString');
+    GaaUtils.getQueryString.returns(
+      '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+    );
 
     // Mock console.warn method.
     sandbox.stub(self.console, 'warn');
@@ -228,6 +224,18 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(await gaaUserPromise).to.deep.equal(gaaUser);
     });
 
+    it('removes Regwall from DOM', async () => {
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+        gaaUser: {},
+      });
+
+      await GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
+    });
+
     it('renders supported i18n languages', () => {
       self.document.documentElement.lang = 'pt-br';
 
@@ -237,13 +245,35 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         '.gaa-metering-regwall--title'
       );
       expect(titleEl.textContent).to.equal(
-        I18N_STRINGS.GAA_REGWALL_TITLE['pt-br']
+        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['pt-br']
       );
+    });
+
+    it('renders "en" for non-supported i18n languages', () => {
+      self.document.documentElement.lang = 'non-supported';
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      const titleEl = self.document.querySelector(
+        '.gaa-metering-regwall--title'
+      );
+      expect(titleEl.textContent).to.equal(
+        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['en']
+      );
+    });
+
+    it('adds "lang" URL param to iframe URL', () => {
+      self.document.documentElement.lang = 'pt-br';
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      const iframeEl = self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID);
+      expect(iframeEl.src).to.contain('?lang=pt-br');
     });
 
     it('fails if GAA URL params are missing', () => {
       // Remove GAA URL params.
-      GaaMeteringRegwall.location_.search = '';
+      GaaUtils.getQueryString.restore();
 
       GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
@@ -254,8 +284,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('fails if GAA URL params are expired', () => {
       // Add GAA URL params with expiration of 7 seconds.
-      GaaMeteringRegwall.location_.search =
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7'
+      );
 
       // Move clock a little past 7 seconds.
       clock.tick(7001);
@@ -265,6 +296,24 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
       );
+    });
+
+    it('handles GSI error', async () => {
+      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_ERROR,
+      });
+
+      // Reject promise.
+      await expect(gaaUserPromise).to.eventually.be.rejectedWith(
+        'Google Sign-In failed to initialize'
+      );
+
+      // Remove Regwall from DOM.
+      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
   });
 
@@ -324,12 +373,20 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
         render: sandbox.fake(),
       },
     };
+
+    // Mock query string.
+    sandbox.stub(GaaUtils, 'getQueryString');
+    GaaUtils.getQueryString.returns('?lang=en');
   });
 
   afterEach(() => {
     if (self.postMessage.restore) {
       self.postMessage.restore();
     }
+    GaaUtils.getQueryString.restore();
+
+    // Remove the injected style from GaaGoogleSignInButton.show.
+    self.document.head.querySelector('style').remove();
   });
 
   describe('show', () => {
@@ -352,6 +409,32 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
           },
         ],
       ]);
+    });
+
+    it('renders supported i18n languages', async () => {
+      GaaUtils.getQueryString.returns('?lang=pt-br');
+
+      GaaGoogleSignInButton.show({allowedOrigins});
+      clock.tick(100);
+      await tick(10);
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['pt-br']
+      );
+    });
+
+    it('renders English by default, if "lang" URL param is missing', async () => {
+      GaaUtils.getQueryString.returns('?');
+
+      GaaGoogleSignInButton.show({allowedOrigins});
+      clock.tick(100);
+      await tick(10);
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['en']
+      );
     });
 
     it('sends post message with GAA user', async () => {
@@ -410,6 +493,37 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
             imageUrl: 'imageUrl',
             name: 'name',
           },
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('propagates GSI errors', async () => {
+      self.gapi.signin2.render = sandbox.fake.throws('I need cookies');
+
+      GaaGoogleSignInButton.show({allowedOrigins});
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_ERROR,
           stamp: POST_MESSAGE_STAMP,
         },
         location.origin

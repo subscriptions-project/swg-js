@@ -22,6 +22,7 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {feUrl} from './services';
+import {isCancelError} from '../utils/errors';
 import {setImportantStyles, setStyle} from '../utils/style';
 import {warn} from '../utils/log';
 
@@ -65,20 +66,30 @@ export class MeterToastApi {
      */
     this.onConsumeCallback_ = null;
 
+    /**
+     * Boolean indicating whether or not the onConsumeCallback_ has been handled
+     * (either called or ignored). This is used to protect against unexpected
+     * cancellations not consuming a meter.
+     * @private {!boolean}
+     */
+    this.onConsumeCallbackHandled_ = false;
+
     /** @private @const {!function()} */
     this.sendCloseRequestFunction_ = () => {
+      const closeRequest = new ToastCloseRequest();
+      closeRequest.setClose(true);
+      this.activityIframeView_.execute(closeRequest);
+      this.removeCloseEventListener();
+
       this.deps_
         .eventManager()
         .logSwgEvent(
           AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
           true
         );
-      const closeRequest = new ToastCloseRequest();
-      closeRequest.setClose(true);
-      this.activityIframeView_.execute(closeRequest);
-      this.removeCloseEventListener();
 
-      if (this.onConsumeCallback_) {
+      if (this.onConsumeCallback_ && !this.onConsumeCallbackHandled_) {
+        this.onConsumeCallbackHandled_ = true;
         this.onConsumeCallback_();
       }
     };
@@ -108,7 +119,27 @@ export class MeterToastApi {
         'starting metering.';
       warn(errorMessage);
     }
-    this.dialogManager_.handleCancellations(this.activityIframeView_);
+
+    this.dialogManager_
+      .handleCancellations(this.activityIframeView_)
+      .catch((reason) => {
+        // Possibly call onConsumeCallback on all dialog cancellations to ensure unexpected
+        // dialog closures don't give access without a meter consumed.
+        if (this.onConsumeCallback_ && !this.onConsumeCallbackHandled_) {
+          this.onConsumeCallbackHandled_ = true;
+          this.onConsumeCallback_();
+        }
+        // Don't throw on cancel errors since they happen when a user closes the toast,
+        // which is expected.
+        if (!isCancelError(reason)) {
+          // eslint-disable-next-line no-console
+          console /*OK*/
+            .error(
+              '[swg.js]: Error occurred during meter toast handling: ' + reason
+            );
+          throw reason;
+        }
+      });
     return this.dialogManager_.openDialog().then((dialog) => {
       this.setDialogBoxShadow_();
       this.setLoadingViewWidth_();
@@ -219,6 +250,8 @@ export class MeterToastApi {
   startNativeFlow_(response) {
     if (response.getNative()) {
       this.removeCloseEventListener();
+      // We shouldn't decrement the meter on redirects, so don't call onConsumeCallback.
+      this.onConsumeCallbackHandled_ = true;
       this.deps_.callbacks().triggerSubscribeRequest();
     }
   }

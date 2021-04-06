@@ -249,4 +249,170 @@ describes.realWin('ButtonApi', {}, (env) => {
       buttonApi.attachSmartButton(runtime, button, {theme: 'INVALID'}, handler);
     });
   });
+
+  describe('attachButtonsWithAttribute', () => {
+    let isDarkMode;
+    let expectedSubscriptionTitle;
+    let expectedContributionTitle;
+    let subscriptionButton;
+    let contributionButton;
+    let decoyButtonWithNoAttributes;
+    let decoyButtonWithIncorrectAttributeValue;
+    let subscriptionHandler;
+    let contributionHandler;
+
+    beforeEach(() => {
+      isDarkMode = false;
+      expectedSubscriptionTitle = 'Subscribe with Google';
+      expectedContributionTitle = 'Contribute with Google';
+
+      // Set up and insert a subscription button.
+      subscriptionButton = doc.createElement('button');
+      subscriptionButton.setAttribute('swg-standard-button', 'subscription');
+      expect(subscriptionButton.nodeType).to.equal(1);
+      doc.body.appendChild(subscriptionButton);
+
+      // Set up and insert a contribution button.
+      contributionButton = doc.createElement('button');
+      contributionButton.setAttribute('swg-standard-button', 'contribution');
+      expect(contributionButton.nodeType).to.equal(1);
+      doc.body.appendChild(contributionButton);
+
+      // Set up and insert a random, non-SwG button.
+      decoyButtonWithNoAttributes = doc.createElement('button');
+      doc.body.appendChild(decoyButtonWithNoAttributes);
+
+      // Set up and insert a button with an invalid attribute value.
+      decoyButtonWithIncorrectAttributeValue = doc.createElement('button');
+      decoyButtonWithIncorrectAttributeValue.setAttribute(
+        'swg-standard-button',
+        'invalid'
+      );
+      doc.body.appendChild(decoyButtonWithIncorrectAttributeValue);
+
+      subscriptionHandler = sandbox.spy();
+      contributionHandler = sandbox.spy();
+    });
+
+    afterEach(async () => {
+      // Check theme.
+      if (isDarkMode) {
+        expect(subscriptionButton).to.not.have.class('swg-button-v2-light');
+        expect(subscriptionButton).to.have.class('swg-button-v2-dark');
+        expect(contributionButton).to.not.have.class('swg-button-v2-light');
+        expect(contributionButton).to.have.class('swg-button-v2-dark');
+      } else {
+        expect(subscriptionButton).to.have.class('swg-button-v2-light');
+        expect(subscriptionButton).to.not.have.class('swg-button-v2-dark');
+        expect(contributionButton).to.have.class('swg-button-v2-light');
+        expect(contributionButton).to.not.have.class('swg-button-v2-dark');
+      }
+      expect(decoyButtonWithNoAttributes).to.not.have.class(
+        'swg-button-v2-light'
+      );
+      expect(decoyButtonWithNoAttributes).to.not.have.class(
+        'swg-button-v2-dark'
+      );
+      expect(decoyButtonWithIncorrectAttributeValue).to.not.have.class(
+        'swg-button-v2-light'
+      );
+      expect(decoyButtonWithIncorrectAttributeValue).to.not.have.class(
+        'swg-button-v2-dark'
+      );
+
+      // Check textContent.
+      expect(subscriptionButton.textContent).to.equal(
+        expectedSubscriptionTitle
+      );
+      expect(contributionButton.textContent).to.equal(
+        expectedContributionTitle
+      );
+      expect(decoyButtonWithNoAttributes.textContent).to.be.empty;
+      expect(decoyButtonWithIncorrectAttributeValue.textContent).to.be.empty;
+
+      // Check click handling.
+      expect(subscriptionHandler).to.not.be.called;
+      expect(contributionHandler).to.not.be.called;
+      await subscriptionButton.click();
+      expect(subscriptionHandler).to.be.calledOnce;
+      expect(contributionHandler).to.not.be.called;
+      await contributionButton.click();
+      expect(subscriptionHandler).to.be.calledOnce;
+      expect(contributionHandler).to.be.calledOnce;
+      await decoyButtonWithNoAttributes.click();
+      expect(subscriptionHandler).to.be.calledOnce;
+      expect(contributionHandler).to.be.calledOnce;
+      await decoyButtonWithIncorrectAttributeValue.click();
+      expect(subscriptionHandler).to.be.calledOnce;
+      expect(contributionHandler).to.be.calledOnce;
+      expect(events.length).to.equal(4);
+
+      // Expect a subscription button impression.
+      expect(events[0]).to.deep.equal({
+        eventType: AnalyticsEvent.IMPRESSION_SHOW_OFFERS_SWG_BUTTON,
+        isFromUserAction: undefined,
+        params: undefined,
+      });
+
+      // Expect a contribution button impression.
+      expect(events[1]).to.deep.equal({
+        eventType: AnalyticsEvent.IMPRESSION_SHOW_CONTRIBUTIONS_SWG_BUTTON,
+        isFromUserAction: undefined,
+        params: undefined,
+      });
+
+      // Expect one event from the subscription button click.
+      expect(events[2]).to.deep.equal({
+        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_OFFERS_CLICK,
+        isFromUserAction: true,
+        params: undefined,
+      });
+
+      // Expect one event from the contribution button click.
+      expect(events[3]).to.deep.equal({
+        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_CONTRIBUTIONS_CLICK,
+        isFromUserAction: true,
+        params: undefined,
+      });
+    });
+
+    it('should attach all buttons with the specified attribute', () => {
+      buttonApi.attachButtonsWithAttribute(
+        'swg-standard-button',
+        ['subscription', 'contribution'],
+        /* options */ {},
+        {
+          'subscription': subscriptionHandler,
+          'contribution': contributionHandler,
+        }
+      );
+    });
+
+    it('should attach all buttons with the specified attribute in dark mode', () => {
+      isDarkMode = true;
+      buttonApi.attachButtonsWithAttribute(
+        'swg-standard-button',
+        ['subscription', 'contribution'],
+        {theme: Theme.DARK},
+        {
+          'subscription': subscriptionHandler,
+          'contribution': contributionHandler,
+        }
+      );
+    });
+
+    it('should attach all buttons with the specified attribute in the specified language', () => {
+      expectedSubscriptionTitle = "S'abonner avec Google";
+      expectedContributionTitle = 'Contribuer avec Google';
+      buttonApi.attachButtonsWithAttribute(
+        'swg-standard-button',
+        ['subscription', 'contribution'],
+        {lang: 'fr'},
+        {
+          'subscription': subscriptionHandler,
+          'contribution': contributionHandler,
+        }
+      );
+    });
+  });
 });

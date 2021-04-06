@@ -24,10 +24,12 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   AnalyticsMode,
   ProductType,
+  PublisherEntitlementEvent,
   ReplaceSkuProrationMode,
   Subscriptions,
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
+import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {
   ConfiguredRuntime,
@@ -52,7 +54,6 @@ import {
 import {Logger} from './logger';
 import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
-import {MeterRegwallApi} from './meter-regwall-api';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PayClient} from './pay-client';
@@ -66,6 +67,7 @@ import {
   setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
+import {parseUrl} from '../utils/url';
 
 const EDGE_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0)' +
@@ -867,16 +869,6 @@ describes.realWin('Runtime', {}, (env) => {
       expect(configureStub).to.be.calledOnce;
     });
 
-    it('should delegate "showMeterRegwall"', async () => {
-      configuredRuntimeMock
-        .expects('showMeterRegwall')
-        .once()
-        .returns(Promise.resolve());
-
-      await runtime.showMeterRegwall();
-      expect(configureStub).to.be.calledOnce;
-    });
-
     it('should directly call "attachButton"', () => {
       const options = {};
       const callback = () => {};
@@ -929,6 +921,36 @@ describes.realWin('Runtime', {}, (env) => {
       const propensityModule = await runtime.getPropensityModule();
       expect(configureStub).to.be.calledOnce.calledWith(true);
       expect(propensityModule).to.equal(propensity);
+    });
+
+    it('should delegate "setShowcaseEntitlement"', async () => {
+      const entitlement = {
+        entitlement:
+          PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
+        isUserRegistered: true,
+      };
+      configuredRuntimeMock
+        .expects('setShowcaseEntitlement')
+        .withExactArgs(entitlement)
+        .once();
+
+      await runtime.setShowcaseEntitlement(entitlement);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "consumeShowcaseEntitlementJwt"', async () => {
+      const showcaseEntitlementJwt = 'jw7';
+      const callbackSpy = sandbox.spy();
+      configuredRuntimeMock
+        .expects('consumeShowcaseEntitlementJwt')
+        .withExactArgs(showcaseEntitlementJwt, callbackSpy)
+        .once();
+
+      await runtime.consumeShowcaseEntitlementJwt(
+        showcaseEntitlementJwt,
+        callbackSpy
+      );
+      expect(configureStub).to.be.calledOnce.calledWith(true);
     });
   });
 });
@@ -1249,6 +1271,9 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
       expect(runtime.jserror()).to.be.instanceOf(JsError);
       expect(runtime.payClient()).to.be.instanceOf(PayClient);
+      expect(runtime.clientConfigManager()).to.be.instanceOf(
+        ClientConfigManager
+      );
     });
 
     it('should report the redirect failure', () => {
@@ -1411,7 +1436,8 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       runtime.showOffers();
 
       await runtime.documentParsed_;
-      expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
+      const activityIframeView = await offersFlow.activityIframeViewPromise_;
+      expect(activityIframeView.args_['list']).to.equal('default');
     });
 
     it('should call "showOffers" with options', async () => {
@@ -1423,7 +1449,8 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       runtime.showOffers({list: 'other'});
 
       await runtime.documentParsed_;
-      expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+      const activityIframeView = await offersFlow.activityIframeViewPromise_;
+      expect(activityIframeView.args_['list']).to.equal('other');
     });
 
     it('should throw an error if showOffers is used with an oldSku', async () => {
@@ -1453,7 +1480,8 @@ new subscribers. Use the showOffers() method instead.'
       runtime.showUpdateOffers({oldSku: 'other', skus: ['sku1', 'sku2']});
 
       await runtime.documentParsed_;
-      expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
+      const activityIframeView = await offersFlow.activityIframeViewPromise_;
+      expect(activityIframeView.args_['list']).to.equal('default');
     });
 
     it('should throw an error if showUpdateOffers is used without an oldSku', async () => {
@@ -1757,19 +1785,6 @@ subscribe() method'
       expect(result).to.equal(accountResult);
     });
 
-    it('should start MeterRegwallApi', async () => {
-      const args = {
-        gsiUrl: 'gsi.com',
-        alreadyRegisteredUrl: 'alreadyregistered.com',
-      };
-      const startStub = sandbox
-        .stub(MeterRegwallApi.prototype, 'start')
-        .callsFake(() => Promise.resolve());
-
-      await runtime.showMeterRegwall(args);
-      expect(startStub).to.be.calledOnce;
-    });
-
     it('should directly call "attachButton"', () => {
       const options = {};
       const callback = () => {};
@@ -1872,6 +1887,122 @@ subscribe() method'
       const button = runtime.createButton();
       await button.click();
       expect(count).to.equal(1);
+    });
+
+    describe('setShowcaseEntitlement', () => {
+      const SECURE_PUB_URL = 'https://www.publisher.com';
+      const UNSECURE_PUB_URL = 'http://www.publisher.com';
+      const SECURE_GOOGLE_URL = 'https://www.google.com';
+      const UNSECURE_GOOGLE_URL = 'http://www.google.com';
+      const GAA_QUERY_STRING = '?gaa_at=gaa&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
+      let logEventStub;
+      let win;
+
+      beforeEach(() => {
+        // Detects when events are logged.
+        logEventStub = sandbox.stub(ClientEventManager.prototype, 'logEvent');
+
+        // Returns custom window objects.
+        win = {
+          location: parseUrl(SECURE_PUB_URL + GAA_QUERY_STRING),
+          document: {
+            referrer: SECURE_GOOGLE_URL,
+          },
+        };
+        sandbox.stub(runtime, 'win').callsFake(() => win);
+
+        // Allows GAA query param checks to pass.
+        sandbox.useFakeTimers();
+      });
+
+      it('should log events', () => {
+        runtime.setShowcaseEntitlement({
+          entitlement:
+            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          isUserRegistered: true,
+        });
+
+        expect(logEventStub).callCount(2);
+      });
+
+      it('should require entitlement', () => {
+        runtime.setShowcaseEntitlement({
+          entitlement: undefined,
+          isUserRegistered: true,
+        });
+
+        expect(logEventStub).callCount(0);
+      });
+
+      it('should require GAA params', () => {
+        // This location has no GAA params.
+        win.location = parseUrl(SECURE_PUB_URL);
+
+        runtime.setShowcaseEntitlement({
+          entitlement:
+            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          isUserRegistered: true,
+        });
+
+        expect(logEventStub).callCount(0);
+      });
+
+      it('should require https page', () => {
+        // This page is http.
+        win.location = parseUrl(UNSECURE_PUB_URL + GAA_QUERY_STRING);
+
+        runtime.setShowcaseEntitlement({
+          entitlement:
+            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          isUserRegistered: true,
+        });
+
+        expect(logEventStub).callCount(0);
+      });
+
+      it('should require secure Google referrer', () => {
+        // This referrer is not https.
+        win.document.referrer = parseUrl(UNSECURE_GOOGLE_URL);
+
+        runtime.setShowcaseEntitlement({
+          entitlement:
+            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          isUserRegistered: true,
+        });
+
+        expect(logEventStub).callCount(0);
+      });
+
+      it('should require Google referrer', () => {
+        // This referrer is not Google.
+        win.document.referrer = parseUrl(SECURE_PUB_URL);
+
+        runtime.setShowcaseEntitlement({
+          entitlement:
+            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          isUserRegistered: true,
+        });
+
+        expect(logEventStub).callCount(0);
+      });
+    });
+
+    describe('consumeShowcaseEntitlementJwt', () => {
+      it('consumes entitlement and calls callback', () => {
+        const SHOWCASE_ENTITLEMENT_JWT = 'jw7';
+
+        const consumeStub = sandbox
+          .stub(Entitlements.prototype, 'consume')
+          .callsFake((callback) => callback() && Promise.resolve());
+        const callbackSpy = sandbox.spy();
+
+        runtime.consumeShowcaseEntitlementJwt(
+          SHOWCASE_ENTITLEMENT_JWT,
+          callbackSpy
+        );
+        expect(consumeStub).to.be.calledOnce;
+        expect(callbackSpy).to.be.calledOnce;
+      });
     });
   });
 });
