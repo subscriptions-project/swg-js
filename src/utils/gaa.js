@@ -313,6 +313,28 @@ export function queryStringHasFreshGaaParams(queryString) {
   return true;
 }
 
+//TODO: have runtime call this when event manager is available
+export function setupGaaLogger(eventManager) {
+  GaaLogger.eventManagerResolver_(eventManager);
+}
+
+class GaaLogger {
+  /**
+   * Logs a swg-js AnalyticsEvent, if swg-js has called setupGaaLoger.
+   * @param {!../proto/api_messages.AnalyticsEvent} event
+   */
+  static log(event) {
+    GaaLogger.eventManagerPromise_.then((eventManager) =>
+      eventManager.logSwgEvent(event)
+    );
+  }
+}
+
+/** @type {!Promise<../api/client-event-manager-api.ClientEventManagerApi>} */
+GaaLogger.eventManagerPromise_ = new Promise(
+  (resolveFun) => (GaaLogger.eventManagerResolver_ = resolveFun)
+);
+
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
   /**
@@ -370,6 +392,7 @@ export class GaaMeteringRegwall {
    * @param {{ iframeUrl: string }} params
    */
   static render_({iframeUrl}) {
+    //GaaLogger.log(AnalyticsEvent.IMPRESSION_GAA_REGWALL); TODO: Create event type
     const languageCode = getLanguageCodeFromElement(self.document.body);
 
     // Tell the iframe which language to render.
@@ -543,6 +566,8 @@ export class GaaGoogleSignInButton {
    * @param {{ allowedOrigins: !Array<string> }} params
    */
   static show({allowedOrigins}) {
+    //GaaLogger.log(AnalyticsEvent.IMPRESSION_GAA_SIGN_IN); TODO: Create event type
+
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
