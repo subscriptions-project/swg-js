@@ -370,7 +370,6 @@ export class GaaMeteringRegwall {
    * @param {{ iframeUrl: string }} params
    */
   static render_({iframeUrl}) {
-    //GaaLogger.log(AnalyticsEvent.IMPRESSION_GAA_REGWALL); TODO: Create event type
     const languageCode = getLanguageCodeFromElement(self.document.body);
 
     // Tell the iframe which language to render.
@@ -544,8 +543,6 @@ export class GaaGoogleSignInButton {
    * @param {{ allowedOrigins: !Array<string> }} params
    */
   static show({allowedOrigins}) {
-    //GaaLogger.log(AnalyticsEvent.IMPRESSION_GAA_SIGN_IN); TODO: Create event type
-
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
