@@ -313,28 +313,6 @@ export function queryStringHasFreshGaaParams(queryString) {
   return true;
 }
 
-//TODO: have runtime call this when event manager is available
-export function setupGaaLogger(eventManager) {
-  GaaLogger.eventManagerResolver_(eventManager);
-}
-
-class GaaLogger {
-  /**
-   * Logs a swg-js AnalyticsEvent, if swg-js has called setupGaaLoger.
-   * @param {!../proto/api_messages.AnalyticsEvent} event
-   */
-  static log(event) {
-    GaaLogger.eventManagerPromise_.then((eventManager) =>
-      eventManager.logSwgEvent(event)
-    );
-  }
-}
-
-/** @type {!Promise<../api/client-event-manager-api.ClientEventManagerApi>} */
-GaaLogger.eventManagerPromise_ = new Promise(
-  (resolveFun) => (GaaLogger.eventManagerResolver_ = resolveFun)
-);
-
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
   /**

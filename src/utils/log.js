@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {EventOriginator} from '../proto/api_messages';
+
 /**
  * Debug logger, only log message if #swg.log=1
  * @param {...*} var_args [decription]
@@ -106,4 +108,51 @@ function toString(val) {
     return val.tagName.toLowerCase() + (val.id ? '#' + val.id : '');
   }
   return /** @type {string} */ (val);
+}
+
+/**** ANALYTICS LOGGING HELPERS **** */
+/**
+ * Promises to log a SWG_CLIENT event after the swg-js client is initialized.
+ * @param {!../proto/api_messages.AnalyticsEvent} event
+ * @param {boolean=} isFromUserAction 
+ * @param {!../proto/api_messages.EventParams=} params 
+ * @return {!Promise}
+ */
+export function logSwgEvent(event, isFromUserAction, params) {
+  return logAnalyticsEvent(event, EventOriginator.SWG_CLIENT, isFromUserAction, params);
+}
+
+/**
+ * Promises to log a PUBLISHER_CLIENT event after the swg-js client is initialized.
+ * @param {!../proto/api_messages.AnalyticsEvent} event
+ * @param {boolean=} isFromUserAction 
+ * @param {!../proto/api_messages.EventParams=} params 
+ * @return {!Promise}
+ */
+export function logPublisherEvent(event, isFromUserAction, params) {
+  return logAnalyticsEvent(event, EventOriginator.PUBLISHER_CLIENT, isFromUserAction, params);
+}
+
+// Setup code for logging helpers
+let _eventManagerPromiseResolver = null;
+const _eventManagerPromise = new Promise(resolver => _eventManagerPromiseResolver = resolver);
+
+/**
+ * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
+ */
+export function setStaticEventManager(eventManager) {
+  _eventManagerPromiseResolver(eventManager);
+}
+
+/**
+ * Logs an analytics event
+ * @param {!../proto/api_messages.AnalyticsEvent} eventType
+ * @param {!EventOriginator} eventOriginator 
+ * @param {boolean=} isFromUserAction 
+ * @param {!../proto/api_messages.EventParams=} additionalParameters 
+ * @return {!Promise}
+ */
+async function logAnalyticsEvent(eventType, eventOriginator, isFromUserAction, additionalParameters) {
+  const manager = await _eventManagerPromise;
+  return manager.logEvent({ eventType, eventOriginator, isFromUserAction, additionalParameters });
 }

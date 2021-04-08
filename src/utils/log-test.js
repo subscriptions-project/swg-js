@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-/* eslint-disable */
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
+import {ClientEventManagerApi} from '../api/client-event-manager-api';
+import {
+  assert,
+  debugLog,
+  logPublisherEvent,
+  logSwgEvent,
+  setStaticEventManager,
+  warn,
+} from './log';
 
-import {assert, debugLog, warn} from './log';
+/* eslint-disable */
 
 describes.realWin('warn', {}, () => {
   let warnFn;
@@ -128,5 +141,134 @@ describes.realWin('asserts', {}, env => {
     expect(error).to.be.instanceof(Error);
     expect(error.associatedElement).to.equal(div);
     expect(error.fromAssert).to.equal(true);
+  });
+});
+
+/* eslint-enable */
+
+describes.realWin('analytics logging helpers', {}, () => {
+  const ANALYTICS_EVENT = AnalyticsEvent.EVENT_NEW_TX_ID;
+
+  const eventManager = new ClientEventManagerApi();
+  let receivedEvents;
+
+  function setupEventManager() {
+    sandbox
+      .stub(eventManager, 'logEvent')
+      .callsFake((clientEvent) => receivedEvents.push(clientEvent));
+
+    setStaticEventManager(eventManager);
+  }
+
+  function assertReceivedEventEquals(expectedEvent) {
+    expect(receivedEvents.length).to.equal(1);
+    expect(receivedEvents[0]).to.deep.equal(expectedEvent);
+  }
+
+  beforeEach(() => {
+    receivedEvents = [];
+  });
+
+  describe('permits default values', () => {
+    it('logs a publisher event', async () => {
+      const promiseToLog = logPublisherEvent(ANALYTICS_EVENT);
+
+      expect(receivedEvents.length).to.equal(0);
+      setupEventManager();
+      await promiseToLog;
+
+      assertReceivedEventEquals({
+        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+        eventType: ANALYTICS_EVENT,
+        isFromUserAction: undefined,
+        additionalParameters: undefined,
+      });
+    });
+
+    it('logs a swg client event', async () => {
+      const promiseToLog = logSwgEvent(ANALYTICS_EVENT);
+
+      expect(receivedEvents.length).to.equal(0);
+      setupEventManager();
+      await promiseToLog;
+
+      assertReceivedEventEquals({
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        eventType: ANALYTICS_EVENT,
+        isFromUserAction: undefined,
+        additionalParameters: undefined,
+      });
+    });
+  });
+
+  describe('passes along isFromUserAction', () => {
+    it('logs a publisher event', async () => {
+      const promiseToLog = logPublisherEvent(ANALYTICS_EVENT, true);
+
+      expect(receivedEvents.length).to.equal(0);
+      setupEventManager();
+      await promiseToLog;
+
+      assertReceivedEventEquals({
+        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+        eventType: ANALYTICS_EVENT,
+        isFromUserAction: true,
+        additionalParameters: undefined,
+      });
+    });
+
+    it('logs a swg client event', async () => {
+      const promiseToLog = logSwgEvent(ANALYTICS_EVENT, false);
+
+      expect(receivedEvents.length).to.equal(0);
+      setupEventManager();
+      await promiseToLog;
+
+      assertReceivedEventEquals({
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        eventType: ANALYTICS_EVENT,
+        isFromUserAction: false,
+        additionalParameters: undefined,
+      });
+    });
+  });
+
+  describe('passes along additionalParameters', () => {
+    it('logs a publisher event', async () => {
+      const params = new EventParams();
+      params.setSku('value');
+      params.setSmartboxMessage('message');
+      const promiseToLog = logPublisherEvent(ANALYTICS_EVENT, true, params);
+
+      expect(receivedEvents.length).to.equal(0);
+      setupEventManager();
+      await promiseToLog;
+
+      assertReceivedEventEquals({
+        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+        eventType: ANALYTICS_EVENT,
+        isFromUserAction: true,
+        additionalParameters: params,
+      });
+    });
+
+    it('logs a swg client event', async () => {
+      const params = new EventParams();
+      params.setOldTransactionId('old');
+      params.setHadLogged(false);
+      params.setSmartboxMessage('message');
+      const promiseToLog = logSwgEvent(ANALYTICS_EVENT, false, params);
+
+      expect(receivedEvents.length).to.equal(0);
+      setupEventManager();
+      await promiseToLog;
+
+      assertReceivedEventEquals({
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        eventType: ANALYTICS_EVENT,
+        isFromUserAction: false,
+        additionalParameters: params,
+      });
+    });
   });
 });
