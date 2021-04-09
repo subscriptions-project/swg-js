@@ -20,7 +20,7 @@ import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {AnalyticsEvent, AnalyticsEventMeta, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   AnalyticsMode,
   ProductType,
@@ -67,8 +67,8 @@ import {
   setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
+import {logSwgEvent} from '../utils/log';
 import {parseUrl} from '../utils/url';
-import { logSwgEvent } from '../utils/log';
 
 const EDGE_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0)' +
