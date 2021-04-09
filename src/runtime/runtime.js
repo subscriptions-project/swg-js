@@ -63,7 +63,7 @@ import {Propensity} from './propensity';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Storage} from './storage';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
-import {assert} from '../utils/log';
+import {assert, setStaticEventManager} from '../utils/log';
 import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
@@ -541,6 +541,7 @@ export class ConfiguredRuntime {
 
     /** @private @const {!ClientEventManager} */
     this.eventManager_ = new ClientEventManager(integr.configPromise);
+    setStaticEventManager(this.eventManager_); // This enables static logging helpers
 
     /** @private @const {!Doc} */
     this.doc_ = resolveDoc(winOrDoc);

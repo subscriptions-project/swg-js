@@ -20,7 +20,7 @@ import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, AnalyticsEventMeta, EventOriginator} from '../proto/api_messages';
 import {
   AnalyticsMode,
   ProductType,
@@ -68,6 +68,7 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 import {parseUrl} from '../utils/url';
+import { logSwgEvent } from '../utils/log';
 
 const EDGE_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0)' +
@@ -1833,6 +1834,16 @@ subscribe() method'
       expect(score.body).to.not.be.null;
       expect(score.body.result).to.equal(42);
       expect(getPropensityStub).to.be.calledOnce;
+    });
+
+    it('should setup static event logging', async () => {
+      let count = 0;
+      sandbox
+        .stub(ClientEventManager.prototype, 'logEvent')
+        .callsFake(() => count++);
+
+      await logSwgEvent(AnalyticsEvent.IMPRESSION_SMARTBOX);
+      expect(count).to.equal(1);
     });
 
     it('should return events manager', () => {
