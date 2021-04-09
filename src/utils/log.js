@@ -134,14 +134,16 @@ export function logPublisherEvent(event, isFromUserAction, params) {
 }
 
 // Setup code for logging helpers
-let _eventManagerPromiseResolver = null;
-const _eventManagerPromise = new Promise(resolver => _eventManagerPromiseResolver = resolver);
+let eventManagerPromiseResolver = null;
+const eventManagerPromise = new Promise(resolver => eventManagerPromiseResolver = resolver);
 
 /**
+ * This function is automatically called by the swg-js runtime to set up 
+ * the analytics logging functions.
  * @param {!../api/client-event-manager-api.ClientEventManagerApi} eventManager
  */
 export function setStaticEventManager(eventManager) {
-  _eventManagerPromiseResolver(eventManager);
+  eventManagerPromiseResolver(eventManager);
 }
 
 /**
@@ -152,7 +154,6 @@ export function setStaticEventManager(eventManager) {
  * @param {!../proto/api_messages.EventParams=} additionalParameters 
  * @return {!Promise}
  */
-async function logAnalyticsEvent(eventType, eventOriginator, isFromUserAction, additionalParameters) {
-  const manager = await _eventManagerPromise;
-  return manager.logEvent({ eventType, eventOriginator, isFromUserAction, additionalParameters });
+function logAnalyticsEvent(eventType, eventOriginator, isFromUserAction, additionalParameters) {
+  return eventManagerPromise.then(manager => manager.logEvent({ eventType, eventOriginator, isFromUserAction, additionalParameters }));
 }
