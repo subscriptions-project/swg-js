@@ -515,10 +515,12 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: false,
           isOneTime: false,
+          useUpdatedConfirmUi: false,
         }
       )
       .returns(Promise.resolve(port));
     await flow.start(response);
+    await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
   });
 
@@ -558,10 +560,12 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: false,
           isOneTime: false,
+          useUpdatedConfirmUi: false,
         }
       )
       .returns(Promise.resolve(port));
     await flow.start(response);
+    await flow.readyPromise_;
   });
 
   it('should have valid flow constructed w/ oldSku', async () => {
@@ -601,10 +605,12 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: true,
           isOneTime: false,
+          useUpdatedConfirmUi: false,
         }
       )
       .returns(Promise.resolve(port));
     await flow.start(response);
+    await flow.readyPromise_;
   });
 
   it('should have valid flow constructed w/ one time contributions', async () => {
@@ -646,10 +652,12 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           productType: ProductType.UI_CONTRIBUTION,
           isSubscriptionUpdate: false,
           isOneTime: true,
+          useUpdatedConfirmUi: false,
         }
       )
       .returns(Promise.resolve(port));
     await flow.start(response);
+    await flow.readyPromise_;
   });
 
   it('should have valid flow constructed w/ user token', async () => {
@@ -697,6 +705,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: false,
           isOneTime: false,
+          useUpdatedConfirmUi: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -704,6 +713,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     storageMock.expects('set').withExactArgs(Constants.USER_TOKEN, '123', true);
 
     await flow.start(response);
+    await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
   });
 
@@ -871,6 +881,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     const messageStub = sandbox.stub(port, 'execute');
 
     await flow.start(response);
+    await flow.readyPromise_;
     const entitlementsResponse = new EntitlementsResponse();
     entitlementsResponse.setJwt('ENTITLEMENTS_JWT');
     expect(messageLabel).to.equal(entitlementsResponse.label());
@@ -915,6 +926,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       )
       .once();
     await flow.start(response);
+    await flow.readyPromise_;
   });
 
   it('should tolerate unparseable purchase data', async () => {
@@ -944,6 +956,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       )
       .once();
     await flow.start(response);
+    await flow.readyPromise_;
   });
 
   describe('payments response', () => {
