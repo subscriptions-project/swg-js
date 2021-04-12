@@ -436,6 +436,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   let messageLabel;
   let messageMap;
   let storageMock;
+  let clientConfigManagerMock;
 
   const TOKEN_HEADER = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
   const TOKEN_PAYLOAD =
@@ -460,6 +461,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     eventManagerMock = sandbox.mock(runtime.eventManager());
     storageMock = sandbox.mock(runtime.storage());
+    clientConfigManagerMock = sandbox.mock(runtime.clientConfigManager());
     flow = new PayCompleteFlow(runtime);
   });
 
@@ -471,6 +473,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     jserrorMock.verify();
     eventManagerMock.verify();
     storageMock.verify();
+    clientConfigManagerMock.verify();
     expect(PayClient.prototype.onResponse).to.be.calledOnce;
   });
 
@@ -712,6 +715,69 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
 
     storageMock.expects('set').withExactArgs(Constants.USER_TOKEN, '123', true);
 
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
+  });
+
+  it('should have valid flow constructed w/ useUpdatedConfirmUi set to true', async () => {
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(
+        Promise.resolve(
+          new ClientConfig(
+            undefined,
+            undefined,
+            /* useUpdatedOfferFlows */ true
+          )
+        )
+      )
+      .once();
+
+    const purchaseData = new PurchaseData();
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const response = new SubscribeResponse(
+      'RaW',
+      purchaseData,
+      userData,
+      entitlements,
+      ProductType.SUBSCRIPTION,
+      null
+    );
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
+      .once();
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          idToken: 'ID_TOK',
+          productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
+          isOneTime: false,
+          useUpdatedConfirmUi: true,
+        }
+      )
+      .returns(Promise.resolve(port));
     await flow.start(response);
     await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
