@@ -426,7 +426,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .once();
     const autoPromptConfig = new AutoPromptConfig(
       /* maxImpressionsPerWeek */ 2,
-      /* dismissalDelaySeconds */ 0,
+      /* displayDelaySeconds */ 0,
       /* backoffSeconds */ 0,
       /* maxDismissalsPerWeek */ 1,
       /* maxDismissalsResultingHideSeconds */ 10
@@ -466,7 +466,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .once();
     const autoPromptConfig = new AutoPromptConfig(
       /* maxImpressionsPerWeek */ 2,
-      /* dismissalDelaySeconds */ 0,
+      /* displayDelaySeconds */ 0,
       /* backoffSeconds */ 0,
       /* maxDismissalsPerWeek */ 1,
       /* maxDismissalsResultingHideSeconds */ 10
@@ -506,7 +506,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .once();
     const autoPromptConfig = new AutoPromptConfig(
       /* maxImpressionsPerWeek */ 2,
-      /* dismissalDelaySeconds */ 0,
+      /* displayDelaySeconds */ 0,
       /* backoffSeconds */ 10,
       /* maxDismissalsPerWeek */ 2,
       /* maxDismissalsResultingHideSeconds */ 5
@@ -546,7 +546,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .once();
     const autoPromptConfig = new AutoPromptConfig(
       /* maxImpressionsPerWeek */ 2,
-      /* dismissalDelaySeconds */ 0,
+      /* displayDelaySeconds */ 0,
       /* backoffSeconds */ 5,
       /* maxDismissalsPerWeek */ 2,
       /* maxDismissalsResultingHideSeconds */ 10
