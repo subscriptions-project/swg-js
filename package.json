@@ -42,7 +42,7 @@
     "browserify": "17.0.0",
     "chai": "4.3.4",
     "chai-as-promised": "7.1.1",
-    "cheerio": "1.0.0-rc.5",
+    "cheerio": "1.0.0-rc.6",
     "chromedriver": "89.0.0",
     "codecov": "3.8.1",
     "cookie-parser": "1.4.5",
