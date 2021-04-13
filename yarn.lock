@@ -2,39 +2,39 @@
 # yarn lockfile v1
 
 
-"@ampproject/google-closure-compiler-java@20210302.0.1":
-  version "20210302.0.1"
-  resolved "https://registry.yarnpkg.com/@ampproject/google-closure-compiler-java/-/google-closure-compiler-java-20210302.0.1.tgz#41fb683e83e5b73126661ce1003dc0ad45b8f769"
-  integrity sha512-TWHh18e8qWdstj8ygZagYV9RrrGaUOveJRmdGcYztXBCaTCUMvmqITQE3eaZwEvHND1XSNJb9Y//cz1Ap/XO2g==
+"@ampproject/google-closure-compiler-java@20210406.0.0":
+  version "20210406.0.0"
+  resolved "https://registry.yarnpkg.com/@ampproject/google-closure-compiler-java/-/google-closure-compiler-java-20210406.0.0.tgz#4669ccb08b4229472071a7c6a9531f1e35a4dfb5"
+  integrity sha512-KHmywvL9dLcWqZQk+aSE9YmX6uFYR4SUT9vaDWeFvxMwM8kATr8rZnqRwBBEdVFZ90Z4BG6WG/f9in8TUgKOuw==
 
-"@ampproject/google-closure-compiler-linux@20210302.0.1":
-  version "20210302.0.1"
-  resolved "https://registry.yarnpkg.com/@ampproject/google-closure-compiler-linux/-/google-closure-compiler-linux-20210302.0.1.tgz#ec8321263feec68fbf565b08293003c11c839c47"
-  integrity sha512-zb18K9yiGymyMH+O8IDdAwnBwEhKIPvfB8h3mLbmAUEMuYTLsceIukFyg31buhmcgiguqg6fWbcaDlZntUtGQQ==
+"@ampproject/google-closure-compiler-linux@20210406.0.0":
+  version "20210406.0.0"
+  resolved "https://registry.yarnpkg.com/@ampproject/google-closure-compiler-linux/-/google-closure-compiler-linux-20210406.0.0.tgz#40772af62a7117682bd0eb155a238b07b6e062ac"
+  integrity sha512-lf4YDPRi/Hv13XNhdtgDgLlhtigUKD1qZ7SOJ3I/mVsRKDvvY0RmRS53WwXXcUj2XlTugduyGGZarhGZzF+QkQ==
 
-"@ampproject/google-closure-compiler-osx@20210302.0.1":
-  version "20210302.0.1"
-  resolved "https://registry.yarnpkg.com/@ampproject/google-closure-compiler-osx/-/google-closure-compiler-osx-20210302.0.1.tgz#c0d70fe2fd983c035ad7aea4833e0000dfe46b34"
-  integrity sha512-GHw5L+lYSJxXGXT4n6Fc7bpw8C8ia9x6XpCGdQUB14LDayI5FnZoI5QiwAzX1VI27tf5vk+CF1oQ5r50A8xNBQ==
+"@ampproject/google-closure-compiler-osx@20210406.0.0":
+  version "20210406.0.0"
+  resolved "https://registry.yarnpkg.com/@ampproject/google-closure-compiler-osx/-/google-closure-compiler-osx-20210406.0.0.tgz#474dd6cdad1cd4dd4f4103db3cf9851a57f2297f"
+  integrity sha512-0DSPFSS9ICktDRo13h0ouD6kdkWN6SoRIwrMPmELaVkv5cI1K3NXtKZv/v/AQ1JFeT9+dKWq9MTi2WCOwZVZgQ==
 
-"@ampproject/google-closure-compiler-windows@20210302.0.1":
-  version "20210302.0.1"
-  resolved "https://registry.yarnpkg.com/@ampproject/google-closure-compiler-windows/-/google-closure-compiler-windows-20210302.0.1.tgz#a4025c10fc1a903502aa3ab60bec93fa1f42df79"
-  integrity sha512-UMdQ1U5kqgr/4IjEw2qu/krsEeKQmlk+mmMmsx/cbHfToFe+7fNPGt3JhYG+jNklMGBrGuNs1X4n+c6JFkELLw==
+"@ampproject/google-closure-compiler-windows@20210406.0.0":
+  version "20210406.0.0"
+  resolved "https://registry.yarnpkg.com/@ampproject/google-closure-compiler-windows/-/google-closure-compiler-windows-20210406.0.0.tgz#22214d36e08acc1ffac0c8a75f11cb9b3bfe6608"
+  integrity sha512-vAWND8NEqoBEya8yJCiN3xkxzKlU9QWzr9cxzO75waa2JGGseeNhxs8mctyePky9/S4N2Q/VZfvB1GJAHIMcBg==
 
-"@ampproject/google-closure-compiler@20210302.0.1":
-  version "20210302.0.1"
-  resolved "https://registry.yarnpkg.com/@ampproject/google-closure-compiler/-/google-closure-compiler-20210302.0.1.tgz#afd74c637877cdc01e95e00e380eb2705aa535a2"
-  integrity sha512-+Dl1XjuGgLPFIWWbbbReX8FaK7KuIQ1o1K0Uell2AQrbVUdvePhvJ4q5zpNqeu2yPy6jfXRCAXdk5ACoDM4Kmg==
+"@ampproject/google-closure-compiler@20210406.0.0":
+  version "20210406.0.0"
+  resolved "https://registry.yarnpkg.com/@ampproject/google-closure-compiler/-/google-closure-compiler-20210406.0.0.tgz#8ce3c290d173c5963f4e52e12164b2d8422ec27c"
+  integrity sha512-o4q+P5wxUozDG750GvaVHrgf28YY7M0Y9HvQlJVZByeixQTbI7tOOWOcJ7XmOeVtY9tyDSHkNokC8Du4vxi6HQ==
   dependencies:
-    "@ampproject/google-closure-compiler-java" "20210302.0.1"
+    "@ampproject/google-closure-compiler-java" "20210406.0.0"
     kleur "4.1.4"
     vinyl "2.2.1"
     vinyl-sourcemaps-apply "0.2.1"
   optionalDependencies:
-    "@ampproject/google-closure-compiler-linux" "20210302.0.1"
-    "@ampproject/google-closure-compiler-osx" "20210302.0.1"
-    "@ampproject/google-closure-compiler-windows" "20210302.0.1"
+    "@ampproject/google-closure-compiler-linux" "20210406.0.0"
+    "@ampproject/google-closure-compiler-osx" "20210406.0.0"
+    "@ampproject/google-closure-compiler-windows" "20210406.0.0"
 
 "@babel/code-frame@7.12.11":
   version "7.12.11"
