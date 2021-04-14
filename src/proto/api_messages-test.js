@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, deserialize, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, getLabel, LinkingInfoResponse, LinkSaveTokenRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse} from './api_messages';
+import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -307,6 +307,7 @@ describe('AnalyticsRequest', () => {
     eventparams.setSku('');
     eventparams.setOldTransactionId('');
     eventparams.setIsUserRegistered(false);
+    eventparams.setSubscriptionFlow('');
     analyticsrequest.setParams(eventparams);
 
     let analyticsrequestDeserialized;
@@ -422,10 +423,8 @@ describe('EntitlementsRequest', () => {
     timestamp.setSeconds(0);
     timestamp.setNanos(0);
     entitlementsrequest.setClientEventTime(timestamp);
-    entitlementsrequest.setEntitlementSource(
-        EntitlementSource.UNKNOWN_ENTITLEMENT_SOURCE);
-    entitlementsrequest.setEntitlementResult(
-        EntitlementResult.UNKNOWN_ENTITLEMENT_RESULT);
+    entitlementsrequest.setEntitlementSource(EntitlementSource.UNKNOWN_ENTITLEMENT_SOURCE);
+    entitlementsrequest.setEntitlementResult(EntitlementResult.UNKNOWN_ENTITLEMENT_RESULT);
     entitlementsrequest.setToken('');
     entitlementsrequest.setIsUserRegistered(false);
 
@@ -443,14 +442,14 @@ describe('EntitlementsRequest', () => {
         entitlementsrequest.getUsedEntitlement());
     expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
         entitlementsrequest.getClientEventTime());
-    expect(entitlementsrequestDeserialized.getEntitlementSource())
-        .to.deep.equal(entitlementsrequest.getEntitlementSource());
-    expect(entitlementsrequestDeserialized.getEntitlementResult())
-        .to.deep.equal(entitlementsrequest.getEntitlementResult());
-    expect(entitlementsrequestDeserialized.getToken())
-        .to.deep.equal(entitlementsrequest.getToken());
-    expect(entitlementsrequestDeserialized.getIsUserRegistered())
-        .to.deep.equal(entitlementsrequest.getIsUserRegistered());
+    expect(entitlementsrequestDeserialized.getEntitlementSource()).to.deep.equal(
+        entitlementsrequest.getEntitlementSource());
+    expect(entitlementsrequestDeserialized.getEntitlementResult()).to.deep.equal(
+        entitlementsrequest.getEntitlementResult());
+    expect(entitlementsrequestDeserialized.getToken()).to.deep.equal(
+        entitlementsrequest.getToken());
+    expect(entitlementsrequestDeserialized.getIsUserRegistered()).to.deep.equal(
+        entitlementsrequest.getIsUserRegistered());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -464,14 +463,14 @@ describe('EntitlementsRequest', () => {
         entitlementsrequest.getUsedEntitlement());
     expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
         entitlementsrequest.getClientEventTime());
-    expect(entitlementsrequestDeserialized.getEntitlementSource())
-        .to.deep.equal(entitlementsrequest.getEntitlementSource());
-    expect(entitlementsrequestDeserialized.getEntitlementResult())
-        .to.deep.equal(entitlementsrequest.getEntitlementResult());
-    expect(entitlementsrequestDeserialized.getToken())
-        .to.deep.equal(entitlementsrequest.getToken());
-    expect(entitlementsrequestDeserialized.getIsUserRegistered())
-        .to.deep.equal(entitlementsrequest.getIsUserRegistered());
+    expect(entitlementsrequestDeserialized.getEntitlementSource()).to.deep.equal(
+        entitlementsrequest.getEntitlementSource());
+    expect(entitlementsrequestDeserialized.getEntitlementResult()).to.deep.equal(
+        entitlementsrequest.getEntitlementResult());
+    expect(entitlementsrequestDeserialized.getToken()).to.deep.equal(
+        entitlementsrequest.getToken());
+    expect(entitlementsrequestDeserialized.getIsUserRegistered()).to.deep.equal(
+        entitlementsrequest.getIsUserRegistered());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -484,14 +483,14 @@ describe('EntitlementsRequest', () => {
         entitlementsrequest.getUsedEntitlement());
     expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
         entitlementsrequest.getClientEventTime());
-    expect(entitlementsrequestDeserialized.getEntitlementSource())
-        .to.deep.equal(entitlementsrequest.getEntitlementSource());
-    expect(entitlementsrequestDeserialized.getEntitlementResult())
-        .to.deep.equal(entitlementsrequest.getEntitlementResult());
-    expect(entitlementsrequestDeserialized.getToken())
-        .to.deep.equal(entitlementsrequest.getToken());
-    expect(entitlementsrequestDeserialized.getIsUserRegistered())
-        .to.deep.equal(entitlementsrequest.getIsUserRegistered());
+    expect(entitlementsrequestDeserialized.getEntitlementSource()).to.deep.equal(
+        entitlementsrequest.getEntitlementSource());
+    expect(entitlementsrequestDeserialized.getEntitlementResult()).to.deep.equal(
+        entitlementsrequest.getEntitlementResult());
+    expect(entitlementsrequestDeserialized.getToken()).to.deep.equal(
+        entitlementsrequest.getToken());
+    expect(entitlementsrequestDeserialized.getIsUserRegistered()).to.deep.equal(
+        entitlementsrequest.getIsUserRegistered());
   });
 });
 
@@ -545,6 +544,7 @@ describe('EventParams', () => {
     eventparams.setSku('');
     eventparams.setOldTransactionId('');
     eventparams.setIsUserRegistered(false);
+    eventparams.setSubscriptionFlow('');
 
     let eventparamsDeserialized;
 
@@ -568,6 +568,8 @@ describe('EventParams', () => {
         eventparams.getOldTransactionId());
     expect(eventparamsDeserialized.getIsUserRegistered()).to.deep.equal(
         eventparams.getIsUserRegistered());
+    expect(eventparamsDeserialized.getSubscriptionFlow()).to.deep.equal(
+        eventparams.getSubscriptionFlow());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -589,6 +591,8 @@ describe('EventParams', () => {
         eventparams.getOldTransactionId());
     expect(eventparamsDeserialized.getIsUserRegistered()).to.deep.equal(
         eventparams.getIsUserRegistered());
+    expect(eventparamsDeserialized.getSubscriptionFlow()).to.deep.equal(
+        eventparams.getSubscriptionFlow());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -609,6 +613,8 @@ describe('EventParams', () => {
         eventparams.getOldTransactionId());
     expect(eventparamsDeserialized.getIsUserRegistered()).to.deep.equal(
         eventparams.getIsUserRegistered());
+    expect(eventparamsDeserialized.getSubscriptionFlow()).to.deep.equal(
+        eventparams.getSubscriptionFlow());
   });
 });
 

@@ -305,6 +305,7 @@ describe('serializeProtoMessageForUrl', () => {
       'sku',
       'othertxid',
       true,
+      'subscriptions',
     ];
     const analyticsRequestArray = [
       'AnalyticsRequest',
