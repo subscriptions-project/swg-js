@@ -59,10 +59,11 @@ export const RecurrenceMapping = {
 
 /**
  * @param {string} sku
+ * @param {string} subscriptionFlow
  * @return {!EventParams}
  */
-function getEventParams(sku) {
-  return new EventParams([, , , , sku]);
+function getEventParams(sku, subscriptionFlow) {
+  return new EventParams([, , , , sku, , , subscriptionFlow]);
 }
 
 /**
