@@ -100,7 +100,7 @@ describes.realWin('ClientConfigManager', {}, () => {
       .resolves({
         autoPromptConfig: {
           maxImpressionsPerWeek: 1,
-          clientDisplayTrigger: {dismissalDelaySeconds: 2},
+          clientDisplayTrigger: {displayDelaySeconds: 2},
           explicitDismissalConfig: {
             backoffSeconds: 3,
             maxDismissalsPerWeek: 4,
@@ -112,9 +112,9 @@ describes.realWin('ClientConfigManager', {}, () => {
 
     const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
     expect(autoPromptConfig.maxImpressionsPerWeek).to.equal(1);
-    expect(
-      autoPromptConfig.clientDisplayTrigger.dismissalDelaySeconds
-    ).to.equal(2);
+    expect(autoPromptConfig.clientDisplayTrigger.displayDelaySeconds).to.equal(
+      2
+    );
     expect(autoPromptConfig.explicitDismissalConfig.backoffSeconds).to.equal(3);
     expect(
       autoPromptConfig.explicitDismissalConfig.maxDismissalsPerWeek

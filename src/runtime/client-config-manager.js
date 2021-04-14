@@ -131,7 +131,7 @@ export class ClientConfigManager {
     if (autoPromptConfigJson) {
       autoPromptConfig = new AutoPromptConfig(
         autoPromptConfigJson.maxImpressionsPerWeek,
-        autoPromptConfigJson.clientDisplayTrigger?.dismissalDelaySeconds,
+        autoPromptConfigJson.clientDisplayTrigger?.displayDelaySeconds,
         autoPromptConfigJson.explicitDismissalConfig?.backoffSeconds,
         autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsPerWeek,
         autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsResultingHideSeconds
