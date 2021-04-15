@@ -498,6 +498,7 @@ describe('EntitlementsResponse', () => {
   it('should deserialize correctly', () => {
     const /** !EntitlementsResponse  */ entitlementsresponse = new EntitlementsResponse();
     entitlementsresponse.setJwt('');
+    entitlementsresponse.setSwgUserToken('');
 
     let entitlementsresponseDeserialized;
 
@@ -511,6 +512,8 @@ describe('EntitlementsResponse', () => {
     // Verify fields.
     expect(entitlementsresponseDeserialized.getJwt()).to.deep.equal(
         entitlementsresponse.getJwt());
+    expect(entitlementsresponseDeserialized.getSwgUserToken()).to.deep.equal(
+        entitlementsresponse.getSwgUserToken());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -522,6 +525,8 @@ describe('EntitlementsResponse', () => {
     // Verify fields.
     expect(entitlementsresponseDeserialized.getJwt()).to.deep.equal(
         entitlementsresponse.getJwt());
+    expect(entitlementsresponseDeserialized.getSwgUserToken()).to.deep.equal(
+        entitlementsresponse.getSwgUserToken());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -532,6 +537,8 @@ describe('EntitlementsResponse', () => {
     // Verify fields.
     expect(entitlementsresponseDeserialized.getJwt()).to.deep.equal(
         entitlementsresponse.getJwt());
+    expect(entitlementsresponseDeserialized.getSwgUserToken()).to.deep.equal(
+        entitlementsresponse.getSwgUserToken());
   });
 });
 
