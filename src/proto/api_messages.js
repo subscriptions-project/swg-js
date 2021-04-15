@@ -910,6 +910,9 @@ class EntitlementsResponse {
 
     /** @private {?string} */
     this.jwt_ = data[base] == null ? null : data[base];
+
+    /** @private {?string} */
+    this.swgUserToken_ = data[1 + base] == null ? null : data[1 + base];
   }
 
   /**
@@ -927,6 +930,20 @@ class EntitlementsResponse {
   }
 
   /**
+   * @return {?string}
+   */
+  getSwgUserToken() {
+    return this.swgUserToken_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSwgUserToken(value) {
+    this.swgUserToken_ = value;
+  }
+
+  /**
    * @param {boolean} includeLabel
    * @return {!Array<?>}
    * @override
@@ -934,6 +951,7 @@ class EntitlementsResponse {
   toArray(includeLabel = true) {
     const arr = [
         this.jwt_, // field 1 - jwt
+        this.swgUserToken_, // field 2 - swg_user_token
     ];
     if (includeLabel) {
       arr.unshift(this.label());
