@@ -36,7 +36,7 @@ import {
   parseSubscriptionResponse,
   parseUserData,
 } from './pay-flow';
-import {ProductType, ReplaceSkuProrationMode} from '../api/subscriptions';
+import {ProductType, ReplaceSkuProrationMode, SubscriptionFlows} from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import {tick} from '../../test/tick';
@@ -89,10 +89,11 @@ const INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS = {
 
 /**
  * @param {string} sku
+ * @param {string=} subscriptionFlow
  * @return {!EventParams}
  */
-function getEventParams(sku) {
-  return new EventParams([, , , , sku]);
+function getEventParams(sku, subscriptionFlow = null) {
+  return new EventParams([, , , , sku, , , subscriptionFlow]);
 }
 
 describes.realWin('PayStartFlow', {}, (env) => {
@@ -1129,7 +1130,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           .withExactArgs(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
-            getEventParams('')
+            getEventParams('', SubscriptionFlows.SUBSCRIBE)
           );
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
         data['googleTransactionId'] = 'NEW_TRANSACTION_ID';
@@ -1150,7 +1151,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           .withExactArgs(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
-            getEventParams('')
+            getEventParams('', SubscriptionFlows.SUBSCRIBE)
           );
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
         data['googleTransactionId'] = runtime.analytics().getTransactionId();
@@ -1174,7 +1175,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           .withExactArgs(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
-            getEventParams('')
+            getEventParams('', SubscriptionFlows.SUBSCRIBE)
           );
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
         data['googleTransactionId'] = newTxId;
@@ -1197,7 +1198,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           .withExactArgs(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
-            getEventParams('')
+            getEventParams('', SubscriptionFlows.SUBSCRIBE)
           );
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
 
@@ -1218,7 +1219,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           .withExactArgs(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
-            getEventParams('')
+            getEventParams('', SubscriptionFlows.SUBSCRIBE)
           );
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
 
@@ -1227,6 +1228,31 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         expect(response).to.be.instanceof(SubscribeResponse);
         expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
       });
+    });
+
+    it('should log ACTION_PAYMENT_COMPLETE with contribution param', async () => {
+      PayCompleteFlow.waitingForPayClient_ = true;
+      eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
+      eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(
+            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+            true,
+            getEventParams('', SubscriptionFlows.CONTRIBUTE)
+          );
+
+      const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+      data['googleTransactionId'] = runtime.analytics().getTransactionId();
+      data['paymentRequest'] = {
+        'swg': {'oldSku': 'sku_to_replace'},
+        'i': {'productType': ProductType.UI_CONTRIBUTION},
+      };
+      await responseCallback(Promise.resolve(data));
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.productType).to.equal(ProductType.UI_CONTRIBUTION);
     });
 
     it('should start flow on correct payment response w/o entitlements', async () => {
