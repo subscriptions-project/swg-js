@@ -46,7 +46,10 @@ export class GoogleAnalyticsEventListener {
     if (typeof this.win_.ga != 'function') {
       return;
     }
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(event.eventType);
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      event.eventType,
+      event.additionalParameters?.subscriptionFlow
+    );
     if (gaEvent) {
       this.win_.ga('send', 'event', gaEvent);
     }

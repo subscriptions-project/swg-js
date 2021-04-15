@@ -36,7 +36,11 @@ import {
   parseSubscriptionResponse,
   parseUserData,
 } from './pay-flow';
-import {ProductType, ReplaceSkuProrationMode, SubscriptionFlows} from '../api/subscriptions';
+import {
+  ProductType,
+  ReplaceSkuProrationMode,
+  SubscriptionFlows,
+} from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import {tick} from '../../test/tick';
@@ -1233,15 +1237,15 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     it('should log ACTION_PAYMENT_COMPLETE with contribution param', async () => {
       PayCompleteFlow.waitingForPayClient_ = true;
       eventManagerMock
-          .expects('logSwgEvent')
-          .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
       eventManagerMock
-          .expects('logSwgEvent')
-          .withExactArgs(
-            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-            true,
-            getEventParams('', SubscriptionFlows.CONTRIBUTE)
-          );
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.CONTRIBUTE)
+        );
 
       const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
       data['googleTransactionId'] = runtime.analytics().getTransactionId();
