@@ -59,7 +59,7 @@ export const RecurrenceMapping = {
 
 /**
  * @param {string} sku
- * @param {string=} subscriptionFlow
+ * @param {?string=} subscriptionFlow
  * @return {!EventParams}
  */
 function getEventParams(sku, subscriptionFlow = null) {
