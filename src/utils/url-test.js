@@ -305,7 +305,7 @@ describe('serializeProtoMessageForUrl', () => {
       'sku',
       'othertxid',
       true,
-      'subscription'
+      'subscriptions'
     ];
       11,
       analyticsEventMetaArray,
