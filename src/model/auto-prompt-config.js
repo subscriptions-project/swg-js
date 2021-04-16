@@ -23,7 +23,7 @@ export class AutoPromptConfig {
    */
   constructor(
     maxImpressionsPerWeek,
-    dismissalDelaySeconds,
+    displayDelaySeconds,
     backoffSeconds,
     maxDismissalsPerWeek,
     maxDismissalsResultingHideSeconds
@@ -32,7 +32,7 @@ export class AutoPromptConfig {
     this.maxImpressionsPerWeek = maxImpressionsPerWeek;
 
     /** @const {!ClientDisplayTrigger} */
-    this.clientDisplayTrigger = new ClientDisplayTrigger(dismissalDelaySeconds);
+    this.clientDisplayTrigger = new ClientDisplayTrigger(displayDelaySeconds);
 
     /** @const {!ExplicitDismissalConfig} */
     this.explicitDismissalConfig = new ExplicitDismissalConfig(
@@ -48,11 +48,11 @@ export class AutoPromptConfig {
  */
 export class ClientDisplayTrigger {
   /**
-   * @param {number|undefined} dismissalDelaySeconds
+   * @param {number|undefined} displayDelaySeconds
    */
-  constructor(dismissalDelaySeconds) {
+  constructor(displayDelaySeconds) {
     /** @const {number|undefined} */
-    this.dismissalDelaySeconds = dismissalDelaySeconds;
+    this.displayDelaySeconds = displayDelaySeconds;
   }
 }
 
