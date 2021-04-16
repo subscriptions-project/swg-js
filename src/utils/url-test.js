@@ -305,8 +305,11 @@ describe('serializeProtoMessageForUrl', () => {
       'sku',
       'othertxid',
       true,
-      'subscriptions'
+      'subscriptions',
     ];
+    const analyticsRequestArray = [
+      'AnalyticsRequest',
+      analyticsContextArray,
       11,
       analyticsEventMetaArray,
       eventParamsArray,
