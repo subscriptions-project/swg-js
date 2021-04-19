@@ -362,9 +362,7 @@ describes.realWin('OffersFlow', {}, (env) => {
     response.setSwgUserToken('123');
     messageCallback = messageMap[response.label()];
     messageCallback(response);
-    entitlementsManagerMock
-      .expects('pushNextEntitlements')
-      .once();
+    entitlementsManagerMock.expects('pushNextEntitlements').once();
     storageMock.expects('set').withExactArgs(Constants.USER_TOKEN, '123', true);
   });
 });
