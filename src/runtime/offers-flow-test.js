@@ -19,6 +19,7 @@ import {ActivityPort} from '../components/activities';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {
   AlreadySubscribedResponse,
+  EntitlementsResponse,
   SkuSelectedResponse,
   SubscribeResponse,
   ViewSubscriptionsResponse,
@@ -27,6 +28,7 @@ import {AnalyticsEvent} from '../proto/api_messages';
 import {ClientConfig} from '../model/client-config';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
+import {Constants} from '../utils/constants';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
@@ -334,7 +336,7 @@ describes.realWin('OffersFlow', {}, (env) => {
     expect(payStub).to.be.calledOnce; // Didn't change.
   });
 
-  it('should activate login with linking', async () => {
+  it('should activate login with linking and EntitlementsResponse', async () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').resolves(port);
 
@@ -347,6 +349,16 @@ describes.realWin('OffersFlow', {}, (env) => {
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: true,
     });
+
+    const entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
+    const storageMock = sandbox.mock(runtime.storage());
+    const entitlementsResponse = new EntitlementsResponse();
+    entitlementsResponse.setJwt('abc');
+    entitlementsResponse.setSwgUserToken('123');
+    messageCallback = messageMap[response.label()];
+    messageCallback(response);
+    entitlementsManagerMock.expects('pushNextEntitlements').once();
+    storageMock.expects('set').withExactArgs(Constants.USER_TOKEN, '123', true);
   });
 });
 
