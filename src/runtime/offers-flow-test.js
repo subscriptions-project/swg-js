@@ -364,7 +364,6 @@ describes.realWin('OffersFlow', {}, (env) => {
     messageCallback(response);
     entitlementsManagerMock
       .expects('pushNextEntitlements')
-      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
       .once();
     storageMock.expects('set').withExactArgs(Constants.USER_TOKEN, '123', true);
   });
