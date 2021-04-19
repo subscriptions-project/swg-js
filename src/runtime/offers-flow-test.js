@@ -19,6 +19,7 @@ import {ActivityPort} from '../components/activities';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {
   AlreadySubscribedResponse,
+  EntitlementsResponse,
   SkuSelectedResponse,
   SubscribeResponse,
   ViewSubscriptionsResponse,
@@ -27,6 +28,7 @@ import {AnalyticsEvent} from '../proto/api_messages';
 import {ClientConfig} from '../model/client-config';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
+import {Constants} from '../utils/constants';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
@@ -347,6 +349,24 @@ describes.realWin('OffersFlow', {}, (env) => {
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: true,
     });
+  });
+
+  it('should store entitlements and SwgUerToken if user is already a subscriber/contributer', async () => {
+    const entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
+    const storageMock = sandbox.mock(runtime.storage());
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await offersFlow.start();
+    const response = new EntitlementsResponse();
+    response.setJwt('abc');
+    response.setSwgUserToken('123');
+    messageCallback = messageMap[response.label()];
+    messageCallback(response);
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
+      .once();
+    storageMock.expects('set').withExactArgs(Constants.USER_TOKEN, '123', true);
   });
 });
 
