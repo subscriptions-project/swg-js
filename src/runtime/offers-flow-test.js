@@ -336,7 +336,7 @@ describes.realWin('OffersFlow', {}, (env) => {
     expect(payStub).to.be.calledOnce; // Didn't change.
   });
 
-  it('should activate login with linking', async () => {
+  it('should activate login with linking and EntitlementsResponse', async () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').resolves(port);
 
@@ -349,17 +349,12 @@ describes.realWin('OffersFlow', {}, (env) => {
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: true,
     });
-  });
 
-  it('should store entitlements and SwgUerToken if user is already a subscriber/contributer', async () => {
     const entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     const storageMock = sandbox.mock(runtime.storage());
-    activitiesMock.expects('openIframe').resolves(port);
-
-    await offersFlow.start();
-    const response = new EntitlementsResponse();
-    response.setJwt('abc');
-    response.setSwgUserToken('123');
+    const entitlementsResponse = new EntitlementsResponse();
+    entitlementsResponse.setJwt('abc');
+    entitlementsResponse.setSwgUserToken('123');
     messageCallback = messageMap[response.label()];
     messageCallback(response);
     entitlementsManagerMock.expects('pushNextEntitlements').once();
