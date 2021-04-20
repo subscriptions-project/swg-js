@@ -79,16 +79,21 @@ export class PayClient {
     /** @private @const {!Preconnect} */
     this.preconnect_ = new Preconnect(this.win_.document);
 
+    // If the page is started from a redirect, immediately initialize
+    // client to avoid dropping user state.
+    if (
+      isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_REDIRECT) &&
+      this.pageIsInitializedFromPayRedirect_()
+    ) {
+      this.preconnect(this.preconnect_);
+      this.initializePaymentsClient_();
+    }
+
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
-
-    if (isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_REDIRECT)) {
-      // Bind handleResponse_ in ctor to catch redirects.
-      this.handleResponse_ = this.handleResponse_.bind(this);
-    }
   }
 
   /**
@@ -122,6 +127,41 @@ export class PayClient {
   }
 
   /**
+   * Initializes Payments client.
+   */
+  initializePaymentsClient_() {
+    this.client_ = this.createClient_(
+      /** @type {!PaymentOptions} */
+      ({
+        environment: '$payEnvironment$',
+        'i': {
+          'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+        },
+      }),
+      this.analytics_.getTransactionId(),
+      this.handleResponse_.bind(this)
+    );
+  }
+
+  /**
+   * Detects if the window is started from a Pay redirect by
+   * checking window's hash for Web Activities information.
+   */
+  pageIsInitializedFromPayRedirect_() {
+    const hash = this.win_.location.hash;
+    const hasWebActivitiesResponse = /^#__WA_RES__=/.test(hash);
+    const hasRedirectEncryptedCallbackData = /redirectEncryptedCallbackData/.test(
+      hash
+    );
+    const hasSwgRequest = /swgRequest/.test(hash);
+    return (
+      hasWebActivitiesResponse &&
+      hasRedirectEncryptedCallbackData &&
+      hasSwgRequest
+    );
+  }
+
+  /**
    * @return {string}
    */
   getType() {
@@ -138,19 +178,7 @@ export class PayClient {
 
     if (!this.client_) {
       this.preconnect(this.preconnect_);
-      this.client_ = this.createClient_(
-        /** @type {!PaymentOptions} */
-        ({
-          environment: '$payEnvironment$',
-          'i': {
-            'redirectKey': this.redirectVerifierHelper_.restoreKey(),
-          },
-        }),
-        this.analytics_.getTransactionId(),
-        isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_REDIRECT)
-          ? this.handleResponse_
-          : this.handleResponse_.bind(this)
-      );
+      this.initializePaymentsClient_();
     }
     if (options.forceRedirect) {
       paymentRequest = Object.assign(paymentRequest, {
