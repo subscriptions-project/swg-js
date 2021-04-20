@@ -149,13 +149,11 @@ export class PayClient {
    */
   pageIsInitializedFromPayRedirect_() {
     const hash = this.win_.location.hash;
-    const hasWebActivitiesResponse = /^#__WA_RES__=/.test(hash);
     const hasRedirectEncryptedCallbackData = /redirectEncryptedCallbackData/.test(
       hash
     );
     const hasSwgRequest = /swgRequest/.test(hash);
     return (
-      hasWebActivitiesResponse &&
       hasRedirectEncryptedCallbackData &&
       hasSwgRequest
     );
