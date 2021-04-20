@@ -153,10 +153,7 @@ export class PayClient {
       hash
     );
     const hasSwgRequest = /swgRequest/.test(hash);
-    return (
-      hasRedirectEncryptedCallbackData &&
-      hasSwgRequest
-    );
+    return hasRedirectEncryptedCallbackData && hasSwgRequest;
   }
 
   /**
