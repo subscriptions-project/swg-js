@@ -16,7 +16,10 @@
 
 import {AnalyticsEvent, EntitlementResult} from '../proto/api_messages';
 import {Event} from '../api/logger-api';
-import {PublisherEntitlementEvent} from '../api/subscriptions';
+import {
+  PublisherEntitlementEvent,
+  SubscriptionFlows,
+} from '../api/subscriptions';
 
 /** @const {!Object<string,AnalyticsEvent>} */
 const PublisherEventToAnalyticsEvent = {
@@ -121,7 +124,7 @@ const createGoogleAnalyticsEvent = (
 });
 
 /** @const {!Object<?AnalyticsEvent,?Object>} */
-const AnalyticsEventToGoogleAnalyticsEvent = {
+export const AnalyticsEventToGoogleAnalyticsEvent = {
   [AnalyticsEvent.IMPRESSION_OFFERS]: createGoogleAnalyticsEvent(
     'NTG paywall',
     'paywall modal impression',
@@ -134,7 +137,6 @@ const AnalyticsEventToGoogleAnalyticsEvent = {
     '',
     false
   ),
-
   [AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK]: createGoogleAnalyticsEvent(
     'NTG subscription',
     'marketing modal click',
@@ -158,6 +160,26 @@ const AnalyticsEventToGoogleAnalyticsEvent = {
     'membership modal impression',
     '',
     true
+  ),
+};
+
+/** @const {!Object<?AnalyticsEvent,?Object>} */
+export const SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent = {
+  [AnalyticsEvent.ACTION_PAYMENT_COMPLETE]: createGoogleAnalyticsEvent(
+    'NTG subscription',
+    'submit',
+    'success',
+    false
+  ),
+};
+
+/** @const {!Object<?AnalyticsEvent,?Object>} */
+export const ContributionSpecificAnalyticsEventToGoogleAnalyticsEvent = {
+  [AnalyticsEvent.ACTION_PAYMENT_COMPLETE]: createGoogleAnalyticsEvent(
+    'NTG membership',
+    'submit',
+    'success',
+    false
   ),
 };
 
@@ -195,8 +217,17 @@ export function analyticsEventToEntitlementResult(event) {
 /**
  * Converts an analytics event enum into a Google Analytics event object.
  * @param {?AnalyticsEvent} event
+ * @param {string} subscriptionFlow
  * @returns {?Object}
  */
-export function analyticsEventToGoogleAnalyticsEvent(event) {
-  return AnalyticsEventToGoogleAnalyticsEvent[event];
+export function analyticsEventToGoogleAnalyticsEvent(event, subscriptionFlow) {
+  let gaEvent = null;
+  if (subscriptionFlow) {
+    if (subscriptionFlow == SubscriptionFlows.SUBSCRIBE) {
+      gaEvent = SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent[event];
+    } else if (subscriptionFlow == SubscriptionFlows.CONTRIBUTE) {
+      gaEvent = ContributionSpecificAnalyticsEventToGoogleAnalyticsEvent[event];
+    }
+  }
+  return gaEvent || AnalyticsEventToGoogleAnalyticsEvent[event];
 }
