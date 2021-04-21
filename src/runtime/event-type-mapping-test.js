@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 import {AnalyticsEvent, EntitlementResult} from '../proto/api_messages';
-import {Event} from '../api/propensity-api';
-import {PublisherEntitlementEvent} from '../api/subscriptions';
 import {
+  AnalyticsEventToGoogleAnalyticsEvent,
+  ContributionSpecificAnalyticsEventToGoogleAnalyticsEvent,
+  SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent,
   analyticsEventToEntitlementResult,
   analyticsEventToGoogleAnalyticsEvent,
   analyticsEventToPublisherEvent,
   publisherEntitlementEventToAnalyticsEvents,
   publisherEventToAnalyticsEvent,
 } from './event-type-mapping';
+import {Event} from '../api/propensity-api';
+import {
+  PublisherEntitlementEvent,
+  SubscriptionFlows,
+} from '../api/subscriptions';
 
 describes.realWin('Logger and Propensity events', {}, () => {
   it('propensity to analytics to propensity should be identical', () => {
@@ -131,5 +137,39 @@ describes.realWin('analyticsEventToGoogleAnalyticsEvent', {}, () => {
       expect(mapped[resultString]).to.be.undefined;
       mapped[resultString] = (mapped[resultString] || 0) + 1;
     }
+  });
+
+  it('uses subscriptionFlow param correclty on "subscription"', () => {
+    const actual = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      SubscriptionFlows.SUBSCRIBE
+    );
+    const expected =
+      SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent[
+        AnalyticsEvent.ACTION_PAYMENT_COMPLETE
+      ];
+    expect(actual).to.be.equal(expected);
+  });
+
+  it('uses subscriptionFlow param correclty on "contribution"', () => {
+    const actual = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      SubscriptionFlows.CONTRIBUTE
+    );
+    const expected =
+      ContributionSpecificAnalyticsEventToGoogleAnalyticsEvent[
+        AnalyticsEvent.ACTION_PAYMENT_COMPLETE
+      ];
+    expect(actual).to.be.equal(expected);
+  });
+
+  it('should fallback to general mapping when subscriptionFlow passed in and event not specific', () => {
+    const actual = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_OFFERS,
+      SubscriptionFlows.SUBSCRIBE
+    );
+    const expected =
+      AnalyticsEventToGoogleAnalyticsEvent[AnalyticsEvent.IMPRESSION_OFFERS];
+    expect(actual).to.be.equal(expected);
   });
 });
