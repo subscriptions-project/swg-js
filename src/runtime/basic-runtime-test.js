@@ -319,6 +319,34 @@ describes.realWin('BasicRuntime', {}, (env) => {
       await basicRuntime.setOnPaymentResponse(callback);
     });
 
+    it('should delegate "setOnLoginRequest"', async () => {
+      configuredClassicRuntimeMock
+        .expects('pageConfig')
+        .returns(pageConfig)
+        .once();
+      const pageConfigMock = sandbox.mock(pageConfig);
+      pageConfigMock.expects('getPublicationId').returns('pub1').once();
+
+      const activities = configuredBasicRuntime.activities();
+      configuredClassicRuntimeMock
+        .expects('activities')
+        .returns(activities)
+        .once();
+      const activitiesMock = sandbox.mock(activities);
+      activitiesMock
+        .expects('open')
+        .withExactArgs(
+          'CHECK_ENTITLEMENTS',
+          'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_',
+          '_blank',
+          {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
+          {width: 600, height: 600}
+        )
+        .once();
+
+      await basicRuntime.setOnLoginRequest();
+    });
+
     it('should delegate "setupAndShowAutoPrompt"', async () => {
       const options = {alwaysShow: true};
       configuredBasicRuntimeMock
