@@ -55,6 +55,7 @@ export class BasicSubscriptions {
   setOnPaymentResponse(callback) {}
 
   /**
+   * Open CheckEntitlementsView to let users log in Google and check their entitlements.
    * @return {?}
    */
    setOnLoginRequest() {}
