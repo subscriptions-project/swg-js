@@ -100,7 +100,7 @@
     "morgan": "1.10.0",
     "nodemon": "2.0.7",
     "plugin-error": "1.0.1",
-    "postcss": "8.2.10",
+    "postcss": "8.2.12",
     "postcss-import": "14.0.1",
     "prettier": "2.2.1",
     "pumpify": "2.0.1",
