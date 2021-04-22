@@ -18,6 +18,7 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {DepsDef} from './deps';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+import {SubscriptionFlows} from '../api/subscriptions';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 
 describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
@@ -90,6 +91,79 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       .once();
     eventManager.logEvent({
       eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+    });
+    await eventManager.lastAction_;
+  });
+
+  it('Should log contribution pay complete to ga', async () => {
+    setupEnvironment(
+      Object.assign({}, env.win, {
+        ga: () => {},
+      }),
+      true
+    );
+    winMock
+      .expects('ga')
+      .withExactArgs(
+        'send',
+        'event',
+        analyticsEventToGoogleAnalyticsEvent(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          SubscriptionFlows.CONTRIBUTE
+        )
+      )
+      .once();
+    eventManager.logEvent({
+      eventType: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      additionalParameters: {
+        subscriptionFlow: SubscriptionFlows.CONTRIBUTE,
+        isUserRegistered: true,
+      },
+    });
+    await eventManager.lastAction_;
+  });
+
+  it('Should log subscription pay complete to ga', async () => {
+    setupEnvironment(
+      Object.assign({}, env.win, {
+        ga: () => {},
+      }),
+      true
+    );
+    winMock
+      .expects('ga')
+      .withExactArgs(
+        'send',
+        'event',
+        analyticsEventToGoogleAnalyticsEvent(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          SubscriptionFlows.SUBSCRIBE
+        )
+      )
+      .once();
+    eventManager.logEvent({
+      eventType: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      additionalParameters: {
+        subscriptionFlow: SubscriptionFlows.SUBSCRIBE,
+        isUserRegistered: true,
+      },
+    });
+    await eventManager.lastAction_;
+  });
+
+  it('Should not log pay complete to ga when missing subscriptionFlow', async () => {
+    setupEnvironment(
+      Object.assign({}, env.win, {
+        ga: () => {},
+      }),
+      true
+    );
+    winMock.expects('ga').never();
+    eventManager.logEvent({
+      eventType: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
       eventOriginator: EventOriginator.SWG_CLIENT,
     });
     await eventManager.lastAction_;
