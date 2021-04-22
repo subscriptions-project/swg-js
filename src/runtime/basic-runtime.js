@@ -22,10 +22,12 @@ import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
 import {XhrFetcher} from './fetcher';
+import {feArgs, feUrl} from './services';
 import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 const BUTTON_ATTRIUBUTE = 'swg-standard-button';
+const CHECK_ENTITLEMENTS_REQUEST_ID = 'CHECK_ENTITLEMENTS';
 
 /**
  * Reference to the runtime, for testing.
@@ -214,6 +216,13 @@ export class BasicRuntime {
   }
 
   /** @override */
+  setOnLoginRequest() {
+    return this.configured_(false).then((runtime) =>
+      runtime.setOnLoginRequest()
+    );
+  }
+
+  /** @override */
   setupAndShowAutoPrompt(options) {
     return this.configured_(false).then((runtime) =>
       runtime.setupAndShowAutoPrompt(options)
@@ -385,6 +394,24 @@ export class ConfiguredBasicRuntime {
   }
 
   /** @override */
+  setOnLoginRequest() {
+    const runtime = this.configuredClassicRuntime_;
+    const args = feArgs({
+      'publicationId': runtime.pageConfig().getPublicationId(),
+    });
+
+    runtime
+      .activities()
+      .open(
+        CHECK_ENTITLEMENTS_REQUEST_ID,
+        feUrl('/checkentitlements'),
+        '_blank',
+        args,
+        {'width': 600, 'height': 600}
+      );
+  }
+
+  /** @override */
   setupAndShowAutoPrompt(options) {
     if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
       options.displayForLockedContentFn = () => {
@@ -447,6 +474,7 @@ function createPublicBasicRuntime(basicRuntime) {
       basicRuntime
     ),
     setOnPaymentResponse: basicRuntime.setOnPaymentResponse.bind(basicRuntime),
+    setOnLoginRequest: basicRuntime.setOnLoginRequest.bind(basicRuntime),
     setupAndShowAutoPrompt: basicRuntime.setupAndShowAutoPrompt.bind(
       basicRuntime
     ),

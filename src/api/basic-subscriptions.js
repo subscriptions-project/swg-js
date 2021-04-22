@@ -55,6 +55,12 @@ export class BasicSubscriptions {
   setOnPaymentResponse(callback) {}
 
   /**
+   * Open CheckEntitlementsView to let users log in Google and check their entitlements.
+   * @return {?}
+   */
+   setOnLoginRequest() {}
+
+  /**
    * Creates and displays a SwG subscription or contribution prompt, where the
    * prompt type is determined by the parameters passed in to init. If the auto
    * prompt is determined to have been already set up, the setup portion of the
