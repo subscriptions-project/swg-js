@@ -106,6 +106,13 @@ export const AutoPromptType = {
  */
 export let ClientOptions;
 
+/**
+ * @typedef {{
+ *   linkRequested: boolean,
+ * }}
+ */
+export let LoginRequest;
+
 /** @enum {string} */
 export const ClientTheme = {
   LIGHT: 'light',
