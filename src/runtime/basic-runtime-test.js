@@ -320,6 +320,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     });
 
     it('should delegate "setOnLoginRequest"', async () => {
+      const callback = function () {};
       configuredClassicRuntimeMock
         .expects('pageConfig')
         .returns(pageConfig)
@@ -344,7 +345,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
         )
         .once();
 
-      await basicRuntime.setOnLoginRequest();
+      await basicRuntime.setOnLoginRequest(callback);
     });
 
     it('should delegate "setupAndShowAutoPrompt"', async () => {

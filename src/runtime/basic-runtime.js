@@ -216,9 +216,9 @@ export class BasicRuntime {
   }
 
   /** @override */
-  setOnLoginRequest() {
+  setOnLoginRequest(callback) {
     return this.configured_(false).then((runtime) =>
-      runtime.setOnLoginRequest()
+      runtime.setOnLoginRequest(callback)
     );
   }
 
@@ -394,7 +394,7 @@ export class ConfiguredBasicRuntime {
   }
 
   /** @override */
-  setOnLoginRequest() {
+  setOnLoginRequest(unusedCallback) {
     const runtime = this.configuredClassicRuntime_;
     const args = feArgs({
       'publicationId': runtime.pageConfig().getPublicationId(),
