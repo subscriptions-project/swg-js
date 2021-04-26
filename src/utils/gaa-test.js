@@ -309,7 +309,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
       // Reject promise.
       await expect(gaaUserPromise).to.eventually.be.rejectedWith(
-        'Google Sign-In failed to initialize'
+        'Google Sign-In could not render'
       );
 
       // Remove Regwall from DOM.
@@ -377,6 +377,9 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
     // Mock query string.
     sandbox.stub(GaaUtils, 'getQueryString');
     GaaUtils.getQueryString.returns('?lang=en');
+
+    // Mock console.warn method.
+    sandbox.stub(self.console, 'warn');
   });
 
   afterEach(() => {
@@ -387,6 +390,8 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
 
     // Remove the injected style from GaaGoogleSignInButton.show.
     self.document.head.querySelector('style').remove();
+
+    self.console.warn.restore();
   });
 
   describe('show', () => {
@@ -499,7 +504,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
       );
     });
 
-    it('propagates GSI errors', async () => {
+    it('sends errors to parent', async () => {
       self.gapi.signin2.render = sandbox.fake.throws('I need cookies');
 
       GaaGoogleSignInButton.show({allowedOrigins});
@@ -528,6 +533,33 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
         },
         location.origin
       );
+    });
+
+    it('fails and warns when passed invalid origins', async () => {
+      const invalidOrigins = [
+        // Bad protocol, should be http or https.
+        'ftp://localhost:8080',
+        // Includes path.
+        'http://localhost:8080/',
+      ];
+
+      for (const invalidOrigin of invalidOrigins) {
+        GaaGoogleSignInButton.show({allowedOrigins: [invalidOrigin]});
+
+        // Send intro post message.
+        postMessage({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_INTRODUCTION,
+        });
+
+        // Wait for promises and intervals to resolve.
+        clock.tick(100);
+        await tick(10);
+
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          `[swg-gaa.js:GaaGoogleSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
+        );
+      }
     });
   });
 });
