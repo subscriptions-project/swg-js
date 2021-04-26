@@ -492,7 +492,7 @@ export class GaaMeteringRegwall {
 
           if (e.data.command === POST_MESSAGE_COMMAND_ERROR) {
             // Reject promise due to Google Sign-In error.
-            reject('Google Sign-In failed to initialize');
+            reject('Google Sign-In could not render');
           }
         }
       });
@@ -575,6 +575,34 @@ export class GaaGoogleSignInButton {
       });
     });
 
+    function sendErrorMessageToParent() {
+      sendMessageToParentFnPromise.then((sendMessageToParent) => {
+        sendMessageToParent({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_ERROR,
+        });
+      });
+    }
+
+    // Validate origins.
+    for (let i = 0; i < allowedOrigins.length; i++) {
+      const allowedOrigin = allowedOrigins[i];
+      const url = new URL(allowedOrigin);
+
+      const isOrigin = url.origin === allowedOrigin;
+      const protocolIsValid =
+        url.protocol === 'http:' || url.protocol === 'https:';
+      const isValidOrigin = isOrigin && protocolIsValid;
+
+      if (!isValidOrigin) {
+        warn(
+          `[swg-gaa.js:GaaGoogleSignInButton.show]: You specified an invalid origin: ${allowedOrigin}`
+        );
+        sendErrorMessageToParent();
+        return;
+      }
+    }
+
     // Render the Google Sign-In button.
     configureGoogleSignIn()
       .then(
@@ -618,15 +646,7 @@ export class GaaGoogleSignInButton {
           });
         });
       })
-      .catch(() => {
-        // Report error to parent frame.
-        sendMessageToParentFnPromise.then((sendMessageToParent) => {
-          sendMessageToParent({
-            stamp: POST_MESSAGE_STAMP,
-            command: POST_MESSAGE_COMMAND_ERROR,
-          });
-        });
-      });
+      .catch(sendErrorMessageToParent);
   }
 }
 
