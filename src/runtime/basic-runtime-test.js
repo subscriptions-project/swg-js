@@ -321,18 +321,11 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
     it('should delegate "setOnLoginRequest"', async () => {
       const callback = function () {};
-      configuredClassicRuntimeMock
-        .expects('pageConfig')
-        .returns(pageConfig)
-        .once();
+      configuredClassicRuntimeMock.expects('setOnLoginRequest').once();
       const pageConfigMock = sandbox.mock(pageConfig);
       pageConfigMock.expects('getPublicationId').returns('pub1').once();
 
       const activities = configuredBasicRuntime.activities();
-      configuredClassicRuntimeMock
-        .expects('activities')
-        .returns(activities)
-        .once();
       const activitiesMock = sandbox.mock(activities);
       activitiesMock
         .expects('open')

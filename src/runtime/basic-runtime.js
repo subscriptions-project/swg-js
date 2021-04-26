@@ -395,20 +395,19 @@ export class ConfiguredBasicRuntime {
 
   /** @override */
   setOnLoginRequest(unusedCallback) {
-    const runtime = this.configuredClassicRuntime_;
-    const args = feArgs({
-      'publicationId': runtime.pageConfig().getPublicationId(),
-    });
+    this.configuredClassicRuntime_.setOnLoginRequest(() => {
+      const args = feArgs({
+        'publicationId': this.pageConfig().getPublicationId(),
+      });
 
-    runtime
-      .activities()
-      .open(
+      this.activities().open(
         CHECK_ENTITLEMENTS_REQUEST_ID,
         feUrl('/checkentitlements'),
         '_blank',
         args,
         {'width': 600, 'height': 600}
       );
+    });
   }
 
   /** @override */
