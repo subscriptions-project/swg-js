@@ -56,10 +56,9 @@ export class BasicSubscriptions {
 
   /**
    * Open CheckEntitlementsView to let users log in Google and check their entitlements.
-   * @param {function(!LoginRequest)} callback
    * @return {?}
    */
-  setOnLoginRequest(callback) {}
+  setOnLoginRequest() {}
 
   /**
    * Creates and displays a SwG subscription or contribution prompt, where the
@@ -105,13 +104,6 @@ export const AutoPromptType = {
  * }}
  */
 export let ClientOptions;
-
-/**
- * @typedef {{
- *   linkRequested: boolean,
- * }}
- */
-export let LoginRequest;
 
 /** @enum {string} */
 export const ClientTheme = {
