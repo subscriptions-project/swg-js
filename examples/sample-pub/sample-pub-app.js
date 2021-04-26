@@ -50,16 +50,6 @@ const SWG_GAA_JS_URLS = {
   tt: 'https://news.google.com/swg/js/v1/swg-gaa-tt.js',
 };
 
-const SWG_GSI_JS_URLS = {
-  local: '/dist/subscriptions-google-sign-in.max.js',
-  /* eslint-disable google-camelcase/google-camelcase */
-  local_min: '/dist/subscriptions-google-sign-in.js',
-  /* eslint-enable google-camelcase/google-camelcase */
-  prod: 'https://news.google.com/swg/js/v1/swg-google-sign-in.js',
-  autopush: 'https://news.google.com/swg/js/v1/swg-google-sign-in-autopush.js',
-  tt: 'https://news.google.com/swg/js/v1/swg-google-sign-in-tt.js',
-};
-
 const AUTH_COOKIE = 'SCENIC_AUTH';
 const METER_COOKIE = 'SCENIC_METER';
 const MAX_METER = 3;
