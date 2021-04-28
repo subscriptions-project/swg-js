@@ -319,33 +319,39 @@ describes.realWin('BasicRuntime', {}, (env) => {
       await basicRuntime.setOnPaymentResponse(callback);
     });
 
-    it('should delegate "setOnLoginRequest"', async () => {
-      const callback = function () {};
-      configuredClassicRuntimeMock
-        .expects('pageConfig')
-        .returns(pageConfig)
-        .once();
-      const pageConfigMock = sandbox.mock(pageConfig);
-      pageConfigMock.expects('getPublicationId').returns('pub1').once();
-
-      const activities = configuredBasicRuntime.activities();
-      configuredClassicRuntimeMock
-        .expects('activities')
-        .returns(activities)
-        .once();
-      const activitiesMock = sandbox.mock(activities);
-      activitiesMock
-        .expects('open')
-        .withExactArgs(
-          'CHECK_ENTITLEMENTS',
-          'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_',
-          '_blank',
-          {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
-          {width: 600, height: 600}
-        )
+    it('should delegate "setOnLoginRequest" to ConfiguredBasicRuntime', async () => {
+      configuredBasicRuntimeMock
+        .expects('setOnLoginRequest')
+        .withExactArgs()
         .once();
 
-      await basicRuntime.setOnLoginRequest(callback);
+      await basicRuntime.setOnLoginRequest();
+    });
+
+    it('should delegate "setOnLoginRequest" to ConfiguredClassicRuntime', async () => {
+      configuredClassicRuntimeMock.expects('setOnLoginRequest').once();
+
+      await basicRuntime.setOnLoginRequest();
+    });
+
+    it('should trigger login request', async () => {
+      configuredBasicRuntime.setOnLoginRequest();
+
+      const openStub = sandbox.stub(
+        configuredBasicRuntime.activities(),
+        'open'
+      );
+      await configuredBasicRuntime
+        .callbacks()
+        .triggerLoginRequest({linkRequested: true});
+
+      expect(openStub).to.be.calledOnceWithExactly(
+        'CHECK_ENTITLEMENTS',
+        'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_',
+        '_blank',
+        {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
+        {'width': 600, 'height': 600}
+      );
     });
 
     it('should delegate "setupAndShowAutoPrompt"', async () => {
