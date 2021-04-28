@@ -334,15 +334,24 @@ describes.realWin('BasicRuntime', {}, (env) => {
       await basicRuntime.setOnLoginRequest();
     });
 
-    it('should trigger login request', (done) => {
-      const promise = new Promise((resolve) => {
-        configuredBasicRuntime.setOnLoginRequest(resolve);
-        done();
-      });
-      configuredBasicRuntime
+    it('should trigger login request', async () => {
+      configuredBasicRuntime.setOnLoginRequest();
+
+      const openStub = sandbox.stub(
+        configuredBasicRuntime.activities(),
+        'open'
+      );
+      await configuredBasicRuntime
         .callbacks()
         .triggerLoginRequest({linkRequested: true});
-      expect(promise).to.be.calledOnce();
+
+      expect(openStub).to.be.calledOnceWithExactly(
+        'CHECK_ENTITLEMENTS',
+        'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_',
+        '_blank',
+        {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
+        {'width': 600, 'height': 600}
+      );
     });
 
     it('should delegate "setupAndShowAutoPrompt"', async () => {
