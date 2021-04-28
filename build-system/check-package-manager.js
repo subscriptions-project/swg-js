@@ -45,7 +45,7 @@ function yellow(text) {
 
 // If npm is being run, print a message and cause 'npm install' to fail.
 function ensureYarn() {
-  if (process.env.npm_execpath.indexOf('yarn') === -1) {
+  if (!process.env.npm_execpath.indexOf('yarn')) {
     log(red('*** The SwG project uses yarn for package management ***'), '\n');
     log(yellow('To install all packages:'));
     log(cyan('$'), 'npx yarn', '\n');
