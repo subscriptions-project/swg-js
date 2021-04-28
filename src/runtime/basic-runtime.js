@@ -198,6 +198,7 @@ export class BasicRuntime {
       autoPromptType: params.autoPromptType,
       alwaysShow: false,
     });
+    this.setOnLoginRequest();
   }
   /* eslint-enable no-unused-vars */
 
@@ -216,9 +217,9 @@ export class BasicRuntime {
   }
 
   /** @override */
-  setOnLoginRequest(callback) {
+  setOnLoginRequest() {
     return this.configured_(false).then((runtime) =>
-      runtime.setOnLoginRequest(callback)
+      runtime.setOnLoginRequest()
     );
   }
 
@@ -394,7 +395,7 @@ export class ConfiguredBasicRuntime {
   }
 
   /** @override */
-  setOnLoginRequest(unusedCallback) {
+  setOnLoginRequest() {
     this.configuredClassicRuntime_.setOnLoginRequest(() => {
       const args = feArgs({
         'publicationId': this.pageConfig().getPublicationId(),

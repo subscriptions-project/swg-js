@@ -319,26 +319,30 @@ describes.realWin('BasicRuntime', {}, (env) => {
       await basicRuntime.setOnPaymentResponse(callback);
     });
 
-    it('should delegate "setOnLoginRequest"', async () => {
-      const callback = function () {};
-      configuredClassicRuntimeMock.expects('setOnLoginRequest').once();
-      const pageConfigMock = sandbox.mock(pageConfig);
-      pageConfigMock.expects('getPublicationId').returns('pub1').once();
-
-      const activities = configuredBasicRuntime.activities();
-      const activitiesMock = sandbox.mock(activities);
-      activitiesMock
-        .expects('open')
-        .withExactArgs(
-          'CHECK_ENTITLEMENTS',
-          'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_',
-          '_blank',
-          {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
-          {width: 600, height: 600}
-        )
+    it('should delegate "setOnLoginRequest" to ConfiguredBasicRuntime', async () => {
+      configuredBasicRuntimeMock
+        .expects('setOnLoginRequest')
+        .withExactArgs()
         .once();
 
-      await basicRuntime.setOnLoginRequest(callback);
+      await basicRuntime.setOnLoginRequest();
+    });
+
+    it('should delegate "setOnLoginRequest" to ConfiguredClassicRuntime', async () => {
+      configuredClassicRuntimeMock.expects('setOnLoginRequest').once();
+
+      await basicRuntime.setOnLoginRequest();
+    });
+
+    it('should trigger login request', (done) => {
+      const promise = new Promise((resolve) => {
+        configuredBasicRuntime.setOnLoginRequest(resolve);
+        done();
+      });
+      configuredBasicRuntime
+        .callbacks()
+        .triggerLoginRequest({linkRequested: true});
+      expect(promise).to.be.calledOnce();
     });
 
     it('should delegate "setupAndShowAutoPrompt"', async () => {
