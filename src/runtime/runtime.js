@@ -65,7 +65,6 @@ import {Storage} from './storage';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {assert} from '../utils/log';
 import {debugLog} from '../utils/log';
-import {warn} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
@@ -74,6 +73,7 @@ import {parseUrl} from '../utils/url';
 import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
 import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {setExperiment} from './experiments';
+import {warn} from '../utils/log';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
