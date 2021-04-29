@@ -65,6 +65,7 @@ import {Storage} from './storage';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {assert} from '../utils/log';
 import {debugLog} from '../utils/log';
+import {warn} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
@@ -514,6 +515,11 @@ export class Runtime {
         onCloseDialog
       )
     );
+  }
+
+  /** @override */
+  showBestAudienceAction() {
+    warn('Not implemented yet');
   }
 }
 
@@ -1096,6 +1102,11 @@ export class ConfiguredRuntime {
     });
     entitlements.consume(onCloseDialog);
   }
+
+  /** @override */
+  showBestAudienceAction() {
+    warn('Not implemented yet');
+  }
 }
 
 /**
@@ -1149,6 +1160,7 @@ function createPublicRuntime(runtime) {
     consumeShowcaseEntitlementJwt: runtime.consumeShowcaseEntitlementJwt.bind(
       runtime
     ),
+    showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
   });
 }
 
