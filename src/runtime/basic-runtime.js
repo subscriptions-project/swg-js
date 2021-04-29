@@ -397,13 +397,14 @@ export class ConfiguredBasicRuntime {
   /** @override */
   setOnLoginRequest() {
     this.configuredClassicRuntime_.setOnLoginRequest(() => {
+      const publicationId = this.pageConfig().getPublicationId();
       const args = feArgs({
-        'publicationId': this.pageConfig().getPublicationId(),
+        'publicationId': publicationId,
       });
 
       this.activities().open(
         CHECK_ENTITLEMENTS_REQUEST_ID,
-        feUrl('/checkentitlements'),
+        feUrl('/checkentitlements', '', 'publicationId=' + publicationId),
         '_blank',
         args,
         {'width': 600, 'height': 600}

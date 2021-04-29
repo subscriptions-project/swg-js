@@ -347,7 +347,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
       expect(openStub).to.be.calledOnceWithExactly(
         'CHECK_ENTITLEMENTS',
-        'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_',
+        'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_&publicationId=pub1',
         '_blank',
         {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
         {'width': 600, 'height': 600}
