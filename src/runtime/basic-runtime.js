@@ -404,7 +404,9 @@ export class ConfiguredBasicRuntime {
 
       this.activities().open(
         CHECK_ENTITLEMENTS_REQUEST_ID,
-        feUrl('/checkentitlements', '', 'publicationId=' + publicationId),
+        feUrl('/checkentitlements', '', {
+          'publicationId': publicationId,
+        }),
         '_blank',
         args,
         {'width': 600, 'height': 600}
