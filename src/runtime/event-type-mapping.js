@@ -131,6 +131,13 @@ export const AnalyticsEventToGoogleAnalyticsEvent = {
     '',
     true
   ),
+  [AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS]: createGoogleAnalyticsEvent(
+    'NTG membership',
+    'offer impressions',
+    '',
+    true
+  ),
+  
   [AnalyticsEvent.ACTION_OFFER_SELECTED]: createGoogleAnalyticsEvent(
     'NTG paywall',
     'click',
