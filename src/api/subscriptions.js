@@ -333,6 +333,7 @@ export class Subscriptions {
    * clicking 'follow-publisher' action, and a frequently
    * visiting user may be shown a 'creating an account' action.
    * TODO(moonbong): Implement this function.
+   * @return {?}
    */
   showBestAudienceAction() {}
 }

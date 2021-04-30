@@ -952,6 +952,10 @@ describes.realWin('Runtime', {}, (env) => {
       );
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
+
+    it('should not call showBestAudienceAction', () => {
+      expect(() => runtime.showBestAudienceAction()).to.not.throw();
+    });
   });
 });
 
@@ -2002,6 +2006,12 @@ subscribe() method'
         );
         expect(consumeStub).to.be.calledOnce;
         expect(callbackSpy).to.be.calledOnce;
+      });
+    });
+
+    describe('showBestAudienceAction', () => {
+      it('not implemented', () => {
+        expect(() => runtime.showBestAudienceAction()).to.not.throw();
       });
     });
   });
