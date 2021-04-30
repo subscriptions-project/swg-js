@@ -137,7 +137,7 @@ export const AnalyticsEventToGoogleAnalyticsEvent = {
     '',
     true
   ),
-  
+
   [AnalyticsEvent.ACTION_OFFER_SELECTED]: createGoogleAnalyticsEvent(
     'NTG paywall',
     'click',
