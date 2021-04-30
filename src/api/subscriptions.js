@@ -325,6 +325,17 @@ export class Subscriptions {
    * @return {?}
    */
   consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {}
+
+  /**
+   * Intelligently returns the most interesting action to the
+   * reader based on different different user status. For
+   * instance, a new user may get free metering by simply
+   * clicking 'follow-publisher' action, and a frequently
+   * visiting user may be shown a 'creating an account' action.
+   * TODO(moonbong): Implement this function.
+   * @return {?}
+   */
+  showBestAudienceAction() {}
 }
 
 /** @enum {string} */
