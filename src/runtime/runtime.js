@@ -73,6 +73,7 @@ import {parseUrl} from '../utils/url';
 import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
 import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {setExperiment} from './experiments';
+import {warn} from '../utils/log';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -514,6 +515,11 @@ export class Runtime {
         onCloseDialog
       )
     );
+  }
+
+  /** @override */
+  showBestAudienceAction() {
+    warn('Not implemented yet');
   }
 }
 
@@ -1096,6 +1102,11 @@ export class ConfiguredRuntime {
     });
     entitlements.consume(onCloseDialog);
   }
+
+  /** @override */
+  showBestAudienceAction() {
+    warn('Not implemented yet');
+  }
 }
 
 /**
@@ -1149,6 +1160,7 @@ function createPublicRuntime(runtime) {
     consumeShowcaseEntitlementJwt: runtime.consumeShowcaseEntitlementJwt.bind(
       runtime
     ),
+    showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
   });
 }
 
