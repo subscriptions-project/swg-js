@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   AutoPromptType,
@@ -341,6 +340,10 @@ describes.realWin('BasicRuntime', {}, (env) => {
         configuredBasicRuntime.activities(),
         'open'
       );
+      const onResultStub = sandbox.stub(
+        configuredBasicRuntime.activities(),
+        'onResult'
+      );
       await configuredBasicRuntime
         .callbacks()
         .triggerLoginRequest({linkRequested: true});
@@ -352,6 +355,16 @@ describes.realWin('BasicRuntime', {}, (env) => {
         {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
         {'width': 600, 'height': 600}
       );
+
+      let handler;
+      expect(onResultStub).to.be.calledOnceWithExactly(
+        'CHECK_ENTITLEMENTS',
+        sandbox.match((arg) => {
+          handler = arg;
+          return typeof arg == 'function';
+        })
+      );
+      expect(handler).to.exist;
     });
 
     it('should delegate "setupAndShowAutoPrompt"', async () => {
