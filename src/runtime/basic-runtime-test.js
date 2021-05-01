@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {ActivityPort} from '../components/activities';
+import {
+  ActivityResult,
+  ActivityResultCode,
+} from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   AutoPromptType,
@@ -29,6 +34,7 @@ import {Entitlements} from '../api/entitlements';
 import {GlobalDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
+import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
 
@@ -365,6 +371,30 @@ describes.realWin('BasicRuntime', {}, (env) => {
         })
       );
       expect(handler).to.exist;
+
+      const port = new ActivityPort();
+      port.onResizeRequest = () => {};
+      port.whenReady = () => Promise.resolve();
+      const result = new ActivityResult(
+        ActivityResultCode.OK,
+        {'jwt': 'abc', 'usertoken': 'xyz'},
+        sandbox.match.any,
+        sandbox.match.any,
+        true,
+        true
+      );
+      port.acceptResult = () => Promise.resolve(result);
+
+      handler(port);
+
+      const data = await acceptPortResultData(
+        port,
+        sandbox.match.any,
+        true,
+        true
+      );
+      expect(data['jwt']).to.equal('abc');
+      expect(data['usertoken']).to.equal('xyz');
     });
 
     it('should delegate "setupAndShowAutoPrompt"', async () => {
