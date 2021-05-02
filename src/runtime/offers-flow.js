@@ -17,13 +17,11 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
-  EntitlementsResponse,
   SkuSelectedResponse,
   SubscribeResponse,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
-import {Constants} from '../utils/constants';
 import {PayStartFlow} from './pay-flow';
 import {ProductType, SubscriptionFlows} from '../api/subscriptions';
 import {assert} from '../utils/log';
@@ -186,21 +184,6 @@ export class OffersFlow {
   }
 
   /**
-   * @param {!EntitlementsResponse} response
-   * @private
-   */
-  handleEntitlementsResponse_(response) {
-    const jwt = response.getJwt();
-    if (jwt) {
-      this.deps_.entitlementsManager().pushNextEntitlements(jwt);
-      const swgUserToken = response.getSwgUserToken();
-      if (swgUserToken) {
-        this.deps_.storage().set(Constants.USER_TOKEN, swgUserToken, true);
-      }
-    }
-  }
-
-  /**
    * Starts the offers flow or alreadySubscribed flow.
    * @return {!Promise}
    */
@@ -232,10 +215,6 @@ export class OffersFlow {
         activityIframeView.on(
           ViewSubscriptionsResponse,
           this.startNativeFlow_.bind(this)
-        );
-        activityIframeView.on(
-          EntitlementsResponse,
-          this.handleEntitlementsResponse_.bind(this)
         );
 
         return this.dialogManager_.openView(activityIframeView);

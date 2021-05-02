@@ -18,11 +18,13 @@ import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {ConfiguredRuntime} from './runtime';
+import {Constants} from '../utils/constants';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
 import {XhrFetcher} from './fetcher';
-import {feArgs, feUrl} from './services';
+import {acceptPortResultData} from '../utils/activity-utils';
+import {feArgs, feOrigin, feUrl} from './services';
 import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
@@ -402,6 +404,11 @@ export class ConfiguredBasicRuntime {
         'publicationId': publicationId,
       });
 
+      this.activities().onResult(
+        CHECK_ENTITLEMENTS_REQUEST_ID,
+        this.entitlementsResponseHandler
+      );
+
       this.activities().open(
         CHECK_ENTITLEMENTS_REQUEST_ID,
         feUrl('/checkentitlements', '', {
@@ -462,6 +469,29 @@ export class ConfiguredBasicRuntime {
         },
       }
     );
+  }
+
+  /**
+   * Handler function.
+   * @param {!../components/activities.ActivityPortDef} port
+   */
+  entitlementsResponseHandler(port) {
+    const promise = acceptPortResultData(
+      port,
+      feOrigin(),
+      /* requireOriginVerified */ true,
+      /* requireSecureChannel */ true
+    );
+    return promise.then((response) => {
+      const jwt = response['jwt'];
+      if (jwt) {
+        this.entitlementsManager().pushNextEntitlements(jwt);
+        const userToken = response['usertoken'];
+        if (userToken) {
+          this.storage().set(Constants.USER_TOKEN, userToken, true);
+        }
+      }
+    });
   }
 }
 
