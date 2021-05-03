@@ -42,7 +42,6 @@ describes.realWin('Toast', {}, (env) => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     toast = new Toast(runtime, src, args);
-    toast.whenReady = () => Promise.resolve();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -63,7 +62,6 @@ describes.realWin('Toast', {}, (env) => {
   });
 
   it('should have created Notification View', async () => {
-    await toast.whenReady();
     expect(iframe.nodeType).to.equal(1);
     expect(iframe.nodeName).to.equal('IFRAME');
   });
@@ -78,5 +76,19 @@ describes.realWin('Toast', {}, (env) => {
     // These two properties are not set !important.
     expect(iframeStyles.width).to.equal('300px');
     expect(iframeStyles.left).to.equal('0px');
+  });
+
+  it('should automatically close', async () => {
+    // Instantly execute setTimeout callbacks for this test.
+    win.setTimeout = (callback) => void callback();
+
+    // Toast should add itself to DOM.
+    expect(iframe.parentElement).to.be.null;
+    await toast.open();
+    expect(iframe.parentElement).not.to.be.null;
+
+    // Toast should remove itself from DOM after all its animations finish.
+    await toast.animating_;
+    expect(iframe.parentElement).to.be.null;
   });
 });

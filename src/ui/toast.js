@@ -141,12 +141,9 @@ export class Toast {
     const wait = this.animating_ || Promise.resolve();
     return (this.animating_ = wait
       .then(
-        () => {
-          return callback();
-        },
-        () => {
-          // Ignore errors to make sure animations don't get stuck.
-        }
+        () => callback(),
+        // Ignore errors to make sure animations don't get stuck.
+        () => {}
       )
       .then(() => {
         this.animating_ = null;
