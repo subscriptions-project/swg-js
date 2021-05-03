@@ -306,10 +306,13 @@ describes.realWin('test', {}, () => {
     }
 
     describe('FetchResponse', () => {
-      const TEST_TEXT = 'this is some test text';
+      const TEST_OBJECT = {msg: 'hi'};
+      const TEST_TEXT = JSON.stringify(TEST_OBJECT);
+      const TEST_HEADER_VALUE = 'hi';
       const mockXhr = {
         status: 200,
         responseText: TEST_TEXT,
+        getResponseHeader: () => TEST_HEADER_VALUE,
       };
 
       it('should provide text', async () => {
@@ -343,6 +346,29 @@ describes.realWin('test', {}, () => {
           Error,
           /Body already used/
         );
+      });
+
+      it('should provide JSON', async () => {
+        const response = new FetchResponse(mockXhr);
+        const result = await response.json();
+        expect(result).to.deep.equal(TEST_OBJECT);
+      });
+
+      it('should provide ArrayBuffer', async () => {
+        const response = new FetchResponse(mockXhr);
+        const arrayBufferResult = await response.arrayBuffer();
+        const textResult = new TextDecoder().decode(arrayBufferResult);
+        expect(textResult).to.contain(TEST_TEXT);
+      });
+
+      it('should give access to get a header', () => {
+        const response = new FetchResponse(mockXhr);
+        expect(response.headers.get('someHeader')).to.equal(TEST_HEADER_VALUE);
+      });
+
+      it('should give access to check a header', () => {
+        const response = new FetchResponse(mockXhr);
+        expect(response.headers.has('someHeader')).to.be.true;
       });
     });
   });

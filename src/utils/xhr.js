@@ -327,24 +327,6 @@ export class FetchResponse {
   }
 
   /**
-   * Reads the xhr responseXML.
-   * @return {!Promise<!Document>}
-   * @private
-   */
-  document_() {
-    assert(!this.bodyUsed, 'Body already used');
-    this.bodyUsed = true;
-    assert(
-      this.xhr_.responseXML,
-      'responseXML should exist. Make sure to return ' +
-        'Content-Type: text/html header.'
-    );
-    return /** @type {!Promise<!Document>} */ (Promise.resolve(
-      assert(this.xhr_.responseXML)
-    ));
-  }
-
-  /**
    * Drains the response and returns a promise that resolves with the response
    * ArrayBuffer.
    * @return {!Promise<!ArrayBuffer>}
