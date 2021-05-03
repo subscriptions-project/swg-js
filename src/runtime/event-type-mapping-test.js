@@ -172,4 +172,16 @@ describes.realWin('analyticsEventToGoogleAnalyticsEvent', {}, () => {
       AnalyticsEventToGoogleAnalyticsEvent[AnalyticsEvent.IMPRESSION_OFFERS];
     expect(actual).to.be.equal(expected);
   });
+
+  it('should get contribution offers impressions on "contribution"', () => {
+    const actual = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      SubscriptionFlows.CONTRIBUTE
+    );
+    const expected =
+      AnalyticsEventToGoogleAnalyticsEvent[
+        AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS
+      ];
+    expect(actual).to.be.equal(expected);
+  });
 });
