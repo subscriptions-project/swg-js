@@ -83,12 +83,12 @@ describes.realWin('Toast', {}, (env) => {
     win.setTimeout = (callback) => void callback();
 
     // Toast should add itself to DOM.
-    expect(iframe.parentElement).to.be.null;
+    expect(iframe.parentElement).to.not.exist;
     await toast.open();
-    expect(iframe.parentElement).not.to.be.null;
+    expect(iframe.parentElement).to.exist;
 
     // Toast should remove itself from DOM after all its animations finish.
     await toast.animating_;
-    expect(iframe.parentElement).to.be.null;
+    expect(iframe.parentElement).to.not.exist;
   });
 });
