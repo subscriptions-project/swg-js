@@ -654,7 +654,8 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
 
     it('should set up Google Analytics event listener and listen to events on startup', async () => {
       expect(
-        configuredBasicRuntime.googleAnalyticsEventListener_.constructor.name
+        configuredBasicRuntime.configuredClassicRuntime()
+          .googleAnalyticsEventListener_.constructor.name
       ).equals('GoogleAnalyticsEventListener');
       winMock
         .expects('ga')

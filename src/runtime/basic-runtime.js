@@ -19,7 +19,6 @@ import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
-import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
 import {XhrFetcher} from './fetcher';
@@ -272,6 +271,7 @@ export class ConfiguredBasicRuntime {
     integr = integr || {};
     integr.configPromise = integr.configPromise || Promise.resolve();
     integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
+    integr.enableGoogleAnalytics = true;
 
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = integr.fetcher;
@@ -289,11 +289,6 @@ export class ConfiguredBasicRuntime {
 
     // Fetch the client config.
     this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig();
-
-    // Start listening to Google Analytics events.
-    /** @private @const {!GoogleAnalyticsEventListener} */
-    this.googleAnalyticsEventListener_ = new GoogleAnalyticsEventListener(this);
-    this.googleAnalyticsEventListener_.start();
 
     /** @private @const {!AutoPromptManager} */
     this.autoPromptManager_ = new AutoPromptManager(this);
