@@ -246,7 +246,7 @@ export class BasicRuntime {
     return this.configured_(false).then((runtime) => runtime.setupButtons());
   }
 
-  // Process result from checkentitlements view
+  /** Process result from checkentitlements view */
   processEntitlements() {
     return this.configured_(false).then((runtime) =>
       runtime.processEntitlements()
@@ -424,6 +424,7 @@ export class ConfiguredBasicRuntime {
     });
   }
 
+  /** Process result from checkentitlements view */
   processEntitlements() {
     this.activities().onResult(
       CHECK_ENTITLEMENTS_REQUEST_ID,
