@@ -292,6 +292,10 @@ export class ConfiguredBasicRuntime {
       config,
       clientOptions
     );
+
+    // Do not show toast in swgz.
+    this.entitlementsManager().blockNextNotification();
+
     // Fetches entitlements.
     this.configuredClassicRuntime_.start();
 
