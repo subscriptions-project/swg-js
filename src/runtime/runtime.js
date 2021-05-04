@@ -35,6 +35,7 @@ import {Doc, resolveDoc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
 import {
   LinkCompleteFlow,
@@ -534,6 +535,7 @@ export class ConfiguredRuntime {
    * @param {{
    *     fetcher: (!Fetcher|undefined),
    *     configPromise: (!Promise|undefined),
+   *     enableGoogleAnalytics: (boolean|undefined),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
    * @param {!{
@@ -586,6 +588,15 @@ export class ConfiguredRuntime {
 
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
+
+    // Start listening to Google Analytics events, if applicable.
+    if (integr.enableGoogleAnalytics) {
+      /** @private @const {!GoogleAnalyticsEventListener} */
+      this.googleAnalyticsEventListener_ = new GoogleAnalyticsEventListener(
+        this
+      );
+      this.googleAnalyticsEventListener_.start();
+    }
 
     // WARNING: DepsDef ('this') is being progressively defined below.
     // Constructors will crash if they rely on something that doesn't exist yet.
