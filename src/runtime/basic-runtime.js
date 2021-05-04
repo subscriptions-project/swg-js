@@ -201,6 +201,7 @@ export class BasicRuntime {
       alwaysShow: false,
     });
     this.setOnLoginRequest();
+    this.processEntitlements();
   }
   /* eslint-enable no-unused-vars */
 
@@ -243,6 +244,13 @@ export class BasicRuntime {
    */
   setupButtons() {
     return this.configured_(false).then((runtime) => runtime.setupButtons());
+  }
+
+  /** Process result from checkentitlements view */
+  processEntitlements() {
+    return this.configured_(false).then((runtime) =>
+      runtime.processEntitlements()
+    );
   }
 }
 
@@ -404,11 +412,6 @@ export class ConfiguredBasicRuntime {
         'publicationId': publicationId,
       });
 
-      this.activities().onResult(
-        CHECK_ENTITLEMENTS_REQUEST_ID,
-        this.entitlementsResponseHandler
-      );
-
       this.activities().open(
         CHECK_ENTITLEMENTS_REQUEST_ID,
         feUrl('/checkentitlements', '', {
@@ -418,6 +421,37 @@ export class ConfiguredBasicRuntime {
         args,
         {'width': 600, 'height': 600}
       );
+    });
+  }
+
+  /** Process result from checkentitlements view */
+  processEntitlements() {
+    this.activities().onResult(
+      CHECK_ENTITLEMENTS_REQUEST_ID,
+      this.entitlementsResponseHandler
+    );
+  }
+
+  /**
+   * Handler function to process EntitlementsResponse.
+   * @param {!../components/activities.ActivityPortDef} port
+   */
+  entitlementsResponseHandler(port) {
+    const promise = acceptPortResultData(
+      port,
+      feOrigin(),
+      /* requireOriginVerified */ true,
+      /* requireSecureChannel */ true
+    );
+    return promise.then((response) => {
+      const jwt = response['jwt'];
+      if (jwt) {
+        this.entitlementsManager().pushNextEntitlements(jwt);
+        const userToken = response['usertoken'];
+        if (userToken) {
+          this.storage().set(Constants.USER_TOKEN, userToken, true);
+        }
+      }
     });
   }
 
@@ -469,29 +503,6 @@ export class ConfiguredBasicRuntime {
         },
       }
     );
-  }
-
-  /**
-   * Handler function.
-   * @param {!../components/activities.ActivityPortDef} port
-   */
-  entitlementsResponseHandler(port) {
-    const promise = acceptPortResultData(
-      port,
-      feOrigin(),
-      /* requireOriginVerified */ true,
-      /* requireSecureChannel */ true
-    );
-    return promise.then((response) => {
-      const jwt = response['jwt'];
-      if (jwt) {
-        this.entitlementsManager().pushNextEntitlements(jwt);
-        const userToken = response['usertoken'];
-        if (userToken) {
-          this.storage().set(Constants.USER_TOKEN, userToken, true);
-        }
-      }
-    });
   }
 }
 
