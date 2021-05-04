@@ -61,6 +61,7 @@ import {PayStartFlow} from './pay-flow';
 import {Propensity} from './propensity';
 import {SubscribeResponse} from '../api/subscribe-response';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
+import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
 import {
   isExperimentOn,
@@ -983,6 +984,7 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
     let rejectConfig;
     let eventManager;
     let configPromise;
+    let winMock;
 
     const event = {
       eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -992,12 +994,20 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
     };
 
     beforeEach(() => {
+      win = Object.assign({}, env.win, {
+        ga: () => {},
+      });
+      winMock = sandbox.mock(win);
       configPromise = new Promise((resolve, reject) => {
         resolveConfig = resolve;
         rejectConfig = reject;
       });
       runtime = new ConfiguredRuntime(win, config, {configPromise});
       eventManager = runtime.eventManager();
+    });
+
+    afterEach(() => {
+      winMock.verify();
     });
 
     it('should hold events until config resolved', async () => {
@@ -1027,6 +1037,43 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
         await configPromise;
       } catch (e) {}
       expect(eventCount).to.equal(0);
+    });
+
+    it('should not set up Google Analytics event listener when not enabled', async () => {
+      expect(runtime.googleAnalyticsEventListener_).to.be.undefined;
+      winMock.expects('ga').never();
+      runtime.eventManager().logEvent({
+        eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+      });
+      resolveConfig();
+      await configPromise;
+      await runtime.eventManager().lastAction_;
+    });
+
+    it('should set up Google Analytics event listener and listen to events on startup when told to', async () => {
+      runtime = new ConfiguredRuntime(win, config, {
+        configPromise,
+        enableGoogleAnalytics: true,
+      });
+      expect(runtime.googleAnalyticsEventListener_.constructor.name).equals(
+        'GoogleAnalyticsEventListener'
+      );
+      winMock
+        .expects('ga')
+        .withExactArgs(
+          'send',
+          'event',
+          analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.IMPRESSION_OFFERS)
+        )
+        .once();
+      resolveConfig();
+      await configPromise;
+      runtime.eventManager().logEvent({
+        eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+      });
+      await runtime.eventManager().lastAction_;
     });
   });
 
