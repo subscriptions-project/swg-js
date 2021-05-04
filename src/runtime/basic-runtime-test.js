@@ -346,10 +346,6 @@ describes.realWin('BasicRuntime', {}, (env) => {
         configuredBasicRuntime.activities(),
         'open'
       );
-      const onResultStub = sandbox.stub(
-        configuredBasicRuntime.activities(),
-        'onResult'
-      );
       await configuredBasicRuntime
         .callbacks()
         .triggerLoginRequest({linkRequested: true});
@@ -361,15 +357,22 @@ describes.realWin('BasicRuntime', {}, (env) => {
         {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
         {'width': 600, 'height': 600}
       );
+    });
 
+    it('should delegate "processEntitlements"', async () => {
+      const activitiesMock = sandbox.mock(configuredBasicRuntime.activities());
       let handler;
-      expect(onResultStub).to.be.calledOnceWithExactly(
-        'CHECK_ENTITLEMENTS',
-        sandbox.match((arg) => {
-          handler = arg;
-          return typeof arg == 'function';
-        })
-      );
+      activitiesMock
+        .expects('onResult')
+        .withExactArgs(
+          'CHECK_ENTITLEMENTS',
+          sandbox.match((arg) => {
+            handler = arg;
+            return typeof arg == 'function';
+          })
+        )
+        .once();
+      await basicRuntime.processEntitlements();
       expect(handler).to.exist;
 
       const port = new ActivityPort();
@@ -395,6 +398,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
       );
       expect(data['jwt']).to.equal('abc');
       expect(data['usertoken']).to.equal('xyz');
+      activitiesMock.verify();
     });
 
     it('should delegate "setupAndShowAutoPrompt"', async () => {
@@ -471,6 +475,12 @@ describes.realWin('BasicRuntime', {}, (env) => {
         })
         .once();
       await contributionButton.click();
+    });
+
+    it('should delegate "processEntitlements"', async () => {
+      configuredBasicRuntimeMock.expects('processEntitlements').once();
+
+      await basicRuntime.processEntitlements();
     });
   });
 });
