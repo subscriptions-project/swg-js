@@ -294,10 +294,23 @@
   font-weight: 500;
   font-size: 14px;
   letter-spacing: .001em;
+  cursor: pointer;
 }
 
 .swg-button-v2-light {
   color: #1A73E8;
+  background-color: #fff;
+}
+
+.swg-button-v2-light:hover {
+  background-color: #f8f8f8;
+}
+
+.swg-button-v2-light:focus {
+  box-shadow: #e8e8e8;
+}
+
+.swg-button-v2-light:active {
   background-color: #fff;
 }
 
