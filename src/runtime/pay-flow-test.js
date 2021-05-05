@@ -160,6 +160,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         },
         {
           forceRedirect: false,
+          forceDisableNative: false,
         }
       )
       .once();
@@ -205,6 +206,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         },
         {
           forceRedirect: false,
+          forceDisableNative: false,
         }
       )
       .once();
@@ -251,6 +253,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         },
         {
           forceRedirect: false,
+          forceDisableNative: false,
         }
       )
       .once();
@@ -302,6 +305,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         },
         {
           forceRedirect: false,
+          forceDisableNative: false,
         }
       )
       .once();
@@ -350,6 +354,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         },
         {
           forceRedirect: false,
+          forceDisableNative: false,
         }
       )
       .once();
@@ -386,6 +391,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         },
         {
           forceRedirect: true,
+          forceDisableNative: false,
         }
       )
       .once();
@@ -393,6 +399,39 @@ describes.realWin('PayStartFlow', {}, (env) => {
   });
 
   it('should have paySwgVersion from clientConfig', async () => {
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(Promise.resolve(new ClientConfig(undefined, '1')))
+      .once();
+
+    payClientMock
+      .expects('start')
+      .withArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            'skuId': 'sku1',
+            'publicationId': 'pub1',
+            'swgVersion': '1',
+          },
+          'i': {
+            'startTimeMs': sandbox.match.any,
+            'productType': sandbox.match(productTypeRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+          forceDisableNative: false,
+        }
+      )
+      .once();
+    await flow.start();
+  });
+
+  it('should forceDisableNative for basic paySwgVersion', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(new ClientConfig(undefined, '2')))
@@ -418,6 +457,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         },
         {
           forceRedirect: false,
+          forceDisableNative: true,
         }
       )
       .once();
