@@ -1353,6 +1353,11 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       runtime.clear();
     });
 
+    it('should close all dialogs', () => {
+      dialogManagerMock.expects('completeAll').once();
+      runtime.closeDialog();
+    });
+
     it('should not start entitlements flow without product', async () => {
       sandbox.stub(config, 'getProductId').callsFake(() => null);
       entitlementsManagerMock.expects('getEntitlements').never();

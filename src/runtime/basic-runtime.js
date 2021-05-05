@@ -427,7 +427,7 @@ export class ConfiguredBasicRuntime {
   processEntitlements() {
     this.activities().onResult(
       CHECK_ENTITLEMENTS_REQUEST_ID,
-      this.entitlementsResponseHandler
+      this.entitlementsResponseHandler.bind(this)
     );
   }
 
@@ -445,6 +445,10 @@ export class ConfiguredBasicRuntime {
     return promise.then((response) => {
       const jwt = response['jwt'];
       if (jwt) {
+        // If entitlements are returned, close the subscription/contribution offers iframe
+        this.configuredClassicRuntime_.closeDialog();
+
+        // Also save the entitlements and user token
         this.entitlementsManager().pushNextEntitlements(jwt);
         const userToken = response['usertoken'];
         if (userToken) {
