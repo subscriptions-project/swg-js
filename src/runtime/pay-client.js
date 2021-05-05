@@ -27,6 +27,7 @@ const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 /**
  * @typedef {{
  *   forceRedirect: (boolean|undefined),
+ *   forceDisableNative: (boolean|undefined),
  * }}
  */
 export let PayOptionsDef;
@@ -185,7 +186,7 @@ export class PayClient {
       'disableNative',
       // The page cannot be iframed at this time. May be relaxed later
       // for AMP and similar contexts.
-      this.win_ != this.top_()
+      options.forceDisableNative || this.win_ != this.top_()
     );
     let resolver = null;
     const promise = new Promise((resolve) => (resolver = resolve));
