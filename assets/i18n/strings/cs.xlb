@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="cs">
+<messages>
+
+
+
+
+<msg name="SHOWCASE_REGWALL_TITLE">Získejte s Googlem víc</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Tento obsah je obvykle zpoplatněn, ale pokud se do publikace <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> zaregistrujete pomocí účtu Google, získáte od Googlu přístup zdarma.</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Už máte účet?</msg>
+<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Přihlásit se přes Google</msg>
+
+
+
+</messages>
+</localizationbundle>
