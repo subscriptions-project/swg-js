@@ -332,6 +332,16 @@ describes.realWin('PayClient', {}, (env) => {
         },
       });
     });
+
+    it('should force disable native mode', () => {
+      payClient.start({}, {forceDisableNative: true});
+      expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+        'i': {
+          'redirectVerifier': redirectVerifierHelperResults.verifier,
+          'disableNative': true,
+        },
+      });
+    });
   });
 });
 
