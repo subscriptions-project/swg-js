@@ -681,5 +681,32 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       });
       await configuredBasicRuntime.eventManager().lastAction_;
     });
+
+    it('should handle EntitlementsResponse', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {'jwt': 'abc', 'usertoken': 'xyz'};
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      configuredClassicRuntimeMock.expects('closeDialog').once();
+      entitlementsManagerMock
+        .expects('pushNextEntitlements')
+        .withExactArgs('abc')
+        .once();
+
+      const storageMock = sandbox.mock(configuredBasicRuntime.storage());
+      storageMock
+        .expects('set')
+        .withExactArgs('USER_TOKEN', 'xyz', true)
+        .once();
+
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+      storageMock.verify();
+    });
   });
 });
