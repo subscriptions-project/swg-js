@@ -89,4 +89,9 @@ For instance:
 subscriptions.showOffers({skus: ['sku1', 'sku2']});
 ```
 
+Upgrade (or downgrade) example:
+
+```js
+subscriptions.showOffers({skus: ['replacementSku1', 'replacementSku2'], oldSku: 'existingSkuToReplace'});
+
 *Important!* Please ensure you set up the `setOnPaymentResponse` on any page where you accept purchases, not just before you call `subscribe` or `showOffers`. SwG client ensures it can recover subscriptions even when browsers unload pages. See [Subscribe flow](./subscribe-flow.md) for more details.
