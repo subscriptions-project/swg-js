@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="mr">
+<messages>
+
+
+
+
+<msg name="SHOWCASE_REGWALL_TITLE">Google वापरून बरेच काही मिळवा</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>या आशयासाठी सामान्यतः पेमेंट आवश्यक असते पण तुम्ही तुमचे Google खाते वापरून <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> मध्ये नोंदणी करता तेव्हा, Google तुम्हाला या लेखाचा आणि आणखी बऱ्याच आशयाचा विनामूल्य ॲक्सेस देते.</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">आधीपासून खाते आहे?</msg>
+<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Google वापरून साइन इन करा</msg>
+
+
+
+</messages>
+</localizationbundle>
