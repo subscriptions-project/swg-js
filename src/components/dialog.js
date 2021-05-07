@@ -67,17 +67,6 @@ const resetViewStyles = {
 };
 
 /**
- * Position of the dialog.
- * @const @enum {string}
- */
-const PositionAt = {
-  BOTTOM: 'BOTTOM',
-  TOP: 'TOP',
-  FLOAT: 'FLOAT',
-  FULL: 'FULL',
-};
-
-/**
  * The class for the top level dialog.
  * @final
  */
