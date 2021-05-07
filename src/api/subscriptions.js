@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-import {ClientEventManagerApi} from './client-event-manager-api';
+import {ClientEventManagerApi as ClientEventManagerApiDef} from './client-event-manager-api';
 import {
   DeferredAccountCreationRequest,
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
-import {Entitlements} from './entitlements';
-import {LoggerApi} from './logger-api';
-import {Offer} from './offer';
-import {PropensityApi} from './propensity-api';
-import {SubscribeResponse} from './subscribe-response';
+import {Entitlements as EntitlementsDef} from './entitlements';
+import {LoggerApi as LoggerApiDef} from './logger-api';
+import {Offer as OfferDef} from './offer';
+import {PropensityApi as PropensityApiDef} from './propensity-api';
+import {SubscribeResponse as SubscribeResponseDef} from './subscribe-response';
 
+/* eslint-disable no-unused-vars */
 /**
  * @interface
  */
@@ -65,13 +66,13 @@ export class Subscriptions {
 
   /**
    * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!Entitlements>}
+   * @return {!Promise<!EntitlementsDef>}
    */
   getEntitlements(params) {}
 
   /**
    * Set the subscribe callback.
-   * @param {function(!Promise<!Entitlements>)} callback
+   * @param {function(!Promise<!EntitlementsDef>)} callback
    * @return {?}
    */
   setOnEntitlementsResponse(callback) {}
@@ -81,7 +82,7 @@ export class Subscriptions {
    * @param {{
    *   productId: (string|undefined),
    * }=} options
-   * @return {!Promise<!Array<!Offer>>}
+   * @return {!Promise<!Array<!OfferDef>>}
    */
   getOffers(options) {}
 
@@ -135,7 +136,7 @@ export class Subscriptions {
 
   /**
    * Set the subscribe complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponseDef>)} callback
    * @return {?}
    */
   setOnSubscribeResponse(callback) {}
@@ -156,14 +157,14 @@ export class Subscriptions {
 
   /**
    * Set the contribution complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponseDef>)} callback
    * @return {?}
    */
   setOnContributionResponse(callback) {}
 
   /**
    * Set the payment complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponseDef>)} callback
    * @return {?}
    */
   setOnPaymentResponse(callback) {}
@@ -298,14 +299,14 @@ export class Subscriptions {
   /**
    * Retrieves the propensity module that provides APIs to
    * get propensity scores based on user state and events
-   * @return {!Promise<PropensityApi>}
+   * @return {!Promise<PropensityApiDef>}
    */
   getPropensityModule() {}
 
-  /** @return {!Promise<LoggerApi>} */
+  /** @return {!Promise<LoggerApiDef>} */
   getLogger() {}
 
-  /** @return {!Promise<ClientEventManagerApi>} */
+  /** @return {!Promise<ClientEventManagerApiDef>} */
   getEventManager() {}
 
   /**
@@ -337,6 +338,7 @@ export class Subscriptions {
    */
   showBestAudienceAction() {}
 }
+/* eslint-enable no-unused-vars */
 
 /** @enum {string} */
 export const PublisherEntitlementEvent = {
