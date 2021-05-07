@@ -701,7 +701,7 @@ export class EntitlementsManager {
             const attributeNames = Object.keys(attributes);
             attributeNames.forEach((attributeName) => {
               const name = `${category}_${attributeName}`;
-              const timestamp = attributes[attributeName].timestamp;
+              const timestamp = Number(attributes[attributeName].timestamp);
 
               // Validate timestamp.
               const timestampIsTooFarInTheFuture =

@@ -917,23 +917,37 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should warn about invalid attribute timestamps', async () => {
-      xhrMock.expects('fetch').resolves({text: () => Promise.resolve('{}')});
-      expectGetSwgUserTokenToBeCalled();
+      const invalidTimestamps = [
+        undefined,
+        null,
+        0,
+        '0',
+        Date.now(), // In milliseconds, instead of seconds
+        'Friday, 7 May 2021 18:16:51',
+      ];
 
-      const invalidTimestamp = 0;
+      for (const invalidTimestamp of invalidTimestamps) {
+        self.console.warn.reset();
+        manager.clear();
 
-      await manager.getEntitlements({
-        metering: {
-          state: {
-            id: 'u1',
-            standardAttributes: {'att1': {timestamp: invalidTimestamp}},
+        xhrMock.expects('fetch').resolves({text: () => Promise.resolve('{}')});
+        expectGetSwgUserTokenToBeCalled();
+
+        await manager.getEntitlements({
+          metering: {
+            state: {
+              id: 'u1',
+              standardAttributes: {'att1': {timestamp: invalidTimestamp}},
+            },
           },
-        },
-      });
+        });
 
-      expect(self.console.warn).to.have.been.calledWithExactly(
-        'SwG Entitlements: Please specify a Unix timestamp, in seconds, for the "att1" standard attribute. The timestamp you passed (0) looks invalid.'
-      );
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          `SwG Entitlements: Please specify a Unix timestamp, in seconds, for the "att1" standard attribute. The timestamp you passed (${Number(
+            invalidTimestamp
+          )}) looks invalid.`
+        );
+      }
     });
 
     it('should open metering dialog when metering entitlements are consumed and showToast is not provided', () => {
