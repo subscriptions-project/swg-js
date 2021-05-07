@@ -456,7 +456,7 @@ export class ConfiguredBasicRuntime {
         }
       } else {
         // If no entitlements are returned, subscription/contribution offers iframe will show
-        // a toast with label "no subscription/contriubtion found"
+        // a toast with label "no subscription/contribution found"
         const lastOffersFlow = this.configuredClassicRuntime_.getLastOffersFlow();
         if (lastOffersFlow) {
           lastOffersFlow.showNoEntitlementFoundToast();
