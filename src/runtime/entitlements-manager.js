@@ -676,12 +676,7 @@ export class EntitlementsManager {
         }
 
         // Add metering params.
-        if (
-          this.publicationId_ &&
-          params &&
-          params.metering &&
-          params.metering.state
-        ) {
+        if (this.publicationId_ && params?.metering?.state?.id) {
           /** @type {!GetEntitlementsParamsInternalDef} */
           const encodableParams = {
             metering: {
@@ -697,25 +692,41 @@ export class EntitlementsManager {
             },
           };
 
-          // Add attributes.
-          const standardAttributes = params.metering.state.standardAttributes;
-          if (standardAttributes) {
-            Object.keys(standardAttributes).forEach((key) => {
+          // Collect attributes.
+          function collectAttributes({attributes, category}) {
+            if (!attributes) {
+              return;
+            }
+
+            const attributeNames = Object.keys(attributes);
+            attributeNames.forEach((attributeName) => {
+              const name = `${category}_${attributeName}`;
+              const timestamp = attributes[attributeName].timestamp;
+
+              // Validate timestamp.
+              const timestampIsTooFarInTheFuture =
+                timestamp > (Date.now() / 1000) * 2;
+              if (!timestamp || timestampIsTooFarInTheFuture) {
+                warn(
+                  `SwG Entitlements: Please specify a Unix timestamp, in seconds, for the "${attributeName}" ${category} attribute. The timestamp you passed (${timestamp}) looks invalid.`
+                );
+              }
+
+              // Collect attribute.
               encodableParams.metering.state.attributes.push({
-                name: 'standard_' + key,
-                timestamp: standardAttributes[key].timestamp,
+                name,
+                timestamp,
               });
             });
           }
-          const customAttributes = params.metering.state.customAttributes;
-          if (customAttributes) {
-            Object.keys(customAttributes).forEach((key) => {
-              encodableParams.metering.state.attributes.push({
-                name: 'custom_' + key,
-                timestamp: customAttributes[key].timestamp,
-              });
-            });
-          }
+          collectAttributes({
+            attributes: params.metering.state.standardAttributes,
+            category: 'standard',
+          });
+          collectAttributes({
+            attributes: params.metering.state.customAttributes,
+            category: 'custom',
+          });
 
           // Encode params.
           this.encodedParams_ = base64UrlEncodeFromBytes(
