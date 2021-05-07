@@ -51,8 +51,8 @@
     margin-left: calc(100vw - 100vw / 2) !important;
     border-top-left-radius: 8px !important;
     border-top-right-radius: 8px !important;
-    box-shadow:
-        rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px !important;
+    box-shadow: rgba(60, 64, 67, 0.3) 0 1px 1px,
+      rgba(60, 64, 67, 0.15) 0 1px 4px 1px !important;
   }
 }
 

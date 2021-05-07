@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import {Entitlements} from './entitlements';
-import {SubscribeResponse} from './subscribe-response';
+import {Entitlements as EntitlementsDef} from './entitlements';
+import {SubscribeResponse as SubscribeResponseDef} from './subscribe-response';
 
+/* eslint-disable no-unused-vars */
 /**
  * Interface for users of the basic tier of Subscribe with Google.
  * @interface
@@ -42,14 +43,14 @@ export class BasicSubscriptions {
 
   /**
    * Set the entitlement check callback.
-   * @param {function(!Promise<!Entitlements>)} callback
+   * @param {function(!Promise<!EntitlementsDef>)} callback
    * @return {?}
    */
   setOnEntitlementsResponse(callback) {}
 
   /**
    * Set the payment complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponseDef>)} callback
    * @return {?}
    */
   setOnPaymentResponse(callback) {}
@@ -85,6 +86,7 @@ export class BasicSubscriptions {
    */
   dismissSwgUI() {}
 }
+/* eslint-enable no-unused-vars */
 
 /** @enum {string} */
 export const AutoPromptType = {
