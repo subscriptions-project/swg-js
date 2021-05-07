@@ -1945,6 +1945,13 @@ subscribe() method'
       expect(count).to.equal(1);
     });
 
+    it('should return the last OffersFlow', async () => {
+      // Show offers first in order to get an OffersFlow
+      runtime.showOffers();
+
+      expect(runtime.getLastOffersFlow()).to.equal(runtime.lastOffersFlow_);
+    });
+
     describe('setShowcaseEntitlement', () => {
       const SECURE_PUB_URL = 'https://www.publisher.com';
       const UNSECURE_PUB_URL = 'http://www.publisher.com';
