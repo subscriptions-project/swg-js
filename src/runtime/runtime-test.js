@@ -1951,7 +1951,7 @@ subscribe() method'
         offersFlow = this;
         return new Promise(() => {});
       });
-      // S how offers first in order to get an OffersFlow
+      // Show offers first in order to get an OffersFlow
       runtime.showOffers();
 
       const runtimeMock = sandbox.mock(runtime);
