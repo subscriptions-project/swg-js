@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {Entitlements} from './entitlements';
-import {UserData} from './user-data';
+import {Entitlements as EntitlementsDef} from './entitlements';
+import {UserData as UserDataDef} from './user-data';
 
 /**
  */
@@ -23,8 +23,8 @@ export class SubscribeResponse {
   /**
    * @param {string} raw
    * @param {!PurchaseData} purchaseData
-   * @param {?UserData} userData
-   * @param {?Entitlements} entitlements
+   * @param {?UserDataDef} userData
+   * @param {?EntitlementsDef} entitlements
    * @param {!string} productType
    * @param {function():!Promise} completeHandler
    * @param {?string=} oldSku
@@ -46,9 +46,9 @@ export class SubscribeResponse {
     this.raw = raw;
     /** @const {!PurchaseData} */
     this.purchaseData = purchaseData;
-    /** @const {?UserData} */
+    /** @const {?UserDataDef} */
     this.userData = userData;
-    /** @const {?Entitlements} */
+    /** @const {?EntitlementsDef} */
     this.entitlements = entitlements;
     /** @const {string} */
     this.productType = productType;

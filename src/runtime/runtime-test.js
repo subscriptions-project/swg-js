@@ -1353,6 +1353,11 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       runtime.clear();
     });
 
+    it('should close all dialogs', () => {
+      dialogManagerMock.expects('completeAll').once();
+      runtime.closeDialog();
+    });
+
     it('should not start entitlements flow without product', async () => {
       sandbox.stub(config, 'getProductId').callsFake(() => null);
       entitlementsManagerMock.expects('getEntitlements').never();
@@ -1938,6 +1943,13 @@ subscribe() method'
       const button = runtime.createButton();
       await button.click();
       expect(count).to.equal(1);
+    });
+
+    it('should return the last OffersFlow', async () => {
+      // Show offers first in order to get an OffersFlow
+      runtime.showOffers();
+
+      expect(runtime.getLastOffersFlow()).to.equal(runtime.lastOffersFlow_);
     });
 
     describe('setShowcaseEntitlement', () => {

@@ -589,6 +589,9 @@ export class ConfiguredRuntime {
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
+    /** @private {?OffersFlow} */
+    this.lastOffersFlow_ = null;
+
     // Start listening to Google Analytics events, if applicable.
     if (integr.enableGoogleAnalytics) {
       /** @private @const {!GoogleAnalyticsEventListener} */
@@ -793,12 +796,17 @@ export class ConfiguredRuntime {
   /** @override */
   reset() {
     this.entitlementsManager_.reset();
-    this.dialogManager_.completeAll();
+    this.closeDialog();
   }
 
   /** @override */
   clear() {
     this.entitlementsManager_.clear();
+    this.closeDialog();
+  }
+
+  /** Close dialog. */
+  closeDialog() {
     this.dialogManager_.completeAll();
   }
 
@@ -849,8 +857,8 @@ export class ConfiguredRuntime {
         'The showOffers() method cannot be used to update a subscription. ' +
         'Use the showUpdateOffers() method instead.';
       assert(options ? !options['oldSku'] : true, errorMessage);
-      const flow = new OffersFlow(this, options);
-      return flow.start();
+      this.lastOffersFlow_ = new OffersFlow(this, options);
+      return this.lastOffersFlow_.start();
     });
   }
 
@@ -1064,6 +1072,14 @@ export class ConfiguredRuntime {
    */
   eventManager() {
     return this.eventManager_;
+  }
+
+  /**
+   * Get the last offers flow.
+   * @return {?OffersFlow}
+   */
+  getLastOffersFlow() {
+    return this.lastOffersFlow_;
   }
 
   /**

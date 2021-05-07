@@ -221,6 +221,7 @@ export const Event = {
  */
 export let PublisherEvent;
 
+/* eslint-disable no-unused-vars */
 /**
  * @interface
  */
@@ -251,3 +252,4 @@ export class LoggerApi {
    */
   sendSubscriptionState(state, jsonProducts) {}
 }
+/* eslint-enable no-unused-vars */

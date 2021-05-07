@@ -32,6 +32,7 @@ import {
 } from './basic-runtime';
 import {Entitlements} from '../api/entitlements';
 import {GlobalDoc} from '../model/doc';
+import {OffersFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {acceptPortResultData} from './../utils/activity-utils';
@@ -626,6 +627,15 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       });
     });
 
+    it('should dimiss SwG UI', () => {
+      const dialogManagerMock = sandbox.mock(
+        configuredBasicRuntime.dialogManager()
+      );
+      dialogManagerMock.expects('completeAll').once();
+      configuredBasicRuntime.dismissSwgUI();
+      dialogManagerMock.verify();
+    });
+
     it('should set clientOptions in ClientConfigManager', () => {
       configuredBasicRuntime = new ConfiguredBasicRuntime(
         win,
@@ -680,6 +690,62 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         eventOriginator: EventOriginator.SWG_CLIENT,
       });
       await configuredBasicRuntime.eventManager().lastAction_;
+    });
+
+    it('should handle an EntitlementsResponse with jwt and usertoken', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {'jwt': 'abc', 'usertoken': 'xyz'};
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      configuredClassicRuntimeMock.expects('closeDialog').once();
+      entitlementsManagerMock
+        .expects('pushNextEntitlements')
+        .withExactArgs('abc')
+        .once();
+
+      const storageMock = sandbox.mock(configuredBasicRuntime.storage());
+      storageMock
+        .expects('set')
+        .withExactArgs('USER_TOKEN', 'xyz', true)
+        .once();
+
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+      storageMock.verify();
+    });
+
+    it('should handle an empty EntitlementsResponse', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {}; // no data
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      const offersFlow = new OffersFlow(configuredBasicRuntime, {
+        skus: ['sku1', 'sku2'],
+      });
+      configuredClassicRuntimeMock
+        .expects('getLastOffersFlow')
+        .withExactArgs()
+        .returns(offersFlow)
+        .once();
+
+      const offersFlowMock = sandbox.mock(offersFlow);
+      offersFlowMock
+        .expects('showNoEntitlementFoundToast')
+        .withExactArgs()
+        .once();
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+      offersFlowMock.verify();
     });
   });
 });

@@ -26,7 +26,6 @@ describes.realWin('Dialog', {}, (env) => {
   let win;
   let doc;
   let dialog;
-  let fixedLayerSpy;
   let globalDoc;
   let graypaneStubs;
   let view;
@@ -39,7 +38,6 @@ describes.realWin('Dialog', {}, (env) => {
     globalDoc = new GlobalDoc(win);
     dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
     graypaneStubs = sandbox.stub(dialog.graypane_);
-    fixedLayerSpy = sandbox.spy(globalDoc, 'addToFixedLayer');
 
     element = doc.createElement('div');
     view = {
@@ -152,6 +150,11 @@ describes.realWin('Dialog', {}, (env) => {
       );
     });
 
+    it('should return null if passed wrong view', async () => {
+      const wrongView = {};
+      expect(dialog.resizeView(wrongView)).to.be.null;
+    });
+
     it('should resize the element to expand with animation', async () => {
       immediate();
       await dialog.open();
@@ -193,13 +196,6 @@ describes.realWin('Dialog', {}, (env) => {
       expect(iframe.getAttribute('src')).to.equal('about:blank');
       expect(iframe.nodeName).to.equal('IFRAME');
 
-      // Should have asked AMP to update fixed layer if needed
-      if (dialog.useFixedLayer_) {
-        expect(fixedLayerSpy).to.be.called.once;
-      } else {
-        expect(fixedLayerSpy).to.not.be.called;
-      }
-
       // Should have document loaded.
       const iframeDoc = openedDialog.getIframe().getDocument();
       expect(iframeDoc.nodeType).to.equal(9);
@@ -209,6 +205,10 @@ describes.realWin('Dialog', {}, (env) => {
       const container = openedDialog.getContainer();
       expect(container.nodeType).to.equal(1);
       expect(container.nodeName).to.equal('SWG-CONTAINER');
+    });
+
+    it('should throw if container is missing', async () => {
+      expect(() => dialog.getContainer()).to.throw('not opened yet');
     });
 
     it('should remove the dialog', async () => {
@@ -244,6 +244,12 @@ describes.realWin('Dialog', {}, (env) => {
       expect(win.document.documentElement.style.paddingBottom).to.equal('');
       expect(graypaneStubs.destroy).to.be.calledOnce;
       expect(graypaneStubs.hide).to.be.calledOnce.calledWith(ANIMATE);
+    });
+
+    it('should throw if iframe already connected', async () => {
+      immediate();
+      sandbox.stub(dialog.iframe_, 'isConnected').returns(true);
+      expect(() => dialog.open()).to.throw('already opened');
     });
 
     it('should have Loading view element added', async () => {

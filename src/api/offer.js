@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-
 /**
  */
 export class Offer {
-
   /**
    * @param {string} skuId
    * @param {string} title
