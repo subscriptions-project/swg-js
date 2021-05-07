@@ -17,6 +17,7 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
+  EntitlementsResponse,
   SkuSelectedResponse,
   SubscribeResponse,
   ViewSubscriptionsResponse,
@@ -70,6 +71,8 @@ export class OffersFlow {
 
     /** @private @const {!./client-config-manager.ClientConfigManager} */
     this.clientConfigManager_ = deps.clientConfigManager();
+
+    this.activityIframeView_ = null;
 
     let isClosable = options && options.isClosable;
     if (isClosable == undefined) {
@@ -216,8 +219,8 @@ export class OffersFlow {
           ViewSubscriptionsResponse,
           this.startNativeFlow_.bind(this)
         );
-
-        return this.dialogManager_.openView(activityIframeView);
+        this.activityIframeView_ = activityIframeView;
+        return this.dialogManager_.openView(this.activityIframeView_);
       });
     }
     return Promise.resolve();
@@ -236,6 +239,15 @@ export class OffersFlow {
         return '/offersiframe';
       }
     });
+  }
+
+  /**
+   * Shows "no subscription/contribution found" on activity iFrame view.
+   */
+  showNoEntitlementFoundToast() {
+    if (this.activityIframeView_) {
+      this.activityIframeView_.execute(new EntitlementsResponse());
+    }
   }
 }
 

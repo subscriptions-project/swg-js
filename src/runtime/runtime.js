@@ -855,6 +855,7 @@ export class ConfiguredRuntime {
         'Use the showUpdateOffers() method instead.';
       assert(options ? !options['oldSku'] : true, errorMessage);
       const flow = new OffersFlow(this, options);
+      this.lastOffersFlow_ = flow;
       return flow.start();
     });
   }
@@ -1069,6 +1070,14 @@ export class ConfiguredRuntime {
    */
   eventManager() {
     return this.eventManager_;
+  }
+
+  /**
+   * Get the last offers flow.
+   * @return {!OffersFlow}
+   */
+  getLastOffersFlow() {
+    return this.lastOffersFlow_;
   }
 
   /**

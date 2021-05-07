@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {Message} from '../proto/api_messages'; // eslint-disable-line no-unused-vars
 import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createElement} from '../utils/dom';

@@ -32,6 +32,7 @@ import {
 } from './basic-runtime';
 import {Entitlements} from '../api/entitlements';
 import {GlobalDoc} from '../model/doc';
+import {OffersFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {acceptPortResultData} from './../utils/activity-utils';
@@ -682,7 +683,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       await configuredBasicRuntime.eventManager().lastAction_;
     });
 
-    it('should handle EntitlementsResponse', async () => {
+    it('should handle an EntitlementsResponse with jwt and usertoken', async () => {
       const port = new ActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
@@ -707,6 +708,35 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
 
       await configuredBasicRuntime.entitlementsResponseHandler(port);
       storageMock.verify();
+    });
+
+    it('should handle an empty EntitlementsResponse', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {}; // no data
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      const offersFlow = new OffersFlow(configuredBasicRuntime, {
+        skus: ['sku1', 'sku2'],
+      });
+      configuredClassicRuntimeMock
+        .expects('getLastOffersFlow')
+        .withExactArgs()
+        .returns(offersFlow)
+        .once();
+
+      const offersFlowMock = sandbox.mock(offersFlow);
+      offersFlowMock
+        .expects('showNoEntitlementFoundToast')
+        .withExactArgs()
+        .once();
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+      offersFlowMock.verify();
     });
   });
 });

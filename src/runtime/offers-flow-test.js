@@ -355,6 +355,37 @@ describes.realWin('OffersFlow', {}, (env) => {
     messageCallback = messageMap[response.label()];
     messageCallback(response);
   });
+
+  it('should send an empty EntitlementsResponse to show "no subscription/contriubtion found" toast on Activity iFrame view', async () => {
+    offersFlow = new OffersFlow(runtime, {skus: ['sku1', 'sku2']});
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        runtime.activities().addDefaultArguments({
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: ['sku1', 'sku2'],
+          isClosable: false,
+        })
+      )
+      .resolves(port);
+    // OffersFlow needs to start first in order to have a valid ActivityIframeView
+    await offersFlow.start();
+
+    const activityIframeView = await offersFlow.activityIframeViewPromise_;
+    const activityIframeViewMock = sandbox.mock(activityIframeView);
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(new EntitlementsResponse())
+      .once();
+
+    await offersFlow.showNoEntitlementFoundToast();
+
+    activityIframeViewMock.verify();
+  });
 });
 
 describes.realWin('SubscribeOptionFlow', {}, (env) => {

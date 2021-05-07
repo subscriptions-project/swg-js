@@ -454,6 +454,13 @@ export class ConfiguredBasicRuntime {
         if (userToken) {
           this.storage().set(Constants.USER_TOKEN, userToken, true);
         }
+      } else {
+        // If no entitlements are returned, subscription/contribution offers iframe will show
+        // a toast with label "no subscription/contriubtion found"
+        const lastOffersFlow = this.configuredClassicRuntime_.getLastOffersFlow();
+        if (lastOffersFlow) {
+          lastOffersFlow.showNoEntitlementFoundToast();
+        }
       }
     });
   }

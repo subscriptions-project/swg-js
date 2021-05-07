@@ -1945,6 +1945,21 @@ subscribe() method'
       expect(count).to.equal(1);
     });
 
+    it('should return the last OffersFlow', async () => {
+      let offersFlow;
+      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function () {
+        offersFlow = this;
+        return new Promise(() => {});
+      });
+      // S how offers first in order to get an OffersFlow
+      runtime.showOffers();
+
+      const runtimeMock = sandbox.mock(runtime);
+      runtimeMock.expects('getLastOffersFlow').returns(offersFlow);
+      runtime.getLastOffersFlow();
+      runtimeMock.verify();
+    });
+
     describe('setShowcaseEntitlement', () => {
       const SECURE_PUB_URL = 'https://www.publisher.com';
       const UNSECURE_PUB_URL = 'http://www.publisher.com';
