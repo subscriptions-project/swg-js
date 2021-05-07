@@ -589,6 +589,9 @@ export class ConfiguredRuntime {
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
+    /** @private {?OffersFlow} */
+    this.lastOffersFlow_ = null;
+
     // Start listening to Google Analytics events, if applicable.
     if (integr.enableGoogleAnalytics) {
       /** @private @const {!GoogleAnalyticsEventListener} */
@@ -1074,7 +1077,7 @@ export class ConfiguredRuntime {
 
   /**
    * Get the last offers flow.
-   * @return {!OffersFlow}
+   * @return {?OffersFlow}
    */
   getLastOffersFlow() {
     return this.lastOffersFlow_;
