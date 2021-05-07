@@ -538,15 +538,19 @@ export function defaultConfig() {
 /**
  * Properties:
  * - skus - a list of SKUs to return from the defined or default list. The
- *   order is preserved.
+ *   order is preserved. Required if oldSku is specified (to indicate which
+ *   SKUs the user can upgrade or downgrade to).
  * - list - a predefined list of SKUs. Use of this property is uncommon.
  *   Possible values are "default" and "amp". Default is "default".
  * - isClosable - a boolean value to determine whether the view is closable.
+ * - oldSku - Optional. The SKU to replace. For example, if a user wants to
+ *   upgrade or downgrade their current subscription.
  *
  * @typedef {{
  *   skus: (!Array<string>|undefined),
  *   list: (string|undefined),
  *   isClosable: (boolean|undefined),
+ *   oldSku: (string|undefined),
  * }}
  */
 export let OffersRequest;

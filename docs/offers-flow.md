@@ -76,12 +76,23 @@ subscriptions.showAbbrvOffer();
 
 ## Offer options
 
-All offers APIs (`showOffers`, `showSubscribeOption`, and `showAbbrvOffer`) accept a list of SKUs to be displayed.
+All offers APIs (`showOffers`, `showSubscribeOption`, and `showAbbrvOffer`) accept the following options:
+
+- `skus`: List of SKUs to display in the carousel. Required for upgrade/downgrade flows.
+- `list`: A predefined list of SKUs. Use of this property is uncommon. Possible values are "default" and "amp". Default is "default".
+- `isClosable`: A boolean value to determine whether the view is closable.
+- `oldSku`: Only applicable for upgrade/downgrade flows. This is the SKU to replace for the user.
 
 For instance:
 
 ```js
 subscriptions.showOffers({skus: ['sku1', 'sku2']});
+```
+
+Upgrade (or downgrade) example:
+
+```js
+subscriptions.showOffers({skus: ['replacementSku1', 'replacementSku2'], oldSku: 'existingSkuToReplace'});
 ```
 
 *Important!* Please ensure you set up the `setOnPaymentResponse` on any page where you accept purchases, not just before you call `subscribe` or `showOffers`. SwG client ensures it can recover subscriptions even when browsers unload pages. See [Subscribe flow](./subscribe-flow.md) for more details.
