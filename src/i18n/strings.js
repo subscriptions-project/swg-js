@@ -53,7 +53,6 @@ export const I18N_STRINGS = {
       '<strong></strong>इस कॉन्टेंट को पढ़ने के लिए पैसे चुकाने पड़ते हैं, लेकिन आप Google की मदद से इस लेख और अन्य कॉन्टेंट को मुफ़्त में पढ़ सकते हैं. इसके लिए, आपको Google खाते का इस्तेमाल करके, <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> में रजिस्टर करना होगा.',
     'it':
       '<strong></strong>Generalmente questi contenuti sono a pagamento, ma Google ti offre accesso gratuito a questo articolo e ad altri articoli se ti registri a <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando il tuo Account Google.',
-<<<<<<< HEAD
     'ja':
       '<strong></strong>通常、このコンテンツをお読みいただくにはお支払いが必要ですが、お使いの Google アカウントで <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> に登録すると、この記事や他の記事を無料でお読みいただけます（購読料は Google が負担します）。',
     'kn':
@@ -62,8 +61,6 @@ export const I18N_STRINGS = {
       '<strong></strong>സാധാരണ ഈ ഉള്ളടക്കത്തിന് പണം നൽകേണ്ടതുണ്ട്, എന്നാൽ Google അക്കൗണ്ട് ഉപയോഗിച്ച് <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> എന്നതിൽ രജിസ്‌റ്റർ ചെയ്യുമ്പോൾ, ഈ ലേഖനത്തിലേക്കും മറ്റും Google നിങ്ങൾക്ക് സൗജന്യ ആക്‌സസ് നൽകുന്നു.',
     'mr':
       '<strong></strong>या आशयासाठी सामान्यतः पेमेंट आवश्यक असते पण तुम्ही तुमचे Google खाते वापरून <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> मध्ये नोंदणी करता तेव्हा, Google तुम्हाला या लेखाचा आणि आणखी बऱ्याच आशयाचा विनामूल्य ॲक्सेस देते.',
-=======
->>>>>>> 74ee8be1e7397b67fdfa1611d08220e8cf6cb1c4
     'nl':
       '<strong></strong>Voor deze content moet je eigenlijk betalen. Maar Google geeft je kosteloos toegang tot dit artikel en andere content als je je registreert bij <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> via je Google-account.',
     'pt-br':
@@ -82,13 +79,10 @@ export const I18N_STRINGS = {
     'fr': 'Vous avez déjà un compte&nbsp;?',
     'hi': 'क्या आपके पास पहले से कोई प्रकाशक खाता है?',
     'it': 'Hai già un account?',
-<<<<<<< HEAD
     'ja': 'すでにアカウントをお持ちですか？',
     'kn': 'ಈಗಾಗಲೇ ಖಾತೆಯೊಂದನ್ನು ಹೊಂದಿದ್ದೀರಾ?',
     'ml': 'മുമ്പേ അക്കൗണ്ടുണ്ടോ?',
     'mr': 'आधीपासून खाते आहे?',
-=======
->>>>>>> 74ee8be1e7397b67fdfa1611d08220e8cf6cb1c4
     'nl': 'Heb je al een account?',
     'pt-br': 'Já tem uma conta?',
     'ta': 'ஏற்கெனவே கணக்கு உள்ளதா?',
@@ -103,13 +97,10 @@ export const I18N_STRINGS = {
     'fr': 'Se connecter avec Google',
     'hi': 'Google से साइन इन करें',
     'it': 'Accedi con Google',
-<<<<<<< HEAD
     'ja': 'Google でログイン',
     'kn': 'Google ಖಾತೆ ಬಳಸಿಕೊಂಡು ಸೈನ್ ಇನ್ ಮಾಡಿ',
     'ml': 'Google ഉപയോഗിച്ച് സൈൻ ഇൻ ചെയ്യുക',
     'mr': 'Google वापरून साइन इन करा',
-=======
->>>>>>> 74ee8be1e7397b67fdfa1611d08220e8cf6cb1c4
     'nl': 'Inloggen met Google',
     'pt-br': 'Fazer login com o Google',
     'ta': 'Google மூலம் உள்நுழைக',
