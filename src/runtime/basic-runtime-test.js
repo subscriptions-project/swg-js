@@ -627,6 +627,15 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       });
     });
 
+    it('should dimiss SwG UI', () => {
+      const dialogManagerMock = sandbox.mock(
+        configuredBasicRuntime.dialogManager()
+      );
+      dialogManagerMock.expects('completeAll').once();
+      configuredBasicRuntime.dismissSwgUI();
+      dialogManagerMock.verify();
+    });
+
     it('should set clientOptions in ClientConfigManager', () => {
       configuredBasicRuntime = new ConfiguredBasicRuntime(
         win,

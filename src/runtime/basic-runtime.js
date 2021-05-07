@@ -484,8 +484,9 @@ export class ConfiguredBasicRuntime {
   }
 
   /** @override */
+  /** Dismiss displayed SwG UI */
   dismissSwgUI() {
-    // TODO(stellachui): Implement dismissal of any displayed SwG UI.
+    this.dialogManager().completeAll();
   }
 
   /**
