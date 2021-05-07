@@ -1946,18 +1946,10 @@ subscribe() method'
     });
 
     it('should return the last OffersFlow', async () => {
-      let offersFlow;
-      sandbox.stub(OffersFlow.prototype, 'start').callsFake(function () {
-        offersFlow = this;
-        return new Promise(() => {});
-      });
-      // S how offers first in order to get an OffersFlow
+      // Show offers first in order to get an OffersFlow
       runtime.showOffers();
 
-      const runtimeMock = sandbox.mock(runtime);
-      runtimeMock.expects('getLastOffersFlow').returns(offersFlow);
-      runtime.getLastOffersFlow();
-      runtimeMock.verify();
+      expect(runtime.getLastOffersFlow()).to.equal(runtime.lastOffersFlow_);
     });
 
     describe('setShowcaseEntitlement', () => {
