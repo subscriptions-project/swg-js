@@ -17,20 +17,24 @@
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
-  font-family: Playfair Display,serif;
+  font-family: Playfair Display, serif;
   font-size: 15px;
   line-height: 1.42857143;
   color: #333;
   background-color: #fff;
 }
 
-*, :after, :before {
-    box-sizing: border-box;
+*,
+:after,
+:before {
+  box-sizing: border-box;
 }
 
-[data-z-depth="2"] {
-  -webkit-filter: drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.16)) drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.23));
-  filter: drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.16)) drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.23));
+[data-z-depth='2'] {
+  -webkit-filter: drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.16))
+    drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.23));
+  filter: drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.16))
+    drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.23));
 }
 
 .main-body > header {
@@ -68,7 +72,7 @@ body {
   margin-right: 16px;
   width: 40px;
   height: 40px;
-  background-image: url("./icons/icon-2x.png");
+  background-image: url('./icons/icon-2x.png');
   background-size: 40px 40px;
   background-repeat: no-repeat;
 }
@@ -97,11 +101,11 @@ body {
 }
 
 .nav-button.next {
-  background-image: url("./img/chevron-right.png");
+  background-image: url('./img/chevron-right.png');
 }
 
 .nav-button.prev {
-  background-image: url("./img/chevron-left.png");
+  background-image: url('./img/chevron-left.png');
 }
 
 main {
@@ -121,7 +125,7 @@ main {
 
 .hero-img-container:after {
   z-index: 1;
-  content: "";
+  content: '';
   display: block;
   padding-top: 60%;
 }
@@ -145,7 +149,12 @@ main > .container {
   padding: 0px 20px;
 }
 
-h1, h2, p, body, figure, ul {
+h1,
+h2,
+p,
+body,
+figure,
+ul {
   margin: 0;
   padding: 0;
 }
@@ -166,7 +175,7 @@ h1 {
   font-size: 27pt;
   font-weight: 700;
   margin-bottom: 0.3em;
-  letter-spacing: .33pt;
+  letter-spacing: 0.33pt;
   line-height: 30pt;
 }
 
@@ -174,7 +183,7 @@ h1 {
   color: #666;
   font-size: 16pt;
   line-height: 24pt;
-  letter-spacing: .3pt;
+  letter-spacing: 0.3pt;
   vertical-align: top;
   margin-bottom: 0.2em;
 }
@@ -196,8 +205,8 @@ h1 {
 .text {
   font-size: 20px;
   line-height: 30px;
-  letter-spacing: .3px;
-  color: #4A4A4A;
+  letter-spacing: 0.3px;
+  color: #4a4a4a;
   vertical-align: top;
   margin-bottom: 16px;
 }
@@ -240,7 +249,7 @@ ul.related p {
 }
 
 .articles {
-  font-family: Playfair Display,serif;
+  font-family: Playfair Display, serif;
   font-size: 15px;
   line-height: 1.42857143;
 }
@@ -261,14 +270,14 @@ ul.related p {
 }
 
 .article-list-item .scrim-top {
-  background: -webkit-linear-gradient(top,rgba(0,0,0,.33),transparent);
-  background: linear-gradient(180deg,rgba(0,0,0,.33),transparent);
+  background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.33), transparent);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.33), transparent);
   height: 80px;
 }
 
 .article-list-item .scrim-bottom {
-  background: -webkit-linear-gradient(top,transparent,rgba(0,0,0,.33));
-  background: linear-gradient(180deg,transparent,rgba(0,0,0,.33));
+  background: -webkit-linear-gradient(top, transparent, rgba(0, 0, 0, 0.33));
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.33));
   width: 100%;
   height: 60px;
   position: absolute;
@@ -276,7 +285,7 @@ ul.related p {
 }
 
 .article-list-item h3 {
-  font-family: Playfair Display,serif;
+  font-family: Playfair Display, serif;
   font-weight: 700;
   font-size: 22pt;
   letter-spacing: 2px;
@@ -286,14 +295,15 @@ ul.related p {
 }
 
 .article-list-item h4 {
-  font-family: Muli,sans-serif;
+  font-family: Muli, sans-serif;
   font-weight: 400;
   font-size: 8pt;
   letter-spacing: 1px;
   top: 160px;
 }
 
-.article-list-item h3, .article-list-item h4 {
+.article-list-item h3,
+.article-list-item h4 {
   color: #fff;
   position: absolute;
   left: 12%;
@@ -314,23 +324,25 @@ body:not(.metering) #metering-controls {
 }
 
 #metering-controls button {
-  background-color: rgb(50, 207, 131);
+  background-color: rgb(61, 199, 123);
+  background-image: linear-gradient(
+    180deg,
+    hsla(0, 0%, 100%, 0.3) 0,
+    hsla(0, 0%, 100%, 0)
+  );
+  border-radius: 999px;
   border: none;
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.08);
-  border-bottom: 4px solid rgb(3, 151, 80);
-  border-radius: 8px;
-  border-top: 4px solid rgb(114, 255, 187);
+  box-shadow: inset 0 -4px 0 rgb(0 0 0 / 30%), 0 4px 6px rgb(0 0 0 / 22%);
   color: white;
   cursor: pointer;
+  font-family: 'Roboto', sans-serif;
   font-weight: bold;
   margin: 0 0 0 6px;
-  padding: 6px 12px;
+  padding: 8px 18px 10px;
+  transition: background-color 0.2s ease-in-out;
 }
 
 #metering-controls button:active,
 #metering-controls button:hover {
-  background-color: rgb(39, 199, 122);
-  box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.06);
-  border-bottom: 4px solid rgb(2, 133, 69);
-  border-top: 4px solid rgb(74, 250, 165);
+  background-color: rgb(76, 220, 140);
 }
