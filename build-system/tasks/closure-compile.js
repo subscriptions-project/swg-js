@@ -25,13 +25,13 @@ const rename = require('gulp-rename');
 const replace = require('gulp-replace');
 const resolveConfig = require('./compile-config').resolveConfig;
 const sourcemaps = require('gulp-sourcemaps');
+const {isCiBuild} = require('../ci');
+const {red} = require('ansi-colors');
+const {VERSION: internalRuntimeVersion} = require('./internal-version');
 
 const queue = [];
 let inProgress = 0;
 const MAX_PARALLEL_CLOSURE_INVOCATIONS = 4;
-
-const {isCiBuild} = require('../ci');
-const {red} = require('ansi-colors');
 
 // Compiles code with the closure compiler. This is intended only for
 // production use. During development we intent to continue using
@@ -234,7 +234,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     if (!argv.typecheck_only) {
       stream = stream.pipe(rename(outputFilename)).pipe(
         sourcemaps.write('.', {
-          sourceRoot: outputDir,
+          sourceRoot: `https://raw.githubusercontent.com/subscriptions-project/swg-js/${internalRuntimeVersion}/`,
           includeContent: false,
         })
       );
