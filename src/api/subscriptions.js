@@ -539,7 +539,7 @@ export function defaultConfig() {
  * Properties:
  * - skus - a list of SKUs to return from the defined or default list. The
  *   order is preserved. Required if oldSku is specified (to indicate which
- *   SKUs to upgrade or downgrade to).
+ *   SKUs the user can upgrade or downgrade to).
  * - list - a predefined list of SKUs. Use of this property is uncommon.
  *   Possible values are "default" and "amp". Default is "default".
  * - isClosable - a boolean value to determine whether the view is closable.
