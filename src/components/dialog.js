@@ -126,9 +126,6 @@ export class Dialog {
 
     /** @private {?./view.View} */
     this.previousProgressView_ = null;
-
-    /** @private {boolean} */
-    this.useFixedLayer_ = false;
   }
 
   /**
@@ -157,20 +154,10 @@ export class Dialog {
       this.show_();
     }
 
-    if (this.useFixedLayer_) {
-      return this.doc_
-        .addToFixedLayer(iframe.getElement())
-        .then(() => iframe.whenReady())
-        .then(() => {
-          this.buildIframe_();
-          return this;
-        });
-    } else {
-      return iframe.whenReady().then(() => {
-        this.buildIframe_();
-        return this;
-      });
-    }
+    return iframe.whenReady().then(() => {
+      this.buildIframe_();
+      return this;
+    });
   }
 
   /**
@@ -447,15 +434,6 @@ export class Dialog {
   }
 
   /**
-   * Gets the element's height.
-   * @return {number}
-   * @private
-   */
-  getHeight_() {
-    return this.getElement().offsetHeight;
-  }
-
-  /**
    * Sets the position of the dialog. Currently 'BOTTOM' is set by default.
    */
   setPosition_() {
@@ -469,13 +447,11 @@ export class Dialog {
    * @private
    */
   updatePaddingToHtml_(newHeight) {
-    if (this.inferPosition_() == PositionAt.BOTTOM) {
-      const bottomPadding = newHeight + 20; // Add some extra padding.
-      const htmlElement = this.doc_.getRootElement();
-      setImportantStyles(htmlElement, {
-        'padding-bottom': `${bottomPadding}px`,
-      });
-    }
+    const bottomPadding = newHeight + 20; // Add some extra padding.
+    const htmlElement = this.doc_.getRootElement();
+    setImportantStyles(htmlElement, {
+      'padding-bottom': `${bottomPadding}px`,
+    });
   }
 
   /**
@@ -487,44 +463,11 @@ export class Dialog {
   }
 
   /**
-   * Calculates the position of the dialog. Currently dialog is positioned at
-   * the bottom only. This could change in future to adjust the dialog position
-   * based on the screen size.
-   * @return {string}
-   * @private
-   */
-  inferPosition_() {
-    return PositionAt.BOTTOM;
-  }
-
-  /**
    * Returns the styles required to postion the dialog.
    * @return {!Object<string, string|number>}
    * @private
    */
   getPositionStyle_() {
-    const dialogPosition = this.inferPosition_();
-    switch (dialogPosition) {
-      case PositionAt.BOTTOM:
-        return {'bottom': 0};
-      case PositionAt.TOP:
-        return {'top': 0};
-      case PositionAt.FLOAT:
-        return {
-          'position': 'fixed',
-          'top': '50%',
-          'left': '50%',
-          'transform': 'translate(-50%, -50%)',
-        };
-      case PositionAt.FULL:
-        return {
-          'position': 'fixed',
-          'height': '100%',
-          'top': 0,
-          'bottom': 0,
-        };
-      default:
-        return {'bottom': 0};
-    }
+    return {'bottom': 0};
   }
 }
