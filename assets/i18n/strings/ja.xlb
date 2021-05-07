@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="ja">
+<messages>
+
+
+
+
+<msg name="SHOWCASE_REGWALL_TITLE">Google を活用しよう</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>通常、このコンテンツをお読みいただくにはお支払いが必要ですが、お使いの Google アカウントで <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> に登録すると、この記事や他の記事を無料でお読みいただけます（購読料は Google が負担します）。</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">すでにアカウントをお持ちですか？</msg>
+<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Google でログイン</msg>
+
+
+
+</messages>
+</localizationbundle>
