@@ -916,6 +916,38 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(ents.enablesThis()).to.be.true;
     });
 
+    it('should warn about invalid attribute timestamps', async () => {
+      const invalidTimestamps = [
+        undefined,
+        null,
+        0,
+        '0',
+        Date.now(), // In milliseconds, instead of seconds
+        'Friday, 7 May 2021 18:16:51',
+      ];
+
+      for (const invalidTimestamp of invalidTimestamps) {
+        self.console.warn.reset();
+        manager.clear();
+
+        xhrMock.expects('fetch').resolves({text: () => Promise.resolve('{}')});
+        expectGetSwgUserTokenToBeCalled();
+
+        await manager.getEntitlements({
+          metering: {
+            state: {
+              id: 'u1',
+              standardAttributes: {'att1': {timestamp: invalidTimestamp}},
+            },
+          },
+        });
+
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          `SwG Entitlements: Please specify a Unix timestamp, in seconds, for the "att1" standard attribute. The timestamp you passed (${invalidTimestamp}) looks invalid.`
+        );
+      }
+    });
+
     it('should open metering dialog when metering entitlements are consumed and showToast is not provided', () => {
       dialogManagerMock
         .expects('openDialog')
@@ -1147,7 +1179,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       await manager.consumeMeter_(ents);
     });
 
-    it('should log error messages', async () => {
+    it('should log error messages from entitlements server', async () => {
       xhrMock
         .expects('fetch')
         .withExactArgs(
