@@ -943,9 +943,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         });
 
         expect(self.console.warn).to.have.been.calledWithExactly(
-          `SwG Entitlements: Please specify a Unix timestamp, in seconds, for the "att1" standard attribute. The timestamp you passed (${Number(
-            invalidTimestamp
-          )}) looks invalid.`
+          `SwG Entitlements: Please specify a Unix timestamp, in seconds, for the "att1" standard attribute. The timestamp you passed (${invalidTimestamp}) looks invalid.`
         );
       }
     });

@@ -708,7 +708,7 @@ export class EntitlementsManager {
                 timestamp > (Date.now() / 1000) * 2;
               if (!timestamp || timestampIsTooFarInTheFuture) {
                 warn(
-                  `SwG Entitlements: Please specify a Unix timestamp, in seconds, for the "${attributeName}" ${category} attribute. The timestamp you passed (${timestamp}) looks invalid.`
+                  `SwG Entitlements: Please specify a Unix timestamp, in seconds, for the "${attributeName}" ${category} attribute. The timestamp you passed (${attributes[attributeName].timestamp}) looks invalid.`
                 );
               }
 
