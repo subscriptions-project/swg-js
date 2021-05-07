@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {Entitlements} from './entitlements';
-import {PurchaseData} from './subscribe-response';
-import {UserData} from './user-data';
+import {Entitlements as EntitlementsDef} from './entitlements';
+import {PurchaseData as PurchaseDataDef} from './subscribe-response';
+import {UserData as UserDataDef} from './user-data';
 
 /**
  * Properties:
@@ -25,7 +25,7 @@ import {UserData} from './user-data';
  *   Default is `true`.
  *
  * @typedef {{
- *   entitlements: (?Entitlements|undefined),
+ *   entitlements: (?EntitlementsDef|undefined),
  *   consent: (boolean|undefined),
  * }}
  */
@@ -35,9 +35,9 @@ export let DeferredAccountCreationRequest;
  */
 export class DeferredAccountCreationResponse {
   /**
-   * @param {!Entitlements} entitlements
-   * @param {!UserData} userData
-   * @param {!Array<!PurchaseData>} purchaseDataList
+   * @param {!EntitlementsDef} entitlements
+   * @param {!UserDataDef} userData
+   * @param {!Array<!PurchaseDataDef>} purchaseDataList
    * @param {function():!Promise} completeHandler
    */
   constructor(entitlements, userData, purchaseDataList, completeHandler) {
