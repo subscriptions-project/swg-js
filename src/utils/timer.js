@@ -141,12 +141,14 @@ export class Timer {
    */
   poll(delay, predicate) {
     return new Promise((resolve) => {
-      const interval = /** @type {number} */ (this.win.setInterval(() => {
-        if (predicate()) {
-          this.win.clearInterval(interval);
-          resolve();
-        }
-      }, delay));
+      const interval = /** @type {number} */ (
+        this.win.setInterval(() => {
+          if (predicate()) {
+            this.win.clearInterval(interval);
+            resolve();
+          }
+        }, delay)
+      );
     });
   }
 }

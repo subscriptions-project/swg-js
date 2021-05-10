@@ -150,9 +150,8 @@ export class PayClient {
    */
   pageIsInitializedFromPayRedirect_() {
     const hash = this.win_.location.hash;
-    const hasRedirectEncryptedCallbackData = /redirectEncryptedCallbackData/.test(
-      hash
-    );
+    const hasRedirectEncryptedCallbackData =
+      /redirectEncryptedCallbackData/.test(hash);
     const hasSwgRequest = /swgRequest/.test(hash);
     return hasRedirectEncryptedCallbackData && hasSwgRequest;
   }

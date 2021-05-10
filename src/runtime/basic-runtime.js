@@ -461,7 +461,8 @@ export class ConfiguredBasicRuntime {
       } else {
         // If no entitlements are returned, subscription/contribution offers iframe will show
         // a toast with label "no subscription/contribution found"
-        const lastOffersFlow = this.configuredClassicRuntime_.getLastOffersFlow();
+        const lastOffersFlow =
+          this.configuredClassicRuntime_.getLastOffersFlow();
         if (lastOffersFlow) {
           lastOffersFlow.showNoEntitlementFoundToast();
         }
@@ -529,14 +530,12 @@ export class ConfiguredBasicRuntime {
 function createPublicBasicRuntime(basicRuntime) {
   return /** @type {!../api/basic-subscriptions.BasicSubscriptions} */ ({
     init: basicRuntime.init.bind(basicRuntime),
-    setOnEntitlementsResponse: basicRuntime.setOnEntitlementsResponse.bind(
-      basicRuntime
-    ),
+    setOnEntitlementsResponse:
+      basicRuntime.setOnEntitlementsResponse.bind(basicRuntime),
     setOnPaymentResponse: basicRuntime.setOnPaymentResponse.bind(basicRuntime),
     setOnLoginRequest: basicRuntime.setOnLoginRequest.bind(basicRuntime),
-    setupAndShowAutoPrompt: basicRuntime.setupAndShowAutoPrompt.bind(
-      basicRuntime
-    ),
+    setupAndShowAutoPrompt:
+      basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
   });
 }
