@@ -38,6 +38,7 @@ import {PageConfigResolver} from '../model/page-config-resolver';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
+import {Toast} from '../ui/toast';
 
 describes.realWin('installBasicRuntime', {}, (env) => {
   let win;
@@ -715,7 +716,15 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .withExactArgs('USER_TOKEN', 'xyz', true)
         .once();
 
+      let toast;
+      const toastOpenStub = sandbox
+        .stub(Toast.prototype, 'open')
+        .callsFake(function () {
+          toast = this;
+        });
       await configuredBasicRuntime.entitlementsResponseHandler(port);
+
+      expect(toastOpenStub).to.be.called;
       storageMock.verify();
     });
 
