@@ -67,6 +67,7 @@ export class ContributionsFlow {
           'list': (options && options.list) || 'default',
           'skus': (options && options.skus) || null,
           'isClosable': isClosable,
+          'supportsEventManager': true,
         }),
         /* shouldFadeBody */ true
       );
