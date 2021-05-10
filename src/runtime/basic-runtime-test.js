@@ -35,10 +35,10 @@ import {GlobalDoc} from '../model/doc';
 import {OffersFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
+import {Toast} from '../ui/toast';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
-import {Toast} from '../ui/toast';
 
 describes.realWin('installBasicRuntime', {}, (env) => {
   let win;
@@ -725,6 +725,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       await configuredBasicRuntime.entitlementsResponseHandler(port);
 
       expect(toastOpenStub).to.be.called;
+      expect(toast).not.to.be.null;
       storageMock.verify();
     });
 
