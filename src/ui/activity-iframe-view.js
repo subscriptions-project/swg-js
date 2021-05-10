@@ -54,11 +54,9 @@ export class ActivityIframeView extends View {
     this.doc_ = this.win_.document;
 
     /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ = /** @type {!HTMLIFrameElement} */ (createElement(
-      this.doc_,
-      'iframe',
-      iframeAttributes
-    ));
+    this.iframe_ = /** @type {!HTMLIFrameElement} */ (
+      createElement(this.doc_, 'iframe', iframeAttributes)
+    );
 
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = activityPorts;

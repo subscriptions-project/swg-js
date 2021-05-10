@@ -91,9 +91,10 @@ export class ContributionsFlow {
     const sku = response.getSku();
     const isOneTime = response.getOneTime();
     if (sku) {
-      const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest = {
-          'skuId': sku,
-        };
+      const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest =
+          {
+            'skuId': sku,
+          };
       if (isOneTime) {
         contributionRequest['oneTime'] = isOneTime;
       }

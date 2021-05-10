@@ -41,9 +41,9 @@ async function trackPr() {
   const releasesPromise = fetch(
     'https://api.github.com/repos/subscriptions-project/swg-js/releases'
   ).then((res) => res.json());
-  const rateLimitPromise = fetch(
-    'https://api.github.com/rate_limit'
-  ).then((res) => res.json());
+  const rateLimitPromise = fetch('https://api.github.com/rate_limit').then(
+    (res) => res.json()
+  );
 
   const pr = await prPromise;
   if (pr.message && pr.message.match(/rate limit exceeded/)) {

@@ -150,9 +150,8 @@ export class PayStartFlow {
     if (this.subscriptionRequest_['oldSku']) {
       swgPaymentRequest['oldSku'] = this.subscriptionRequest_['oldSku'];
       // Map the proration mode to the enum value (if proration exists).
-      const prorationMode = this.subscriptionRequest_[
-        'replaceSkuProrationMode'
-      ];
+      const prorationMode =
+        this.subscriptionRequest_['replaceSkuProrationMode'];
       if (prorationMode) {
         swgPaymentRequest['replaceSkuProrationMode'] =
           ReplaceSkuProrationModeMapping[prorationMode];
@@ -571,8 +570,7 @@ export function parseEntitlements(deps, swgData) {
  * @return {?string}
  */
 function parseSkuFromPurchaseDataSafe(purchaseData) {
-  return /** @type {?string} */ (getPropertyFromJsonString(
-    purchaseData.raw,
-    'productId'
-  ) || null);
+  return /** @type {?string} */ (
+    getPropertyFromJsonString(purchaseData.raw, 'productId') || null
+  );
 }

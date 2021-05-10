@@ -1161,16 +1161,14 @@ function createPublicRuntime(runtime) {
     subscribe: runtime.subscribe.bind(runtime),
     updateSubscription: runtime.updateSubscription.bind(runtime),
     contribute: runtime.contribute.bind(runtime),
-    completeDeferredAccountCreation: runtime.completeDeferredAccountCreation.bind(
-      runtime
-    ),
+    completeDeferredAccountCreation:
+      runtime.completeDeferredAccountCreation.bind(runtime),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
     setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
     triggerLoginRequest: runtime.triggerLoginRequest.bind(runtime),
     setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
-    setOnNativeSubscribeRequest: runtime.setOnNativeSubscribeRequest.bind(
-      runtime
-    ),
+    setOnNativeSubscribeRequest:
+      runtime.setOnNativeSubscribeRequest.bind(runtime),
     setOnPaymentResponse: runtime.setOnPaymentResponse.bind(runtime),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
     setOnContributionResponse: runtime.setOnContributionResponse.bind(runtime),
@@ -1184,9 +1182,8 @@ function createPublicRuntime(runtime) {
     getLogger: runtime.getLogger.bind(runtime),
     getEventManager: runtime.getEventManager.bind(runtime),
     setShowcaseEntitlement: runtime.setShowcaseEntitlement.bind(runtime),
-    consumeShowcaseEntitlementJwt: runtime.consumeShowcaseEntitlementJwt.bind(
-      runtime
-    ),
+    consumeShowcaseEntitlementJwt:
+      runtime.consumeShowcaseEntitlementJwt.bind(runtime),
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
   });
 }
