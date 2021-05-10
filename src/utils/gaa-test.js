@@ -103,6 +103,11 @@ describes.realWin('queryStringHasFreshGaaParams', {}, () => {
     clock.tick(7001);
     expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
+
+  it('fails if gaa_at param specifies "no access"', () => {
+    const queryString = '?gaa_at=na&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
+  });
 });
 
 describes.realWin('GaaMeteringRegwall', {}, () => {

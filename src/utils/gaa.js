@@ -303,6 +303,12 @@ export function queryStringHasFreshGaaParams(queryString) {
     return false;
   }
 
+  // Verify access type.
+  const noAccess = params['gaa_at'] === 'na';
+  if (noAccess) {
+    return false;
+  }
+
   // Verify timestamp isn't stale.
   const expirationTimestamp = parseInt(params['gaa_ts'], 16);
   const currentTimestamp = Date.now() / 1000;
