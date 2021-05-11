@@ -416,9 +416,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
-      const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
-          0
-        ).args[0];
+      const /* {?AnalyticsRequest} */ request =
+          activityIframePort.execute.getCall(0).args[0];
       expect(request).to.not.be.null;
       expect(request.getEvent()).to.deep.equal(defEventType);
       const context = request.getContext();
@@ -449,9 +448,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
-      const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
-          0
-        ).args[0];
+      const /* {?AnalyticsRequest} */ request =
+          activityIframePort.execute.getCall(0).args[0];
       expect(request).to.not.be.null;
       expect(request.getContext().getLabelList()).to.deep.equal([]);
     });
@@ -464,9 +462,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       expect(activityIframePort.execute).to.be.calledOnce;
-      const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
-          0
-        ).args[0];
+      const /* {?AnalyticsRequest} */ request =
+          activityIframePort.execute.getCall(0).args[0];
       expect(request).to.not.be.null;
       expect(request.getContext().getLabelList()).to.deep.equal([
         'experiment-A',
@@ -482,9 +479,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
-      const /** {?AnalyticsRequest} */ request1 = activityIframePort.execute.getCall(
-          0
-        ).args[0];
+      const /** {?AnalyticsRequest} */ request1 =
+          activityIframePort.execute.getCall(0).args[0];
       expect(request1.getContext().getLabelList()).to.deep.equal([
         'L1',
         'L2',
@@ -496,9 +492,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       eventManagerCallback(event);
       expect(analyticsService.lastAction_).to.not.be.null;
       await analyticsService.lastAction_;
-      const /** {?AnalyticsRequest} */ request2 = activityIframePort.execute.getCall(
-          1
-        ).args[0];
+      const /** {?AnalyticsRequest} */ request2 =
+          activityIframePort.execute.getCall(1).args[0];
       expect(request2.getContext().getLabelList()).to.deep.equal([
         'L1',
         'L2',
@@ -530,9 +525,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       await analyticsService.lastAction_;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
-      const /* {?AnalyticsRequest} */ request = activityIframePort.execute.getCall(
-          0
-        ).args[0];
+      const /* {?AnalyticsRequest} */ request =
+          activityIframePort.execute.getCall(0).args[0];
       expect(request.getContext().getUrl()).to.equal('diffUrl');
     });
   });

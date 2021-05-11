@@ -264,7 +264,8 @@ export class EntitlementsManager {
         return;
     }
     const token = this.getGaaToken_();
-    const isUserRegistered = event?.additionalParameters?.getIsUserRegistered?.();
+    const isUserRegistered =
+      event?.additionalParameters?.getIsUserRegistered?.();
     this.postEntitlementsRequest_(
       new EntitlementJwt(),
       result,

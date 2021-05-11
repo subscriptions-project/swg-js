@@ -67,6 +67,7 @@ export class ContributionsFlow {
           'list': (options && options.list) || 'default',
           'skus': (options && options.skus) || null,
           'isClosable': isClosable,
+          'supportsEventManager': true,
         }),
         /* shouldFadeBody */ true
       );
@@ -91,9 +92,10 @@ export class ContributionsFlow {
     const sku = response.getSku();
     const isOneTime = response.getOneTime();
     if (sku) {
-      const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest = {
-          'skuId': sku,
-        };
+      const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest =
+          {
+            'skuId': sku,
+          };
       if (isOneTime) {
         contributionRequest['oneTime'] = isOneTime;
       }

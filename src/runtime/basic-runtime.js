@@ -21,6 +21,7 @@ import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
+import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
@@ -454,10 +455,14 @@ export class ConfiguredBasicRuntime {
         if (userToken) {
           this.storage().set(Constants.USER_TOKEN, userToken, true);
         }
+
+        // Show 'Signed in as abc@gmail.com' toast on the pub page.
+        new Toast(this, feUrl('/toastiframe')).open();
       } else {
         // If no entitlements are returned, subscription/contribution offers iframe will show
         // a toast with label "no subscription/contribution found"
-        const lastOffersFlow = this.configuredClassicRuntime_.getLastOffersFlow();
+        const lastOffersFlow =
+          this.configuredClassicRuntime_.getLastOffersFlow();
         if (lastOffersFlow) {
           lastOffersFlow.showNoEntitlementFoundToast();
         }
@@ -525,14 +530,12 @@ export class ConfiguredBasicRuntime {
 function createPublicBasicRuntime(basicRuntime) {
   return /** @type {!../api/basic-subscriptions.BasicSubscriptions} */ ({
     init: basicRuntime.init.bind(basicRuntime),
-    setOnEntitlementsResponse: basicRuntime.setOnEntitlementsResponse.bind(
-      basicRuntime
-    ),
+    setOnEntitlementsResponse:
+      basicRuntime.setOnEntitlementsResponse.bind(basicRuntime),
     setOnPaymentResponse: basicRuntime.setOnPaymentResponse.bind(basicRuntime),
     setOnLoginRequest: basicRuntime.setOnLoginRequest.bind(basicRuntime),
-    setupAndShowAutoPrompt: basicRuntime.setupAndShowAutoPrompt.bind(
-      basicRuntime
-    ),
+    setupAndShowAutoPrompt:
+      basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
   });
 }

@@ -75,6 +75,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
           list: 'other',
           skus: null,
           isClosable: true,
+          supportsEventManager: true,
         }
       )
       .resolves(port);
@@ -98,6 +99,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
           list: 'default',
           skus: ['sku1', 'sku2'],
           isClosable: true,
+          supportsEventManager: true,
         }
       )
       .resolves(port);
@@ -128,6 +130,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
           list: 'other',
           skus: null,
           isClosable: true,
+          supportsEventManager: true,
         }
       )
       .resolves(port);
