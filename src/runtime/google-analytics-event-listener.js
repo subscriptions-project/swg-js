@@ -46,9 +46,16 @@ export class GoogleAnalyticsEventListener {
     if (typeof this.win_.ga != 'function') {
       return;
     }
+    let subscriptionFlow = '';
+    if (event.additionalParameters) {
+      // additionalParameters isn't strongly typed so checking for both object and class notation.
+      subscriptionFlow =
+        event.additionalParameters.subscriptionFlow ||
+        event.additionalParameters.getSubscriptionFlow();
+    }
     const gaEvent = analyticsEventToGoogleAnalyticsEvent(
       event.eventType,
-      event.additionalParameters?.subscriptionFlow
+      subscriptionFlow
     );
     if (gaEvent) {
       this.win_.ga('send', 'event', gaEvent);
