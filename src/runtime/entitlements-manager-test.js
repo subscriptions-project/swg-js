@@ -948,6 +948,30 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       }
     });
 
+    it('should warn about missing meter state ID', async () => {
+      const invalidMeterStateIds = [undefined, null, false, {}, ''];
+
+      for (const invalidMeterStateId of invalidMeterStateIds) {
+        self.console.warn.reset();
+        manager.clear();
+
+        xhrMock.expects('fetch').resolves({text: () => Promise.resolve('{}')});
+        expectGetSwgUserTokenToBeCalled();
+
+        await manager.getEntitlements({
+          metering: {
+            state: {
+              id: invalidMeterStateId,
+            },
+          },
+        });
+
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          `SwG Entitlements: Please specify a metering state ID string, ideally a hash to avoid PII.`
+        );
+      }
+    });
+
     it('should open metering dialog when metering entitlements are consumed and showToast is not provided', () => {
       dialogManagerMock
         .expects('openDialog')
