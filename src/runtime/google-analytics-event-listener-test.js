@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {DepsDef} from './deps';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
@@ -150,6 +154,35 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
         subscriptionFlow: SubscriptionFlows.SUBSCRIBE,
         isUserRegistered: true,
       },
+    });
+    await eventManager.lastAction_;
+  });
+
+  it('Should log subscription pay complete to ga with EventParams as additionalParams', async () => {
+    setupEnvironment(
+      Object.assign({}, env.win, {
+        ga: () => {},
+      }),
+      true
+    );
+    winMock
+      .expects('ga')
+      .withExactArgs(
+        'send',
+        'event',
+        analyticsEventToGoogleAnalyticsEvent(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          SubscriptionFlows.CONTRIBUTE
+        )
+      )
+      .once();
+    const eventParams = new EventParams();
+    eventParams.setSubscriptionFlow(SubscriptionFlows.CONTRIBUTE);
+    eventParams.setIsUserRegistered(true);
+    eventManager.logEvent({
+      eventType: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      additionalParameters: eventParams,
     });
     await eventManager.lastAction_;
   });
