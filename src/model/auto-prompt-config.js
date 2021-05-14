@@ -80,3 +80,20 @@ export class ExplicitDismissalConfig {
     this.maxDismissalsResultingHideSeconds = maxDismissalsResultingHideSeconds;
   }
 }
+
+/**
+ * Preicates of whether or not to show button and prompt.
+ */
+export class UiPredicates {
+  /**
+   * @param {boolean|undefined} canDisplayAutoPrompt
+   * @param {boolean|undefined} canDisplayButton
+   */
+  constructor(canDisplayAutoPrompt, canDisplayButton) {
+    /** @const {boolean|undefined} */
+    this.canDisplayAutoPrompt = canDisplayAutoPrompt;
+
+    /** @const {boolean|undefined} */
+    this.canDisplayButton = canDisplayButton;
+  }
+}
