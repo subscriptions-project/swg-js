@@ -82,7 +82,7 @@ export class ExplicitDismissalConfig {
 }
 
 /**
- * Preicates of whether or not to show button and prompt.
+ * Predicates of whether or not to show button and prompt.
  */
 export class UiPredicates {
   /**
