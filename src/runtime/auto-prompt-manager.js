@@ -129,7 +129,7 @@ export class AutoPromptManager {
           autoPromptType: params.autoPromptType,
           callback: params.displayForLockedContentFn,
         });
-      }, (clientConfig.autoPromptConfig?.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
+      }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
     });
   }
 
