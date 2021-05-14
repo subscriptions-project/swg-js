@@ -17,6 +17,7 @@
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig} from '../model/client-config';
 import {ClientTheme} from '../api/basic-subscriptions';
+import {UiPredicates} from '../model/auto-prompt-config';
 import {serviceUrl} from './services';
 import {warn} from '../utils/log';
 
@@ -137,10 +138,21 @@ export class ClientConfigManager {
         autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsResultingHideSeconds
       );
     }
+
+    const uiPredicatesJson = json['uiPredicates'];
+    let uiPredicates = undefined;
+    if (uiPredicatesJson) {
+      uiPredicates = new UiPredicates(
+        uiPredicatesJson.canDisplayAutoPrompt,
+        uiPredicatesJson.canDisplayButton
+      );
+    }
+
     return new ClientConfig(
       autoPromptConfig,
       paySwgVersion,
-      json['useUpdatedOfferFlows']
+      json['useUpdatedOfferFlows'],
+      uiPredicates
     );
   }
 }

@@ -206,4 +206,23 @@ describes.realWin('ClientConfigManager', {}, () => {
     const clientConfig = await clientConfigManager.fetchClientConfig();
     expect(clientConfig.useUpdatedOfferFlows).to.be.false;
   });
+
+  it('getClientConfig should have uiPredicates after fetch if the response did not contain a useUpdatedOfferFlows value', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({
+        uiPredicates: {
+          canDisplayAutoPrompt: true,
+          canDisplayButton: true,
+        },
+      })
+      .once();
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+    expect(clientConfig.uiPredicates.canDisplayButton).to.be.true;
+    expect(clientConfig.uiPredicates.canDisplayAutoPrompt).to.be.true;
+  });
 });
