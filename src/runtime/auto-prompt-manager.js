@@ -142,6 +142,15 @@ export class AutoPromptManager {
    * @returns {!Promise<boolean>}
    */
   shouldShowMiniPrompt_(clientConfig, entitlements, autoPromptType) {
+    // If false publication predicate was returned in the response, don't show
+    // the prompt.
+    if (
+      clientConfig.uiPredicates &&
+      !clientConfig.uiPredicates.canDisplayAutoPrompt
+    ) {
+      return Promise.resolve(false);
+    }
+
     // If the mini auto prompt type is not supported, don't show the prompt.
     if (
       autoPromptType === undefined ||
@@ -175,15 +184,6 @@ export class AutoPromptManager {
       return Promise.resolve(false);
     } else {
       autoPromptConfig = clientConfig.autoPromptConfig;
-    }
-
-    // If false publication predicate was returned in the response, don't show
-    // the prompt.
-    if (
-      clientConfig.uiPredicates &&
-      !clientConfig.uiPredicates.canDisplayAutoPrompt
-    ) {
-      return Promise.resolve(false);
     }
 
     // Fetched config returned no maximum cap.

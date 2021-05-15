@@ -283,9 +283,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getEntitlements')
       .returns(Promise.resolve(entitlements))
       .once();
+    const clientConfig = new ClientConfig();
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve())
+      .returns(clientConfig)
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -655,6 +656,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   });
 
   it('should not display any prompt if UI predicate is false', async () => {
+    sandbox.stub(pageConfig, 'isLocked').returns(false);
     const entitlements = new Entitlements();
     sandbox.stub(entitlements, 'enablesThis').returns(true);
     entitlementsManagerMock
@@ -663,11 +665,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .once();
 
     const autoPromptConfig = new AutoPromptConfig(
-      /* maxImpressionsPerWeek */ 2,
-      /* displayDelaySeconds */ 0,
-      /* backoffSeconds */ 5,
-      /* maxDismissalsPerWeek */ 2,
-      /* maxDismissalsResultingHideSeconds */ 10
+
     );
     const uiPredicates = new UiPredicates(
       /* canDisplayAutoPrompt */ false,
