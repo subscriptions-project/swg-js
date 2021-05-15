@@ -593,7 +593,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .expects('getEntitlements')
         .returns(Promise.resolve(entitlements));
       clientConfigManagerMock
-        .expects('getAutoPromptConfig')
+        .expects('getClientConfig')
         .returns(Promise.resolve({}));
       configuredClassicRuntimeMock
         .expects('showOffers')
@@ -614,7 +614,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .expects('getEntitlements')
         .returns(Promise.resolve(entitlements));
       clientConfigManagerMock
-        .expects('getAutoPromptConfig')
+        .expects('getClientConfig')
         .returns(Promise.resolve({}));
       configuredClassicRuntimeMock
         .expects('showContributionOptions')

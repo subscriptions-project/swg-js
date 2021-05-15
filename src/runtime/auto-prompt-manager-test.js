@@ -15,9 +15,10 @@
  */
 
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {AutoPromptConfig} from '../model/auto-prompt-config';
+import {AutoPromptConfig, UiPredicates} from '../model/auto-prompt-config';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {DepsDef} from './deps';
@@ -205,12 +206,13 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getEntitlements')
       .returns(Promise.resolve(entitlements))
       .once();
-    const autoPromptConfig = new AutoPromptConfig();
+    const clientConfig = new ClientConfig();
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
-    miniPromptApiMock.expects('create').once();
+    // alwaysShow is false
+    miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -239,10 +241,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getEntitlements')
       .returns(Promise.resolve(entitlements))
       .once();
-    const autoPromptConfig = new AutoPromptConfig();
+    const clientConfig = new ClientConfig();
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -260,10 +262,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getEntitlements')
       .returns(Promise.resolve(entitlements))
       .once();
-    const autoPromptConfig = new AutoPromptConfig();
+    const clientConfig = new ClientConfig();
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -281,9 +283,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getEntitlements')
       .returns(Promise.resolve(entitlements))
       .once();
+    const clientConfig = new ClientConfig();
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve())
+      .expects('getClientConfig')
+      .returns(clientConfig)
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -301,12 +304,13 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getEntitlements')
       .returns(Promise.resolve(entitlements))
       .once();
-    const autoPromptConfig = new AutoPromptConfig();
+    const clientConfig = new ClientConfig();
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
-    miniPromptApiMock.expects('create').once();
+    // alwaysShow is false
+    miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -323,9 +327,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(entitlements))
       .once();
     const autoPromptConfig = new AutoPromptConfig(/* maxImpressionsPerWeek*/ 2);
+    const clientConfig = new ClientConfig(autoPromptConfig);
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
     // Two stored impressions.
     const storedImpressions =
@@ -357,9 +362,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(entitlements))
       .once();
     const autoPromptConfig = new AutoPromptConfig(/* maxImpressionsPerWeek*/ 2);
+    const clientConfig = new ClientConfig(autoPromptConfig);
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
     // One stored impression.
     const storedImpressions = CURRENT_TIME.toString();
@@ -390,9 +396,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(entitlements))
       .once();
     const autoPromptConfig = new AutoPromptConfig(/* maxImpressionsPerWeek*/ 2);
+    const clientConfig = new ClientConfig(autoPromptConfig);
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
     // Two stored impressions, the first from 2 weeks ago.
     const twoWeeksInMs = 1209600000;
@@ -431,9 +438,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       /* maxDismissalsPerWeek */ 1,
       /* maxDismissalsResultingHideSeconds */ 10
     );
+    const clientConfig = new ClientConfig(autoPromptConfig);
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
     // One stored impression from 10ms ago and one dismissal from 5ms ago.
     const storedImpressions = (CURRENT_TIME - 10).toString();
@@ -471,9 +479,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       /* maxDismissalsPerWeek */ 1,
       /* maxDismissalsResultingHideSeconds */ 10
     );
+    const clientConfig = new ClientConfig(autoPromptConfig);
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
     // One stored impression from 20s ago and one dismissal from 11s ago.
     const storedImpressions = (CURRENT_TIME - 20000).toString();
@@ -511,9 +520,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       /* maxDismissalsPerWeek */ 2,
       /* maxDismissalsResultingHideSeconds */ 5
     );
+    const clientConfig = new ClientConfig(autoPromptConfig);
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
     // One stored impression from 20s ago and one dismissal from 6s ago.
     const storedImpressions = (CURRENT_TIME - 20000).toString();
@@ -551,9 +561,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       /* maxDismissalsPerWeek */ 2,
       /* maxDismissalsResultingHideSeconds */ 10
     );
+    const clientConfig = new ClientConfig(autoPromptConfig);
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
     // One stored impression from 20s ago and one dismissal from 6s ago.
     const storedImpressions = (CURRENT_TIME - 20000).toString();
@@ -584,12 +595,12 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getEntitlements')
       .returns(Promise.resolve(entitlements))
       .once();
-    const autoPromptConfig = new AutoPromptConfig();
+    const clientConfig = new ClientConfig();
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
-    miniPromptApiMock.expects('create').once();
+    miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.SUBSCRIPTION,
@@ -606,10 +617,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getEntitlements')
       .returns(Promise.resolve(entitlements))
       .once();
-    const autoPromptConfig = new AutoPromptConfig();
+    const clientConfig = new ClientConfig();
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -628,10 +639,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getEntitlements')
       .returns(Promise.resolve(entitlements))
       .once();
-    const autoPromptConfig = new AutoPromptConfig();
+    const clientConfig = new ClientConfig();
     clientConfigManagerMock
-      .expects('getAutoPromptConfig')
-      .returns(Promise.resolve(autoPromptConfig))
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -642,5 +653,71 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
 
     expect(alternatePromptSpy).to.be.calledOnce;
+  });
+
+  it('should not display any prompt if UI predicate is false', async () => {
+    sandbox.stub(pageConfig, 'isLocked').returns(false);
+    const entitlements = new Entitlements();
+    sandbox.stub(entitlements, 'enablesThis').returns(true);
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .returns(Promise.resolve(entitlements))
+      .once();
+
+    const autoPromptConfig = new AutoPromptConfig();
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ false,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig(
+      autoPromptConfig,
+      undefined,
+      2,
+      uiPredicates
+    );
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
+      .once();
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+      displayForLockedContentFn: alternatePromptSpy,
+    });
+    expect(alternatePromptSpy).to.not.be.called;
+  });
+
+  it('should display the contribution mini prompt if the user has no entitlements and UI predicate is true', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .returns(Promise.resolve(entitlements))
+      .once();
+
+    const autoPromptConfig = new AutoPromptConfig();
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig(
+      autoPromptConfig,
+      undefined,
+      2,
+      uiPredicates
+    );
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
+      .once();
+    miniPromptApiMock.expects('create').once();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+      displayForLockedContentFn: alternatePromptSpy,
+    });
+    expect(alternatePromptSpy).to.not.be.called;
   });
 });

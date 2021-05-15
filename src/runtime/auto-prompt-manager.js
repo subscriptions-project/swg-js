@@ -90,7 +90,7 @@ export class AutoPromptManager {
     // the information we need to determine whether and which prompt should be
     // displayed.
     return Promise.all([
-      this.clientConfigManager_.getAutoPromptConfig(),
+      this.clientConfigManager_.getClientConfig(),
       this.entitlementsManager_.getEntitlements(),
     ]).then((values) => {
       this.showAutoPrompt_(values[0], values[1], params);
@@ -100,7 +100,7 @@ export class AutoPromptManager {
   /**
    * Displays the appropriate auto prompt, depending on the fetched prompt
    * configuration, entitlement state, and options specified in params.
-   * @param {!../model/auto-prompt-config.AutoPromptConfig} autoPromptConfig
+   * @param {!../model/client-config.ClientConfig|undefined} clientConfig
    * @param {!../api/entitlements.Entitlements} entitlements
    * @param {{
    *   autoPromptType: (AutoPromptType|undefined),
@@ -109,9 +109,9 @@ export class AutoPromptManager {
    * }} params
    * @return {!Promise}
    */
-  showAutoPrompt_(autoPromptConfig, entitlements, params) {
+  showAutoPrompt_(clientConfig, entitlements, params) {
     return this.shouldShowMiniPrompt_(
-      autoPromptConfig,
+      clientConfig,
       entitlements,
       params.autoPromptType
     ).then((shouldShowMiniPrompt) => {
@@ -129,19 +129,28 @@ export class AutoPromptManager {
           autoPromptType: params.autoPromptType,
           callback: params.displayForLockedContentFn,
         });
-      }, (autoPromptConfig?.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
+      }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
     });
   }
 
   /**
    * Determines whether a mini prompt for contributions or subscriptions should
    * be shown.
-   * @param {!../model/auto-prompt-config.AutoPromptConfig|undefined} autoPromptConfig
+   * @param {!../model/client-config.ClientConfig|undefined} clientConfig
    * @param {!../api/entitlements.Entitlements} entitlements
    * @param {!AutoPromptType|undefined} autoPromptType
    * @returns {!Promise<boolean>}
    */
-  shouldShowMiniPrompt_(autoPromptConfig, entitlements, autoPromptType) {
+  shouldShowMiniPrompt_(clientConfig, entitlements, autoPromptType) {
+    // If false publication predicate was returned in the response, don't show
+    // the prompt.
+    if (
+      clientConfig.uiPredicates &&
+      !clientConfig.uiPredicates.canDisplayAutoPrompt
+    ) {
+      return Promise.resolve(false);
+    }
+
     // If the mini auto prompt type is not supported, don't show the prompt.
     if (
       autoPromptType === undefined ||
@@ -167,8 +176,14 @@ export class AutoPromptManager {
 
     // If no mini auto prompt config was returned in the response, don't show
     // the prompt.
-    if (autoPromptConfig === undefined) {
+    let autoPromptConfig = undefined;
+    if (
+      clientConfig === undefined ||
+      clientConfig.autoPromptConfig === undefined
+    ) {
       return Promise.resolve(false);
+    } else {
+      autoPromptConfig = clientConfig.autoPromptConfig;
     }
 
     // Fetched config returned no maximum cap.
