@@ -599,7 +599,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getClientConfig')
       .returns(Promise.resolve(clientConfig))
       .once();
-    miniPromptApiMock.expects('create').once();
+    miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.SUBSCRIPTION,
