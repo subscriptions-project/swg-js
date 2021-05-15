@@ -664,9 +664,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(entitlements))
       .once();
 
-    const autoPromptConfig = new AutoPromptConfig(
-
-    );
+    const autoPromptConfig = new AutoPromptConfig();
     const uiPredicates = new UiPredicates(
       /* canDisplayAutoPrompt */ false,
       /* canDisplayButton */ true
