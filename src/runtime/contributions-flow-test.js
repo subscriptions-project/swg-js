@@ -17,6 +17,7 @@
 import {ActivityPort} from '../components/activities';
 import {
   AlreadySubscribedResponse,
+  EntitlementsResponse,
   SkuSelectedResponse,
 } from '../proto/api_messages';
 import {ClientConfig} from '../model/client-config';
@@ -104,6 +105,44 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       )
       .resolves(port);
     await contributionsFlow.start();
+  });
+
+  it('should send an empty EntitlementsResponse to show "no contriubtion found" toast on Activity iFrame view', async () => {
+    contributionsFlow = new ContributionsFlow(runtime, {
+      skus: ['sku1', 'sku2'],
+    });
+
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          'productType': ProductType.UI_CONTRIBUTION,
+          list: 'default',
+          skus: ['sku1', 'sku2'],
+          isClosable: true,
+          supportsEventManager: true,
+        }
+      )
+      .resolves(port);
+    // ContributionsFlow needs to start first in order to have a valid ActivityIframeView
+    await contributionsFlow.start();
+
+    const activityIframeView =
+      await contributionsFlow.activityIframeViewPromise_;
+    const activityIframeViewMock = sandbox.mock(activityIframeView);
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(new EntitlementsResponse())
+      .once();
+
+    await contributionsFlow.showNoEntitlementFoundToast();
+
+    activityIframeViewMock.verify();
   });
 
   it('should have valid ContributionsFlow constructed, routed to the new contributions iframe', async () => {

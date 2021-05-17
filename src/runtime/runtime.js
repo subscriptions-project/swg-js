@@ -592,6 +592,9 @@ export class ConfiguredRuntime {
     /** @private {?OffersFlow} */
     this.lastOffersFlow_ = null;
 
+    /** @private {?ContributionsFlow} */
+    this.lastContributionsFlow_ = null;
+
     // Start listening to Google Analytics events, if applicable.
     if (integr.enableGoogleAnalytics) {
       /** @private @const {!GoogleAnalyticsEventListener} */
@@ -897,9 +900,17 @@ export class ConfiguredRuntime {
   /** @override */
   showContributionOptions(options) {
     return this.documentParsed_.then(() => {
-      const flow = new ContributionsFlow(this, options);
-      return flow.start();
+      this.lastContributionsFlow_ = new ContributionsFlow(this, options);
+      return this.lastContributionsFlow_.start();
     });
+  }
+
+  /**
+   * Get the last contribution offers flow.
+   * @return {?ContributionsFlow}
+   */
+  getLastContributionsFlow() {
+    return this.lastContributionsFlow_;
   }
 
   /** @override */
@@ -1075,7 +1086,7 @@ export class ConfiguredRuntime {
   }
 
   /**
-   * Get the last offers flow.
+   * Get the last subscription offers flow.
    * @return {?OffersFlow}
    */
   getLastOffersFlow() {

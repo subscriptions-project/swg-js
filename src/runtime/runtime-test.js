@@ -1946,10 +1946,19 @@ subscribe() method'
     });
 
     it('should return the last OffersFlow', async () => {
-      // Show offers first in order to get an OffersFlow
+      // Show subscription offers first in order to get an OffersFlow
       runtime.showOffers();
 
       expect(runtime.getLastOffersFlow()).to.equal(runtime.lastOffersFlow_);
+    });
+
+    it('should return the last OffersFlow', async () => {
+      // Show contribution offers first in order to get a ContributionsFlow
+      runtime.showContributionOptions();
+
+      expect(runtime.getLastContributionsFlow()).to.equal(
+        runtime.lastContributionsFlow_
+      );
     });
 
     describe('setShowcaseEntitlement', () => {
