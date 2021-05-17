@@ -465,6 +465,7 @@ export class ConfiguredBasicRuntime {
           this.configuredClassicRuntime_.getLastOffersFlow();
         if (lastOffersFlow) {
           lastOffersFlow.showNoEntitlementFoundToast();
+          return;
         }
 
         const lastContributionsFlow =
