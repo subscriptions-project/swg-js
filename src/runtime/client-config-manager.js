@@ -118,7 +118,7 @@ export class ClientConfigManager {
     // UI predicates decides whether to enable button.
     return this.responsePromise_.then((clientConfig) => {
       if (
-        clientConfig.uiPredicates &&
+        clientConfig.uiPredicates?.canDisplayButton
         clientConfig.uiPredicates.canDisplayButton
       ) {
         return true;
