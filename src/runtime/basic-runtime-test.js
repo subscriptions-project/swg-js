@@ -249,11 +249,13 @@ describes.realWin('BasicRuntime', {}, (env) => {
         clientOptions: {
           theme: ClientTheme.DARK,
           lang: 'fr',
+          disableButton: false,
         },
       });
       expect(basicRuntime.clientOptions_).to.deep.equal({
         theme: ClientTheme.DARK,
         lang: 'fr',
+        disableButton: false,
       });
     });
   });
@@ -262,12 +264,16 @@ describes.realWin('BasicRuntime', {}, (env) => {
     let pageConfig;
     let configuredBasicRuntime;
     let configuredBasicRuntimeMock;
+    let clientConfigManagerMock;
     let configuredClassicRuntimeMock;
 
     beforeEach(() => {
       pageConfig = new PageConfig('pub1');
       configuredBasicRuntime = new ConfiguredBasicRuntime(doc, pageConfig);
       configuredBasicRuntimeMock = sandbox.mock(configuredBasicRuntime);
+      clientConfigManagerMock = sandbox.mock(
+        configuredBasicRuntime.clientConfigManager()
+      );
       configuredClassicRuntimeMock = sandbox.mock(
         configuredBasicRuntime.configuredClassicRuntime()
       );
@@ -280,6 +286,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     afterEach(() => {
       configuredBasicRuntimeMock.verify();
       configuredClassicRuntimeMock.verify();
+      clientConfigManagerMock.verify();
     });
 
     it('should create a SwG classic ConfiguredRuntime', async () => {
@@ -419,7 +426,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
       await basicRuntime.dismissSwgUI();
     });
 
-    it('should call attach on all buttons with the correct attribute', async () => {
+    it('should call attach on all buttons with the correct attribute if buttons should be enable', async () => {
       // Set up buttons on the doc.
       const subscriptionButton = createElement(doc.getRootNode(), 'button', {
         'swg-standard-button': 'subscription',
@@ -429,6 +436,45 @@ describes.realWin('BasicRuntime', {}, (env) => {
       });
       doc.getBody().appendChild(subscriptionButton);
       doc.getBody().appendChild(contributionButton);
+
+      clientConfigManagerMock
+        .expects('shouldEnableButton')
+        .returns(Promise.resolve(true))
+        .once();
+
+      await basicRuntime.setupButtons();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: true,
+        })
+        .once();
+      await subscriptionButton.click();
+
+      configuredClassicRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs({
+          isClosable: true,
+        })
+        .once();
+      await contributionButton.click();
+    });
+
+    it('should not call attach on all buttons if buttons should be disabled', async () => {
+      // Set up buttons on the doc.
+      const subscriptionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'subscription',
+      });
+      const contributionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'contribution',
+      });
+      doc.getBody().appendChild(subscriptionButton);
+      doc.getBody().appendChild(contributionButton);
+
+      clientConfigManagerMock
+        .expects('shouldEnableButton')
+        .returns(Promise.resolve(false))
+        .once();
 
       await basicRuntime.setupButtons();
       configuredClassicRuntimeMock
@@ -460,6 +506,11 @@ describes.realWin('BasicRuntime', {}, (env) => {
       });
       doc.getBody().appendChild(subscriptionButton);
       doc.getBody().appendChild(contributionButton);
+
+      clientConfigManagerMock
+        .expects('shouldEnableButton')
+        .returns(Promise.resolve(true))
+        .once();
 
       await basicRuntime.setupButtons();
       configuredClassicRuntimeMock
