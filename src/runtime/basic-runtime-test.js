@@ -30,6 +30,7 @@ import {
   getBasicRuntime,
   installBasicRuntime,
 } from './basic-runtime';
+import {ContributionsFlow} from './contributions-flow';
 import {Entitlements} from '../api/entitlements';
 import {GlobalDoc} from '../model/doc';
 import {OffersFlow} from './offers-flow';
@@ -780,7 +781,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       storageMock.verify();
     });
 
-    it('should handle an empty EntitlementsResponse', async () => {
+    it('should handle an empty EntitlementsResponse from subscription offers flow', async () => {
       const port = new ActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
@@ -807,6 +808,35 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .once();
       await configuredBasicRuntime.entitlementsResponseHandler(port);
       offersFlowMock.verify();
+    });
+
+    it('should handle an empty EntitlementsResponse from contributions flow', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {}; // no data
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      const contributionsFlow = new ContributionsFlow(configuredBasicRuntime, {
+        skus: ['sku1', 'sku2'],
+      });
+      configuredClassicRuntimeMock
+        .expects('getLastContributionsFlow')
+        .withExactArgs()
+        .returns(contributionsFlow)
+        .once();
+
+      const contributionsFlowMock = sandbox.mock(contributionsFlow);
+      contributionsFlowMock
+        .expects('showNoEntitlementFoundToast')
+        .withExactArgs()
+        .once();
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+      contributionsFlowMock.verify();
     });
   });
 });

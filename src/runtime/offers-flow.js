@@ -243,7 +243,7 @@ export class OffersFlow {
   }
 
   /**
-   * Shows "no subscription/contribution found" on activity iFrame view.
+   * Shows "no subscription found" on activity iFrame view.
    */
   showNoEntitlementFoundToast() {
     if (this.activityIframeView_) {

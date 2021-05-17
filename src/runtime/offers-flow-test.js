@@ -356,7 +356,7 @@ describes.realWin('OffersFlow', {}, (env) => {
     messageCallback(response);
   });
 
-  it('should send an empty EntitlementsResponse to show "no subscription/contriubtion found" toast on Activity iFrame view', async () => {
+  it('should send an empty EntitlementsResponse to show "no subscription found" toast on Activity iFrame view', async () => {
     offersFlow = new OffersFlow(runtime, {skus: ['sku1', 'sku2']});
     activitiesMock
       .expects('openIframe')

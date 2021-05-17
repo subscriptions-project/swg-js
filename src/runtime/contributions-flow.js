@@ -17,6 +17,7 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
+  EntitlementsResponse,
   SkuSelectedResponse,
 } from '../proto/api_messages';
 import {PayStartFlow} from './pay-flow';
@@ -49,6 +50,8 @@ export class ContributionsFlow {
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
+
+    this.activityIframeView_ = null;
 
     const isClosable = (options && options.isClosable) || true;
 
@@ -127,8 +130,8 @@ export class ContributionsFlow {
         this.handleLinkRequest_.bind(this)
       );
       activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
-
-      return this.dialogManager_.openView(activityIframeView);
+      this.activityIframeView_ = activityIframeView;
+      return this.dialogManager_.openView(this.activityIframeView_);
     });
   }
 
@@ -145,5 +148,14 @@ export class ContributionsFlow {
         return '/contributionsiframe';
       }
     });
+  }
+
+  /**
+   * Shows "no contribution found" on activity iFrame view.
+   */
+  showNoEntitlementFoundToast() {
+    if (this.activityIframeView_) {
+      this.activityIframeView_.execute(new EntitlementsResponse());
+    }
   }
 }

@@ -466,6 +466,12 @@ export class ConfiguredBasicRuntime {
         if (lastOffersFlow) {
           lastOffersFlow.showNoEntitlementFoundToast();
         }
+
+        const lastContributionsFlow =
+          this.configuredClassicRuntime_.getLastContributionsFlow();
+        if (lastContributionsFlow) {
+          lastContributionsFlow.showNoEntitlementFoundToast();
+        }
       }
     });
   }
