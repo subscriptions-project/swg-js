@@ -472,6 +472,7 @@ export class ConfiguredBasicRuntime {
           this.configuredClassicRuntime_.getLastContributionsFlow();
         if (lastContributionsFlow) {
           lastContributionsFlow.showNoEntitlementFoundToast();
+          return;
         }
       }
     });
