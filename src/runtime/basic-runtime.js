@@ -499,26 +499,34 @@ export class ConfiguredBasicRuntime {
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
   setupButtons() {
-    this.buttonApi_.attachButtonsWithAttribute(
-      BUTTON_ATTRIUBUTE,
-      [ButtonAttributeValues.SUBSCRIPTION, ButtonAttributeValues.CONTRIBUTION],
-      {
-        theme: this.clientConfigManager().getTheme(),
-        lang: this.clientConfigManager().getLanguage(),
-      },
-      {
-        [ButtonAttributeValues.SUBSCRIPTION]: () => {
-          this.configuredClassicRuntime_.showOffers({
-            isClosable: !this.pageConfig().isLocked(),
-          });
-        },
-        [ButtonAttributeValues.CONTRIBUTION]: () => {
-          this.configuredClassicRuntime_.showContributionOptions({
-            isClosable: !this.pageConfig().isLocked(),
-          });
-        },
-      }
-    );
+    this.clientConfigManager()
+      .shouldEnableButton()
+      .then((enable) => {
+        this.buttonApi_.attachButtonsWithAttribute(
+          BUTTON_ATTRIUBUTE,
+          [
+            ButtonAttributeValues.SUBSCRIPTION,
+            ButtonAttributeValues.CONTRIBUTION,
+          ],
+          {
+            theme: this.clientConfigManager().getTheme(),
+            lang: this.clientConfigManager().getLanguage(),
+            enable,
+          },
+          {
+            [ButtonAttributeValues.SUBSCRIPTION]: () => {
+              this.configuredClassicRuntime_.showOffers({
+                isClosable: !this.pageConfig().isLocked(),
+              });
+            },
+            [ButtonAttributeValues.CONTRIBUTION]: () => {
+              this.configuredClassicRuntime_.showContributionOptions({
+                isClosable: !this.pageConfig().isLocked(),
+              });
+            },
+          }
+        );
+      });
   }
 }
 

@@ -168,6 +168,51 @@ describes.realWin('ClientConfigManager', {}, () => {
     expect(clientConfigManager.getLanguage()).to.equal('en');
   });
 
+  it('shouldEnableButton should return false if disableButton is set to be true in ClientOptions', async () => {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+      disableButton: true,
+    });
+
+    const shouldEnableButton = await clientConfigManager.shouldEnableButton();
+    expect(shouldEnableButton).to.equal(false);
+  });
+
+  it('shouldEnableButton should return true if ClientConfig has UI predicate canDisplayButton set to be true', async () => {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+      disableButton: false, // this will be ignored
+    });
+
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({
+        uiPredicates: {
+          canDisplayButton: true,
+        },
+      })
+      .once();
+
+    clientConfigManager.shouldEnableButton().then((data) => {
+      expect(data).to.equal.to.be.true;
+    });
+  });
+
+  it('shouldEnableButton should return undefined if ClientConfig has UI predicate canDisplayButton is not set', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({})
+      .once();
+
+    clientConfigManager.shouldEnableButton().then((data) => {
+      expect(data).to.equal.to.be.undefined;
+    });
+  });
+
   it('getClientConfig should have paySwgVersion after fetch', async () => {
     const expectedUrl =
       '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';

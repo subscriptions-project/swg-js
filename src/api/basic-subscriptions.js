@@ -100,10 +100,12 @@ export const AutoPromptType = {
  * Properties:
  * - lang: Sets the button and prompt lanugage. Default is "en".
  * - theme: "light" or "dark". Default is "light".
+ * - disableButton: whether to enable button.
  *
  * @typedef {{
  *   theme: (ClientTheme|undefined),
  *   lang: (string|undefined),
+ *   disableButton: (boolean|undefined),
  * }}
  */
 export let ClientOptions;

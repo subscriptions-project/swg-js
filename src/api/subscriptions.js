@@ -585,10 +585,12 @@ export let SaveSubscriptionRequestCallback;
  * Properties:
  * - lang: Sets the button SVG and title. Default is "en".
  * - theme: "light" or "dark". Default is "light".
+ * - disable: whether to grey out the button.
  *
  * @typedef {{
  *   theme: (string|undefined),
  *   lang: (string|undefined),
+ *   disable: (boolean|undefined),
  * }}
  */
 export let ButtonOptions;
