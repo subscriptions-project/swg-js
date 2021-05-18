@@ -168,8 +168,8 @@ export class ClientConfigManager {
     let uiPredicates = undefined;
     if (uiPredicatesJson) {
       uiPredicates = new UiPredicates(
-        uiPredicatesJson.canDisplayAutoPrompt,
-        uiPredicatesJson.canDisplayButton
+        uiPredicatesJson.canDisplayAutoPrompt || true,
+        uiPredicatesJson.canDisplayButton || true
       );
     }
 
