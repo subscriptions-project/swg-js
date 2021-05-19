@@ -22,10 +22,9 @@
 // Thanks!
 
 import {I18N_STRINGS} from '../i18n/strings';
-import {getLanguageCodeFromElement, msg} from './i18n';
-// eslint-disable-next-line no-unused-vars
-import {Subscriptions} from '../api/subscriptions';
+import {Subscriptions as SubscriptionsDef} from '../api/subscriptions';
 import {addQueryParam, parseQueryString} from './url';
+import {getLanguageCodeFromElement, msg} from './i18n';
 import {parseJson} from './json';
 import {setImportantStyles} from './style';
 import {warn} from './log';
@@ -454,8 +453,9 @@ export class GaaMeteringRegwall {
       const ldJson = /** @type {?{ publisher: ?{ name: string } }} */ (
         parseJson(ldJsonElement.textContent)
       );
-      if (ldJson?.publisher?.name) {
-        return ldJson.publisher.name;
+      const publisherName = ldJson?.publisher?.name;
+      if (publisherName) {
+        return publisherName;
       }
     }
 
@@ -472,11 +472,8 @@ export class GaaMeteringRegwall {
       .getElementById(PUBLISHER_SIGN_IN_BUTTON_ID)
       .addEventListener('click', (e) => {
         e.preventDefault();
-        (self.SWG = self.SWG || []).push((subscriptions) => {
-          /** @type {!Subscriptions} */ (subscriptions).triggerLoginRequest({
-            linkRequested: false,
-          });
-        });
+
+        callSwg((swg) => swg.triggerLoginRequest({linkRequested: false}));
       });
   }
 
@@ -687,6 +684,14 @@ function configureGoogleSignIn() {
           self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init()
       )
   );
+}
+
+/**
+ * Calls Swgjs.
+ * @param { function(!SubscriptionsDef) } callback
+ */
+function callSwg(callback) {
+  (self.SWG = self.SWG || []).push(callback);
 }
 
 export class GaaUtils {
