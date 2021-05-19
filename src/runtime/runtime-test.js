@@ -1975,7 +1975,7 @@ subscribe() method'
       );
     });
 
-    describe('setShowcaseEntitlement', () => {
+    describe('logShowcaseEvent', () => {
       const SECURE_PUB_URL = 'https://www.publisher.com';
       const UNSECURE_PUB_URL = 'http://www.publisher.com';
       const SECURE_GOOGLE_URL = 'https://www.google.com';
@@ -2002,17 +2002,17 @@ subscribe() method'
       });
 
       it('should log events', () => {
-        runtime.setShowcaseEntitlement({
-          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+        runtime.logShowcaseEvent({
+          event: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
         expect(logEventStub).callCount(2);
       });
 
-      it('should require entitlement', () => {
-        runtime.setShowcaseEntitlement({
-          entitlement: undefined,
+      it('should require event', () => {
+        runtime.logShowcaseEvent({
+          event: undefined,
           isUserRegistered: true,
         });
 
@@ -2023,8 +2023,8 @@ subscribe() method'
         // This location has no GAA params.
         win.location = parseUrl(SECURE_PUB_URL);
 
-        runtime.setShowcaseEntitlement({
-          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+        runtime.logShowcaseEvent({
+          event: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
@@ -2035,20 +2035,20 @@ subscribe() method'
         // This page is http.
         win.location = parseUrl(UNSECURE_PUB_URL + GAA_QUERY_STRING);
 
-        runtime.setShowcaseEntitlement({
-          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+        runtime.logShowcaseEvent({
+          event: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
         expect(logEventStub).callCount(0);
       });
 
-      it('should require secure Google referrer', () => {
+      it('should require secure referrer', () => {
         // This referrer is not https.
         win.document.referrer = parseUrl(UNSECURE_GOOGLE_URL);
 
-        runtime.setShowcaseEntitlement({
-          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+        runtime.logShowcaseEvent({
+          event: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
@@ -2059,12 +2059,35 @@ subscribe() method'
         // This referrer is not Google.
         win.document.referrer = parseUrl(SECURE_PUB_URL);
 
-        runtime.setShowcaseEntitlement({
-          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+        runtime.logShowcaseEvent({
+          event: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
         expect(logEventStub).callCount(0);
+      });
+    });
+
+    describe('setShowcaseEntitlement', () => {
+      let stub;
+
+      beforeEach(() => {
+        stub = sandbox.stub(runtime, 'logShowcaseEvent');
+      });
+
+      it('should defer to `logShowcaseEvent` method', () => {
+        const event = ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER;
+        const isUserRegistered = true;
+
+        runtime.setShowcaseEntitlement({
+          entitlement: event,
+          isUserRegistered,
+        });
+
+        expect(stub).to.be.calledWithExactly({
+          event,
+          isUserRegistered,
+        });
       });
     });
 
