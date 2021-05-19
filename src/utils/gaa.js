@@ -687,7 +687,7 @@ function configureGoogleSignIn() {
 }
 
 /**
- * Calls SwG's JavaScript API.
+ * Calls Swgjs.
  * @param { function(!SubscriptionsDef) } callback
  */
 function callSwg(callback) {
