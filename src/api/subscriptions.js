@@ -311,7 +311,7 @@ export class Subscriptions {
 
   /**
    * Logs a Showcase event with optional metadata.
-   * Showcase publishers log these events.
+   * Publishers log these events, when they participate in Showcase.
    * @param {!ShowcaseEventWithMetadata} event
    */
   logShowcaseEvent(event) {}
@@ -319,7 +319,7 @@ export class Subscriptions {
   /**
    * DEPRECATED
    * Logs a Showcase event with optional metadata.
-   * Showcase publishers log these events.
+   * Publishers log these events, when they participate in Showcase.
    * @deprecated
    * @param {!DeprecatedShowcaseEventWithMetadata} event
    * @return {!Promise}
