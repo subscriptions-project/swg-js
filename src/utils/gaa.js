@@ -380,9 +380,9 @@ export class GaaMeteringRegwall {
     // Tell the iframe which language to render.
     iframeUrl = addQueryParam(iframeUrl, 'lang', languageCode);
 
-    const containerEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
-      'div'
-    ));
+    const containerEl = /** @type {!HTMLDivElement} */ (
+      self.document.createElement('div')
+    );
     containerEl.id = REGWALL_CONTAINER_ID;
     setImportantStyles(containerEl, {
       'all': 'unset',
@@ -450,9 +450,9 @@ export class GaaMeteringRegwall {
 
     for (let i = 0; i < ldJsonElements.length; i++) {
       const ldJsonElement = ldJsonElements[i];
-      const ldJson = /** @type {?{ publisher: ?{ name: string } }} */ (parseJson(
-        ldJsonElement.textContent
-      ));
+      const ldJson = /** @type {?{ publisher: ?{ name: string } }} */ (
+        parseJson(ldJsonElement.textContent)
+      );
       const publisherName = ldJson?.publisher?.name;
       if (publisherName) {
         return publisherName;
@@ -512,9 +512,9 @@ export class GaaMeteringRegwall {
     // Introduce this window to the publisher's Google Sign-In iframe.
     // This lets the iframe send post messages back to this window.
     // Without the introduction, the iframe wouldn't have a reference to this window.
-    const googleSignInIframe = /** @type {!HTMLIFrameElement} */ (self.document.getElementById(
-      GOOGLE_SIGN_IN_IFRAME_ID
-    ));
+    const googleSignInIframe = /** @type {!HTMLIFrameElement} */ (
+      self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID)
+    );
     googleSignInIframe.onload = () => {
       googleSignInIframe.contentWindow.postMessage(
         {
@@ -628,7 +628,9 @@ export class GaaGoogleSignInButton {
       )
       .then((googleUser) => {
         // Gather GAA user details.
-        const basicProfile = /** @type {!GoogleUserDef} */ (googleUser).getBasicProfile();
+        const basicProfile = /** @type {!GoogleUserDef} */ (
+          googleUser
+        ).getBasicProfile();
         /** @type {!GaaUserDef} */
         const gaaUser = {
           idToken: /** @type {!GoogleUserDef} */ (googleUser).getAuthResponse()
