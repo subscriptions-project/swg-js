@@ -924,6 +924,21 @@ describes.realWin('Runtime', {}, (env) => {
       expect(propensityModule).to.equal(propensity);
     });
 
+    it('should delegate "logShowcaseEvent"', async () => {
+      const event = {
+        event: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
+        isUserRegistered: true,
+        isFromUserAction: true,
+      };
+      configuredRuntimeMock
+        .expects('logShowcaseEvent')
+        .withExactArgs(event)
+        .once();
+
+      await runtime.logShowcaseEvent(event);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
     it('should delegate "setShowcaseEntitlement"', async () => {
       const entitlement = {
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
