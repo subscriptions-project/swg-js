@@ -317,6 +317,7 @@ export class Subscriptions {
   logShowcaseEvent(event) {}
 
   /**
+   * DEPRECATED
    * Logs a Showcase event with optional metadata.
    * Showcase publishers log these events.
    * @deprecated
