@@ -373,8 +373,8 @@ export const ShowcaseEvent = {
  * Showcase publishers log these events with optional metadata.
  * @typedef {{
  *   event: !ShowcaseEvent,
- *   isUserRegistered: boolean=,
- *   isFromUserAction: boolean=,
+ *   isUserRegistered: (boolean|undefined),
+ *   isFromUserAction: (boolean|undefined),
  * }}
  */
 export let ShowcaseEventWithMetadata;
@@ -384,7 +384,7 @@ export let ShowcaseEventWithMetadata;
  * Showcase publishers log these events with optional metadata.
  * @typedef {{
  *   entitlement: !ShowcaseEvent,
- *   isUserRegistered: boolean=,
+ *   isUserRegistered: (boolean|undefined),
  * }}
  */
 export let DeprecatedShowcaseEventWithMetadata;

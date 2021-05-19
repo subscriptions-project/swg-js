@@ -510,9 +510,7 @@ export class Runtime {
 
   /** @override */
   logShowcaseEvent(event) {
-    return this.configured_(true).then((runtime) =>
-      runtime.logShowcaseEvent(event)
-    );
+    this.configured_(true).then((runtime) => runtime.logShowcaseEvent(event));
   }
 
   /** @override */
@@ -1121,7 +1119,7 @@ export class ConfiguredRuntime {
       !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
       !queryStringHasFreshGaaParams(this.win().location.search)
     ) {
-      return Promise.resolve();
+      return;
     }
 
     // Determine analytics events and additional params.
