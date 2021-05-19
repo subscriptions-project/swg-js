@@ -310,13 +310,20 @@ export class Subscriptions {
   getEventManager() {}
 
   /**
-   * Publishers participating in Showcase should call this with their own entitlements
-   * and entitlement related UI events.  SwG will automatically do this for Google
-   * sourced subscriptions and meters.
-   * @param {!PublisherEntitlement} entitlement
-   * @return {?}
+   * Logs a Showcase event with optional metadata.
+   * Showcase publishers log these events with optional metadata.
+   * @param {!ShowcaseEventWithMetadata} event
    */
-  setShowcaseEntitlement(entitlement) {}
+  logShowcaseEvent(event) {}
+
+  /**
+   * Logs a Showcase event with optional metadata.
+   * Showcase publishers log these events with optional metadata.
+   * @deprecated
+   * @param {!DeprecatedShowcaseEventWithMetadata} event
+   * @return {!Promise}
+   */
+  setShowcaseEntitlement(event) {}
 
   /**
    * Publishers, who both (1) participate in Showcase and (2) use server-side paywalls,
@@ -341,7 +348,7 @@ export class Subscriptions {
 /* eslint-enable no-unused-vars */
 
 /** @enum {string} */
-export const PublisherEntitlementEvent = {
+export const ShowcaseEvent = {
   // Events indicating content could potentially be unlocked
   EVENT_SHOWCASE_METER_OFFERED: 'EVENT_SHOWCASE_METER_OFFERED', // This event is only required if the user can choose not to use a publisher meter
 
@@ -362,17 +369,24 @@ export const PublisherEntitlementEvent = {
 };
 
 /**
- * PublisherEntitlement
- *   In order to participate in News Showcase, publishers must report information about their entitlements.
- * Properties:
- * - isUserRegistered: Is the user registered currently?
- * - entitlement: Publisher entitlement event type.
- *  @typedef {{
- *    isUserRegistered:  !boolean,
- *    entitlement: !PublisherEntitlementEvent,
+ * Showcase publishers log these events with optional metadata.
+ * @typedef {{
+ *   event: !ShowcaseEvent,
+ *   isUserRegistered: boolean=,
+ *   isFromUserAction: boolean=,
  * }}
  */
-export let PublisherEntitlement;
+export let ShowcaseEventWithMetadata;
+
+/**
+ * DEPRECATED
+ * Showcase publishers log these events with optional metadata.
+ * @typedef {{
+ *   entitlement: !ShowcaseEvent,
+ *   isUserRegistered: boolean=,
+ * }}
+ */
+export let DeprecatedShowcaseEventWithMetadata;
 
 /** @enum {string} */
 export const SubscriptionFlows = {

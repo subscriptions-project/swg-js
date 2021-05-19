@@ -71,9 +71,9 @@ import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {isSecure, wasReferredByGoogle} from '../utils/url';
 import {parseUrl} from '../utils/url';
-import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
 import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {setExperiment} from './experiments';
+import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
 import {warn} from '../utils/log';
 
 const RUNTIME_PROP = 'SWG';
@@ -505,6 +505,13 @@ export class Runtime {
   setShowcaseEntitlement(entitlement) {
     return this.configured_(true).then((runtime) =>
       runtime.setShowcaseEntitlement(entitlement)
+    );
+  }
+
+  /** @override */
+  logShowcaseEvent(event) {
+    return this.configured_(true).then((runtime) =>
+      runtime.logShowcaseEvent(event)
     );
   }
 
@@ -1106,9 +1113,10 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  setShowcaseEntitlement(entitlement) {
+  logShowcaseEvent({event, isUserRegistered, isFromUserAction = false}) {
+    // Check event and context.
     if (
-      !entitlement ||
+      !event ||
       !isSecure(this.win().location) ||
       !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
       !queryStringHasFreshGaaParams(this.win().location.search)
@@ -1116,19 +1124,29 @@ export class ConfiguredRuntime {
       return Promise.resolve();
     }
 
-    const eventsToLog =
-      publisherEntitlementEventToAnalyticsEvents(entitlement.entitlement) || [];
-    const params = new EventParams();
-    params.setIsUserRegistered(entitlement.isUserRegistered);
-
-    for (let i = 0; i < eventsToLog.length; i++) {
-      this.eventManager().logEvent({
-        eventType: eventsToLog[i],
-        eventOriginator: EventOriginator.SHOWCASE_CLIENT,
-        isFromUserAction: false,
-        additionalParameters: params,
-      });
+    // Determine analytics events and additional params.
+    const eventTypes = showcaseEventToAnalyticsEvents(event) || [];
+    const additionalParameters = new EventParams();
+    if (typeof isUserRegistered !== 'undefined') {
+      additionalParameters.setIsUserRegistered(isUserRegistered);
     }
+
+    // Log events.
+    const eventOriginator = EventOriginator.SHOWCASE_CLIENT;
+    eventTypes.forEach((eventType) => {
+      this.eventManager().logEvent({
+        eventType,
+        eventOriginator,
+        isFromUserAction,
+        additionalParameters,
+      });
+    });
+  }
+
+  /** @override */
+  setShowcaseEntitlement({entitlement, isUserRegistered}) {
+    const event = entitlement;
+    this.logShowcaseEvent({event, isUserRegistered});
 
     return Promise.resolve();
   }
@@ -1193,6 +1211,7 @@ function createPublicRuntime(runtime) {
     getLogger: runtime.getLogger.bind(runtime),
     getEventManager: runtime.getEventManager.bind(runtime),
     setShowcaseEntitlement: runtime.setShowcaseEntitlement.bind(runtime),
+    logShowcaseEvent: runtime.logShowcaseEvent.bind(runtime),
     consumeShowcaseEntitlementJwt:
       runtime.consumeShowcaseEntitlementJwt.bind(runtime),
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
