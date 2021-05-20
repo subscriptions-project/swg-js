@@ -71,9 +71,9 @@ import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {isSecure, wasReferredByGoogle} from '../utils/url';
 import {parseUrl} from '../utils/url';
-import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
 import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {setExperiment} from './experiments';
+import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
 import {warn} from '../utils/log';
 
 const RUNTIME_PROP = 'SWG';
@@ -1117,7 +1117,7 @@ export class ConfiguredRuntime {
     }
 
     const eventsToLog =
-      publisherEntitlementEventToAnalyticsEvents(entitlement.entitlement) || [];
+      showcaseEventToAnalyticsEvents(entitlement.entitlement) || [];
     const params = new EventParams();
     params.setIsUserRegistered(entitlement.isUserRegistered);
 
