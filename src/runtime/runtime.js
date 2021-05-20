@@ -1111,7 +1111,16 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  logShowcaseEvent({event, isUserRegistered, isFromUserAction = false}) {
+  logShowcaseEvent({
+    // Which Showcase event to log.
+    event,
+    // Whether the user was registered when the event happened.
+    isUserRegistered = undefined,
+    // Whether a user action triggered the event. (ex: click)
+    isFromUserAction = false,
+    // Which codebase sent the event.
+    eventOriginator = EventOriginator.SHOWCASE_CLIENT,
+  }) {
     // Check event and context.
     if (
       !event ||
@@ -1130,7 +1139,6 @@ export class ConfiguredRuntime {
     }
 
     // Log events.
-    const eventOriginator = EventOriginator.SHOWCASE_CLIENT;
     eventTypes.forEach((eventType) => {
       this.eventManager().logEvent({
         eventType,
