@@ -320,6 +320,20 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Remove Regwall from DOM.
       expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
+
+    it('logs Showcase event', async () => {
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      // GAA JS should call SwG's triggerLoginRequest API.
+      expect(self.SWG.push).to.be.called;
+      const logEventFake = sandbox.fake();
+      const subscriptionsMock = {
+        getEventManager: () => Promise.resolve({logEvent: logEventFake}),
+      };
+      self.SWG.push.callback(subscriptionsMock);
+      await tick();
+      expect(logEventFake).to.have.been.calledThrice;
+    });
   });
 
   describe('signOut', () => {
