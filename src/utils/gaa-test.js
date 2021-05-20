@@ -332,26 +332,19 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       };
       self.SWG.push.callback(subscriptionsMock);
       await tick();
-      expect(logEvent).to.have.been.calledWithExactly([
-        {
-          eventType: 3009,
+
+      // Swgjs should have logged these analytics events.
+      const eventTypes = [3009, 22, 23];
+      expect(logEvent).to.have.callCount(eventTypes.length);
+      for (let i = 0; i < eventTypes.length; i++) {
+        const eventType = eventTypes[i];
+        expect(logEvent.getCall(i)).to.be.calledWithExactly({
+          eventType,
           eventOriginator: 1,
           isFromUserAction: null,
           additionalParameters: null,
-        },
-        {
-          eventType: 22,
-          eventOriginator: 1,
-          isFromUserAction: null,
-          additionalParameters: null,
-        },
-        {
-          eventType: 23,
-          eventOriginator: 1,
-          isFromUserAction: null,
-          additionalParameters: null,
-        },
-      ]);
+        });
+      }
     });
   });
 
