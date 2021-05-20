@@ -1118,7 +1118,7 @@ export class ConfiguredRuntime {
     isUserRegistered = undefined,
     // Whether a user action triggered the event. (ex: click)
     isFromUserAction = false,
-    // Which codebase sent the event.
+    // Which codebase sent the event. (ex: publisher or SwG)
     eventOriginator = EventOriginator.SHOWCASE_CLIENT,
   }) {
     // Check event and context.

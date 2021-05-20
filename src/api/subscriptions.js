@@ -20,6 +20,7 @@ import {
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
 import {Entitlements as EntitlementsDef} from './entitlements';
+import {EventOriginator as EventOriginatorDef} from '../proto/api_messages';
 import {LoggerApi as LoggerApiDef} from './logger-api';
 import {Offer as OfferDef} from './offer';
 import {PropensityApi as PropensityApiDef} from './propensity-api';
@@ -371,10 +372,17 @@ export const ShowcaseEvent = {
 
 /**
  * Showcase publishers log these events with optional metadata.
+ *
+ * Properties:
+ * - event: Required. Which Showcase event to log.
+ * - isUserRegistered: Optional. Whether the user was registered when the event happened.
+ * - isFromUserAction: Optional. Whether a user action triggered the event. (ex: click)
+ * - eventOriginator: Optional. Which codebase sent the event. (ex: publisher or SwG)
  * @typedef {{
  *   event: !ShowcaseEvent,
  *   isUserRegistered: (boolean|undefined),
  *   isFromUserAction: (boolean|undefined),
+ *   eventOriginator: (!EventOriginatorDef|undefined),
  * }}
  */
 export let ShowcaseEventWithMetadata;
