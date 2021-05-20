@@ -324,15 +324,34 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('logs Showcase event', async () => {
       GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
-      // GAA JS should call SwG's triggerLoginRequest API.
+      // Swgjs should log three events.
       expect(self.SWG.push).to.be.called;
-      const logEventFake = sandbox.fake();
+      const logEvent = sandbox.fake();
       const subscriptionsMock = {
-        getEventManager: () => Promise.resolve({logEvent: logEventFake}),
+        getEventManager: () => Promise.resolve({logEvent}),
       };
       self.SWG.push.callback(subscriptionsMock);
       await tick();
-      expect(logEventFake).to.have.been.calledThrice;
+      expect(logEvent).to.have.been.calledWithExactly([
+        {
+          eventType: 3009,
+          eventOriginator: 1,
+          isFromUserAction: null,
+          additionalParameters: null,
+        },
+        {
+          eventType: 22,
+          eventOriginator: 1,
+          isFromUserAction: null,
+          additionalParameters: null,
+        },
+        {
+          eventType: 23,
+          eventOriginator: 1,
+          isFromUserAction: null,
+          additionalParameters: null,
+        },
+      ]);
     });
   });
 
