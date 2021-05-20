@@ -1150,7 +1150,7 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  setShowcaseEntitlement({entitlement, isUserRegistered}) {
+  setShowcaseEntitlement({entitlement, isUserRegistered = false}) {
     const event = entitlement;
     this.logShowcaseEvent({event, isUserRegistered});
 
