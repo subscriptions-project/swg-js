@@ -390,6 +390,10 @@ export let ShowcaseEventWithMetadata;
 /**
  * DEPRECATED
  * Showcase publishers log these events with optional metadata.
+ *
+ * Properties:
+ * - event: Required. Which Showcase event to log.
+ * - isUserRegistered: Optional. Whether the user was registered when the event happened.
  * @typedef {{
  *   entitlement: !ShowcaseEvent,
  *   isUserRegistered: (boolean|undefined),
