@@ -717,6 +717,8 @@ function logEvent(showcaseEvent) {
         eventManager.logEvent({
           eventType,
           eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
         });
       });
     });
