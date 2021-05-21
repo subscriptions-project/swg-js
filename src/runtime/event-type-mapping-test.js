@@ -21,14 +21,11 @@ import {
   analyticsEventToEntitlementResult,
   analyticsEventToGoogleAnalyticsEvent,
   analyticsEventToPublisherEvent,
-  publisherEntitlementEventToAnalyticsEvents,
   publisherEventToAnalyticsEvent,
+  showcaseEventToAnalyticsEvents,
 } from './event-type-mapping';
 import {Event} from '../api/propensity-api';
-import {
-  PublisherEntitlementEvent,
-  SubscriptionFlows,
-} from '../api/subscriptions';
+import {ShowcaseEvent, SubscriptionFlows} from '../api/subscriptions';
 
 describes.realWin('Logger and Propensity events', {}, () => {
   it('propensity to analytics to propensity should be identical', () => {
@@ -73,11 +70,11 @@ describes.realWin('Logger and Propensity events', {}, () => {
   });
 });
 
-describes.realWin('publisherEntitlementEventToAnalyticsEvents', {}, () => {
+describes.realWin('showcaseEventToAnalyticsEvents', {}, () => {
   it('all types mapped', () => {
-    for (const publisherEvent in PublisherEntitlementEvent) {
-      const converted = publisherEntitlementEventToAnalyticsEvents(
-        PublisherEntitlementEvent[publisherEvent]
+    for (const publisherEvent in ShowcaseEvent) {
+      const converted = showcaseEventToAnalyticsEvents(
+        ShowcaseEvent[publisherEvent]
       );
       expect(converted && converted.length > 0).to.be.true;
       for (let x = 0; x < converted.length; x++) {
