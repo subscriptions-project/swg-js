@@ -206,14 +206,12 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       });
     });
 
-    it('throws if article metadata lacks a publisher name', () => {
+    it('rejects promise if article metadata lacks a publisher name', async () => {
       script.text = '{}';
-      const showingRegwall = () =>
-        GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
-      expect(showingRegwall).throws(
-        'Article needs JSON-LD with a publisher name.'
-      );
+      await expect(
+        GaaMeteringRegwall.show({iframeUrl: IFRAME_URL})
+      ).to.be.rejectedWith('Article needs JSON-LD with a publisher name.');
     });
 
     it('returns GAA User', async () => {

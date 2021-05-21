@@ -330,29 +330,28 @@ export class GaaMeteringRegwall {
    * @param {{ iframeUrl: string }} params
    * @return {!Promise<!GaaUserDef>}
    */
-  static show({iframeUrl}) {
+  static async show({iframeUrl}) {
     const queryString = GaaUtils.getQueryString();
     if (!queryStringHasFreshGaaParams(queryString)) {
       const errorMessage =
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
       warn(errorMessage);
-      return Promise.reject(errorMessage);
+      throw new Error(errorMessage);
     }
 
     GaaMeteringRegwall.render_({iframeUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
-    return GaaMeteringRegwall.getGaaUser_()
-      .then((gaaUser) => {
-        GaaMeteringRegwall.remove_();
-        return gaaUser;
-      })
-      .catch((err) => {
-        // Close the Regwall, since the flow failed.
-        GaaMeteringRegwall.remove_();
+    try {
+      const gaaUser = await GaaMeteringRegwall.getGaaUser_();
+      GaaMeteringRegwall.remove_();
+      return gaaUser;
+    } catch (err) {
+      // Close the Regwall, since the flow failed.
+      GaaMeteringRegwall.remove_();
 
-        // Rethrow error.
-        throw err;
-      });
+      // Rethrow error.
+      throw err;
+    }
   }
 
   /**
@@ -481,7 +480,7 @@ export class GaaMeteringRegwall {
    * Returns the GAA user, after the user signs in.
    * @private
    * @nocollapse
-   * @return {!Promise<!GoogleUserDef>}
+   * @return {!Promise<!GaaUserDef>}
    */
   static getGaaUser_() {
     // Listen for GAA user.
