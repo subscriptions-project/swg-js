@@ -26,13 +26,13 @@
     "export-to-amp": "gulp export-to-amp"
   },
   "dependencies": {
-    "@babel/plugin-transform-runtime": "^7.14.3",
     "promise-pjs": "1.1.5",
     "web-activities": "1.24.0"
   },
   "devDependencies": {
     "@ampproject/google-closure-compiler": "20210406.0.0",
     "@babel/core": "7.14.3",
+    "@babel/plugin-transform-runtime": "7.14.3",
     "@babel/preset-env": "7.14.2",
     "ansi-colors": "4.1.1",
     "autoprefixer": "10.2.5",
