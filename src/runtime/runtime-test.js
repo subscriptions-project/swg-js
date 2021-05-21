@@ -24,8 +24,8 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   AnalyticsMode,
   ProductType,
-  PublisherEntitlementEvent,
   ReplaceSkuProrationMode,
+  ShowcaseEvent,
   Subscriptions,
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
@@ -926,8 +926,7 @@ describes.realWin('Runtime', {}, (env) => {
 
     it('should delegate "setShowcaseEntitlement"', async () => {
       const entitlement = {
-        entitlement:
-          PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
+        entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
         isUserRegistered: true,
       };
       configuredRuntimeMock
@@ -1989,8 +1988,7 @@ subscribe() method'
 
       it('should log events', () => {
         runtime.setShowcaseEntitlement({
-          entitlement:
-            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
@@ -2011,8 +2009,7 @@ subscribe() method'
         win.location = parseUrl(SECURE_PUB_URL);
 
         runtime.setShowcaseEntitlement({
-          entitlement:
-            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
@@ -2024,8 +2021,7 @@ subscribe() method'
         win.location = parseUrl(UNSECURE_PUB_URL + GAA_QUERY_STRING);
 
         runtime.setShowcaseEntitlement({
-          entitlement:
-            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
@@ -2037,8 +2033,7 @@ subscribe() method'
         win.document.referrer = parseUrl(UNSECURE_GOOGLE_URL);
 
         runtime.setShowcaseEntitlement({
-          entitlement:
-            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
@@ -2050,8 +2045,7 @@ subscribe() method'
         win.document.referrer = parseUrl(SECURE_PUB_URL);
 
         runtime.setShowcaseEntitlement({
-          entitlement:
-            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 

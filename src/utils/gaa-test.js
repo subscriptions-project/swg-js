@@ -318,6 +318,32 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Remove Regwall from DOM.
       expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
+
+    it('logs Showcase event', async () => {
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      // Swgjs should log three events.
+      expect(self.SWG.push).to.be.called;
+      const logEvent = sandbox.fake();
+      const subscriptionsMock = {
+        getEventManager: () => Promise.resolve({logEvent}),
+      };
+      self.SWG.push.callback(subscriptionsMock);
+      await tick();
+
+      // Swgjs should have logged these analytics events.
+      const eventTypes = [3009, 22, 23];
+      expect(logEvent).to.have.callCount(eventTypes.length);
+      for (let i = 0; i < eventTypes.length; i++) {
+        const eventType = eventTypes[i];
+        expect(logEvent.getCall(i)).to.be.calledWithExactly({
+          eventType,
+          eventOriginator: 1,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      }
+    });
   });
 
   describe('signOut', () => {

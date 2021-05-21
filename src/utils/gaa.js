@@ -22,7 +22,10 @@
 // Thanks!
 
 import {I18N_STRINGS} from '../i18n/strings';
-import {Subscriptions as SubscriptionsDef} from '../api/subscriptions';
+import {
+  ShowcaseEvent,
+  Subscriptions as SubscriptionsDef,
+} from '../api/subscriptions';
 import {addQueryParam, parseQueryString} from './url';
 import {getLanguageCodeFromElement, msg} from './i18n';
 import {parseJson} from './json';
@@ -31,6 +34,8 @@ import {warn} from './log';
 
 // Load types for Closure compiler.
 import '../model/doc';
+import {EventOriginator} from '../proto/api_messages';
+import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
@@ -338,6 +343,8 @@ export class GaaMeteringRegwall {
       warn(errorMessage);
       throw new Error(errorMessage);
     }
+
+    logEvent(ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL);
 
     GaaMeteringRegwall.render_({iframeUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
@@ -691,6 +698,30 @@ function configureGoogleSignIn() {
  */
 function callSwg(callback) {
   (self.SWG = self.SWG || []).push(callback);
+}
+
+/**
+ * Logs Showcase events.
+ * @param {!ShowcaseEvent} showcaseEvent
+ */
+function logEvent(showcaseEvent) {
+  callSwg((swg) => {
+    // Get reference to event manager.
+    swg.getEventManager().then((eventManager) => {
+      // Get individual analytics events from Showcase event.
+      const eventTypes = showcaseEventToAnalyticsEvents(showcaseEvent);
+
+      // Log each analytics event.
+      eventTypes.forEach((eventType) => {
+        eventManager.logEvent({
+          eventType,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      });
+    });
+  });
 }
 
 export class GaaUtils {

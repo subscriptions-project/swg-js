@@ -341,7 +341,7 @@ export class Subscriptions {
 /* eslint-enable no-unused-vars */
 
 /** @enum {string} */
-export const PublisherEntitlementEvent = {
+export const ShowcaseEvent = {
   // Events indicating content could potentially be unlocked
   EVENT_SHOWCASE_METER_OFFERED: 'EVENT_SHOWCASE_METER_OFFERED', // This event is only required if the user can choose not to use a publisher meter
 
@@ -369,7 +369,7 @@ export const PublisherEntitlementEvent = {
  * - entitlement: Publisher entitlement event type.
  *  @typedef {{
  *    isUserRegistered:  !boolean,
- *    entitlement: !PublisherEntitlementEvent,
+ *    entitlement: !ShowcaseEvent,
  * }}
  */
 export let PublisherEntitlement;
