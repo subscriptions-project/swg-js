@@ -76,6 +76,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       expect(gd.getHead().childNodes).to.have.length(1);
       expect(gd.getHead().firstChild.textContent).to.equal(
         JSON.stringify({
+          '@context': 'http://schema.org',
           '@type': 'CreativeWork',
           'isAccessibleForFree': true,
           'isPartOf': {
@@ -94,6 +95,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       expect(gd.getHead().childNodes).to.have.length(1);
       expect(gd.getHead().firstChild.textContent).to.equal(
         JSON.stringify({
+          '@context': 'http://schema.org',
           '@type': 'CreativeWork',
           'isAccessibleForFree': true,
           'isPartOf': {
