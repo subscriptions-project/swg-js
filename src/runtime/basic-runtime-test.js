@@ -483,7 +483,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
         .withExactArgs({
           isClosable: true,
         })
-        .once();
+        .never();
       await subscriptionButton.click();
 
       configuredClassicRuntimeMock
@@ -491,7 +491,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
         .withExactArgs({
           isClosable: true,
         })
-        .once();
+        .never();
       await contributionButton.click();
     });
 
