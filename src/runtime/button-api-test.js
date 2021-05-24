@@ -380,7 +380,7 @@ describes.realWin('ButtonApi', {}, (env) => {
       buttonApi.attachButtonsWithAttribute(
         'swg-standard-button',
         ['subscription', 'contribution'],
-        /* options */ {},
+        {enable: true},
         {
           'subscription': subscriptionHandler,
           'contribution': contributionHandler,
@@ -393,7 +393,7 @@ describes.realWin('ButtonApi', {}, (env) => {
       buttonApi.attachButtonsWithAttribute(
         'swg-standard-button',
         ['subscription', 'contribution'],
-        {theme: Theme.DARK},
+        {theme: Theme.DARK, enable: true},
         {
           'subscription': subscriptionHandler,
           'contribution': contributionHandler,
@@ -407,7 +407,7 @@ describes.realWin('ButtonApi', {}, (env) => {
       buttonApi.attachButtonsWithAttribute(
         'swg-standard-button',
         ['subscription', 'contribution'],
-        {lang: 'fr'},
+        {lang: 'fr', enable: true},
         {
           'subscription': subscriptionHandler,
           'contribution': contributionHandler,
