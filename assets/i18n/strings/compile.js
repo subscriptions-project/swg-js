@@ -31,7 +31,7 @@ async function main() {
       locale = 'en';
     }
     for (let $msg of $('msg').toArray()) {
-      $msg = cheerio($msg);
+      $msg = $($msg);
       const name = $msg.attr('name');
       if (!localesPerMessage[name]) {
         localesPerMessage[name] = {};
