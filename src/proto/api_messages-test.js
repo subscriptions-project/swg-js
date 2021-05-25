@@ -770,6 +770,7 @@ describe('SkuSelectedResponse', () => {
     skuselectedresponse.setOneTime(false);
     skuselectedresponse.setPlayOffer('');
     skuselectedresponse.setOldPlayOffer('');
+    skuselectedresponse.setText('text');
 
     let skuselectedresponseDeserialized;
 
@@ -791,6 +792,8 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getPlayOffer());
     expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
         skuselectedresponse.getOldPlayOffer());
+    expect(skuselectedresponseDeserialized.getText()).to.deep.equal(
+        skuselectedresponse.getText());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -810,6 +813,8 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getPlayOffer());
     expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
         skuselectedresponse.getOldPlayOffer());
+    expect(skuselectedresponseDeserialized.getText()).to.deep.equal(
+        skuselectedresponse.getText());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -828,6 +833,8 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getPlayOffer());
     expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
         skuselectedresponse.getOldPlayOffer());
+    expect(skuselectedresponseDeserialized.getText()).to.deep.equal(
+        skuselectedresponse.getText());
   });
 });
 
