@@ -770,7 +770,7 @@ describe('SkuSelectedResponse', () => {
     skuselectedresponse.setOneTime(false);
     skuselectedresponse.setPlayOffer('');
     skuselectedresponse.setOldPlayOffer('');
-    skuselectedresponse.setText('text');
+    skuselectedresponse.setText('');
 
     let skuselectedresponseDeserialized;
 
