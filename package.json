@@ -32,7 +32,7 @@
   "devDependencies": {
     "@ampproject/google-closure-compiler": "20210406.0.0",
     "@babel/core": "7.14.3",
-    "@babel/preset-env": "7.14.2",
+    "@babel/preset-env": "7.14.4",
     "ansi-colors": "4.1.1",
     "autoprefixer": "10.2.6",
     "babel-eslint": "10.1.0",
