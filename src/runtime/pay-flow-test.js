@@ -268,6 +268,57 @@ describes.realWin('PayStartFlow', {}, (env) => {
     await expect(flowPromise).to.eventually.be.undefined;
   });
 
+  it('should have valid flow constructed with metadata', async () => {
+    const subscriptionRequest = {
+      skuId: 'newSku',
+      publicationId: 'pub1',
+      metadata: {
+        test: 'test',
+      },
+    };
+    const metadataFlow = new PayStartFlow(runtime, subscriptionRequest);
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('subscribe', subscriptionRequest)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    payClientMock
+      .expects('start')
+      .withExactArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': '$payEnvironment$',
+          'playEnvironment': '$playEnvironment$',
+          'swg': {
+            skuId: 'newSku',
+            publicationId: 'pub1',
+            metadata: {
+              test: 'test',
+            },
+          },
+          'i': {
+            'startTimeMs': sandbox.match.any,
+            'productType': sandbox.match(productTypeRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+          forceDisableNative: false,
+        }
+      )
+      .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('newSku')
+      );
+    const flowPromise = metadataFlow.start();
+    await expect(flowPromise).to.eventually.be.undefined;
+  });
+
   it('should have valid replace flow constructed', async () => {
     const subscriptionRequest = {
       skuId: 'newSku1',
