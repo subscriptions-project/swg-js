@@ -1353,7 +1353,10 @@ class SkuSelectedResponse {
     this.oldPlayOffer_ = data[4 + base] == null ? null : data[4 + base];
 
     /** @private {?string} */
-    this.text_ = data[5 + base] == null ? null : data[5 + base];
+    this.customMessage_ = data[5 + base] == null ? null : data[5 + base];
+
+    /** @private {?boolean} */
+    this.anonymous_ = data[6 + base] == null ? null : data[6 + base];
   }
 
   /**
@@ -1429,15 +1432,29 @@ class SkuSelectedResponse {
   /**
    * @return {?string}
    */
-  getText() {
-    return this.text_;
+  getCustomMessage() {
+    return this.customMessage_;
   }
 
   /**
    * @param {string} value
    */
-  setText(value) {
-    this.text_ = value;
+  setCustomMessage(value) {
+    this.customMessage_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getAnonymous() {
+    return this.anonymous_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setAnonymous(value) {
+    this.anonymous_ = value;
   }
 
   /**
@@ -1452,7 +1469,8 @@ class SkuSelectedResponse {
         this.oneTime_, // field 3 - one_time
         this.playOffer_, // field 4 - play_offer
         this.oldPlayOffer_, // field 5 - old_play_offer
-        this.text_, // field 6 - text
+        this.customMessage_, // field 6 - custom_message
+        this.anonymous_, // field 7 - anonymous
     ];
     if (includeLabel) {
       arr.unshift(this.label());
