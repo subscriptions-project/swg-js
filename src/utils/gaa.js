@@ -297,7 +297,7 @@ export let GoogleUserDef;
  */
 export function queryStringHasFreshGaaParams(
   queryString,
-  allowAllAccessTypes = true
+  allowAllAccessTypes = false
 ) {
   const params = parseQueryString(queryString);
 
@@ -311,7 +311,7 @@ export function queryStringHasFreshGaaParams(
     return false;
   }
 
-  if (allowAllAccessTypes) {
+  if (!allowAllAccessTypes) {
     // Verify access type.
     const noAccess = params['gaa_at'] === 'na';
     if (noAccess) {

@@ -109,9 +109,9 @@ describes.realWin('queryStringHasFreshGaaParams', {}, () => {
     expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
 
-  it('succeeds if gaa_at param specifies "no access" but shouldValidateAccessType is false', () => {
+  it('succeeds if gaa_at param specifies "no access" but allowAllAccessTypes is true', () => {
     const queryString = '?gaa_at=na&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
-    expect(queryStringHasFreshGaaParams(queryString, false)).to.be.true;
+    expect(queryStringHasFreshGaaParams(queryString, true)).to.be.true;
   });
 });
 
