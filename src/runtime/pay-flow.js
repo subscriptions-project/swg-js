@@ -48,7 +48,8 @@ import {isCancelError} from '../utils/errors';
  *    oldSku: (string|undefined),
  *    replaceSkuProrationMode: (number|undefined),
  *    paymentRecurrence: (number|undefined),
- *    swgVersion: (string|undefined)
+ *    swgVersion: (string|undefined),
+ *    metadata: (Object|undefined)
  * }}
  */
 export let SwgPaymentRequest;
@@ -165,6 +166,11 @@ export class PayStartFlow {
     // Assign one-time recurrence enum if applicable
     if (this.subscriptionRequest_['oneTime']) {
       swgPaymentRequest['paymentRecurrence'] = RecurrenceMapping['ONE_TIME'];
+    }
+
+    // Assign additional metadata if available.
+    if (this.subscriptionRequest_['metadata']) {
+      swgPaymentRequest['metadata'] = this.subscriptionRequest_['metadata'];
     }
 
     // Start/cancel events.

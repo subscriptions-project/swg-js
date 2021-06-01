@@ -770,6 +770,8 @@ describe('SkuSelectedResponse', () => {
     skuselectedresponse.setOneTime(false);
     skuselectedresponse.setPlayOffer('');
     skuselectedresponse.setOldPlayOffer('');
+    skuselectedresponse.setCustomMessage('');
+    skuselectedresponse.setAnonymous(false);
 
     let skuselectedresponseDeserialized;
 
@@ -791,6 +793,10 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getPlayOffer());
     expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
         skuselectedresponse.getOldPlayOffer());
+    expect(skuselectedresponseDeserialized.getCustomMessage()).to.deep.equal(
+        skuselectedresponse.getCustomMessage());
+    expect(skuselectedresponseDeserialized.getAnonymous()).to.deep.equal(
+        skuselectedresponse.getAnonymous());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -810,6 +816,10 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getPlayOffer());
     expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
         skuselectedresponse.getOldPlayOffer());
+    expect(skuselectedresponseDeserialized.getCustomMessage()).to.deep.equal(
+        skuselectedresponse.getCustomMessage());
+    expect(skuselectedresponseDeserialized.getAnonymous()).to.deep.equal(
+        skuselectedresponse.getAnonymous());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -828,6 +838,10 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getPlayOffer());
     expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
         skuselectedresponse.getOldPlayOffer());
+    expect(skuselectedresponseDeserialized.getCustomMessage()).to.deep.equal(
+        skuselectedresponse.getCustomMessage());
+    expect(skuselectedresponseDeserialized.getAnonymous()).to.deep.equal(
+        skuselectedresponse.getAnonymous());
   });
 });
 
