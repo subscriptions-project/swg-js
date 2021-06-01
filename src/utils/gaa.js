@@ -292,12 +292,12 @@ export let GoogleUserDef;
 /**
  * Returns true if the query string contains fresh Google Article Access (GAA) params.
  * @param {string} queryString
- * @param {boolean} shouldValidateAccessType
+ * @param {boolean} allowAllAccessTypes
  * @return {boolean}
  */
 export function queryStringHasFreshGaaParams(
   queryString,
-  shouldValidateAccessType = true
+  allowAllAccessTypes = true
 ) {
   const params = parseQueryString(queryString);
 
@@ -311,7 +311,7 @@ export function queryStringHasFreshGaaParams(
     return false;
   }
 
-  if (shouldValidateAccessType) {
+  if (allowAllAccessTypes) {
     // Verify access type.
     const noAccess = params['gaa_at'] === 'na';
     if (noAccess) {
