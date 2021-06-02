@@ -234,7 +234,13 @@ export class EntitlementsManager {
   possiblyPingbackOnClientEvent_(event) {
     // Verify GAA params are present, otherwise bail since the pingback
     // shouldn't happen on non-metering requests.
-    if (!queryStringHasFreshGaaParams(this.win_.location.search)) {
+    // We don't validate access type since we want to pingback on all access types.
+    if (
+      !queryStringHasFreshGaaParams(
+        this.win_.location.search,
+        /*allowAllAccessTypes=*/ true
+      )
+    ) {
       return;
     }
 
