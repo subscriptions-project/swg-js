@@ -84,7 +84,7 @@
     "karma-coverage": "2.0.3",
     "karma-coverage-istanbul-reporter": "3.0.3",
     "karma-edge-launcher": "0.4.2",
-    "karma-firefox-launcher": "2.1.0",
+    "karma-firefox-launcher": "2.1.1",
     "karma-fixture": "0.2.6",
     "karma-html2js-preprocessor": "1.1.0",
     "karma-ie-launcher": "1.0.0",
