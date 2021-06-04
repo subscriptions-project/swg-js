@@ -203,7 +203,7 @@ describes.realWin('hash', {}, async () => {
     delete self.crypto;
 
     // Verify behavior.
-    const message = 'Swgjs only works on secure (HTTPS) pages.';
+    const message = 'Swgjs only works on secure (HTTPS or localhost) pages.';
     await expect(hash('string1')).to.be.rejectedWith(message);
     expect(self.console.warn).to.have.been.calledWithExactly(message);
 

@@ -201,7 +201,7 @@ export function hash(stringToHash) {
   const subtle = crypto?.subtle;
 
   if (!subtle) {
-    const message = 'Swgjs only works on secure (HTTPS) pages.';
+    const message = 'Swgjs only works on secure (HTTPS or localhost) pages.';
     warn(message);
     return Promise.reject(message);
   }
