@@ -16,6 +16,7 @@
 
 import {
   dashToCamelCase,
+  dashToUnderline,
   endsWith,
   expandTemplate,
   getSwgTransactionId,
@@ -164,7 +165,7 @@ describe('swgTransactionId', () => {
   });
 });
 
-describe('hash', async () => {
+describes.realWin('hash', {}, async () => {
   it("should use a stable hashing algorithm so metering doesn't break", async () => {
     const expectedValue =
       '8b16b8443e811a5238616fa150eeae441444d5a7ffd7ff59d2f5ebcc455af1c545b3e96af77e12298d756848ac3d105360492db81e2723512bb7d2c6b0b7aedd';
@@ -191,5 +192,31 @@ describe('hash', async () => {
     const hash1 = await hash('string1');
     const hash2 = await hash('string2');
     expect(hash1).to.not.equal(hash2);
+  });
+
+  it('should throw if subtle crypto API is missing', async () => {
+    // Spy on console.warn method.
+    sandbox.stub(self.console, 'warn');
+
+    // Temporarily remove the crypto API.
+    const crypto = self.crypto;
+    delete self.crypto;
+
+    // Verify behavior.
+    const message = 'Swgjs only works on secure (HTTPS) pages.';
+    await expect(hash('string1')).to.be.rejectedWith(message);
+    expect(self.console.warn).to.have.been.calledWithExactly(message);
+
+    // Restore the subtle crypto API.
+    self.crypto = crypto;
+
+    // Restore console.warn method.
+    self.console.warn.restore();
+  });
+});
+
+describe('dashToUnderline', () => {
+  it('converts dashes to underlines', () => {
+    expect(dashToUnderline('swg-js')).to.equal('swg_js');
   });
 });
