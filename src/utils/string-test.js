@@ -22,6 +22,8 @@ import {
   getSwgTransactionId,
   getUuid,
   hash,
+  startsWith,
+  stringHash32,
 } from './string';
 
 describe('dashToCamelCase', () => {
@@ -218,5 +220,26 @@ describes.realWin('hash', {}, async () => {
 describe('dashToUnderline', () => {
   it('converts dashes to underlines', () => {
     expect(dashToUnderline('swg-js')).to.equal('swg_js');
+  });
+});
+
+describe('startsWith', () => {
+  it('returns false if prefix is longer than string', () => {
+    expect(startsWith('abc', 'abcd')).to.be.false;
+  });
+
+  it('returns false if string does not start with prefix', () => {
+    expect(startsWith('abc', 'xyz')).to.be.false;
+  });
+
+  it('returns true if string starts with prefix', () => {
+    expect(startsWith('abc', 'a')).to.be.true;
+  });
+});
+
+describe('stringHash32', () => {
+  it('returns simple (not very secure) hash', () => {
+    const hash = stringHash32('hi!');
+    expect(hash).to.equal('193417125');
   });
 });
