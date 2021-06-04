@@ -30,7 +30,7 @@
     "web-activities": "1.24.0"
   },
   "devDependencies": {
-    "@ampproject/google-closure-compiler": "20210406.0.0",
+    "@ampproject/google-closure-compiler": "20210601.0.0",
     "@babel/core": "7.14.3",
     "@babel/preset-env": "7.14.4",
     "ansi-colors": "4.1.1",
