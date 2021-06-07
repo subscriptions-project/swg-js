@@ -200,17 +200,20 @@ describes.realWin('hash', {}, async () => {
     // Spy on console.warn method.
     sandbox.stub(self.console, 'warn');
 
-    // Temporarily remove the crypto API.
+    // Temporarily remove the crypto APIs.
     const crypto = self.crypto;
+    const msCrypto = self.msCrypto;
     delete self.crypto;
+    delete self.msCrypto;
 
     // Verify behavior.
     const message = 'Swgjs only works on secure (HTTPS or localhost) pages.';
     await expect(hash('string1')).to.be.rejectedWith(message);
     expect(self.console.warn).to.have.been.calledWithExactly(message);
 
-    // Restore the subtle crypto API.
+    // Restore the crypto APIs.
     self.crypto = crypto;
+    self.msCrypto = msCrypto;
 
     // Restore console.warn method.
     self.console.warn.restore();
