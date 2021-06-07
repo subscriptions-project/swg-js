@@ -16,6 +16,7 @@
 
 import {getRandomInts} from './random';
 import {utf8EncodeSync} from './bytes';
+import {warn} from './log';
 
 const CHARS = '0123456789ABCDEF';
 
@@ -197,7 +198,14 @@ function toHex(buffer) {
  */
 export function hash(stringToHash) {
   const crypto = self.crypto || self.msCrypto;
-  const subtle = crypto.subtle;
+  const subtle = crypto?.subtle;
+
+  if (!subtle) {
+    const message = 'Swgjs only works on secure (HTTPS or localhost) pages.';
+    warn(message);
+    return Promise.reject(message);
+  }
+
   return subtle
     .digest('SHA-512', utf8EncodeSync(stringToHash))
     .then((digest) => toHex(digest));
