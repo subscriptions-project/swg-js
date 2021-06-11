@@ -83,6 +83,32 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     await contributionsFlow.start();
   });
 
+  it('should allow for non-closable dialogs', async () => {
+    const isClosable = false;
+    contributionsFlow = new ContributionsFlow(runtime, {
+      isClosable,
+      list: 'other',
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
+        {
+          isClosable,
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          'productType': ProductType.UI_CONTRIBUTION,
+          list: 'other',
+          skus: null,
+          supportsEventManager: true,
+        }
+      )
+      .resolves(port);
+    await contributionsFlow.start();
+  });
+
   it('should have valid ContributionsFlow constructed with skus', async () => {
     contributionsFlow = new ContributionsFlow(runtime, {
       skus: ['sku1', 'sku2'],
