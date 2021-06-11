@@ -61,7 +61,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     callbacksMock.verify();
   });
 
-  it('should have valid ContributionsFlow constructed with a list', async () => {
+  it('has valid ContributionsFlow constructed with a list', async () => {
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     activitiesMock
       .expects('openIframe')
@@ -83,7 +83,33 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     await contributionsFlow.start();
   });
 
-  it('should have valid ContributionsFlow constructed with skus', async () => {
+  it('allows non-closable dialogs', async () => {
+    const isClosable = false;
+    contributionsFlow = new ContributionsFlow(runtime, {
+      isClosable,
+      list: 'other',
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
+        {
+          isClosable,
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          'productType': ProductType.UI_CONTRIBUTION,
+          list: 'other',
+          skus: null,
+          supportsEventManager: true,
+        }
+      )
+      .resolves(port);
+    await contributionsFlow.start();
+  });
+
+  it('has valid ContributionsFlow constructed with skus', async () => {
     contributionsFlow = new ContributionsFlow(runtime, {
       skus: ['sku1', 'sku2'],
     });
@@ -107,7 +133,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     await contributionsFlow.start();
   });
 
-  it('should send an empty EntitlementsResponse to show "no contriubtion found" toast on Activity iFrame view', async () => {
+  it('sends an empty EntitlementsResponse to show "no contribution found" toast on Activity iFrame view', async () => {
     contributionsFlow = new ContributionsFlow(runtime, {
       skus: ['sku1', 'sku2'],
     });
@@ -145,7 +171,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     activityIframeViewMock.verify();
   });
 
-  it('should have valid ContributionsFlow constructed, routed to the new contributions iframe', async () => {
+  it('has valid ContributionsFlow constructed, routed to the new contributions iframe', async () => {
     sandbox
       .stub(runtime.clientConfigManager(), 'getClientConfig')
       .resolves(
@@ -176,7 +202,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     await contributionsFlow.start();
   });
 
-  it('should activate pay, login', async () => {
+  it('activates pay, login', async () => {
     const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     const nativeStub = sandbox.stub(
@@ -212,7 +238,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     expect(nativeStub).to.not.be.called;
   });
 
-  it('should activate login with linking', async () => {
+  it('activates login with linking', async () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     activitiesMock.expects('openIframe').resolves(port);
 

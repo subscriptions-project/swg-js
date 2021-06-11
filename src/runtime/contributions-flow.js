@@ -53,7 +53,8 @@ export class ContributionsFlow {
 
     this.activityIframeView_ = null;
 
-    const isClosable = (options && options.isClosable) || true;
+    // Default to showing close button.
+    const isClosable = options?.isClosable ?? true;
 
     /** @private @const {!Promise<!ActivityIframeView>} */
     this.activityIframeViewPromise_ = this.getUrl_(
