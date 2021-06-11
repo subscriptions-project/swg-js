@@ -701,6 +701,7 @@ export class EntitlementsManager {
                   id: meteringStateId,
                   attributes: [],
                 },
+                token: this.getGaaToken_(),
               },
             };
 
