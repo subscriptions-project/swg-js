@@ -121,16 +121,18 @@ export class OffersFlow {
     this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
     /** @private @const {!Promise<!ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.getUrl_(
-      this.clientConfigManager_.getClientConfig()
-    ).then((url) => {
-      return new ActivityIframeView(
+    const clientConfigPromise = this.clientConfigManager_.getClientConfig();
+    this.activityIframeViewPromise_ = Promise.all([
+      this.shouldShow_(clientConfigPromise),
+      this.getUrl_(clientConfigPromise)
+    ]).then(([enabled, url]) => {
+      return enabled ? new ActivityIframeView(
         this.win_,
         this.activityPorts_,
         feUrl(url),
         feArgsObj,
         /* shouldFadeBody */ true
-      );
+      ) : null;
     });
   }
 
@@ -192,6 +194,10 @@ export class OffersFlow {
   start() {
     if (this.activityIframeViewPromise_) {
       return this.activityIframeViewPromise_.then((activityIframeView) => {
+        if (!activityIframeView) {
+          return Promise.resolve();
+        }
+
         // So no error if skipped to payment screen.
         // Start/cancel events.
         // The second parameter is required by Propensity in AMP.
@@ -223,6 +229,14 @@ export class OffersFlow {
       });
     }
     return Promise.resolve();
+  }
+
+  shouldShow_(clientConfigPromise) {
+    return clientConfigPromise.then(clientConfig => 
+      Promise.resolve(
+        !clientConfig.uiPredicates ||
+        clientConfig.uiPredicates.canDisplayAutoPrompt)
+    );        
   }
 
   /**

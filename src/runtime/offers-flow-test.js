@@ -108,7 +108,8 @@ describes.realWin('OffersFlow', {}, (env) => {
         new ClientConfig(
           /* autoPromptConfig */ undefined,
           /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true
+          /* useUpdatedOfferFlows */ true,
+          /* uiPredicates */ {canDisplayAutoPrompt: true}
         )
       );
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
