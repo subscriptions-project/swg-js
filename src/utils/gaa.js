@@ -90,6 +90,7 @@ const REGWALL_HTML = `
   }
 
   .gaa-metering-regwall--dialog-spacer {
+    background: linear-gradient(0, #808080, transparent);
     bottom: 0;
     display: block;
     position: fixed;
