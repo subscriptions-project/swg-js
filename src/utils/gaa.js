@@ -474,7 +474,7 @@ export class GaaMeteringRegwall {
       }
 
       const publisherName = ldJson.find((entry) => entry?.publisher?.name)
-        ?.publisher?.name;
+        ?.publisher.name;
 
       if (publisherName) {
         return publisherName;
