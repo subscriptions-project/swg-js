@@ -27,6 +27,7 @@ import {
   Subscriptions as SubscriptionsDef,
 } from '../api/subscriptions';
 import {addQueryParam, parseQueryString} from './url';
+import {findInArray} from './object';
 import {getLanguageCodeFromElement, msg} from './i18n';
 import {parseJson} from './json';
 import {setImportantStyles} from './style';
@@ -464,10 +465,17 @@ export class GaaMeteringRegwall {
 
     for (let i = 0; i < ldJsonElements.length; i++) {
       const ldJsonElement = ldJsonElements[i];
-      const ldJson = /** @type {?{ publisher: ?{ name: string } }} */ (
-        parseJson(ldJsonElement.textContent)
-      );
-      const publisherName = ldJson?.publisher?.name;
+      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+
+      if (!Array.isArray(ldJson)) {
+        ldJson = [ldJson];
+      }
+
+      const publisherName = findInArray(
+        ldJson,
+        (entry) => entry?.publisher?.name
+      )?.publisher.name;
+
       if (publisherName) {
         return publisherName;
       }
