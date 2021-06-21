@@ -386,6 +386,26 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       );
     });
   });
+
+  describe('getPublisherNameFromPageConfig_', () => {
+    it('gets the publisher name from object page config', () => {
+      expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
+        PUBLISHER_NAME
+      );
+    });
+
+    it('gets the publisher name from array page config', () => {
+      self.document.head.innerHTML = `
+        <script type="application/ld+json">
+          [${ARTICLE_METADATA}]
+        </script>
+      `;
+
+      expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
+        PUBLISHER_NAME
+      );
+    });
+  });
 });
 
 describes.realWin('GaaGoogleSignInButton', {}, () => {

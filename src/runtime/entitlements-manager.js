@@ -697,6 +697,7 @@ export class EntitlementsManager {
                 resource: {
                   hashedCanonicalUrl,
                 },
+                // Publisher provided state.
                 state: {
                   id: meteringStateId,
                   attributes: [],
