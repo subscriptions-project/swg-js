@@ -100,7 +100,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       .resolves(port);
     await offersFlow.start();
   });
-  
+
   it('should have valid OffersFlow constructed, routed to the new offers iframe', async () => {
     sandbox
       .stub(runtime.clientConfigManager(), 'getClientConfig')
@@ -146,9 +146,7 @@ describes.realWin('OffersFlow', {}, (env) => {
         )
       );
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
-    callbacksMock
-      .expects('triggerFlowStarted')
-      .never();
+    callbacksMock.expects('triggerFlowStarted').never();
 
     await offersFlow.start();
   });
@@ -165,14 +163,10 @@ describes.realWin('OffersFlow', {}, (env) => {
         )
       );
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
-    callbacksMock
-      .expects('triggerFlowStarted')
-      .once();
+    callbacksMock.expects('triggerFlowStarted').once();
 
-      activitiesMock
-      .expects('openIframe')
-      .resolves(port);
-            
+    activitiesMock.expects('openIframe').resolves(port);
+
     await offersFlow.start();
   });
 

@@ -121,19 +121,19 @@ export class OffersFlow {
     this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
     /** @private @const {!Promise<!ActivityIframeView>} */
-    const clientConfigPromise = this.clientConfigManager_.getClientConfig();
-    this.activityIframeViewPromise_ = Promise.all([
-      this.shouldShow_(clientConfigPromise),
-      this.getUrl_(clientConfigPromise)
-    ]).then(([enabled, url]) => {
-      return enabled ? new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl(url),
-        feArgsObj,
-        /* shouldFadeBody */ true
-      ) : null;
-    });
+    this.activityIframeViewPromise_ = this.clientConfigManager_
+      .getClientConfig()
+      .then((clientConfig) => {
+        return this.shouldShow_(clientConfig)
+          ? new ActivityIframeView(
+              this.win_,
+              this.activityPorts_,
+              feUrl(this.getUrl_(clientConfig)),
+              feArgsObj,
+              /* shouldFadeBody */ true
+            )
+          : null;
+      });
   }
 
   /**
@@ -231,27 +231,22 @@ export class OffersFlow {
     return Promise.resolve();
   }
 
-  shouldShow_(clientConfigPromise) {
-    return clientConfigPromise.then(clientConfig => 
-      Promise.resolve(
-        !clientConfig.uiPredicates ||
-        clientConfig.uiPredicates.canDisplayAutoPrompt)
-    );        
+  shouldShow_(clientConfig) {
+    return (
+      !clientConfig.uiPredicates ||
+      clientConfig.uiPredicates.canDisplayAutoPrompt
+    );
   }
 
   /**
    * Gets the URL that should be used for the activity iFrame view.
-   * @param {!Promise<../model/client-config.ClientConfig>} clientConfigPromise
-   * @return {!Promise<string>}
+   * @param {!../model/client-config.ClientConfig} clientConfig
+   * @return {!string}
    */
-  getUrl_(clientConfigPromise) {
-    return clientConfigPromise.then((clientConfig) => {
-      if (clientConfig.useUpdatedOfferFlows) {
-        return '/subscriptionoffersiframe';
-      } else {
-        return '/offersiframe';
-      }
-    });
+  getUrl_(clientConfig) {
+    return clientConfig.useUpdatedOfferFlows
+      ? '/subscriptionoffersiframe'
+      : '/offersiframe';
   }
 
   /**
