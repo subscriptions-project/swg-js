@@ -22,6 +22,7 @@ function swgjs_add_shortcuts_to_bashrc() {
   fi
 }
 
+
 function swgjs_get_github_username() {
   # Check for GitHub env var
   if [[ -z "${GITHUB_USERNAME}" ]]; then
@@ -48,6 +49,7 @@ function swgjs_get_github_username() {
   fi
 }
 
+
 function swgjs_has_nodejs() {
   # Checks whether Nodejs is installed.
   # Swgjs and AMP depend on Nodejs.
@@ -60,6 +62,7 @@ function swgjs_has_nodejs() {
   fi
   return 0
 }
+
 
 function swgjs_create_branch() {
   BRANCH_NAME=$1
@@ -76,6 +79,7 @@ function swgjs_create_branch() {
   git push -f me $BRANCH_NAME
 }
 
+
 function swgjs_create_amp_branch() {
   BRANCH_NAME=$1
   if [[ -z "$BRANCH_NAME" ]]; then
@@ -91,6 +95,7 @@ function swgjs_create_amp_branch() {
   git push -f me $BRANCH_NAME
 }
 
+
 function swgjs_install() {
   swgjs_get_github_username
 
@@ -105,6 +110,7 @@ function swgjs_install() {
   fi
 }
 
+
 function swgjs_install_amp() {
   swgjs_get_github_username
 
@@ -117,6 +123,7 @@ function swgjs_install_amp() {
       git remote add me git@github.com:$GITHUB_USERNAME/amphtml.git
   fi
 }
+
 
 function swgjs_create_amp_release_pr() {
   if ! swgjs_has_nodejs; then return; fi
