@@ -304,11 +304,31 @@ export class EntitlementsManager {
       '/publication/' +
       encodeURIComponent(this.publicationId_) +
       '/entitlements';
-    if (this.encodedParams_) {
-      url = addQueryParam(url, 'encodedParams', this.encodedParams_);
-    }
+    // Promise that sets this.encodedParams_ when it resolves.
+    const encodedParamsPromise = this.encodedParams_
+      ? Promise.resolve()
+      : hash(getCanonicalUrl(this.deps_.doc())).then((hashedCanonicalUrl) => {
+          /** @type {!GetEntitlementsParamsInternalDef} */
+          const encodableParams = {
+            metering: {
+              resource: {
+                hashedCanonicalUrl,
+              },
+            },
+          };
+          this.encodedParams_ = base64UrlEncodeFromBytes(
+            utf8EncodeSync(JSON.stringify(encodableParams))
+          );
+        });
+    encodedParamsPromise.then(() => {
+      url = addQueryParam(
+        url,
+        'encodedParams',
+        /** @type {!string} */ (this.encodedParams_)
+      );
 
-    this.fetcher_.sendPost(serviceUrl(url), message);
+      this.fetcher_.sendPost(serviceUrl(url), message);
+    });
   }
 
   /**
