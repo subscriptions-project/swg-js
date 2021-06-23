@@ -284,11 +284,11 @@ export class EntitlementsManager {
   /**
    * Informs the Entitlements server about the entitlement used
    * to unlock the page.
-   * @param {EntitlementJwt} usedEntitlement
+   * @param {!EntitlementJwt} usedEntitlement
    * @param {EntitlementResult} entitlementResult
    * @param {EntitlementSource} entitlementSource
    * @param {string} optionalToken
-   * @param {boolean} optionalIsUserRegistered
+   * @param {?boolean} optionalIsUserRegistered
    * @return {!Promise}
    */
   postEntitlementsRequest_(
