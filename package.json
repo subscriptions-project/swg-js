@@ -28,7 +28,7 @@
   "dependencies": {
     "promise-pjs": "1.1.5",
     "web-activities": "1.24.0",
-    "yarn": "^1.22.10"
+    "yarn": "1.22.10"
   },
   "devDependencies": {
     "@ampproject/google-closure-compiler": "20210601.0.0",
