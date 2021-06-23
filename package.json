@@ -27,8 +27,7 @@
   },
   "dependencies": {
     "promise-pjs": "1.1.5",
-    "web-activities": "1.24.0",
-    "yarn": "1.22.10"
+    "web-activities": "1.24.0"
   },
   "devDependencies": {
     "@ampproject/google-closure-compiler": "20210601.0.0",
@@ -117,7 +116,8 @@
     "touch": "3.1.0",
     "vinyl-buffer": "1.0.1",
     "vinyl-source-stream": "2.0.0",
-    "watchify": "4.0.0"
+    "watchify": "4.0.0",
+    "yarn": "1.22.10"
   },
   "cloud-repo-tools": {
     "requiresKeyFile": true,
