@@ -25,11 +25,16 @@ function swgjs_create_branch() {
   fi
 
   cd $SWGJS_PATH
+  if [[ `git status --porcelain` ]]; then
+    git add .
+    git commit -m "Saving changes"
+  fi
   git fetch team main
   git checkout team/main
   git branch -D $BRANCH_NAME
   git switch -c $BRANCH_NAME
   git push -f me $BRANCH_NAME
+  git branch --set-upstream-to=me/$BRANCH_NAME
 }
 
 
@@ -142,11 +147,16 @@ function __swgjs_create_amp_branch() {
   fi
 
   cd $AMPHTML_PATH
+  if [[ `git status --porcelain` ]]; then
+    git add .
+    git commit -m "Saving changes"
+  fi
   git fetch team main
   git checkout team/main
   git branch -D $BRANCH_NAME
   git switch -c $BRANCH_NAME
   git push -f me $BRANCH_NAME
+  git branch --set-upstream-to=me/$BRANCH_NAME
 }
 
 
