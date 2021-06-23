@@ -120,7 +120,7 @@ export class OffersFlow {
     /** @private  @const {!Array<!string>} */
     this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
-    /** @private @const {!Promise<!ActivityIframeView>} */
+    /** @private @const {!Promise<!ActivityIframeView|null>} */
     this.activityIframeViewPromise_ = this.clientConfigManager_
       .getClientConfig()
       .then((clientConfig) => {
@@ -231,17 +231,21 @@ export class OffersFlow {
     return Promise.resolve();
   }
 
+  /**
+   * Returns whether this flow is configured as enabled, not showing
+   * even on explicit start when flag is configured false.
+   *
+   * @param {!../model/client-config.ClientConfig} clientConfig
+   * @return {boolean}
+   */
   shouldShow_(clientConfig) {
-    return (
-      !clientConfig.uiPredicates ||
-      clientConfig.uiPredicates.canDisplayAutoPrompt
-    );
+    return clientConfig.uiPredicates?.canDisplayAutoPrompt !== false;
   }
 
   /**
    * Gets the URL that should be used for the activity iFrame view.
    * @param {!../model/client-config.ClientConfig} clientConfig
-   * @return {!string}
+   * @return {string}
    */
   getUrl_(clientConfig) {
     return clientConfig.useUpdatedOfferFlows
