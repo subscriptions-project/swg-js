@@ -181,7 +181,20 @@ function getGithubPullRequestsMetadata(release) {
  * @return {!ReleaseMetadata}
  */
 function buildChangelog(release) {
-  let changelog = `## Version: ${argv.swgVersion || 'TODO_VERSION'}\n\n`;
+  // Suggest a version number.
+  let version = '';
+  if (argv.swgVersion) {
+    // Use the --swgVersion CLI param, if present.
+    version = argv.swgVersion;
+  } else {
+    // Increment the last number.
+    const versionSegments = release.tag.split('.');
+    const lastNumber = Number(versionSegments.pop()) + 1;
+    versionSegments.push(lastNumber);
+    version = versionSegments.join('.');
+  }
+
+  let changelog = `## Version: ${version}\n\n`;
 
   changelog +=
     '## Previous release: ' +
