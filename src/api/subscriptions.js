@@ -437,15 +437,16 @@ export let GetEntitlementsEncryptionParams;
  * Metering params for GetEntitlements requests to SwG Client.
  * swg-js constructs objects of this type, but publisher JS won't.
  * @typedef {{
- *   clientTypes: !Array<number>,
- *   owner: string,
- *   state: {
+ *   clientTypes: (undefined|!Array<number>),
+ *   owner: (undefined|string),
+ *   state: (undefined|{
  *     id: string,
  *     attributes: !Array<{
  *       name: string,
  *       timestamp: number,
  *     }>,
- *   },
+ *   }),
+ *   token: (undefined|string),
  *   resource: {
  *     hashedCanonicalUrl: string,
  *   },
