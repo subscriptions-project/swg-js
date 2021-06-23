@@ -311,14 +311,8 @@ export class EntitlementsManager {
           /** @type {!GetEntitlementsParamsInternalDef} */
           const encodableParams = {
             metering: {
-              clientTypes: [MeterClientTypes.LICENSED_BY_GOOGLE],
-              owner: this.publicationId_,
               resource: {
                 hashedCanonicalUrl,
-              },
-              state: {
-                id: '',
-                attributes: [],
               },
             },
           };
