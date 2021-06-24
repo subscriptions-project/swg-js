@@ -120,7 +120,7 @@ export class OffersFlow {
     /** @private  @const {!Array<!string>} */
     this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
-    /** @private @const {!Promise<!ActivityIframeView|null>} */
+    /** @private @const {!Promise<?ActivityIframeView>} */
     this.activityIframeViewPromise_ = this.clientConfigManager_
       .getClientConfig()
       .then((clientConfig) => {
