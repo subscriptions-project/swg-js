@@ -46,6 +46,7 @@ import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {defaultConfig} from '../api/subscriptions';
 import {serializeProtoMessageForUrl} from '../utils/url';
+import {tick} from '../../test/tick';
 
 const ENTITLEMENTS_URL =
   '$frontend$/swg/_/api/v1/publication/pub1/entitlements';
@@ -123,7 +124,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     nowStub = sandbox.stub(Date, 'now').returns(1600389016959);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await tick(100);
+
     storageMock.verify();
     xhrMock.verify();
     jwtHelperMock.verify();
