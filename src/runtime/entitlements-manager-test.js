@@ -85,7 +85,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     fetcher = new XhrFetcher(win);
     eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
-
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
     deps = new DepsDef();
@@ -123,7 +122,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     nowStub = sandbox.stub(Date, 'now').returns(1600389016959);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Wait for POST requests to complete.
+    if (manager.entitlementsPostPromise) {
+      await manager.entitlementsPostPromise;
+    }
+
     storageMock.verify();
     xhrMock.verify();
     jwtHelperMock.verify();
@@ -1103,6 +1107,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should not open metering dialog when metering entitlements are consumed and showToast is false', () => {
+      sandbox.stub(fetcher.xhr_, 'fetch').resolves();
       dialogManagerMock.expects('openDialog').never();
       jwtHelperMock
         .expects('decode')
