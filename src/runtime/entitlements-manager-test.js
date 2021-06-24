@@ -127,7 +127,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     nowStub = sandbox.stub(Date, 'now').returns(1600389016959);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     storageMock.verify();
     xhrMock.verify();
     jwtHelperMock.verify();
