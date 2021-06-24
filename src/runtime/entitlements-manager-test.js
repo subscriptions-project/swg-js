@@ -125,6 +125,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   });
 
   afterEach(async () => {
+    // TODO: Directly await promises, instead of using tick, when possible
     await tick(100);
 
     storageMock.verify();
