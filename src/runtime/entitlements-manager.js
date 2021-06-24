@@ -310,6 +310,8 @@ export class EntitlementsManager {
       '/publication/' +
       encodeURIComponent(this.publicationId_) +
       '/entitlements';
+    url = addDevModeParamsToUrl(this.win_.location, url);
+
     // Promise that sets this.encodedParams_ when it resolves.
     const encodedParamsPromise = this.encodedParams_
       ? Promise.resolve()
@@ -695,6 +697,8 @@ export class EntitlementsManager {
         const hashedCanonicalUrl = values[0];
         const swgUserToken = values[1];
 
+        url = addDevModeParamsToUrl(this.win_.location, url);
+
         // Add encryption param.
         if (params?.encryption) {
           url = addQueryParam(
@@ -799,6 +803,22 @@ export class EntitlementsManager {
         return this.parseEntitlements(json);
       });
   }
+}
+
+/**
+ * Parses entitlement dev mode params from the given hash fragment and adds it
+ * to the given URL.
+ * @param {!Location} location
+ * @param {string} url
+ * @return {string}
+ */
+function addDevModeParamsToUrl(location, url) {
+  const hashParams = parseQueryString(location.hash);
+  const devModeScenario = hashParams['swg.deventitlement'];
+  if (devModeScenario === undefined) {
+    return url;
+  }
+  return addQueryParam(url, 'devEnt', devModeScenario);
 }
 
 /**
