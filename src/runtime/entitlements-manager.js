@@ -309,7 +309,7 @@ export class EntitlementsManager {
     }
 
     const encodedParamsPromise = this.encodedParams_
-      ? Promise.resolve(this.encodedParams_)
+      ? Promise.resolve()
       : hash(getCanonicalUrl(this.deps_.doc())).then((hashedCanonicalUrl) => {
           /** @type {!GetEntitlementsParamsInternalDef} */
           const params = {
@@ -320,12 +320,12 @@ export class EntitlementsManager {
             },
           };
 
-          return base64UrlEncodeFromBytes(
+          this.encodedParams_ = base64UrlEncodeFromBytes(
             utf8EncodeSync(JSON.stringify(params))
           );
         });
 
-    const urlPromise = encodedParamsPromise.then((encodedParams) => {
+    const urlPromise = encodedParamsPromise.then(() => {
       let url =
         '/publication/' +
         encodeURIComponent(this.publicationId_) +
@@ -334,7 +334,7 @@ export class EntitlementsManager {
       url = addQueryParam(
         url,
         'encodedParams',
-        /** @type {!string} */ (encodedParams)
+        /** @type {!string} */ (this.encodedParams_)
       );
 
       return serviceUrl(url);
