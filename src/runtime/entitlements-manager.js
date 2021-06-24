@@ -281,16 +281,8 @@ export class EntitlementsManager {
     );
   }
 
-  /**
-   * Informs the Entitlements server about the entitlement used
-   * to unlock the page.
-   * @param {!EntitlementJwt} usedEntitlement
-   * @param {EntitlementResult} entitlementResult
-   * @param {EntitlementSource} entitlementSource
-   * @param {string} optionalToken
-   * @param {?boolean} optionalIsUserRegistered
-   * @return {!Promise}
-   */
+  // Informs the Entitlements server about the entitlement used
+  // to unlock the page.
   postEntitlementsRequest_(
     usedEntitlement,
     entitlementResult,
@@ -308,39 +300,35 @@ export class EntitlementsManager {
       message.setIsUserRegistered(optionalIsUserRegistered);
     }
 
+    let url =
+      '/publication/' +
+      encodeURIComponent(this.publicationId_) +
+      '/entitlements';
+    // Promise that sets this.encodedParams_ when it resolves.
     const encodedParamsPromise = this.encodedParams_
       ? Promise.resolve()
       : hash(getCanonicalUrl(this.deps_.doc())).then((hashedCanonicalUrl) => {
           /** @type {!GetEntitlementsParamsInternalDef} */
-          const params = {
+          const encodableParams = {
             metering: {
               resource: {
                 hashedCanonicalUrl,
               },
             },
           };
-
           this.encodedParams_ = base64UrlEncodeFromBytes(
-            utf8EncodeSync(JSON.stringify(params))
+            utf8EncodeSync(JSON.stringify(encodableParams))
           );
         });
-
-    const urlPromise = encodedParamsPromise.then(() => {
-      let url =
-        '/publication/' +
-        encodeURIComponent(this.publicationId_) +
-        '/entitlements';
-
+    encodedParamsPromise.then(() => {
       url = addQueryParam(
         url,
         'encodedParams',
         /** @type {!string} */ (this.encodedParams_)
       );
 
-      return serviceUrl(url);
+      this.fetcher_.sendPost(serviceUrl(url), message);
     });
-
-    return urlPromise.then((url) => this.fetcher_.sendPost(url, message));
   }
 
   /**
