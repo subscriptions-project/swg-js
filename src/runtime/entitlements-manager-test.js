@@ -86,6 +86,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
 
+    // TODO: Rewrite these tests to await promises directly, if possible
     sandbox.stub(win, 'setTimeout').callsFake((callback) => {
       callback();
     });
