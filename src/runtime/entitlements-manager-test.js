@@ -364,7 +364,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         );
       expectGetSwgUserTokenToBeCalled();
 
-      const ents = await manager.getEntitlements({
+      await manager.getEntitlements({
         encryption: {encryptedDocumentKey},
       });
     });
