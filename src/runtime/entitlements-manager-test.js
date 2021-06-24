@@ -85,12 +85,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     fetcher = new XhrFetcher(win);
     eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
-
-    // TODO: Rewrite these tests to await promises directly, if possible
-    sandbox.stub(win, 'setTimeout').callsFake((callback) => {
-      callback();
-    });
-
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
     deps = new DepsDef();
@@ -742,7 +736,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('should fetch with positive expectation with two attempts', async () => {
       let totalTime = 0;
-      win.setTimeout.restore();
       sandbox.stub(win, 'setTimeout').callsFake((callback, timeout) => {
         totalTime += timeout;
         callback();
@@ -796,7 +789,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('should fetch with positive expectation with max attempts', async () => {
       let totalTime = 0;
-      win.setTimeout.restore();
       sandbox.stub(win, 'setTimeout').callsFake((callback, timeout) => {
         totalTime += timeout;
         callback();
@@ -2016,7 +2008,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     it('should tolerate malformed cache', async () => {
       // Handle async error caused by invalid token.
       let threwErrorAfterTimeout = false;
-      win.setTimeout.restore();
       sandbox.stub(win, 'setTimeout').callsFake((callback) => {
         try {
           callback();
@@ -2092,7 +2083,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('should ignore malformed pushed entitlements', () => {
       storageMock.expects('set').withArgs('ents').never();
-      win.setTimeout.restore();
       sandbox.stub(win, 'setTimeout').returns(1);
       const res = manager.pushNextEntitlements('VeRy BroKen');
       expect(res).to.be.false;
