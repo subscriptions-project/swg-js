@@ -104,6 +104,12 @@ export class EntitlementsManager {
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = deps.config();
 
+    /**
+     * Tests can use this promise to wait for POST requests to finish.
+     * @visibleForTesting
+     */
+    this.entitlementsPostPromise = null;
+
     this.deps_
       .eventManager()
       .registerEventListener(this.possiblyPingbackOnClientEvent_.bind(this));
@@ -320,14 +326,15 @@ export class EntitlementsManager {
             utf8EncodeSync(JSON.stringify(encodableParams))
           );
         });
-    encodedParamsPromise.then(() => {
+
+    this.entitlementsPostPromise = encodedParamsPromise.then(() => {
       url = addQueryParam(
         url,
         'encodedParams',
         /** @type {!string} */ (this.encodedParams_)
       );
 
-      this.fetcher_.sendPost(serviceUrl(url), message);
+      return this.fetcher_.sendPost(serviceUrl(url), message);
     });
   }
 
