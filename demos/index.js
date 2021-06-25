@@ -29,5 +29,5 @@ app.get('/examples/sample-pub/redirect-to/swg-basic.js', (req, res) => {
 
 app.listen(port, () => {
   console /*OK*/
-    .log(`Swgjs Demos are available at http://localhost:${port}`);
+    .log(`SwG Basic demos are available at http://localhost:${port}`);
 });
