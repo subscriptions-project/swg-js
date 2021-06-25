@@ -115,6 +115,15 @@
       "rules": {
         "swg-internal/no-for-of-statement": 0
       }
+    },
+    {
+      "files": ["demos/**/*.js"],
+      "globals": {
+        "process": true
+      },
+      "rules": {
+        "no-console": 0
+      }
     }
   ]
 }
