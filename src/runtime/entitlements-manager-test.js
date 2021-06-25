@@ -85,7 +85,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     fetcher = new XhrFetcher(win);
     eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
-
     xhrMock = sandbox.mock(fetcher.xhr_);
     config = defaultConfig();
     deps = new DepsDef();
@@ -123,7 +122,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     nowStub = sandbox.stub(Date, 'now').returns(1600389016959);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Wait for POST requests to complete.
+    if (manager.entitlementsPostPromise) {
+      await manager.entitlementsPostPromise;
+    }
+
     storageMock.verify();
     xhrMock.verify();
     jwtHelperMock.verify();
@@ -251,7 +255,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     jwtString,
     jwtSource,
     isUserRegistered = null,
-    pingbackUrl = ''
+    pingbackUrl = '',
+    devModeParams = ''
   ) {
     const encodedParams = base64UrlEncodeFromBytes(
       utf8EncodeSync(
@@ -259,7 +264,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       )
     );
     const url =
-      pingbackUrl || ENTITLEMENTS_URL + '?encodedParams=' + encodedParams;
+      pingbackUrl ||
+      ENTITLEMENTS_URL +
+        '?' +
+        (devModeParams ? `devEnt=${devModeParams}&` : '') +
+        `encodedParams=${encodedParams}`;
     expectPost(
       url,
       new EntitlementsRequest(
@@ -330,6 +339,34 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(ents.entitlements).to.deep.equal([]);
       expect(ents.product_).to.equal('pub1:label1');
       expect(ents.enablesThis()).to.be.false;
+    });
+
+    it('adds dev mode params to request when present on the URL', async () => {
+      const scenario = 'TEST_SCENARIO';
+      win.location.hash = `#swg.debug=1&swg.deventitlement=${scenario}`;
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?devEnt=' +
+            encodeURIComponent(scenario) +
+            '&crypt=' +
+            encodeURIComponent(encryptedDocumentKey),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+      expectGetSwgUserTokenToBeCalled();
+
+      await manager.getEntitlements({
+        encryption: {encryptedDocumentKey},
+      });
     });
 
     it('should accept encrypted document key', async () => {
@@ -1070,6 +1107,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should not open metering dialog when metering entitlements are consumed and showToast is false', () => {
+      sandbox.stub(fetcher.xhr_, 'fetch').resolves();
       dialogManagerMock.expects('openDialog').never();
       jwtHelperMock
         .expects('decode')
@@ -1172,6 +1210,35 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       );
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
       manager.encodedParams_ = '3ncod3dM3t3ringParams';
+      await manager.consumeMeter_(ents);
+    });
+
+    it('sends pingback with dev mode params from URL', async () => {
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1'
+          ),
+        ],
+        'product1'
+      );
+      const scenario = 'TEST_SCENARIO';
+      win.location.hash = `#swg.debug=1&swg.deventitlement=${scenario}`;
+      expectEntitlementPingback(
+        EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
+        EntitlementResult.UNLOCKED_METER,
+        'token1',
+        GOOGLE_METERING_SOURCE,
+        /* isUserRegistered */ null,
+        /* pingbackUrl */ '',
+        scenario
+      );
+      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
+
       await manager.consumeMeter_(ents);
     });
 

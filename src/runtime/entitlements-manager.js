@@ -104,6 +104,12 @@ export class EntitlementsManager {
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = deps.config();
 
+    /**
+     * Tests can use this promise to wait for POST requests to finish.
+     * @visibleForTesting
+     */
+    this.entitlementsPostPromise = null;
+
     this.deps_
       .eventManager()
       .registerEventListener(this.possiblyPingbackOnClientEvent_.bind(this));
@@ -304,6 +310,8 @@ export class EntitlementsManager {
       '/publication/' +
       encodeURIComponent(this.publicationId_) +
       '/entitlements';
+    url = addDevModeParamsToUrl(this.win_.location, url);
+
     // Promise that sets this.encodedParams_ when it resolves.
     const encodedParamsPromise = this.encodedParams_
       ? Promise.resolve()
@@ -320,14 +328,15 @@ export class EntitlementsManager {
             utf8EncodeSync(JSON.stringify(encodableParams))
           );
         });
-    encodedParamsPromise.then(() => {
+
+    this.entitlementsPostPromise = encodedParamsPromise.then(() => {
       url = addQueryParam(
         url,
         'encodedParams',
         /** @type {!string} */ (this.encodedParams_)
       );
 
-      this.fetcher_.sendPost(serviceUrl(url), message);
+      return this.fetcher_.sendPost(serviceUrl(url), message);
     });
   }
 
@@ -688,6 +697,8 @@ export class EntitlementsManager {
         const hashedCanonicalUrl = values[0];
         const swgUserToken = values[1];
 
+        url = addDevModeParamsToUrl(this.win_.location, url);
+
         // Add encryption param.
         if (params?.encryption) {
           url = addQueryParam(
@@ -792,6 +803,22 @@ export class EntitlementsManager {
         return this.parseEntitlements(json);
       });
   }
+}
+
+/**
+ * Parses entitlement dev mode params from the given hash fragment and adds it
+ * to the given URL.
+ * @param {!Location} location
+ * @param {string} url
+ * @return {string}
+ */
+function addDevModeParamsToUrl(location, url) {
+  const hashParams = parseQueryString(location.hash);
+  const devModeScenario = hashParams['swg.deventitlement'];
+  if (devModeScenario === undefined) {
+    return url;
+  }
+  return addQueryParam(url, 'devEnt', devModeScenario);
 }
 
 /**

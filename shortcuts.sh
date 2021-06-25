@@ -49,6 +49,26 @@ function swgjs_start_server() {
 }
 
 
+# Installs Swgjs.
+#
+# You can call this to install Swgjs in a standardized way.
+# This helps the shortcuts in this file run smoothly, and also
+# makes it easier to collaborate with other Swgjs engineers.
+function swgjs_install() {
+  __swgjs_get_github_username
+
+  if ! test -f "$SWGJS_PATH/package.json"
+  then
+      echo "Installing Swgjs"
+      mkdir -p $SWGJS_PATH
+      git clone -o team https://github.com/subscriptions-project/swg-js $SWGJS_PATH
+      cd $SWGJS_PATH
+      git remote add me git@github.com:$GITHUB_USERNAME/swg-js.git
+      npx yarn
+  fi
+}
+
+
 # Adds Swgjs Shortcuts to the .bashrc file.
 #
 # You can run this once to make sure the
@@ -85,7 +105,7 @@ function swgjs_create_amp_release_pr() {
   echo "What SwG Version are you releasing? (ex: 0.1.22.333)"
   read SWG_VERSION
 
-  __swgjs_install
+  swgjs_install
   __swgjs_install_amp
 
   # Build Swgjs for AMP.
@@ -116,24 +136,6 @@ function swgjs_create_amp_release_pr() {
 #####################
 ## Private methods ##
 #####################
-
-
-# Installs Swgjs.
-#
-# @private
-function __swgjs_install() {
-  __swgjs_get_github_username
-
-  if ! test -f "$SWGJS_PATH/package.json"
-  then
-      echo "Installing Swgjs"
-      mkdir -p $SWGJS_PATH
-      git clone -o team https://github.com/subscriptions-project/swg-js $SWGJS_PATH
-      cd $SWGJS_PATH
-      git remote add me git@github.com:$GITHUB_USERNAME/swg-js.git
-      npx yarn
-  fi
-}
 
 
 # Creates a new AMP branch.
