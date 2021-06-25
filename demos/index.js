@@ -19,6 +19,14 @@ const port = process.env.PORT || 8000;
 
 app.use(express.static('public'));
 
+/**
+ * Redirects to SwG Basic JS.
+ * The endpoint is compatible with the classic Swgjs local demos.
+ */
+app.get('/examples/sample-pub/redirect-to/swg-basic.js', (req, res) => {
+  res.redirect('https://news.google.com/swg/js/v1/swg-basic.js');
+});
+
 app.listen(port, () => {
   console /*OK*/
     .log(`Swgjs Demos are available at http://localhost:${port}`);

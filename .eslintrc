@@ -119,6 +119,7 @@
     {
       "files": ["demos/**/*.js"],
       "globals": {
+        "__dirname": true,
         "process": true
       },
       "rules": {
