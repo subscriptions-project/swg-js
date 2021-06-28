@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Button (Light) - Swgjs Demos</title>
+  <title>Free Article - Swgjs Demos</title>
   <link rel="stylesheet" href="demos.css">
 
   <link rel="stylesheet" href="demos.css">
@@ -16,9 +16,10 @@
     (self.SWG_BASIC = self.SWG_BASIC || []).push(basicSubscriptions => {
       basicSubscriptions.init({
         type: "NewsArticle",
-        isAccessibleForFree: false,
+        isAccessibleForFree: true,
         isPartOfType: ["Product"],
-        isPartOfProductId: "CAowz7enCw:cool",
+        isPartOfProductId: "CAowz7enCw:openaccess",
+        autoPromptType: "none",
         clientOptions: { theme: "light", lang: "en" },
       });
     });
@@ -28,15 +29,11 @@
 <body>
   <div class="content">
     <article>
-      <h2>Button (Light)</h2>
+      <h2>Free Article</h2>
 
       <p>
         Macaroon chocolate wafer cake chocolate cake gummies soufflé lollipop pie. Cheesecake cotton candy macaroon
         caramels pie.
-      </p>
-
-      <p>
-        <button swg-standard-button="contribution">.</button>
       </p>
     </article>
   </div>

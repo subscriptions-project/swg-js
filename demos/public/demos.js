@@ -13,9 +13,9 @@ function createHeader() {
   const element = document.createElement('div');
   element.classList.add('header');
   element.innerHTML = `
-  <span>
+  <a href="index.html">
     Swgjs Demos
-  </span>
+  </a>
   `;
 
   // Add navigation before the content.
@@ -31,13 +31,12 @@ function createNavigation() {
   element.innerHTML = `
   <div class="toggle-navigation-button"></div>
   <ul class="nav-list">
-    <li><a href="index.html">Overview</a></li>
     <li><a href="button-light.html">Button (Light)</a></li>
     <li><a href="button-dark.html">Button (Dark)</a></li>
     <li><a href="button-french.html">Button (French)</a></li>
-    <li><a href="autoprompt-free.html">Auto Prompt (Free Article)</a></li>
     <li><a href="autoprompt-paywalled.html">Auto Prompt (Paywalled Article)</a></li>
-    <li><a href="free.html">Free Article</a></li>
+    <li><a href="autoprompt-free.html">Auto Prompt (Free Article)</a></li>
+    <li><a href="free-article.html">Free Article</a></li>
   </ul>
   `;
 

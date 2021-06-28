@@ -5,9 +5,13 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Autoprompt - Swgjs Demos</title>
+  <title>Button (Dark) - Swgjs Demos</title>
+  <link rel="stylesheet" href="demos.css">
+
+  <link rel="stylesheet" href="demos.css">
 
   <script async type="application/javascript" src="/examples/sample-pub/redirect-to/swg-basic.js"></script>
+
   <script>
     (self.SWG_BASIC = self.SWG_BASIC || []).push(basicSubscriptions => {
       basicSubscriptions.init({
@@ -15,20 +19,29 @@
         isAccessibleForFree: false,
         isPartOfType: ["Product"],
         isPartOfProductId: "CAowz7enCw:cool",
-        autoPromptType: "contribution",
-        clientOptions: { theme: "light", lang: "en" },
+        clientOptions: { theme: "dark", lang: "en" },
       });
     });
   </script>
 </head>
 
 <body>
-  <h2>Autoprompt</h2>
-  <p>
-    Lorem ipsum dolor, sit amet consectetur adipisicing elit. Magni eveniet reiciendis harum expedita placeat alias,
-    impedit minima odio veniam nesciunt quasi sit totam voluptatibus repellat, dolore quisquam libero doloremque
-    dignissimos!
-  </p>
+  <div class="content">
+    <article>
+      <h2>Button (Dark)</h2>
+
+      <p>
+        Macaroon chocolate wafer cake chocolate cake gummies soufflé lollipop pie. Cheesecake cotton candy macaroon
+        caramels pie.
+      </p>
+
+      <p>
+        <button swg-standard-button="contribution">.</button>
+      </p>
+    </article>
+  </div>
+
+  <script src="demos.js"></script>
 </body>
 
 </html>
