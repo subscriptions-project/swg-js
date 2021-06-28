@@ -112,6 +112,7 @@ const REGWALL_HTML = `
     margin: 0 auto;
     max-width: 100%;
     padding: 24px 20px;
+    pointer-events: auto;
     width: 410px;
   }
 
@@ -407,6 +408,7 @@ export class GaaMeteringRegwall {
       'height': '100%',
       'left': '0',
       'opacity': '0',
+      'pointer-events': 'none',
       'position': 'fixed',
       'right': '0',
       'transition': 'opacity 0.5s',

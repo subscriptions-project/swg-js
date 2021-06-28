@@ -1,0 +1,14 @@
+{
+  "name": "swgjs-demos",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "gcloud app deploy"
+  },
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Subscribe with Google Authors",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}

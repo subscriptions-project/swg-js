@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autoprompt - Swgjs Demos</title>
+
+  <script async type="application/javascript" src="/examples/sample-pub/redirect-to/swg-basic.js"></script>
+  <script>
+    (self.SWG_BASIC = self.SWG_BASIC || []).push(basicSubscriptions => {
+      basicSubscriptions.init({
+        type: "NewsArticle",
+        isAccessibleForFree: false,
+        isPartOfType: ["Product"],
+        isPartOfProductId: "CAowz7enCw:cool",
+        autoPromptType: "contribution",
+        clientOptions: { theme: "light", lang: "en" },
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <h2>Autoprompt</h2>
+  <p>
+    Lorem ipsum dolor, sit amet consectetur adipisicing elit. Magni eveniet reiciendis harum expedita placeat alias,
+    impedit minima odio veniam nesciunt quasi sit totam voluptatibus repellat, dolore quisquam libero doloremque
+    dignissimos!
+  </p>
+</body>
+
+</html>

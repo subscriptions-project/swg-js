@@ -42,12 +42,20 @@ const SWG_JS_URLS = {
 
 const SWG_GAA_JS_URLS = {
   local: '/dist/subscriptions-gaa.max.js',
-  /* eslint-disable google-camelcase/google-camelcase */
+  /* eslint-disable-next-line google-camelcase/google-camelcase */
   local_min: '/dist/subscriptions-gaa.js',
-  /* eslint-enable google-camelcase/google-camelcase */
   prod: 'https://news.google.com/swg/js/v1/swg-gaa.js',
   autopush: 'https://news.google.com/swg/js/v1/swg-gaa-autopush.js',
   tt: 'https://news.google.com/swg/js/v1/swg-gaa-tt.js',
+};
+
+const SWG_BASIC_JS_URLS = {
+  local: '/dist/basic-subscriptions.max.js',
+  /* eslint-disable-next-line google-camelcase/google-camelcase */
+  local_min: '/dist/basic-subscriptions.js',
+  prod: 'https://news.google.com/swg/js/v1/swg-basic.js',
+  autopush: 'https://news.google.com/swg/js/v1/swg-basic-autopush.js',
+  tt: 'https://news.google.com/swg/js/v1/swg-basic-tt.js',
 };
 
 const AUTH_COOKIE = 'SCENIC_AUTH';
@@ -285,6 +293,24 @@ app.post('/update-setup', (req, res) => {
 
   // Redirect back.
   res.redirect(302, '/examples/sample-pub/setup');
+});
+
+/** Redirects to SwG JS for the chosen environment. */
+app.get('/redirect-to/swg.js', (req, res) => {
+  const setup = getSetup(req);
+  res.redirect(SWG_JS_URLS[setup.script]);
+});
+
+/** Redirects to SwG Showcase JS for the chosen environment. */
+app.get('/redirect-to/swg-gaa.js', (req, res) => {
+  const setup = getSetup(req);
+  res.redirect(SWG_GAA_JS_URLS[setup.script]);
+});
+
+/** Redirects to SwG Basic JS for the chosen environment. */
+app.get('/redirect-to/swg-basic.js', (req, res) => {
+  const setup = getSetup(req);
+  res.redirect(SWG_BASIC_JS_URLS[setup.script]);
 });
 
 /**
