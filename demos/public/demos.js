@@ -29,7 +29,7 @@
 function createHeader() {
   const element = document.createElement('div');
   element.classList.add('header');
-  element.innerHTML = `
+  element./*OK*/ innerHTML = `
   <a href="index.html">
     Swgjs Demos
   </a>
@@ -45,7 +45,7 @@ function createHeader() {
 function createNavigation() {
   const element = document.createElement('div');
   element.classList.add('nav');
-  element.innerHTML = `
+  element./*OK*/ innerHTML = `
   <div class="toggle-navigation-button"></div>
   <ul class="nav-list">
     <li><a href="button-light.html">Button (Light)</a></li>
