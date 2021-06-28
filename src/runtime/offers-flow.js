@@ -120,18 +120,20 @@ export class OffersFlow {
     /** @private  @const {!Array<!string>} */
     this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
-    /** @private @const {!Promise<!ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.getUrl_(
-      this.clientConfigManager_.getClientConfig()
-    ).then((url) => {
-      return new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl(url),
-        feArgsObj,
-        /* shouldFadeBody */ true
-      );
-    });
+    /** @private @const {!Promise<?ActivityIframeView>} */
+    this.activityIframeViewPromise_ = this.clientConfigManager_
+      .getClientConfig()
+      .then((clientConfig) => {
+        return this.shouldShow_(clientConfig)
+          ? new ActivityIframeView(
+              this.win_,
+              this.activityPorts_,
+              feUrl(this.getUrl_(clientConfig)),
+              feArgsObj,
+              /* shouldFadeBody */ true
+            )
+          : null;
+      });
   }
 
   /**
@@ -192,6 +194,10 @@ export class OffersFlow {
   start() {
     if (this.activityIframeViewPromise_) {
       return this.activityIframeViewPromise_.then((activityIframeView) => {
+        if (!activityIframeView) {
+          return Promise.resolve();
+        }
+
         // So no error if skipped to payment screen.
         // Start/cancel events.
         // The second parameter is required by Propensity in AMP.
@@ -226,18 +232,25 @@ export class OffersFlow {
   }
 
   /**
-   * Gets the URL that should be used for the activity iFrame view.
-   * @param {!Promise<../model/client-config.ClientConfig>} clientConfigPromise
-   * @return {!Promise<string>}
+   * Returns whether this flow is configured as enabled, not showing
+   * even on explicit start when flag is configured false.
+   *
+   * @param {!../model/client-config.ClientConfig} clientConfig
+   * @return {boolean}
    */
-  getUrl_(clientConfigPromise) {
-    return clientConfigPromise.then((clientConfig) => {
-      if (clientConfig.useUpdatedOfferFlows) {
-        return '/subscriptionoffersiframe';
-      } else {
-        return '/offersiframe';
-      }
-    });
+  shouldShow_(clientConfig) {
+    return clientConfig.uiPredicates?.canDisplayAutoPrompt !== false;
+  }
+
+  /**
+   * Gets the URL that should be used for the activity iFrame view.
+   * @param {!../model/client-config.ClientConfig} clientConfig
+   * @return {string}
+   */
+  getUrl_(clientConfig) {
+    return clientConfig.useUpdatedOfferFlows
+      ? '/subscriptionoffersiframe'
+      : '/offersiframe';
   }
 
   /**

@@ -134,6 +134,42 @@ describes.realWin('OffersFlow', {}, (env) => {
     await offersFlow.start();
   });
 
+  it('start should not show offers if predicates disable', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(
+        new ClientConfig(
+          /* autoPromptConfig */ undefined,
+          /* paySwgVersion */ undefined,
+          /* useUpdatedOfferFlows */ true,
+          /* uiPredicates */ {canDisplayAutoPrompt: false}
+        )
+      );
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    callbacksMock.expects('triggerFlowStarted').never();
+
+    await offersFlow.start();
+  });
+
+  it('start should show offers if predicates enable', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(
+        new ClientConfig(
+          /* autoPromptConfig */ undefined,
+          /* paySwgVersion */ undefined,
+          /* useUpdatedOfferFlows */ true,
+          /* uiPredicates */ {canDisplayAutoPrompt: true}
+        )
+      );
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    callbacksMock.expects('triggerFlowStarted').once();
+
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await offersFlow.start();
+  });
+
   it('should trigger on cancel', async () => {
     callbacksMock
       .expects('triggerFlowStarted')
