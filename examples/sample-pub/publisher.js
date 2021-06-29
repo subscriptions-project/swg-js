@@ -133,6 +133,12 @@ function startFlow(flow, var_args) {
 function startFlowAuto() {
   let flow = (window.location.search || '').split('?')[1] || 'demo';
 
+  // Provide a shortcut to metering params.
+  if (location.search === '?metering') {
+    location.search = 'gaa_at=g&gaa_ts=99999999&gaa_n=n0nc3&gaa_sig=51g';
+    return;
+  }
+
   // Check for valid Google Article Access (GAA) params.
   if (isGaa()) {
     console.log(
@@ -206,11 +212,21 @@ function startFlowAuto() {
               return meteringState;
             }
 
-            // Show metering regwall for unregistered users.
-            return GaaMeteringRegwall.show({
+            const regwallParams = {
               // Specify a URL that renders a Google Sign-In button.
               iframeUrl: MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL,
-            })
+            };
+
+            // Optionally add a CASL link, for demo purposes.
+            const demoCaslUrl = new URLSearchParams(location.search).get(
+              'casl_url'
+            );
+            if (demoCaslUrl) {
+              regwallParams.caslUrl = demoCaslUrl;
+            }
+
+            // Show metering regwall for unregistered users.
+            return GaaMeteringRegwall.show(regwallParams)
               .then((googleSignInUser) =>
                 // Register a user based on data from Google Sign-In.
                 //
@@ -251,7 +267,10 @@ function startFlowAuto() {
               },
             });
           })
-          .catch(() => false)
+          .catch((err) => {
+            console.error(err);
+            return false;
+          })
           .then((entitlements) => {
             // Check if a Google metering entitlement unlocks the article.
             if (entitlements && entitlements.enablesThisWithGoogleMetering()) {

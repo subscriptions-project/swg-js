@@ -182,6 +182,26 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
     });
 
+    it('does not render CASL blurb by default', () => {
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
+      expect(caslEl).to.be.null;
+    });
+
+    it('optionally renders CASL blurb', () => {
+      const caslUrl = 'https://example.com';
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL, caslUrl});
+
+      const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
+      expect(caslEl.textContent).contains(
+        "Review The Scenic's Terms and CASL consent"
+      );
+
+      const caslLinkEl = caslEl.querySelector('a');
+      expect(caslLinkEl.href).contains(caslUrl);
+    });
+
     it('focuses on modal title after the animation completes', () => {
       GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
