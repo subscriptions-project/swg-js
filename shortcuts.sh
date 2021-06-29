@@ -102,8 +102,11 @@ function swgjs_create_amp_release_pr() {
 
   __swgjs_get_github_username
 
-  echo "What SwG Version are you releasing? (ex: 0.1.22.333)"
-  read SWG_VERSION
+  SWG_VERSION=$1
+  if [[ -z "$SWG_VERSION" ]]; then
+    echo "What SwG Version are you releasing? (ex: 0.1.22.333)"
+    read SWG_VERSION
+  fi
 
   swgjs_install
   __swgjs_install_amp
