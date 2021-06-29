@@ -84,6 +84,7 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--description,
   .gaa-metering-regwall--description strong,
   .gaa-metering-regwall--iframe,
+  .gaa-metering-regwall--casl,
   .gaa-metering-regwall--publisher-no-thanks-button {
     all: initial;
     box-sizing: border-box;
@@ -151,6 +152,18 @@ const REGWALL_HTML = `
     width: 100%;
   }
 
+  .gaa-metering-regwall--casl {
+    color: #646464;
+    display: block;
+    font-size: 12px;
+    text-align: center;
+    margin: -16px auto 32px;
+  }
+
+  .gaa-metering-regwall--casl a {
+    color: #1967d2;
+  }
+
   .gaa-metering-regwall--line {
     background-color: #ddd;
     display: block;
@@ -208,6 +221,10 @@ const REGWALL_HTML = `
         class="gaa-metering-regwall--iframe"
         src="$iframeUrl$">
     </iframe>
+
+    <div class="gaa-metering-regwall--casl">
+      Review <strong>The New York Times</strong>'s <a href="https://www.nytimes.com/privacy/" target="_blank">Terms and CASL consent</a>
+    </div>
 
     <div class="gaa-metering-regwall--line"></div>
 
