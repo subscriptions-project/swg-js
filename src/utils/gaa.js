@@ -453,7 +453,7 @@ export class GaaMeteringRegwall {
         msg(I18N_STRINGS['SHOWCASE_REGWALL_CASL'], languageCode)
       )
         // Update link.
-        .replace('<a>', `<a href="${caslUrl}" target="_blank">`)
+        .replace('<a>', `<a href="${encodeURI(caslUrl)}" target="_blank">`)
         // Update publisher name.
         .replace(placeholderPattern, publisherName);
     }
