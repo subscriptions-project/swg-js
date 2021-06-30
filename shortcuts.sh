@@ -115,6 +115,7 @@ function swgjs_create_amp_release_pr() {
   cd $SWGJS_PATH
   git fetch team
   git checkout team/main
+  npx gulp build
   npx gulp export-to-amp --swgVersion=$SWG_VERSION
 
   # Create new AMP branch.
