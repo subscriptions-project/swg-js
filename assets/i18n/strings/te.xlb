@@ -9,6 +9,7 @@
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>ఈ కంటెంట్‌కు మీరు సాధారణంగా పేమెంట్ చేయాల్సి ఉంటుంది, కానీ మీరు Google ఖాతాను ఉపయోగించి <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>తో రిజిస్టర్ చేసుకున్నప్పుడు, ఈ వార్తా కథనానికి ఇంకా మరెన్నో వాటికి Google, ఉచిత యాక్సెస్‌ను ఇస్తుంది.</msg>
 <msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">ఇప్పటికే ఖాతా ఉందా?</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Googleతో సైన్ ఇన్ చేయండి</msg>
+<msg name="SHOWCASE_REGWALL_CASL">Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph></msg>
 
 
 
