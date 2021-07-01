@@ -418,7 +418,9 @@ export class GaaMeteringRegwall {
   static render_({iframeUrl, caslUrl}) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
     const publisherName = GaaMeteringRegwall.getPublisherNameFromPageConfig_();
-    const placeholderPattern = /<ph.+\/ph>/g;
+    const placeholderPatternForPublication = /<ph name="PUBLICATION".+?\/ph>/g;
+    const placeholderPatternForLinkStart = /<ph name="LINK_START".+?\/ph>/g;
+    const placeholderPatternForLinkEnd = /<ph name="LINK_END".+?\/ph>/g;
 
     // Tell the iframe which language to render.
     iframeUrl = addQueryParam(iframeUrl, 'lang', languageCode);
@@ -453,9 +455,16 @@ export class GaaMeteringRegwall {
         msg(I18N_STRINGS['SHOWCASE_REGWALL_CASL'], languageCode)
       )
         // Update link.
-        .replace('<a>', `<a href="${encodeURI(caslUrl)}" target="_blank">`)
+        .replace(
+          placeholderPatternForLinkStart,
+          `<a href="${encodeURI(caslUrl)}" target="_blank">`
+        )
+        .replace(placeholderPatternForLinkEnd, '</a>')
         // Update publisher name.
-        .replace(placeholderPattern, publisherName);
+        .replace(
+          placeholderPatternForPublication,
+          `<strong>${publisherName}</strong>`
+        );
     }
 
     // Prepare HTML.
@@ -471,7 +480,7 @@ export class GaaMeteringRegwall {
         '$SHOWCASE_REGWALL_DESCRIPTION$',
         msg(I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'], languageCode)
           // Update publisher name.
-          .replace(placeholderPattern, publisherName)
+          .replace(placeholderPatternForPublication, publisherName)
       )
       .replace(
         '$SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$',
