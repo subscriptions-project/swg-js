@@ -131,7 +131,7 @@ function startFlow(flow, var_args) {
  * Current valid values are: 'showOffers', 'linkAccount', 'getEntitlements'.
  */
 function startFlowAuto() {
-  let flow = (window.location.search || '').split('?')[1] || 'demo';
+  let flow = (location.search || '').split('?')[1] || 'demo';
 
   // Provide a shortcut to metering params.
   if (location.search === '?metering') {
