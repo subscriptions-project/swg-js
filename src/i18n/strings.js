@@ -92,4 +92,7 @@ export const I18N_STRINGS = {
     'ta': 'Google மூலம் உள்நுழைக',
     'te': 'Googleతో సైన్ ఇన్ చేయండి',
   },
+  'SHOWCASE_REGWALL_CASL': {
+    'en': 'Review <strong><ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></strong>\'s <a>Terms and CASL consent</a>',
+  },
 };

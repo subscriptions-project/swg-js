@@ -84,6 +84,7 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--description,
   .gaa-metering-regwall--description strong,
   .gaa-metering-regwall--iframe,
+  .gaa-metering-regwall--casl,
   .gaa-metering-regwall--publisher-no-thanks-button {
     all: initial;
     box-sizing: border-box;
@@ -151,6 +152,18 @@ const REGWALL_HTML = `
     width: 100%;
   }
 
+  .gaa-metering-regwall--casl {
+    color: #646464;
+    display: block;
+    font-size: 12px;
+    text-align: center;
+    margin: -16px auto 32px;
+  }
+
+  .gaa-metering-regwall--casl a {
+    color: #1967d2;
+  }
+
   .gaa-metering-regwall--line {
     background-color: #ddd;
     display: block;
@@ -209,6 +222,8 @@ const REGWALL_HTML = `
         src="$iframeUrl$">
     </iframe>
 
+    $SHOWCASE_REGWALL_CASL$
+
     <div class="gaa-metering-regwall--line"></div>
 
     <a
@@ -219,6 +234,16 @@ const REGWALL_HTML = `
       $SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$
     </a>
   </div>
+</div>
+`;
+
+/**
+ * HTML for the CASL blurb.
+ * CASL stands for Canadian Anti-Spam Law.
+ */
+const CASL_HTML = `
+<div class="gaa-metering-regwall--casl">
+  $SHOWCASE_REGWALL_CASL$
 </div>
 `;
 
@@ -341,10 +366,10 @@ export class GaaMeteringRegwall {
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
-   * @param {{ iframeUrl: string }} params
+   * @param {{ iframeUrl: string, caslUrl: string }} params
    * @return {!Promise<!GaaUserDef>}
    */
-  static show({iframeUrl}) {
+  static show({iframeUrl, caslUrl}) {
     const queryString = GaaUtils.getQueryString();
     if (!queryStringHasFreshGaaParams(queryString)) {
       const errorMessage =
@@ -355,7 +380,7 @@ export class GaaMeteringRegwall {
 
     logEvent(ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL);
 
-    GaaMeteringRegwall.render_({iframeUrl});
+    GaaMeteringRegwall.render_({iframeUrl, caslUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
     return GaaMeteringRegwall.getGaaUser_()
       .then((gaaUser) => {
@@ -388,14 +413,17 @@ export class GaaMeteringRegwall {
    * Renders the Regwall.
    * @private
    * @nocollapse
-   * @param {{ iframeUrl: string }} params
+   * @param {{ iframeUrl: string, caslUrl: string }} params
    */
-  static render_({iframeUrl}) {
+  static render_({iframeUrl, caslUrl}) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
+    const publisherName = GaaMeteringRegwall.getPublisherNameFromPageConfig_();
+    const placeholderPattern = /<ph.+\/ph>/g;
 
     // Tell the iframe which language to render.
     iframeUrl = addQueryParam(iframeUrl, 'lang', languageCode);
 
+    // Create and style container element.
     const containerEl = /** @type {!HTMLDivElement} */ (
       self.document.createElement('div')
     );
@@ -416,6 +444,21 @@ export class GaaMeteringRegwall {
       'width': '100%',
       'z-index': 2147483646,
     });
+
+    // Optionally include CASL HTML.
+    let caslHtml = '';
+    if (caslUrl) {
+      caslHtml = CASL_HTML.replace(
+        '$SHOWCASE_REGWALL_CASL$',
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_CASL'], languageCode)
+      )
+        // Update link.
+        .replace('<a>', `<a href="${encodeURI(caslUrl)}" target="_blank">`)
+        // Update publisher name.
+        .replace(placeholderPattern, publisherName);
+    }
+
+    // Prepare HTML.
     containerEl./*OK*/ innerHTML = REGWALL_HTML.replace(
       '$iframeUrl$',
       iframeUrl
@@ -427,6 +470,8 @@ export class GaaMeteringRegwall {
       .replace(
         '$SHOWCASE_REGWALL_DESCRIPTION$',
         msg(I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'], languageCode)
+          // Update publisher name.
+          .replace(placeholderPattern, publisherName)
       )
       .replace(
         '$SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$',
@@ -434,15 +479,18 @@ export class GaaMeteringRegwall {
           I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'],
           languageCode
         )
-      );
-    containerEl.querySelector('ph')./*OK*/ innerHTML =
-      '<strong>' +
-      GaaMeteringRegwall.getPublisherNameFromPageConfig_() +
-      '</strong>';
+      )
+      .replace('$SHOWCASE_REGWALL_CASL$', caslHtml);
+
+    // Add container to DOM.
     self.document.body.appendChild(containerEl);
+
+    // Trigger a fade-in transition.
     /** @suppress {suspiciousCode} */
     containerEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(containerEl, {'opacity': 1});
+
+    // Listen for clicks.
     GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
 
     // Focus on the title after the dialog animates in.
