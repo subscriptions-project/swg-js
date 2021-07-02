@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="it">
+<messages>
+
+
+
+
+<msg name="SHOWCASE_REGWALL_TITLE">Con Google puoi avere di più</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Generalmente questi contenuti sono a pagamento, ma Google ti offre accesso gratuito a questo articolo e ad altri articoli se ti registri a <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando il tuo Account Google.</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Hai già un account?</msg>
+<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Accedi con Google</msg>
+
+
+
+</messages>
+</localizationbundle>

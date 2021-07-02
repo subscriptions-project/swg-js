@@ -16,6 +16,8 @@
 
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig} from '../model/client-config';
+import {ClientTheme} from '../api/basic-subscriptions';
+import {UiPredicates} from '../model/auto-prompt-config';
 import {serviceUrl} from './services';
 import {warn} from '../utils/log';
 
@@ -27,8 +29,12 @@ export class ClientConfigManager {
   /**
    * @param {string} publicationId
    * @param {!./fetcher.Fetcher} fetcher
+   * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
    */
-  constructor(publicationId, fetcher) {
+  constructor(publicationId, fetcher, clientOptions) {
+    /** @private @const {!../api/basic-subscriptions.ClientOptions} */
+    this.clientOptions_ = clientOptions || {};
+
     /** @private @const {string} */
     this.publicationId_ = publicationId;
 
@@ -43,9 +49,9 @@ export class ClientConfigManager {
    * Fetches the client config from the server.
    * @return {!Promise<!ClientConfig>}
    */
-  getClientConfig() {
+  fetchClientConfig() {
     if (!this.publicationId_) {
-      throw new Error('getClientConfig requires publicationId');
+      throw new Error('fetchClientConfig requires publicationId');
     }
     if (!this.responsePromise_) {
       this.responsePromise_ = this.fetch_();
@@ -54,17 +60,69 @@ export class ClientConfigManager {
   }
 
   /**
+   * Gets the client config, if already requested. Otherwise returns a Promise
+   * with an empty ClientConfig.
+   * @return {!Promise<!ClientConfig>}
+   */
+  getClientConfig() {
+    return this.responsePromise_ || Promise.resolve(new ClientConfig());
+  }
+
+  /**
    * Convenience method for retrieving the auto prompt portion of the client
    * configuration.
-   * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig>}
+   * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig|undefined>}
    */
   getAutoPromptConfig() {
     if (!this.responsePromise_) {
-      this.getClientConfig();
+      this.fetchClientConfig();
     }
     return this.responsePromise_.then(
       (clientConfig) => clientConfig.autoPromptConfig
     );
+  }
+
+  /**
+   * Gets the language the UI should be displayed in. See
+   * src/api/basic-subscriptions.ClientOptions.lang. This
+   * @return {string}
+   */
+  getLanguage() {
+    return this.clientOptions_.lang || 'en';
+  }
+
+  /**
+   * Gets the theme the UI should be displayed in. See
+   * src/api/basic-subscriptions.ClientOptions.theme.
+   * @return {!../api/basic-subscriptions.ClientTheme}
+   */
+  getTheme() {
+    return this.clientOptions_.theme || ClientTheme.LIGHT;
+  }
+
+  /**
+   * Determines whether a subscription or contribution button should be disabled.
+   * @returns {!Promise<boolean|undefined>}
+   */
+  shouldEnableButton() {
+    // Disable button if disableButton is set to be true in clientOptions.
+    // If disableButton is set to be false or not set, then always enable button.
+    // This is for testing purpose.
+    if (this.clientOptions_.disableButton) {
+      return Promise.resolve(false);
+    }
+
+    if (!this.responsePromise_) {
+      this.fetchClientConfig();
+    }
+    // UI predicates decides whether to enable button.
+    return this.responsePromise_.then((clientConfig) => {
+      if (clientConfig.uiPredicates?.canDisplayButton) {
+        return true;
+      } else {
+        return false;
+      }
+    });
   }
 
   /**
@@ -93,13 +151,33 @@ export class ClientConfigManager {
    * @return {!ClientConfig}
    */
   parseClientConfig_(json) {
+    const paySwgVersion = json['paySwgVersion'];
     const autoPromptConfigJson = json['autoPromptConfig'];
-    let autoPromptConfig = null;
+    let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
       autoPromptConfig = new AutoPromptConfig(
-        autoPromptConfigJson['maxImpressionsPerWeek']
+        autoPromptConfigJson.maxImpressionsPerWeek,
+        autoPromptConfigJson.clientDisplayTrigger?.displayDelaySeconds,
+        autoPromptConfigJson.explicitDismissalConfig?.backoffSeconds,
+        autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsPerWeek,
+        autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsResultingHideSeconds
       );
     }
-    return new ClientConfig(autoPromptConfig);
+
+    const uiPredicatesJson = json['uiPredicates'];
+    let uiPredicates = undefined;
+    if (uiPredicatesJson) {
+      uiPredicates = new UiPredicates(
+        uiPredicatesJson.canDisplayAutoPrompt,
+        uiPredicatesJson.canDisplayButton
+      );
+    }
+
+    return new ClientConfig(
+      autoPromptConfig,
+      paySwgVersion,
+      json['useUpdatedOfferFlows'],
+      uiPredicates
+    );
   }
 }

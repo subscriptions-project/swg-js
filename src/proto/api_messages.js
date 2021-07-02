@@ -54,6 +54,9 @@ const AnalyticsEvent = {
   IMPRESSION_METER_TOAST: 21,
   IMPRESSION_REGWALL: 22,
   IMPRESSION_SHOWCASE_REGWALL: 23,
+  IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT: 24,
+  IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT: 25,
+  IMPRESSION_CONTRIBUTION_OFFERS: 26,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -84,6 +87,13 @@ const AnalyticsEvent = {
   ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION: 1027,
   ACTION_METER_TOAST_CLOSED_BY_SWIPE_DOWN: 1028,
   ACTION_METER_TOAST_CLOSED_BY_X_CLICKED: 1029,
+  ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK: 1030,
+  ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLICK: 1031,
+  ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE: 1032,
+  ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE: 1033,
+  ACTION_CONTRIBUTION_OFFER_SELECTED: 1034,
+  ACTION_SHOWCASE_REGWALL_GSI_CLICK: 1035,
+  ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK: 1036,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
@@ -772,7 +782,10 @@ class EntitlementsRequest {
     this.entitlementResult_ = data[3 + base] == null ? null : data[3 + base];
 
     /** @private {?string} */
-    this.nonce_ = data[4 + base] == null ? null : data[4 + base];
+    this.token_ = data[4 + base] == null ? null : data[4 + base];
+
+    /** @private {?boolean} */
+    this.isUserRegistered_ = data[5 + base] == null ? null : data[5 + base];
   }
 
   /**
@@ -834,15 +847,29 @@ class EntitlementsRequest {
   /**
    * @return {?string}
    */
-  getNonce() {
-    return this.nonce_;
+  getToken() {
+    return this.token_;
   }
 
   /**
    * @param {string} value
    */
-  setNonce(value) {
-    this.nonce_ = value;
+  setToken(value) {
+    this.token_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getIsUserRegistered() {
+    return this.isUserRegistered_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setIsUserRegistered(value) {
+    this.isUserRegistered_ = value;
   }
 
   /**
@@ -852,13 +879,12 @@ class EntitlementsRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-      this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) :
-                              [],  // field 1 - used_entitlement
-      this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) :
-                              [],  // field 2 - client_event_time
-      this.entitlementSource_,     // field 3 - entitlement_source
-      this.entitlementResult_,     // field 4 - entitlement_result
-      this.nonce_,                 // field 5 - nonce
+        this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) : [], // field 1 - used_entitlement
+        this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) : [], // field 2 - client_event_time
+        this.entitlementSource_, // field 3 - entitlement_source
+        this.entitlementResult_, // field 4 - entitlement_result
+        this.token_, // field 5 - token
+        this.isUserRegistered_, // field 6 - is_user_registered
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -888,6 +914,9 @@ class EntitlementsResponse {
 
     /** @private {?string} */
     this.jwt_ = data[base] == null ? null : data[base];
+
+    /** @private {?string} */
+    this.swgUserToken_ = data[1 + base] == null ? null : data[1 + base];
   }
 
   /**
@@ -905,6 +934,20 @@ class EntitlementsResponse {
   }
 
   /**
+   * @return {?string}
+   */
+  getSwgUserToken() {
+    return this.swgUserToken_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSwgUserToken(value) {
+    this.swgUserToken_ = value;
+  }
+
+  /**
    * @param {boolean} includeLabel
    * @return {!Array<?>}
    * @override
@@ -912,6 +955,7 @@ class EntitlementsResponse {
   toArray(includeLabel = true) {
     const arr = [
         this.jwt_, // field 1 - jwt
+        this.swgUserToken_, // field 2 - swg_user_token
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -956,6 +1000,9 @@ class EventParams {
 
     /** @private {?boolean} */
     this.isUserRegistered_ = data[5 + base] == null ? null : data[5 + base];
+
+    /** @private {?string} */
+    this.subscriptionFlow_ = data[6 + base] == null ? null : data[6 + base];
   }
 
   /**
@@ -1043,6 +1090,20 @@ class EventParams {
   }
 
   /**
+   * @return {?string}
+   */
+  getSubscriptionFlow() {
+    return this.subscriptionFlow_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSubscriptionFlow(value) {
+    this.subscriptionFlow_ = value;
+  }
+
+  /**
    * @param {boolean} includeLabel
    * @return {!Array<?>}
    * @override
@@ -1055,6 +1116,7 @@ class EventParams {
         this.sku_, // field 4 - sku
         this.oldTransactionId_, // field 5 - old_transaction_id
         this.isUserRegistered_, // field 6 - is_user_registered
+        this.subscriptionFlow_, // field 7 - subscription_flow
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1291,6 +1353,12 @@ class SkuSelectedResponse {
 
     /** @private {?string} */
     this.oldPlayOffer_ = data[4 + base] == null ? null : data[4 + base];
+
+    /** @private {?string} */
+    this.customMessage_ = data[5 + base] == null ? null : data[5 + base];
+
+    /** @private {?boolean} */
+    this.anonymous_ = data[6 + base] == null ? null : data[6 + base];
   }
 
   /**
@@ -1364,6 +1432,34 @@ class SkuSelectedResponse {
   }
 
   /**
+   * @return {?string}
+   */
+  getCustomMessage() {
+    return this.customMessage_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setCustomMessage(value) {
+    this.customMessage_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getAnonymous() {
+    return this.anonymous_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setAnonymous(value) {
+    this.anonymous_ = value;
+  }
+
+  /**
    * @param {boolean} includeLabel
    * @return {!Array<?>}
    * @override
@@ -1375,6 +1471,8 @@ class SkuSelectedResponse {
         this.oneTime_, // field 3 - one_time
         this.playOffer_, // field 4 - play_offer
         this.oldPlayOffer_, // field 5 - old_play_offer
+        this.customMessage_, // field 6 - custom_message
+        this.anonymous_, // field 7 - anonymous
     ];
     if (includeLabel) {
       arr.unshift(this.label());

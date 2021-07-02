@@ -25,6 +25,7 @@ import {AnalyticsMode} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
+import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
@@ -34,6 +35,7 @@ import {Doc, resolveDoc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
 import {
   LinkCompleteFlow,
@@ -69,9 +71,10 @@ import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {isSecure, wasReferredByGoogle} from '../utils/url';
 import {parseUrl} from '../utils/url';
-import {publisherEntitlementEventToAnalyticsEvents} from './event-type-mapping';
 import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {setExperiment} from './experiments';
+import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
+import {warn} from '../utils/log';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -514,6 +517,11 @@ export class Runtime {
       )
     );
   }
+
+  /** @override */
+  showBestAudienceAction() {
+    warn('Not implemented yet');
+  }
 }
 
 /**
@@ -527,10 +535,15 @@ export class ConfiguredRuntime {
    * @param {{
    *     fetcher: (!Fetcher|undefined),
    *     configPromise: (!Promise|undefined),
+   *     enableGoogleAnalytics: (boolean|undefined),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
+   * @param {!{
+   *   lang: (string|undefined),
+   *   theme: (!../api/basic-subscriptions.ClientTheme|undefined),
+   *   }=} clientOptions
    */
-  constructor(winOrDoc, pageConfig, integr, config) {
+  constructor(winOrDoc, pageConfig, integr, config, clientOptions) {
     integr = integr || {};
     integr.configPromise = integr.configPromise || Promise.resolve();
 
@@ -576,6 +589,21 @@ export class ConfiguredRuntime {
     /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
 
+    /** @private {?OffersFlow} */
+    this.lastOffersFlow_ = null;
+
+    /** @private {?ContributionsFlow} */
+    this.lastContributionsFlow_ = null;
+
+    // Start listening to Google Analytics events, if applicable.
+    if (integr.enableGoogleAnalytics) {
+      /** @private @const {!GoogleAnalyticsEventListener} */
+      this.googleAnalyticsEventListener_ = new GoogleAnalyticsEventListener(
+        this
+      );
+      this.googleAnalyticsEventListener_.start();
+    }
+
     // WARNING: DepsDef ('this') is being progressively defined below.
     // Constructors will crash if they rely on something that doesn't exist yet.
     /** @private @const {!../components/activities.ActivityPorts} */
@@ -597,6 +625,13 @@ export class ConfiguredRuntime {
       this.pageConfig_,
       this.fetcher_,
       this // See note about 'this' above
+    );
+
+    /** @private @const {!ClientConfigManager} */
+    this.clientConfigManager_ = new ClientConfigManager(
+      pageConfig.getPublicationId(),
+      this.fetcher_,
+      clientOptions
     );
 
     /** @private @const {!Propensity} */
@@ -689,7 +724,7 @@ export class ConfiguredRuntime {
 
   /** @override */
   clientConfigManager() {
-    return null;
+    return this.clientConfigManager_;
   }
 
   /** @override */
@@ -764,12 +799,17 @@ export class ConfiguredRuntime {
   /** @override */
   reset() {
     this.entitlementsManager_.reset();
-    this.dialogManager_.completeAll();
+    this.closeDialog();
   }
 
   /** @override */
   clear() {
     this.entitlementsManager_.clear();
+    this.closeDialog();
+  }
+
+  /** Close dialog. */
+  closeDialog() {
     this.dialogManager_.completeAll();
   }
 
@@ -820,8 +860,8 @@ export class ConfiguredRuntime {
         'The showOffers() method cannot be used to update a subscription. ' +
         'Use the showUpdateOffers() method instead.';
       assert(options ? !options['oldSku'] : true, errorMessage);
-      const flow = new OffersFlow(this, options);
-      return flow.start();
+      this.lastOffersFlow_ = new OffersFlow(this, options);
+      return this.lastOffersFlow_.start();
     });
   }
 
@@ -860,9 +900,17 @@ export class ConfiguredRuntime {
   /** @override */
   showContributionOptions(options) {
     return this.documentParsed_.then(() => {
-      const flow = new ContributionsFlow(this, options);
-      return flow.start();
+      this.lastContributionsFlow_ = new ContributionsFlow(this, options);
+      return this.lastContributionsFlow_.start();
     });
+  }
+
+  /**
+   * Get the last contribution offers flow.
+   * @return {?ContributionsFlow}
+   */
+  getLastContributionsFlow() {
+    return this.lastContributionsFlow_;
   }
 
   /** @override */
@@ -1038,6 +1086,14 @@ export class ConfiguredRuntime {
   }
 
   /**
+   * Get the last subscription offers flow.
+   * @return {?OffersFlow}
+   */
+  getLastOffersFlow() {
+    return this.lastOffersFlow_;
+  }
+
+  /**
    * This one exists as a public API so publishers can subscribe to SwG events.
    * @override */
   getEventManager() {
@@ -1057,22 +1113,24 @@ export class ConfiguredRuntime {
       !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
       !queryStringHasFreshGaaParams(this.win().location.search)
     ) {
-      return;
+      return Promise.resolve();
     }
 
     const eventsToLog =
-      publisherEntitlementEventToAnalyticsEvents(entitlement.entitlement) || [];
+      showcaseEventToAnalyticsEvents(entitlement.entitlement) || [];
     const params = new EventParams();
     params.setIsUserRegistered(entitlement.isUserRegistered);
 
-    for (let k = 0; k < eventsToLog.length; k++) {
+    for (let i = 0; i < eventsToLog.length; i++) {
       this.eventManager().logEvent({
-        eventType: eventsToLog[k],
+        eventType: eventsToLog[i],
         eventOriginator: EventOriginator.SHOWCASE_CLIENT,
         isFromUserAction: false,
         additionalParameters: params,
       });
     }
+
+    return Promise.resolve();
   }
 
   /** @override */
@@ -1081,6 +1139,11 @@ export class ConfiguredRuntime {
       signedEntitlements: showcaseEntitlementJwt,
     });
     entitlements.consume(onCloseDialog);
+  }
+
+  /** @override */
+  showBestAudienceAction() {
+    warn('Not implemented yet');
   }
 }
 
@@ -1109,16 +1172,14 @@ function createPublicRuntime(runtime) {
     subscribe: runtime.subscribe.bind(runtime),
     updateSubscription: runtime.updateSubscription.bind(runtime),
     contribute: runtime.contribute.bind(runtime),
-    completeDeferredAccountCreation: runtime.completeDeferredAccountCreation.bind(
-      runtime
-    ),
+    completeDeferredAccountCreation:
+      runtime.completeDeferredAccountCreation.bind(runtime),
     setOnEntitlementsResponse: runtime.setOnEntitlementsResponse.bind(runtime),
     setOnLoginRequest: runtime.setOnLoginRequest.bind(runtime),
     triggerLoginRequest: runtime.triggerLoginRequest.bind(runtime),
     setOnLinkComplete: runtime.setOnLinkComplete.bind(runtime),
-    setOnNativeSubscribeRequest: runtime.setOnNativeSubscribeRequest.bind(
-      runtime
-    ),
+    setOnNativeSubscribeRequest:
+      runtime.setOnNativeSubscribeRequest.bind(runtime),
     setOnPaymentResponse: runtime.setOnPaymentResponse.bind(runtime),
     setOnSubscribeResponse: runtime.setOnSubscribeResponse.bind(runtime),
     setOnContributionResponse: runtime.setOnContributionResponse.bind(runtime),
@@ -1132,14 +1193,13 @@ function createPublicRuntime(runtime) {
     getLogger: runtime.getLogger.bind(runtime),
     getEventManager: runtime.getEventManager.bind(runtime),
     setShowcaseEntitlement: runtime.setShowcaseEntitlement.bind(runtime),
-    consumeShowcaseEntitlementJwt: runtime.consumeShowcaseEntitlementJwt.bind(
-      runtime
-    ),
+    consumeShowcaseEntitlementJwt:
+      runtime.consumeShowcaseEntitlementJwt.bind(runtime),
+    showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
   });
 }
 
 /**
- * @return {!Function}
  * @protected
  */
 export function getSubscriptionsClassForTesting() {
@@ -1147,7 +1207,6 @@ export function getSubscriptionsClassForTesting() {
 }
 
 /**
- * @return {!Function}
  * @protected
  */
 export function getFetcherClassForTesting() {

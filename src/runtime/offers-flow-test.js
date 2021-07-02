@@ -19,11 +19,13 @@ import {ActivityPort} from '../components/activities';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {
   AlreadySubscribedResponse,
+  EntitlementsResponse,
   SkuSelectedResponse,
   SubscribeResponse,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {ClientConfig} from '../model/client-config';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
@@ -95,7 +97,76 @@ describes.realWin('OffersFlow', {}, (env) => {
           isClosable: false,
         })
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
+    await offersFlow.start();
+  });
+
+  it('should have valid OffersFlow constructed, routed to the new offers iframe', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(
+        new ClientConfig(
+          /* autoPromptConfig */ undefined,
+          /* paySwgVersion */ undefined,
+          /* useUpdatedOfferFlows */ true
+        )
+      );
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_',
+        runtime.activities().addDefaultArguments({
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: null,
+          isClosable: false,
+        })
+      )
+      .resolves(port);
+    await offersFlow.start();
+  });
+
+  it('start should not show offers if predicates disable', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(
+        new ClientConfig(
+          /* autoPromptConfig */ undefined,
+          /* paySwgVersion */ undefined,
+          /* useUpdatedOfferFlows */ true,
+          /* uiPredicates */ {canDisplayAutoPrompt: false}
+        )
+      );
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    callbacksMock.expects('triggerFlowStarted').never();
+
+    await offersFlow.start();
+  });
+
+  it('start should show offers if predicates enable', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(
+        new ClientConfig(
+          /* autoPromptConfig */ undefined,
+          /* paySwgVersion */ undefined,
+          /* useUpdatedOfferFlows */ true,
+          /* uiPredicates */ {canDisplayAutoPrompt: true}
+        )
+      );
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    callbacksMock.expects('triggerFlowStarted').once();
+
+    activitiesMock.expects('openIframe').resolves(port);
+
     await offersFlow.start();
   });
 
@@ -123,7 +194,7 @@ describes.realWin('OffersFlow', {}, (env) => {
           isClosable: false,
         })
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await offersFlow.start();
   });
 
@@ -142,7 +213,7 @@ describes.realWin('OffersFlow', {}, (env) => {
           isClosable: false,
         })
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await offersFlow.start();
   });
 
@@ -161,7 +232,7 @@ describes.realWin('OffersFlow', {}, (env) => {
           isClosable: false,
         })
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await offersFlow.start();
   });
 
@@ -184,7 +255,7 @@ describes.realWin('OffersFlow', {}, (env) => {
           isClosable: false,
         })
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await offersFlow.start();
   });
 
@@ -219,26 +290,18 @@ describes.realWin('OffersFlow', {}, (env) => {
           isClosable: false,
         })
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await offersFlow.start();
   });
 
   it('should auto-redirect to payments if only one update option given', async () => {
-    const payClientMock = sandbox.mock(runtime.payClient());
-    payClientMock.expects('start').once();
-    callbacksMock
-      .expects('triggerFlowStarted')
-      .withExactArgs('subscribe', {
-        skuId: 'sku2',
-        oldSku: 'sku1',
-      })
-      .once();
+    const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
     offersFlow = new OffersFlow(runtime, {
       skus: ['sku1', 'sku2'],
       oldSku: 'sku1',
     });
     activitiesMock.expects('openIframe').never();
-    payClientMock.verify();
+    expect(payStub).to.be.calledOnce;
     await offersFlow.start();
   });
 
@@ -257,7 +320,7 @@ describes.realWin('OffersFlow', {}, (env) => {
           isClosable: false,
         })
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     offersFlow = new OffersFlow(runtime);
     await offersFlow.start();
   });
@@ -269,7 +332,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       runtime.callbacks(),
       'triggerSubscribeRequest'
     );
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     await offersFlow.start();
 
     // Unrelated message.
@@ -308,9 +371,9 @@ describes.realWin('OffersFlow', {}, (env) => {
     expect(payStub).to.be.calledOnce; // Didn't change.
   });
 
-  it('should activate login with linking', async () => {
+  it('should activate login with linking and EntitlementsResponse', async () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
 
     await offersFlow.start();
     const response = new AlreadySubscribedResponse();
@@ -321,6 +384,43 @@ describes.realWin('OffersFlow', {}, (env) => {
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: true,
     });
+
+    const entitlementsResponse = new EntitlementsResponse();
+    entitlementsResponse.setJwt('abc');
+    entitlementsResponse.setSwgUserToken('123');
+    messageCallback = messageMap[response.label()];
+    messageCallback(response);
+  });
+
+  it('should send an empty EntitlementsResponse to show "no subscription found" toast on Activity iFrame view', async () => {
+    offersFlow = new OffersFlow(runtime, {skus: ['sku1', 'sku2']});
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        runtime.activities().addDefaultArguments({
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: ['sku1', 'sku2'],
+          isClosable: false,
+        })
+      )
+      .resolves(port);
+    // OffersFlow needs to start first in order to have a valid ActivityIframeView
+    await offersFlow.start();
+
+    const activityIframeView = await offersFlow.activityIframeViewPromise_;
+    const activityIframeViewMock = sandbox.mock(activityIframeView);
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(new EntitlementsResponse())
+      .once();
+
+    await offersFlow.showNoEntitlementFoundToast();
+
+    activityIframeViewMock.verify();
   });
 });
 
@@ -383,7 +483,7 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
           isClosable: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
@@ -415,7 +515,7 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
           isClosable: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
@@ -441,7 +541,7 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
           isClosable: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
@@ -450,7 +550,7 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
 
   it('should trigger offers flow when accepted', async () => {
     const offersStartStub = sandbox.stub(OffersFlow.prototype, 'start');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     expect(offersStartStub).to.not.be.called;
     eventManagerMock
       .expects('logSwgEvent')
@@ -477,7 +577,7 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
       offersFlow = this;
       return Promise.resolve();
     });
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
@@ -490,7 +590,8 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
     response.setSubscribe(true);
     messageCallback = messageMap[response.label()];
     messageCallback(response);
-    expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+    const activityIframeView = await offersFlow.activityIframeViewPromise_;
+    expect(activityIframeView.args_['list']).to.equal('other');
   });
 });
 
@@ -555,7 +656,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
           isClosable: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -582,7 +683,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
           isClosable: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -617,7 +718,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
           isClosable: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -646,7 +747,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
           isClosable: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -657,7 +758,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
 
   it('should trigger login flow for a subscribed user with linking', async () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -680,7 +781,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
 
   it('should trigger login flow for subscibed user without linking', async () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -703,7 +804,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
 
   it('should trigger offers flow when requested', async () => {
     const offersStartStub = sandbox.stub(OffersFlow.prototype, 'start');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     expect(offersStartStub).to.not.be.called;
     const result = new ActivityResult(
       'OK',
@@ -732,7 +833,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
 
   it('should not trigger offers flow when cancelled', async () => {
     const offersStartStub = sandbox.stub(OffersFlow.prototype, 'start');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     expect(offersStartStub).to.not.be.called;
     sandbox
       .stub(port, 'acceptResult')
@@ -760,7 +861,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
       offersFlow = this;
       return Promise.resolve();
     });
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     const result = new ActivityResult(
       'OK',
       {'viewOffers': true},
@@ -783,6 +884,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
 
     await optionFlow.start();
     await resultPromise;
-    expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+    const activityIframeView = await offersFlow.activityIframeViewPromise_;
+    expect(activityIframeView.args_['list']).to.equal('other');
   });
 });

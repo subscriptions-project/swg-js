@@ -17,6 +17,7 @@
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
+import {ClientTheme} from '../api/basic-subscriptions';
 import {Fetcher} from './fetcher';
 
 describes.realWin('ClientConfigManager', {}, () => {
@@ -35,28 +36,59 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock.verify();
   });
 
-  it('getClientConfig should fetch the client config', async () => {
+  it('fetchClientConfig should fetch the client config', async () => {
     const expectedUrl =
       '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({autoPromptConfig: {maxImpressionsPerWeek: 1}}))
+      .resolves({autoPromptConfig: {maxImpressionsPerWeek: 1}})
       .once();
 
-    const clientConfig = await clientConfigManager.getClientConfig();
+    let clientConfig = await clientConfigManager.fetchClientConfig();
     const expectedAutoPromptConfig = new AutoPromptConfig(1);
     const expectedClientConfig = new ClientConfig(expectedAutoPromptConfig);
     expect(clientConfig).to.deep.equal(expectedClientConfig);
+
+    clientConfig = await clientConfigManager.getClientConfig();
+    expect(clientConfig).to.deep.equal(expectedClientConfig);
   });
 
-  it('getClientConfig should throw an error for undefined publication ID', async () => {
+  it('fetchClientConfig should throw an error for undefined publication ID', async () => {
     clientConfigManager = new ClientConfigManager(undefined, fetcher);
     fetcherMock.expects('fetchCredentialedJson').never();
 
     expect(() => {
-      clientConfigManager.getClientConfig();
-    }).to.throw('getClientConfig requires publicationId');
+      clientConfigManager.fetchClientConfig();
+    }).to.throw('fetchClientConfig requires publicationId');
+  });
+
+  it('getAutoPromptConfig should return undefined if the autoPromptConfig is not present in the response', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({})
+      .once();
+
+    const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
+    expect(autoPromptConfig).to.be.undefined;
+  });
+
+  it('getAutoPromptConfig should return AutoPromptConfig object even if part of the config is missing', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({autoPromptConfig: {maxImpressionsPerWeek: 3}})
+      .once();
+
+    const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
+    expect(autoPromptConfig.maxImpressionsPerWeek).to.equal(3);
+    expect(autoPromptConfig.clientDisplayTrigger).to.not.be.undefined;
+    expect(autoPromptConfig.explicitDismissalConfig).to.not.be.undefined;
   });
 
   it('getAutoPromptConfig should return AutoPromptConfig object', async () => {
@@ -65,30 +97,177 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({autoPromptConfig: {maxImpressionsPerWeek: 3}}))
+      .resolves({
+        autoPromptConfig: {
+          maxImpressionsPerWeek: 1,
+          clientDisplayTrigger: {displayDelaySeconds: 2},
+          explicitDismissalConfig: {
+            backoffSeconds: 3,
+            maxDismissalsPerWeek: 4,
+            maxDismissalsResultingHideSeconds: 5,
+          },
+        },
+      })
       .once();
 
-    const expectedAutoPromptConfig = new AutoPromptConfig(3);
     const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
-    expect(autoPromptConfig).to.deep.equal(expectedAutoPromptConfig);
+    expect(autoPromptConfig.maxImpressionsPerWeek).to.equal(1);
+    expect(autoPromptConfig.clientDisplayTrigger.displayDelaySeconds).to.equal(
+      2
+    );
+    expect(autoPromptConfig.explicitDismissalConfig.backoffSeconds).to.equal(3);
+    expect(
+      autoPromptConfig.explicitDismissalConfig.maxDismissalsPerWeek
+    ).to.equal(4);
+    expect(
+      autoPromptConfig.explicitDismissalConfig.maxDismissalsResultingHideSeconds
+    ).to.equal(5);
   });
 
-  it('getClientConfig should log errors from the response', async () => {
+  it('fetchClientConfig should log errors from the response', async () => {
     const expectedUrl =
       '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(
-        Promise.resolve({
-          errorMessages: ['Something went wrong'],
-        })
-      )
+      .resolves({
+        errorMessages: ['Something went wrong'],
+      })
       .once();
 
     await clientConfigManager.getAutoPromptConfig();
     expect(self.console.warn).to.have.been.calledWithExactly(
       'SwG ClientConfigManager: Something went wrong'
     );
+  });
+
+  it('getClientConfig should return a Promise with an empty config if fetchClientConfig is not called', async () => {
+    const clientConfig = await clientConfigManager.getClientConfig();
+    const expectedClientConfig = new ClientConfig();
+    expect(clientConfig).to.deep.equal(expectedClientConfig);
+  });
+
+  it('should return default client options if unspecified', () => {
+    expect(clientConfigManager.getLanguage()).to.equal('en');
+    expect(clientConfigManager.getTheme()).to.equal(ClientTheme.LIGHT);
+  });
+
+  it('should return the language set in the constructor', () => {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+      lang: 'fr',
+    });
+    expect(clientConfigManager.getLanguage()).to.equal('fr');
+    expect(clientConfigManager.getTheme()).to.equal(ClientTheme.LIGHT);
+  });
+
+  it('should return the theme set in the constructor', () => {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+      theme: ClientTheme.DARK,
+    });
+    expect(clientConfigManager.getTheme()).to.equal(ClientTheme.DARK);
+    expect(clientConfigManager.getLanguage()).to.equal('en');
+  });
+
+  it('shouldEnableButton should return false if disableButton is set to be true in ClientOptions', async () => {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+      disableButton: true,
+    });
+
+    const shouldEnableButton = await clientConfigManager.shouldEnableButton();
+    expect(shouldEnableButton).to.equal(false);
+  });
+
+  it('shouldEnableButton should return true if ClientConfig has UI predicate canDisplayButton set to be true', async () => {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+      disableButton: false, // this will be ignored
+    });
+
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({
+        uiPredicates: {
+          canDisplayButton: true,
+        },
+      })
+      .once();
+
+    clientConfigManager.shouldEnableButton().then((data) => {
+      expect(data).to.equal.to.be.true;
+    });
+  });
+
+  it('shouldEnableButton should return undefined if ClientConfig has UI predicate canDisplayButton is not set', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({})
+      .once();
+
+    clientConfigManager.shouldEnableButton().then((data) => {
+      expect(data).to.equal.to.be.undefined;
+    });
+  });
+
+  it('getClientConfig should have paySwgVersion after fetch', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({paySwgVersion: '2'})
+      .once();
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+    expect(clientConfig.paySwgVersion).to.equal('2');
+  });
+
+  it('getClientConfig should have useUpdatedOfferFlows after fetch', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({useUpdatedOfferFlows: true})
+      .once();
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+    expect(clientConfig.useUpdatedOfferFlows).to.be.true;
+  });
+
+  it('getClientConfig should use default useUpdatedOfferFlows value after fetch if the response did not contain a useUpdatedOfferFlows value', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({useUpdatedOfferFlows: false})
+      .once();
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+    expect(clientConfig.useUpdatedOfferFlows).to.be.false;
+  });
+
+  it('getClientConfig should have uiPredicates after fetch if the response did not contain a useUpdatedOfferFlows value', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({
+        uiPredicates: {
+          canDisplayAutoPrompt: true,
+          canDisplayButton: true,
+        },
+      })
+      .once();
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+    expect(clientConfig.uiPredicates.canDisplayButton).to.be.true;
+    expect(clientConfig.uiPredicates.canDisplayAutoPrompt).to.be.true;
   });
 });

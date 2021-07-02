@@ -16,21 +16,22 @@
 'use strict';
 
 const argv = require('minimist')(process.argv.slice(2));
-const closureCompiler = require('gulp-closure-compiler');
+const closureCompiler = require('@ampproject/google-closure-compiler');
 const fs = require('fs-extra');
 const gulp = require('gulp');
-const internalRuntimeVersion = require('./internal-version').VERSION;
+const path = require('path');
+const pumpify = require('pumpify');
 const rename = require('gulp-rename');
 const replace = require('gulp-replace');
 const resolveConfig = require('./compile-config').resolveConfig;
+const sourcemaps = require('gulp-sourcemaps');
+const {isCiBuild} = require('../ci');
+const {red} = require('ansi-colors');
+const {VERSION: internalRuntimeVersion} = require('./internal-version');
 
-const isProdBuild = !!argv.type;
 const queue = [];
 let inProgress = 0;
 const MAX_PARALLEL_CLOSURE_INVOCATIONS = 4;
-
-const {isCiBuild} = require('../ci');
-const {red} = require('ansi-colors');
 
 // Compiles code with the closure compiler. This is intended only for
 // production use. During development we intent to continue using
@@ -90,27 +91,14 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       entryModuleFilenames = [entryModuleFilename];
     }
     const checkTypes = options.checkTypes || argv.typecheck_only;
-    const intermediateFilename =
-      'build/cc/' + entryModuleFilename.replace(/\//g, '_').replace(/^\./, '');
+    const intermediateFilename = entryModuleFilename
+      .replace(/\//g, '_')
+      .replace(/^\./, '');
     // If undefined/null or false then we're ok executing the deletions
     // and mkdir.
     const unneededFiles = [];
-    let wrapper = '(function(){%output%})();';
-    if (options.wrapper) {
-      wrapper = options.wrapper.replace('<%= contents %>', '%output%');
-    }
-    wrapper += '\n//# sourceMappingURL=' + outputFilename + '.map\n';
     if (fs.existsSync(intermediateFilename)) {
       fs.unlinkSync(intermediateFilename);
-    }
-    let sourceMapBase = 'http://localhost:8000/';
-    if (isProdBuild || options.isProdBuild) {
-      // Point sourcemap to fetch files from correct GitHub tag.
-      sourceMapBase =
-        'https://raw.githubusercontent.com/' +
-        'subscriptions-project/swg-js/' +
-        (argv.sourceBranch || internalRuntimeVersion) +
-        '/';
     }
     const srcs = [
       // Files under build/. Should be sparse.
@@ -164,81 +152,78 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
 
     /*eslint "google-camelcase/google-camelcase": 0*/
     const compilerOptions = {
-      // Temporary shipping with our own compiler that has a single patch
-      // applied
-      compilerPath: 'build-system/runner/dist/runner.jar',
-      fileName: intermediateFilename,
-      continueWithWarnings: false,
-      config: 'java_runtime_8',
-      tieredCompilation: true, // Magic speed up.
-      compilerFlags: {
-        compilation_level: options.compilationLevel || 'SIMPLE_OPTIMIZATIONS',
-        // Turns on more optimizations.
-        assume_function_wrapper: true,
-        // Transpile from ES6 to ES5.
-        language_in: 'ECMASCRIPT6',
-        language_out: 'ECMASCRIPT5',
-        // We do not use the polyfills provided by closure compiler.
-        // If you need a polyfill. Manually include them in the
-        // respective top level polyfills.js files.
-        rewrite_polyfills: false,
-        externs,
-        js_module_root: ['node_modules/', 'build/fake-module/'],
-        entry_point: entryModuleFilenames,
-        process_common_js_modules: true,
-        // This strips all files from the input set that aren't explicitly
-        // required.
-        only_closure_dependencies: true,
-        output_wrapper: wrapper,
-        create_source_map: intermediateFilename + '.map',
-        source_map_location_mapping: '|' + sourceMapBase,
-        warning_level: 'DEFAULT',
-        // Turn off warning for "Unknown @define" since we use define to pass
-        // args such as FORTESTING to our runner.
-        jscomp_off: ['unknownDefines'],
-        define: [],
-        hide_warnings_for: [
-          'src/polyfills/',
-          'src/proto/',
-          'node_modules/',
-          'third_party/',
-        ],
-        jscomp_error: [],
-      },
+      compilation_level: options.compilationLevel || 'SIMPLE',
+      // Turns on more optimizations.
+      assume_function_wrapper: true,
+      // Transpile from modern JavaScript to ES5.
+      language_in: 'ECMASCRIPT_2020',
+      language_out: 'ECMASCRIPT5',
+      // We do not use the polyfills provided by closure compiler.
+      // If you need a polyfill. Manually include them in the
+      // respective top level polyfills.js files.
+      rewrite_polyfills: false,
+      externs,
+      js_module_root: ['build/fake-module/'],
+      entry_point: entryModuleFilenames,
+      module_resolution: 'NODE',
+      package_json_entry_names: 'module,main',
+      process_common_js_modules: true,
+      // This strips all files from the input set that aren't explicitly
+      // required.
+      dependency_mode: 'PRUNE',
+      isolation_mode: 'IIFE',
+      warning_level: 'DEFAULT',
+      // Turn off warning for "Unknown @define" since we use define to pass
+      // args such as FORTESTING to our runner.
+      // Turn off warning for "Partial alias" since it's unavoidable with
+      // certain dependencies.
+      jscomp_off: ['unknownDefines', 'partialAlias'],
+      define: [],
+      hide_warnings_for: [
+        'src/polyfills/',
+        'src/proto/',
+        'node_modules/',
+        'third_party/',
+      ],
+      jscomp_error: [],
     };
+
+    // Apply AMP's optimizations, reducing binary size by roughly 25%.
+    // https://github.com/ampproject/amp-closure-compiler/blob/a2c1262c6bb2acfafb5f6672283bbac5623e4a1d/src/org/ampproject/AmpCodingConvention.java#L71
+    compilerOptions.define.push('AMP_MODE=true');
 
     // For now do type check separately
     if (argv.typecheck_only || checkTypes) {
       // Don't modify compilation_level to a lower level since
       // it won't do strict type checking if its whitespace only.
-      compilerOptions.compilerFlags.define.push('TYPECHECK_ONLY=true');
-      compilerOptions.compilerFlags.jscomp_error.push(
+      compilerOptions.define.push('TYPECHECK_ONLY=true');
+      compilerOptions.jscomp_error.push(
         'checkTypes',
         'accessControls',
         'const',
         'constantProperty',
         'globalThis'
       );
-      compilerOptions.compilerFlags.conformance_configs =
+      compilerOptions.conformance_configs =
         'build-system/conformance-config.textproto';
-
-      compilerOptions.compilerFlags.new_type_inf = true;
-      compilerOptions.compilerFlags.jscomp_off.push('newCheckTypesExtraChecks');
     }
     if (argv.pseudoNames) {
-      compilerOptions.compilerFlags.define.push('PSEUDO_NAMES=true');
+      compilerOptions.define.push('PSEUDO_NAMES=true');
     }
     if (argv.fortesting) {
-      compilerOptions.compilerFlags.define.push('FORTESTING=true');
+      compilerOptions.define.push('FORTESTING=true');
     }
 
-    if (compilerOptions.compilerFlags.define.length == 0) {
-      delete compilerOptions.compilerFlags.define;
+    if (compilerOptions.define.length == 0) {
+      delete compilerOptions.define;
     }
 
     let stream = gulp
-      .src(srcs)
-      .pipe(closureCompiler(compilerOptions))
+      .src(srcs, {base: './'})
+      .pipe(sourcemaps.init())
+      .pipe(makeSourcemapsRelative(closureCompiler.gulp()(compilerOptions)))
+      .pipe(rename(intermediateFilename))
+      .pipe(gulp.dest('build/cc/'))
       .on('error', function (err) {
         console./*OK*/ error(red('Error compiling', entryModuleFilenames));
         console./*OK*/ error(red(err.message));
@@ -247,7 +232,12 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
 
     // If we're only doing type checking, no need to output the files.
     if (!argv.typecheck_only) {
-      stream = stream.pipe(rename(outputFilename));
+      stream = stream.pipe(rename(outputFilename)).pipe(
+        sourcemaps.write('.', {
+          sourceRoot: `https://raw.githubusercontent.com/subscriptions-project/swg-js/${internalRuntimeVersion}/`,
+          includeContent: false,
+        })
+      );
 
       // Replacements.
       const replacements = resolveConfig();
@@ -258,14 +248,28 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       }
 
       // Complete build: dist and source maps.
-      stream = stream.pipe(gulp.dest(outputDir)).on('end', function () {
-        gulp
-          .src(intermediateFilename + '.map')
-          .pipe(rename(outputFilename + '.map'))
-          .pipe(gulp.dest(outputDir))
-          .on('end', resolve);
-      });
+      stream = stream.pipe(gulp.dest(outputDir)).on('end', resolve);
     }
     return stream;
   });
+}
+
+/**
+ * Normalize the sourcemap file paths before pushing into Closure.
+ * Closure don't follow Gulp's normal sourcemap "root" pattern. Gulp considers
+ * all files to be relative to the CWD by default, meaning a file `src/foo.js`
+ * with a sourcemap alongside points to `src/foo.js`. Closure considers each
+ * file relative to the sourcemap. Since the sourcemap for `src/foo.js` "lives"
+ * in `src/`, it ends up resolving to `src/src/foo.js`.
+ *
+ * @param {!NodeJS.WritableStream} closureStream
+ * @return {!NodeJS.WritableStream}
+ */
+function makeSourcemapsRelative(closureStream) {
+  const relativeSourceMap = sourcemaps.mapSources((source, file) => {
+    const dir = path.dirname(file.sourceMap.file);
+    return path.relative(dir, source);
+  });
+
+  return pumpify.obj(relativeSourceMap, closureStream);
 }

@@ -22,16 +22,21 @@
 // Thanks!
 
 import {I18N_STRINGS} from '../i18n/strings';
-import {getLanguageCodeFromElement, msg} from './i18n';
-// eslint-disable-next-line no-unused-vars
-import {Subscriptions} from '../api/subscriptions';
+import {
+  ShowcaseEvent,
+  Subscriptions as SubscriptionsDef,
+} from '../api/subscriptions';
 import {addQueryParam, parseQueryString} from './url';
+import {findInArray} from './object';
+import {getLanguageCodeFromElement, msg} from './i18n';
 import {parseJson} from './json';
 import {setImportantStyles} from './style';
 import {warn} from './log';
 
 // Load types for Closure compiler.
 import '../model/doc';
+import {EventOriginator} from '../proto/api_messages';
+import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
@@ -41,6 +46,9 @@ export const POST_MESSAGE_COMMAND_INTRODUCTION = 'introduction';
 
 /** User command for post messages. */
 export const POST_MESSAGE_COMMAND_USER = 'user';
+
+/** Error command for post messages. */
+export const POST_MESSAGE_COMMAND_ERROR = 'error';
 
 /** ID for the Google Sign-In iframe element. */
 export const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
@@ -52,7 +60,7 @@ const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 
 /** ID for the Regwall container element. */
-const REGWALL_CONTAINER_ID = 'swg-regwall-container';
+export const REGWALL_CONTAINER_ID = 'swg-regwall-container';
 
 /** ID for the Regwall dialog element. */
 export const REGWALL_DIALOG_ID = 'swg-regwall-dialog';
@@ -76,6 +84,7 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--description,
   .gaa-metering-regwall--description strong,
   .gaa-metering-regwall--iframe,
+  .gaa-metering-regwall--casl,
   .gaa-metering-regwall--publisher-no-thanks-button {
     all: initial;
     box-sizing: border-box;
@@ -83,6 +92,7 @@ const REGWALL_HTML = `
   }
 
   .gaa-metering-regwall--dialog-spacer {
+    background: linear-gradient(0, #808080, transparent);
     bottom: 0;
     display: block;
     position: fixed;
@@ -103,6 +113,7 @@ const REGWALL_HTML = `
     margin: 0 auto;
     max-width: 100%;
     padding: 24px 20px;
+    pointer-events: auto;
     width: 410px;
   }
 
@@ -139,6 +150,18 @@ const REGWALL_HTML = `
     height: 36px;
     margin: 0 0 30px;
     width: 100%;
+  }
+
+  .gaa-metering-regwall--casl {
+    color: #646464;
+    display: block;
+    font-size: 12px;
+    text-align: center;
+    margin: -16px auto 32px;
+  }
+
+  .gaa-metering-regwall--casl a {
+    color: #1967d2;
   }
 
   .gaa-metering-regwall--line {
@@ -199,6 +222,8 @@ const REGWALL_HTML = `
         src="$iframeUrl$">
     </iframe>
 
+    $SHOWCASE_REGWALL_CASL$
+
     <div class="gaa-metering-regwall--line"></div>
 
     <a
@@ -209,6 +234,16 @@ const REGWALL_HTML = `
       $SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$
     </a>
   </div>
+</div>
+`;
+
+/**
+ * HTML for the CASL blurb.
+ * CASL stands for Canadian Anti-Spam Law.
+ */
+const CASL_HTML = `
+<div class="gaa-metering-regwall--casl">
+  $SHOWCASE_REGWALL_CASL$
 </div>
 `;
 
@@ -285,9 +320,13 @@ export let GoogleUserDef;
 /**
  * Returns true if the query string contains fresh Google Article Access (GAA) params.
  * @param {string} queryString
+ * @param {boolean} allowAllAccessTypes
  * @return {boolean}
  */
-export function queryStringHasFreshGaaParams(queryString) {
+export function queryStringHasFreshGaaParams(
+  queryString,
+  allowAllAccessTypes = false
+) {
   const params = parseQueryString(queryString);
 
   // Verify GAA params exist.
@@ -298,6 +337,14 @@ export function queryStringHasFreshGaaParams(queryString) {
     !params['gaa_ts']
   ) {
     return false;
+  }
+
+  if (!allowAllAccessTypes) {
+    // Verify access type.
+    const noAccess = params['gaa_at'] === 'na';
+    if (noAccess) {
+      return false;
+    }
   }
 
   // Verify timestamp isn't stale.
@@ -319,10 +366,10 @@ export class GaaMeteringRegwall {
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
-   * @param {{ iframeUrl: string }} params
+   * @param {{ iframeUrl: string, caslUrl: string }} params
    * @return {!Promise<!GaaUserDef>}
    */
-  static show({iframeUrl}) {
+  static show({iframeUrl, caslUrl}) {
     const queryString = GaaUtils.getQueryString();
     if (!queryStringHasFreshGaaParams(queryString)) {
       const errorMessage =
@@ -331,12 +378,22 @@ export class GaaMeteringRegwall {
       return Promise.reject(errorMessage);
     }
 
-    GaaMeteringRegwall.render_({iframeUrl});
+    logEvent(ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL);
+
+    GaaMeteringRegwall.render_({iframeUrl, caslUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
-    return GaaMeteringRegwall.getGaaUser_().then((gaaUser) => {
-      GaaMeteringRegwall.remove_();
-      return gaaUser;
-    });
+    return GaaMeteringRegwall.getGaaUser_()
+      .then((gaaUser) => {
+        GaaMeteringRegwall.remove_();
+        return gaaUser;
+      })
+      .catch((err) => {
+        // Close the Regwall, since the flow failed.
+        GaaMeteringRegwall.remove_();
+
+        // Rethrow error.
+        throw err;
+      });
   }
 
   /**
@@ -356,17 +413,20 @@ export class GaaMeteringRegwall {
    * Renders the Regwall.
    * @private
    * @nocollapse
-   * @param {{ iframeUrl: string }} params
+   * @param {{ iframeUrl: string, caslUrl: string }} params
    */
-  static render_({iframeUrl}) {
+  static render_({iframeUrl, caslUrl}) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
+    const publisherName = GaaMeteringRegwall.getPublisherNameFromPageConfig_();
+    const placeholderPattern = /<ph.+\/ph>/g;
 
     // Tell the iframe which language to render.
     iframeUrl = addQueryParam(iframeUrl, 'lang', languageCode);
 
-    const containerEl = /** @type {!HTMLDivElement} */ (self.document.createElement(
-      'div'
-    ));
+    // Create and style container element.
+    const containerEl = /** @type {!HTMLDivElement} */ (
+      self.document.createElement('div')
+    );
     containerEl.id = REGWALL_CONTAINER_ID;
     setImportantStyles(containerEl, {
       'all': 'unset',
@@ -376,6 +436,7 @@ export class GaaMeteringRegwall {
       'height': '100%',
       'left': '0',
       'opacity': '0',
+      'pointer-events': 'none',
       'position': 'fixed',
       'right': '0',
       'transition': 'opacity 0.5s',
@@ -383,6 +444,21 @@ export class GaaMeteringRegwall {
       'width': '100%',
       'z-index': 2147483646,
     });
+
+    // Optionally include CASL HTML.
+    let caslHtml = '';
+    if (caslUrl) {
+      caslHtml = CASL_HTML.replace(
+        '$SHOWCASE_REGWALL_CASL$',
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_CASL'], languageCode)
+      )
+        // Update link.
+        .replace('<a>', `<a href="${encodeURI(caslUrl)}" target="_blank">`)
+        // Update publisher name.
+        .replace(placeholderPattern, publisherName);
+    }
+
+    // Prepare HTML.
     containerEl./*OK*/ innerHTML = REGWALL_HTML.replace(
       '$iframeUrl$',
       iframeUrl
@@ -394,6 +470,8 @@ export class GaaMeteringRegwall {
       .replace(
         '$SHOWCASE_REGWALL_DESCRIPTION$',
         msg(I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'], languageCode)
+          // Update publisher name.
+          .replace(placeholderPattern, publisherName)
       )
       .replace(
         '$SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$',
@@ -401,15 +479,18 @@ export class GaaMeteringRegwall {
           I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'],
           languageCode
         )
-      );
-    containerEl.querySelector('ph')./*OK*/ innerHTML =
-      '<strong>' +
-      GaaMeteringRegwall.getPublisherNameFromPageConfig_() +
-      '</strong>';
+      )
+      .replace('$SHOWCASE_REGWALL_CASL$', caslHtml);
+
+    // Add container to DOM.
     self.document.body.appendChild(containerEl);
+
+    // Trigger a fade-in transition.
     /** @suppress {suspiciousCode} */
     containerEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(containerEl, {'opacity': 1});
+
+    // Listen for clicks.
     GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
 
     // Focus on the title after the dialog animates in.
@@ -434,11 +515,19 @@ export class GaaMeteringRegwall {
 
     for (let i = 0; i < ldJsonElements.length; i++) {
       const ldJsonElement = ldJsonElements[i];
-      const ldJson = /** @type {{ publisher: { name: string } }} */ (parseJson(
-        ldJsonElement.textContent
-      ));
-      if (ldJson.publisher && ldJson.publisher.name) {
-        return ldJson.publisher.name;
+      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+
+      if (!Array.isArray(ldJson)) {
+        ldJson = [ldJson];
+      }
+
+      const publisherName = findInArray(
+        ldJson,
+        (entry) => entry?.publisher?.name
+      )?.publisher.name;
+
+      if (publisherName) {
+        return publisherName;
       }
     }
 
@@ -455,11 +544,8 @@ export class GaaMeteringRegwall {
       .getElementById(PUBLISHER_SIGN_IN_BUTTON_ID)
       .addEventListener('click', (e) => {
         e.preventDefault();
-        (self.SWG = self.SWG || []).push((subscriptions) => {
-          /** @type {!Subscriptions} */ (subscriptions).triggerLoginRequest({
-            linkRequested: false,
-          });
-        });
+
+        callSwg((swg) => swg.triggerLoginRequest({linkRequested: false}));
       });
   }
 
@@ -471,13 +557,18 @@ export class GaaMeteringRegwall {
    */
   static getGaaUser_() {
     // Listen for GAA user.
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       self.addEventListener('message', (e) => {
-        if (
-          e.data.stamp === POST_MESSAGE_STAMP &&
-          e.data.command === POST_MESSAGE_COMMAND_USER
-        ) {
-          resolve(e.data.gaaUser);
+        if (e.data.stamp === POST_MESSAGE_STAMP) {
+          if (e.data.command === POST_MESSAGE_COMMAND_USER) {
+            // Pass along GAA user.
+            resolve(e.data.gaaUser);
+          }
+
+          if (e.data.command === POST_MESSAGE_COMMAND_ERROR) {
+            // Reject promise due to Google Sign-In error.
+            reject('Google Sign-In could not render');
+          }
         }
       });
     });
@@ -493,9 +584,9 @@ export class GaaMeteringRegwall {
     // Introduce this window to the publisher's Google Sign-In iframe.
     // This lets the iframe send post messages back to this window.
     // Without the introduction, the iframe wouldn't have a reference to this window.
-    const googleSignInIframe = /** @type {!HTMLIFrameElement} */ (self.document.getElementById(
-      GOOGLE_SIGN_IN_IFRAME_ID
-    ));
+    const googleSignInIframe = /** @type {!HTMLIFrameElement} */ (
+      self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID)
+    );
     googleSignInIframe.onload = () => {
       googleSignInIframe.contentWindow.postMessage(
         {
@@ -559,6 +650,34 @@ export class GaaGoogleSignInButton {
       });
     });
 
+    function sendErrorMessageToParent() {
+      sendMessageToParentFnPromise.then((sendMessageToParent) => {
+        sendMessageToParent({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_ERROR,
+        });
+      });
+    }
+
+    // Validate origins.
+    for (let i = 0; i < allowedOrigins.length; i++) {
+      const allowedOrigin = allowedOrigins[i];
+      const url = new URL(allowedOrigin);
+
+      const isOrigin = url.origin === allowedOrigin;
+      const protocolIsValid =
+        url.protocol === 'http:' || url.protocol === 'https:';
+      const isValidOrigin = isOrigin && protocolIsValid;
+
+      if (!isValidOrigin) {
+        warn(
+          `[swg-gaa.js:GaaGoogleSignInButton.show]: You specified an invalid origin: ${allowedOrigin}`
+        );
+        sendErrorMessageToParent();
+        return;
+      }
+    }
+
     // Render the Google Sign-In button.
     configureGoogleSignIn()
       .then(
@@ -581,7 +700,9 @@ export class GaaGoogleSignInButton {
       )
       .then((googleUser) => {
         // Gather GAA user details.
-        const basicProfile = /** @type {!GoogleUserDef} */ (googleUser).getBasicProfile();
+        const basicProfile = /** @type {!GoogleUserDef} */ (
+          googleUser
+        ).getBasicProfile();
         /** @type {!GaaUserDef} */
         const gaaUser = {
           idToken: /** @type {!GoogleUserDef} */ (googleUser).getAuthResponse()
@@ -601,7 +722,8 @@ export class GaaGoogleSignInButton {
             gaaUser,
           });
         });
-      });
+      })
+      .catch(sendErrorMessageToParent);
   }
 }
 
@@ -634,6 +756,38 @@ function configureGoogleSignIn() {
           self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init()
       )
   );
+}
+
+/**
+ * Calls Swgjs.
+ * @param { function(!SubscriptionsDef) } callback
+ */
+function callSwg(callback) {
+  (self.SWG = self.SWG || []).push(callback);
+}
+
+/**
+ * Logs Showcase events.
+ * @param {!ShowcaseEvent} showcaseEvent
+ */
+function logEvent(showcaseEvent) {
+  callSwg((swg) => {
+    // Get reference to event manager.
+    swg.getEventManager().then((eventManager) => {
+      // Get individual analytics events from Showcase event.
+      const eventTypes = showcaseEventToAnalyticsEvents(showcaseEvent);
+
+      // Log each analytics event.
+      eventTypes.forEach((eventType) => {
+        eventManager.logEvent({
+          eventType,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      });
+    });
+  });
 }
 
 export class GaaUtils {

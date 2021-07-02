@@ -49,8 +49,8 @@ swg-loading-container {
     border-top-left-radius: 8px !important;
     border-top-right-radius: 8px !important;
     background-color: rgba(255, 255, 255, 1) !important;
-    box-shadow:
-        rgba(60, 64, 67, .3) 0 1px 1px, rgba(60, 64, 67, .15) 0 1px 4px 1px !important;
+    box-shadow: rgba(60, 64, 67, 0.3) 0 1px 1px,
+      rgba(60, 64, 67, 0.15) 0 1px 4px 1px !important;
   }
 }
 
@@ -59,15 +59,15 @@ swg-loading {
   width: 36px;
   height: 36px;
   overflow: hidden;
-  animation: mspin-rotate 1568.63ms infinite linear
+  animation: mspin-rotate 1568.63ms infinite linear;
 }
 
 swg-loading-animate {
-  animation: mspin-revrot 5332ms infinite steps(4)
+  animation: mspin-revrot 5332ms infinite steps(4);
 }
 
 swg-loading-image {
-  background-image: url("$assets$/loader.svg");
+  background-image: url('$assets$/loader.svg');
   background-size: 100%;
   width: 11664px;
   height: 36px;

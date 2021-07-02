@@ -19,10 +19,81 @@
  */
 export class AutoPromptConfig {
   /**
-   * @param {number} maxImpressionsPerWeek
+   * @param {number|undefined} maxImpressionsPerWeek
    */
-  constructor(maxImpressionsPerWeek) {
-    /** @const {number} */
+  constructor(
+    maxImpressionsPerWeek,
+    displayDelaySeconds,
+    backoffSeconds,
+    maxDismissalsPerWeek,
+    maxDismissalsResultingHideSeconds
+  ) {
+    /** @const {number|undefined} */
     this.maxImpressionsPerWeek = maxImpressionsPerWeek;
+
+    /** @const {!ClientDisplayTrigger} */
+    this.clientDisplayTrigger = new ClientDisplayTrigger(displayDelaySeconds);
+
+    /** @const {!ExplicitDismissalConfig} */
+    this.explicitDismissalConfig = new ExplicitDismissalConfig(
+      backoffSeconds,
+      maxDismissalsPerWeek,
+      maxDismissalsResultingHideSeconds
+    );
+  }
+}
+
+/**
+ * Client side conditions to trigger the display of the auto prompt.
+ */
+export class ClientDisplayTrigger {
+  /**
+   * @param {number|undefined} displayDelaySeconds
+   */
+  constructor(displayDelaySeconds) {
+    /** @const {number|undefined} */
+    this.displayDelaySeconds = displayDelaySeconds;
+  }
+}
+
+/**
+ * Configuration of explicit dismissal behavior and its effects.
+ */
+export class ExplicitDismissalConfig {
+  /**
+   * @param {number|undefined} backoffSeconds
+   * @param {number|undefined} maxDismissalsPerWeek
+   * @param {number|undefined} maxDismissalsResultingHideSeconds
+   */
+  constructor(
+    backoffSeconds,
+    maxDismissalsPerWeek,
+    maxDismissalsResultingHideSeconds
+  ) {
+    /** @const {number|undefined} */
+    this.backoffSeconds = backoffSeconds;
+
+    /** @const {number|undefined} */
+    this.maxDismissalsPerWeek = maxDismissalsPerWeek;
+
+    /** @const {number|undefined} */
+    this.maxDismissalsResultingHideSeconds = maxDismissalsResultingHideSeconds;
+  }
+}
+
+/**
+ * Predicates of whether or not to show button and prompt.
+ */
+export class UiPredicates {
+  /**
+   * @param {boolean|undefined} canDisplayAutoPrompt
+   * @param {boolean|undefined} canDisplayButton
+   */
+  constructor(canDisplayAutoPrompt, canDisplayButton) {
+    /** @const {boolean|undefined} */
+    this.canDisplayAutoPrompt = canDisplayAutoPrompt;
+
+    /** @const {boolean|undefined} */
+    this.canDisplayButton = canDisplayButton;
   }
 }

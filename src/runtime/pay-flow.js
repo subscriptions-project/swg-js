@@ -28,6 +28,7 @@ import {
 } from '../proto/api_messages';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {Constants} from '../utils/constants';
 import {JwtHelper} from '../utils/jwt';
 import {
   ProductType,
@@ -39,6 +40,19 @@ import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {getPropertyFromJsonString, parseJson} from '../utils/json';
 import {isCancelError} from '../utils/errors';
+
+/**
+ * Subscribe with Google request to pass to payments.
+ *  @typedef {{
+ *    skuId: string,
+ *    oldSku: (string|undefined),
+ *    replaceSkuProrationMode: (number|undefined),
+ *    paymentRecurrence: (number|undefined),
+ *    swgVersion: (string|undefined),
+ *    metadata: (Object|undefined)
+ * }}
+ */
+export let SwgPaymentRequest;
 
 /**
  * String values input by the publisher are mapped to the number values.
@@ -58,10 +72,11 @@ export const RecurrenceMapping = {
 
 /**
  * @param {string} sku
+ * @param {?string=} subscriptionFlow
  * @return {!EventParams}
  */
-function getEventParams(sku) {
-  return new EventParams([, , , , sku]);
+function getEventParams(sku, subscriptionFlow = null) {
+  return new EventParams([, , , , sku, , , subscriptionFlow]);
 }
 
 /**
@@ -101,6 +116,9 @@ export class PayStartFlow {
 
     /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
+
+    /** @private @const {!../runtime/client-config-manager.ClientConfigManager} */
+    this.clientConfigManager_ = deps.clientConfigManager();
   }
 
   /**
@@ -108,24 +126,51 @@ export class PayStartFlow {
    * @return {!Promise}
    */
   start() {
-    // Add the 'publicationId' key to the subscriptionRequest_ object.
-    const swgPaymentRequest = Object.assign({}, this.subscriptionRequest_, {
-      'publicationId': this.pageConfig_.getPublicationId(),
+    // Get the paySwgVersion for buyflow.
+    const promise = this.clientConfigManager_.getClientConfig();
+    return promise.then((clientConfig) => {
+      this.start_(clientConfig.paySwgVersion);
     });
+  }
 
-    // Map the proration mode to the enum value (if proration exists).
-    const prorationMode = swgPaymentRequest['replaceSkuProrationMode'];
-    if (prorationMode) {
-      swgPaymentRequest['replaceSkuProrationMode'] =
-        ReplaceSkuProrationModeMapping[prorationMode];
-    } else if (swgPaymentRequest['oldSku']) {
-      swgPaymentRequest['replaceSkuProrationMode'] =
-        ReplaceSkuProrationModeMapping['IMMEDIATE_WITH_TIME_PRORATION'];
+  /**
+   * Starts the payments flow for the given version.
+   * @param {!string=} paySwgVersion
+   * @return {!Promise}
+   */
+  start_(paySwgVersion) {
+    const /** @type {SwgPaymentRequest} */ swgPaymentRequest = {
+        'skuId': this.subscriptionRequest_['skuId'],
+        'publicationId': this.pageConfig_.getPublicationId(),
+      };
+
+    if (paySwgVersion) {
+      swgPaymentRequest['swgVersion'] = paySwgVersion;
     }
+
+    if (this.subscriptionRequest_['oldSku']) {
+      swgPaymentRequest['oldSku'] = this.subscriptionRequest_['oldSku'];
+      // Map the proration mode to the enum value (if proration exists).
+      const prorationMode =
+        this.subscriptionRequest_['replaceSkuProrationMode'];
+      if (prorationMode) {
+        swgPaymentRequest['replaceSkuProrationMode'] =
+          ReplaceSkuProrationModeMapping[prorationMode];
+      } else {
+        swgPaymentRequest['replaceSkuProrationMode'] =
+          ReplaceSkuProrationModeMapping['IMMEDIATE_WITH_TIME_PRORATION'];
+      }
+      this.analyticsService_.setSku(swgPaymentRequest['oldSku']);
+    }
+
     // Assign one-time recurrence enum if applicable
-    if (swgPaymentRequest['oneTime']) {
+    if (this.subscriptionRequest_['oneTime']) {
       swgPaymentRequest['paymentRecurrence'] = RecurrenceMapping['ONE_TIME'];
-      delete swgPaymentRequest['oneTime'];
+    }
+
+    // Assign additional metadata if available.
+    if (this.subscriptionRequest_['metadata']) {
+      swgPaymentRequest['metadata'] = this.subscriptionRequest_['metadata'];
     }
 
     // Start/cancel events.
@@ -135,9 +180,7 @@ export class PayStartFlow {
         : SubscriptionFlows.SUBSCRIBE;
 
     this.deps_.callbacks().triggerFlowStarted(flow, this.subscriptionRequest_);
-    if (swgPaymentRequest['oldSku']) {
-      this.analyticsService_.setSku(swgPaymentRequest['oldSku']);
-    }
+
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
       true,
@@ -160,6 +203,8 @@ export class PayStartFlow {
       {
         forceRedirect:
           this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT,
+        // basic flow does not support native.
+        forceDisableNative: paySwgVersion == '2',
       }
     );
     return Promise.resolve();
@@ -193,7 +238,12 @@ export class PayCompleteFlow {
           eventManager.logSwgEvent(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
             true,
-            getEventParams(sku || '')
+            getEventParams(
+              sku || '',
+              response.productType == ProductType.UI_CONTRIBUTION
+                ? SubscriptionFlows.CONTRIBUTE
+                : SubscriptionFlows.SUBSCRIBE
+            )
           );
           flow.start(response);
         },
@@ -236,11 +286,8 @@ export class PayCompleteFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private {?ActivityIframeView} */
-    this.activityIframeView_ = null;
-
-    /** @private {?SubscribeResponse} */
-    this.response_ = null;
+    /** @private {?Promise<!ActivityIframeView>} */
+    this.activityIframeViewPromise_ = null;
 
     /** @private {?Promise} */
     this.readyPromise_ = null;
@@ -251,13 +298,20 @@ export class PayCompleteFlow {
     /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
 
+    /** @private @const {!../runtime/client-config-manager.ClientConfigManager} */
+    this.clientConfigManager_ = deps.clientConfigManager();
+
     /** @private {?string} */
     this.sku_ = null;
   }
 
   /**
    * Starts the payments completion flow.
-   * @param {!SubscribeResponse} response
+   * @param {{
+   *   productType: string,
+   *   oldSku: ?string,
+   *   paymentRecurrence: ?number,
+   * }} response
    * @return {!Promise}
    */
   start(response) {
@@ -268,13 +322,12 @@ export class PayCompleteFlow {
       getEventParams(this.sku_ || '')
     );
     this.deps_.entitlementsManager().reset(true);
-    this.response_ = response;
     // TODO(dianajing): future-proof isOneTime flag
     const args = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'productType': this.response_['productType'],
-      'isSubscriptionUpdate': !!this.response_['oldSku'],
-      'isOneTime': !!this.response_['paymentRecurrence'],
+      'productType': response['productType'],
+      'isSubscriptionUpdate': !!response['oldSku'],
+      'isOneTime': !!response['paymentRecurrence'],
     };
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
@@ -282,28 +335,41 @@ export class PayCompleteFlow {
       this.deps_
         .entitlementsManager()
         .pushNextEntitlements(response.entitlements.raw);
+      // Persist swgUserToken in local storage
+      if (response.swgUserToken) {
+        this.deps_
+          .storage()
+          .set(Constants.USER_TOKEN, response.swgUserToken, true);
+      }
     } else {
       args['loginHint'] = response.userData && response.userData.email;
     }
-    this.activityIframeView_ = new ActivityIframeView(
-      this.win_,
-      this.activityPorts_,
-      feUrl('/payconfirmiframe'),
-      feArgs(args),
-      /* shouldFadeBody */ true
-    );
+    return (this.activityIframeViewPromise_ = this.clientConfigManager_
+      .getClientConfig()
+      .then((clientConfig) => {
+        args['useUpdatedConfirmUi'] = clientConfig.useUpdatedOfferFlows;
+        return new ActivityIframeView(
+          this.win_,
+          this.activityPorts_,
+          feUrl('/payconfirmiframe'),
+          feArgs(args),
+          /* shouldFadeBody */ true
+        );
+      })
+      .then((activityIframeView) => {
+        activityIframeView.on(
+          EntitlementsResponse,
+          this.handleEntitlementsResponse_.bind(this)
+        );
 
-    this.activityIframeView_.on(
-      EntitlementsResponse,
-      this.handleEntitlementsResponse_.bind(this)
-    );
+        activityIframeView.acceptResult().then(() => {
+          // The flow is complete.
+          this.dialogManager_.completeView(activityIframeView);
+        });
 
-    this.activityIframeView_.acceptResult().then(() => {
-      // The flow is complete.
-      this.dialogManager_.completeView(this.activityIframeView_);
-    });
-    this.readyPromise_ = this.dialogManager_.openView(this.activityIframeView_);
-    return this.readyPromise_;
+        this.readyPromise_ = this.dialogManager_.openView(activityIframeView);
+        return activityIframeView;
+      }));
   }
 
   /**
@@ -327,24 +393,28 @@ export class PayCompleteFlow {
       getEventParams(this.sku_ || '')
     );
     this.deps_.entitlementsManager().unblockNextNotification();
-    this.readyPromise_.then(() => {
+    return Promise.all([
+      this.activityIframeViewPromise_,
+      this.readyPromise_,
+    ]).then((values) => {
+      const activityIframeView = values[0];
       const accountCompletionRequest = new AccountCreationRequest();
       accountCompletionRequest.setComplete(true);
-      this.activityIframeView_.execute(accountCompletionRequest);
+      activityIframeView.execute(accountCompletionRequest);
+      return activityIframeView
+        .acceptResult()
+        .catch(() => {
+          // Ignore errors.
+        })
+        .then(() => {
+          this.eventManager_.logSwgEvent(
+            AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
+            true,
+            getEventParams(this.sku_ || '')
+          );
+          this.deps_.entitlementsManager().setToastShown(true);
+        });
     });
-    return this.activityIframeView_
-      .acceptResult()
-      .catch(() => {
-        // Ignore errors.
-      })
-      .then(() => {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-          true,
-          getEventParams(this.sku_ || '')
-        );
-        this.deps_.entitlementsManager().setToastShown(true);
-      });
   }
 }
 
@@ -459,7 +529,8 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     productType,
     completeHandler,
     oldSku,
-    paymentRecurrence
+    paymentRecurrence,
+    swgData['swgUserToken']
   );
 }
 
@@ -505,8 +576,7 @@ export function parseEntitlements(deps, swgData) {
  * @return {?string}
  */
 function parseSkuFromPurchaseDataSafe(purchaseData) {
-  return /** @type {?string} */ (getPropertyFromJsonString(
-    purchaseData.raw,
-    'productId'
-  ) || null);
+  return /** @type {?string} */ (
+    getPropertyFromJsonString(purchaseData.raw, 'productId') || null
+  );
 }

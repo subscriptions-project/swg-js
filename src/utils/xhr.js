@@ -91,19 +91,21 @@ export class Xhr {
    * @return {!Promise<!FetchResponse>}
    */
   fetch(input, init) {
-    // TODO (avimehta): Figure out if CORS needs be handled the way AMP does it.
     init = setupInit(init);
     return this.fetch_(input, init)
-      .then(
-        (response) => response,
-        (reason) => {
-          const targetOrigin = parseUrl(input).origin;
-          throw new Error(
-            `XHR Failed fetching (${targetOrigin}/...):`,
-            reason && reason.message
-          );
-        }
-      )
+      .catch((reason) => {
+        /*
+         * If the domain is not valid for SwG we return 404 without
+         * CORS headers and the browser throws a CORS error.
+         * We include some helpful text in the message to point the
+         * publisher towards the real problem.
+         */
+        const targetOrigin = parseUrl(input).origin;
+        throw new Error(
+          `XHR Failed fetching (${targetOrigin}/...): (Note: a CORS error above may indicate that this domain is not configured for Subscribe with Google)`,
+          reason && reason.message
+        );
+      })
       .then((response) => assertSuccess(response));
   }
 }
@@ -319,27 +321,9 @@ export class FetchResponse {
    * @return {!Promise<!JsonObject>}
    */
   json() {
-    return /** @type {!Promise<!JsonObject>} */ (this.drainText_().then(
-      parseJson
-    ));
-  }
-
-  /**
-   * Reads the xhr responseXML.
-   * @return {!Promise<!Document>}
-   * @private
-   */
-  document_() {
-    assert(!this.bodyUsed, 'Body already used');
-    this.bodyUsed = true;
-    assert(
-      this.xhr_.responseXML,
-      'responseXML should exist. Make sure to return ' +
-        'Content-Type: text/html header.'
+    return /** @type {!Promise<!JsonObject>} */ (
+      this.drainText_().then(parseJson)
     );
-    return /** @type {!Promise<!Document>} */ (Promise.resolve(
-      assert(this.xhr_.responseXML)
-    ));
   }
 
   /**
@@ -348,9 +332,9 @@ export class FetchResponse {
    * @return {!Promise<!ArrayBuffer>}
    */
   arrayBuffer() {
-    return /** @type {!Promise<!ArrayBuffer>} */ (this.drainText_().then(
-      utf8EncodeSync
-    ));
+    return /** @type {!Promise<!ArrayBuffer>} */ (
+      this.drainText_().then(utf8EncodeSync)
+    );
   }
 }
 
@@ -369,7 +353,7 @@ export class FetchResponseHeaders {
 
   /**
    * @param {string} name
-   * @return {string}
+   * @return {?string}
    */
   get(name) {
     return this.xhr_.getResponseHeader(name);

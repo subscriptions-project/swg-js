@@ -19,9 +19,11 @@ import {
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
   GaaUtils,
+  POST_MESSAGE_COMMAND_ERROR,
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
+  REGWALL_CONTAINER_ID,
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
   queryStringHasFreshGaaParams,
@@ -101,6 +103,16 @@ describes.realWin('queryStringHasFreshGaaParams', {}, () => {
     clock.tick(7001);
     expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
   });
+
+  it('fails if gaa_at param specifies "no access"', () => {
+    const queryString = '?gaa_at=na&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
+  });
+
+  it('succeeds if gaa_at param specifies "no access" but allowAllAccessTypes is true', () => {
+    const queryString = '?gaa_at=na&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
+    expect(queryStringHasFreshGaaParams(queryString, true)).to.be.true;
+  });
 });
 
 describes.realWin('GaaMeteringRegwall', {}, () => {
@@ -170,6 +182,26 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
     });
 
+    it('does not render CASL blurb by default', () => {
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
+      expect(caslEl).to.be.null;
+    });
+
+    it('optionally renders CASL blurb', () => {
+      const caslUrl = 'https://example.com';
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL, caslUrl});
+
+      const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
+      expect(caslEl.textContent).contains(
+        "Review The Scenic's Terms and CASL consent"
+      );
+
+      const caslLinkEl = caslEl.querySelector('a');
+      expect(caslLinkEl.href).contains(caslUrl);
+    });
+
     it('focuses on modal title after the animation completes', () => {
       GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
@@ -220,6 +252,18 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       });
 
       expect(await gaaUserPromise).to.deep.equal(gaaUser);
+    });
+
+    it('removes Regwall from DOM', async () => {
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+        gaaUser: {},
+      });
+
+      await GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
 
     it('renders supported i18n languages', () => {
@@ -283,6 +327,50 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
       );
     });
+
+    it('handles GSI error', async () => {
+      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_ERROR,
+      });
+
+      // Reject promise.
+      await expect(gaaUserPromise).to.eventually.be.rejectedWith(
+        'Google Sign-In could not render'
+      );
+
+      // Remove Regwall from DOM.
+      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
+    });
+
+    it('logs Showcase event', async () => {
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      // Swgjs should log three events.
+      expect(self.SWG.push).to.be.called;
+      const logEvent = sandbox.fake();
+      const subscriptionsMock = {
+        getEventManager: () => Promise.resolve({logEvent}),
+      };
+      self.SWG.push.callback(subscriptionsMock);
+      await tick();
+
+      // Swgjs should have logged these analytics events.
+      const eventTypes = [3009, 22, 23];
+      expect(logEvent).to.have.callCount(eventTypes.length);
+      for (let i = 0; i < eventTypes.length; i++) {
+        const eventType = eventTypes[i];
+        expect(logEvent.getCall(i)).to.be.calledWithExactly({
+          eventType,
+          eventOriginator: 1,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      }
+    });
   });
 
   describe('signOut', () => {
@@ -318,6 +406,26 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       );
     });
   });
+
+  describe('getPublisherNameFromPageConfig_', () => {
+    it('gets the publisher name from object page config', () => {
+      expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
+        PUBLISHER_NAME
+      );
+    });
+
+    it('gets the publisher name from array page config', () => {
+      self.document.head.innerHTML = `
+        <script type="application/ld+json">
+          [${ARTICLE_METADATA}]
+        </script>
+      `;
+
+      expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
+        PUBLISHER_NAME
+      );
+    });
+  });
 });
 
 describes.realWin('GaaGoogleSignInButton', {}, () => {
@@ -345,6 +453,9 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
     // Mock query string.
     sandbox.stub(GaaUtils, 'getQueryString');
     GaaUtils.getQueryString.returns('?lang=en');
+
+    // Mock console.warn method.
+    sandbox.stub(self.console, 'warn');
   });
 
   afterEach(() => {
@@ -355,6 +466,8 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
 
     // Remove the injected style from GaaGoogleSignInButton.show.
     self.document.head.querySelector('style').remove();
+
+    self.console.warn.restore();
   });
 
   describe('show', () => {
@@ -465,6 +578,64 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
         },
         location.origin
       );
+    });
+
+    it('sends errors to parent', async () => {
+      self.gapi.signin2.render = sandbox.fake.throws('I need cookies');
+
+      GaaGoogleSignInButton.show({allowedOrigins});
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_ERROR,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('fails and warns when passed invalid origins', async () => {
+      const invalidOrigins = [
+        // Bad protocol, should be http or https.
+        'ftp://localhost:8080',
+        // Includes path.
+        'http://localhost:8080/',
+      ];
+
+      for (const invalidOrigin of invalidOrigins) {
+        GaaGoogleSignInButton.show({allowedOrigins: [invalidOrigin]});
+
+        // Send intro post message.
+        postMessage({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_INTRODUCTION,
+        });
+
+        // Wait for promises and intervals to resolve.
+        clock.tick(100);
+        await tick(10);
+
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          `[swg-gaa.js:GaaGoogleSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
+        );
+      }
     });
   });
 });

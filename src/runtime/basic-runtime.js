@@ -16,19 +16,20 @@
 
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {ButtonApi} from './button-api';
-import {ClientConfigManager} from './client-config-manager';
+import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {ConfiguredRuntime} from './runtime';
+import {Constants} from '../utils/constants';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
-import {Theme} from './smart-button-api';
+import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
+import {acceptPortResultData} from '../utils/activity-utils';
+import {feArgs, feOrigin, feUrl} from './services';
 import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 const BUTTON_ATTRIUBUTE = 'swg-standard-button';
-const BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION = 'subscription';
-const BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION = 'contribution';
+const CHECK_ENTITLEMENTS_REQUEST_ID = 'CHECK_ENTITLEMENTS';
 
 /**
  * Reference to the runtime, for testing.
@@ -115,6 +116,9 @@ export class BasicRuntime {
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = {};
 
+    /** @private {../api/basic-subscriptions.ClientOptions|undefined} */
+    this.clientOptions_ = undefined;
+
     /** @private {boolean} */
     this.committed_ = false;
 
@@ -158,7 +162,8 @@ export class BasicRuntime {
               this.doc_,
               pageConfig,
               /* integr */ {configPromise: this.configuredPromise_},
-              this.config_
+              this.config_,
+              this.clientOptions_
             )
           );
           this.configuredResolver_ = null;
@@ -189,10 +194,14 @@ export class BasicRuntime {
         this.pageConfigWriter_ = null;
         this.configured_(true);
       });
+
+    this.clientOptions_ = params.clientOptions;
     this.setupAndShowAutoPrompt({
       autoPromptType: params.autoPromptType,
       alwaysShow: false,
     });
+    this.setOnLoginRequest();
+    this.processEntitlements();
   }
   /* eslint-enable no-unused-vars */
 
@@ -207,6 +216,13 @@ export class BasicRuntime {
   setOnPaymentResponse(callback) {
     return this.configured_(false).then((runtime) =>
       runtime.setOnPaymentResponse(callback)
+    );
+  }
+
+  /** @override */
+  setOnLoginRequest() {
+    return this.configured_(false).then((runtime) =>
+      runtime.setOnLoginRequest()
     );
   }
 
@@ -229,6 +245,13 @@ export class BasicRuntime {
   setupButtons() {
     return this.configured_(false).then((runtime) => runtime.setupButtons());
   }
+
+  /** Process result from checkentitlements view */
+  processEntitlements() {
+    return this.configured_(false).then((runtime) =>
+      runtime.processEntitlements()
+    );
+  }
 }
 
 /**
@@ -245,8 +268,9 @@ export class ConfiguredBasicRuntime {
    *     configPromise: (!Promise|undefined),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
+   * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
    */
-  constructor(winOrDoc, pageConfig, integr, config) {
+  constructor(winOrDoc, pageConfig, integr, config, clientOptions) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = resolveDoc(winOrDoc);
 
@@ -256,6 +280,7 @@ export class ConfiguredBasicRuntime {
     integr = integr || {};
     integr.configPromise = integr.configPromise || Promise.resolve();
     integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
+    integr.enableGoogleAnalytics = true;
 
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = integr.fetcher;
@@ -265,23 +290,27 @@ export class ConfiguredBasicRuntime {
       winOrDoc,
       pageConfig,
       integr,
-      config
+      config,
+      clientOptions
     );
+
+    // Do not show toast in swgz.
+    this.entitlementsManager().blockNextNotification();
+
     // Fetches entitlements.
     this.configuredClassicRuntime_.start();
 
-    /** @private @const {!ClientConfigManager} */
-    this.clientConfigManager_ = new ClientConfigManager(
-      pageConfig.getPublicationId(),
-      this.fetcher_
-    );
-    this.clientConfigManager_.getClientConfig();
+    // Fetch the client config.
+    this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig();
 
     /** @private @const {!AutoPromptManager} */
     this.autoPromptManager_ = new AutoPromptManager(this);
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_, Promise.resolve(this));
+    this.buttonApi_ = new ButtonApi(
+      this.doc_,
+      Promise.resolve(this.configuredClassicRuntime_)
+    );
     this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
@@ -357,7 +386,7 @@ export class ConfiguredBasicRuntime {
 
   /** @override */
   clientConfigManager() {
-    return this.clientConfigManager_;
+    return this.configuredClassicRuntime_.clientConfigManager();
   }
 
   /** @override */
@@ -376,22 +405,101 @@ export class ConfiguredBasicRuntime {
   }
 
   /** @override */
+  setOnLoginRequest() {
+    this.configuredClassicRuntime_.setOnLoginRequest(() => {
+      const publicationId = this.pageConfig().getPublicationId();
+      const args = feArgs({
+        'publicationId': publicationId,
+      });
+
+      this.activities().open(
+        CHECK_ENTITLEMENTS_REQUEST_ID,
+        feUrl('/checkentitlements', '', {
+          'publicationId': publicationId,
+        }),
+        '_blank',
+        args,
+        {'width': 600, 'height': 600}
+      );
+    });
+  }
+
+  /** Process result from checkentitlements view */
+  processEntitlements() {
+    this.activities().onResult(
+      CHECK_ENTITLEMENTS_REQUEST_ID,
+      this.entitlementsResponseHandler.bind(this)
+    );
+  }
+
+  /**
+   * Handler function to process EntitlementsResponse.
+   * @param {!../components/activities.ActivityPortDef} port
+   */
+  entitlementsResponseHandler(port) {
+    const promise = acceptPortResultData(
+      port,
+      feOrigin(),
+      /* requireOriginVerified */ true,
+      /* requireSecureChannel */ true
+    );
+    return promise.then((response) => {
+      const jwt = response['jwt'];
+      if (jwt) {
+        // If entitlements are returned, close the subscription/contribution offers iframe
+        this.configuredClassicRuntime_.closeDialog();
+
+        // Also save the entitlements and user token
+        this.entitlementsManager().pushNextEntitlements(jwt);
+        const userToken = response['usertoken'];
+        if (userToken) {
+          this.storage().set(Constants.USER_TOKEN, userToken, true);
+        }
+
+        // Show 'Signed in as abc@gmail.com' toast on the pub page.
+        new Toast(this, feUrl('/toastiframe')).open();
+      } else {
+        // If no entitlements are returned, subscription/contribution offers iframe will show
+        // a toast with label "no subscription/contribution found"
+        const lastOffersFlow =
+          this.configuredClassicRuntime_.getLastOffersFlow();
+        if (lastOffersFlow) {
+          lastOffersFlow.showNoEntitlementFoundToast();
+          return;
+        }
+
+        const lastContributionsFlow =
+          this.configuredClassicRuntime_.getLastContributionsFlow();
+        if (lastContributionsFlow) {
+          lastContributionsFlow.showNoEntitlementFoundToast();
+          return;
+        }
+      }
+    });
+  }
+
+  /** @override */
   setupAndShowAutoPrompt(options) {
     if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
       options.displayForLockedContentFn = () => {
-        this.configuredClassicRuntime_.showOffers();
+        this.configuredClassicRuntime_.showOffers({
+          isClosable: !this.pageConfig().isLocked(),
+        });
       };
     } else if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
       options.displayForLockedContentFn = () => {
-        this.configuredClassicRuntime_.showContributionOptions();
+        this.configuredClassicRuntime_.showContributionOptions({
+          isClosable: !this.pageConfig().isLocked(),
+        });
       };
     }
     return this.autoPromptManager_.showAutoPrompt(options);
   }
 
   /** @override */
+  /** Dismiss displayed SwG UI */
   dismissSwgUI() {
-    // TODO(stellachui): Implement dismissal of any displayed SwG UI.
+    this.dialogManager().completeAll();
   }
 
   /**
@@ -399,22 +507,34 @@ export class ConfiguredBasicRuntime {
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
   setupButtons() {
-    this.buttonApi_.attachButtonsWithAttribute(
-      BUTTON_ATTRIUBUTE,
-      [
-        BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION,
-        BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION,
-      ],
-      {'theme': Theme.LIGHT}, // TODO(stellachui): Specify language in options.
-      {
-        [BUTTON_ATTRIBUTE_VALUE_SUBSCRIPTION]: () => {
-          this.configuredClassicRuntime_.showOffers();
-        },
-        [BUTTON_ATTRIBUTE_VALUE_CONTRIBUTION]: () => {
-          this.configuredClassicRuntime_.showContributionOptions();
-        },
-      }
-    );
+    this.clientConfigManager()
+      .shouldEnableButton()
+      .then((enable) => {
+        this.buttonApi_.attachButtonsWithAttribute(
+          BUTTON_ATTRIUBUTE,
+          [
+            ButtonAttributeValues.SUBSCRIPTION,
+            ButtonAttributeValues.CONTRIBUTION,
+          ],
+          {
+            theme: this.clientConfigManager().getTheme(),
+            lang: this.clientConfigManager().getLanguage(),
+            enable,
+          },
+          {
+            [ButtonAttributeValues.SUBSCRIPTION]: () => {
+              this.configuredClassicRuntime_.showOffers({
+                isClosable: !this.pageConfig().isLocked(),
+              });
+            },
+            [ButtonAttributeValues.CONTRIBUTION]: () => {
+              this.configuredClassicRuntime_.showContributionOptions({
+                isClosable: !this.pageConfig().isLocked(),
+              });
+            },
+          }
+        );
+      });
   }
 }
 
@@ -426,13 +546,12 @@ export class ConfiguredBasicRuntime {
 function createPublicBasicRuntime(basicRuntime) {
   return /** @type {!../api/basic-subscriptions.BasicSubscriptions} */ ({
     init: basicRuntime.init.bind(basicRuntime),
-    setOnEntitlementsResponse: basicRuntime.setOnEntitlementsResponse.bind(
-      basicRuntime
-    ),
+    setOnEntitlementsResponse:
+      basicRuntime.setOnEntitlementsResponse.bind(basicRuntime),
     setOnPaymentResponse: basicRuntime.setOnPaymentResponse.bind(basicRuntime),
-    setupAndShowAutoPrompt: basicRuntime.setupAndShowAutoPrompt.bind(
-      basicRuntime
-    ),
+    setOnLoginRequest: basicRuntime.setOnLoginRequest.bind(basicRuntime),
+    setupAndShowAutoPrompt:
+      basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
   });
 }

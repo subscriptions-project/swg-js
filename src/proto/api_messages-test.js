@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, deserialize, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, getLabel, LinkingInfoResponse, LinkSaveTokenRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse} from './api_messages';
+import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -307,6 +307,7 @@ describe('AnalyticsRequest', () => {
     eventparams.setSku('');
     eventparams.setOldTransactionId('');
     eventparams.setIsUserRegistered(false);
+    eventparams.setSubscriptionFlow('');
     analyticsrequest.setParams(eventparams);
 
     let analyticsrequestDeserialized;
@@ -422,11 +423,10 @@ describe('EntitlementsRequest', () => {
     timestamp.setSeconds(0);
     timestamp.setNanos(0);
     entitlementsrequest.setClientEventTime(timestamp);
-    entitlementsrequest.setEntitlementSource(
-        EntitlementSource.UNKNOWN_ENTITLEMENT_SOURCE);
-    entitlementsrequest.setEntitlementResult(
-        EntitlementResult.UNKNOWN_ENTITLEMENT_RESULT);
-    entitlementsrequest.setNonce('');
+    entitlementsrequest.setEntitlementSource(EntitlementSource.UNKNOWN_ENTITLEMENT_SOURCE);
+    entitlementsrequest.setEntitlementResult(EntitlementResult.UNKNOWN_ENTITLEMENT_RESULT);
+    entitlementsrequest.setToken('');
+    entitlementsrequest.setIsUserRegistered(false);
 
     let entitlementsrequestDeserialized;
 
@@ -442,12 +442,14 @@ describe('EntitlementsRequest', () => {
         entitlementsrequest.getUsedEntitlement());
     expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
         entitlementsrequest.getClientEventTime());
-    expect(entitlementsrequestDeserialized.getEntitlementSource())
-        .to.deep.equal(entitlementsrequest.getEntitlementSource());
-    expect(entitlementsrequestDeserialized.getEntitlementResult())
-        .to.deep.equal(entitlementsrequest.getEntitlementResult());
-    expect(entitlementsrequestDeserialized.getNonce())
-        .to.deep.equal(entitlementsrequest.getNonce());
+    expect(entitlementsrequestDeserialized.getEntitlementSource()).to.deep.equal(
+        entitlementsrequest.getEntitlementSource());
+    expect(entitlementsrequestDeserialized.getEntitlementResult()).to.deep.equal(
+        entitlementsrequest.getEntitlementResult());
+    expect(entitlementsrequestDeserialized.getToken()).to.deep.equal(
+        entitlementsrequest.getToken());
+    expect(entitlementsrequestDeserialized.getIsUserRegistered()).to.deep.equal(
+        entitlementsrequest.getIsUserRegistered());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -461,12 +463,14 @@ describe('EntitlementsRequest', () => {
         entitlementsrequest.getUsedEntitlement());
     expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
         entitlementsrequest.getClientEventTime());
-    expect(entitlementsrequestDeserialized.getEntitlementSource())
-        .to.deep.equal(entitlementsrequest.getEntitlementSource());
-    expect(entitlementsrequestDeserialized.getEntitlementResult())
-        .to.deep.equal(entitlementsrequest.getEntitlementResult());
-    expect(entitlementsrequestDeserialized.getNonce())
-        .to.deep.equal(entitlementsrequest.getNonce());
+    expect(entitlementsrequestDeserialized.getEntitlementSource()).to.deep.equal(
+        entitlementsrequest.getEntitlementSource());
+    expect(entitlementsrequestDeserialized.getEntitlementResult()).to.deep.equal(
+        entitlementsrequest.getEntitlementResult());
+    expect(entitlementsrequestDeserialized.getToken()).to.deep.equal(
+        entitlementsrequest.getToken());
+    expect(entitlementsrequestDeserialized.getIsUserRegistered()).to.deep.equal(
+        entitlementsrequest.getIsUserRegistered());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -479,12 +483,14 @@ describe('EntitlementsRequest', () => {
         entitlementsrequest.getUsedEntitlement());
     expect(entitlementsrequestDeserialized.getClientEventTime()).to.deep.equal(
         entitlementsrequest.getClientEventTime());
-    expect(entitlementsrequestDeserialized.getEntitlementSource())
-        .to.deep.equal(entitlementsrequest.getEntitlementSource());
-    expect(entitlementsrequestDeserialized.getEntitlementResult())
-        .to.deep.equal(entitlementsrequest.getEntitlementResult());
-    expect(entitlementsrequestDeserialized.getNonce())
-        .to.deep.equal(entitlementsrequest.getNonce());
+    expect(entitlementsrequestDeserialized.getEntitlementSource()).to.deep.equal(
+        entitlementsrequest.getEntitlementSource());
+    expect(entitlementsrequestDeserialized.getEntitlementResult()).to.deep.equal(
+        entitlementsrequest.getEntitlementResult());
+    expect(entitlementsrequestDeserialized.getToken()).to.deep.equal(
+        entitlementsrequest.getToken());
+    expect(entitlementsrequestDeserialized.getIsUserRegistered()).to.deep.equal(
+        entitlementsrequest.getIsUserRegistered());
   });
 });
 
@@ -492,6 +498,7 @@ describe('EntitlementsResponse', () => {
   it('should deserialize correctly', () => {
     const /** !EntitlementsResponse  */ entitlementsresponse = new EntitlementsResponse();
     entitlementsresponse.setJwt('');
+    entitlementsresponse.setSwgUserToken('');
 
     let entitlementsresponseDeserialized;
 
@@ -505,6 +512,8 @@ describe('EntitlementsResponse', () => {
     // Verify fields.
     expect(entitlementsresponseDeserialized.getJwt()).to.deep.equal(
         entitlementsresponse.getJwt());
+    expect(entitlementsresponseDeserialized.getSwgUserToken()).to.deep.equal(
+        entitlementsresponse.getSwgUserToken());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -516,6 +525,8 @@ describe('EntitlementsResponse', () => {
     // Verify fields.
     expect(entitlementsresponseDeserialized.getJwt()).to.deep.equal(
         entitlementsresponse.getJwt());
+    expect(entitlementsresponseDeserialized.getSwgUserToken()).to.deep.equal(
+        entitlementsresponse.getSwgUserToken());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -526,6 +537,8 @@ describe('EntitlementsResponse', () => {
     // Verify fields.
     expect(entitlementsresponseDeserialized.getJwt()).to.deep.equal(
         entitlementsresponse.getJwt());
+    expect(entitlementsresponseDeserialized.getSwgUserToken()).to.deep.equal(
+        entitlementsresponse.getSwgUserToken());
   });
 });
 
@@ -538,6 +551,7 @@ describe('EventParams', () => {
     eventparams.setSku('');
     eventparams.setOldTransactionId('');
     eventparams.setIsUserRegistered(false);
+    eventparams.setSubscriptionFlow('');
 
     let eventparamsDeserialized;
 
@@ -561,6 +575,8 @@ describe('EventParams', () => {
         eventparams.getOldTransactionId());
     expect(eventparamsDeserialized.getIsUserRegistered()).to.deep.equal(
         eventparams.getIsUserRegistered());
+    expect(eventparamsDeserialized.getSubscriptionFlow()).to.deep.equal(
+        eventparams.getSubscriptionFlow());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -582,6 +598,8 @@ describe('EventParams', () => {
         eventparams.getOldTransactionId());
     expect(eventparamsDeserialized.getIsUserRegistered()).to.deep.equal(
         eventparams.getIsUserRegistered());
+    expect(eventparamsDeserialized.getSubscriptionFlow()).to.deep.equal(
+        eventparams.getSubscriptionFlow());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -602,6 +620,8 @@ describe('EventParams', () => {
         eventparams.getOldTransactionId());
     expect(eventparamsDeserialized.getIsUserRegistered()).to.deep.equal(
         eventparams.getIsUserRegistered());
+    expect(eventparamsDeserialized.getSubscriptionFlow()).to.deep.equal(
+        eventparams.getSubscriptionFlow());
   });
 });
 
@@ -750,6 +770,8 @@ describe('SkuSelectedResponse', () => {
     skuselectedresponse.setOneTime(false);
     skuselectedresponse.setPlayOffer('');
     skuselectedresponse.setOldPlayOffer('');
+    skuselectedresponse.setCustomMessage('');
+    skuselectedresponse.setAnonymous(false);
 
     let skuselectedresponseDeserialized;
 
@@ -771,6 +793,10 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getPlayOffer());
     expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
         skuselectedresponse.getOldPlayOffer());
+    expect(skuselectedresponseDeserialized.getCustomMessage()).to.deep.equal(
+        skuselectedresponse.getCustomMessage());
+    expect(skuselectedresponseDeserialized.getAnonymous()).to.deep.equal(
+        skuselectedresponse.getAnonymous());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -790,6 +816,10 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getPlayOffer());
     expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
         skuselectedresponse.getOldPlayOffer());
+    expect(skuselectedresponseDeserialized.getCustomMessage()).to.deep.equal(
+        skuselectedresponse.getCustomMessage());
+    expect(skuselectedresponseDeserialized.getAnonymous()).to.deep.equal(
+        skuselectedresponse.getAnonymous());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -808,6 +838,10 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getPlayOffer());
     expect(skuselectedresponseDeserialized.getOldPlayOffer()).to.deep.equal(
         skuselectedresponse.getOldPlayOffer());
+    expect(skuselectedresponseDeserialized.getCustomMessage()).to.deep.equal(
+        skuselectedresponse.getCustomMessage());
+    expect(skuselectedresponseDeserialized.getAnonymous()).to.deep.equal(
+        skuselectedresponse.getAnonymous());
   });
 });
 

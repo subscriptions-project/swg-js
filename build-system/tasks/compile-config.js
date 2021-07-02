@@ -37,9 +37,8 @@ exports.resolveConfig = function () {
 
   console.log(green('Configuration'));
   console.log(green('  --frontend ') + cyan(swgServerOrigin));
-  const swgServerOriginIsValid = /^https?:\/\/[A-Za-z0-9.-]+\.com(:[0-9]+)?$/.test(
-    swgServerOrigin
-  );
+  const swgServerOriginIsValid =
+    /^https?:\/\/[A-Za-z0-9.-]+\.com(:[0-9]+)?$/.test(swgServerOrigin);
   if (!swgServerOriginIsValid) {
     console.log(red('Frontend URL (--frontend) is invalid'));
     throw new Error('Frontend URL (--frontend) is invalid');

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {
+  AnalyticsEvent as AnalyticsEventDef,
+  EventOriginator as EventOriginatorDef,
+} from '../proto/api_messages';
 
 /** @enum {number}  */
 export const FilterResult = {
@@ -34,14 +37,15 @@ export const FilterResult = {
  * - additionalParameters: Optional.  A JSON object to store generic data.
  *
  *  @typedef {{
- *    eventType: !AnalyticsEvent,
- *    eventOriginator: !EventOriginator,
+ *    eventType: ?AnalyticsEventDef,
+ *    eventOriginator: !EventOriginatorDef,
  *    isFromUserAction: ?boolean,
  *    additionalParameters: ?Object,
  * }}
  */
 export let ClientEvent;
 
+/* eslint-disable no-unused-vars */
 /**
  * @interface
  */
@@ -71,3 +75,4 @@ export class ClientEventManagerApi {
    */
   logEvent(event) {}
 }
+/* eslint-enable no-unused-vars */

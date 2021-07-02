@@ -73,6 +73,12 @@ function getLastGithubRelease() {
       throw new Error('This is a prerelease: ' + id);
     }
     if (!tag) {
+      if (!process.env.GITHUB_ACCESS_TOKEN) {
+        throw new Error(
+          'Please add your GitHub personal access token as an environment variable named `GITHUB_ACCESS_TOKEN`. For more details, see https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token'
+        );
+      }
+
       throw new Error('No tag: ' + id);
     }
     return {
@@ -175,7 +181,20 @@ function getGithubPullRequestsMetadata(release) {
  * @return {!ReleaseMetadata}
  */
 function buildChangelog(release) {
-  let changelog = `## Version: ${argv.swgVersion || 'TODO_VERSION'}\n\n`;
+  // Suggest a version number.
+  let version = '';
+  if (argv.swgVersion) {
+    // Use the --swgVersion CLI param, if present.
+    version = argv.swgVersion;
+  } else {
+    // Increment the last number.
+    const versionSegments = release.tag.split('.');
+    const lastNumber = Number(versionSegments.pop()) + 1;
+    versionSegments.push(lastNumber);
+    version = versionSegments.join('.');
+  }
+
+  let changelog = `## Version: ${version}\n\n`;
 
   changelog +=
     '## Previous release: ' +

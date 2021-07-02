@@ -121,6 +121,7 @@ export class ClientEventManager {
 
   /**
    * @overrides
+   * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   logEvent(event) {
     validateEvent(event);

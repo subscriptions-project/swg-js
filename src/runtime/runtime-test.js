@@ -24,11 +24,12 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   AnalyticsMode,
   ProductType,
-  PublisherEntitlementEvent,
   ReplaceSkuProrationMode,
+  ShowcaseEvent,
   Subscriptions,
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
+import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {
   ConfiguredRuntime,
@@ -60,6 +61,7 @@ import {PayStartFlow} from './pay-flow';
 import {Propensity} from './propensity';
 import {SubscribeResponse} from '../api/subscribe-response';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
+import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
 import {
   isExperimentOn,
@@ -924,8 +926,7 @@ describes.realWin('Runtime', {}, (env) => {
 
     it('should delegate "setShowcaseEntitlement"', async () => {
       const entitlement = {
-        entitlement:
-          PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
+        entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
         isUserRegistered: true,
       };
       configuredRuntimeMock
@@ -950,6 +951,10 @@ describes.realWin('Runtime', {}, (env) => {
         callbackSpy
       );
       expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should not call showBestAudienceAction', () => {
+      expect(() => runtime.showBestAudienceAction()).to.not.throw();
     });
   });
 });
@@ -978,6 +983,7 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
     let rejectConfig;
     let eventManager;
     let configPromise;
+    let winMock;
 
     const event = {
       eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -987,12 +993,20 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
     };
 
     beforeEach(() => {
+      win = Object.assign({}, env.win, {
+        ga: () => {},
+      });
+      winMock = sandbox.mock(win);
       configPromise = new Promise((resolve, reject) => {
         resolveConfig = resolve;
         rejectConfig = reject;
       });
       runtime = new ConfiguredRuntime(win, config, {configPromise});
       eventManager = runtime.eventManager();
+    });
+
+    afterEach(() => {
+      winMock.verify();
     });
 
     it('should hold events until config resolved', async () => {
@@ -1022,6 +1036,43 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
         await configPromise;
       } catch (e) {}
       expect(eventCount).to.equal(0);
+    });
+
+    it('should not set up Google Analytics event listener when not enabled', async () => {
+      expect(runtime.googleAnalyticsEventListener_).to.be.undefined;
+      winMock.expects('ga').never();
+      runtime.eventManager().logEvent({
+        eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+      });
+      resolveConfig();
+      await configPromise;
+      await runtime.eventManager().lastAction_;
+    });
+
+    it('should set up Google Analytics event listener and listen to events on startup when told to', async () => {
+      runtime = new ConfiguredRuntime(win, config, {
+        configPromise,
+        enableGoogleAnalytics: true,
+      });
+      expect(runtime.googleAnalyticsEventListener_.constructor.name).equals(
+        'GoogleAnalyticsEventListener'
+      );
+      winMock
+        .expects('ga')
+        .withExactArgs(
+          'send',
+          'event',
+          analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.IMPRESSION_OFFERS)
+        )
+        .once();
+      resolveConfig();
+      await configPromise;
+      runtime.eventManager().logEvent({
+        eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+      });
+      await runtime.eventManager().lastAction_;
     });
   });
 
@@ -1270,7 +1321,9 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
       expect(runtime.jserror()).to.be.instanceOf(JsError);
       expect(runtime.payClient()).to.be.instanceOf(PayClient);
-      expect(runtime.clientConfigManager()).to.be.null;
+      expect(runtime.clientConfigManager()).to.be.instanceOf(
+        ClientConfigManager
+      );
     });
 
     it('should report the redirect failure', () => {
@@ -1297,6 +1350,11 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       dialogManagerMock.expects('completeAll').once();
       entitlementsManagerMock.expects('clear').once();
       runtime.clear();
+    });
+
+    it('should close all dialogs', () => {
+      dialogManagerMock.expects('completeAll').once();
+      runtime.closeDialog();
     });
 
     it('should not start entitlements flow without product', async () => {
@@ -1433,7 +1491,8 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       runtime.showOffers();
 
       await runtime.documentParsed_;
-      expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
+      const activityIframeView = await offersFlow.activityIframeViewPromise_;
+      expect(activityIframeView.args_['list']).to.equal('default');
     });
 
     it('should call "showOffers" with options', async () => {
@@ -1445,7 +1504,8 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       runtime.showOffers({list: 'other'});
 
       await runtime.documentParsed_;
-      expect(offersFlow.activityIframeView_.args_['list']).to.equal('other');
+      const activityIframeView = await offersFlow.activityIframeViewPromise_;
+      expect(activityIframeView.args_['list']).to.equal('other');
     });
 
     it('should throw an error if showOffers is used with an oldSku', async () => {
@@ -1475,7 +1535,8 @@ new subscribers. Use the showOffers() method instead.'
       runtime.showUpdateOffers({oldSku: 'other', skus: ['sku1', 'sku2']});
 
       await runtime.documentParsed_;
-      expect(offersFlow.activityIframeView_.args_['list']).to.equal('default');
+      const activityIframeView = await offersFlow.activityIframeViewPromise_;
+      expect(activityIframeView.args_['list']).to.equal('default');
     });
 
     it('should throw an error if showUpdateOffers is used without an oldSku', async () => {
@@ -1883,6 +1944,22 @@ subscribe() method'
       expect(count).to.equal(1);
     });
 
+    it('should return the last OffersFlow', async () => {
+      // Show subscription offers first in order to get an OffersFlow
+      runtime.showOffers();
+
+      expect(runtime.getLastOffersFlow()).to.equal(runtime.lastOffersFlow_);
+    });
+
+    it('should return the last OffersFlow', async () => {
+      // Show contribution offers first in order to get a ContributionsFlow
+      runtime.showContributionOptions();
+
+      expect(runtime.getLastContributionsFlow()).to.equal(
+        runtime.lastContributionsFlow_
+      );
+    });
+
     describe('setShowcaseEntitlement', () => {
       const SECURE_PUB_URL = 'https://www.publisher.com';
       const UNSECURE_PUB_URL = 'http://www.publisher.com';
@@ -1911,8 +1988,7 @@ subscribe() method'
 
       it('should log events', () => {
         runtime.setShowcaseEntitlement({
-          entitlement:
-            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
@@ -1933,8 +2009,7 @@ subscribe() method'
         win.location = parseUrl(SECURE_PUB_URL);
 
         runtime.setShowcaseEntitlement({
-          entitlement:
-            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
@@ -1946,8 +2021,7 @@ subscribe() method'
         win.location = parseUrl(UNSECURE_PUB_URL + GAA_QUERY_STRING);
 
         runtime.setShowcaseEntitlement({
-          entitlement:
-            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
@@ -1959,8 +2033,7 @@ subscribe() method'
         win.document.referrer = parseUrl(UNSECURE_GOOGLE_URL);
 
         runtime.setShowcaseEntitlement({
-          entitlement:
-            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
@@ -1972,8 +2045,7 @@ subscribe() method'
         win.document.referrer = parseUrl(SECURE_PUB_URL);
 
         runtime.setShowcaseEntitlement({
-          entitlement:
-            PublisherEntitlementEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
         });
 
@@ -1996,6 +2068,12 @@ subscribe() method'
         );
         expect(consumeStub).to.be.calledOnce;
         expect(callbackSpy).to.be.calledOnce;
+      });
+    });
+
+    describe('showBestAudienceAction', () => {
+      it('not implemented', () => {
+        expect(() => runtime.showBestAudienceAction()).to.not.throw();
       });
     });
   });

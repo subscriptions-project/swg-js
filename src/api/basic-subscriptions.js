@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import {Entitlements} from './entitlements';
-import {SubscribeResponse} from './subscribe-response';
+import {Entitlements as EntitlementsDef} from './entitlements';
+import {SubscribeResponse as SubscribeResponseDef} from './subscribe-response';
 
+/* eslint-disable no-unused-vars */
 /**
  * Interface for users of the basic tier of Subscribe with Google.
  * @interface
  */
 export class BasicSubscriptions {
-
   /**
    * Initializes the basic subscriptions runtime. This includes setting of the
    * specified param values in the JSON-LD markup of the page, sets up any SwG
@@ -36,21 +36,31 @@ export class BasicSubscriptions {
    *   isPartOfType: (string|!Array<string>),
    *   isPartOfProductId: string,
    *   autoPromptType: (AutoPromptType|undefined),
+   *   clientOptions: (ClientOptions|undefined),
    * }=} params
    */
   init(params) {}
 
   /**
    * Set the entitlement check callback.
-   * @param {function(!Promise<!Entitlements>)} callback
+   * @param {function(!Promise<!EntitlementsDef>)} callback
+   * @return {?}
    */
   setOnEntitlementsResponse(callback) {}
 
   /**
    * Set the payment complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponseDef>)} callback
+   * @return {?}
    */
   setOnPaymentResponse(callback) {}
+
+  /**
+   * Open CheckEntitlementsView to let users log in Google and check their entitlements.
+   * @param {function(!LoginRequest)} callback
+   * @return {?}
+   */
+  setOnLoginRequest(callback) {}
 
   /**
    * Creates and displays a SwG subscription or contribution prompt, where the
@@ -64,7 +74,7 @@ export class BasicSubscriptions {
    * @param {{
    *   autoPromptType: (!AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
-   * }=} options
+   * }} options
    * @returns {!Promise}
    */
   setupAndShowAutoPrompt(options) {}
@@ -72,13 +82,43 @@ export class BasicSubscriptions {
   /**
    * Dismisses any SwG UI currently displayed. Intended to be used for preview
    * purposes.
+   * @return {?}
    */
   dismissSwgUI() {}
 }
+/* eslint-enable no-unused-vars */
 
 /** @enum {string} */
 export const AutoPromptType = {
   NONE: 'none',
   CONTRIBUTION: 'contribution',
   SUBSCRIPTION: 'subscription',
+};
+
+/**
+ * Options for configuring all client UI.
+ * Properties:
+ * - lang: Sets the button and prompt lanugage. Default is "en".
+ * - theme: "light" or "dark". Default is "light".
+ * - disableButton: whether to enable button.
+ *
+ * @typedef {{
+ *   theme: (ClientTheme|undefined),
+ *   lang: (string|undefined),
+ *   disableButton: (boolean|undefined),
+ * }}
+ */
+export let ClientOptions;
+
+/**
+ * @typedef {{
+ *   linkRequested: boolean,
+ * }}
+ */
+export let LoginRequest;
+
+/** @enum {string} */
+export const ClientTheme = {
+  LIGHT: 'light',
+  DARK: 'dark',
 };

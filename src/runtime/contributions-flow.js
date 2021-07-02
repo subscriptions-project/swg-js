@@ -17,6 +17,7 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
+  EntitlementsResponse,
   SkuSelectedResponse,
 } from '../proto/api_messages';
 import {PayStartFlow} from './pay-flow';
@@ -41,29 +42,40 @@ export class ContributionsFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
+    /** @private @const {!./client-config-manager.ClientConfigManager} */
+    this.clientConfigManager_ = deps.clientConfigManager();
+
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    const isClosable = (options && options.isClosable) || true;
+    this.activityIframeView_ = null;
 
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
-      this.win_,
-      this.activityPorts_,
-      feUrl('/contributionsiframe'),
-      feArgs({
-        'productId': deps.pageConfig().getProductId(),
-        'publicationId': deps.pageConfig().getPublicationId(),
-        'productType': ProductType.UI_CONTRIBUTION,
-        'list': (options && options.list) || 'default',
-        'skus': (options && options.skus) || null,
-        'isClosable': isClosable,
-      }),
-      /* shouldFadeBody */ true
-    );
+    // Default to showing close button.
+    const isClosable = options?.isClosable ?? true;
+
+    /** @private @const {!Promise<!ActivityIframeView>} */
+    this.activityIframeViewPromise_ = this.getUrl_(
+      this.clientConfigManager_.getClientConfig()
+    ).then((url) => {
+      return new ActivityIframeView(
+        this.win_,
+        this.activityPorts_,
+        feUrl(url),
+        feArgs({
+          'productId': deps.pageConfig().getProductId(),
+          'publicationId': deps.pageConfig().getPublicationId(),
+          'productType': ProductType.UI_CONTRIBUTION,
+          'list': (options && options.list) || 'default',
+          'skus': (options && options.skus) || null,
+          'isClosable': isClosable,
+          'supportsEventManager': true,
+        }),
+        /* shouldFadeBody */ true
+      );
+    });
   }
 
   /**
@@ -84,9 +96,10 @@ export class ContributionsFlow {
     const sku = response.getSku();
     const isOneTime = response.getOneTime();
     if (sku) {
-      const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest = {
-          'skuId': sku,
-        };
+      const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest =
+          {
+            'skuId': sku,
+          };
       if (isOneTime) {
         contributionRequest['oneTime'] = isOneTime;
       }
@@ -103,24 +116,47 @@ export class ContributionsFlow {
    * @return {!Promise}
    */
   start() {
-    // Start/cancel events.
-    this.deps_
-      .callbacks()
-      .triggerFlowStarted(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
-    this.activityIframeView_.onCancel(() => {
+    return this.activityIframeViewPromise_.then((activityIframeView) => {
+      // Start/cancel events.
       this.deps_
         .callbacks()
-        .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+        .triggerFlowStarted(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+      activityIframeView.onCancel(() => {
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+      });
+      activityIframeView.on(
+        AlreadySubscribedResponse,
+        this.handleLinkRequest_.bind(this)
+      );
+      activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
+      this.activityIframeView_ = activityIframeView;
+      return this.dialogManager_.openView(this.activityIframeView_);
     });
-    this.activityIframeView_.on(
-      AlreadySubscribedResponse,
-      this.handleLinkRequest_.bind(this)
-    );
-    this.activityIframeView_.on(
-      SkuSelectedResponse,
-      this.startPayFlow_.bind(this)
-    );
+  }
 
-    return this.dialogManager_.openView(this.activityIframeView_);
+  /**
+   * Gets the URL that should be used for the activity iFrame view.
+   * @param {!Promise<../model/client-config.ClientConfig>} clientConfigPromise
+   * @return {!Promise<string>}
+   */
+  getUrl_(clientConfigPromise) {
+    return clientConfigPromise.then((clientConfig) => {
+      if (clientConfig.useUpdatedOfferFlows) {
+        return '/contributionoffersiframe';
+      } else {
+        return '/contributionsiframe';
+      }
+    });
+  }
+
+  /**
+   * Shows "no contribution found" on activity iFrame view.
+   */
+  showNoEntitlementFoundToast() {
+    if (this.activityIframeView_) {
+      this.activityIframeView_.execute(new EntitlementsResponse());
+    }
   }
 }

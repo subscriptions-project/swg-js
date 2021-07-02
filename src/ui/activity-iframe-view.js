@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {Message} from '../proto/api_messages'; // eslint-disable-line no-unused-vars
 import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createElement} from '../utils/dom';
@@ -55,11 +54,9 @@ export class ActivityIframeView extends View {
     this.doc_ = this.win_.document;
 
     /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ = /** @type {!HTMLIFrameElement} */ (createElement(
-      this.doc_,
-      'iframe',
-      iframeAttributes
-    ));
+    this.iframe_ = /** @type {!HTMLIFrameElement} */ (
+      createElement(this.doc_, 'iframe', iframeAttributes)
+    );
 
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = activityPorts;
@@ -148,7 +145,7 @@ export class ActivityIframeView extends View {
 
   /**
    * @param {!function(new: T)}  message
-   * @param {function(../proto/api_messages.Message)} callback
+   * @param {function(?)} callback
    * @template T
    */
   on(message, callback) {

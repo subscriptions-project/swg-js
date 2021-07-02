@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {Entitlements} from './entitlements';
-import {UserData} from './user-data';
+import {Entitlements as EntitlementsDef} from './entitlements';
+import {UserData as UserDataDef} from './user-data';
 
 /**
  */
@@ -23,11 +23,12 @@ export class SubscribeResponse {
   /**
    * @param {string} raw
    * @param {!PurchaseData} purchaseData
-   * @param {?UserData} userData
-   * @param {?Entitlements} entitlements
+   * @param {?UserDataDef} userData
+   * @param {?EntitlementsDef} entitlements
    * @param {!string} productType
    * @param {function():!Promise} completeHandler
    * @param {?string=} oldSku
+   * @param {?string=} swgUserToken
    * @param {?number=} paymentRecurrence
    */
   constructor(
@@ -38,15 +39,16 @@ export class SubscribeResponse {
     productType,
     completeHandler,
     oldSku = null,
+    swgUserToken = null,
     paymentRecurrence = null
   ) {
     /** @const {string} */
     this.raw = raw;
     /** @const {!PurchaseData} */
     this.purchaseData = purchaseData;
-    /** @const {?UserData} */
+    /** @const {?UserDataDef} */
     this.userData = userData;
-    /** @const {?Entitlements} */
+    /** @const {?EntitlementsDef} */
     this.entitlements = entitlements;
     /** @const {string} */
     this.productType = productType;
@@ -54,6 +56,8 @@ export class SubscribeResponse {
     this.completeHandler_ = completeHandler;
     /** @const {?string} */
     this.oldSku = oldSku;
+    /** @const {?string} */
+    this.swgUserToken = swgUserToken;
     /** @const {?number} */
     this.paymentRecurrence = paymentRecurrence;
   }
@@ -69,7 +73,8 @@ export class SubscribeResponse {
       this.entitlements,
       this.productType,
       this.completeHandler_,
-      this.oldSku
+      this.oldSku,
+      this.swgUserToken
     );
   }
 
@@ -83,6 +88,7 @@ export class SubscribeResponse {
       'entitlements': this.entitlements ? this.entitlements.json() : null,
       'oldSku': this.oldSku,
       'productType': this.productType,
+      'swgUserToken': this.swgUserToken,
     };
   }
 

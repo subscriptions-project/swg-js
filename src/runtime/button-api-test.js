@@ -251,6 +251,9 @@ describes.realWin('ButtonApi', {}, (env) => {
   });
 
   describe('attachButtonsWithAttribute', () => {
+    let isDarkMode;
+    let expectedSubscriptionTitle;
+    let expectedContributionTitle;
     let subscriptionButton;
     let contributionButton;
     let decoyButtonWithNoAttributes;
@@ -259,6 +262,10 @@ describes.realWin('ButtonApi', {}, (env) => {
     let contributionHandler;
 
     beforeEach(() => {
+      isDarkMode = false;
+      expectedSubscriptionTitle = 'Subscribe with Google';
+      expectedContributionTitle = 'Contribute with Google';
+
       // Set up and insert a subscription button.
       subscriptionButton = doc.createElement('button');
       subscriptionButton.setAttribute('swg-standard-button', 'subscription');
@@ -288,6 +295,42 @@ describes.realWin('ButtonApi', {}, (env) => {
     });
 
     afterEach(async () => {
+      // Check theme.
+      if (isDarkMode) {
+        expect(subscriptionButton).to.not.have.class('swg-button-v2-light');
+        expect(subscriptionButton).to.have.class('swg-button-v2-dark');
+        expect(contributionButton).to.not.have.class('swg-button-v2-light');
+        expect(contributionButton).to.have.class('swg-button-v2-dark');
+      } else {
+        expect(subscriptionButton).to.have.class('swg-button-v2-light');
+        expect(subscriptionButton).to.not.have.class('swg-button-v2-dark');
+        expect(contributionButton).to.have.class('swg-button-v2-light');
+        expect(contributionButton).to.not.have.class('swg-button-v2-dark');
+      }
+      expect(decoyButtonWithNoAttributes).to.not.have.class(
+        'swg-button-v2-light'
+      );
+      expect(decoyButtonWithNoAttributes).to.not.have.class(
+        'swg-button-v2-dark'
+      );
+      expect(decoyButtonWithIncorrectAttributeValue).to.not.have.class(
+        'swg-button-v2-light'
+      );
+      expect(decoyButtonWithIncorrectAttributeValue).to.not.have.class(
+        'swg-button-v2-dark'
+      );
+
+      // Check textContent.
+      expect(subscriptionButton.textContent).to.equal(
+        expectedSubscriptionTitle
+      );
+      expect(contributionButton.textContent).to.equal(
+        expectedContributionTitle
+      );
+      expect(decoyButtonWithNoAttributes.textContent).to.be.empty;
+      expect(decoyButtonWithIncorrectAttributeValue.textContent).to.be.empty;
+
+      // Check click handling.
       expect(subscriptionHandler).to.not.be.called;
       expect(contributionHandler).to.not.be.called;
       await subscriptionButton.click();
@@ -304,29 +347,30 @@ describes.realWin('ButtonApi', {}, (env) => {
       expect(contributionHandler).to.be.calledOnce;
       expect(events.length).to.equal(4);
 
-      // Expect two events from the two button impressions.
+      // Expect a subscription button impression.
       expect(events[0]).to.deep.equal({
-        eventType: AnalyticsEvent.IMPRESSION_SWG_BUTTON,
+        eventType: AnalyticsEvent.IMPRESSION_SHOW_OFFERS_SWG_BUTTON,
         isFromUserAction: undefined,
         params: undefined,
       });
 
-      expect(events[0]).to.deep.equal({
-        eventType: AnalyticsEvent.IMPRESSION_SWG_BUTTON,
+      // Expect a contribution button impression.
+      expect(events[1]).to.deep.equal({
+        eventType: AnalyticsEvent.IMPRESSION_SHOW_CONTRIBUTIONS_SWG_BUTTON,
         isFromUserAction: undefined,
         params: undefined,
       });
 
-      // Expect one event from the click.
+      // Expect one event from the subscription button click.
       expect(events[2]).to.deep.equal({
-        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_OFFERS_CLICK,
         isFromUserAction: true,
         params: undefined,
       });
 
-      // Expect one event from the click.
+      // Expect one event from the contribution button click.
       expect(events[3]).to.deep.equal({
-        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
+        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_CONTRIBUTIONS_CLICK,
         isFromUserAction: true,
         params: undefined,
       });
@@ -336,7 +380,34 @@ describes.realWin('ButtonApi', {}, (env) => {
       buttonApi.attachButtonsWithAttribute(
         'swg-standard-button',
         ['subscription', 'contribution'],
-        /* options */ {},
+        {enable: true},
+        {
+          'subscription': subscriptionHandler,
+          'contribution': contributionHandler,
+        }
+      );
+    });
+
+    it('should attach all buttons with the specified attribute in dark mode', () => {
+      isDarkMode = true;
+      buttonApi.attachButtonsWithAttribute(
+        'swg-standard-button',
+        ['subscription', 'contribution'],
+        {theme: Theme.DARK, enable: true},
+        {
+          'subscription': subscriptionHandler,
+          'contribution': contributionHandler,
+        }
+      );
+    });
+
+    it('should attach all buttons with the specified attribute in the specified language', () => {
+      expectedSubscriptionTitle = "S'abonner avec Google";
+      expectedContributionTitle = 'Contribuer avec Google';
+      buttonApi.attachButtonsWithAttribute(
+        'swg-standard-button',
+        ['subscription', 'contribution'],
+        {lang: 'fr', enable: true},
         {
           'subscription': subscriptionHandler,
           'contribution': contributionHandler,

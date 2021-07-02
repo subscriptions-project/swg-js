@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-import {ClientEventManagerApi} from './client-event-manager-api';
+import {ClientEventManagerApi as ClientEventManagerApiDef} from './client-event-manager-api';
 import {
   DeferredAccountCreationRequest,
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
-import {Entitlements} from './entitlements';
-import {LoggerApi} from './logger-api';
-import {Offer} from './offer';
-import {PropensityApi} from './propensity-api';
-import {SubscribeResponse} from './subscribe-response';
+import {Entitlements as EntitlementsDef} from './entitlements';
+import {LoggerApi as LoggerApiDef} from './logger-api';
+import {Offer as OfferDef} from './offer';
+import {PropensityApi as PropensityApiDef} from './propensity-api';
+import {SubscribeResponse as SubscribeResponseDef} from './subscribe-response';
 
+/* eslint-disable no-unused-vars */
 /**
  * @interface
  */
@@ -41,33 +42,38 @@ export class Subscriptions {
    * Optionally configures the runtime with non-default properties. See
    * `Config` definition for details.
    * @param {!Config} config
+   * @return {?}
    */
   configure(config) {}
 
   /**
    * Starts the entitlement flow.
+   * @return {?}
    */
   start() {}
 
   /**
    * Resets the entitlements that can be fetched again.
+   * @return {?}
    */
   reset() {}
 
   /**
    * Resets the entitlements and clears all of the caches.
+   * @return {?}
    */
   clear() {}
 
   /**
    * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!Entitlements>}
+   * @return {!Promise<!EntitlementsDef>}
    */
   getEntitlements(params) {}
 
   /**
    * Set the subscribe callback.
-   * @param {function(!Promise<!Entitlements>)} callback
+   * @param {function(!Promise<!EntitlementsDef>)} callback
+   * @return {?}
    */
   setOnEntitlementsResponse(callback) {}
 
@@ -76,31 +82,35 @@ export class Subscriptions {
    * @param {{
    *   productId: (string|undefined),
    * }=} options
-   * @return {!Promise<!Array<!Offer>>}
+   * @return {!Promise<!Array<!OfferDef>>}
    */
   getOffers(options) {}
 
   /**
    * Starts the Offers flow.
    * @param {!OffersRequest=} options
+   * @return {?}
    */
   showOffers(options) {}
 
   /**
    * Starts the Offers flow for a subscription update.
    * @param {!OffersRequest=} options
+   * @return {?}
    */
   showUpdateOffers(options) {}
 
   /**
    * Show subscription option.
    * @param {!OffersRequest=} options
+   * @return {?}
    */
   showSubscribeOption(options) {}
 
   /**
    * Show abbreviated offers.
    * @param {!OffersRequest=} options
+   * @return {?}
    */
   showAbbrvOffer(options) {}
 
@@ -112,6 +122,7 @@ export class Subscriptions {
    * console for a given publication.
    * Each SKU has Amount, Period, SKUId and other attributes.
    * @param {!OffersRequest=} options
+   * @return {?}
    */
   showContributionOptions(options) {}
 
@@ -119,42 +130,49 @@ export class Subscriptions {
    * Set the callback for the native subscribe request. Setting this callback
    * triggers the "native" option in the offers flow.
    * @param {function()} callback
+   * @return {?}
    */
   setOnNativeSubscribeRequest(callback) {}
 
   /**
    * Set the subscribe complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponseDef>)} callback
+   * @return {?}
    */
   setOnSubscribeResponse(callback) {}
 
   /**
    * Starts subscription purchase flow.
    * @param {string} sku
+   * @return {?}
    */
   subscribe(sku) {}
 
   /**
    * Starts subscription purchase flow.
    * @param {SubscriptionRequest} subscriptionRequest
+   * @return {?}
    */
   updateSubscription(subscriptionRequest) {}
 
   /**
    * Set the contribution complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponseDef>)} callback
+   * @return {?}
    */
   setOnContributionResponse(callback) {}
 
   /**
    * Set the payment complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
+   * @param {function(!Promise<!SubscribeResponseDef>)} callback
+   * @return {?}
    */
   setOnPaymentResponse(callback) {}
 
   /**
    * Starts contributions purchase flow.
    * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
+   * @return {?}
    */
   contribute(skuOrSubscriptionRequest) {}
 
@@ -168,11 +186,13 @@ export class Subscriptions {
 
   /**
    * @param {function(!LoginRequest)} callback
+   * @return {?}
    */
   setOnLoginRequest(callback) {}
 
   /**
    * @param {!LoginRequest} request
+   * @return {?}
    */
   triggerLoginRequest(request) {}
 
@@ -190,6 +210,7 @@ export class Subscriptions {
 
   /**
    * @param {function()} callback
+   * @return {?}
    */
   setOnLinkComplete(callback) {}
 
@@ -203,6 +224,7 @@ export class Subscriptions {
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
    * @param {{ampReaderId: (string|undefined)}=} params
+   * @return {?}
    */
   linkAccount(params) {}
 
@@ -215,6 +237,7 @@ export class Subscriptions {
    * Also see `setOnFlowCanceled` method.
    *
    * @param {function({flow: string, data: !Object})} callback
+   * @return {?}
    */
   setOnFlowStarted(callback) {}
 
@@ -230,6 +253,7 @@ export class Subscriptions {
    * Also see `setOnFlowStarted` method.
    *
    * @param {function({flow: string, data: !Object})} callback
+   * @return {?}
    */
   setOnFlowCanceled(callback) {}
 
@@ -257,6 +281,7 @@ export class Subscriptions {
    * @param {!Element} button
    * @param {!ButtonOptions|function()} optionsOrCallback
    * @param {function()=} callback
+   * @return {?}
    */
   attachButton(button, optionsOrCallback, callback) {}
 
@@ -267,20 +292,21 @@ export class Subscriptions {
    * @param {!Element} button
    * @param {!SmartButtonOptions|function()} optionsOrCallback
    * @param {function()=} callback
+   * @return {?}
    */
   attachSmartButton(button, optionsOrCallback, callback) {}
 
   /**
    * Retrieves the propensity module that provides APIs to
    * get propensity scores based on user state and events
-   * @return {!Promise<PropensityApi>}
+   * @return {!Promise<PropensityApiDef>}
    */
   getPropensityModule() {}
 
-  /** @return {!Promise<LoggerApi>} */
+  /** @return {!Promise<LoggerApiDef>} */
   getLogger() {}
 
-  /** @return {!Promise<ClientEventManagerApi>} */
+  /** @return {!Promise<ClientEventManagerApiDef>} */
   getEventManager() {}
 
   /**
@@ -288,6 +314,7 @@ export class Subscriptions {
    * and entitlement related UI events.  SwG will automatically do this for Google
    * sourced subscriptions and meters.
    * @param {!PublisherEntitlement} entitlement
+   * @return {?}
    */
   setShowcaseEntitlement(entitlement) {}
 
@@ -296,22 +323,42 @@ export class Subscriptions {
    * should call this method to consume Showcase entitlements.
    * @param {string} showcaseEntitlementJwt
    * @param {?Function=} onCloseDialog Called after the user closes the dialog.
+   * @return {?}
    */
   consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {}
+
+  /**
+   * Intelligently returns the most interesting action to the
+   * reader based on different different user status. For
+   * instance, a new user may get free metering by simply
+   * clicking 'follow-publisher' action, and a frequently
+   * visiting user may be shown a 'creating an account' action.
+   * TODO(moonbong): Implement this function.
+   * @return {?}
+   */
+  showBestAudienceAction() {}
 }
+/* eslint-enable no-unused-vars */
 
 /** @enum {string} */
-export const PublisherEntitlementEvent = {
+export const ShowcaseEvent = {
+  // Events indicating content could potentially be unlocked
+  EVENT_SHOWCASE_METER_OFFERED: 'EVENT_SHOWCASE_METER_OFFERED', // This event is only required if the user can choose not to use a publisher meter
+
+  // Events indicating content was unlocked
   EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION:
     'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION', // Publisher managed subscriptions only
-  EVENT_SHOWCASE_METER_OFFERED: 'EVENT_SHOWCASE_METER_OFFERED', // This event is only required if the user can choose not to use a publisher meter
   EVENT_SHOWCASE_UNLOCKED_BY_METER: 'EVENT_SHOWCASE_UNLOCKED_BY_METER', // Publisher managed meters only
   EVENT_SHOWCASE_UNLOCKED_FREE_PAGE: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE', // When the article is free for any reason (lead article, etc)
 
+  // Events indicating the user must take action to view content
   EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL:
-    'EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL', // When the user must register to view the article
+    'EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL', // When the user must register (or log in) to view the article
+
+  // Events indicating the user must subscribe to view content
+  EVENT_SHOWCASE_INELIGIBLE_PAYWALL: 'EVENT_SHOWCASE_INELIGIBLE_PAYWALL', // When the user is not eligible for showcase entitlements
   EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL:
-    'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL', // When the user must subscribe to view the article
+    'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL', // When the user has no remaining showcase entitlements
 };
 
 /**
@@ -322,7 +369,7 @@ export const PublisherEntitlementEvent = {
  * - entitlement: Publisher entitlement event type.
  *  @typedef {{
  *    isUserRegistered:  !boolean,
- *    entitlement: !PublisherEntitlementEvent,
+ *    entitlement: !ShowcaseEvent,
  * }}
  */
 export let PublisherEntitlement;
@@ -381,6 +428,7 @@ export let GetEntitlementsParamsInternalDef;
  * Encryption params for GetEntitlements requests.
  * @typedef {{
  *   encryptedDocumentKey: string,
+ *   swgUserToken: (string|undefined),
  * }}
  */
 export let GetEntitlementsEncryptionParams;
@@ -389,15 +437,16 @@ export let GetEntitlementsEncryptionParams;
  * Metering params for GetEntitlements requests to SwG Client.
  * swg-js constructs objects of this type, but publisher JS won't.
  * @typedef {{
- *   clientTypes: !Array<number>,
- *   owner: string,
- *   state: {
+ *   clientTypes: (undefined|!Array<number>),
+ *   owner: (undefined|string),
+ *   state: (undefined|{
  *     id: string,
  *     attributes: !Array<{
  *       name: string,
  *       timestamp: number,
  *     }>,
- *   },
+ *   }),
+ *   token: (undefined|string),
  *   resource: {
  *     hashedCanonicalUrl: string,
  *   },
@@ -490,15 +539,19 @@ export function defaultConfig() {
 /**
  * Properties:
  * - skus - a list of SKUs to return from the defined or default list. The
- *   order is preserved.
+ *   order is preserved. Required if oldSku is specified (to indicate which
+ *   SKUs the user can upgrade or downgrade to).
  * - list - a predefined list of SKUs. Use of this property is uncommon.
  *   Possible values are "default" and "amp". Default is "default".
  * - isClosable - a boolean value to determine whether the view is closable.
+ * - oldSku - Optional. The SKU to replace. For example, if a user wants to
+ *   upgrade or downgrade their current subscription.
  *
  * @typedef {{
  *   skus: (!Array<string>|undefined),
  *   list: (string|undefined),
  *   isClosable: (boolean|undefined),
+ *   oldSku: (string|undefined),
  * }}
  */
 export let OffersRequest;
@@ -525,8 +578,7 @@ export let SaveSubscriptionRequest;
 /**
  * Callback for retrieving subscription request
  *
- * @callback SaveSubscriptionRequestCallback
- * @return {!Promise<SaveSubscriptionRequest> | !SaveSubscriptionRequest} request
+ * @typedef {function():(!Promise<SaveSubscriptionRequest> | !SaveSubscriptionRequest)} SaveSubscriptionRequestCallback
  */
 export let SaveSubscriptionRequestCallback;
 
@@ -534,10 +586,12 @@ export let SaveSubscriptionRequestCallback;
  * Properties:
  * - lang: Sets the button SVG and title. Default is "en".
  * - theme: "light" or "dark". Default is "light".
+ * - disable: whether to grey out the button.
  *
  * @typedef {{
  *   theme: (string|undefined),
  *   lang: (string|undefined),
+ *   disable: (boolean|undefined),
  * }}
  */
 export let ButtonOptions;

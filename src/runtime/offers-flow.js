@@ -17,6 +17,7 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
+  EntitlementsResponse,
   SkuSelectedResponse,
   SubscribeResponse,
   ViewSubscriptionsResponse,
@@ -68,10 +69,13 @@ export class OffersFlow {
     /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
 
-    let isClosable = options && options.isClosable;
-    if (isClosable == undefined) {
-      isClosable = false; // Default is to hide Close button.
-    }
+    /** @private @const {!./client-config-manager.ClientConfigManager} */
+    this.clientConfigManager_ = deps.clientConfigManager();
+
+    this.activityIframeView_ = null;
+
+    // Default to hiding close button.
+    const isClosable = options?.isClosable ?? false;
 
     const feArgsObj = deps.activities().addDefaultArguments({
       'showNative': deps.callbacks().hasSubscribeRequestCallback(),
@@ -116,14 +120,20 @@ export class OffersFlow {
     /** @private  @const {!Array<!string>} */
     this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
-      this.win_,
-      this.activityPorts_,
-      feUrl('/offersiframe'),
-      feArgsObj,
-      /* shouldFadeBody */ true
-    );
+    /** @private @const {!Promise<?ActivityIframeView>} */
+    this.activityIframeViewPromise_ = this.clientConfigManager_
+      .getClientConfig()
+      .then((clientConfig) => {
+        return this.shouldShow_(clientConfig)
+          ? new ActivityIframeView(
+              this.win_,
+              this.activityPorts_,
+              feUrl(this.getUrl_(clientConfig)),
+              feArgsObj,
+              /* shouldFadeBody */ true
+            )
+          : null;
+      });
   }
 
   /**
@@ -133,9 +143,10 @@ export class OffersFlow {
   startPayFlow_(response) {
     const sku = response.getSku();
     if (sku) {
-      const /** @type {../api/subscriptions.SubscriptionRequest} */ subscriptionRequest = {
-          'skuId': sku,
-        };
+      const /** @type {../api/subscriptions.SubscriptionRequest} */ subscriptionRequest =
+          {
+            'skuId': sku,
+          };
       const oldSku = response.getOldSku();
       if (oldSku) {
         subscriptionRequest['oldSku'] = oldSku;
@@ -181,35 +192,74 @@ export class OffersFlow {
    * @return {!Promise}
    */
   start() {
-    if (this.activityIframeView_) {
-      // So no error if skipped to payment screen.
-      // Start/cancel events.
-      // The second parameter is required by Propensity in AMP.
-      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS, {
-        skus: this.skus_,
-        source: 'SwG',
-      });
-      this.activityIframeView_.onCancel(() => {
+    if (this.activityIframeViewPromise_) {
+      return this.activityIframeViewPromise_.then((activityIframeView) => {
+        if (!activityIframeView) {
+          return Promise.resolve();
+        }
+
+        // So no error if skipped to payment screen.
+        // Start/cancel events.
+        // The second parameter is required by Propensity in AMP.
         this.deps_
           .callbacks()
-          .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
+          .triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS, {
+            skus: this.skus_,
+            source: 'SwG',
+          });
+        activityIframeView.onCancel(() => {
+          this.deps_
+            .callbacks()
+            .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
+        });
+        activityIframeView.on(
+          SkuSelectedResponse,
+          this.startPayFlow_.bind(this)
+        );
+        activityIframeView.on(
+          AlreadySubscribedResponse,
+          this.handleLinkRequest_.bind(this)
+        );
+        activityIframeView.on(
+          ViewSubscriptionsResponse,
+          this.startNativeFlow_.bind(this)
+        );
+        this.activityIframeView_ = activityIframeView;
+        return this.dialogManager_.openView(this.activityIframeView_);
       });
-      this.activityIframeView_.on(
-        SkuSelectedResponse,
-        this.startPayFlow_.bind(this)
-      );
-      this.activityIframeView_.on(
-        AlreadySubscribedResponse,
-        this.handleLinkRequest_.bind(this)
-      );
-      this.activityIframeView_.on(
-        ViewSubscriptionsResponse,
-        this.startNativeFlow_.bind(this)
-      );
-
-      return this.dialogManager_.openView(this.activityIframeView_);
     }
     return Promise.resolve();
+  }
+
+  /**
+   * Returns whether this flow is configured as enabled, not showing
+   * even on explicit start when flag is configured false.
+   *
+   * @param {!../model/client-config.ClientConfig} clientConfig
+   * @return {boolean}
+   */
+  shouldShow_(clientConfig) {
+    return clientConfig.uiPredicates?.canDisplayAutoPrompt !== false;
+  }
+
+  /**
+   * Gets the URL that should be used for the activity iFrame view.
+   * @param {!../model/client-config.ClientConfig} clientConfig
+   * @return {string}
+   */
+  getUrl_(clientConfig) {
+    return clientConfig.useUpdatedOfferFlows
+      ? '/subscriptionoffersiframe'
+      : '/offersiframe';
+  }
+
+  /**
+   * Shows "no subscription found" on activity iFrame view.
+   */
+  showNoEntitlementFoundToast() {
+    if (this.activityIframeView_) {
+      this.activityIframeView_.execute(new EntitlementsResponse());
+    }
   }
 }
 

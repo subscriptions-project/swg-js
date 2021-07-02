@@ -80,6 +80,7 @@ export class PageConfigWriter {
       '@type': this.markupValues_.isPartOfType,
     };
     const obj = {
+      '@context': 'http://schema.org',
       '@type': this.markupValues_.type,
       'isAccessibleForFree': this.markupValues_.isAccessibleForFree,
       'isPartOf': isPartOfObj,

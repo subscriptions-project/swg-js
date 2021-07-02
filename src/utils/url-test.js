@@ -305,6 +305,7 @@ describe('serializeProtoMessageForUrl', () => {
       'sku',
       'othertxid',
       true,
+      'subscriptions',
     ];
     const analyticsRequestArray = [
       'AnalyticsRequest',
@@ -316,9 +317,8 @@ describe('serializeProtoMessageForUrl', () => {
     const analyticsRequest = new AnalyticsRequest(analyticsRequestArray);
 
     // Serialize and deserialize the AnalyticsRequest.
-    const serializedAnalyticsRequest = serializeProtoMessageForUrl(
-      analyticsRequest
-    );
+    const serializedAnalyticsRequest =
+      serializeProtoMessageForUrl(analyticsRequest);
     const deserializedAnalyticsRequestArray = JSON.parse(
       serializedAnalyticsRequest
     );

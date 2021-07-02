@@ -55,9 +55,10 @@ export function adsUrl(url) {
 /**
  * @param {string} url Relative URL, e.g. "/offersiframe".
  * @param {string=} prefix
+ * @param {Object<string, string>=} params List of extra params to append to the URL.
  * @return {string} The complete URL.
  */
-export function feUrl(url, prefix = '') {
+export function feUrl(url, prefix = '', params) {
   // Add cache param.
   url = feCached('$frontend$' + prefix + '/swg/_/ui/v1' + url);
 
@@ -66,6 +67,10 @@ export function feUrl(url, prefix = '') {
   const boqJsMode = query['swg.boqjsmode'];
   if (boqJsMode !== undefined) {
     url = addQueryParam(url, 'jsmode', boqJsMode);
+  }
+
+  for (const param in params) {
+    url = addQueryParam(url, param, params[param]);
   }
 
   return url;

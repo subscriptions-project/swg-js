@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
+import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Preconnect} from '../utils/preconnect';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
+import {isExperimentOn} from './experiments';
 
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
 /**
  * @typedef {{
  *   forceRedirect: (boolean|undefined),
+ *   forceDisableNative: (boolean|undefined),
  * }}
  */
 export let PayOptionsDef;
@@ -77,6 +80,16 @@ export class PayClient {
     /** @private @const {!Preconnect} */
     this.preconnect_ = new Preconnect(this.win_.document);
 
+    // If the page is started from a redirect, immediately initialize
+    // client to avoid dropping user state.
+    if (
+      isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_REDIRECT) &&
+      this.pageIsInitializedFromPayRedirect_()
+    ) {
+      this.preconnect(this.preconnect_);
+      this.initializePaymentsClient_();
+    }
+
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
 
@@ -115,6 +128,35 @@ export class PayClient {
   }
 
   /**
+   * Initializes Payments client.
+   */
+  initializePaymentsClient_() {
+    this.client_ = this.createClient_(
+      /** @type {!PaymentOptions} */
+      ({
+        environment: '$payEnvironment$',
+        'i': {
+          'redirectKey': this.redirectVerifierHelper_.restoreKey(),
+        },
+      }),
+      this.analytics_.getTransactionId(),
+      this.handleResponse_.bind(this)
+    );
+  }
+
+  /**
+   * Detects if the window is started from a Pay redirect by
+   * checking window's hash for Web Activities information.
+   */
+  pageIsInitializedFromPayRedirect_() {
+    const hash = this.win_.location.hash;
+    const hasRedirectEncryptedCallbackData =
+      /redirectEncryptedCallbackData/.test(hash);
+    const hasSwgRequest = /swgRequest/.test(hash);
+    return hasRedirectEncryptedCallbackData && hasSwgRequest;
+  }
+
+  /**
    * @return {string}
    */
   getType() {
@@ -131,17 +173,7 @@ export class PayClient {
 
     if (!this.client_) {
       this.preconnect(this.preconnect_);
-      this.client_ = this.createClient_(
-        /** @type {!PaymentOptions} */
-        ({
-          environment: '$payEnvironment$',
-          'i': {
-            'redirectKey': this.redirectVerifierHelper_.restoreKey(),
-          },
-        }),
-        this.analytics_.getTransactionId(),
-        this.handleResponse_.bind(this)
-      );
+      this.initializePaymentsClient_();
     }
     if (options.forceRedirect) {
       paymentRequest = Object.assign(paymentRequest, {
@@ -153,7 +185,7 @@ export class PayClient {
       'disableNative',
       // The page cannot be iframed at this time. May be relaxed later
       // for AMP and similar contexts.
-      this.win_ != this.top_()
+      options.forceDisableNative || this.win_ != this.top_()
     );
     let resolver = null;
     const promise = new Promise((resolve) => (resolver = resolve));

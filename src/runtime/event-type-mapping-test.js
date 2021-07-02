@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 import {AnalyticsEvent, EntitlementResult} from '../proto/api_messages';
-import {Event} from '../api/propensity-api';
-import {PublisherEntitlementEvent} from '../api/subscriptions';
 import {
+  AnalyticsEventToGoogleAnalyticsEvent,
+  ContributionSpecificAnalyticsEventToGoogleAnalyticsEvent,
+  SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent,
   analyticsEventToEntitlementResult,
+  analyticsEventToGoogleAnalyticsEvent,
   analyticsEventToPublisherEvent,
-  publisherEntitlementEventToAnalyticsEvents,
   publisherEventToAnalyticsEvent,
+  showcaseEventToAnalyticsEvents,
 } from './event-type-mapping';
+import {Event} from '../api/propensity-api';
+import {ShowcaseEvent, SubscriptionFlows} from '../api/subscriptions';
 
 describes.realWin('Logger and Propensity events', {}, () => {
   it('propensity to analytics to propensity should be identical', () => {
@@ -66,11 +70,11 @@ describes.realWin('Logger and Propensity events', {}, () => {
   });
 });
 
-describes.realWin('publisherEntitlementEventToAnalyticsEvents', {}, () => {
+describes.realWin('showcaseEventToAnalyticsEvents', {}, () => {
   it('all types mapped', () => {
-    for (const publisherEvent in PublisherEntitlementEvent) {
-      const converted = publisherEntitlementEventToAnalyticsEvents(
-        PublisherEntitlementEvent[publisherEvent]
+    for (const publisherEvent in ShowcaseEvent) {
+      const converted = showcaseEventToAnalyticsEvents(
+        ShowcaseEvent[publisherEvent]
       );
       expect(converted && converted.length > 0).to.be.true;
       for (let x = 0; x < converted.length; x++) {
@@ -110,5 +114,71 @@ describes.realWin('analyticsEventToEntitlementResult', {}, () => {
       }
       expect(mapped[result]).to.not.be.undefined;
     }
+  });
+});
+
+describes.realWin('analyticsEventToGoogleAnalyticsEvent', {}, () => {
+  it('not allow the same event to be mapped to twice', () => {
+    const mapped = {};
+    for (const event in AnalyticsEvent) {
+      const result = analyticsEventToGoogleAnalyticsEvent(
+        AnalyticsEvent[event]
+      );
+      // Not all analytics events are mapped
+      if (result === undefined) {
+        continue;
+      }
+      expect(typeof result).to.be.equal('object');
+      const resultString = JSON.stringify(result);
+      // Each Google Analytics event should only be mapped to once
+      expect(mapped[resultString]).to.be.undefined;
+      mapped[resultString] = (mapped[resultString] || 0) + 1;
+    }
+  });
+
+  it('uses subscriptionFlow param correclty on "subscription"', () => {
+    const actual = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      SubscriptionFlows.SUBSCRIBE
+    );
+    const expected =
+      SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent[
+        AnalyticsEvent.ACTION_PAYMENT_COMPLETE
+      ];
+    expect(actual).to.be.equal(expected);
+  });
+
+  it('uses subscriptionFlow param correclty on "contribution"', () => {
+    const actual = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      SubscriptionFlows.CONTRIBUTE
+    );
+    const expected =
+      ContributionSpecificAnalyticsEventToGoogleAnalyticsEvent[
+        AnalyticsEvent.ACTION_PAYMENT_COMPLETE
+      ];
+    expect(actual).to.be.equal(expected);
+  });
+
+  it('should fallback to general mapping when subscriptionFlow passed in and event not specific', () => {
+    const actual = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_OFFERS,
+      SubscriptionFlows.SUBSCRIBE
+    );
+    const expected =
+      AnalyticsEventToGoogleAnalyticsEvent[AnalyticsEvent.IMPRESSION_OFFERS];
+    expect(actual).to.be.equal(expected);
+  });
+
+  it('should get contribution offers impressions on "contribution"', () => {
+    const actual = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      SubscriptionFlows.CONTRIBUTE
+    );
+    const expected =
+      AnalyticsEventToGoogleAnalyticsEvent[
+        AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS
+      ];
+    expect(actual).to.be.equal(expected);
   });
 });

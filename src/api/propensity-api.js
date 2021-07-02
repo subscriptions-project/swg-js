@@ -128,6 +128,7 @@ export let PropensityEvent;
 export const Event = LoggerApi.Event;
 export const SubscriptionState = LoggerApi.SubscriptionState;
 
+/* eslint-disable no-unused-vars */
 /**
  * @extends {LoggerApi.LoggerApi}
  * @interface
@@ -142,3 +143,4 @@ export class PropensityApi extends LoggerApi.LoggerApi {
    */
   getPropensity(type) {}
 }
+/* eslint-enable no-unused-vars */

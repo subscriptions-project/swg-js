@@ -19,10 +19,27 @@
  */
 export class ClientConfig {
   /**
-   * @param {?./auto-prompt-config.AutoPromptConfig} autoPromptConfig
+   * @param {!./auto-prompt-config.AutoPromptConfig=} autoPromptConfig
+   * @param {string=} paySwgVersion
+   * @param {boolean=} useUpdatedOfferFlows
+   * @param {./auto-prompt-config.UiPredicates=} uiPredicates
    */
-  constructor(autoPromptConfig) {
-    /** @const {?./auto-prompt-config.AutoPromptConfig} */
+  constructor(
+    autoPromptConfig,
+    paySwgVersion,
+    useUpdatedOfferFlows,
+    uiPredicates
+  ) {
+    /** @const {!./auto-prompt-config.AutoPromptConfig|undefined} */
     this.autoPromptConfig = autoPromptConfig;
+
+    /** @const {string|undefined} */
+    this.paySwgVersion = paySwgVersion;
+
+    /** @const {boolean} */
+    this.useUpdatedOfferFlows = useUpdatedOfferFlows || false;
+
+    /** @const {./auto-prompt-config.UiPredicates|undefined} */
+    this.uiPredicates = uiPredicates;
   }
 }

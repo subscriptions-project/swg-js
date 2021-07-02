@@ -139,7 +139,7 @@ describes.sandboxed('Callbacks', {}, () => {
       expect(callbacks.hasPaymentResponsePending()).to.be.true;
       await callbacks.paymentResponsePromise_;
       // Now everything should execute
-      expect(spy).to.be.calledOnce.calledWith(Promise.resolve({}));
+      expect(spy).to.be.calledOnce.calledWith();
       expect(callbacks.hasPaymentResponsePending()).to.be.false;
     });
 
@@ -178,7 +178,7 @@ describes.sandboxed('Callbacks', {}, () => {
     expect(callbacks.hasLinkCompletePending()).to.be.false;
 
     await tick();
-    expect(spy).to.be.calledOnce.calledWith(p);
+    expect(spy).to.be.calledOnce.calledWith();
   });
 
   it('should trigger and execute flowStarted', async () => {

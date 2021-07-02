@@ -24,9 +24,14 @@ const {endBuildStep, mkdirSync} = require('./helpers');
 function assets() {
   mkdirSync('dist');
   fs.copySync('assets/loader.svg', 'dist/loader.svg', {overwrite: true});
-  return compileCss('assets/swg-button.css', 'dist/swg-button.css', {
-    sourceMap: false,
-  }).then(() => {
+  return Promise.all([
+    compileCss('assets/swg-button.css', 'dist/swg-button.css', {
+      sourceMap: false,
+    }),
+    compileCss('assets/swg-mini-prompt.css', 'dist/swg-mini-prompt.css', {
+      sourceMap: false,
+    }),
+  ]).then(() => {
     mkdirSync('dist/i18n');
     fs.copySync('assets/i18n/', 'dist/i18n/', {overwrite: true});
   });

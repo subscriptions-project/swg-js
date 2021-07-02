@@ -22,6 +22,7 @@ import {
   EntitlementsRequest,
   EventOriginator,
 } from '../proto/api_messages';
+import {Constants} from '../utils/constants';
 import {
   Entitlement,
   Entitlements,
@@ -35,10 +36,12 @@ import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
 import {Toast} from '../ui/toast';
+import {addQueryParam, getCanonicalUrl, parseQueryString} from '../utils/url';
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
+import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {feArgs, feUrl} from '../runtime/services';
-import {getCanonicalUrl} from '../utils/url';
 import {hash} from '../utils/string';
+import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {serviceUrl} from './services';
 import {toTimestamp} from '../utils/date-utils';
 import {warn} from '../utils/log';
@@ -85,6 +88,13 @@ export class EntitlementsManager {
     /** @private {boolean} */
     this.blockNextNotification_ = false;
 
+    /**
+     * String containing encoded metering parameters currently.
+     * We may expand this to contain more information in the future.
+     * @private {?string}
+     */
+    this.encodedParams_ = null;
+
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
 
@@ -94,9 +104,15 @@ export class EntitlementsManager {
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = deps.config();
 
+    /**
+     * Tests can use this promise to wait for POST requests to finish.
+     * @visibleForTesting
+     */
+    this.entitlementsPostPromise = null;
+
     this.deps_
       .eventManager()
-      .registerEventListener(this.handleClientEvent_.bind(this));
+      .registerEventListener(this.possiblyPingbackOnClientEvent_.bind(this));
   }
 
   /**
@@ -178,6 +194,13 @@ export class EntitlementsManager {
   }
 
   /**
+   * Retrieves the 'gaa_n' parameter from the query string.
+   */
+  getGaaToken_() {
+    return parseQueryString(this.win_.location.search)['gaa_n'];
+  }
+
+  /**
    * Sends a pingback that marks a metering entitlement as used.
    * @param {!Entitlements} entitlements
    */
@@ -186,10 +209,17 @@ export class EntitlementsManager {
     if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
       return;
     }
+    // Verify GAA params are present, otherwise bail since the pingback
+    // shouldn't happen on non-metering requests.
+    if (!queryStringHasFreshGaaParams(this.win_.location.search)) {
+      return;
+    }
 
     this.deps_
       .eventManager()
       .logSwgEvent(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
+
+    const token = this.getGaaToken_();
 
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
@@ -197,14 +227,29 @@ export class EntitlementsManager {
     return this.postEntitlementsRequest_(
       jwt,
       EntitlementResult.UNLOCKED_METER,
-      EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE
+      EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
+      token
     );
   }
 
-  // Listens for events from the event manager and informs
-  // the server about publisher entitlements and non-
-  // consumable Google entitlements.
-  handleClientEvent_(event) {
+  /**
+   * Listens for events from the event manager and informs the server
+   * about publisher entitlements and non-consumable Google entitlements.
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   */
+  possiblyPingbackOnClientEvent_(event) {
+    // Verify GAA params are present, otherwise bail since the pingback
+    // shouldn't happen on non-metering requests.
+    // We don't validate access type since we want to pingback on all access types.
+    if (
+      !queryStringHasFreshGaaParams(
+        this.win_.location.search,
+        /*allowAllAccessTypes=*/ true
+      )
+    ) {
+      return;
+    }
+
     // A subset of analytics events are also an entitlement result
     const result = analyticsEventToEntitlementResult(event.eventType);
     if (!result) {
@@ -230,8 +275,16 @@ export class EntitlementsManager {
       default:
         return;
     }
-
-    this.postEntitlementsRequest_(new EntitlementJwt(), result, source);
+    const token = this.getGaaToken_();
+    const isUserRegistered =
+      event?.additionalParameters?.getIsUserRegistered?.();
+    this.postEntitlementsRequest_(
+      new EntitlementJwt(),
+      result,
+      source,
+      token,
+      isUserRegistered
+    );
   }
 
   // Informs the Entitlements server about the entitlement used
@@ -239,20 +292,52 @@ export class EntitlementsManager {
   postEntitlementsRequest_(
     usedEntitlement,
     entitlementResult,
-    entitlementSource
+    entitlementSource,
+    optionalToken = '',
+    optionalIsUserRegistered = null
   ) {
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(usedEntitlement);
     message.setClientEventTime(toTimestamp(Date.now()));
     message.setEntitlementResult(entitlementResult);
     message.setEntitlementSource(entitlementSource);
+    message.setToken(optionalToken);
+    if (typeof optionalIsUserRegistered === 'boolean') {
+      message.setIsUserRegistered(optionalIsUserRegistered);
+    }
 
-    const url =
+    let url =
       '/publication/' +
       encodeURIComponent(this.publicationId_) +
       '/entitlements';
+    url = addDevModeParamsToUrl(this.win_.location, url);
 
-    this.fetcher_.sendPost(serviceUrl(url), message);
+    // Promise that sets this.encodedParams_ when it resolves.
+    const encodedParamsPromise = this.encodedParams_
+      ? Promise.resolve()
+      : hash(getCanonicalUrl(this.deps_.doc())).then((hashedCanonicalUrl) => {
+          /** @type {!GetEntitlementsParamsInternalDef} */
+          const encodableParams = {
+            metering: {
+              resource: {
+                hashedCanonicalUrl,
+              },
+            },
+          };
+          this.encodedParams_ = base64UrlEncodeFromBytes(
+            utf8EncodeSync(JSON.stringify(encodableParams))
+          );
+        });
+
+    this.entitlementsPostPromise = encodedParamsPromise.then(() => {
+      url = addQueryParam(
+        url,
+        'encodedParams',
+        /** @type {!string} */ (this.encodedParams_)
+      );
+
+      return this.fetcher_.sendPost(serviceUrl(url), message);
+    });
   }
 
   /**
@@ -363,6 +448,7 @@ export class EntitlementsManager {
     }
     const signedData = json['signedEntitlements'];
     const decryptedDocumentKey = json['decryptedDocumentKey'];
+    const swgUserToken = json['swgUserToken'];
     if (signedData) {
       const entitlements = this.getValidJwtEntitlements_(
         signedData,
@@ -371,11 +457,13 @@ export class EntitlementsManager {
         decryptedDocumentKey
       );
       if (entitlements) {
+        this.saveSwgUserToken_(swgUserToken);
         return entitlements;
       }
     } else {
       const plainEntitlements = json['entitlements'];
       if (plainEntitlements) {
+        this.saveSwgUserToken_(swgUserToken);
         return this.createEntitlements_(
           '',
           plainEntitlements,
@@ -386,6 +474,17 @@ export class EntitlementsManager {
     }
     // Empty response.
     return this.createEntitlements_('', [], isReadyToPay);
+  }
+
+  /**
+   * Persist swgUserToken in local storage if entitlements and swgUserToken exist
+   * @param {?string|undefined} swgUserToken
+   * @private
+   */
+  saveSwgUserToken_(swgUserToken) {
+    if (swgUserToken) {
+      this.storage_.set(Constants.USER_TOKEN, swgUserToken, true);
+    }
   }
 
   /**
@@ -578,73 +677,115 @@ export class EntitlementsManager {
    * @private
    */
   fetch_(params) {
-    return hash(getCanonicalUrl(this.deps_.doc()))
-      .then((hashedCanonicalUrl) => {
-        const urlParams = [];
+    // Get swgUserToken from getEntitlements params
+    const swgUserTokenParam = params?.encryption?.swgUserToken;
+    // Get swgUserToken from local storage if it is not in getEntitlements params
+    const swgUserTokenPromise = swgUserTokenParam
+      ? Promise.resolve(swgUserTokenParam)
+      : this.storage_.get(Constants.USER_TOKEN, true);
+
+    let url =
+      '/publication/' +
+      encodeURIComponent(this.publicationId_) +
+      '/entitlements';
+
+    return Promise.all([
+      hash(getCanonicalUrl(this.deps_.doc())),
+      swgUserTokenPromise,
+    ])
+      .then((values) => {
+        const hashedCanonicalUrl = values[0];
+        const swgUserToken = values[1];
+
+        url = addDevModeParamsToUrl(this.win_.location, url);
 
         // Add encryption param.
-        if (params && params.encryption) {
-          urlParams.push(
-            'crypt=' +
-              encodeURIComponent(params.encryption.encryptedDocumentKey)
+        if (params?.encryption) {
+          url = addQueryParam(
+            url,
+            'crypt',
+            params.encryption.encryptedDocumentKey
           );
         }
 
+        // Add swgUserToken param.
+        if (swgUserToken) {
+          url = addQueryParam(url, 'sut', swgUserToken);
+        }
+
         // Add metering params.
-        if (
-          this.publicationId_ &&
-          params &&
-          params.metering &&
-          params.metering.state
-        ) {
-          /** @type {!GetEntitlementsParamsInternalDef} */
-          const encodableParams = {
-            metering: {
-              clientTypes: [MeterClientTypes.LICENSED_BY_GOOGLE],
-              owner: this.publicationId_,
-              resource: {
-                hashedCanonicalUrl,
+        if (this.publicationId_ && params?.metering?.state) {
+          const meteringStateId = params.metering.state.id;
+          if (
+            typeof meteringStateId === 'string' &&
+            meteringStateId.length > 0
+          ) {
+            /** @type {!GetEntitlementsParamsInternalDef} */
+            const encodableParams = {
+              metering: {
+                clientTypes: [MeterClientTypes.LICENSED_BY_GOOGLE],
+                owner: this.publicationId_,
+                resource: {
+                  hashedCanonicalUrl,
+                },
+                // Publisher provided state.
+                state: {
+                  id: meteringStateId,
+                  attributes: [],
+                },
+                token: this.getGaaToken_(),
               },
-              state: {
-                id: params.metering.state.id,
-                attributes: [],
-              },
-            },
-          };
+            };
 
-          // Add attributes.
-          const standardAttributes = params.metering.state.standardAttributes;
-          if (standardAttributes) {
-            Object.keys(standardAttributes).forEach((key) => {
-              encodableParams.metering.state.attributes.push({
-                name: 'standard_' + key,
-                timestamp: standardAttributes[key].timestamp,
-              });
-            });
-          }
-          const customAttributes = params.metering.state.customAttributes;
-          if (customAttributes) {
-            Object.keys(customAttributes).forEach((key) => {
-              encodableParams.metering.state.attributes.push({
-                name: 'custom_' + key,
-                timestamp: customAttributes[key].timestamp,
-              });
-            });
-          }
+            // Collect attributes.
+            function collectAttributes({attributes, category}) {
+              if (!attributes) {
+                return;
+              }
 
-          // Encode params.
-          const encodedParams = btoa(JSON.stringify(encodableParams));
-          urlParams.push('encodedParams=' + encodedParams);
+              const attributeNames = Object.keys(attributes);
+              attributeNames.forEach((attributeName) => {
+                const name = `${category}_${attributeName}`;
+                const timestamp = Number(attributes[attributeName].timestamp);
+
+                // Validate timestamp.
+                const timestampIsTooFarInTheFuture =
+                  timestamp > (Date.now() / 1000) * 2;
+                if (!timestamp || timestampIsTooFarInTheFuture) {
+                  warn(
+                    `SwG Entitlements: Please specify a Unix timestamp, in seconds, for the "${attributeName}" ${category} attribute. The timestamp you passed (${attributes[attributeName].timestamp}) looks invalid.`
+                  );
+                }
+
+                // Collect attribute.
+                encodableParams.metering.state.attributes.push({
+                  name,
+                  timestamp,
+                });
+              });
+            }
+            collectAttributes({
+              attributes: params.metering.state.standardAttributes,
+              category: 'standard',
+            });
+            collectAttributes({
+              attributes: params.metering.state.customAttributes,
+              category: 'custom',
+            });
+
+            // Encode params.
+            this.encodedParams_ = base64UrlEncodeFromBytes(
+              utf8EncodeSync(JSON.stringify(encodableParams))
+            );
+            url = addQueryParam(url, 'encodedParams', this.encodedParams_);
+          } else {
+            warn(
+              `SwG Entitlements: Please specify a metering state ID string, ideally a hash to avoid PII.`
+            );
+          }
         }
 
         // Build URL.
-        let url =
-          '/publication/' +
-          encodeURIComponent(this.publicationId_) +
-          '/entitlements';
-        if (urlParams.length > 0) {
-          url += '?' + urlParams.join('&');
-        }
         return serviceUrl(url);
       })
       .then((url) => {
@@ -662,6 +803,22 @@ export class EntitlementsManager {
         return this.parseEntitlements(json);
       });
   }
+}
+
+/**
+ * Parses entitlement dev mode params from the given hash fragment and adds it
+ * to the given URL.
+ * @param {!Location} location
+ * @param {string} url
+ * @return {string}
+ */
+function addDevModeParamsToUrl(location, url) {
+  const hashParams = parseQueryString(location.hash);
+  const devModeScenario = hashParams['swg.deventitlement'];
+  if (devModeScenario === undefined) {
+    return url;
+  }
+  return addQueryParam(url, 'devEnt', devModeScenario);
 }
 
 /**

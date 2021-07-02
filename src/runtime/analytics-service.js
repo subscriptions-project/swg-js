@@ -84,11 +84,9 @@ export class AnalyticsService {
     this.activityPorts_ = deps.activities();
 
     /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ = /** @type {!HTMLIFrameElement} */ (createElement(
-      this.doc_.getWin().document,
-      'iframe',
-      {}
-    ));
+    this.iframe_ = /** @type {!HTMLIFrameElement} */ (
+      createElement(this.doc_.getWin().document, 'iframe', {})
+    );
     setImportantStyles(this.iframe_, iframeStyles);
     this.doc_.getBody().appendChild(this.getElement());
 
@@ -316,10 +314,10 @@ export class AnalyticsService {
   createLogRequest_(event) {
     const meta = new AnalyticsEventMeta();
     meta.setEventOriginator(event.eventOriginator);
-    meta.setIsFromUserAction(event.isFromUserAction);
+    meta.setIsFromUserAction(!!event.isFromUserAction);
 
     const request = new AnalyticsRequest();
-    request.setEvent(event.eventType);
+    request.setEvent(/** @type {!AnalyticsEvent} */ (event.eventType));
     request.setContext(this.context_);
     request.setMeta(meta);
     if (event.additionalParameters instanceof EventParams) {
@@ -390,9 +388,10 @@ export class AnalyticsService {
 
   /**
    * This function is called by the iframe after it sends the log to the server.
-   * @param {FinishedLoggingResponse=} response
+   * @param {../proto/api_messages.Message=} message
    */
-  afterLogging_(response) {
+  afterLogging_(message) {
+    const response = /** @type {!FinishedLoggingResponse} */ (message);
     const success = (response && response.getComplete()) || false;
     const error = (response && response.getError()) || 'Unknown logging Error';
     const isTimeout = error === TIMEOUT_ERROR;

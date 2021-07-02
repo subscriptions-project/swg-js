@@ -13,18 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import {AutoPromptType, BasicSubscriptions} from '../api/basic-subscriptions';
+import {ActivityPort} from '../components/activities';
+import {
+  ActivityResult,
+  ActivityResultCode,
+} from 'web-activities/activity-ports';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {
+  AutoPromptType,
+  BasicSubscriptions,
+  ClientTheme,
+} from '../api/basic-subscriptions';
 import {
   BasicRuntime,
   ConfiguredBasicRuntime,
   getBasicRuntime,
   installBasicRuntime,
 } from './basic-runtime';
+import {ContributionsFlow} from './contributions-flow';
 import {Entitlements} from '../api/entitlements';
 import {GlobalDoc} from '../model/doc';
+import {OffersFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
+import {Toast} from '../ui/toast';
+import {acceptPortResultData} from './../utils/activity-utils';
+import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
 
 describes.realWin('installBasicRuntime', {}, (env) => {
@@ -226,18 +240,41 @@ describes.realWin('BasicRuntime', {}, (env) => {
         /config broken/
       );
     });
+
+    it('should initialize and save client options', async () => {
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        clientOptions: {
+          theme: ClientTheme.DARK,
+          lang: 'fr',
+          disableButton: false,
+        },
+      });
+      expect(basicRuntime.clientOptions_).to.deep.equal({
+        theme: ClientTheme.DARK,
+        lang: 'fr',
+        disableButton: false,
+      });
+    });
   });
 
   describe('configured', () => {
     let pageConfig;
     let configuredBasicRuntime;
     let configuredBasicRuntimeMock;
+    let clientConfigManagerMock;
     let configuredClassicRuntimeMock;
 
     beforeEach(() => {
       pageConfig = new PageConfig('pub1');
       configuredBasicRuntime = new ConfiguredBasicRuntime(doc, pageConfig);
       configuredBasicRuntimeMock = sandbox.mock(configuredBasicRuntime);
+      clientConfigManagerMock = sandbox.mock(
+        configuredBasicRuntime.clientConfigManager()
+      );
       configuredClassicRuntimeMock = sandbox.mock(
         configuredBasicRuntime.configuredClassicRuntime()
       );
@@ -250,6 +287,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     afterEach(() => {
       configuredBasicRuntimeMock.verify();
       configuredClassicRuntimeMock.verify();
+      clientConfigManagerMock.verify();
     });
 
     it('should create a SwG classic ConfiguredRuntime', async () => {
@@ -296,6 +334,83 @@ describes.realWin('BasicRuntime', {}, (env) => {
       await basicRuntime.setOnPaymentResponse(callback);
     });
 
+    it('should delegate "setOnLoginRequest" to ConfiguredBasicRuntime', async () => {
+      configuredBasicRuntimeMock
+        .expects('setOnLoginRequest')
+        .withExactArgs()
+        .once();
+
+      await basicRuntime.setOnLoginRequest();
+    });
+
+    it('should delegate "setOnLoginRequest" to ConfiguredClassicRuntime', async () => {
+      configuredClassicRuntimeMock.expects('setOnLoginRequest').once();
+
+      await basicRuntime.setOnLoginRequest();
+    });
+
+    it('should trigger login request', async () => {
+      configuredBasicRuntime.setOnLoginRequest();
+
+      const openStub = sandbox.stub(
+        configuredBasicRuntime.activities(),
+        'open'
+      );
+      await configuredBasicRuntime
+        .callbacks()
+        .triggerLoginRequest({linkRequested: true});
+
+      expect(openStub).to.be.calledOnceWithExactly(
+        'CHECK_ENTITLEMENTS',
+        'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_&publicationId=pub1',
+        '_blank',
+        {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
+        {'width': 600, 'height': 600}
+      );
+    });
+
+    it('should delegate "processEntitlements"', async () => {
+      const activitiesMock = sandbox.mock(configuredBasicRuntime.activities());
+      let handler;
+      activitiesMock
+        .expects('onResult')
+        .withExactArgs(
+          'CHECK_ENTITLEMENTS',
+          sandbox.match((arg) => {
+            handler = arg;
+            return typeof arg == 'function';
+          })
+        )
+        .once();
+      await basicRuntime.processEntitlements();
+      expect(handler).to.exist;
+
+      const port = new ActivityPort();
+      port.onResizeRequest = () => {};
+      port.whenReady = () => Promise.resolve();
+      const result = new ActivityResult(
+        ActivityResultCode.OK,
+        {'jwt': 'abc', 'usertoken': 'xyz'},
+        sandbox.match.any,
+        sandbox.match.any,
+        true,
+        true
+      );
+      port.acceptResult = () => Promise.resolve(result);
+
+      handler(port);
+
+      const data = await acceptPortResultData(
+        port,
+        sandbox.match.any,
+        true,
+        true
+      );
+      expect(data['jwt']).to.equal('abc');
+      expect(data['usertoken']).to.equal('xyz');
+      activitiesMock.verify();
+    });
+
     it('should delegate "setupAndShowAutoPrompt"', async () => {
       const options = {alwaysShow: true};
       configuredBasicRuntimeMock
@@ -312,7 +427,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
       await basicRuntime.dismissSwgUI();
     });
 
-    it('should call attach on all buttons with the correct attribute', async () => {
+    it('should call attach on all buttons with the correct attribute if buttons should be enable', async () => {
       // Set up buttons on the doc.
       const subscriptionButton = createElement(doc.getRootNode(), 'button', {
         'swg-standard-button': 'subscription',
@@ -323,12 +438,103 @@ describes.realWin('BasicRuntime', {}, (env) => {
       doc.getBody().appendChild(subscriptionButton);
       doc.getBody().appendChild(contributionButton);
 
+      clientConfigManagerMock
+        .expects('shouldEnableButton')
+        .returns(Promise.resolve(true))
+        .once();
+
       await basicRuntime.setupButtons();
-      configuredClassicRuntimeMock.expects('showOffers').once();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: true,
+        })
+        .once();
       await subscriptionButton.click();
 
-      configuredClassicRuntimeMock.expects('showContributionOptions').once();
+      configuredClassicRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs({
+          isClosable: true,
+        })
+        .once();
       await contributionButton.click();
+    });
+
+    it('should not call attach on all buttons if buttons should be disabled', async () => {
+      // Set up buttons on the doc.
+      const subscriptionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'subscription',
+      });
+      const contributionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'contribution',
+      });
+      doc.getBody().appendChild(subscriptionButton);
+      doc.getBody().appendChild(contributionButton);
+
+      clientConfigManagerMock
+        .expects('shouldEnableButton')
+        .returns(Promise.resolve(false))
+        .once();
+
+      await basicRuntime.setupButtons();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: true,
+        })
+        .never();
+      await subscriptionButton.click();
+
+      configuredClassicRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs({
+          isClosable: true,
+        })
+        .never();
+      await contributionButton.click();
+    });
+
+    it('should set up buttons with non-closable iframes if content is paygated', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+
+      // Set up buttons on the doc.
+      const subscriptionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'subscription',
+      });
+      const contributionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'contribution',
+      });
+      doc.getBody().appendChild(subscriptionButton);
+      doc.getBody().appendChild(contributionButton);
+
+      clientConfigManagerMock
+        .expects('shouldEnableButton')
+        .returns(Promise.resolve(true))
+        .once();
+
+      await basicRuntime.setupButtons();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: false,
+        })
+        .once();
+      await subscriptionButton.click();
+
+      configuredClassicRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs({
+          isClosable: false,
+        })
+        .once();
+      await contributionButton.click();
+    });
+
+    it('should delegate "processEntitlements"', async () => {
+      configuredBasicRuntimeMock.expects('processEntitlements').once();
+
+      await basicRuntime.processEntitlements();
     });
   });
 });
@@ -338,7 +544,9 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
   let pageConfig;
 
   beforeEach(() => {
-    win = env.win;
+    win = Object.assign({}, env.win, {
+      ga: () => {},
+    });
     pageConfig = new PageConfig('pub1:label1', true);
   });
 
@@ -347,6 +555,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     let entitlementsManagerMock;
     let clientConfigManagerMock;
     let configuredClassicRuntimeMock;
+    let winMock;
 
     beforeEach(() => {
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
@@ -354,17 +563,19 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         configuredBasicRuntime.configuredClassicRuntime_.entitlementsManager_
       );
       clientConfigManagerMock = sandbox.mock(
-        configuredBasicRuntime.clientConfigManager_
+        configuredBasicRuntime.configuredClassicRuntime_.clientConfigManager_
       );
       configuredClassicRuntimeMock = sandbox.mock(
         configuredBasicRuntime.configuredClassicRuntime_
       );
+      winMock = sandbox.mock(win);
     });
 
     afterEach(() => {
       entitlementsManagerMock.verify();
       clientConfigManagerMock.verify();
       configuredClassicRuntimeMock.verify();
+      winMock.verify();
     });
 
     it('should store and doc and win', () => {
@@ -402,6 +613,11 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       configuredBasicRuntime.entitlementsManager();
     });
 
+    it('should delegate clientConfigManager to ConfiguredRuntime', () => {
+      configuredClassicRuntimeMock.expects('clientConfigManager').once();
+      configuredBasicRuntime.clientConfigManager();
+    });
+
     it('should delegate callbacks to ConfiguredRuntime', () => {
       configuredClassicRuntimeMock.expects('callbacks').once();
       configuredBasicRuntime.callbacks();
@@ -429,9 +645,14 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .expects('getEntitlements')
         .returns(Promise.resolve(entitlements));
       clientConfigManagerMock
-        .expects('getAutoPromptConfig')
+        .expects('getClientConfig')
         .returns(Promise.resolve({}));
-      configuredClassicRuntimeMock.expects('showOffers').once();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: false,
+        })
+        .once();
 
       await configuredBasicRuntime.setupAndShowAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION,
@@ -445,13 +666,177 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .expects('getEntitlements')
         .returns(Promise.resolve(entitlements));
       clientConfigManagerMock
-        .expects('getAutoPromptConfig')
+        .expects('getClientConfig')
         .returns(Promise.resolve({}));
-      configuredClassicRuntimeMock.expects('showContributionOptions').once();
+      configuredClassicRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs({
+          isClosable: false,
+        })
+        .once();
 
       await configuredBasicRuntime.setupAndShowAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
+    });
+
+    it('should dimiss SwG UI', () => {
+      const dialogManagerMock = sandbox.mock(
+        configuredBasicRuntime.dialogManager()
+      );
+      dialogManagerMock.expects('completeAll').once();
+      configuredBasicRuntime.dismissSwgUI();
+      dialogManagerMock.verify();
+    });
+
+    it('should set clientOptions in ClientConfigManager', () => {
+      configuredBasicRuntime = new ConfiguredBasicRuntime(
+        win,
+        pageConfig,
+        undefined,
+        undefined,
+        {theme: ClientTheme.DARK, lang: 'fr'}
+      );
+      expect(configuredBasicRuntime.clientConfigManager().getLanguage()).equals(
+        'fr'
+      );
+      expect(configuredBasicRuntime.clientConfigManager().getTheme()).equals(
+        ClientTheme.DARK
+      );
+    });
+
+    it('should pass ClientOptions to button setup', () => {
+      const clientOptions = {theme: ClientTheme.DARK, lang: 'fr'};
+      configuredBasicRuntime = new ConfiguredBasicRuntime(
+        win,
+        pageConfig,
+        /* integr */ undefined,
+        /* config */ undefined,
+        clientOptions
+      );
+      const buttonApiMock = sandbox.mock(configuredBasicRuntime.buttonApi_);
+      buttonApiMock
+        .expects('attachButtonsWithAttribute')
+        .withExactArgs(
+          /* attribute */ sandbox.match.any,
+          /* attributeValues */ sandbox.match.any,
+          clientOptions,
+          /* attributeValueToCallback */ sandbox.match.any
+        );
+    });
+
+    it('should set up Google Analytics event listener and listen to events on startup', async () => {
+      expect(
+        configuredBasicRuntime.configuredClassicRuntime()
+          .googleAnalyticsEventListener_.constructor.name
+      ).equals('GoogleAnalyticsEventListener');
+      winMock
+        .expects('ga')
+        .withExactArgs(
+          'send',
+          'event',
+          analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.IMPRESSION_OFFERS)
+        )
+        .once();
+      configuredBasicRuntime.eventManager().logEvent({
+        eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+      });
+      await configuredBasicRuntime.eventManager().lastAction_;
+    });
+
+    it('should handle an EntitlementsResponse with jwt and usertoken', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {'jwt': 'abc', 'usertoken': 'xyz'};
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      configuredClassicRuntimeMock.expects('closeDialog').once();
+      entitlementsManagerMock
+        .expects('pushNextEntitlements')
+        .withExactArgs('abc')
+        .once();
+
+      const storageMock = sandbox.mock(configuredBasicRuntime.storage());
+      storageMock
+        .expects('set')
+        .withExactArgs('USER_TOKEN', 'xyz', true)
+        .once();
+
+      let toast;
+      const toastOpenStub = sandbox
+        .stub(Toast.prototype, 'open')
+        .callsFake(function () {
+          toast = this;
+        });
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+
+      expect(toastOpenStub).to.be.called;
+      expect(toast).not.to.be.null;
+      storageMock.verify();
+    });
+
+    it('should handle an empty EntitlementsResponse from subscription offers flow', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {}; // no data
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      const offersFlow = new OffersFlow(configuredBasicRuntime, {
+        skus: ['sku1', 'sku2'],
+      });
+      configuredClassicRuntimeMock
+        .expects('getLastOffersFlow')
+        .withExactArgs()
+        .returns(offersFlow)
+        .once();
+
+      const offersFlowMock = sandbox.mock(offersFlow);
+      offersFlowMock
+        .expects('showNoEntitlementFoundToast')
+        .withExactArgs()
+        .once();
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+      offersFlowMock.verify();
+    });
+
+    it('should handle an empty EntitlementsResponse from contributions flow', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {}; // no data
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      const contributionsFlow = new ContributionsFlow(configuredBasicRuntime, {
+        skus: ['sku1', 'sku2'],
+      });
+      configuredClassicRuntimeMock
+        .expects('getLastContributionsFlow')
+        .withExactArgs()
+        .returns(contributionsFlow)
+        .once();
+
+      const contributionsFlowMock = sandbox.mock(contributionsFlow);
+      contributionsFlowMock
+        .expects('showNoEntitlementFoundToast')
+        .withExactArgs()
+        .once();
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+      contributionsFlowMock.verify();
     });
   });
 });
