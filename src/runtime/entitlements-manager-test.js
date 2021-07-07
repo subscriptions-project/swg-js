@@ -192,7 +192,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       .once();
     expectEntitlementPingback(
       EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-      EntitlementResult.UNLOCKED_SUBSCRIBER
+      EntitlementResult.UNLOCKED_SUBSCRIBER,
+      /* jwtString */ null,
+      /* jwtSource */ null,
+      /* isUserRegistered */ true
     );
     return resp;
   }
@@ -222,17 +225,34 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       .once();
     expectEntitlementPingback(
       EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-      EntitlementResult.UNLOCKED_SUBSCRIBER
+      EntitlementResult.UNLOCKED_SUBSCRIBER,
+      /* jwtString */ null,
+      /* jwtSource */ null,
+      /* isUserRegistered */ true
     );
     return resp;
   }
 
-  function expectLog(event, isUserGenerated) {
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(event, isUserGenerated)
-      .returns(null)
-      .once();
+  function getEventParams(isUserRegistered) {
+    const params = new EventParams();
+    params.setIsUserRegistered(isUserRegistered);
+    return params;
+  }
+
+  function expectLog(event, isUserGenerated, eventParams = null) {
+    if (eventParams) {
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(event, isUserGenerated, eventParams)
+        .returns(null)
+        .once();
+    } else {
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(event, isUserGenerated)
+        .returns(null)
+        .once();
+    }
   }
 
   function expectPost(url, message) {
@@ -523,7 +543,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         );
 
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
-      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectLog(
+        AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+        false,
+        getEventParams(true)
+      );
       expectGetSwgUserTokenToBeCalled();
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
@@ -565,7 +589,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         );
 
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
-      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectLog(
+        AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+        false,
+        getEventParams(true)
+      );
       expectGetSwgUserTokenToBeCalled();
 
       storageMock
@@ -595,7 +623,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       );
 
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
-      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectLog(
+        AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+        false,
+        getEventParams(true)
+      );
       expectGetSwgUserTokenToBeCalled();
 
       storageMock
@@ -634,7 +666,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
-      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectLog(
+        AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+        false,
+        getEventParams(true)
+      );
       expectGetSwgUserTokenToBeCalled();
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
@@ -668,7 +704,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
-      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectLog(
+        AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+        false,
+        getEventParams(true)
+      );
       expectGetSwgUserTokenToBeCalled();
 
       const ents = await manager.getEntitlements();
@@ -757,7 +797,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .once();
 
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
-      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      expectLog(
+        AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+        false,
+        getEventParams(true)
+      );
       expectGetSwgUserTokenToBeCalled();
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
@@ -807,7 +851,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .once();
       expectEntitlementPingback(
         EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER
+        EntitlementResult.UNLOCKED_SUBSCRIBER,
+        /* jwtString */ null,
+        /* jwtSource */ null,
+        /* isUserRegistered */ true
       );
       expectGetSwgUserTokenToBeCalled();
       manager.reset(true);
@@ -1331,13 +1378,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   describe('event listening', () => {
     const GOOGLE_SOURCE = EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT;
 
-    function getParams(isUserRegistered) {
-      const params = new EventParams();
-      params.setIsUserRegistered(isUserRegistered);
-      return params;
-    }
-
-    function expectNoPingback(event, originator, params = getParams(null)) {
+    function expectNoPingback(
+      event,
+      originator,
+      params = getEventParams(null)
+    ) {
       xhrMock.expects('fetch').never();
       eventManager.logEvent({
         eventType: event,
@@ -1351,7 +1396,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       event,
       originator,
       expectedSource,
-      params = getParams(null)
+      params = getEventParams(null)
     ) {
       const result = analyticsEventToEntitlementResult(event);
       expectEntitlementPingback(
@@ -1396,7 +1441,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         expectPingback(
           AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
           EventOriginator.SWG_CLIENT,
-          GOOGLE_SOURCE
+          GOOGLE_SOURCE,
+          getEventParams(true)
         ));
 
       it('should pingback EVENT_UNLOCKED_FREE_PAGE', () =>
@@ -1418,7 +1464,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SWG_CLIENT,
           GOOGLE_SOURCE,
-          getParams(true)
+          getEventParams(true)
         ));
 
       it('should pingback with isUserRegistered == false on valid event', () =>
@@ -1426,7 +1472,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SWG_CLIENT,
           GOOGLE_SOURCE,
-          getParams(false)
+          getEventParams(false)
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
@@ -1469,7 +1515,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         expectPingback(
           AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
           EventOriginator.SWG_SERVER,
-          GOOGLE_SOURCE
+          GOOGLE_SOURCE,
+          getEventParams(true)
         ));
 
       it('should pingback EVENT_UNLOCKED_FREE_PAGE from SWG_SERVER', () =>
@@ -1527,7 +1574,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         expectPingback(
           AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
           EventOriginator.SHOWCASE_CLIENT,
-          EntitlementSource.PUBLISHER_ENTITLEMENT
+          EntitlementSource.PUBLISHER_ENTITLEMENT,
+          getEventParams(true)
         ));
 
       it('should pingback EVENT_UNLOCKED_FREE_PAGE', () =>
@@ -1916,7 +1964,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock.expects('set').withArgs('ents').never();
       expectEntitlementPingback(
         EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER
+        EntitlementResult.UNLOCKED_SUBSCRIBER,
+        /* jwtString */ null,
+        /* jwtSource */ null,
+        /* isUserRegistered */ true
       );
       manager.reset(true);
 
@@ -1943,7 +1994,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock.expects('set').withArgs('ents').never();
       expectEntitlementPingback(
         EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER
+        EntitlementResult.UNLOCKED_SUBSCRIBER,
+        /* jwtString */ null,
+        /* jwtSource */ null,
+        /* isUserRegistered */ true
       );
       manager.reset(true);
       analyticsMock.expects('setReadyToPay').withExactArgs(true);
@@ -1967,7 +2021,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock.expects('set').withArgs('ents').never();
       expectEntitlementPingback(
         EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER
+        EntitlementResult.UNLOCKED_SUBSCRIBER,
+        /* jwtString */ null,
+        /* jwtSource */ null,
+        /* isUserRegistered */ true
       );
       manager.reset(true);
       analyticsMock.expects('setReadyToPay').withExactArgs(false);
@@ -1991,7 +2048,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock.expects('set').withArgs('ents').never();
       expectEntitlementPingback(
         EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER
+        EntitlementResult.UNLOCKED_SUBSCRIBER,
+        /* jwtString */ null,
+        /* jwtSource */ null,
+        /* isUserRegistered */ true
       );
       manager.reset(true);
 
