@@ -21,6 +21,7 @@ import {
   EntitlementSource,
   EntitlementsRequest,
   EventOriginator,
+  EventParams,
 } from '../proto/api_messages';
 import {Constants} from '../utils/constants';
 import {
@@ -593,9 +594,15 @@ export class EntitlementsManager {
       return Promise.resolve();
     }
 
+    const params = new EventParams();
+    params.setIsUserRegistered(true);
     this.deps_
       .eventManager()
-      .logSwgEvent(AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION, false);
+      .logSwgEvent(
+        AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+        false,
+        params
+      );
     // Check if storage bit is set. It's only set by the `Entitlements.ack` method.
     return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
       const toastWasShown = value === '1';
