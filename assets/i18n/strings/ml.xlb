@@ -9,7 +9,7 @@
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>സാധാരണ ഈ ഉള്ളടക്കത്തിന് പണം നൽകേണ്ടതുണ്ട്, എന്നാൽ Google അക്കൗണ്ട് ഉപയോഗിച്ച് <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> എന്നതിൽ രജിസ്‌റ്റർ ചെയ്യുമ്പോൾ, ഈ ലേഖനത്തിലേക്കും മറ്റും Google നിങ്ങൾക്ക് സൗജന്യ ആക്‌സസ് നൽകുന്നു.</msg>
 <msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">മുമ്പേ അക്കൗണ്ടുണ്ടോ?</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Google ഉപയോഗിച്ച് സൈൻ ഇൻ ചെയ്യുക</msg>
-<msg name="SHOWCASE_REGWALL_CASL">Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph></msg>
+<msg name="SHOWCASE_REGWALL_CASL"><ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> എന്നതിന്റെ <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>നിബന്ധനകളും CASL സമ്മതവും<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> അവലോകനം ചെയ്യുക</msg>
 
 
 
