@@ -19,6 +19,7 @@
 
 export const I18N_STRINGS = {
   'SHOWCASE_REGWALL_TITLE': {
+    'bn': 'Google-এ আরও অনেক কিছুর সুবিধা পান',
     'cs': 'Získejte s&nbsp;Googlem víc',
     'de': 'Immer gut informiert mit Google',
     'en': 'Get more with Google',
@@ -33,10 +34,12 @@ export const I18N_STRINGS = {
     'mr': 'Google वापरून बरेच काही मिळवा',
     'nl': 'Krijg meer met Google',
     'pt-br': 'Veja mais com o Google',
+    'pt-pt': 'Obtenha mais com a Google',
     'ta': 'Google மூலம் மேலும் பல கட்டுரைகளைப் படியுங்கள்',
     'te': 'Googleతో మరిన్ని ప్రయోజనాలను పొందండి',
   },
   'SHOWCASE_REGWALL_DESCRIPTION': {
+    'bn': '<strong></strong>এই কন্টেন্ট অ্যাক্সেস করার জন্য সাধারণত পেমেন্ট করতে হয় কিন্তু Google আপনাকে এই নিবন্ধ ফ্রিতে অ্যাক্সেস করতে এবং সেইসাথে অনেক কিছু পেতে সাহায্য করছে। এই সুবিধা পাওয়ার জন্য Google অ্যাকাউন্ট ব্যবহার করে আপনাকে <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>-এ রেজিস্টার করতে হবে।',
     'cs': '<strong></strong>Tento obsah je obvykle zpoplatněn, ale pokud se do publikace <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> zaregistrujete pomocí účtu Google, získáte od Googlu přístup zdarma.',
     'de': '<strong></strong>Dieser Inhalt ist normalerweise kostenpflichtig. Google gewährt dir jedoch kostenlos Zugriff auf diesen Artikel und andere Inhalte, wenn du dich mit deinem Google-Konto bei <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> registrierst.',
     'en': '<strong></strong>This content usually requires payment, but Google is giving you free access to this article and more when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google Account.',
@@ -53,10 +56,13 @@ export const I18N_STRINGS = {
     'nl': '<strong></strong>Voor deze content moet je eigenlijk betalen. Maar Google geeft je kosteloos toegang tot dit artikel en andere content als je je registreert bij <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> via je Google-account.',
     'pt-br':
       '<strong></strong>Normalmente, é preciso pagar por este conteúdo. Porém, basta você se registrar na publicação <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando sua Conta do Google para ter acesso gratuito a esta matéria e muito mais.',
+    'pt-pt':
+      '<strong></strong>Geralmente, este conteúdo requer um pagamento, mas a Google concede-lhe acesso gratuito a este artigo e muito mais ao registar-se na publicação <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> com a sua Conta Google.',
     'ta': '<strong></strong>வழக்கமாக இந்த உள்ளடக்கத்தை வாசிக்க கட்டணம் செலுத்த வேண்டியிருக்கும். ஆனால் <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> இல் உங்கள் Google கணக்கைப் பயன்படுத்திப் பதிவுசெய்யும்போது இந்தக் கட்டுரைக்கும் மேலும் பலவற்றுக்கும் Google இலவச அணுகலை வழங்குகிறது.',
     'te': '<strong></strong>ఈ కంటెంట్‌కు మీరు సాధారణంగా పేమెంట్ చేయాల్సి ఉంటుంది, కానీ మీరు Google ఖాతాను ఉపయోగించి <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>తో రిజిస్టర్ చేసుకున్నప్పుడు, ఈ వార్తా కథనానికి ఇంకా మరెన్నో వాటికి Google, ఉచిత యాక్సెస్‌ను ఇస్తుంది.',
   },
   'SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON': {
+    'bn': 'আপনার কি আগে থেকেই অ্যাকাউন্ট আছে?',
     'cs': 'Už máte účet?',
     'de': 'Du hast bereits ein Konto?',
     'en': 'Already have an account?',
@@ -71,10 +77,12 @@ export const I18N_STRINGS = {
     'mr': 'आधीपासून खाते आहे?',
     'nl': 'Heb je al een account?',
     'pt-br': 'Já tem uma conta?',
+    'pt-pt': 'Já tem uma conta?',
     'ta': 'ஏற்கெனவே கணக்கு உள்ளதா?',
     'te': 'ఇప్పటికే ఖాతా ఉందా?',
   },
   'SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON': {
+    'bn': 'Google দিয়ে সাইন-ইন করুন',
     'cs': 'Přihlásit se přes Google',
     'de': 'Über Google anmelden',
     'en': 'Sign in with Google',
@@ -89,10 +97,29 @@ export const I18N_STRINGS = {
     'mr': 'Google वापरून साइन इन करा',
     'nl': 'Inloggen met Google',
     'pt-br': 'Fazer login com o Google',
+    'pt-pt': 'Iniciar sessão com o Google',
     'ta': 'Google மூலம் உள்நுழைக',
     'te': 'Googleతో సైన్ ఇన్ చేయండి',
   },
   'SHOWCASE_REGWALL_CASL': {
-    'en': 'Review <strong><ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></strong>\'s <a>Terms and CASL consent</a>',
+    'bn': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'cs': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'de': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'en': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'es': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'fr': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'hi': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'it': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'ja': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'kn': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'ml': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'mr': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'nl': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'pt-br':
+      'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'pt-pt':
+      'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'ta': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
+    'te': 'Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>\'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Terms and CASL consent<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>',
   },
 };
