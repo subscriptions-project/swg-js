@@ -69,6 +69,36 @@ function swgjs_install() {
 }
 
 
+# Logs the changes since the last Swgjs release.
+#
+# This command gives you a changelog for a Swgjs release.
+# You can use the changelog as the release's description.
+# The changelog also includes the next version number
+# (ex: 0.1.22.123), which you will use in several places,
+# like the "Release title" and "Version tag".
+function swgjs_changelog() {
+  swgjs_install
+
+  # Get the freshest branch possible.
+  # Also temporarily disable warnings
+  # about the branch being detached,
+  # since we don't plan on committing
+  # any changes to it.
+  cd $SWGJS_PATH
+  git fetch team
+  git -c advice.detachedHead=false checkout team/main
+
+  # Get changelog
+  npx gulp changelog
+
+  # Return to previous branch
+  git checkout -
+
+  # Return to previous directory
+  cd -
+}
+
+
 # Adds Swgjs Shortcuts to the .bashrc file.
 #
 # You can run this once to make sure the
