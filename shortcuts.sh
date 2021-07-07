@@ -74,7 +74,7 @@ function swgjs_install() {
 # This command gives you a changelog for a Swgjs release.
 # You can use the changelog as the release's description.
 # The changelog also includes the next version number
-# (ex: 0.1.22.123), which you will use several places,
+# (ex: 0.1.22.123), which you will use in several places,
 # like the "Release title" and "Version tag".
 function swgjs_changelog() {
   swgjs_install
