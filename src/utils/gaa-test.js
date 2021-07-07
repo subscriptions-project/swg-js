@@ -195,7 +195,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
       const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
       expect(caslEl.textContent).contains(
-        "Review The Scenic's Terms and CASL consent"
+        "Review The Scenic's terms and CASL consent"
       );
 
       const caslLinkEl = caslEl.querySelector('a');
