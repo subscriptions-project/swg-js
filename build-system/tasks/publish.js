@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 'use strict';
+'use strict';
 
- /**
-  * @fileoverview A gulp task that uses the GitHub API to publish and tag a new
-  * release based off the generated changelog.
-  */
+/**
+ * @fileoverview A gulp task that uses the GitHub API to publish and tag a new
+ * release based off the generated changelog.
+ */
 
-const githubRequest = require('./github').githubRequest;
-const changelog = require('./changelog').changelog;
-const logger = require('fancy-log');
 const argv = require('minimist')(process.argv.slice(2), {
   default: {
-    draft: false
-  }
+    draft: false,
+  },
 });
+const changelog = require('./changelog').changelog;
+const githubRequest = require('./github').githubRequest;
+const logger = require('fancy-log');
 
 const {red} = require('ansi-colors');
 
@@ -43,21 +43,21 @@ async function publish() {
   }
 }
 
-/** 
+/**
  * @param {import('./changelog').ReleaseMetadata} release
-*/
+ */
 async function publishRelease(release) {
-  const response = await githubRequest({
+  await githubRequest({
     path: '/releases',
     method: 'POST',
     json: {
-      tag_name: release.version,
-      target_commitish: 'main',
+      tag_name: release.version, // eslint-disable-line
+      target_commitish: 'main', // eslint-disable-line
       name: `SwG Release ${release.version}`,
       body: release.changelog,
       prerelease: true,
       draft: argv.draft,
-    }
+    },
   });
 }
 

@@ -37,12 +37,18 @@ exports.githubRequest = function (req) {
     method: req.method || 'GET',
   }).then((res) => {
     if (res.statusCode >= 400) {
-      throw new Error(`Failed calling ${res.request.path}\nError: ${res.statusCode}`);
+      throw new Error(
+        `Failed calling ${res.request.path}\nError: ${res.statusCode}`
+      );
     }
 
-    // If request has already transformed this into an object, we 
+    // If request has already transformed this into an object, we
     // don't need to parse
-    if (typeof res.body === 'object') return res.body;
-    if (typeof res.body === 'string') return JSON.parse(res.body);
+    if (typeof res.body === 'object') {
+      return res.body;
+    }
+    if (typeof res.body === 'string') {
+      return JSON.parse(res.body);
+    }
   });
 };
