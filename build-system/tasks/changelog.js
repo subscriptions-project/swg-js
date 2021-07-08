@@ -39,11 +39,12 @@ const {blue, red, yellow} = require('ansi-colors');
  *   logs: !Array<{sha: string, title: string}>,
  *   prs: !Array<!Object>,
  *   changelog: string,
- * }}
+ *   version: string,
+ * }} ReleaseMetadata
  */
 
 /**
- * @return {!Promise}
+ * @return {!Promise<!ReleaseMetadata>}
  */
 function changelog() {
   return getLastGithubRelease()
@@ -52,6 +53,7 @@ function changelog() {
     .then(buildChangelog)
     .then((response) => {
       logger(blue('\n' + response.changelog));
+      return response;
     })
     .catch(errHandler);
 }
@@ -185,7 +187,7 @@ function buildChangelog(release) {
   let version = '';
   if (argv.swgVersion) {
     // Use the --swgVersion CLI param, if present.
-    version = argv.swgVersion;
+    version = String(argv.swgVersion);
   } else {
     // Increment the last number.
     const versionSegments = release.tag.split('.');
@@ -212,6 +214,7 @@ function buildChangelog(release) {
     .join('\n');
 
   release.changelog = changelog;
+  release.version = version;
   return release;
 }
 
