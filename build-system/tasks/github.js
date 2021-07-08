@@ -33,7 +33,7 @@ exports.githubRequest = function (req) {
       'Authorization': `token ${GITHUB_ACCESS_TOKEN}`,
       'User-Agent': 'swg-changelog-gulp-task',
     },
-    json: req.json ? req.json : undefined,
+    json: req?.json,
     method: req.method || 'GET',
   }).then((res) => {
     if (res.statusCode >= 400) {
