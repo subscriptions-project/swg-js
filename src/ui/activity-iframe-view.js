@@ -22,7 +22,6 @@ import {isCancelError} from '../utils/errors';
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
   'frameborder': '0',
-  // 'scrolling': 'no',
 };
 
 /**
