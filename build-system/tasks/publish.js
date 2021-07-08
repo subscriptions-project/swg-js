@@ -72,4 +72,4 @@ function errHandler(err) {
 module.exports = {
   publish,
 };
-publish.description = 'Change log since last release';
+publish.description = 'Publish latest release to GitHub';
