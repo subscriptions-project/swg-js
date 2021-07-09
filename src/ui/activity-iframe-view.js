@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+import {ExperimentFlags} from '../runtime/experiment-flags';
 import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createElement} from '../utils/dom';
 import {isCancelError} from '../utils/errors';
+import {isExperimentOn} from '../runtime/experiments';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
@@ -52,6 +54,11 @@ export class ActivityIframeView extends View {
 
     /** @private @const {!Document} */
     this.doc_ = this.win_.document;
+
+    // Optionally allow scrolling within dialogs.
+    if (isExperimentOn(this.win_, ExperimentFlags.SCROLLING_WITHIN_DIALOGS)) {
+      delete iframeAttributes.scrolling;
+    }
 
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ = /** @type {!HTMLIFrameElement} */ (
