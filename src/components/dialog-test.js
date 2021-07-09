@@ -156,7 +156,7 @@ describes.realWin('Dialog', {}, (env) => {
     });
 
     it('resizes the element to expand with an animation', async () => {
-      const newHeight = 200;
+      const newHeight = 110;
 
       immediate();
       await dialog.open();
@@ -176,7 +176,7 @@ describes.realWin('Dialog', {}, (env) => {
     });
 
     it('resizes the element to collapse with animation', async () => {
-      const newHeight = 20;
+      const newHeight = 90;
 
       immediate();
       await dialog.open();
