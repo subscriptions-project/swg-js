@@ -110,6 +110,12 @@ export class Dialog {
     /** @private {?Promise} */
     this.animating_ = null;
 
+    /**
+     * Helps identify stale animations.
+     * @private {number}
+     */
+    this.animationNumber_ = 0;
+
     /** @private {boolean} */
     this.hidden_ = false;
 
@@ -342,41 +348,51 @@ export class Dialog {
     }
     const newHeight = this.getMaxAllowedHeight_(height);
 
+    // Uniquely identify this animation,
+    // so it can be abadoned if stale.
+    const animationNumber = ++this.animationNumber_;
+
     let animating;
     if (animated) {
       const oldHeight = this.getElement().offsetHeight;
       if (newHeight >= oldHeight) {
         // Expand.
         animating = this.animate_(() => {
-          setImportantStyles(this.getElement(), {
-            'height': `${newHeight}px`,
-            'transform': `translateY(${newHeight - oldHeight}px)`,
-          });
-          return transition(
-            this.getElement(),
-            {
-              'transform': 'translateY(0)',
-            },
-            300,
-            'ease-out'
-          );
+          if (animationNumber === this.animationNumber_) {
+            setImportantStyles(this.getElement(), {
+              'height': `${newHeight}px`,
+              'transform': `translateY(${newHeight - oldHeight}px)`,
+            });
+            return transition(
+              this.getElement(),
+              {
+                'transform': 'translateY(0)',
+              },
+              300,
+              'ease-out'
+            );
+          }
         });
       } else {
         // Collapse.
         animating = this.animate_(() => {
-          return transition(
-            this.getElement(),
-            {
-              'transform': `translateY(${oldHeight - newHeight}px)`,
-            },
-            300,
-            'ease-out'
-          ).then(() => {
-            setImportantStyles(this.getElement(), {
-              'height': `${newHeight}px`,
-              'transform': 'translateY(0)',
+          if (animationNumber === this.animationNumber_) {
+            return transition(
+              this.getElement(),
+              {
+                'transform': `translateY(${oldHeight - newHeight}px)`,
+              },
+              300,
+              'ease-out'
+            ).then(() => {
+              if (animationNumber === this.animationNumber_) {
+                setImportantStyles(this.getElement(), {
+                  'height': `${newHeight}px`,
+                  'transform': 'translateY(0)',
+                });
+              }
             });
-          });
+          }
         });
       }
     } else {
@@ -386,8 +402,10 @@ export class Dialog {
       animating = Promise.resolve();
     }
     return animating.then(() => {
-      this.updatePaddingToHtml_(height);
-      view.resized();
+      if (animationNumber === this.animationNumber_) {
+        this.updatePaddingToHtml_(height);
+        view.resized();
+      }
     });
   }
 
