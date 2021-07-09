@@ -106,7 +106,7 @@ describes.realWin('ActivityIframeView', {}, (env) => {
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
     });
 
-    it('should disallow scrolling within dialogs', async () => {
+    it('disallows scrolling within dialogs', async () => {
       const iframe = new ActivityIframeView(
         win,
         activityPorts,
@@ -117,7 +117,7 @@ describes.realWin('ActivityIframeView', {}, (env) => {
       expect(iframe.scrolling).to.equal('no');
     });
 
-    it('should (optionally) allow scrolling within dialogs', async () => {
+    it('allows scrolling within dialogs behind an experiment', async () => {
       setExperiment(win, ExperimentFlags.SCROLLING_WITHIN_DIALOGS, true);
 
       const iframe = new ActivityIframeView(
