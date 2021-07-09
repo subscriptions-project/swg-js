@@ -183,17 +183,6 @@ hr {
   width: 24px;
 }
 
-button[swg-standard-button] {
-  transition: opacity var(--transition-duration) ease-in-out;
-}
-
-button[swg-standard-button]:not([class]) {
-  border: 1px solid transparent;
-  outline: none;
-  height: 44px;
-  opacity: 0;
-}
-
 body.mobile-navigation-is-expanded .toggle-navigation-button {
   background-image: url(./images/mobile-navigation-close.svg);
 }
