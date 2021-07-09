@@ -349,7 +349,7 @@ export class Dialog {
     const newHeight = this.getMaxAllowedHeight_(height);
 
     // Uniquely identify this animation.
-    // This lets us abandon stale animations.
+    // This lets callbacks abandon stale animations.
     const animationNumber = ++this.animationNumber_;
 
     let animating;
