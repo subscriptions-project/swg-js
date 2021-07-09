@@ -60,4 +60,9 @@ export const ExperimentFlags = {
    * Experiment flag for guarding changes to fix PayClient redirect flow.
    */
   PAY_CLIENT_REDIRECT: 'pay-client-redirect',
+
+  /**
+   * Enables scrolling within dialogs
+   */
+  SCROLLING_WITHIN_DIALOGS: 'scrolling-within-dialogs',
 };

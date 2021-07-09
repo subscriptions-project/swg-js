@@ -18,8 +18,13 @@ import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityIframeView} from './activity-iframe-view';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
+import {ExperimentFlags} from '../runtime/experiment-flags';
 import {GlobalDoc} from '../model/doc';
 import {SkuSelectedResponse} from '../proto/api_messages';
+import {
+  setExperiment,
+  setExperimentsStringForTesting,
+} from '../runtime/experiments';
 
 describes.realWin('ActivityIframeView', {}, (env) => {
   let win;
@@ -68,6 +73,10 @@ describes.realWin('ActivityIframeView', {}, (env) => {
     );
   });
 
+  afterEach(() => {
+    setExperimentsStringForTesting('');
+  });
+
   describe('ActivityIframeView', () => {
     it('should have activityIframeView constructed', () => {
       const activityIframe = activityIframeView.getElement();
@@ -95,6 +104,30 @@ describes.realWin('ActivityIframeView', {}, (env) => {
 
       expect(activityIframePort.onResizeRequest).to.have.been.calledOnce;
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
+    });
+
+    it.only('should disallow scrolling within dialogs', async () => {
+      const iframe = new ActivityIframeView(
+        win,
+        activityPorts,
+        src,
+        activityArgs
+      ).getElement();
+
+      expect(iframe.scrolling).to.equal('no');
+    });
+
+    it.only('should (optionally) allow scrolling within dialogs', async () => {
+      setExperiment(win, ExperimentFlags.SCROLLING_WITHIN_DIALOGS, true);
+
+      const iframe = new ActivityIframeView(
+        win,
+        activityPorts,
+        src,
+        activityArgs
+      ).getElement();
+
+      expect(iframe.scrolling).to.equal('');
     });
 
     it('should accept port and result', async () => {
