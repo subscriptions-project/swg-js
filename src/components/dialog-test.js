@@ -17,6 +17,7 @@
 import {Dialog} from './dialog';
 import {GlobalDoc} from '../model/doc';
 import {computedStyle, getStyle} from '../utils/style';
+import {tick} from '../../test/tick';
 
 const NO_ANIMATE = false;
 const ANIMATE = true;
@@ -161,8 +162,14 @@ describes.realWin('Dialog', {}, (env) => {
       immediate();
       await dialog.open();
       await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
       await dialog.resizeView(view, newHeight, ANIMATE);
 
+      expect(setStylePropertySpy).to.be.callCount(5);
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
       );
@@ -181,8 +188,14 @@ describes.realWin('Dialog', {}, (env) => {
       immediate();
       await dialog.open();
       await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
       await dialog.resizeView(view, newHeight, ANIMATE);
 
+      expect(setStylePropertySpy).to.be.callCount(5);
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
       );
@@ -193,6 +206,42 @@ describes.realWin('Dialog', {}, (env) => {
       expect(win.document.documentElement.style.paddingBottom).to.equal(
         `${newHeight + 20}px`
       );
+    });
+
+    it('cancels stale expansion animations', async () => {
+      const newHeight1 = 90;
+      const newHeight2 = 89;
+
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      dialog.resizeView(view, newHeight1, ANIMATE);
+      await dialog.resizeView(view, newHeight2, ANIMATE);
+
+      expect(setStylePropertySpy).to.be.callCount(5);
+    });
+
+    it('cancels stale collapse animations', async () => {
+      const newHeight1 = 111;
+      const newHeight2 = 112;
+
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      dialog.resizeView(view, newHeight1, ANIMATE);
+      await dialog.resizeView(view, newHeight2, ANIMATE);
+
+      expect(setStylePropertySpy).to.be.callCount(5);
     });
 
     it('should open the dialog', async () => {

@@ -358,41 +358,45 @@ export class Dialog {
       if (newHeight >= oldHeight) {
         // Expand.
         animating = this.animate_(() => {
-          if (animationNumber === this.animationNumber_) {
-            setImportantStyles(this.getElement(), {
-              'height': `${newHeight}px`,
-              'transform': `translateY(${newHeight - oldHeight}px)`,
-            });
-            return transition(
-              this.getElement(),
-              {
-                'transform': 'translateY(0)',
-              },
-              300,
-              'ease-out'
-            );
+          if (animationNumber !== this.animationNumber_) {
+            return;
           }
+
+          setImportantStyles(this.getElement(), {
+            'height': `${newHeight}px`,
+            'transform': `translateY(${newHeight - oldHeight}px)`,
+          });
+          return transition(
+            this.getElement(),
+            {
+              'transform': 'translateY(0)',
+            },
+            300,
+            'ease-out'
+          );
         });
       } else {
         // Collapse.
         animating = this.animate_(() => {
-          if (animationNumber === this.animationNumber_) {
-            return transition(
-              this.getElement(),
-              {
-                'transform': `translateY(${oldHeight - newHeight}px)`,
-              },
-              300,
-              'ease-out'
-            ).then(() => {
-              if (animationNumber === this.animationNumber_) {
-                setImportantStyles(this.getElement(), {
-                  'height': `${newHeight}px`,
-                  'transform': 'translateY(0)',
-                });
-              }
-            });
+          if (animationNumber !== this.animationNumber_) {
+            return;
           }
+
+          return transition(
+            this.getElement(),
+            {
+              'transform': `translateY(${oldHeight - newHeight}px)`,
+            },
+            300,
+            'ease-out'
+          ).then(() => {
+            if (animationNumber === this.animationNumber_) {
+              setImportantStyles(this.getElement(), {
+                'height': `${newHeight}px`,
+                'transform': 'translateY(0)',
+              });
+            }
+          });
         });
       }
     } else {
