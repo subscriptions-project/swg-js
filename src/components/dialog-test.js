@@ -155,19 +155,43 @@ describes.realWin('Dialog', {}, (env) => {
       expect(dialog.resizeView(wrongView)).to.be.null;
     });
 
-    it('should resize the element to expand with animation', async () => {
+    it('should resize the element to collapse with animation', async () => {
+      const newHeight = 99;
+
       immediate();
       await dialog.open();
       await dialog.openView(view);
-      await dialog.resizeView(view, 99, ANIMATE);
+      await dialog.resizeView(view, newHeight, ANIMATE);
 
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
       );
-      expect(getStyle(dialog.getElement(), 'height')).to.equal('99px');
+      expect(getStyle(dialog.getElement(), 'height')).to.equal(
+        `${newHeight}px`
+      );
       // Check if correct document padding was added.
       expect(win.document.documentElement.style.paddingBottom).to.equal(
-        `${99 + 20}px`
+        `${newHeight + 20}px`
+      );
+    });
+
+    it('should resize the element to expand with animation', async () => {
+      const newHeight = 101;
+
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      expect(getStyle(dialog.getElement(), 'transform')).to.equal(
+        'translateY(0px)'
+      );
+      expect(getStyle(dialog.getElement(), 'height')).to.equal(
+        `${newHeight}px`
+      );
+      // Check if correct document padding was added.
+      expect(win.document.documentElement.style.paddingBottom).to.equal(
+        `${newHeight + 20}px`
       );
     });
 
