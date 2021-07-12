@@ -33,12 +33,14 @@ exports.githubRequest = function (req) {
       'Authorization': `token ${GITHUB_ACCESS_TOKEN}`,
       'User-Agent': 'swg-changelog-gulp-task',
     },
-    json: req?.json,
+    json: req.json,
     method: req.method || 'GET',
   }).then((res) => {
     if (res.statusCode >= 400) {
       throw new Error(
-        `Failed calling ${res.request.path}\nError: ${res.statusCode}`
+        `Failed calling ${res.request.path}\nError: ${
+          res.statusCode
+        }\n${JSON.stringify(res.body, null, 2)}`
       );
     }
 

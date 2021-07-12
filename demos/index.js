@@ -13,6 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// NOTE: This app isn't used, yet.
+// Eventually though, it could replace the Scenic servers.
+// To test Swgjs locally, just run `swgjs_start_server`.
+// That will start up a different Express app that lets
+// you test your local JavaScript and CSS changes.
+
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 8000;
