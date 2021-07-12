@@ -38,7 +38,7 @@ export const ButtonAttributeValues = {
   CONTRIBUTION: 'contribution',
 };
 
-const BUTTON_INNER_HTML = `<img class="swg-button-v2-icon-$theme$"></div>$textContent$`;
+const BUTTON_INNER_HTML = `<div class="swg-button-v2-icon-$theme$"></div>$textContent$`;
 
 /**
  * The button stylesheet can be found in the `/assets/swg-button.css`.
