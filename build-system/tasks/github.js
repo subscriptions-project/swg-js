@@ -22,7 +22,7 @@ const GITHUB_ACCESS_TOKEN = process.env.GITHUB_ACCESS_TOKEN;
 const GITHUB_BASE = 'https://api.github.com/repos/subscriptions-project/swg-js';
 
 /**
- * @param {!{path: string}} req
+ * @param {!{path: string, qs: Object, json: Object, method: string | undefined}} req
  */
 exports.githubRequest = function (req) {
   return request({
@@ -33,5 +33,24 @@ exports.githubRequest = function (req) {
       'Authorization': `token ${GITHUB_ACCESS_TOKEN}`,
       'User-Agent': 'swg-changelog-gulp-task',
     },
-  }).then((res) => JSON.parse(res.body));
+    json: req.json,
+    method: req.method || 'GET',
+  }).then((res) => {
+    if (res.statusCode >= 400) {
+      throw new Error(
+        `Failed calling ${res.request.path}\nError: ${
+          res.statusCode
+        }\n${JSON.stringify(res.body, null, 2)}`
+      );
+    }
+
+    // If request has already transformed this into an object, we
+    // don't need to parse
+    if (typeof res.body === 'object') {
+      return res.body;
+    }
+    if (typeof res.body === 'string') {
+      return JSON.parse(res.body);
+    }
+  });
 };

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="pt-PT">
+<messages>
+
+
+
+
+<msg name="SHOWCASE_REGWALL_TITLE">Obtenha mais com a Google</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Geralmente, este conteúdo requer um pagamento, mas a Google concede-lhe acesso gratuito a este artigo e muito mais ao registar-se na publicação <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> com a sua Conta Google.</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Já tem uma conta?</msg>
+<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Iniciar sessão com o Google</msg>
+<msg name="SHOWCASE_REGWALL_CASL">Analise os <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>termos e o consentimento da CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> da publicação <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
+
+
+
+</messages>
+</localizationbundle>

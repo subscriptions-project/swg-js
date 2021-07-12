@@ -9,6 +9,7 @@
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Ce contenu est généralement payant, mais vous pouvez lire cet article et d'autres contenus gratuitement grâce à Google en vous inscrivant sur <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> avec votre compte Google.</msg>
 <msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Vous avez déjà un compte ?</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Se connecter avec Google</msg>
+<msg name="SHOWCASE_REGWALL_CASL">Consultez les <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Conditions d'utilisation et l'avis LCAP (Loi canadienne anti-pourriel)<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> de <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
 
 
 

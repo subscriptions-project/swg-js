@@ -211,7 +211,7 @@ export class ButtonApi {
     attributeValues.forEach((attributeValue) => {
       const elements = this.doc_
         .getRootNode()
-        .querySelectorAll(`button[${attribute}="${attributeValue}"]`);
+        .querySelectorAll(`[${attribute}="${attributeValue}"]`);
       for (let i = 0; i < elements.length; i++) {
         if (attributeValue === ButtonAttributeValues.SUBSCRIPTION) {
           this.attachSubscribeButton(

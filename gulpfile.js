@@ -40,6 +40,7 @@ const {changelog} = require('./build-system/tasks/changelog');
 const {checkRules} = require('./build-system/tasks/check-rules');
 const {e2e} = require('./build-system/tasks/e2e');
 const {lint} = require('./build-system/tasks/lint');
+const {publish} = require('./build-system/tasks/publish');
 const {serve} = require('./build-system/tasks/serve');
 const {unit} = require('./build-system/tasks/unit');
 
@@ -47,6 +48,7 @@ const {unit} = require('./build-system/tasks/unit');
 gulp.task('assets', assets);
 gulp.task('build', build);
 gulp.task('changelog', changelog);
+gulp.task('publish', publish);
 gulp.task('lint', lint);
 gulp.task('check-types', checkTypes);
 gulp.task('check-rules', checkRules);

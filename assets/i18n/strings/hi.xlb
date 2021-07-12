@@ -9,6 +9,7 @@
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>इस कॉन्टेंट को पढ़ने के लिए पैसे चुकाने पड़ते हैं, लेकिन आप Google की मदद से इस लेख और अन्य कॉन्टेंट को मुफ़्त में पढ़ सकते हैं. इसके लिए, आपको Google खाते का इस्तेमाल करके, <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> में रजिस्टर करना होगा.</msg>
 <msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">क्या आपके पास पहले से कोई प्रकाशक खाता है?</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Google से साइन इन करें</msg>
+<msg name="SHOWCASE_REGWALL_CASL"><ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> की <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>शर्तों और सीएएसएल (कैनेडियन एंटी-स्पैम लेजिस्लेशन) से जुड़ी सहमति<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> के बारे में पढ़ें</msg>
 
 
 

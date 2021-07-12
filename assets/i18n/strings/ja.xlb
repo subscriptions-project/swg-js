@@ -9,6 +9,7 @@
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>通常、この記事をお読みいただくにはお支払いが必要ですが、お使いの Google アカウントで <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> に登録すると、この記事を無料でお読みいただけます。</msg>
 <msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">すでにアカウントをお持ちですか？</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Google でログイン</msg>
+<msg name="SHOWCASE_REGWALL_CASL"><ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> の<ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>利用規約と CASL への同意<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph>をご確認ください</msg>
 
 
 
