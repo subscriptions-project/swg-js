@@ -351,6 +351,9 @@ export class Dialog {
     // Uniquely identify this animation.
     // This lets callbacks abandon stale animations.
     const animationNumber = ++this.animationNumber_;
+    function isStale() {
+      return animationNumber !== this.animationNumber_;
+    }
 
     let animating;
     if (animated) {
@@ -358,7 +361,7 @@ export class Dialog {
       if (newHeight >= oldHeight) {
         // Expand.
         animating = this.animate_(() => {
-          if (animationNumber !== this.animationNumber_) {
+          if (isStale()) {
             return Promise.resolve();
           }
 
@@ -378,20 +381,18 @@ export class Dialog {
       } else {
         // Collapse.
         animating = this.animate_(() => {
-          const transitionPromise =
-            animationNumber === this.animationNumber_
-              ? transition(
-                  this.getElement(),
-                  {
-                    'transform': `translateY(${oldHeight - newHeight}px)`,
-                  },
-                  300,
-                  'ease-out'
-                )
-              : Promise.resolve();
-
+          const transitionPromise = isStale()
+            ? Promise.resolve()
+            : transition(
+                this.getElement(),
+                {
+                  'transform': `translateY(${oldHeight - newHeight}px)`,
+                },
+                300,
+                'ease-out'
+              );
           return transitionPromise.then(() => {
-            if (animationNumber !== this.animationNumber_) {
+            if (isStale()) {
               return;
             }
 
@@ -409,7 +410,7 @@ export class Dialog {
       animating = Promise.resolve();
     }
     return animating.then(() => {
-      if (animationNumber !== this.animationNumber_) {
+      if (isStale()) {
         return;
       }
 
