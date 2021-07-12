@@ -223,6 +223,9 @@ describes.realWin('Dialog', {}, (env) => {
       await dialog.resizeView(view, newHeight2, ANIMATE);
 
       expect(setStylePropertySpy).to.be.callCount(5);
+      expect(getStyle(dialog.getElement(), 'height')).to.equal(
+        `${newHeight2}px`
+      );
     });
 
     it('cancels stale collapse animations', async () => {
@@ -241,6 +244,9 @@ describes.realWin('Dialog', {}, (env) => {
       await dialog.resizeView(view, newHeight2, ANIMATE);
 
       expect(setStylePropertySpy).to.be.callCount(5);
+      expect(getStyle(dialog.getElement(), 'height')).to.equal(
+        `${newHeight2}px`
+      );
     });
 
     it('should open the dialog', async () => {
