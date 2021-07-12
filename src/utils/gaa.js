@@ -297,7 +297,7 @@ body {
  *   familyName: string,
  *   imageUrl: string,
  *   email: string,
- *   authorizationResponse: {
+ *   authorizationData: {
  *     access_token: string,
  *     id_token: string,
  *     scope: string,
@@ -313,7 +313,7 @@ export let GaaUserDef;
  * GoogleUser object that Google Sign-In returns after users sign in.
  * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
  * @typedef {{
- *   getAuthResponse: function(includeAuthorizationData): {
+ *   getAuthResponse: function(boolean): {
  *     access_token: string,
  *     id_token: string,
  *     scope: string,
@@ -739,7 +739,7 @@ export class GaaGoogleSignInButton {
           familyName: basicProfile.getFamilyName(),
           imageUrl: basicProfile.getImageUrl(),
           email: basicProfile.getEmail(),
-          authorizationData: authorizationData,
+          authorizationData,
         };
 
         // Send GAA user to parent frame.
