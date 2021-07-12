@@ -536,13 +536,15 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
         imageUrl: 'imageUrl',
         email: 'email',
         authorizationData: {
+          /* eslint-disable google-camelcase/google-camelcase */
           access_token: 'accessToken',
           id_token: 'idToken',
           scope: 'scope',
           expires_in: 0,
           first_issued_at: 0,
           expires_at: 0,
-        }
+          /* eslint-enable google-camelcase/google-camelcase */
+        },
       };
       const googleUser = {
         getBasicProfile: () => ({
@@ -552,7 +554,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
           getImageUrl: () => gaaUser.imageUrl,
           getEmail: () => gaaUser.email,
         }),
-        getAuthResponse: () => (gaaUser.authorizationData),
+        getAuthResponse: () => gaaUser.authorizationData,
       };
       const args = self.gapi.signin2.render.args;
       // Wait for promises and intervals to resolve.
@@ -579,12 +581,14 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
             imageUrl: 'imageUrl',
             name: 'name',
             authorizationData: {
-               access_token: 'accessToken',
-               id_token: 'idToken',
-               scope: 'scope',
-               expires_in: 0,
-               first_issued_at: 0,
-               expires_at: 0,
+              /* eslint-disable google-camelcase/google-camelcase */
+              access_token: 'accessToken',
+              id_token: 'idToken',
+              scope: 'scope',
+              expires_in: 0,
+              first_issued_at: 0,
+              expires_at: 0,
+              /* eslint-enable google-camelcase/google-camelcase */
             },
           },
           stamp: POST_MESSAGE_STAMP,
