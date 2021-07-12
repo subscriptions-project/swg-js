@@ -364,6 +364,7 @@
 
 .swg-button-v2-icon-light,
 .swg-button-v2-icon-dark {
+  background-size: contain;
   width: 18px;
   height: 18px;
   margin-left: 16px;
@@ -371,9 +372,9 @@
 }
 
 .swg-button-v2-icon-light {
-  content: url('https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg');
+  background-image: url('https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg');
 }
 
 .swg-button-v2-icon-dark {
-  content: url('https://fonts.gstatic.com/s/i/googlematerialicons/google/v13/white-24dp/1x/gm_google_white_24dp.png');
+  background-image: url('https://fonts.gstatic.com/s/i/googlematerialicons/google/v13/white-24dp/1x/gm_google_white_24dp.png');
 }
