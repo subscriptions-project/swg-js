@@ -143,6 +143,12 @@ describes.realWin('ButtonApi', {}, (env) => {
       buttonApi.attach(button, handler);
     });
 
+    it('should attach to span elements', () => {
+      button = doc.createElement('span');
+      button.className = 'button1';
+      buttonApi.attach(button, handler);
+    });
+
     it('should create button with empty options', () => {
       button = buttonApi.create({}, handler);
     });
