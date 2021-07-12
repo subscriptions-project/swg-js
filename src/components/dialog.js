@@ -110,6 +110,12 @@ export class Dialog {
     /** @private {?Promise} */
     this.animating_ = null;
 
+    /**
+     * Helps identify stale animations.
+     * @private {number}
+     */
+    this.animationNumber_ = 0;
+
     /** @private {boolean} */
     this.hidden_ = false;
 
@@ -342,12 +348,23 @@ export class Dialog {
     }
     const newHeight = this.getMaxAllowedHeight_(height);
 
+    // Uniquely identify this animation.
+    // This lets callbacks abandon stale animations.
+    const animationNumber = ++this.animationNumber_;
+    const isStale = () => {
+      return animationNumber !== this.animationNumber_;
+    };
+
     let animating;
     if (animated) {
       const oldHeight = this.getElement().offsetHeight;
       if (newHeight >= oldHeight) {
         // Expand.
         animating = this.animate_(() => {
+          if (isStale()) {
+            return Promise.resolve();
+          }
+
           setImportantStyles(this.getElement(), {
             'height': `${newHeight}px`,
             'transform': `translateY(${newHeight - oldHeight}px)`,
@@ -364,14 +381,21 @@ export class Dialog {
       } else {
         // Collapse.
         animating = this.animate_(() => {
-          return transition(
-            this.getElement(),
-            {
-              'transform': `translateY(${oldHeight - newHeight}px)`,
-            },
-            300,
-            'ease-out'
-          ).then(() => {
+          const transitionPromise = isStale()
+            ? Promise.resolve()
+            : transition(
+                this.getElement(),
+                {
+                  'transform': `translateY(${oldHeight - newHeight}px)`,
+                },
+                300,
+                'ease-out'
+              );
+          return transitionPromise.then(() => {
+            if (isStale()) {
+              return;
+            }
+
             setImportantStyles(this.getElement(), {
               'height': `${newHeight}px`,
               'transform': 'translateY(0)',
@@ -386,6 +410,10 @@ export class Dialog {
       animating = Promise.resolve();
     }
     return animating.then(() => {
+      if (isStale()) {
+        return;
+      }
+
       this.updatePaddingToHtml_(height);
       view.resized();
     });

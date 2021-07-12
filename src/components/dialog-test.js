@@ -155,35 +155,97 @@ describes.realWin('Dialog', {}, (env) => {
       expect(dialog.resizeView(wrongView)).to.be.null;
     });
 
-    it('should resize the element to expand with animation', async () => {
+    it('resizes the element to expand with an animation', async () => {
+      const newHeight = 110;
+
       immediate();
       await dialog.open();
       await dialog.openView(view);
-      await dialog.resizeView(view, 99, ANIMATE);
 
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      expect(setStylePropertySpy).to.be.callCount(5);
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
       );
-      expect(getStyle(dialog.getElement(), 'height')).to.equal('99px');
+      expect(getStyle(dialog.getElement(), 'height')).to.equal(
+        `${newHeight}px`
+      );
       // Check if correct document padding was added.
       expect(win.document.documentElement.style.paddingBottom).to.equal(
-        `${99 + 20}px`
+        `${newHeight + 20}px`
       );
     });
 
-    it('should resize the element to collapse with animation', async () => {
+    it('resizes the element to collapse with animation', async () => {
+      const newHeight = 90;
+
       immediate();
       await dialog.open();
       await dialog.openView(view);
-      await dialog.resizeView(view, 19, ANIMATE);
 
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      expect(setStylePropertySpy).to.be.callCount(5);
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
       );
-      expect(getStyle(dialog.getElement(), 'height')).to.equal('19px');
+      expect(getStyle(dialog.getElement(), 'height')).to.equal(
+        `${newHeight}px`
+      );
       // Check if correct document padding was added.
       expect(win.document.documentElement.style.paddingBottom).to.equal(
-        `${19 + 20}px`
+        `${newHeight + 20}px`
+      );
+    });
+
+    it('cancels stale expansion animations', async () => {
+      const newHeight1 = 111;
+      const newHeight2 = 112;
+
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      dialog.resizeView(view, newHeight1, ANIMATE);
+      await dialog.resizeView(view, newHeight2, ANIMATE);
+
+      expect(setStylePropertySpy).to.be.callCount(5);
+      expect(getStyle(dialog.getElement(), 'height')).to.equal(
+        `${newHeight2}px`
+      );
+    });
+
+    it('cancels stale collapse animations', async () => {
+      const newHeight1 = 90;
+      const newHeight2 = 89;
+
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      dialog.resizeView(view, newHeight1, ANIMATE);
+      await dialog.resizeView(view, newHeight2, ANIMATE);
+
+      expect(setStylePropertySpy).to.be.callCount(5);
+      expect(getStyle(dialog.getElement(), 'height')).to.equal(
+        `${newHeight2}px`
       );
     });
 
