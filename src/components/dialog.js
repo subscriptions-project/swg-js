@@ -351,9 +351,9 @@ export class Dialog {
     // Uniquely identify this animation.
     // This lets callbacks abandon stale animations.
     const animationNumber = ++this.animationNumber_;
-    function isStale() {
+    const isStale = () => {
       return animationNumber !== this.animationNumber_;
-    }
+    };
 
     let animating;
     if (animated) {
