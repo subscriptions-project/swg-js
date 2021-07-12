@@ -378,24 +378,27 @@ export class Dialog {
       } else {
         // Collapse.
         animating = this.animate_(() => {
-          if (animationNumber !== this.animationNumber_) {
-            return;
-          }
+          const transitionPromise =
+            animationNumber === this.animationNumber_
+              ? transition(
+                  this.getElement(),
+                  {
+                    'transform': `translateY(${oldHeight - newHeight}px)`,
+                  },
+                  300,
+                  'ease-out'
+                )
+              : Promise.resolve();
 
-          return transition(
-            this.getElement(),
-            {
-              'transform': `translateY(${oldHeight - newHeight}px)`,
-            },
-            300,
-            'ease-out'
-          ).then(() => {
-            if (animationNumber === this.animationNumber_) {
-              setImportantStyles(this.getElement(), {
-                'height': `${newHeight}px`,
-                'transform': 'translateY(0)',
-              });
+          return transitionPromise.then(() => {
+            if (animationNumber !== this.animationNumber_) {
+              return;
             }
+
+            setImportantStyles(this.getElement(), {
+              'height': `${newHeight}px`,
+              'transform': 'translateY(0)',
+            });
           });
         });
       }
@@ -406,10 +409,12 @@ export class Dialog {
       animating = Promise.resolve();
     }
     return animating.then(() => {
-      if (animationNumber === this.animationNumber_) {
-        this.updatePaddingToHtml_(height);
-        view.resized();
+      if (animationNumber !== this.animationNumber_) {
+        return;
       }
+
+      this.updatePaddingToHtml_(height);
+      view.resized();
     });
   }
 

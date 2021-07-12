@@ -17,7 +17,6 @@
 import {Dialog} from './dialog';
 import {GlobalDoc} from '../model/doc';
 import {computedStyle, getStyle} from '../utils/style';
-import {tick} from '../../test/tick';
 
 const NO_ANIMATE = false;
 const ANIMATE = true;
