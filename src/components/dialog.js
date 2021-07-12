@@ -359,7 +359,7 @@ export class Dialog {
         // Expand.
         animating = this.animate_(() => {
           if (animationNumber !== this.animationNumber_) {
-            return;
+            return Promise.resolve();
           }
 
           setImportantStyles(this.getElement(), {
