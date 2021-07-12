@@ -208,8 +208,8 @@ describes.realWin('Dialog', {}, (env) => {
     });
 
     it('cancels stale expansion animations', async () => {
-      const newHeight1 = 90;
-      const newHeight2 = 89;
+      const newHeight1 = 111;
+      const newHeight2 = 112;
 
       immediate();
       await dialog.open();
@@ -226,8 +226,8 @@ describes.realWin('Dialog', {}, (env) => {
     });
 
     it('cancels stale collapse animations', async () => {
-      const newHeight1 = 111;
-      const newHeight2 = 112;
+      const newHeight1 = 90;
+      const newHeight2 = 89;
 
       immediate();
       await dialog.open();
