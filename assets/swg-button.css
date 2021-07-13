@@ -377,7 +377,7 @@
 }
 
 .swg-button-v2-light:disabled .swg-button-v2-icon-light {
-  background-image:url("https://fonts.gstatic.com/s/i/googlematerialicons/google/v20/24px.svg");
+  background-image: url("https://fonts.gstatic.com/s/i/googlematerialicons/google/v20/24px.svg");
   opacity: 0.38;
 }
 
@@ -386,5 +386,5 @@
 }
 
 .swg-button-v2-dark:disabled .swg-button-v2-icon-dark {
-  background-image:url("https://fonts.gstatic.com/s/i/googlematerialicons/google/v20/gm_grey-24dp/2x/gm_google_gm_grey_24dp.png");
+  background-image: url("https://fonts.gstatic.com/s/i/googlematerialicons/google/v20/gm_grey-24dp/2x/gm_google_gm_grey_24dp.png");
 }
