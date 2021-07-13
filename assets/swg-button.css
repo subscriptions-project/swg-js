@@ -37,7 +37,7 @@
   width: 100%;
   height: 100%;
   margin: auto;
-  content: "";
+  content: '';
   border: 0;
   background-origin: content-box;
   background-position: center;
@@ -48,7 +48,8 @@
 .swg-button,
 .swg-button-light {
   background-color: #fff;
-  box-shadow: 0 1px 1px 0 rgba(60, 64, 67, 0.30), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  box-shadow: 0 1px 1px 0 rgba(60, 64, 67, 0.3),
+    0 1px 3px 1px rgba(60, 64, 67, 0.15);
 }
 
 .swg-button:after,
@@ -117,164 +118,164 @@
 
 .swg-button:lang(ar):after,
 .swg-button-light:lang(ar):after {
-  background-image: url("i18n/b-ar-lt.svg");
+  background-image: url('i18n/b-ar-lt.svg');
 }
 .swg-button-dark:lang(ar):after {
-  background-image: url("i18n/b-ar-dk.svg");
+  background-image: url('i18n/b-ar-dk.svg');
 }
 .swg-button:lang(de):after,
 .swg-button-light:lang(de):after {
-  background-image: url("i18n/b-de-lt.svg");
+  background-image: url('i18n/b-de-lt.svg');
 }
 .swg-button-dark:lang(de):after {
-  background-image: url("i18n/b-de-dk.svg");
+  background-image: url('i18n/b-de-dk.svg');
 }
 .swg-button:lang(es):after,
 .swg-button-light:lang(es):after {
-  background-image: url("i18n/b-es-lt.svg");
+  background-image: url('i18n/b-es-lt.svg');
 }
 .swg-button-dark:lang(es):after {
-  background-image: url("i18n/b-es-dk.svg");
+  background-image: url('i18n/b-es-dk.svg');
 }
 .swg-button:lang(es-latam):after,
 .swg-button-light:lang(es-latam):after {
-  background-image: url("i18n/b-es-latam-lt.svg");
+  background-image: url('i18n/b-es-latam-lt.svg');
 }
 .swg-button-dark:lang(es-latam):after {
-  background-image: url("i18n/b-es-latam-dk.svg");
+  background-image: url('i18n/b-es-latam-dk.svg');
 }
 .swg-button:lang(es-latn):after,
 .swg-button-light:lang(es-latn):after {
-  background-image: url("i18n/b-es-latam-lt.svg");
+  background-image: url('i18n/b-es-latam-lt.svg');
 }
 .swg-button-dark:lang(es-latn):after {
-  background-image: url("i18n/b-es-latam-dk.svg");
+  background-image: url('i18n/b-es-latam-dk.svg');
 }
 .swg-button:lang(fr):after,
 .swg-button-light:lang(fr):after {
-  background-image: url("i18n/b-fr-lt.svg");
+  background-image: url('i18n/b-fr-lt.svg');
 }
 .swg-button-dark:lang(fr):after {
-  background-image: url("i18n/b-fr-dk.svg");
+  background-image: url('i18n/b-fr-dk.svg');
 }
 .swg-button:lang(hi):after,
 .swg-button-light:lang(hi):after {
-  background-image: url("i18n/b-hi-lt.svg");
+  background-image: url('i18n/b-hi-lt.svg');
 }
 .swg-button-dark:lang(hi):after {
-  background-image: url("i18n/b-hi-dk.svg");
+  background-image: url('i18n/b-hi-dk.svg');
 }
 .swg-button:lang(id):after,
 .swg-button-light:lang(id):after {
-  background-image: url("i18n/b-id-lt.svg");
+  background-image: url('i18n/b-id-lt.svg');
 }
 .swg-button-dark:lang(id):after {
-  background-image: url("i18n/b-id-dk.svg");
+  background-image: url('i18n/b-id-dk.svg');
 }
 .swg-button:lang(it):after,
 .swg-button-light:lang(it):after {
-  background-image: url("i18n/b-it-lt.svg");
+  background-image: url('i18n/b-it-lt.svg');
 }
 .swg-button-dark:lang(it):after {
-  background-image: url("i18n/b-it-dk.svg");
+  background-image: url('i18n/b-it-dk.svg');
 }
 .swg-button:lang(jp):after,
 .swg-button-light:lang(jp):after {
-  background-image: url("i18n/b-jp-lt.svg");
+  background-image: url('i18n/b-jp-lt.svg');
 }
 .swg-button-dark:lang(jp):after {
-  background-image: url("i18n/b-jp-dk.svg");
+  background-image: url('i18n/b-jp-dk.svg');
 }
 .swg-button:lang(ko):after,
 .swg-button-light:lang(ko):after {
-  background-image: url("i18n/b-ko-lt.svg");
+  background-image: url('i18n/b-ko-lt.svg');
 }
 .swg-button-dark:lang(ko):after {
-  background-image: url("i18n/b-ko-dk.svg");
+  background-image: url('i18n/b-ko-dk.svg');
 }
 .swg-button:lang(ms):after,
 .swg-button-light:lang(ms):after {
-  background-image: url("i18n/b-ms-lt.svg");
+  background-image: url('i18n/b-ms-lt.svg');
 }
 .swg-button-dark:lang(ms):after {
-  background-image: url("i18n/b-ms-dk.svg");
+  background-image: url('i18n/b-ms-dk.svg');
 }
 .swg-button:lang(nl):after,
 .swg-button-light:lang(nl):after {
-  background-image: url("i18n/b-nl-lt.svg");
+  background-image: url('i18n/b-nl-lt.svg');
 }
 .swg-button-dark:lang(nl):after {
-  background-image: url("i18n/b-nl-dk.svg");
+  background-image: url('i18n/b-nl-dk.svg');
 }
 .swg-button:lang(no):after,
 .swg-button-light:lang(no):after {
-  background-image: url("i18n/b-no-lt.svg");
+  background-image: url('i18n/b-no-lt.svg');
 }
 .swg-button-dark:lang(no):after {
-  background-image: url("i18n/b-no-dk.svg");
+  background-image: url('i18n/b-no-dk.svg');
 }
 .swg-button:lang(pl):after,
 .swg-button-light:lang(pl):after {
-  background-image: url("i18n/b-pl-lt.svg");
+  background-image: url('i18n/b-pl-lt.svg');
 }
 .swg-button-dark:lang(pl):after {
-  background-image: url("i18n/b-pl-dk.svg");
+  background-image: url('i18n/b-pl-dk.svg');
 }
 .swg-button:lang(pt):after,
 .swg-button-light:lang(pt):after {
-  background-image: url("i18n/b-pt-lt.svg");
+  background-image: url('i18n/b-pt-lt.svg');
 }
 .swg-button-dark:lang(pt):after {
-  background-image: url("i18n/b-pt-dk.svg");
+  background-image: url('i18n/b-pt-dk.svg');
 }
 .swg-button:lang(pt-br):after,
 .swg-button-light:lang(pt-br):after {
-  background-image: url("i18n/b-pt-br-lt.svg");
+  background-image: url('i18n/b-pt-br-lt.svg');
 }
 .swg-button-dark:lang(pt-br):after {
-  background-image: url("i18n/b-pt-br-dk.svg");
+  background-image: url('i18n/b-pt-br-dk.svg');
 }
 .swg-button:lang(ru):after,
 .swg-button-light:lang(ru):after {
-  background-image: url("i18n/b-ru-lt.svg");
+  background-image: url('i18n/b-ru-lt.svg');
 }
 .swg-button-dark:lang(ru):after {
-  background-image: url("i18n/b-ru-dk.svg");
+  background-image: url('i18n/b-ru-dk.svg');
 }
 .swg-button:lang(se):after,
 .swg-button-light:lang(se):after {
-  background-image: url("i18n/b-se-lt.svg");
+  background-image: url('i18n/b-se-lt.svg');
 }
 .swg-button-dark:lang(se):after {
-  background-image: url("i18n/b-se-dk.svg");
+  background-image: url('i18n/b-se-dk.svg');
 }
 .swg-button:lang(th):after,
 .swg-button-light:lang(th):after {
-  background-image: url("i18n/b-th-lt.svg");
+  background-image: url('i18n/b-th-lt.svg');
 }
 .swg-button-dark:lang(th):after {
-  background-image: url("i18n/b-th-dk.svg");
+  background-image: url('i18n/b-th-dk.svg');
 }
 .swg-button:lang(tr):after,
 .swg-button-light:lang(tr):after {
-  background-image: url("i18n/b-tr-lt.svg");
+  background-image: url('i18n/b-tr-lt.svg');
 }
 .swg-button-dark:lang(tr):after {
-  background-image: url("i18n/b-tr-dk.svg");
+  background-image: url('i18n/b-tr-dk.svg');
 }
 .swg-button:lang(uk):after,
 .swg-button-light:lang(uk):after {
-  background-image: url("i18n/b-uk-lt.svg");
+  background-image: url('i18n/b-uk-lt.svg');
 }
 .swg-button-dark:lang(uk):after {
-  background-image: url("i18n/b-uk-dk.svg");
+  background-image: url('i18n/b-uk-dk.svg');
 }
 .swg-button:lang(zh-tw):after,
 .swg-button-light:lang(zh-tw):after {
-  background-image: url("i18n/b-zh-tw-lt.svg");
+  background-image: url('i18n/b-zh-tw-lt.svg');
 }
 .swg-button-dark:lang(zh-tw):after {
-  background-image: url("i18n/b-zh-tw-dk.svg");
+  background-image: url('i18n/b-zh-tw-dk.svg');
 }
 
 .swg-button-v2-light,
@@ -292,14 +293,14 @@
   font-family: 'Google Sans', 'Roboto-Regular', sans-serif, arial;
   font-weight: 500;
   font-size: 14px;
-  letter-spacing: .001em;
+  letter-spacing: 0.001em;
   cursor: pointer;
 }
 
 .swg-button-v2-light {
-  color: #1A73E8;
+  color: #1a73e8;
   background-color: #fff;
-  border: 1px solid #DADCE0;
+  border: 1px solid #dadce0;
 }
 
 .swg-button-v2-light:disabled {
@@ -308,26 +309,39 @@
 }
 
 .swg-button-v2-light:hover {
-  box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);
-  background: linear-gradient(0deg, rgba(26, 115, 232, 0.04), rgba(26, 115, 232, 0.04)), #FFFFFF;
+  box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3),
+    0px 1px 3px 1px rgba(60, 64, 67, 0.15);
+  background: linear-gradient(
+      0deg,
+      rgba(26, 115, 232, 0.04),
+      rgba(26, 115, 232, 0.04)
+    ),
+    #ffffff;
   border: none;
 }
 
 .swg-button-v2-light:focus {
-  box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 2px 6px 2px rgba(60, 64, 67, 0.15);
-  background: linear-gradient(0deg, rgba(26, 115, 232, 0.08), rgba(26, 115, 232, 0.08)), #FFFFFF;
+  box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3),
+    0px 2px 6px 2px rgba(60, 64, 67, 0.15);
+  background: linear-gradient(
+      0deg,
+      rgba(26, 115, 232, 0.08),
+      rgba(26, 115, 232, 0.08)
+    ),
+    #ffffff;
   border: none;
 }
 
 .swg-button-v2-light:active {
   background-color: #fff;
-  box-shadow: 0px 6px 10px 4px rgba(60, 64, 67, 0.15), 0px 2px 3px rgba(60, 64, 67, 0.3);
+  box-shadow: 0px 6px 10px 4px rgba(60, 64, 67, 0.15),
+    0px 2px 3px rgba(60, 64, 67, 0.3);
   border: none;
 }
 
 .swg-button-v2-dark {
-  color: #FFFFFF;
-  background-color: #3C4043;
+  color: #ffffff;
+  background-color: #3c4043;
 }
 
 .swg-button-v2-dark:disabled {
@@ -335,18 +349,22 @@
   pointer-events: none;
 }
 
-.swg-button-v2-dark:hover, .swg-button-v2-dark:active {
-  box-shadow: 0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px rgba(0, 0, 0, 0.3);
+.swg-button-v2-dark:hover,
+.swg-button-v2-dark:active {
+  box-shadow: 0px 2px 6px 2px rgba(0, 0, 0, 0.15),
+    0px 1px 2px rgba(0, 0, 0, 0.3);
   background-color: #202124;
 }
 
 .swg-button-v2-dark:focus {
-  box-shadow: 0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 6px 10px 4px rgba(0, 0, 0, 0.15),
+    0px 2px 3px rgba(0, 0, 0, 0.3);
   background-color: #202124;
 }
 
 .swg-button-v2-icon-light,
 .swg-button-v2-icon-dark {
+  background-size: contain;
   width: 18px;
   height: 18px;
   margin-left: 16px;
@@ -354,9 +372,9 @@
 }
 
 .swg-button-v2-icon-light {
-  content:url("https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg");
+  background-image: url('https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg');
 }
 
 .swg-button-v2-icon-dark {
-  content:url("https://fonts.gstatic.com/s/i/googlematerialicons/google/v13/white-24dp/1x/gm_google_white_24dp.png");
+  background-image: url('https://fonts.gstatic.com/s/i/googlematerialicons/google/v13/white-24dp/2x/gm_google_white_24dp.png');
 }
