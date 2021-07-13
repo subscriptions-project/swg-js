@@ -879,6 +879,59 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
   });
 
+  it('should have valid flow constructed w/ url params', async () => {
+    const purchaseData = new PurchaseData(
+      '{"orderId":"ORDER", "productId":"SKU"}',
+      'SIG'
+    );
+    const userData = new UserData('ID_TOK', {
+      'email': 'test@example.org',
+    });
+    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const response = new SubscribeResponse(
+      'RaW',
+      purchaseData,
+      userData,
+      entitlements,
+      ProductType.VIRTUAL_GIFT,
+      null
+    );
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
+      .once();
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('SKU')
+      );
+
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
+          '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          idToken: 'ID_TOK',
+          productType: ProductType.VIRTUAL_GIFT,
+          isSubscriptionUpdate: false,
+          isOneTime: false,
+          useUpdatedConfirmUi: false,
+        }
+      )
+      .returns(Promise.resolve(port));
+    await flow.start(response);
+    await flow.readyPromise_;
+  });
+
   it('should complete the flow', async () => {
     const purchaseData = new PurchaseData();
     const userData = new UserData('ID_TOK', {

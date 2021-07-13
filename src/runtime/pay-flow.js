@@ -344,6 +344,18 @@ export class PayCompleteFlow {
     } else {
       args['loginHint'] = response.userData && response.userData.email;
     }
+
+    let confirmFeUrl;
+    if (args.productType === ProductType.VIRTUAL_GIFT) {
+      confirmFeUrl = feUrl('/payconfirmiframe', '', {
+        productType: args.productType,
+        publicationId: args.publicationId,
+        offerId: this.sku_,
+      });
+    } else {
+      confirmFeUrl = feUrl('/payconfirmiframe');
+    }
+
     return (this.activityIframeViewPromise_ = this.clientConfigManager_
       .getClientConfig()
       .then((clientConfig) => {
@@ -351,7 +363,7 @@ export class PayCompleteFlow {
         return new ActivityIframeView(
           this.win_,
           this.activityPorts_,
-          feUrl('/payconfirmiframe'),
+          confirmFeUrl,
           feArgs(args),
           /* shouldFadeBody */ true
         );
