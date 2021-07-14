@@ -18,13 +18,9 @@ import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityIframeView} from './activity-iframe-view';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
-import {ExperimentFlags} from '../runtime/experiment-flags';
 import {GlobalDoc} from '../model/doc';
 import {SkuSelectedResponse} from '../proto/api_messages';
-import {
-  setExperiment,
-  setExperimentsStringForTesting,
-} from '../runtime/experiments';
+import {setExperimentsStringForTesting} from '../runtime/experiments';
 
 describes.realWin('ActivityIframeView', {}, (env) => {
   let win;

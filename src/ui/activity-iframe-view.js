@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-import {ExperimentFlags} from '../runtime/experiment-flags';
 import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createElement} from '../utils/dom';
 import {isCancelError} from '../utils/errors';
-import {isExperimentOn} from '../runtime/experiments';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
