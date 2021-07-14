@@ -115,7 +115,7 @@ async function exportCss(inputFile, outputFile) {
   let css = await readFile(inputFile, 'utf8');
   // Resolve all URLs to absolute paths.
   css = css.replace(/url\(([^)]*)\)/gi, (match, value) => {
-    if (value[0] == '"') {
+    if (value[0] == '"' || value[0] == "'") {
       value = value.substring(1, value.length - 1);
     }
     if (/(data|http|https):/i.test(value)) {
