@@ -89,9 +89,6 @@ export class EntitlementsManager {
     /** @private {boolean} */
     this.blockNextNotification_ = false;
 
-    /** @private {string} */
-    this.toastFlavor_ = 'classic';
-
     /**
      * String containing encoded metering parameters currently.
      * We may expand this to contain more information in the future.
@@ -625,9 +622,7 @@ export class EntitlementsManager {
       const source = entitlement.source || GOOGLE_METERING_SOURCE;
       return new Toast(
         this.deps_,
-        feUrl('/toastiframe', '', {
-          flavor: this.toastFlavor_,
-        }),
+        feUrl('/toastiframe'),
         feArgs({
           'publicationId': this.publicationId_,
           'source': source,
