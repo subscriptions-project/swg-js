@@ -195,14 +195,6 @@ export class EntitlementsManager {
   }
 
   /**
-   * Sets the flavor of toast to display. (ex: 'basic')
-   * @param {string} flavor
-   */
-  setToastFlavor(flavor) {
-    this.toastFlavor_ = flavor;
-  }
-
-  /**
    * Retrieves the 'gaa_n' parameter from the query string.
    */
   getGaaToken_() {
