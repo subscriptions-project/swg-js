@@ -194,9 +194,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       GaaMeteringRegwall.show({iframeUrl: IFRAME_URL, caslUrl});
 
       const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
-      expect(caslEl.textContent).contains(
-        "Review The Scenic's terms and CASL consent"
-      );
+      expect(caslEl.textContent).contains("Review The Scenic's CASL terms");
 
       const caslLinkEl = caslEl.querySelector('a');
       expect(caslLinkEl.href).contains(caslUrl);
