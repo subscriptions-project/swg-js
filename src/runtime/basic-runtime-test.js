@@ -778,6 +778,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
 
       expect(toastOpenStub).to.be.called;
       expect(toast).not.to.be.null;
+      expect(toast.src_).to.contain('flavor=basic');
       storageMock.verify();
     });
 

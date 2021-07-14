@@ -457,7 +457,12 @@ export class ConfiguredBasicRuntime {
         }
 
         // Show 'Signed in as abc@gmail.com' toast on the pub page.
-        new Toast(this, feUrl('/toastiframe')).open();
+        new Toast(
+          this,
+          feUrl('/toastiframe', '', {
+            flavor: 'basic',
+          })
+        ).open();
       } else {
         // If no entitlements are returned, subscription/contribution offers iframe will show
         // a toast with label "no subscription/contribution found"
