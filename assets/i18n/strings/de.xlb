@@ -9,7 +9,7 @@
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Dieser Inhalt ist normalerweise kostenpflichtig. Google gewährt dir jedoch kostenlos Zugriff auf diesen Artikel und andere Inhalte, wenn du dich mit deinem Google-Konto bei <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> registrierst.</msg>
 <msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Du hast bereits ein Konto?</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Über Google anmelden</msg>
-<msg name="SHOWCASE_REGWALL_CASL">Lies dir die <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Bedingungen und die Einwilligung gemäß CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> der Publikation <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> durch</msg>
+<msg name="SHOWCASE_REGWALL_CASL"><ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>CASL-Bedingungen<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> von <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> ansehen</msg>
 
 
 
