@@ -18,13 +18,9 @@ import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityIframeView} from './activity-iframe-view';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
-import {ExperimentFlags} from '../runtime/experiment-flags';
 import {GlobalDoc} from '../model/doc';
 import {SkuSelectedResponse} from '../proto/api_messages';
-import {
-  setExperiment,
-  setExperimentsStringForTesting,
-} from '../runtime/experiments';
+import {setExperimentsStringForTesting} from '../runtime/experiments';
 
 describes.realWin('ActivityIframeView', {}, (env) => {
   let win;
@@ -115,19 +111,6 @@ describes.realWin('ActivityIframeView', {}, (env) => {
       ).getElement();
 
       expect(iframe.scrolling).to.equal('no');
-    });
-
-    it('allows scrolling within dialogs behind an experiment', async () => {
-      setExperiment(win, ExperimentFlags.SCROLLING_WITHIN_DIALOGS, true);
-
-      const iframe = new ActivityIframeView(
-        win,
-        activityPorts,
-        src,
-        activityArgs
-      ).getElement();
-
-      expect(iframe.scrolling).to.equal('');
     });
 
     it('should accept port and result', async () => {
