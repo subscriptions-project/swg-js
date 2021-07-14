@@ -296,6 +296,7 @@ export class ConfiguredBasicRuntime {
 
     // Do not show toast in swgz.
     this.entitlementsManager().blockNextNotification();
+    this.entitlementsManager().setToastFlavor('basic');
 
     // Fetches entitlements.
     this.configuredClassicRuntime_.start();

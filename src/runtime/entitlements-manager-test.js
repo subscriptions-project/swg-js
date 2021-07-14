@@ -1729,6 +1729,29 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(toast.args_.source).to.equal('google');
     });
 
+    it('creates toasts with classic flavor, by default', async () => {
+      expectToastShown('0');
+      storageMock.expects('set').withArgs('toast').never();
+      expectGetIsReadyToPayToBeCalled(null);
+      expectGoogleResponse();
+      expectGetSwgUserTokenToBeCalled();
+
+      await manager.getEntitlements();
+      expect(toast.src_).to.contain('&flavor=classic');
+    });
+
+    it('creates toasts with basic flavor, optionally', async () => {
+      expectToastShown('0');
+      storageMock.expects('set').withArgs('toast').never();
+      expectGetIsReadyToPayToBeCalled(null);
+      expectGoogleResponse();
+      expectGetSwgUserTokenToBeCalled();
+
+      manager.setToastFlavor('basic');
+      await manager.getEntitlements();
+      expect(toast.src_).to.contain('&flavor=basic');
+    });
+
     it('should trigger entitlements event with readyToPay true', async () => {
       expectToastShown('0');
       storageMock.expects('set').withArgs('isreadytopay', 'true').once();
