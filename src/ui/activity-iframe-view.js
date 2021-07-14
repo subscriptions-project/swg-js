@@ -55,11 +55,6 @@ export class ActivityIframeView extends View {
     /** @private @const {!Document} */
     this.doc_ = this.win_.document;
 
-    // Optionally allow scrolling within dialogs.
-    if (isExperimentOn(this.win_, ExperimentFlags.SCROLLING_WITHIN_DIALOGS)) {
-      delete iframeAttributes.scrolling;
-    }
-
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ = /** @type {!HTMLIFrameElement} */ (
       createElement(this.doc_, 'iframe', iframeAttributes)

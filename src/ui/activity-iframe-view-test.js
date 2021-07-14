@@ -117,19 +117,6 @@ describes.realWin('ActivityIframeView', {}, (env) => {
       expect(iframe.scrolling).to.equal('no');
     });
 
-    it('allows scrolling within dialogs behind an experiment', async () => {
-      setExperiment(win, ExperimentFlags.SCROLLING_WITHIN_DIALOGS, true);
-
-      const iframe = new ActivityIframeView(
-        win,
-        activityPorts,
-        src,
-        activityArgs
-      ).getElement();
-
-      expect(iframe.scrolling).to.equal('');
-    });
-
     it('should accept port and result', async () => {
       const result = new ActivityResult('OK');
       sandbox
