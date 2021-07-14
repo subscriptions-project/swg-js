@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AttributionParams} from '../model/attribution-params';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig} from '../model/client-config';
 import {ClientTheme} from '../api/basic-subscriptions';
@@ -173,11 +174,21 @@ export class ClientConfigManager {
       );
     }
 
+    const attributionParamsJson = json['attributionParams'];
+    let attributionParams = undefined;
+    if (attributionParamsJson) {
+      attributionParams = new AttributionParams(
+        attributionParamsJson.displayName,
+        attributionParamsJson.avatarUrl
+      );
+    }
+
     return new ClientConfig(
       autoPromptConfig,
       paySwgVersion,
       json['useUpdatedOfferFlows'],
-      uiPredicates
+      uiPredicates,
+      attributionParams
     );
   }
 }
