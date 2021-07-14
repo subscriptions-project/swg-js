@@ -23,12 +23,14 @@ export class ClientConfig {
    * @param {string=} paySwgVersion
    * @param {boolean=} useUpdatedOfferFlows
    * @param {./auto-prompt-config.UiPredicates=} uiPredicates
+   * @param {./attribution-params.AttributionParams=} attributionParams
    */
   constructor(
     autoPromptConfig,
     paySwgVersion,
     useUpdatedOfferFlows,
-    uiPredicates
+    uiPredicates,
+    attributionParams
   ) {
     /** @const {!./auto-prompt-config.AutoPromptConfig|undefined} */
     this.autoPromptConfig = autoPromptConfig;
@@ -41,5 +43,8 @@ export class ClientConfig {
 
     /** @const {./auto-prompt-config.UiPredicates|undefined} */
     this.uiPredicates = uiPredicates;
+
+    /** @const {./attribution-params.AttributionParams|undefined} */
+    this.attributionParams = attributionParams;
   }
 }

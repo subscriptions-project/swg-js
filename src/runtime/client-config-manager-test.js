@@ -270,4 +270,29 @@ describes.realWin('ClientConfigManager', {}, () => {
     expect(clientConfig.uiPredicates.canDisplayButton).to.be.true;
     expect(clientConfig.uiPredicates.canDisplayAutoPrompt).to.be.true;
   });
+
+  it('getClientConfig should have attributionParams', async () => {
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    const expectedDisplayName = 'Display Name';
+    const expectedAvatarUrl = 'avatar.png';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({
+        attributionParams: {
+          displayName: expectedDisplayName,
+          avatarUrl: expectedAvatarUrl,
+        },
+      })
+      .once();
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+    expect(clientConfig.attributionParams.displayName).to.equal(
+      expectedDisplayName
+    );
+    expect(clientConfig.attributionParams.avatarUrl).to.equal(
+      expectedAvatarUrl
+    );
+  });
 });
