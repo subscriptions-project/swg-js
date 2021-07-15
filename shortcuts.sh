@@ -69,14 +69,12 @@ function swgjs_install() {
 }
 
 
-# Logs the changes since the last Swgjs release.
+# Publishes a Swgjs release, in pre-release mode.
 #
-# This command gives you a changelog for a Swgjs release.
-# You can use the changelog as the release's description.
-# The changelog also includes the next version number
-# (ex: 0.1.22.123), which you will use in several places,
-# like the "Release title" and "Version tag".
-function swgjs_changelog() {
+# This publishes a Swgjs release, in pre-release mode.
+# The output includes the release's version number (ex: 0.1.22.123).
+# You will use this in a few places, like the "Release title" and "Version tag".
+function swgjs_publish() {
   swgjs_install
 
   # Get the freshest branch possible.
@@ -89,7 +87,7 @@ function swgjs_changelog() {
   git -c advice.detachedHead=false checkout team/main
 
   # Get changelog
-  npx gulp changelog
+  npx gulp publish
 
   # Return to previous branch
   git checkout -
