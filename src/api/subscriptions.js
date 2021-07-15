@@ -522,6 +522,7 @@ export const ReplaceSkuProrationMode = {
 export const ProductType = {
   SUBSCRIPTION: 'SUBSCRIPTION',
   UI_CONTRIBUTION: 'UI_CONTRIBUTION',
+  VIRTUAL_GIFT: 'VIRTUAL_GIFT',
 };
 
 /**
