@@ -15,15 +15,14 @@
  */
 
 /**
-* All common styles, injected as <style> in the parent document's <head>
-* element.
-*/
-
-/**
- * Common styling across multiple media rules for dialog and toast.
- * This is Top level iframes and is styled using class names `swg-dialog`,
- * and `swg-toast`.
+ * This file contains common styles for the Dialog and Toast components.
+ * Swgjs injects these styles as a <style> element in the <head> element
+ * of 3p article pages.
+ *
+ * These styles affect <iframe> elements, not their inner contents.
  */
+
+/** Common styles across all window sizes. */
 .swg-dialog,
 .swg-toast {
   box-sizing: border-box;
@@ -38,11 +37,7 @@
   border: none !important;
 }
 
-/**
- * The maximum width allowed for the dialog is 480 px when device width OR
- * height is less than 640px. The next rule overrides this rule when device
- * width OR height is < 480px.
- */
+/** Tablet/Medium screen support, when width OR height is <= 640px. */
 @media (max-width: 640px), (max-height: 640px) {
   .swg-dialog,
   .swg-toast {
@@ -56,11 +51,8 @@
   }
 }
 
-/**
- * Desktop/Large screen support. When device width AND height is > 640px.
- *
- */
-@media (min-width: 640px) and (min-height: 640px) {
+/** Desktop/Large screen support, when width AND height are >= 641px. */
+@media (min-width: 641px) and (min-height: 641px) {
   .swg-dialog {
     width: 630px !important;
     left: -315px !important;
@@ -74,6 +66,7 @@
   }
 }
 
+/** Phone/Small screen support, when width is <= 480px. */
 @media (max-width: 480px) {
   .swg-dialog,
   .swg-toast {
