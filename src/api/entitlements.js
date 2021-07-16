@@ -21,6 +21,9 @@ import {warn} from '../utils/log';
 /** Source for Google-provided metering entitlements. */
 export const GOOGLE_METERING_SOURCE = 'google:metering';
 
+/** Subscription token for dev mode entitlements. */
+export const DEV_MODE_TOKEN = 'GOOGLE_DEV_MODE_TOKEN';
+
 /**
  * The holder of the entitlements for a service.
  */
@@ -92,16 +95,20 @@ export class Entitlements {
   }
 
   /**
-   * Returns true if the current article is unlocked by a
-   * cacheable entitlement. Metering entitlements aren't cacheable,
-   * because each metering entitlement is meant to be used for one article.
-   * Subscription entitlements are cacheable, because subscription entitlements
+   * Returns true if the current article is unlocked by a cacheable entitlement.
+   * Metering entitlements aren't cacheable, because each metering entitlement
+   * is meant to be used for one article. Subscription entitlements that are
+   * not returned by dev mode are cacheable, because subscription entitlements
    * are meant to be used across multiple articles on a publication.
    * @return {boolean}
    */
   enablesThisWithCacheableEntitlements() {
     const entitlement = this.getEntitlementForThis();
-    return !!entitlement && entitlement.source !== GOOGLE_METERING_SOURCE;
+    return (
+      !!entitlement &&
+      entitlement.source !== GOOGLE_METERING_SOURCE &&
+      entitlement.subscriptionToken !== DEV_MODE_TOKEN
+    );
   }
 
   /**
@@ -344,10 +351,9 @@ export class Entitlement {
     if (this.source !== 'google') {
       return null;
     }
-    const sku = /** @type {?string} */ (getPropertyFromJsonString(
-      this.subscriptionToken,
-      'productId'
-    ) || null);
+    const sku = /** @type {?string} */ (
+      getPropertyFromJsonString(this.subscriptionToken, 'productId') || null
+    );
     if (!sku) {
       warn('Unable to retrieve SKU from SwG subscription token');
     }

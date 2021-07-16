@@ -36,6 +36,46 @@ describes.realWin('Entitlements', {}, () => {
     });
   });
 
+  describe('enablesThisWithCacheableEntitlements', () => {
+    const CURRENT_PRODUCT = 'testpub:product_id';
+
+    function createEntitlements(entitlements) {
+      return new Entitlements(
+        'service1',
+        'RaW',
+        entitlements,
+        CURRENT_PRODUCT,
+        null
+      );
+    }
+
+    it('returns false when no entitlement is found for current product', () => {
+      entitlements = createEntitlements([]);
+      expect(entitlements.enablesThisWithCacheableEntitlements()).to.be.false;
+    });
+
+    it('returns false for entitlement with a metering source', () => {
+      entitlements = createEntitlements([
+        new Entitlement('google:metering', [CURRENT_PRODUCT], 'token'),
+      ]);
+      expect(entitlements.enablesThisWithCacheableEntitlements()).to.be.false;
+    });
+
+    it('returns true for entitlement with a non-metering source', () => {
+      entitlements = createEntitlements([
+        new Entitlement('google', [CURRENT_PRODUCT], 'token'),
+      ]);
+      expect(entitlements.enablesThisWithCacheableEntitlements()).to.be.true;
+    });
+
+    it('returns false for entitlement with a dev mode token', () => {
+      entitlements = createEntitlements([
+        new Entitlement('google', [CURRENT_PRODUCT], 'GOOGLE_DEV_MODE_TOKEN'),
+      ]);
+      expect(entitlements.enablesThisWithCacheableEntitlements()).to.be.false;
+    });
+  });
+
   describe('getEntitlementFor', () => {
     it('warns users if their article needs to define a product ID', () => {
       entitlements.getEntitlementFor(null, null);
