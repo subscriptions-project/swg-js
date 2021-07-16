@@ -51,7 +51,7 @@
   }
 }
 
-/** Desktop/Large screen support, when width AND height are > 640px. */
+/** Desktop/Large screen support, when width AND height are >= 641px. */
 @media (min-width: 641px) and (min-height: 641px) {
   .swg-dialog {
     width: 630px !important;
