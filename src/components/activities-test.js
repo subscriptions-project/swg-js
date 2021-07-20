@@ -235,6 +235,11 @@ describes.realWin('Activity Components', {}, (env) => {
 
         expect(actualHandler).to.equal(expectedHandler);
       });
+
+      it('makes original activity ports available', () => {
+        const original = activityPorts.getOriginalWebActivityPorts();
+        expect(original).to.be.instanceof(WebActivityPorts);
+      });
     });
   });
 
@@ -290,12 +295,18 @@ describes.realWin('Activity Components', {}, (env) => {
     it('should delegate getMode and attach callback to connect', async () => {
       sandbox
         .stub(WebActivityIframePort.prototype, 'getMode')
-        .callsFake(() => ActivityMode.IFRAME);
+        .returns(ActivityMode.IFRAME);
       expect(activityIframePort.getMode()).to.equal(ActivityMode.IFRAME);
 
       expect(handler).to.be.null;
       await activityIframePort.connect();
       expect(handler).to.not.be.null;
+    });
+
+    it('delegates acceptResult', async () => {
+      const value = 'Hi!';
+      sandbox.stub(WebActivityIframePort.prototype, 'getMode').returns(value);
+      expect(activityIframePort.getMode()).to.equal(value);
     });
 
     it('should handle resize request and delegate resized', () => {

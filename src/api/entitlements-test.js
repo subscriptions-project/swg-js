@@ -84,4 +84,15 @@ describes.realWin('Entitlements', {}, () => {
       );
     });
   });
+
+  describe('consume', () => {
+    it('executes callback', () => {
+      const consumeSpy = sandbox.spy();
+      const entitlements = new Entitlements('', '', [], '', null, consumeSpy);
+
+      expect(consumeSpy).to.not.be.called;
+      entitlements.consume();
+      expect(consumeSpy).to.be.calledOnce;
+    });
+  });
 });
