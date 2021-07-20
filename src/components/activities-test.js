@@ -305,8 +305,10 @@ describes.realWin('Activity Components', {}, (env) => {
 
     it('delegates acceptResult', async () => {
       const value = 'Hi!';
-      sandbox.stub(WebActivityIframePort.prototype, 'getMode').returns(value);
-      expect(activityIframePort.getMode()).to.equal(value);
+      sandbox
+        .stub(WebActivityIframePort.prototype, 'acceptResult')
+        .returns(value);
+      expect(activityIframePort.acceptResult()).to.equal(value);
     });
 
     it('should handle resize request and delegate resized', () => {
