@@ -16,7 +16,6 @@
 
 import {ActivityIframePort, ActivityPorts} from './activities';
 import {
-  ActivityMode,
   ActivityResult,
   ActivityIframePort as WebActivityIframePort,
   ActivityPort as WebActivityPort,
