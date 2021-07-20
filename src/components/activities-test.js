@@ -293,10 +293,9 @@ describes.realWin('Activity Components', {}, (env) => {
     });
 
     it('should delegate getMode and attach callback to connect', async () => {
-      sandbox
-        .stub(WebActivityIframePort.prototype, 'getMode')
-        .returns(ActivityMode.IFRAME);
-      expect(activityIframePort.getMode()).to.equal(ActivityMode.IFRAME);
+      const value = 'Hi!';
+      sandbox.stub(WebActivityIframePort.prototype, 'getMode').returns(value);
+      expect(activityIframePort.getMode()).to.equal(value);
 
       expect(handler).to.be.null;
       await activityIframePort.connect();
