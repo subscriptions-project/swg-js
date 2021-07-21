@@ -86,13 +86,20 @@ describes.realWin('Entitlements', {}, () => {
   });
 
   describe('consume', () => {
-    it('executes callback', () => {
-      const consumeSpy = sandbox.spy();
-      const entitlements = new Entitlements('', '', [], '', null, consumeSpy);
+    it('executes consume handler', () => {
+      const consumeHandlerSpy = sandbox.spy();
+      const entitlements = new Entitlements(
+        '',
+        '',
+        [],
+        '',
+        null,
+        consumeHandlerSpy
+      );
 
-      expect(consumeSpy).to.not.be.called;
+      expect(consumeHandlerSpy).to.not.be.called;
       entitlements.consume();
-      expect(consumeSpy).to.be.calledOnce;
+      expect(consumeHandlerSpy).to.be.calledOnce;
     });
   });
 });
