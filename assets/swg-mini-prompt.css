@@ -136,6 +136,7 @@
   background-size: contain;
   padding: 8px;
   border-radius: 20px;
+  box-sizing: content-box;
 }
 
 .swg-mini-prompt-close-icon-light:hover {
