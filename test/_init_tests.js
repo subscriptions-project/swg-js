@@ -15,7 +15,6 @@
  */
 
 // This must load before all other tests.
-import '../src/polyfills';
 import * as describes from '../test/describes';
 import {CACHE_KEYS} from '../src/runtime/services';
 import {PAY_ORIGIN} from '../src/runtime/pay-client';

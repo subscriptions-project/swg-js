@@ -61,7 +61,6 @@ exports.compile = async function (options = {}) {
           minifiedName: options.checkTypes
             ? 'subscriptions.checktypes.js'
             : argv.minifiedName || 'subscriptions.js',
-          includePolyfills: true,
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.
           wrapper: '(function(){<%= contents %>})();',
@@ -79,7 +78,6 @@ exports.compile = async function (options = {}) {
           minifiedName: options.checkTypes
             ? 'subscriptions-gaa.checktypes.js'
             : argv.minifiedGaaName || 'subscriptions-gaa.js',
-          includePolyfills: true,
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.
           wrapper: '(function(){<%= contents %>})();',
@@ -97,7 +95,6 @@ exports.compile = async function (options = {}) {
           minifiedName: options.checkTypes
             ? 'basic-subscriptions.checktypes.js'
             : argv.minifiedBasicName || 'basic-subscriptions.js',
-          includePolyfills: true,
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.
           wrapper: '(function(){<%= contents %>})();',
@@ -118,7 +115,6 @@ exports.checkTypes = function (opts) {
       minifiedName: 'check-types.js',
       minify: true,
       checkTypes: true,
-      includePolyfills: true,
     })
   );
 };
