@@ -17,7 +17,7 @@
 
 const $$ = require('gulp-load-plugins')();
 const argv = require('minimist')(process.argv.slice(2));
-const babel = require('babelify');
+const babelify = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
 const closureCompile = require('./closure-compile').closureCompile;
@@ -155,7 +155,20 @@ function compileJs(srcDir, srcFilename, destDir, options) {
 
   let bundler = browserify(srcDir + srcFilename + '.js', {
     debug: true,
-  }).transform(babel, {presets: ['@babel/preset-env']});
+  }).transform(
+    babelify.configure({
+      'presets': [
+        [
+          '@babel/preset-env',
+          {
+            'targets': {
+              'browsers': ['defaults, not IE 11'],
+            },
+          },
+        ],
+      ],
+    })
+  );
   if (options.watch) {
     bundler = watchify(bundler);
   }
