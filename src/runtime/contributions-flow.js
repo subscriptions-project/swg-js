@@ -57,25 +57,27 @@ export class ContributionsFlow {
     const isClosable = options?.isClosable ?? true;
 
     /** @private @const {!Promise<!ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.getUrl_(
-      this.clientConfigManager_.getClientConfig()
-    ).then((url) => {
-      return new ActivityIframeView(
-        this.win_,
-        this.activityPorts_,
-        feUrl(url),
-        feArgs({
-          'productId': deps.pageConfig().getProductId(),
-          'publicationId': deps.pageConfig().getPublicationId(),
-          'productType': ProductType.UI_CONTRIBUTION,
-          'list': (options && options.list) || 'default',
-          'skus': (options && options.skus) || null,
-          'isClosable': isClosable,
-          'supportsEventManager': true,
-        }),
-        /* shouldFadeBody */ true
-      );
-    });
+    this.activityIframeViewPromise_ = this.clientConfigManager_
+      .getClientConfig()
+      .then((clientConfig) => {
+        return this.shouldShow_(clientConfig)
+          ? new ActivityIframeView(
+              this.win_,
+              this.activityPorts_,
+              feUrl(this.getUrl_(clientConfig)),
+              feArgs({
+                'productId': deps.pageConfig().getProductId(),
+                'publicationId': deps.pageConfig().getPublicationId(),
+                'productType': ProductType.UI_CONTRIBUTION,
+                'list': (options && options.list) || 'default',
+                'skus': (options && options.skus) || null,
+                'isClosable': isClosable,
+                'supportsEventManager': true,
+              }),
+              /* shouldFadeBody */ true
+            )
+          : null;
+      });
   }
 
   /**
@@ -117,6 +119,10 @@ export class ContributionsFlow {
    */
   start() {
     return this.activityIframeViewPromise_.then((activityIframeView) => {
+      if (!activityIframeView) {
+        return Promise.resolve();
+      }
+
       // Start/cancel events.
       this.deps_
         .callbacks()
@@ -137,18 +143,25 @@ export class ContributionsFlow {
   }
 
   /**
-   * Gets the URL that should be used for the activity iFrame view.
-   * @param {!Promise<../model/client-config.ClientConfig>} clientConfigPromise
-   * @return {!Promise<string>}
+   * Returns whether this flow is configured as enabled, not showing
+   * even on explicit start when flag is configured false.
+   *
+   * @param {!../model/client-config.ClientConfig} clientConfig
+   * @return {boolean}
    */
-  getUrl_(clientConfigPromise) {
-    return clientConfigPromise.then((clientConfig) => {
-      if (clientConfig.useUpdatedOfferFlows) {
-        return '/contributionoffersiframe';
-      } else {
-        return '/contributionsiframe';
-      }
-    });
+  shouldShow_(clientConfig) {
+    return clientConfig.uiPredicates?.canDisplayAutoPrompt !== false;
+  }
+
+  /**
+   * Gets the URL that should be used for the activity iFrame view.
+   * @param {!../model/client-config.ClientConfig} clientConfig
+   * @return {string}
+   */
+  getUrl_(clientConfig) {
+    return clientConfig.useUpdatedOfferFlows
+      ? '/contributionoffersiframe'
+      : '/contributionsiframe';
   }
 
   /**
