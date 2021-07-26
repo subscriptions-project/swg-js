@@ -399,16 +399,27 @@ export class GaaMeteringRegwall {
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
     return GaaMeteringRegwall.getGaaUser_()
       .then((gaaUser) => {
-        GaaMeteringRegwall.remove_();
+        GaaMeteringRegwall.remove();
         return gaaUser;
       })
       .catch((err) => {
         // Close the Regwall, since the flow failed.
-        GaaMeteringRegwall.remove_();
+        GaaMeteringRegwall.remove();
 
         // Rethrow error.
         throw err;
       });
+  }
+
+  /**
+   * Removes the Regwall.
+   * @nocollapse
+   */
+  static remove() {
+    const regwallContainer = self.document.getElementById(REGWALL_CONTAINER_ID);
+    if (regwallContainer) {
+      regwallContainer.remove();
+    }
   }
 
   /**
@@ -620,18 +631,6 @@ export class GaaMeteringRegwall {
         new URL(iframeUrl).origin
       );
     };
-  }
-
-  /**
-   * Removes the Regwall.
-   * @private
-   * @nocollapse
-   */
-  static remove_() {
-    const regwallContainer = self.document.getElementById(REGWALL_CONTAINER_ID);
-    if (regwallContainer) {
-      regwallContainer.remove();
-    }
   }
 }
 
