@@ -167,7 +167,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
   afterEach(() => {
     script.remove();
-    GaaMeteringRegwall.remove_();
+    GaaMeteringRegwall.remove();
     self.document.documentElement.lang = '';
     self.console.warn.restore();
   });
@@ -368,6 +368,20 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
           additionalParameters: null,
         });
       }
+    });
+  });
+
+  describe('remove', () => {
+    it('removes regwall', () => {
+      function findRegwallInDocument() {
+        return self.document.querySelector('.gaa-metering-regwall--dialog');
+      }
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      expect(findRegwallInDocument()).to.not.be.null;
+
+      GaaMeteringRegwall.remove();
+      expect(findRegwallInDocument()).to.be.null;
     });
   });
 
