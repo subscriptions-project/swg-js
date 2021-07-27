@@ -35,7 +35,7 @@ const PUBLISHER_NAME = 'The Scenic';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
 
 /** Article metadata in ld+json form. */
-const ARTICLE_METADATA = `
+const ARTICLE_LD_JSON_METADATA = `
 {
   "@context": "http://schema.org",
   "@type": "NewsArticle",
@@ -64,6 +64,14 @@ const ARTICLE_METADATA = `
     "productID": "scenic-2017.appspot.com:news"
   }
 }`;
+
+/** Article metadata in microdata form. */
+const ARTICLE_MICRODATA_METADATA = `
+<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other"> 
+  <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
+    <meta itemprop="name" content="${PUBLISHER_NAME}"/>
+  </span>
+</div>`;
 
 describes.realWin('queryStringHasFreshGaaParams', {}, () => {
   let clock;
@@ -117,6 +125,7 @@ describes.realWin('queryStringHasFreshGaaParams', {}, () => {
 
 describes.realWin('GaaMeteringRegwall', {}, () => {
   let clock;
+  let microdata;
   let script;
   let signOutFake;
 
@@ -161,12 +170,17 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     // Add JSON-LD with a publisher name.
     script = self.document.createElement('script');
     script.type = 'application/ld+json';
-    script.text = ARTICLE_METADATA;
+    script.text = ARTICLE_LD_JSON_METADATA;
     self.document.head.appendChild(script);
+
+    // Add container for Microdata.
+    microdata = self.document.createElement('div');
+    self.document.head.appendChild(microdata);
   });
 
   afterEach(() => {
     script.remove();
+    microdata.remove();
     GaaMeteringRegwall.remove();
     self.document.documentElement.lang = '';
     self.console.warn.restore();
@@ -229,13 +243,30 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       });
     });
 
-    it('throws if article metadata lacks a publisher name', () => {
+    it('parses publisher name from microdata', () => {
+      // Remove JSON-LD.
       script.text = '{}';
+
+      // Add Microdata.
+      microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      const descriptionEl = self.document.querySelector(
+        '.gaa-metering-regwall--description'
+      );
+      expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
+    });
+
+    it('throws if article metadata lacks a publisher name', () => {
+      // Remove JSON-LD.
+      script.text = '{}';
+
       const showingRegwall = () =>
         GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
       expect(showingRegwall).throws(
-        'Article needs JSON-LD with a publisher name.'
+        'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
       );
     });
 
@@ -429,7 +460,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('gets the publisher name from array page config', () => {
       self.document.head.innerHTML = `
         <script type="application/ld+json">
-          [${ARTICLE_METADATA}]
+          [${ARTICLE_LD_JSON_METADATA}]
         </script>
       `;
 
