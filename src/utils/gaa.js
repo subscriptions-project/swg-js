@@ -723,8 +723,7 @@ export class GaaGoogleSignInButton {
     }
 
     // Validate origins.
-    for (let i = 0; i < allowedOrigins.length; i++) {
-      const allowedOrigin = allowedOrigins[i];
+    for (const allowedOrigin of allowedOrigins) {
       const url = new URL(allowedOrigin);
 
       const isOrigin = url.origin === allowedOrigin;
