@@ -565,15 +565,14 @@ export class GaaMeteringRegwall {
    * Gets publisher name from JSON-LD page config.
    * @private
    * @nocollapse
-   * @return {string}
+   * @return {string|undefined}
    */
   static getPublisherNameFromJsonLdPageConfig_() {
     const ldJsonElements = self.document.querySelectorAll(
       'script[type="application/ld+json"]'
     );
 
-    for (let i = 0; i < ldJsonElements.length; i++) {
-      const ldJsonElement = ldJsonElements[i];
+    for (const ldJsonElement of ldJsonElements) {
       let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
 
       if (!Array.isArray(ldJson)) {
@@ -595,15 +594,14 @@ export class GaaMeteringRegwall {
    * Gets publisher name from Microdata page config.
    * @private
    * @nocollapse
-   * @return {string}
+   * @return {string|undefined}
    */
   static getPublisherNameFromMicrodataPageConfig_() {
     const publisherNameElements = self.document.querySelectorAll(
       '[itemscope][itemtype][itemprop="publisher"] [itemprop="name"]'
     );
 
-    for (let i = 0; i < publisherNameElements.length; i++) {
-      const publisherNameElement = publisherNameElements[i];
+    for (const publisherNameElement of publisherNameElements) {
       const publisherName = publisherNameElement.content;
       if (publisherName) {
         return publisherName;
