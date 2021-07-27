@@ -198,7 +198,7 @@ export class BasicRuntime {
     this.clientOptions_ = params.clientOptions;
     this.setupAndShowAutoPrompt({
       autoPromptType: params.autoPromptType,
-      alwaysShow: false,
+      alwaysShow: params.alwaysShow,
     });
     this.setOnLoginRequest();
     this.processEntitlements();
