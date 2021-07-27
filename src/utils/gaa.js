@@ -544,6 +544,30 @@ export class GaaMeteringRegwall {
    * @return {string}
    */
   static getPublisherNameFromPageConfig_() {
+    const jsonLdPageConfig =
+      GaaMeteringRegwall.getPublisherNameFromJsonLdPageConfig_();
+    if (jsonLdPageConfig) {
+      return jsonLdPageConfig;
+    }
+
+    const microdataPageConfig =
+      GaaMeteringRegwall.getPublisherNameFromMicrodataPageConfig_();
+    if (microdataPageConfig) {
+      return microdataPageConfig;
+    }
+
+    throw new Error(
+      'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
+    );
+  }
+
+  /**
+   * Gets publisher name from JSON-LD page config.
+   * @private
+   * @nocollapse
+   * @return {string}
+   */
+  static getPublisherNameFromJsonLdPageConfig_() {
     const ldJsonElements = self.document.querySelectorAll(
       'script[type="application/ld+json"]'
     );
@@ -565,8 +589,26 @@ export class GaaMeteringRegwall {
         return publisherName;
       }
     }
+  }
 
-    throw new Error('Article needs JSON-LD with a publisher name.');
+  /**
+   * Gets publisher name from Microdata page config.
+   * @private
+   * @nocollapse
+   * @return {string}
+   */
+  static getPublisherNameFromMicrodataPageConfig_() {
+    const publisherNameElements = self.document.querySelectorAll(
+      '[itemscope][itemtype][itemprop="publisher"] [itemprop="name"]'
+    );
+
+    for (let i = 0; i < publisherNameElements.length; i++) {
+      const publisherNameElement = publisherNameElements[i];
+      const publisherName = publisherNameElement.content;
+      if (publisherName) {
+        return publisherName;
+      }
+    }
   }
 
   /**
