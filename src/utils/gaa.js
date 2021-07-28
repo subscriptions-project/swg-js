@@ -127,6 +127,7 @@ const REGWALL_HTML = `
     display: block;
     font-size: 16px;
     margin: 0 0 8px;
+    outline: none !important;
   }
   
   .gaa-metering-regwall--description {
