@@ -64,7 +64,7 @@ subscriptions
         // TODO: Describe standard attributes, once they're defined.
         standardAttributes: {
           registered_user: {
-            timestamp,
+            timestamp,    // Important: Time the user registered *not* the current time.
           },
         },
         // Custom attributes which affect your meters.
@@ -73,7 +73,7 @@ subscriptions
         // for up to 30 days after a certain action.
         customAttributes: {
           newsletter_subscriber: {
-            timestamp,
+            timestamp,   // Important: Time the user subscribed *not* the current time.
           },
         },
       },
