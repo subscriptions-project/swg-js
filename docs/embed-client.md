@@ -70,7 +70,7 @@ Then initialize using the API:
   // Either use a publication ID (example.com) or
   // a full product ID (example.com:premium).
   // Note: a wildcard product ID (example.com:*) will match any
-  // entitlment for the pubcation
+  // entitlement for the publication
   subscriptions.init(publicationOrProductId);
 });
 ```
