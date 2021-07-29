@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import {debugLog} from '../utils/log';
-
 /**
  */
 export class PageConfig {
@@ -31,9 +29,6 @@ export class PageConfig {
       productId = productOrPublicationId;
       publicationId = productId.substring(0, div);
       label = productId.substring(div + 1);
-      if (label == '*') {
-        debugLog('wildcard product, all entitlments will unlock');
-      }
     } else {
       // The argument is a publication id.
       publicationId = productOrPublicationId;
