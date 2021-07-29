@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {user} from '../utils/error-logger';
+import {debugLog} from '../utils/log';
 
 /**
  */
@@ -32,7 +32,7 @@ export class PageConfig {
       publicationId = productId.substring(0, div);
       label = productId.substring(div + 1);
       if (label == '*') {
-        user().expectedError('wildcard disallowed');
+        debugLog('wildcard product, all entitlments will unlock');
       }
     } else {
       // The argument is a publication id.

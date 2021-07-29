@@ -304,13 +304,23 @@ export class Entitlement {
     if (!product) {
       return false;
     }
-    // Wildcard allows this product.
     const eq = product.indexOf(':');
-    if (
-      eq != -1 &&
-      this.products.includes(product.substring(0, eq + 1) + '*')
-    ) {
-      return true;
+    // Handle wildcards
+    if (eq != -1) {
+      // Wildcard product (publication:*) unlocks on any entitlment matching publication
+      const publication = product.substring(0, eq + 1);
+      if(
+      publication + '*' == product &&
+      this.products.find((candidate) => candidate.substring(0, eq + 1) == publication)
+      ) {
+        return true;
+      }
+      // Wildcard entitlement allows any product matching this publication
+      if (
+        this.products.includes(publication + '*')
+      ) {
+        return true;
+      }
     }
     return this.products.includes(product);
   }
