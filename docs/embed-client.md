@@ -69,6 +69,8 @@ Then initialize using the API:
 (self.SWG = self.SWG || []).push(function(subscriptions) {
   // Either use a publication ID (example.com) or
   // a full product ID (example.com:premium).
+  // Note: a wildcard product ID (example.com:*) will match any
+  // entitlement for the publication
   subscriptions.init(publicationOrProductId);
 });
 ```
