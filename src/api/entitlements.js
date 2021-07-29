@@ -308,7 +308,7 @@ export class Entitlement {
     const eq = product.indexOf(':');
     // Handle wildcards
     if (eq != -1) {
-      // Wildcard product (publication:*) unlocks on any entitlment matching publication
+      // Wildcard product (publication:*) unlocks on any entitlement matching publication
       const publication = product.substring(0, eq + 1);
       if(
         publication + '*' == product &&
