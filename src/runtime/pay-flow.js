@@ -40,6 +40,7 @@ import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {getPropertyFromJsonString, parseJson} from '../utils/json';
 import {isCancelError} from '../utils/errors';
+import {parseUrl} from '../utils/url';
 
 /**
  * Subscribe with Google request to pass to payments.
@@ -351,6 +352,7 @@ export class PayCompleteFlow {
         productType: args.productType,
         publicationId: args.publicationId,
         offerId: this.sku_,
+        origin: parseUrl(this.win_.location.href).origin,
       });
     } else {
       confirmFeUrl = feUrl('/payconfirmiframe');
