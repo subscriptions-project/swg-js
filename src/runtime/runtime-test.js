@@ -1966,6 +1966,7 @@ subscribe() method'
       const SECURE_GOOGLE_URL = 'https://www.google.com';
       const UNSECURE_GOOGLE_URL = 'http://www.google.com';
       const GAA_QUERY_STRING = '?gaa_at=gaa&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
+      const GAA_NA_QUERY_STRING = '?gaa_at=na&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
       let logEventStub;
       let win;
 
@@ -2014,6 +2015,22 @@ subscribe() method'
         });
 
         expect(logEventStub).callCount(0);
+      });
+
+      it('allows URLs with `gaa_at=na`', () => {
+        // This URL has `gaa_at=na`.
+        // This means Showcase entitlements are disabled for this URL.
+        // The publisher might still want to track outcomes though,
+        // which helps them measure the relative effectiveness of
+        // Showcase in creating positive outcomes.
+        win.location = parseUrl(SECURE_PUB_URL + GAA_NA_QUERY_STRING);
+
+        runtime.setShowcaseEntitlement({
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
+          isUserRegistered: true,
+        });
+
+        expect(logEventStub).callCount(1);
       });
 
       it('should require https page', () => {
