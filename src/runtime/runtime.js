@@ -1111,7 +1111,10 @@ export class ConfiguredRuntime {
       !entitlement ||
       !isSecure(this.win().location) ||
       !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
-      !queryStringHasFreshGaaParams(this.win().location.search)
+      !queryStringHasFreshGaaParams(
+        this.win().location.search,
+        /*allowAllAccessTypes=*/ true
+      )
     ) {
       return Promise.resolve();
     }
