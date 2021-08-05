@@ -893,10 +893,10 @@ function logEvent({analyticsEvent, showcaseEvent, isFromUserAction} = {}) {
   callSwg((swg) => {
     // Get reference to event manager.
     swg.getEventManager().then((eventManager) => {
-      // Get analytics event(s) from a Showcase event, if necessary.
-      const eventTypes = analyticsEvent
-        ? analyticsEvent
-        : showcaseEventToAnalyticsEvents(showcaseEvent);
+      // Get list of analytics events.
+      const eventTypes = showcaseEvent
+        ? showcaseEventToAnalyticsEvents(showcaseEvent)
+        : [analyticsEvent];
 
       // Log each analytics event.
       eventTypes.forEach((eventType) => {
