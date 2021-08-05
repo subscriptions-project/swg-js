@@ -884,8 +884,8 @@ function callSwg(callback) {
 /**
  * Logs Showcase events.
  * @param {{
- *   analyticsEvent: AnalyticsEvent,
- *   showcaseEvent: ShowcaseEvent,
+ *   analyticsEvent: (AnalyticsEvent|undefined),
+ *   showcaseEvent: (ShowcaseEvent|undefined),
  *   isFromUserAction: boolean,
  * }} params
  */
