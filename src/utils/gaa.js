@@ -35,7 +35,7 @@ import {warn} from './log';
 
 // Load types for Closure compiler.
 import '../model/doc';
-import {EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
 
 /** Stamp for post messages. */
@@ -50,11 +50,14 @@ export const POST_MESSAGE_COMMAND_USER = 'user';
 /** Error command for post messages. */
 export const POST_MESSAGE_COMMAND_ERROR = 'error';
 
+/** Button click command for post messages. */
+export const POST_MESSAGE_COMMAND_BUTTON_CLICK = 'button-click';
+
 /** ID for the Google Sign-In iframe element. */
 export const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
 
 /** ID for the Google Sign-In button element. */
-const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
+export const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 
 /** ID for the Publisher sign-in button element. */
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
@@ -394,10 +397,14 @@ export class GaaMeteringRegwall {
       return Promise.reject(errorMessage);
     }
 
-    logEvent(ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL);
+    logEvent({
+      showcaseEvent: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL,
+      isFromUserAction: false,
+    });
 
     GaaMeteringRegwall.render_({iframeUrl, caslUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
+    GaaMeteringRegwall.logButtonClickEvents_();
     return GaaMeteringRegwall.getGaaUser_()
       .then((gaaUser) => {
         GaaMeteringRegwall.remove();
@@ -623,6 +630,12 @@ export class GaaMeteringRegwall {
       .addEventListener('click', (e) => {
         e.preventDefault();
 
+        logEvent({
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK,
+          isFromUserAction: true,
+        });
+
         callSwg((swg) => swg.triggerLoginRequest({linkRequested: false}));
       });
   }
@@ -649,6 +662,27 @@ export class GaaMeteringRegwall {
           }
         }
       });
+    });
+  }
+
+  /**
+   * Logs button click events.
+   * @private
+   * @nocollapse
+   */
+  static logButtonClickEvents_() {
+    // Listen for button event messages.
+    self.addEventListener('message', (e) => {
+      if (
+        e.data.stamp === POST_MESSAGE_STAMP &&
+        e.data.command === POST_MESSAGE_COMMAND_BUTTON_CLICK
+      ) {
+        // Log button click event.
+        logEvent({
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+          isFromUserAction: true,
+        });
+      }
     });
   }
 
@@ -762,6 +796,17 @@ export class GaaGoogleSignInButton {
               'scope': 'profile email',
               'theme': 'dark',
             });
+
+            // Track button clicks.
+            buttonEl.addEventListener('click', () => {
+              // Tell parent frame about button click.
+              sendMessageToParentFnPromise.then((sendMessageToParent) => {
+                sendMessageToParent({
+                  stamp: POST_MESSAGE_STAMP,
+                  command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+                });
+              });
+            });
           })
       )
       .then((googleUser) => {
@@ -838,21 +883,27 @@ function callSwg(callback) {
 
 /**
  * Logs Showcase events.
- * @param {!ShowcaseEvent} showcaseEvent
+ * @param {{
+ *   analyticsEvent: (AnalyticsEvent|undefined),
+ *   showcaseEvent: (ShowcaseEvent|undefined),
+ *   isFromUserAction: boolean,
+ * }} params
  */
-function logEvent(showcaseEvent) {
+function logEvent({analyticsEvent, showcaseEvent, isFromUserAction} = {}) {
   callSwg((swg) => {
     // Get reference to event manager.
     swg.getEventManager().then((eventManager) => {
-      // Get individual analytics events from Showcase event.
-      const eventTypes = showcaseEventToAnalyticsEvents(showcaseEvent);
+      // Get list of analytics events.
+      const eventTypes = showcaseEvent
+        ? showcaseEventToAnalyticsEvents(showcaseEvent)
+        : [analyticsEvent];
 
       // Log each analytics event.
       eventTypes.forEach((eventType) => {
         eventManager.logEvent({
           eventType,
           eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: null,
+          isFromUserAction,
           additionalParameters: null,
         });
       });
