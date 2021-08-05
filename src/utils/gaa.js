@@ -35,7 +35,7 @@ import {warn} from './log';
 
 // Load types for Closure compiler.
 import '../model/doc';
-import {EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
 
 /** Stamp for post messages. */
@@ -631,8 +631,8 @@ export class GaaMeteringRegwall {
         e.preventDefault();
 
         logEvent({
-          showcaseEvent:
-            ShowcaseEvent.ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK,
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK,
           isFromUserAction: true,
         });
 
@@ -679,7 +679,7 @@ export class GaaMeteringRegwall {
       ) {
         // Log button click event.
         logEvent({
-          showcaseEvent: ShowcaseEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
           isFromUserAction: true,
         });
       }
@@ -884,16 +884,19 @@ function callSwg(callback) {
 /**
  * Logs Showcase events.
  * @param {{
- *   showcaseEvent: !ShowcaseEvent,
+ *   analyticsEvent: AnalyticsEvent,
+ *   showcaseEvent: ShowcaseEvent,
  *   isFromUserAction: boolean,
  * }} params
  */
-function logEvent({showcaseEvent, isFromUserAction} = {}) {
+function logEvent({analyticsEvent, showcaseEvent, isFromUserAction} = {}) {
   callSwg((swg) => {
     // Get reference to event manager.
     swg.getEventManager().then((eventManager) => {
-      // Get individual analytics events from Showcase event.
-      const eventTypes = showcaseEventToAnalyticsEvents(showcaseEvent);
+      // Get analytics event(s) from a Showcase event, if necessary.
+      const eventTypes = analyticsEvent
+        ? analyticsEvent
+        : showcaseEventToAnalyticsEvents(showcaseEvent);
 
       // Log each analytics event.
       eventTypes.forEach((eventType) => {

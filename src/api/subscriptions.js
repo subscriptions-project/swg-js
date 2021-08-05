@@ -359,11 +359,6 @@ export const ShowcaseEvent = {
   EVENT_SHOWCASE_INELIGIBLE_PAYWALL: 'EVENT_SHOWCASE_INELIGIBLE_PAYWALL', // When the user is not eligible for showcase entitlements
   EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL:
     'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL', // When the user has no remaining showcase entitlements
-
-  // Events indicating the user interacted with the Showcase Regwall
-  ACTION_SHOWCASE_REGWALL_GSI_CLICK: 'ACTION_SHOWCASE_REGWALL_GSI_CLICK',
-  ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK:
-    'ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK',
 };
 
 /**
