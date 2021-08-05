@@ -89,6 +89,16 @@ const ShowcaseEvents = {
     // TODO(b/181690059): Create showcase ineligible AnalyticsEvent
     AnalyticsEvent.IMPRESSION_PAYWALL,
   ],
+
+  // User clicks "Sign in with Google" on Showcase Regwall.
+  [ShowcaseEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK]: [
+    AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+  ],
+
+  // User clicks "Already have an account?" on Showcase Regwall.
+  [ShowcaseEvent.ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK]: [
+    AnalyticsEvent.ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK,
+  ],
 };
 
 /** @const {!Object<?AnalyticsEvent,?Event>} */
