@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../proto/api_messages';
 import {
+  GOOGLE_SIGN_IN_BUTTON_ID,
   GOOGLE_SIGN_IN_IFRAME_ID,
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
   GaaUtils,
+  POST_MESSAGE_COMMAND_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_ERROR,
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
@@ -27,12 +30,9 @@ import {
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
   queryStringHasFreshGaaParams,
-  POST_MESSAGE_COMMAND_BUTTON_CLICK,
-  GOOGLE_SIGN_IN_BUTTON_ID,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
 import {tick} from '../../test/tick';
-import {AnalyticsEvent} from '../proto/api_messages';
 
 const PUBLISHER_NAME = 'The Scenic';
 const IFRAME_URL = 'https://localhost/gsi-iframe';

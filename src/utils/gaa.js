@@ -672,19 +672,17 @@ export class GaaMeteringRegwall {
    */
   static logButtonClickEvents_() {
     // Listen for button event messages.
-    return new Promise((resolve) => {
-      self.addEventListener('message', (e) => {
-        if (
-          e.data.stamp === POST_MESSAGE_STAMP &&
-          e.data.command === POST_MESSAGE_COMMAND_BUTTON_CLICK
-        ) {
-          // Log button click event.
-          logEvent({
-            showcaseEvent: ShowcaseEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
-            isFromUserAction: true,
-          });
-        }
-      });
+    self.addEventListener('message', (e) => {
+      if (
+        e.data.stamp === POST_MESSAGE_STAMP &&
+        e.data.command === POST_MESSAGE_COMMAND_BUTTON_CLICK
+      ) {
+        // Log button click event.
+        logEvent({
+          showcaseEvent: ShowcaseEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+          isFromUserAction: true,
+        });
+      }
     });
   }
 
