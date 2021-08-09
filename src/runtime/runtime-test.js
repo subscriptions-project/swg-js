@@ -79,7 +79,14 @@ describes.realWin('installRuntime', {}, (env) => {
   let win;
 
   beforeEach(() => {
+    // Mock console.warn method.
+    sandbox.stub(self.console, 'warn');
+
     win = env.win;
+  });
+
+  afterEach(() => {
+    self.console.warn.restore();
   });
 
   function dep(callback) {
@@ -209,6 +216,24 @@ describes.realWin('installRuntime', {}, (env) => {
       }
       expect(subscriptions).to.have.property(name);
     }
+  });
+
+  it('tells IE11 users about deprecation', () => {
+    // Mock user agent.
+    const originalUserAgent = navigator.userAgent;
+    Object.defineProperty(window.navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko',
+      writable: true,
+    });
+
+    // Warning should tell IE11 users about deprecation.
+    installRuntime(win);
+    expect(self.console.warn).to.have.been.calledWithExactly(
+      'IE Support is being deprecated, in September 2021 IE will no longer be supported.'
+    );
+
+    // Restore user agent.
+    navigator.userAgent = originalUserAgent;
   });
 });
 
