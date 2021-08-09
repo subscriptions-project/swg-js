@@ -221,7 +221,7 @@ describes.realWin('installRuntime', {}, (env) => {
   it('tells IE11 users about deprecation', () => {
     // Mock user agent.
     const originalUserAgent = navigator.userAgent;
-    Object.defineProperty(window.navigator, 'userAgent', {
+    Object.defineProperty(self.navigator, 'userAgent', {
       value: 'Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko',
       writable: true,
     });
