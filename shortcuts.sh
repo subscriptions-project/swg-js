@@ -55,6 +55,8 @@ function swgjs_start_server() {
 # This helps the shortcuts in this file run smoothly, and also
 # makes it easier to collaborate with other Swgjs engineers.
 function swgjs_install() {
+  if ! __swgjs_has_nodejs; then return 1; fi
+
   __swgjs_get_github_username
 
   if ! test -f "$SWGJS_PATH/package.json"
@@ -123,7 +125,7 @@ function swgjs_add_shortcuts_to_bashrc() {
 # You can call this when you're doing a Swgjs release,
 # and you are ready to bring the release to AMP.
 function swgjs_create_amp_release_pr() {
-  if ! __swgjs_has_nodejs; then return; fi
+  if ! __swgjs_has_nodejs; then return 1; fi
 
   echo "Swgjs: Create AMP Release PR"
   echo ""
