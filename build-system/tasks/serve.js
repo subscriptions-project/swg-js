@@ -39,7 +39,7 @@ function serve(done) {
 function startServer() {
   log(green('Serving unminified js'));
 
-  nodemon({
+  return nodemon({
     script: require.resolve('../server/server.js'),
     watch: [require.resolve('../server/server.js')],
     env: {
