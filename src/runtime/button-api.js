@@ -144,7 +144,7 @@ export class ButtonApi {
       button.setAttribute('lang', options['lang']);
     }
     if (!options['enable']) {
-      button.disabled = true;
+      button.setAttribute('disabled', 'disabled');
     }
     button./*OK*/ innerHTML = BUTTON_INNER_HTML.replace(
       '$theme$',
@@ -180,7 +180,7 @@ export class ButtonApi {
       button.setAttribute('lang', options['lang']);
     }
     if (!options['enable']) {
-      button.disabled = true;
+      button.setAttribute('disabled', 'disabled');
     }
     button./*OK*/ innerHTML = BUTTON_INNER_HTML.replace(
       '$theme$',
