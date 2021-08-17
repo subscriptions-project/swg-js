@@ -106,6 +106,13 @@ export function installRuntime(win) {
     return;
   }
 
+  // Warn IE11 users of deprecation.
+  if (/MSIE|Trident/.test(self.navigator.userAgent)) {
+    warn(
+      'IE Support is being deprecated, in September 2021 IE will no longer be supported.'
+    );
+  }
+
   // Create a SwG runtime.
   const runtime = new Runtime(win);
 
@@ -1111,7 +1118,10 @@ export class ConfiguredRuntime {
       !entitlement ||
       !isSecure(this.win().location) ||
       !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
-      !queryStringHasFreshGaaParams(this.win().location.search)
+      !queryStringHasFreshGaaParams(
+        this.win().location.search,
+        /*allowAllAccessTypes=*/ true
+      )
     ) {
       return Promise.resolve();
     }

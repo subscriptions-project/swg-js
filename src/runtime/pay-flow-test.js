@@ -540,6 +540,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     'WuWKoOSFjOCoh-KYjsOIypjYut6dIiwiYWRtaW4iOnRydWV9';
   const TOKEN_SIG = 'TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ';
   const TOKEN = `${TOKEN_HEADER}.${TOKEN_PAYLOAD}.${TOKEN_SIG}`;
+  const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 
   beforeEach(() => {
     win = env.win;
@@ -558,6 +559,12 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     eventManagerMock = sandbox.mock(runtime.eventManager());
     storageMock = sandbox.mock(runtime.storage());
     clientConfigManagerMock = sandbox.mock(runtime.clientConfigManager());
+
+    sandbox.stub(runtime, 'win').returns({
+      location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
+      document: win.document,
+    });
+
     flow = new PayCompleteFlow(runtime);
   });
 
@@ -911,12 +918,15 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         getEventParams('SKU')
       );
 
+    const expectedOrigin = encodeURIComponent(WINDOW_LOCATION_DOMAIN);
+
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
-          '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU',
+          '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
+          expectedOrigin,
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',

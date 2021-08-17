@@ -70,11 +70,18 @@ export class DialogManager {
   /**
    * @param {!./view.View} view
    * @param {boolean=} hidden
+   * @param {?number=} maxAllowedHeightRatio The max allowed height of the
+   *    view as a ratio of the viewport height.
    * @return {!Promise}
    */
-  openView(view, hidden = false) {
+  openView(view, hidden = false, maxAllowedHeightRatio = null) {
     this.handleCancellations(view);
-    return this.openDialog(hidden).then((dialog) => dialog.openView(view));
+    return this.openDialog(hidden).then((dialog) => {
+      if (maxAllowedHeightRatio) {
+        dialog.setMaxAllowedHeightRatio(maxAllowedHeightRatio);
+      }
+      return dialog.openView(view);
+    });
   }
 
   /**

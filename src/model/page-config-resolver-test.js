@@ -644,12 +644,6 @@ describes.sandboxed('PageConfig', {}, () => {
     expect(config.getLabel()).to.equal('d.e.f');
   });
 
-  it('should disallow wildcard in product id', () => {
-    expect(() => {
-      new PageConfig('a.b.c.pub1:*');
-    }).to.throw('wildcard');
-  });
-
   it('should create from publication id', () => {
     const config = new PageConfig('a.b.c.pub1');
     expect(config.getPublicationId()).to.equal('a.b.c.pub1');
