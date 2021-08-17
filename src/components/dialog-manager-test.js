@@ -47,6 +47,9 @@ describes.realWin('DialogManager', {}, (env) => {
       getCurrentView: sandbox
         .stub(Dialog.prototype, 'getCurrentView')
         .callsFake(() => currentView),
+      setMaxAllowedHeightRatio: sandbox
+        .stub(Dialog.prototype, 'setMaxAllowedHeightRatio')
+        .callsFake(() => {}),
     };
     let graypaneAttached;
     const graypane = dialogManager.popupGraypane_;
@@ -102,6 +105,16 @@ describes.realWin('DialogManager', {}, (env) => {
     expect(dialogIfc.open).to.be.calledWithExactly(false);
     expect(dialogIfc.openView).to.be.calledOnce;
     expect(dialogIfc.openView).to.be.calledWith(initView);
+  });
+
+  it('should open view with maxAllowedHeightRatio', async () => {
+    await dialogManager.openView(
+      initView,
+      false,
+      1 /* maxAllowedHeightRatio */
+    );
+    expect(dialogIfc.setMaxAllowedHeightRatio).to.be.calledOnce;
+    expect(dialogIfc.setMaxAllowedHeightRatio).to.be.calledWith(1);
   });
 
   it('should complete view and close dialog', async () => {
