@@ -51,9 +51,7 @@ describes.sandboxed('services', {}, () => {
 
     it('should only allow simple keys', () => {
       for (const k in CACHE_KEYS) {
-        if (k == '$frontendCache$') {
-          continue;
-        }
+
         expect(k).to.match(/^[a-z]+[0-9]*$/);
       }
     });
