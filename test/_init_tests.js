@@ -17,7 +17,7 @@
 // This must load before all other tests.
 import '../src/polyfills';
 import * as describes from '../test/describes';
-import {CACHE_KEYS} from '../src/runtime/services';
+import {MODES} from '../src/runtime/services';
 import {PAY_ORIGIN} from '../src/runtime/pay-client';
 import stringify from 'json-stable-stringify';
 
@@ -27,7 +27,7 @@ global.describes = describes;
 beforeEach(function () {
   this.timeout(5000);
   window.TEST = true;
-  CACHE_KEYS['$frontendCache$'] = 0;
+  MODES.default['feCache'] = 'zero';
   PAY_ORIGIN['$payEnvironment$'] = 'PAY_ORIGIN';
 });
 
