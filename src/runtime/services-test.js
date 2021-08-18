@@ -26,17 +26,17 @@ describes.sandboxed('services', {}, () => {
       expect(getSwgMode()).to.deep.equal(MODES.default);
     });
 
-    it('should overide withe swg.mode=prod', () => {
+    it('should overide with swg.mode=prod', () => {
       self.location.hash = 'swg.mode=prod';
       expect(getSwgMode()).to.deep.equal(MODES.prod);
     });
 
-    it('should overide withe swg.mode=qual', () => {
+    it('should overide with swg.mode=qual', () => {
       self.location.hash = 'swg.mode=qual';
       expect(getSwgMode()).to.deep.equal(MODES.qual);
     });
 
-    it('should overide withe swg.mode=autopush', () => {
+    it('should overide with swg.mode=autopush', () => {
       self.location.hash = 'swg.mode=autopush';
       expect(getSwgMode()).to.deep.equal(MODES.autopush);
     });
