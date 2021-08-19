@@ -76,6 +76,8 @@ module.exports = {
     '!{node_modules,build,dist}/**/*.*',
     '!build-system/tasks/*.js',
     '!build-system/server/*.js',
+    '!build/polyfills.js',
+    '!build/polyfills/*.js',
     '!examples/sample-pub/**/*',
     '!gulpfile.js',
     '!third_party/**/*.*',
