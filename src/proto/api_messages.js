@@ -304,6 +304,12 @@ class AnalyticsContext {
 
     /** @private {?string} */
     this.url_ = data[10 + base] == null ? null : data[10 + base];
+
+    /** @private {?Timestamp} */
+    this.clientTimestamp_ =
+      data[11 + base] == null || data[11 + base] == undefined
+        ? null
+        : new Timestamp(data[11 + base], includesLabel);
   }
 
   /**
@@ -461,6 +467,20 @@ class AnalyticsContext {
   }
 
   /**
+   * @return {?Timestamp}
+   */
+  getClientTimestamp() {
+    return this.clientTimestamp_;
+  }
+
+  /**
+   * @param {!Timestamp} value
+   */
+  setClientTimestamp(value) {
+    this.clientTimestamp_ = value;
+  }
+
+  /**
    * @param {boolean} includeLabel
    * @return {!Array<?>}
    * @override
@@ -478,6 +498,7 @@ class AnalyticsContext {
         this.label_, // field 9 - label
         this.clientVersion_, // field 10 - client_version
         this.url_, // field 11 - url
+        this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -969,6 +990,77 @@ class EntitlementsResponse {
    */
   label() {
     return 'EntitlementsResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class ErrorResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {!Array<string>} */
+    this.errorMessages_ = data[base] || [];
+
+    /** @private {?number} */
+    this.status_ = data[1 + base] == null ? null : data[1 + base];
+  }
+
+  /**
+   * @return {!Array<string>}
+   */
+  getErrorMessagesList() {
+    return this.errorMessages_;
+  }
+
+  /**
+   * @param {!Array<string>} value
+   */
+  setErrorMessagesList(value) {
+    this.errorMessages_ = value;
+  }
+
+  /**
+   * @return {?number}
+   */
+  getStatus() {
+    return this.status_;
+  }
+
+  /**
+   * @param {number} value
+   */
+  setStatus(value) {
+    this.status_ = value;
+  }
+
+  /**
+   * @param {boolean} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.errorMessages_, // field 1 - error_messages
+        this.status_, // field 2 - status
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'ErrorResponse';
   }
 }
 
@@ -1781,6 +1873,7 @@ const PROTO_MAP = {
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
+  'ErrorResponse': ErrorResponse,
   'EventParams': EventParams,
   'FinishedLoggingResponse': FinishedLoggingResponse,
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
@@ -1832,6 +1925,7 @@ export {
   EntitlementSource,
   EntitlementsRequest,
   EntitlementsResponse,
+  ErrorResponse,
   EventOriginator,
   EventParams,
   FinishedLoggingResponse,

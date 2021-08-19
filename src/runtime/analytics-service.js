@@ -34,6 +34,7 @@ import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
+import {toTimestamp} from '../utils/date-utils';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -130,6 +131,13 @@ export class AnalyticsService {
     // the user wait too long.
     /** @private {?number} */
     this.timeout_ = null;
+
+    // Time source for setting the client timestamp before sending requests.
+    // Injectable for tests.
+    /** @private {function():!../proto/api_messages.Timestamp} */
+    this.timeSource_ = () => {
+      return toTimestamp(Date.now());
+    };
   }
 
   /**
@@ -148,6 +156,14 @@ export class AnalyticsService {
         eventParams
       );
     }
+  }
+
+  /**
+   * Sets the time source for generating client timestamps on sent events.s
+   * @param {function():!../proto/api_messages.Timestamp} timeSource
+   */
+  setTimeSource(timeSource) {
+    this.timeSource_ = timeSource;
   }
 
   /**
@@ -315,7 +331,7 @@ export class AnalyticsService {
     const meta = new AnalyticsEventMeta();
     meta.setEventOriginator(event.eventOriginator);
     meta.setIsFromUserAction(!!event.isFromUserAction);
-
+    this.updateContextTimestamp_();
     const request = new AnalyticsRequest();
     request.setEvent(/** @type {!AnalyticsEvent} */ (event.eventType));
     request.setContext(this.context_);
@@ -324,6 +340,14 @@ export class AnalyticsService {
       request.setParams(event.additionalParameters);
     } // Ignore event.additionalParameters.  It may have data we shouldn't log.
     return request;
+  }
+
+  /**
+   * Updates the timestamp of the analytics context to the current time.
+   * Called when creating any logging request.
+   */
+  updateContextTimestamp_() {
+    this.context_.setClientTimestamp(this.timeSource_());
   }
 
   /**
