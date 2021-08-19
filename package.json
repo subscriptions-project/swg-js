@@ -26,6 +26,7 @@
     "export-to-amp": "gulp export-to-amp"
   },
   "dependencies": {
+    "promise-pjs": "1.1.5",
     "web-activities": "1.24.0"
   },
   "devDependencies": {

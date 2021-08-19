@@ -19,6 +19,7 @@
  * The entry point for runtime (swg-basic.js).
  */
 
+import './polyfills';
 import {installBasicRuntime} from './runtime/basic-runtime';
 import {log} from './utils/log';
 
