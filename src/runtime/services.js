@@ -24,16 +24,86 @@ import {addQueryParam, parseQueryString, parseUrl} from '../utils/url';
  * @package Visible for testing only.
  */
 export const CACHE_KEYS = {
+  'zero': 0, //testing value
   'nocache': 1,
   'hr1': 3600000, // 1hr = 1000 * 60 * 60
   'hr12': 43200000, // 12hr = 1000 * 60 * 60 * 12
 };
 
 /**
+ * Default operating Mode
+ */
+export const DEFAULT = {
+  frontEnd: '$frontend$',
+  payEnv: '$payEnvironment$',
+  playEnv: '$playEnvironment$',
+  feCache: '$frontendCache$',
+};
+
+/**
+ * Default operating Mode
+ */
+const PROD = {
+  frontEnd: 'https://news.google.com',
+  payEnv: 'PRODUCTION',
+  playEnv: 'PROD',
+  feCache: CACHE_KEYS.hr1,
+};
+
+/**
+ * Default operating Mode
+ */
+const AUTOPUSH = {
+  frontEnd: 'https://subscribe-autopush.sandbox.google.com',
+  payEnv: 'PRODUCTION',
+  playEnv: 'AUTOPUSH',
+  feCache: CACHE_KEYS.nocache,
+};
+
+/**
+ * Default operating Mode
+ */
+const QUAL = {
+  frontEnd: 'https://subscribe-qual.sandbox.google.com',
+  payEnv: 'SANDBOX',
+  playEnv: 'STAGING',
+  feCache: CACHE_KEYS.hr1,
+};
+
+/**
+ * Operating modes, only runtime switchgable modes are here
+ * build time modes set the default and are configured in prepare.sh
+ *
+ * IMPORTANT: modes other than prod will only work on google internal networks!
+ * @type {!Object<Object>}
+ * @package Visible for testing only.
+ */
+export const MODES = {
+  'default': DEFAULT,
+  'prod': PROD,
+  'autopush': AUTOPUSH,
+  'qual': QUAL,
+};
+
+/**
+ * Check for swg.mode= in url fragemnet if it exists use it
+ * otherwise use the default build mode.
+ * @returns {Object}
+ */
+export function getSwgMode() {
+  const query = parseQueryString(self.location.hash);
+  const swgMode = query['swg.mode'];
+  if (swgMode && MODES[swgMode]) {
+    return MODES[swgMode];
+  }
+  return MODES['default'];
+}
+
+/**
  * @return {string}
  */
 export function feOrigin() {
-  return parseUrl('$frontend$').origin;
+  return parseUrl(getSwgMode().frontEnd).origin;
 }
 
 /**
@@ -41,7 +111,7 @@ export function feOrigin() {
  * @return {string} The complete URL.
  */
 export function serviceUrl(url) {
-  return '$frontend$/swg/_/api/v1' + url;
+  return `${getSwgMode().frontEnd}/swg/_/api/v1` + url;
 }
 
 /**
@@ -60,7 +130,7 @@ export function adsUrl(url) {
  */
 export function feUrl(url, prefix = '', params) {
   // Add cache param.
-  url = feCached('$frontend$' + prefix + '/swg/_/ui/v1' + url);
+  url = feCached(`${getSwgMode().frontEnd}${prefix}/swg/_/ui/v1${url}`);
 
   // Optionally add jsmode param. This allows us to test against "aggressively" compiled Boq JS.
   const query = parseQueryString(self.location.hash);
@@ -81,7 +151,7 @@ export function feUrl(url, prefix = '', params) {
  * @return {string} The complete URL including cache param.
  */
 export function feCached(url) {
-  return addQueryParam(url, '_', cacheParam('$frontendCache$'));
+  return addQueryParam(url, '_', cacheParam(getSwgMode().feCache));
 }
 
 /**
