@@ -312,7 +312,7 @@ export class Entitlement {
       const publication = product.substring(0, eq + 1);
       if(
         publication + '*' == product &&
-        this.products.find((candidate) => candidate.substring(0, eq + 1) == publication)
+        this.products.filter((candidate) => candidate.substring(0, eq + 1) == publication).length >= 1
       ) {
         debugLog('enabled with wildcard productId');
         return true;
