@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../proto/api_messages';
 import {
+  GOOGLE_SIGN_IN_BUTTON_ID,
   GOOGLE_SIGN_IN_IFRAME_ID,
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
   GaaUtils,
+  POST_MESSAGE_COMMAND_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_ERROR,
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
@@ -35,7 +38,7 @@ const PUBLISHER_NAME = 'The Scenic';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
 
 /** Article metadata in ld+json form. */
-const ARTICLE_METADATA = `
+const ARTICLE_LD_JSON_METADATA = `
 {
   "@context": "http://schema.org",
   "@type": "NewsArticle",
@@ -64,6 +67,14 @@ const ARTICLE_METADATA = `
     "productID": "scenic-2017.appspot.com:news"
   }
 }`;
+
+/** Article metadata in microdata form. */
+const ARTICLE_MICRODATA_METADATA = `
+<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other"> 
+  <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
+    <meta itemprop="name" content="${PUBLISHER_NAME}"/>
+  </span>
+</div>`;
 
 describes.realWin('queryStringHasFreshGaaParams', {}, () => {
   let clock;
@@ -117,8 +128,11 @@ describes.realWin('queryStringHasFreshGaaParams', {}, () => {
 
 describes.realWin('GaaMeteringRegwall', {}, () => {
   let clock;
+  let logEvent;
+  let microdata;
   let script;
   let signOutFake;
+  let subscriptionsMock;
 
   beforeEach(() => {
     // Mock clock.
@@ -145,8 +159,13 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     };
 
     // Mock SwG API.
+    logEvent = sandbox.fake();
+    subscriptionsMock = {
+      triggerLoginRequest: sandbox.fake(),
+      getEventManager: () => Promise.resolve({logEvent}),
+    };
     self.SWG = {
-      push: sandbox.fake(),
+      push: sandbox.fake((callback) => void callback(subscriptionsMock)),
     };
 
     // Mock query string.
@@ -161,16 +180,41 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     // Add JSON-LD with a publisher name.
     script = self.document.createElement('script');
     script.type = 'application/ld+json';
-    script.text = ARTICLE_METADATA;
+    script.text = ARTICLE_LD_JSON_METADATA;
     self.document.head.appendChild(script);
+
+    // Add container for Microdata.
+    microdata = self.document.createElement('div');
+    self.document.head.appendChild(microdata);
   });
 
   afterEach(() => {
     script.remove();
-    GaaMeteringRegwall.remove_();
+    microdata.remove();
+    GaaMeteringRegwall.remove();
     self.document.documentElement.lang = '';
     self.console.warn.restore();
   });
+
+  /**
+   * Expects a list of Analytics events.
+   * @param {!Array<{
+   *   analyticsEvent: !ShowcaseEvent,
+   *   isFromUserAction: boolean,
+   * }>} events
+   */
+  function expectAnalyticsEvents(events) {
+    expect(logEvent).to.have.callCount(events.length);
+    for (let i = 0; i < events.length; i++) {
+      const {analyticsEvent, isFromUserAction} = events[i];
+      expect(logEvent.getCall(i)).to.be.calledWithExactly({
+        eventType: analyticsEvent,
+        eventOriginator: 1,
+        isFromUserAction,
+        additionalParameters: null,
+      });
+    }
+  }
 
   describe('show', () => {
     it('shows regwall with publisher name', () => {
@@ -211,31 +255,56 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(self.document.activeElement).to.equal(titleEl);
     });
 
-    it('adds click handler for publisher sign in button', () => {
+    it('handles clicks on publisher sign in link', async () => {
+      // Show Regwall.
       GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      await tick();
+      logEvent.resetHistory();
+
+      // Click publisher link to trigger a login request.
       const publisherSignInButtonEl = self.document.querySelector(
         '#swg-publisher-sign-in-button'
       );
       publisherSignInButtonEl.click();
-
-      // GAA JS should call SwG's triggerLoginRequest API.
-      expect(self.SWG.push).to.be.called;
-      const subscriptionsMock = {
-        triggerLoginRequest: sandbox.fake(),
-      };
-      self.SWG.push.callback(subscriptionsMock);
       expect(subscriptionsMock.triggerLoginRequest).to.be.calledWithExactly({
         linkRequested: false,
       });
+      await tick();
+
+      // Verify analytics event.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK,
+          isFromUserAction: true,
+        },
+      ]);
+    });
+
+    it('parses publisher name from microdata', () => {
+      // Remove JSON-LD.
+      script.text = '{}';
+
+      // Add Microdata.
+      microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      const descriptionEl = self.document.querySelector(
+        '.gaa-metering-regwall--description'
+      );
+      expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
     });
 
     it('throws if article metadata lacks a publisher name', () => {
+      // Remove JSON-LD.
       script.text = '{}';
+
       const showingRegwall = () =>
         GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
       expect(showingRegwall).throws(
-        'Article needs JSON-LD with a publisher name.'
+        'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
       );
     });
 
@@ -344,30 +413,39 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
 
-    it('logs Showcase event', async () => {
+    it('logs Showcase impression events', async () => {
       GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      // Swgjs should log three events.
-      expect(self.SWG.push).to.be.called;
-      const logEvent = sandbox.fake();
-      const subscriptionsMock = {
-        getEventManager: () => Promise.resolve({logEvent}),
-      };
-      self.SWG.push.callback(subscriptionsMock);
       await tick();
 
-      // Swgjs should have logged these analytics events.
-      const eventTypes = [3009, 22, 23];
-      expect(logEvent).to.have.callCount(eventTypes.length);
-      for (let i = 0; i < eventTypes.length; i++) {
-        const eventType = eventTypes[i];
-        expect(logEvent.getCall(i)).to.be.calledWithExactly({
-          eventType,
-          eventOriginator: 1,
-          isFromUserAction: null,
-          additionalParameters: null,
-        });
+      // Verify analytics events.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent: AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
+          isFromUserAction: false,
+        },
+        {
+          analyticsEvent: AnalyticsEvent.IMPRESSION_REGWALL,
+          isFromUserAction: false,
+        },
+        {
+          analyticsEvent: AnalyticsEvent.IMPRESSION_SHOWCASE_REGWALL,
+          isFromUserAction: false,
+        },
+      ]);
+    });
+  });
+
+  describe('remove', () => {
+    it('removes regwall', () => {
+      function findRegwallInDocument() {
+        return self.document.querySelector('.gaa-metering-regwall--dialog');
       }
+
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      expect(findRegwallInDocument()).to.not.be.null;
+
+      GaaMeteringRegwall.remove();
+      expect(findRegwallInDocument()).to.be.null;
     });
   });
 
@@ -405,6 +483,34 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
   });
 
+  describe('logButtonClickEvents_', () => {
+    it('sends button click event', async () => {
+      // Show Regwall.
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      await tick();
+      logEvent.resetHistory();
+
+      // Send button click post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+      });
+
+      // Wait for logging.
+      await new Promise((resolve) => {
+        logEvent = sandbox.fake(resolve);
+      });
+
+      // Verify analytics event.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+          isFromUserAction: true,
+        },
+      ]);
+    });
+  });
+
   describe('getPublisherNameFromPageConfig_', () => {
     it('gets the publisher name from object page config', () => {
       expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
@@ -415,7 +521,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('gets the publisher name from array page config', () => {
       self.document.head.innerHTML = `
         <script type="application/ld+json">
-          [${ARTICLE_METADATA}]
+          [${ARTICLE_LD_JSON_METADATA}]
         </script>
       `;
 
@@ -513,6 +619,40 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
       const styleEl = self.document.querySelector('style');
       expect(styleEl.textContent).to.contain(
         I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['en']
+      );
+    });
+
+    it('sends post message with button click event', async () => {
+      // Show button.
+      GaaGoogleSignInButton.show({allowedOrigins});
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Click button.
+      self.document.getElementById(GOOGLE_SIGN_IN_BUTTON_ID).click();
+
+      // Wait for button click post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      // Expect button click post message.
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
       );
     });
 

@@ -150,6 +150,27 @@ describes.realWin('Dialog', {}, (env) => {
       );
     });
 
+    it('should resize the element based on the maxAllowedHeightRatio', async () => {
+      const openedDialog = await dialog.open();
+
+      const maxAllowedHeightRatio = 1;
+      openedDialog.setMaxAllowedHeightRatio(maxAllowedHeightRatio);
+      await openedDialog.openView(view);
+
+      const viewportHeight = globalDoc.getWin().innerHeight;
+      // Resize view to a height that is larger than the viewport height.
+      await openedDialog.resizeView(view, viewportHeight * 2, NO_ANIMATE);
+
+      const measuredDialogHeight =
+        // Round the measured height to allow for subpixel differences
+        // between browsers & environments.
+        Math.round(
+          parseFloat(computedStyle(win, dialog.getElement())['height'])
+        ) + 'px';
+      const expectedDialogHeight = viewportHeight * maxAllowedHeightRatio;
+      expect(measuredDialogHeight).to.equal(`${expectedDialogHeight}px`);
+    });
+
     it('should return null if passed wrong view', async () => {
       const wrongView = {};
       expect(dialog.resizeView(wrongView)).to.be.null;
