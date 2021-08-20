@@ -295,6 +295,7 @@ describe('serializeProtoMessageForUrl', () => {
       ['exp1', 'exp2'],
       'version',
       'baseUrl',
+      ['Timestamp', 12345, 0],
     ];
     const analyticsEventMetaArray = ['AnalyticsEventMeta', 1, true];
     const eventParamsArray = [
@@ -327,6 +328,7 @@ describe('serializeProtoMessageForUrl', () => {
     // After doing so, the deserialized array should match the original array.
     deserializedAnalyticsRequestArray.unshift('AnalyticsRequest');
     deserializedAnalyticsRequestArray[1].unshift('AnalyticsContext');
+    deserializedAnalyticsRequestArray[1][12].unshift('Timestamp');
     deserializedAnalyticsRequestArray[3].unshift('AnalyticsEventMeta');
     deserializedAnalyticsRequestArray[4].unshift('EventParams');
     expect(deserializedAnalyticsRequestArray).to.deep.equal(

@@ -134,6 +134,10 @@ describe('AnalyticsContext', () => {
     analyticscontext.setLabelList([]);
     analyticscontext.setClientVersion('');
     analyticscontext.setUrl('');
+    const /** !Timestamp  */ timestamp = new Timestamp();
+    timestamp.setSeconds(0);
+    timestamp.setNanos(0);
+    analyticscontext.setClientTimestamp(timestamp);
 
     let analyticscontextDeserialized;
 
@@ -167,6 +171,8 @@ describe('AnalyticsContext', () => {
         analyticscontext.getClientVersion());
     expect(analyticscontextDeserialized.getUrl()).to.deep.equal(
         analyticscontext.getUrl());
+    expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
+        analyticscontext.getClientTimestamp());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -198,6 +204,8 @@ describe('AnalyticsContext', () => {
         analyticscontext.getClientVersion());
     expect(analyticscontextDeserialized.getUrl()).to.deep.equal(
         analyticscontext.getUrl());
+    expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
+        analyticscontext.getClientTimestamp());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -228,6 +236,8 @@ describe('AnalyticsContext', () => {
         analyticscontext.getClientVersion());
     expect(analyticscontextDeserialized.getUrl()).to.deep.equal(
         analyticscontext.getUrl());
+    expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
+        analyticscontext.getClientTimestamp());
   });
 });
 
@@ -294,6 +304,10 @@ describe('AnalyticsRequest', () => {
     analyticscontext.setLabelList([]);
     analyticscontext.setClientVersion('');
     analyticscontext.setUrl('');
+    const /** !Timestamp  */ timestamp = new Timestamp();
+    timestamp.setSeconds(0);
+    timestamp.setNanos(0);
+    analyticscontext.setClientTimestamp(timestamp);
     analyticsrequest.setContext(analyticscontext);
     analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
     const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
