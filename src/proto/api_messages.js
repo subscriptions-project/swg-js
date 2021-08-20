@@ -167,7 +167,7 @@ class AccountCreationRequest {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -237,7 +237,7 @@ class AlreadySubscribedResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -481,7 +481,7 @@ class AnalyticsContext {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -562,7 +562,7 @@ class AnalyticsEventMeta {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -676,7 +676,7 @@ class AnalyticsRequest {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -749,7 +749,7 @@ class EntitlementJwt {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -894,7 +894,7 @@ class EntitlementsRequest {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -969,7 +969,7 @@ class EntitlementsResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -990,77 +990,6 @@ class EntitlementsResponse {
    */
   label() {
     return 'EntitlementsResponse';
-  }
-}
-
-/**
- * @implements {Message}
- */
-class ErrorResponse {
-  /**
-   * @param {!Array<*>=} data
-   * @param {boolean=} includesLabel
-   */
-  constructor(data = [], includesLabel = true) {
-    const base = includesLabel ? 1 : 0;
-
-    /** @private {!Array<string>} */
-    this.errorMessages_ = data[base] || [];
-
-    /** @private {?number} */
-    this.status_ = data[1 + base] == null ? null : data[1 + base];
-  }
-
-  /**
-   * @return {!Array<string>}
-   */
-  getErrorMessagesList() {
-    return this.errorMessages_;
-  }
-
-  /**
-   * @param {!Array<string>} value
-   */
-  setErrorMessagesList(value) {
-    this.errorMessages_ = value;
-  }
-
-  /**
-   * @return {?number}
-   */
-  getStatus() {
-    return this.status_;
-  }
-
-  /**
-   * @param {number} value
-   */
-  setStatus(value) {
-    this.status_ = value;
-  }
-
-  /**
-   * @param {boolean} includeLabel
-   * @return {!Array<?>}
-   * @override
-   */
-  toArray(includeLabel = true) {
-    const arr = [
-        this.errorMessages_, // field 1 - error_messages
-        this.status_, // field 2 - status
-    ];
-    if (includeLabel) {
-      arr.unshift(this.label());
-    }
-    return arr;
-  }
-
-  /**
-   * @return {string}
-   * @override
-   */
-  label() {
-    return 'ErrorResponse';
   }
 }
 
@@ -1196,7 +1125,7 @@ class EventParams {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1272,7 +1201,7 @@ class FinishedLoggingResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1343,7 +1272,7 @@ class LinkSaveTokenRequest {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1397,7 +1326,7 @@ class LinkingInfoResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1552,7 +1481,7 @@ class SkuSelectedResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1611,7 +1540,7 @@ class SmartBoxMessage {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1664,7 +1593,7 @@ class SubscribeResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1734,7 +1663,7 @@ class Timestamp {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1788,7 +1717,7 @@ class ToastCloseRequest {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1841,7 +1770,7 @@ class ViewSubscriptionsResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1873,7 +1802,6 @@ const PROTO_MAP = {
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
-  'ErrorResponse': ErrorResponse,
   'EventParams': EventParams,
   'FinishedLoggingResponse': FinishedLoggingResponse,
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
@@ -1925,7 +1853,6 @@ export {
   EntitlementSource,
   EntitlementsRequest,
   EntitlementsResponse,
-  ErrorResponse,
   EventOriginator,
   EventParams,
   FinishedLoggingResponse,
