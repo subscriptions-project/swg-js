@@ -132,10 +132,9 @@ export class AnalyticsService {
     /** @private {?number} */
     this.timeout_ = null;
 
-    // Time source for setting the client timestamp before sending requests.
-    // Injectable for tests.
+    // A callback for setting the client timestamp before sending requests.
     /** @private {function():!../proto/api_messages.Timestamp} */
-    this.timeSource_ = () => {
+    this.getTimestamp_ = () => {
       return toTimestamp(Date.now());
     };
   }
@@ -156,14 +155,6 @@ export class AnalyticsService {
         eventParams
       );
     }
-  }
-
-  /**
-   * Sets the time source for generating client timestamps on sent events.s
-   * @param {function():!../proto/api_messages.Timestamp} timeSource
-   */
-  setTimeSource(timeSource) {
-    this.timeSource_ = timeSource;
   }
 
   /**
@@ -331,7 +322,9 @@ export class AnalyticsService {
     const meta = new AnalyticsEventMeta();
     meta.setEventOriginator(event.eventOriginator);
     meta.setIsFromUserAction(!!event.isFromUserAction);
-    this.updateContextTimestamp_();
+    // Update the of the analytics context to the current time.
+    // This needs to be current for log analysis.
+    this.context_.setClientTimestamp(this.getTimestamp_());
     const request = new AnalyticsRequest();
     request.setEvent(/** @type {!AnalyticsEvent} */ (event.eventType));
     request.setContext(this.context_);
@@ -340,14 +333,6 @@ export class AnalyticsService {
       request.setParams(event.additionalParameters);
     } // Ignore event.additionalParameters.  It may have data we shouldn't log.
     return request;
-  }
-
-  /**
-   * Updates the timestamp of the analytics context to the current time.
-   * Called when creating any logging request.
-   */
-  updateContextTimestamp_() {
-    this.context_.setClientTimestamp(this.timeSource_());
   }
 
   /**

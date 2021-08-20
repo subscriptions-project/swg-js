@@ -446,7 +446,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
       const mockClientTimeSource = sandbox.spy(() => {
         return toTimestamp(12345);
       });
-      analyticsService.setTimeSource(mockClientTimeSource);
+      analyticsService.getTimestamp_ = mockClientTimeSource;
 
       eventManagerCallback(event);
 
