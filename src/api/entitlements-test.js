@@ -84,4 +84,22 @@ describes.realWin('Entitlements', {}, () => {
       );
     });
   });
+
+  describe('consume', () => {
+    it('executes consume handler', () => {
+      const consumeHandlerSpy = sandbox.spy();
+      const entitlements = new Entitlements(
+        '',
+        '',
+        [],
+        '',
+        null,
+        consumeHandlerSpy
+      );
+
+      expect(consumeHandlerSpy).to.not.be.called;
+      entitlements.consume();
+      expect(consumeHandlerSpy).to.be.calledOnce;
+    });
+  });
 });

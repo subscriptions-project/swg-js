@@ -121,6 +121,9 @@ export class Dialog {
 
     /** @private {?./view.View} */
     this.previousProgressView_ = null;
+
+    /** @private {number} */
+    this.maxAllowedHeightRatio_ = 0.9;
   }
 
   /**
@@ -447,7 +450,19 @@ export class Dialog {
    * @private
    */
   getMaxAllowedHeight_(height) {
-    return Math.min(height, this.doc_.getWin()./*OK*/ innerHeight * 0.9);
+    return Math.min(
+      height,
+      this.doc_.getWin()./*OK*/ innerHeight * this.maxAllowedHeightRatio_
+    );
+  }
+
+  /**
+   * Sets the max allowed height as a ratio to the viewport height. For example,
+   * ratio = 0.9 means the max allowed height is 90% of the viewport height.
+   * @param {number} ratio
+   */
+  setMaxAllowedHeightRatio(ratio) {
+    this.maxAllowedHeightRatio_ = ratio;
   }
 
   /**

@@ -35,7 +35,7 @@ import {warn} from './log';
 
 // Load types for Closure compiler.
 import '../model/doc';
-import {EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
 
 /** Stamp for post messages. */
@@ -50,11 +50,14 @@ export const POST_MESSAGE_COMMAND_USER = 'user';
 /** Error command for post messages. */
 export const POST_MESSAGE_COMMAND_ERROR = 'error';
 
+/** Button click command for post messages. */
+export const POST_MESSAGE_COMMAND_BUTTON_CLICK = 'button-click';
+
 /** ID for the Google Sign-In iframe element. */
 export const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
 
 /** ID for the Google Sign-In button element. */
-const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
+export const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 
 /** ID for the Publisher sign-in button element. */
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
@@ -127,6 +130,7 @@ const REGWALL_HTML = `
     display: block;
     font-size: 16px;
     margin: 0 0 8px;
+    outline: none !important;
   }
   
   .gaa-metering-regwall--description {
@@ -393,22 +397,37 @@ export class GaaMeteringRegwall {
       return Promise.reject(errorMessage);
     }
 
-    logEvent(ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL);
+    logEvent({
+      showcaseEvent: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL,
+      isFromUserAction: false,
+    });
 
     GaaMeteringRegwall.render_({iframeUrl, caslUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
+    GaaMeteringRegwall.logButtonClickEvents_();
     return GaaMeteringRegwall.getGaaUser_()
       .then((gaaUser) => {
-        GaaMeteringRegwall.remove_();
+        GaaMeteringRegwall.remove();
         return gaaUser;
       })
       .catch((err) => {
         // Close the Regwall, since the flow failed.
-        GaaMeteringRegwall.remove_();
+        GaaMeteringRegwall.remove();
 
         // Rethrow error.
         throw err;
       });
+  }
+
+  /**
+   * Removes the Regwall.
+   * @nocollapse
+   */
+  static remove() {
+    const regwallContainer = self.document.getElementById(REGWALL_CONTAINER_ID);
+    if (regwallContainer) {
+      regwallContainer.remove();
+    }
   }
 
   /**
@@ -533,6 +552,30 @@ export class GaaMeteringRegwall {
    * @return {string}
    */
   static getPublisherNameFromPageConfig_() {
+    const jsonLdPageConfig =
+      GaaMeteringRegwall.getPublisherNameFromJsonLdPageConfig_();
+    if (jsonLdPageConfig) {
+      return jsonLdPageConfig;
+    }
+
+    const microdataPageConfig =
+      GaaMeteringRegwall.getPublisherNameFromMicrodataPageConfig_();
+    if (microdataPageConfig) {
+      return microdataPageConfig;
+    }
+
+    throw new Error(
+      'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
+    );
+  }
+
+  /**
+   * Gets publisher name from JSON-LD page config.
+   * @private
+   * @nocollapse
+   * @return {string}
+   */
+  static getPublisherNameFromJsonLdPageConfig_() {
     const ldJsonElements = self.document.querySelectorAll(
       'script[type="application/ld+json"]'
     );
@@ -554,8 +597,26 @@ export class GaaMeteringRegwall {
         return publisherName;
       }
     }
+  }
 
-    throw new Error('Article needs JSON-LD with a publisher name.');
+  /**
+   * Gets publisher name from Microdata page config.
+   * @private
+   * @nocollapse
+   * @return {string}
+   */
+  static getPublisherNameFromMicrodataPageConfig_() {
+    const publisherNameElements = self.document.querySelectorAll(
+      '[itemscope][itemtype][itemprop="publisher"] [itemprop="name"]'
+    );
+
+    for (let i = 0; i < publisherNameElements.length; i++) {
+      const publisherNameElement = publisherNameElements[i];
+      const publisherName = publisherNameElement.content;
+      if (publisherName) {
+        return publisherName;
+      }
+    }
   }
 
   /**
@@ -568,6 +629,12 @@ export class GaaMeteringRegwall {
       .getElementById(PUBLISHER_SIGN_IN_BUTTON_ID)
       .addEventListener('click', (e) => {
         e.preventDefault();
+
+        logEvent({
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK,
+          isFromUserAction: true,
+        });
 
         callSwg((swg) => swg.triggerLoginRequest({linkRequested: false}));
       });
@@ -599,6 +666,27 @@ export class GaaMeteringRegwall {
   }
 
   /**
+   * Logs button click events.
+   * @private
+   * @nocollapse
+   */
+  static logButtonClickEvents_() {
+    // Listen for button event messages.
+    self.addEventListener('message', (e) => {
+      if (
+        e.data.stamp === POST_MESSAGE_STAMP &&
+        e.data.command === POST_MESSAGE_COMMAND_BUTTON_CLICK
+      ) {
+        // Log button click event.
+        logEvent({
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+          isFromUserAction: true,
+        });
+      }
+    });
+  }
+
+  /**
    * Sends intro post message to Google Sign-In iframe.
    * @private
    * @nocollapse
@@ -620,18 +708,6 @@ export class GaaMeteringRegwall {
         new URL(iframeUrl).origin
       );
     };
-  }
-
-  /**
-   * Removes the Regwall.
-   * @private
-   * @nocollapse
-   */
-  static remove_() {
-    const regwallContainer = self.document.getElementById(REGWALL_CONTAINER_ID);
-    if (regwallContainer) {
-      regwallContainer.remove();
-    }
   }
 }
 
@@ -720,6 +796,17 @@ export class GaaGoogleSignInButton {
               'scope': 'profile email',
               'theme': 'dark',
             });
+
+            // Track button clicks.
+            buttonEl.addEventListener('click', () => {
+              // Tell parent frame about button click.
+              sendMessageToParentFnPromise.then((sendMessageToParent) => {
+                sendMessageToParent({
+                  stamp: POST_MESSAGE_STAMP,
+                  command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+                });
+              });
+            });
           })
       )
       .then((googleUser) => {
@@ -796,21 +883,27 @@ function callSwg(callback) {
 
 /**
  * Logs Showcase events.
- * @param {!ShowcaseEvent} showcaseEvent
+ * @param {{
+ *   analyticsEvent: (AnalyticsEvent|undefined),
+ *   showcaseEvent: (ShowcaseEvent|undefined),
+ *   isFromUserAction: boolean,
+ * }} params
  */
-function logEvent(showcaseEvent) {
+function logEvent({analyticsEvent, showcaseEvent, isFromUserAction} = {}) {
   callSwg((swg) => {
     // Get reference to event manager.
     swg.getEventManager().then((eventManager) => {
-      // Get individual analytics events from Showcase event.
-      const eventTypes = showcaseEventToAnalyticsEvents(showcaseEvent);
+      // Get list of analytics events.
+      const eventTypes = showcaseEvent
+        ? showcaseEventToAnalyticsEvents(showcaseEvent)
+        : [analyticsEvent];
 
       // Log each analytics event.
       eventTypes.forEach((eventType) => {
         eventManager.logEvent({
           eventType,
           eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: null,
+          isFromUserAction,
           additionalParameters: null,
         });
       });

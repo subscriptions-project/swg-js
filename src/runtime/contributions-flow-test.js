@@ -202,6 +202,42 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     await contributionsFlow.start();
   });
 
+  it('start should not show contributions if predicates disable', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(
+        new ClientConfig(
+          /* autoPromptConfig */ undefined,
+          /* paySwgVersion */ undefined,
+          /* useUpdatedOfferFlows */ true,
+          /* uiPredicates */ {canDisplayAutoPrompt: false}
+        )
+      );
+    contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
+    callbacksMock.expects('triggerFlowStarted').never();
+
+    await contributionsFlow.start();
+  });
+
+  it('start should show contributions if predicates enable', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(
+        new ClientConfig(
+          /* autoPromptConfig */ undefined,
+          /* paySwgVersion */ undefined,
+          /* useUpdatedOfferFlows */ true,
+          /* uiPredicates */ {canDisplayAutoPrompt: true}
+        )
+      );
+    contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
+    callbacksMock.expects('triggerFlowStarted').once();
+
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await contributionsFlow.start();
+  });
+
   it('activates pay, login', async () => {
     const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');

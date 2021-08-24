@@ -22,8 +22,18 @@ const childProcess = require('child_process');
 const {startServer, stopServer} = require('../../build-system/tasks/serve');
 
 module.exports = {
-  before: function () {
-    startServer();
+  before: async function () {
+    // Wait for server to start.
+    await new Promise((resolve) => {
+      startServer().once('start', () => {
+        // Give server an extra few seconds to startup.
+        // Otherwise, Nightwatch requests pages too soon,
+        // and then the first E2E tests fail.
+        // In testing, one extra second was enough,
+        // so three seems pretty safe.
+        setTimeout(resolve, 3000);
+      });
+    });
   },
   after: function () {
     // Chromedriver does not automatically exit after test ends.
