@@ -581,7 +581,7 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     dialogManagerMock
       .expects('openDialog')
-      .withExactArgs(/* hidden */ true)
+      .withExactArgs(/* hidden */ true, {})
       .returns(dialog.open());
     linkSaveFlow.start();
     await linkSaveFlow.openPromise_;
@@ -651,7 +651,7 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
     const dialog = new Dialog(new GlobalDoc(win));
     dialogManagerMock
       .expects('openDialog')
-      .withExactArgs(/* hidden */ true)
+      .withExactArgs(/* hidden */ true, {})
       .returns(dialog.open());
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
