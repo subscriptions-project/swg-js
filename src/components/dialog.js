@@ -115,7 +115,7 @@ export class Dialog {
 
     /** @private @const {!FriendlyIframe} */
     this.iframe_ = new FriendlyIframe(doc.getWin().document, {
-      'class': `swg-dialog${supportsWideScreen ? ' swg-wide-dialog' : ''}`,
+      'class': `swg-dialog ${supportsWideScreen ? 'swg-wide-dialog' : ''}`,
     });
 
     /** @private @const {!Graypane} */
