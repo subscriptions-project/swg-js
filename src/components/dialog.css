@@ -37,6 +37,16 @@
   border: none !important;
 }
 
+/**
+ * Wide desktop screen support, when width is >= 871px and height is >= 641px.
+ */
+@media (min-width: 871px) and (min-height: 641px) {
+  .swg-dialog.swg-wide-dialog {
+    width: 870px !important;
+    left: -435px !important;
+  }
+}
+
 /** Tablet/Medium screen support, when width OR height is <= 640px. */
 @media (max-width: 640px), (max-height: 640px) {
   .swg-dialog,
