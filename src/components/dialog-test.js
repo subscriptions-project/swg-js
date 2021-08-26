@@ -36,8 +36,6 @@ describes.realWin('Dialog', {}, (env) => {
     win = env.win;
     doc = env.win.document;
     globalDoc = new GlobalDoc(win);
-    dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
-    graypaneStubs = sandbox.stub(dialog.graypane_);
 
     element = doc.createElement('div');
     view = {
@@ -55,6 +53,11 @@ describes.realWin('Dialog', {}, (env) => {
   }
 
   describe('dialog', () => {
+    beforeEach(() => {
+      dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
+      graypaneStubs = sandbox.stub(dialog.graypane_);
+    });
+
     it('should have created a friendly iframe instance', async () => {
       const iframe = dialog.getElement();
       expect(iframe.nodeType).to.equal(1);
@@ -390,4 +393,185 @@ describes.realWin('Dialog', {}, (env) => {
       expect(styleDuringInit).to.equal('display: none !important;');
     });
   });
+
+  describe('dialog with supportsWideScreen=true', () => {
+    beforeEach(() => {
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {desktopConfig: {supportsWideScreen: true}}
+      );
+    });
+
+    it('creates iframe with swg-wide-dialog class', async () => {
+      const iframe = dialog.getElement();
+      expect(iframe).to.have.class('swg-dialog');
+      expect(iframe).to.have.class('swg-wide-dialog');
+    });
+  });
+
+  /** @param {!HTMLIFrameElement} iframe */
+  function expectPositionBottom(iframe) {
+    expect(getStyle(iframe, 'top')).to.equal('auto');
+    expect(getStyle(iframe, 'bottom')).to.equal('0px');
+    expect(getStyle(iframe, 'transform')).to.equal('translateY(0px)');
+  }
+
+  /** @param {!HTMLIFrameElement} iframe */
+  function expectPositionCenter(iframe) {
+    expect(getStyle(iframe, 'top')).to.equal('50%');
+    expect(getStyle(iframe, 'bottom')).to.equal('0px');
+    expect(getStyle(iframe, 'transform')).to.equal('translateY(-50%)');
+  }
+
+  describe('dialog with isCenterPositioned=true on non-desktop', () => {
+    let matchMedia;
+
+    beforeEach(() => {
+      matchMedia = new FakeMediaMatcher(/* matches */ false);
+      sandbox.stub(win, 'matchMedia').returns(matchMedia);
+
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {desktopConfig: {isCenterPositioned: true}}
+      );
+    });
+
+    it('is positioned at the bottom after open', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.animating_;
+
+      expectPositionBottom(dialog.getElement());
+    });
+
+    it('repositions to center after window resizes to match mediaQuery', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.animating_;
+      expect(matchMedia.hasListeners()).to.be.true;
+
+      matchMedia.toggleMatches();
+      matchMedia.triggerListeners();
+
+      expectPositionCenter(dialog.getElement());
+    });
+
+    it('removes matchMedia listener on close', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.animating_;
+      await dialog.close(false);
+
+      expect(matchMedia.hasListeners()).to.be.false;
+    });
+  });
+
+  describe('dialog with isCenterPositioned=true on desktop', () => {
+    let matchMedia;
+
+    beforeEach(() => {
+      matchMedia = new FakeMediaMatcher(/* matches */ true);
+      sandbox.stub(win, 'matchMedia').returns(matchMedia);
+
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {desktopConfig: {isCenterPositioned: true}}
+      );
+    });
+
+    it('is vertically centered after open', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.animating_;
+
+      expectPositionCenter(dialog.getElement());
+    });
+
+    it('repositions to bottom after window resizes to no longer match mediaQuery', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.animating_;
+      expect(matchMedia.hasListeners()).to.be.true;
+
+      matchMedia.toggleMatches();
+      matchMedia.triggerListeners();
+
+      expectPositionBottom(dialog.getElement());
+    });
+
+    it('removes matchMedia listener on close', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.animating_;
+      await dialog.close(false);
+
+      expect(matchMedia.hasListeners()).to.be.false;
+    });
+
+    it('stays vertically centered after expand animation', async () => {
+      const newHeight = 110;
+
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      const iframe = dialog.getElement();
+      expectPositionCenter(iframe);
+      expect(getStyle(iframe, 'height')).to.equal(`${newHeight}px`);
+    });
+
+    it('stays vertically centered after collapse animation', async () => {
+      const newHeight = 90;
+
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      const iframe = dialog.getElement();
+      expectPositionCenter(iframe);
+      expect(getStyle(iframe, 'height')).to.equal(`${newHeight}px`);
+    });
+  });
 });
+
+/** Fake implementation for MediaQueryList. */
+class FakeMediaMatcher {
+  /** @param {boolean} matches */
+  constructor(matches) {
+    this.matches = matches;
+    this.listeners_ = new Set();
+  }
+
+  /** @param {!Function} listener */
+  addListener(listener) {
+    this.listeners_.add(listener);
+  }
+
+  /** @param {!Function} listener */
+  removeListener(listener) {
+    this.listeners_.delete(listener);
+  }
+
+  /** @return {boolean} */
+  hasListeners() {
+    return !!this.listeners_.size;
+  }
+
+  triggerListeners() {
+    for (const listener of this.listeners_) {
+      listener();
+    }
+  }
+
+  toggleMatches() {
+    this.matches = !this.matches;
+  }
+}

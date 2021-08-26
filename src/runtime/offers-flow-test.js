@@ -43,8 +43,9 @@ describes.realWin('OffersFlow', {}, (env) => {
   let offersFlow;
   let runtime;
   let activitiesMock;
-  let eventManagerMock;
   let callbacksMock;
+  let dialogManagerMock;
+  let eventManagerMock;
   let pageConfig;
   let port;
   let messageCallback;
@@ -57,6 +58,7 @@ describes.realWin('OffersFlow', {}, (env) => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     const eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
@@ -167,6 +169,44 @@ describes.realWin('OffersFlow', {}, (env) => {
 
     activitiesMock.expects('openIframe').resolves(port);
 
+    await offersFlow.start();
+  });
+
+  it('opens dialog without desktop config when useUpdatedOfferFlows=false', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(
+        new ClientConfig(
+          /* autoPromptConfig */ undefined,
+          /* paySwgVersion */ undefined,
+          /* useUpdatedOfferFlows */ false
+        )
+      );
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(sandbox.match.any, false, null, {})
+      .once();
+    await offersFlow.start();
+  });
+
+  it('opens dialog with desktop config when useUpdatedOfferFlows=true', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(
+        new ClientConfig(
+          /* autoPromptConfig */ undefined,
+          /* paySwgVersion */ undefined,
+          /* useUpdatedOfferFlows */ true
+        )
+      );
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(sandbox.match.any, false, null, {
+        desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
+      })
+      .once();
     await offersFlow.start();
   });
 

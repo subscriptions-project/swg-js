@@ -84,6 +84,16 @@ describes.realWin('DialogManager', {}, (env) => {
     expect(dialogIfc.open).to.be.calledWithExactly(true);
   });
 
+  it('opens dialog with configuration options on openDialog()', async () => {
+    expect(dialogManager.dialog_).to.be.null;
+    const dialog = await dialogManager.openDialog(/* hidden */ false, {
+      desktopConfig: {isCenterPositioned: true},
+    });
+    expect(dialog).to.exist;
+    expect(dialog.isPositionCenterOnDesktop()).to.be.true;
+    expect(dialogManager.dialog_).to.equal(dialog);
+  });
+
   it('should re-open the same dialog', async () => {
     // Open dialog twice.
     const dialog1 = await dialogManager.openDialog();
@@ -107,11 +117,25 @@ describes.realWin('DialogManager', {}, (env) => {
     expect(dialogIfc.openView).to.be.calledWith(initView);
   });
 
+  it('opens dialog with configuration options on openView()', async () => {
+    await dialogManager.openView(
+      initView,
+      false,
+      /* maxAllowedHeightRatio */ null,
+      {
+        desktopConfig: {isCenterPositioned: true},
+      }
+    );
+    const dialog = dialogManager.getDialog();
+    expect(dialog).to.exist;
+    expect(dialog.isPositionCenterOnDesktop()).to.be.true;
+  });
+
   it('should open view with maxAllowedHeightRatio', async () => {
     await dialogManager.openView(
       initView,
       false,
-      1 /* maxAllowedHeightRatio */
+      /* maxAllowedHeightRatio */ 1
     );
     expect(dialogIfc.setMaxAllowedHeightRatio).to.be.calledOnce;
     expect(dialogIfc.setMaxAllowedHeightRatio).to.be.calledWith(1);
