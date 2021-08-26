@@ -36,8 +36,6 @@ describes.realWin('Dialog', {}, (env) => {
     win = env.win;
     doc = env.win.document;
     globalDoc = new GlobalDoc(win);
-    dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
-    graypaneStubs = sandbox.stub(dialog.graypane_);
 
     element = doc.createElement('div');
     view = {
@@ -55,6 +53,11 @@ describes.realWin('Dialog', {}, (env) => {
   }
 
   describe('dialog', () => {
+    beforeEach(() => {
+      dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
+      graypaneStubs = sandbox.stub(dialog.graypane_);
+    });
+
     it('should have created a friendly iframe instance', async () => {
       const iframe = dialog.getElement();
       expect(iframe.nodeType).to.equal(1);
@@ -388,6 +391,107 @@ describes.realWin('Dialog', {}, (env) => {
 
       await openedDialog.openView(view2);
       expect(styleDuringInit).to.equal('display: none !important;');
+    });
+  });
+
+  describe('dialog with supportsWideScreen=true', () => {
+    beforeEach(() => {
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {desktopConfig: {supportsWideScreen: true}}
+      );
+    });
+
+    it('creates iframe with swg-wide-dialog class', async () => {
+      const iframe = dialog.getElement();
+      expect(iframe).to.have.class('swg-dialog');
+      expect(iframe).to.have.class('swg-wide-dialog');
+    });
+  });
+
+  describe('dialog with isCenterPositioned=true on non-desktop', () => {
+    beforeEach(() => {
+      sandbox.stub(win, 'matchMedia').returns({
+        'matches': false,
+        'addListener': (callback) => callback,
+      });
+
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {desktopConfig: {isCenterPositioned: true}}
+      );
+    });
+
+    it('is positioned at the bottom after open', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.animating_;
+
+      const iframe = dialog.getElement();
+      expect(getStyle(iframe, 'top')).to.equal('auto');
+      expect(getStyle(iframe, 'bottom')).to.equal('0px');
+      expect(getStyle(iframe, 'transform')).to.equal('translateY(0px)');
+    });
+  });
+
+  describe('dialog with isCenterPositioned=true on desktop', () => {
+    beforeEach(() => {
+      sandbox.stub(win, 'matchMedia').returns({
+        'matches': true,
+        'addListener': (callback) => callback,
+      });
+
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {desktopConfig: {isCenterPositioned: true}}
+      );
+    });
+
+    it('is vertically centered after open', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.animating_;
+
+      const iframe = dialog.getElement();
+      expect(getStyle(iframe, 'top')).to.equal('50%');
+      expect(getStyle(iframe, 'bottom')).to.equal('0px');
+      expect(getStyle(iframe, 'transform')).to.equal('translateY(-50%)');
+    });
+
+    it('stays vertically centered after expand animation', async () => {
+      const newHeight = 110;
+
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      const iframe = dialog.getElement();
+      expect(getStyle(iframe, 'top')).to.equal('50%');
+      expect(getStyle(iframe, 'bottom')).to.equal('0px');
+      expect(getStyle(iframe, 'transform')).to.equal('translateY(-50%)');
+      expect(getStyle(iframe, 'height')).to.equal(`${newHeight}px`);
+    });
+
+    it('stays vertically centered after collapse animation', async () => {
+      const newHeight = 90;
+
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      const iframe = dialog.getElement();
+      expect(getStyle(iframe, 'top')).to.equal('50%');
+      expect(getStyle(iframe, 'bottom')).to.equal('0px');
+      expect(getStyle(iframe, 'transform')).to.equal('translateY(-50%)');
+      expect(getStyle(iframe, 'height')).to.equal(`${newHeight}px`);
     });
   });
 });
