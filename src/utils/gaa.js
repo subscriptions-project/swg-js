@@ -573,7 +573,7 @@ export class GaaMeteringRegwall {
    * Gets publisher name from JSON-LD page config.
    * @private
    * @nocollapse
-   * @return {string}
+   * @return {string|undefined}
    */
   static getPublisherNameFromJsonLdPageConfig_() {
     const ldJsonElements = self.document.querySelectorAll(
@@ -603,7 +603,7 @@ export class GaaMeteringRegwall {
    * Gets publisher name from Microdata page config.
    * @private
    * @nocollapse
-   * @return {string}
+   * @return {string|undefined}
    */
   static getPublisherNameFromMicrodataPageConfig_() {
     const publisherNameElements = self.document.querySelectorAll(
