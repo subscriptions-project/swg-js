@@ -229,6 +229,9 @@ export class OffersFlow {
         );
         this.activityIframeView_ = activityIframeView;
         return this.clientConfig_.then((clientConfig) => {
+          if (!this.activityIframeView_) {
+            return;
+          }
           return this.dialogManager_.openView(
             this.activityIframeView_,
             /* hidden */ false,
