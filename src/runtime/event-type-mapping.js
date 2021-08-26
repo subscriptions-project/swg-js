@@ -86,7 +86,8 @@ const ShowcaseEvents = {
     AnalyticsEvent.IMPRESSION_PAYWALL,
   ],
   [ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL]: [
-    // TODO(b/181690059): Create showcase ineligible AnalyticsEvent
+    AnalyticsEvent.EVENT_INELIGIBLE_PAYWALL,
+    AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
     AnalyticsEvent.IMPRESSION_PAYWALL,
   ],
 };
