@@ -235,7 +235,6 @@ export class OffersFlow {
           return this.dialogManager_.openView(
             this.activityIframeView_,
             /* hidden */ false,
-            /* maxAllowedHeightRatio */ null,
             this.getDialogConfig_(clientConfig)
           );
         });

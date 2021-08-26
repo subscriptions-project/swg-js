@@ -71,9 +71,12 @@ const resetViewStyles = {
  *
  * Properties:
  * - desktopConfig: Options for dialogs on desktop screens.
+ * - maxAllowedHeightRatio: The max allowed height of the view as a ratio of the
+ *       viewport height.
  *
  * @typedef {{
  *   desktopConfig: (DesktopDialogConfig|undefined),
+ *   maxAllowedHeightRatio: (number|undefined),
  * }}
  */
 export let DialogConfig;
@@ -154,8 +157,11 @@ export class Dialog {
     /** @private {?./view.View} */
     this.previousProgressView_ = null;
 
-    /** @private {number} */
-    this.maxAllowedHeightRatio_ = 0.9;
+    /** @const @private {number} */
+    this.maxAllowedHeightRatio_ =
+      dialogConfig.maxAllowedHeightRatio !== undefined
+        ? dialogConfig.maxAllowedHeightRatio
+        : 0.9;
 
     /** @const @private {boolean} */
     this.positionCenterOnDesktop_ = !!desktopDialogConfig.isCenterPositioned;
@@ -301,6 +307,14 @@ export class Dialog {
    */
   getLoadingView() {
     return this.loadingView_;
+  }
+
+  /**
+   * Returns the max allowed height of the view as a ratio of viewport height.
+   * @return {number}
+   */
+  getMaxAllowedHeightRatio() {
+    return this.maxAllowedHeightRatio_;
   }
 
   /**
@@ -519,15 +533,6 @@ export class Dialog {
       height,
       this.doc_.getWin()./*OK*/ innerHeight * this.maxAllowedHeightRatio_
     );
-  }
-
-  /**
-   * Sets the max allowed height as a ratio to the viewport height. For example,
-   * ratio = 0.9 means the max allowed height is 90% of the viewport height.
-   * @param {number} ratio
-   */
-  setMaxAllowedHeightRatio(ratio) {
-    this.maxAllowedHeightRatio_ = ratio;
   }
 
   /**

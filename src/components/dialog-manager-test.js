@@ -47,9 +47,6 @@ describes.realWin('DialogManager', {}, (env) => {
       getCurrentView: sandbox
         .stub(Dialog.prototype, 'getCurrentView')
         .callsFake(() => currentView),
-      setMaxAllowedHeightRatio: sandbox
-        .stub(Dialog.prototype, 'setMaxAllowedHeightRatio')
-        .callsFake(() => {}),
     };
     let graypaneAttached;
     const graypane = dialogManager.popupGraypane_;
@@ -118,27 +115,14 @@ describes.realWin('DialogManager', {}, (env) => {
   });
 
   it('opens dialog with configuration options on openView()', async () => {
-    await dialogManager.openView(
-      initView,
-      false,
-      /* maxAllowedHeightRatio */ null,
-      {
-        desktopConfig: {isCenterPositioned: true},
-      }
-    );
+    await dialogManager.openView(initView, false, {
+      maxAllowedHeightRatio: 1,
+      desktopConfig: {isCenterPositioned: true},
+    });
     const dialog = dialogManager.getDialog();
     expect(dialog).to.exist;
+    expect(dialog.getMaxAllowedHeightRatio()).to.equal(1);
     expect(dialog.isPositionCenterOnDesktop()).to.be.true;
-  });
-
-  it('should open view with maxAllowedHeightRatio', async () => {
-    await dialogManager.openView(
-      initView,
-      false,
-      /* maxAllowedHeightRatio */ 1
-    );
-    expect(dialogIfc.setMaxAllowedHeightRatio).to.be.calledOnce;
-    expect(dialogIfc.setMaxAllowedHeightRatio).to.be.calledWith(1);
   });
 
   it('should complete view and close dialog', async () => {
