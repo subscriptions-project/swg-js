@@ -1420,6 +1420,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       [AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION]: 1,
       [AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE]: 1,
       [AnalyticsEvent.IMPRESSION_PAYWALL]: 1,
+      [AnalyticsEvent.EVENT_INELIGIBLE_PAYWALL]: 1,
       [AnalyticsEvent.UNKNOWN]: 1,
     };
 
@@ -1455,6 +1456,13 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       it('should pingback IMPRESSION_PAYWALL', () =>
         expectPingback(
           AnalyticsEvent.IMPRESSION_PAYWALL,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE
+        ));
+
+      it('should pingback EVENT_INELIGIBLE_PAYWALL', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_INELIGIBLE_PAYWALL,
           EventOriginator.SWG_CLIENT,
           GOOGLE_SOURCE
         ));
