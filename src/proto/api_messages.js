@@ -119,6 +119,7 @@ const EntitlementResult = {
   UNLOCKED_METER: 1003,
   LOCKED_REGWALL: 2001,
   LOCKED_PAYWALL: 2002,
+  INELIGIBLE_PAYWALL: 2003,
 };
 /** @enum {number} */
 const EntitlementSource = {
