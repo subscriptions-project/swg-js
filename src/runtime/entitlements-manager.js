@@ -225,7 +225,6 @@ export class EntitlementsManager {
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
     jwt.setJwt(entitlement.subscriptionToken);
-    console.log('GOOGLE_SHOWCASE_METERING_SERVICE', 'UNLOCKED_METER');
     return this.postEntitlementsRequest_(
       jwt,
       EntitlementResult.UNLOCKED_METER,
