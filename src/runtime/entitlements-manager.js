@@ -259,20 +259,19 @@ export class EntitlementsManager {
     let source = null;
 
     switch (event.eventOriginator) {
-      // The indicates the publisher reported it via subscriptions.setShowcaseEntitlement
+      // Publisher JS logged this event.
       case EventOriginator.SHOWCASE_CLIENT:
         source = EntitlementSource.PUBLISHER_ENTITLEMENT;
         break;
-      case EventOriginator.SWG_CLIENT: // Fallthrough, these are the same
-      case EventOriginator.SWG_SERVER:
+      // Swgjs logged this event.
+      case EventOriginator.SWG_CLIENT:
         if (result == EntitlementResult.UNLOCKED_METER) {
-          // Meters from Google require a valid jwt, which is sent by
-          // an entitlement.
+          // The `consumeMeter_` method already tracks this.
           return;
         }
+
         source = EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT;
         break;
-      // Permission to pingback other sources was not requested
       default:
         return;
     }

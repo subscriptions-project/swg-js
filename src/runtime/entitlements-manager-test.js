@@ -1505,64 +1505,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       });
     });
 
-    describe('SWG_SERVER', () => {
-      it('should pingback IMPRESSION_REGWALL from SWG_SERVER', () =>
-        expectPingback(
-          AnalyticsEvent.IMPRESSION_REGWALL,
-          EventOriginator.SWG_SERVER,
-          GOOGLE_SOURCE
-        ));
-
-      it('should NOT pingback EVENT_UNLOCKED_BY_METER from SWG_SERVER', () =>
-        expectNoPingback(
-          AnalyticsEvent.EVENT_UNLOCKED_BY_METER,
-          EventOriginator.SWG_SERVER
-        ));
-
-      it('should pingback EVENT_UNLOCKED_BY_SUBSCRIPTION from SWG_SERVER', () =>
-        expectPingback(
-          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
-          EventOriginator.SWG_SERVER,
-          GOOGLE_SOURCE,
-          getEventParams(true)
-        ));
-
-      it('should pingback EVENT_UNLOCKED_FREE_PAGE from SWG_SERVER', () =>
-        expectPingback(
-          AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE,
-          EventOriginator.SWG_SERVER,
-          GOOGLE_SOURCE
-        ));
-
-      it('should pingback IMPRESSION_PAYWALL from SWG_SERVER', () =>
-        expectPingback(
-          AnalyticsEvent.IMPRESSION_PAYWALL,
-          EventOriginator.SWG_SERVER,
-          GOOGLE_SOURCE
-        ));
-
-      it('should NOT pingback on invalid GAA params', async () => {
-        // Stub out Date.now() to some time past the URL timestamp expiration.
-        nowStub.returns(3600389016959);
-        await expectNoPingback(
-          AnalyticsEvent.IMPRESSION_PAYWALL,
-          EventOriginator.SWG_SERVER
-        );
-        await xhrMock.verify();
-      });
-
-      it('should NOT pingback other events', async () => {
-        for (const eventKey in AnalyticsEvent) {
-          const event = AnalyticsEvent[eventKey];
-          if (PINGBACK_EVENTS[event]) {
-            continue;
-          }
-          await expectNoPingback(event, EventOriginator.SWG_SERVER);
-          await xhrMock.verify();
-        }
-      });
-    });
-
     describe('SHOWCASE_CLIENT', () => {
       it('should pingback IMPRESSION_REGWALL', () =>
         expectPingback(
