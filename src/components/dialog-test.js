@@ -272,6 +272,21 @@ describes.realWin('Dialog', {}, (env) => {
       expect(container.nodeName).to.equal('SWG-CONTAINER');
     });
 
+    it('opens the iframe inside the container element', async () => {
+      const containerEl = doc.createElement('div');
+      doc.body.appendChild(containerEl);
+      const openedDialog = await dialog.openInContainer(containerEl);
+
+      // iframe element should be a child of the container element.
+      expect(containerEl.contains(openedDialog.getIframe().getElement())).to.be
+        .true;
+
+      // The swg-container should also be created.
+      const container = openedDialog.getContainer();
+      expect(container.nodeType).to.equal(1);
+      expect(container.nodeName).to.equal('SWG-CONTAINER');
+    });
+
     it('should throw if container is missing', async () => {
       expect(() => dialog.getContainer()).to.throw('not opened yet');
     });
@@ -315,6 +330,12 @@ describes.realWin('Dialog', {}, (env) => {
       immediate();
       sandbox.stub(dialog.iframe_, 'isConnected').returns(true);
       expect(() => dialog.open()).to.throw('already opened');
+    });
+
+    it('throws if iframe already connected when opening in a container', () => {
+      immediate();
+      sandbox.stub(dialog.iframe_, 'isConnected').returns(true);
+      expect(() => dialog.openInContainer(doc.body)).to.throw('already opened');
     });
 
     it('should have Loading view element added', async () => {
@@ -418,6 +439,25 @@ describes.realWin('Dialog', {}, (env) => {
       const iframe = dialog.getElement();
       expect(iframe).to.have.class('swg-dialog');
       expect(iframe).to.have.class('swg-wide-dialog');
+    });
+  });
+
+  describe('dialog with iframeCssClassOverride', () => {
+    const iframeCssClassOverride = 'iframe-css-class';
+
+    beforeEach(() => {
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {iframeCssClassOverride}
+      );
+    });
+
+    it('creates iframe with the iframe css class override', async () => {
+      const iframe = dialog.getElement();
+      expect(iframe).to.have.class(iframeCssClassOverride);
+      expect(iframe).to.not.have.class('swg-dialog');
     });
   });
 

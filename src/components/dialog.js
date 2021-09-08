@@ -73,10 +73,13 @@ const resetViewStyles = {
  * - desktopConfig: Options for dialogs on desktop screens.
  * - maxAllowedHeightRatio: The max allowed height of the view as a ratio of the
  *       viewport height.
+ * - iframeCssClassOverride: The CSS class to use for the iframe, overriding
+ *       default classes such as swg-dialog.
  *
  * @typedef {{
  *   desktopConfig: (DesktopDialogConfig|undefined),
  *   maxAllowedHeightRatio: (number|undefined),
+ *   iframeCssClassOverride: (string|undefined),
  * }}
  */
 export let DialogConfig;
@@ -116,9 +119,15 @@ export class Dialog {
     const desktopDialogConfig = dialogConfig.desktopConfig || {};
     const supportsWideScreen = !!desktopDialogConfig.supportsWideScreen;
 
+    const defaultIframeCssClass = `swg-dialog ${
+      supportsWideScreen ? 'swg-wide-dialog' : ''
+    }`;
+    const iframeCssClass =
+      dialogConfig.iframeCssClassOverride || defaultIframeCssClass;
+
     /** @private @const {!FriendlyIframe} */
     this.iframe_ = new FriendlyIframe(doc.getWin().document, {
-      'class': `swg-dialog ${supportsWideScreen ? 'swg-wide-dialog' : ''}`,
+      'class': iframeCssClass,
     });
 
     /** @private @const {!Graypane} */
@@ -203,6 +212,24 @@ export class Dialog {
     } else {
       this.show_();
     }
+
+    return iframe.whenReady().then(() => {
+      this.buildIframe_();
+      return this;
+    });
+  }
+
+  /**
+   * Opens the iframe embedded in the given container element.
+   * @param {!Element} containerEl
+   */
+  openInContainer(containerEl) {
+    const iframe = this.iframe_;
+    if (iframe.isConnected()) {
+      throw new Error('already opened');
+    }
+
+    containerEl.appendChild(iframe.getElement());
 
     return iframe.whenReady().then(() => {
       this.buildIframe_();
