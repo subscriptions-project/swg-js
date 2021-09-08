@@ -20,6 +20,7 @@ import {Preconnect} from '../utils/preconnect';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
+import {getSwgMode} from './services';
 import {isExperimentOn} from './experiments';
 
 const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
@@ -43,7 +44,7 @@ export const PAY_ORIGIN = {
 
 /** @return {string} */
 function payUrl() {
-  return feCached(PAY_ORIGIN['$payEnvironment$'] + '/gp/p/ui/pay');
+  return feCached(PAY_ORIGIN[getSwgMode().payEnv] + '/gp/p/ui/pay');
 }
 
 /**
@@ -134,7 +135,7 @@ export class PayClient {
     this.client_ = this.createClient_(
       /** @type {!PaymentOptions} */
       ({
-        environment: '$payEnvironment$',
+        environment: getSwgMode().payEnv,
         'i': {
           'redirectKey': this.redirectVerifierHelper_.restoreKey(),
         },
