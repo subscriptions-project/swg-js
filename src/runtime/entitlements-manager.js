@@ -28,6 +28,7 @@ import {
   Entitlement,
   Entitlements,
   GOOGLE_METERING_SOURCE,
+  PRIVILEGED_SOURCE,
 } from '../api/entitlements';
 import {
   GetEntitlementsParamsExternalDef,
@@ -595,13 +596,18 @@ export class EntitlementsManager {
 
     const params = new EventParams();
     params.setIsUserRegistered(true);
-    this.deps_
-      .eventManager()
-      .logSwgEvent(
-        AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
-        false,
-        params
-      );
+
+    // Avoid logging events from crawlers.
+    if (entitlement.source !== PRIVILEGED_SOURCE) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          false,
+          params
+        );
+    }
+
     // Check if storage bit is set. It's only set by the `Entitlements.ack` method.
     return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
       const toastWasShown = value === '1';

@@ -35,6 +35,7 @@ import {
   Entitlement,
   Entitlements,
   GOOGLE_METERING_SOURCE,
+  PRIVILEGED_SOURCE,
 } from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
@@ -723,6 +724,39 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       ]);
 
       expect(ents.enablesThis()).to.be.true;
+    });
+
+    it('avoids logging "unlocked by subscription" events from crawlers', async () => {
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('SIGNED_DATA')
+        .returns({
+          entitlements: {
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+            source: PRIVILEGED_SOURCE,
+          },
+        });
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () =>
+              Promise.resolve('{"signedEntitlements": "SIGNED_DATA"}'),
+          })
+        );
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectGetSwgUserTokenToBeCalled();
+
+      await manager.getEntitlements();
     });
 
     it('should only fetch once', async () => {
