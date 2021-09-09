@@ -22,6 +22,9 @@ import {warn} from '../utils/log';
 /** Source for Google-provided metering entitlements. */
 export const GOOGLE_METERING_SOURCE = 'google:metering';
 
+/** Source for privileged entitlements. */
+export const PRIVILEGED_SOURCE = 'privileged';
+
 /** Subscription token for dev mode entitlements. */
 export const DEV_MODE_TOKEN = 'GOOGLE_DEV_MODE_TOKEN';
 
@@ -310,17 +313,17 @@ export class Entitlement {
     if (eq != -1) {
       // Wildcard product (publication:*) unlocks on any entitlement matching publication
       const publication = product.substring(0, eq + 1);
-      if(
+      if (
         publication + '*' == product &&
-        this.products.filter((candidate) => candidate.substring(0, eq + 1) == publication).length >= 1
+        this.products.filter(
+          (candidate) => candidate.substring(0, eq + 1) == publication
+        ).length >= 1
       ) {
         debugLog('enabled with wildcard productId');
         return true;
       }
       // Wildcard entitlement allows any product matching this publication
-      if (
-        this.products.includes(publication + '*')
-      ) {
+      if (this.products.includes(publication + '*')) {
         debugLog('enabled with wildcard entitlement');
         return true;
       }
