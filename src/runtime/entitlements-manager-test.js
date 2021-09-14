@@ -726,7 +726,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(ents.enablesThis()).to.be.true;
     });
 
-    it('avoids logging "unlocked by subscription" events from crawlers', async () => {
+    it('logs a special event when unlocking for crawlers', async () => {
       jwtHelperMock
         .expects('decode')
         .withExactArgs('SIGNED_DATA')
@@ -754,6 +754,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         );
       expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(
+        AnalyticsEvent.EVENT_UNLOCKED_FOR_CRAWLER,
+        false,
+        getEventParams(true)
+      );
       expectGetSwgUserTokenToBeCalled();
 
       await manager.getEntitlements();

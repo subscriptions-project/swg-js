@@ -597,16 +597,12 @@ export class EntitlementsManager {
     const params = new EventParams();
     params.setIsUserRegistered(true);
 
-    // Avoid logging events from crawlers.
-    if (entitlement.source !== PRIVILEGED_SOURCE) {
-      this.deps_
-        .eventManager()
-        .logSwgEvent(
-          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
-          false,
-          params
-        );
-    }
+    // Log unlock event.
+    const eventType =
+      entitlement.source === PRIVILEGED_SOURCE
+        ? AnalyticsEvent.EVENT_UNLOCKED_FOR_CRAWLER
+        : AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION;
+    this.deps_.eventManager().logSwgEvent(eventType, false, params);
 
     // Check if storage bit is set. It's only set by the `Entitlements.ack` method.
     return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
