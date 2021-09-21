@@ -349,7 +349,7 @@ export class PayCompleteFlow {
 
     let confirmFeUrl;
     if (args.productType === ProductType.VIRTUAL_GIFT) {
-      confirmFeUrl = feUrl('/payconfirmiframe', '', {
+      confirmFeUrl = feUrl('/payconfirmiframe', {
         productType: args.productType,
         publicationId: args.publicationId,
         offerId: this.sku_,

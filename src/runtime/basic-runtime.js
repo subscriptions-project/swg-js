@@ -414,7 +414,7 @@ export class ConfiguredBasicRuntime {
 
       this.activities().open(
         CHECK_ENTITLEMENTS_REQUEST_ID,
-        feUrl('/checkentitlements', '', {
+        feUrl('/checkentitlements', {
           'publicationId': publicationId,
         }),
         '_blank',
@@ -459,7 +459,7 @@ export class ConfiguredBasicRuntime {
         // Show 'Signed in as abc@gmail.com' toast on the pub page.
         new Toast(
           this,
-          feUrl('/toastiframe', '', {
+          feUrl('/toastiframe', {
             flavor: 'basic',
           })
         ).open();

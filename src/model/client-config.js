@@ -24,13 +24,15 @@ export class ClientConfig {
    * @param {boolean=} useUpdatedOfferFlows
    * @param {./auto-prompt-config.UiPredicates=} uiPredicates
    * @param {./attribution-params.AttributionParams=} attributionParams
+   * @param {boolean=} usePrefixedHostPath
    */
   constructor(
     autoPromptConfig,
     paySwgVersion,
     useUpdatedOfferFlows,
     uiPredicates,
-    attributionParams
+    attributionParams,
+    usePrefixedHostPath
   ) {
     /** @const {!./auto-prompt-config.AutoPromptConfig|undefined} */
     this.autoPromptConfig = autoPromptConfig;
@@ -40,6 +42,9 @@ export class ClientConfig {
 
     /** @const {boolean} */
     this.useUpdatedOfferFlows = useUpdatedOfferFlows || false;
+
+    /** @const {boolean} */
+    this.usePrefixedHostPath = usePrefixedHostPath || false;
 
     /** @const {./auto-prompt-config.UiPredicates|undefined} */
     this.uiPredicates = uiPredicates;

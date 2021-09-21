@@ -188,7 +188,8 @@ export class ClientConfigManager {
       paySwgVersion,
       json['useUpdatedOfferFlows'],
       uiPredicates,
-      attributionParams
+      attributionParams,
+      json['usePrefixedHostPath']
     );
   }
 }

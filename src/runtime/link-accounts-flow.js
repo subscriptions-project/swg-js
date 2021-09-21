@@ -139,6 +139,9 @@ export class LinkCompleteFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
+    /** @private @const {!./client-config-manager.ClientConfigManager} */
+    this.clientConfigManager_ = deps.clientConfigManager();
+
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
@@ -152,17 +155,31 @@ export class LinkCompleteFlow {
     this.callbacks_ = deps.callbacks();
 
     const index = (response && response['index']) || '0';
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
-      this.win_,
-      this.activityPorts_,
-      feUrl('/linkconfirmiframe', '/u/' + index),
-      feArgs({
-        'productId': deps.pageConfig().getProductId(),
-        'publicationId': deps.pageConfig().getPublicationId(),
-      }),
-      /* shouldFadeBody */ true
-    );
+
+    /** @private {?ActivityIframeView} */
+    this.activityIframeView_ = null;
+
+    /** @private @const {!Promise<!ActivityIframeView>} */
+    this.activityIframeViewPromise_ = this.clientConfigManager_
+      .getClientConfig()
+      .then(
+        (clientConfig) =>
+          new ActivityIframeView(
+            this.win_,
+            this.activityPorts_,
+            feUrl(
+              '/linkconfirmiframe',
+              {},
+              clientConfig.usePrefixedHostPath,
+              'u/' + index
+            ),
+            feArgs({
+              'productId': deps.pageConfig().getProductId(),
+              'publicationId': deps.pageConfig().getPublicationId(),
+            }),
+            /* shouldFadeBody */ true
+          )
+      );
 
     /** @private {?function()} */
     this.completeResolver_ = null;
@@ -178,32 +195,36 @@ export class LinkCompleteFlow {
    * @return {!Promise}
    */
   start() {
-    const promise = this.activityIframeView_.acceptResultAndVerify(
-      feOrigin(),
-      /* requireOriginVerified */ true,
-      /* requireSecureChannel */ true
-    );
-    promise
-      .then((response) => {
-        this.complete_(response);
-      })
-      .catch((reason) => {
-        // Rethrow async.
-        setTimeout(() => {
-          throw reason;
+    return this.activityIframeViewPromise_.then((activityIframeView) => {
+      this.activityIframeView_ = activityIframeView;
+
+      const promise = this.activityIframeView_.acceptResultAndVerify(
+        feOrigin(),
+        /* requireOriginVerified */ true,
+        /* requireSecureChannel */ true
+      );
+      promise
+        .then((response) => {
+          this.complete_(response);
+        })
+        .catch((reason) => {
+          // Rethrow async.
+          setTimeout(() => {
+            throw reason;
+          });
+        })
+        .then(() => {
+          // The flow is complete.
+          this.dialogManager_.completeView(this.activityIframeView_);
         });
-      })
-      .then(() => {
-        // The flow is complete.
-        this.dialogManager_.completeView(this.activityIframeView_);
-      });
-    this.deps_
-      .eventManager()
-      .logSwgEvent(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
-    this.deps_
-      .eventManager()
-      .logSwgEvent(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
-    return this.dialogManager_.openView(this.activityIframeView_);
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
+      return this.dialogManager_.openView(this.activityIframeView_);
+    });
   }
 
   /**
