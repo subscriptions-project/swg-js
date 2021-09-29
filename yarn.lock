@@ -13037,10 +13037,10 @@ yargs@^7.1.0:
     y18n "^3.2.1"
     yargs-parser "5.0.0-security.0"
 
-yarn@1.22.13:
-  version "1.22.13"
-  resolved "https://registry.yarnpkg.com/yarn/-/yarn-1.22.13.tgz#8789ef23b630fe99b819b044f4b7b93ab1bc1b8f"
-  integrity sha512-G8qG4t7Ef5cLVpzbM3HWWsow4hpfeSCfKtMnjfERmp9V5qSCOKz0uGAIQCM/x3gWfCzH8Bvb4hl3ZfhG/XD1Jg==
+yarn@1.22.14:
+  version "1.22.14"
+  resolved "https://registry.yarnpkg.com/yarn/-/yarn-1.22.14.tgz#f77caaa9e86b19e2401c2745a45d20623368acf7"
+  integrity sha512-V6wPpGH6FaToKlXbqzpTnTWzy6kQdzoAz8yR3jhymaxD3wtB70tkagsRQEqFX7leRZAXFjkdaSWwdq91j1VZOw==
 
 yauzl@^2.10.0, yauzl@^2.4.2:
   version "2.10.0"
