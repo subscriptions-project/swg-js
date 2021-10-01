@@ -19,11 +19,16 @@
  * The entry point for Showcase (swg-gaa.js).
  */
 
-import {GaaGoogleSignInButton, GaaMeteringRegwall} from './utils/gaa';
+import {
+  GaaGoogle3pSignInButton,
+  GaaGoogleSignInButton,
+  GaaMeteringRegwall,
+} from './utils/gaa';
 import {log} from './utils/log';
 
 log('Subscriptions Showcase Version: $internalRuntimeVersion$');
 
 // Declare global variables.
 self.GaaGoogleSignInButton = GaaGoogleSignInButton;
+self.GaaGoogle3pSignInButton = GaaGoogle3pSignInButton;
 self.GaaMeteringRegwall = GaaMeteringRegwall;
