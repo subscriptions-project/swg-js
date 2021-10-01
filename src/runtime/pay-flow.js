@@ -331,6 +331,7 @@ export class PayCompleteFlow {
       'isSubscriptionUpdate': !!response['oldSku'],
       'isOneTime': !!response['paymentRecurrence'],
     };
+
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
       args['idToken'] = response.userData.idToken;
@@ -349,12 +350,20 @@ export class PayCompleteFlow {
 
     let confirmFeUrl;
     if (args.productType === ProductType.VIRTUAL_GIFT) {
-      confirmFeUrl = feUrl('/payconfirmiframe', '', {
+      const urlParams = {
         productType: args.productType,
         publicationId: args.publicationId,
         offerId: this.sku_,
         origin: parseUrl(this.win_.location.href).origin,
-      });
+      };
+      if (response.swgUserToken) {
+        urlParams.sut = response.swgUserToken;
+      }
+      const orderId = parseOrderIdFromPurchaseDataSafe(response.purchaseData);
+      if (orderId) {
+        urlParams.orderId = orderId;
+      }
+      confirmFeUrl = feUrl('/payconfirmiframe', '', urlParams);
     } else {
       confirmFeUrl = feUrl('/payconfirmiframe');
     }
@@ -593,5 +602,15 @@ export function parseEntitlements(deps, swgData) {
 function parseSkuFromPurchaseDataSafe(purchaseData) {
   return /** @type {?string} */ (
     getPropertyFromJsonString(purchaseData.raw, 'productId') || null
+  );
+}
+
+/**
+ * @param {!PurchaseData} purchaseData
+ * @return {?string}
+ */
+function parseOrderIdFromPurchaseDataSafe(purchaseData) {
+  return /** @type {?string} */ (
+    getPropertyFromJsonString(purchaseData.raw, 'orderId') || null
   );
 }
