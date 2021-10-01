@@ -901,7 +901,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       userData,
       entitlements,
       ProductType.VIRTUAL_GIFT,
-      null
+      null,
+      null,
+      'swgUserToken'
     );
     entitlementsManagerMock
       .expects('pushNextEntitlements')
@@ -926,7 +928,8 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
           '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
-          expectedOrigin,
+          expectedOrigin +
+          '&sut=swgUserToken&orderId=ORDER',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
