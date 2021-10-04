@@ -340,6 +340,59 @@ describes.realWin('PageConfigResolver', {}, (env) => {
         productId
       );
     });
+
+    it('should handle a graph of objects', () => {
+      schema = {
+        '@graph': [
+          {
+            '@context': 'http://schema.org',
+            '@type': 'NewsArticle',
+            'isAccessibleForFree': 'False',
+            'isPartOf': {
+              '@type': ['CreativeWork', 'Product'],
+              'name': 'The Times Journal',
+              'productID': 'pub1:basic',
+            },
+          },
+          {
+            '@context': 'http://schema.org',
+            '@type': 'NewsArticle',
+            'isAccessibleForFree': 'False',
+            'isPartOf': {
+              '@type': ['CreativeWork', 'Product'],
+              'name': 'The Times Journal',
+              'productID': 'pub1:plus',
+            },
+          },
+        ],
+      };
+
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(gd).check().getProductId()).to.equal(
+        'pub1:basic'
+      );
+    });
+
+    it('should ignore a malformed graph', () => {
+      schema = {
+        '@graph': {
+          '@context': 'http://schema.org',
+          '@type': 'NewsArticle',
+          'isAccessibleForFree': 'False',
+          'isPartOf': {
+            '@type': ['CreativeWork', 'Product'],
+            'name': 'The Times Journal',
+            'productID': 'pub1:basic',
+          },
+        },
+      };
+
+      addJsonLd(schema);
+      readyState = 'complete';
+      const resolver = new PageConfigResolver(gd);
+      expect(resolver.check()).to.be.null;
+    });
   });
 
   describe('parse microdata', () => {
