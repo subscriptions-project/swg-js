@@ -266,9 +266,13 @@ class JsonLdParser {
       possibleConfigs = [possibleConfigs];
     }
 
-    const configs = /** @type {!Array<!JsonObject>} */ (possibleConfigs);
+    let configs = /** @type {!Array<!JsonObject>} */ (possibleConfigs);
     for (let i = 0; i < configs.length; i++) {
       const config = configs[i];
+
+      if (config['@graph'] && Array.isArray(config['@graph'])) {
+        configs = configs.concat(config['@graph']);
+      }
 
       // Must be an ALLOWED_TYPE
       if (!this.checkType_.checkValue(config['@type'], ALLOWED_TYPES)) {

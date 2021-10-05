@@ -27,12 +27,14 @@
  * Creates a header.
  */
 function createHeader() {
+  const environment = location.pathname.match('/qual/') ? 'Qual' : '';
   const element = document.createElement('div');
   element.classList.add('header');
   element./*OK*/ innerHTML = `
   <a href="index.html">
     Swgjs Demos
   </a>
+  <span class="environment">${environment}</span>
   `;
 
   // Add header before the content.
