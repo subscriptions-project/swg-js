@@ -553,8 +553,8 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     productType,
     completeHandler,
     oldSku,
-    paymentRecurrence,
-    swgData['swgUserToken']
+    swgData['swgUserToken'],
+    paymentRecurrence
   );
 }
 
