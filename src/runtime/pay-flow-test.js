@@ -903,7 +903,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       ProductType.VIRTUAL_GIFT,
       null,
       null,
-      'swgUserToken'
+      'swgUserToken',
+      null,
+      {contentId: 'url', anonymous: true}
     );
     entitlementsManagerMock
       .expects('pushNextEntitlements')
@@ -929,7 +931,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
           '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
           expectedOrigin +
-          '&sut=swgUserToken&orderId=ORDER',
+          '&canonicalUrl=url&isAnonymous=true&sut=swgUserToken&orderId=ORDER',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
