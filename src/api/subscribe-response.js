@@ -30,6 +30,7 @@ export class SubscribeResponse {
    * @param {?string=} oldSku
    * @param {?string=} swgUserToken
    * @param {?number=} paymentRecurrence
+   * @param {?Object=} requestMetadata
    */
   constructor(
     raw,
@@ -40,7 +41,8 @@ export class SubscribeResponse {
     completeHandler,
     oldSku = null,
     swgUserToken = null,
-    paymentRecurrence = null
+    paymentRecurrence = null,
+    requestMetadata = null
   ) {
     /** @const {string} */
     this.raw = raw;
@@ -60,6 +62,8 @@ export class SubscribeResponse {
     this.swgUserToken = swgUserToken;
     /** @const {?number} */
     this.paymentRecurrence = paymentRecurrence;
+    /** @const {?Object} */
+    this.requestMetadata = requestMetadata;
   }
 
   /**

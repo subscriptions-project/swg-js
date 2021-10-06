@@ -331,6 +331,7 @@ export class PayCompleteFlow {
       'isSubscriptionUpdate': !!response['oldSku'],
       'isOneTime': !!response['paymentRecurrence'],
     };
+
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     if (response.userData && response.entitlements) {
       args['idToken'] = response.userData.idToken;
@@ -349,12 +350,24 @@ export class PayCompleteFlow {
 
     let confirmFeUrl;
     if (args.productType === ProductType.VIRTUAL_GIFT) {
-      confirmFeUrl = feUrl('/payconfirmiframe', '', {
+      const urlParams = {
         productType: args.productType,
         publicationId: args.publicationId,
         offerId: this.sku_,
         origin: parseUrl(this.win_.location.href).origin,
-      });
+      };
+      if (response.requestMetadata) {
+        urlParams.canonicalUrl = response.requestMetadata.contentId;
+        urlParams.isAnonymous = response.requestMetadata.anonymous;
+      }
+      if (response.swgUserToken) {
+        urlParams.sut = response.swgUserToken;
+      }
+      const orderId = parseOrderIdFromPurchaseDataSafe(response.purchaseData);
+      if (orderId) {
+        urlParams.orderId = orderId;
+      }
+      confirmFeUrl = feUrl('/payconfirmiframe', '', urlParams);
     } else {
       confirmFeUrl = feUrl('/payconfirmiframe');
     }
@@ -501,6 +514,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
   let productType = ProductType.SUBSCRIPTION;
   let oldSku = null;
   let paymentRecurrence = null;
+  let requestMetadata = null;
 
   if (data) {
     if (typeof data == 'string') {
@@ -515,10 +529,10 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
         raw = json['integratorClientCallbackData'];
       }
       if ('paymentRequest' in data) {
-        oldSku = (data['paymentRequest']['swg'] || {})['oldSku'];
-        paymentRecurrence = (data['paymentRequest']['swg'] || {})[
-          'paymentRecurrence'
-        ];
+        const swgObj = data['paymentRequest']['swg'] || {};
+        oldSku = swgObj['oldSku'];
+        paymentRecurrence = swgObj['paymentRecurrence'];
+        requestMetadata = swgObj['metadata'];
         productType =
           (data['paymentRequest']['i'] || {})['productType'] ||
           ProductType.SUBSCRIPTION;
@@ -544,8 +558,9 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
     productType,
     completeHandler,
     oldSku,
+    swgData['swgUserToken'],
     paymentRecurrence,
-    swgData['swgUserToken']
+    requestMetadata
   );
 }
 
@@ -593,5 +608,15 @@ export function parseEntitlements(deps, swgData) {
 function parseSkuFromPurchaseDataSafe(purchaseData) {
   return /** @type {?string} */ (
     getPropertyFromJsonString(purchaseData.raw, 'productId') || null
+  );
+}
+
+/**
+ * @param {!PurchaseData} purchaseData
+ * @return {?string}
+ */
+function parseOrderIdFromPurchaseDataSafe(purchaseData) {
+  return /** @type {?string} */ (
+    getPropertyFromJsonString(purchaseData.raw, 'orderId') || null
   );
 }

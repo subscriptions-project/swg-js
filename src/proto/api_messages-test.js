@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -773,6 +773,47 @@ describe('LinkingInfoResponse', () => {
     // Verify fields.
     expect(linkinginforesponseDeserialized.getRequested()).to.deep.equal(
         linkinginforesponse.getRequested());
+  });
+});
+
+describe('OpenDialogRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !OpenDialogRequest  */ opendialogrequest = new OpenDialogRequest();
+    opendialogrequest.setUrlPath('');
+
+    let opendialogrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    opendialogrequestDeserialized = deserialize(
+        opendialogrequest.toArray(undefined));
+    expect(opendialogrequestDeserialized.toArray(undefined)).to.deep.equal(
+        opendialogrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(opendialogrequestDeserialized.getUrlPath()).to.deep.equal(
+        opendialogrequest.getUrlPath());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    opendialogrequestDeserialized = deserialize(
+        opendialogrequest.toArray(true));
+    expect(opendialogrequestDeserialized.toArray(true)).to.deep.equal(
+        opendialogrequest.toArray(true));
+
+    // Verify fields.
+    expect(opendialogrequestDeserialized.getUrlPath()).to.deep.equal(
+        opendialogrequest.getUrlPath());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    opendialogrequestDeserialized = new OpenDialogRequest(opendialogrequest.toArray(false), false);
+    expect(opendialogrequestDeserialized.toArray(false)).to.deep.equal(
+        opendialogrequest.toArray(false));
+
+    // Verify fields.
+    expect(opendialogrequestDeserialized.getUrlPath()).to.deep.equal(
+        opendialogrequest.getUrlPath());
   });
 });
 
