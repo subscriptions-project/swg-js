@@ -242,7 +242,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
     await startPromise;
     expect(startStub).to.be.calledWithExactly();
     const activityIframeView = await instance.activityIframeViewPromise_;
-    expect(activityIframeView.src_).to.contain('/u/1/');
+    expect(activityIframeView.src_).to.contain('/u/1/swg/');
     expect(triggerFlowCancelSpy).to.not.be.called;
   });
 
