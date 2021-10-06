@@ -47,7 +47,9 @@ describes.realWin('ClientConfigManager', {}, () => {
 
     let clientConfig = await clientConfigManager.fetchClientConfig();
     const expectedAutoPromptConfig = new AutoPromptConfig(1);
-    const expectedClientConfig = new ClientConfig(expectedAutoPromptConfig);
+    const expectedClientConfig = new ClientConfig({
+      autoPromptConfig: expectedAutoPromptConfig,
+    });
     expect(clientConfig).to.deep.equal(expectedClientConfig);
 
     clientConfig = await clientConfigManager.getClientConfig();

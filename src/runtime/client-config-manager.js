@@ -152,9 +152,9 @@ export class ClientConfigManager {
    * @return {!ClientConfig}
    */
   parseClientConfig_(json) {
-    const paySwgVersion = json['paySwgVersion'];
+    const paySwgVersion = json['paySwgVersion'] || null;
     const autoPromptConfigJson = json['autoPromptConfig'];
-    let autoPromptConfig = undefined;
+    let autoPromptConfig = null;
     if (autoPromptConfigJson) {
       autoPromptConfig = new AutoPromptConfig(
         autoPromptConfigJson.maxImpressionsPerWeek,
@@ -166,7 +166,7 @@ export class ClientConfigManager {
     }
 
     const uiPredicatesJson = json['uiPredicates'];
-    let uiPredicates = undefined;
+    let uiPredicates = null;
     if (uiPredicatesJson) {
       uiPredicates = new UiPredicates(
         uiPredicatesJson.canDisplayAutoPrompt,
@@ -175,7 +175,7 @@ export class ClientConfigManager {
     }
 
     const attributionParamsJson = json['attributionParams'];
-    let attributionParams;
+    let attributionParams = null;
     if (attributionParamsJson) {
       attributionParams = new AttributionParams(
         attributionParamsJson.displayName,
@@ -183,12 +183,12 @@ export class ClientConfigManager {
       );
     }
 
-    return new ClientConfig(
+    return new ClientConfig({
       autoPromptConfig,
       paySwgVersion,
-      json['useUpdatedOfferFlows'],
+      useUpdatedOfferFlows: json['useUpdatedOfferFlows'],
       uiPredicates,
-      attributionParams
-    );
+      attributionParams,
+    });
   }
 }

@@ -19,32 +19,28 @@
  */
 export class ClientConfig {
   /**
-   * @param {!./auto-prompt-config.AutoPromptConfig=} autoPromptConfig
-   * @param {string=} paySwgVersion
-   * @param {boolean=} useUpdatedOfferFlows
-   * @param {./auto-prompt-config.UiPredicates=} uiPredicates
-   * @param {./attribution-params.AttributionParams=} attributionParams
+   * @param {{attributionParams: ./attribution-params.AttributionParams, autoPromptConfig: ./auto-prompt-config.AutoPromptConfig, paySwgVersion: string, uiPredicates: ./auto-prompt-config.UiPredicates, useUpdatedOfferFlows: boolean}} options
    */
-  constructor(
+  constructor({
+    attributionParams,
     autoPromptConfig,
     paySwgVersion,
-    useUpdatedOfferFlows,
     uiPredicates,
-    attributionParams
-  ) {
+    useUpdatedOfferFlows,
+  } = {}) {
     /** @const {!./auto-prompt-config.AutoPromptConfig|undefined} */
-    this.autoPromptConfig = autoPromptConfig;
+    this.autoPromptConfig = autoPromptConfig || undefined;
 
     /** @const {string|undefined} */
-    this.paySwgVersion = paySwgVersion;
+    this.paySwgVersion = paySwgVersion || undefined;
 
     /** @const {boolean} */
     this.useUpdatedOfferFlows = useUpdatedOfferFlows || false;
 
     /** @const {./auto-prompt-config.UiPredicates|undefined} */
-    this.uiPredicates = uiPredicates;
+    this.uiPredicates = uiPredicates || undefined;
 
     /** @const {./attribution-params.AttributionParams|undefined} */
-    this.attributionParams = attributionParams;
+    this.attributionParams = attributionParams || undefined;
   }
 }
