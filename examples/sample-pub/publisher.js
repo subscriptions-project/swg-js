@@ -134,8 +134,14 @@ function startFlowAuto() {
   let flow = (location.search || '').split('?')[1] || 'demo';
 
   // Provide a shortcut to metering params.
-  if (location.search === '?metering') {
-    location.search = 'gaa_at=g&gaa_ts=99999999&gaa_n=n0nc3&gaa_sig=51g';
+  const urlParams = new URLSearchParams(location.search);
+  if (urlParams.has('metering')) {
+    let newSearch = 'gaa_at=g&gaa_ts=99999999&gaa_n=n0nc3&gaa_sig=51g';
+    // Include 3p sign in param if specified.
+    if (urlParams.get('use3pSignIn') === 'true') {
+      newSearch += '&use3pSignIn=true';
+    }
+    location.search = newSearch;
     return;
   }
 
@@ -212,9 +218,13 @@ function startFlowAuto() {
               return meteringState;
             }
 
+            const use3pSignIn= getQueryParams().use3pSignIn === 'true';
             const regwallParams = {
-              // Specify a URL that renders a Google Sign-In button.
-              iframeUrl: MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL,
+              // Specify a URL that renders a sign-in button. Render the third
+              // party button if specified, Google Sign-In button otherwise.
+              iframeUrl: use3pSignIn ?
+                MeteringDemo.GOOGLE_3P_SIGN_IN_IFRAME_URL :
+                MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL,
             };
 
             // Optionally add a CASL link, for demo purposes.

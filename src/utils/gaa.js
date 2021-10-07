@@ -929,7 +929,7 @@ const GOOGLE_3P_SIGN_IN_IFRAME_STYLES =
   }
   `;
 
-const GOOGLE_SIGN_IN_BUTTON_HTML = `
+const GOOGLE_3P_SIGN_IN_BUTTON_HTML = `
 <div style="height:36px;width:180px;" class="abcRioButton abcRioButtonBlue">
   <span style="font-size:15px;line-height:34px;" class="abcRioButtonContents">
     <span id="not_signed_in">Sign in with Google</span>
@@ -953,7 +953,7 @@ export class GaaGoogle3pSignInButton {
     const styleEl = self.document.createElement('style');
     styleEl./*OK*/ innerText = GOOGLE_3P_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'][languageCode]
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
     );
     self.document.head.appendChild(styleEl);
 
@@ -961,7 +961,7 @@ export class GaaGoogle3pSignInButton {
     const buttonEl = self.document.createElement('div');
     buttonEl.id = GOOGLE_3P_SIGN_IN_BUTTON_ID;
     buttonEl.tabIndex = 0;
-    buttonEl.innerHTML = GOOGLE_SIGN_IN_BUTTON_HTML;
+    buttonEl.innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = () => {
       self.open(authorizationUrl);
     };
