@@ -2,7 +2,7 @@
   "name": "swgjs-demos",
   "scripts": {
     "start": "node index.js",
-    "deploy": "gcloud app deploy"
+    "deploy": "gcloud config set project swgjs-demos && gcloud app deploy"
   },
   "version": "1.0.0",
   "main": "index.js",
